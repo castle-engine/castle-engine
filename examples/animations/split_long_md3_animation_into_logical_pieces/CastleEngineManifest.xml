@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
+<project name="split_long_md3_animation_into_logical_pieces"
+  standalone_source="split_long_md3_animation_into_logical_pieces_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.split.long.md3.animation.into.logical.pieces"
+  caption="Demo of using one long MD3 animation split into a few logical pieces"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+</project>

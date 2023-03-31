@@ -18,14 +18,12 @@ unit CastleScriptArrays;
 
 {$I castleconf.inc}
 
-{$ifndef FPC}
-  {$message fatal 'This unit is not yet ported to Delphi'}
-{$endif}
-
 interface
 
 uses CastleVectors, CastleScript, CastleScriptVectors, CastleUtils, CastleStringUtils,
   CastleScriptCoreFunctions;
+
+{$ifdef CASTLE_SCRIPT_FPC} // TODO: Our current usage of generics doesn't compile with Delphi
 
 type
   TCasScriptArrayFun = class;
@@ -212,9 +210,13 @@ type
     class function ShortName: string; override;
   end;
 
+{$endif CASTLE_SCRIPT_FPC}
+
 implementation
 
 uses SysUtils, CastleCurves;
+
+{$ifdef CASTLE_SCRIPT_FPC} // TODO: Our current usage of generics doesn't compile with Delphi
 
 { TCasScriptArray ------------------------------------------------------------ }
 
@@ -642,4 +644,5 @@ initialization
   FunctionHandlers.RegisterHandler({$ifdef FPC}@{$endif} TCasScriptSingleArray {$ifdef FPC}(nil){$endif} .HandleHermiteTenseSpline, TCasScriptHermiteTenseSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
 
   RegisterCharacterFunctions;
+{$endif CASTLE_SCRIPT_FPC}
 end.

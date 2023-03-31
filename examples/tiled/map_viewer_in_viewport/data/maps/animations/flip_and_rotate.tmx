@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="10" height="5" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="1">
+ <tileset firstgid="1" name="crystal-qubodup-ccby3-32-blue" tilewidth="32" tileheight="32" tilecount="8" columns="8">
+  <image source="crystal-qubodup-ccby3-32-blue.png" width="256" height="32"/>
+  <tile id="0">
+   <animation>
+    <frame tileid="0" duration="250"/>
+    <frame tileid="1" duration="250"/>
+    <frame tileid="2" duration="250"/>
+    <frame tileid="3" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="5" duration="250"/>
+    <frame tileid="6" duration="250"/>
+    <frame tileid="7" duration="250"/>
+   </animation>
+  </tile>
+ </tileset>
+ <tileset firstgid="9" name="devil" tilewidth="50" tileheight="50" tilecount="4" columns="4">
+  <image source="devil-animation.png" width="200" height="50"/>
+  <tile id="0">
+   <animation>
+    <frame tileid="0" duration="500"/>
+    <frame tileid="1" duration="300"/>
+    <frame tileid="2" duration="250"/>
+    <frame tileid="3" duration="250"/>
+   </animation>
+  </tile>
+ </tileset>
+ <layer id="3" name="bg" width="10" height="5">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="1" name="gemstone" width="10" height="5">
+  <data encoding="csv">
+2684354561,2684354561,2684354561,2684354561,2684354561,2684354561,2684354561,2684354561,2684354561,2684354561,
+1610612737,1610612737,1610612737,1610612737,1610612737,1610612737,1610612737,1610612737,1610612737,1610612737,
+1073741825,1073741825,1073741825,1073741825,1073741825,1073741825,1073741825,1073741825,1073741825,1073741825,
+2147483649,2147483649,2147483649,2147483649,2147483649,2147483649,2147483649,2147483649,2147483649,2147483649,
+1,1,1,1,1,1,1,1,1,1
+</data>
+ </layer>
+ <layer id="2" name="devil" width="10" height="5">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,
+0,0,9,0,0,2147483657,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+</map>

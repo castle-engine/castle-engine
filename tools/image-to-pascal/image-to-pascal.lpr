@@ -42,19 +42,17 @@
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
-uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils, CastleProgress,
-  CastleProgressConsole, CastleParameters, CastleURIUtils, CastleStringUtils,
+uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils,
+  CastleParameters, CastleURIUtils, CastleStringUtils,
   CastleClassUtils, CastleDownload;
 
 var
-  ShowProgress: boolean = true;
   OutputDirectory: string = '';
 
 const
-  Options: array [0..3] of TOption = (
+  Options: array [0..2] of TOption = (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
-    (Short: #0 ; Long: 'no-show-progress'; Argument: oaNone),
     (Short: 'o'; Long: 'output'; Argument: oaRequired)
   );
 
@@ -73,15 +71,12 @@ begin
            'Available options are:' +NL+
            OptionDescription('-h / --help', 'Print this help message and exit.') + NL +
            OptionDescription('-v / --version', 'Print the version number and exit.') + NL +
-           '  --no-show-progress    Do not show progress on stderr.' +NL+
-           '  -o / --output DIRECTORY' +NL+
-           '                        Place output unit files inside this dir.' +NL+
-           '  @alpha=strip          Strip the alpha channel from the following' +NL+
-           '                        images.' +NL+
-           '  @alpha=keep           Keep the alpha channel on the following' +NL+
-           '                        images (the default). As a result,' +NL+
-           '                        alpha channel will be stored in source files.'
-          );
+           OptionDescription('--no-show-progress', 'Do not show progress on stderr.') + NL +
+           OptionDescription('-o / --output DIRECTORY', 'Place output unit files inside this dir.') + NL +
+           OptionDescription('@alpha=keep', 'Keep the alpha channel on the following images (the default). As a result, alpha channel will be stored in source files.') + NL +
+           OptionDescription('@alpha=strip', 'Strip the alpha channel from the following images.') + NL +
+           OptionDescription('@alpha=keep-and-bleed', 'Like "keep", moreover perform "alpha bleeding" (see https://castle-engine.io/manual_alpha_bleeding.php ) to fix RGB values under transparent pixels.') + NL
+         );
          Halt;
        end;
     1: begin
@@ -89,8 +84,7 @@ begin
          Writeln(ApplicationName + ' ' + CastleEngineVersion);
          Halt;
        end;
-    2: ShowProgress := false;
-    3: OutputDirectory := Argument + '/';
+    2: OutputDirectory := Argument + '/';
     else raise EInternalError.Create('OptionProc -- unknown arg');
   end;
 end;
@@ -109,6 +103,9 @@ begin
   Result[1] := UpCase(Result[1]);
 end;
 
+type
+  TAlpha = (alphaKeep, alphaStrip, alphaKeepAndBleed);
+
 var
   Image, TempImage: TCastleImage;
   ImageURL: string;
@@ -116,16 +113,13 @@ var
   CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string;
   ImageIndex: Integer;
   OutputUnit: TTextWriter;
-  AlphaStrip: boolean = false;
+  Alpha: TAlpha = alphaKeep;
 begin
   { parse params }
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHighAtLeast(2);
   UnitName := Parameters[1];
   Parameters.Delete(1);
-
-  { init progres }
-  Progress.UserInterface := ProgressConsoleInterface;
 
   { calculate unit's content from images into Images* strings }
   CodeInterface := '';
@@ -138,12 +132,17 @@ begin
 
     if ImageURL = '@alpha=strip' then
     begin
-      AlphaStrip := true;
+      Alpha := alphaStrip;
       Continue;
     end else
     if ImageURL = '@alpha=keep' then
     begin
-      AlphaStrip := false;
+      Alpha := alphaKeep;
+      Continue;
+    end else
+    if ImageURL = '@alpha=keep-and-bleed' then
+    begin
+      Alpha := alphaKeepAndBleed;
       Continue;
     end;
 
@@ -151,15 +150,39 @@ begin
     ImageName := PascalNameFromURL(ImageURL);
     Image := LoadImage(ImageURL);
     try
-      if AlphaStrip and Image.HasAlpha then
+      if Image.HasAlpha then
       begin
-        TempImage := TRGBImage.Create;
-        TempImage.Assign(Image);
-        FreeAndNil(Image);
-        Image := TempImage;
-        TempImage := nil; {< for safety }
+        case Alpha of
+          alphaStrip:
+            begin
+              Writeln(ErrOutput, 'Stripping alpha from ', ImageURL);
+              TempImage := TRGBImage.Create;
+              TempImage.Assign(Image);
+              FreeAndNil(Image);
+              Image := TempImage;
+              TempImage := nil; {< for safety }
+            end;
+          alphaKeepAndBleed:
+            begin
+              Writeln(ErrOutput, 'Making alpha bleeding on ', ImageURL);
+              // convert to TRGBAlphaImage as alpha bleeding is implemented only there
+              TempImage := TRGBAlphaImage.Create;
+              TempImage.Assign(Image);
+              TempImage.AlphaBleed;
+              FreeAndNil(Image);
+              Image := TempImage;
+              TempImage := nil; {< for safety }
+            end;
+          else { do nothing for alphaKeep };
+        end;
       end;
-      Image.SaveToPascalCode(ImageName, ShowProgress,
+
+      Writeln(ErrOutput, Format('Generating %s (%s, alpha: %s)', [
+        ImageName,
+        Image.ClassName,
+        AlphaToString[Image.AlphaChannel]
+      ]));
+      Image.SaveToPascalCode(ImageName,
         CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization);
     finally FreeAndNil(Image) end;
   end;

@@ -1,0 +1,20 @@
+{
+  "$$ClassName" : "TCastleScene",
+  "AutoAnimation" : "idle",
+  "DefaultAnimationTransition" : 1.0000000149011612E-001,
+  "ExposeTransforms" : [
+  ],
+  "Name" : "Scene1",
+  "Pickable" : false,
+  "ProcessEvents" : true,
+  "RenderOptions" : {
+    "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+  },
+  "ScalePersistent" : {
+    "$$ClassName" : "TCastleVector3Persistent",
+    "X" : 6.9999998807907104E-001,
+    "Y" : 6.9999998807907104E-001,
+    "Z" : 6.9999998807907104E-001
+  },
+  "URL" : "castle-data:/avatar/avatar.gltf"
+}

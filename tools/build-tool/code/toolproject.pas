@@ -1452,8 +1452,11 @@ begin
     ExtractTemplate('custom_editor_template/', EditorPath, true);
 
     // use lazbuild to compile CGE packages and CGE editor
-    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_base.lpk']);
-    RunLazbuild(Path, [CgePath + 'packages' + PathDelim + 'castle_components.lpk']);
+    RunLazbuild(Path, [CgePath + 'src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk']);
+    RunLazbuild(Path, [CgePath + 'src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages/castle_base.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages/castle_components.lpk']);
+    RunLazbuild(Path, [CgePath + 'packages/castle_editor_components.lpk']);
     RunLazbuild(Path, [EditorPath + 'castle_editor_automatic_package.lpk']);
     RunLazbuild(Path, [EditorPath + 'castle_editor.lpi']);
   end;
@@ -1528,7 +1531,19 @@ procedure TCastleProject.DoEditorRun(const WaitForProcessId: TProcessId);
   end;
 
 var
-  EditorExe, NewEditorExe, EditorPath: String;
+  EditorPath: String;
+
+  function GetEditorExe(const Suffix: String): String;
+  begin
+    Result := EditorPath + 'castle-editor' + Suffix + ExeExtension;
+    {$ifdef DARWIN}
+    // on macOS, run new editor through app bundle
+    Result := Result + '.app/Contents/MacOS/castle-editor' + Suffix;
+    {$endif}
+  end;
+
+var
+  EditorExe{$ifndef DARWIN}, NewEditorExe{$endif}: String;
   NewEnvironment: TStringList;
 begin
   {$ifdef UNIX}
@@ -1554,17 +1569,24 @@ begin
       to not block EXE and DLL files on Windows. }
     AddExternalLibraries(EditorPath);
 
-    NewEditorExe := EditorPath + 'castle-editor-new' + ExeExtension;
-    if not RegularFileExists(NewEditorExe) then
-      raise Exception.Create('Editor should be compiled, but we cannot find file "' + NewEditorExe + '"');
-
     {$ifdef DARWIN}
-    // on macOS, run new editor through app bundle
-    EditorExe := NewEditorExe + '.app/Contents/MacOS/castle-editor-new';
+    { on macOS, run new editor through app bundle.
+      We never rename it (no need to, and this is simplest), it always remains with -new suffix). }
+    EditorExe := GetEditorExe('-new');
     {$else}
-    EditorExe := EditorPath + 'castle-editor' + ExeExtension;
-    CheckRenameFile(NewEditorExe, EditorExe);
+    NewEditorExe := GetEditorExe('-new');
+    EditorExe := GetEditorExe('');
+    { Rename NewEditorExe -> EditorExe.
+      If you use DoEditorRebuildIfNeeded + DoEditorRun, the NewEditorExe must exist.
+      But if you directly use DoEditorRun (e.g. using "Run Last Editor" from CGE editor)
+      then NewEditorExe may not exist. }
+    if RegularFileExists(NewEditorExe) then
+      CheckRenameFile(NewEditorExe, EditorExe);
     {$endif}
+
+    // whether we renamed NewEditorExe or not, whether it's in macOS bundle or not, it must exist
+    if not RegularFileExists(EditorExe) then
+      raise Exception.Create('Editor should be compiled, but we cannot find file "' + EditorExe + '"');
 
     { When running custom editor build, we must make sure it can find CGE location,
       in particular so it can find editor's data (which means InternalCastleDesignData
@@ -1865,6 +1887,15 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
   end;
 
   function DelphiSearchPaths: String;
+
+    { Make DPROJ generated on Windows and Unix the same.
+      We use slashes as they work on both Windows and Unix
+      (through Delphi IDE is for now only on Windows, so using backslashes would be OK too.) }
+    function PathNormalizeDelimiter(const S: String): String;
+    begin
+      Result := SReplaceChars(S, '\', '/');
+    end;
+
   var
     RelativeEnginePaths: Boolean;
     S, EnginePathPrefix: String;
@@ -1879,11 +1910,11 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       EnginePathPrefix := CastleEnginePath + 'src/';
     Result := '';
     for S in EnginePaths do
-      Result := SAppendPart(Result, ';', EnginePathPrefix + S);
+      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
     for S in EnginePathsDelphi do
-      Result := SAppendPart(Result, ';', EnginePathPrefix + S);
+      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
     for S in Manifest.SearchPaths do
-      Result := SAppendPart(Result, ';', S);
+      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(S));
   end;
 
   procedure AddMacrosLazarusProject(const Macros: TStringStringMap);
@@ -1945,6 +1976,23 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
   var
     MyGuid: TGUID;
   begin
+    { TODO: Implement and use CreateGUIDFromHash(String),
+      when build tool is called with --guid-from-name .
+
+      Then CreateGUIDFromHash does
+      - save/restore RandSeed
+      - sets RandSeed to something based on Project.QualifiedName
+      - use reliable and cross-platform GUID generation just using Random
+      - and in effect, for the same Project.QualifiedName, will always generate same GUID.
+
+      regenerate_auto_files_in_all_examples.sh could use this.
+      Or maybe it should be specified in CastleEngineManifest.xml?
+      Then regenerate_auto_files_in_all_examples.sh results will be stable between reruns.
+
+      (We don't want to do this by default, as people could copy examples to their own,
+      without changing name? Although if they copy the DPROJ, they will have duplicate GUID
+      anyway... Maybe we can do this by default without any damage?)
+    }
     CreateGUID(MyGuid);
     Result := GUIDToString(MyGuid);
   end;

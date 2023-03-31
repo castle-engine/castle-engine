@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -229,7 +229,7 @@ begin
   ]);
 
   FGeometry := TLineSetNode.Create;
-  FGeometry.SetVertexCount([2, 2, 2]);
+  FGeometry.Mode := lmPair;
   FGeometry.Coord := FCoord;
 
   Material := TUnlitMaterialNode.Create;

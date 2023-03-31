@@ -13,8 +13,10 @@ float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
      sampler2DShadow using texture*, not shadow2D* functions.
      See https://stackoverflow.com/a/22426507
      https://www.khronos.org/opengl/wiki/Sampler_(GLSL)
+
+     Modern GLSL (from #version 140) also requires it.
   */
-  #ifdef GL_ES
+  #ifdef CASTLE_GLSL_VERSION_UPGRADE
   return texture(shadowMap, shadowMapCoord);
   #else
   return shadow2D(shadowMap, shadowMapCoord).r;
@@ -23,7 +25,7 @@ float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
 
 float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)
 {
-  #ifdef GL_ES
+  #ifdef CASTLE_GLSL_VERSION_UPGRADE
   return textureProj(shadowMap, shadowMapCoord);
   #else
   return shadow2DProj(shadowMap, shadowMapCoord).r;
@@ -36,13 +38,15 @@ float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,
   /* Avoid back-projecting shadows. */
   if (shadowMapCoord.z < 0.0) return 0.0;
 
-  /* When coord2 is outside (0, 0) - (1, 1) square,
-     it's always in the shadow. Otherwise shadows would be stretched
-     over whole scene, due to clamping. */
+  /* When coord2 is outside (0, 0) - (1, 1) square, it's never in the shadow.
+     This makes sense, see
+     https://github.com/castle-engine/castle-engine/issues/308
+     and demo-models/shadow_maps/explicit_projection_parameters/
+  */
   vec2 coord2 = shadowMapCoord.st / shadowMapCoord.q;
   if (coord2.s < 0.0 || coord2.s > 1.0 ||
       coord2.t < 0.0 || coord2.t > 1.0)
-    return 0.0;
+    return 1.0;
 
 #ifdef PCF4_BILINEAR
 

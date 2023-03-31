@@ -215,6 +215,7 @@ long
 loop
 looping
 major
+mask
 map
 material
 materials
@@ -242,6 +243,7 @@ normal
 normalize
 normalized
 normals
+notification
 notifications
 number
 nurbs

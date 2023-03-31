@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,8 +25,9 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     ButtonHeadlightOff,
       ButtonHeadlightDirectional,
@@ -37,6 +38,7 @@ type
       HeadlightSpotSmooth,
       HeadlightSpotSharp,
       HeadlightPoint: TCastleAbstractLight;
+  private
     procedure ClickHeadlightOff(Sender: TObject);
     procedure ClickHeadlightDirectional(Sender: TObject);
     procedure ClickHeadlightSpotSmooth(Sender: TObject);
@@ -66,19 +68,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  ButtonHeadlightOff := DesignedComponent('ButtonHeadlightOff') as TCastleButton;
-  ButtonHeadlightDirectional := DesignedComponent('ButtonHeadlightDirectional') as TCastleButton;
-  ButtonHeadlightSpotSmooth := DesignedComponent('ButtonHeadlightSpotSmooth') as TCastleButton;
-  ButtonHeadlightSpotSharp := DesignedComponent('ButtonHeadlightSpotSharp') as TCastleButton;
-  ButtonHeadlightPoint := DesignedComponent('ButtonHeadlightPoint') as TCastleButton;
-  HeadlightDirectional := DesignedComponent('HeadlightDirectional') as TCastleAbstractLight;
-  HeadlightSpotSmooth := DesignedComponent('HeadlightSpotSmooth') as TCastleAbstractLight;
-  HeadlightSpotSharp := DesignedComponent('HeadlightSpotSharp') as TCastleAbstractLight;
-  HeadlightPoint := DesignedComponent('HeadlightPoint') as TCastleAbstractLight;
-
   ButtonHeadlightOff.OnClick := {$ifdef FPC}@{$endif} ClickHeadlightOff;
   ButtonHeadlightDirectional.OnClick := {$ifdef FPC}@{$endif} ClickHeadlightDirectional;
   ButtonHeadlightSpotSmooth.OnClick := {$ifdef FPC}@{$endif} ClickHeadlightSpotSmooth;

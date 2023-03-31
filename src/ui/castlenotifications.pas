@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -261,7 +261,7 @@ var
 begin
   inherited;
   PreferredWidth := 0;
-  PreferredHeight := Font.RowHeight * Messages.Count;
+  PreferredHeight := Font.Height * Messages.Count;
   for I := 0 to Messages.Count - 1 do
     PreferredWidth := Max(PreferredWidth, Messages[I].Width);
 end;
@@ -274,8 +274,8 @@ var
     const MessageColor: TCastleColor; const Text: String);
   begin
     Font.PrintRect(FloatRectangle(SR.Left,
-      SR.Bottom + (MessagesCount - 1 - MessageIndex) * Font.RowHeight,
-      SR.Width, Font.RowHeight), MessageColor, Text,
+      SR.Bottom + (MessagesCount - 1 - MessageIndex) * Font.Height,
+      SR.Width, Font.Height), MessageColor, Text,
       TextAlignment, vpBottom);
   end;
 

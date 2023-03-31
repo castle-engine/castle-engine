@@ -1,6 +1,6 @@
 // -*- compile-command: "castle-engine compile --mode=release && castle-engine run -- ../../../" -*-
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -91,9 +91,9 @@ begin
     begin
       FileElement := FilesElement.Child('Item' + IntToStr(I));
       FileName := FileElement.Child('Filename').AttributeString('Value');
-      if not IsPrefix('../src/', FileName, not FileNameCaseSensitive) then
-        PackageWarning('All filenames in lpk must be in CGE src, invalid: %s', [FileName]);
-      FileName := PrefixRemove('../src/', FileName, not FileNameCaseSensitive);
+      if not IsPrefix('../', FileName, not FileNameCaseSensitive) then
+        PackageWarning('All filenames in lpk must be in CGE root, invalid: %s', [FileName]);
+      FileName := PrefixRemove('../', FileName, not FileNameCaseSensitive);
       Files.Append(FileName);
     end;
   finally FreeAndNil(Doc) end;
@@ -114,9 +114,9 @@ begin
   FileName := FileInfo.AbsoluteName;
   FileName := SReplaceChars(FileName, PathDelim, '/'); // replace backslashes with slashes on Windows
 
-  CgePrefix := CgePathExpanded + 'src/';
+  CgePrefix := CgePathExpanded;
   if not IsPrefix(CgePrefix, FileName, not FileNameCaseSensitive) then
-    PackageWarning('All found files must be in CGE src, invalid: %s', [FileName]);
+    PackageWarning('All found files must be in CGE root, invalid: %s', [FileName]);
   FileName := PrefixRemove(CgePrefix, FileName, not FileNameCaseSensitive);
 
   RequiredFilesList.Append(FileName);
@@ -130,9 +130,9 @@ begin
   FileName := FileInfo.AbsoluteName;
   FileName := SReplaceChars(FileName, PathDelim, '/'); // replace backslashes with slashes on Windows
 
-  CgePrefix := CgePathExpanded + 'src/';
+  CgePrefix := CgePathExpanded;
   if not IsPrefix(CgePrefix, FileName, not FileNameCaseSensitive) then
-    PackageWarning('All found files must be in CGE src, invalid: %s', [FileName]);
+    PackageWarning('All found files must be in CGE root, invalid: %s', [FileName]);
   FileName := PrefixRemove(CgePrefix, FileName, not FileNameCaseSensitive);
 
   I := RequiredFilesList.IndexOf(FileName);
@@ -163,7 +163,7 @@ begin
   RequiredFilesList.CaseSensitive := FileNameCaseSensitive;
   for I := 0 to High(RequiredFiles) do
   begin
-    FindPath := CgePathExpanded + 'src' + PathDelim + RequiredFiles[I] + PathDelim;
+    FindPath := CgePathExpanded + RequiredFiles[I] + PathDelim;
     FindFiles(FindPath, '*.inc', false, @GatherRequiredFiles, [ffRecursive]);
     FindFiles(FindPath, '*.pas', false, @GatherRequiredFiles, [ffRecursive]);
     FindFiles(FindPath, '*.image_data', false, @GatherRequiredFiles, [ffRecursive]);
@@ -174,7 +174,7 @@ begin
   { remove ExcludedFromRequiredFiles }
   for I := 0 to High(ExcludedFromRequiredFiles) do
   begin
-    FindPath := CgePathExpanded + 'src' + PathDelim + ExcludedFromRequiredFiles[I] + PathDelim;
+    FindPath := CgePathExpanded + ExcludedFromRequiredFiles[I] + PathDelim;
     FindFiles(FindPath, '*.inc', false, @ExcludeFromRequiredFiles, [ffRecursive]);
     FindFiles(FindPath, '*.pas', false, @ExcludeFromRequiredFiles, [ffRecursive]);
     FindFiles(FindPath, '*.image_data', false, @ExcludeFromRequiredFiles, [ffRecursive]);
@@ -233,7 +233,7 @@ begin
       Inc(FilesCount); // ItemXxx numbering is 1-based, so increment FilesCount first
       FileElement := FilesElement.CreateChild('Item' + IntToStr(FilesCount));
       FileFilenameElement := FileElement.CreateChild('Filename');
-      FileFilenameElement.AttributeSet('Value', '../src/' + MissingFile);
+      FileFilenameElement.AttributeSet('Value', '../' + MissingFile);
       if ExtractFileExt(MissingFile) = '.inc' then
       begin
         FileTypeElement := FileElement.CreateChild('Type');
@@ -268,24 +268,24 @@ begin
   Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_base.lpk');
   try
     Lpk.CheckFiles([
-     'common_includes',
-     'transform',
-     'audio',
-     'base',
-     'base_rendering',
-     'castlescript',
-     'files',
-     'fonts',
-     'images',
-     'physics',
-     'services',
-     'ui',
-     'scene',
-     'deprecated_units'
+      'src/common_includes',
+      'src/transform',
+      'src/audio',
+      'src/base',
+      'src/base_rendering',
+      'src/castlescript',
+      'src/files',
+      'src/fonts',
+      'src/images',
+      'src/physics',
+      'src/services',
+      'src/ui',
+      'src/scene',
+      'src/deprecated_units'
     ],
     [
-      'base/android',
-      'files/indy'
+      'src/base/android',
+      'src/files/indy'
     ],
     [ ]);
   finally FreeAndNil(Lpk) end;
@@ -293,7 +293,7 @@ begin
   Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_window.lpk');
   try
     Lpk.CheckFiles([
-     'window'
+      'src/window'
     ],
     [ ],
     [ ]);
@@ -302,7 +302,7 @@ begin
   Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'alternative_castle_window_based_on_lcl.lpk');
   try
     Lpk.CheckFiles([
-     'window'
+      'src/window'
     ],
     [ ],
     [ ]);
@@ -311,7 +311,7 @@ begin
   Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_components.lpk');
   try
     Lpk.CheckFiles([
-     'lcl'
+      'src/lcl'
     ],
     [],
     [ ]);
@@ -320,9 +320,20 @@ begin
   Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_indy.lpk');
   try
     Lpk.CheckFiles([
-     'files/indy'
+      'src/files/indy'
     ],
     [ ],
+    [ ]);
+  finally FreeAndNil(Lpk) end;
+
+  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_editor_components.lpk');
+  try
+    Lpk.CheckFiles([
+      'tools/castle-editor/components'
+    ],
+    [
+      'tools/castle-editor/components/mbColorLib/examples'
+    ],
     [ ]);
   finally FreeAndNil(Lpk) end;
 

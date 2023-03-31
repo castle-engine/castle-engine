@@ -320,9 +320,9 @@ procedure TGLRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
       '{' + NL +
       { Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
         Read it to place metallic is x, roughness in y. }
-      '  vec2 sample = texture2D({uniform_texture_name}, {coord_name}.st).bg;' + NL +
-      '  metallic *= sample.x;' + NL +
-      '  roughness *= sample.y;' + NL +
+      '  vec2 mr = texture2D({uniform_texture_name}, {coord_name}.st).bg;' + NL +
+      '  metallic *= mr.x;' + NL +
+      '  roughness *= mr.y;' + NL +
       '}');
   end;
 

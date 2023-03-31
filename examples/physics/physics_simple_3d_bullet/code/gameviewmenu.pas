@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis, Andrzej Kilijański.
+  Copyright 2022-2023 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -24,9 +24,11 @@ uses Classes,
 type
   { Simple "menu" user interface, that allows to run the game or quit. }
   TViewMenu = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmenu.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonPlay, ButtonQuit: TCastleButton;
+  private
     procedure ClickPlay(Sender: TObject);
     procedure ClickQuit(Sender: TObject);
   public
@@ -53,11 +55,6 @@ end;
 procedure TViewMenu.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  ButtonPlay := DesignedComponent('ButtonPlay') as TCastleButton;
-  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
-
   ButtonPlay.OnClick := {$ifdef FPC}@{$endif} ClickPlay;
   ButtonQuit.OnClick := {$ifdef FPC}@{$endif} ClickQuit;
   // Hide "Quit" button on mobile/console platforms, where users don't expect such button

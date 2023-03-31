@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -742,17 +742,21 @@ procedure TItemWeaponResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
+  {$warnings off} // using deprecated SoundFromName in deprecated
   EquippingSound := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('equipping_sound', ''));
+  AttackSoundStart := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('attack/sound_start', ''));
+  AttackSoundHit := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('attack/sound_hit', ''));
+  FireMissileSound := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('fire_missile/sound', ''));
+  {$warnings on}
 
   AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
   ReloadTime := ResourceConfig.GetFloat('attack/time', DefaultReloadTime);
-  AttackSoundStart := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('attack/sound_start', ''));
   AttackAmmo := ResourceConfig.GetValue('attack/ammo', '');
   AttackAmmoCapacity := ResourceConfig.GetValue('attack/ammo_capacity', 0);
-  AttackSoundHit := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('attack/sound_hit', ''));
   AttackDamageConst := ResourceConfig.GetFloat('attack/damage/const',
     DefaultAttackDamageConst);
   AttackDamageRandom := ResourceConfig.GetFloat('attack/damage/random',
@@ -761,8 +765,6 @@ begin
     DefaultAttackKnockbackDistance);
   AttackShoot := ResourceConfig.GetValue('attack/shoot', DefaultAttackShoot);
   FireMissileName := ResourceConfig.GetValue('fire_missile/name', '');
-  FireMissileSound := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('fire_missile/sound', ''));
 end;
 
 function TItemWeaponResource.ItemClass: TInventoryItemClass;

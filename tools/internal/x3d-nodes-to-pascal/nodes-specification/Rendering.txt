@@ -112,6 +112,11 @@ IndexedLineSet : X3DGeometryNode {
   MFInt32 []       coordIndex     []
     range:  [0,Inf) or -1
     change: chGeometry
+  SFString []      mode   "STRIP"
+    range: ["STRIP","PAIR","LOOP"]
+    enumerated-type: TLineMode LineModeNames lmStrip
+    doc: How to interpret the vertexes: as a set of strips, loops, or just pairs of vertexes. See possible @link(TLineMode) values for details.
+    change: chGeometry
 }
 
 IndexedTriangleFanSet : X3DComposedGeometryNode {
@@ -155,6 +160,11 @@ LineSet : X3DGeometryNode {
     change: chGeometry
   MFInt32 [in,out] vertexCount    []
     range: [2,Inf)
+    change: chGeometry
+  SFString []      mode   "STRIP"
+    range: ["STRIP","LOOP","PAIR"]
+    enumerated-type: TLineMode LineModeNames lmStrip
+    doc: How to interpret the vertexes: as a set of strips, loops, or just pairs of vertexes. See possible @link(TLineMode) values for details.
     change: chGeometry
 }
 

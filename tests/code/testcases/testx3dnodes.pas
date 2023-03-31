@@ -103,6 +103,7 @@ type
     procedure TestGenericFind;
     {$endif}
     procedure TestProtoExpansion;
+    procedure TestSolidField;
   end;
 
 implementation
@@ -2385,6 +2386,25 @@ begin
     CheckProtoInstance(0, 'palette1.png');
     CheckProtoInstance(1, 'palette2.png');
   finally FreeAndNil(RootNode) end;
+end;
+
+procedure TTestX3DNodes.TestSolidField;
+var
+  I, J: Integer;
+  N: TAbstractGeometryNode;
+begin
+  for I := 0 to InstantiableNodes.Count - 1 do
+  begin
+    if InstantiableNodes[I].InheritsFrom(TAbstractGeometryNode) then
+    begin
+      N := InstantiableNodes[I].Create as TAbstractGeometryNode;
+      try
+        for J := 0 to N.FieldsCount - 1 do
+          if N.Fields[J].X3DName = 'solid' then
+            AssertTrue('SolidField overridden correctly for ' + N.X3DType, N.SolidField = N.Fields[J]);
+      finally FreeAndNil(N) end;
+    end;
+  end;
 end;
 
 initialization

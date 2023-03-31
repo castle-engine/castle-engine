@@ -82,8 +82,6 @@ type
       FGlyphsByte: TGlyphCharDictionary;
       FGlyphsExtra: TGlyphDictionary;
       FImage: TGrayscaleImage;
-      MeasureDone: boolean;
-      FRowHeight, FRowHeightBase, FDescend: Integer;
       FFirstExistingGlyph: TGlyph;
       FFirstExistingGlyphChar: TUnicodeChar;
       { If the requested glyph doesn't exit, @link(Glyph) will use this one
@@ -93,7 +91,6 @@ type
       FUseFallbackGlyph: Boolean;
       FallbackGlyphWarnings: Integer;
 
-    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
     procedure CalculateFallbackGlyph;
     procedure MakeFallbackWarning(const C: TUnicodeChar);
   public
@@ -158,21 +155,6 @@ type
       (for example letter "y" has the tail below the baseline in most fonts). }
     function TextHeightBase(const S: string): Integer;
     function TextMove(const S: string): TVector2Integer;
-
-    { Height of a row of text in this font.
-      This may be calculated as simply @code(TextHeight('Wy')) for most
-      normal fonts. }
-    function RowHeight: Integer;
-
-    { Height (above the baseline) of a row of text in this font.
-      Similar to TextHeightBase and TextHeight,
-      note that RowHeightBase is generally smaller than RowHeight,
-      because RowHeightBase doesn't care how low the letter may go below
-      the baseline. }
-    function RowHeightBase: Integer;
-
-    { How low the text may go below the baseline. }
-    function Descend: Integer;
   end;
 
 implementation
@@ -562,7 +544,7 @@ begin
     {$ifdef FPC}
     Inc(TextPtr, CharLen);
     {$else}
-    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
     TextIndex := NextTextIndex;
     {$endif}
 
@@ -606,7 +588,7 @@ begin
     {$ifdef FPC}
     Inc(TextPtr, CharLen);
     {$else}
-    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
     TextIndex := NextTextIndex;
     {$endif}
 
@@ -653,7 +635,7 @@ begin
     {$ifdef FPC}
     Inc(TextPtr, CharLen);
     {$else}
-    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
     TextIndex := NextTextIndex;
     {$endif}
 
@@ -700,7 +682,7 @@ begin
     {$ifdef FPC}
     Inc(TextPtr, CharLen);
     {$else}
-    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
     TextIndex := NextTextIndex;
     {$endif}
 
@@ -712,43 +694,6 @@ begin
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
     {$endif}
   end;
-end;
-
-procedure TTextureFontData.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
-begin
-  ARowHeight := TextHeight('Wy');
-  ARowHeightBase := TextHeightBase('W');
-  ADescend := TextHeight('y') - TextHeight('a');
-end;
-
-function TTextureFontData.RowHeight: Integer;
-begin
-  if not MeasureDone then
-  begin
-    Measure(FRowHeight, FRowHeightBase, FDescend);
-    MeasureDone := true;
-  end;
-  Result := FRowHeight;
-end;
-
-function TTextureFontData.RowHeightBase: Integer;
-begin
-  if not MeasureDone then
-  begin
-    Measure(FRowHeight, FRowHeightBase, FDescend);
-    MeasureDone := true;
-  end;
-  Result := FRowHeightBase;
-end;
-
-function TTextureFontData.Descend: Integer;
-begin
-  if not MeasureDone then
-  begin
-    Measure(FRowHeight, FRowHeightBase, FDescend);
-    MeasureDone := true;
-  end;
-  Result := FDescend;
 end;
 
 end.

@@ -30,11 +30,13 @@ type
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     TiledMap: TCastleTiledMap;
-    ButtonOpen: TCastleButton;
+    ButtonOpen, ButtonAnimations: TCastleButton;
     CheckboxSmoothScaling, CheckboxSmoothScalingSafeBorder: TCastleCheckbox;
     MapCamera: TCastleCamera;
   private
+    TiledAnimations: Boolean;
     procedure ClickOpen(Sender: TObject);
+    procedure ClickAnimations(Sender: TObject);
     procedure CheckboxSmoothScalingChange(Sender: TObject);
     procedure CheckboxSmoothScalingSafeBorderChange(Sender: TObject);
     procedure OpenMap(const MapUrl: String);
@@ -66,6 +68,7 @@ begin
 
   { Assign events }
   ButtonOpen.OnClick := {$ifdef FPC}@{$endif} ClickOpen;
+  ButtonAnimations.OnClick := {$ifdef FPC}@{$endif} ClickAnimations;
   CheckboxSmoothScaling.OnChange := {$ifdef FPC}@{$endif} CheckboxSmoothScalingChange;
   CheckboxSmoothScalingSafeBorder.OnChange := {$ifdef FPC}@{$endif} CheckboxSmoothScalingSafeBorderChange;
 
@@ -85,6 +88,10 @@ begin
   TiledMap.Url := MapUrl;
   MapCamera.Translation := TVector3.Zero;
   MapCamera.Orthographic.Height := 1000; // resets zoom in/out
+
+  TiledAnimations := true;
+  ButtonAnimations.Caption := 'Stop Animations';
+  ButtonAnimations.Enabled := TiledMap.HasAnimations;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -100,6 +107,20 @@ begin
   Url := TiledMap.Url;
   if Application.MainWindow.FileDialog('Open Map', Url, true, 'Tiled Map (*.tmx)|*.tmx|All Files|*') then
     OpenMap(Url);
+end;
+
+procedure TViewMain.ClickAnimations(Sender: TObject);
+begin
+  TiledAnimations := not TiledAnimations;
+  if TiledAnimations then
+  begin
+    TiledMap.PlayAnimations;
+    ButtonAnimations.Caption := 'Stop Animations';
+  end else
+  begin
+    TiledMap.StopAnimations(false);
+    ButtonAnimations.Caption := 'Play Animations';
+  end;
 end;
 
 procedure TViewMain.CheckboxSmoothScalingChange(Sender: TObject);

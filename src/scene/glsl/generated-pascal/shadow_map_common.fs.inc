@@ -15,8 +15,10 @@
 '     sampler2DShadow using texture*, not shadow2D* functions.' + LineEnding +
 '     See https://stackoverflow.com/a/22426507' + LineEnding +
 '     https://www.khronos.org/opengl/wiki/Sampler_(GLSL)' + LineEnding +
+'' + LineEnding +
+'     Modern GLSL (from #version 140) also requires it.' + LineEnding +
 '  */' + LineEnding +
-'  #ifdef GL_ES' + LineEnding +
+'  #ifdef CASTLE_GLSL_VERSION_UPGRADE' + LineEnding +
 '  return texture(shadowMap, shadowMapCoord);' + LineEnding +
 '  #else' + LineEnding +
 '  return shadow2D(shadowMap, shadowMapCoord).r;' + LineEnding +
@@ -25,7 +27,7 @@
 '' + LineEnding +
 'float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)' + LineEnding +
 '{' + LineEnding +
-'  #ifdef GL_ES' + LineEnding +
+'  #ifdef CASTLE_GLSL_VERSION_UPGRADE' + LineEnding +
 '  return textureProj(shadowMap, shadowMapCoord);' + LineEnding +
 '  #else' + LineEnding +
 '  return shadow2DProj(shadowMap, shadowMapCoord).r;' + LineEnding +
@@ -38,13 +40,15 @@
 '  /* Avoid back-projecting shadows. */' + LineEnding +
 '  if (shadowMapCoord.z < 0.0) return 0.0;' + LineEnding +
 '' + LineEnding +
-'  /* When coord2 is outside (0, 0) - (1, 1) square,' + LineEnding +
-'     it''s always in the shadow. Otherwise shadows would be stretched' + LineEnding +
-'     over whole scene, due to clamping. */' + LineEnding +
+'  /* When coord2 is outside (0, 0) - (1, 1) square, it''s never in the shadow.' + LineEnding +
+'     This makes sense, see' + LineEnding +
+'     https://github.com/castle-engine/castle-engine/issues/308' + LineEnding +
+'     and demo-models/shadow_maps/explicit_projection_parameters/' + LineEnding +
+'  */' + LineEnding +
 '  vec2 coord2 = shadowMapCoord.st / shadowMapCoord.q;' + LineEnding +
 '  if (coord2.s < 0.0 || coord2.s > 1.0 ||' + LineEnding +
 '      coord2.t < 0.0 || coord2.t > 1.0)' + LineEnding +
-'    return 0.0;' + LineEnding +
+'    return 1.0;' + LineEnding +
 '' + LineEnding +
 '#ifdef PCF4_BILINEAR' + LineEnding +
 '' + LineEnding +

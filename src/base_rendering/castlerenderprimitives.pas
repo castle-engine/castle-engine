@@ -35,8 +35,15 @@ implementation
 
 {$define read_implementation}
 
-uses CastleRenderContext, CastleRenderOptions;
+uses CastleRenderContext, CastleRenderOptions, CastleApplicationProperties;
 
 {$I castlerenderprimitives_render_unlit_mesh.inc}
 
+procedure ContextClose;
+begin
+  TCastleRenderUnlitMesh.StaticGLContextClose;
+end;
+
+initialization
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
 end.

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,17 +30,23 @@
   end;
 
   TX3DExport = class(TX3DFileItem)
+  strict private
+    FExportedNode: TX3DNode;
+    procedure DestructionNotification(const Node: TX3DNode);
+    procedure SetExportedNode(const Value: TX3DNode);
   public
-    { Exported node.
-      Note that we store node reference, not just ExportedNodeName,
-      this way renaming the ExportedNode (e.g. by RenameUniquely during saving)
-      is properly reflected in wrtitten EXPORT statement. }
-    ExportedNode: TX3DNode;
-
     { Name under which the EXPORTed node is available in outer files,
       i.e. IMPORT statements should refer to this alias.
       If empty, just use ExportedNode.X3DName. }
     ExportedAlias: String;
+
+    destructor Destroy; override;
+
+    { Exported node.
+      Note that we store node reference, not just ExportedNodeName,
+      this way renaming the ExportedNode (e.g. by RenameUniquely during saving)
+      is properly reflected in wrtitten EXPORT statement. }
+    property ExportedNode: TX3DNode read FExportedNode write SetExportedNode;
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 
@@ -148,6 +154,39 @@ begin
 end;
 
 { TX3DExport ---------------------------------------------------------------- }
+
+procedure TX3DExport.SetExportedNode(const Value: TX3DNode);
+begin
+  if FExportedNode <> Value then
+  begin
+    if FExportedNode <> nil then
+      FExportedNode.RemoveDestructionNotification({$ifdef FPC}@{$endif} DestructionNotification);
+    FExportedNode := Value;
+    if FExportedNode <> nil then
+      FExportedNode.AddDestructionNotification({$ifdef FPC}@{$endif} DestructionNotification);
+  end;
+end;
+
+procedure TX3DExport.DestructionNotification(const Node: TX3DNode);
+begin
+  { If FExportedNode is freed, make sure to set our FExportedNode to @nil.
+    Testcase:
+    - open some glTF model in view3dscene
+    - select shape in view3dscene
+    - remove a shape using view3dscene "Edit -> Remove Shape..."
+    - save result to X3D using view3dscene "File -> Save..."
+    Without TX3DExport.DestructionNotification, this would crash, as TX3DExport
+    would contain invalid FExportedNode pointer at saving time. }
+
+  if FExportedNode = Node then
+    FExportedNode := nil;
+end;
+
+destructor TX3DExport.Destroy;
+begin
+  ExportedNode := nil; // make sure to unregister DestructionNotification
+  inherited;
+end;
 
 procedure TX3DExport.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 var

@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,11 +25,14 @@ uses SysUtils, Classes,
 
 type
   TViewMain = class(TCastleView)
-  strict private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     ButtonAnimationSqueeze, ButtonAnimationGear: TCastleButton;
     Scene1: TCastleScene;
     Viewport1: TCastleViewport;
+  strict private
     procedure ClickAnimationSqueeze(Sender: TObject);
     procedure ClickAnimationGear(Sender: TObject);
   public
@@ -53,14 +56,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components created in CGE Editor }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  ButtonAnimationSqueeze := DesignedComponent('ButtonAnimationSqueeze') as TCastleButton;
-  ButtonAnimationGear := DesignedComponent('ButtonAnimationGear') as TCastleButton;
-  Scene1 := DesignedComponent('Scene1') as TCastleScene;
-  Viewport1 := DesignedComponent('Viewport1') as TCastleViewport;
-
   { Assign OnClick events }
   ButtonAnimationSqueeze.OnClick := {$ifdef FPC}@{$endif}ClickAnimationSqueeze;
   ButtonAnimationGear.OnClick := {$ifdef FPC}@{$endif}ClickAnimationGear;
@@ -77,7 +72,7 @@ var
   TimeSensor: TTimeSensorNode;
 begin
   ButtonAnimationSqueeze.Pressed := not ButtonAnimationSqueeze.Pressed;
-  TimeSensor := Scene1.Node(TTimeSensorNode, 'squeeze') as TTimeSensorNode;
+  TimeSensor := Scene1.AnimationTimeSensor('squeeze');
   if ButtonAnimationSqueeze.Pressed then
     { setting InitialTime to TimeSensor.ElapsedTimeInCycle below
       means that we start animation from the moment it was stopped
@@ -92,7 +87,7 @@ var
   TimeSensor: TTimeSensorNode;
 begin
   ButtonAnimationGear.Pressed := not ButtonAnimationGear.Pressed;
-  TimeSensor := Scene1.Node(TTimeSensorNode, 'gear_rotate') as TTimeSensorNode;
+  TimeSensor := Scene1.AnimationTimeSensor('gear_rotate');
   if ButtonAnimationGear.Pressed then
     { setting InitialTime to TimeSensor.ElapsedTimeInCycle below
       means that we start animation from the moment it was stopped

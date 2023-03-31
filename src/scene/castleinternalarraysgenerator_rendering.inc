@@ -123,6 +123,7 @@ type
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
+    function LineMode: TLineMode;
   protected
     procedure PrepareIndexesPrimitives; override;
     procedure GenerateCoordinate; override;
@@ -243,6 +244,11 @@ begin
     Note that if a Color/ColorRGBA nodes are used, they will override
     the ForcedUnlitColor (because that's how UnlitMaterial), which also satisfies
     PointSet spec about Color/ColorRGBA.
+
+    TODO: This should change for X3D 4 and glTF,
+    points can be lit if they have explicit normal vectors.
+
+    https://www.web3d.org/documents/specifications/19775-1/V4.0/Part01/components/rendering.html#PointSet
   }
 
   Arrays.ForceUnlit := true;
@@ -340,7 +346,7 @@ begin
     { indexes are just directly from CoordIndex in this case.
       Only make sure we have only full triangles (although nothing really
       requires or promises that, but for the future). }
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
@@ -465,7 +471,7 @@ begin
   Arrays.Primitive := gpTriangleFan;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
   Geometry.InternalMakeCoordRanges(State,
     {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
@@ -675,7 +681,7 @@ begin
   Arrays.Primitive := gpTriangleStrip;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
   Geometry.InternalMakeCoordRanges(State,
     {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
@@ -881,7 +887,7 @@ begin
   Assert(CoordIndex <> nil); // we only handle TIndexedQuadSetNode here
 
   Arrays.Primitive := gpTriangles;
-  IndexesFromCoordIndex := TGeometryIndexList.Create;
+  IndexesFromCoordIndex := TUInt32List.Create;
   CalculateIndexesFromCoordIndexForTriangles;
 end;
 
@@ -951,12 +957,31 @@ begin
       IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
 end;
 
+function TAbstractLineSetGenerator.LineMode: TLineMode;
+begin
+  if Geometry is TIndexedLineSetNode then
+    Result := TIndexedLineSetNode(Geometry).Mode
+  else
+  if Geometry is TLineSetNode then
+    Result := TLineSetNode(Geometry).Mode
+  else
+    Result := lmStrip;
+end;
+
 procedure TAbstractLineSetGenerator.PrepareIndexesPrimitives;
 begin
-  Arrays.Primitive := gpLineStrip;
+  case LineMode of
+    lmStrip: Arrays.Primitive := gpLineStrip;
+    lmLoop : Arrays.Primitive := gpLineLoop;
+    lmPair : Arrays.Primitive := gpLines;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('LineMode?');
+    {$endif}
+  end;
+
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    IndexesFromCoordIndex := TUInt32List.Create;
   Geometry.InternalMakeCoordRanges(State,
     {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
 end;
@@ -1045,10 +1070,17 @@ begin
 
   { Implement "one color for the whole lineset" case here.
 
-    Follows X3D spec:
+    Follows X3D 3 spec:
     If the color field is NULL and there is a Material defined for the
     Appearance affecting this LineSet, the emissiveColor of the Material
     shall be used to draw the lines.
+
+    https://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#LineSet
+
+    TODO: This should change for X3D 4 and glTF,
+    lines can be lit if they have explicit normal vectors.
+
+    https://www.web3d.org/documents/specifications/19775-1/V4.0/Part01/components/rendering.html#LineSet
 
     IndexedLineSet color may come from various places:
     1. Color node, for each vertex or polyline, if it's not NULL

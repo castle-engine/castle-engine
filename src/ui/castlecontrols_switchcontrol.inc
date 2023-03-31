@@ -52,16 +52,29 @@
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property Width {$ifdef FPC}default DefaultSwitchControlWidth{$endif};
     property Height {$ifdef FPC}default DefaultSwitchControlHeight{$endif};
-  end;
+  end deprecated 'use TCastleCheckbox or TCastleButton with TCastleButton.Toggle=true and custom backgrounds';
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 {
+  This may be brought back from deprecation, but we need to address some things:
+
   TODO:
-  - Default UI design of this has to change to look more modern
-  - Name may change -- "Control" suffix is likely unnecessary
+
+  - Default UI design of this has to change to look more modern.
+    The current look of it was done by reusing some images for other UI controls.
+
+  - UI design has to be 100% adjustable using TCastleImagePersistent subcomponents.
+    See e.g. how TCastleEdit, TCastleAbstractSlider do it.
+
+  - Name maybe should change -- "Control" suffix is likely unnecessary,
+    we generally try to avoid such suffix for UI controls.
+    See what other UI toolkits call it.
+
+  - To be really more useful than "TCastleButton with Toggle=true and custom backgrounds"
+    the thumb should animate when toggling.
 }
 
 { TCastleSwitchControl ---------------------------------------------------------- }
@@ -144,7 +157,7 @@ begin
      Event.IsKey(keyEnter) then
   begin
     FPressed := true;
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 
@@ -181,7 +194,7 @@ begin
       VisibleChange([chRender]); // FPressed changed
     end;
 
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 

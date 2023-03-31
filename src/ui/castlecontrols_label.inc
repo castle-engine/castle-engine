@@ -300,20 +300,20 @@ begin
 
     PreferredWidth := TextToRenderWidth + 2 * PaddingHorizontalScaled;
     PreferredHeight :=
-      Font.RowHeight * TextToRenderCount +
+      Font.Height * TextToRenderCount +
       LineSpacingScaled +
       2 * PaddingVerticalScaled +
-      { This additional Font.Descend is actually always an empty space on top of
-        the text. So we do not have to increase PreferredHeight by this Font.Descend,
+      { This additional Font.DescenderHeight is actually always an empty space on top of
+        the text. So we do not have to increase PreferredHeight by this Font.DescenderHeight,
         strictly speaking (if we treat PreferredHeight as a "minimum bounding box height").
 
         But adding it makes the text looks nicer centered vertically in the bbox.
         Visually you have an ~empty space at the bottom (not really empty,
-        but usually empty) of height Font.Descend and empty space at top
-        (really always empty) of height Font.Descend.
+        but usually empty) of height Font.DescenderHeight and empty space at top
+        (really always empty) of height Font.DescenderHeight.
 
         So anchoring this TCastleLabel with vpMiddle to something else looks better. }
-      Font.Descend;
+      Font.DescenderHeight;
   end;
 end;
 
@@ -336,7 +336,7 @@ var
 
   function TextHeight: Single;
   begin
-    Result := TextToRender.Count * (Font.RowHeight + LineSpacingScaled);
+    Result := TextToRender.Count * (Font.Height + LineSpacingScaled);
   end;
 
 var
@@ -369,7 +369,7 @@ begin
   end;
 
   { calculate TextBottom }
-  TextBottom := SR.Bottom + PaddingVerticalScaled + Font.Descend;
+  TextBottom := SR.Bottom + PaddingVerticalScaled + Font.DescenderHeight;
 
   if (not Html) and (MaxWidth = 0) and
      (AutoSize or (VerticalAlignment = vpBottom)) and
@@ -385,7 +385,7 @@ begin
     if not AutoSize then
       case VerticalAlignment of
         vpMiddle: TextBottom := SR.Bottom + (SR.Height - TextHeight) / 2;
-        vpTop   : TextBottom := SR.Top - PaddingVerticalScaled - Font.Descend - TextHeight;
+        vpTop   : TextBottom := SR.Top - PaddingVerticalScaled - Font.DescenderHeight - TextHeight;
         else ;
       end;
 

@@ -830,23 +830,24 @@ const
   procedure InitializeDpi;
   var
     ScreenWidthMM: Single;
+    NewDpi: Single;
   begin
-    FDpi := gdk_screen_get_resolution(Application.XScreenGdk);
-    if FDpi <= 0 then
+    NewDpi := gdk_screen_get_resolution(Application.XScreenGdk);
+    if NewDpi <= 0 then
     begin
       ScreenWidthMM := gdk_screen_width_mm();
       if ScreenWidthMM <= 0 then
       begin
         { Lazarus LCL also secures from this case, with comment:
           "some TV-out screens don't know there size" (GetScreenWidthMM). }
-        FDpi := DefaultDpi;
+        NewDpi := DefaultDpi;
       end else
-        FDpi := gdk_screen_width() / (ScreenWidthMM / 25.4);
+        NewDpi := gdk_screen_width() / (ScreenWidthMM / 25.4);
     end;
-
+    Container.Dpi := NewDpi;
     // Too verbose by default, UpdateUIScale will show it if UIScaling is usDpiScale.
     // WritelnLog('GTK', 'Dots (pixels) per inch is %f (%f * default %f)',
-    //   [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+    //   [NewDpi, NewDpi / DefaultDpi, DefaultDpi]);
   end;
 
 {$ifndef OpenGLES}

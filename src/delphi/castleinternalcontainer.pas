@@ -256,7 +256,7 @@ begin
     EventResize;
     Invalidate;
 
-    // allow animating in Delphi IDE
+    // do this even at design-time, to allow animating in Delphi IDE
     if {(not (csDesigning in ComponentState)) and} (not UpdatingEnabled) then
     begin
       UpdatingEnabled := true;
@@ -296,7 +296,7 @@ begin
   MakeContextCurrent;
 
   EventBeforeRender;
-  Fps._RenderBegin;
+  Fps.InternalRenderBegin;
   try
     EventRender;
     if GLVersion.BuggySwapNonStandardViewport then
@@ -306,7 +306,7 @@ begin
     // Note that calling Invalidate from RenderContext is not allowed,
     // it doesn't play OK with LCL or VCL.
     // if AutoRedisplay then Invalidate;
-  finally Fps._RenderEnd end;
+  finally Fps.InternalRenderEnd end;
 end;
 
 procedure TCastleContainerEasy.DoUpdate;

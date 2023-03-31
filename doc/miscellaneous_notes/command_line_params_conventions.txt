@@ -1,8 +1,11 @@
 Good command-line options conventions:
+
 (These guided the design of CastleParameters unit.
+The OptionDescription routine honors it too.)
 
 Options specifications (printed in response to the --help parameter)
 should look like this :
+
 (only long form)
 '  --long-option        This option description'
 '  --long-option ARGUMENT-NAME'
@@ -10,25 +13,24 @@ should look like this :
 '  --very-long-option-name ARGUMENT'
 '                       This option has very very long description'
 '                       that must be continued on the next line'
+
 (both forms, short and long, available)
 '  -s / --long-option   This option description'
 '  -s / --long-option  ARGUMENT-NAME'
 '                       This option description'
 
 More formally:
+
 - if option has both short and long forms they are specified using
   '-s / --long-option' (with <space>/<space>),
+
 - all help lines can have at most 75 chars,
+
 - 2 spaces are required before option name,
+
 - option descriptions should always start at the 25th column,
   if you can (and want) you can start option description at the same
   line as option name + arguments specification (but always at 25th column,
   so you can't do this if option name + arguments is too long),
   if not - you have to go to the next line. Each subsequent description line
   must be prefixed with 24 spaces (always spaces, never tabs !).
-
-  For some programs value "25" may be changed to something other
-  (if it will produce more readable output). However, 25 is my standard
-  (e.g. TCastleWindow.ParseParsHelp uses this value "25" so any program that
-  wants to use TCastleWindow.ParseParsHelp should also use this "25" value
-  to provide nice readable output).

@@ -129,20 +129,6 @@ procedure glFreeBuffer(var Buffer: TGLuint);
 { If Vao <> 0 then it does glDeleteVertexArrays and sets Vao to 0. }
 procedure glFreeVertexArray(var Vao: TGLuint);
 
-{ Set color and depth buffers writeable or not.
-
-  This is just a shortcut for setting
-  RenderContext.DepthBufferUpdate,
-  RenderContext.ColorChannels.
-
-  Which are in turn shortcuts to doing this in OpenGL(ES):
-  @longcode(#
-    glDepthMask(Writeable);
-    glColorMask(Writeable, Writeable, Writeable, Writeable);
-  #) }
-procedure glSetDepthAndColorWriteable(const Writeable: boolean);
-  deprecated 'set RenderContext.DepthBufferUpdate, RenderContext.ColorChannels explicitly, this allows to save/restore them reiably';
-
 { Global position for drawing 2D stuff.
   @deprecated Do this use this.
   Instead of this, use drawing routines that take position as parameters,
@@ -308,15 +294,6 @@ begin
     Result := GL_TRUE
   else
     Result := GL_FALSE;
-end;
-
-procedure glSetDepthAndColorWriteable(const Writeable: boolean);
-begin
-  RenderContext.DepthBufferUpdate := Writeable;
-  if Writeable then
-    RenderContext.ColorChannels := [0..3]
-  else
-    RenderContext.ColorChannels := [];
 end;
 
 function GLEnableTexture(const Target: TEnableTextureTarget): boolean;

@@ -17,6 +17,14 @@
 { Test CastleScript unit. }
 unit TestCastleScript;
 
+{ Parts of CastleScript implementation right now use Pascal generics
+  in ways that don't compile with Delphi.
+  Symbol CASTLE_SCRIPT_FPC is in practice equal to just FPC,
+  but having a dedicated symbol allows to easier grep for it and eventually fix. }
+{$ifdef FPC}
+  {$define CASTLE_SCRIPT_FPC}
+{$endif}
+
 interface
 
 uses
@@ -31,7 +39,9 @@ type
     procedure TestInheritsFrom;
     procedure TestFloatPrograms;
     procedure TestVariousTypesPrograms;
+    {$ifdef CASTLE_SCRIPT_FPC}
     procedure TestArrays;
+    {$endif CASTLE_SCRIPT_FPC}
     procedure TestBools;
     procedure TestParseConstantIntExpression;
     procedure TestInvalidOps;
@@ -186,7 +196,7 @@ begin
     FreeAndNil(Prog);
 
     AssertTrue((Vars[0] as TCasScriptInteger).Value = 23 + 12);
-    AssertTrue((Vars[1] as TCasScriptFloat).Value = Sqrt(3.14 + 2.0));
+    AssertSameValue(Sqrt(3.14 + 2.0), (Vars[1] as TCasScriptFloat).Value);
     AssertTrue((Vars[2] as TCasScriptBoolean).Value = true);
     AssertTrue((Vars[3] as TCasScriptString).Value = 'barfooxyz');
 
@@ -411,6 +421,7 @@ begin
   end;
 end;
 
+{$ifdef CASTLE_SCRIPT_FPC}
 procedure TTestCastleScript.TestArrays;
 var
   Prog: TCasScriptProgram;
@@ -469,6 +480,7 @@ begin
     FreeAndNil(Vars);
   end;
 end;
+{$endif CASTLE_SCRIPT_FPC}
 
 procedure TTestCastleScript.TestBools;
 begin
@@ -549,7 +561,9 @@ begin
   ExpectNonMathErrors('false / true');
   ExpectNonMathErrors('or(123)');
   ExpectNonMathErrors('1 + true');
+  {$ifdef CASTLE_SCRIPT_FPC}
   ExpectNonMathErrors('image_load(''blah blah'')');
+  {$endif}
 end;
 
 procedure TTestCastleScript.TestTryExecuteMath;
@@ -596,7 +610,9 @@ begin
   ExpectNonMathErrors('or(123)');
   ExpectNonMathErrors('or(sin(123))');
   ExpectNonMathErrors('1 + true');
+  {$ifdef CASTLE_SCRIPT_FPC}
   ExpectNonMathErrors('image_load(''blah blah'')');
+  {$endif}
 end;
 
 procedure TTestCastleScript.TestCoalesce;

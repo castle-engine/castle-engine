@@ -88,7 +88,6 @@ const
     Result :=
       Format(
         '  Buggy VBO: %s' + NL +
-        '  Buggy shader shadow map: %s' + NL +
         '  Buggy FBO rendering to multi-sampling texture: %s' + NL +
         '  Buggy FBO rendering to cube map texture: %s' + NL +
         '  Buggy swap buffers with non-standard glViewport: %s' + NL +
@@ -99,7 +98,6 @@ const
         '  Buggy Texture Size Above 2048: %s' + NL +
         '  Buggy Shader Bump Mapping num_steps: %s', [
         BoolToStr(Version.BuggyVBO, true),
-        BoolToStr(Version.BuggyShaderShadowMap, true),
         BoolToStr(Version.BuggyFBOMultiSampling, true),
         BoolToStr(Version.BuggyFBOCubeMap, true),
         BoolToStr(Version.BuggySwapNonStandardViewport, true),
@@ -213,6 +211,7 @@ begin
     '  Texture Modern Formats + Swizzle: ' + BoolToStr(GLFeatures.TextureModernFormatsAndSwizzle, true) + NL +
     '  Shadow Volumes Possible (stencil buffer, two-sided stencil operations): ' + BoolToStr(GLFeatures.ShadowVolumesPossible, true) + NL +
     '  Occlusion Query: ' + BoolToStr(GLFeatures.OcclusionQuery, true) + NL +
+    '  Texture Max Level: ' + BoolToStr(GLFeatures.TextureMaxLevel, true) + NL +
     NL +
     '  Necessary to use deprecated fixed-function pipeline: ' + BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
     NL +
@@ -267,7 +266,7 @@ begin
     '  Current for Textures: ' + IntToStrUnknown(GLFeatures.Memory.CurrentTexture) + NL +
     '  Current for Renderbuffers: ' + IntToStrUnknown(GLFeatures.Memory.CurrentRenderbuffer);
 
-  CheckGLErrors;
+  CheckGLErrors('End of GLInformationString');
 end;
 
 function GLInformationStringSummary: String;

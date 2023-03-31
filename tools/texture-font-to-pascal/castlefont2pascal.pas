@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -70,7 +70,8 @@ begin
   ImageImplementation := '';
   ImageInitialization := '';
   ImageFinalization := '';
-  Font.Image.SaveToPascalCode('FontImage', true,
+
+  Font.Image.SaveToPascalCode('FontImage',
     ImageInterface, ImageImplementation, ImageInitialization, ImageFinalization);
 
   WriteStr(Stream,

@@ -42,11 +42,7 @@ begin
     needs to be adjusted for this. }
   SoundEngine.DopplerFactor := 0.02;
 
-  { Create TViewMain that will handle "main" view of the game.
-    Larger games may use multiple views,
-    e.g. TViewMainMenu ("main menu view"),
-    TViewPlay ("playing the game view"),
-    TViewCredits ("showing the credits view") etc. }
+  { Create views (see https://castle-engine.io/views ). }
   {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
   ViewMain := TViewMain.Create(Application);

@@ -1,3 +1,4 @@
+{%MainUnit x3dloadinternalspine.pas}
 {
   Copyright 2020 Trung Le (kagamma).
 

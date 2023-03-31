@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,16 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-(*
-  @abstract(Parser for CastleScript language, see
-  [https://castle-engine.io/castle_script.php].)
+{ Parser for @url(https://castle-engine.io/castle_script.php CastleScript),
+  along with high-level utilities like @link(ParseConstantFloatExpression).
 
-  Can parse whole program in CastleScript language, is also prepared
+  This can parse whole program in CastleScript language, is also prepared
   to parse only a single expression (usefull for cases when I need
   to input only a mathematical expression, like for glplotter function
-  expression).
-*)
-
+  expression). }
 unit CastleScriptParser;
 
 {$I castleconf.inc}

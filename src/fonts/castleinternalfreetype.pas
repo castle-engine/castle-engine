@@ -271,7 +271,7 @@ begin
 
     { We will free MemoryStream only in our destructor.
       Otherwise weirdest errors can occur when reading the existing font 2nd time
-      (autotests see weird RowHeight),
+      (autotests see weird Height),
       this is also said in docs
       https://freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_new_memory_face :
       "You must not deallocate the memory before calling FT_Done_Face."
@@ -537,7 +537,7 @@ var g : PMgrGlyph;
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);
-  result := TStringBitmaps.Create({$ifdef FPC}UTF8Length(Text){$else}GetUTF32Length(Text){$endif});
+  result := TStringBitmaps.Create(StringLength(Text));
   if (CurRenderMode = FT_RENDER_MODE_MONO) then
     result.FMode := btBlackWhite
   else
@@ -562,7 +562,7 @@ begin
       // increment pchar by character length
       inc (pc, cl);
     {$else}
-      uc := GetUTF32Char(Text, TextIndex, NextIndex);
+      uc := UnicodeStringNextChar(Text, TextIndex, NextIndex);
       TextIndex := NextIndex;
     {$endif}
     // retrieve loaded glyph

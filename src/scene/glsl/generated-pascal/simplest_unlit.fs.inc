@@ -3,10 +3,6 @@
 '/* Simplest GLSL fragment shader,' + LineEnding +
 '   used when we want to cover the pixels with one color. */' + LineEnding +
 '' + LineEnding +
-'#ifdef GL_ES' + LineEnding +
-'precision mediump float;' + LineEnding +
-'#endif' + LineEnding +
-'' + LineEnding +
 'uniform vec4 color;' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +

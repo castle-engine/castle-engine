@@ -1141,14 +1141,14 @@ type
     glDrawRangeElements: procedure(Mode: GLenum; Start, Endd: GLuint; Count: GLsizei; Kind: GLenum; Indices: Pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glTexImage3D: procedure(target:TGLenum; level:TGLint; internalformat:TGLint; width:TGLsizei; height:TGLsizei;
               depth:TGLsizei; border:TGLint; format:TGLenum; _type:TGLenum; pixels:pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glTexSubImage3D: procedure(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint; 
-              width:TGLsizei; height:TGLsizei; depth:TGLsizei; format:TGLenum; _type:TGLenum; 
+    glTexSubImage3D: procedure(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint;
+              width:TGLsizei; height:TGLsizei; depth:TGLsizei; format:TGLenum; _type:TGLenum;
               pixels:pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glCopyTexSubImage3D: procedure(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint; 
+    glCopyTexSubImage3D: procedure(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint;
               x:TGLint; y:TGLint; width:TGLsizei; height:TGLsizei); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glCompressedTexImage3D: procedure(target:TGLenum; level:TGLint; internalformat:TGLenum; width:TGLsizei; height:TGLsizei; 
+    glCompressedTexImage3D: procedure(target:TGLenum; level:TGLint; internalformat:TGLenum; width:TGLsizei; height:TGLsizei;
               depth:TGLsizei; border:TGLint; imageSize:TGLsizei; data:pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glCompressedTexSubImage3D: procedure(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint; 
+    glCompressedTexSubImage3D: procedure(target:TGLenum; level:TGLint; xoffset:TGLint; yoffset:TGLint; zoffset:TGLint;
               width:TGLsizei; height:TGLsizei; depth:TGLsizei; format:TGLenum; imageSize:TGLsizei;
               data:pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGenQueries: procedure(n:TGLsizei; ids:PGLuint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -1183,7 +1183,7 @@ type
     glBindBufferRange: procedure(target:TGLenum; ind:TGLuint; buffer:TGLuint; offset:TGLintptr; size:TGLsizeiptr); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glBindBufferBase: procedure(Target, Ind, Buffer: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glTransformFeedbackVaryings: procedure(Prog: GLuint; Count: GLsizei; const Varyings: PPAnsiChar; BufferMode: GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glGetTransformFeedbackVarying: procedure(prog:TGLuint; ind:TGLuint; bufSize:TGLsizei; length:PGLsizei; size:PGLsizei; 
+    glGetTransformFeedbackVarying: procedure(prog:TGLuint; ind:TGLuint; bufSize:TGLsizei; length:PGLsizei; size:PGLsizei;
               _type:PGLenum; name:PGLchar); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glVertexAttribIPointer: procedure(ind:TGLuint; size:TGLint; _type:TGLenum; stride:TGLsizei; p:pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetVertexAttribIiv: procedure(ind:TGLuint; pname:TGLenum; params:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -1246,10 +1246,10 @@ type
     glProgramBinary: procedure(prog:TGLuint; binaryFormat:TGLenum; binary:pointer; length:TGLsizei); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glProgramParameteri: procedure(prog:TGLuint; pname:TGLenum; value:TGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glInvalidateFramebuffer: procedure(target:TGLenum; numAttachments:TGLsizei; attachments:PGLenum); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glInvalidateSubFramebuffer: procedure(target:TGLenum; numAttachments:TGLsizei; attachments:PGLenum; x:TGLint; y:TGLint; 
+    glInvalidateSubFramebuffer: procedure(target:TGLenum; numAttachments:TGLsizei; attachments:PGLenum; x:TGLint; y:TGLint;
               width:TGLsizei; height:TGLsizei); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glTexStorage2D: procedure(target:TGLenum; levels:TGLsizei; internalformat:TGLenum; width:TGLsizei; height:TGLsizei); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glTexStorage3D: procedure(target:TGLenum; levels:TGLsizei; internalformat:TGLenum; width:TGLsizei; height:TGLsizei; 
+    glTexStorage3D: procedure(target:TGLenum; levels:TGLsizei; internalformat:TGLenum; width:TGLsizei; height:TGLsizei;
               depth:TGLsizei); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetInternalformativ: procedure(target:TGLenum; internalformat:TGLenum; pname:TGLenum; count:TGLsizei; params:PGLint); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
 
@@ -1798,9 +1798,7 @@ type
      GL_OES_vertex_half_float = 1;
   { GL_OES_vertex_type_10_10_10_2  }
      GL_OES_vertex_type_10_10_10_2 = 1;
-  {------------------------------------------------------------------------*
-   * AMD extension functions
-   *------------------------------------------------------------------------ }
+
   { GL_AMD_compressed_3DC_texture  }
      GL_AMD_compressed_3DC_texture = 1;
   { GL_AMD_compressed_ATC_texture  }
@@ -1823,15 +1821,63 @@ type
     glEndPerfMonitorAMD : procedure(monitor:GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetPerfMonitorCounterDataAMD : procedure(monitor:GLuint; pname:GLenum; dataSize:GLsizei; data:pGLuint; bytesWritten:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 
-  {------------------------------------------------------------------------*
-   * EXT extension functions
-   *------------------------------------------------------------------------ }
   { GL_EXT_texture_filter_anisotropic  }
 
   const
      GL_EXT_texture_filter_anisotropic = 1;
   { GL_EXT_texture_type_2_10_10_10_REV  }
      GL_EXT_texture_type_2_10_10_10_REV = 1;
+
+  { GL_KHR_debug }
+
+  const
+    GL_DEBUG_OUTPUT = $92E0;
+    GL_CONTEXT_FLAG_DEBUG_BIT = $00000002;
+    GL_STACK_OVERFLOW = $0503;
+    GL_STACK_UNDERFLOW = $0504;
+    GL_DEBUG_OUTPUT_SYNCHRONOUS = $8242;
+    GL_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH = $8243;
+    GL_DEBUG_CALLBACK_FUNCTION = $8244;
+    GL_DEBUG_CALLBACK_USER_PARAM = $8245;
+    GL_DEBUG_SOURCE_API = $8246;
+    GL_DEBUG_SOURCE_WINDOW_SYSTEM = $8247;
+    GL_DEBUG_SOURCE_SHADER_COMPILER = $8248;
+    GL_DEBUG_SOURCE_THIRD_PARTY = $8249;
+    GL_DEBUG_SOURCE_APPLICATION = $824A;
+    GL_DEBUG_SOURCE_OTHER = $824B;
+    GL_DEBUG_TYPE_ERROR = $824C;
+    GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR = $824D;
+    GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR = $824E;
+    GL_DEBUG_TYPE_PORTABILITY = $824F;
+    GL_DEBUG_TYPE_PERFORMANCE = $8250;
+    GL_DEBUG_TYPE_OTHER = $8251;
+    GL_DEBUG_TYPE_MARKER = $8268;
+    GL_DEBUG_TYPE_PUSH_GROUP = $8269;
+    GL_DEBUG_TYPE_POP_GROUP = $826A;
+    GL_DEBUG_SEVERITY_NOTIFICATION = $826B;
+    GL_MAX_DEBUG_GROUP_STACK_DEPTH = $826C;
+    GL_DEBUG_GROUP_STACK_DEPTH = $826D;
+    GL_BUFFER = $82E0;
+    GL_SHADER = $82E1;
+    GL_PROGRAM = $82E2;
+    GL_QUERY = $82E3;
+    GL_PROGRAM_PIPELINE = $82E4;
+    GL_SAMPLER = $82E6;
+    GL_DISPLAY_LIST = $82E7;
+    GL_MAX_LABEL_LENGTH = $82E8;
+    GL_MAX_DEBUG_MESSAGE_LENGTH = $9143;
+    GL_MAX_DEBUG_LOGGED_MESSAGES = $9144;
+    GL_DEBUG_LOGGED_MESSAGES = $9145;
+    GL_DEBUG_SEVERITY_HIGH = $9146;
+    GL_DEBUG_SEVERITY_MEDIUM = $9147;
+    GL_DEBUG_SEVERITY_LOW = $9148;
+
+  type
+    GLDEBUGPROC = procedure (source:GLenum; _type:GLenum; id:GLuint; severity:GLenum; length:GLsizei; message:PGLchar; userParam:Pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+
+  var
+    glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam:Pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glDebugMessageControl :procedure (source:GLenum; _type:GLenum; severity:GLenum; count:GLsizei; ids:PGLuint; enabled:GLboolean); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
 
 function glGetProcAddress(ahlib:tlibhandle;ProcName:PAnsiChar):pointer;
 
@@ -2450,6 +2496,8 @@ implementation
       pointer(glBeginPerfMonitorAMD):=glGetProcAddress(GLESLib,'glBeginPerfMonitorAMD');
       pointer(glEndPerfMonitorAMD):=glGetProcAddress(GLESLib,'glEndPerfMonitorAMD');
       pointer(glGetPerfMonitorCounterDataAMD):=glGetProcAddress(GLESLib,'glGetPerfMonitorCounterDataAMD');
+      pointer(glDebugMessageCallback):=glGetProcAddress(GLESLib,'glDebugMessageCallback');
+      pointer(glDebugMessageControl):=glGetProcAddress(GLESLib,'glDebugMessageControl');
 
       { OpenGL ES 3.0 APIs }
       pointer(glReadBuffer) := glGetProcAddress(GLESLib, 'glReadBuffer');
