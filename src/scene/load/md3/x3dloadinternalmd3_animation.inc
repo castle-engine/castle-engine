@@ -136,11 +136,14 @@ begin
     RequiredNumFrames := Items[I].FirstFrame + Abs(Items[I].NumFrames);
     if RequiredNumFrames > NumFrames then
     begin
+      // This warning would be too spamming, ignore
+      {
       WritelnWarning('Animation "%s" defined in "animation.cfg" file would require more frames (%d) than this MD3 model has (%d), ignoring this animation.', [
         Items[I].Name,
         RequiredNumFrames,
         NumFrames
       ]);
+      }
       Delete(I);
     end;
   end;
