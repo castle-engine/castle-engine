@@ -1887,6 +1887,15 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
   end;
 
   function DelphiSearchPaths: String;
+
+    { Make DPROJ generated on Windows and Unix the same.
+      We use slashes as they work on both Windows and Unix
+      (through Delphi IDE is for now only on Windows, so using backslashes would be OK too.) }
+    function PathNormalizeDelimiter(const S: String): String;
+    begin
+      Result := SReplaceChars(S, '\', '/');
+    end;
+
   var
     RelativeEnginePaths: Boolean;
     S, EnginePathPrefix: String;
@@ -1901,11 +1910,11 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       EnginePathPrefix := CastleEnginePath + 'src/';
     Result := '';
     for S in EnginePaths do
-      Result := SAppendPart(Result, ';', EnginePathPrefix + S);
+      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
     for S in EnginePathsDelphi do
-      Result := SAppendPart(Result, ';', EnginePathPrefix + S);
+      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
     for S in Manifest.SearchPaths do
-      Result := SAppendPart(Result, ';', S);
+      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(S));
   end;
 
   procedure AddMacrosLazarusProject(const Macros: TStringStringMap);
@@ -1967,6 +1976,23 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
   var
     MyGuid: TGUID;
   begin
+    { TODO: Implement and use CreateGUIDFromHash(String),
+      when build tool is called with --guid-from-name .
+
+      Then CreateGUIDFromHash does
+      - save/restore RandSeed
+      - sets RandSeed to something based on Project.QualifiedName
+      - use reliable and cross-platform GUID generation just using Random
+      - and in effect, for the same Project.QualifiedName, will always generate same GUID.
+
+      regenerate_auto_files_in_all_examples.sh could use this.
+      Or maybe it should be specified in CastleEngineManifest.xml?
+      Then regenerate_auto_files_in_all_examples.sh results will be stable between reruns.
+
+      (We don't want to do this by default, as people could copy examples to their own,
+      without changing name? Although if they copy the DPROJ, they will have duplicate GUID
+      anyway... Maybe we can do this by default without any damage?)
+    }
     CreateGUID(MyGuid);
     Result := GUIDToString(MyGuid);
   end;
