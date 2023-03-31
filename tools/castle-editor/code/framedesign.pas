@@ -751,8 +751,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
       { Eventually return yourself, C. }
       //if C.CapturesEventsAtPosition(MousePos) then
       if SimpleCapturesEventsAtPosition(C, MousePos, TestWithBorder) and
-         { Do not select TCastleNavigation, they would always obscure TCastleViewport. }
-         (not (C is TCastleNavigation)) then
+         C.EditorSelectOnHover then
         Result := C;
     end;
   end;
