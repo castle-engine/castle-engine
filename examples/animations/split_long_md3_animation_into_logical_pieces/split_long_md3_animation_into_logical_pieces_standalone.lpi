@@ -21,7 +21,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="5">
       <Unit0>
         <Filename Value="split_long_md3_animation_into_logical_pieces_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -41,6 +41,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmain"/>
       </Unit3>
+      <Unit4>
+        <Filename Value="code/gamescenesubanimations.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gamescenesubanimations"/>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

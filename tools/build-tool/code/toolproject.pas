@@ -1887,6 +1887,15 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
   end;
 
   function DelphiSearchPaths: String;
+
+    { Make DPROJ generated on Windows and Unix the same.
+      We use slashes as they work on both Windows and Unix
+      (through Delphi IDE is for now only on Windows, so using backslashes would be OK too.) }
+    function PathNormalizeDelimiter(const S: String): String;
+    begin
+      Result := SReplaceChars(S, '\', '/');
+    end;
+
   var
     RelativeEnginePaths: Boolean;
     S, EnginePathPrefix: String;
@@ -1901,11 +1910,11 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       EnginePathPrefix := CastleEnginePath + 'src/';
     Result := '';
     for S in EnginePaths do
-      Result := SAppendPart(Result, ';', EnginePathPrefix + S);
+      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
     for S in EnginePathsDelphi do
-      Result := SAppendPart(Result, ';', EnginePathPrefix + S);
+      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(EnginePathPrefix + S));
     for S in Manifest.SearchPaths do
-      Result := SAppendPart(Result, ';', S);
+      Result := SAppendPart(Result, ';', PathNormalizeDelimiter(S));
   end;
 
   procedure AddMacrosLazarusProject(const Macros: TStringStringMap);
