@@ -315,7 +315,7 @@ begin
     Converter.Layers := ALayers;
     Converter.ConvertMap;
     AScene.Load(Converter.RootNode, true);
-    PlayAnimations;
+    PlayAnimationsOneScene(AScene);
 
   finally FreeAndNil(Converter) end;
 end;
