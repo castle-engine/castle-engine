@@ -25,7 +25,7 @@ type
 
   TTilesData = array of Cardinal;
 
-  TPropertyType = (ptString ,ptInteger, ptFloat, ptBoolean, ptColor, ptFile, ptObject);
+  TPropertyType = (ptString, ptInteger, ptFloat, ptBoolean, ptColor, ptFile, ptObject);
 
   { Loading and manipulating "Tiled" map files (http://mapeditor.org). }
   TCastleTiledMapData = class(TAssignableObject)
@@ -33,6 +33,8 @@ type
     const
       PropertyTypeNames: array[TPropertyType] of string =('', 'int', 'float', 'bool',
         'color', 'file', 'object');
+      LayerYSortPropName = 'ysort';
+      TileZOffsetPropName = 'z';
     type
       TProperty = class(TAssignableObject)
       private
@@ -1435,7 +1437,7 @@ end;
 
 procedure TCastleTiledMapData.TLayer.SetYSortEnabled(const AValue: Boolean);
 begin
-  Properties.SetBooleanValue('ysort', AValue);
+  Properties.SetBooleanValue(LayerYSortPropName, AValue);
 end;
 
 function TCastleTiledMapData.TLayer.Offset: TVector2;
@@ -1463,7 +1465,7 @@ end;
 function TCastleTiledMapData.TLayer.GetYSortEnabled: Boolean;
 begin
   Result := False;
-  Properties.BooleanValue('ysort', Result);
+  Properties.BooleanValue(LayerYSortPropName, Result);
 end;
 
 { TObjectGroupLayer ---------------------------------------------------------- }

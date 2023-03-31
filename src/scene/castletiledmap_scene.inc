@@ -347,11 +347,11 @@ var
 
     function GetYSortOffset: Single;
     var
-      ZIndex: Single;
+      ZOffset: Single;
     begin
-      ZIndex := 0;
-      Tileset.Tiles[Frame].Properties.FloatValue('z', ZIndex);
-      Result := - ZIndex + (Y + 0.5) * Map.TileHeight;
+      ZOffset := 0;
+      Tileset.Tiles[Frame].Properties.FloatValue(TCastleTiledMapData.TileZOffsetPropName, ZOffset);
+      Result := - ZOffset + (Y + 0.5) * Map.TileHeight;
     end;
 
     procedure AddToTilesCompositing;
