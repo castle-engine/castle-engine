@@ -2677,26 +2677,9 @@ function TCastleTransform.GetRenderList(const Params: TRenderParams): TCastleTra
       T := TCastleTransform(P);
       if T.BlendingSort <> bsYSort then Continue;
 
-      AList.AddList(T.List);
+      AList.AddRange(T.List);
       GetRecursionChildRenderList(T, AList);
     end;
-  end;
-
-  procedure ListAssign(const ASource, ATarget: TObjectList);
-  var
-    I: Integer;
-  begin
-    ATarget.Count := 0;
-    for I := 0 to ASource.Count - 1 do
-    begin
-      ATarget.Add(ASource[i]);
-    end;
-  end;
-
-  procedure CheckList(const AList: TObjectList);
-  begin
-    if AList.Capacity - AList.Count > 4 then
-      AList.Capacity := AList.Count;
   end;
 
 begin
@@ -2710,11 +2693,14 @@ begin
       FSortedList.Clear;
     end else
     begin
-      { Avoid calling `Clear` with FSortedList.Assign(List).The following `CheckList` will check the memory. }
-      ListAssign(List, FSortedList);
+      { Avoid calling `Clear` with `FSortedList.Assign(List)`.
+        In the following we will check the memory. }
+      FSortedList.Count := 0;
+      FSortedList.AddRange(List);
       if BlendingSort = bsYSort then
         GetRecursionChildRenderList(Self, FSortedList);
-      CheckList(FSortedList);
+      if FSortedList.Capacity - FSortedList.Count > 4 then
+        FSortedList.Capacity := FSortedList.Count;
       FSortedList.SortBackToFront(BlendingSort, Params.RenderingCamera.Position);
     end;
     Result := FSortedList;
@@ -2726,14 +2712,16 @@ procedure TCastleTransform.UpdateOutsideList;
 var
   Tf: TCastleTransform;
 begin
+  if not RenderOutside then
+  begin
+    if Assigned(FOutsideList) then FOutsideList.Clear;
+    Exit;
+  end;
+
   if not Assigned(FOutsideList) then
     FOutsideList := TCastleTransformList.Create(False);
-
-  { Without using `FOutsideList.clear`, the hierarchy is usually not very deep
-    and won't occupy too much memory. }
+  { Without using `FOutsideList.clear`, Finally, we will check the memory. }
   FOutsideList.Count := 0;
-  if not RenderOutside then Exit;
-
   Tf := Self.Parent.Parent;
   FOutsideList.Add(Self.Parent);
   FOutsideList.Add(Self.Parent.Parent);
@@ -2746,6 +2734,9 @@ begin
     end
     else Break;
   end;
+  { The hierarchy is usually fixed. The following code will hardly be executed. }
+  if FOutsideList.Capacity > FOutsideList.Count + 4 then
+    FOutsideList.Capacity := FOutsideList.Count;
 end;
 
 procedure TCastleTransform.LocalRender(const Params: TRenderParams);
