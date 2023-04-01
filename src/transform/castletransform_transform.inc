@@ -3454,7 +3454,6 @@ begin
 
   if (not InternalExistsOnlyInMeaningfulParents) or Params.InMeaningfulParent then
   begin
-    { TODO: It is not fully dealt with here. }
     T := Translation;
     ARenderOutside := RenderOutside;
     if not ARenderOutside and FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
