@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -261,7 +261,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
           ((FileRec.Attr and faDirectory) <> 0) and
           SpecialDirName(FileRec.Name))
           {$ifdef DOUBLE_CHECK_WILDCARD}
-          and IsWild(FileRec.Name, Mask, FileNameCaseSensitive)
+          and IsWild(FileRec.Name, Mask, { IgnoreCase } not FileNameCaseSensitive)
           {$endif}
           then
         begin
