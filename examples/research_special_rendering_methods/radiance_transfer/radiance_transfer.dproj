@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{94D67B50-7751-4443-A206-E334A6FB90E7}</ProjectGuid>
+        <ProjectGuid>{1537E2E8-3F42-40D5-A033-C659EC7F12A5}</ProjectGuid>
         <MainSource>radiance_transfer.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

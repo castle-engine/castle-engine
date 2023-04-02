@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3EBCA817-484F-4E30-AD95-8630053102CE}</ProjectGuid>
+        <ProjectGuid>{170DF346-837C-850F-9225-6CFF46D920B3}</ProjectGuid>
         <MainSource>activity_recognition_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{72C24416-BEE4-4DFD-A290-97B970DE5068}</ProjectGuid>
+        <ProjectGuid>{3070479F-2589-23F6-4DBA-2794016EDB48}</ProjectGuid>
         <MainSource>render_3d_to_image.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

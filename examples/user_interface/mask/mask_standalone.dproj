@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{C9B43876-0D93-46A5-9A49-627B0EDA62DA}</ProjectGuid>
+        <ProjectGuid>{D2C7706A-D288-D41B-FE91-D86B4ADD24B7}</ProjectGuid>
         <MainSource>mask_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

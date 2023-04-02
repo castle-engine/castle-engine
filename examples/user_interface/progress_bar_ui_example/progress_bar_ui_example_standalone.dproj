@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{03532716-B36A-4E69-9FB4-74C30EAEA132}</ProjectGuid>
+        <ProjectGuid>{C1E7E012-E2F0-E483-16A9-F08362F53CCF}</ProjectGuid>
         <MainSource>progress_bar_ui_example_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

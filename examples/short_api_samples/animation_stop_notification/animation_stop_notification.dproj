@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{D51FE09B-B832-41BB-9478-8A160FC8C769}</ProjectGuid>
+        <ProjectGuid>{E7A75355-7463-72D0-7FEC-A51233A059C6}</ProjectGuid>
         <MainSource>animation_stop_notification.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{0D0742AA-D2A0-43AF-B077-9DA5D99F3CB9}</ProjectGuid>
+        <ProjectGuid>{95D0E371-5667-54D4-E350-09762F9C55C2}</ProjectGuid>
         <MainSource>my_new_project_3d_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

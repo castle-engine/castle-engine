@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{F6B41100-AA3E-403C-935E-4276AF5B2C26}</ProjectGuid>
+        <ProjectGuid>{DAD9EE1B-59AD-581A-51BE-2B989D0A77E4}</ProjectGuid>
         <MainSource>fps_game.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

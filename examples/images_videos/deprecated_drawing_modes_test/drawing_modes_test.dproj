@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{513FBAF5-92BE-47E7-8CA7-CCA46F87B7CE}</ProjectGuid>
+        <ProjectGuid>{81A2F23A-97B8-994B-EE81-C85B3ACD14A7}</ProjectGuid>
         <MainSource>drawing_modes_test.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

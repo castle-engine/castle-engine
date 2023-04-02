@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3E1FB43D-F2A3-4443-92AB-5497BB1005EF}</ProjectGuid>
+        <ProjectGuid>{AFE2839E-DC14-DDA7-7A0D-54E72EC1089B}</ProjectGuid>
         <MainSource>test_rendering_opengl_capabilities_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

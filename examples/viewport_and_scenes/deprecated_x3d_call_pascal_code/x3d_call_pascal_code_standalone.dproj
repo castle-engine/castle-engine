@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{F6C6BA93-2C29-435F-99F9-AAAAF1911A97}</ProjectGuid>
+        <ProjectGuid>{CD904A08-9B22-9CB5-8013-A639CC5FF285}</ProjectGuid>
         <MainSource>x3d_call_pascal_code_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

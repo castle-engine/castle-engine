@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{620963AC-8D1B-411B-919E-5D717EE9C211}</ProjectGuid>
+        <ProjectGuid>{5D2986C4-7936-7AC9-0497-2ABDB84BDE71}</ProjectGuid>
         <MainSource>view_3d_model_advanced.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

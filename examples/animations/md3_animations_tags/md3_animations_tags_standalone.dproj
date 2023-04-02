@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{543C479F-266B-4D4B-B323-F524D0CAC492}</ProjectGuid>
+        <ProjectGuid>{6338E7D0-3B4A-3CDD-38CB-5EF18417AA3D}</ProjectGuid>
         <MainSource>md3_animations_tags_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

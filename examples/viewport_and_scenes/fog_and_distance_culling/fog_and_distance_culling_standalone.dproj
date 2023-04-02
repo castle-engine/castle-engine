@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{058BA4B5-89A0-42A5-9F26-8D49A6AA2D48}</ProjectGuid>
+        <ProjectGuid>{BE741AE4-1596-1729-64F7-8A1D18AB3ED1}</ProjectGuid>
         <MainSource>fog_and_distance_culling_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

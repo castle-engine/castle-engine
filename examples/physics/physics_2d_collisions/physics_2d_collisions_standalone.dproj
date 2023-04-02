@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{B9D2358B-D9D8-4AD6-82A0-BC2FB4D1AF1B}</ProjectGuid>
+        <ProjectGuid>{CF7D33BC-6AAE-6C41-EC7F-12A5A033C659}</ProjectGuid>
         <MainSource>physics_2d_collisions_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3F33C575-FE88-4AD3-92A1-63E6B023A212}</ProjectGuid>
+        <ProjectGuid>{1C0C77DD-0DCB-0C38-77E4-9D0A2B9851BE}</ProjectGuid>
         <MainSource>image_identify.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

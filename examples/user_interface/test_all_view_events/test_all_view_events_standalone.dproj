@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{9F0D67F8-2E41-497C-B891-6DA5B759BFBC}</ProjectGuid>
+        <ProjectGuid>{3CFFF749-379F-360C-EB58-117E37A45DCA}</ProjectGuid>
         <MainSource>test_all_view_events_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
