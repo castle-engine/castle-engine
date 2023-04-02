@@ -55,6 +55,16 @@ do_test_custom_editor_template_up_to_date ()
   rm -Rf tools/build-tool/data/custom_editor_template-temptest/
 }
 
+# Test running regenerate_auto_files_in_all_examples.sh makes no change.
+do_test_examples_up_to_date ()
+{
+  cd examples/
+  ./regenerate_auto_files_in_all_examples.sh > /dev/null 2>&1
+  git diff -w --exit-code .
+  cd ../
+}
+
 do_test_qualified_name
 do_test_examples_copyright
 do_test_custom_editor_template_up_to_date
+do_test_examples_up_to_date
