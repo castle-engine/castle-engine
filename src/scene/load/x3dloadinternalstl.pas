@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -114,6 +114,15 @@ begin
   finally FreeAndNil(TextReader) end;
 end;
 
+procedure LittleEndianToNative(var V: TVector3);
+begin
+  {$ifdef ENDIAN_BIG}
+  SwapEndian(V.X);
+  SwapEndian(V.Y);
+  SwapEndian(V.Z);
+  {$endif ENDIAN_BIG}
+end;
+
 { Load STL binary variation. }
 procedure LoadSTLBinary(const Stream: TStream;
   const Coordinate, Normal: TVector3List);
@@ -122,7 +131,7 @@ var
   TriangleCount: LongWord;
   NormalVector: TVector3;
   Triangle: TTriangle3;
-  I, J: Integer;
+  I: Integer;
   TriangleAttribute: Word;
 begin
   { read the rest of (ignored) binary header with ReadBuffer
@@ -135,15 +144,14 @@ begin
 
   for I := 0 to TriangleCount - 1 do
   begin
-    Stream.ReadLE(NormalVector.X);
-    Stream.ReadLE(NormalVector.Y);
-    Stream.ReadLE(NormalVector.Z);
-    for J := 0 to 2 do
-    begin
-      Stream.ReadLE(Triangle.Data[J].X);
-      Stream.ReadLE(Triangle.Data[J].Y);
-      Stream.ReadLE(Triangle.Data[J].Z);
-    end;
+    Stream.ReadBuffer(NormalVector, SizeOf(NormalVector));
+    LittleEndianToNative(NormalVector);
+
+    Stream.ReadBuffer(Triangle, SizeOf(Triangle));
+    LittleEndianToNative(Triangle.Data[0]);
+    LittleEndianToNative(Triangle.Data[1]);
+    LittleEndianToNative(Triangle.Data[2]);
+
     { we read and ignore for now the TriangleAttribute,
       see https://en.wikipedia.org/wiki/STL_%28file_format%29 for it's meaning }
     Stream.ReadLE(TriangleAttribute);
