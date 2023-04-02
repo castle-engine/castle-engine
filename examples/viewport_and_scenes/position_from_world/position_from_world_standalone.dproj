@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{9DE48749-3D13-4C95-9F41-F333D578DC23}</ProjectGuid>
+        <ProjectGuid>{3A88BB2D-C3CF-4876-AEB8-5494F6CBAF79}</ProjectGuid>
         <MainSource>position_from_world_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

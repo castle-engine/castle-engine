@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3C31C21D-5582-47F8-A132-8BA6B07372A4}</ProjectGuid>
+        <ProjectGuid>{D64151D4-B0E1-40DE-BCC4-5C46312893C0}</ProjectGuid>
         <MainSource>draw_images_on_gpu.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

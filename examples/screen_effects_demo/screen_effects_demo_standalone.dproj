@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{37B11AB1-F196-4BDA-B22F-B0E84C2773BD}</ProjectGuid>
+        <ProjectGuid>{8676B22D-908B-438F-BA76-90A9F6A68BB3}</ProjectGuid>
         <MainSource>screen_effects_demo_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

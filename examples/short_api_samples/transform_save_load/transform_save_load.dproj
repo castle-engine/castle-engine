@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{13D2A3D4-9EDB-4E9A-AB7F-457AF80CB8B5}</ProjectGuid>
+        <ProjectGuid>{4C78FE59-C587-4F7E-8A0F-1CD60743F258}</ProjectGuid>
         <MainSource>transform_save_load.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

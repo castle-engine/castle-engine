@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{09C58557-7A7A-40B9-B461-11DE31EA023B}</ProjectGuid>
+        <ProjectGuid>{8366717B-8D20-43B1-9FE5-56CBFB060F09}</ProjectGuid>
         <MainSource>drawing_toy_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

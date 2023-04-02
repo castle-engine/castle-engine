@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{443F17D8-2449-465F-A082-1FEEFBCDBD9F}</ProjectGuid>
+        <ProjectGuid>{F4782E66-0E87-48E0-A16C-7EA5F8C98173}</ProjectGuid>
         <MainSource>test_castleimage_draw3x3.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

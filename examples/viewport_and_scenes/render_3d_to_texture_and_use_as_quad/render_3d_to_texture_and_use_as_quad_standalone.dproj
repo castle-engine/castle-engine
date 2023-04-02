@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{B66FAC41-6DFF-465E-8DC7-1724DDC2D209}</ProjectGuid>
+        <ProjectGuid>{961801DD-F8AF-4A9E-B03D-587C582B39E0}</ProjectGuid>
         <MainSource>render_3d_to_texture_and_use_as_quad_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

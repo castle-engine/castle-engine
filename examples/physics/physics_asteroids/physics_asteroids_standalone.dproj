@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{0978BFC1-A23B-4F05-9500-2740C2A67F59}</ProjectGuid>
+        <ProjectGuid>{A90C1C1D-D6AE-47B0-AC2D-4AF1424260C1}</ProjectGuid>
         <MainSource>physics_asteroids_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

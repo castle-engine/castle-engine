@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{2300AA57-612D-4EC9-8A37-64D9ACCABACD}</ProjectGuid>
+        <ProjectGuid>{51D79E74-C13C-4736-A6D1-AAD13D63EFEA}</ProjectGuid>
         <MainSource>timer_test.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

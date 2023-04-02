@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3DCFF685-F215-4CA6-9B35-7DF84ACD5500}</ProjectGuid>
+        <ProjectGuid>{0DF09F83-2954-4F97-BBFB-C877EB6E4F15}</ProjectGuid>
         <MainSource>occlusion_culling_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

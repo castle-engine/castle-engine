@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{BA400139-97F9-4213-9E1C-2053B436D521}</ProjectGuid>
+        <ProjectGuid>{A758FD8B-4F21-4409-8B05-BCC9ED9DFE9F}</ProjectGuid>
         <MainSource>shadow_volumes_whole_scene_manifold_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

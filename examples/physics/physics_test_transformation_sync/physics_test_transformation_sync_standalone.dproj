@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{246C65E1-5D90-4785-9BC7-AAD3CF9C8CF3}</ProjectGuid>
+        <ProjectGuid>{FE100799-FD41-42B3-92F5-2BBBBA653FAA}</ProjectGuid>
         <MainSource>physics_test_transformation_sync_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

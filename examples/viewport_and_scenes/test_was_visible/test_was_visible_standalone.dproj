@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3299DC9B-A671-4C2B-836A-197440FC7C34}</ProjectGuid>
+        <ProjectGuid>{DDA842BE-D353-4128-A9B5-B9B239749162}</ProjectGuid>
         <MainSource>test_was_visible_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

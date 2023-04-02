@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{350A202A-BFC1-43A6-87E8-382EE8E6EC8B}</ProjectGuid>
+        <ProjectGuid>{DB39A8E3-8C36-498E-97B7-66CABA6BAF3D}</ProjectGuid>
         <MainSource>rift_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{D2DE0552-677B-4EA5-8E83-ECCD8B2C217D}</ProjectGuid>
+        <ProjectGuid>{74343FEF-72E4-4DC4-8E50-57C2160450C0}</ProjectGuid>
         <MainSource>platformer_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

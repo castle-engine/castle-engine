@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{33C0CBF7-C9DF-4F5B-A857-0A9FEE3FCA7E}</ProjectGuid>
+        <ProjectGuid>{D12C7981-415F-47E6-BEFE-A68977496005}</ProjectGuid>
         <MainSource>physics_simple_3d_bullet_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

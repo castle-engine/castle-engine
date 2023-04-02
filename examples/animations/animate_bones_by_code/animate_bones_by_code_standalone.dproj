@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{BB80C324-6855-487D-981C-9DA2222A45A3}</ProjectGuid>
+        <ProjectGuid>{EBB947D1-7C5D-4DD4-9F74-61874AE9A06C}</ProjectGuid>
         <MainSource>animate_bones_by_code_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

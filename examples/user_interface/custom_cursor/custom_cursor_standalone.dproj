@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{4D1E0047-F8E8-405C-93A5-491745CE5EDB}</ProjectGuid>
+        <ProjectGuid>{3D0B8773-37EE-485C-8D8B-71C171A8FFD4}</ProjectGuid>
         <MainSource>custom_cursor_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

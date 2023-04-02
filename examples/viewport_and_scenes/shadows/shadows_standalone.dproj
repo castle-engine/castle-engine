@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{1642B31C-D021-4129-9895-76E7DAEB71B7}</ProjectGuid>
+        <ProjectGuid>{97F831C8-DB26-4809-ACF2-420EF8AE7991}</ProjectGuid>
         <MainSource>shadows_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

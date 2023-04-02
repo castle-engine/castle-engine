@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{1D161D86-D058-4A64-B0F0-CA98E9FC7FCC}</ProjectGuid>
+        <ProjectGuid>{0B0DA78A-0B2D-47F5-8B25-0BACFC6B05CB}</ProjectGuid>
         <MainSource>physics_joints_frequency_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

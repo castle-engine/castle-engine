@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{C6773A88-8C6A-4EAC-B8DC-8B6A67818D7F}</ProjectGuid>
+        <ProjectGuid>{6CF1A74C-90E6-4947-97E4-9B2A0CA21893}</ProjectGuid>
         <MainSource>image_convert.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

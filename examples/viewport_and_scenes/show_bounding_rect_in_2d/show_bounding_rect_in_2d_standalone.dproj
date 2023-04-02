@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{1500319E-BC91-4D7E-9360-56B8D6DC80AA}</ProjectGuid>
+        <ProjectGuid>{B100CEC5-CE76-498E-8927-17FD90AA8442}</ProjectGuid>
         <MainSource>show_bounding_rect_in_2d_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

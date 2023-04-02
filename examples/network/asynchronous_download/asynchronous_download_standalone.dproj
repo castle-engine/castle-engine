@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{227D5E7A-2366-4784-9D72-88DD8197C012}</ProjectGuid>
+        <ProjectGuid>{5F08ABEB-1957-4B34-8B08-AB708214F972}</ProjectGuid>
         <MainSource>asynchronous_download_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

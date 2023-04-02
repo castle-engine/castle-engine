@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{F39BDD12-C683-492A-9FF2-280661463395}</ProjectGuid>
+        <ProjectGuid>{20BE7185-9F47-41C7-985F-CEA41DB42867}</ProjectGuid>
         <MainSource>dynamic_ambient_occlusion.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{9378665C-C70B-4B64-8D70-FC2E308E555B}</ProjectGuid>
+        <ProjectGuid>{B8291079-8CFE-441E-BB0E-25E7B5C060B9}</ProjectGuid>
         <MainSource>strategy_game_demo_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

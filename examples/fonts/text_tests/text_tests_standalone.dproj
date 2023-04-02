@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{C403DAF2-A401-415E-A00F-0BB1428ACC36}</ProjectGuid>
+        <ProjectGuid>{4CAF1D5A-7FAF-4F31-8F15-515CECD0119D}</ProjectGuid>
         <MainSource>text_tests_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

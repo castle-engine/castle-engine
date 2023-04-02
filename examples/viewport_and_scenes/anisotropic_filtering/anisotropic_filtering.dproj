@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{C4162774-0E79-4912-8A77-3233118898A2}</ProjectGuid>
+        <ProjectGuid>{4DCF1792-DF52-4737-AC7F-BA70FA8C740F}</ProjectGuid>
         <MainSource>anisotropic_filtering.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

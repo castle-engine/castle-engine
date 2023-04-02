@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{E9B2F36F-1316-4EFC-BD96-AEA703DA85A9}</ProjectGuid>
+        <ProjectGuid>{D690B626-E802-44DA-84C1-39DF8FC8A35A}</ProjectGuid>
         <MainSource>creature_behaviors_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

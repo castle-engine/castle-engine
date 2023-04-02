@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{4A5AF2CD-1A25-40B4-85B2-0C2E5259BD88}</ProjectGuid>
+        <ProjectGuid>{CBF41E30-163C-4FA0-A8C4-D261D66B2640}</ProjectGuid>
         <MainSource>image_render_custom_shader.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

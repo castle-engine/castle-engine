@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{7A47F528-7CAC-4BA4-B06C-2CA566A8189D}</ProjectGuid>
+        <ProjectGuid>{A49A5944-C10F-485F-A9DC-89D2C76D13AC}</ProjectGuid>
         <MainSource>transform_primitives_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

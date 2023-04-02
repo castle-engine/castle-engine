@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{59D5318E-7A66-4414-8642-5783A446FB9C}</ProjectGuid>
+        <ProjectGuid>{D1602020-FBB8-46AA-8517-D163CA5A9CC3}</ProjectGuid>
         <MainSource>metadata_use.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

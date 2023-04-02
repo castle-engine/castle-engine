@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{D19EB51E-0078-4FC3-81CD-32202461CD9E}</ProjectGuid>
+        <ProjectGuid>{350B39FE-8748-4B83-8EE5-18BAFABCD3AE}</ProjectGuid>
         <MainSource>simple_video_editor.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

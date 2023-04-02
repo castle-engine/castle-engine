@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{F86501BE-BCDE-4B13-A7AB-9992C43DE6D4}</ProjectGuid>
+        <ProjectGuid>{EEED0FBD-B079-46C1-877E-0F56E6F9F9DF}</ProjectGuid>
         <MainSource>test_triangulate.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
