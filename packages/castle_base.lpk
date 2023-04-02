@@ -476,11 +476,11 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item100>
       <Item101>
-        <Filename Value="../src/base/norqcheckbegin.inc"/>
+        <Filename Value="../src/common_includes/norqcheckbegin.inc"/>
         <Type Value="Include"/>
       </Item101>
       <Item102>
-        <Filename Value="../src/base/norqcheckend.inc"/>
+        <Filename Value="../src/common_includes/norqcheckend.inc"/>
         <Type Value="Include"/>
       </Item102>
       <Item103>
