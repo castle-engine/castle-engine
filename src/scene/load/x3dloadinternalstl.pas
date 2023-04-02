@@ -114,6 +114,9 @@ begin
   finally FreeAndNil(TextReader) end;
 end;
 
+const
+  BinaryHeader = 80;
+
 procedure LittleEndianToNative(var V: TVector3);
 begin
   {$ifdef ENDIAN_BIG}
@@ -127,16 +130,13 @@ end;
 procedure LoadSTLBinary(const Stream: TStream;
   const Coordinate, Normal: TVector3List);
 var
-  RestOfHeader: array [0..79 - 5] of char;
-  TriangleCount: LongWord;
+  TriangleCount: UInt32;
   NormalVector: TVector3;
   Triangle: TTriangle3;
   I: Integer;
   TriangleAttribute: Word;
 begin
-  { read the rest of (ignored) binary header with ReadBuffer
-    (to work with streams that don't support seeking). }
-  Stream.ReadBuffer(RestOfHeader, 80 - 5);
+  Stream.Position := BinaryHeader;
   Stream.ReadLE(TriangleCount);
 
   Coordinate.Count := TriangleCount * 3;
@@ -175,9 +175,41 @@ begin
   end;
 end;
 
+{ Is STL a text file.
+
+  We used to detect it by looking if it starts with "solid", like:
+
+    Stream.ReadBuffer(Header, 5);
+    if Header = 'solid' then...
+
+  But this fails for some STL files, see
+  https://github.com/castle-engine/castle-engine/issues/433 .
+  We now know follow Blender's approach,
+  https://github.com/blender/blender-addons/blob/main/io_mesh_stl/stl_utils.py#L60 .
+
+  This resets Stream.Position to 0 after read. }
+function DetectSTLText(const Stream: TStream): Boolean;
+const
+  { Matches triangle read by LoadSTLBinary. }
+  StlTriangleSize = SizeOf(TVector3) + SizeOf(TTriangle3) + SizeOf(Word);
+var
+  TriangleCount: UInt32;
+begin
+  if Stream.Size < BinaryHeader + SizeOf(TriangleCount) then
+    Exit(true);
+
+  Stream.Position := BinaryHeader;
+  Stream.ReadLE(TriangleCount);
+
+  Result := not (
+    Stream.Size = BinaryHeader + SizeOf(TriangleCount) + TriangleCount * StlTriangleSize
+  );
+
+  Stream.Position := 0;
+end;
+
 function LoadSTL(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
-  Header: array [0..4] of char;
   Shape: TShapeNode;
   TriangleSet: TTriangleSetNode;
   Coordinate: TCoordinateNode;
@@ -207,9 +239,7 @@ begin
     Result.AddChildren(Shape);
 
     { actually read the file, filling Coordinate and Normal nodes }
-
-    Stream.ReadBuffer(Header, 5);
-    if Header = 'solid' then
+    if DetectSTLText(Stream) then
       LoadSTLText(Stream, Coordinate.FdPoint.Items, Normal.FdVector.Items)
     else
       LoadSTLBinary(Stream, Coordinate.FdPoint.Items, Normal.FdVector.Items);
