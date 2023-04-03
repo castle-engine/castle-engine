@@ -4026,7 +4026,7 @@ var
       WritelnLog('Translation '+ FloatToStr(Collider.Translation.Y));
       Result := TBox3D.FromCenterSize(Collider.Translation,
         Vector3(TCastleCapsuleCollider(Collider).Radius * 2,
-        TCastleCapsuleCollider(Collider).Height,
+        TCastleCapsuleCollider(Collider).Height + TCastleCapsuleCollider(Collider).Radius * 2,
         TCastleCapsuleCollider(Collider).Radius * 2));
       Exit;
     end;
