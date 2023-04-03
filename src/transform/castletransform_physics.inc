@@ -30,22 +30,25 @@
   TPhysicsLayers = set of TPhysicsLayer;
 
   TCastleLayerCollisions = class(TCastleComponent)
-  private
-    FCollides: array [TPhysicsLayer] of UInt32;
+  strict private
     FRootTransform: TCastleAbstractRootTransform;
 
     function GetCollides(const Layer1, Layer2: TPhysicsLayer): Boolean;
-    procedure SetCollides(const Layer1, Layer2: TPhysicsLayer; AValue:Boolean);
+    procedure SetCollides(const Layer1, Layer2: TPhysicsLayer; const AValue: Boolean);
 
     procedure UpdateRigidBodies;
+  private
+    FCollides: array [TPhysicsLayer] of UInt32;
   public
     constructor Create(AOwner: TComponent); override;
 
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+
+    { Do physical objects from indicated 2 layers collide with each other. }
     property Collides[const Layer1, Layer2: TPhysicsLayer]: Boolean read GetCollides write SetCollides;
   end;
 
-  TCastleLayerNames = class (TCastleComponent)
+  TCastleLayerNames = class(TCastleComponent)
   strict private
     FLayerNames: array[TPhysicsLayer] of String;
     FLayerDescriptions: array[TPhysicsLayer] of String;
@@ -56,7 +59,13 @@
   public
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
+    { Name of each layer. This information is just for developer convenience,
+      to display layer names in the editor. }
     property Names[const Layer: TPhysicsLayer]: String read GetLayerNames write SetLayerNames;
+
+    { Longer (possibly multiline) description about each layer.
+      This information is just for developer convenience,
+      to document layer purpose in the editor. }
     property Descriptions[const Layer: TPhysicsLayer]: String read GetLayerDescriptions write SetLayerDescriptions;
   end;
 
@@ -75,7 +84,8 @@
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
     procedure SetContinuousCollisionDetection(const AValue: Boolean);
-    procedure SetLayerNames(const AValue: TStrings);
+    // unused
+    //procedure SetLayerNames(const AValue: TStrings);
   private
     { Buffer to not count physics step time per frame }
     FPhysicsTimeStep: TFloatTime;
@@ -120,10 +130,10 @@
     { Should engine use continous collision detection (CCD). }
     property ContinuousCollisionDetection: Boolean read FContinuousCollisionDetection write SetContinuousCollisionDetection default DefaultContinuousCollisionDetection;
 
-     { Configures the way layers interact each other. }
+     { Which layers collide with each other. }
     property LayerCollisions: TCastleLayerCollisions read FLayerCollisions write FLayerCollisions;
 
-    { Each layer can also have name and description. }
+    { Name and a descriptions of layers. }
     property LayerNames: TCastleLayerNames read FLayerNames write FLayerNames;
   end;
 
@@ -1075,12 +1085,12 @@
 
     { Physics layer of the rigid body determines with which other bodies it may collide.
 
-      The way layers interact is configured in the 
+      The way layers interact is configured in the
       @link(TPhysicsProperties.LayerCollisions MyViewport.Items.PhysicsProperties.LayerCollisions).
 
       Each layer can also have name and description. You can set
-      them using the 
-      @link(TPhysicsProperties.LayerNames MyViewport.Items.PhysicsProperties.LayerNames) 
+      them using the
+      @link(TPhysicsProperties.LayerNames MyViewport.Items.PhysicsProperties.LayerNames)
       property. }
     property Layer: TPhysicsLayer read FLayer write SetLayer default 0;
 
@@ -1237,7 +1247,7 @@ begin
 end;
 
 procedure TCastleLayerCollisions.SetCollides(const Layer1,
-  Layer2: TPhysicsLayer; AValue: Boolean);
+  Layer2: TPhysicsLayer; const AValue: Boolean);
 var
   Layer2UInt32: UInt32;
   Layers: TPhysicsLayers;
@@ -1298,12 +1308,6 @@ end;
 
 { TCastleLayerNames --------------------------------------------------------- }
 
-function TCastleLayerNames.GetLayerDescriptions(
-    const Layer: TPhysicsLayer): String;
-begin
-  Result := FLayerDescriptions[Layer];
-end;
-
 function TCastleLayerNames.GetLayerNames(const Layer: TPhysicsLayer): String;
 begin
   Result := FLayerNames[Layer];
@@ -1313,6 +1317,12 @@ procedure TCastleLayerNames.SetLayerNames(const Layer: TPhysicsLayer;
   const AValue: String);
 begin
   FLayerNames[Layer] := AValue;
+end;
+
+function TCastleLayerNames.GetLayerDescriptions(
+  const Layer: TPhysicsLayer): String;
+begin
+  Result := FLayerDescriptions[Layer];
 end;
 
 procedure TCastleLayerNames.SetLayerDescriptions(const Layer: TPhysicsLayer;
@@ -1361,14 +1371,17 @@ begin
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
   FContinuousCollisionDetection := DefaultContinuousCollisionDetection;
   FLayerNames := TCastleLayerNames.Create(Self);
+  FLayerNames.Name := 'LayerNames';
   FLayerNames.SetSubComponent(true);
   FLayerCollisions := TCastleLayerCollisions.Create(Self);
+  FLayerCollisions.Name := 'LayerCollisions';
   FLayerCollisions.SetSubComponent(true);
 end;
 
 destructor TPhysicsProperties.Destroy;
 begin
   FreeAndNil(FLayerNames);
+  FreeAndNil(FLayerCollisions);
   inherited Destroy;
 end;
 
@@ -1408,10 +1421,12 @@ begin
   end;
 end;
 
+{
 procedure TPhysicsProperties.SetLayerNames(const AValue: TStrings);
 begin
   FLayerNames.Assign(AValue);
 end;
+}
 
 procedure TPhysicsProperties.SetLinearVelocityRK4Integration(const AValue: Boolean);
 begin
@@ -3236,6 +3251,7 @@ begin
   begin
     FKraftBody.CollisionGroups := [TKraftRigidBodyCollisionGroup(FLayer)];
     CollisionMask := FTransform.World.PhysicsProperties.LayerCollisions.FCollides[FLayer];
+    Assert(SizeOf(CollisionMask) = SizeOf(KraftCollisionMask));
     Move(CollisionMask, KraftCollisionMask, SizeOf(KraftCollisionMask));
     FKraftBody.CollideWithCollisionGroups := KraftCollisionMask;
   end;

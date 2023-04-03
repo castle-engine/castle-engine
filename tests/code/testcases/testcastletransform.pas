@@ -71,6 +71,7 @@ type
     procedure TestPhysicsDefaultAutoSize;
     procedure TestReparentBehavior;
     procedure TestRemoveParent;
+    procedure TestLayersSetSize;
   end;
 
 implementation
@@ -2388,6 +2389,12 @@ begin
     FreeAndNil(Chi);
     FreeAndNil(Par);
   end;
+end;
+
+procedure TTestCastleTransform.TestLayersSetSize;
+begin
+  { TCastleRigidBody.UpdateLayer assumes this is OK. }
+  AssertTrue(SizeOf(UInt32) = SizeOf(TKraftRigidBodyCollisionGroups));
 end;
 
 initialization

@@ -103,7 +103,7 @@ var
   Transform: TCastleTransform;
 begin
   { We assume that Layer property is in TCastleRigidBody }
-  if (GetInstProp^.Instance = nil ) then
+  if (GetInstProp^.Instance = nil) then
     Exit('');
 
   if not (GetInstProp^.Instance is TCastleRigidBody) then
@@ -142,7 +142,7 @@ begin
     Proc(IntToStr(I) + ': ' + GetLayerName(I));
 end;
 
-procedure TPhysicsLayerPropertyEditor.SetValue(const NewValue: ansistring);
+procedure TPhysicsLayerPropertyEditor.SetValue(const NewValue: AnsiString);
 var
   ColonPos: Integer;
   StringValue: AnsiString;
@@ -152,7 +152,7 @@ begin
   if ColonPos < 2 then
     StringValue := NewValue
   else
-    StringValue := copy(NewValue, 1, ColonPos -1);
+    StringValue := Copy(NewValue, 1, ColonPos -1);
 
   if TryStrToInt(StringValue, IntValue) then
     SetOrdValue(IntValue);
