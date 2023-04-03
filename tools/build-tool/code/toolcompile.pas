@@ -744,6 +744,15 @@ begin
         FpcOptions.Add('-O-');
         WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with older FPC. Upgrade to FPC >= 3.2.2.');
       end else
+      if Options.CPU = Wasm32 then
+      begin
+        { Wasm32 optimizations are buggy with FPC 3.3.1.
+          FPC crashes with
+            x3dnodes_coordinate3_1.inc(69,3) Fatal: Internal error 2018042601
+          I assume this is known, even wiki page about Wasm32 says to use -O-
+        }
+        FpcOptions.Add('-O-');
+      end else
         FpcOptions.Add('-O2');
       FpcOptions.Add('-dRELEASE');
     end;
