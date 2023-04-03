@@ -76,10 +76,16 @@ type
 
 implementation
 
-uses Math, Contnrs,
+uses Math, Contnrs, Kraft,
   CastleVectors, CastleTransform, CastleViewport, CastleClassUtils, CastleUIControls,
   CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
   CastleProjection, CastleStringUtils, CastleApplicationProperties, CastleUtils;
+
+{ Without this, Vector3 is ambiguous between CastleVectors.Vector3 and Kraft.Vector3. }
+function Vector3(const X, Y, Z: Single): TVector3;
+begin
+  Result := CastleVectors.Vector3(X, Y, Z);
+end;
 
 { TMy3D ---------------------------------------------------------------------- }
 
