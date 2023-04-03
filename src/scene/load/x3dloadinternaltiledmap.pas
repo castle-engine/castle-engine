@@ -587,7 +587,6 @@ type
 
 var
   LayerConversion: TLayerConversion;
-  Nodes: TTilesetNodes;
   Tileset: TCastleTiledMapData.TTileset;
   Geometry: TQuadSetNode;
   Shape: TShapeNode;
@@ -641,6 +640,11 @@ var
     Result.TexCoord := TTextureCoordinateNode.Create;
     Geometry.TexCoord := Result.TexCoord;
     Shape.Appearance := Tileset.RendererData as TAppearanceNode;
+    if ALayer.Opacity <> 1 then
+    begin
+      Shape.Material := TUnlitMaterialNode.Create;
+      (Shape.Material as TUnlitMaterialNode).Transparency := 1 - ALayer.Opacity;
+    end;
     LayerNode.AddChildren(Shape);
   end;
 
@@ -742,13 +746,12 @@ var
 
   procedure RenderTile(const TilePosition: TVector2Integer);
   var
-    Coord: TCoordinateNode;
-    TexCoord: TTextureCoordinateNode;
+    Nodes: TTilesetNodes;
 
     procedure AddCoordPoints;
     begin
       CoordRect := GetTileCoordRect(TilePosition, Tileset);
-      Coord.FdPoint.Items.AddRange([
+      Nodes.Coord.FdPoint.Items.AddRange([
         Vector3(CoordRect.Left , CoordRect.Bottom, CurrentZ),
         Vector3(CoordRect.Right, CoordRect.Bottom, CurrentZ),
         Vector3(CoordRect.Right, CoordRect.Top   , CurrentZ),
@@ -759,7 +762,7 @@ var
     procedure AddTexCoordPoints;
     begin
       CalcTexCoordArray(Frame);
-      TexCoord.FdPoint.Items.AddRange(TexCoordArray);
+      Nodes.TexCoord.FdPoint.Items.AddRange(TexCoordArray);
     end;
 
     function HasAnimation:Boolean;
@@ -777,19 +780,16 @@ var
         Exit;
       end;
 
-      CurrentZ := CurrentZ + 1 / (Map.Width * Map.Height);
-
       { If not Created then Create and Add to Dictionary. }
       if HasAnimation then
         Nodes := GetOrCreateNodesForAnimation.CoordNodes
       else
         Nodes := GetOrCreateNodesForTileset;
 
-      Coord := Nodes.Coord;
-      TexCoord := Nodes.TexCoord;
-
       AddCoordPoints;
       AddTexCoordPoints;
+
+      CurrentZ := CurrentZ + 1 / (Map.Width * Map.Height);
     end;
   end;
 

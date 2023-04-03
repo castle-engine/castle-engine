@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="player.png">
+  <SubTexture x="0" y="960" fps="8" name="walk_down_1" width="32" height="64"/>
+  <SubTexture x="32" y="960" fps="8" name="walk_left_1" width="32" height="64"/>
+  <SubTexture x="64" y="960" fps="8" name="walk_up_1" width="32" height="64"/>
+  <SubTexture x="96" y="960" fps="8" name="walk_right_1" width="32" height="64"/>
+  <SubTexture x="128" y="960" fps="8" name="shadow_1" width="32" height="64"/>
+  <SubTexture x="160" y="960" fps="8" name="all_1" width="32" height="64"/>
+  <SubTexture x="192" y="960" name="all_2" width="32" height="64"/>
+  <SubTexture x="224" y="960" name="all_3" width="32" height="64"/>
+  <SubTexture x="256" y="960" name="all_4" width="32" height="64"/>
+  <SubTexture x="288" y="960" name="all_5" width="32" height="64"/>
+</TextureAtlas>
