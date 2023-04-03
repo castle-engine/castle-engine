@@ -86,7 +86,7 @@ uses
     on GTK, and so timer with Interval=1 can in fact hang for an arbitrarily
     long time if you don't make any event (like mouse movement).
 }
-{$define CASTLE_CONTROL_UPDATE_TIMER}
+{.$define CASTLE_CONTROL_UPDATE_TIMER}
 
 type
   TCastleControl = class;
@@ -991,7 +991,7 @@ begin
   inherited;
   {$ifdef CASTLE_CONTROL_UPDATE_TIMER}
   UpdatingTimer := TCustomTimer.Create(nil);
-  UpdatingTimer.Interval := 1000 div 60;
+  UpdatingTimer.Interval := 1;
   UpdatingTimer.OnTimer := {$ifdef FPC}@{$endif} UpdatingTimerEvent;
   {$else}
   Application.AddOnIdleHandler({$ifdef FPC}@{$endif} UpdatingIdleEvent);
