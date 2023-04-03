@@ -424,6 +424,22 @@ function ConvertDoubleToString(const AValue:TPasDblStrUtilsDouble;const OutputMo
 
 implementation
 
+uses CastleUtils;
+
+{$ifdef WASI}
+
+function ConvertStringToDouble(const StringValue:TPasDblStrUtilsString;const RoundingMode:TPasDblStrUtilsRoundingMode=rmNearest;const OK:PPasDblStrUtilsBoolean=nil;const Base:TPasDblStrUtilsInt32=-1):TPasDblStrUtilsDouble;
+begin
+  Result := StrToFloatDot(StringValue);
+end;
+
+function ConvertDoubleToString(const AValue:TPasDblStrUtilsDouble;const OutputMode:TPasDblStrUtilsOutputMode=omStandard;RequestedDigits:TPasDblStrUtilsInt32=-1):TPasDblStrUtilsString;
+begin
+  Result := FloatToStrDot(AValue);
+end;
+
+{$else}
+
 type PDoubleHiLo=^TDoubleHiLo;
      TDoubleHiLo=packed record
 {$ifdef BIG_ENDIAN}
@@ -3962,6 +3978,8 @@ begin
   end;
  end;
 end;
+
+{$endif WASI}
 
 initialization
 finalization

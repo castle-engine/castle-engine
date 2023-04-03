@@ -133,7 +133,10 @@ uses
     {$ifdef MSWINDOWS} Windows, {$endif}
     {$ifdef DARWIN} MacOSAll, {$endif}
   {$endif}
-  SysUtils, Classes, {$ifdef FPC} Process, {$else} ShellApi, {$endif}
+  SysUtils, Classes,
+  {$ifndef WASI}
+    {$ifdef FPC} Process, {$else} ShellApi, {$endif}
+  {$endif}
   CastleURIUtils, CastleUtils, CastleFilesUtils, CastleLog, CastleMessaging;
 
 { lcl/lclstrconsts.pas ------------------------------------------------------- }
@@ -142,7 +145,19 @@ resourcestring
   lisProgramFileNotFound = 'program file not found %s';
   lisCanNotExecute = 'can not execute %s';
 
-{$ifdef MSWINDOWS}
+{$if defined(WASI)}
+
+function OpenURL(AURL: String): Boolean;
+begin
+  Result := false; // TODO: implement this on Wasi
+end;
+
+function OpenDocument(APath: String): Boolean;
+begin
+  Result := OpenURL(APath);
+end;
+
+{$elseif defined(MSWINDOWS)}
 
 { lcl/include/sysenvapis_win.inc --------------------------------------------- }
 
@@ -193,11 +208,8 @@ begin
   Result := OpenURL(APath);
 end;
 
-{$endif MSWINDOWS}
+{$elseif defined(ANDROID) or defined(CASTLE_IOS)}
 
-{$ifdef UNIX}
-
-{$if defined(ANDROID) or defined(CASTLE_IOS)}
 function OpenURL(AURL: String): Boolean;
 begin
   Messaging.Send(['view-url', AURL]);
@@ -208,7 +220,8 @@ function OpenDocument(APath: String): Boolean;
 begin
   Result := OpenURL(FilenameToURISafe(APath));
 end;
-{$else}
+
+{$elseif defined(UNIX)}
 
 { lcl/include/unixfileutil.inc ----------------------------------------------- }
 
@@ -260,7 +273,7 @@ begin
   end;
 end;
 
-  {$if defined(darwin) and not defined(CASTLE_IOS)}
+{$if defined(darwin) and not defined(CASTLE_IOS)}
 
 { lcl/include/sysenvapis_mac.inc --------------------------------------------- }
 
@@ -296,7 +309,7 @@ begin
   RunCmdFromPath('open',APath);
 end;
 
-  {$else}
+{$else}
 
 { lcl/include/sysenvapis.inc ------------------------------------------------- }
 
@@ -361,9 +374,8 @@ begin
   RunCmdFromPath(lApp,APath);
 end;
 
-    {$endif}
-  {$endif}  // not Android or iOS
-{$endif} // UNIX
+{$endif}
+{$endif}
 
 procedure ShareText(const Title, Subject, Content: string);
 begin
