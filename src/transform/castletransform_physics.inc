@@ -1332,11 +1332,11 @@ begin
   for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
   begin
     Value := FLayerNames[I];
-    SerializationProcess.ReadWriteString('Name'+IntToStr(I), Value, Value <> '');
+    SerializationProcess.ReadWriteString('Name' + IntToStr(I), Value, Value <> '');
     FLayerNames[I] := Value;
 
     Value := FLayerDescriptions[I];
-    SerializationProcess.ReadWriteString('Desc'+IntToStr(I), Value, Value <> '');
+    SerializationProcess.ReadWriteString('Description' + IntToStr(I), Value, Value <> '');
     FLayerDescriptions[I] := Value;
   end;
 end;

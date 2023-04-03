@@ -22,13 +22,13 @@
           "LayerNames" : {
             "$$ClassName" : "TCastleLayerNames",
             "Name0" : "Ground",
-            "Desc0" : "All not dynamic things",
+            "Description0" : "All not dynamic things",
             "Name1" : "Player",
-            "Desc1" : "Should collide with enemies and ground.",
+            "Description1" : "Should collide with enemies and ground.",
             "Name2" : "Enemy",
-            "Desc2" : "Enemies should not collide with other, should collide with player and ground.",
+            "Description2" : "Enemies should not collide with other, should collide with player and ground.",
             "Name3" : "Bullet",
-            "Desc3" : "Should collide with ground and enemies"
+            "Description3" : "Should collide with ground and enemies"
           }
         },
         "$Children" : [
