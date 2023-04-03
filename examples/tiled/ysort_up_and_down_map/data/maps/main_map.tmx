@@ -1,0 +1,731 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.0" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="11" nextobjectid="1">
+ <tileset firstgid="1" name="TX Tileset Grass" tilewidth="32" tileheight="32" tilecount="64" columns="8">
+  <image source="Pixel Art Top Down - Basic/Texture/TX Tileset Grass.png" width="256" height="256"/>
+ </tileset>
+ <tileset firstgid="65" name="TX Shadow" tilewidth="32" tileheight="32" tilecount="256" columns="16">
+  <tileoffset x="16" y="0"/>
+  <image source="Pixel Art Top Down - Basic/Texture/TX Shadow.png" width="512" height="512"/>
+ </tileset>
+ <tileset firstgid="321" name="TX Props" tilewidth="32" tileheight="32" tilecount="256" columns="16">
+  <tileoffset x="16" y="0"/>
+  <image source="Pixel Art Top Down - Basic/Texture/TX Props.png" width="512" height="512"/>
+  <tile id="1">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="2">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="3">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="4">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="5">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="7">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="9">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="10">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="12">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="14">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="30">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="35">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="37">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="39">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="41">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="42">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="55">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="60">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="62">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="69">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="80">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="81">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="82">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="87">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="91">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="101">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="107">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="119">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="121">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="151">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="153">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="165">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="208">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="209">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+ </tileset>
+ <tileset firstgid="577" name="TX Shadow Plant" tilewidth="32" tileheight="32" tilecount="256" columns="16">
+  <tileoffset x="16" y="0"/>
+  <image source="Pixel Art Top Down - Basic/Texture/TX Shadow Plant.png" width="512" height="512"/>
+ </tileset>
+ <tileset firstgid="833" name="TX Struct" tilewidth="32" tileheight="32" tilecount="256" columns="16">
+  <image source="Pixel Art Top Down - Basic/Texture/TX Struct.png" width="512" height="512"/>
+ </tileset>
+ <tileset firstgid="1089" name="TX Tileset Stone Ground" tilewidth="32" tileheight="32" tilecount="64" columns="8">
+  <image source="Pixel Art Top Down - Basic/Texture/TX Tileset Stone Ground.png" width="256" height="256"/>
+ </tileset>
+ <tileset firstgid="1153" name="TX Tileset Wall" tilewidth="32" tileheight="32" tilecount="256" columns="16">
+  <image source="Pixel Art Top Down - Basic/Texture/TX Tileset Wall.png" width="512" height="512"/>
+ </tileset>
+ <tileset firstgid="1409" name="TX Plant" tilewidth="32" tileheight="32" tilecount="256" columns="16">
+  <image source="Pixel Art Top Down - Basic/Texture/TX Plant.png" width="512" height="512"/>
+  <tile id="0">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="1">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="2">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="3">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="4">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="5">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="6">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="7">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="8">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="9">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="10">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="11">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="12">
+   <properties>
+    <property name="z" type="float" value="128"/>
+   </properties>
+  </tile>
+  <tile id="16">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="17">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="18">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="19">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="20">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="21">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="22">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="23">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="24">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="25">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="26">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="27">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="28">
+   <properties>
+    <property name="z" type="float" value="96"/>
+   </properties>
+  </tile>
+  <tile id="32">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="33">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="34">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="35">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="36">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="37">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="38">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="39">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="40">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="41">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="42">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="43">
+   <properties>
+    <property name="z" type="float" value="64"/>
+   </properties>
+  </tile>
+  <tile id="48">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="49">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="50">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="51">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="52">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="53">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="54">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="55">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="56">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="57">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="58">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="59">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="87">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="88">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="89">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="90">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="91">
+   <properties>
+    <property name="z" type="float" value="32"/>
+   </properties>
+  </tile>
+  <tile id="113">
+   <properties>
+    <property name="z" type="float" value="-32"/>
+   </properties>
+  </tile>
+  <tile id="114">
+   <properties>
+    <property name="z" type="float" value="-32"/>
+   </properties>
+  </tile>
+  <tile id="115">
+   <properties>
+    <property name="z" type="float" value="-32"/>
+   </properties>
+  </tile>
+  <tile id="116">
+   <properties>
+    <property name="z" type="float" value="-32"/>
+   </properties>
+  </tile>
+  <tile id="117">
+   <properties>
+    <property name="z" type="float" value="-32"/>
+   </properties>
+  </tile>
+  <tile id="118">
+   <properties>
+    <property name="z" type="float" value="-32"/>
+   </properties>
+  </tile>
+  <tile id="119">
+   <properties>
+    <property name="z" type="float" value="-32"/>
+   </properties>
+  </tile>
+  <tile id="120">
+   <properties>
+    <property name="z" type="float" value="-32"/>
+   </properties>
+  </tile>
+  <tile id="121">
+   <properties>
+    <property name="z" type="float" value="-32"/>
+   </properties>
+  </tile>
+  <tile id="122">
+   <properties>
+    <property name="z" type="float" value="-32"/>
+   </properties>
+  </tile>
+  <tile id="123">
+   <properties>
+    <property name="z" type="float" value="-32"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer id="1" name="ground back" width="20" height="20">
+  <data encoding="csv">
+0,0,0,0,0,0,0,26,22,27,30,20,17,0,0,0,0,0,0,0,
+0,12,13,12,5,5,20,26,1,10,1,1,27,30,13,27,5,0,0,0,
+0,26,33,19,25,16,28,1,4,24,1,1,1,1,1,6,11,0,0,0,
+0,24,1,1,1,1,31,19,24,1,1,1,1,1,1,1,32,0,0,0,
+0,1,1,19,41,31,5,31,1,1,22,4,7,27,26,21,29,0,0,0,
+0,1,1,41,34,24,1,1,1,22,1,25,6,6,34,19,1,0,0,0,
+0,28,1,58,34,1,31,20,1,1,1,1,1,42,34,32,23,4,5,13,
+0,4,1,42,42,1,1,1,1,1,1,1,33,33,49,57,1,1,9,25,
+0,2,1,58,33,1,1,1,15,1,1,1,42,33,50,33,42,1,1,6,
+0,15,1,42,49,58,33,41,57,49,50,57,34,49,58,42,50,1,5,1,
+0,23,1,1,34,49,34,57,42,49,33,42,34,57,57,34,25,1,1,1,
+0,26,16,50,1,1,1,1,10,21,32,13,33,49,57,1,1,1,1,25,
+0,1,1,24,1,33,1,1,3,1,13,1,1,50,58,1,1,1,1,19,
+16,25,11,26,1,1,1,31,1,1,3,12,1,34,33,1,1,1,1,1,
+8,13,9,1,1,1,1,1,1,19,1,1,23,34,57,1,1,1,1,1,
+18,1,1,25,22,1,1,1,1,1,1,1,8,41,58,1,32,1,1,1,
+1,5,1,5,8,1,1,1,1,1,1,1,1,41,41,1,14,1,1,28,
+1,1,1,11,9,24,25,1,1,1,12,29,27,58,58,1,1,1,1,15,
+31,2,8,1,1,1,1,6,23,12,12,18,26,42,42,1,1,21,24,1,
+31,9,12,20,28,23,11,21,22,24,14,8,17,31,31,1,29,8,13,20
+</data>
+ </layer>
+ <layer id="9" name="ground shadows" width="20" height="20" opacity="0.3">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,204,205,206,207,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,220,221,222,223,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,236,237,238,239,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,72,73,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,88,89,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,120,121,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,136,137,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,118,119,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="10" name="ground" width="20" height="20">
+  <data encoding="csv">
+0,0,0,0,0,0,0,1170,1171,1171,1171,1171,1172,0,0,0,0,0,0,0,
+0,0,0,0,1171,1171,1170,1225,476,477,478,0,1221,1172,1171,1171,1172,0,0,0,
+0,0,0,0,0,0,1186,0,492,493,494,0,0,1188,0,0,1188,0,0,0,
+0,0,0,0,0,0,1202,1203,1203,917,918,1203,1203,1204,0,0,1188,0,0,0,
+0,0,0,0,0,0,1218,1219,1219,933,934,1219,1219,1220,0,0,1188,0,0,0,
+0,0,0,0,0,0,0,0,0,949,950,0,0,0,0,0,1188,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1221,1222,1222,1222,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="8" name="ground front" width="20" height="20">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,460,461,462,0,0,0,0,0,0,0,0,0,
+0,1170,1171,1171,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,1186,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+1171,1171,1171,1172,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,1188,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+334,335,336,1188,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+350,351,352,1188,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+366,367,368,1188,1171,1171,1171,1171,1171,1171,1171,1172,0,0,0,0,1170,1171,1171,1171,
+0,0,383,1188,0,0,1185,0,1187,0,0,1188,0,0,0,0,1186,1187,0,0,
+0,0,399,1188,1203,1203,1203,1203,1203,1203,1203,1204,0,0,0,0,1202,1203,1203,1203
+</data>
+ </layer>
+ <layer id="4" name="objects back" width="20" height="20">
+  <properties>
+   <property name="ysort" type="bool" value="true"/>
+  </properties>
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="5" name="objects shadows" width="20" height="20" opacity="0.3">
+  <data encoding="csv">
+0,68,69,0,0,0,0,676,0,0,0,0,0,0,0,0,0,0,0,0,
+0,84,85,0,0,0,676,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,626,627,628,629,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,642,643,644,66,67,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,82,83,0,0,0,0,0,0,150,151,626,627,628,629,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,642,643,644,645,0,
+0,0,0,0,0,0,0,0,120,121,0,0,0,0,182,0,122,123,124,0,
+0,0,0,0,0,0,118,119,136,137,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,273,274,0,0,0,0,0,0,0,0,309,0,0,0,
+0,0,0,0,0,0,289,290,0,0,310,0,0,0,0,0,0,0,0,0,
+0,0,118,119,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,121,
+0,0,0,0,0,0,630,631,632,0,0,0,307,0,0,0,0,0,136,137,
+0,0,0,0,0,0,646,647,648,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,676,0,0,0,0,676,0,0,0,0,0,676,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="2" name="objects" width="20" height="20">
+  <properties>
+   <property name="ysort" type="bool" value="true"/>
+  </properties>
+  <data encoding="csv">
+0,383,0,1499,1500,1501,0,1506,0,0,0,0,0,0,0,0,0,0,0,0,
+0,399,0,1515,1516,1517,1508,0,0,0,0,0,1499,1500,1501,0,0,0,0,0,
+0,0,0,1531,1532,1533,0,0,0,0,0,0,1515,1516,1517,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,1531,1532,1533,0,0,0,0,0,
+0,0,0,0,0,474,0,0,0,0,0,0,0,390,0,0,0,0,0,0,
+0,0,0,0,0,490,0,0,0,0,0,0,0,406,0,0,0,0,383,0,
+0,0,0,0,0,0,0,0,360,0,0,0,0,0,422,0,2147483979,2147483978,399,0,
+0,0,0,0,0,0,328,0,376,0,0,0,0,0,438,0,2147483995,2147483994,0,0,
+0,0,0,0,0,0,344,0,392,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,529,530,0,0,0,0,0,0,0,0,570,0,0,0,
+0,0,383,0,0,0,545,546,0,0,566,0,0,0,0,0,0,411,412,0,
+0,0,399,0,0,0,0,0,0,0,0,0,0,0,0,0,0,427,428,0,
+0,0,0,0,0,0,0,0,0,0,0,0,563,0,0,0,0,443,444,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,1499,1500,1501,0,0,1499,1500,1501,0,0,0,1499,1500,1501,0,0,
+0,0,0,0,1515,1516,1517,0,0,1515,1516,1517,0,0,0,1515,1516,1517,0,0,
+0,0,0,0,1531,1532,1533,0,0,1531,1532,1533,0,0,0,1531,1532,1533,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="3" name="objects front" width="20" height="20">
+  <properties>
+   <property name="ysort" type="bool" value="true"/>
+  </properties>
+  <data encoding="csv">
+0,0,1414,1415,1416,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1430,1431,1432,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1446,1447,1448,0,0,0,0,0,0,0,0,0,1409,1410,1411,1412,1413,0,
+0,0,1462,1463,1464,0,0,0,0,0,0,0,0,0,1425,1426,1427,1428,1429,0,
+0,0,1478,1479,1480,0,0,0,0,0,0,0,0,0,1441,1442,1443,1444,1445,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,1457,1458,1459,1460,1461,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,1473,1474,1475,1476,1477,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,1418,1419,1420,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,1434,1435,1436,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,1450,1451,1452,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,1466,1467,1468,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,1482,1483,1484,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+</map>

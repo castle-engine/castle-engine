@@ -1,0 +1,16 @@
+# Files ignored by GIT version control
+
+# Build tool (and compiler) temporary output
+castle-engine-output
+
+# Unix executable
+ysort_up_and_down_map
+# Windows executable
+ysort_up_and_down_map.exe
+# Library files placed alongside Windows executable
+*.dll
+# Auto-updated by CGE tools when compiling Windows build
+castle-auto-generated-resources.res
+
+# May contain secret data (your Android keystore username and password)
+AndroidSigningProperties.txt
