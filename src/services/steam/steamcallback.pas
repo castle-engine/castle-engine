@@ -8,13 +8,6 @@ Unit SteamCallback;
 
 Interface
 
-{$ifdef LINUX}{$ifdef CPU64}
-  {$define STEAM_API}
-{$endif}{$endif}
-{$ifdef MSWINDOWS}{$ifdef CPU64}
-  {$define STEAM_API}
-{$endif}{$endif}
-
 Uses
   CastleInternalSteamConstantsAndTypes;
 
@@ -70,11 +63,8 @@ Type
 
 
 Implementation
-{$ifdef STEAM_API}
 uses
   CastleInternalSteamApi;
-
-{ TSteamCallback }
 
 Var
   MyCallbackVTable: TCCallbackBaseVTable;
@@ -147,10 +137,5 @@ Initialization
   MyCallbackVTable.Run := @MySteamCallback_Run;
   MyCallbackVTable.Run_2 := @MySteamCallback_Run_2;
   MyCallbackVTable.GetCallbackSizeBytes := @MySteamCallback_GetCallbackSizeBytes;
-
-{$else STEAM_API}
-Constructor SteamCallbackDispatcher.Create(iCallback:integer; callbackProc:SteamCallbackDelegate; a_propsize: integer); begin end;
-Destructor SteamCallbackDispatcher.Destroy; begin inherited end;
-{$endif STEAM_API}
 
 End.
