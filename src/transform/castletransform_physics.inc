@@ -1101,8 +1101,6 @@
 
   TMouseCameraRotation = class(TCastleBehavior)
   private
-    FLastMousePos: TVector2;
-    FFirstTime: Boolean;
     MinAngleFromGravityUp: Single;
     const
       DefaultMouseLookHorizontalSensitivity = Pi * 0.1 / 180;
@@ -3601,17 +3599,20 @@ end;
 procedure TMouseCameraRotation.HandleMouseLook;
 var
   MouseChange: TVector2;
+  Middle: TVector2;
 begin
-  MouseChange := Container.MousePosition - FLastMousePos;
+  Middle.X := Container.Rect.Middle.X;
+  Middle.Y := Container.Rect.Middle.Y;
+
+  MouseChange := (Container.MousePosition) - Middle;
 
   if not MouseChange.IsPerfectlyZero then
   begin
 //    if InvertVerticalMouseLook then
 //      MouseChange.Y := -MouseChange.Y;
-    MouseChange.X := MouseChange.X * DefaultMouseLookHorizontalSensitivity;
-    MouseChange.Y := MouseChange.Y * DefaultMouseLookVerticalSensitivity;
+    MouseChange.X := MouseChange.X * DefaultMouseLookHorizontalSensitivity * 0.01;
+    MouseChange.Y := MouseChange.Y * DefaultMouseLookVerticalSensitivity * 0.01;
     ProcessMouseLookDelta(MouseChange);
-    FLastMousePos := Container.MousePosition;
   end;
 end;
 
@@ -3725,11 +3726,8 @@ end;
 procedure TMouseCameraRotation.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 begin
-  if FFirstTime then
-  begin
-    FLastMousePos := Container.MousePosition;
-    FFirstTime := false;
-  end;
+  if CastleApplicationMode = appDesign then
+    Exit;
 
   HandleMouseLook;
 
@@ -3739,7 +3737,6 @@ end;
 constructor TMouseCameraRotation.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FFirstTime := true;
   MinAngleFromGravityUp := DefaultMinAngleFromGravityUp;
 end;
 

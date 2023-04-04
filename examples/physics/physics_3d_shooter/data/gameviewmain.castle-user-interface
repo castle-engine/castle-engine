@@ -36,18 +36,6 @@
                 "Perspective" : {
                   "$$ClassName" : "TCastlePerspective"
                 },
-                "RotationPersistent" : {
-                  "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 3.0048936605453491E-001,
-                  "X" : -9.7024834156036377E-001,
-                  "Y" : -1.9244828820228577E-001,
-                  "Z" : 1.4690800011157990E-001
-                },
-                "ScalePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "Y" : 9.9999994039535522E-001,
-                  "Z" : 9.9999994039535522E-001
-                },
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TMouseCameraRotation",
