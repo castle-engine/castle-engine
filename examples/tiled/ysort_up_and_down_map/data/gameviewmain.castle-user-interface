@@ -286,7 +286,7 @@
               4,
               5,
               6,
-              7,
+              11,
               12,
               13,
               14,
@@ -317,6 +317,7 @@
               "BlendingSort" : "bsYSort"
             },
             "Layers" : [
+              7,
               8,
               9,
               10,
@@ -356,7 +357,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 3.9944534301757812E+002,
+          "Height" : 4.8788363647460938E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -373,8 +374,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 4.2352981567382812E+002,
-          "Y" : 3.0041656494140625E+002,
+          "X" : 3.4519842529296875E+002,
+          "Y" : 3.0103363037109375E+002,
           "Z" : 6.0000000000000000E+002
         }
       },
