@@ -26,12 +26,10 @@ uses
 
 type
   TLayerCollisionsPropertyEditorForm = class(TForm)
-    ButtonCancel: TButton;
-    ButtonOK: TButton;
+    ButtonPanel1: TButtonPanel;
     LayerNamesButton: TButton;
-    PanelButtons: TPanel;
-    RevertButton: TButton;
     CheckboxesPanel: TPanel;
+    RevertButton: TButton;
     VerticalNamesPanel: TPanel;
     HorizontalNamesPanel: TPanel;
     procedure FormResize(Sender: TObject);

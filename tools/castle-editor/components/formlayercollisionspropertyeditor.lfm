@@ -1,12 +1,11 @@
 object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
-  Left = 670
-  Height = 555
-  Top = 289
-  Width = 848
-  AutoSize = True
+  Left = 788
+  Height = 716
+  Top = 208
+  Width = 882
   Caption = 'Physics Layer Collisions Configuration'
-  ClientHeight = 555
-  ClientWidth = 848
+  ClientHeight = 716
+  ClientWidth = 882
   Color = clWindow
   DesignTimePPI = 115
   OnResize = FormResize
@@ -18,9 +17,8 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     AnchorSideTop.Control = VerticalNamesPanel
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
-    AnchorSideBottom.Control = PanelButtons
     Left = 233
-    Height = 413
+    Height = 570
     Top = 89
     Width = 383
     Anchors = [akTop, akLeft, akBottom]
@@ -30,7 +28,7 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     Caption = 'CheckboxesPanel'
     Constraints.MinHeight = 96
     Constraints.MinWidth = 383
-    TabOrder = 0
+    TabOrder = 2
   end
   object HorizontalNamesPanel: TPanel
     AnchorSideLeft.Control = Owner
@@ -59,95 +57,49 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 29
     Caption = 'VerticalNamesPanel'
-    TabOrder = 2
+    TabOrder = 0
   end
-  object PanelButtons: TPanel
-    AnchorSideLeft.Control = Owner
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = Owner
+  object ButtonPanel1: TButtonPanel
+    Left = 7
+    Height = 45
+    Top = 664
+    Width = 868
+    BorderSpacing.Around = 7
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 5
+    ShowButtons = [pbOK, pbCancel]
+  end
+  object RevertButton: TButton
     AnchorSideBottom.Side = asrBottom
-    Left = 0
+    Left = 136
     Height = 37
-    Top = 510
-    Width = 848
-    Anchors = [akLeft, akRight, akBottom]
+    Top = 673
+    Width = 70
+    Anchors = [akLeft, akBottom]
     AutoSize = True
-    BorderSpacing.Top = 8
-    BorderSpacing.Bottom = 8
-    BevelOuter = bvNone
-    ClientHeight = 37
-    ClientWidth = 848
+    BorderSpacing.Right = 8
+    Caption = 'Revert'
+    OnClick = RevertButtonClick
+    TabOrder = 4
+  end
+  object LayerNamesButton: TButton
+    AnchorSideBottom.Side = asrBottom
+    Left = 8
+    Height = 37
+    Top = 672
+    Width = 119
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Right = 8
+    Caption = 'Layer Names'
+    OnClick = LayerNamesButtonClick
     TabOrder = 3
-    object ButtonCancel: TButton
-      AnchorSideTop.Control = ButtonOK
-      AnchorSideRight.Control = ButtonOK
-      Left = 640
-      Height = 37
-      Top = 0
-      Width = 96
-      Anchors = [akTop, akRight]
-      AutoSize = True
-      BorderSpacing.Right = 8
-      Cancel = True
-      Caption = 'Cancel'
-      Constraints.MinWidth = 96
-      ModalResult = 2
-      TabOrder = 0
-    end
-    object ButtonOK: TButton
-      AnchorSideRight.Control = PanelButtons
-      AnchorSideRight.Side = asrBottom
-      Left = 744
-      Height = 37
-      Top = 0
-      Width = 96
-      Anchors = [akTop, akRight]
-      AutoSize = True
-      BorderSpacing.Right = 8
-      Caption = 'OK'
-      Constraints.MinWidth = 96
-      Default = True
-      ModalResult = 1
-      OnClick = OkButtonClick
-      TabOrder = 1
-    end
-    object RevertButton: TButton
-      AnchorSideLeft.Control = LayerNamesButton
-      AnchorSideLeft.Side = asrBottom
-      AnchorSideTop.Control = ButtonOK
-      AnchorSideRight.Control = ButtonCancel
-      AnchorSideBottom.Control = ButtonOK
-      AnchorSideBottom.Side = asrBottom
-      Left = 517
-      Height = 37
-      Top = 0
-      Width = 115
-      Anchors = [akTop, akRight, akBottom]
-      AutoSize = True
-      BorderSpacing.Right = 8
-      Caption = 'Revert'
-      Constraints.MinWidth = 115
-      OnClick = RevertButtonClick
-      TabOrder = 2
-    end
-    object LayerNamesButton: TButton
-      AnchorSideLeft.Side = asrCenter
-      AnchorSideTop.Control = ButtonOK
-      AnchorSideRight.Control = RevertButton
-      AnchorSideBottom.Control = ButtonOK
-      AnchorSideBottom.Side = asrBottom
-      Left = 390
-      Height = 37
-      Top = 0
-      Width = 119
-      Anchors = [akTop, akRight, akBottom]
-      AutoSize = True
-      BorderSpacing.Right = 8
-      Caption = 'Layer Names'
-      Constraints.MinWidth = 115
-      OnClick = LayerNamesButtonClick
-      TabOrder = 3
-    end
   end
 end
