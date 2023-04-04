@@ -80,6 +80,14 @@
             ]
           },
           {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "Transform2",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "Z" : 1.0000000000000000E+000
+            }
+          },
+          {
             "$$ClassName" : "TCastleScene",
             "ExposeTransforms" : [
             ],
@@ -564,9 +572,9 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -2.3128692626953125E+001,
-          "Y" : 5.6788429260253906E+001,
-          "Z" : 6.9250267028808594E+001
+          "X" : -9.7036199569702148E+000,
+          "Y" : 1.6006025314331055E+001,
+          "Z" : 3.8379096984863281E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
