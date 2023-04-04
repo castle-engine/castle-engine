@@ -8,6 +8,7 @@ object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
   ClientWidth = 882
   Color = clWindow
   DesignTimePPI = 115
+  OnCloseQuery = FormCloseQuery
   OnResize = FormResize
   Position = poMainFormCenter
   LCLVersion = '2.2.2.0'

@@ -32,9 +32,9 @@ type
     RevertButton: TButton;
     VerticalNamesPanel: TPanel;
     HorizontalNamesPanel: TPanel;
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormResize(Sender: TObject);
     procedure LayerNamesButtonClick(Sender: TObject);
-    procedure OkButtonClick(Sender: TObject);
     procedure RevertButtonClick(Sender: TObject);
   strict private
     {
@@ -96,6 +96,15 @@ begin
   UpdateHorizontalNamesTop;
 end;
 
+procedure TLayerCollisionsPropertyEditorForm.FormCloseQuery(Sender: TObject;
+  var CanClose: Boolean);
+begin
+  if ModalResult = mrOK then
+  begin
+    Save;
+  end;
+end;
+
 procedure TLayerCollisionsPropertyEditorForm.LayerNamesButtonClick(
   Sender: TObject);
 var
@@ -120,11 +129,6 @@ begin
   finally
     FreeAndNil(LayerNamesForm);
   end;
-end;
-
-procedure TLayerCollisionsPropertyEditorForm.OkButtonClick(Sender: TObject);
-begin
-  Save;
 end;
 
 procedure TLayerCollisionsPropertyEditorForm.RevertButtonClick(Sender: TObject);
