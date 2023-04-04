@@ -535,7 +535,7 @@ begin
   ParentSpace.AddChildren(FBox.Root);
 
   FYSortBox := TDebugBox.Create(Self);
-  FYSortBox.Color := Vector4(0, 0.726, 0, 1);
+  FYSortBox.Color := Vector4(0, 0.726, 0, 0.9);
   ParentSpace.AddChildren(FYSortBox.Root);
 
   InitializeNodes;

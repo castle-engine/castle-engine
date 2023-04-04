@@ -43,33 +43,6 @@
         },
         "$Children" : [
           {
-            "$$ClassName" : "TCastleCamera",
-            "Name" : "Camera1",
-            "Orthographic" : {
-              "$$ClassName" : "TCastleOrthographic",
-              "Height" : 5.0000000000000000E+002,
-              "OriginPersistent" : {
-                "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 5.0000000000000000E-001,
-                "Y" : 5.0000000000000000E-001
-              }
-            },
-            "Perspective" : {
-              "$$ClassName" : "TCastlePerspective"
-            },
-            "ProjectionType" : "ptOrthographic",
-            "RotationPersistent" : {
-              "$$ClassName" : "TCastleVector4RotationPersistent",
-              "Z" : 1.0000000000000000E+000
-            },
-            "TranslationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 3.5724343872070312E+002,
-              "Y" : 3.4625772094726562E+002,
-              "Z" : 5.0000000000000000E+002
-            }
-          },
-          {
             "$$ClassName" : "TCastleTiledMap",
             "Items" : {
               "$$ClassName" : "TCastleTransform",
@@ -87,16 +60,96 @@
                   "$Children" : [
                     {
                       "$$ClassName" : "TCastleScene",
+                      "AutoAnimation" : "shadow",
+                      "Cache" : true,
                       "ExposeTransforms" : [
                       ],
-                      "Name" : "Scene1",
+                      "Name" : "PlayerShadow",
+                      "Pickable" : false,
+                      "ProcessEvents" : true,
+                      "RenderOptions" : {
+                        "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                        "BlendingSort" : "bsNone",
+                        "MagnificationFilter" : "magNearest",
+                        "MinificationFilter" : "minNearest"
+                      },
+                      "RotationPersistent" : {
+                        "$$ClassName" : "TCastleVector4RotationPersistent",
+                        "Z" : 1.0000000000000000E+000
+                      },
+                      "URL" : "castle-data:/spritesheets/player.castle-sprite-sheet"
+                    },
+                    {
+                      "$$ClassName" : "TCastleScene",
+                      "Cache" : true,
+                      "ExposeTransforms" : [
+                      ],
+                      "Name" : "PlayerBody",
                       "Pickable" : false,
                       "RenderOptions" : {
                         "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                        "BlendingSort" : "bsNone",
                         "MagnificationFilter" : "magNearest",
                         "MinificationFilter" : "minNearest"
                       },
                       "URL" : "castle-data:/spritesheets/player.castle-sprite-sheet"
+                    },
+                    {
+                      "$$ClassName" : "TCastleCamera",
+                      "Name" : "Camera1",
+                      "Orthographic" : {
+                        "$$ClassName" : "TCastleOrthographic",
+                        "Height" : 5.0000000000000000E+002,
+                        "OriginPersistent" : {
+                          "$$ClassName" : "TCastleVector2Persistent",
+                          "X" : 5.0000000000000000E-001,
+                          "Y" : 5.0000000000000000E-001
+                        }
+                      },
+                      "Perspective" : {
+                        "$$ClassName" : "TCastlePerspective"
+                      },
+                      "ProjectionType" : "ptOrthographic",
+                      "RotationPersistent" : {
+                        "$$ClassName" : "TCastleVector4RotationPersistent",
+                        "Z" : 1.0000000000000000E+000
+                      },
+                      "TranslationPersistent" : {
+                        "$$ClassName" : "TCastleVector3Persistent",
+                        "X" : 8.3605957031250000E-001,
+                        "Y" : -7.8414306640625000E+000,
+                        "Z" : 5.0000000000000000E+002
+                      }
+                    }
+                  ],
+                  "$Behaviors" : [
+                    {
+                      "$$ClassName" : "TCastleBoxCollider",
+                      "AutoSize" : false,
+                      "Mode2D" : true,
+                      "Name" : "BoxCollider1",
+                      "SizePersistent" : {
+                        "$$ClassName" : "TCastleVector3Persistent",
+                        "X" : 2.1000000000000000E+001,
+                        "Y" : 8.0000000000000000E+000,
+                        "Z" : 1.0000000000000000E+002
+                      },
+                      "TranslationPersistent" : {
+                        "$$ClassName" : "TCastleVector3Persistent",
+                        "Y" : -2.2000000000000000E+001
+                      }
+                    },
+                    {
+                      "$$ClassName" : "TCastleRigidBody",
+                      "Gravity" : false,
+                      "LockRotation" : [
+                        0,
+                        1
+                      ],
+                      "LockTranslation" : [
+                        2
+                      ],
+                      "Name" : "RigidBody1"
                     }
                   ]
                 }
@@ -180,7 +233,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 4.7188885498046875E+002,
+          "Height" : 3.4958398437500000E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -197,8 +250,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 4.0578192138671875E+002,
-          "Y" : 2.7622750854492188E+002,
+          "X" : 3.5539599609375000E+002,
+          "Y" : 3.0552923583984375E+002,
           "Z" : 6.0000000000000000E+002
         }
       },

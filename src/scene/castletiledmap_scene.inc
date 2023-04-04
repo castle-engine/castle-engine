@@ -445,9 +445,9 @@ var
 
         {
         WritelnLog('CreateMap', 'Compose Tile Count: ' + TileDataList.Count.ToString);
-        WritelnLog('CreateMap', Format('Pos: %f, %f Size: %d, %d',[NewMap.Translation.X,
-          NewMap.Translation.Y, NewMap.Map.Width, NewMap.Map.Height]));
-          }
+        WritelnLog('CreateMap', Format('Pos: %f, %f Size(in tiles): %d, %d',[NewMap.Translation.X,
+          NewMap.Translation.Y, ARect.Width, ARect.Height]));
+        }
       end;
     begin
       for ATileYSortOffset in TilesCompositing.Keys do
@@ -480,11 +480,14 @@ var
     end;
   end;
 
+var
+  Processed: Boolean;
 begin
   FSubMaps.Clear;
 
   if FMap = nil then Exit;
 
+  Processed := False;
   for LayerIndex := 0 to FMap.Layers.Count - 1 do
   begin
     Layer := FMap.Layers[LayerIndex];
@@ -496,9 +499,10 @@ begin
        )
      ) then Continue;
     ProcessLayer;
+    Processed := True;
   end;
 
-  WritelnLog('SubMap Count',FSubMaps.Count.ToString);
+  if Processed then WritelnLog('%s SubMap Count: %d', [self.Name ,FSubMaps.Count]);
 end;
 
 procedure TCastleTiledMap.SetLayers(const Value: TLayers);
