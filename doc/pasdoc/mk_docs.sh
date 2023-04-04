@@ -145,6 +145,7 @@ PASDOC_INCLUDE_DIRS="\
   --include scene/\
   --include scene/load/\
   --include scene/load/spine/\
+  --include scene/load/md3/\
   --include scene/load/collada/\
   --include scene/x3d/\
   --include audio/\

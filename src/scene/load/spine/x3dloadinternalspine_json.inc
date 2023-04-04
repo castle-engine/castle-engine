@@ -1,3 +1,4 @@
+{%MainUnit x3dloadinternalspine.pas}
 {
   Copyright 2014-2023 Michalis Kamburelis.
 

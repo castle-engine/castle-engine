@@ -1,0 +1,610 @@
+object OfficeMoreColorsWin: TOfficeMoreColorsWin
+  Left = 265
+  Height = 384
+  Top = 115
+  Width = 425
+  BorderIcons = [biSystemMenu]
+  Caption = 'More colors...'
+  ClientHeight = 384
+  ClientWidth = 425
+  Constraints.MinHeight = 310
+  Constraints.MinWidth = 340
+  Font.Color = clWindowText
+  OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
+  OnResize = FormResize
+  OnShow = FormShow
+  Position = poMainFormCenter
+  LCLVersion = '1.7'
+  object Pages: TPageControl
+    Left = 6
+    Height = 372
+    Top = 6
+    Width = 321
+    ActivePage = Custom
+    Align = alClient
+    BorderSpacing.Around = 6
+    TabIndex = 1
+    TabOrder = 0
+    OnChange = PagesChange
+    OnChanging = PagesChanging
+    object Standard: TTabSheet
+      Caption = 'Standard'
+      ClientHeight = 344
+      ClientWidth = 313
+      object LblStandardColors: TLabel
+        AnchorSideLeft.Control = Standard
+        AnchorSideTop.Control = Standard
+        Left = 6
+        Height = 15
+        Top = 4
+        Width = 37
+        BorderSpacing.Left = 6
+        BorderSpacing.Top = 4
+        Caption = '&Colors:'
+        FocusControl = Hexa
+        ParentColor = False
+      end
+      object Hexa: THexaColorPicker
+        AnchorSideTop.Control = LblStandardColors
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 324
+        Top = 19
+        Width = 310
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        HintFormat = 'RGB(%r, %g, %b)'#13'Hex: %hex'
+        IntensityText = 'Intensity'
+        TabOrder = 0
+        Constraints.MinHeight = 85
+        Constraints.MinWidth = 93
+        OnChange = HexaChange
+      end
+    end
+    object Custom: TTabSheet
+      Caption = 'Custom'
+      ClientHeight = 344
+      ClientWidth = 313
+      ImageIndex = 1
+      object LblCustomColors: TLabel
+        AnchorSideLeft.Control = Custom
+        AnchorSideTop.Control = Custom
+        Left = 6
+        Height = 15
+        Top = 4
+        Width = 37
+        BorderSpacing.Left = 6
+        BorderSpacing.Top = 4
+        Caption = '&Colors:'
+        FocusControl = HSL
+        ParentColor = False
+      end
+      object PickerNotebook: TNotebook
+        AnchorSideTop.Control = LblCustomColors
+        AnchorSideTop.Side = asrBottom
+        AnchorSideBottom.Control = Panel1
+        Left = 6
+        Height = 207
+        Top = 19
+        Width = 302
+        PageIndex = 0
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        TabOrder = 0
+        object nbHSL: TPage
+          object HSL: THSLColorPicker
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 207
+            Top = 0
+            Width = 302
+            SelectedColor = 460791
+            Saturation = 241
+            HSPickerHintFormat = 'H: %h S: %s'#13'Hex: %hex'
+            LPickerHintFormat = 'Luminance: %l'
+            VPickerHintFormat = 'Value: %value (selected)'
+            MaxLuminance = 255
+            Align = alClient
+            TabOrder = 0
+            OnChange = ColorPickerChange
+          end
+        end
+        object nbHSLRing: TPage
+          OnResize = nbHSLRingResize
+          object HSLRing: THSLRingPicker
+            AnchorSideLeft.Control = nbHSLRing
+            AnchorSideLeft.Side = asrCenter
+            AnchorSideTop.Control = nbHSLRing
+            AnchorSideBottom.Control = nbHSLRing
+            AnchorSideBottom.Side = asrBottom
+            Left = 46
+            Height = 204
+            Top = 0
+            Width = 184
+            SelectedColor = 14803455
+            Saturation = 30
+            Luminance = 240
+            RingPickerHintFormat = 'Hue: %h'
+            SLPickerHintFormat = 'S: %hslS V: %v'#13'Hex: %hex'
+            SVPickerHintFormat = 'S: %hslS V: %v'#13'Hex: %hex'
+            MaxLuminance = 255
+            MaxSaturation = 255
+            ParentShowHint = False
+            Anchors = [akTop, akLeft, akBottom]
+            TabOrder = 0
+            OnChange = ColorPickerChange
+          end
+          object Bevel1: TBevel
+            Left = 0
+            Height = 5
+            Top = 199
+            Width = 277
+            Align = alBottom
+            Shape = bsSpacer
+          end
+        end
+        object nbSLH: TPage
+          object SLH: TSLHColorPicker
+            Left = 0
+            Height = 157
+            Top = 0
+            Width = 232
+            ParentColor = False
+            SelectedColor = clWhite
+            Saturation = 0
+            Luminance = 240
+            HPickerHintFormat = 'Hue: %h'
+            SLPickerHintFormat = 'S: %hslS L: %l'#13'Hex: %hex'
+            MaxSaturation = 255
+            MaxLuminance = 255
+            ParentShowHint = False
+            Align = alClient
+            TabOrder = 0
+            OnChange = ColorPickerChange
+          end
+        end
+        object nbRGB: TPage
+          object RTrackbar: TRColorPicker
+            AnchorSideLeft.Control = LblR
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideRight.Control = nbRGB
+            AnchorSideRight.Side = asrBottom
+            Left = 19
+            Height = 32
+            Top = 0
+            Width = 258
+            SelectedColor = 8026879
+            Layout = lyHorizontal
+            SelectionIndicator = siRect
+            Anchors = [akTop, akLeft, akRight]
+            BorderSpacing.Left = 8
+            TabOrder = 0
+            OnChange = ColorPickerChange
+            Green = 122
+            Blue = 122
+            HintFormat = 'Red: %value (selected)'
+          end
+          object GTrackbar: TGColorPicker
+            AnchorSideLeft.Control = RTrackbar
+            AnchorSideTop.Control = RTrackbar
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = nbRGB
+            AnchorSideRight.Side = asrBottom
+            Left = 19
+            Height = 32
+            Top = 40
+            Width = 258
+            SelectedColor = 8060794
+            BevelInner = bvLowered
+            BevelOuter = bvRaised
+            Layout = lyHorizontal
+            SelectionIndicator = siRect
+            Anchors = [akTop, akLeft, akRight]
+            BorderSpacing.Top = 8
+            TabOrder = 1
+            OnChange = ColorPickerChange
+            Red = 122
+            Blue = 122
+            HintFormat = 'Green: %value (selected)'
+          end
+          object BTrackbar: TBColorPicker
+            AnchorSideLeft.Control = RTrackbar
+            AnchorSideTop.Control = GTrackbar
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = nbRGB
+            AnchorSideRight.Side = asrBottom
+            Left = 19
+            Height = 32
+            Top = 80
+            Width = 258
+            SelectedColor = 16743034
+            Layout = lyHorizontal
+            SelectionIndicator = siRect
+            Anchors = [akTop, akLeft, akRight]
+            BorderSpacing.Top = 8
+            TabOrder = 2
+            OnChange = ColorPickerChange
+            Green = 122
+            Red = 122
+            HintFormat = 'Blue: %value (selected)'
+          end
+          object LblR: TLabel
+            AnchorSideLeft.Control = nbRGB
+            AnchorSideTop.Control = RTrackbar
+            AnchorSideTop.Side = asrCenter
+            Left = 4
+            Height = 15
+            Top = 9
+            Width = 7
+            BorderSpacing.Left = 4
+            BorderSpacing.Right = 3
+            Caption = 'R'
+            ParentColor = False
+          end
+          object LblG: TLabel
+            AnchorSideLeft.Control = LblR
+            AnchorSideTop.Control = GTrackbar
+            AnchorSideTop.Side = asrCenter
+            Left = 4
+            Height = 15
+            Top = 49
+            Width = 8
+            BorderSpacing.Right = 5
+            Caption = 'G'
+            ParentColor = False
+          end
+          object LblB: TLabel
+            AnchorSideLeft.Control = LblR
+            AnchorSideTop.Control = BTrackbar
+            AnchorSideTop.Side = asrCenter
+            Left = 4
+            Height = 15
+            Top = 89
+            Width = 7
+            BorderSpacing.Right = 5
+            Caption = 'B'
+            ParentColor = False
+          end
+        end
+      end
+      object Panel1: TPanel
+        Left = 0
+        Height = 118
+        Top = 226
+        Width = 313
+        Align = alBottom
+        AutoSize = True
+        BevelOuter = bvNone
+        ClientHeight = 118
+        ClientWidth = 313
+        TabOrder = 1
+        object LblPicker: TLabel
+          AnchorSideLeft.Control = Panel1
+          AnchorSideTop.Control = cbColorDisplay
+          AnchorSideTop.Side = asrCenter
+          Left = 6
+          Height = 15
+          Top = 8
+          Width = 35
+          BorderSpacing.Left = 6
+          Caption = '&Picker:'
+          FocusControl = cbColorDisplay
+          ParentColor = False
+        end
+        object cbColorDisplay: TComboBox
+          AnchorSideLeft.Control = LblPicker
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = Panel1
+          AnchorSideRight.Control = Panel1
+          AnchorSideRight.Side = asrBottom
+          Left = 49
+          Height = 23
+          Top = 4
+          Width = 254
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Left = 8
+          BorderSpacing.Top = 4
+          BorderSpacing.Right = 10
+          ItemHeight = 15
+          ItemIndex = 0
+          Items.Strings = (
+            'Hue/saturation box, luminance bar'
+            'Hue ring, saturation/luminance box'
+            'Saturation/luminance box, hue bar'
+            'Red-green-blue trackbars'
+          )
+          OnChange = cbColorDisplayChange
+          Style = csDropDownList
+          TabOrder = 0
+          Text = 'Hue/saturation box, luminance bar'
+        end
+        object LblRed: TLabel
+          AnchorSideLeft.Control = LblPicker
+          AnchorSideTop.Control = EdRED
+          AnchorSideTop.Side = asrCenter
+          Left = 6
+          Height = 15
+          Top = 37
+          Width = 23
+          Caption = '&Red:'
+          ParentColor = False
+        end
+        object EdRED: TSpinEdit
+          AnchorSideLeft.Control = cbColorDisplay
+          AnchorSideTop.Control = cbColorDisplay
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = Bevel2
+          Left = 49
+          Height = 23
+          Top = 33
+          Width = 99
+          Alignment = taRightJustify
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Top = 6
+          MaxValue = 255
+          OnChange = EdRedChange
+          TabOrder = 1
+          Value = 255
+        end
+        object LblGreen: TLabel
+          AnchorSideLeft.Control = LblPicker
+          AnchorSideTop.Control = EdGREEN
+          AnchorSideTop.Side = asrCenter
+          Left = 6
+          Height = 15
+          Top = 66
+          Width = 34
+          Caption = '&Green:'
+          ParentColor = False
+        end
+        object EdGREEN: TSpinEdit
+          AnchorSideLeft.Control = cbColorDisplay
+          AnchorSideTop.Control = EdRED
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = Bevel2
+          Left = 49
+          Height = 23
+          Top = 62
+          Width = 99
+          Alignment = taRightJustify
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Top = 6
+          MaxValue = 255
+          OnChange = EdGreenChange
+          TabOrder = 2
+        end
+        object LblBlue: TLabel
+          AnchorSideLeft.Control = LblPicker
+          AnchorSideTop.Control = EdBLUE
+          AnchorSideTop.Side = asrCenter
+          Left = 6
+          Height = 15
+          Top = 95
+          Width = 26
+          Caption = '&Blue:'
+          ParentColor = False
+        end
+        object EdBLUE: TSpinEdit
+          AnchorSideLeft.Control = cbColorDisplay
+          AnchorSideTop.Control = EdGREEN
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = Bevel2
+          Left = 49
+          Height = 23
+          Top = 91
+          Width = 99
+          Alignment = taRightJustify
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Top = 6
+          BorderSpacing.Bottom = 4
+          MaxValue = 255
+          OnChange = EdBlueChange
+          TabOrder = 3
+        end
+        object LblHue: TLabel
+          AnchorSideLeft.Control = Bevel2
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = EdHUE
+          AnchorSideTop.Side = asrCenter
+          Left = 164
+          Height = 15
+          Top = 37
+          Width = 25
+          Caption = '&Hue:'
+          ParentColor = False
+        end
+        object EdHUE: TSpinEdit
+          AnchorSideLeft.Control = LblLumVal
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = cbColorDisplay
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = cbColorDisplay
+          AnchorSideRight.Side = asrBottom
+          Left = 197
+          Height = 23
+          Top = 33
+          Width = 106
+          Alignment = taRightJustify
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Left = 6
+          BorderSpacing.Top = 6
+          MaxValue = 359
+          OnChange = EdHueChange
+          TabOrder = 4
+        end
+        object LblSat: TLabel
+          AnchorSideLeft.Control = Bevel2
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = EdSAT
+          AnchorSideTop.Side = asrCenter
+          Left = 164
+          Height = 15
+          Top = 66
+          Width = 19
+          Caption = '&Sat:'
+          ParentColor = False
+        end
+        object EdSAT: TSpinEdit
+          AnchorSideLeft.Control = EdHUE
+          AnchorSideTop.Control = EdHUE
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = cbColorDisplay
+          AnchorSideRight.Side = asrBottom
+          Left = 197
+          Height = 23
+          Top = 62
+          Width = 106
+          Alignment = taRightJustify
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Top = 6
+          MaxValue = 255
+          OnChange = EdSatChange
+          TabOrder = 5
+          Value = 255
+        end
+        object LblLumVal: TLabel
+          AnchorSideLeft.Control = Bevel2
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = EdLUMVAL
+          AnchorSideTop.Side = asrCenter
+          Left = 164
+          Height = 15
+          Top = 95
+          Width = 27
+          Caption = 'L&um:'
+          ParentColor = False
+        end
+        object EdLUMVAL: TSpinEdit
+          AnchorSideLeft.Control = EdHUE
+          AnchorSideTop.Control = EdSAT
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = cbColorDisplay
+          AnchorSideRight.Side = asrBottom
+          Left = 197
+          Height = 23
+          Top = 91
+          Width = 106
+          Alignment = taRightJustify
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Top = 6
+          MaxValue = 255
+          OnChange = EdLumValChange
+          TabOrder = 6
+          Value = 127
+        end
+        object Bevel2: TBevel
+          AnchorSideLeft.Control = Panel1
+          AnchorSideLeft.Side = asrCenter
+          AnchorSideBottom.Side = asrBottom
+          Left = 148
+          Height = 81
+          Top = 203
+          Width = 16
+          Anchors = [akLeft, akBottom]
+          Shape = bsSpacer
+        end
+      end
+    end
+  end
+  object SidePanel: TPanel
+    Left = 333
+    Height = 384
+    Top = 0
+    Width = 89
+    Align = alRight
+    BorderSpacing.Right = 3
+    BevelOuter = bvNone
+    ClientHeight = 384
+    ClientWidth = 89
+    TabOrder = 1
+    object BtnOK: TButton
+      AnchorSideLeft.Control = BtnCancel
+      AnchorSideTop.Control = SidePanel
+      AnchorSideRight.Control = BtnCancel
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 23
+      Top = 10
+      Width = 83
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Top = 10
+      Caption = 'OK'
+      ModalResult = 1
+      TabOrder = 0
+    end
+    object BtnCancel: TButton
+      AnchorSideLeft.Control = SidePanel
+      AnchorSideTop.Control = BtnOK
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 23
+      Top = 39
+      Width = 83
+      BorderSpacing.Top = 6
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+    object NewSwatch: TmbColorPreview
+      AnchorSideLeft.Control = BtnCancel
+      AnchorSideRight.Control = BtnCancel
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = OldSwatch
+      Left = 0
+      Height = 32
+      Hint = 'RGB(255, 255, 255)'
+      Top = 293
+      Width = 83
+      Anchors = [akLeft, akRight, akBottom]
+      ShowHint = True
+      ParentShowHint = False
+      OnColorChange = NewSwatchColorChange
+    end
+    object OldSwatch: TmbColorPreview
+      AnchorSideLeft.Control = BtnCancel
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = BtnCancel
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = LblCurrent
+      Left = 0
+      Height = 32
+      Hint = 'RGB(255, 255, 255)'#13#10'Hex: FFFFFF'
+      Top = 325
+      Width = 83
+      Anchors = [akLeft, akRight, akBottom]
+      BorderSpacing.Bottom = 2
+      ShowHint = True
+      ParentShowHint = False
+      OnColorChange = OldSwatchColorChange
+    end
+    object Label4: TLabel
+      AnchorSideLeft.Control = NewSwatch
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideBottom.Control = NewSwatch
+      Left = 29
+      Height = 15
+      Top = 276
+      Width = 24
+      Anchors = [akLeft, akBottom]
+      BorderSpacing.Bottom = 2
+      Caption = 'New'
+      ParentColor = False
+    end
+    object LblCurrent: TLabel
+      AnchorSideLeft.Control = OldSwatch
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = OldSwatch
+      AnchorSideTop.Side = asrBottom
+      AnchorSideBottom.Control = SidePanel
+      AnchorSideBottom.Side = asrBottom
+      Left = 21
+      Height = 15
+      Top = 359
+      Width = 40
+      Anchors = [akLeft, akBottom]
+      BorderSpacing.Bottom = 10
+      Caption = 'Current'
+      ParentColor = False
+    end
+  end
+end

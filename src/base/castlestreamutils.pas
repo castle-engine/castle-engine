@@ -33,10 +33,10 @@ type
 
       @groupBegin }
     procedure ReadLE(out Value: Word); overload;
-    procedure ReadLE(out Value: LongWord); overload;
+    procedure ReadLE(out Value: UInt32); overload;
     procedure ReadLE(out Value: QWord); overload;
     procedure ReadLE(out Value: SmallInt); overload;
-    procedure ReadLE(out Value: LongInt); overload;
+    procedure ReadLE(out Value: Int32); overload;
     procedure ReadLE(out Value: Int64); overload;
     procedure ReadLE(out Value: Single); overload;
     procedure ReadLE(out Value: Double); overload;
@@ -50,10 +50,10 @@ type
 
       @groupBegin }
     procedure ReadBE(out Value: Word); overload;
-    procedure ReadBE(out Value: LongWord); overload;
+    procedure ReadBE(out Value: UInt32); overload;
     procedure ReadBE(out Value: QWord); overload;
     procedure ReadBE(out Value: SmallInt); overload;
-    procedure ReadBE(out Value: LongInt); overload;
+    procedure ReadBE(out Value: Int32); overload;
     procedure ReadBE(out Value: Int64); overload;
     procedure ReadBE(out Value: Single); overload;
     procedure ReadBE(out Value: Double); overload;
@@ -63,10 +63,10 @@ type
 
       @groupBegin }
     procedure WriteLE(const Value: Word); overload;
-    procedure WriteLE(const Value: LongWord); overload;
+    procedure WriteLE(const Value: UInt32); overload;
     procedure WriteLE(const Value: QWord); overload;
     procedure WriteLE(const Value: SmallInt); overload;
-    procedure WriteLE(const Value: LongInt); overload;
+    procedure WriteLE(const Value: Int32); overload;
     procedure WriteLE(const Value: Int64); overload;
     procedure WriteLE(const Value: Single); overload;
     procedure WriteLE(const Value: Double); overload;
@@ -76,10 +76,10 @@ type
 
       @groupBegin }
     procedure WriteBE(const Value: Word); overload;
-    procedure WriteBE(const Value: LongWord); overload;
+    procedure WriteBE(const Value: UInt32); overload;
     procedure WriteBE(const Value: QWord); overload;
     procedure WriteBE(const Value: SmallInt); overload;
-    procedure WriteBE(const Value: LongInt); overload;
+    procedure WriteBE(const Value: Int32); overload;
     procedure WriteBE(const Value: Int64); overload;
     procedure WriteBE(const Value: Single); overload;
     procedure WriteBE(const Value: Double); overload;
@@ -96,7 +96,7 @@ begin
   Value := LEtoN(Value);
 end;
 
-procedure TStreamHelper.ReadLE(out Value: LongWord);
+procedure TStreamHelper.ReadLE(out Value: UInt32);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
@@ -114,7 +114,7 @@ begin
   Value := LEtoN(Value);
 end;
 
-procedure TStreamHelper.ReadLE(out Value: LongInt);
+procedure TStreamHelper.ReadLE(out Value: Int32);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
@@ -162,7 +162,7 @@ begin
   Value := BEtoN(Value);
 end;
 
-procedure TStreamHelper.ReadBE(out Value: LongWord);
+procedure TStreamHelper.ReadBE(out Value: UInt32);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
@@ -180,7 +180,7 @@ begin
   Value := BEtoN(Value);
 end;
 
-procedure TStreamHelper.ReadBE(out Value: LongInt);
+procedure TStreamHelper.ReadBE(out Value: Int32);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
@@ -212,9 +212,9 @@ begin
   WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-procedure TStreamHelper.WriteLE(const Value: LongWord);
+procedure TStreamHelper.WriteLE(const Value: UInt32);
 var
-  tmp: LongWord;
+  tmp: UInt32;
 begin
   tmp := NToLE(Value);
   WriteBuffer(tmp, SizeOf(tmp));
@@ -236,9 +236,9 @@ begin
   WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-procedure TStreamHelper.WriteLE(const Value: LongInt);
+procedure TStreamHelper.WriteLE(const Value: Int32);
 var
-  tmp: LongInt;
+  tmp: Int32;
 begin
   tmp := NToLE(Value);
   WriteBuffer(tmp, SizeOf(tmp));
@@ -276,9 +276,9 @@ begin
   WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-procedure TStreamHelper.WriteBE(const Value: LongWord);
+procedure TStreamHelper.WriteBE(const Value: UInt32);
 var
-  tmp: LongWord;
+  tmp: UInt32;
 begin
   tmp := NToBE(Value);
   WriteBuffer(tmp, SizeOf(tmp));
@@ -300,9 +300,9 @@ begin
   WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-procedure TStreamHelper.WriteBE(const Value: LongInt);
+procedure TStreamHelper.WriteBE(const Value: Int32);
 var
-  tmp: LongInt;
+  tmp: Int32;
 begin
   tmp := NToBE(Value);
   WriteBuffer(tmp, SizeOf(tmp));

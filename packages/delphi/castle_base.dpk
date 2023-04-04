@@ -94,7 +94,7 @@ contains
   x3dloadinternalgeo in '..\..\src\scene\load\x3dloadinternalgeo.pas',
   x3dloadinternalgltf in '..\..\src\scene\load\x3dloadinternalgltf.pas',
   x3dloadinternalimage in '..\..\src\scene\load\x3dloadinternalimage.pas',
-  x3dloadinternalmd3 in '..\..\src\scene\load\x3dloadinternalmd3.pas',
+  x3dloadinternalmd3 in '..\..\src\scene\load\md3\x3dloadinternalmd3.pas',
   x3dloadinternalobj in '..\..\src\scene\load\x3dloadinternalobj.pas',
   x3dloadinternalstl in '..\..\src\scene\load\x3dloadinternalstl.pas',
   x3dloadinternaltiledmap in '..\..\src\scene\load\x3dloadinternaltiledmap.pas',
@@ -325,7 +325,10 @@ contains
   ImagingXpm in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingXpm.pas',
   ImagingPcx in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingPcx.pas',
   ImagingPsd in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingPsd.pas',
-  ImagingJpeg2000 in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingJpeg2000.pas';
+  ImagingJpeg2000 in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingJpeg2000.pas',
+  castlescriptarrays in '..\..\src\castlescript\castlescriptarrays.pas',
+  castlescriptimages in '..\..\src\castlescript\castlescriptimages.pas',
+  castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas';
 
 end.
 

@@ -402,6 +402,7 @@ type
     procedure ApplicationProperties1Activate(Sender: TObject);
     procedure ApplicationProperties1Deactivate(Sender: TObject);
     procedure ApplicationProperties1Exception(Sender: TObject; E: Exception);
+    procedure FormChangeBounds(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -1462,6 +1463,14 @@ begin
     (don't even show exception class for now),
     instead of the default LCL dialog that proposes to kill the application. }
   ErrorBox(E.Message);
+end;
+
+procedure TProjectForm.FormChangeBounds(Sender: TObject);
+begin
+  { Update inspector data for property editors needed by color pick to show in
+    right position. }
+  if Design <> nil then
+    Design.UpdateEditorDataForPropertyEditors;
 end;
 
 procedure TProjectForm.LoadDockLayout;

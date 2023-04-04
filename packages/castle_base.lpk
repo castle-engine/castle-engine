@@ -8,8 +8,8 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/fonts;../src/transform/auto_generated_persistent_vectors;../src/services/steam"/>
-        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units;../src/services/steam"/>
+        <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/fonts;../src/transform/auto_generated_persistent_vectors"/>
+        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
@@ -476,11 +476,11 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item100>
       <Item101>
-        <Filename Value="../src/base/norqcheckbegin.inc"/>
+        <Filename Value="../src/common_includes/norqcheckbegin.inc"/>
         <Type Value="Include"/>
       </Item101>
       <Item102>
-        <Filename Value="../src/base/norqcheckend.inc"/>
+        <Filename Value="../src/common_includes/norqcheckend.inc"/>
         <Type Value="Include"/>
       </Item102>
       <Item103>
@@ -1837,7 +1837,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="X3DLoadInternalImage"/>
       </Item434>
       <Item435>
-        <Filename Value="../src/scene/load/x3dloadinternalmd3.pas"/>
+        <Filename Value="../src/scene/load/md3/x3dloadinternalmd3.pas"/>
         <UnitName Value="X3DLoadInternalMD3"/>
       </Item435>
       <Item436>
@@ -4316,7 +4316,7 @@ See https://castle-engine.io/license.php for details.
       </Item1052>
       <Item1053>
         <Filename Value="../src/base_rendering/castleinternalglutils.pas"/>
-        <UnitName Value="CastleInternalGLUtils"/>
+        <UnitName Value="castleinternalglutils"/>
       </Item1053>
       <Item1054>
         <Filename Value="../src/base_rendering/castlerenderprimitives_render_unlit_mesh.inc"/>
@@ -4327,20 +4327,20 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleRenderPrimitives"/>
       </Item1055>
       <Item1056>
-        <Filename Value="../src/services/steam/steamcallback.pas"/>
-        <UnitName Value="SteamCallback"/>
+        <Filename Value="../src/scene/load/md3/x3dloadinternalmd3_structs.inc"/>
+        <Type Value="Include"/>
       </Item1056>
       <Item1057>
-        <Filename Value="../src/services/steam/castleinternalsteamapi.pas"/>
-        <UnitName Value="CastleInternalSteamApi"/>
+        <Filename Value="../src/scene/load/md3/x3dloadinternalmd3_surface.inc"/>
+        <Type Value="Include"/>
       </Item1057>
       <Item1058>
-        <Filename Value="../src/services/steam/castleinternalsteamconstantsandtypes.pas"/>
-        <UnitName Value="CastleInternalSteamConstantsAndTypes"/>
+        <Filename Value="../src/scene/load/md3/x3dloadinternalmd3_animation.inc"/>
+        <Type Value="Include"/>
       </Item1058>
       <Item1059>
-        <Filename Value="../src/services/steam/castlesteam.pas"/>
-        <UnitName Value="CastleSteam"/>
+        <Filename Value="../src/scene/load/md3/x3dloadinternalmd3_converter.inc"/>
+        <Type Value="Include"/>
       </Item1059>
     </Files>
     <CompatibilityMode Value="True"/>

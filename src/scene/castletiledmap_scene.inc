@@ -33,36 +33,36 @@ type
       { Indicates that all @link(Layers) should be visible. }
       AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
   strict private
-    type
-      TMyScene = class(TCastleScene)
-      public
-        AssumePerfectRenderingOrder: Boolean;
-        procedure LocalRender(const Params: TRenderParams); override;
-      end;
-    var
-      FMap: TCastleTiledMapData;
-      FURL: String;
-      FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
-      FScene: TMyScene;
-      FLayers: TLayers;
+    FForceTilesetSpacing: Boolean;
+    FMap: TCastleTiledMapData;
+    FURL: String;
+    FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
+    FScene: TCastleScene;
+    FLayers: TLayers;
+    procedure SetForceTilesetSpacing(const AValue: Boolean);
     procedure SetURL(const Value: string);
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetSmoothScalingSafeBorder(const Value: Boolean);
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
-    function GetAssumePerfectRenderingOrder: Boolean;
-    procedure SetAssumePerfectRenderingOrder(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    procedure PlayAnimations;
+    procedure StopAnimations(const ResetAnimations: Boolean);
+    function HasAnimations: Boolean;
+
     { Currently loaded map (from @link(URL)), if any.
       @nil if no map is loaded (when @link(URL) is empty). Read-only. }
     property Map: TCastleTiledMapData read FMap;
   published
-    { URL (or just filename) of the Tiled map file (TMX). }
+    { URL (or just filename) of the Tiled map file (TMX).
+
+      Note that loading new map from new URL automatically starts animations.
+      You can stop them with @link(StopAnimations). }
     property URL: String read FURL write SetURL;
 
     { How are images scaled.
@@ -75,8 +75,7 @@ type
       filled with the same color and alpha,
       otherwise bad colors will creep in because of bilinear filtering.
       See @url(https://castle-engine.io/manual_alpha_bleeding.php alpha bleeding).
-      Alternatively, you can use @link(SmoothScalingSafeBorder).
-    }
+      Alternatively, you can use @link(SmoothScalingSafeBorder). }
     property SmoothScaling: Boolean read FSmoothScaling write SetSmoothScaling default false;
 
     { In case of @link(SmoothScaling),
@@ -89,51 +88,55 @@ type
       alpha bleeding) instead of using this property.
       This property workarounds the fact that some sprite (tileset) images
       lack proper spacing and color bleeding, but it distorts the image
-      a bit, so it's no longer pixel-perfect. }
+      a bit, so it's no longer pixel-perfect.
+
+      Note that changing this when map is loaded reloads it,
+      and automatically starts animations.
+      You can stop them with @link(StopAnimations).
+
+      See also @link(ForceTilesetSpacing) that workarounds artifacts with
+      @link(SmoothScaling) in a different way, by adding spacing in the tileset texture,
+      which makes this trick (@name) not necessary.
+      Do not use both @link(ForceTilesetSpacing) and @name --
+      these 2 properties are different workarounds for the same problem,
+      it doesn't make sense to use them both.
+
+      @seealso ForceTilesetSpacing }
     property SmoothScalingSafeBorder: Boolean read FSmoothScalingSafeBorder write SetSmoothScalingSafeBorder
       default false;
 
-    { Layers to include when loading this map. }
+    { Use a modified version of the tileset image,
+      with a proper space between each tile in the texture (1-pixel size border around each tile,
+      effectively 2-pixel wide spacing between each tile).
+
+      Makes sense to be used only with @link(SmoothScaling) = @true,
+      it is pointless (but harmless) when @link(SmoothScaling) = @false.
+
+      See also @link(SmoothScalingSafeBorder) that workarounds artifacts with
+      @link(SmoothScaling) in a different way, by changing texture coordinates
+      such that this spacing is not necessary.
+      Do not use both @link(SmoothScalingSafeBorder) and @name --
+      these 2 properties are different workarounds for the same problem,
+      it doesn't make sense to use them both.
+
+      Note that changing this when map is loaded reloads it,
+      and automatically starts animations.
+      You can stop them with @link(StopAnimations).
+
+      @seealso SmoothScalingSafeBorder }
+    property ForceTilesetSpacing: Boolean read FForceTilesetSpacing write SetForceTilesetSpacing default false;
+
+    { Layers to include when loading this map.
+
+      Note that changing this when map is loaded reloads it,
+      and automatically starts animations.
+      You can stop them with @link(StopAnimations). }
     property Layers: TLayers read FLayers write SetLayers default AllLayers;
-
-    { When @true, rendering will assume that all shapes are in correct order.
-
-      This fixes rendering of some Tiled layers where otherwise we could have issues
-      due to multiple objects being present at the same Z order.
-      Testcases:
-      examples/tiled/map_viewer_in_viewport/data/maps/perspective_walls.tmx
-      examples/tiled/map_viewer_in_viewport/data/maps/multiple_tilesets_desert/desert2tilesets.tmx
-
-      The downside is that this assumes that really everything, including other things
-      that could be behind / in front of this Tiled map, are arranged in the TCastleViewport.Items
-      tree in the correct order. That is, things behind the Tiled map must be earlier than
-      the TCastleTiledMap component in the transformation tree. And things in front of Tiled map must
-      be after the TCastleTiledMap component in the transformation tree.
-      This assumption must be preserved by blending sorting done
-      by @link(TCastleAbstractRootTransform.BlendingSort), if any. }
-    property ExperimentalAssumePerfectRenderingOrder: Boolean
-      read GetAssumePerfectRenderingOrder write SetAssumePerfectRenderingOrder default false;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
-{ TMyScene ------------------------------------------------------------------- }
-
-procedure TCastleTiledMap.TMyScene.LocalRender(const Params: TRenderParams);
-var
-  SavedDepthFunc: TDepthFunction;
-begin
-  if AssumePerfectRenderingOrder then
-  begin
-    SavedDepthFunc := RenderContext.DepthFunc;
-    RenderContext.DepthFunc := dfAlways;
-    inherited;
-    RenderContext.DepthFunc := SavedDepthFunc;
-  end else
-    inherited;
-end;
 
 { TCastleTiledMap ------------------------------------------------------------ }
 
@@ -141,7 +144,7 @@ constructor TCastleTiledMap.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FScene := TMyScene.Create(nil);
+  FScene := TCastleScene.Create(nil);
   FScene.SetTransient;
   { This is the best BlendingSort.
     IOW we assume the tiles are already provided in the correct rendering order,
@@ -152,6 +155,7 @@ begin
 
   FSmoothScaling := false;
   FSmoothScalingSafeBorder := false;
+  FForceTilesetSpacing := false;
 
   FLayers := AllLayers;
 
@@ -169,8 +173,7 @@ function TCastleTiledMap.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers'
-      //'AssumePerfectRenderingOrder'
+      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers', 'ForceTilesetSpacing'
      ]) then
     Result := [psBasic]
   else
@@ -182,6 +185,31 @@ begin
   if FURL <> Value then
   begin
     FURL := Value;
+    try
+      ReloadMap;
+    except
+      { If loading file failed, and we're inside CGE editor,
+        merely report a warning. This allows deserializing in CGE editor
+        designs with broken URLs. }
+      on E: Exception do
+      begin
+        if CastleDesignMode then
+        begin
+          WritelnWarning('TCastleTiledMap', 'Failed to load tiledmap "%s": %s',
+            [URIDisplay(Value), ExceptMessage(E)]);
+          Exit;
+        end else
+          raise;
+      end;
+    end;
+  end;
+end;
+
+procedure TCastleTiledMap.SetForceTilesetSpacing(const AValue: Boolean);
+begin
+  if FForceTilesetSpacing <> AValue then
+  begin
+    FForceTilesetSpacing := AValue;
     ReloadMap;
   end;
 end;
@@ -199,9 +227,12 @@ begin
     Converter := TCastleTiledMapConverter.Create(FMap);
     try
       Converter.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
+      Converter.ForceTilesetSpacing := ForceTilesetSpacing;
       Converter.Layers := Layers;
       Converter.ConvertMap;
       FScene.Load(Converter.RootNode, true);
+      PlayAnimations;
+
     finally FreeAndNil(Converter) end;
   end;
 end;
@@ -246,14 +277,36 @@ begin
   end;
 end;
 
-function TCastleTiledMap.GetAssumePerfectRenderingOrder: Boolean;
+procedure TCastleTiledMap.PlayAnimations;
+var
+  I: Integer;
+  TimeSensor: TTimeSensorNode;
 begin
-  Result := FScene.AssumePerfectRenderingOrder;
+  FScene.ProcessEvents := true;
+  for I := 0 to FScene.AnimationsList.Count - 1 do
+  begin
+    TimeSensor := FScene.AnimationsList.Objects[I] as TTimeSensorNode;
+    TimeSensor.Start(true);
+  end;
 end;
 
-procedure TCastleTiledMap.SetAssumePerfectRenderingOrder(const Value: Boolean);
+procedure TCastleTiledMap.StopAnimations(const ResetAnimations: Boolean);
+var
+  I: Integer;
+  TimeSensor: TTimeSensorNode;
 begin
-  FScene.AssumePerfectRenderingOrder := Value;
+  for I := 0 to FScene.AnimationsList.Count - 1 do
+  begin
+    TimeSensor := FScene.AnimationsList.Objects[I] as TTimeSensorNode;
+    TimeSensor.Stop;
+    if ResetAnimations then
+      TimeSensor.FakeTime(0, false, true);
+  end;
+end;
+
+function TCastleTiledMap.HasAnimations: Boolean;
+begin
+  Result := FScene.AnimationsList.Count > 0;
 end;
 
 {$endif read_implementation}

@@ -537,7 +537,6 @@ begin
     P.Targets.AddUnit('x3dloadinternalgeo.pas');
     P.Targets.AddUnit('x3dloadinternalgltf.pas');
     P.Targets.AddUnit('x3dloadinternalimage.pas');
-    P.Targets.AddUnit('x3dloadinternalmd3.pas');
     P.Targets.AddUnit('x3dloadinternalobj.pas');
     P.Targets.AddUnit('x3dloadinternalstl.pas');
     P.Targets.AddUnit('x3dloadinternaltiledmap.pas');
@@ -545,6 +544,9 @@ begin
 
     P.SourcePath.Add('src/scene/load/spine');
     P.Targets.AddUnit('x3dloadinternalspine.pas');
+
+    P.SourcePath.Add('src/scene/load/md3');
+    P.Targets.AddUnit('x3dloadinternalmd3.pas');
 
     P.SourcePath.Add('src/scene/load/collada');
     P.Targets.AddUnit('x3dloadinternalcollada.pas');

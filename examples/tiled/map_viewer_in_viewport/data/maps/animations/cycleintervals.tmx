@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="7" height="3" tilewidth="16" tileheight="16" infinite="0" nextlayerid="2" nextobjectid="1">
+ <tileset firstgid="1" name="test_rotations" tilewidth="16" tileheight="16" spacing="4" margin="4" tilecount="9" columns="3">
+  <image source="../test_rotations.png" width="64" height="64"/>
+  <tile id="0">
+   <animation>
+    <frame tileid="0" duration="1000"/>
+    <frame tileid="1" duration="1000"/>
+    <frame tileid="2" duration="1000"/>
+    <frame tileid="3" duration="1000"/>
+    <frame tileid="4" duration="1000"/>
+    <frame tileid="5" duration="1000"/>
+    <frame tileid="6" duration="1000"/>
+    <frame tileid="7" duration="1000"/>
+    <frame tileid="8" duration="1000"/>
+   </animation>
+  </tile>
+  <tile id="1">
+   <animation>
+    <frame tileid="0" duration="500"/>
+    <frame tileid="1" duration="500"/>
+    <frame tileid="2" duration="500"/>
+    <frame tileid="3" duration="500"/>
+    <frame tileid="4" duration="500"/>
+    <frame tileid="5" duration="500"/>
+    <frame tileid="6" duration="500"/>
+    <frame tileid="7" duration="500"/>
+    <frame tileid="8" duration="500"/>
+   </animation>
+  </tile>
+  <tile id="2">
+   <animation>
+    <frame tileid="0" duration="250"/>
+    <frame tileid="1" duration="250"/>
+    <frame tileid="2" duration="250"/>
+    <frame tileid="3" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="5" duration="250"/>
+    <frame tileid="6" duration="250"/>
+    <frame tileid="7" duration="250"/>
+    <frame tileid="8" duration="250"/>
+   </animation>
+  </tile>
+  <tile id="3">
+   <animation>
+    <frame tileid="0" duration="200"/>
+    <frame tileid="1" duration="300"/>
+    <frame tileid="2" duration="400"/>
+    <frame tileid="3" duration="500"/>
+    <frame tileid="4" duration="600"/>
+    <frame tileid="5" duration="700"/>
+    <frame tileid="6" duration="800"/>
+    <frame tileid="7" duration="900"/>
+    <frame tileid="8" duration="1000"/>
+   </animation>
+  </tile>
+  <tile id="4">
+   <animation>
+    <frame tileid="0" duration="250"/>
+    <frame tileid="1" duration="250"/>
+    <frame tileid="1" duration="250"/>
+    <frame tileid="2" duration="250"/>
+    <frame tileid="2" duration="250"/>
+    <frame tileid="2" duration="250"/>
+    <frame tileid="2" duration="250"/>
+    <frame tileid="3" duration="250"/>
+    <frame tileid="3" duration="250"/>
+    <frame tileid="3" duration="250"/>
+    <frame tileid="3" duration="250"/>
+    <frame tileid="3" duration="250"/>
+    <frame tileid="3" duration="250"/>
+    <frame tileid="3" duration="250"/>
+    <frame tileid="3" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+    <frame tileid="4" duration="250"/>
+   </animation>
+  </tile>
+  <tile id="5">
+   <animation>
+    <frame tileid="5" duration="500"/>
+    <frame tileid="4" duration="500"/>
+    <frame tileid="3" duration="500"/>
+    <frame tileid="2" duration="500"/>
+    <frame tileid="1" duration="500"/>
+    <frame tileid="0" duration="3000"/>
+   </animation>
+  </tile>
+  <tile id="6">
+   <animation>
+    <frame tileid="0" duration="500"/>
+    <frame tileid="3" duration="500"/>
+   </animation>
+  </tile>
+  <tile id="7">
+   <animation>
+    <frame tileid="3" duration="500"/>
+    <frame tileid="0" duration="500"/>
+   </animation>
+  </tile>
+  <tile id="8">
+   <animation>
+    <frame tileid="0" duration="250"/>
+    <frame tileid="3" duration="250"/>
+   </animation>
+  </tile>
+ </tileset>
+ <layer id="1" name="1" width="7" height="3">
+  <data encoding="csv">
+1,2,3,0,7,8,7,
+0,0,0,0,8,9,8,
+4,5,6,0,7,8,7
+</data>
+ </layer>
+</map>

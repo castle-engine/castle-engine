@@ -16,6 +16,7 @@
 
 { TSubPropertiesEditor ----------------------------------------------------- }
 
+{$ifdef read_interface}
 type
   { Editor for any published SubComponent, you want to be able to
     expand it in the LCL object inspector. }
@@ -24,7 +25,13 @@ type
     function GetAttributes: TPropertyAttributes; override;
   end;
 
+{$endif read_interface}
+
+{$ifdef read_implementation}
+
 function TSubPropertiesEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paMultiSelect, paSubProperties, paReadOnly];
 end;
+
+{$endif read_implementation}

@@ -358,6 +358,9 @@ type
     // By default this captures events from whole parent, which should be whole Viewport.
     property FullSize default true;
 
+    // By default false, as this is invisible and would obscure viewport.
+    property EditorSelectOnHover default false;
+
     { Enable zooming in / out.
       Depending on the projection, zooming either moves camera or scales
       the projection size.
@@ -1508,6 +1511,7 @@ begin
   MouseDraggingStarted := -1;
 
   FullSize := true;
+  EditorSelectOnHover := false;
 
   FInput_ZoomIn      := TInputShortcut.Create(Self);
    Input_ZoomIn.Assign(keyNone, keyNone, '', false, buttonLeft, mwUp);

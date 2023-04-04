@@ -2,6 +2,8 @@
 
 Use `TCastleTiledMapControl` control to load any Tiled map.
 
+**Deprecated**: We recommend using `TCastleTiledMap` (see https://castle-engine.io/tiled_maps ) in a viewport now. See `examples/tiled/map_viewer_in_viewport` project.
+
 You can
 
 - open any Tiled map (`*.tmx` file),
