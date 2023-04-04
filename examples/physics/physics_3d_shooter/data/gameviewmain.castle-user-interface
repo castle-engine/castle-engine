@@ -22,19 +22,33 @@
         },
         "$Children" : [
           {
-            "$$ClassName" : "TCastleCamera",
-            "Name" : "Camera1",
-            "Orthographic" : {
-              "$$ClassName" : "TCastleOrthographic"
-            },
-            "Perspective" : {
-              "$$ClassName" : "TCastlePerspective"
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "Player",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "Z" : 1.0000000000000000E+000
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "Y" : 2.0000000000000000E+000,
               "Z" : 1.1001834869384766E+001
             },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleCamera",
+                "Name" : "Camera1",
+                "Orthographic" : {
+                  "$$ClassName" : "TCastleOrthographic"
+                },
+                "Perspective" : {
+                  "$$ClassName" : "TCastlePerspective"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                }
+              }
+            ],
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleRigidBody",
