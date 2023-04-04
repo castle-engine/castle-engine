@@ -144,7 +144,7 @@
                   "$Children" : [
                     {
                       "$$ClassName" : "TCastleTransform",
-                      "Name" : "ImageTransform2",
+                      "Name" : "Object1",
                       "TranslationPersistent" : {
                         "$$ClassName" : "TCastleVector3Persistent",
                         "X" : 5.6226843261718750E+002,
@@ -158,7 +158,7 @@
                             "$$ClassName" : "TCastleColorPersistent",
                             "Alpha" : 3.0000001192092896E-001
                           },
-                          "Name" : "ImageTransform_Shadow1",
+                          "Name" : "Object1Shadow",
                           "SmoothScaling" : false,
                           "TranslationPersistent" : {
                             "$$ClassName" : "TCastleVector3Persistent",
@@ -169,7 +169,7 @@
                         },
                         {
                           "$$ClassName" : "TCastleImageTransform",
-                          "Name" : "ImageTransform6",
+                          "Name" : "Object1Body",
                           "SmoothScaling" : false,
                           "Url" : "castle-data:/single_textures/2.png"
                         }
@@ -208,7 +208,7 @@
                     },
                     {
                       "$$ClassName" : "TCastleTransform",
-                      "Name" : "ImageTransform1",
+                      "Name" : "Object2",
                       "RotationPersistent" : {
                         "$$ClassName" : "TCastleVector4RotationPersistent",
                         "Z" : 1.0000000000000000E+000
@@ -226,7 +226,7 @@
                             "$$ClassName" : "TCastleColorPersistent",
                             "Alpha" : 3.0000001192092896E-001
                           },
-                          "Name" : "ImageTransform_Shadow2",
+                          "Name" : "Object2Shadow",
                           "SmoothScaling" : false,
                           "TranslationPersistent" : {
                             "$$ClassName" : "TCastleVector3Persistent",
@@ -237,7 +237,7 @@
                         },
                         {
                           "$$ClassName" : "TCastleImageTransform",
-                          "Name" : "ImageTransform4",
+                          "Name" : "Object2Body",
                           "SmoothScaling" : false,
                           "Url" : "castle-data:/single_textures/1.png"
                         }
@@ -356,7 +356,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 4.8788363647460938E+002,
+          "Height" : 3.9944534301757812E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -373,8 +373,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 5.0659411621093750E+002,
-          "Y" : 2.8065081787109375E+002,
+          "X" : 4.2352981567382812E+002,
+          "Y" : 3.0041656494140625E+002,
           "Z" : 6.0000000000000000E+002
         }
       },
