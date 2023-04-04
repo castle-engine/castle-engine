@@ -383,6 +383,7 @@ type
       even if viewed from the other side). }
     bs2D,
 
+    { Sort objects by their Y coordinate and YSortOffset.The sorting is recursive.}
     bsYSort,
 
     { Sort objects by the (3D) distance of their bounding box to the camera.

@@ -1535,6 +1535,8 @@
       const BecauseOfGravity: boolean;
       const EnableWallSliding: boolean = true): boolean;
 
+    { As YSort sorting is recursive, will this TCastleTransform be sorted and rendered together
+      with higher-level TCastleTransform with crosses parent TCastleTransform ? }
     function RenderOutside: boolean;
 
     { Translation (move) the children. Zero by default.
@@ -1763,9 +1765,15 @@
       than @link(GetWorldView) if you don't need direction/up. }
     function WorldTranslation: TVector3;
 
+    { see @link(RenderOutside), if it is true, Get the outermost enabled YSort
+      TCastleTransform, then calculate the position relative to that TCastleTransform.}
     function OutsideTranslation: TVector3;
+
+    { Due to possible transformations like rotation and scaling, the final sorting
+      is done based on the absolute y-coordinate value in the @link(OutsideRoot) coordinate system.}
     function OutsideYSortTranslation: TVector3;
 
+    { Get the outermost enabled YSort TCastleTransform.}
     function OutsideRoot: TCastleTransform;
 
     { Set at once vectors: position, direction, up.
