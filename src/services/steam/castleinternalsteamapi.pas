@@ -11,13 +11,6 @@ unit CastleInternalSteamApi;
 
 interface
 
-{$ifdef LINUX}{$ifdef CPU64}
-  {$define STEAM_API}
-{$endif}{$endif}
-{$ifdef MSWINDOWS}{$ifdef CPU64}
-  {$define STEAM_API}
-{$endif}{$endif}
-
 uses
   CastleInternalSteamConstantsAndTypes;
 
@@ -100,11 +93,23 @@ begin
   FinalizeSteamLibrary; // TODO
 
   {$ifdef MSWINDOWS}
+  {$ifdef CPU64}
   SteamLibrary := TDynLib.Load('steam_api64.dll', false);
+  {$else}
+  //SteamLibrary := TDynLib.Load('steam_api.dll', false); // Currently not supported
+  {$endif}
   {$endif}
 
   {$ifdef UNIX}
+  {$ifdef CPU64}
   SteamLibrary := TDynLib.Load('libsteam_api.so', false);
+  {$else}
+  //SteamLibrary := TDynLib.Load('libsteam_api.so', false); // Currently not supported; note the same name as 64-bit library
+  {$endif}
+  {$endif}
+
+  {$ifdef darwin} // OSX
+  //SteamLibrary := TDynLib.Load('libsteam_api.dylib', false); // Not tested
   {$endif}
 
   if SteamLibrary <> nil then
