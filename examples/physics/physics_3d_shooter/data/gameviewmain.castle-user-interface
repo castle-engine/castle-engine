@@ -11,14 +11,7 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties",
-          "LayerCollisions" : {
-            "$$ClassName" : "TCastleLayerCollisions",
-            "0" : 1
-          },
-          "LayerNames" : {
-            "$$ClassName" : "TCastleLayersNames"
-          }
+          "$$ClassName" : "TPhysicsProperties"
         },
         "$Children" : [
           {
@@ -65,6 +58,10 @@
                 "Height" : 1.0000000000000000E+000,
                 "Name" : "CapsuleCollider2",
                 "Radius" : 5.0000000000000000E-001
+              },
+              {
+                "$$ClassName" : "TDynamic3DPlayerMovement",
+                "Name" : "Dynamic3DPlayerMovement1"
               }
             ]
           },
@@ -555,6 +552,7 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleWalkNavigation",
+          "Exists" : false,
           "MoveSpeed" : 1.0000000000000000E+001,
           "Name" : "WalkNavigation"
         },

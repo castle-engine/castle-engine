@@ -23,7 +23,7 @@ uses SysUtils, Classes, Math, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils, CastleComponentSerialize,
   CastleSoundEngine, CastleTriangles, CastleRenderOptions, CastleProjection,
-  CastleUIControls, CastleQuaternions, CastleColors, CastleInternalClassUtils;
+  CastleUIControls, CastleQuaternions, CastleColors, CastleInternalClassUtils, CastleInputs;
 
 type
   {$define read_interface}
@@ -51,7 +51,7 @@ implementation
 uses CastleLog, CastleApplicationProperties, CastleURIUtils, CastleInternalRays,
   CastleRenderContext,
   // TODO: this breaks unit dependencies, transform->scene
-  X3DNodes, CastleScene, CastleInternalPhysicsVisualization;
+  X3DNodes, CastleScene, CastleInternalPhysicsVisualization, CastleViewport;
 
 {$define read_implementation}
 {$I castletransform_initial_types.inc}
@@ -140,6 +140,7 @@ initialization
   RegisterSerializableComponent(TCastleBallJoint, ['Physics', 'Joint', 'Ball']);
   RegisterSerializableComponent(TCastleDistanceJoint, ['Physics', 'Joint', 'Distance']);
   RegisterSerializableComponent(TCastleGrabJoint, ['Physics', 'Joint', 'Grab']);
+  RegisterSerializableComponent(TDynamic3DPlayerMovement, ['Physics', '3D Player Movement']);
   {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   RegisterSerializableComponent(TCastleFixedJoint, ['Physics', 'Joint', 'Fixed']);
   RegisterSerializableComponent(TCastlePulleyJoint, ['Physics', 'Joint', 'Pulley']);
