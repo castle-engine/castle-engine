@@ -32,13 +32,12 @@
   TCastleLayerCollisions = class(TCastleComponent)
   strict private
     FRootTransform: TCastleAbstractRootTransform;
-
     function GetCollides(const Layer1, Layer2: TPhysicsLayer): Boolean;
     procedure SetCollides(const Layer1, Layer2: TPhysicsLayer; const AValue: Boolean);
-
     procedure UpdateRigidBodies;
+    function DefaultCollides(const Layer: TPhysicsLayer): TPhysicsLayers;
   private
-    FCollides: array [TPhysicsLayer] of UInt32;
+    FCollides: array [TPhysicsLayer] of TPhysicsLayers;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -1230,36 +1229,26 @@ begin
   Primitive.RenderOptions.WireframeEffect := weWireframeOnly;
 end;
 
-
 { TCastleLayerCollisions ----------------------------------------------------- }
 
-function TCastleLayerCollisions.GetCollides(const Layer1, Layer2: TPhysicsLayer
-  ): Boolean;
-var
-  Layer2UInt32: UInt32;
-  Layers: TPhysicsLayers;
+function TCastleLayerCollisions.GetCollides(const Layer1, Layer2: TPhysicsLayer): Boolean;
 begin
-  Layer2UInt32 := 0;
-  Layers := [Layer2];
-  Move(Layers, Layer2UInt32, SizeOf(Layers));
-
-  Result := FCollides[Layer1] and Layer2UInt32 = Layer2UInt32;
+  Result := Layer2 in FCollides[Layer1];
+  Assert(Result = (Layer1 in FCollides[Layer2]));
 end;
 
 procedure TCastleLayerCollisions.SetCollides(const Layer1,
   Layer2: TPhysicsLayer; const AValue: Boolean);
-var
-  Layer2UInt32: UInt32;
-  Layers: TPhysicsLayers;
 begin
-  Layer2UInt32 := 0;
-  Layers := [Layer2];
-  Move(Layers, Layer2UInt32, SizeOf(Layers));
   if AValue then
-    FCollides[Layer1] := FCollides[Layer1] or Layer2UInt32
-  else
-    FCollides[Layer1] := FCollides[Layer1] and (not Layer2UInt32);
-
+  begin
+    Include(FCollides[Layer1], Layer2);
+    Include(FCollides[Layer2], Layer1);
+  end else
+  begin
+    Exclude(FCollides[Layer1], Layer2);
+    Exclude(FCollides[Layer2], Layer1);
+  end;
   UpdateRigidBodies;
 end;
 
@@ -1285,25 +1274,55 @@ begin
 end;
 
 constructor TCastleLayerCollisions.Create(AOwner: TComponent);
+var
+  L: TPhysicsLayer;
 begin
   inherited Create(AOwner);
-  Collides[0, 0] := true;
+
+  // assign default state for FCollides
+  for L := Low(L) to High(L) do
+    FCollides[L] := DefaultCollides(L);
+  UpdateRigidBodies;
+end;
+
+function TCastleLayerCollisions.DefaultCollides(const Layer: TPhysicsLayer): TPhysicsLayers;
+begin
+  // By default layer 0 collides with itself
+  if Layer = 0 then
+    Result := [Layer]
+  else
+    Result := [];
 end;
 
 procedure TCastleLayerCollisions.CustomSerialization(
   const SerializationProcess: TSerializationProcess);
 var
   I: TPhysicsLayer;
-  Value: Integer;
+  OldCollidesWithInt, NewCollidesWithInt: Int32;
+  NeedsUpdate: Boolean;
 begin
   inherited;
 
+  Assert(SizeOf(Int32) = SizeOf(TPhysicsLayers));
+
+  NeedsUpdate := false;
   for I := Low(TPhysicsLayer) to High(TPhysicsLayer) do
   begin
-    Value := FCollides[I];
-    SerializationProcess.ReadWriteInteger(IntToStr(I), Value, Value <> 0);
-    FCollides[I] := Value;
+    Move(FCollides[I], OldCollidesWithInt, SizeOf(Int32));
+    NewCollidesWithInt := OldCollidesWithInt;
+
+    SerializationProcess.ReadWriteInteger('Collides' + IntToStr(I),
+      NewCollidesWithInt, FCollides[I] <> DefaultCollides(I));
+
+    if OldCollidesWithInt <> NewCollidesWithInt then
+    begin
+      NeedsUpdate := true;
+      Move(NewCollidesWithInt, FCollides[I], SizeOf(Int32));
+    end;
   end;
+
+  if NeedsUpdate then
+    UpdateRigidBodies;
 end;
 
 { TCastleLayerNames --------------------------------------------------------- }
@@ -3244,16 +3263,18 @@ end;
 
 procedure TCastleRigidBody.UpdateLayer;
 var
-  CollisionMask: UInt32;
-  KraftCollisionMask: TKraftRigidBodyCollisionGroups;
+  CollideWith: TPhysicsLayer;
+  KraftCollideWith: TKraftRigidBodyCollisionGroups;
 begin
   if FKraftBody <> nil then
   begin
-    FKraftBody.CollisionGroups := [TKraftRigidBodyCollisionGroup(FLayer)];
-    CollisionMask := FTransform.World.PhysicsProperties.LayerCollisions.FCollides[FLayer];
-    Assert(SizeOf(CollisionMask) = SizeOf(KraftCollisionMask));
-    Move(CollisionMask, KraftCollisionMask, SizeOf(KraftCollisionMask));
-    FKraftBody.CollideWithCollisionGroups := KraftCollisionMask;
+    FKraftBody.CollisionGroups := [FLayer];
+
+    // calculate KraftCollideWith and pass to Kraft
+    KraftCollideWith := [];
+    for CollideWith in FTransform.World.PhysicsProperties.LayerCollisions.FCollides[FLayer] do
+      Include(KraftCollideWith, CollideWith);
+    FKraftBody.CollideWithCollisionGroups := KraftCollideWith;
   end;
 end;
 

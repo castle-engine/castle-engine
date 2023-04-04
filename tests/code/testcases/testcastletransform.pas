@@ -76,16 +76,10 @@ type
 
 implementation
 
-uses Math, Contnrs, Kraft,
+uses Math, Contnrs,
   CastleVectors, CastleTransform, CastleViewport, CastleClassUtils, CastleUIControls,
   CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
   CastleProjection, CastleStringUtils, CastleApplicationProperties, CastleUtils;
-
-{ Without this, Vector3 is ambiguous between CastleVectors.Vector3 and Kraft.Vector3. }
-function Vector3(const X, Y, Z: Single): TVector3;
-begin
-  Result := CastleVectors.Vector3(X, Y, Z);
-end;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -2399,8 +2393,8 @@ end;
 
 procedure TTestCastleTransform.TestLayersSetSize;
 begin
-  { TCastleRigidBody.UpdateLayer assumes this is OK. }
-  AssertTrue(SizeOf(UInt32) = SizeOf(TKraftRigidBodyCollisionGroups));
+  { TCastleLayerCollisions.CustomSerialization assumes this }
+  AssertTrue(SizeOf(Int32) = SizeOf(TPhysicsLayers));
 end;
 
 initialization
