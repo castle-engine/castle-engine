@@ -27,13 +27,6 @@ unit CastleSteam;
 
 interface
 
-{$ifdef LINUX}{$ifdef CPU64}
-  {$define STEAM_API}
-{$endif}{$endif}
-{$ifdef MSWINDOWS}{$ifdef CPU64}
-  {$define STEAM_API}
-{$endif}{$endif}
-
 uses
   Classes,
   CastleInternalSteamConstantsAndTypes, SteamCallback;
@@ -141,33 +134,30 @@ end;
 
 procedure InitSteam(const AppId: Integer);
 begin
-  {$ifdef STEAM_API}
   InitializeSteamLibrary;
-  if not SteamLibraryAvailable then
+  if SteamLibraryAvailable then
   begin
-    WriteLnWarning('FATAL: InitializeSteamLibrary failed!');
-    Halt(1);
-  end;
-  // Initialize Steam API
-  if SteamAPI_Init() then
-  begin
-    WriteLnLog('SteamAPI_Init successfull');
-
-    // If the app was started through EXE - restart the game through Steam
-    if SteamAPI_RestartAppIfNecessary(AppId) then
+    // Initialize Steam API
+    if SteamAPI_Init() then
     begin
-      WriteLnLog('The app was run through exe - restarting through Steam.');
-      Halt(0);
+      WriteLnLog('SteamAPI_Init successfull');
+
+      // If the app was started through EXE - restart the game through Steam
+      if SteamAPI_RestartAppIfNecessary(AppId) then
+      begin
+        WriteLnLog('The app was run through exe - restarting through Steam.');
+        Halt(0);
+      end else
+        WriteLnLog('The app was started through Steam');
     end else
-      WriteLnLog('The app was started through Steam');
+    begin
+      WriteLnWarning('FATAL: SteamAPI_Init failed!');
+      Halt(1);
+    end;
   end else
-  begin
-    WriteLnWarning('FATAL: SteamAPI_Init failed!');
-    Halt(1);
-  end;
-  {$else}
-  WriteLnLog('Steam is not supported on this system, so not initialized');
-  {$endif}
+    WriteLnWarning('Steam Library is not available.');
+    // NOTE: in this case SteamLibrary will not be available;
+    // it's up to user to check if SteamLibraryAvailable and potentially halt program execution
 
   // Create TCastleSteam instance and initialize it
   FSteam := TCastleSteam.Create;
@@ -175,12 +165,12 @@ end;
 
 procedure TCastleSteam.OnUserStatsReceived(P: Pointer);
 begin
-  {$ifdef STEAM_API}
+  if not SteamLibraryAvailable then
+    Exit;
   SteamUserStatsCallbackDispatcher.Free;
   WriteLnLog('Steam', 'OnUserStatsReceived');
   FInitialized := true; // maybe only after all callbacks are received - one boolean per each init callback. But as long as we have only one now, this will do
   GetAchievements;
-  {$endif}
 end;
 
 procedure TCastleSteam.GetAchievements;
@@ -188,13 +178,13 @@ var
   NumAchievements: UInt32;
   I: Integer;
 begin
-  {$ifdef STEAM_API}
+  if not SteamLibraryAvailable then
+    Exit;
   NumAchievements := SteamAPI_ISteamUserStats_GetNumAchievements(SteamUserStats);
   Achievements := TStringList.Create;
   for I := 0 to Pred(NumAchievements) do
     Achievements.Add(SteamAPI_ISteamUserStats_GetAchievementName(SteamUserStats, I));
   WriteLnLog('Steam Achievements', Achievements.Count.ToString);
-  {$endif}
 end;
 
 procedure TCastleSteam.SteamError(const ErrorMsg: String);
@@ -204,7 +194,8 @@ end;
 
 procedure TCastleSteam.SetAchievement(const AchievementId: String);
 begin
-  {$ifdef STEAM_API}
+  if not SteamLibraryAvailable then
+    Exit;
   if Initialized then
   begin
     if not SteamAPI_ISteamUserStats_SetAchievement(SteamUserStats, PAnsiChar(AchievementId)) then
@@ -212,24 +203,24 @@ begin
     StoreStats := true;
   end else
     SteamError('SetAchievement failed! Steam is not initialized!');
-  {$endif}
 end;
 
 function TCastleSteam.GetAchievement(const AchievementId: String): Boolean;
 begin
-  {$ifdef STEAM_API}
+  if not SteamLibraryAvailable then
+    Exit;
   if Initialized then
   begin
     if not SteamAPI_ISteamUserStats_GetAchievement(SteamUserStats, PAnsiChar(AchievementId), {out} Result) then
       SteamError('Failed to SteamAPI_ISteamUserStats_GetAchievement');
   end else
     SteamError('GetAchievement failed! Steam is not initialized!');
-  {$endif}
 end;
 
 procedure TCastleSteam.ClearAchievement(const AchievementId: String);
 begin
-  {$ifdef STEAM_API}
+  if not SteamLibraryAvailable then
+    Exit;
   if Initialized then
   begin
     if not SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats, PAnsiChar(AchievementId)) then
@@ -237,45 +228,44 @@ begin
     StoreStats := true;
   end else
     SteamError('ClearAchievement failed! Steam is not initialized!');
-  {$endif}
 end;
 
 procedure TCastleSteam.ClearAllAchievements;
 var
   S: String;
 begin
-  {$ifdef STEAM_API}
+  if not SteamLibraryAvailable then
+    Exit;
   if Initialized then
     for S in Achievements do
       ClearAchievement(S)
   else
   SteamError('ClearAllAchievements failed! Steam is not initialized!');
-  {$endif}
 end;
 
 procedure TCastleSteam.IndicateAchievementProgress(const AchievementId: String;
   const CurrentProgress, MaxProgress: UInt32);
 begin
-  {$ifdef STEAM_API}
+  if not SteamLibraryAvailable then
+    Exit;
   if Initialized then
   begin
     if not SteamAPI_ISteamUserStats_IndicateAchievementProgress(SteamUserStats, PAnsiChar(AchievementId), CurrentProgress, MaxProgress) then
       SteamError('Failed to SteamAPI_ISteamUserStats_IndicateAchievementProgress');
   end else
     SteamError('IndicateAchievementProgress failed! Steam is not initialized!');
-  {$endif}
 end;
 
 procedure TCastleSteam.Update;
 begin
-  {$ifdef STEAM_API}
+  if not SteamLibraryAvailable then
+    Exit;
   // Request callbacks from Steam API if any pending
   SteamAPI_RunCallbacks();
   // If we have unsaved changes, try saving them; if failed - repeat
   if Initialized and StoreStats then
     if SteamAPI_ISteamUserStats_StoreStats(SteamUserStats) then // repeat it every Update until success
       StoreStats := false;
-  {$endif}
 end;
 
 constructor TCastleSteam.Create;
@@ -284,7 +274,8 @@ begin
   StoreStats := false;
   FInitialized := false; // waiting for callback
 
-  {$ifdef STEAM_API}
+  if not SteamLibraryAvailable then
+    Exit;
   SteamClient := SteamInternal_CreateInterface(PAnsiChar(STEAMCLIENT_INTERFACE_VERSION));
 
   // Set a callback for Steam warnings
@@ -300,7 +291,6 @@ begin
   SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSERSTATS_INTERFACE_VERSION);
   SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
   SteamUserStatsCallbackDispatcher := SteamCallbackDispatcher.Create(SteamStatsCallbackID , {$ifdef FPC}@{$endif}OnUserStatsReceived, SizeOf(Steam_UserStatsReceived));
-  {$endif}
 end;
 
 destructor TCastleSteam.Destroy;
@@ -314,9 +304,8 @@ finalization
   if FSteam <> nil then
   begin
     FSteam.Free;
-    {$ifdef STEAM_API}
-    SteamAPI_Shutdown();
-    {$endif}
+    if SteamLibraryAvailable then
+       SteamAPI_Shutdown();
   end;
 
 end.
