@@ -2,7 +2,7 @@
 
 Showing the physics layers in 3D.
 
-Change _Physics Properties -> LayerCollisions_ matrix (e.g. _Ball x Ball_) to check how collisions layers work.
+Change _Physics Properties -> LayerCollisions_ matrix to configure how collision layers work.
 
 ![Screenshot](screenshot.png)
 
