@@ -1293,6 +1293,22 @@ end;
 
 procedure TCastleLayerCollisions.CustomSerialization(
   const SerializationProcess: TSerializationProcess);
+
+  procedure FixBirectionalCollisions(var NeedsUpdate: Boolean);
+  var
+    L1, L2: TPhysicsLayer;
+  begin
+    for L1 := Low(TPhysicsLayer) to High(TPhysicsLayer) do
+      for L2 := Low(TPhysicsLayer) to High(TPhysicsLayer) do
+        if ((L2 in FCollides[L1]) <> (L1 in FCollides[L2])) then
+        begin
+          // if there's a mismatch, assume the right state is "collides"
+          Include(FCollides[L1], L2);
+          Include(FCollides[L2], L1);
+          NeedsUpdate := true;
+        end;
+  end;
+
 var
   I: TPhysicsLayer;
   OldCollidesWithInt, NewCollidesWithInt: Int32;
@@ -1317,6 +1333,8 @@ begin
       Move(NewCollidesWithInt, FCollides[I], SizeOf(Int32));
     end;
   end;
+
+  FixBirectionalCollisions(NeedsUpdate);
 
   if NeedsUpdate then
     UpdateRigidBodies;
