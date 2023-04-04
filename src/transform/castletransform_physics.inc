@@ -1287,11 +1287,8 @@ end;
 
 function TCastleLayerCollisions.DefaultCollides(const Layer: TPhysicsLayer): TPhysicsLayers;
 begin
-  // By default layer 0 collides with itself
-  if Layer = 0 then
-    Result := [Layer]
-  else
-    Result := [];
+  // By default each layer collides with itself
+  Result := [Layer];
 end;
 
 procedure TCastleLayerCollisions.CustomSerialization(
