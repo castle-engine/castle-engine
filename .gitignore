@@ -141,6 +141,7 @@ castle-game-engine-*.fpm
 /examples/physics/physics_asteroids/physics_asteroids
 /examples/physics/physics_2d_collisions/physics_2d_collisions
 /examples/physics/physics_2d_game_sopwith/physics_2d_game_sopwith
+/examples/physics/physics_3d_collisions_layers/physics_3d_collisions_layers
 /examples/physics/physics_3d_demo/physics_3d_demo
 /examples/physics/physics_3d_shooter/physics_3d_shooter
 /examples/physics/physics_joints_2d/physics_joints_2d

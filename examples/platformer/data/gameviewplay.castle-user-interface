@@ -11,7 +11,25 @@
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties",
-          "GravityStrength" : 1.2000000000000000E+003
+          "GravityStrength" : 1.2000000000000000E+003,
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions",
+            "Collides0" : 13,
+            "Collides1" : 4,
+            "Collides2" : 11,
+            "Collides3" : 5
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames",
+            "Name0" : "Ground",
+            "Description0" : "All not dynamic things",
+            "Name1" : "Player",
+            "Description1" : "Should collide with enemies and ground.",
+            "Name2" : "Enemy",
+            "Description2" : "Enemies should not collide with other, should collide with player and ground.",
+            "Name3" : "Bullet",
+            "Description3" : "Should collide with ground and enemies"
+          }
         },
         "$Children" : [
           {
@@ -2606,6 +2624,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2648,6 +2667,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2694,6 +2714,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2721,6 +2742,100 @@
                 "AutoAnimation" : "idle",
                 "ExposeTransforms" : [
                 ],
+                "Name" : "Spider23",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -2.4330034179687500E+003,
+                  "Y" : -6.7663049316406250E+002
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody168"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider71",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "SizeScale" : 8.9999997615814209E-001
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Spider24",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -2.0639277343750000E+003,
+                  "Y" : -6.7663049316406250E+002
+                },
+                "URL" : "castle-data:/enemies/spider.castle-sprite-sheet",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
+                    "LinearVelocityDamp" : 0.0000000000000000E+000,
+                    "LockRotation" : [
+                      0,
+                      1,
+                      2
+                    ],
+                    "LockTranslation" : [
+                      2
+                    ],
+                    "Name" : "RigidBody169"
+                  },
+                  {
+                    "$$ClassName" : "TCastleSphereCollider",
+                    "Friction" : 1.0000000149011612E-001,
+                    "Mode2D" : true,
+                    "Name" : "SphereCollider72",
+                    "Restitution" : 5.0000000745058060E-002,
+                    "SizeScale" : 8.9999997615814209E-001
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "AnimateOnlyWhenVisible" : true,
+                "AutoAnimation" : "idle",
+                "ExposeTransforms" : [
+                ],
                 "Name" : "Spider7",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
@@ -2736,6 +2851,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2783,6 +2899,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2830,6 +2947,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2877,6 +2995,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2923,6 +3042,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -9110,6 +9230,7 @@
               {
                 "$$ClassName" : "TCastleRigidBody",
                 "AngularVelocityDamp" : 0.0000000000000000E+000,
+                "Layer" : 1,
                 "LinearVelocityDamp" : 0.0000000000000000E+000,
                 "LockRotation" : [
                   0,
@@ -11530,7 +11651,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 2.1087776184082031E+002,
+          "Height" : 1.1164901123046875E+003,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -11547,8 +11668,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -2.8971567382812500E+003,
-          "Y" : 2.0600225830078125E+002,
+          "X" : -2.2045683593750000E+003,
+          "Y" : -2.7046801757812500E+002,
           "Z" : 5.0000000000000000E+002
         }
       },
@@ -11619,7 +11740,7 @@
           },
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -1.4799999237060547E+001
+            "Y" : -1.6799999237060547E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -11645,7 +11766,7 @@
           },
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -3.6799999237060547E+001
+            "Y" : -3.8799999237060547E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -11690,7 +11811,7 @@
               "Name" : "ImageHitPoint2",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 5.5000000000000000E+001
+                "X" : 5.4999996185302734E+001
               },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -11704,7 +11825,7 @@
               "Name" : "ImageHitPoint3",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 1.1000000000000000E+002
+                "X" : 1.0999999237060547E+002
               },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -11718,7 +11839,7 @@
               "Name" : "ImageHitPoint4",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 1.6500000000000000E+002
+                "X" : 1.6499998474121094E+002
               },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -11731,7 +11852,7 @@
           "Spacing" : 1.0000000000000000E+001,
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 2.4800001525878906E+002
+            "X" : 2.4799998474121094E+002
           },
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle",

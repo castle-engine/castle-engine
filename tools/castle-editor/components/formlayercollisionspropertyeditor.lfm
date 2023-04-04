@@ -1,0 +1,106 @@
+object LayerCollisionsPropertyEditorForm: TLayerCollisionsPropertyEditorForm
+  Left = 788
+  Height = 716
+  Top = 208
+  Width = 882
+  Caption = 'Physics Layer Collisions Configuration'
+  ClientHeight = 716
+  ClientWidth = 882
+  Color = clWindow
+  DesignTimePPI = 115
+  OnCloseQuery = FormCloseQuery
+  OnResize = FormResize
+  Position = poMainFormCenter
+  LCLVersion = '2.2.2.0'
+  object CheckboxesPanel: TPanel
+    AnchorSideLeft.Control = HorizontalNamesPanel
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = VerticalNamesPanel
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    Left = 233
+    Height = 570
+    Top = 89
+    Width = 383
+    Anchors = [akTop, akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Right = 29
+    BorderSpacing.Bottom = 4
+    Caption = 'CheckboxesPanel'
+    Constraints.MinHeight = 96
+    Constraints.MinWidth = 383
+    TabOrder = 2
+  end
+  object HorizontalNamesPanel: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = CheckboxesPanel
+    AnchorSideRight.Control = CheckboxesPanel
+    AnchorSideBottom.Control = CheckboxesPanel
+    AnchorSideBottom.Side = asrBottom
+    Left = 29
+    Height = 402
+    Top = 89
+    Width = 204
+    BorderSpacing.Left = 29
+    Caption = 'HorizontalNamesPanel'
+    TabOrder = 1
+  end
+  object VerticalNamesPanel: TPanel
+    AnchorSideLeft.Control = CheckboxesPanel
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = CheckboxesPanel
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = CheckboxesPanel
+    Left = 233
+    Height = 60
+    Top = 29
+    Width = 383
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 29
+    Caption = 'VerticalNamesPanel'
+    TabOrder = 0
+  end
+  object ButtonPanel1: TButtonPanel
+    Left = 7
+    Height = 45
+    Top = 664
+    Width = 868
+    BorderSpacing.Around = 7
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 5
+    ShowButtons = [pbOK, pbCancel]
+  end
+  object RevertButton: TButton
+    AnchorSideBottom.Side = asrBottom
+    Left = 136
+    Height = 37
+    Top = 673
+    Width = 70
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Right = 8
+    Caption = 'Revert'
+    OnClick = RevertButtonClick
+    TabOrder = 4
+  end
+  object LayerNamesButton: TButton
+    AnchorSideBottom.Side = asrBottom
+    Left = 8
+    Height = 37
+    Top = 672
+    Width = 119
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Right = 8
+    Caption = 'Layer Names'
+    OnClick = LayerNamesButtonClick
+    TabOrder = 3
+  end
+end

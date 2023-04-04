@@ -27,7 +27,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="51">
+    <Files Count="54">
       <Item1>
         <Filename Value="../tools/castle-editor/components/mbColorLib/BAxisColorPicker.pas"/>
         <UnitName Value="BAxisColorPicker"/>
@@ -227,13 +227,25 @@ See https://castle-engine.io/license for details.
         <Type Value="Include"/>
       </Item49>
       <Item50>
-        <Filename Value="../tools/castle-editor/components/mbColorLib/mbReg.lrs"/>
-        <Type Value="LRS"/>
+        <Filename Value="../tools/castle-editor/components/castleeditorpropedits_physics_layer.inc"/>
+        <Type Value="Include"/>
       </Item50>
       <Item51>
+        <Filename Value="../tools/castle-editor/components/formlayercollisionspropertyeditor.pas"/>
+        <UnitName Value="FormLayerCollisionsPropertyEditor"/>
+      </Item51>
+      <Item52>
+        <Filename Value="../tools/castle-editor/components/formphysicslayernamespropertyeditor.pas"/>
+        <UnitName Value="FormPhysicsLayerNamesPropertyEditor"/>
+      </Item52>
+      <Item53>
+        <Filename Value="../tools/castle-editor/components/mbColorLib/mbReg.lrs"/>
+        <Type Value="LRS"/>
+      </Item53>
+      <Item54>
         <Filename Value="../tools/castle-editor/components/mbColorLib/mxs.inc"/>
         <Type Value="Include"/>
-      </Item51>
+      </Item54>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="5">
