@@ -4,32 +4,12 @@ unit CastleInternalSteamConstantsAndTypes;
 
 interface
 
-{$ifdef LINUX}{$ifdef CPU64}
-  {$define STEAM_API}
-{$endif}{$endif}
-{$ifdef MSWINDOWS}{$ifdef CPU64}
-  {$define STEAM_API}
-{$endif}{$endif}
-
 type
   HSteamPipe = Int32;
   HSteamUser = Int32;
   CSteamId = UInt64; // It's a struct but passed as UInt64
   CGameID = UInt64;
   EResult = UInt32;
-
-{$ifdef STEAM_API}
-
-const
-  SteamLib =
-  {$ifdef LINUX}
-    {$ifdef CPU64}'libsteam_api.so'{$endif}
-  {$endif}
-  {$ifdef MSWINDOWS}
-    {$ifdef CPU64}'steam_api64'{$endif}
-  {$endif};
-
-{$endif}
 
 const
   { Note for now we are forced to use "version-specific" calls to Steam API
