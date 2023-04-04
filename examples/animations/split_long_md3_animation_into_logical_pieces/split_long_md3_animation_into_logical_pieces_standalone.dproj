@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{D65CF6F7-CF45-4ABB-B24B-241452C6D02F}</ProjectGuid>
+        <ProjectGuid>{0E8D482C-FA3E-FBD1-3CCF-62F5F08316A9}</ProjectGuid>
         <MainSource>split_long_md3_animation_into_logical_pieces_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

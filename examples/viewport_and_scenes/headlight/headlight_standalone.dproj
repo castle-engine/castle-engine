@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{718CAEF5-8398-4CE8-AF8B-2CE87A2ED677}</ProjectGuid>
+        <ProjectGuid>{A58BC070-B9AA-BB3D-982B-BE51E4770A9D}</ProjectGuid>
         <MainSource>headlight_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{649E55C3-C653-4208-B641-4097041F6E31}</ProjectGuid>
+        <ProjectGuid>{4D7AF196-592C-5ABF-0295-DC6FB6499023}</ProjectGuid>
         <MainSource>new_renderer_skeleton.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

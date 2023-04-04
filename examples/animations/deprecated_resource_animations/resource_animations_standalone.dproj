@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{97206678-7BFF-4477-AD70-E2E7B0F00EE6}</ProjectGuid>
+        <ProjectGuid>{0C4A47FB-5D4D-5BBA-F15E-CB383DAA1784}</ProjectGuid>
         <MainSource>resource_animations_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

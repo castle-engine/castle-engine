@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{2A044313-3355-4BC1-9722-609CA9A5D20D}</ProjectGuid>
+        <ProjectGuid>{65FDA843-8F95-8E02-E956-C33035A20F7C}</ProjectGuid>
         <MainSource>physics_3d_demo_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

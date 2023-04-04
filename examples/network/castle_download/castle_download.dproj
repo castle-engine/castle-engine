@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{C892ECFD-EC44-4A3C-9719-200906AA6289}</ProjectGuid>
+        <ProjectGuid>{FB409C64-3316-34A9-E477-0A9D982BBE51}</ProjectGuid>
         <MainSource>castle_download.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

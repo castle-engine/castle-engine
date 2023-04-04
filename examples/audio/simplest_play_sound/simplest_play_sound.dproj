@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{6DD9A84B-DDED-4585-B474-9156347603A2}</ProjectGuid>
+        <ProjectGuid>{E73CCC4C-9B9E-9D31-1CAF-42D5D063F689}</ProjectGuid>
         <MainSource>simplest_play_sound.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

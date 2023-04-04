@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{885A2D5C-A561-49C7-99E8-3998AA8D3D8A}</ProjectGuid>
+        <ProjectGuid>{A61B63ED-B2BB-B128-A714-CD3A5BC881EE}</ProjectGuid>
         <MainSource>bookmarks_xml_demo.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

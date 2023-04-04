@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{E5F9ADCB-1E7E-4C4C-9A3E-4C208AD18B5A}</ProjectGuid>
+        <ProjectGuid>{C88A7103-9AD5-9942-A916-83F0F562CF3C}</ProjectGuid>
         <MainSource>physics_forces_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

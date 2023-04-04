@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3D62E5B9-0F3E-43AA-B321-0B57F8E4226B}</ProjectGuid>
+        <ProjectGuid>{2E831E02-7800-7993-E679-C05332C50C9F}</ProjectGuid>
         <MainSource>dragon_spine_demo_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

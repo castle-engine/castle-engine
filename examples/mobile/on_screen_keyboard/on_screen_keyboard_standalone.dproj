@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{F4044DFB-89EB-4F61-888B-EAB7788A3F34}</ProjectGuid>
+        <ProjectGuid>{F03460E6-1EDC-206F-F285-CC5FA6398013}</ProjectGuid>
         <MainSource>on_screen_keyboard_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

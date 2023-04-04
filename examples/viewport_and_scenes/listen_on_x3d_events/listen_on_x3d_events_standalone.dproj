@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{85F996BD-FF57-4B2A-8480-48B80D09F364}</ProjectGuid>
+        <ProjectGuid>{87D3CAE8-6742-68D5-A033-C659EC7F12A5}</ProjectGuid>
         <MainSource>listen_on_x3d_events_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

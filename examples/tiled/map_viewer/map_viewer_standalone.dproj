@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{609C2FF1-9767-4A60-A5BA-2C8CC7599B24}</ProjectGuid>
+        <ProjectGuid>{56EAC0AC-66BE-6851-BC4F-E27570039629}</ProjectGuid>
         <MainSource>map_viewer_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

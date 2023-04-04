@@ -1,0 +1,80 @@
+object PhysicsLayerNamesPropertyEditorForm: TPhysicsLayerNamesPropertyEditorForm
+  Left = 1702
+  Height = 510
+  Top = 292
+  Width = 818
+  Caption = 'Physics layer names config'
+  ClientHeight = 510
+  ClientWidth = 818
+  DesignTimePPI = 120
+  Position = poMainFormCenter
+  LCLVersion = '2.2.5.0'
+  object NamesAndDescStringGrid: TStringGrid
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = ButtonPanel
+    Left = 4
+    Height = 448
+    Top = 4
+    Width = 810
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 4
+    ColCount = 3
+    Columns = <    
+      item
+        ReadOnly = True
+        Title.Alignment = taCenter
+        Title.Caption = 'No'
+        Width = 100
+      end    
+      item
+        Title.Alignment = taCenter
+        Title.Caption = 'Name'
+        Width = 150
+      end    
+      item
+        Title.Alignment = taCenter
+        Title.Caption = 'Description'
+        Width = 400
+      end>
+    FixedCols = 0
+    GridLineStyle = psDot
+    MouseWheelOption = mwGrid
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSizing, goColSizing, goEditing, goAlwaysShowEditor, goSmoothScroll, goHeaderHotTracking, goCellHints]
+    ParentShowHint = False
+    RowCount = 1
+    ScrollBars = ssAutoVertical
+    ShowHint = True
+    TabAdvance = aaDown
+    TabOrder = 0
+    TitleStyle = tsNative
+    OnPrepareCanvas = NamesAndDescStringGridPrepareCanvas
+    OnResize = NamesAndDescStringGridResize
+    OnSelectEditor = NamesAndDescStringGridSelectEditor
+  end
+  object ButtonPanel: TButtonPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideBottom.Control = Owner
+    Left = 8
+    Height = 42
+    Top = 460
+    Width = 802
+    BorderSpacing.Around = 8
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    OKButton.OnClick = OkButtonClick
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 1
+    ShowButtons = [pbOK, pbCancel]
+  end
+end

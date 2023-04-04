@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{365783D5-42FC-4046-9AEA-5A96EC605648}</ProjectGuid>
+        <ProjectGuid>{830B6A4E-F364-F4F7-0A9D-E477BE51982B}</ProjectGuid>
         <MainSource>third_person_navigation_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

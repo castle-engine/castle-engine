@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{0EA4922E-E9D1-4884-98F3-2F00F787669E}</ProjectGuid>
+        <ProjectGuid>{08F3479F-2589-23F6-4DBA-2794016EDB48}</ProjectGuid>
         <MainSource>transform_speed_test_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

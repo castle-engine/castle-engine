@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{EBB44D12-899B-4086-A816-7F7474F38346}</ProjectGuid>
+        <ProjectGuid>{70327764-0616-07A9-E477-0A9D982BBE51}</ProjectGuid>
         <MainSource>sprite_sheets_demo_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

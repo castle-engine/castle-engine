@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{2D98F401-CD7C-4921-903B-BC141D2D48F0}</ProjectGuid>
+        <ProjectGuid>{61F44E9C-954E-96E1-0C9F-32C5C053E679}</ProjectGuid>
         <MainSource>font_draw_over_image.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

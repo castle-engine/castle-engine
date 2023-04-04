@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{B8AC4315-1CEF-4D25-B458-8351D248254C}</ProjectGuid>
+        <ProjectGuid>{FF8C73D3-1685-14F2-1986-F36065D23FAC}</ProjectGuid>
         <MainSource>multiple_viewports_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

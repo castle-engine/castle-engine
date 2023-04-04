@@ -20,10 +20,11 @@ unit CastleEditorPropEdits;
 
 interface
 
-uses Classes, PropEdits, Forms, CastleColors, CastlePropEdits;
+uses Classes, PropEdits, Forms, CastleColors, CastleTransform, CastlePropEdits;
 
 {$define read_interface}
 {$I castleeditorpropedits_color.inc}
+{$I castleeditorpropedits_physics_layer.inc}
 {$undef read_interface}
 
 procedure Register;
@@ -31,14 +32,16 @@ procedure Register;
 implementation
 
 uses // FPC and LCL units
-  SysUtils, TypInfo,
+  SysUtils, TypInfo, Controls,
   // Lazarus design-time (IDE) units
   ComponentEditors,
   // CGE units
-  FormCastleColorPicker, CastleStringUtils;
+  FormCastleColorPicker, FormLayerCollisionsPropertyEditor,
+  FormPhysicsLayerNamesPropertyEditor, CastleStringUtils;
 
 {$define read_implementation}
 {$I castleeditorpropedits_color.inc}
+{$I castleeditorpropedits_physics_layer.inc}
 
 procedure Register;
 begin
@@ -46,6 +49,13 @@ begin
     TCastleColorPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
     TCastleColorRGBPropertyEditor);
+
+  RegisterPropertyEditor(TypeInfo(TPhysicsLayer), nil,  '',
+    TPhysicsLayerPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleLayerCollisions), nil,  '',
+    TPhysicsLayerCollisionsPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleLayerNames), nil, '',
+    TPhysicsLayerNamesPropertyEditor);
 end;
 
 end.

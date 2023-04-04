@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3C533B0D-F11C-4224-95BC-6853A2BFC770}</ProjectGuid>
+        <ProjectGuid>{25EC1A07-6B11-697E-0572-DF4CB9269300}</ProjectGuid>
         <MainSource>advanced_loading_designs_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

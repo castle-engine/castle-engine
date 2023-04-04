@@ -47,9 +47,10 @@ var
   WaitForProcessId: TProcessId = 0;
   GuiErrors: Boolean = false;
   OverrideCompiler: TCompiler = DefaultCompiler;
+  GuidFromName: Boolean = false;
 
 const
-  Options: array [0..22] of TOption =
+  Options: array [0..23] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -73,7 +74,8 @@ const
     (Short: #0 ; Long: 'manifest-name'; Argument: oaRequired),
     (Short: #0 ; Long: 'wait-for-process-exit'; Argument: oaRequired),
     (Short: #0 ; Long: 'gui-errors'; Argument: oaNone),
-    (Short: #0 ; Long: 'compiler'; Argument: oaRequired)
+    (Short: #0 ; Long: 'compiler'; Argument: oaRequired),
+    (Short: #0 ; Long: 'guid-from-name'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -236,6 +238,8 @@ begin
               'Show errors as GUI boxes. On Unix, requires "zenity" installed.') +NL+
             OptionDescription('--compiler=COMPILER',
               'Select compiler: "autodetect", "fpc", "delphi".') +NL+
+            OptionDescription('--guid-from-name',
+              'Use with "generate-program" command. Will generate stable GUID (in Delphi DPROJ) from project''s qualified name.') +NL+
             TargetOptionHelp + NL +
             OSOptionHelp + NL +
             CPUOptionHelp + NL +
@@ -272,6 +276,7 @@ begin
     20: WaitForProcessId := StrToInt64(Argument);
     21: GuiErrors := true;
     22: OverrideCompiler := StringToCompiler(Argument);
+    23: GuidFromName := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -413,7 +418,7 @@ begin
         Project.DoAutoGenerateClean(CleanAll)
       else
       if Command = 'generate-program' then
-        Project.DoGenerateProgram
+        Project.DoGenerateProgram(GuidFromName)
       else
       if Command = 'editor' then
         Project.DoEditor

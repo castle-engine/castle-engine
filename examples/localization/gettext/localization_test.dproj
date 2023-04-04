@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{1DB405F1-956F-41CA-843D-3912B9FDEEC7}</ProjectGuid>
+        <ProjectGuid>{BFA1B966-6B5C-6CEF-7205-4CDF26B90093}</ProjectGuid>
         <MainSource>localization_test.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{885384AE-136C-4D89-AB6B-8FE79573AC73}</ProjectGuid>
+        <ProjectGuid>{CF4BC7EF-1AB9-1926-3DAA-1784F15ECB38}</ProjectGuid>
         <MainSource>read_game_data_from_zip_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{9F33864B-867E-4AE1-B6A6-1A595307D93C}</ProjectGuid>
+        <ProjectGuid>{B0135733-B225-B092-39A6-138085F25FCC}</ProjectGuid>
         <MainSource>test_local_characters_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

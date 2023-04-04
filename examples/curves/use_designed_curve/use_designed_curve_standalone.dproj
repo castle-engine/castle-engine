@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{E8651A0D-6C1C-4A59-8811-4C95F9B21AA5}</ProjectGuid>
+        <ProjectGuid>{0DE17DD7-7941-77AE-F562-CF3CA91683F0}</ProjectGuid>
         <MainSource>use_designed_curve_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{9D24FED2-4BC1-40AD-A279-7F0828F5A0A8}</ProjectGuid>
+        <ProjectGuid>{521E5FD7-2B41-29AE-F562-CF3CA91683F0}</ProjectGuid>
         <MainSource>physics_test_changing_transformation_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

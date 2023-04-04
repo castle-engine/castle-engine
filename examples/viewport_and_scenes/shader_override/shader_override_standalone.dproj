@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{D08FC28C-64E5-40E7-B354-46DD72D05C08}</ProjectGuid>
+        <ProjectGuid>{1813AF0F-C019-BE86-9D0A-77E451BE2B98}</ProjectGuid>
         <MainSource>shader_override_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

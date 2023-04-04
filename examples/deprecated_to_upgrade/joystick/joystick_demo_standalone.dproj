@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{13CD23EA-54AE-41E1-BE4B-F7117C834420}</ProjectGuid>
+        <ProjectGuid>{B86EB8D4-0AA6-0C39-B447-DA6D68FB8E21}</ProjectGuid>
         <MainSource>joystick_demo_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

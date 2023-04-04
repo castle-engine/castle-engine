@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{75EE0BE2-9CE4-43E8-947D-8118B61196EE}</ProjectGuid>
+        <ProjectGuid>{BBDDB9A6-3A1C-3BAF-B245-8C1F66F940D3}</ProjectGuid>
         <MainSource>custom_input_shortcuts_saved_to_config_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
