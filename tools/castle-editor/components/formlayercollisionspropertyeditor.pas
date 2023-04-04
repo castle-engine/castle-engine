@@ -371,7 +371,9 @@ begin
     for J := High(TPhysicsLayer) downto I do
     begin
       FLayerCollisions.Collides[I, J] := Checkboxes[J, I].Checked;
-      FLayerCollisions.Collides[J, I] := Checkboxes[J, I].Checked;
+      // 2nd assignment should not be necessary, as Collides setter already sets both directions
+      //FLayerCollisions.Collides[J, I] := Checkboxes[J, I].Checked;
+      Assert(FLayerCollisions.Collides[J, I] = Checkboxes[J, I].Checked);
     end;
   end;
 end;
