@@ -44,11 +44,11 @@
           "LayerNames" : {
             "$$ClassName" : "TCastleLayerNames",
             "Name0" : "Ground",
-            "Desc0" : "Plane",
+            "Description0" : "Plane",
             "Name1" : "Wall",
-            "Desc1" : "Box",
+            "Description1" : "Box",
             "Name2" : "Ball",
-            "Desc2" : "All balls here"
+            "Description2" : "All balls here"
           }
         },
         "$Children" : [
