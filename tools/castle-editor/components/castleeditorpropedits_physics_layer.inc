@@ -31,7 +31,7 @@ type
   end;
 
   { Property editor for choosing physics layer in rigid body }
-  TPhysicsLayerPropertyEditor = class (TOrdinalPropertyEditor)
+  TPhysicsLayerPropertyEditor = class(TOrdinalPropertyEditor)
   strict private
     function GetLayerName(OrdValue: LongInt): String;
   public
@@ -123,7 +123,7 @@ end;
 
 function TPhysicsLayerPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paValueList, paRevertable];
+  Result := (inherited GetAttributes) + [paValueList];
 end;
 
 function TPhysicsLayerPropertyEditor.OrdValueToVisualValue(OrdValue: LongInt): string;
