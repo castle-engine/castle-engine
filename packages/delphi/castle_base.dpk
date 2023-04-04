@@ -94,7 +94,7 @@ contains
   x3dloadinternalgeo in '..\..\src\scene\load\x3dloadinternalgeo.pas',
   x3dloadinternalgltf in '..\..\src\scene\load\x3dloadinternalgltf.pas',
   x3dloadinternalimage in '..\..\src\scene\load\x3dloadinternalimage.pas',
-  x3dloadinternalmd3 in '..\..\src\scene\load\x3dloadinternalmd3.pas',
+  x3dloadinternalmd3 in '..\..\src\scene\load\md3\x3dloadinternalmd3.pas',
   x3dloadinternalobj in '..\..\src\scene\load\x3dloadinternalobj.pas',
   x3dloadinternalstl in '..\..\src\scene\load\x3dloadinternalstl.pas',
   x3dloadinternaltiledmap in '..\..\src\scene\load\x3dloadinternaltiledmap.pas',

@@ -21,13 +21,12 @@
 type
   TFrameId = QWord;
 
-  { Utility to measure frames per second, independent of actual
-    rendering API. For example, it can be easily "plugged" into TCastleWindow
-    (see TCastleWindow.Fps) or Lazarus GL control (see TCastleControl.Fps).
+  { Measure frames per second.
 
-    Things named "_" here are supposed to be internal to the TCastleWindow /
-    TCastleControl and such implementations. Other properties can be
-    controlled by the user of TCastleWindow / TCastleControl. }
+    You should never create an instance of this class directly,
+    instead just use the available instance in @link(TCastleContainer.Fps).
+    The @link(TCastleContainer) instance is, in turn, automatically
+    created for each @link(TCastleWindow) or @link(TCastleControl). }
   TFramesPerSecond = class
   private
     FOnlyRenderFps: TFloatTime;
@@ -50,17 +49,17 @@ type
     constructor Create;
 
     { Internal for Castle Game Engine.
-      Called from CastleWindow or CastleControl.
-      Don't call these methods yourself.
       @groupBegin
       @exclude }
-    procedure _RenderBegin;
+    constructor InternalCreate;
     { @exclude }
-    procedure _RenderEnd;
+    procedure InternalRenderBegin;
     { @exclude }
-    procedure _Sleeping;
+    procedure InternalRenderEnd;
     { @exclude }
-    procedure _UpdateBegin;
+    procedure InternalSleeping;
+    { @exclude }
+    procedure InternalUpdateBegin;
     { @groupEnd }
 
     { Rendering speed, measured in frames per second, but accounting only
@@ -160,7 +159,7 @@ type
       just because we did a modal dialog.
 
       This forces the SecondsPassed to be zero at the next update event
-      (_UpdateBegin). }
+      (InternalUpdateBegin). }
     procedure ZeroNextSecondsPassed;
 
     { Time of last Update call. }
@@ -209,6 +208,11 @@ var
   FRenderFrameId: TFrameId = 1;
 
 constructor TFramesPerSecond.Create;
+begin
+  raise Exception.Create('Do not create instance of TFramesPerSecond class directly, only use the already-created instance in TCastleContainer.Fps');
+end;
+
+constructor TFramesPerSecond.InternalCreate;
 const
   DefaultFps = 60.0;
 begin
@@ -220,7 +224,7 @@ begin
   { for SecondsPassed this initialization is actually not essential,
     since we call ZeroNextSecondsPassed anyway.
     But in case programmer will (incorrectly!) try to use SecondsPassed
-    before _UpdateBegin call, it's useful to have here some predictable value. }
+    before InternalUpdateBegin call, it's useful to have here some predictable value. }
   FSecondsPassed := 1 / DefaultFps;
 
   { the default is non-zero now, since all Android games need it }
@@ -229,19 +233,19 @@ begin
   ZeroNextSecondsPassed;
 end;
 
-procedure TFramesPerSecond._RenderBegin;
+procedure TFramesPerSecond.InternalRenderBegin;
 begin
   RenderStartTime := Timer;
   FRenderFrameId := FFrameId;
 end;
 
-procedure TFramesPerSecond._RenderEnd;
+procedure TFramesPerSecond.InternalRenderEnd;
 begin
   Inc(FramesRendered);
   OnlyRenderTimePassed.Value := OnlyRenderTimePassed.Value + Timer.Value - RenderStartTime.Value;
 end;
 
-procedure TFramesPerSecond._Sleeping;
+procedure TFramesPerSecond.InternalSleeping;
 begin
   FSleeping := true;
 end;
@@ -258,7 +262,7 @@ begin
   Result := Result + FormatDot(' (only render: %f)', [OnlyRenderFps]);
 end;
 
-procedure TFramesPerSecond._UpdateBegin;
+procedure TFramesPerSecond.InternalUpdateBegin;
 
   { Update RealFps, OnlyRenderFps, WasSleeping }
   procedure UpdateFps;

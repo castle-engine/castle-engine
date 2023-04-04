@@ -182,7 +182,7 @@ implementation
 uses SysUtils, StrUtils, RttiUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
   CastleUtils, CastleLog, CastleInternalRttiUtils,
-  CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleCameras;
+  CastleTransform, CastleViewport, CastleScene, CastleURIUtils;
 
 { ---------------------------------------------------------------------------- }
 
@@ -646,8 +646,7 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
         { Eventually return yourself, C. }
         //if C.CapturesEventsAtPosition(MousePos) then
         if SimpleCapturesEventsAtPosition(C, MousePos, TestWithBorder) and
-           { Do not select TCastleNavigation, they would always obscure TCastleViewport. }
-           (not (C is TCastleNavigation)) then
+           C.EditorSelectOnHover then
           Result := C;
       end;
     end;

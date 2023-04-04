@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -60,8 +60,8 @@ type
   { Called for each file found.
     StopSearch is always initially @false, you can change it to @true to stop
     the enclosing FindFiles call. }
-  TFoundFileProc = procedure (const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
-  TFoundFileMethod = procedure (const FileInfo: TFileInfo; var StopSearch: boolean) of object;
+  TFoundFileProc = procedure (const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
+  TFoundFileMethod = procedure (const FileInfo: TFileInfo; var StopSearch: Boolean) of object;
 
   TFindFilesOption = (
     { If ffRecursive is in Options then FindFiles (and friends) descend into
@@ -187,6 +187,14 @@ function FindFirstFile(const Path, Mask: string;
   const FindDirectories: boolean; const Options: TFindFilesOptions;
   out FileInfo: TFileInfo): boolean;
 
+{ Find first file matching given Mask inside Path, always ignores case
+  (regardless of OS conventions).
+  If found, returns @true and sets FileInfo.
+  Otherwise, returns @false and leaves FileInfo undefined. }
+function FindFirstFileIgnoreCase(const Path, Mask: string;
+  const FindDirectories: boolean; const Options: TFindFilesOptions;
+  out FileInfo: TFileInfo): boolean;
+
 implementation
 
 uses URIParser, StrUtils,
@@ -227,7 +235,7 @@ uses URIParser, StrUtils,
 function FindFiles_NonRecursive(const Path, Mask: string;
   const FindDirectories: boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
-  var StopSearch: boolean): Cardinal;
+  var StopSearch: Boolean): Cardinal;
 
   procedure UseLocalFileSystem;
   var
@@ -256,12 +264,12 @@ function FindFiles_NonRecursive(const Path, Mask: string;
     try
       while (SearchError = 0) and (not StopSearch) do
       begin
-        // do not enumarate directory names '.' and '..'
+        // do not enumerate directory names '.' and '..'
         if not (
           ((FileRec.Attr and faDirectory) <> 0) and
           SpecialDirName(FileRec.Name))
           {$ifdef DOUBLE_CHECK_WILDCARD}
-          and IsWild(FileRec.Name, Mask, FileNameCaseSensitive)
+          and IsWild(FileRec.Name, Mask, { IgnoreCase } not FileNameCaseSensitive)
           {$endif}
           then
         begin
@@ -364,7 +372,7 @@ end;
   and ReadAllFirst = false. }
 function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
-  const DirContentsLast: boolean; var StopSearch: boolean): Cardinal;
+  const DirContentsLast: boolean; var StopSearch: Boolean): Cardinal;
 
   procedure WriteDirContent;
   begin
@@ -475,7 +483,7 @@ function FindFiles_NonReadAllFirst(const Path, Mask: string; const FindDirectori
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Recursive, DirContentsLast: boolean): Cardinal;
 var
-  StopSearch: boolean;
+  StopSearch: Boolean;
 begin
   StopSearch := false;
   if Recursive then
@@ -485,7 +493,7 @@ begin
 end;
 
 procedure FileProc_AddToFileInfos(
-  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
 begin
   TFileInfoList(Data).Add(FileInfo);
 end;
@@ -496,7 +504,7 @@ function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
 var
   FileInfos: TFileInfoList;
   i: Integer;
-  StopSearch: boolean;
+  StopSearch: Boolean;
 begin
   if ffReadAllFirst in Options then
   begin
@@ -542,7 +550,7 @@ type
   PFoundFileMethodWrapper = ^TFoundFileMethodWrapper;
 
 procedure FoundFileProcToMethod(
-  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
 var
   FileMethod: TFoundFileMethod;
 begin
@@ -576,10 +584,10 @@ type
     Base: string;
     IsFound: boolean;
     Found: string;
-    procedure Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
 
-  procedure TSearchFileHardHelper.Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
+  procedure TSearchFileHardHelper.Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
   begin
     if AnsiSameText(FileInfo.Name, Base) then
     begin
@@ -627,10 +635,10 @@ type
   TFindFirstFileHelper = class
     IsFound: boolean;
     FoundFile: TFileInfo;
-    procedure Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
 
-  procedure TFindFirstFileHelper.Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
+  procedure TFindFirstFileHelper.Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
   begin
     FoundFile := FileInfo;
     IsFound := true;
@@ -646,6 +654,45 @@ begin
   Helper := TFindFirstFileHelper.Create;
   try
     FindFiles(Path, Mask, FindDirectories,
+      {$ifdef FPC}@{$endif} Helper.Callback, Options);
+    Result := Helper.IsFound;
+    if Result then
+      FileInfo := Helper.FoundFile;
+  finally FreeAndNil(Helper) end;
+end;
+
+type
+  TFindFirstFileIgnoreCaseHelper = class
+    Mask: String;
+    IsFound: boolean;
+    FoundFile: TFileInfo;
+    procedure Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  end;
+
+  procedure TFindFirstFileIgnoreCaseHelper.Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  begin
+    if IsWild(FileInfo.Name, Mask, { IgnoreCase } true) then
+    begin
+      FoundFile := FileInfo;
+      IsFound := true;
+      StopSearch := true;
+    end;
+  end;
+
+function FindFirstFileIgnoreCase(const Path, Mask: string;
+  const FindDirectories: boolean; const Options: TFindFilesOptions;
+  out FileInfo: TFileInfo): boolean;
+var
+  Helper: TFindFirstFileIgnoreCaseHelper;
+begin
+  Helper := TFindFirstFileIgnoreCaseHelper.Create;
+  try
+    Helper.Mask := Mask;
+    { We enumerate all files (so it doesn't matter if FindFirst/Next,
+      which may be using native OS functions when searching local file system,
+      are case-sensitive or not).
+      Then we check Mask in TFindFirstFileIgnoreCaseHelper.Callback . }
+    FindFiles(Path, '*', FindDirectories,
       {$ifdef FPC}@{$endif} Helper.Callback, Options);
     Result := Helper.IsFound;
     if Result then

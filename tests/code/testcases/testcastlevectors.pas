@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleVectors" -*-
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1218,14 +1218,6 @@ begin
     AssertEquals(33, List[1].X);
     AssertEquals(44, List[1].Y);
 
-    { This test fails on FPC 3.3.1 from 2022-12-27.
-      It worked for FPC 3.3.1 from 2022-07-28.
-      It also worked in FPC 3.2.0.
-
-      Submitted as https://gitlab.com/freepascal.org/fpc/source/-/issues/40074 .
-    }
-    {$ifndef VER3_3}
-
     AssertEquals(0, List.IndexOf(R1));
     AssertEquals(1, List.IndexOf(R2));
 
@@ -1258,7 +1250,6 @@ begin
     AssertEquals(1, List.Count);
     AssertEquals(33, List[0].X);
     AssertEquals(44, List[0].Y);
-    {$endif}
   finally FreeAndNil(List) end;
 end;
 

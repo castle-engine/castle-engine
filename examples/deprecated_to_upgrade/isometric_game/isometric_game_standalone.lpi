@@ -37,14 +37,14 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
-        <Filename Value="code/gamemap.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="gamemap"/>
-      </Unit3>
-      <Unit4>
         <Filename Value="code/gameplayer.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameplayer"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="code/gamemap.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gamemap"/>
       </Unit4>
       <Unit5>
         <Filename Value="code/gamewindow.pas"/>

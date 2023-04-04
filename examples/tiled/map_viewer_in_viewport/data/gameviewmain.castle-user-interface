@@ -283,6 +283,32 @@
                   "Name" : "ButtonOpen",
                   "VerticalAnchorParent" : "vpMiddle",
                   "VerticalAnchorSelf" : "vpMiddle"
+                },
+                {
+                  "$$ClassName" : "TCastleButton",
+                  "Caption" : "PlayAnimations",
+                  "CustomBackgroundDisabled" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundFocused" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundNormal" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "CustomBackgroundPressed" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "Image" : {
+                    "$$ClassName" : "TCastleImagePersistent"
+                  },
+                  "Name" : "ButtonAnimations",
+                  "TranslationPersistent" : {
+                    "$$ClassName" : "TCastleVector2Persistent",
+                    "X" : 1.5000001525878906E+002
+                  },
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle"
                 }
               ]
             }
