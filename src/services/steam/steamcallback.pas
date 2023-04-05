@@ -69,6 +69,7 @@ uses
 Var
   MyCallbackVTable: TCCallbackBaseVTable;
 
+{$IFDEF CPU64} // note: it duplicates conditions below, but it seems to $else doesn't work with Win32 target
 {$IFDEF CPU64}
 Procedure MySteamCallback_Run(pvParam: Pointer; pSelf: PCCallbackInt);
 Begin
@@ -86,10 +87,12 @@ Begin
 End;
 {$ELSE}
 {$IFDEF LINUX}
-Procedure MySteamCallback_Run(pSelf: PCCallbackInt; pvParam: Pointer); Cdecl; {$ELSE}
-Procedure MySteamCallback_Run(pvParam: Pointer;  pSelf: PCCallbackInt); Pascal;{$ENDIF}
+Procedure MySteamCallback_Run(pSelf: PCCallbackInt; pvParam: Pointer); Cdecl;
+{$ELSE}
+Procedure MySteamCallback_Run(pvParam: Pointer;  pSelf: PCCallbackInt); Pascal;
+{$ENDIF}
 Begin
-  pSelf._Dispatcher._Callback(Pointer(pvParam));
+  pSelf._Dispatcher._Callback(Pointer(pvParam)); // Here the compilation crashes with `Error: (3205) Illegal qualifier` and `Syntax error, ";" expected but "identifier _DISPATCHER" found`
 End;
 
 Procedure MySteamCallback_Run_2(pvParam: PCCallbackInt); Pascal;
@@ -138,4 +141,9 @@ Initialization
   MyCallbackVTable.Run_2 := @MySteamCallback_Run_2;
   MyCallbackVTable.GetCallbackSizeBytes := @MySteamCallback_GetCallbackSizeBytes;
 
+{$ELSE CPU64}
+// Just dummy constructor/destructor to satisfy forward declaration
+Constructor SteamCallbackDispatcher.Create(iCallback:integer; callbackProc:SteamCallbackDelegate; a_propsize: integer); begin end;
+Destructor SteamCallbackDispatcher.Destroy; begin inherited end;
+{$ENDIF CPU64}
 End.
