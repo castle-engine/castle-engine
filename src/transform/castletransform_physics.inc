@@ -31,7 +31,6 @@
 
   TCastleLayerCollisions = class(TCastleComponent)
   strict private
-    FRootTransform: TCastleAbstractRootTransform;
     function GetCollides(const Layer1, Layer2: TPhysicsLayer): Boolean;
     procedure SetCollides(const Layer1, Layer2: TPhysicsLayer; const AValue: Boolean);
     procedure UpdateRigidBodies;
