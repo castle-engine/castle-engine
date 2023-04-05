@@ -141,14 +141,19 @@
                   "$$ClassName" : "TCastleTransform",
                   "BlendingSort" : "bsYSort",
                   "Name" : "YSortTransform1",
+                  "TranslationPersistent" : {
+                    "$$ClassName" : "TCastleVector3Persistent",
+                    "X" : 5.8657672119140625E+002,
+                    "Y" : 3.0052651977539062E+002
+                  },
                   "$Children" : [
                     {
                       "$$ClassName" : "TCastleTransform",
                       "Name" : "Object1",
                       "TranslationPersistent" : {
                         "$$ClassName" : "TCastleVector3Persistent",
-                        "X" : 5.6226843261718750E+002,
-                        "Y" : 3.4818945312500000E+002
+                        "X" : -1.8096801757812500E+001,
+                        "Y" : 4.2225830078125000E+001
                       },
                       "YSortOffset" : -1.1000000000000000E+001,
                       "$Children" : [
@@ -212,11 +217,6 @@
                       "RotationPersistent" : {
                         "$$ClassName" : "TCastleVector4RotationPersistent",
                         "Z" : 1.0000000000000000E+000
-                      },
-                      "TranslationPersistent" : {
-                        "$$ClassName" : "TCastleVector3Persistent",
-                        "X" : 5.8175195312500000E+002,
-                        "Y" : 2.9311352539062500E+002
                       },
                       "YSortOffset" : -2.2000000000000000E+001,
                       "$Children" : [
@@ -357,7 +357,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 4.8788363647460938E+002,
+          "Height" : 3.6143310546875000E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -374,8 +374,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 3.4519842529296875E+002,
-          "Y" : 3.0103363037109375E+002,
+          "X" : 3.4887155151367188E+002,
+          "Y" : 3.2920028686523438E+002,
           "Z" : 6.0000000000000000E+002
         }
       },
