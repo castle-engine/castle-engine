@@ -345,7 +345,7 @@
             "Name" : "TiledMap2",
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 1.0000000000000000E+004
+              "Z" : 2.0000000000000000E+002
             },
             "URL" : "castle-data:/maps/main_map.tmx"
           }
@@ -357,7 +357,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 3.6143310546875000E+002,
+          "Height" : 4.2698275756835938E+002,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -374,8 +374,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 3.4887155151367188E+002,
-          "Y" : 3.2920028686523438E+002,
+          "X" : 3.1530807495117188E+002,
+          "Y" : 3.3380541992187500E+002,
           "Z" : 6.0000000000000000E+002
         }
       },

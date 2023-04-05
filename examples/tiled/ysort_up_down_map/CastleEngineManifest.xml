@@ -5,8 +5,8 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="ysort_up_and_down_map"
-  standalone_source="ysort_up_and_down_map_standalone.dpr"
+<project name="ysort_up_down_map"
+  standalone_source="ysort_up_down_map_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="com.mycompany.ysortupanddownmap"
   caption="YSort Test"

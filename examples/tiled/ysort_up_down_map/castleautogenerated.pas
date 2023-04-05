@@ -21,7 +21,7 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'ysort_up_and_down_map';
+  ApplicationProperties.ApplicationName := 'ysort_up_down_map';
   ApplicationProperties.Caption := 'YSort Test';
   ApplicationProperties.Version := '0.1';
 
