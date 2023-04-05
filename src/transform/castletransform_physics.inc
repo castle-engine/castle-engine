@@ -1261,14 +1261,15 @@ begin
     Exit;
 
   if Owner.Owner is TCastleAbstractRootTransform then
+  begin
     RootTransform := Owner.Owner as TCastleAbstractRootTransform;
-
-  RigidBodyList := RootTransform.FindAllBehaviors(TCastleRigidBody);
-  try
-    for Behavior in RigidBodyList do
-      TCastleRigidBody(Behavior).UpdateLayer;
-  finally
-    FreeAndNil(RigidBodyList);
+    RigidBodyList := RootTransform.FindAllBehaviors(TCastleRigidBody);
+    try
+      for Behavior in RigidBodyList do
+        TCastleRigidBody(Behavior).UpdateLayer;
+    finally
+      FreeAndNil(RigidBodyList);
+    end;
   end;
 end;
 
