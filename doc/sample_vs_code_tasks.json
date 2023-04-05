@@ -1,7 +1,6 @@
 /*
   Tasks definitions for compiling and running
   Castle Game Engine projects in VS Code.
-  See https://castle-engine.io/vscode for usage instructions.
 
   You can use this file for .vscode/tasks.json file in a workspace,
   or as "User level tasks" (indepedent of workspace).
@@ -33,37 +32,18 @@
         // This is like F9 in CGE editor.
         {
             "label": "(CGE) Compile And Run",
-            "type": "shell",
-            "command": "castle-engine compile --mode=debug && castle-engine run --mode=debug",
-            "options": {
-                /* Run in the directory of currently open editor file.
-                   CGE build tool will automatically detect the CGE project,
-                   looking for CastleEngineManifest.xml file in parents.
-
-                   Alternatively: you can comment it out, then it will build assuming that
-                   VS Code workspace corresponds to a CGE project (so CastleEngineManifest.xml
-                   should be present in top-level of VS Code workspace). */
-                "cwd": "${fileDirname}"
-            },
+            /* We use VS code "dependsOn" feature to run 2 tasks in a sequence.
+               This is better than using shell command with && which
+               is not universally supported by PowerShell. */
+            "dependsOn": [
+                "(CGE) Compile",
+                "(CGE) Run"
+            ],
+            "dependsOrder": "sequence",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": {
-                "fileLocation": "search",
-                //["autoDetect", "${workspaceFolder}"],
-                "pattern": {
-                    // Match lines like
-                    // xxx.pas(123,456) Fatal: some message
-                    // Test: https://regex101.com/ (ECMAScript flavor)
-                    "regexp": "^(.*)\\(([0-9,]+)\\)\\s+(Fatal|Warning|Error|Note|Hint):\\s+(.*)$",
-                    "file": 1,
-                    // location may be line or line+column.
-                    "location": 2,
-                    "severity": 3,
-                    "message": 4
-                }
-            }
         },
         // Compile the CGE project of the currently open editor file.
         // This is like Ctrl + F9 in CGE editor.
@@ -72,6 +52,13 @@
             "type": "shell",
             "command": "castle-engine compile --mode=debug",
             "options": {
+                /* Run in the directory of currently open editor file.
+                   CGE build tool will automatically detect the CGE project,
+                   looking for CastleEngineManifest.xml file in parents.
+
+                   Alternatively: you can comment it out, then it will build assuming that
+                   VS Code workspace corresponds to a CGE project (so CastleEngineManifest.xml
+                   should be present in top-level of VS Code workspace). */
                 "cwd": "${fileDirname}"
             },
             "group": {
@@ -99,6 +86,32 @@
             "label": "(CGE) Run",
             "type": "shell",
             "command": "castle-engine run --mode=debug",
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": {
+                "fileLocation": "search",
+                //["autoDetect", "${workspaceFolder}"],
+                "pattern": {
+                    // Match lines like
+                    // xxx.pas(123,456) Fatal: some message
+                    // Test: https://regex101.com/ (ECMAScript flavor)
+                    "regexp": "^(.*)\\(([0-9,]+)\\)\\s+(Fatal|Warning|Error|Note|Hint):\\s+(.*)$",
+                    "file": 1,
+                    // location may be line or line+column.
+                    "location": 2,
+                    "severity": 3,
+                    "message": 4
+                }
+            }
+        },
+        {
+            "label": "(CGE) Run (no sound)",
+            "type": "shell",
+            "command": "castle-engine run --mode=debug -- --no-sound",
             "options": {
                 "cwd": "${fileDirname}"
             },
