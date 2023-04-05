@@ -69,7 +69,7 @@ uses
 Var
   MyCallbackVTable: TCCallbackBaseVTable;
 
-{$IFnDEF CPU64}
+{$IFDEF CPU64}
 Procedure MySteamCallback_Run(pvParam: Pointer; pSelf: PCCallbackInt);
 Begin
   pSelf^._Dispatcher._Callback(Pointer(pvParam));
@@ -99,7 +99,7 @@ Var
   myself: PCCallbackInt;
 Begin
 Asm
-  mov myself, ECX;
+  mov myself, %ECX;
 End;
   Myself^._Dispatcher._Callback(Pointer(pvParam));
 End;
@@ -109,7 +109,7 @@ Var
   myself: PCCallbackInt;
 Begin
   Asm
-    mov myself, ECX;
+    mov myself, %ECX;
   End;
   Result := Myself^._Dispatcher._PropSize;
 End;
