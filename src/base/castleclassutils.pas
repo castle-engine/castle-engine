@@ -628,17 +628,30 @@ type
     }
     procedure SetTransient;
 
-    { Use this component as a container to easily reference any other TComponent instances,
-      and add given TComponent to it.
-      This is useful to group non-visual components, esp. in CGE editor.
+    { Add non-visual component to this component.
+      This is used to organize non-visual components in a tree hierarchy,
+      in CGE designs and editor.
 
       @seealso NonVisualComponentsCount
       @seealso NonVisualComponents
       @seealso NonVisualComponentsEnumerate }
     procedure AddNonVisualComponent(const NonVisualComponent: TComponent);
 
+    { Insert non-visual component to this component.
+      This is used to organize non-visual components in a tree hierarchy,
+      in CGE designs and editor.
+
+      @seealso NonVisualComponentsCount
+      @seealso NonVisualComponents
+      @seealso NonVisualComponentsEnumerate }
+    procedure InsertNonVisualComponent(const Index: Integer; const NonVisualComponent: TComponent);
+
     { Remove component previously added by AddNonVisualComponent. }
     procedure RemoveNonVisualComponent(const NonVisualComponent: TComponent);
+
+    { Index of component previously added non-visual component.
+      Returns -1 if component was not found. }
+    function NonVisualComponentsIndexOf(const NonVisualComponent: TComponent): Integer;
 
     { Count of components added by AddNonVisualComponent.
 
@@ -1802,6 +1815,22 @@ begin
   if FNonVisualComponents = nil then
     FNonVisualComponents := TComponentList.Create(false);
   FNonVisualComponents.Add(NonVisualComponent);
+end;
+
+procedure TCastleComponent.InsertNonVisualComponent(const Index: Integer; const NonVisualComponent: TComponent);
+begin
+  // create FNonVisualComponents on-demand, to not burden typical TCastleComponent that doesn't need this
+  if FNonVisualComponents = nil then
+    FNonVisualComponents := TComponentList.Create(false);
+  FNonVisualComponents.Insert(Index, NonVisualComponent);
+end;
+
+function TCastleComponent.NonVisualComponentsIndexOf(const NonVisualComponent: TComponent): Integer;
+begin
+  if FNonVisualComponents <> nil then
+    Result := FNonVisualComponents.IndexOf(NonVisualComponent)
+  else
+    Result := -1;
 end;
 
 procedure TCastleComponent.RemoveNonVisualComponent(const NonVisualComponent: TComponent);
