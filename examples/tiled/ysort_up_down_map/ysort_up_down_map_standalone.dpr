@@ -15,7 +15,7 @@
 { Do not specify program name below.
   It is not used anyway, and this way allows developer
   to change standalone_source in CastleEngineManifest.xml easier. }
-// program ysort_up_and_down_map_standalone;
+// program ysort_up_down_map_standalone;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 

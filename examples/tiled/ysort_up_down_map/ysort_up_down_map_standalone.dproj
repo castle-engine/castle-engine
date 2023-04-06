@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{94AD4C02-5C34-4B01-8098-8F16A722E43A}</ProjectGuid>
-        <MainSource>ysort_up_and_down_map_standalone.dpr</MainSource>
+        <ProjectGuid>{BC48B038-3C7A-472D-BD10-92B0C455E87A}</ProjectGuid>
+        <MainSource>ysort_up_down_map_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>33939</TargetedPlatforms>
@@ -73,7 +73,7 @@
         <DCC_N>false</DCC_N>
         <DCC_S>false</DCC_S>
         <DCC_ImageBase>00400000</DCC_ImageBase>
-        <SanitizedProjectName>ysort_up_and_down_map</SanitizedProjectName>
+        <SanitizedProjectName>ysort_up_down_map</SanitizedProjectName>
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
@@ -180,7 +180,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">ysort_up_and_down_map_standalone.dpr</Source>
+                    <Source Name="MainSource">ysort_up_down_map_standalone.dpr</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
