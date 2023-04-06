@@ -45,7 +45,7 @@ implementation
 
 uses
   CastleLog,
-  GameViewPlay;
+  GameSound, GameViewPlay;
 
 { TEnemy --------------------------------------------------------------------- }
 
@@ -152,7 +152,7 @@ end;
 
 procedure TEnemy.TakeDamageFromBullet(const Bullet: TCastleTransform);
 begin
-  SoundEngine.Play(SoundEngine.SoundFromName('hit_enemy'));
+  SoundEngine.Play(NamedSound('HitEnemy'));
   Bullet.Exists := false;
 
   Dead := true;
