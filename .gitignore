@@ -40,6 +40,8 @@ xcuserdata
 !xcshareddata
 /bin/
 /tools/castle-editor/Castle Game Engine.app/
+# used by https://marketplace.visualstudio.com/items?itemName=alefragnani.jenkins-status
+/.jenkins
 
 # cge build tool stuff
 castle-engine-output
