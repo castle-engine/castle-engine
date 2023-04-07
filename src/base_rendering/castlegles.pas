@@ -2321,11 +2321,11 @@ implementation
     begin
       FreeGLES;
 {$ifdef OpenGLES}
-      {$ifndef WASI} 
+      {$ifndef WASI}
       // TODO: WebAssembly: We should load WebGL here
       GLESLib:=dynlibs.LoadLibrary(Lib);
       if (GLESLib=0) and (AltLibName <> '') then
-        GLESLib:=dynlibs.LoadLibrary(AltLibName); 
+        GLESLib:=dynlibs.LoadLibrary(AltLibName);
       {$endif}
 
       if GLESLib=0 then

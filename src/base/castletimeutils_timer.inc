@@ -216,7 +216,7 @@ var
 
 function Timer: TTimerResult;
 begin
-   REsult.Value:= 1;
+  Result.Value := 1;
 end;
 
 {$endif}
