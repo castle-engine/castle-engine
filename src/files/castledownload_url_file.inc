@@ -122,7 +122,7 @@ begin
   if Ext = '.3ds' then Result := 'image/x-3ds' else
   if Ext = '.max' then Result := 'image/x-3ds' else
   if Ext = '.iv' then Result := 'application/x-inventor' else
-  if Ext = '.md3' then Result := 'application/x-md3' else
+  if ExtA = '.md3' then Result := 'application/x-md3' else
   if Ext = '.obj' then Result := 'application/x-wavefront-obj' else
   if Ext = '.geo' then Result := 'application/x-geo' else
   if Ext = '.kanim' then Result := 'application/x-castle-anim-frames' else

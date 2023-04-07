@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -168,6 +168,7 @@ type
     procedure CreateFinish;
     procedure FindPascalFilesCallback(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure SetBaseUrl(const Value: String);
+    procedure AddDependencyFromFoundDataFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   public
     const
       DataName = 'data';
@@ -332,7 +333,7 @@ const
 
 implementation
 
-uses SysUtils, Math,
+uses SysUtils, Math, StrUtils,
   CastleXMLUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
   ToolCommonUtils;
 
@@ -872,6 +873,36 @@ begin
     Result := '@' + CombinePaths(Path, SEnding(Result, 2));
 end;
 
+procedure TCastleManifest.AddDependencyFromFoundDataFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+
+  procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
+  begin
+    if not (Dependency in Dependencies) then
+    begin
+      WritelnLog('Automatically adding "' + DependencyToString(Dependency) +
+        '" to dependencies because data contains file: ' + FileInfo.URL);
+      Include(FDependencies, Dependency);
+    end;
+  end;
+
+const
+  { Ignore case on all platforms, to e.g. add freetype DLL when file FOO.TTF
+    is present in data, even on case-sensitive filesystems. }
+  IgnoreCase = true;
+begin
+  if IsWild(FileInfo.Name, '*.ttf', IgnoreCase) or
+     IsWild(FileInfo.Name, '*.otf', IgnoreCase) then
+    AddDependency(depFreetype, FileInfo);
+  if IsWild(FileInfo.Name, '*.gz' , IgnoreCase) then
+    AddDependency(depZlib, FileInfo);
+  if IsWild(FileInfo.Name, '*.png', IgnoreCase) then
+    AddDependency(depPng, FileInfo);
+  if IsWild(FileInfo.Name, '*.wav', IgnoreCase) then
+    AddDependency(depSound, FileInfo);
+  if IsWild(FileInfo.Name, '*.ogg', IgnoreCase) then
+    AddDependency(depOggVorbis, FileInfo);
+end;
+
 procedure TCastleManifest.CreateFinish;
 
   { If DataExists, check whether DataPath really exists.
@@ -898,33 +929,23 @@ procedure TCastleManifest.CreateFinish;
   end;
 
   procedure GuessDependencies;
-
-    procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
-    begin
-      if not (Dependency in Dependencies) then
-      begin
-        WritelnLog('Automatically adding "' + DependencyToString(Dependency) +
-          '" to dependencies because data contains file: ' + FileInfo.URL);
-        Include(FDependencies, Dependency);
-      end;
-    end;
-
-  var
-    FileInfo: TFileInfo;
   begin
     if DataExists then
     begin
-      if FindFirstFile(DataPath, '*.ttf', false, [ffRecursive], FileInfo) or
-         FindFirstFile(DataPath, '*.otf', false, [ffRecursive], FileInfo) then
-        AddDependency(depFreetype, FileInfo);
-      if FindFirstFile(DataPath, '*.gz' , false, [ffRecursive], FileInfo) then
-        AddDependency(depZlib, FileInfo);
-      if FindFirstFile(DataPath, '*.png', false, [ffRecursive], FileInfo) then
-        AddDependency(depPng, FileInfo);
-      if FindFirstFile(DataPath, '*.wav', false, [ffRecursive], FileInfo) then
-        AddDependency(depSound, FileInfo);
-      if FindFirstFile(DataPath, '*.ogg', false, [ffRecursive], FileInfo) then
-        AddDependency(depOggVorbis, FileInfo);
+      { Note: Instead of one FindFiles call, this could also be implemented by a series
+        of FindFirstFileIgnoreCase calls, like
+
+          if FindFirstFileIgnoreCase(DataPath, '*.ttf' , false, [ffRecursive], FileInfo) or
+          if FindFirstFileIgnoreCase(DataPath, '*.otf' , false, [ffRecursive], FileInfo) then
+            AddDependency(depFreetype, FileInfo);
+          if FindFirstFileIgnoreCase(DataPath, '*.gz' , false, [ffRecursive], FileInfo) then
+            AddDependency(depZlib, FileInfo);
+
+        But this would be inefficient. Each FindFirstFileIgnoreCase effectively again
+        enumerates all files in data. }
+
+      FindFiles(DataPath, '*', false,
+        {$ifdef FPC}@{$endif} AddDependencyFromFoundDataFile, [ffRecursive]);
     end;
   end;
 

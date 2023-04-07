@@ -1,0 +1,52 @@
+{
+  "$$ClassName" : "TCastleComponent",
+  "Name" : "Sounds",
+  "$NonVisualComponents" : [
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "MenuMusic",
+      "Stream" : true,
+      "URL" : "castle-data:/audio/music/Akimaze-First_Step.ogg"
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "GameMusic",
+      "Stream" : true,
+      "URL" : "castle-data:/audio/music/Akimaze-Platforms_Jungle.ogg"
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "Coin",
+      "URL" : "castle-data:/audio/sfx/coin.wav",
+      "Volume" : 6.9999998807907104E-001
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "HitEnemy",
+      "URL" : "castle-data:/audio/sfx/hit_enemy.wav"
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "Hurt",
+      "URL" : "castle-data:/audio/sfx/hurt.wav"
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "Jump",
+      "URL" : "castle-data:/audio/sfx/jump.wav",
+      "Volume" : 6.9999998807907104E-001
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "PowerUp",
+      "URL" : "castle-data:/audio/sfx/power_up.wav",
+      "Volume" : 6.9999998807907104E-001
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "Shot",
+      "URL" : "castle-data:/audio/sfx/shot.wav",
+      "Volume" : 6.9999998807907104E-001
+    }
+  ]
+}

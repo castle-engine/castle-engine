@@ -45,7 +45,7 @@ var
 implementation
 
 uses CastleApplicationProperties, CastleWindow,
-  GameViewPlay, GameViewOptions, GameViewCredits;
+  GameSound, GameViewPlay, GameViewOptions, GameViewCredits;
 
 { TViewMenu ----------------------------------------------------------------- }
 
@@ -68,7 +68,7 @@ begin
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 
   { Play menu music }
-  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');
+  SoundEngine.LoopingChannel[0].Sound := NamedSound('MenuMusic');
 end;
 
 procedure TViewMenu.ClickPlay(Sender: TObject);

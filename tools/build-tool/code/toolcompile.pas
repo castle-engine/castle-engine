@@ -142,6 +142,7 @@ const
     'scene/x3d',
     'scene/load',
     'scene/load/spine',
+    'scene/load/md3',
     'scene/load/collada',
     'scene/load/pasgltf',
     'audio',
