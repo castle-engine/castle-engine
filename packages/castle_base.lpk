@@ -4355,8 +4355,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleSteam"/>
       </Item1062>
       <Item1063>
-        <Filename Value="../src/services/steam/steamcallback.pas"/>
-        <UnitName Value="SteamCallback"/>
+        <Filename Value="../src/services/steam/castleinternalsteamcallback.pas"/>
+        <UnitName Value="CastleInternalSteamCallback"/>
       </Item1063>
     </Files>
     <CompatibilityMode Value="True"/>

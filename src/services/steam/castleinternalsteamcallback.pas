@@ -2,7 +2,7 @@
   This is a slightly modified copy of
   https://github.com/Relfos/steamworks_wrappers/blob/master/headers/SteamCallback.pas (MIT license)
   by Sérgio Flores (Relfos) }
-Unit SteamCallback;
+Unit CastleInternalSteamCallback;
 
 {$I castleconf.inc}
 

@@ -29,7 +29,7 @@ interface
 
 uses
   Classes,
-  CastleInternalSteamConstantsAndTypes, SteamCallback;
+  CastleInternalSteamConstantsAndTypes, CastleInternalSteamCallback;
 
 type
   { Provides simplified access to some Steam API functions
