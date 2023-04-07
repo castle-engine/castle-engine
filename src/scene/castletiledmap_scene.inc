@@ -415,33 +415,36 @@ var
         NewMap.RenderOptions.BlendingSort := bsNone;
         UpdateSmoothScalingOneScene(NewMap);
         FItems.Add(NewMap);
+        FSubMaps.Add(NewMap);
 
         OldLayerList := FMap.Layers;
         OldWidth := FMap.Width;
         OldHeight := FMap.Height;
 
         NewLayer := TCastleTiledMapData.TLayer.Create;
-        NewLayer.Data.IgnoreDataAssign := True;
-        NewLayer.Assign(Layer);
-        NewLayer.YSortEnabled := False;
-        NewLayer.Data.Data := AData;
         NewLayerList := TCastleTiledMapData.TLayerList.Create(True);
         NewLayerList.Add(NewLayer);
 
-        FMap.Layers := NewLayerList;
-        FMap.Width := ARect.Width;
-        FMap.Height := ARect.Height;
+        try
+          NewLayer.Data.IgnoreDataAssign := True;
+          NewLayer.Assign(Layer);
+          NewLayer.YSortEnabled := False;
+          NewLayer.Data.Data := AData;
 
-        ConvertToScene(FMap, NewMap, AllLayers);
+          FMap.Layers := NewLayerList;
+          FMap.Width := ARect.Width;
+          FMap.Height := ARect.Height;
 
-        FMap.Layers := OldLayerList;
-        FMap.Width := OldWidth;
-        FMap.Height := OldHeight;
-        FreeAndNil(NewLayerList);
+          ConvertToScene(FMap, NewMap, AllLayers);
+        finally
+          FreeAndNil(NewLayerList);
+          FMap.Layers := OldLayerList;
+          FMap.Width := OldWidth;
+          FMap.Height := OldHeight;
+        end;
 
         NewMap.Translation := Vector3(ARect.Left * FMap.TileWidth, ARect.Bottom * FMap.TileHeight, 0);
-        NewMap.YSortOffset := ATileYSortOffset - ARect.Bottom * FMap.TileHeight;
-        FSubMaps.Add(NewMap);
+        NewMap.YSortOffset := ATileYSortOffset - ARect.Bottom * FMap.TileHeight - Layer.OffsetY;
 
         {
         WritelnLog('CreateMap', 'Compose Tile Count: ' + TileDataList.Count.ToString);
