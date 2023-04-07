@@ -34,7 +34,12 @@ type
 
 const
   { Invalid TDynLibHandle value (meaning : LoadLibrary failed) }
-  InvalidDynLibHandle: TDynLibHandle = {$ifdef WASI}0;{$else} {$ifdef FPC} DynLibs.NilHandle {$else} 0 {$endif}; {$endif}
+  InvalidDynLibHandle: TDynLibHandle =
+    {$if defined(FPC) and not defined(WASI)}
+    DynLibs.NilHandle
+    {$else}
+    0 // used with Delphi or FPC+WebAssembly
+    {$endif};
 
 type
   { }

@@ -26,8 +26,10 @@ type
     Value:
       {$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
       QWord // ProcessTimer just does CastleGetTickCount64
+      {$elseif defined(UNIX)}
+      clock_t
       {$else}
-      QWord // Unix
+      QWord // WebAssembly (TODO, dummy value)
       {$endif};
   public
     { Seconds passed since this time sample up to now.
@@ -94,10 +96,10 @@ function ProcessTimer: TProcessTimerResult;
 {$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
 begin
   Result.Value := CastleGetTickCount64;
-{$else}
+{$elseif defined(UNIX)}
 // other Unixes
-///var
-///  Dummy: tms;
+var
+  Dummy: tms;
 begin
   { See console.tests/test_times/RESULTS,
     it seems that (at least on my Linux? Debian, Linux 2.4.20, libc-2.3.2)
@@ -105,7 +107,11 @@ begin
     tms.tms_utime, tms.tms_stime, clock() values are nonsense!
     This is not FPC bug as I tested this with C program too. }
 
-  Result.Value := 1 ///{$ifdef FPC} FpTimes {$else} Times {$endif} (Dummy);
+  Result.Value := {$ifdef FPC} FpTimes {$else} Times {$endif} (Dummy);
+{$else}
+  // TODO: WebAssembly
+begin
+  Result.Value := 1;
 {$endif}
 end;
 

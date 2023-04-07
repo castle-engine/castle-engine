@@ -176,6 +176,7 @@ begin
   { Be sure to start with a "clean" state. }
   OpenALFinalization;
 
+  {$ifndef WASI}
   ALLibrary := TDynLib.Load(
     {$ifdef UNIX}
       {$ifdef DARWIN}
@@ -187,8 +188,9 @@ begin
         'libopenal.so.0'
       {$endif}
     {$endif}
-    {$ifdef MSWINDOWS} 'OpenAL32.dll' {$endif}{$ifdef WASI} '' {$endif}
+    {$ifdef MSWINDOWS} 'OpenAL32.dll' {$endif}
     , false);
+  {$endif}
 
   {$ifdef UNIX}
   if ALLibrary = nil then

@@ -214,7 +214,7 @@ uses {$ifdef windows}
         linux,
        {$ifend}
       {$else}
-       {$ifdef WASI }
+       {$ifdef WASI}
        {$else}
        SDL,
       {$endif}
@@ -10527,8 +10527,11 @@ begin
   ia:=int64(tv.tv_sec)*int64(1000000);
   ib:=tv.tv_usec;
   result:=ia+ib;
-{$else}
+{$elseif defined(WASI)}
+ // TODO: Time on WebAssembly
  result:=1;
+{$else}
+ result:=SDL_GetTicks;
 {$ifend}
  result:=result shr fFrequencyShift;
 end;
@@ -10601,15 +10604,18 @@ begin
   while NowTime<EndTime do begin
    NowTime:=GetTime;
   end;
+{$elseif defined(WASI)}
+  // TODO: Time on WebAssembly not implemented
+  // .. but also, this Sleep should be never used by anything.
 {$else}
   NowTime:=GetTime;
   EndTime:=NowTime+Delay;
   while (NowTime+4)<EndTime do begin
-   ///SDL_Delay(1);
+   SDL_Delay(1);
    NowTime:=GetTime;
   end;
   while (NowTime+2)<EndTime do begin
-   ///SDL_Delay(0);
+   SDL_Delay(0);
    NowTime:=GetTime;
   end;
   while NowTime<EndTime do begin

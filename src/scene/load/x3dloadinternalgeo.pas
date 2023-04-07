@@ -186,7 +186,6 @@ end;
 
 { LoadGEO -------------------------------------------------------------------- }
 
-
 function LoadGEO(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   geo: TObject3DGEO;
@@ -195,9 +194,8 @@ var
   Shape: TShapeNode;
   i: integer;
 begin
-//  result := TX3DRootNode.Create('', BaseUrl);
+  result := TX3DRootNode.Create('', BaseUrl);
 
-  // here wasm fails
   geo := TObject3DGEO.Create(Stream);
   try
     result := TX3DRootNode.Create('', BaseUrl);
@@ -230,4 +228,3 @@ begin
 end;
 
 end.
-

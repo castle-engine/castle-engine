@@ -1,16 +1,15 @@
 { Some OpenGL defines. }
 
-{$ifdef MSWINDOWS}
+{$if defined(MSWINDOWS)}
   {$define OPENGL_STDCALL}
   {$define OPENGL_CALLBACK_STDCALL}
+{$elseif defined(UNIX)}
+  {$define OPENGL_CDECL}
+  {$define OPENGL_CALLBACK_CDECL}
+{$elseif defined(WASI)}
+  // TODO: calling convention for OpenGL callbacks on WebAssembly?
+  {$define OPENGL_CDECL}
+  {$define OPENGL_CALLBACK_CDECL}
 {$else}
-  {$ifdef UNIX}
-    {$define OPENGL_CDECL}
-    {$define OPENGL_CALLBACK_CDECL}
-  {$else}
-    {$ifdef WASI}
-    {$else}
-    {$fatal Define OPENGL_CALLBACK_CALL in OpenGLMac.inc}
-    {$endif}
-  {$endif}
+  {$fatal Define OPENGL_CALLBACK_CALL in OpenGLMac.inc}
 {$endif}

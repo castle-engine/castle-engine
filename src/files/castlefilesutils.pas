@@ -563,7 +563,7 @@ implementation
 
 uses {$ifdef MSWINDOWS} ShlObj, {$endif}
   {$ifdef DARWIN} MacOSAll, {$endif} Classes,
-  {$ifdef FPC} {$ifndef WASI}Process, {$endif}{$endif}
+  {$ifdef FPC} {$ifndef WASI} Process, {$endif} {$endif}
   CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
   CastleURIUtils, CastleFindFiles, CastleClassUtils, CastleDownload,
@@ -722,7 +722,8 @@ function ApplicationData(const Path: string): string;
   {$endif UNIX}
   {$ifdef WASI}
   begin
-  Result := '/data/';
+    // TODO: filesystem on WebAssembly not implemented
+    Result := '/data/';
   {$endif}
   end;
   {$endif not ANDROID}
