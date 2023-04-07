@@ -17,49 +17,48 @@ Const
 
 Type
   PSteam_UserStatsReceived = ^Steam_UserStatsReceived;
-  Steam_UserStatsReceived = Packed Record
-		GameID:CGameID;		      // Game these stats are for
-		Result:EResult;	  // Success / error fetching the stats
-		steamID:CSteamId;	// The user for whom the stats are retrieved for
+  Steam_UserStatsReceived = packed record
+		GameID: CGameID;		      // Game these stats are for
+		Result: EResult;	  // Success / error fetching the stats
+		SteamID: CSteamId;	// The user for whom the stats are retrieved for
 	End;
 
  { PSteam_LeaderboardScoresDownloaded = ^Steam_LeaderboardScoresDownloaded;
 	Steam_LeaderboardScoresDownloaded = Packed Record
-		LeaderboardID:SteamLeaderboard;
-		LeaderboardEntries:SteamLeaderboardEntries;	// the handle to pass into GetDownloadedLeaderboardEntries()
-		EntryCount:Integer; // the number of entries downloaded
+		LeaderboardID: SteamLeaderboard;
+		LeaderboardEntries: SteamLeaderboardEntries;	// the handle to pass into GetDownloadedLeaderboardEntries()
+		EntryCount: Integer; // the number of entries downloaded
   End; }
 
   PCCallbackBaseVTable = ^TCCallbackBaseVTable;
-  TCCallbackBaseVTable = Record
+  TCCallbackBaseVTable = record
     Run,
     Run_2,
-    GetCallbackSizeBytes: pointer;
-  End;
+    GetCallbackSizeBytes: Pointer;
+  end;
 
-  SteamCallbackDispatcher = Class;
+  SteamCallbackDispatcher = class;
 
   PCCallbackInt = ^TCCallbackInt;
-  TCCallbackInt = Record
-    vtable:Pointer;
-    _nCallbackFlags: byte;
-    _iCallback: integer;
-    _Dispatcher:SteamCallbackDispatcher;
-  End;
+  TCCallbackInt = record
+    vtable: Pointer;
+    _nCallbackFlags: Byte;
+    _iCallback: Integer;
+    _Dispatcher: SteamCallbackDispatcher;
+  end;
 
-  SteamCallbackDelegate = Procedure(answer:Pointer) of Object;
+  SteamCallbackDelegate = procedure (Answer: Pointer) of object;
 
-  SteamCallbackDispatcher = Class
-    Private
-      _SteamInterface: TCCallbackInt;
-      _Callback: SteamCallbackDelegate;
-      _PropSize: Integer;
-      _CallbackID:Integer;
-
-    Public
-      Constructor Create(iCallback:integer; CallbackProc:SteamCallbackDelegate; a_propsize:integer); Reintroduce;
-      Destructor Destroy; Override;
-  End;
+  SteamCallbackDispatcher = class
+  private
+    _SteamInterface: TCCallbackInt;
+    _Callback: SteamCallbackDelegate;
+    _PropSize: Integer;
+    _CallbackID:Integer;
+  public
+    constructor Create(iCallback: Integer; CallbackProc: SteamCallbackDelegate; a_propsize: Integer); reintroduce;
+    destructor Destroy; override;
+  end;
 
 
 Implementation
@@ -75,12 +74,12 @@ Begin
   pSelf^._Dispatcher._Callback(Pointer(pvParam));
 End;
 
-Procedure MySteamCallback_Run_2(myself, pvParam: PCCallbackInt);
+Procedure MySteamCallback_Run_2(Myself, pvParam: PCCallbackInt);
 Begin
   Myself^._Dispatcher._Callback(Pointer(pvParam));
 End;
 
-Function MySteamCallback_GetCallbackSizeBytes(myself: PCCallbackInt):Integer;
+Function MySteamCallback_GetCallbackSizeBytes(Myself: PCCallbackInt): Integer;
 Begin
   Result := Myself^._Dispatcher._PropSize;
 End;
@@ -96,29 +95,30 @@ End;
 
 Procedure MySteamCallback_Run_2(pvParam: PCCallbackInt); Pascal;
 Var
-  myself: PCCallbackInt;
+  Myself: PCCallbackInt;
 Begin
 Asm
-  mov myself, %ECX;
+  mov Myself, %ECX;
 End;
   Myself^._Dispatcher._Callback(Pointer(pvParam));
 End;
 
-Function MySteamCallback_GetCallbackSizeBytes:Integer; Pascal;
+Function MySteamCallback_GetCallbackSizeBytes: Integer; Pascal;
 Var
-  myself: PCCallbackInt;
+  Myself: PCCallbackInt;
 Begin
   Asm
-    mov myself, %ECX;
+    mov Myself, %ECX;
   End;
   Result := Myself^._Dispatcher._PropSize;
 End;
 {$ENDIF}
 
-Constructor SteamCallbackDispatcher.Create(iCallback:integer; callbackProc:SteamCallbackDelegate; a_propsize: integer);
+constructor SteamCallbackDispatcher.Create(iCallback: Integer;
+  CallbackProc: SteamCallbackDelegate; a_propsize: Integer);
 Begin
   _CallbackID := iCallback;
-  _Callback := callbackProc;
+  _Callback := CallbackProc;
   _PropSize := a_propsize;
 
   _SteamInterface.vtable := @MyCallbackVTable;
@@ -129,7 +129,7 @@ Begin
   SteamAPI_RegisterCallback(@_SteamInterface, _CallbackID);
 End;
 
-Destructor SteamCallbackDispatcher.Destroy;
+destructor SteamCallbackDispatcher.Destroy;
 Begin
   SteamAPI_UnregisterCallback(@_SteamInterface);
   inherited;
