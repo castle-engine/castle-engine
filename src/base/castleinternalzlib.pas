@@ -236,7 +236,7 @@ const
       {$else} 'libz.so.1'
       {$endif}
     {$elseif defined(MSWINDOWS)} 'zlib1.dll'
-    {$else} '' // WebAssembly
+    {$else} '' // TODO: WebAssembly: No gunziping available
     {$endif};
 begin
   if ZLibraryName <> '' then

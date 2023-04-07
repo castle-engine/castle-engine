@@ -10528,7 +10528,7 @@ begin
   ib:=tv.tv_usec;
   result:=ia+ib;
 {$elseif defined(WASI)}
- // TODO: Time on WebAssembly
+ // TODO: WebAssembly: Time not implemented
  result:=1;
 {$else}
  result:=SDL_GetTicks;
@@ -10605,7 +10605,7 @@ begin
    NowTime:=GetTime;
   end;
 {$elseif defined(WASI)}
-  // TODO: Time on WebAssembly not implemented
+  // TODO: WebAssembly: Time not implemented.
   // .. but also, this Sleep should be never used by anything.
 {$else}
   NowTime:=GetTime;

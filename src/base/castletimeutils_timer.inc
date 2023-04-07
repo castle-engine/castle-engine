@@ -204,7 +204,7 @@ begin
 end;
 
 {$elseif defined(WASI)}
-// TODO: WebAssembly dummy implementation
+// TODO: WebAssembly: time not implemented yet
 
 type
   TTimerFrequency = LongWord;

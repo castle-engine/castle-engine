@@ -149,7 +149,8 @@ resourcestring
 
 function OpenURL(AURL: String): Boolean;
 begin
-  Result := false; // TODO: implement this on Wasi
+  // TODO: WebAssembly: not implemented -- we could open URL in another brower window?
+  Result := false;
 end;
 
 function OpenDocument(APath: String): Boolean;

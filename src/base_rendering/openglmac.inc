@@ -7,7 +7,7 @@
   {$define OPENGL_CDECL}
   {$define OPENGL_CALLBACK_CDECL}
 {$elseif defined(WASI)}
-  // TODO: calling convention for OpenGL callbacks on WebAssembly?
+  // TODO: WebAssembly: what should be calling convention for OpenGL callbacks?
   {$define OPENGL_CDECL}
   {$define OPENGL_CALLBACK_CDECL}
 {$else}

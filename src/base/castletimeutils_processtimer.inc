@@ -29,7 +29,7 @@ type
       {$elseif defined(UNIX)}
       clock_t
       {$else}
-      QWord // WebAssembly (TODO, dummy value)
+      QWord // TODO: WebAssembly: time not implemented yet
       {$endif};
   public
     { Seconds passed since this time sample up to now.
@@ -109,7 +109,7 @@ begin
 
   Result.Value := {$ifdef FPC} FpTimes {$else} Times {$endif} (Dummy);
 {$else}
-  // TODO: WebAssembly
+  // TODO: WebAssembly: time not implemented yet
 begin
   Result.Value := 1;
 {$endif}

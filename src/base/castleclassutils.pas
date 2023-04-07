@@ -1977,18 +1977,17 @@ end;
 
 procedure InitStdStreams;
 
-{ Note that instead of GetStdHandle(STD_INPUT_HANDLE) I could just use
-  StdInputHandle, as this is initialized by FPC RTL exactly to
-  GetStdHandle(STD_INPUT_HANDLE). Same for other Std*Handle.
-  However
-  1. This would not allow me to write InitStdStream without any $ifdefs,
-     because Windows would still require checking for 0 and INVALID_HANDLE_VALUE
-  2. This is not documented, so I prefer to not depend on this.
-     For example, maybe in the future StdInputHandle will be always left as 0
-     when not IsConsole? I want to exactly avoid this for my Std*Stream.
-}
-
   {$ifdef MSWINDOWS}
+  { Note that instead of GetStdHandle(STD_INPUT_HANDLE) I could just use
+    StdInputHandle, as this is initialized by FPC RTL exactly to
+    GetStdHandle(STD_INPUT_HANDLE). Same for other Std*Handle.
+    However
+    1. This would not allow me to write InitStdStream without any $ifdefs,
+      because Windows would still require checking for 0 and INVALID_HANDLE_VALUE
+    2. This is not documented, so I prefer to not depend on this.
+      For example, maybe in the future StdInputHandle will be always left as 0
+      when not IsConsole? I want to exactly avoid this for my Std*Stream.
+  }
   procedure InitStdStream(var Stream: TStream; nStdHandle: DWord);
   var
     Handle: THandle;
@@ -2012,12 +2011,17 @@ procedure InitStdStreams;
   end;
   {$endif UNIX}
 
+  {$ifdef WASI}
+  procedure InitStdStream(var Stream: TStream);
+  begin
+    Stream := TMemoryStream.Create;
+  end;
+  {$endif WASI}
+
 begin
-  {$ifndef WASI}
-  InitStdStream(StdInStream,  {$ifdef MSWINDOWS} STD_INPUT_HANDLE  {$else} StdInputHandle  {$endif});
-  InitStdStream(StdOutStream, {$ifdef MSWINDOWS} STD_OUTPUT_HANDLE {$else} StdOutputHandle {$endif});
-  InitStdStream(StdErrStream, {$ifdef MSWINDOWS} STD_ERROR_HANDLE  {$else} StdErrorHandle  {$endif});
-  {$endif}
+  InitStdStream(StdInStream  {$if defined(MSWINDOWS)} ,STD_INPUT_HANDLE  {$elseif defined(UNIX)} ,StdInputHandle  {$endif});
+  InitStdStream(StdOutStream {$if defined(MSWINDOWS)} ,STD_OUTPUT_HANDLE {$elseif defined(UNIX)} ,StdOutputHandle {$endif});
+  InitStdStream(StdErrStream {$if defined(MSWINDOWS)} ,STD_ERROR_HANDLE  {$elseif defined(UNIX)} ,StdErrorHandle  {$endif});
 end;
 
 procedure FiniStdStreams;

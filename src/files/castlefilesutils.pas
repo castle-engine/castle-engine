@@ -722,7 +722,7 @@ function ApplicationData(const Path: string): string;
   {$endif UNIX}
   {$ifdef WASI}
   begin
-    // TODO: filesystem on WebAssembly not implemented
+    // TODO: WebAssembly: filesystem not implemented
     Result := '/data/';
   {$endif}
   end;

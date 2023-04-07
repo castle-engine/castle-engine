@@ -120,7 +120,7 @@ end;
 
 function CastleGetTickCount64: QWord;
 begin
-  Result := 1;
+  Result := 1; // TODO: WebAssembly: time not implemented
 end;
 
 {$endif UNIX}
