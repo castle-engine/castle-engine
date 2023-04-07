@@ -182,10 +182,7 @@ implementation
 uses SysUtils, StrUtils, RttiUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
   CastleUtils, CastleLog, CastleInternalRttiUtils,
-  { TODO: For now, for Web Assembly test,
-    untangle dependencies such that CastleInternalInspector doesn't pull stuff
-    pulling X3DNodes. }
-  {CastleTransform, CastleViewport, CastleScene,} CastleURIUtils{, CastleCameras};
+  CastleTransform, CastleViewport, CastleScene, CastleURIUtils, CastleCameras;
 
 { ---------------------------------------------------------------------------- }
 
@@ -513,7 +510,6 @@ var
     end;
   end;
 
-(*
   { If T has some Behaviors, then create a tree item
     'Behaviors' and add them to it. }
   procedure AddBehaviorsSection(const T: TCastleTransform; const Level: Integer);
@@ -544,13 +540,12 @@ var
       if Selectable(T[I]) then
         AddTransform(T[I], Level + 1);
   end;
-*)
 
   { Add given UI control, and its children. }
   procedure AddControl(const C: TCastleUserInterface; const Level: Integer);
   var
     I: Integer;
-    // Viewport: TCastleViewport;
+    Viewport: TCastleViewport;
   begin
     AddHierarchyEntry(C, Level);
 
@@ -562,12 +557,12 @@ var
         AddControl(C.Controls[I], Level + 1);
     end;
 
-    // if C is TCastleViewport then
-    // begin
-    //   Viewport := TCastleViewport(C);
-    //   if Selectable(Viewport.Items) then
-    //     AddTransform(Viewport.Items, Level + 1);
-    // end;
+    if C is TCastleViewport then
+    begin
+      Viewport := TCastleViewport(C);
+      if Selectable(Viewport.Items) then
+        AddTransform(Viewport.Items, Level + 1);
+    end;
   end;
 
 var
@@ -648,12 +643,12 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
             if Result <> nil then Exit;
           end;
 
-        // { Eventually return yourself, C. }
-        // //if C.CapturesEventsAtPosition(MousePos) then
-        // if SimpleCapturesEventsAtPosition(C, MousePos, TestWithBorder) and
-        //    { Do not select TCastleNavigation, they would always obscure TCastleViewport. }
-        //    (not (C is TCastleNavigation)) then
-        //   Result := C;
+        { Eventually return yourself, C. }
+        //if C.CapturesEventsAtPosition(MousePos) then
+        if SimpleCapturesEventsAtPosition(C, MousePos, TestWithBorder) and
+           { Do not select TCastleNavigation, they would always obscure TCastleViewport. }
+           (not (C is TCastleNavigation)) then
+          Result := C;
       end;
     end;
 
@@ -669,7 +664,6 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
       end;
   end;
 
-(*
   { Detect TCastleTransform that mouse hovers over.
     Adjusted from CGE editor TDesignFrame.TDesignerLayer.HoverTransform }
   function HoverTransform(const AMousePosition: TVector2): TCastleTransform;
@@ -703,7 +697,6 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
           end;
     finally FreeAndNil(RayHit) end;
   end;
-*)
 
   procedure UpdateAutoSelect;
   var
@@ -711,7 +704,7 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
   begin
     case AutoSelect of
      asUi: C := HoverUserInterface(Container.MousePosition);
-//     asTransform: C := HoverTransform(Container.MousePosition);
+     asTransform: C := HoverTransform(Container.MousePosition);
      else Exit; // on asNothing, just Exit
    end;
    { do not change SelectedComponent to nil, this avoids e.g. unselecting UI when going into
