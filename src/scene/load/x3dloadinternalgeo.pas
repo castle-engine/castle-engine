@@ -194,8 +194,6 @@ var
   Shape: TShapeNode;
   i: integer;
 begin
-  result := TX3DRootNode.Create('', BaseUrl);
-
   geo := TObject3DGEO.Create(Stream);
   try
     result := TX3DRootNode.Create('', BaseUrl);
