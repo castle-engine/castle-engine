@@ -26,7 +26,7 @@
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="mbColorLibLaz"/>
+        <PackageName Value="castle_editor_components"/>
       </Item1>
       <Item2>
         <PackageName Value="LCL"/>

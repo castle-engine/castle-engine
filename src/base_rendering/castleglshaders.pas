@@ -1234,8 +1234,8 @@ function TGLSLProgram.DebugInfo: string;
         glGetActiveUniform(ProgramId, I, UniformMaxLength, @ReturnedLength,
           @Size, @AType, PAnsiCharOrNil(Name));
         SetLength(Name, ReturnedLength);
-        UniformNames.Append(Format('  Name: %s, type: %s, size: %d',
-          [Name, GLShaderVariableTypeName(AType), Size]));
+        UniformNames.Append(Format('  %d: Name: %s, type: %s, size: %d',
+          [I, Name, GLShaderVariableTypeName(AType), Size]));
       end;
     end;
   end;
@@ -1271,8 +1271,8 @@ function TGLSLProgram.DebugInfo: string;
         glGetActiveAttrib(ProgramId, I, AttribMaxLength, @ReturnedLength,
           @Size, @AType, PAnsiCharOrNil(Name));
         SetLength(Name, ReturnedLength);
-        AttribNames.Append(Format('  Name: %s, type: %s, size: %d',
-          [Name, GLShaderVariableTypeName(AType), Size]));
+        AttribNames.Append(Format('  %d: Name: %s, type: %s, size: %d',
+          [I, Name, GLShaderVariableTypeName(AType), Size]));
       end;
     end;
   end;

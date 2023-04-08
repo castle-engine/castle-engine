@@ -5,11 +5,11 @@ unit FormCastleColorPicker;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Math, Dialogs, ExtCtrls, ComCtrls,
-  StdCtrls, Spin, HSLRingPicker, SLColorPicker, HSColorPicker, HRingPicker,
-  HSCirclePicker, LVColorPicker, RColorPicker, GColorPicker, BColorPicker,
-  HColorPicker, SColorPicker, CastlePropEdits, CastleColors, LCLIntf, Buttons,
-  CastleEditorPropEdits;
+  Classes, SysUtils, Forms, Controls, Graphics, Math, Dialogs, ExtCtrls,
+  ComCtrls, StdCtrls, Spin, HSLRingPicker, SLColorPicker, HSColorPicker,
+  HRingPicker, HSCirclePicker, LVColorPicker, RColorPicker, GColorPicker,
+  BColorPicker, HColorPicker, SColorPicker, CastlePropEdits, CastleColors,
+  LCLIntf, Buttons, ButtonPanel, CastleEditorPropEdits;
 
 type
   TCastleColorPickerForm = class(TForm)
@@ -17,6 +17,7 @@ type
     BSpinEditRgb: TFloatSpinEdit;
     BTabColorPickerRgb: TBColorPicker;
     ButtonCopy: TButton;
+    ButtonPanel1: TButtonPanel;
     ButtonRevert: TButton;
     EditHex: TEdit;
     GSpinEditRgb: TFloatSpinEdit;
@@ -139,7 +140,8 @@ implementation
 
 {$R *.lfm}
 
-uses Clipbrd, CastleVectors, CastleLog, CastleUtils, mbColorConv, CastleControl;
+uses Clipbrd, PropEdits,
+  CastleVectors, CastleLog, CastleUtils, mbColorConv, CastleControl;
 
 { TCastleColorPickerForm }
 
@@ -692,6 +694,11 @@ begin
       ', ' + SText + ', ' + VText + '));');
     MemoPascalCode.Lines.Add('MyControl.ColorRGB := HexToColorRGB(''' + ColorRGBToHex(CurrentCastleColorRGB) + ''');');
   end;
+
+  { Without this, at least on LCL WinAPI, the memo is scrolled to the end
+    after the above operations.
+    We prefer to show the memo beginning. }
+  MemoPascalCode.SelStart := 0;
 end;
 
 function TCastleColorPickerForm.CurrentCastleColor: TCastleColor;
@@ -717,10 +724,36 @@ procedure TCastleColorPickerForm.Init(
   const ColorPropEditor: TCastleAbstractColorPropertyEditor;
   const InitColor: TCastleColor;
   const ShowAlpha: Boolean);
+
+  function CaptionFromEditor(const PropEditor: TPropertyEditor): String;
+  begin
+    Result := 'Change ';
+    Assert(PropEditor.PropCount > 0);
+
+    // add component name
+    if PropEditor.GetComponent(0) <> nil then
+    begin
+      // GetComponent returns TPersistent, not TComponent
+      if PropEditor.GetComponent(0) is TComponent then
+        Result := Result + TComponent(PropEditor.GetComponent(0)).Name + '.'
+      else
+        Result := Result + PropEditor.GetComponent(0).ClassName + '.';
+    end;
+
+    // add property name
+    Result := Result + PropEditor.GetName;
+
+    // add ... to signal multiple properties
+    if PropEditor.PropCount > 1 then
+      Result := Result + '...';
+  end;
+
 begin
+  ColorPropertyEditor := ColorPropEditor;
+  Caption := CaptionFromEditor(ColorPropEditor);
+
   ColorPrecision := -3;
   ColorEpsilon := 0.0009;
-  ColorPropertyEditor := ColorPropEditor;
   PrevColor := InitColor;
   SetColorInCirclePickerPanel(InitColor);
   SetColorInRgbTab(InitColor);

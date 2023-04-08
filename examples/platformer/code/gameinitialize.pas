@@ -26,7 +26,8 @@ uses SysUtils,
   CastleApplicationProperties, CastleColors, CastleConfig, CastleControls,
   CastleImages, CastleFilesUtils, CastleKeysMouse, CastleLog, CastleScene,
   CastleSceneCore, CastleSoundEngine, CastleUIControls,
-  CastleVectors, CastleWindow
+  CastleVectors, CastleWindow,
+  GameSound
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMenu
@@ -50,9 +51,8 @@ begin
   { Load settings }
   UserConfig.Load;
 
-  { Set up sound repository }
-  SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
-
+  { Sounds initialization }
+  InitializeSounds;
   SoundEngine.Volume := UserConfig.GetFloat('volume', 1.0);
   SoundEngine.LoopingChannel[0].Volume := UserConfig.GetFloat('music', 1.0);
 

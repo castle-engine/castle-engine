@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2013-2022 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,7 +25,7 @@
     but doesn't completely fix the problem. Other CastleWindow backends
     have smooth mouse look.
 
-  - We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
+  - We never call Fps.InternalSleeping, so Fps.WasSleeping will be always false.
     This may result in confusing Fps.ToString in case AutoRedisplay was false.
 
   Bugs on GTK2, not on Carbon:

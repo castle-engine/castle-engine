@@ -1,0 +1,7 @@
+tag_head,
+tag_weapon,
+u_armour_light,models/players/human_base/armour.tga
+u_shoulderpads_base,gfx/null
+u_shoulderpads_light,models/players/human_base/shoulderpads.tga
+u_torso,models/players/human_base/light.tga
+tag_torso,

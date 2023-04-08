@@ -6,6 +6,8 @@ Example of a fully-working 3D FPS game using _Castle Game Engine_.
 
 With level designed using _Castle Game Engine_.
 
+![Screenshot](screenshot.png)
+
 We have:
 
 - level,

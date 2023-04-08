@@ -665,7 +665,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
                 KeyString := WideStringOf(vBuffer);
                 if KeyString <> '' then
                 begin
-                  DoKeyDown(keyNone, KeyString);
+                  DoKeyDown(keyNone, Utf16ToString(KeyString));
                 end;
               end;
             finally

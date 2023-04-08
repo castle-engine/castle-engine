@@ -120,7 +120,7 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..41] of String = (
+  EnginePaths: array [0..42] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -141,6 +141,7 @@ const
     'scene/x3d',
     'scene/load',
     'scene/load/spine',
+    'scene/load/md3',
     'scene/load/collada',
     'scene/load/pasgltf',
     'audio',

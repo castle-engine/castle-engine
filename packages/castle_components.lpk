@@ -150,23 +150,23 @@ See https://castle-engine.io/license for details.
         <Type Value="Include"/>
       </Item24>
       <Item25>
-        <Filename Value="../src/lcl/castlepropedits_abstracttwobodiesjoint.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_component_transform.inc"/>
         <Type Value="Include"/>
       </Item25>
       <Item26>
-        <Filename Value="../src/lcl/castlepropedits_component_transform.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_protectedsides.inc"/>
         <Type Value="Include"/>
       </Item26>
       <Item27>
-        <Filename Value="../src/lcl/castlepropedits_protectedsides.inc"/>
-        <Type Value="Include"/>
-      </Item27>
-      <Item28>
         <Filename Value="../src/lcl/castleinternaltiledlayersdialog.pas"/>
         <UnitName Value="CastleInternalTiledLayersDialog"/>
+      </Item27>
+      <Item28>
+        <Filename Value="../src/lcl/castlepropedits_tiledlayers.inc"/>
+        <Type Value="Include"/>
       </Item28>
       <Item29>
-        <Filename Value="../src/lcl/castlepropedits_tiledlayers.inc"/>
+        <Filename Value="../src/lcl/castlepropedits_abstracttwobodiesjoint.inc"/>
         <Type Value="Include"/>
       </Item29>
       <Item30>

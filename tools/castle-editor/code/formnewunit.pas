@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -316,6 +316,7 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
     Macros := TStringStringMap.Create;
     try
       Macros.Add('${UNIT_NAME}', EditUnitName.Text);
+      Macros.Add('${BASE_NAME}', EditBaseName.Text);
       case UnitType of
         utEmpty:
           begin

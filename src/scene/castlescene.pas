@@ -456,9 +456,8 @@ type
       The created scene has exactly the same class as this one
       (we use ClassType.Create to call a virtual constructor).
 
-      Note that this @bold(does not copy other scene attributes),
-      like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(RenderOptions). }
+      Note that this @bold(does not copy other scene properties),
+      like @link(ProcessEvents) or @link(Spatial) or @link(RenderOptions) contents. }
     function Clone(const AOwner: TComponent): TCastleScene;
 
     {$ifdef FPC}

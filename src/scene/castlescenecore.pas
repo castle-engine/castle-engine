@@ -3388,6 +3388,9 @@ procedure TCastleSceneCore.LoadCore(const ARootNode: TX3DRootNode;
 var
   RestoreProcessEvents: boolean;
 begin
+  { ARootNodeCacheOrigin can be non-nil only if ARootNode is non-nil. }
+  Assert(not ((ARootNodeCacheOrigin <> nil) and (ARootNode = nil)));
+
   { temporarily turn off events, to later initialize and turn them on }
   RestoreProcessEvents := ProcessEvents;
   ProcessEvents := false;
@@ -3447,6 +3450,9 @@ var
 begin
   TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TCastleSceneCore)');
   try
+    NewRoot := nil; // set this as RootNode when AURL is ''
+    NewRootCacheOrigin := nil;
+
     if AURL <> '' then
     begin
       { If LoadNode fails:
@@ -3464,9 +3470,6 @@ begin
       }
 
       try
-        NewRoot := nil;
-        NewRootCacheOrigin := nil;
-
         if Cache then
         begin
           NewRootCacheOrigin := X3DCache.LoadNode(AURL);
@@ -3493,9 +3496,6 @@ begin
             raise;
         end;
       end;
-    end else
-    begin
-      NewRoot := nil; // when AURL is ''
     end;
 
     { Set FURL before calling Load below.
@@ -3544,6 +3544,14 @@ end;
 procedure TCastleSceneCore.Loaded;
 begin
   inherited;
+
+  {$ifdef FPC} // with non-FPC, we don't define PrimitiveGeometry at all
+  {$warnings off} // using deprecated to warn about it
+  if PrimitiveGeometry <> pgNone then
+    WritelnWarning('PrimitiveGeometry is deprecated. Instead: use specialized components like TCastleBox, TCastleSphere');
+  {$warnings on}
+  {$endif}
+
   if FPendingSetUrl <> '' then
   begin
     Url := FPendingSetUrl;
