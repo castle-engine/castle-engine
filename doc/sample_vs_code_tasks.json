@@ -77,7 +77,12 @@
                     "location": 2,
                     "severity": 3,
                     "message": 4
-                }
+                },
+                /* We need non-empty owner to hide older problems on recompilation.
+                   See https://github.com/Microsoft/vscode/issues/50448,
+                   https://github.com/microsoft/vscode/issues/66982
+                */
+                "owner": "cge"
             }
         },
         // Run the CGE project of the currently open editor file.
@@ -105,7 +110,8 @@
                     "location": 2,
                     "severity": 3,
                     "message": 4
-                }
+                },
+                "owner": "cge"
             }
         },
         {
@@ -131,7 +137,8 @@
                     "location": 2,
                     "severity": 3,
                     "message": 4
-                }
+                },
+                "owner": "cge"
             }
         }
     ]
