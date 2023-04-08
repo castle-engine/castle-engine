@@ -64,7 +64,6 @@ uses // FPC and LCL units
 {$I castlepropedits_meshcolliderscene.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
-{$I castlepropedits_protectedsides.inc}
 {$I castlepropedits_region.inc}
 {$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
@@ -147,8 +146,6 @@ begin
     in castle-editor and Lazarus design-time. }
   RegisterPropertyEditor(TypeInfo(TCastleRootTransform), TCastleViewport, 'Items',
     TSubPropertiesEditor);
-  {RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
-    TCastleProtectedSidesEditor);}
   RegisterPropertyEditor(TypeInfo(TBorder), nil, 'ProtectedSides',
     TCastleRegionEditor);
   RegisterPropertyEditor(TypeInfo(TFloatRectanglePersistent), nil, 'RegionPersistent',
