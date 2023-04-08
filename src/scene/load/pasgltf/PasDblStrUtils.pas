@@ -424,9 +424,9 @@ function ConvertDoubleToString(const AValue:TPasDblStrUtilsDouble;const OutputMo
 
 implementation
 
-uses CastleUtils;
-
 {$ifdef WASI}
+
+uses CastleUtils;
 
 function ConvertStringToDouble(const StringValue:TPasDblStrUtilsString;const RoundingMode:TPasDblStrUtilsRoundingMode=rmNearest;const OK:PPasDblStrUtilsBoolean=nil;const Base:TPasDblStrUtilsInt32=-1):TPasDblStrUtilsDouble;
 begin
