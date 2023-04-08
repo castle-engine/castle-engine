@@ -63,9 +63,9 @@
             "Name0" : "Ground",
             "Description0" : "Ground plane",
             "Name1" : "Red",
-            "Description1" : "Walls and red balls",
-            "Name2" : "Yelllow",
-            "Description2" : "All balls here"
+            "Description1" : "Red stuff - walls and balls",
+            "Name2" : "Yellow",
+            "Description2" : "Yellow stuff - balls"
           }
         },
         "$Children" : [
