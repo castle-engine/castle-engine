@@ -623,7 +623,8 @@ end;
 
 procedure TDebugTransformBox.Update;
 var
-  BoundingBoxCenter: TVector3;
+  T: TTransformation;
+  Trans: TVector3;
 begin
   // update FTransform to cancel parent's transformation
   FTransform.Matrix := FParent.InverseTransform;
@@ -635,9 +636,10 @@ begin
     and (FParent.Parent.BlendingSort = bsYSort) and not FParent.BoundingBox.IsEmpty;
   if FYSortBox.Render then
   begin
-    BoundingBoxCenter := FParent.BoundingBox.Center;
-    FYSortBox.Box := TBox3D.FromCenterSize(Vector3(BoundingBoxCenter.X, FParent.Translation.Y +
-      FParent.YSortOffset, BoundingBoxCenter.Z), FParent.BoundingBox.Size * Vector3(1, 0.1, 1));
+    T.Init;
+    T.Translate(CastleVectors.Vector3(0, FParent.YSortOffset, 0));
+    Trans := TranslationFromMatrix(FParent.Transform * T.Transform);
+    FYSortBox.Box := TBox3D.FromCenterSize(Trans, Vector3(6, 6, 6));
   end;
 end;
 
