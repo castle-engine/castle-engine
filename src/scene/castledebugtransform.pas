@@ -553,6 +553,8 @@ begin
   FScene.InternalExcludeFromParentBoundingVolume := true;
   FScene.InternalExistsOnlyInMeaningfulParents := true;
   FScene.Exists := FExists;
+  { render at the front }
+  FScene.YSortOffset := -1000000;
   FScene.SetTransient;
 end;
 
@@ -624,7 +626,8 @@ end;
 procedure TDebugTransformBox.Update;
 var
   T: TTransformation;
-  Trans: TVector3;
+const
+  YSortBoxSize = 6.0;
 begin
   // update FTransform to cancel parent's transformation
   FTransform.Matrix := FParent.InverseTransform;
@@ -633,13 +636,13 @@ begin
   FBox.Box := FParent.BoundingBox;
 
   FYSortBox.Render := (FParent.World <> nil) and (FParent.Parent <> nil)
-    and (FParent.Parent.BlendingSort = bsYSort) and not FParent.BoundingBox.IsEmpty;
+    and (FParent.Parent.BlendingSort = bsYSort);
   if FYSortBox.Render then
   begin
     T.Init;
     T.Translate(CastleVectors.Vector3(0, FParent.YSortOffset, 0));
-    Trans := TranslationFromMatrix(FParent.Transform * T.Transform);
-    FYSortBox.Box := TBox3D.FromCenterSize(Trans, Vector3(6, 6, 6));
+    FYSortBox.Box := TBox3D.FromCenterSize(TranslationFromMatrix(FParent.Transform *
+      T.Transform), Vector3(YSortBoxSize, YSortBoxSize, YSortBoxSize));
   end;
 end;
 
