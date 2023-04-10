@@ -654,6 +654,13 @@ procedure TRegionDesignDialog.InitControlPoints;
     Result.Y := Result.Y div 2;
   end;
 
+  function ContainerCenterPoint: TVector2Integer;
+  begin
+    Result := CastleControl1.Rect.Center;
+    Result.X := Round(Result.X * CastleControl1.Container.Dpi / 96);
+    Result.Y := Round(Result.Y * CastleControl1.Container.Dpi / 96);
+  end;
+
 begin
   { "empty region" means using the whole image. }
   if FRegion.IsEmpty then
@@ -674,7 +681,7 @@ begin
   FixControlPoints;
 
   { Center view then region. }
-  FTranslation := ImageToScreen(CastleControl1.Rect.Center) -
+  FTranslation := ImageToScreen(ContainerCenterPoint) -
     ImageToScreen(CenterPoint);
 
   Changed;
