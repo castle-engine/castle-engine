@@ -4085,7 +4085,7 @@ var
       under the collider. And ray will be casted under the floor. }
     ColliderBoundingBox := GetColliderBoundingBox(Collider);
     ColliderHeight :=  ColliderBoundingBox.SizeY;
-    RayOrigin := Collider.Translation;
+    RayOrigin := FPlayerBody.Translation + Collider.Translation;
 
     { TODO: In the ideal world, the way we check for ground collisions
       (and determine Ground, IsOnGround)
@@ -4161,10 +4161,15 @@ var
         DistanceToGround := 0;
 
       IsOnGroundBool := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
+      {if IsOnGroundBool then
+        WritelnLog('ground ' + FloatToStr(DistanceToGround))
+      else
+        WritelnLog('not ground')}
     end else
     begin
       IsOnGroundBool := false;
       DistanceToGround := -1; // For animation checking
+      {WritelnLog('not ground');}
     end;
 
     if Input_Forward.IsPressed(Container) then
