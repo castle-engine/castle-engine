@@ -4287,7 +4287,7 @@ var
     end;
 
     // rotation
-    // TO should oratete player or camera here?
+    // TODO: should we rotate player or camera here?
     if not IsZero(DeltaAngular) then
     begin
       //RBody.AngularVelocity := Vector3(0, 1, 0) * DeltaAngular;
