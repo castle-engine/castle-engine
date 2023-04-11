@@ -1399,7 +1399,7 @@ type
       Note that if you do a footsteps sound in your game (see
       stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
       then you will want this property to match your footsteps sound length,
-      things feel and sound natural then.
+      things feel and sound na['{74C18F67-AEFE-4EF9-BD26-70296531E3BD}']tural then.
       Also, often it sounds better to record two footsteps inside
       a single sound file, in which case the footstep sound length should be twice
       as long as this property. For example, record 2 steps inside a 1-second long
@@ -3364,7 +3364,7 @@ var
   Speed: Single;
   SpeedType: TSpeedType;
 
-  { Warn if the avatar has TCastleRigidBody and TCastleCollider and TCastleRigidBody.Exists. }
+  { Warn if the player body has TCastleRigidBody and TCastleCollider and TCastleRigidBody.Exists. }
   procedure CheckNotPhysics;
   begin
     if (RBody <> nil) and (Collider <> nil) and RBody.Exists then
@@ -4117,15 +4117,12 @@ var
       When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
       it would make no sense to use old simple physics. }
 
-    WritelnLog('Camera.Translation: ' +Camera.Translation.ToString);
-    WritelnLog('Ray Origin ' + RayOrigin.ToString );
     GroundRayCast := RBody.PhysicsRayCast(
       RayOrigin,
       Vector3(0, -1, 0),
       ColliderHeight * 3
     );
 
-    WritelnLog('ColliderBoundingBox.SizeX: ' + FloatToStr(ColliderBoundingBox.SizeX));
     { Four more checks - player should slide down when player just
       on the edge, but sometimes it stay and center ray don't "see" that we are
       on ground }
@@ -4160,22 +4157,16 @@ var
     if GroundRayCast.Hit then
     begin
       DistanceToGround := GroundRayCast.Distance;
-      WritelnLog('DistanceToGround1 : ' + FloatToStr(DistanceToGround));
 
       { When collider has own translation we need substract it from distance
         becouse distance will be too big }
       DistanceToGround  := DistanceToGround - Collider.Translation.Y;
-      WritelnLog('DistanceToGround2 : ' + FloatToStr(DistanceToGround));
 
       { Sometimes rigid body center point can be under the collider so
         the distance can be negative }
       if DistanceToGround < 0 then
         DistanceToGround := 0;
-      WritelnLog('DistanceToGround3 : ' + FloatToStr(DistanceToGround));
 
-      WritelnLog('DistanceToGround: ' + FloatToStr(DistanceToGround));
-      WritelnLog('ColliderHeight * 0.1: ' + FloatToStr(ColliderHeight * 0.1));
-      WritelnLog('(ColliderHeight / 2) + ColliderHeight * 0.1: ' + FloatToStr((ColliderHeight / 2) + ColliderHeight * 0.1));
       IsOnGroundBool := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
     end else
     begin
@@ -4183,11 +4174,6 @@ var
       DistanceToGround := -1; // For animation checking
       WritelnLog('Raycast not find anything');
     end;
-
-    if IsOnGroundBool then
-      WritelnLog(' On ground')
-    else
-      WritelnLog(' NOT on ground');
 
     if Input_Forward.IsPressed(Container) then
     begin
@@ -4217,7 +4203,6 @@ var
     Jump := 0;
     if Input_Jump.IsPressed(Container) and (not FWasJumpInput) and IsOnGroundBool then
     begin
-      //if  and (not FWasJumpInput) and IsOnGroundBool
       FWasJumpInput := true;
       MovingHorizontally := false;
       Jump := MoveVerticalSpeed * 2; ///JumpSpeed;
@@ -4302,15 +4287,16 @@ var
     end;
 
     // rotation
+    // TO should oratete player or camera here?
     if not IsZero(DeltaAngular) then
     begin
       //RBody.AngularVelocity := Vector3(0, 1, 0) * DeltaAngular;
-      //Rotating := true;
+      //RBody.LockRotation := [0,2];
     end
     else
     begin
       //RBody.AngularVelocity := Vector3(0, 0, 0);
-      //Rotating := false;
+      //RBody.LockRotation := [0,1,2];
     end;
 
     IsOnGround := igGround;
