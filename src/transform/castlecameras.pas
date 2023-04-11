@@ -4090,7 +4090,6 @@ var
     ColliderBoundingBox := GetColliderBoundingBox(Collider);
     ColliderHeight :=  ColliderBoundingBox.SizeY;
     RayOrigin := Collider.Translation;
-    RayOrigin := Camera.Translation + Collider.Translation;
 
     { TODO: In the ideal world, the way we check for ground collisions
       (and determine Ground, IsOnGround)
