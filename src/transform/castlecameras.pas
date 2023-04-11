@@ -4041,8 +4041,6 @@ var
 
     if Collider is TCastleCapsuleCollider then
     begin
-      WritelnLog('Capsule Height '+ FloatToStr(TCastleCapsuleCollider(Collider).Height));
-      WritelnLog('Translation '+ FloatToStr(Collider.Translation.Y));
       Result := TBox3D.FromCenterSize(Collider.Translation,
         Vector3(TCastleCapsuleCollider(Collider).Radius * 2,
         TCastleCapsuleCollider(Collider).Height + TCastleCapsuleCollider(Collider).Radius * 2,
@@ -4091,7 +4089,7 @@ var
       under the collider. And ray will be casted under the floor. }
     ColliderBoundingBox := GetColliderBoundingBox(Collider);
     ColliderHeight :=  ColliderBoundingBox.SizeY;
-    WritelnLog('ColliderHeight: ' + FloatToStr(ColliderHeight));
+    RayOrigin := Collider.Translation;
     RayOrigin := Camera.Translation + Collider.Translation;
 
     { TODO: In the ideal world, the way we check for ground collisions
@@ -4172,7 +4170,6 @@ var
     begin
       IsOnGroundBool := false;
       DistanceToGround := -1; // For animation checking
-      WritelnLog('Raycast not find anything');
     end;
 
     if Input_Forward.IsPressed(Container) then
