@@ -301,6 +301,7 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
   procedure RenderFixedFunction;
   var
     SavedFixedFunctionLighting: Boolean;
+    IndexPtr: Pointer;
   begin
     if FUseColor then
       glColorv(Color);
@@ -322,7 +323,12 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
     SavedFixedFunctionLighting := RenderContext.FixedFunctionLighting;
     RenderContext.FixedFunctionLighting := false;
 
-    RenderDrawCall(@(FixedFunctionIndexes.List^[0]));
+    if FixedFunctionIndexes = nil then
+      IndexPtr := nil
+    else
+      IndexPtr := @(FixedFunctionIndexes.List^[0]);
+
+    RenderDrawCall(IndexPtr);
 
     { Restore GL_PROJECTION matrix value, other drawing code may depend on it.
       Don't restore GL_MODELVIEW, no need, other drawing code has to be prepared
