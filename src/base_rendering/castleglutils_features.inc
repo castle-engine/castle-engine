@@ -1274,7 +1274,9 @@ begin
   FMaxViewportDimensions := GetVector2Integer(GL_MAX_VIEWPORT_DIMS);
 
   FTextureModernFormatsAndSwizzle :=
-    (RequestCapabilities <> rcForceFixedFunction) and
+    { when EnableFixedFunction, so we don't use shaders, don't rely
+      on "texture swizzle" that only affects texture reading from GLSL. }
+    (not EnableFixedFunction) and
     (
       {$ifndef OpenGLES} Version_3_3 or {$endif}
       HasExtension('GL_ARB_texture_swizzle') or
