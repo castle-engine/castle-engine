@@ -546,6 +546,7 @@
         {
           "$$ClassName" : "TCastleWalkNavigation",
           "MoveSpeed" : 1.0000000000000000E+001,
+          "MoveVerticalSpeed" : 4.0000000596046448E-001,
           "Name" : "WalkNavigation",
           "PlayerBody" : "Player"
         },
