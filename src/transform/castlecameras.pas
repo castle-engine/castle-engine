@@ -1092,7 +1092,7 @@ type
       sets current CameraXxx properties to InitialCameraXxx.
       Sets GravityUp to the same thing as InitialUp.
       Sets also PreferredHeight to make it behave "sensibly". }
-    procedure Init(const box: TBox3D; const ARadius: Single); overload;
+    procedure Init(const Box: TBox3D; const ARadius: Single); overload;
       deprecated 'use Viewport.Camera.SetWorldView, and set GravityUp, PreferredHeight, Radius and call CorrectPreferredHeight manually';
 
     { This sets the minimal angle (in radians) between GravityUp
