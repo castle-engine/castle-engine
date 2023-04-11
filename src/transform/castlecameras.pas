@@ -4197,7 +4197,7 @@ var
     if Input_Jump.IsPressed(Container) and (not FWasJumpInput) and IsOnGroundBool then
     begin
       FWasJumpInput := true;
-      Jump := MoveVerticalSpeed * JumpHorizontalSpeedMultiply;
+      Jump := MoveVerticalSpeed * MoveSpeed * JumpHorizontalSpeedMultiply;
     end else
       FWasJumpInput := false;
 
