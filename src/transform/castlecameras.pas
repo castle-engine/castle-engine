@@ -1218,6 +1218,8 @@ type
       between camera and something. }
     function RealPreferredHeight: Single;
 
+    function HeadBobbingHeight(PlayerBodyHeight: Single): Single;
+
     { This makes a visual effect of camera falling down horizontally
       on the ground. Nice to use when player died, and you want to show
       that it's body falled on the ground.
@@ -3116,10 +3118,15 @@ begin
 end;
 
 function TCastleWalkNavigation.RealPreferredHeight: Single;
+begin
+  Result := HeadBobbingHeight(RealPreferredHeightNoHeadBobbing);
+end;
+
+function TCastleWalkNavigation.HeadBobbingHeight(PlayerBodyHeight: Single): Single;
 var
   BobbingModifier: Single;
 begin
-  Result := RealPreferredHeightNoHeadBobbing;
+  Result := PlayerBodyHeight;
 
   if UseHeadBobbing then
   begin
@@ -4050,6 +4057,19 @@ var
     raise Exception.Create('Unknown collider type');
   end;
 
+  procedure DoHeadBobbing(ColliderHeight: Single);
+  var
+    CamTransl: TVector3;
+  begin
+    { Update HeadBobbingPosition }
+    HeadBobbingPosition := HeadBobbingPosition + (SecondsPassed / HeadBobbingTime);
+
+    { Calculate new camera position }
+    CamTransl := Camera.Translation;
+    CamTransl.Y := HeadBobbingHeight(ColliderHeight) - ColliderHeight;
+    Camera.Translation := CamTransl;
+  end;
+
   { Realize ctVelocity transformation method. }
   procedure DoVelocity;
   var
@@ -4234,6 +4254,8 @@ var
           Vel.Y := VVelocity
         else
           Vel.Y := Jump;
+
+        DoHeadBobbing(ColliderHeight);
       end else
       begin
         { In air we can't simply change movement direction, we will just
