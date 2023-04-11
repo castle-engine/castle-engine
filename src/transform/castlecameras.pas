@@ -4077,7 +4077,7 @@ var
     MaxHorizontalVelocityChange := Acceleration * 60;
     DeltaSpeed := 0;
 
-    { Check player is on ground, we use avatar size multiplied by ten to try
+    { Check player is on ground, we use avatar size multiplied by three to try
       found ground. Distance is used to check we should set animation to fall
       or we are almost on ground so use default animation.
 
