@@ -862,6 +862,7 @@ type
     FChangeTransformation: TChangeTransformation;
 
     WarningDonePhysicsNotNecessary,
+      WarningDonePlayerBodyNecessary,
       WarningDoneRigidBodyNecessary,
       WarningDoneColliderNecessary: Boolean;
 
@@ -936,6 +937,10 @@ type
     FJumpTime: Single;
     FJumpHorizontalSpeedMultiply: Single;
     FWasJumpInput: Boolean;
+
+    { Castle transform that used as the basis of the rigid body and should
+      contain the camera as a child item }
+    FPlayerBody: TCastleTransform;
 
     HeadBobbingPosition: Single;
     function UseHeadBobbing: boolean;
@@ -1559,7 +1564,7 @@ type
 
     property Radius;
 
-    { How does the camera change transformation (for movement and rotations).
+    { How does the player change transformation (for movement and rotations).
       This determines whether we update @link(TCastleTransform.Translation),
       @link(TCastleTransform.Rotation) directly or use physics (TCastleRigidBody)
       velocities or forces.
@@ -1567,8 +1572,8 @@ type
       See TChangeTransformation for possible values are their meaning.
 
       By default, this is ctAuto, which means that we detect whether you have
-      physics behaviors (TCastleRigidBody, TCastleCollider, with TCastleRigidBody.Exists)
-      set up on the avatar.
+      PlayerBody with physics behaviors (TCastleRigidBody, TCastleCollider,
+      with TCastleRigidBody.Exists) set up.
 
       @unorderedList(
         @item(If yes, we will use physics behaviors, and change transformation
@@ -1579,6 +1584,10 @@ type
     }
     property ChangeTransformation: TChangeTransformation read FChangeTransformation write FChangeTransformation
       default ctAuto;
+
+    { Castle transform that used as the basis of the rigid body and should
+      contain the camera as a child item }
+    property PlayerBody: TCastleTransform read FPlayerBody write FPlayerBody;
   end;
 
   TUniversalCamera = TCastleNavigation deprecated 'complicated TUniversalCamera class is removed; use TCastleNavigation as base class, or TCastleWalkNavigation or TCastleExamineNavigation for particular type, and Viewport.NavigationType to switch type';
@@ -3978,12 +3987,22 @@ var
     warn and return @false. }
   function CheckPhysics: Boolean;
   begin
+    if FPlayerBody = nil then
+    begin
+      if not WarningDonePlayerBodyNecessary then
+      begin
+        WarningDonePlayerBodyNecessary := true;
+        WritelnWarning('For this TCastleWalkNavigation.Transformation, you must set PlayerBody TCastleTransform and add TCastleRigidBody (leave TCastleRigidBody.Exists = true), a collider and a camera to it.');
+      end;
+      Exit(false);
+    end;
+
     if (RBody = nil) or (not RBody.Exists) then
     begin
       if not WarningDoneRigidBodyNecessary then
       begin
         WarningDoneRigidBodyNecessary := true;
-        WritelnWarning('For this TCastleWalkNavigation.Transformation, you must add TCastleRigidBody to the camera and leave TCastleRigidBody.Exists = true');
+        WritelnWarning('For this TCastleWalkNavigation.Transformation, you must add TCastleRigidBody (leave TCastleRigidBody.Exists = true) to PlayerBody.');
       end;
       Exit(false);
     end;
@@ -3993,7 +4012,7 @@ var
       if not WarningDoneColliderNecessary then
       begin
         WarningDoneColliderNecessary := true;
-        WritelnWarning('For this TCastleWalkNavigation.Transformation, you must add TCastleCollider to the camera');
+        WritelnWarning('For this TCastleWalkNavigation.Transformation, you must add TCastleCollider to the PlayerBody');
       end;
       Exit(false);
     end;
@@ -4070,7 +4089,6 @@ var
 
       We need add Collider.Translation because sometimes rigid body origin can be
       under the collider. And ray will be casted under the floor. }
-    // TODO: what use as height, currently collider in camera
     ColliderBoundingBox := GetColliderBoundingBox(Collider);
     ColliderHeight :=  ColliderBoundingBox.SizeY;
     WritelnLog('ColliderHeight: ' + FloatToStr(ColliderHeight));
@@ -4187,13 +4205,13 @@ var
     begin
       MovingHorizontally := true;
       DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed;
-      MoveDirection := TVector3.CrossProduct(Camera.Direction, Camera.Up);
+      MoveDirection := TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
     end;
     if IsOnGroundBool and Input_LeftStrafe.IsPressed(Container) then
     begin
       MovingHorizontally := true;
       DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
-      MoveDirection := -TVector3.CrossProduct(Camera.Direction, Camera.Up);
+      MoveDirection := -TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
     end;
 
     Jump := 0;
@@ -4286,13 +4304,13 @@ var
     // rotation
     if not IsZero(DeltaAngular) then
     begin
-      RBody.AngularVelocity := Vector3(0, 1, 0) * DeltaAngular;
-      Rotating := true;
+      //RBody.AngularVelocity := Vector3(0, 1, 0) * DeltaAngular;
+      //Rotating := true;
     end
     else
     begin
-      RBody.AngularVelocity := Vector3(0, 0, 0);
-      Rotating := false;
+      //RBody.AngularVelocity := Vector3(0, 0, 0);
+      //Rotating := false;
     end;
 
     IsOnGround := igGround;
@@ -4421,8 +4439,16 @@ begin
   if Camera = nil then
     Exit;
 
-  RBody := Camera.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  Collider := Camera.FindBehavior(TCastleCollider) as TCastleCollider;
+  if FPlayerBody <> nil then
+  begin
+    RBody := FPlayerBody.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    Collider := FPlayerBody.FindBehavior(TCastleCollider) as TCastleCollider;
+  end
+  else
+    begin
+      RBody := nil;
+      Collider := nil;
+    end;
 
   if Input_Run.IsPressed(Container) then
   begin
@@ -4445,7 +4471,8 @@ begin
 
   case FChangeTransformation of
     ctAuto:
-      if (RBody <> nil) and RBody.Exists and (Collider <> nil) then
+      if (RBody <> nil) and RBody.Exists and (Collider <> nil) and
+         (Camera.Parent = FPlayerBody) then
         DoVelocity(MovingHorizontally, Rotating, IsOnGround)
       else
         DoDirect;
