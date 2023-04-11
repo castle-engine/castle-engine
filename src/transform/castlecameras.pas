@@ -4069,9 +4069,6 @@ var
     Jump: Single;
     RayOrigin: TVector3;
     DeltaSpeed: Single;
-    DeltaAngular: Single;
-  const
-    RotationSpeed: Single = Pi * 150 / 180;
   begin
     if not CheckPhysics then
       Exit;
@@ -4205,15 +4202,8 @@ var
     end else
       FWasJumpInput := false;
 
-    DeltaAngular := 0;
-    if Input_RightRotate.IsPressed(Container) then
-    begin
-      DeltaAngular := -RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGroundBool)};
-    end;
-    if Input_LeftRotate.IsPressed(Container) then
-    begin
-      DeltaAngular := RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGroundBool)};
-    end;
+    { Because we use camera direction for move we can use the same code as DoDirect }
+    CheckRotates(1.0 {* RotationControlFactor(IsOnGroundBool)});
 
     // jumping
     if not IsZero(Jump) then
@@ -4280,19 +4270,6 @@ var
       Vel.X := 0;
       Vel.Z := 0;
       RBody.LinearVelocity := Vel;
-    end;
-
-    // rotation
-    // TODO: should we rotate player or camera here?
-    if not IsZero(DeltaAngular) then
-    begin
-      //RBody.AngularVelocity := Vector3(0, 1, 0) * DeltaAngular;
-      //RBody.LockRotation := [0,2];
-    end
-    else
-    begin
-      //RBody.AngularVelocity := Vector3(0, 0, 0);
-      //RBody.LockRotation := [0,1,2];
     end;
 
     IsOnGround := igGround;
