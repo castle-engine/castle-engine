@@ -3356,7 +3356,6 @@ end;
 procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 type
-  TIsOnGround = (igGround, igJumping, igFalling);
   TSpeedType = (stNormal, stCrouch, stRun);
 var
   RBody: TCastleRigidBody;
@@ -4052,7 +4051,7 @@ var
   end;
 
   { Realize ctVelocity transformation method. }
-  procedure DoVelocity(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
+  procedure DoVelocity;
   var
     IsOnGroundBool: Boolean;
     Vel: TVector3;
@@ -4170,25 +4169,21 @@ var
 
     if Input_Forward.IsPressed(Container) then
     begin
-      MovingHorizontally := true;
       DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
       MoveDirection := Camera.Direction;
     end;
     if Input_Backward.IsPressed(Container) then
     begin
-      MovingHorizontally := true;
       DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
       MoveDirection := -Camera.Direction;
     end;
     if IsOnGroundBool and Input_RightStrafe.IsPressed(Container) then
     begin
-      MovingHorizontally := true;
       DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed;
       MoveDirection := TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
     end;
     if IsOnGroundBool and Input_LeftStrafe.IsPressed(Container) then
     begin
-      MovingHorizontally := true;
       DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
       MoveDirection := -TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
     end;
@@ -4197,7 +4192,6 @@ var
     if Input_Jump.IsPressed(Container) and (not FWasJumpInput) and IsOnGroundBool then
     begin
       FWasJumpInput := true;
-      MovingHorizontally := false;
       Jump := MoveVerticalSpeed * 2; ///JumpSpeed;
     end else
       FWasJumpInput := false;
@@ -4270,25 +4264,6 @@ var
       Vel.X := 0;
       Vel.Z := 0;
       RBody.LinearVelocity := Vel;
-    end;
-
-    IsOnGround := igGround;
-    if not IsOnGroundBool then
-    begin
-      // TODO: 0.1 should not be hardcoded
-      if RBody.LinearVelocity.Y > 0.1 then
-        IsOnGround := igJumping
-      else
-      { When avatar falls we change animation to fall only when the distance
-        to ground is smaller than 1/4 of avatar height. This fixes changing
-        animation from walk to fall on small steps like in stairs.
-
-        DistanceToGround < 0 means that we are in air and ground
-        was not found.
-
-        TODO: 0.25 should not be hardcoded. }
-      if (DistanceToGround < 0) or (DistanceToGround > ColliderBoundingBox.SizeY * 0.25) then
-        IsOnGround := igFalling;
     end;
   end;
 
@@ -4380,9 +4355,6 @@ var
       GravityUpdate;
   end;
 
-var
-  MovingHorizontally, Rotating: Boolean;
-  IsOnGround: TIsOnGround;
 begin
   inherited;
 
@@ -4424,24 +4396,20 @@ begin
     Speed := MoveSpeed;
   end;
 
-  MovingHorizontally := false;
-  Rotating := false;
-  IsOnGround := igGround;
-
   case FChangeTransformation of
     ctAuto:
       if (RBody <> nil) and RBody.Exists and (Collider <> nil) and
          (Camera.Parent = FPlayerBody) then
-        DoVelocity(MovingHorizontally, Rotating, IsOnGround)
+        DoVelocity
       else
         DoDirect;
     ctDirect: DoDirect;
-    ctVelocity: DoVelocity(MovingHorizontally, Rotating, IsOnGround);
+    ctVelocity: DoVelocity;
     {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
-    ctForce: DoForce(MovingHorizontally, Rotating, IsOnGround);
+    ctForce: DoForce;
     {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
     {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('TCastleThirdPersonNavigation.FTransformation?');
+    else raise EInternalError.Create('TCastleWalkNavigation.FChangeTransformation?');
     {$endif}
   end;
 end;
