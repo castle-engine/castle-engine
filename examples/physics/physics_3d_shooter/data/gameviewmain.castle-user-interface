@@ -44,6 +44,7 @@
                 "AngularVelocityDamp" : 6.0000002384185791E-001,
                 "LockRotation" : [
                   0,
+                  1,
                   2
                 ],
                 "Name" : "RigidBody8"
