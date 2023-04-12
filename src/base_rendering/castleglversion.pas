@@ -30,23 +30,28 @@ interface
 
 type
   { OpenGL(ES) library version information.
+    Determined looking at information from glGetString(GL_VERSION),
+    glGetString(GL_VENDOR) and such.
 
-    As obtained from glGetString(GL_VERSION), glGetString(GL_VENDOR) and similar
-    routines.
+    User code should never create instances of this class.
+    Only use the singleton @link(GLVersion), already initialized for you.
 
-    This is usually created by CastleGLUtils.GLInformationInitialize. }
+    Internally, this should be always created by GLInformationInitialize. }
   TGenericGLVersion = class
+  strict private
+    FVersionString: String;
   public
-    constructor Create(const VersionString: string);
+    constructor Create(const AVersionString: string);
   public
-    { Required (every OpenGL implemenetation has them)
-      major and minor numbers.
+    { Major and minor version numbers of OpenGL(ES) implementation.
       @groupBegin }
     Major: Integer;
     Minor: Integer;
     { @groupEnd }
 
-    { Release is the optional release number (check ReleaseExists first).
+    { Release version number of OpenGL(ES) implementation.
+      Optional, some OpenGL(ES) implementations may not have "release" number
+      (check ReleaseExists first).
       @groupBegin }
     ReleaseExists: boolean;
     Release: Integer;
@@ -58,10 +63,20 @@ type
     VendorVersion: string;
 
     function AtLeast(AMajor, AMinor: Integer): boolean;
+
+    { Version as a string.
+      This is full unprocessed and untrimmed value, as returned by glGetString(GL_VERSION). }
+    property VersionString: String read FVersionString;
   end;
 
+  { Recognized OpenGL(ES) vendor names.
+
+    Note that we don't try to recognize all vendors, only the most popular ones
+    and the ones whose detection is necessary to workaround/optimize
+    some OpenGL(ES) code. For unrecognized vendors, we just set gvOther. }
   TGLVendorType = (
-    gvUnknown,
+    { Some vendor not covered by other enums. }
+    gvOther,
     { ATI GPU with ATI drivers. }
     gvATI,
     { NVidia GPU with NVidia drivers. }
@@ -99,7 +114,7 @@ type
     FBuggyGLSLBumpMappingNumSteps: Boolean;
     function AppleRendererOlderThan(const VersionNumber: Cardinal): Boolean;
   public
-    constructor Create(const VersionString, AVendor, ARenderer: string);
+    constructor Create(const AVersionString, AVendor, ARenderer: string);
 
     { Vendor that created the OpenGL implemenetation.
       This is just glGetString(GL_VENDOR). }
@@ -216,8 +231,11 @@ type
   end;
 
 var
-  { Core OpenGL version information.
-    This is usually created by CastleGLUtils.GLInformationInitialize. }
+  { OpenGL(ES) version information.
+
+    Internally automatically initialized when at least one OpenGL(ES) context is open,
+    may be @nil otherwise.
+    User code should never set this variable. }
   GLVersion: TGLVersion;
 
 function VendorTypeToStr(const VendorType: TGLVendorType): string;
@@ -267,11 +285,13 @@ end;
 
 { TGenericGLVersion ---------------------------------------------------------- }
 
-constructor TGenericGLVersion.Create(const VersionString: string);
+constructor TGenericGLVersion.Create(const AVersionString: string);
 var
   I: Integer;
 begin
   inherited Create;
+
+  FVersionString := AVersionString;
 
   try
     I := 1;
@@ -332,7 +352,7 @@ end;
 
 { TGLVersion ----------------------------------------------------------------- }
 
-constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
+constructor TGLVersion.Create(const AVersionString, AVendor, ARenderer: String);
 
   { Parse VendorMajor / VendorMinor / VendorRelease, starting from S[I]. }
   procedure ParseVendorVersionSuffix(const S: string; var I: Integer);
@@ -446,7 +466,7 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
   end;
 
 begin
-  inherited Create(VersionString);
+  inherited Create(AVersionString);
 
   ParseVendorVersion;
 
@@ -475,7 +495,7 @@ begin
   if SameText(Vendor, 'Arm') then
     FVendorType := gvArm
   else
-    FVendorType := gvUnknown;
+    FVendorType := gvOther;
 
   FFglrx := {$ifdef LINUX} VendorType = gvATI {$else} false {$endif};
 
@@ -685,8 +705,8 @@ begin
 end;
 
 const
-  VendorTypeNames: array [TGLVendorType] of string =
-  ( 'Unknown',
+  VendorTypeNames: array [TGLVendorType] of String = (
+    'Other',
     'ATI',
     'Nvidia',
     'Intel',

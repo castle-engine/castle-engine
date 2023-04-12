@@ -583,8 +583,10 @@ function StrToCapabilities(const S: String): TGLRequestCapabilities;
 procedure GLInformationInitialize;
 begin
   FreeAndNil(GLVersion);
-  GLVersion := TGLVersion.Create( PGLChar(glGetString(GL_VERSION)),
-    PGLChar(glGetString(GL_VENDOR)), PGLChar(glGetString(GL_RENDERER)));
+  GLVersion := TGLVersion.Create(
+    PGLChar(glGetString(GL_VERSION)),
+    PGLChar(glGetString(GL_VENDOR)),
+    PGLChar(glGetString(GL_RENDERER)));
 
   FreeAndNil(GLFeatures);
   GLFeatures := TGLFeatures.Create;
