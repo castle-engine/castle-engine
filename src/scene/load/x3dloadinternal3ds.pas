@@ -434,11 +434,6 @@ begin
       CHUNK_RGBB, CHUNK_RGBB_GAMMA:
         begin
           Stream.ReadBuffer(Col3Byte, SizeOf(Col3Byte));
-          {$ifdef ENDIAN_BIG}
-          b := Col3Byte[0];
-          Col3Byte[0] := Col3Byte[2];
-          Col3Byte[2] := b;
-          {$endif ENDIAN_BIG}
           Col := Vector3(Col3Byte);
           result := true;
           break;
