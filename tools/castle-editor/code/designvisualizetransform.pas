@@ -630,9 +630,9 @@ begin
           begin
             for I := 0 to 2 do
               if IsZero(LastPick[I]) then
-                Diff.InternalData[I] := 1
+                Diff.Data[I] := 1
               else
-                Diff.InternalData[I] := NewPick[I] / LastPick[I];
+                Diff.Data[I] := NewPick[I] / LastPick[I];
             Parent.Scale := Parent.Scale * Diff;
           end;
       end;

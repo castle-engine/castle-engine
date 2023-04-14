@@ -161,13 +161,13 @@ begin
 
   { Verts index in octal notation indicates which of 8 vertexes it is. }
   Verts[0] := Vector4(Box.Data[0], 1);
-  Verts[1] := Vector4(Box.Data[0], 1); Verts[1].InternalData[0] := Box.Data[1][0];
-  Verts[2] := Vector4(Box.Data[0], 1); Verts[2].InternalData[1] := Box.Data[1][1];
-  Verts[4] := Vector4(Box.Data[0], 1); Verts[4].InternalData[2] := Box.Data[1][2];
+  Verts[1] := Vector4(Box.Data[0], 1); Verts[1].Data[0] := Box.Data[1][0];
+  Verts[2] := Vector4(Box.Data[0], 1); Verts[2].Data[1] := Box.Data[1][1];
+  Verts[4] := Vector4(Box.Data[0], 1); Verts[4].Data[2] := Box.Data[1][2];
 
-  Verts[3] := Vector4(Box.Data[1], 1); Verts[3].InternalData[2] := Box.Data[0][2];
-  Verts[5] := Vector4(Box.Data[1], 1); Verts[5].InternalData[1] := Box.Data[0][1];
-  Verts[6] := Vector4(Box.Data[1], 1); Verts[6].InternalData[0] := Box.Data[0][0];
+  Verts[3] := Vector4(Box.Data[1], 1); Verts[3].Data[2] := Box.Data[0][2];
+  Verts[5] := Vector4(Box.Data[1], 1); Verts[5].Data[1] := Box.Data[0][1];
+  Verts[6] := Vector4(Box.Data[1], 1); Verts[6].Data[0] := Box.Data[0][0];
   Verts[7] := Vector4(Box.Data[1], 1);
 
   RenderBox.ModelViewProjection := ModelViewProjectionMatrix;

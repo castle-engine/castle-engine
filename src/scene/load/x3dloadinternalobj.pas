@@ -101,7 +101,7 @@ var
       NewSeekPos := SeekPos;
       Token := NextToken(S, NewSeekPos);
       try
-        Value.InternalData[I] := StrToFloatDefDot(Token, Value.InternalData[I]);
+        Value.Data[I] := StrToFloatDefDot(Token, Value.Data[I]);
         // update SeekPos if this is a successfull float, as Y and Z vector values are optional in MTL
         SeekPos := NewSeekPos;
       except

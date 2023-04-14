@@ -506,8 +506,8 @@ begin
         SubBox := Box;
         for i := 0 to 2 do
           if b[i] then
-            SubBox.Data[0].InternalData[i] := MiddlePoint[i] else
-            SubBox.Data[1].InternalData[i] := MiddlePoint[i];
+            SubBox.Data[0].Data[i] := MiddlePoint[i] else
+            SubBox.Data[1].Data[i] := MiddlePoint[i];
 
         TreeSubNodes[b[0], b[1], b[2]] :=
           TOctreeNodeClass(Self.ClassType).Create(

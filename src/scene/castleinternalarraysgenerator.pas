@@ -1116,9 +1116,9 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
 
     begin
       FillChar(Gen, SizeOf(Gen), 0);
-      Gen.InternalData[Coord] := (GenEnd - GenStart) / LocalBBoxSize[Coord];
-      Gen.InternalData[3] :=
-        - LocalBBox.Data[0].InternalData[Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
+      Gen.Data[Coord] := (GenEnd - GenStart) / LocalBBoxSize[Coord];
+      Gen.Data[3] :=
+        - LocalBBox.Data[0].Data[Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
         + GenStart;
     end;
 

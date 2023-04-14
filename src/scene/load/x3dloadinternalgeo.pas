@@ -91,7 +91,7 @@ var
 
       { the polygon is always at least a triangle, read it }
       for j := 0 to 2 do
-        CurrentFace.InternalData[j] := ReadVertexIndex(LineTokens[J + 1]);
+        CurrentFace.Data[j] := ReadVertexIndex(LineTokens[J + 1]);
       Faces.Add(CurrentFace);
 
       FirstVert := CurrentFace.X;

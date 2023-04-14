@@ -2836,7 +2836,7 @@ begin
   for I := 0 to High(Value.TIndex) do
   begin
     Lexer.CheckTokenIs(TokenNumbers, 'float number');
-    Value.InternalData[I] := Lexer.TokenFloat;
+    Value.Data[I] := Lexer.TokenFloat;
     Lexer.NextToken;
   end;
 
@@ -3062,7 +3062,7 @@ var
   V: TVector3;
 begin
   V := Value;
-  V.InternalData[Index] := ComponentValue;
+  V.Data[Index] := ComponentValue;
   Send(V);
 end;
 

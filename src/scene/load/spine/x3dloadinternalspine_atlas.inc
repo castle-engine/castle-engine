@@ -367,7 +367,7 @@ procedure TAtlas.Parse(const URL: string);
         end;
         try
           for I := 0 to 3 do
-            Vector.InternalData[I] := StrToInt(Tokens[I]);
+            Vector.Data[I] := StrToInt(Tokens[I]);
         except
           on E: EConvertError do
           begin

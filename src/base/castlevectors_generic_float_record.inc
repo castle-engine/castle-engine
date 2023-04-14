@@ -926,7 +926,7 @@ end;
 class function TGenericVector2.GetOne(const Index: TIndex): TGenericVector2;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result.InternalData[Index] := 1.0;
+  Result.Data[Index] := 1.0;
 end;
 
 { TGenericVector3 ------------------------------------------------------------ }
@@ -1173,7 +1173,7 @@ end;
 class function TGenericVector3.GetOne(const Index: TIndex): TGenericVector3;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result.InternalData[Index] := 1.0;
+  Result.Data[Index] := 1.0;
 end;
 
 { TGenericVector4 ------------------------------------------------------------ }
@@ -1400,7 +1400,7 @@ end;
 class function TGenericVector4.GetOne(const Index: TIndex): TGenericVector4;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result.InternalData[Index] := 1.0;
+  Result.Data[Index] := 1.0;
 end;
 
 { TGenericMatrix2 ------------------------------------------------------------ }

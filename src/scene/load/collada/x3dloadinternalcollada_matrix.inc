@@ -69,7 +69,7 @@ var
         WritelnWarning('Collada', 'Unexpected end of data of <lookat>');
         Exit(false);
       end;
-      Vector.InternalData[I] := StrToFloatDot(Token);
+      Vector.Data[I] := StrToFloatDot(Token);
     end;
   end;
 

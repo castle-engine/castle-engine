@@ -767,7 +767,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
       { init face }
       Stream.ReadBuffer(Word3, SizeOf(Word3));
       for j := 0 to 2 do
-        VertsIndices.InternalData[j] := LEtoN(Word3[j]);
+        VertsIndices.Data[j] := LEtoN(Word3[j]);
       Stream.ReadLE(Flags);
       { decode Flags }
       for j := 0 to 2 do

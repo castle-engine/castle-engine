@@ -1231,16 +1231,16 @@ function TBox3D.Transform(
       { Calculate Result[0].Data[I], Result[1].Data[I] }
       for J := 0 to 2 do
       begin
-        A := Matrix.Data[J, I] * Data[0].InternalData[J];
-        B := Matrix.Data[J, I] * Data[1].InternalData[J];
+        A := Matrix.Data[J, I] * Data[0].Data[J];
+        B := Matrix.Data[J, I] * Data[1].Data[J];
         if A < B then
         begin
-          Result.Data[0].InternalData[I] := Result.Data[0].InternalData[I] + A;
-          Result.Data[1].InternalData[I] := Result.Data[1].InternalData[I] + B;
+          Result.Data[0].Data[I] := Result.Data[0].Data[I] + A;
+          Result.Data[1].Data[I] := Result.Data[1].Data[I] + B;
         end else
         begin
-          Result.Data[0].InternalData[I] := Result.Data[0].InternalData[I] + B;
-          Result.Data[1].InternalData[I] := Result.Data[1].InternalData[I] + A;
+          Result.Data[0].Data[I] := Result.Data[0].Data[I] + B;
+          Result.Data[1].Data[I] := Result.Data[1].Data[I] + A;
         end;
       end;
     end;
@@ -1313,11 +1313,11 @@ var
 begin
   for I := 0 to 2 do
   begin
-    if Point.InternalData[I] < Data[0][I] then
-      Point.InternalData[I] := Data[0][I]
+    if Point.Data[I] < Data[0][I] then
+      Point.Data[I] := Data[0][I]
     else
-    if Point.InternalData[I] > Data[1][I] then
-      Point.InternalData[I] := Data[1][I];
+    if Point.Data[I] > Data[1][I] then
+      Point.Data[I] := Data[1][I];
   end;
 end;
 
@@ -1522,8 +1522,8 @@ begin
 
     { Code optimized to avoid "if", instead doing table lookup by BoxBool }
     B := Plane[I] >= 0;
-    VMin.InternalData[I] := BoxBool[not B][I];
-    VMax.InternalData[I] := BoxBool[B][I];
+    VMin.Data[I] := BoxBool[not B][I];
+    VMax.Data[I] := BoxBool[B][I];
   end;
 
   if Plane.X * VMin.X +
@@ -1715,8 +1715,8 @@ begin
   { calculate BoxCenter and BoxHalfSize }
   for I := 0 to 2 do
   begin
-    BoxCenter.InternalData[I] := (Data[0][I] + Data[1][I]) / 2;
-    BoxHalfSize.InternalData[I] := (Data[1][I] - Data[0][I]) / 2;
+    BoxCenter.Data[I] := (Data[0][I] + Data[1][I]) / 2;
+    BoxHalfSize.Data[I] := (Data[1][I] - Data[0][I]) / 2;
   end;
 
   { calculate TriangleMoved (Triangle shifted by -BoxCenter,
@@ -2263,8 +2263,8 @@ function TBox3D.OrthoProject(const Pos, Dir, Side, Up: TVector3): TFloatRectangl
     PDiff: TVector3;
   begin
     PDiff := P - Pos;
-    Result.InternalData[0] := TVector3.DotProduct(PDiff, Side);
-    Result.InternalData[1] := TVector3.DotProduct(PDiff, Up);
+    Result.Data[0] := TVector3.DotProduct(PDiff, Side);
+    Result.Data[1] := TVector3.DotProduct(PDiff, Up);
   end;
 
 var
@@ -2417,12 +2417,12 @@ begin
   for I := 0 to 2 do
     if Plane[I] > 0 then
     begin
-      VMin.InternalData[I] := -BoxHalfSize[I];
-      VMax.InternalData[I] :=  BoxHalfSize[I];
+      VMin.Data[I] := -BoxHalfSize[I];
+      VMax.Data[I] :=  BoxHalfSize[I];
     end else
     begin
-      VMin.InternalData[I] :=  BoxHalfSize[I];
-      VMax.InternalData[I] := -BoxHalfSize[I];
+      VMin.Data[I] :=  BoxHalfSize[I];
+      VMax.Data[I] := -BoxHalfSize[I];
     end;
 
   { If VMin is above the plane (plane equation is > 0), then VMax

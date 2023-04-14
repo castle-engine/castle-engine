@@ -168,7 +168,7 @@ begin
   { We're not interested in this coord, this is either 1 or -1.
     Having this non-zero would break TVector3.DotProduct (projecting to Side/Up)
     in following code. }
-  SideIntersect.InternalData[SideCoord] := 0;
+  SideIntersect.Data[SideCoord] := 0;
 
   PixelX := Round(MapRange(
     TVector3.DotProduct(SideIntersect, CubeMapInfo[Side].Side),
@@ -231,7 +231,7 @@ begin
   { We're not interested in this coord, this is either 1 or -1.
     Having this non-zero would break TVector3.DotProduct (projecting to Side/Up)
     in following code. }
-  SideIntersect.InternalData[SideCoord] := 0;
+  SideIntersect.Data[SideCoord] := 0;
 
   PixelFX := MapRange(
     TVector3.DotProduct(SideIntersect, CubeMapInfo[Side[0]].Side),
@@ -276,7 +276,7 @@ begin
   begin
     ClampVar(PixelX[I], 0, CubeMapSize - 1);
     ClampVar(PixelY[I], 0, CubeMapSize - 1);
-    Pixel.InternalData[I] := PixelY[I] * CubeMapSize + PixelX[I];
+    Pixel.Data[I] := PixelY[I] * CubeMapSize + PixelX[I];
   end;
 end;
 

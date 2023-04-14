@@ -2148,8 +2148,8 @@ var
     if not RotationEnabled then Exit;
 
     if RotationAccelerate then
-      FRotationsAnim.InternalData[coord] :=
-        Clamped(FRotationsAnim.InternalData[coord] +
+      FRotationsAnim.Data[coord] :=
+        Clamped(FRotationsAnim.Data[coord] +
           RotationAccelerationSpeed * SecondsPassed * Direction,
           -MaxRotationSpeed, MaxRotationSpeed)
     else
@@ -2212,7 +2212,7 @@ begin
         if Inputs_Move[i, true ].IsPressed(Container) then
         begin
           MoveChangeVector := TVector3.Zero;
-          MoveChangeVector.InternalData[I] := MoveChange;
+          MoveChangeVector.Data[I] := MoveChange;
           V.Translation := V.Translation + MoveChangeVector;
 
           HandleInput := false;
@@ -2220,7 +2220,7 @@ begin
         if Inputs_Move[i, false].IsPressed(Container) then
         begin
           MoveChangeVector := TVector3.Zero;
-          MoveChangeVector.InternalData[I] := -MoveChange;
+          MoveChangeVector.Data[I] := -MoveChange;
           V.Translation := V.Translation + MoveChangeVector;
 
           HandleInput := false;

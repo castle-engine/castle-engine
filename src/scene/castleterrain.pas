@@ -1591,7 +1591,7 @@ var
   V: TVector4;
 begin
   V := Vec.Value;
-  V.InternalData[Layer - 1] := Value;
+  V.Data[Layer - 1] := Value;
   Vec.Send(V);
 end;
 

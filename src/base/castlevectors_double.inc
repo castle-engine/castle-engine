@@ -71,7 +71,7 @@ begin
 
   { Since LineVector[NonZeroIndex] <> 0, we know that we can find exactly
     one point on this line by assuming that Point[NonZeroIndex] = 0. }
-  Line0.InternalData[NonZeroIndex] := 0;
+  Line0.Data[NonZeroIndex] := 0;
   RestOf3DCoords(NonZeroIndex, Index1, Index2);
 
   { Now we must solve
@@ -110,7 +110,7 @@ begin
     Sum_Index2 must be <> 0, since we know that Line0[Index2] must be uniquely
     determined ? Right ? TODO -- I'm not sure, how to prove this simply ?
   }
-  Line0.InternalData[Index2] := - Sum_3 / Sum_Index2;
+  Line0.Data[Index2] := - Sum_3 / Sum_Index2;
 
   { Note we have
       PlaneWithNonZeroIndex1^[Index1] * Line0[Index1] +
@@ -118,7 +118,7 @@ begin
       PlaneWithNonZeroIndex1^.W = 0
     All is known except Line0[Index1],
     PlaneWithNonZeroIndex1^[Index1] is for sure <> 0. }
-  Line0.InternalData[Index1] := -
+  Line0.Data[Index1] := -
     (PlaneWithNonZeroIndex1^[Index2] * Line0[Index2] +
      PlaneWithNonZeroIndex1^.W) /
     PlaneWithNonZeroIndex1^[Index1];
