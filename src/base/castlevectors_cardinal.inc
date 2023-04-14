@@ -29,36 +29,39 @@ type
     function GetItems(const Index: TIndex): Cardinal; inline;
     procedure SetItems(const Index: TIndex; const Value: Cardinal); inline;
   public
-    var
-      X, Y: Cardinal;
+    { Get vector components by index.
+      This is a default property, so you can write @code(MyVector[0])
+      instead of @code(MyVector.Data[0]) or @code(MyVector.AsArray[0]).
 
-    { Access (get, set) vector components by index.
-      We discourage using it. Use X, Y to change vector components.
-      Use AsArray to access it by index, read-only. }
-    property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y fields';{$endif}
+      But note that this is not writeable (because exposing writeable properties on vectors
+      would cause some subtle traps, see https://castle-engine.io/coding_traps ).
+      Use @code(MyVector.Data[0] := 123) if you want to set by index,
+      or @code(MyVector.X := 123). }
+    property AsArray [const Index: TIndex]: Cardinal read GetItems; default;
 
     { @exclude
-      Access (get, set) vector components by index.
-      We discourage using it. Use X, Y to change vector components.
-      Use AsArray to access it by index, read-only. }
+      Access (get, set) vector components by index. }
     property InternalData [const Index: TIndex]: Cardinal read GetItems write SetItems;
-
-    { Get vector components by index. }
-    property AsArray [const Index: TIndex]: Cardinal read GetItems; default;
+      {$ifdef FPC}deprecated 'use Data or X, Y';{$endif}
+    { @exclude
+      Access (get, set) vector components by index. }
+    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use Data or X, Y';{$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Cardinal): TVector2Cardinal; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Cardinal): boolean; static; inline;
 
     class function Zero: TVector2Cardinal; static; inline;
+
+    case Integer of
+      0: (X, Y: Cardinal);
+      1: (Data: array [TIndex] of Cardinal);
   end;
 
   { Vector of 3 Cardinal values. }
@@ -70,36 +73,40 @@ type
     function GetItems(const Index: TIndex): Cardinal; inline;
     procedure SetItems(const Index: TIndex; const Value: Cardinal); inline;
   public
-    var
-      X, Y, Z: Cardinal;
+    { Get vector components by index.
+      This is a default property, so you can write @code(MyVector[0])
+      instead of @code(MyVector.Data[0]) or @code(MyVector.AsArray[0]).
 
-    { Access (get, set) vector components by index.
-      We discourage using it. Use X, Y, Z to change vector components.
-      Use AsArray to access it by index, read-only. }
-    property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z fields';{$endif}
+      But note that this is not writeable (because exposing writeable properties on vectors
+      would cause some subtle traps, see https://castle-engine.io/coding_traps ).
+      Use @code(MyVector.Data[0] := 123) if you want to set by index,
+      or @code(MyVector.X := 123). }
+    property AsArray [const Index: TIndex]: Cardinal read GetItems; default;
 
     { @exclude
-      Access (get, set) vector components by index.
-      We discourage using it. Use X, Y, Z to change vector components.
-      Use AsArray to access it by index, read-only. }
+      Access (get, set) vector components by index. }
     property InternalData [const Index: TIndex]: Cardinal read GetItems write SetItems;
-
-    { Get vector components by index. }
-    property AsArray [const Index: TIndex]: Cardinal read GetItems; default;
+      {$ifdef FPC}deprecated 'use Data or X, Y, Z';{$endif}
+    { @exclude
+      Access (get, set) vector components by index. }
+    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use Data or X, Y, Z';{$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Cardinal): TVector3Cardinal; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Cardinal): boolean; static; inline;
 
     class function Zero: TVector3Cardinal; static; inline;
+
+    case Integer of
+      0: (X, Y, Z: Cardinal);
+      1: (Data: array [TIndex] of Cardinal);
+      2: (XY: TVector2Cardinal);
   end;
 
   { Vector of 4 Cardinal values. }
@@ -111,36 +118,40 @@ type
     function GetItems(const Index: TIndex): Cardinal; inline;
     procedure SetItems(const Index: TIndex; const Value: Cardinal); inline;
   public
-    var
-      X, Y, Z, W: Cardinal;
+    { Get vector components by index.
+      This is a default property, so you can write @code(MyVector[0])
+      instead of @code(MyVector.Data[0]) or @code(MyVector.AsArray[0]).
 
-    { Access (get, set) vector components by index.
-      We discourage using it. Use X, Y, Z, W to change vector components.
-      Use AsArray to access it by index, read-only. }
-    property Data [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields';{$endif}
+      But note that this is not writeable (because exposing writeable properties on vectors
+      would cause some subtle traps, see https://castle-engine.io/coding_traps ).
+      Use @code(MyVector.Data[0] := 123) if you want to set by index,
+      or @code(MyVector.X := 123). }
+    property AsArray [const Index: TIndex]: Cardinal read GetItems; default;
 
     { @exclude
-      Access (get, set) vector components by index.
-      We discourage using it. Use X, Y, Z, W to change vector components.
-      Use AsArray to access it by index, read-only. }
+      Access (get, set) vector components by index. }
     property InternalData [const Index: TIndex]: Cardinal read GetItems write SetItems;
-
-    { Get vector components by index. }
-    property AsArray [const Index: TIndex]: Cardinal read GetItems; default;
+    { @exclude
+      Access (get, set) vector components by index. }
+    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields';{$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Cardinal): TVector4Cardinal; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Cardinal read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Cardinal): boolean; static; inline;
 
     class function Zero: TVector4Cardinal; static; inline;
+
+    case Integer of
+      0: (X, Y, Z, W: Cardinal);
+      1: (Data: array [TIndex] of Cardinal);
+      2: (XY: TVector2Cardinal; ZW: Cardinal);
+      3: (XYZ: TVector3Cardinal);
   end;
 
   PVector2Cardinal = ^TVector2Cardinal;
