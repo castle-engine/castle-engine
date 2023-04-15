@@ -1245,8 +1245,7 @@ begin
     (not UseMultiTexturing) or
     (not Shaders) or
     // checking for VertexBufferObject also makes sure that BuggyVBO = false
-    (not VertexBufferObject) or
-    GLVersion.BuggyPureShaderPipeline
+    (not VertexBufferObject)
     {$endif};
 
   { Right now, EnableFixedFunction is actually synchronized with Shaders and VertexBufferObject.

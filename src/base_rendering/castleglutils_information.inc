@@ -96,7 +96,6 @@ const
         '  Buggy 32-bit depth buffer: %s' + NL +
         '  Buggy GLSL gl_FrontFacing: %s' + NL +
         '  Buggy GLSL read varying: %s' + NL +
-        '  Buggy Pure Shader Pipeline: %s' + NL +
         '  Buggy Texture Size Above 2048: %s' + NL +
         '  Buggy Shader Bump Mapping num_steps: %s', [
         BoolToStr(Version.BuggyVBO, true),
@@ -106,7 +105,6 @@ const
         BoolToStr(Version.BuggyDepth32, true),
         BoolToStr(Version.BuggyGLSLFrontFacing, true),
         BoolToStr(Version.BuggyGLSLReadVarying, true),
-        BoolToStr(Version.BuggyPureShaderPipeline, true),
         BoolToStr(Version.BuggyTextureSizeAbove2048, true),
         BoolToStr(Version.BuggyGLSLBumpMappingNumSteps, true)
       ]);
