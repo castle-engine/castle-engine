@@ -1039,6 +1039,9 @@ begin
   {$ifndef OpenGLES}
   if Version_3_2 then
   begin
+    // check for errors now, as we'll check glGetError later
+    CheckGLErrors('before glGetFramebufferAttachmentParameteriv');
+
     { Read buffer sizes with new OpenGL core
       https://registry.khronos.org/OpenGL-Refpages/gl4/html/glGetFramebufferAttachmentParameter.xhtml
       https://stackoverflow.com/questions/27371067/how-to-query-the-depth-of-the-opengl-stencil-buffer }
@@ -1054,6 +1057,34 @@ begin
       GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, @FStencilBits);
     glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
       GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, @FDepthBits);
+
+    ErrorCode := glGetError();
+    if ErrorCode = GL_INVALID_ENUM then
+    begin
+      WritelnWarning('Detected buggy glGetFramebufferAttachmentParameteriv, possible on older ATI Radeon GPUs; assuming reasonable context properties');
+
+      { Workaround buggy ATI (Michalis codename: hpek):
+
+          Version string: 3.3.11672 Compatibility Profile Context
+          Vendor string: ATI Technologies Inc.
+          Renderer: ATI Mobility Radeon HD 4300 Series
+
+        with 32-bit Windows 7. Using
+
+          glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+            GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, @FRedBits);
+
+        fails there with GL_INVALID_ENUM. }
+      FRedBits := 8;
+      FGreenBits := 8;
+      FBlueBits := 8;
+      FAlphaBits := 8;
+      FStencilBits := 8;
+      FDepthBits := 24;
+    end else
+    if ErrorCode <> GL_NO_ERROR then
+      raise EOpenGLError.Create(ErrorCode, 'after glGetFramebufferAttachmentParameteriv');
+
     FDoubleBuffer := true; // TODO: any way to query it?
   end else
   {$endif}
