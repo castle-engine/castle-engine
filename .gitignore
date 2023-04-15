@@ -225,6 +225,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/occlusion_culling/occlusion_culling
 /examples/visualize_triangulation/visualize_triangulation
 /examples/window/multi_window/multi_window
+/examples/window/multiple_windows_and_viewports/multiple_windows_and_viewports
 /examples/window/window_menu/window_menu
 /packages/alternative_castle_window_based_on_lcl.pas
 /packages/castle_base.pas
