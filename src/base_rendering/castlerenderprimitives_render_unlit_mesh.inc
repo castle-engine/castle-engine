@@ -195,7 +195,7 @@ begin
   FUseColor := AUseColor;
   FColor := White;
   PrepareShader(AUseColor);
-  Vao := TVertexArrayObject.Create;
+  Vao := TVertexArrayObject.Create(nil);
 end;
 
 destructor TCastleRenderUnlitMesh.Destroy;

@@ -1857,7 +1857,7 @@ begin
     Arrays.FreeData;
 
     if GLFeatures.VertexArrayObject and (Vao = nil) then
-      Vao := TVertexArrayObject.Create;
+      Vao := TVertexArrayObject.Create(nil);
   end;
 
   VboToReload := [];

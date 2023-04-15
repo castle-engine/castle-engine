@@ -822,7 +822,7 @@ begin
   FNewFocus := TCastleUserInterfaceList.Create(false);
   FFps := TFramesPerSecond.InternalCreate;
   FPressed := TKeysPressed.Create;
-  FContext := TRenderContext.Create;
+  FContext := TRenderContext.Create(nil);
   FBackgroundEnable := true;
   FBackgroundColor := DefaultBackgroundColor;
 
@@ -1699,7 +1699,7 @@ begin
     if RenderContext = FContext then
       RenderContext := nil;
     FreeAndNil(FContext);
-    FContext := TRenderContext.Create;
+    FContext := TRenderContext.Create(nil);
   end;
 end;
 

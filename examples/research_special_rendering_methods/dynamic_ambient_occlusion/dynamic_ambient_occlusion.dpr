@@ -557,7 +557,7 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
       Points[3] := Vector2(Rect.Left , Rect.Top);
 
       if RectVao = nil then
-        RectVao := TVertexArrayObject.Create;
+        RectVao := TVertexArrayObject.Create(nil);
       RenderContext.CurrentVao := RectVao;
 
       if RectVbo = 0 then
