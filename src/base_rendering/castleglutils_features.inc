@@ -806,6 +806,7 @@ constructor TGLFeatures.Create;
 {$ifndef OpenGLES}
 var
   LoadExtensions: Boolean;
+  ErrorCode: TGLenum;
 {$endif}
 begin
   inherited;
