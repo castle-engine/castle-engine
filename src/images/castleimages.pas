@@ -2017,12 +2017,10 @@ implementation
 
 uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   {$ifdef USE_VAMPYRE_IMAGING} Imaging, ImagingClasses, ImagingTypes,
-    { Using ImagingExtFileFormats explicitly is necessary to include extra formats when
-      being compiled through Lazarus (LPI / LPK).
-      That is because VampyreImagingPackage.lpk defines DONT_LINK_EXTRAS,
-      which means that Imaging unit doesn't use ImagingExtFileFormats
-      (because otherwise there would be circular dependency between
-      VampyreImagingPackage.lpk and VampyreImagingPackageExt.lpk). }
+    { Using ImagingExtFileFormats explicitly is not actually necessary anymore --
+      Imaging unit automatically uses it.
+      It was necessary in the past, because we used VampyreImagingPackage.lpk,
+      which defined DONT_LINK_EXTRAS. }
     ImagingExtFileFormats,
   {$endif}
   CastleInternalZLib, CastleStringUtils, CastleFilesUtils, CastleLog, CastleDynLib,
