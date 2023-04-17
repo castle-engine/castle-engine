@@ -4088,9 +4088,12 @@ var
     Jump: Single;
     RayOrigin: TVector3;
     DeltaSpeed: Single;
+    ModsDown: TModifierKeys;
   begin
     if not CheckPhysics then
       Exit;
+
+    ModsDown := ModifiersDown(Container.Pressed);
 
     { How fast should avatar change it's speed }
     Acceleration := Speed * 3 / 60;
@@ -4222,7 +4225,13 @@ var
       FWasJumpInput := false;
 
     { Because we use camera direction for move we can use the same code as DoDirect }
-    CheckRotates(1.0 {* RotationControlFactor(IsOnGroundBool)});
+    if ModsDown = [mkCtrl] then
+    begin
+      if AllowSlowerRotations then
+        CheckRotates(0.1);
+    end
+    else
+      CheckRotates(1.0 {* RotationControlFactor(IsOnGroundBool)});
 
     // jumping
     if not IsZero(Jump) then
