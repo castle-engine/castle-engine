@@ -58,7 +58,7 @@ end;
 destructor TVertexArrayObject.Destroy;
 var
   Pair: {$ifdef FPC}TConvextVaoDictionary.TDictionaryPair{$else}
-    TPair<TTComponent, TGLuint>{$endif};
+    TPair<TComponent, TGLuint>{$endif};
 begin
   if ConvextsVao <> nil then
   begin
