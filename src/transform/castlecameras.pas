@@ -860,6 +860,7 @@ type
     FCrouchHeight: Single;
 
     FChangeTransformation: TChangeTransformation;
+    FEffectiveChangeTransformation: TChangeTransformation; // Treat ctAuto as unknown
 
     WarningDonePhysicsNotNecessary,
       WarningDonePlayerBodyNecessary,
@@ -959,6 +960,9 @@ type
 
     function RealPreferredHeightNoHeadBobbing: Single;
     function RealPreferredHeightMargin: Single;
+    procedure SetChangeTransformation(const AValue: TChangeTransformation);
+    procedure UpdateTransformationMode(const RigidBody: TCastleRigidBody;
+      const Collider: TCastleCollider);
   protected
     function ReallyEnableMouseDragging: boolean; override;
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
@@ -1584,8 +1588,8 @@ type
           @link(TCastleTransform.Translation), @link(TCastleTransform.Rotation).)
       )
     }
-    property ChangeTransformation: TChangeTransformation read FChangeTransformation write FChangeTransformation
-      default ctAuto;
+    property ChangeTransformation: TChangeTransformation read FChangeTransformation
+      write SetChangeTransformation default ctAuto;
 
     { Castle transform that used as the basis of the rigid body and should
       contain the camera as a child item }
@@ -2988,6 +2992,7 @@ begin
   FHeadBobbingTime := DefaultHeadBobbingTime;
   FCrouchHeight := DefaultCrouchHeight;
   FChangeTransformation := ctAuto;
+  FEffectiveChangeTransformation := FChangeTransformation;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -3167,6 +3172,34 @@ begin
   { I tried using here something smaller like
     SingleEpsilon, but this was not good. }
   Result := RealPreferredHeight * 0.01;
+end;
+
+procedure TCastleWalkNavigation.SetChangeTransformation(
+  const AValue: TChangeTransformation);
+var
+  RBody: TCastleRigidBody;
+  Collider: TCastleCollider;
+begin
+  if FChangeTransformation <> AValue then
+  begin
+    FChangeTransformation := AValue;
+    if FChangeTransformation <> ctAuto then
+      FEffectiveChangeTransformation := FChangeTransformation
+    else
+    begin
+      if FPlayerBody <> nil then
+      begin
+        RBody := FPlayerBody.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+        Collider := FPlayerBody.FindBehavior(TCastleCollider) as TCastleCollider;
+      end
+      else
+        begin
+          RBody := nil;
+          Collider := nil;
+        end;
+      UpdateTransformationMode(RBody, Collider);
+    end;
+  end;
 end;
 
 function TCastleWalkNavigation.AdjustPositionForRotationHorizontalPivot(
@@ -4432,13 +4465,10 @@ begin
     Speed := MoveSpeed;
   end;
 
-  case FChangeTransformation of
+  UpdateTransformationMode(RBody, Collider);
+  case FEffectiveChangeTransformation of
     ctAuto:
-      if (RBody <> nil) and RBody.Exists and (Collider <> nil) and
-         (Camera.Parent = FPlayerBody) then
-        DoVelocity
-      else
-        DoDirect;
+      Exit; // TODO: add a warning here
     ctDirect: DoDirect;
     ctVelocity: DoVelocity;
     {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
@@ -4746,6 +4776,22 @@ end;
 function TCastleWalkNavigation.DirectionRight: TVector3;
 begin
   Result := TVector3.CrossProduct(Camera.Direction, Camera.Up);
+end;
+
+procedure TCastleWalkNavigation.UpdateTransformationMode(
+  const RigidBody: TCastleRigidBody; const Collider: TCastleCollider);
+begin
+  if FChangeTransformation <> ctAuto then
+  begin
+    FEffectiveChangeTransformation := FChangeTransformation;
+    Exit;
+  end;
+
+  if (RigidBody <> nil) and RigidBody.Exists and (Collider <> nil) and
+    (Camera.Parent = FPlayerBody) then
+    FEffectiveChangeTransformation := ctVelocity
+  else
+    FEffectiveChangeTransformation := ctDirect;
 end;
 
 procedure TCastleWalkNavigation.FallOnTheGround;
