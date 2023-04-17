@@ -890,7 +890,7 @@ type
     { Call always after horizontal rotation change.
       This will return new Position, applying effect of RotationHorizontalPivot.
       The OldPosition, OldDirection, NewDirection must be in world coordinates,
-      so is the result. }
+      so is the result. Used ony in ctDirect mode. }
     function AdjustPositionForRotationHorizontalPivot(
       const OldPosition: TVector3;
       const OldDirection, NewDirection: TVector3): TVector3;
@@ -3209,6 +3209,10 @@ var
   Pivot, OldDirectionInGravityPlane, NewDirectionInGravityPlane: TVector3;
 begin
   Result := OldPosition;
+
+  if FEffectiveChangeTransformation <> ctDirect then
+    Exit;
+
   {$warnings off} // using deprecated RotationHorizontalPivot to keep it working
   if RotationHorizontalPivot <> 0 then
   begin
