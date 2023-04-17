@@ -576,7 +576,7 @@ var
     IntSequencer.ForceContinuousValue_Changed := true;
     IntSequencer.FdKey.Count := NumFramesInAnimation;
     IntSequencer.FdKeyValue.Count := NumFramesInAnimation;
-    for I := 0 to NumFramesInAnimation - 1 do
+    for I := 0 to Integer(NumFramesInAnimation) - 1 do
     begin
       IntSequencer.FdKey.Items[I] := I / NumFramesInAnimation;
       IntSequencer.FdKeyValue.Items[I] := FirstFrame + I;
