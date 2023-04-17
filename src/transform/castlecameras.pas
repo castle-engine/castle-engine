@@ -4261,6 +4261,22 @@ var
     end else
       FWasJumpInput := false;
 
+
+    if IsOnGroundBool then
+    begin
+      if (not FIsCrouching) and (Input_Crouch.IsPressed(Container)) then
+      begin
+        // Start crouching
+        Collider.SizeScale := 0.5;
+        FIsCrouching := true;
+      end
+    end;
+    if FIsCrouching and (not Input_Crouch.IsPressed(Container)) then
+    begin
+      Collider.SizeScale := 1;
+      FIsCrouching := false;
+    end;
+
     { Because we use camera direction for move we can use the same code as DoDirect }
     if ModsDown = [mkCtrl] then
     begin
