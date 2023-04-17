@@ -102,19 +102,19 @@ begin
     P.Targets.AddUnit('ImagingBitmap.pas');
     P.Targets.AddUnit('ImagingCanvases.pas');
     P.Targets.AddUnit('ImagingClasses.pas');
+    P.Targets.AddUnit('ImagingColors.pas');
     P.Targets.AddUnit('ImagingComponents.pas');
     P.Targets.AddUnit('ImagingDds.pas');
     P.Targets.AddUnit('ImagingFormats.pas');
+    P.Targets.AddUnit('ImagingGif.pas');
     P.Targets.AddUnit('ImagingIO.pas');
     P.Targets.AddUnit('ImagingJpeg.pas');
     P.Targets.AddUnit('ImagingNetworkGraphics.pas');
+    P.Targets.AddUnit('ImagingPortableMaps.pas');
+    P.Targets.AddUnit('ImagingRadiance.pas');
     P.Targets.AddUnit('ImagingTarga.pas');
     P.Targets.AddUnit('ImagingTypes.pas');
     P.Targets.AddUnit('ImagingUtility.pas');
-    P.Targets.AddUnit('ImagingPortableMaps.pas');
-    P.Targets.AddUnit('ImagingGif.pas');
-    P.Targets.AddUnit('ImagingColors.pas');
-    P.Targets.AddUnit('ImagingRadiance.pas');
 
     P.SourcePath.Add('src/vampyre_imaginglib/src/Source/JpegLib');
     P.Targets.AddUnit('imjcapimin.pas');
@@ -122,6 +122,7 @@ begin
     P.Targets.AddUnit('imjccoefct.pas');
     P.Targets.AddUnit('imjccolor.pas');
     P.Targets.AddUnit('imjcdctmgr.pas');
+    P.Targets.AddUnit('imjchuff.pas');
     P.Targets.AddUnit('imjcinit.pas');
     P.Targets.AddUnit('imjcmainct.pas');
     P.Targets.AddUnit('imjcmarker.pas');
@@ -151,7 +152,6 @@ begin
     P.Targets.AddUnit('imjfdctflt.pas');
     P.Targets.AddUnit('imjfdctfst.pas');
     P.Targets.AddUnit('imjfdctint.pas');
-    P.Targets.AddUnit('imjchuff.pas');
     P.Targets.AddUnit('imjidctflt.pas');
     P.Targets.AddUnit('imjidctfst.pas');
     P.Targets.AddUnit('imjidctint.pas');
