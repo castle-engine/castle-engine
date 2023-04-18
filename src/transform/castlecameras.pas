@@ -969,6 +969,11 @@ type
     function MoveAllowed(
       const OldPos: TVector3; ProposedNewPos: TVector3; out NewPos: TVector3;
       const BecauseOfGravity, CheckClimbHeight: Boolean): Boolean; override;
+
+    { Used to check is player on ground in velocity mode, default implementation
+      make 5 raycast }
+    function VelocityCheckPlayerIsOnGround(const PlayerRigidBody: TCastleRigidBody;
+      const PlayerCollider: TCastleCollider): Boolean; virtual;
   public
     const
       DefaultFallSpeedStart = 0.5;
@@ -3103,6 +3108,109 @@ begin
   end;
 end;
 
+function TCastleWalkNavigation.VelocityCheckPlayerIsOnGround(
+  const PlayerRigidBody: TCastleRigidBody; const PlayerCollider: TCastleCollider): Boolean;
+var
+  ColliderBoundingBox: TBox3D;
+  ColliderHeight: Single;
+  RayOrigin: TVector3;
+  DistanceToGround: Single;
+  GroundRayCast: TPhysicsRayCastResult;
+begin
+  { Check player is on ground, we use avatar size multiplied by three to try
+    found ground.
+
+    We need add Collider.Translation because sometimes rigid body origin can be
+    under the collider. And ray will be casted under the floor. }
+  ColliderBoundingBox := PlayerCollider.ScaledLocalBoundingBox;
+  ColliderHeight :=  ColliderBoundingBox.SizeY;
+  RayOrigin := FPlayerBody.Translation + PlayerCollider.Translation;
+
+  { TODO: In the ideal world, the way we check for ground collisions
+    (and determine Ground, IsOnGround)
+    should be independent from ChangeTransformation.
+
+    ChangeTransformation says how we change the transformation.
+
+    We should still have option to use
+
+    - PhysicsRayCast (maybe from TCastleAbstractRootTransform, as it should
+      not require having TCastleRigidBody on avatar) to detect ground
+    - or Height / WorldHeight calls that cooperate with old simple physics.
+
+    And we should update IsOnGround in all ChangeTransformation modes.
+
+    But in practice, now ctDirect forces to do gravity using old physics
+    (because it forbids TCastleRigidBody on avatar),
+    and ctVelocity forces to do gravity using new physics
+    (because it requires TCastleRigidBody on avatar).
+
+    So checking for ground (collisions) is not independent from ChangeTransformation.
+    When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
+    it would make no sense to use old simple physics. }
+
+  GroundRayCast := PlayerRigidBody.PhysicsRayCast(
+    RayOrigin,
+    Vector3(0, -1, 0),
+    ColliderHeight * 3
+  );
+
+  { Four more checks - player should slide down when player just
+    on the edge, but sometimes it stay and center ray don't "see" that we are
+    on ground }
+  if not GroundRayCast.Hit then
+    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
+      RayOrigin + Vector3(ColliderBoundingBox.SizeX * 0.49, 0, 0),
+      Vector3(0, -1, 0),
+      ColliderHeight * 3
+    );
+
+  if not GroundRayCast.Hit then
+    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
+      RayOrigin + Vector3(-ColliderBoundingBox.SizeX * 0.49, 0, 0),
+      Vector3(0, -1, 0),
+      ColliderHeight * 3
+    );
+
+  if not GroundRayCast.Hit then
+    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
+      RayOrigin + Vector3(0, 0, ColliderBoundingBox.SizeZ * 0.49),
+      Vector3(0, -1, 0),
+      ColliderHeight * 3
+    );
+
+  if not GroundRayCast.Hit then
+    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
+      RayOrigin + Vector3(0, 0, -ColliderBoundingBox.SizeZ * 0.49),
+      Vector3(0, -1, 0),
+      ColliderHeight * 3
+    );
+
+  if GroundRayCast.Hit then
+  begin
+    DistanceToGround := GroundRayCast.Distance;
+
+    { When collider has own translation we need substract it from distance
+      becouse distance will be too big }
+    DistanceToGround  := DistanceToGround - PlayerCollider.Translation.Y;
+
+    { Sometimes rigid body center point can be under the collider so
+      the distance can be negative }
+    if DistanceToGround < 0 then
+      DistanceToGround := 0;
+
+    Result := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
+    {if Result then
+      WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
+    else
+      WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');}
+  end else
+  begin
+    Result := false;
+    {WritelnLog('not on ground');}
+  end;
+end;
+
 procedure TCastleWalkNavigation.CorrectPreferredHeight;
 begin
   CastleCameras.CorrectPreferredHeight(
@@ -4124,17 +4232,12 @@ var
     IsOnGroundBool: Boolean;
     Vel: TVector3;
     VLength: Single;
-    ColliderBoundingBox: TBox3D;
-    ColliderHeight: Single;
     MaxHorizontalVelocityChange: Single;
     Acceleration: Single;
     HVelocity: TVector3;
     VVelocity: Single;
     MoveDirection: TVector3;
-    GroundRayCast: TPhysicsRayCastResult;
-    DistanceToGround: Single;
     Jump: Single;
-    RayOrigin: TVector3;
     DeltaSpeed: Single;
     ModsDown: TModifierKeys;
   begin
@@ -4148,100 +4251,7 @@ var
     MaxHorizontalVelocityChange := Acceleration * 60;
     DeltaSpeed := 0;
 
-    { Check player is on ground, we use avatar size multiplied by three to try
-      found ground. Distance is used to check we should set animation to fall
-      or we are almost on ground so use default animation.
-
-      We need add Collider.Translation because sometimes rigid body origin can be
-      under the collider. And ray will be casted under the floor. }
-    ColliderBoundingBox := Collider.ScaledLocalBoundingBox;
-    ColliderHeight :=  ColliderBoundingBox.SizeY;
-    RayOrigin := FPlayerBody.Translation + Collider.Translation;
-
-    { TODO: In the ideal world, the way we check for ground collisions
-      (and determine Ground, IsOnGround)
-      should be independent from ChangeTransformation.
-
-      ChangeTransformation says how we change the transformation.
-
-      We should still have option to use
-
-      - PhysicsRayCast (maybe from TCastleAbstractRootTransform, as it should
-        not require having TCastleRigidBody on avatar) to detect ground
-      - or Height / WorldHeight calls that cooperate with old simple physics.
-
-      And we should update IsOnGround in all ChangeTransformation modes.
-
-      But in practice, now ctDirect forces to do gravity using old physics
-      (because it forbids TCastleRigidBody on avatar),
-      and ctVelocity forces to do gravity using new physics
-      (because it requires TCastleRigidBody on avatar).
-
-      So checking for ground (collisions) is not independent from ChangeTransformation.
-      When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
-      it would make no sense to use old simple physics. }
-
-    GroundRayCast := RBody.PhysicsRayCast(
-      RayOrigin,
-      Vector3(0, -1, 0),
-      ColliderHeight * 3
-    );
-
-    { Four more checks - player should slide down when player just
-      on the edge, but sometimes it stay and center ray don't "see" that we are
-      on ground }
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(ColliderBoundingBox.SizeX * 0.49, 0, 0),
-        Vector3(0, -1, 0),
-        ColliderHeight * 3
-      );
-
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(-ColliderBoundingBox.SizeX * 0.49, 0, 0),
-        Vector3(0, -1, 0),
-        ColliderHeight * 3
-      );
-
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(0, 0, ColliderBoundingBox.SizeZ * 0.49),
-        Vector3(0, -1, 0),
-        ColliderHeight * 3
-      );
-
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(0, 0, -ColliderBoundingBox.SizeZ * 0.49),
-        Vector3(0, -1, 0),
-        ColliderHeight * 3
-      );
-
-    if GroundRayCast.Hit then
-    begin
-      DistanceToGround := GroundRayCast.Distance;
-
-      { When collider has own translation we need substract it from distance
-        becouse distance will be too big }
-      DistanceToGround  := DistanceToGround - Collider.Translation.Y;
-
-      { Sometimes rigid body center point can be under the collider so
-        the distance can be negative }
-      if DistanceToGround < 0 then
-        DistanceToGround := 0;
-
-      IsOnGroundBool := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
-      {if IsOnGroundBool then
-        WritelnLog('ground ' + FloatToStr(DistanceToGround))
-      else
-        WritelnLog('not ground')}
-    end else
-    begin
-      IsOnGroundBool := false;
-      DistanceToGround := -1; // For animation checking
-      {WritelnLog('not ground');}
-    end;
+    IsOnGroundBool := VelocityCheckPlayerIsOnGround(RBody, Collider);
 
     if Input_Forward.IsPressed(Container) then
     begin
