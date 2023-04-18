@@ -52,8 +52,8 @@ uses SysUtils,
 constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  //DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
-  DesignUrl := 'castle-data:/gameviewmain_scaled_player_test.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
+  //DesignUrl := 'castle-data:/gameviewmain_scaled_player_test.castle-user-interface';
   //DesignUrl := 'castle-data:/gameviewmain_behaviors.castle-user-interface';
   //DesignUrl := 'castle-data:/gameviewmain_direct.castle-user-interface';
 end;
@@ -95,7 +95,7 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
       will find rigid body from some older bullet. }
     BulletOwner := TComponent.Create(FreeAtStop);
     Bullet := TransformLoad('castle-data:/bullet_with_physics.castle-transform', BulletOwner);
-    Bullet.Translation := Viewport.Camera.Translation;
+    Bullet.Translation := Viewport.Camera.Parent.Translation + Viewport.Camera.Translation + Viewport.Camera.Direction * 1.5;
     Bullet.Direction := Viewport.Camera.Direction;
     Bullet.Collides := false; // do not collide with player
     BulletRigidBody := BulletOwner.FindRequiredComponent('BulletRigidBody') as TCastleRigidBody;
