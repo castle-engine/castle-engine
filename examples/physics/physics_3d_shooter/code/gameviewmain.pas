@@ -52,7 +52,8 @@ uses SysUtils,
 constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
+  //DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmain_scaled_player_test.castle-user-interface';
   //DesignUrl := 'castle-data:/gameviewmain_behaviors.castle-user-interface';
   //DesignUrl := 'castle-data:/gameviewmain_direct.castle-user-interface';
 end;
