@@ -976,6 +976,9 @@ type
       make 5 raycast }
     function VelocityCheckPlayerIsOnGround(const PlayerRigidBody: TCastleRigidBody;
       const PlayerCollider: TCastleCollider): Boolean; virtual;
+
+    procedure VelocityHandleCrouching(const PlayerCollider: TCastleCollider;
+      const IsOnGround: Boolean); virtual;
   public
     const
       DefaultFallSpeedStart = 0.5;
@@ -3228,6 +3231,25 @@ begin
   end;
 end;
 
+procedure TCastleWalkNavigation.VelocityHandleCrouching(
+  const PlayerCollider: TCastleCollider; const IsOnGround: Boolean);
+begin
+  if IsOnGround then
+  begin
+    if (not FIsCrouching) and (Input_Crouch.IsPressed(Container)) then
+    begin
+      // Start crouching
+      PlayerCollider.SizeScale := 0.5;
+      FIsCrouching := true;
+    end
+  end;
+  if FIsCrouching and (not Input_Crouch.IsPressed(Container)) then
+  begin
+    PlayerCollider.SizeScale := 1;
+    FIsCrouching := false;
+  end;
+end;
+
 procedure TCastleWalkNavigation.CorrectPreferredHeight;
 begin
   CastleCameras.CorrectPreferredHeight(
@@ -4316,21 +4338,7 @@ var
     end else
       FWasJumpInput := false;
 
-
-    if IsOnGroundBool then
-    begin
-      if (not FIsCrouching) and (Input_Crouch.IsPressed(Container)) then
-      begin
-        // Start crouching
-        Collider.SizeScale := 0.5;
-        FIsCrouching := true;
-      end
-    end;
-    if FIsCrouching and (not Input_Crouch.IsPressed(Container)) then
-    begin
-      Collider.SizeScale := 1;
-      FIsCrouching := false;
-    end;
+    VelocityHandleCrouching(Collider, IsOnGroundBool);
 
     { Because we use camera direction for move we can use the same code as DoDirect }
     if ModsDown = [mkCtrl] then
