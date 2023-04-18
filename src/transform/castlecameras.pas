@@ -4154,7 +4154,7 @@ var
 
       We need add Collider.Translation because sometimes rigid body origin can be
       under the collider. And ray will be casted under the floor. }
-    ColliderBoundingBox := Collider.LocalScaledBoundingBox;
+    ColliderBoundingBox := Collider.ScaledLocalBoundingBox;
     ColliderHeight :=  ColliderBoundingBox.SizeY;
     RayOrigin := FPlayerBody.Translation + Collider.Translation;
 
