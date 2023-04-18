@@ -172,7 +172,7 @@ begin
       So we have to check also for tga here.
       E.g. tremulous-unpacked-data/models/players/human_base/head }
     if URIFileExists(TexturePath + ChangeURIExt(Result, '.tga')) then
-      Result := ChangeURIExt(Result, '.tga') else
+      Result := ChangeURIExt(Result, '.tga');
   end;
 end;
 
