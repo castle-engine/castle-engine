@@ -3877,7 +3877,6 @@ begin
   // TODO: what use as height, currently collider in camera
   ColliderBoundingBox := Collider.ScaledLocalBoundingBox;
   ColliderHeight :=  ColliderBoundingBox.SizeY;
-  WritelnLog('ColliderHeight: ' + FloatToStr(ColliderHeight));
   RayOrigin := Parent.Translation + Collider.Translation;
 
   { TODO: In the ideal world, the way we check for ground collisions
@@ -3903,15 +3902,12 @@ begin
     When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
     it would make no sense to use old simple physics. }
 
-  ///WritelnLog('Camera.Translation: ' +Camera.Translation.ToString);
-  WritelnLog('Ray Origin ' + RayOrigin.ToString );
   GroundRayCast := RBody.PhysicsRayCast(
     RayOrigin,
     Vector3(0, -1, 0),
     ColliderHeight * 3
   );
 
-  WritelnLog('ColliderBoundingBox.SizeX: ' + FloatToStr(ColliderBoundingBox.SizeX));
   { Four more checks - player should slide down when player just
     on the edge, but sometimes it stay and center ray don't "see" that we are
     on ground }
@@ -3946,34 +3942,27 @@ begin
   if GroundRayCast.Hit then
   begin
     DistanceToGround := GroundRayCast.Distance;
-    WritelnLog('DistanceToGround1 : ' + FloatToStr(DistanceToGround));
 
     { When collider has own translation we need substract it from distance
       becouse distance will be too big }
     DistanceToGround  := DistanceToGround - Collider.Translation.Y;
-    WritelnLog('DistanceToGround2 : ' + FloatToStr(DistanceToGround));
 
     { Sometimes rigid body center point can be under the collider so
       the distance can be negative }
     if DistanceToGround < 0 then
       DistanceToGround := 0;
-    WritelnLog('DistanceToGround3 : ' + FloatToStr(DistanceToGround));
 
-    WritelnLog('DistanceToGround: ' + FloatToStr(DistanceToGround));
-    WritelnLog('ColliderHeight * 0.1: ' + FloatToStr(ColliderHeight * 0.1));
-    WritelnLog('(ColliderHeight / 2) + ColliderHeight * 0.1: ' + FloatToStr((ColliderHeight / 2) + ColliderHeight * 0.1));
     IsOnGroundBool := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
   end else
   begin
     IsOnGroundBool := false;
     DistanceToGround := -1; // For animation checking
-    WritelnLog('Raycast not find anything');
   end;
 
-  if IsOnGroundBool then
+  {if IsOnGroundBool then
     WritelnLog(' On ground')
   else
-    WritelnLog(' NOT on ground');
+    WritelnLog(' NOT on ground');}
 
   if Input_Forward.IsPressed(Container) then
   begin
