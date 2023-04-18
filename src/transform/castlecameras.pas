@@ -979,6 +979,16 @@ type
 
     procedure VelocityHandleCrouching(const PlayerCollider: TCastleCollider;
       const IsOnGround: Boolean); virtual;
+
+    procedure VelocityHandleHeadBobbing(const SecondsPassed, PlayerHeight: Single); virtual;
+
+    function VelocityCalculateDeltaHorizontalSpeed(const IsOnGround: Boolean;
+      const SecondsPassed, Speed: Single): Single; virtual;
+
+    { Returns true when there is any input for moving, Direction can be zero when no input }
+    function GetMoveDirectionFromInput(const IsOnGround: Boolean;
+      var MoveDirection: TVector3): Boolean; virtual;
+
   public
     const
       DefaultFallSpeedStart = 0.5;
@@ -3250,6 +3260,119 @@ begin
   end;
 end;
 
+procedure TCastleWalkNavigation.VelocityHandleHeadBobbing(const SecondsPassed, PlayerHeight: Single);
+var
+    CamTransl: TVector3;
+begin
+  { Update HeadBobbingPosition }
+  HeadBobbingPosition := HeadBobbingPosition + (SecondsPassed / HeadBobbingTime);
+
+  { Calculate new camera position }
+  CamTransl := Camera.Translation;
+  CamTransl.Y := HeadBobbingHeight(PlayerHeight) - PlayerHeight;
+  Camera.Translation := CamTransl;
+end;
+
+function TCastleWalkNavigation.VelocityCalculateDeltaHorizontalSpeed(
+  const IsOnGround: Boolean; const SecondsPassed, Speed: Single): Single;
+var
+  MaxHorizontalVelocityChange: Single;
+  Acceleration: Single;
+begin
+  { How fast should avatar change it's speed }
+  Acceleration := Speed * 3 / 60;
+  MaxHorizontalVelocityChange := Acceleration * 60;
+
+  Result := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
+end;
+
+function TCastleWalkNavigation.GetMoveDirectionFromInput(
+  const IsOnGround: Boolean; var MoveDirection: TVector3): Boolean;
+
+  function DeltaSpeedAndDirectionViaMouseDragging(MousePosDelta: TVector2;
+    var MoveDirection: TVector3): Boolean;
+  const
+    Tolerance = 5;  { 5px tolerance for not-moving }
+  var
+    MoveY: Boolean;
+    MoveX: Boolean;
+  begin
+    Result := false;
+    MoveX := not(Abs(MousePosDelta.X) < Tolerance);
+    MoveY := not(Abs(MousePosDelta.Y) < Tolerance);
+
+    if (not MoveX) and (not MoveY) then
+      Exit;
+
+    if buttonLeft in Container.MousePressed then
+    begin
+      Result := true;
+
+      if MousePosDelta.Y < -Tolerance then
+        MoveDirection := -Camera.Direction;
+      if MousePosDelta.Y > Tolerance then
+        MoveDirection := Camera.Direction;
+
+///      if Abs(MousePosDelta.X) > Tolerance then
+///        RotateHorizontal(-MousePosDelta.X * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
+    end
+    else if buttonRight in Container.MousePressed then
+    begin
+      Result := true;
+      if MousePosDelta.X < -Tolerance then
+        MoveDirection := -TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
+      if MousePosDelta.X > Tolerance then
+        MoveDirection := TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
+
+      {if MousePosDelta.Y < -5 then
+        MoveVertical(-MoveSizeY * SecondsPassed, 1);    { fly up }
+      if MousePosDelta.Y > 5 then
+        MoveVertical(-MoveSizeY * SecondsPassed, -1);   { fly down }}
+    end;
+  end;
+
+begin
+  if Input_Forward.IsPressed(Container) then
+  begin
+    MoveDirection := Camera.Direction;
+    Exit(true);
+  end;
+  if Input_Backward.IsPressed(Container) then
+  begin
+    MoveDirection := -Camera.Direction;
+    Exit(true);
+  end;
+  if IsOnGround and Input_RightStrafe.IsPressed(Container) then
+  begin
+    MoveDirection := TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
+    Exit(true);
+  end;
+  if IsOnGround and Input_LeftStrafe.IsPressed(Container) then
+  begin
+    MoveDirection := -TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
+    Exit(true);
+  end;
+
+  { mouse dragging navigation }
+  if (MouseDraggingStarted <> -1) and
+     ReallyEnableMouseDragging and
+     ((buttonLeft in Container.MousePressed) or (buttonRight in Container.MousePressed)) and
+     { Enable dragging only when no modifiers (except Input_Run,
+       which must be allowed to enable running) are pressed.
+       This allows application to handle e.g. ctrl + dragging
+       in some custom ways (like view3dscene selecting a triangle). }
+     (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
+     (MouseDragMode = mdWalk) then
+  begin
+    //HandleInput := false;
+    if DeltaSpeedAndDirectionViaMouseDragging(
+      Container.MousePosition - MouseDraggingStart, MoveDirection) then
+      Exit(true);
+  end;
+
+  Result := false;
+end;
+
 procedure TCastleWalkNavigation.CorrectPreferredHeight;
 begin
   CastleCameras.CorrectPreferredHeight(
@@ -4173,48 +4296,6 @@ var
     end;
   end;
 
-  function DeltaSpeedAndDirectionViaMouseDragging(MousePosDelta: TVector2;
-    var MoveDirection: TVector3): Boolean;
-  const
-    Tolerance = 5;  { 5px tolerance for not-moving }
-  var
-    MoveY: Boolean;
-    MoveX: Boolean;
-  begin
-    Result := false;
-    MoveX := not(Abs(MousePosDelta.X) < Tolerance);
-    MoveY := not(Abs(MousePosDelta.Y) < Tolerance);
-
-    if (not MoveX) and (not MoveY) then
-      Exit;
-
-    if buttonLeft in Container.MousePressed then
-    begin
-      Result := true;
-
-      if MousePosDelta.Y < -Tolerance then
-        MoveDirection := -Camera.Direction;
-      if MousePosDelta.Y > Tolerance then
-        MoveDirection := Camera.Direction;
-
-      if Abs(MousePosDelta.X) > Tolerance then
-        RotateHorizontal(-MousePosDelta.X * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
-    end
-    else if buttonRight in Container.MousePressed then
-    begin
-      Result := true;
-      if MousePosDelta.X < -Tolerance then
-        MoveDirection := -TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
-      if MousePosDelta.X > Tolerance then
-        MoveDirection := TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
-
-      {if MousePosDelta.Y < -5 then
-        MoveVertical(-MoveSizeY * SecondsPassed, 1);    { fly up }
-      if MousePosDelta.Y > 5 then
-        MoveVertical(-MoveSizeY * SecondsPassed, -1);   { fly down }}
-    end;
-  end;
-
   { If avatar does not have TCastleRigidBody and TCastleCollider and TCastleRigidBody.Exists,
     warn and return @false. }
   function CheckPhysics: Boolean;
@@ -4252,27 +4333,12 @@ var
     Result := true;
   end;
 
-  procedure DoHeadBobbing(ColliderHeight: Single);
-  var
-    CamTransl: TVector3;
-  begin
-    { Update HeadBobbingPosition }
-    HeadBobbingPosition := HeadBobbingPosition + (SecondsPassed / HeadBobbingTime);
-
-    { Calculate new camera position }
-    CamTransl := Camera.Translation;
-    CamTransl.Y := HeadBobbingHeight(ColliderHeight) - ColliderHeight;
-    Camera.Translation := CamTransl;
-  end;
-
   { Realize ctVelocity transformation method. }
   procedure DoVelocity;
   var
     IsOnGroundBool: Boolean;
     Vel: TVector3;
     VLength: Single;
-    MaxHorizontalVelocityChange: Single;
-    Acceleration: Single;
     HVelocity: TVector3;
     VVelocity: Single;
     MoveDirection: TVector3;
@@ -4285,50 +4351,12 @@ var
 
     ModsDown := ModifiersDown(Container.Pressed);
 
-    { How fast should avatar change it's speed }
-    Acceleration := Speed * 3 / 60;
-    MaxHorizontalVelocityChange := Acceleration * 60;
     DeltaSpeed := 0;
 
     IsOnGroundBool := VelocityCheckPlayerIsOnGround(RBody, Collider);
 
-    if Input_Forward.IsPressed(Container) then
-    begin
-      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
-      MoveDirection := Camera.Direction;
-    end;
-    if Input_Backward.IsPressed(Container) then
-    begin
-      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
-      MoveDirection := -Camera.Direction;
-    end;
-    if IsOnGroundBool and Input_RightStrafe.IsPressed(Container) then
-    begin
-      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
-      MoveDirection := TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
-    end;
-    if IsOnGroundBool and Input_LeftStrafe.IsPressed(Container) then
-    begin
-      DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
-      MoveDirection := -TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
-    end;
-
-    { mouse dragging navigation }
-    if (MouseDraggingStarted <> -1) and
-       ReallyEnableMouseDragging and
-       ((buttonLeft in Container.MousePressed) or (buttonRight in Container.MousePressed)) and
-       { Enable dragging only when no modifiers (except Input_Run,
-         which must be allowed to enable running) are pressed.
-         This allows application to handle e.g. ctrl + dragging
-         in some custom ways (like view3dscene selecting a triangle). }
-       (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
-       (MouseDragMode = mdWalk) then
-    begin
-      HandleInput := false;
-      if DeltaSpeedAndDirectionViaMouseDragging(
-        Container.MousePosition - MouseDraggingStart, MoveDirection) then
-        DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
-    end;
+    if GetMoveDirectionFromInput(IsOnGroundBool, MoveDirection) then
+      DeltaSpeed := VelocityCalculateDeltaHorizontalSpeed(IsOnGroundBool, SecondsPassed, Speed);
 
     Jump := 0;
     if Input_Jump.IsPressed(Container) and (not FWasJumpInput) and IsOnGroundBool then
@@ -4380,7 +4408,7 @@ var
         else
           Vel.Y := Jump;
 
-        DoHeadBobbing(GetColliderHeight(Collider));
+        VelocityHandleHeadBobbing(SecondsPassed, GetColliderHeight(Collider));
       end else
       begin
         { In air we can't simply change movement direction, we will just
