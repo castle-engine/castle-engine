@@ -298,6 +298,10 @@ begin
   AssertEquals('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json', URIDeleteAnchor('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json#skin:default'));
   AssertEquals('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.new-extension#skin:default', ChangeURIExt('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json#skin:default', '.new-extension'));
   AssertEquals('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo#skin:default', DeleteURIExt('castle-data:/walking/npcs/hotel_room/hero/hawaii_exo.json#skin:default'));
+
+  AssertEquals('armor.tga', ExtractURIName('armor.tga'));
+  AssertEquals('armor.tga', ExtractURIName('/armor.tga'));
+  AssertEquals('armor.tga', ExtractURIName('blabla/armor.tga'));
 end;
 
 initialization
