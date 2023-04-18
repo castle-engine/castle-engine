@@ -989,6 +989,7 @@ type
     function GetMoveDirectionFromInput(const IsOnGround: Boolean;
       var MoveDirection: TVector3): Boolean; virtual;
 
+    procedure VelocityHandleRotation(const SecondsPassed: Single; const IsOnGround: Boolean); virtual;
   public
     const
       DefaultFallSpeedStart = 0.5;
@@ -3373,6 +3374,63 @@ begin
   Result := false;
 end;
 
+procedure TCastleWalkNavigation.VelocityHandleRotation(
+  const SecondsPassed: Single; const IsOnGround: Boolean);
+
+  function RotateViaMouseDragging(MousePosDelta: TVector2): Boolean;
+  const
+    Tolerance = 5;  { 5px tolerance for not-moving }
+  begin
+    Result := false;
+    if (Abs(MousePosDelta.X) < Tolerance) then
+      Exit;
+
+    if buttonLeft in Container.MousePressed then
+    begin
+      Result := true;
+
+      if Abs(MousePosDelta.X) > Tolerance then
+        RotateHorizontal(-MousePosDelta.X * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
+    end;
+  end;
+
+var
+  SpeedScale: Single;
+begin
+  { mouse dragging rotation }
+  if (MouseDraggingStarted <> -1) and
+     ReallyEnableMouseDragging and
+     ((buttonLeft in Container.MousePressed) or (buttonRight in Container.MousePressed)) and
+     { Enable dragging only when no modifiers (except Input_Run,
+       which must be allowed to enable running) are pressed.
+       This allows application to handle e.g. ctrl + dragging
+       in some custom ways (like view3dscene selecting a triangle). }
+     (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
+     (MouseDragMode = mdWalk) then
+  begin
+    RotateViaMouseDragging(Container.MousePosition - MouseDraggingStart);
+  end;
+
+  { Because we use camera direction for move we can use the same code as DoDirect }
+  if ModifiersDown(Container.Pressed) = [mkCtrl] then
+  begin
+    if AllowSlowerRotations then
+      SpeedScale := 0.1 {* RotationControlFactor(IsOnGroundBool)};
+  end
+  else
+    SpeedScale := 1.0 {* RotationControlFactor(IsOnGroundBool)};
+
+  if Input_RightRotate.IsPressed(Container) then
+    RotateHorizontal(-RotationHorizontalSpeed * SecondsPassed * SpeedScale);
+  if Input_LeftRotate.IsPressed(Container) then
+    RotateHorizontal(+RotationHorizontalSpeed * SecondsPassed * SpeedScale);
+  if Input_UpRotate.IsPressed(Container) then
+    RotateVertical(+RotationVerticalSpeed * SecondsPassed * SpeedScale);
+  if Input_DownRotate.IsPressed(Container) then
+    RotateVertical(-RotationVerticalSpeed * SecondsPassed * SpeedScale);
+
+end;
+
 procedure TCastleWalkNavigation.CorrectPreferredHeight;
 begin
   CastleCameras.CorrectPreferredHeight(
@@ -4367,15 +4425,7 @@ var
       FWasJumpInput := false;
 
     VelocityHandleCrouching(Collider, IsOnGroundBool);
-
-    { Because we use camera direction for move we can use the same code as DoDirect }
-    if ModsDown = [mkCtrl] then
-    begin
-      if AllowSlowerRotations then
-        CheckRotates(0.1);
-    end
-    else
-      CheckRotates(1.0 {* RotationControlFactor(IsOnGroundBool)});
+    VelocityHandleRotation(SecondsPassed, IsOnGroundBool);
 
     // jumping
     if not IsZero(Jump) then
