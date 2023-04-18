@@ -1169,7 +1169,6 @@
 
     FWasJumpInput: Boolean;
   private
-    function GetColliderBoundingBox(Collider: TCastleCollider): TBox3D;
     function GetDirection: TVector3;
     function Container: TCastleContainer;
   protected
@@ -3803,40 +3802,6 @@ end;
 
 { TDynamic3DPlayerMovement }
 
-function TDynamic3DPlayerMovement.GetColliderBoundingBox(
-  Collider: TCastleCollider): TBox3D;
-begin
-  // TODO: Add BoundingBox for all colliders?
-  if Collider is TCastleBoxCollider then
-  begin
-    Result := TBox3D.FromCenterSize(Collider.Translation,
-      TCastleBoxCollider(Collider).Size);
-    Exit;
-  end;
-
-  if Collider is TCastleSphereCollider then
-  begin
-    Result := TBox3D.FromCenterSize(Collider.Translation,
-      Vector3(TCastleSphereCollider(Collider).Radius * 2,
-      TCastleSphereCollider(Collider).Radius * 2 ,
-      TCastleSphereCollider(Collider).Radius * 2));
-    Exit;
-  end;
-
-  if Collider is TCastleCapsuleCollider then
-  begin
-    WritelnLog('Capsule Height '+ FloatToStr(TCastleCapsuleCollider(Collider).Height));
-    WritelnLog('Translation '+ FloatToStr(Collider.Translation.Y));
-    Result := TBox3D.FromCenterSize(Collider.Translation,
-      Vector3(TCastleCapsuleCollider(Collider).Radius * 2,
-      TCastleCapsuleCollider(Collider).Height + TCastleCapsuleCollider(Collider).Radius * 2,
-      TCastleCapsuleCollider(Collider).Radius * 2));
-    Exit;
-  end;
-
-  raise Exception.Create('Unknown collider type');
-end;
-
 function TDynamic3DPlayerMovement.GetDirection: TVector3;
 var
   Camera: TCastleCamera;
@@ -3910,7 +3875,7 @@ begin
     We need add Collider.Translation because sometimes rigid body origin can be
     under the collider. And ray will be casted under the floor. }
   // TODO: what use as height, currently collider in camera
-  ColliderBoundingBox := GetColliderBoundingBox(Collider);
+  ColliderBoundingBox := Collider.ScaledLocalBoundingBox;
   ColliderHeight :=  ColliderBoundingBox.SizeY;
   WritelnLog('ColliderHeight: ' + FloatToStr(ColliderHeight));
   RayOrigin := Parent.Translation + Collider.Translation;
