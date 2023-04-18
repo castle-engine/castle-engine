@@ -970,6 +970,8 @@ type
       const OldPos: TVector3; ProposedNewPos: TVector3; out NewPos: TVector3;
       const BecauseOfGravity, CheckClimbHeight: Boolean): Boolean; override;
 
+    function GetColliderHeight(const ColliderBoundingBox: TBox3D): Single; overload;
+    function GetColliderHeight(const PlayerCollider: TCastleCollider): Single; overload;
     { Used to check is player on ground in velocity mode, default implementation
       make 5 raycast }
     function VelocityCheckPlayerIsOnGround(const PlayerRigidBody: TCastleRigidBody;
@@ -3108,6 +3110,21 @@ begin
   end;
 end;
 
+function TCastleWalkNavigation.GetColliderHeight(const ColliderBoundingBox: TBox3D
+  ): Single; overload;
+begin
+  Result := ColliderBoundingBox.SizeY;
+end;
+
+function TCastleWalkNavigation.GetColliderHeight(
+  const PlayerCollider: TCastleCollider): Single; overload;
+var
+  ColliderBoundingBox: TBox3D;
+begin
+  ColliderBoundingBox := PlayerCollider.ScaledLocalBoundingBox;
+  Result := GetColliderHeight(ColliderBoundingBox);
+end;
+
 function TCastleWalkNavigation.VelocityCheckPlayerIsOnGround(
   const PlayerRigidBody: TCastleRigidBody; const PlayerCollider: TCastleCollider): Boolean;
 var
@@ -3123,7 +3140,7 @@ begin
     We need add Collider.Translation because sometimes rigid body origin can be
     under the collider. And ray will be casted under the floor. }
   ColliderBoundingBox := PlayerCollider.ScaledLocalBoundingBox;
-  ColliderHeight :=  ColliderBoundingBox.SizeY;
+  ColliderHeight :=  GetColliderHeight(ColliderBoundingBox);
   RayOrigin := FPlayerBody.Translation + PlayerCollider.Translation;
 
   { TODO: In the ideal world, the way we check for ground collisions
@@ -4355,7 +4372,7 @@ var
         else
           Vel.Y := Jump;
 
-        DoHeadBobbing(ColliderHeight);
+        DoHeadBobbing(GetColliderHeight(Collider));
       end else
       begin
         { In air we can't simply change movement direction, we will just
