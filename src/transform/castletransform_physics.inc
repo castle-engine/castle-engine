@@ -247,6 +247,10 @@
       @seealso AutoSize }
     procedure CalculateSize;
 
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied }
+    function LocalScaledBoundingBox: TBox3D; virtual; abstract;
+
     { Local collider translation, relative to parent TCastleTransform.
       Note that CalculateSize and AutoSize mechanisms set it automatically. }
     property Translation: TVector3 read FTranslation write SetTranslation;
@@ -392,6 +396,10 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied. Size used to create physics engine object. }
+    function LocalScaledBoundingBox: TBox3D; override;
+
     procedure InternalDesigningBegin; override;
     procedure InternalDesigningEnd; override;
 
@@ -430,6 +438,11 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied. Size used to create physics engine object. }
+    function LocalScaledBoundingBox: TBox3D; override;
+
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure InternalDesigningBegin; override;
     procedure InternalDesigningEnd; override;
@@ -460,6 +473,11 @@
     procedure UpdateVisualization; override;
   public
     constructor Create(AOwner: TComponent); override;
+
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied. Size used to create physics engine object. }
+    function LocalScaledBoundingBox: TBox3D; override;
+
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure InternalDesigningBegin; override;
     procedure InternalDesigningEnd; override;
@@ -494,6 +512,10 @@
   public
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied. Size used to create physics engine object. }
+    function LocalScaledBoundingBox: TBox3D; override;
 
     procedure InternalDesigningBegin; override;
     procedure InternalDesigningEnd; override;
@@ -531,6 +553,10 @@
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
   public
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied. Size used to create physics engine object. }
+    function LocalScaledBoundingBox: TBox3D; override;
+
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     procedure InternalTransformChanged(const TransformChanged: TCastleTransform); override;
@@ -1821,6 +1847,11 @@ begin
   inherited;
 end;
 
+function TCastlePlaneCollider.LocalScaledBoundingBox: TBox3D;
+begin
+  Result := TBox3D.Empty;
+end;
+
 procedure TCastlePlaneCollider.SetNormal(const AValue: TVector3);
 begin
   if not FNormal.Equals(FNormal, AValue) then
@@ -1951,6 +1982,11 @@ begin
   inherited;
 end;
 
+function TCastleBoxCollider.LocalScaledBoundingBox: TBox3D;
+begin
+  TBox3D.FromCenterSize(Translation, CalculateScaledSize);
+end;
+
 procedure TCastleBoxCollider.SetSize(const AValue: TVector3);
 begin
   if not TVector3.PerfectlyEquals(FSize, AValue) then
@@ -1962,7 +1998,7 @@ begin
   end;
 end;
 
-function TCastleBoxCollider.CalculateScaledSize: TVector3;
+function TCastleBoxCollider.CalculateScaledSize: CastleVectors.TVector3;
 begin
   Result := FSize * TotalScale;
 end;
@@ -2072,6 +2108,15 @@ begin
 
   // Note: assign using Fxxx, not property setter, to avoid changing AutoSize to @false
   FRadius := 1;
+end;
+
+function TCastleSphereCollider.LocalScaledBoundingBox: TBox3D;
+var
+  ScaledRadius: Single;
+begin
+  ScaledRadius := CalculateScaledRadius;
+  Result := TBox3D.FromCenterSize(Translation,
+    Vector3(ScaledRadius * 2, ScaledRadius * 2, ScaledRadius * 2));
 end;
 
 procedure TCastleSphereCollider.SetRadius(const AValue: Single);
@@ -2329,6 +2374,17 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+function TCastleCapsuleCollider.LocalScaledBoundingBox: TBox3D;
+var
+  ScaledRadius: Single;
+  ScaledHeight: Single;
+begin
+  ScaledRadius := CalculateScaledRadius;
+  ScaledHeight := CalculateScaledHeight;
+  Result := TBox3D.FromCenterSize(Translation,
+    Vector3(ScaledRadius * 2, ScaledHeight + ScaledRadius * 2, ScaledRadius * 2));
+end;
+
 { TCastleMeshCollider -------------------------------------------------------- }
 
 procedure TCastleMeshCollider.AddTriangle(Shape: TObject;
@@ -2408,6 +2464,11 @@ begin
   FKraftMesh.Finish;
 
   Result := TKraftShapeMesh.Create(APhysics, ARigidBody, FKraftMesh);
+end;
+
+function TCastleMeshCollider.LocalScaledBoundingBox: TBox3D;
+begin
+  Result := TBox3D.Empty;
 end;
 
 procedure TCastleMeshCollider.SetMesh(const AValue: TCastleTransform);

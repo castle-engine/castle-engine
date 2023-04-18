@@ -4105,37 +4105,6 @@ var
     Result := true;
   end;
 
-  function GetColliderBoundingBox(Collider: TCastleCollider): TBox3D;
-  begin
-    // TODO: Add BoundingBox for all colliders?
-    if Collider is TCastleBoxCollider then
-    begin
-      Result := TBox3D.FromCenterSize(Collider.Translation,
-        TCastleBoxCollider(Collider).Size);
-      Exit;
-    end;
-
-    if Collider is TCastleSphereCollider then
-    begin
-      Result := TBox3D.FromCenterSize(Collider.Translation,
-        Vector3(TCastleSphereCollider(Collider).Radius * 2,
-        TCastleSphereCollider(Collider).Radius * 2 ,
-        TCastleSphereCollider(Collider).Radius * 2));
-      Exit;
-    end;
-
-    if Collider is TCastleCapsuleCollider then
-    begin
-      Result := TBox3D.FromCenterSize(Collider.Translation,
-        Vector3(TCastleCapsuleCollider(Collider).Radius * 2,
-        TCastleCapsuleCollider(Collider).Height + TCastleCapsuleCollider(Collider).Radius * 2,
-        TCastleCapsuleCollider(Collider).Radius * 2));
-      Exit;
-    end;
-
-    raise Exception.Create('Unknown collider type');
-  end;
-
   procedure DoHeadBobbing(ColliderHeight: Single);
   var
     CamTransl: TVector3;
@@ -4185,7 +4154,7 @@ var
 
       We need add Collider.Translation because sometimes rigid body origin can be
       under the collider. And ray will be casted under the floor. }
-    ColliderBoundingBox := GetColliderBoundingBox(Collider);
+    ColliderBoundingBox := Collider.LocalScaledBoundingBox;
     ColliderHeight :=  ColliderBoundingBox.SizeY;
     RayOrigin := FPlayerBody.Translation + Collider.Translation;
 
