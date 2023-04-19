@@ -481,20 +481,23 @@ type
       Note that we automatically initialize necessary Castle Game Engine resources
       when context is created (@link(GLVersion), @link(GLFeatures) and more).
 
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView
-      virtual methods and OnXxx events. Or use ApplicationProperties.OnGLContextOpen. }
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method @link(TCastleUserInterface.GLContextOpen).
+      Or use ApplicationProperties.OnGLContextOpen to know when GL context is
+      created. }
     property OnOpen: TNotifyEvent read FOnOpen write FOnOpen;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual methods and OnXxx events; or use ApplicationProperties.OnGLContextOpen';{$endif}
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextOpen; or use ApplicationProperties.OnGLContextOpen';{$endif}
 
     { Event called when the context is closed, right before the OpenGL context
       is destroyed. This is your last chance to release OpenGL resources,
       like textures, shaders, display lists etc. This is a counterpart
       to OnOpen event.
 
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView
-      virtual methods and OnXxx events. Or use ApplicationProperties.OnGLContextOpen. }
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method @link(TCastleUserInterface.GLContextClose).
+      Or use ApplicationProperties.OnGLContextClose. }
     property OnClose: TNotifyEvent read FOnClose write FOnClose;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual methods and OnXxx events; or use ApplicationProperties.OnGLContextClose';{$endif}
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextClose; or use ApplicationProperties.OnGLContextClose';{$endif}
 
     { Event always called right before OnRender.
       These two events, OnBeforeRender and OnRender,
@@ -844,6 +847,8 @@ begin
   Result := SaveScreen_NoFlush(Rect, Parent.SaveScreenBuffer);
 end;
 
+{$warnings off} // keep deprecated OnXxx wor
+
 procedure TCastleControlContainer.EventOpen(const OpenWindowsCount: Cardinal);
 begin
   inherited;
@@ -912,6 +917,8 @@ begin
   if Assigned(Parent.OnResize) then
     Parent.OnResize(Parent);
 end;
+
+{$warnings on}
 
 { TCastleControl -------------------------------------------------- }
 

@@ -1216,15 +1216,16 @@ type
       (destroyed in OnClose).
 
       @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      methods and OnXxx events. Or use Application.OnInitialize for initialization.
-      Or use ApplicationProperties.OnGLContextOpen/Close to know when GL context is
-      created / destroyed.
+      method @link(TCastleUserInterface.GLContextOpen).
+      Or use Application.OnInitialize for initialization.
+      Or use ApplicationProperties.OnGLContextOpen to know when GL context is
+      created.
 
       @groupBegin }
     property OnOpen: TContainerEvent read GetOnOpen write SetOnOpen;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual methods and OnXxx events; or use Application.OnInitialize for initialization; or use ApplicationProperties.OnGLContextOpen/Close';{$endif}
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextOpen; or use Application.OnInitialize for initialization; or use ApplicationProperties.OnGLContextOpen';{$endif}
     property OnOpenObject: TContainerObjectEvent read GetOnOpenObject write SetOnOpenObject;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual methods and OnXxx events; or use Application.OnInitialize for initialization; or use ApplicationProperties.OnGLContextOpen/CloseObject';{$endif}
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual methods GLContextOpen; or use Application.OnInitialize for initialization; or use ApplicationProperties.OnGLContextOpenObject';{$endif}
     { @groupEnd }
 
     { Minimum and maximum window sizes. Always
@@ -1501,13 +1502,13 @@ type
       like textures, shaders, display lists etc. This is a counterpart
       to OnOpen event.
 
-      @deprecated instead of this, use TCastleUserInterface and TCastleView virtual
-      methods and OnXxx events. Or use
-      ApplicationProperties.OnGLContextOpen/CloseObject. }
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method @link(TCastleUserInterface.GLContextClose).
+      Or use ApplicationProperties.OnGLContextClose. }
     property OnClose: TContainerEvent read GetOnClose write SetOnClose;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual methods and OnXxx events; or use ApplicationProperties.OnGLContextOpen/Close';{$endif}
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextClose; or use ApplicationProperties.OnGLContextClose';{$endif}
     property OnCloseObject: TContainerObjectEvent read GetOnCloseObject write SetOnCloseObject;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual methods and OnXxx events; or use ApplicationProperties.OnGLContextOpen/CloseObject';{$endif}
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextClose; or use ApplicationProperties.OnGLContextCloseObject';{$endif}
 
     { Called when user presses a key or mouse button or moves mouse wheel.
 
