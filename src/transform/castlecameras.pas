@@ -414,6 +414,8 @@ type
       FRotationSpeed: Single;
       FTurntable: boolean;
       FPinchGestureRecognizer: TCastlePinchPanGestureRecognizer;
+      FCenterOfRotation: TVector3;
+      FAutoCenterOfRotation: Boolean;
 
       FInputs_Move: T3BoolInputs;
       FInputs_Rotate: T3BoolInputs;
@@ -449,8 +451,9 @@ type
     function GetMouseNavigation: boolean;
     procedure SetMouseNavigation(const Value: boolean);
 
-    { Center of rotation and scale, relative to @link(Translation). }
-    function CenterOfRotation: TVector3;
+    { Center of rotation and scale, relative to @link(Translation).
+      In world coordinates. }
+    function EffectiveCenterOfRotation: TVector3;
 
     function GetExamineVectors: TExamineVectors;
     procedure SetExamineVectors(const Value: TExamineVectors);
@@ -609,6 +612,10 @@ type
       read FRotationSpeed
       write FRotationSpeed
       {$ifdef FPC}default DefaultRotationSpeed{$endif};
+
+    { 3D point around which we rotate, in world coordinates.
+      This is used only when AutoCenterOfRotation = @false. }
+    property CenterOfRotation: TVector3 read FCenterOfRotation write FCenterOfRotation;
   published
     { Enable rotating the camera around the model by user input.
       When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
@@ -636,6 +643,10 @@ type
       move the camera exactly as many units as the mouse position change indicates.
       Makes the movemement in standard orthographic view most natural. }
     property ExactMovement: Boolean read FExactMovement write FExactMovement default true;
+
+    { Should we calculate center of rotation automatically (based on world bounding box)
+      or use explicit @link(CenterOfRotation). }
+    property AutoCenterOfRotation: Boolean read FAutoCenterOfRotation write FAutoCenterOfRotation default true;
   end;
 
   { Navigation most suitable for 2D viewports
@@ -1967,6 +1978,7 @@ begin
   FPinchGestureRecognizer := TCastlePinchPanGestureRecognizer.Create;
   FPinchGestureRecognizer.OnGestureChanged := {$ifdef FPC}@{$endif}OnGestureRecognized;
   FExactMovement := true;
+  FAutoCenterOfRotation := true;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -2108,10 +2120,10 @@ begin
     of Translation. But we can do this directly.
 
     We also note at this point that rotation is done around
-    (Translation + CenterOfRotation). But CenterOfRotation is not
+    (Translation + EffectiveCenterOfRotation). But EffectiveCenterOfRotation is not
     included in Translation. }
-  Result.Translation := Result.Rotations.Rotate(Result.Translation + CenterOfRotation)
-    - CenterOfRotation;
+  Result.Translation := Result.Rotations.Rotate(Result.Translation + EffectiveCenterOfRotation)
+    - EffectiveCenterOfRotation;
 end;
 
 procedure TCastleExamineNavigation.SetExamineVectors(const Value: TExamineVectors);
@@ -2119,9 +2131,9 @@ var
   MInverse: TMatrix4;
 begin
   MInverse :=
-    TranslationMatrix(CenterOfRotation) *
+    TranslationMatrix(EffectiveCenterOfRotation) *
     Value.Rotations.Conjugate.ToRotationMatrix *
-    TranslationMatrix(-(Value.Translation + CenterOfRotation));
+    TranslationMatrix(-(Value.Translation + EffectiveCenterOfRotation));
 
   { These MultPoint/Direction should never fail with ETransformedResultInvalid.
     That's because M is composed from translations, rotations, scaling,
@@ -2400,15 +2412,19 @@ begin
   ExamineVectors := V;
 end;
 
-function TCastleExamineNavigation.CenterOfRotation: TVector3;
+function TCastleExamineNavigation.EffectiveCenterOfRotation: TVector3;
 var
   B: TBox3D;
 begin
-  B := GoodModelBox;
-  if B.IsEmpty then
-    Result := Vector3(0, 0, 0) { any dummy value }
-  else
-    Result := B.Center;
+  if AutoCenterOfRotation then
+  begin
+    B := GoodModelBox;
+    if B.IsEmpty then
+      Result := Vector3(0, 0, 0) { any dummy value }
+    else
+      Result := B.Center;
+  end else
+    Result := CenterOfRotation;
 end;
 
 function TCastleExamineNavigation.Press(const Event: TInputPressRelease): boolean;
