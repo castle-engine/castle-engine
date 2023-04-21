@@ -7601,7 +7601,7 @@ var
 
   procedure UpdateExamineNavigation(const Navigation: TCastleExamineNavigation);
   begin
-    if (ViewpointNode <> nil) and (not ViewpointNode.CenterOfRotation.IsPerfectlyZero) then
+    if ViewpointNode <> nil then
     begin
       Navigation.AutoCenterOfRotation := false;
       Navigation.CenterOfRotation := ViewpointNode.Transform.MultPoint(
