@@ -18,8 +18,6 @@ unit CastleThirdPersonNavigation;
 
 {$I castleconf.inc}
 
-{.$define CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
-
 interface
 
 uses SysUtils, Classes,
@@ -29,86 +27,6 @@ uses SysUtils, Classes,
 type
   { Used by TCastleThirdPersonNavigation.AimAvatar. }
   TAimAvatar = (aaNone, aaHorizontal, aaFlying);
-
-  { How does the avatar change transformation (for movement and rotations). }
-  TChangeTransformation = (
-    { Automatically determines best way to change transformation.
-
-      Right now, it means we
-
-      @unorderedList(
-        @item(Behave like ctVelocity if avatar is under the control of the physics engine.
-          This means avatar has both TCastleRigidBody and TCastleCollider behaviors and
-          @link(TCastleRigidBody.Exists) is @true.)
-        @item(Behave like ctDirect otherwise.)
-      )
-
-      To be precise, we look at @link(TCastleThirdPersonNavigation.AvatarHierarchy) or
-      (if it's @nil) at @link(TCastleThirdPersonNavigation.Avatar).
-      In this transform, we check existence of TCastleRigidBody and TCastleCollider.
-
-      In the future, this auto-detection may change,
-      to follow our best recommended practices.
-      In particular, when ctForce approach (see below) will be fully implemented,
-      it will likely become the new automatic behavior when
-      TCastleRigidBody and TCastleCollider behaviors are present. }
-    ctAuto,
-
-    { Directly change the avatar @link(TCastleTransform.Translation),
-      @link(TCastleTransform.Rotation).
-
-      You @italic(should not) have physics components (TCastleRigidBody and TCastleCollider
-      and @link(TCastleRigidBody.Exists) = @true)
-      set up on the @link(TCastleThirdPersonNavigation.AvatarHierarchy) or
-      @link(TCastleThirdPersonNavigation.Avatar) in this case.
-      Having physics components will make it impossible to change @link(TCastleTransform.Translation),
-      @link(TCastleTransform.Rotation) each frame.
-
-      This also means that if you want to have gravity (and stair climbing),
-      you need to use deprecated @link(TCastleTransform.Gravity),
-      @link(TCastleTransform.GrowSpeed), @link(TCastleTransform.FallSpeed).
-      They are part of the old simple physics engine:
-      https://castle-engine.io/physics#_old_system_for_collisions_and_gravity .
-
-      TODO: Jumping and falling doesn't work in this case.
-    }
-    ctDirect,
-
-    { Change the avatar using rigid body @link(TCastleRigidBody.LinearVelocity),
-      @link(TCastleRigidBody.AngularVelocity).
-
-      This is not fully realistic (instead of calculating velocities explicitly
-      we should be using forces). But it cooperates nicely with physics engine.
-
-      It requires a TCastleRigidBody and TCastleCollider components
-      to be attached to the @link(TCastleThirdPersonNavigation.AvatarHierarchy)
-      (or @link(TCastleThirdPersonNavigation.Avatar), if @link(TCastleThirdPersonNavigation.AvatarHierarchy) is @nil).
-      Also @link(TCastleRigidBody.Exists) must be @true to make navigation have any effect.
-
-      This also means that gravity should be handled by the physics engine.
-      You should not use deprecated @link(TCastleTransform.Gravity),
-      @link(TCastleTransform.GrowSpeed), @link(TCastleTransform.FallSpeed) in this case.
-
-      TODO: Climbing stairs doesn't work in this case (but you can jump on them).
-    }
-    ctVelocity
-
-    {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE},
-
-    { Change the avatar using rigid body forces like @link(TCastleRigidBody.AddForce),
-      @link(TCastleRigidBody.AddTorque).
-
-      This is realistic and cooperates nicely with physics engine.
-
-      It requires a TCastleRigidBody and TCastleCollider components
-      to be attached to the @link(TCastleThirdPersonNavigation.AvatarHierarchy)
-      (or @link(TCastleThirdPersonNavigation.Avatar), if @link(TCastleThirdPersonNavigation.AvatarHierarchy) is @nil).
-      Also @link(TCastleRigidBody.Exists) must be @true to make navigation have any effect.
-
-      TODO: Unfinished, not really functional now. }
-    ctForce
-    {$endif}
-  );
 
   { 3rd-person camera navigation.
     Create an instance of this and assign it to @link(TCastleViewport.Navigation) to use.
@@ -1258,7 +1176,6 @@ var
     end;
   end;
 
-  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   // TODO: Not finished.
   procedure DoForce(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
   var
@@ -1323,7 +1240,6 @@ var
       //RBody.ApplyImpulse(MoveDirection * DeltaForce, Collider.Translation);
     end;
   end;
-  {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
 
   { Make camera follow the A.Translation.
     Following the character also makes sure that camera stays updated
@@ -1493,9 +1409,7 @@ begin
         DoDirect(MovingHorizontally, Rotating, IsOnGround);
     ctDirect: DoDirect(MovingHorizontally, Rotating, IsOnGround);
     ctVelocity: DoVelocity(MovingHorizontally, Rotating, IsOnGround);
-    {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
     ctForce: DoForce(MovingHorizontally, Rotating, IsOnGround);
-    {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleThirdPersonNavigation.FTransformation?');
     {$endif}

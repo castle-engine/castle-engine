@@ -258,6 +258,98 @@
     otUpZDirectionX
   );
 
+  { How do we change transformation (for movement and rotations) of the avatar.
+
+    Used e.g. by
+
+    @unorderedList(
+      @item(@link(TCastleThirdPersonNavigation)
+
+        "Avatar" in this case means @link(TCastleThirdPersonNavigation.AvatarHierarchy)
+        if it is set (not @nil).
+        If @link(TCastleThirdPersonNavigation.AvatarHierarchy) is @nil,
+        we use @link(TCastleThirdPersonNavigation.Avatar).
+      )
+
+      @item(@link(TCastleMoveBehavior)
+
+        "Avatar" in this case is the @link(TCastleMoveBehavior) parent.
+      )
+    ) }
+  TChangeTransformation = (
+    { Automatically determines best way to change transformation.
+
+      Right now, it means we
+
+      @unorderedList(
+        @item(Behave like ctVelocity if avatar is under the control of the physics engine.
+          This means avatar has both TCastleRigidBody and TCastleCollider behaviors and
+          @link(TCastleRigidBody.Exists) is @true.)
+        @item(Behave like ctDirect otherwise.)
+      )
+
+      In the future, this auto-detection may change,
+      to follow our best recommended practices.
+      In particular, when ctForce approach (see below) will be fully implemented,
+      it will likely become the new automatic behavior when
+      TCastleRigidBody and TCastleCollider behaviors are present. }
+    ctAuto,
+
+    { Directly change the avatar @link(TCastleTransform.Translation),
+      @link(TCastleTransform.Rotation).
+
+      You @italic(should not) have physics components (TCastleRigidBody and TCastleCollider
+      and @link(TCastleRigidBody.Exists) = @true)
+      set up on the avatar in this case.
+      Having physics components will make it impossible to change @link(TCastleTransform.Translation),
+      @link(TCastleTransform.Rotation) each frame.
+
+      The avatar doesn't support gravity in this case.
+
+      Temporary: Actually if you want to have gravity (and stair climbing),
+      you can still use deprecated @link(TCastleTransform.Gravity),
+      @link(TCastleTransform.GrowSpeed), @link(TCastleTransform.FallSpeed).
+      They are part of the old simple physics engine:
+      https://castle-engine.io/physics#_old_system_for_collisions_and_gravity .
+
+      TODO: (for @link(TCastleThirdPersonNavigation))
+      Jumping and falling doesn't work in this case.
+    }
+    ctDirect,
+
+    { Change the avatar using rigid body @link(TCastleRigidBody.LinearVelocity),
+      @link(TCastleRigidBody.AngularVelocity).
+
+      This is not fully realistic (instead of calculating velocities explicitly
+      we should be using forces). But it cooperates nicely with physics engine.
+
+      It requires a TCastleRigidBody and TCastleCollider components
+      to be attached to the avatar.
+      Also @link(TCastleRigidBody.Exists) must be @true to make navigation have any effect.
+
+      This also means that gravity should be handled by the physics engine.
+      You should not use deprecated @link(TCastleTransform.Gravity),
+      @link(TCastleTransform.GrowSpeed), @link(TCastleTransform.FallSpeed) in this case.
+
+      TODO: (for @link(TCastleThirdPersonNavigation))
+      Climbing stairs doesn't work in this case (but you can jump on them).
+    }
+    ctVelocity,
+
+    { Change the avatar using rigid body forces like @link(TCastleRigidBody.AddForce),
+      @link(TCastleRigidBody.AddTorque).
+
+      This is realistic and cooperates nicely with physics engine.
+
+      It requires a TCastleRigidBody and TCastleCollider components
+      to be attached to the avatar.
+      Also @link(TCastleRigidBody.Exists) must be @true to make navigation have any effect.
+
+      TODO: (for @link(TCastleThirdPersonNavigation))
+      Unfinished, not really functional now. }
+    ctForce
+  );
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

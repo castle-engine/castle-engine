@@ -44,6 +44,10 @@ type
   strict private
     FDirection: TVector3;
     FInput: TInputShortcut;
+    FChangeTransformation: TChangeTransformation;
+    WarningDonePhysicsNotNecessary,
+      WarningDoneRigidBodyNecessary,
+      WarningDoneColliderNecessary: Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -58,10 +62,6 @@ type
     // TODO: Useful to easily scale Direction? Also make
     // property Speed: Single read FSpeed write FSpeed {$ifdef FPC}default 1.0{$endif};
 
-    // TODO: Allow to control this using physics
-    // { How to change the transformation - directly or using physics. }
-    // property ChangeTransformation: TChangeTransformation ...;
-
     // TODO: acceleration / deceleration:
     // { Time in seconds to accelerate to full speed, once input is pressed. }
     // property AccelerationTime: Single default {$ifdef FPC}0{$endif};
@@ -75,6 +75,9 @@ type
     { Input (key, mouse) that triggers the movement.
       By default this is completely empty (default), so it cannot be triggered. }
     property Input: TInputShortcut read FInput;
+
+    { How to change the transformation - directly or using physics. }
+    property ChangeTransformation: TChangeTransformation read FChangeTransformation write FChangeTransformation default ctAuto;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlemovebehavior_persistent_vectors.inc}
@@ -93,6 +96,7 @@ constructor TCastleMoveBehavior.Create(AOwner: TComponent);
 begin
   inherited;
   FDirection := Vector3(1, 0, 0);
+  FChangeTransformation := ctAuto;
 
   FInput := TInputShortcut.Create(Self);
   FInput.SetSubComponent(true);
@@ -114,7 +118,7 @@ end;
 function TCastleMoveBehavior.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'Input', 'DirectionPersistent'
+       'Input', 'DirectionPersistent', 'ChangeTransformation'
      ]) then
     Result := [psBasic]
   else
@@ -123,30 +127,97 @@ end;
 
 procedure TCastleMoveBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  FocusedViewport: TCastleUserInterface;
-  FocusedContainer: TCastleContainer;
+  RBody: TCastleRigidBody;
+  Collider: TCastleCollider;
+
+  // TODO: CheckNotPhysics, CheckPhysics copy-pasted from TCastleThirdPersonNavigation.
+
+  { Warn if the avatar has TCastleRigidBody and TCastleCollider and TCastleRigidBody.Exists. }
+  procedure CheckNotPhysics;
+  begin
+    if (RBody <> nil) and (Collider <> nil) and RBody.Exists then
+    begin
+      if not WarningDonePhysicsNotNecessary then
+      begin
+        WarningDonePhysicsNotNecessary := true;
+        WritelnWarning('For this TCastleThirdPersonNavigation.Transformation, remove physics behaviors (TCastleRigidBody, TCastleCollider) from avatar or set TCastleRigidBody.Exists to false');
+      end;
+    end;
+  end;
+
+  { If avatar does not have TCastleRigidBody and TCastleCollider and TCastleRigidBody.Exists,
+    warn and return @false. }
+  function CheckPhysics: Boolean;
+  begin
+    if (RBody = nil) or (not RBody.Exists) then
+    begin
+      if not WarningDoneRigidBodyNecessary then
+      begin
+        WarningDoneRigidBodyNecessary := true;
+        WritelnWarning('For this TCastleThirdPersonNavigation.Transformation, you must add TCastleRigidBody to the avatar and leave TCastleRigidBody.Exists = true');
+      end;
+      Exit(false);
+    end;
+
+    if Collider = nil then
+    begin
+      if not WarningDoneColliderNecessary then
+      begin
+        WarningDoneColliderNecessary := true;
+        WritelnWarning('For this TCastleThirdPersonNavigation.Transformation, you must add TCastleCollider to the avatar');
+      end;
+      Exit(false);
+    end;
+
+    Result := true;
+  end;
+
+  procedure DoDirect;
+  begin
+    CheckNotPhysics;
+    Parent.Translation := Parent.Translation + FDirection * SecondsPassed;
+  end;
+
+  procedure DoVelocity;
+  begin
+    if not CheckPhysics then
+      Exit;
+    RBody.LinearVelocity := Parent.WorldToLocalDirection(FDirection);
+  end;
+
+  procedure DoForce;
+  begin
+    if not CheckPhysics then
+      Exit;
+    RBody.AddForce(FDirection, true);
+  end;
+
 begin
   inherited;
 
   if not (CastleApplicationMode in [appRunning, appSimulation]) then
     Exit;
 
-  // TODO: hack
-  if (Parent <> nil) and
-     (Parent.World <> nil) and
-     (Parent.World.Owner is TCastleUserInterface) then
-    FocusedViewport := TCastleUserInterface(Parent.World.Owner)
-  else
-    FocusedViewport := nil;
-
-  if FocusedViewport <> nil then
-    FocusedContainer := FocusedViewport.Container
-  else
-    FocusedContainer := nil;
-
   if (FocusedContainer <> nil) and
      Input.IsPressed(FocusedContainer) then
-    Parent.Translation := Parent.Translation + FDirection * SecondsPassed;
+  begin
+    RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    Collider := Parent.FindBehavior(TCastleCollider) as TCastleCollider;
+
+    case FChangeTransformation of
+      ctAuto:
+        if (RBody <> nil) and RBody.Exists and (Collider <> nil) then
+          DoVelocity
+        else
+          DoDirect;
+      ctDirect: DoDirect;
+      ctVelocity: DoVelocity;
+      ctForce: DoForce;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TCastleMoveBehavior.FTransformation?');
+      {$endif}
+    end;
+  end;
 end;
 
 {$endif read_implementation}
