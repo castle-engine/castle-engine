@@ -11,6 +11,8 @@ The purpose of this demo:
 - On all platforms (desktop, mobile), with all compilers (FPC, Delphi).
 - Tweak CGE `castleconf.inc` to test various underlying libraries -- e.g. compare speed/features of FpImage, Vampyre Imaging, LIbPng.
 
+![Screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
