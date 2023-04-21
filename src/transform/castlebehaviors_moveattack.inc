@@ -31,7 +31,10 @@ type
       @item(TCastleAliveBehavior (to account for the fact that current creature
         may be dead, or badly wounded;
         this creature is assumed indestructible otherwise.))
-    ) }
+    )
+
+    TODO: Rename to TCastleActor? In the future, hoping this to have
+    configurable behavior by a graph (even visual graph). }
   TCastleMoveAttack = class(TCastleBehavior)
   public
     type
