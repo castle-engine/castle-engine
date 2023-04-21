@@ -392,10 +392,9 @@ type
 
   TCaptionPart = (cpPublic, cpFps);
 
-  { Non-abstract implementation of TCastleContainer that cooperates with TCastleWindow.
-    To use it, you need to also create descendant of TCastleWindow,
-    and override TCastleWindow.CreateContainer.
-    That said, it is much better to use TCastleView and override methods there. }
+  { Container suitable to be used in TCastleWindow.
+    Never create instances of this, just create TCastleWindow,
+    and use container of it (in @link(TCastleWindow.Container)). }
   TWindowContainer = class(TCastleContainer)
   private
     Parent: TCastleWindow;
