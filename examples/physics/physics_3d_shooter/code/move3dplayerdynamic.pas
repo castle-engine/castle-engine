@@ -27,6 +27,10 @@ type
     { Zero we can't control player in air, one we have full control }
     FAirMovementControl: Single;
     FAirRotationControl: Single;
+
+    FHorizontalSpeed: Single;
+    FAcceleration: Single;
+    FJumpSpeed: Single;
   private
     { Tries to find camera in parent children and get it direction or returns
       Parent direction }
@@ -44,9 +48,7 @@ type
     function GetMoveDirectionFromInput(const IsOnGround: Boolean;
       var MoveDirection: TVector3): Boolean; virtual;
 
-    function GetSpeed: Single; virtual;
     function GetAcceleration: Single; virtual;
-    function GetJumpSpeed: Single; virtual;
 
     function IsPlayerOnGround(const PlayerRigidBody: TCastleRigidBody;
       const PlayerCollider: TCastleCollider): Boolean; virtual;
@@ -56,6 +58,9 @@ type
     const
       DefaultAirMovementControl = 0.5;
       DefaultAirRotationControl = 0.5;
+      DefaultJumpSpeed = 10.0;
+      DefaultHorizontalSpeed = 10.0;
+      DefaultAcceleration = 1.0;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -66,6 +71,15 @@ type
     property Input_Jump: TInputShortcut read FInput_Jump;
 
   published
+    property JumpSpeed: Single read FJumpSpeed write FJumpSpeed
+      {$ifdef FPC}default DefaultJumpSpeed{$endif};
+
+    property HorizontalSpeed: Single read FHorizontalSpeed write FHorizontalSpeed
+      {$ifdef FPC}default DefaultHorizontalSpeed{$endif};
+
+    property Acceleration: Single read FAcceleration write FAcceleration
+      {$ifdef FPC}default DefaultAcceleration{$endif};
+
     { Should we have control on the player movement in the air. Must be >= 0.
 
       @unorderedList(
@@ -185,19 +199,9 @@ begin
   Result := false;
 end;
 
-function TMove3DPlayerDynamic.GetSpeed: Single;
-begin
-  Result := 10.0;
-end;
-
 function TMove3DPlayerDynamic.GetAcceleration: Single;
 begin
-  Result := 1;
-end;
-
-function TMove3DPlayerDynamic.GetJumpSpeed: Single;
-begin
-  Result := 10.0;
+  Result := FAcceleration;
 end;
 
 function TMove3DPlayerDynamic.IsPlayerOnGround(
@@ -323,7 +327,7 @@ begin
     and (not FWasJumpInput) and IsOnGroundBool then
   begin
     FWasJumpInput := true;
-    JumpVelocity := GetJumpSpeed; // one time event so no need Seconds Passed
+    JumpVelocity := JumpSpeed; // one time event so no need Seconds Passed
   end else
     FWasJumpInput := false;
 
@@ -351,8 +355,8 @@ begin
       // maybe use LengthSqrt?
       VelocityLength := HVelocity.Length;
       VelocityLength := VelocityLength + DeltaHVelocity;
-      if VelocityLength > GetSpeed then
-          VelocityLength := GetSpeed;
+      if VelocityLength > HorizontalSpeed then
+          VelocityLength := HorizontalSpeed;
 
       Vel := MoveDirection * VelocityLength;
 
@@ -375,9 +379,9 @@ begin
       VVelocity := Vel.Data[FWorldUpAxisIndex];
       VelocityLength := HVelocity.Length;
       { Check max speed }
-      if VelocityLength > GetSpeed then
+      if VelocityLength > FHorizontalSpeed then
       begin
-          VelocityLength := GetSpeed;
+          VelocityLength := FHorizontalSpeed;
           Vel.Data[FWorldUpAxisIndex] := 0;
           Vel := Vel.Normalize * VelocityLength;
 
@@ -413,6 +417,9 @@ begin
   ListenWorldChange := true;
 
   FWasJumpInput := false;
+  FJumpSpeed := DefaultJumpSpeed;
+  FAcceleration := DefaultAcceleration;
+  FHorizontalSpeed := DefaultHorizontalSpeed;
 
   FAirMovementControl := DefaultAirMovementControl;
   FAirRotationControl := DefaultAirRotationControl;
