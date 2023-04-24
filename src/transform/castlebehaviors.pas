@@ -23,7 +23,7 @@ interface
 
 uses Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleTimeUtils, CastleClassUtils, CastleSectors,
-  CastleSoundEngine, CastleInputs, CastleUIControls;
+  CastleSoundEngine, CastleInputs, CastleUIControls, CastleCameras;
 
 {$define read_interface}
 {$I castlebehaviors_alive.inc}
@@ -37,8 +37,7 @@ uses Classes, Generics.Collections,
 implementation
 
 uses SysUtils, Math,
-  CastleUtils, CastleLog, CastleBoxes, CastleComponentSerialize,
-  CastleCameras;
+  CastleUtils, CastleLog, CastleBoxes, CastleComponentSerialize;
 
 {$define read_implementation}
 {$I castlebehaviors_alive.inc}
