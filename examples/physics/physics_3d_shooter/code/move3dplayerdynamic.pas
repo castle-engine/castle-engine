@@ -24,11 +24,16 @@ type
     FInput_LeftStrafe: TInputShortcut;
     FInput_Jump: TInputShortcut;
 
+    { Zero we can't control player in air, one we have full control }
+    FAirMovementControl: Single;
+    FAirRotationControl: Single;
   private
     { Tries to find camera in parent children and get it direction or returns
       Parent direction }
     function GetDirection: TVector3;
     function Container: TCastleContainer;
+    function MovementControlFactor(const PlayerOnGround: Boolean): Single;
+    function RotationControlFactor(const PlayerOnGround: Boolean): Single;
   protected
 
     procedure WorldAfterAttach; override;
@@ -48,6 +53,10 @@ type
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
+    const
+      DefaultAirMovementControl = 0.5;
+      DefaultAirRotationControl = 0.5;
+
     constructor Create(AOwner: TComponent); override;
 
     property Input_Forward: TInputShortcut read FInput_Forward;
@@ -55,6 +64,31 @@ type
     property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
     property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
     property Input_Jump: TInputShortcut read FInput_Jump;
+
+  published
+    { Should we have control on the player movement in the air. Must be >= 0.
+
+      @unorderedList(
+        @item(0 -> no control in the air)
+        @item(1 -> full control in the air, just like on the ground)
+        @item(between 0 and 1 -> limited control, smoothly changes between no control and full control)
+        @item(above 1 -> in the air you move even faster than on the ground)
+      )
+    }
+    property AirMovementControl: Single read FAirMovementControl write FAirMovementControl
+      {$ifdef FPC}default DefaultAirMovementControl{$endif};
+
+    { Should we have control on the player rotation in the air.
+
+      @unorderedList(
+        @item(0 -> no control in the air)
+        @item(1 -> full control in the air, just like on the ground)
+        @item(between 0 and 1 -> limited control, smoothly changes between no control and full control)
+        @item(above 1 -> in the air you rotate even faster than on the ground)
+      )
+    }
+    property AirRotationControl: Single read FAirRotationControl write FAirRotationControl
+      {$ifdef FPC}default DefaultAirRotationControl{$endif};
 
   end;
 
@@ -82,6 +116,24 @@ end;
 function TMove3DPlayerDynamic.Container: TCastleContainer;
 begin
   Result := TCastleViewport(Parent.World.Owner).Container;
+end;
+
+function TMove3DPlayerDynamic.MovementControlFactor(
+  const PlayerOnGround: Boolean): Single;
+begin
+  if PlayerOnGround then
+    Exit(1.0)
+  else
+    Result := FAirMovementControl;
+end;
+
+function TMove3DPlayerDynamic.RotationControlFactor(
+  const PlayerOnGround: Boolean): Single;
+begin
+  if PlayerOnGround then
+    Exit(1.0)
+  else
+    Result := FAirRotationControl;
 end;
 
 procedure TMove3DPlayerDynamic.WorldAfterAttach;
@@ -237,7 +289,7 @@ var
   Collider: TCastleCollider;
   IsOnGroundBool: Boolean;
   Vel: TVector3;
-  VLength: Single;
+  VelocityLength: Single;
   HVelocity: TVector3;
   VVelocity: Single;
   MoveDirection: TVector3;
@@ -262,7 +314,8 @@ begin
     { We get the acceleration value and that value is
       specified for 60 frames per seconds, then we must
       protect it's value to update's rate changes }
-    DeltaHVelocity := GetAcceleration * 60 * SecondsPassed;
+    DeltaHVelocity := GetAcceleration * 60 * SecondsPassed *
+      MovementControlFactor(IsOnGroundBool);
   end;
 
   JumpVelocity := 0;
@@ -296,12 +349,12 @@ begin
       HVelocity.Data[FWorldUpAxisIndex] := 0; // Remove up velocity to get only horizontal value
       VVelocity := Vel.Data[FWorldUpAxisIndex];
       // maybe use LengthSqrt?
-      VLength := HVelocity.Length;
-      VLength := VLength + DeltaHVelocity;
-      if VLength > GetSpeed then
-          VLength := GetSpeed;
+      VelocityLength := HVelocity.Length;
+      VelocityLength := VelocityLength + DeltaHVelocity;
+      if VelocityLength > GetSpeed then
+          VelocityLength := GetSpeed;
 
-      Vel := MoveDirection * VLength;
+      Vel := MoveDirection * VelocityLength;
 
       if IsZero(JumpVelocity) then
         Vel.Data[FWorldUpAxisIndex] := VVelocity
@@ -314,19 +367,19 @@ begin
         Notice that by default FAirMovementControl = 0 so no change
         will be made. }
 
-      Vel := Vel + MoveDirection * DeltaHVelocity;
+      Vel := Vel + (MoveDirection * DeltaHVelocity);
 
       { Here we only check speed is not faster than max speed }
       HVelocity := Vel;
       HVelocity.Data[FWorldUpAxisIndex] := 0;
       VVelocity := Vel.Data[FWorldUpAxisIndex];
-      VLength := HVelocity.Length;
+      VelocityLength := HVelocity.Length;
       { Check max speed }
-      if VLength > GetSpeed then
+      if VelocityLength > GetSpeed then
       begin
-          VLength := GetSpeed;
+          VelocityLength := GetSpeed;
           Vel.Data[FWorldUpAxisIndex] := 0;
-          Vel := Vel.Normalize * VLength;
+          Vel := Vel.Normalize * VelocityLength;
 
           { Add gravity here }
           Vel.Data[FWorldUpAxisIndex] := VVelocity;
@@ -361,76 +414,34 @@ begin
 
   FWasJumpInput := false;
 
+  FAirMovementControl := DefaultAirMovementControl;
+  FAirRotationControl := DefaultAirRotationControl;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
-  FInput_LeftRotate              := TInputShortcut.Create(Self);
-  FInput_RightRotate             := TInputShortcut.Create(Self);
   FInput_LeftStrafe              := TInputShortcut.Create(Self);
   FInput_RightStrafe             := TInputShortcut.Create(Self);
-  FInput_UpRotate                := TInputShortcut.Create(Self);
-  FInput_DownRotate              := TInputShortcut.Create(Self);
-  FInput_IncreasePreferredHeight := TInputShortcut.Create(Self);
-  FInput_DecreasePreferredHeight := TInputShortcut.Create(Self);
-  FInput_GravityUp               := TInputShortcut.Create(Self);
-  FInput_MoveSpeedInc            := TInputShortcut.Create(Self);
-  FInput_MoveSpeedDec            := TInputShortcut.Create(Self);
   FInput_Jump                    := TInputShortcut.Create(Self);
-  FInput_Crouch                  := TInputShortcut.Create(Self);
-  FInput_Run                     := TInputShortcut.Create(Self);
 
   Input_Forward                 .Assign(keyW, keyArrowUp);
   Input_Backward                .Assign(keyS, keyArrowDown);
-  Input_LeftRotate              .Assign(keyArrowLeft);
-  Input_RightRotate             .Assign(keyArrowRight);
   Input_LeftStrafe              .Assign(keyA);
   Input_RightStrafe             .Assign(keyD);
-  Input_UpRotate                .Assign(keyNone);
-  Input_DownRotate              .Assign(keyNone);
-  Input_IncreasePreferredHeight .Assign(keyNone);
-  Input_DecreasePreferredHeight .Assign(keyNone);
-  Input_GravityUp               .Assign(keyNone);
   { For move speed we use also character codes +/-, as numpad
     may be hard to reach on some keyboards (e.g. on laptops). }
-  Input_MoveSpeedInc            .Assign(keyNumpadPlus , keyNone, '+');
-  Input_MoveSpeedDec            .Assign(keyNumpadMinus, keyNone, '-');
   Input_Jump                    .Assign(keySpace);
-  Input_Crouch                  .Assign(keyC);
-  Input_Run                     .Assign(keyShift);
 
   Input_Forward                .SetSubComponent(true);
   Input_Backward               .SetSubComponent(true);
-  Input_LeftRotate             .SetSubComponent(true);
-  Input_RightRotate            .SetSubComponent(true);
   Input_LeftStrafe             .SetSubComponent(true);
   Input_RightStrafe            .SetSubComponent(true);
-  Input_UpRotate               .SetSubComponent(true);
-  Input_DownRotate             .SetSubComponent(true);
-  Input_IncreasePreferredHeight.SetSubComponent(true);
-  Input_DecreasePreferredHeight.SetSubComponent(true);
-  Input_GravityUp              .SetSubComponent(true);
-  Input_MoveSpeedInc           .SetSubComponent(true);
-  Input_MoveSpeedDec           .SetSubComponent(true);
   Input_Jump                   .SetSubComponent(true);
-  Input_Crouch                 .SetSubComponent(true);
-  Input_Run                    .SetSubComponent(true);
 
   Input_Forward                .Name := 'Input_Forward';
   Input_Backward               .Name := 'Input_Backward';
-  Input_LeftRotate             .Name := 'Input_LeftRotate';
-  Input_RightRotate            .Name := 'Input_RightRotate';
   Input_LeftStrafe             .Name := 'Input_LeftStrafe';
   Input_RightStrafe            .Name := 'Input_RightStrafe';
-  Input_UpRotate               .Name := 'Input_UpRotate';
-  Input_DownRotate             .Name := 'Input_DownRotate';
-  Input_IncreasePreferredHeight.Name := 'Input_IncreasePreferredHeight';
-  Input_DecreasePreferredHeight.Name := 'Input_DecreasePreferredHeight';
-  Input_GravityUp              .Name := 'Input_GravityUp';
-  Input_MoveSpeedInc           .Name := 'Input_MoveSpeedInc';
-  Input_MoveSpeedDec           .Name := 'Input_MoveSpeedDec';
   Input_Jump                   .Name := 'Input_Jump';
-  Input_Crouch                 .Name := 'Input_Crouch';
-  Input_Run                    .Name := 'Input_Run';
 end;
 
 
