@@ -12,7 +12,6 @@ type
 
   TMove3DPlayerDynamic = class(TCastleBehavior)
   strict private
-
     FWorldUpAxisIndex: Integer;
     FWorldUp: TVector3;
 
@@ -54,10 +53,10 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
     const
-      DefaultAirMovementControl = 0.5;
-      DefaultAirRotationControl = 0.5;
-      DefaultJumpSpeed = 10.0;
-      DefaultHorizontalSpeed = 10.0;
+      DefaultAirMovementControl = 0.20;
+      DefaultAirRotationControl = 0.20;
+      DefaultJumpSpeed = 7.0;
+      DefaultHorizontalSpeed = 5.0;
       DefaultAcceleration = 1.0;
 
     constructor Create(AOwner: TComponent); override;
@@ -296,7 +295,6 @@ var
   DeltaHVelocity: Single;
 begin
   RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
   if not Assigned(RBody) then
     Exit;
 
