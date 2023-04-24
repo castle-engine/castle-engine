@@ -368,6 +368,7 @@ begin
 
     RBody.LinearVelocity := Vel;
   end else
+  // fast stop
   if IsOnGroundBool then
   begin
     // slowing down the avatar only on ground
