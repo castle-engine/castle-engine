@@ -33,6 +33,7 @@ type
   private
     { Tries to find camera in parent children and get it direction or returns
       Parent direction }
+    function GetParentCamera: TCastleCamera;
     function GetDirection: TVector3;
     function MovementControlFactor(const PlayerOnGround: Boolean): Single;
     function RotationControlFactor(const PlayerOnGround: Boolean): Single;
@@ -111,19 +112,26 @@ implementation
 uses Math, CastleBoxes, CastleKeysMouse, CastleComponentSerialize, CastleLog,
   CastleUtils;
 
-function TMove3DPlayerDynamic.GetDirection: TVector3;
+function TMove3DPlayerDynamic.GetParentCamera: TCastleCamera;
 var
   I: Integer;
 begin
   for I := 0 to Parent.Count -1 do
   begin
     if Parent.Items[I] is TCastleCamera then
-    begin
-      Exit(Parent.Items[I].Direction);
-    end;
+      Exit(Parent.Items[I] as TCastleCamera);
   end;
+end;
 
-  Result := Parent.Direction;
+function TMove3DPlayerDynamic.GetDirection: TVector3;
+var
+  CastleCamera: TCastleCamera;
+begin
+  CastleCamera := GetParentCamera;
+  if CastleCamera <> nil then
+     Result := CastleCamera.Direction
+  else
+    Result := Parent.Direction;
 end;
 
 function TMove3DPlayerDynamic.MovementControlFactor(
