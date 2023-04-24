@@ -274,8 +274,8 @@ var
   HVelocity: TVector3;
   VVelocity: Single;
   MoveDirection: TVector3;
-  Jump: Single;
-  DeltaSpeed: Single;
+  JumpVelocity: Single;
+  DeltaHVelocity: Single;
 begin
   RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 
@@ -286,37 +286,38 @@ begin
   if not Assigned(Collider) then
     Exit;
 
-  DeltaSpeed := 0;
+  DeltaHVelocity := 0;
 
   IsOnGroundBool := IsPlayerOnGround(RBody, Collider);
 
   if GetMoveDirectionFromInput(IsOnGroundBool, MoveDirection) then
   begin
-    { We get the accleration value and that value is
+    { We get the acceleration value and that value is
       specified for 60 frames per seconds, then we must
-      protect it's value to update rate changes }
-    DeltaSpeed := GetAcceleration * 60 * SecondsPassed;
+      protect it's value to update's rate changes }
+    DeltaHVelocity := GetAcceleration * 60 * SecondsPassed;
   end;
 
-  Jump := 0;
+  JumpVelocity := 0;
   if (FocusedContainer <> nil) and (Input_Jump.IsPressed(Container))
     and (not FWasJumpInput) and IsOnGroundBool then
   begin
     FWasJumpInput := true;
-    Jump := GetJumpSpeed; // one time event so no need Seconds Passed
+    JumpVelocity := GetJumpSpeed; // one time event so no need Seconds Passed
   end else
     FWasJumpInput := false;
 
-  // integrate velocities
+  { Integrate velocities }
   // jumping
-  if not IsZero(Jump) then
+  if not IsZero(JumpVelocity) then
   begin
     Vel := RBody.LinearVelocity;
-    Vel.Y := Jump;
+    { Only set up (y or z) velocity to JumpVelocity }
+    Vel.Data[FWorldUpAxisIndex] := JumpVelocity;
     RBody.LinearVelocity := Vel;
   end else
   // moving
-  if not IsZero(DeltaSpeed) then
+  if not IsZero(DeltaHVelocity) then
   begin
     Vel := RBody.LinearVelocity;
     if IsOnGroundBool then
@@ -325,20 +326,20 @@ begin
         helps do things like strafe or fast change direction from
         forward to backward }
       HVelocity := Vel;
-      HVelocity.Y := 0;
-      VVelocity := Vel.Y;
+      HVelocity.Data[FWorldUpAxisIndex] := 0; // Remove up velocity to get only horizontal value
+      VVelocity := Vel.Data[FWorldUpAxisIndex];
       // maybe use LengthSqrt?
       VLength := HVelocity.Length;
-      VLength := VLength + DeltaSpeed;
+      VLength := VLength + DeltaHVelocity;
       if VLength > GetSpeed then
           VLength := GetSpeed;
+
       Vel := MoveDirection * VLength;
 
-      if IsZero(Jump) then
-        Vel.Y := VVelocity
+      if IsZero(JumpVelocity) then
+        Vel.Data[FWorldUpAxisIndex] := VVelocity
       else
-        Vel.Y := Jump;
-
+        Vel.Data[FWorldUpAxisIndex] := JumpVelocity;
     end else
     begin
       { In air we can't simply change movement direction, we will just
@@ -346,22 +347,22 @@ begin
         Notice that by default FAirMovementControl = 0 so no change
         will be made. }
 
-      Vel := Vel + MoveDirection * DeltaSpeed;
+      Vel := Vel + MoveDirection * DeltaHVelocity;
 
       { Here we only check speed is not faster than max speed }
       HVelocity := Vel;
-      HVelocity.Y := 0;
-      VVelocity := Vel.Y;
+      HVelocity.Data[FWorldUpAxisIndex] := 0;
+      VVelocity := Vel.Data[FWorldUpAxisIndex];
       VLength := HVelocity.Length;
       { Check max speed }
       if VLength > GetSpeed then
       begin
           VLength := GetSpeed;
-          Vel.Y := 0;
+          Vel.Data[FWorldUpAxisIndex] := 0;
           Vel := Vel.Normalize * VLength;
 
           { Add gravity here }
-          Vel.Y := VVelocity;
+          Vel.Data[FWorldUpAxisIndex] := VVelocity;
       end;
     end;
 
@@ -372,8 +373,13 @@ begin
     // slowing down the avatar only on ground
     Vel := RBody.LinearVelocity;
 
-    Vel.X := 0;
-    Vel.Z := 0;
+    if FWorldUpAxisIndex <> 0 then
+      Vel.X := 0;
+    if FWorldUpAxisIndex <> 1 then
+      Vel.Y := 0;
+    if FWorldUpAxisIndex <> 2 then
+      Vel.Z := 0;
+
     RBody.LinearVelocity := Vel;
   end;
 
