@@ -34,6 +34,8 @@ type
     { Gets up direction from world }
     function GetUp: TVector3;
 
+    { Tries to find camera in parent children and get it direction or returns
+      Parent direction }
     function GetDirection: TVector3;
     function Container: TCastleContainer;
   protected
