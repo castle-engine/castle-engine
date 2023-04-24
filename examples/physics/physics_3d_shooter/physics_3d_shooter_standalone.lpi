@@ -30,7 +30,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="6">
       <Unit0>
         <Filename Value="physics_3d_shooter_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -48,6 +48,16 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="GameViewMain"/>
       </Unit3>
+      <Unit4>
+        <Filename Value="code/move3dplayerdynamic.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Move3DPlayerDynamic"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="code/rotatecamerabymouse.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="RotateCameraByMouse"/>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

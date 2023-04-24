@@ -5,7 +5,7 @@ unit Move3DPlayerDynamic;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors;
+  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleInputs;
 
 type
 
