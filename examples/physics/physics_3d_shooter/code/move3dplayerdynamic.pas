@@ -31,6 +31,9 @@ type
 
     FWasJumpInput: Boolean;
   private
+    { Gets up direction from world }
+    function GetUp: TVector3;
+
     function GetDirection: TVector3;
     function Container: TCastleContainer;
   protected
@@ -73,6 +76,15 @@ type
 implementation
 
 uses Math, CastleBoxes, CastleKeysMouse, CastleComponentSerialize;
+
+function TMove3DPlayerDynamic.GetUp: TVector3;
+begin
+  if (Parent <> nil) and (Parent.World <> nil) then
+    Result := TVector3.One[Parent.World.GravityCoordinate]
+    //Result := Parent.World.GravityUp
+  else
+    Result := TVector3.One[1];
+end;
 
 function TMove3DPlayerDynamic.GetDirection: TVector3;
 var
