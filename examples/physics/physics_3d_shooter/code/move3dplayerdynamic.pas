@@ -5,7 +5,8 @@ unit Move3DPlayerDynamic;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleInputs;
+  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleInputs,
+  CastleVectors, CastleUIControls, CastleViewport;
 
 type
 
@@ -70,6 +71,8 @@ type
 
 
 implementation
+
+uses Math, CastleBoxes, CastleKeysMouse, CastleComponentSerialize;
 
 function TMove3DPlayerDynamic.GetDirection: TVector3;
 var

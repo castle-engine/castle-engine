@@ -5,7 +5,8 @@ unit RotateCameraByMouse;
 interface
 
 uses
-  Classes, SysUtils, CastleBehaviors, CastleViewport;
+  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleViewport, CastleUIControls,
+  CastleVectors;
 
 type
   TRotateCameraByMouse = class(TCastleBehavior)
@@ -32,6 +33,8 @@ type
   end;
 
 implementation
+
+uses CastleUtils, CastleComponentSerialize;
 
 { TMouseCameraRotation }
 
