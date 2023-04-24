@@ -207,9 +207,8 @@ begin
 end;
 
 function TMove3DPlayerDynamic.IsPlayerOnGround(
-  const PlayerRigidBody: TCastleRigidBody; const PlayerCollider: TCastleCollider
-  ): Boolean;
-
+  const PlayerRigidBody: TCastleRigidBody;
+  const PlayerCollider: TCastleCollider): Boolean;
 var
   ColliderBoundingBox: TBox3D;
   ColliderHeight: Single;
