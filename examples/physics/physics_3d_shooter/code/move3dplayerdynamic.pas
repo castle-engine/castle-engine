@@ -12,6 +12,12 @@ type
 
   TMove3DPlayerDynamic = class(TCastleBehavior)
   strict private
+
+    FWorldUpAxisIndex: Integer;
+    FWorldUp: TVector3;
+
+    FWasJumpInput: Boolean;
+
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
     FInput_RightRotate: TInputShortcut;
@@ -28,22 +34,28 @@ type
     FInput_Jump: TInputShortcut;
     FInput_Crouch: TInputShortcut;
     FInput_Run: TInputShortcut;
-
-    FWasJumpInput: Boolean;
   private
-    { Gets up direction from world }
-    function GetUp: TVector3;
-
     { Tries to find camera in parent children and get it direction or returns
       Parent direction }
     function GetDirection: TVector3;
     function Container: TCastleContainer;
   protected
+
+    procedure WorldAfterAttach; override;
+
     { Returns true when there is any input for moving, Direction can be zero
       when no input, that's only keyboard input, maybe should be implemented on
       Container side }
     function GetMoveDirectionFromInput(const IsOnGround: Boolean;
       var MoveDirection: TVector3): Boolean; virtual;
+
+    function GetSpeed: Single; virtual;
+    function GetAcceleration: Single; virtual;
+    function GetJumpSpeed: Single; virtual;
+
+    function IsPlayerOnGround(const PlayerRigidBody: TCastleRigidBody;
+      const PlayerCollider: TCastleCollider): Boolean; virtual;
+
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -82,19 +94,7 @@ type
 
 implementation
 
-uses Math, CastleBoxes, CastleKeysMouse, CastleComponentSerialize;
-
-function TMove3DPlayerDynamic.GetUp: TVector3;
-begin
-  if (Parent <> nil) and (Parent.World <> nil) then
-    Result := TVector3.One[Parent.World.GravityCoordinate]
-    //Result := Parent.World.GravityUp
-  else
-    Result := TVector3.One[1];
-
-  // Maybe should be Parent.Up?
-  // Result := Parent.Up;
-end;
+uses Math, CastleBoxes, CastleKeysMouse, CastleComponentSerialize, CastleLog;
 
 function TMove3DPlayerDynamic.GetDirection: TVector3;
 var
@@ -115,6 +115,22 @@ end;
 function TMove3DPlayerDynamic.Container: TCastleContainer;
 begin
   Result := TCastleViewport(Parent.World.Owner).Container;
+end;
+
+procedure TMove3DPlayerDynamic.WorldAfterAttach;
+
+  procedure ConfigureUp;
+  begin
+    FWorldUpAxisIndex := Parent.World.GravityCoordinate;
+
+    FWorldUp := TVector3.One[FWorldUpAxisIndex];
+  end;
+
+begin
+  inherited WorldAfterAttach;
+
+  { Support Y and Z up direction }
+  ConfigureUp;
 end;
 
 function TMove3DPlayerDynamic.GetMoveDirectionFromInput(
@@ -150,36 +166,116 @@ begin
   Result := false;
 end;
 
+function TMove3DPlayerDynamic.GetSpeed: Single;
+begin
+  Result := 10.0;
+end;
+
+function TMove3DPlayerDynamic.GetAcceleration: Single;
+begin
+  Result := 1;
+end;
+
+function TMove3DPlayerDynamic.GetJumpSpeed: Single;
+begin
+  Result := 10.0;
+end;
+
+function TMove3DPlayerDynamic.IsPlayerOnGround(
+  const PlayerRigidBody: TCastleRigidBody; const PlayerCollider: TCastleCollider
+  ): Boolean;
+
+var
+  ColliderBoundingBox: TBox3D;
+  ColliderHeight: Single;
+  RayOrigin: TVector3;
+  DistanceToGround: Single;
+  GroundRayCast: TPhysicsRayCastResult;
+begin
+  { Check player is on ground, we use collider size multiplied by three to try
+    found ground.
+
+    We need add Collider.Translation because sometimes rigid body origin can be
+    under the collider. And ray will be casted under the floor. }
+  ColliderBoundingBox := PlayerCollider.ScaledLocalBoundingBox;
+  ColliderHeight :=  ColliderBoundingBox.Size.Data[FWorldUpAxisIndex];
+  RayOrigin := Parent.Translation + PlayerCollider.Translation;
+
+  GroundRayCast := PlayerRigidBody.PhysicsRayCast(
+    RayOrigin,
+    -FWorldUp,
+    ColliderHeight * 3
+  );
+
+  { Four more checks - player should slide down when player just
+    on the edge, but sometimes it stay and center ray don't "see" that we are
+    on ground }
+  if not GroundRayCast.Hit then
+    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
+      RayOrigin + Vector3(ColliderBoundingBox.SizeX * 0.49, 0, 0),
+      -FWorldUp,
+      ColliderHeight * 3
+    );
+
+  if not GroundRayCast.Hit then
+    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
+      RayOrigin + Vector3(-ColliderBoundingBox.SizeX * 0.49, 0, 0),
+      -FWorldUp,
+      ColliderHeight * 3
+    );
+
+  if not GroundRayCast.Hit then
+    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
+      RayOrigin + Vector3(0, 0, ColliderBoundingBox.SizeZ * 0.49),
+      -FWorldUp,
+      ColliderHeight * 3
+    );
+
+  if not GroundRayCast.Hit then
+    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
+      RayOrigin + Vector3(0, 0, -ColliderBoundingBox.SizeZ * 0.49),
+      -FWorldUp,
+      ColliderHeight * 3
+    );
+
+  if GroundRayCast.Hit then
+  begin
+    DistanceToGround := GroundRayCast.Distance;
+
+    { When collider has own translation we need substract it from distance
+      becouse distance will be too big }
+    DistanceToGround  := DistanceToGround - PlayerCollider.Translation.Y;
+
+    { Sometimes rigid body center point can be under the collider so
+      the distance can be negative }
+    if DistanceToGround < 0 then
+      DistanceToGround := 0;
+
+    Result := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
+    {if Result then
+      WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
+    else
+      WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');}
+  end else
+  begin
+    Result := false;
+    {WritelnLog('not on ground');}
+  end;
+end;
+
 procedure TMove3DPlayerDynamic.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
-type
-  TIsOnGround = (igGround, igJumping, igFalling);
 var
   RBody: TCastleRigidBody;
   Collider: TCastleCollider;
   IsOnGroundBool: Boolean;
   Vel: TVector3;
   VLength: Single;
-  ColliderBoundingBox: TBox3D;
-  ColliderHeight: Single;
-  MaxHorizontalVelocityChange: Single;
-  Acceleration: Single;
   HVelocity: TVector3;
   VVelocity: Single;
   MoveDirection: TVector3;
-  GroundRayCast: TPhysicsRayCastResult;
-  DistanceToGround: Single;
   Jump: Single;
-  RayOrigin: TVector3;
   DeltaSpeed: Single;
-  DeltaAngular: Single;
-  MovingHorizontally: Boolean;
-  Rotating: Boolean;
-  IsOnGround: TIsOnGround;
-const
-  RotationSpeed: Single = Pi * 150 / 180;
-  Speed: Single = 5;
-  MoveVerticalSpeed: Single = 1;
 begin
   RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 
@@ -190,152 +286,28 @@ begin
   if not Assigned(Collider) then
     Exit;
 
-  { How fast should avatar change it's speed }
-  Acceleration := Speed * 3 / 60;
-  MaxHorizontalVelocityChange := Acceleration * 60;
   DeltaSpeed := 0;
 
-  { Check player is on ground, we use avatar size multiplied by ten to try
-    found ground. Distance is used to check we should set animation to fall
-    or we are almost on ground so use default animation.
+  IsOnGroundBool := IsPlayerOnGround(RBody, Collider);
 
-    We need add Collider.Translation because sometimes rigid body origin can be
-    under the collider. And ray will be casted under the floor. }
-  // TODO: what use as height, currently collider in camera
-  ColliderBoundingBox := Collider.ScaledLocalBoundingBox;
-  ColliderHeight :=  ColliderBoundingBox.SizeY;
-  RayOrigin := Parent.Translation + Collider.Translation;
-
-  { TODO: In the ideal world, the way we check for ground collisions
-    (and determine Ground, IsOnGround)
-    should be independent from ChangeTransformation.
-
-    ChangeTransformation says how we change the transformation.
-
-    We should still have option to use
-
-    - PhysicsRayCast (maybe from TCastleAbstractRootTransform, as it should
-      not require having TCastleRigidBody on avatar) to detect ground
-    - or Height / WorldHeight calls that cooperate with old simple physics.
-
-    And we should update IsOnGround in all ChangeTransformation modes.
-
-    But in practice, now ctDirect forces to do gravity using old physics
-    (because it forbids TCastleRigidBody on avatar),
-    and ctVelocity forces to do gravity using new physics
-    (because it requires TCastleRigidBody on avatar).
-
-    So checking for ground (collisions) is not independent from ChangeTransformation.
-    When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
-    it would make no sense to use old simple physics. }
-
-  GroundRayCast := RBody.PhysicsRayCast(
-    RayOrigin,
-    Vector3(0, -1, 0),
-    ColliderHeight * 3
-  );
-
-  { Four more checks - player should slide down when player just
-    on the edge, but sometimes it stay and center ray don't "see" that we are
-    on ground }
-  if not GroundRayCast.Hit then
-    GroundRayCast := RBody.PhysicsRayCast(
-      RayOrigin + Vector3(ColliderBoundingBox.SizeX * 0.49, 0, 0),
-      Vector3(0, -1, 0),
-      ColliderHeight * 3
-    );
-
-  if not GroundRayCast.Hit then
-    GroundRayCast := RBody.PhysicsRayCast(
-      RayOrigin + Vector3(-ColliderBoundingBox.SizeX * 0.49, 0, 0),
-      Vector3(0, -1, 0),
-      ColliderHeight * 3
-    );
-
-  if not GroundRayCast.Hit then
-    GroundRayCast := RBody.PhysicsRayCast(
-      RayOrigin + Vector3(0, 0, ColliderBoundingBox.SizeZ * 0.49),
-      Vector3(0, -1, 0),
-      ColliderHeight * 3
-    );
-
-  if not GroundRayCast.Hit then
-    GroundRayCast := RBody.PhysicsRayCast(
-      RayOrigin + Vector3(0, 0, -ColliderBoundingBox.SizeZ * 0.49),
-      Vector3(0, -1, 0),
-      ColliderHeight * 3
-    );
-
-  if GroundRayCast.Hit then
+  if GetMoveDirectionFromInput(IsOnGroundBool, MoveDirection) then
   begin
-    DistanceToGround := GroundRayCast.Distance;
-
-    { When collider has own translation we need substract it from distance
-      becouse distance will be too big }
-    DistanceToGround  := DistanceToGround - Collider.Translation.Y;
-
-    { Sometimes rigid body center point can be under the collider so
-      the distance can be negative }
-    if DistanceToGround < 0 then
-      DistanceToGround := 0;
-
-    IsOnGroundBool := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
-  end else
-  begin
-    IsOnGroundBool := false;
-    DistanceToGround := -1; // For animation checking
-  end;
-
-  {if IsOnGroundBool then
-    WritelnLog(' On ground')
-  else
-    WritelnLog(' NOT on ground');}
-
-  if Input_Forward.IsPressed(Container) then
-  begin
-    MovingHorizontally := true;
-    DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
-    MoveDirection := GetDirection;
-  end;
-  if Input_Backward.IsPressed(Container) then
-  begin
-    MovingHorizontally := true;
-    DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
-    MoveDirection := -GetDirection;
-  end;
-  if IsOnGroundBool and Input_RightStrafe.IsPressed(Container) then
-  begin
-    MovingHorizontally := true;
-    DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed;
-    MoveDirection := TVector3.CrossProduct(GetDirection, Parent.Up);
-  end;
-  if IsOnGroundBool and Input_LeftStrafe.IsPressed(Container) then
-  begin
-    MovingHorizontally := true;
-    DeltaSpeed := MaxHorizontalVelocityChange * SecondsPassed {* MovementControlFactor(IsOnGroundBool)};
-    MoveDirection := -TVector3.CrossProduct(GetDirection, Parent.Up);
+    { We get the accleration value and that value is
+      specified for 60 frames per seconds, then we must
+      protect it's value to update rate changes }
+    DeltaSpeed := GetAcceleration * 60 * SecondsPassed;
   end;
 
   Jump := 0;
-  if Input_Jump.IsPressed(Container) and (not FWasJumpInput) and IsOnGroundBool then
+  if (FocusedContainer <> nil) and (Input_Jump.IsPressed(Container))
+    and (not FWasJumpInput) and IsOnGroundBool then
   begin
-    //if  and (not FWasJumpInput) and IsOnGroundBool
     FWasJumpInput := true;
-    MovingHorizontally := false;
-    Jump := MoveVerticalSpeed * 2; ///JumpSpeed;
+    Jump := GetJumpSpeed; // one time event so no need Seconds Passed
   end else
     FWasJumpInput := false;
 
-  DeltaAngular := 0;
-  if Input_RightRotate.IsPressed(Container) then
-  begin
-    DeltaAngular := -RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGroundBool)};
-  end;
-  if Input_LeftRotate.IsPressed(Container) then
-  begin
-    DeltaAngular := RotationSpeed * 60 * SecondsPassed {* RotationControlFactor(IsOnGroundBool)};
-  end;
-
+  // integrate velocities
   // jumping
   if not IsZero(Jump) then
   begin
@@ -358,14 +330,15 @@ begin
       // maybe use LengthSqrt?
       VLength := HVelocity.Length;
       VLength := VLength + DeltaSpeed;
-      if VLength > Speed then
-          VLength := Speed;
+      if VLength > GetSpeed then
+          VLength := GetSpeed;
       Vel := MoveDirection * VLength;
 
       if IsZero(Jump) then
         Vel.Y := VVelocity
       else
         Vel.Y := Jump;
+
     end else
     begin
       { In air we can't simply change movement direction, we will just
@@ -381,9 +354,9 @@ begin
       VVelocity := Vel.Y;
       VLength := HVelocity.Length;
       { Check max speed }
-      if VLength > Speed then
+      if VLength > GetSpeed then
       begin
-          VLength := Speed;
+          VLength := GetSpeed;
           Vel.Y := 0;
           Vel := Vel.Normalize * VLength;
 
@@ -398,40 +371,10 @@ begin
   begin
     // slowing down the avatar only on ground
     Vel := RBody.LinearVelocity;
+
     Vel.X := 0;
     Vel.Z := 0;
     RBody.LinearVelocity := Vel;
-  end;
-
-  // rotation
-  if not IsZero(DeltaAngular) then
-  begin
-    RBody.AngularVelocity := Vector3(0, 1, 0) * DeltaAngular;
-    Rotating := true;
-  end
-  else
-  begin
-    RBody.AngularVelocity := Vector3(0, 0, 0);
-    Rotating := false;
-  end;
-
-  IsOnGround := igGround;
-  if not IsOnGroundBool then
-  begin
-    // TODO: 0.1 should not be hardcoded
-    if RBody.LinearVelocity.Y > 0.1 then
-      IsOnGround := igJumping
-    else
-    { When avatar falls we change animation to fall only when the distance
-      to ground is smaller than 1/4 of avatar height. This fixes changing
-      animation from walk to fall on small steps like in stairs.
-
-      DistanceToGround < 0 means that we are in air and ground
-      was not found.
-
-      TODO: 0.25 should not be hardcoded. }
-    if (DistanceToGround < 0) or (DistanceToGround > ColliderBoundingBox.SizeY * 0.25) then
-      IsOnGround := igFalling;
   end;
 
   inherited Update(SecondsPassed, RemoveMe);
@@ -440,6 +383,8 @@ end;
 constructor TMove3DPlayerDynamic.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  ListenWorldChange := true;
+
   FWasJumpInput := false;
 
 
