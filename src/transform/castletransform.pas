@@ -140,7 +140,6 @@ initialization
   RegisterSerializableComponent(TCastleBallJoint, ['Physics', 'Joint', 'Ball']);
   RegisterSerializableComponent(TCastleDistanceJoint, ['Physics', 'Joint', 'Distance']);
   RegisterSerializableComponent(TCastleGrabJoint, ['Physics', 'Joint', 'Grab']);
-  RegisterSerializableComponent(TDynamic3DPlayerMovement, ['Physics', '3D Player Movement']);
   RegisterSerializableComponent(TMouseCameraRotation, ['Physics', 'Mouse Camera Rotation']);
   {$ifdef CASTLE_EXPERIMENTAL_JOINTS}
   RegisterSerializableComponent(TCastleFixedJoint, ['Physics', 'Joint', 'Fixed']);
