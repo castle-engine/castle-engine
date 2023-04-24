@@ -20,20 +20,10 @@ type
 
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
-    FInput_RightRotate: TInputShortcut;
-    FInput_LeftRotate: TInputShortcut;
     FInput_RightStrafe: TInputShortcut;
     FInput_LeftStrafe: TInputShortcut;
-    FInput_UpRotate: TInputShortcut;
-    FInput_DownRotate: TInputShortcut;
-    FInput_IncreasePreferredHeight: TInputShortcut;
-    FInput_DecreasePreferredHeight: TInputShortcut;
-    FInput_GravityUp: TInputShortcut;
-    FInput_MoveSpeedInc: TInputShortcut;
-    FInput_MoveSpeedDec: TInputShortcut;
     FInput_Jump: TInputShortcut;
-    FInput_Crouch: TInputShortcut;
-    FInput_Run: TInputShortcut;
+
   private
     { Tries to find camera in parent children and get it direction or returns
       Parent direction }
@@ -62,33 +52,10 @@ type
 
     property Input_Forward: TInputShortcut read FInput_Forward;
     property Input_Backward: TInputShortcut read FInput_Backward;
-    property Input_LeftRotate: TInputShortcut read FInput_LeftRotate;
-    property Input_RightRotate: TInputShortcut read FInput_RightRotate;
-    {$ifdef FPC}
-    property Input_LeftRot: TInputShortcut read FInput_LeftRotate; deprecated 'use Input_LeftRotate';
-    property Input_RightRot: TInputShortcut read FInput_RightRotate; deprecated 'use Input_RightRotate';
-    {$endif}
     property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
     property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
-    property Input_UpRotate: TInputShortcut read FInput_UpRotate;
-    property Input_DownRotate: TInputShortcut read FInput_DownRotate;
-    property Input_IncreasePreferredHeight: TInputShortcut read FInput_IncreasePreferredHeight;
-    property Input_DecreasePreferredHeight: TInputShortcut read FInput_DecreasePreferredHeight;
-    property Input_GravityUp: TInputShortcut read FInput_GravityUp;
-    property Input_Run: TInputShortcut read FInput_Run;
-
-    { Change the MoveSpeed.
-      @groupBegin }
-    property Input_MoveSpeedInc: TInputShortcut read FInput_MoveSpeedInc;
-    property Input_MoveSpeedDec: TInputShortcut read FInput_MoveSpeedDec;
-    { @groupEnd }
-
-    { Jumping and crouching (when @link(Gravity) = @true) or flying up / down
-      (when @link(Gravity) = @false).
-      @groupBegin }
     property Input_Jump: TInputShortcut read FInput_Jump;
-    property Input_Crouch: TInputShortcut read FInput_Crouch;
-    { @groupEnd }
+
   end;
 
 
