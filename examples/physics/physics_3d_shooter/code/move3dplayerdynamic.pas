@@ -39,6 +39,11 @@ type
     function GetDirection: TVector3;
     function Container: TCastleContainer;
   protected
+    { Returns true when there is any input for moving, Direction can be zero
+      when no input, that's only keyboard input, maybe should be implemented on
+      Container side }
+    function GetMoveDirectionFromInput(const IsOnGround: Boolean;
+      var MoveDirection: TVector3): Boolean; virtual;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -86,6 +91,9 @@ begin
     //Result := Parent.World.GravityUp
   else
     Result := TVector3.One[1];
+
+  // Maybe should be Parent.Up?
+  // Result := Parent.Up;
 end;
 
 function TMove3DPlayerDynamic.GetDirection: TVector3;
@@ -107,6 +115,39 @@ end;
 function TMove3DPlayerDynamic.Container: TCastleContainer;
 begin
   Result := TCastleViewport(Parent.World.Owner).Container;
+end;
+
+function TMove3DPlayerDynamic.GetMoveDirectionFromInput(
+  const IsOnGround: Boolean; var MoveDirection: TVector3): Boolean;
+begin
+  if FocusedContainer = nil then
+    Exit(false);
+
+  if Input_Forward.IsPressed(FocusedContainer) then
+  begin
+    MoveDirection := GetDirection;
+    Exit(true);
+  end;
+
+  if Input_Backward.IsPressed(FocusedContainer) then
+  begin
+    MoveDirection := -GetDirection;
+    Exit(true);
+  end;
+
+  if IsOnGround and Input_RightStrafe.IsPressed(FocusedContainer) then
+  begin
+    MoveDirection := TVector3.CrossProduct(GetDirection, Parent.Up);
+    Exit(true);
+  end;
+
+  if IsOnGround and Input_LeftStrafe.IsPressed(FocusedContainer) then
+  begin
+    MoveDirection := -TVector3.CrossProduct(GetDirection, Parent.Up);
+    Exit(true);
+  end;
+
+  Result := false;
 end;
 
 procedure TMove3DPlayerDynamic.Update(const SecondsPassed: Single;
