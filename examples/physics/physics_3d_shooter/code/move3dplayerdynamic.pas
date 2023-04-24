@@ -35,7 +35,6 @@ type
     { Tries to find camera in parent children and get it direction or returns
       Parent direction }
     function GetDirection: TVector3;
-    function Container: TCastleContainer;
     function MovementControlFactor(const PlayerOnGround: Boolean): Single;
     function RotationControlFactor(const PlayerOnGround: Boolean): Single;
   protected
@@ -126,11 +125,6 @@ begin
   end;
 
   Result := Parent.Direction;
-end;
-
-function TMove3DPlayerDynamic.Container: TCastleContainer;
-begin
-  Result := TCastleViewport(Parent.World.Owner).Container;
 end;
 
 function TMove3DPlayerDynamic.MovementControlFactor(
@@ -324,7 +318,7 @@ begin
   end;
 
   JumpVelocity := 0;
-  if (FocusedContainer <> nil) and (Input_Jump.IsPressed(Container))
+  if (FocusedContainer <> nil) and (Input_Jump.IsPressed(FocusedContainer))
     and (not FWasJumpInput) and IsOnGroundBool then
   begin
     FWasJumpInput := true;
