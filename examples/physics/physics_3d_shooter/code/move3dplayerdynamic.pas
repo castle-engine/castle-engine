@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleInputs,
-  CastleVectors, CastleUIControls, CastleViewport;
+  CastleVectors, CastleUIControls, CastleViewport, CastleClassUtils;
 
 type
 
@@ -39,7 +39,6 @@ type
     function MovementControlFactor(const PlayerOnGround: Boolean): Single;
     function RotationControlFactor(const PlayerOnGround: Boolean): Single;
   protected
-
     procedure WorldAfterAttach; override;
 
     { Returns true when there is any input for moving, Direction can be zero
@@ -63,6 +62,8 @@ type
       DefaultAcceleration = 1.0;
 
     constructor Create(AOwner: TComponent); override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     property Input_Forward: TInputShortcut read FInput_Forward;
     property Input_Backward: TInputShortcut read FInput_Backward;
@@ -109,11 +110,11 @@ type
 
 implementation
 
-uses Math, CastleBoxes, CastleKeysMouse, CastleComponentSerialize, CastleLog;
+uses Math, CastleBoxes, CastleKeysMouse, CastleComponentSerialize, CastleLog,
+  CastleUtils;
 
 function TMove3DPlayerDynamic.GetDirection: TVector3;
 var
-  Camera: TCastleCamera;
   I: Integer;
 begin
   for I := 0 to Parent.Count -1 do
@@ -451,6 +452,17 @@ begin
   Input_Jump                   .Name := 'Input_Jump';
 end;
 
+function TMove3DPlayerDynamic.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'HorizontalSpeed', 'Acceleration', 'JumpSpeed', 'AirMovementControl',
+     'AirRotationControl'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
 
 
 initialization
