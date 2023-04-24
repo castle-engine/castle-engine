@@ -38,8 +38,8 @@
                 },
                 "$Behaviors" : [
                   {
-                    "$$ClassName" : "TMouseCameraRotation",
-                    "Name" : "MouseCameraRotation1"
+                    "$$ClassName" : "TRotateCameraByMouse",
+                    "Name" : "RotateCameraByMouse1"
                   }
                 ]
               }
@@ -63,8 +63,8 @@
                 "Radius" : 5.0000000000000000E-001
               },
               {
-                "$$ClassName" : "TDynamic3DPlayerMovement",
-                "Name" : "Dynamic3DPlayerMovement1"
+                "$$ClassName" : "TMove3DPlayerDynamic",
+                "Name" : "Move3DPlayerDynamic1"
               }
             ]
           },
