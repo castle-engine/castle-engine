@@ -2034,8 +2034,8 @@ function TShape.CreateTriangleOctree(
 
       procedure TriAssign(TriIndex: integer; c1value, c2value: Single);
       begin
-        Position.Data[TriIndex].InternalData[c1] := c1value;
-        Position.Data[TriIndex].InternalData[c2] := c2value;
+        Position.Data[TriIndex].Data[c1] := c1value;
+        Position.Data[TriIndex].Data[c2] := c2value;
       end;
 
     begin
@@ -2043,12 +2043,12 @@ function TShape.CreateTriangleOctree(
 
       for I := 0 to 2 do
       begin
-        Position.Data[I].InternalData[ConstCoord] := ConstCoordValue;
+        Position.Data[I].Data[ConstCoord] := ConstCoordValue;
         {$warnings off} // silence FPC warning about Normal uninitialized
-        Normal.Data[I].InternalData[C1] := 0;
+        Normal.Data[I].Data[C1] := 0;
         {$warnings on}
-        Normal.Data[I].InternalData[C2] := 0;
-        Normal.Data[I].InternalData[ConstCoord] := 1; { TODO: or -1 }
+        Normal.Data[I].Data[C2] := 0;
+        Normal.Data[I].Data[ConstCoord] := 1; { TODO: or -1 }
       end;
 
       TriAssign(0, x1, y1);

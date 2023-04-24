@@ -477,6 +477,12 @@ type
       If T = nil, updates everywhere (TODO: for now,
       only in CurrentViewport). Otherwise updates only in T. }
     procedure UpdateColliders(T: TCastleTransform = nil);
+
+    { Get parent of non-visual component.
+      Since there's no TCastleComponent.NonVisualParent or such, so we find parent using
+      ControlsTree knowledge.
+      Returns nil if no parent. }
+    function NonVisualComponentParent(const C: TCastleComponent): TCastleComponent;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -751,8 +757,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
       { Eventually return yourself, C. }
       //if C.CapturesEventsAtPosition(MousePos) then
       if SimpleCapturesEventsAtPosition(C, MousePos, TestWithBorder) and
-         { Do not select TCastleNavigation, they would always obscure TCastleViewport. }
-         (not (C is TCastleNavigation)) then
+         C.EditorSelectOnHover then
         Result := C;
     end;
   end;
@@ -2404,6 +2409,30 @@ begin
   end;
 end;
 
+function TDesignFrame.NonVisualComponentParent(const C: TCastleComponent): TCastleComponent;
+var
+  CNode: TTreeNode;
+  ParentComp: TComponent;
+begin
+  if not TreeNodeMap.TryGetValue(C, CNode) then
+    raise EInternalError.Create('Cannot duplicate non-visual component: we cannot find the node in ControlsTree');
+
+  // This can happen if C is root component in design
+  if CNode.Parent = nil then
+    Exit(nil);
+
+  { Note: SelectedFromNode will automatically lookup higher parent,
+    in case parent is special "Non-visual component" text node. }
+  ParentComp := SelectedFromNode(CNode.Parent);
+  if ParentComp = nil then
+    raise EInternalError.Create('Cannot duplicate non-visual component: parent node not a regular component');
+
+  if not (ParentComp is TCastleComponent) then
+    raise EInternalError.Create('Cannot duplicate non-visual component: parent is TComponent but not TCastleComponent');
+
+  Result := ParentComp as TCastleComponent;
+end;
+
 procedure TDesignFrame.DuplicateComponent;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
@@ -2454,6 +2483,25 @@ procedure TDesignFrame.DuplicateComponent;
     FinishAddingComponent(NewComp);
   end;
 
+  procedure DuplicateNonVisualComponent(const Selected: TCastleComponent);
+  var
+    ParentComp, NewComp: TCastleComponent;
+    ComponentString: String;
+    InsertIndex: Integer;
+  begin
+    ParentComp := NonVisualComponentParent(Selected);
+    if ParentComp = nil then
+    begin
+      ErrorBox('To duplicate, select component with exactly one parent');
+      Exit;
+    end;
+    ComponentString := ComponentToString(Selected);
+    NewComp := StringToComponent(ComponentString, DesignOwner) as TCastleComponent;
+    InsertIndex := ParentComp.NonVisualComponentsIndexOf(Selected);
+    ParentComp.InsertNonVisualComponent(InsertIndex + 1, NewComp);
+    FinishAddingComponent(NewComp);
+  end;
+
 var
   Sel: TComponent;
 begin
@@ -2468,7 +2516,10 @@ begin
     if Sel is TCastleTransform then
       DuplicateTransform(Sel as TCastleTransform)
     else
-      ErrorBox('To duplicate, select TCastleUserInterface or TCastleTransform component');
+    if Sel is TCastleComponent then
+      DuplicateNonVisualComponent(Sel as TCastleComponent)
+    else
+      ErrorBox('To duplicate, select TCastleUserInterface, TCastleTransform or TCastleComponent component');
   end else
     ErrorBox('To duplicate, select exactly one component that is not a subcomponent');
 end;
@@ -5414,7 +5465,7 @@ procedure TDesignFrame.FrameResize(Sender: TObject);
 
 begin
   UpdateEditorDataForPropertyEditors;
-  
+
   FixButtonSquare(ButtonInteractMode);
   FixButtonSquare(ButtonSelectMode);
   FixButtonSquare(ButtonTranslateMode);

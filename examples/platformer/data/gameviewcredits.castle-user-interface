@@ -428,7 +428,7 @@
                   "Name" : "Label6",
                   "Text" : [
                     "You can use this demo as a start ",
-                    "point to your own game"
+                    "point of your own game"
                   ],
                   "VerticalAnchorParent" : "vpTop",
                   "VerticalAnchorSelf" : "vpTop",

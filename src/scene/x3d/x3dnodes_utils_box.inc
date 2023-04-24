@@ -77,20 +77,20 @@ var
 
     { Normal vector is constant for the whole rectangle }
     if ConstCoordValue > 0 then
-      N.InternalData[ConstCoord] :=  1
+      N.Data[ConstCoord] :=  1
     else
-      N.InternalData[ConstCoord] := -1;
-    N.InternalData[C1] := 0;
-    N.InternalData[C2] := 0;
+      N.Data[ConstCoord] := -1;
+    N.Data[C1] := 0;
+    N.Data[C2] := 0;
 
     for I := 0 to Detail[C1] + 1 do
       for J := 0 to Detail[C2] + 1 do
       begin
         ThisIndex := Index + I * (Detail[C2] + 2) + J;
 
-        Coord.List^[ThisIndex].InternalData[C1] := Lerp(I / (Detail[C1] + 1), X1, X2);
-        Coord.List^[ThisIndex].InternalData[C2] := Lerp(J / (Detail[C2] + 1), Y1, Y2);
-        Coord.List^[ThisIndex].InternalData[ConstCoord] := ConstCoordValue;
+        Coord.List^[ThisIndex].Data[C1] := Lerp(I / (Detail[C1] + 1), X1, X2);
+        Coord.List^[ThisIndex].Data[C2] := Lerp(J / (Detail[C2] + 1), Y1, Y2);
+        Coord.List^[ThisIndex].Data[ConstCoord] := ConstCoordValue;
 
         Normal.List^[ThisIndex] := N;
 

@@ -2,11 +2,19 @@
 { DON'T EDIT -- this file was automatically generated from "source/main_shading_gouraud.vs" }
 '/* Gouraud shading GLSL vertex shader. */' + LineEnding +
 '' + LineEnding +
+'/* Plug into PLUG-DECLARATIONS-EARLY things that need to be defined' + LineEnding +
+'   before uniforms below, like definition of CASTLE_HAS_NORMALS.' + LineEnding +
+'   TODO: Can we unify this with PLUG-DECLARATIONS? */' + LineEnding +
+'/* PLUG-DECLARATIONS-EARLY */' + LineEnding +
+'' + LineEnding +
 'uniform mat4 castle_ModelViewMatrix;' + LineEnding +
 'uniform mat4 castle_ProjectionMatrix;' + LineEnding +
-'uniform mat3 castle_NormalMatrix;' + LineEnding +
 'attribute vec4 castle_Vertex;' + LineEnding +
+'' + LineEnding +
+'#if defined(CASTLE_HAS_NORMALS)' + LineEnding +
+'uniform mat3 castle_NormalMatrix;' + LineEnding +
 'attribute vec3 castle_Normal;' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 '/* PLUG-DECLARATIONS */' + LineEnding +
 '' + LineEnding +
@@ -49,7 +57,21 @@
 'void main(void)' + LineEnding +
 '{' + LineEnding +
 '  vec4 vertex_object = castle_Vertex;' + LineEnding +
-'  vec3 normal_object = castle_Normal;' + LineEnding +
+'  vec3 normal_object =' + LineEnding +
+'    #if defined(CASTLE_HAS_NORMALS)' + LineEnding +
+'    castle_Normal;' + LineEnding +
+'    #else' + LineEnding +
+'    /* When CASTLE_HAS_NORMALS not defined, then TShader.NeedsNormals = false.' + LineEnding +
+'       Renderer may then not define castle_Normal attribute at all,' + LineEnding +
+'       so we cannot use it (using it causes invisible objects on ATI GPUs,' + LineEnding +
+'       even though undefined normal_object value is not used by anything;' + LineEnding +
+'       see' + LineEnding +
+'       https://github.com/castle-engine/castle-engine/issues/462' + LineEnding +
+'       https://trello.com/c/QH9d9A8o/92-bug-unable-to-see-and-use-gizmos )' + LineEnding +
+'    */' + LineEnding +
+'    vec3(0.0, 0.0, 1.0);' + LineEnding +
+'    #endif' + LineEnding +
+'' + LineEnding +
 '  /* PLUG: vertex_object_space_change (vertex_object, normal_object) */' + LineEnding +
 '  /* PLUG: vertex_object_space (vertex_object, normal_object) */' + LineEnding +
 '' + LineEnding +
@@ -65,7 +87,12 @@
 '  #endif' + LineEnding +
 '' + LineEnding +
 '  castle_vertex_eye = castle_ModelViewMatrix * vertex_object;' + LineEnding +
-'  castle_normal_eye = normalize(castle_NormalMatrix * normal_object);' + LineEnding +
+'  castle_normal_eye =' + LineEnding +
+'    #if defined(CASTLE_HAS_NORMALS)' + LineEnding +
+'    normalize(castle_NormalMatrix * normal_object);' + LineEnding +
+'    #else' + LineEnding +
+'    vec3(0.0, 0.0, 1.0);' + LineEnding +
+'    #endif' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */' + LineEnding +
 '' + LineEnding +

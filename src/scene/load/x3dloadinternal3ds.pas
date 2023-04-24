@@ -434,11 +434,6 @@ begin
       CHUNK_RGBB, CHUNK_RGBB_GAMMA:
         begin
           Stream.ReadBuffer(Col3Byte, SizeOf(Col3Byte));
-          {$ifdef ENDIAN_BIG}
-          b := Col3Byte[0];
-          Col3Byte[0] := Col3Byte[2];
-          Col3Byte[2] := b;
-          {$endif ENDIAN_BIG}
           Col := Vector3(Col3Byte);
           result := true;
           break;
@@ -772,7 +767,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
       { init face }
       Stream.ReadBuffer(Word3, SizeOf(Word3));
       for j := 0 to 2 do
-        VertsIndices.InternalData[j] := LEtoN(Word3[j]);
+        VertsIndices.Data[j] := LEtoN(Word3[j]);
       Stream.ReadLE(Flags);
       { decode Flags }
       for j := 0 to 2 do

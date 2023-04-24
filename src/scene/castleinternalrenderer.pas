@@ -1857,7 +1857,7 @@ begin
     Arrays.FreeData;
 
     if GLFeatures.VertexArrayObject and (Vao = nil) then
-      Vao := TVertexArrayObject.Create;
+      Vao := TVertexArrayObject.Create(nil);
   end;
 
   VboToReload := [];
@@ -2429,11 +2429,6 @@ begin
      ShapeUsesEnvironmentLight(Shape) or
      (not Shape.Geometry.Solid) { two-sided lighting required by solid=FALSE } then
     PhongShading := true;
-  { As an exception, in case of buggy shader pipeline, force using Gouraud shading.
-    We cannot do Phong shading in this case, as it implies using "pure shader pipeline".
-    See https://forum.castle-engine.io/t/win64-lcl-simple-shapes-something-got-broken/579/14 }
-  if GLVersion.BuggyPureShaderPipeline then
-    PhongShading := false;
 
   Shader.Initialize(PhongShading);
 

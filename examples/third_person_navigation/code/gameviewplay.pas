@@ -16,8 +16,6 @@
 { Main "playing game" view, where most of the game logic takes place. }
 unit GameViewPlay;
 
-{.$define CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
-
 interface
 
 uses Classes,
@@ -125,12 +123,6 @@ begin
   ButtonChangeTransformationDirect.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationDirect;
   ButtonChangeTransformationVelocity.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationVelocity;
   ButtonChangeTransformationForce.OnClick := {$ifdef FPC}@{$endif} ClickChangeTransformationForce;
-
-  {$ifndef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
-  { Hide UI to test ChangeTransformation = ctForce, it is not finished now,
-    not really useful for normal usage. }
-  ButtonChangeTransformationForce.Exists := false;
-  {$endif}
 
   { This configures SceneAvatar.Middle point, used for shooting.
     In case of old physics (ChangeTransformation = ctDirect) this is also the center
@@ -329,9 +321,7 @@ begin
   ButtonChangeTransformationAuto.Pressed := ThirdPersonNavigation.ChangeTransformation = ctAuto;
   ButtonChangeTransformationDirect.Pressed := ThirdPersonNavigation.ChangeTransformation =  ctDirect;
   ButtonChangeTransformationVelocity.Pressed := ThirdPersonNavigation.ChangeTransformation =  ctVelocity;
-  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   ButtonChangeTransformationForce.Pressed := ThirdPersonNavigation.ChangeTransformation = ctForce;
-  {$endif}
 
   { ctDirect requires to set up gravity without physics engine,
     using deprecated TCastleTransform.Gravity.
@@ -366,9 +356,7 @@ end;
 
 procedure TViewPlay.ClickChangeTransformationForce(Sender: TObject);
 begin
-  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   ThirdPersonNavigation.ChangeTransformation := ctForce;
-  {$endif}
   UpdateAfterChangeTransformation;
 end;
 

@@ -18,8 +18,6 @@ unit CastleThirdPersonNavigation;
 
 {$I castleconf.inc}
 
-{.$define CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
-
 interface
 
 uses SysUtils, Classes,
@@ -1181,7 +1179,6 @@ var
     end;
   end;
 
-  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   // TODO: Not finished.
   procedure DoForce(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
   var
@@ -1246,7 +1243,6 @@ var
       //RBody.ApplyImpulse(MoveDirection * DeltaForce, Collider.Translation);
     end;
   end;
-  {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
 
   { Make camera follow the A.Translation.
     Following the character also makes sure that camera stays updated
@@ -1416,9 +1412,7 @@ begin
         DoDirect(MovingHorizontally, Rotating, IsOnGround);
     ctDirect: DoDirect(MovingHorizontally, Rotating, IsOnGround);
     ctVelocity: DoVelocity(MovingHorizontally, Rotating, IsOnGround);
-    {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
     ctForce: DoForce(MovingHorizontally, Rotating, IsOnGround);
-    {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleThirdPersonNavigation.FTransformation?');
     {$endif}

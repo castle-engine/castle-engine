@@ -178,7 +178,7 @@ implementation
 uses
   SysUtils, Math,
   CastleLog,
-  GameViewMenu, GameViewGameOver, GameViewLevelComplete, GameViewPause;
+  GameSound, GameViewMenu, GameViewGameOver, GameViewLevelComplete, GameViewPause;
 
 { TBullet -------------------------------------------------------------------- }
 
@@ -200,6 +200,7 @@ begin
   RBody.Dynamic := true;
   RBody.CollisionDetection := cdContinuous;
   RBody.MaxLinearVelocity := 0;
+  RBody.Layer := 3;
 
   Collider := TCastleSphereCollider.Create(Self);
   { We don't set the Radius becouse we simply use Autosize }
@@ -340,13 +341,13 @@ begin
     end else
     if Pos('DblJump', CollisionDetails.OtherTransform.Name) > 0 then
     begin
-      SoundEngine.Play(SoundEngine.SoundFromName('power_up'));
+      SoundEngine.Play(NamedSound('PowerUp'));
       PlayerCanDoubleJump := true;
       CollisionDetails.OtherTransform.Exists := false;
     end else
     if Pos('Shot', CollisionDetails.OtherTransform.Name) > 0 then
     begin
-      SoundEngine.Play(SoundEngine.SoundFromName('power_up'));
+      SoundEngine.Play(NamedSound('PowerUp'));
       PlayerCanShot := true;
       CollisionDetails.OtherTransform.Exists := false;
     end else
@@ -943,7 +944,7 @@ begin
         the player should not keep jumping) }
     if (not WasInputJump) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
     begin
-      SoundEngine.Play(SoundEngine.SoundFromName('jump'));
+      SoundEngine.Play(NamedSound('Jump'));
       if not PlayerOnGround then
       begin
         WasDoubleJump := true;
@@ -1041,7 +1042,7 @@ begin
     begin
       if WasInputShot = false  then
       begin
-        SoundEngine.Play(SoundEngine.SoundFromName('shot'));
+        SoundEngine.Play(NamedSound('Shot'));
         WasInputShot := true;
 
         Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
@@ -1065,7 +1066,7 @@ end;
 
 procedure TViewPlay.CollectCoin;
 begin
-  SoundEngine.Play(SoundEngine.SoundFromName('coin'));
+  SoundEngine.Play(NamedSound('Coin'));
   Inc(PlayerCollectedCoins);
   LabelCollectedCoins.Caption := PlayerCollectedCoins.ToString;
 end;
@@ -1079,7 +1080,7 @@ end;
 procedure TViewPlay.HitPlayer;
 begin
   SetHitPoints(PlayerHitPoints - 1);
-  SoundEngine.Play(SoundEngine.SoundFromName('hurt'));
+  SoundEngine.Play(NamedSound('Hurt'));
   PlayAnimationOnceAndLoop(ScenePlayer, 'hurt', 'idle');
 end;
 
@@ -1130,7 +1131,7 @@ end;
 
 procedure TViewPlay.CollectKey;
 begin
-  SoundEngine.Play(SoundEngine.SoundFromName('power_up'));
+  SoundEngine.Play(NamedSound('PowerUp'));
   PlayerHasKey := true;
   ImageKey.Exists := true;
 end;
@@ -1189,6 +1190,20 @@ var
 begin
   inherited;
 
+  {ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,1] := true; // ground collide with player
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,0] := true; // ground collide with ground
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,2] := true; // ground collide with enemies
+
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,1] := false; // player don't collide with player
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,2] := true; // player collide with enemies
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[1,0] := true; // player collide with ground
+
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[2,0] := true;  // enemies collide with ground
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[2,1] := true;  // enemies collide with player
+  ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[2,2] := false; // enemies don't collide with each other
+
+  ScenePlayer.RigidBody.Layer := 1;}
+
   LevelComplete := false;
 
   LevelBounds := TLevelBounds.Create(ScenePlayer.Owner);
@@ -1218,6 +1233,7 @@ begin
   for I := 0 to EnemiesRoot.Count - 1 do
   begin
     EnemyScene := EnemiesRoot.Items[I] as TCastleScene;
+    {EnemyScene.RigidBody.Layer := 2;}
 
     if not EnemyScene.Exists then
       Continue;
@@ -1263,7 +1279,7 @@ begin
   ConfigureBulletSpriteScene;
 
   { Play game music }
-  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('game_music');
+  SoundEngine.LoopingChannel[0].Sound := NamedSound('GameMusic');
 
   WritelnLog('Configuration done');
 end;
@@ -1282,7 +1298,7 @@ begin
   inherited Resume;
 
   { Play game music }
-  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('game_music');
+  SoundEngine.LoopingChannel[0].Sound := NamedSound('GameMusic');
 end;
 
 procedure TViewPlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);

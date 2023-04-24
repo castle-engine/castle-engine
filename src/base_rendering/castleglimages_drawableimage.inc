@@ -899,7 +899,7 @@ begin
       if VboStorage[I].IndexesVbo = 0 then
         glGenBuffers(1, @VboStorage[I].IndexesVbo);
       if VboStorage[I].Vao = nil then
-        VboStorage[I].Vao := TVertexArrayObject.Create;
+        VboStorage[I].Vao := TVertexArrayObject.Create(nil);
     end;
 
     { create programs }

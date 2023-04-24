@@ -42,7 +42,8 @@ var
 
 implementation
 
-uses CastleSoundEngine, GameViewMenu, GameViewPlay;
+uses CastleSoundEngine,
+  GameSound, GameViewMenu, GameViewPlay;
 
 constructor TViewPause.Create(AOwner: TComponent);
 begin
@@ -68,7 +69,7 @@ begin
   ButtonMenu.OnClick := {$ifdef FPC}@{$endif}ClickMenu;
 
   { Play menu music }
-  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');
+  SoundEngine.LoopingChannel[0].Sound := NamedSound('MenuMusic');
 end;
 
 end.

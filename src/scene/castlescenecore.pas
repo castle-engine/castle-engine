@@ -1738,18 +1738,12 @@ type
       Note that, since some fields are only in some descendants (e.g. MoveSpeed
       is only at TCastleWalkNavigation) then some TNavigationInfoNode settings
       are just not transferred to all Navigation instances like
-      TCastleExamineNavigation.
-
-      WorldBox is the expected bounding box of the whole 3D scene.
-      Usually, it should be TCastleViewport.Items.BoundingBox.
-      In simple cases (if this scene is the only TCastleScene instance
-      in your world, and it's not transformed) it may be equal to just
-      @link(BoundingBox) of this scene. }
+      TCastleExamineNavigation }
     procedure InternalUpdateNavigation(
       const Navigation: TCastleNavigation);
 
     { Update TCastleCamera properties based on the current X3D nodes
-      (currently bound X3D Viewpoint NavigationInfo nodes).
+      (currently bound X3D Viewpoint and NavigationInfo nodes).
       When no viewpoint is currently bound, we will go to a suitable
       viewpoint to see the whole world (based on the WorldBox).
 
@@ -7561,6 +7555,7 @@ procedure TCastleSceneCore.InternalUpdateNavigation(
   const Navigation: TCastleNavigation);
 var
   NavigationNode: TNavigationInfoNode;
+  ViewpointNode: TAbstractViewpointNode;
   Radius: Single;
   RadiusAutoCalculated: Boolean;
 
@@ -7604,8 +7599,23 @@ var
       Navigation.MoveSpeed := NavigationNode.FdSpeed.Value;
   end;
 
+  procedure UpdateExamineNavigation(const Navigation: TCastleExamineNavigation);
+  begin
+    if ViewpointNode <> nil then
+    begin
+      Navigation.AutoCenterOfRotation := false;
+      Navigation.CenterOfRotation := ViewpointNode.Transform.MultPoint(
+        ViewpointNode.CenterOfRotation);
+    end else
+    begin
+      Navigation.AutoCenterOfRotation := true;
+      Navigation.CenterOfRotation := TVector3.Zero; // remove previous customization of this property
+    end;
+  end;
+
 begin
   NavigationNode := NavigationInfoStack.Top;
+  ViewpointNode := ViewpointStack.Top;
 
   { calculate Radius }
   Radius := SensibleCameraRadius(RadiusAutoCalculated);
@@ -7613,6 +7623,8 @@ begin
 
   if Navigation is TCastleWalkNavigation then
     UpdateWalkNavigation(TCastleWalkNavigation(Navigation));
+  if Navigation is TCastleExamineNavigation then
+    UpdateExamineNavigation(TCastleExamineNavigation(Navigation));
 end;
 
 procedure TCastleSceneCore.InternalUpdateCamera(const ACamera: TCastleCamera;

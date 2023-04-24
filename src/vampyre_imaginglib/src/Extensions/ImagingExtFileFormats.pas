@@ -7,7 +7,7 @@
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
   file, You can obtain one at https://mozilla.org/MPL/2.0.
-} 
+}
 
 { This is helper unit that registers all image file formats in Extensions package
   to Imaging core loading and saving functions. Just put this unit in your uses
@@ -18,23 +18,48 @@ unit ImagingExtFileFormats;
 
 {$I ImagingOptions.inc}
 
-{.$DEFINE DONT_LINK_JPEG2000}    // link support for JPEG2000 images
+{$ifndef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
+  (*
+  Castle Game Engine:
+  Disable Tiff and JPEG2000 support on all platforms.
 
-{ Castle Game Engine: Disable libtiff on all platforms.
-  Because the implementation is not cross-platform enough:
+  1.Because the implementation is not cross-platform enough.
+    This is bad for users who expect cross-platform support
+    for image formats.
 
-  - It is disabled on Arm (32-bit)
+    E.g. tiff:
 
-  - It is uncomfortable to use on Anroid/iOS/NintendoSwitch where
-    we don't automatically distribute libtiff.
-    And lack of it means errors at startup, like this on Android:
+    - It is disabled on Arm (32-bit)
 
-    E test_bump_mapping: MainActivity: JNI: Could not load libtest_bump_mapping_android.so, exception UnsatisfiedLinkError: dlopen failed: cannot locate symbol "TIFFNumberOfDirectories" referenced by "/data/app/~~Q2PlsieWYj2N3wYOOgQPeQ==/io.castleengine.test.bump.mapping-fDdlkPhP1GVaw7My9A7auw==/lib/arm64/libtest_bump_mapping_android.so"..
+    - It is uncomfortable to use on Anroid/iOS/NintendoSwitch where
+      we don't automatically distribute libtiff.
+      And lack of it means errors at startup, like this on Android:
 
-  Devs can manually add ImagingTiff to their uses clause to bring back support for TIFF,
-  and use CASTLE_ENABLE_TIFF to register it in CastleImages handlers.
-}
-{$DEFINE DONT_LINK_TIFF}        // link support for TIFF images
+      E test_bump_mapping: MainActivity: JNI: Could not load libtest_bump_mapping_android.so, exception UnsatisfiedLinkError: dlopen failed: cannot locate symbol "TIFFNumberOfDirectories" referenced by "/data/app/~~Q2PlsieWYj2N3wYOOgQPeQ==/io.castleengine.test.bump.mapping-fDdlkPhP1GVaw7My9A7auw==/lib/arm64/libtest_bump_mapping_android.so"..
+
+  2.It's also cumbersome to use in fpmake.pp.
+    While you can add unit conditionally, like below
+
+    { OpenJpeg only compiles on certain platforms,
+      see $ifdef in ImagingJpeg2000 (ImagingJpeg2000 compiles but is empty
+      on unsupported platforms). }
+    if ((Defaults.OS in AllWindowsOSes) and (Defaults.CPU in [x86])) or
+      ((Defaults.OS = Linux) and (Defaults.CPU in [x86, x86_64])) or
+      ((Defaults.OS = macOS) and (Defaults.CPU in [x86])) then
+    begin
+      P.Targets.AddUnit('OpenJpeg.pas');
+    end;
+
+    ... but the units also require external .o/.a files which I don't know how to make
+    work with fpmake "install" (so that other applications can use them too).
+
+  Developers can override this defining CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS.
+  *)
+
+  {$DEFINE DONT_LINK_JPEG2000}    // link support for JPEG2000 images
+  {$DEFINE DONT_LINK_TIFF}        // link support for TIFF images
+
+{$endif CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
 
 {.$DEFINE DONT_LINK_PSD}         // link support for PSD images
 {.$DEFINE DONT_LINK_PCX}         // link support for PCX images

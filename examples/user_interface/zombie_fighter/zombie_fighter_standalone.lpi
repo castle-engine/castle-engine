@@ -37,9 +37,9 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
-        <Filename Value="code/gameviewaskdialog.pas"/>
+        <Filename Value="code/gameviewmainmenu.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="gameviewaskdialog"/>
+        <UnitName Value="gameviewmainmenu"/>
       </Unit3>
       <Unit4>
         <Filename Value="code/gameviewloading.pas"/>
@@ -47,9 +47,9 @@
         <UnitName Value="gameviewloading"/>
       </Unit4>
       <Unit5>
-        <Filename Value="code/gameviewmainmenu.pas"/>
+        <Filename Value="code/gameviewaskdialog.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="gameviewmainmenu"/>
+        <UnitName Value="gameviewaskdialog"/>
       </Unit5>
       <Unit6>
         <Filename Value="code/gameviewplay.pas"/>

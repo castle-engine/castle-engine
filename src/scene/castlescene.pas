@@ -626,7 +626,7 @@ implementation
 
 uses Math,
   CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
-  CastleShapeInternalRenderShadowVolumes,
+  CastleShapeInternalRenderShadowVolumes, CastleURIUtils,
   CastleComponentSerialize, CastleRenderContext, CastleFilesUtils, CastleInternalGLUtils;
 
 {$define read_implementation}
@@ -1402,7 +1402,9 @@ begin
 
   if not ApplicationProperties.IsGLContextOpen then
   begin
-    WritelnLog('PrepareResources', 'OpenGL context not available, skipping preparing TCastleScene OpenGL resources');
+    WritelnLog('PrepareResources', 'Rendering context not available, skipping preparing TCastleScene rendering resources for "%s"', [
+      URIDisplay(URL)
+    ]);
     Exit;
   end;
 

@@ -698,7 +698,7 @@ procedure TPunctualLights.ReadLight(const LightObject: TPasJSONItemObject);
     begin
       ColorArray := TPasJSONItemArray(Item);
       for I := 0 to Min(2, ColorArray.Count - 1) do
-        Result.InternalData[I] := TPasJSON.GetNumber(ColorArray.Items[I], DefaultColor[I]);
+        Result.Data[I] := TPasJSON.GetNumber(ColorArray.Items[I], DefaultColor[I]);
     end;
   end;
 

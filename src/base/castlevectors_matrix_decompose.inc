@@ -58,7 +58,7 @@ begin
   for I := 0 to 2 do
   begin
     Column := Vector3(Matrix.Data[I, 0], Matrix.Data[I, 1], Matrix.Data[I, 2]);
-    Scale.InternalData[I] := Column.Length;
+    Scale.Data[I] := Column.Length;
   end;
 
   // calculate Rotation
@@ -77,7 +77,7 @@ begin
   for I := 0 to 2 do
   begin
     Column := Vector3(Matrix.Data[I, 0], Matrix.Data[I, 1], Matrix.Data[I, 2]);
-    Result.InternalData[I] := Column.Length;
+    Result.Data[I] := Column.Length;
   end;
 end;
 

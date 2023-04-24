@@ -385,7 +385,7 @@ end;
 function TCurveList.GetCurveByType(const CurveTypeStr: string): TCurve;
 begin
  if SameText(CurveTypeStr, TPiecewiseCubicBezier.ClassName) then
-   Result := TPiecewiseCubicBezier.Create 
+   Result := TPiecewiseCubicBezier.Create
  else
  if SameText(CurveTypeStr, TCasScriptCurve.ClassName) then
    Result := TCasScriptCurve.Create
@@ -465,8 +465,8 @@ begin
       P := PointOfSegment(i, SegmentsForBoundingBox);
       for k := 0 to 2 do
       begin
-        FBoundingBox.Data[0].InternalData[k] := Min(FBoundingBox.Data[0].InternalData[k], P[k]);
-        FBoundingBox.Data[1].InternalData[k] := Max(FBoundingBox.Data[1].InternalData[k], P[k]);
+        FBoundingBox.Data[0].Data[k] := Min(FBoundingBox.Data[0].Data[k], P[k]);
+        FBoundingBox.Data[1].Data[k] := Max(FBoundingBox.Data[1].Data[k], P[k]);
       end;
     end;
   end;
@@ -478,7 +478,7 @@ var
 begin
   TVariable.Value := T;
   for I := 0 to 2 do
-    Result.InternalData[I] := (FFunction[I].Execute as TCasScriptFloat).Value;
+    Result.Data[I] := (FFunction[I].Execute as TCasScriptFloat).Value;
 
   {test: Writeln('Point at t = ',FloatToNiceStr(Single(t)), ' is (',
     Result.ToString, ')');}

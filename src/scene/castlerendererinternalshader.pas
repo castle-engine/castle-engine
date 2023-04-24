@@ -521,7 +521,8 @@ type
 
     { Make symbol DefineName to be defined for all GLSL parts of
       Source[ShaderType]. }
-    procedure Define(const DefineName: string; const ShaderType: TShaderType);
+    procedure Define(const DefineName: string; const ShaderType: TShaderType;
+      const PlugEarly: Boolean = false);
 
     function DeclareShadowFunctions: string;
   public
@@ -2328,9 +2329,10 @@ begin
     WritelnWarning('VRML/X3D', Format('Plug point "%s" not found', [PlugName]));
 end;
 
-procedure TShader.Define(const DefineName: string; const ShaderType: TShaderType);
+procedure TShader.Define(const DefineName: string; const ShaderType: TShaderType;
+  const PlugEarly: Boolean = false);
 var
-  Declaration: string;
+  Declaration, PlugComment: string;
   Code: TCastleStringList;
   {$ifndef OpenGLES}
   I: Integer;
@@ -2338,16 +2340,17 @@ var
 begin
   Declaration := '#define ' + DefineName;
   Code := Source[ShaderType];
+  PlugComment := Iff(PlugEarly, '/* PLUG-DECLARATIONS-EARLY */', '/* PLUG-DECLARATIONS */');
 
   {$ifdef OpenGLES}
   { Do not add it to all Source[stXxx], as then GLSL compiler
     will say "COLOR_PER_VERTEX macro redefinition",
     because we glue all parts for OpenGLES. }
   if Code.Count > 0 then
-    PlugDirectly(Code, 0, '/* PLUG-DECLARATIONS */', Declaration, true);
+    PlugDirectly(Code, 0, PlugComment, Declaration, true);
   {$else}
   for I := 0 to Code.Count - 1 do
-    PlugDirectly(Code, I, '/* PLUG-DECLARATIONS */', Declaration, true);
+    PlugDirectly(Code, I, PlugComment, Declaration, true);
   {$endif}
 end;
 
@@ -3050,6 +3053,8 @@ begin
     Define('CASTLE_BUGGY_BUMP_MAPPING_NUM_STEPS', stFragment);
   if ColorSpaceLinear then
     Define('CASTLE_GAMMA_CORRECTION', stFragment);
+  if NeedsNormals then
+    Define('CASTLE_HAS_NORMALS', stVertex, true);
   case ToneMapping of
     tmNone: ;
     tmUncharted:

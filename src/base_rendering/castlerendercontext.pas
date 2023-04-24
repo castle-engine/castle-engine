@@ -20,7 +20,7 @@ unit CastleRenderContext;
 
 interface
 
-uses SysUtils, Generics.Collections,
+uses SysUtils, Generics.Collections, Classes,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleUtils, CastleVectors, CastleRectangles, CastleGLShaders, CastleColors,
   CastleRenderOptions, CastleGLUtils;
@@ -96,7 +96,7 @@ type
     anything you rely on being stored. Instead, use your own variables for this,
     and only synchronize @link(RenderContext) with your variables.
   }
-  TRenderContext = class
+  TRenderContext = class(TComponent)
   strict private
     type
       TScissorList = class({$ifdef FPC}specialize{$endif} TObjectList<TScissor>)
@@ -161,7 +161,7 @@ type
       This is a bit slower, but makes it honor the stencil test. }
     InternalClearColorsByDraw: Boolean;
 
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Clear the whole buffer contents.
@@ -357,7 +357,7 @@ implementation
 
 uses CastleLog, CastleProjection, CastleInternalGLUtils;
 
-constructor TRenderContext.Create;
+constructor TRenderContext.Create(AOwner: TComponent);
 begin
   inherited;
   FLineWidth := 1;
@@ -715,7 +715,7 @@ begin
     if GLFeatures.VertexArrayObject then
     begin
       if Value <> nil then
-        glBindVertexArray(Value.InternalHandle)
+        glBindVertexArray(Value.InternalHandle(Self))
       else
         glBindVertexArray(0);
     end;

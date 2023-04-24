@@ -2017,12 +2017,10 @@ implementation
 
 uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   {$ifdef USE_VAMPYRE_IMAGING} Imaging, ImagingClasses, ImagingTypes,
-    { Using ImagingExtFileFormats explicitly is necessary to include extra formats when
-      being compiled through Lazarus (LPI / LPK).
-      That is because VampyreImagingPackage.lpk defines DONT_LINK_EXTRAS,
-      which means that Imaging unit doesn't use ImagingExtFileFormats
-      (because otherwise there would be circular dependency between
-      VampyreImagingPackage.lpk and VampyreImagingPackageExt.lpk). }
+    { Using ImagingExtFileFormats explicitly is not actually necessary anymore --
+      Imaging unit automatically uses it.
+      It was necessary in the past, because we used VampyreImagingPackage.lpk,
+      which defined DONT_LINK_EXTRAS. }
     ImagingExtFileFormats,
   {$endif}
   CastleInternalZLib, CastleStringUtils, CastleFilesUtils, CastleLog, CastleDynLib,
@@ -2391,12 +2389,12 @@ type
   var
     SourceRect, DestRect: TRectangle;
   begin
-    SourceRect := CastleRectangles.Rectangle(SourceXs.InternalData[X], SourceYs.InternalData[Y],
-      SourceXs.InternalData[Integer(X) + 1] - SourceXs.InternalData[X],
-      SourceYs.InternalData[Integer(Y) + 1] - SourceYs.InternalData[Y]);
-    DestRect := CastleRectangles.Rectangle(DestXs.InternalData[X], DestYs.InternalData[Y],
-      DestXs.InternalData[Integer(X) + 1] - DestXs.InternalData[X],
-      DestYs.InternalData[Integer(Y) + 1] - DestYs.InternalData[Y]);
+    SourceRect := CastleRectangles.Rectangle(SourceXs.Data[X], SourceYs.Data[Y],
+      SourceXs.Data[Integer(X) + 1] - SourceXs.Data[X],
+      SourceYs.Data[Integer(Y) + 1] - SourceYs.Data[Y]);
+    DestRect := CastleRectangles.Rectangle(DestXs.Data[X], DestYs.Data[Y],
+      DestXs.Data[Integer(X) + 1] - DestXs.Data[X],
+      DestYs.Data[Integer(Y) + 1] - DestYs.Data[Y]);
     InternalResize(PixelSize,
       RawPixels, SourceRect, Width, Height,
       NewPixels, DestRect, ResizeWidth, ResizeHeight,

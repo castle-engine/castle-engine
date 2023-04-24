@@ -23,13 +23,14 @@ interface
 
 uses Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleTimeUtils, CastleClassUtils, CastleSectors,
-  CastleSoundEngine;
+  CastleSoundEngine, CastleInputs, CastleUIControls;
 
 {$define read_interface}
 {$I castlebehaviors_alive.inc}
 {$I castlebehaviors_soundsource.inc}
 {$I castlebehaviors_billboard.inc}
 {$I castlebehaviors_sticktosurface.inc}
+{$I castlebehaviors_move.inc}
 //{$I castlebehaviors_moveattack.inc}
 {$undef read_interface}
 
@@ -44,6 +45,7 @@ uses SysUtils, Math,
 {$I castlebehaviors_soundsource.inc}
 {$I castlebehaviors_billboard.inc}
 {$I castlebehaviors_sticktosurface.inc}
+{$I castlebehaviors_move.inc}
 // TODO {$I castlebehaviors_moveattack.inc}
 
 initialization
@@ -51,5 +53,6 @@ initialization
   RegisterSerializableComponent(TCastleSoundSource, 'Sound Source');
   RegisterSerializableComponent(TCastleBillboard, 'Billboard');
   RegisterSerializableComponent(TCastleStickToSurface, 'Stick To Surface');
+  RegisterSerializableComponent(TCastleMoveBehavior, 'Move');
   // TODO RegisterSerializableComponent(TCastleMoveAttack, 'Move Attack');
 end.

@@ -1569,10 +1569,19 @@
           that scales more in one direction.
 
           Non-uniform scale works, but some collisions are not perfectly
-          calculated then. In particular sphere collision routines
-          (@link(TCastleAbstractRootTransform.WorldSphereCollision),
-          @link(TCastleAbstractRootTransform.WorldSphereCollision2D))
-          only do an approximation in case of non-uniform scale.
+          calculated then:
+
+          @unorderedList(
+            @item(Sphere collision routines
+              @link(TCastleAbstractRootTransform.WorldSphereCollision),
+              @link(TCastleAbstractRootTransform.WorldSphereCollision2D)
+              only do an approximation in case of non-uniform scale.)
+
+            @item(The physics engine also doesn't support non-uniform scale.
+              Descendants of @link(TCastleCollider) may assume that scale
+              is uniform, and use an approximation (average) of the actual 3D
+              scale when necessary.)
+          )
 
           Note that @link(ScaleOrientation) matters only in case of non-uniform scale.
         )
@@ -1594,8 +1603,8 @@
           Otherwise the scaling operation is not invertible,
           and generally collisions will not work correctly.
 
-          If you really need to set zero scale, at least consider
-          using @link(Collides) = @false.)
+          If you really need to set zero scale, the object should not be collidable then.
+          Set @link(Collides) = @false and don't add @link(TCastleCollider) as a behavior.)
       )
 
       Set it like this:
@@ -3397,10 +3406,10 @@ begin
   Result := Translation;
   { Using deprecated in deprecated.
     This should be simpler at some point:
-      Result.InternalData[GC] := Lerp(MiddleHeight, B.Data[0][GC], B.Data[1][GC]);
+      Result.Data[GC] := Lerp(MiddleHeight, B.Data[0][GC], B.Data[1][GC]);
   }
   {$warnings off}
-  Result.InternalData[GC] := Result.InternalData[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
+  Result.Data[GC] := Result.Data[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
   {$warnings on}
 end;
 

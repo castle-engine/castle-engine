@@ -357,9 +357,9 @@ begin
   PositionScale := Scene.BoundingBox.Size;
   for I := 0 to 2 do
   begin
-    if PositionScale.InternalData[I] = 0 then
-      PositionScale.InternalData[I] := 1;
-    PositionShift.InternalData[I] := Scene.BoundingBox.Data[0][I] / PositionScale[I];
+    if PositionScale.Data[I] = 0 then
+      PositionScale.Data[I] := 1;
+    PositionShift.Data[I] := Scene.BoundingBox.Data[0][I] / PositionScale[I];
   end;
 
   WritelnLog('To squeeze area into texture we use area_scale = %f', [AreaScale]);
@@ -557,7 +557,7 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
       Points[3] := Vector2(Rect.Left , Rect.Top);
 
       if RectVao = nil then
-        RectVao := TVertexArrayObject.Create;
+        RectVao := TVertexArrayObject.Create(nil);
       RenderContext.CurrentVao := RectVao;
 
       if RectVbo = 0 then

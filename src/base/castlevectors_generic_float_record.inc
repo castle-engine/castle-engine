@@ -74,23 +74,24 @@ type
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class function GetOne(const Index: TIndex): TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif} static;
   public
-    var
-      X, Y: TGenericScalar;
+    { Get vector components by index.
+      This is a default property, so you can write @code(MyVector[0])
+      instead of @code(MyVector.Data[0]) or @code(MyVector.AsArray[0]).
 
-    { Access (get, set) vector components by index.
-      We discourage using it. Use X, Y to change vector components.
-      Use AsArray to access it by index, read-only. }
-    property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.TranslationXY.Data[0] := Scene.TranslationXY.Data[0] + 1"';{$endif}
+      But note that this is not writeable (because exposing writeable properties on vectors
+      would cause some subtle traps, see https://castle-engine.io/coding_traps ).
+      Use @code(MyVector.Data[0] := 123.456) if you want to set by index,
+      or @code(MyVector.X := 123.456). }
+    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
 
     { @exclude
-      Access (get, set) vector components by index.
-      We discourage using it. Use X, Y, Z to change vector components.
-      Use AsArray to access it by index, read-only. }
+      Access (get, set) vector components by index. }
     property InternalData [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-
-    { Get vector components by index. }
-    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
+      {$ifdef FPC}deprecated 'use Data or X,Y';{$endif}
+    { @exclude
+      Access (get, set) vector components by index. }
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use Data or X,Y';{$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector2): TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -115,9 +116,6 @@ type
       This is suitable for storing the value in a file,
       with a best precision possible. }
     function ToRawString: string;
-
-    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.TranslationXY[0] := Scene.TranslationXY[0] + 1"';{$endif}
 
     function Normalize: TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure NormalizeMe; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -165,6 +163,10 @@ type
 
     class function Zero: TGenericVector2; static; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class property One [const Index: TIndex]: TGenericVector2 read GetOne;
+
+    case Integer of
+      0: (X, Y: TGenericScalar);
+      1: ({ Access (get, set) vector components by index. } Data: array [TIndex] of TGenericScalar);
   end;
 
   { Vector of 3 floating-point values.
@@ -192,23 +194,24 @@ type
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class function GetOne(const Index: TIndex): TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif} static;
   public
-    var
-      X, Y, Z: TGenericScalar;
+    { Get vector components by index.
+      This is a default property, so you can write @code(MyVector[0])
+      instead of @code(MyVector.Data[0]) or @code(MyVector.AsArray[0]).
 
-    { Access (get, set) vector components by index.
-      We discourage using it. Use X, Y, Z to change vector components.
-      Use AsArray to access it by index, read-only. }
-    property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Translation.Data[0] := Scene.Translation.Data[0] + 1"';{$endif}
+      But note that this is not writeable (because exposing writeable properties on vectors
+      would cause some subtle traps, see https://castle-engine.io/coding_traps ).
+      Use @code(MyVector.Data[0] := 123.456) if you want to set by index,
+      or @code(MyVector.X := 123.456). }
+    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
 
     { @exclude
-      Access (get, set) vector components by index.
-      We discourage using it. Use X, Y, Z to change vector components.
-      Use AsArray to access it by index, read-only. }
+      Access (get, set) vector components by index. }
     property InternalData [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-
-    { Get vector components by index. }
-    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
+      {$ifdef FPC}deprecated 'use Data or X, Y, Z';{$endif}
+    { @exclude
+      Access (get, set) vector components by index. }
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use Data or X, Y, Z';{$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector3): TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector3): TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -233,9 +236,6 @@ type
       This is suitable for storing the value in a file,
       with a best precision possible. }
     function ToRawString: string;
-
-    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.Translation[0] := Scene.Translation[0] + 1"';{$endif}
 
     function Normalize: TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure NormalizeMe; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -304,8 +304,6 @@ type
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const V1, V2: TGenericVector3): boolean; static; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
-    function XY: TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-
     { Linear interpolation between two vector values.
       Returns @code((1-A) * V1 + A * V2).
 
@@ -322,6 +320,11 @@ type
 
     class function Zero: TGenericVector3; static; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class property One [const Index: TIndex]: TGenericVector3 read GetOne;
+
+    case Integer of
+      0: (X, Y, Z: TGenericScalar);
+      1: ({ Access (get, set) vector components by index. } Data: array [TIndex] of TGenericScalar);
+      2: (XY: TGenericVector2);
   end;
 
   { Vector of 4 floating-point values.
@@ -336,34 +339,25 @@ type
     function GetItems(const Index: TIndex): TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class function GetOne(const Index: TIndex): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif} static;
-    function GetXYZ: TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    function GetXY: TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    { Commented out, as these are a trap, like
-
-        // DO NOT USE, this is not reliable:
-        Scene.Rotation.XY := ...
-        Scene.Rotation.XYZ := ..
-    }
-    // procedure SetXYZ(const AValue: TGenericVector3); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
-    // procedure SetXY(const AValue: TGenericVector2); {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
   public
-    var
-      X, Y, Z, W: TGenericScalar;
+    { Get vector components by index.
+      This is a default property, so you can write @code(MyVector[0])
+      instead of @code(MyVector.Data[0]) or @code(MyVector.AsArray[0]).
 
-    { Access (get, set) vector components by index.
-      We discourage using it. Use X, Y, Z, W to change vector components.
-      Use AsArray to access it by index, read-only. }
-    property Data [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields; modifying a temporary record value is a trap, e.g. this is not reliable: "Scene.Rotation.Data[0] := Scene.Rotation.Data[0] + 1"';{$endif}
+      But note that this is not writeable (because exposing writeable properties on vectors
+      would cause some subtle traps, see https://castle-engine.io/coding_traps ).
+      Use @code(MyVector.Data[0] := 123.456) if you want to set by index,
+      or @code(MyVector.X := 123.456). }
+    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
 
     { @exclude
-      Access (get, set) vector components by index.
-      We discourage using it. Use X, Y, Z, W to change vector components.
-      Use AsArray to access it by index, read-only. }
+      Access (get, set) vector components by index. }
     property InternalData [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-
-    { Get vector components by index. }
-    property AsArray [const Index: TIndex]: TGenericScalar read GetItems; default;
+      {$ifdef FPC}deprecated 'use Data or X, Y, Z, W';{$endif}
+    { @exclude
+      Access (get, set) vector components by index. }
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use Data or X, Y, Z, W';{$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector4): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector4): TGenericVector4; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -388,9 +382,6 @@ type
       This is suitable for storing the value in a file,
       with a best precision possible. }
     function ToRawString: string;
-
-    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields; modifying a temporary record value is a trap, e.g. this is not reliable "Scene.Rotation[0] := Scene.Rotation[0] + 1"';{$endif}
 
     function Length: TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
@@ -431,22 +422,24 @@ type
     { Convert a 4D homogeneous coordinate to 3D position. }
     function ToPosition: TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
-    { Get first 3 components as a 3D vector.
-      This simply rejects the 4th component. }
-    property XYZ: TGenericVector3 read GetXYZ {write SetXYZ};
-
-    { Get first 2 components as a 2D vector.
-      This simply rejects the remaining vector components. }
-    property XY: TGenericVector2 read GetXY {write SetXY};
-
     { Linear interpolation between two vector values.
       Works analogous to @link(TGenericVector3.Lerp TVector3.Lerp) }
     class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4; static; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
     class function Zero: TGenericVector4; static; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     class property One [const Index: TIndex]: TGenericVector4 read GetOne;
-  end;
 
+    case Integer of
+      0: (X, Y, Z, W: TGenericScalar);
+      1: ({ Access (get, set) vector components by index. } Data: array [TIndex] of TGenericScalar);
+      2: ({ Get first 2 components as a 2D vector.
+            This simply rejects the remaining vector components. }
+          XY: TGenericVector2;
+          ZW: TGenericVector2);
+      3: ({ Get first 3 components as a 3D vector.
+            This simply rejects the 4th component. }
+          XYZ: TGenericVector3);
+  end;
 
   { 2x2 matrix of floating-point values.
     @seealso TGenericMatrix3 }
@@ -933,7 +926,7 @@ end;
 class function TGenericVector2.GetOne(const Index: TIndex): TGenericVector2;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result.InternalData[Index] := 1.0;
+  Result.Data[Index] := 1.0;
 end;
 
 { TGenericVector3 ------------------------------------------------------------ }
@@ -1165,12 +1158,6 @@ begin
             (V1.Z = V2.Z);
 end;
 
-function TGenericVector3.XY: TGenericVector2;
-begin
-  Result.X := X;
-  Result.Y := Y;
-end;
-
 class function TGenericVector3.Lerp(const A: TGenericScalar; const V1, V2: TGenericVector3): TGenericVector3;
 begin
   Result.X := V1.X + A * (V2.X - V1.X);
@@ -1186,7 +1173,7 @@ end;
 class function TGenericVector3.GetOne(const Index: TIndex): TGenericVector3;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result.InternalData[Index] := 1.0;
+  Result.Data[Index] := 1.0;
 end;
 
 { TGenericVector4 ------------------------------------------------------------ }
@@ -1397,34 +1384,6 @@ begin
   Result.Z := Z * Inv;
 end;
 
-function TGenericVector4.GetXYZ: TGenericVector3;
-begin
-  Result.X := X;
-  Result.Y := Y;
-  Result.Z := Z;
-end;
-
-function TGenericVector4.GetXY: TGenericVector2;
-begin
-  Result.X := X;
-  Result.Y := Y;
-end;
-
-{
-procedure TGenericVector4.SetXY(const AValue: TGenericVector2);
-begin
-  X := AValue.X;
-  Y := AValue.Y;
-end;
-
-procedure TGenericVector4.SetXYZ(const AValue: TGenericVector3);
-begin
-  X := AValue.X;
-  Y := AValue.Y;
-  Z := AValue.Z;
-end;
-}
-
 class function TGenericVector4.Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4;
 begin
   Result.X := V1.X + A * (V2.X - V1.X);
@@ -1441,7 +1400,7 @@ end;
 class function TGenericVector4.GetOne(const Index: TIndex): TGenericVector4;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result.InternalData[Index] := 1.0;
+  Result.Data[Index] := 1.0;
 end;
 
 { TGenericMatrix2 ------------------------------------------------------------ }

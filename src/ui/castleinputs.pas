@@ -304,32 +304,24 @@ type
       Note: It is often easier to group your controls in TInputShortcutList,
       and call @link(TInputShortcutList.SaveToConfig) to save everything. }
     procedure SaveToConfig(const Config: TCastleConfig; ConfigPath: String);
-  published
-    { Key/mouse properties on TInputShortcut are declared without
-      "default" specifier, to always save them in Lazarus LFM file.
-      Reason: various class (TCastleExamineNavigation, TCastleWalkNavigation, TCastleViewport)
-      create them setting different default values.
-      If we would declare that default for Key1 is keyNone,
-      then you couldn't set in Lazarus e.g. TCastleWalkNavigation.Input_Forward.Key1 to keyNone.
-      Such keyNone would not be saved to LFM (since it would equal Key1 default
-      value), but when reading the LFM back it would change into keyArrowUp
-      (because TCastleWalkNavigation creates Input_Forward with keyArrowUp by default). }
-
-    { Key shortcuts for given command. You can set any of them to keyNone
-      to indicate that no key is assigned.
-      @groupBegin }
-    property Key1: TKey read FKey1 write SetKey1;
-    property Key2: TKey read FKey2 write SetKey2;
-    { @groupEnd }
-
-    { Character shortcut for given command, may be UTF-8 character (multi-byte).
-      You can set this to '' to indicate that no character shortcut is assigned. }
-    property KeyString: String read FKeyString write SetKeyString;
 
     {$ifdef FPC}
     property Character: Char read GetCharacter write SetCharacter;
       deprecated 'use KeyString';
     {$endif}
+  published
+    { TODO: We should implement "stored" to store one set (defaults). }
+
+    { Key shortcuts for given command. You can set any of them to keyNone
+      to indicate that no key is assigned.
+      @groupBegin }
+    property Key1: TKey read FKey1 write SetKey1 default keyNone;
+    property Key2: TKey read FKey2 write SetKey2 default keyNone;
+    { @groupEnd }
+
+    { Character shortcut for given command, may be UTF-8 character (multi-byte).
+      You can set this to '' to indicate that no character shortcut is assigned. }
+    property KeyString: String read FKeyString write SetKeyString;
 
     { Mouse shortcut for given command.
       Only relevant if MouseButtonUse is @true.
@@ -345,10 +337,10 @@ type
       which means that any state of modifiers is OK.
 
       @groupBegin }
-    property MouseButtonUse: boolean read FMouseButtonUse write SetMouseButtonUse;
-    property MouseButton: TCastleMouseButton read FMouseButton write SetMouseButton;
-    property MouseButtonCheckModifiers: TModifierKeys read FMouseButtonCheckModifiers write SetMouseButtonCheckModifiers;
-    property MouseButtonModifiers: TModifierKeys read FMouseButtonModifiers write SetMouseButtonModifiers;
+    property MouseButtonUse: Boolean read FMouseButtonUse write SetMouseButtonUse default false;
+    property MouseButton: TCastleMouseButton read FMouseButton write SetMouseButton default buttonLeft;
+    property MouseButtonCheckModifiers: TModifierKeys read FMouseButtonCheckModifiers write SetMouseButtonCheckModifiers default [];
+    property MouseButtonModifiers: TModifierKeys read FMouseButtonModifiers write SetMouseButtonModifiers default [];
     { @groupEnd }
 
     { Alternative mouse shortcut for given command.
@@ -356,10 +348,10 @@ type
       All properties work analogously to MouseButtonUse, MouseButton,
       MouseButtonCheckModifiers, MouseButtonModifiers.
       @groupBegin }
-    property MouseButton2Use: boolean read FMouseButton2Use write SetMouseButton2Use;
-    property MouseButton2: TCastleMouseButton read FMouseButton2 write SetMouseButton2;
-    property MouseButton2CheckModifiers: TModifierKeys read FMouseButton2CheckModifiers write SetMouseButton2CheckModifiers;
-    property MouseButton2Modifiers: TModifierKeys read FMouseButton2Modifiers write SetMouseButton2Modifiers;
+    property MouseButton2Use: boolean read FMouseButton2Use write SetMouseButton2Use default false;
+    property MouseButton2: TCastleMouseButton read FMouseButton2 write SetMouseButton2 default buttonLeft;
+    property MouseButton2CheckModifiers: TModifierKeys read FMouseButton2CheckModifiers write SetMouseButton2CheckModifiers default [];
+    property MouseButton2Modifiers: TModifierKeys read FMouseButton2Modifiers write SetMouseButton2Modifiers default [];
     { @groupEnd }
 
     { Mouse wheel to activate this command. Note that mouse wheels cannot be
@@ -367,7 +359,7 @@ type
       so this is only suitable for commands that work in steps
       (not continuously). }
     property MouseWheel: TMouseWheelDirection read FMouseWheel
-      write SetMouseWheel;
+      write SetMouseWheel default mwNone;
 
     { Default values for properties key/mouse.
       You can change them --- this will change what MakeDefault does.
@@ -378,45 +370,32 @@ type
       changes. You can explicitly change Key1 property, or just call
       MakeDefault afterwards, if you want this to happen.
       @groupBegin }
-    property DefaultKey1: TKey read FDefaultKey1 write FDefaultKey1;
-    property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2;
+    property DefaultKey1: TKey read FDefaultKey1 write FDefaultKey1 default keyNone;
+    property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2 default keyNone;
     property DefaultKeyString: String
       read FDefaultKeyString write FDefaultKeyString;
 
     property DefaultMouseButtonUse: boolean
-      read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
+      read FDefaultMouseButtonUse write FDefaultMouseButtonUse default false;
     property DefaultMouseButton: TCastleMouseButton
-      read FDefaultMouseButton write FDefaultMouseButton;
+      read FDefaultMouseButton write FDefaultMouseButton default buttonLeft;
     property DefaultMouseButtonCheckModifiers: TModifierKeys
-      read FDefaultMouseButtonCheckModifiers write FDefaultMouseButtonCheckModifiers;
+      read FDefaultMouseButtonCheckModifiers write FDefaultMouseButtonCheckModifiers default [];
     property DefaultMouseButtonModifiers: TModifierKeys
-      read FDefaultMouseButtonModifiers write FDefaultMouseButtonModifiers;
+      read FDefaultMouseButtonModifiers write FDefaultMouseButtonModifiers default [];
 
     property DefaultMouseButton2Use: boolean
-      read FDefaultMouseButton2Use write FDefaultMouseButton2Use;
+      read FDefaultMouseButton2Use write FDefaultMouseButton2Use default false;
     property DefaultMouseButton2: TCastleMouseButton
-      read FDefaultMouseButton2 write FDefaultMouseButton2;
+      read FDefaultMouseButton2 write FDefaultMouseButton2 default buttonLeft;
     property DefaultMouseButton2CheckModifiers: TModifierKeys
-      read FDefaultMouseButton2CheckModifiers write FDefaultMouseButton2CheckModifiers;
+      read FDefaultMouseButton2CheckModifiers write FDefaultMouseButton2CheckModifiers default [];
     property DefaultMouseButton2Modifiers: TModifierKeys
-      read FDefaultMouseButton2Modifiers write FDefaultMouseButton2Modifiers;
+      read FDefaultMouseButton2Modifiers write FDefaultMouseButton2Modifiers default [];
 
     property DefaultMouseWheel: TMouseWheelDirection
-      read FDefaultMouseWheel write FDefaultMouseWheel;
+      read FDefaultMouseWheel write FDefaultMouseWheel default mwNone;
     { @groupEnd }
-
-    { }
-    { TODO: Maybe introduce a way to limit (TKey, or all shortcuts?)
-      to activate only when specific modifier is pressed.
-
-      Right now both TCastleWalkNavigation and TCastleExamineNavigation check modifiers
-      and have not configurable behavior:
-
-      - TCastleWalkNavigation allows inputs only when modifiers = [].
-        Except Input_Right/LeftRot and Input_Up/DownRotate that have special
-        meaning when Ctrl is pressed (see TCastleWalkNavigation.AllowSlowerRotations).
-      - TCastleExamineNavigation allows Inputs_Move only when modifiers = [mkCtrl].
-        Other TCastleExamineNavigation are allowed only when modifiers = []. }
   end;
 
   { Group of TInputShortcut, to easily manage (search, load, save...)
