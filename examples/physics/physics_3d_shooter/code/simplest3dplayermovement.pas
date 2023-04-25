@@ -271,7 +271,6 @@ begin
   else
     VerticalVelocity := RBody.LinearVelocity.Y;
 
-
   { Integrate velocities }
   IntegratedVelocities := HorizontalVelocity;
   IntegratedVelocities.Y := VerticalVelocity;
