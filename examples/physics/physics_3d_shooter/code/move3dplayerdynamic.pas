@@ -129,7 +129,7 @@ var
 begin
   CastleCamera := GetParentCamera;
   if CastleCamera <> nil then
-     Result := CastleCamera.Direction
+    Result := CastleCamera.Direction
   else
     Result := Parent.Direction;
 end;
@@ -174,25 +174,25 @@ begin
   if FocusedContainer = nil then
     Exit(false);
 
-  if Input_Forward.IsPressed(FocusedContainer) then
+  if InputForward.IsPressed(FocusedContainer) then
   begin
     MoveDirection := GetDirection;
     Exit(true);
   end;
 
-  if Input_Backward.IsPressed(FocusedContainer) then
+  if InputBackward.IsPressed(FocusedContainer) then
   begin
     MoveDirection := -GetDirection;
     Exit(true);
   end;
 
-  if IsOnGround and Input_RightStrafe.IsPressed(FocusedContainer) then
+  if IsOnGround and InputRightStrafe.IsPressed(FocusedContainer) then
   begin
     MoveDirection := TVector3.CrossProduct(GetDirection, Parent.Up);
     Exit(true);
   end;
 
-  if IsOnGround and Input_LeftStrafe.IsPressed(FocusedContainer) then
+  if IsOnGround and InputLeftStrafe.IsPressed(FocusedContainer) then
   begin
     MoveDirection := -TVector3.CrossProduct(GetDirection, Parent.Up);
     Exit(true);
@@ -323,7 +323,7 @@ begin
   end;
 
   JumpVelocity := 0;
-  if (FocusedContainer <> nil) and (Input_Jump.IsPressed(FocusedContainer))
+  if (FocusedContainer <> nil) and (InputJump.IsPressed(FocusedContainer))
     and (not FWasJumpInput) and IsOnGroundBool then
   begin
     FWasJumpInput := true;
@@ -430,25 +430,25 @@ begin
   FInputRightStrafe             := TInputShortcut.Create(Self);
   FInputJump                    := TInputShortcut.Create(Self);
 
-  Input_Forward                 .Assign(keyW, keyArrowUp);
-  Input_Backward                .Assign(keyS, keyArrowDown);
-  Input_LeftStrafe              .Assign(keyA);
-  Input_RightStrafe             .Assign(keyD);
+  InputForward                 .Assign(keyW, keyArrowUp);
+  InputBackward                .Assign(keyS, keyArrowDown);
+  InputLeftStrafe              .Assign(keyA);
+  InputRightStrafe             .Assign(keyD);
   { For move speed we use also character codes +/-, as numpad
     may be hard to reach on some keyboards (e.g. on laptops). }
-  Input_Jump                    .Assign(keySpace);
+  InputJump                    .Assign(keySpace);
 
-  Input_Forward                .SetSubComponent(true);
-  Input_Backward               .SetSubComponent(true);
-  Input_LeftStrafe             .SetSubComponent(true);
-  Input_RightStrafe            .SetSubComponent(true);
-  Input_Jump                   .SetSubComponent(true);
+  InputForward                .SetSubComponent(true);
+  InputBackward               .SetSubComponent(true);
+  InputLeftStrafe             .SetSubComponent(true);
+  InputRightStrafe            .SetSubComponent(true);
+  InputJump                   .SetSubComponent(true);
 
-  Input_Forward                .Name := 'Input_Forward';
-  Input_Backward               .Name := 'Input_Backward';
-  Input_LeftStrafe             .Name := 'Input_LeftStrafe';
-  Input_RightStrafe            .Name := 'Input_RightStrafe';
-  Input_Jump                   .Name := 'Input_Jump';
+  InputForward                .Name := 'Input_Forward';
+  InputBackward               .Name := 'Input_Backward';
+  InputLeftStrafe             .Name := 'Input_LeftStrafe';
+  InputRightStrafe            .Name := 'Input_RightStrafe';
+  InputJump                   .Name := 'Input_Jump';
 end;
 
 function TMove3DPlayerDynamic.PropertySections(const PropertyName: String
