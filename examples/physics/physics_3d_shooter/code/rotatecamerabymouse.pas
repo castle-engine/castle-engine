@@ -11,14 +11,18 @@ uses
 type
   TRotateCameraByMouse = class(TCastleBehavior)
   private
+    FMouseLook: Boolean;
     MinAngleFromGravityUp: Single;
+    FLastUpdateMousePosition: TVector2;
+    FLastMousePositionIsSet: Boolean;
     const
-      DefaultMouseLookHorizontalSensitivity = Pi * 0.1 / 180;
-      DefaultMouseLookVerticalSensitivity = Pi * 0.1 / 180;
+      DefaultMouseLookHorizontalSensitivity = Pi * 0.2 / 180;
+      DefaultMouseLookVerticalSensitivity = Pi * 0.2 / 180;
       DefaultMinAngleFromGravityUp = Pi * 10 / 180;
 
     function Container: TCastleContainer;
     function Camera: TCastleCamera;
+    procedure SetMouseLook(const Value: boolean);
     procedure HandleMouseLook;
     procedure ProcessMouseLookDelta(const Delta: TVector2);
 
@@ -26,15 +30,19 @@ type
     procedure RotateAroundUp(const Angle: Single);
     procedure RotateHorizontal(const Angle: Single);
     procedure RotateVertical(AngleRad: Single);
+
+    function InternalUsingMouseLook: Boolean;
   protected
      procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
      constructor Create(AOwner: TComponent); override;
+  published
+    property MouseLook: boolean read FMouseLook write SetMouseLook default false;
   end;
 
 implementation
 
-uses CastleUtils, CastleComponentSerialize;
+uses CastleUtils, CastleComponentSerialize, CastleKeysMouse;
 
 { TMouseCameraRotation }
 
@@ -48,24 +56,36 @@ begin
   Result := Parent as TCastleCamera;
 end;
 
+procedure TRotateCameraByMouse.SetMouseLook(const Value: boolean);
+begin
+  {if FMouseLook <> Value then
+  begin
+    FMouseLook := Value;
+    if InternalUsingMouseLook then
+    begin
+      Cursor := mcForceNone;
+      if Container <> nil then
+        Container.MouseLookPress;
+    end else
+      Cursor := mcDefault;
+  end;}
+end;
+
 procedure TRotateCameraByMouse.HandleMouseLook;
 var
   MouseChange: TVector2;
-  Middle: TVector2;
 begin
-  Middle.X := Container.Rect.Middle.X;
-  Middle.Y := Container.Rect.Middle.Y;
-
-  MouseChange := (Container.MousePosition) - Middle;
+  MouseChange := (Container.MousePosition) - FLastUpdateMousePosition;
 
   if not MouseChange.IsPerfectlyZero then
   begin
 //    if InvertVerticalMouseLook then
 //      MouseChange.Y := -MouseChange.Y;
-    MouseChange.X := MouseChange.X * DefaultMouseLookHorizontalSensitivity * 0.01;
-    MouseChange.Y := MouseChange.Y * DefaultMouseLookVerticalSensitivity * 0.01;
+    MouseChange.X := MouseChange.X * DefaultMouseLookHorizontalSensitivity;
+    MouseChange.Y := MouseChange.Y * DefaultMouseLookVerticalSensitivity;
     ProcessMouseLookDelta(MouseChange);
   end;
+  FLastUpdateMousePosition := Container.MousePosition;
 end;
 
 procedure TRotateCameraByMouse.ProcessMouseLookDelta(const Delta: TVector2);
@@ -174,14 +194,44 @@ begin
   Camera.SetWorldView(OldPosition, NewDirection, NewUp);
 end;
 
+function TRotateCameraByMouse.InternalUsingMouseLook: Boolean;
+begin
+  Result := MouseLook; //and (niNormal in UsingInput);
+
+  { Note: we used to have here condition "and (not CastleDesignMode)"
+    as escaping from MouseLook was impossible, if you enable it in Object Inspector.
+    But it is OK now: our TCastleWalkNavigationDesign makes mouse look intuitive to use. }
+end;
+
 
 procedure TRotateCameraByMouse.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
+
+  procedure MouseLookUpdate;
+  begin
+    if InternalUsingMouseLook and (Container <> nil) then
+      Container.MouseLookUpdate;
+  end;
+
 begin
   if CastleApplicationMode = appDesign then
     Exit;
 
-  HandleMouseLook;
+  if FocusedContainer = nil then
+    Exit;
+
+  if buttonRight in FocusedContainer.MousePressed then
+  begin
+    if not FLastMousePositionIsSet then
+    begin
+      FLastUpdateMousePosition := Container.MousePosition;
+      FLastMousePositionIsSet := true;
+    end;
+
+    HandleMouseLook;
+  end
+  else
+    FLastMousePositionIsSet := false;
 
   inherited Update(SecondsPassed, RemoveMe);
 end;
@@ -190,6 +240,8 @@ constructor TRotateCameraByMouse.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   MinAngleFromGravityUp := DefaultMinAngleFromGravityUp;
+  FMouseLook := false;
+  FLastUpdateMousePosition := Vector2(0, 0);
 end;
 
 initialization
