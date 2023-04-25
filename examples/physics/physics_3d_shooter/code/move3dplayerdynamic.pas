@@ -17,11 +17,11 @@ type
 
     FWasJumpInput: Boolean;
 
-    FInput_Forward: TInputShortcut;
-    FInput_Backward: TInputShortcut;
-    FInput_RightStrafe: TInputShortcut;
-    FInput_LeftStrafe: TInputShortcut;
-    FInput_Jump: TInputShortcut;
+    FInputForward: TInputShortcut;
+    FInputBackward: TInputShortcut;
+    FInputRightStrafe: TInputShortcut;
+    FInputLeftStrafe: TInputShortcut;
+    FInputJump: TInputShortcut;
 
     { Zero we can't control player in air, one we have full control }
     FAirMovementControl: Single;
@@ -64,12 +64,6 @@ type
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    property Input_Forward: TInputShortcut read FInput_Forward;
-    property Input_Backward: TInputShortcut read FInput_Backward;
-    property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
-    property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
-    property Input_Jump: TInputShortcut read FInput_Jump;
-
   published
     property JumpSpeed: Single read FJumpSpeed write FJumpSpeed
       {$ifdef FPC}default DefaultJumpSpeed{$endif};
@@ -79,6 +73,12 @@ type
 
     property Acceleration: Single read FAcceleration write FAcceleration
       {$ifdef FPC}default DefaultAcceleration{$endif};
+
+    property InputForward: TInputShortcut read FInputForward;
+    property InputBackward: TInputShortcut read FInputBackward;
+    property InputLeftStrafe: TInputShortcut read FInputLeftStrafe;
+    property InputRightStrafe: TInputShortcut read FInputRightStrafe;
+    property InputJump: TInputShortcut read FInputJump;
 
     { Should we have control on the player movement in the air. Must be >= 0.
 
@@ -424,11 +424,11 @@ begin
   FAirMovementControl := DefaultAirMovementControl;
   FAirRotationControl := DefaultAirRotationControl;
 
-  FInput_Forward                 := TInputShortcut.Create(Self);
-  FInput_Backward                := TInputShortcut.Create(Self);
-  FInput_LeftStrafe              := TInputShortcut.Create(Self);
-  FInput_RightStrafe             := TInputShortcut.Create(Self);
-  FInput_Jump                    := TInputShortcut.Create(Self);
+  FInputForward                 := TInputShortcut.Create(Self);
+  FInputBackward                := TInputShortcut.Create(Self);
+  FInputLeftStrafe              := TInputShortcut.Create(Self);
+  FInputRightStrafe             := TInputShortcut.Create(Self);
+  FInputJump                    := TInputShortcut.Create(Self);
 
   Input_Forward                 .Assign(keyW, keyArrowUp);
   Input_Backward                .Assign(keyS, keyArrowDown);
