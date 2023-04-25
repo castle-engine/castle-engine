@@ -21,7 +21,8 @@ interface
 uses Classes,
   CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras,
-  CastleViewport, Move3DPlayerDynamic, RotateCameraByMouse;
+  CastleViewport, Move3DPlayerDynamic, RotateCameraByMouse,
+  Simplest3DPlayerMovement;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -54,7 +55,8 @@ begin
   inherited;
   //DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
   //DesignUrl := 'castle-data:/gameviewmain_scaled_player_test.castle-user-interface';
-  DesignUrl := 'castle-data:/gameviewmain_behaviors.castle-user-interface';
+  //DesignUrl := 'castle-data:/gameviewmain_behaviors.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest.castle-user-interface';
   //DesignUrl := 'castle-data:/gameviewmain_direct.castle-user-interface';
 end;
 

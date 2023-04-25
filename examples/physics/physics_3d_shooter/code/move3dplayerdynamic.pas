@@ -40,11 +40,7 @@ type
   protected
     procedure WorldAfterAttach; override;
 
-    { Returns true when there is any input for moving, Direction can be zero
-      when no input, that's only keyboard input, maybe should be implemented on
-      Container side }
-    function GetMoveDirectionFromInput(const IsOnGround: Boolean;
-      var MoveDirection: TVector3): Boolean; virtual;
+    function GetDirectionFromInput: TVector3; virtual;
 
     function GetAcceleration: Single; virtual;
 
@@ -168,37 +164,29 @@ begin
   ConfigureUp;
 end;
 
-function TMove3DPlayerDynamic.GetMoveDirectionFromInput(
-  const IsOnGround: Boolean; var MoveDirection: TVector3): Boolean;
+function TMove3DPlayerDynamic.GetDirectionFromInput: TVector3;
 begin
+  Result := Vector3(0, 0, 0);
+
   if FocusedContainer = nil then
-    Exit(false);
+    Exit;
 
   if InputForward.IsPressed(FocusedContainer) then
-  begin
-    MoveDirection := GetDirection;
-    Exit(true);
-  end;
+    Result := Result + Vector3(0, 0, -1);
 
   if InputBackward.IsPressed(FocusedContainer) then
-  begin
-    MoveDirection := -GetDirection;
-    Exit(true);
-  end;
+    Result := Result + Vector3(0, 0, 1);
 
-  if IsOnGround and InputRightStrafe.IsPressed(FocusedContainer) then
-  begin
-    MoveDirection := TVector3.CrossProduct(GetDirection, Parent.Up);
-    Exit(true);
-  end;
+  if InputRightStrafe.IsPressed(FocusedContainer) then
+    Result := Result + Vector3(-1, 0, 0);
 
-  if IsOnGround and InputLeftStrafe.IsPressed(FocusedContainer) then
-  begin
-    MoveDirection := -TVector3.CrossProduct(GetDirection, Parent.Up);
-    Exit(true);
-  end;
+  if InputLeftStrafe.IsPressed(FocusedContainer) then
+    Result := Result + Vector3(1, 0, 0);
 
-  Result := false;
+  if InputJump.IsPressed(FocusedContainer) then
+    Result := Result + Vector3(0, 1, 0);
+
+  WritelnLog('Kierunek z inputu ' + Result.ToString);
 end;
 
 function TMove3DPlayerDynamic.GetAcceleration: Single;
@@ -297,9 +285,10 @@ var
   VelocityLength: Single;
   HVelocity: TVector3;
   VVelocity: Single;
-  MoveDirection: TVector3;
+  InputDirection: TVector3;
   JumpVelocity: Single;
   DeltaHVelocity: Single;
+  HorizontalVelocity: TVector3;
 begin
   RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
   if not Assigned(RBody) then
@@ -309,18 +298,50 @@ begin
   if not Assigned(Collider) then
     Exit;
 
+
   DeltaHVelocity := 0;
 
   IsOnGroundBool := IsPlayerOnGround(RBody, Collider);
 
-  if GetMoveDirectionFromInput(IsOnGroundBool, MoveDirection) then
+  InputDirection := GetDirectionFromInput;
+
+  WritelnLog('F ' + Parent.Direction.ToString);
+  WritelnLog('R ' + TVector3.CrossProduct(Parent.Direction, Parent.Up).ToString);
+  WritelnLog('Hmm ' + (Parent.Direction * (InputDirection.Z * HorizontalSpeed)).ToString);
+  WritelnLog('Hmm2 ' + (TVector3.CrossProduct(Parent.Direction, Parent.Up) * (InputDirection.X * HorizontalSpeed)).ToString);
+
+
+  { When input direction is 1.00 0.00 -1.00 this move faster }
+
+  {HorizontalVelocity := Parent.Direction * (InputDirection.Z * HorizontalSpeed)
+  + TVector3.CrossProduct(Parent.Direction, Parent.Up) * (InputDirection.X * HorizontalSpeed);}
+
+  HorizontalVelocity := Parent.Direction * InputDirection.Z
+    + TVector3.CrossProduct(Parent.Direction, Parent.Up) * InputDirection.X;
+
+  HorizontalVelocity :=  HorizontalVelocity.Normalize * HorizontalSpeed;
+
+  WritelnLog('Horizontal2 ' + HorizontalVelocity.ToString);
+
+  { Jump support }
+
+  if IsOnGroundBool then
+    FWasJumpInput := false;
+
+
+
+
+  RBody.LinearVelocity := HorizontalVelocity;
+  Exit;
+
+{  if GetDirectionFromInput(IsOnGroundBool, InputDirection) then
   begin
     { We get the acceleration value and that value is
       specified for 60 frames per seconds, then we must
       protect it's value to update's rate changes }
     DeltaHVelocity := GetAcceleration * 60 * SecondsPassed *
       MovementControlFactor(IsOnGroundBool);
-  end;
+  end;}
 
   JumpVelocity := 0;
   if (FocusedContainer <> nil) and (InputJump.IsPressed(FocusedContainer))
@@ -358,7 +379,7 @@ begin
       if VelocityLength > HorizontalSpeed then
           VelocityLength := HorizontalSpeed;
 
-      Vel := MoveDirection * VelocityLength;
+      Vel := InputDirection * VelocityLength;
 
       if IsZero(JumpVelocity) then
         Vel.Data[FWorldUpAxisIndex] := VVelocity
@@ -371,7 +392,7 @@ begin
         Notice that by default FAirMovementControl = 0 so no change
         will be made. }
 
-      Vel := Vel + (MoveDirection * DeltaHVelocity);
+      Vel := Vel + (InputDirection * DeltaHVelocity);
 
       { Here we only check speed is not faster than max speed }
       HVelocity := Vel;

@@ -23,10 +23,6 @@
           {
             "$$ClassName" : "TCastleTransform",
             "Name" : "Player",
-            "RotationPersistent" : {
-              "$$ClassName" : "TCastleVector4RotationPersistent",
-              "Z" : 1.0000000000000000E+000
-            },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "Y" : 2.0000000000000000E+000,
@@ -63,7 +59,7 @@
                 "Radius" : 5.0000000000000000E-001
               },
               {
-                "$$ClassName" : "TMove3DPlayerDynamic",
+                "$$ClassName" : "TSimplest3DPlayerMovement",
                 "InputBackward" : {
                   "$$ClassName" : "TInputShortcut",
                   "DefaultKey1" : "keyS",
@@ -93,7 +89,7 @@
                   "DefaultKey1" : "keyD",
                   "Key1" : "keyD"
                 },
-                "Name" : "Move3DPlayerDynamic1"
+                "Name" : "Simplest3DPlayerMovement1"
               }
             ]
           },
