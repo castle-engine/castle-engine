@@ -20,7 +20,6 @@ type
       DefaultMouseLookVerticalSensitivity = Pi * 0.2 / 180;
       DefaultMinAngleFromGravityUp = Pi * 10 / 180;
 
-    function Container: TCastleContainer;
     function Camera: TCastleCamera;
     procedure SetMouseLook(const Value: boolean);
     procedure HandleMouseLook;
@@ -46,11 +45,6 @@ uses CastleUtils, CastleComponentSerialize, CastleKeysMouse;
 
 { TMouseCameraRotation }
 
-function TRotateCameraByMouse.Container: TCastleContainer;
-begin
-  Result := TCastleViewport(Parent.World.Owner).Container;
-end;
-
 function TRotateCameraByMouse.Camera: TCastleCamera;
 begin
   Result := Parent as TCastleCamera;
@@ -75,7 +69,7 @@ procedure TRotateCameraByMouse.HandleMouseLook;
 var
   MouseChange: TVector2;
 begin
-  MouseChange := (Container.MousePosition) - FLastUpdateMousePosition;
+  MouseChange := (FocusedContainer.MousePosition) - FLastUpdateMousePosition;
 
   if not MouseChange.IsPerfectlyZero then
   begin
@@ -85,7 +79,7 @@ begin
     MouseChange.Y := MouseChange.Y * DefaultMouseLookVerticalSensitivity;
     ProcessMouseLookDelta(MouseChange);
   end;
-  FLastUpdateMousePosition := Container.MousePosition;
+  FLastUpdateMousePosition := FocusedContainer.MousePosition;
 end;
 
 procedure TRotateCameraByMouse.ProcessMouseLookDelta(const Delta: TVector2);
@@ -207,11 +201,11 @@ end;
 procedure TRotateCameraByMouse.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 
-  procedure MouseLookUpdate;
+  {procedure MouseLookUpdate;
   begin
     if InternalUsingMouseLook and (Container <> nil) then
       Container.MouseLookUpdate;
-  end;
+  end;}
 
 begin
   if CastleApplicationMode = appDesign then
@@ -224,7 +218,7 @@ begin
   begin
     if not FLastMousePositionIsSet then
     begin
-      FLastUpdateMousePosition := Container.MousePosition;
+      FLastUpdateMousePosition := FocusedContainer.MousePosition;
       FLastMousePositionIsSet := true;
     end;
 
