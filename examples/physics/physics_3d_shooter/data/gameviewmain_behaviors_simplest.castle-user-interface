@@ -37,7 +37,13 @@
                 },
                 "Perspective" : {
                   "$$ClassName" : "TCastlePerspective"
-                }
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TRotateCameraByMouse",
+                    "Name" : "RotateCameraByMouse1"
+                  }
+                ]
               }
             ],
             "$Behaviors" : [
