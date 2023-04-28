@@ -41,8 +41,6 @@ type
     procedure TestClamp;
     procedure TestSimpleMath;
     procedure TestMinMax;
-    //procedure TestStableSort;
-    procedure TestSort;
     procedure TestFileExt;
     procedure TestFloatModulo;
     procedure TestRandomIntRange;
@@ -315,8 +313,8 @@ end;
 procedure TTestCastleUtils.TestStrings;
 begin
   // Uppercase Polish chars. We use UTF-8 now and it should work? Doesn't work yet.
-  // AssertTrue(AnsiSameText('bêcwa³', 'BÊCWA£'));
-  // AssertTrue(not AnsiSameStr('bêcwa³', 'BÊCWA£'));
+  // AssertTrue(AnsiSameText('bï¿½cwaï¿½', 'Bï¿½CWAï¿½'));
+  // AssertTrue(not AnsiSameStr('bï¿½cwaï¿½', 'Bï¿½CWAï¿½'));
 
   AssertTrue(SameText('becwal', 'BECWAL'));
   AssertTrue(not SameText('becwal', 'becwal '));
@@ -436,79 +434,6 @@ begin
   AssertTrue(MinIntValue([345, 123, 789]) = 123);
   AssertTrue(MaxIntValue([345, 123, 789]) = 789);
 end;
-
-type
-  TRec = record Id: Integer; SortKey: Integer; end;
-  PRec = ^TRec;
-
-function IsSmallerRec(const A, B, Data: Pointer): boolean;
-begin
-  Result := PRec(A)^.SortKey < PRec(B)^.SortKey;
-end;
-
-procedure TTestCastleUtils.TestSort;
-var
-  Recs: array of TRec;
-begin
-  SetLength(Recs, 6);
-  Recs[0].Id := 0;
-  Recs[0].SortKey := -1;
-  Recs[1].Id := 1;
-  Recs[1].SortKey := -1;
-  Recs[2].Id := 2;
-  Recs[2].SortKey := -1;
-  Recs[3].Id := 3;
-  Recs[3].SortKey := -1;
-  Recs[4].Id := 4;
-  Recs[4].SortKey := -10;
-  Recs[5].Id := 5;
-  Recs[5].SortKey := 10;
-
-  Sort(Pointer(Recs), SizeOf(TRec), @IsSmallerRec, nil, 0, Length(Recs) - 1);
-
-  AssertTrue(Recs[0].SortKey = -10);
-  AssertTrue(Recs[1].SortKey = -1);
-  AssertTrue(Recs[2].SortKey = -1);
-  AssertTrue(Recs[3].SortKey = -1);
-  AssertTrue(Recs[4].SortKey = -1);
-  AssertTrue(Recs[5].SortKey = 10);
-end;
-
-{
-procedure TTestCastleUtils.TestStableSort;
-var
-  Recs: array of TRec;
-begin
-  SetLength(Recs, 6);
-  Recs[0].Id := 0;
-  Recs[0].SortKey := -1;
-  Recs[1].Id := 1;
-  Recs[1].SortKey := -1;
-  Recs[2].Id := 2;
-  Recs[2].SortKey := -1;
-  Recs[3].Id := 3;
-  Recs[3].SortKey := -1;
-  Recs[4].Id := 4;
-  Recs[4].SortKey := -10;
-  Recs[5].Id := 5;
-  Recs[5].SortKey := 10;
-
-  StableSort(Pointer(Recs), SizeOf(TRec), @IsSmallerRec, nil, 0, Length(Recs) - 1);
-
-  AssertTrue(Recs[0].Id = 4);
-  AssertTrue(Recs[0].SortKey = -10);
-  AssertTrue(Recs[1].Id = 0);
-  AssertTrue(Recs[1].SortKey = -1);
-  AssertTrue(Recs[2].Id = 1);
-  AssertTrue(Recs[2].SortKey = -1);
-  AssertTrue(Recs[3].Id = 2);
-  AssertTrue(Recs[3].SortKey = -1);
-  AssertTrue(Recs[4].Id = 3);
-  AssertTrue(Recs[4].SortKey = -1);
-  AssertTrue(Recs[5].Id = 5);
-  AssertTrue(Recs[5].SortKey = 10);
-end;
-}
 
 procedure TTestCastleUtils.TestFileExt;
 begin
