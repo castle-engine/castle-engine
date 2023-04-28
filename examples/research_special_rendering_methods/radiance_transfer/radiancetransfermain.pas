@@ -98,7 +98,7 @@ var
   Geometry: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
   I: Integer;
-  RadianceTransferPtr: PVector3;
+  RadianceTransferPtr: TVector3List.PtrT;
   RadianceTransferList: TVector3List;
   Coord: TMFVec3f;
   RadianceTransferVertexSize: Cardinal;
@@ -141,7 +141,7 @@ begin
   RadianceTransferVertexSize := RadianceTransferList.Count div Coord.Count;
   Assert(RadianceTransferVertexSize > 0);
 
-  RadianceTransferPtr := Addr(RadianceTransferList.List^[VertexIndex * RadianceTransferVertexSize]);
+  RadianceTransferPtr := RadianceTransferList.Ptr(VertexIndex * RadianceTransferVertexSize);
 
   if ViewMode = vmSimpleOcclusion then
   begin

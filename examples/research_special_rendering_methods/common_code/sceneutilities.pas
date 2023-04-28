@@ -93,7 +93,7 @@ begin
     ColorVectors.Count := CoordVectors.Count;
 
     for I := 0 to CoordVectors.Count - 1 do
-      ColorVectors.List^[I] := OnVertexColor(Shape, CoordVectors.List^[I], I);
+      ColorVectors.L[I] := OnVertexColor(Shape, CoordVectors.L[I], I);
 
     // ColorNode.FdColor.Changed; // TODO: not enough, so we do Scene.ChangedAll
   end;

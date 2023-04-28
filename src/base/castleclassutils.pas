@@ -854,7 +854,7 @@ type
       is under / above each other), you want to place NewItem at the same
       position as previous TCastleOnScreenMenu instance, if any. }
     function MakeSingle(ReplaceClass: TClass; NewItem: TObject;
-      AddEnd: boolean): TObject;
+      AddEnd: boolean): TObject; deprecated 'this is a complicated method without clear use-case now; do not use';
 
     { Extract (remove from the list, but never free) given item index.
       This is similar TObjectList.Extract, except it takes an index. }

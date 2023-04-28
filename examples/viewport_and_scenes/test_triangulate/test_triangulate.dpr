@@ -73,7 +73,7 @@ begin
     Scene.TriangleOctreeLimits^.MaxDepth := 1;
     for I := 0 to Scene.InternalOctreeVisibleTriangles.Triangles.Count - 1 do
     begin
-      TriangleInfo := @(Scene.InternalOctreeVisibleTriangles.Triangles.List^[I]);
+      TriangleInfo := PTriangle(Scene.InternalOctreeVisibleTriangles.Triangles.Ptr(I));
       Writeln('Triangle position (in world coordinates):');
       Write(TriangleInfo^.World.Triangle.ToString);
     end;

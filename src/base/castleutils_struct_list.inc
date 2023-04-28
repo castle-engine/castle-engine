@@ -71,6 +71,9 @@ type
       (see https://docwiki.embarcadero.com/RADStudio/Sydney/en/Pointer_Math_(Delphi) ).
       These are CGE default settings when being compiled with FPC or Delphi,
       so you can depend on them at least in CGE implementation.
+      Note that Delphi applications just using L don't actually have pointermath "on",
+      it is enough that this unit is compiled with pointermath "on" and then one can use
+      math on PtrT.
 
       This is in particular useful if you have a list of records and you would like
       to set their fields. E.g. this is incorrect (and should not even compile if

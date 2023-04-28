@@ -389,7 +389,7 @@ begin
     if FixedFunctionIndexes = nil then
       FixedFunctionIndexes := TUInt16List.Create;
     FixedFunctionIndexes.Count := IndexesCount;
-    Move(Indexes^, FixedFunctionIndexes.List^, IndexAllocatedBytes);
+    Move(Indexes^, FixedFunctionIndexes.L^, IndexAllocatedBytes);
   end;
 end;
 
@@ -432,7 +432,7 @@ begin
     if FixedFunctionVertexes = nil then
       FixedFunctionVertexes := TVector4List.Create;
     FixedFunctionVertexes.Count := VertexesCount;
-    Move(Vertexes^, FixedFunctionVertexes.List^, VertexAllocatedBytes);
+    Move(Vertexes^, FixedFunctionVertexes.L^, VertexAllocatedBytes);
   end;
 end;
 

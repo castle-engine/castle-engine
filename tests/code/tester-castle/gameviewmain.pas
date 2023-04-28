@@ -81,9 +81,8 @@ uses SysUtils,
   //TestToolFpcVersion,
 
 { Testing CGE units }
-  {$ifdef FPC}TestCastleUtils,{$endif}
+  TestCastleUtils,
   TestCastleRectangles,
-  {$ifdef FPC}TestCastleGenericLists,{$endif}
   TestCastleFindFiles,
   TestCastleFilesUtils,
   TestCastleUtilsLists,

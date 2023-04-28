@@ -86,6 +86,7 @@
       See TCastleObjectList.MakeSingle for precise description. }
     function MakeSingle(ReplaceClass: TCastleUserInterfaceClass; NewItem: TCastleUserInterface;
       AddFront: boolean = true): TCastleUserInterface;
+      deprecated 'this is a complicated method without clear use-case now; do not use';
 
     { Add at the end of the list. }
     procedure InsertFront(const NewItem: TCastleUserInterface); overload;
