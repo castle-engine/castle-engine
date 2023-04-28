@@ -719,12 +719,12 @@ var
     Values := CoordInterp.FdKeyValue.Items;
     for I := 1 to FrameCount - 1 do
     begin
-      if not CompareMem(Values.List, Values.Ptr(I * PerFrameValues), SizeOf(TVector3) * PerFrameValues) then
+      if not CompareMem(Values.L, Values.Ptr(I * PerFrameValues), SizeOf(TVector3) * PerFrameValues) then
         Exit; // optimization not possible
     end;
 
     { optimization possible: simplify CoordInterp to 1 frame, or even remove CoordInterp }
-    if CompareMem(Values.List, FShapeCoord.FdPoint.Items.List, SizeOf(TVector3) * PerFrameValues) then
+    if CompareMem(Values.L, FShapeCoord.FdPoint.Items.L, SizeOf(TVector3) * PerFrameValues) then
     begin
       FreeIfUnusedAndNil(CoordInterp);
     end else

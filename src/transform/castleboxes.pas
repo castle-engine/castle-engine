@@ -2571,13 +2571,13 @@ end;
 
 function CalculateBoundingBox(Verts: TVector3List): TBox3D;
 begin
-  Result := CalculateBoundingBox(PVector3(Verts.List), Verts.Count, 0);
+  Result := CalculateBoundingBox(PVector3(Verts.L), Verts.Count, 0);
 end;
 
 function CalculateBoundingBox(Verts: TVector3List;
   const Transform: TMatrix4): TBox3D;
 begin
-  Result := CalculateBoundingBox(PVector3(Verts.List), Verts.Count, 0,
+  Result := CalculateBoundingBox(PVector3(Verts.L), Verts.Count, 0,
     Transform);
 end;
 

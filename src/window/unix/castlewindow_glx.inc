@@ -173,7 +173,7 @@ var
       end;
       Attribs.AddRange([None]);
       Assert(SizeOf(CInt) = SizeOf(Int32)); // make sure Attribs match PCInt type
-      Result := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, ShareContext, true, PCInt(Attribs.List));
+      Result := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, ShareContext, true, PCInt(Attribs.L));
     finally FreeAndNil(Attribs) end;
   end;
 

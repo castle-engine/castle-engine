@@ -383,8 +383,8 @@ begin
   begin
     FDrawableImage.Color := Color;
     FDrawableImage.Draw(
-      PFloatRectangleArray(FGlyphsScreenRects.List),
-      PFloatRectangleArray(FGlyphsImageRects.List), GlyphsToRender);
+      PFloatRectangleArray(FGlyphsScreenRects.L),
+      PFloatRectangleArray(FGlyphsImageRects.L), GlyphsToRender);
   end;
 end;
 

@@ -224,7 +224,7 @@ begin
   begin
     FCalculatedCurves.Count := FdControlPoints.Items.Count;
     for I := 0 to FdControlPoints.Items.Count - 1 do
-      CalculatedCurve2D(FdControlPoints.Items.List^[I], FCalculatedCurves.List^[I]);
+      CalculatedCurve2D(FdControlPoints.Items.L[I], FCalculatedCurves.L[I]);
   end;
 end;
 
@@ -241,7 +241,7 @@ begin
      (FCalculatedCurves.Count = FdControlPoints.Count) then
   begin
     Result := CubicBezierPercent(T, ControlPointPtr^,
-      FCalculatedCurves.List^[ControlPointsIndex]);
+      FCalculatedCurves.L[ControlPointsIndex]);
   end else
   begin
     if not CubicBezierValueWarningDone then
@@ -285,7 +285,7 @@ procedure TCubicBezier2DOrientationInterpolatorNode.EventSet_FractionReceive(
   function KeyValue(Index: Integer): Single;
   begin
     if Index < FdKeyValue.Items.Count then
-      Result := FdKeyValue.Items.List^[Index] else
+      Result := FdKeyValue.Items.L[Index] else
       Result := 0;
   end;
 
@@ -333,7 +333,7 @@ procedure TCubicBezierPositionInterpolatorNode.EventSet_FractionReceive(
   function KeyValue(Index: Integer): TVector3;
   begin
     if Index < FdKeyValue.Items.Count then
-      Result := FdKeyValue.Items.List^[Index] else
+      Result := FdKeyValue.Items.L[Index] else
       Result := TVector3.Zero;
   end;
 

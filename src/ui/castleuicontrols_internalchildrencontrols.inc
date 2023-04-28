@@ -329,7 +329,9 @@ end;
 function TInternalChildrenControls.MakeSingle(ReplaceClass: TCastleUserInterfaceClass; NewItem: TCastleUserInterface;
   AddFront: boolean): TCastleUserInterface;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := FList.MakeSingle(ReplaceClass, NewItem, AddFront) as TCastleUserInterface;
+  {$warnings on}
 end;
 
 procedure TInternalChildrenControls.RegisterContainer(

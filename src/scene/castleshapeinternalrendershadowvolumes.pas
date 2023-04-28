@@ -382,7 +382,7 @@ var
     I: Integer;
   begin
     TrianglesPlaneSide.Count := Triangles.Count;
-    TrianglePtr := PTriangle3(Triangles.List);
+    TrianglePtr := PTriangle3(Triangles.L);
 
     { If light is directional, no need to render dark cap }
     DarkCap := DarkCap and (LightPos.W <> 0);
@@ -440,7 +440,7 @@ begin
 
     { for each 2-manifold edge, possibly render it's shadow quad }
     ManifoldEdgesNow := ManifoldEdges;
-    ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.List);
+    ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.L);
     for I := 0 to ManifoldEdgesNow.Count - 1 do
     begin
       PlaneSide0 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[0]];
@@ -484,7 +484,7 @@ begin
       for more involved approach. Rendering shadow quads from border edges,
       like below, is only part of the solution. }
     BorderEdgesNow := BorderEdges;
-    BorderEdgePtr := PBorderEdge(BorderEdgesNow.List);
+    BorderEdgePtr := PBorderEdge(BorderEdgesNow.L);
     for I := 0 to BorderEdgesNow.Count - 1 do
     begin
       PlaneSide0 := TrianglesPlaneSide.L[BorderEdgePtr^.TriangleIndex];
