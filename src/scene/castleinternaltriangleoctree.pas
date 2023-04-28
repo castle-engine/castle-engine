@@ -605,9 +605,9 @@ procedure TTriangleOctree.EnumerateTrianglesUpdateWorld(
   EnumerateTriangleFunc: TEnumerateTriangleFunc);
 var
   I: Integer;
-  T: TTriangleList.PtrT;
+  T: PTriangle;
 begin
-  T := Triangles.L;
+  T := PTriangle(Triangles.L);
   for I := 0 to Triangles.Count - 1 do
   begin
     T^.UpdateWorld;
