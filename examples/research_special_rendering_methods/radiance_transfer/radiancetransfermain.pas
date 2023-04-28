@@ -307,6 +307,7 @@ procedure ApplicationInitialize;
 var
   URL: string = 'castle-data:/chinchilla_with_prt.wrl.gz';
   Background: TCastleRectangleControl;
+  Navigation: TCastleExamineNavigation;
 begin
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
@@ -341,16 +342,24 @@ begin
   Background.Color := Black;
   Window.Controls.InsertFront(Background);
 
+  Navigation := TCastleExamineNavigation.Create(Application);
+
   Viewport := TMyViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
+  Viewport.InsertBack(Navigation);
   { we will clear context by our own Background,
     to keep SHVectorGLCapture visible for debugging }
   Viewport.Transparent := true;
   Viewport.Items.Add(Scene);
   Viewport.Items.Add(SceneLightVisualize);
   Viewport.Items.MainScene := Scene;
+
+  { Our viewport contains large sphere (to visualize light source),
+    ignore it for Examine rotation pivot,
+    always rotate around point 0. }
+  Navigation.AutoCenterOfRotation := false;
+  Navigation.CenterOfRotation := TVector3.Zero;
 
   Window.Controls.InsertFront(Viewport);
 
