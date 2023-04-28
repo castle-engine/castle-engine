@@ -1,4 +1,4 @@
-// -*- compile-command: "./test_single_testcase.sh TTestCastleUtils" -*-
+﻿// -*- compile-command: "./test_single_testcase.sh TTestCastleUtils" -*-
 {
   Copyright 2004-2023 Michalis Kamburelis.
 
@@ -109,7 +109,7 @@ begin
  Writeln;
 end;
 
-function NaiveIsMemCharFilled(const Data; Size: Integer; AChar: char): boolean;
+function NaiveIsMemCharFilled(const Data; Size: Integer; AChar: AnsiChar): boolean;
 begin
  result := CheckIsMemCharFilled(Data, Size, AChar) = -1;
 end;
@@ -167,7 +167,7 @@ procedure TTestCastleUtils.TestCheckIsMemCharFilled;
   end;
 
 var
-  a: array[0..100]of char;
+  a: array[0..100]of AnsiChar;
   SizeOfA: Integer;
   i, YPos: Integer;
 begin
@@ -177,7 +177,7 @@ begin
       [Check]IsMemCharFilled dzialaja dla roznych Size.
       Zawsze niech SizeOfA >= 2, przypadki SizeOfA < 2 sprawdzimy pozniej osobno. }
     if Random(2) = 0 then SizeOfA := Random(4) else SizeOfA := Random(100);
-    SizeOfA += 2;
+    SizeOfA := SizeOfA + 2;
 
     FillChar(a, SizeOfA, 'x');
     if Random(2) = 0 then
@@ -484,9 +484,9 @@ var
   E: Extended;
   OldDecimalSeparator: Char;
 begin
-  OldDecimalSeparator := DecimalSeparator;
+  OldDecimalSeparator := {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator;
   // make sure this works even when DecimalSeparator is non-dot
-  DecimalSeparator := ',';
+  {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator := ',';
 
   AssertSameValue(0.2, StrToFloatDot('0.2'));
 
@@ -509,7 +509,7 @@ begin
   AssertEquals('0.10', FormatDot('%f', [0.1]));
   AssertEquals('0.1', FloatToStrDot(0.1));
 
-  DecimalSeparator := OldDecimalSeparator;
+  {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator := OldDecimalSeparator;
 end;
 
 procedure TTestCastleUtils.TestIsPathAbsolute;
@@ -687,9 +687,9 @@ begin
   AssertEquals('123,45', FloatToStr(123.45));
   AssertSameValue(123.45, StrToFloat('123,45'));
   {$else}
-  AssertEquals('123' + DefaultFormatSettings.DecimalSeparator + '45', Format('%f', [123.45]));
-  AssertEquals('123' + DefaultFormatSettings.DecimalSeparator + '45', FloatToStr(123.45));
-  AssertSameValue(123.45, StrToFloat('123' + DefaultFormatSettings.DecimalSeparator + '45'));
+  AssertEquals('123' + {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator + '45', Format('%f', [123.45]));
+  AssertEquals('123' + {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator + '45', FloatToStr(123.45));
+  AssertSameValue(123.45, StrToFloat('123' + {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator + '45'));
   {$endif}
 end;
 

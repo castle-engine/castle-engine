@@ -3917,7 +3917,7 @@ end;
 
 function TGrayscaleImage.IsClear(const Pixel: Byte): boolean;
 begin
-  Result := IsMemCharFilled(RawPixels^, Size, Char(Pixel));
+  Result := IsMemCharFilled(RawPixels^, Size, AnsiChar(Pixel));
 end;
 
 procedure TGrayscaleImage.HalfColors;
