@@ -231,7 +231,6 @@ end;
 
 procedure TAbstractComposedGeometryNode.SetTexCoord(const Value: TAbstractTextureCoordinateNode);
 begin
-  SetTexCoordBefore(Value);
   FdTexCoord.Send(Value);
 end;
 
@@ -296,6 +295,7 @@ begin
 
   FFdColor := TSFNode.Create(Self, True, 'color', [TAbstractColorNode]);
    FdColor.ChangeAlways := chGeometry;
+   FdColor.OnBeforeValueChange := {$ifdef FPC}@{$endif}SetColorBefore;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
@@ -318,6 +318,7 @@ begin
 
   FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangeAlways := chGeometry;
+   FdTexCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}SetTexCoordBefore;
   AddField(FFdTexCoord);
 
   FFdCcw := TSFBool.Create(Self, False, 'ccw', true);

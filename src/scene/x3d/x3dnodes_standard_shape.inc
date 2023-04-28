@@ -76,7 +76,7 @@
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
     function GetLineProperties: TLinePropertiesNode;
     procedure SetLineProperties(const Value: TLinePropertiesNode);
-    procedure SetAppearanceBefore(const Value: TAppearanceNode);
+    procedure SetAppearanceBefore(const Sender: TSFNode; const NewNode: TX3DNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -143,7 +143,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
-    procedure SetMaterialBefore(const Value: TAbstractMaterialNode);
+    procedure SetMaterialBefore(const Sender: TSFNode; const NewNode: TX3DNode);
   public
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
@@ -449,23 +449,26 @@ begin
   FdGeometry.ChangeAlways := chEverything;
 end;
 
-procedure TAbstractShapeNode.SetAppearanceBefore(const Value: TAppearanceNode);
+procedure TAbstractShapeNode.SetAppearanceBefore(const Sender: TSFNode; const NewNode: TX3DNode);
 var
   OldMaterial, NewMaterial: TX3DNode;
 begin
-  if (Scene <> nil) and
-     (FdAppearance.Value <> Value) then
+  // caller of OnBeforeVisibleChange should have checked this
+  Assert(Sender.Value <> NewNode);
+  Assert(Sender = FdAppearance);
+
+  if Scene <> nil then
   begin
     // move shape associations from old Appearance to new
-    Scene.InternalMoveShapeAssociations(FdAppearance.Value, Value, InternalSceneShape);
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
 
     // move shape associations from old XxxMaterial to new
-    if FdAppearance.Value is TAppearanceNode then
-      OldMaterial := TAppearanceNode(FdAppearance.Value).FdMaterial.Value
+    if Sender.Value is TAppearanceNode then
+      OldMaterial := TAppearanceNode(Sender.Value).FdMaterial.Value
     else
       OldMaterial := nil;
-    if Value is TAppearanceNode then
-      NewMaterial := TAppearanceNode(Value).FdMaterial.Value
+    if NewNode is TAppearanceNode then
+      NewMaterial := TAppearanceNode(NewNode).FdMaterial.Value
     else
       NewMaterial := nil;
     if OldMaterial <> NewMaterial then
@@ -635,10 +638,10 @@ begin
   Result := TFramesPerSecond.RenderFrameId = InternalWasVisibleFrameId;
 end;
 
-procedure TAppearanceNode.SetMaterialBefore(const Value: TAbstractMaterialNode);
+procedure TAppearanceNode.SetMaterialBefore(const Sender: TSFNode; const NewNode: TX3DNode);
 begin
   if Scene <> nil then
-    Scene.InternalMoveShapeAssociations(FdMaterial.Value, Value, InternalSceneShape);
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
 end;
 
 function TAppearanceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

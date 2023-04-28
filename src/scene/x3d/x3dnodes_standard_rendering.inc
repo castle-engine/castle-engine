@@ -497,7 +497,8 @@
   { Base node type for all composed 3D geometry. }
   TAbstractComposedGeometryNode = class(TAbstractGeometryNode)
   strict private
-    procedure SetTexCoordBefore(const Value: TAbstractTextureCoordinateNode);
+    procedure SetTexCoordBefore(const Sender: TSFNode; const NewNode: TX3DNode);
+    procedure SetColorBefore(const Sender: TSFNode; const NewNode: TX3DNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -1202,10 +1203,16 @@ end;
 
 { TAbstractComposedGeometryNode ------------------------------------------------------ }
 
-procedure TAbstractComposedGeometryNode.SetTexCoordBefore(const Value: TAbstractTextureCoordinateNode);
+procedure TAbstractComposedGeometryNode.SetTexCoordBefore(const Sender: TSFNode; const NewNode: TX3DNode);
 begin
   if Scene <> nil then
-    Scene.InternalMoveShapeAssociations(FdTexCoord.Value, Value, InternalSceneShape);
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
+end;
+
+procedure TAbstractComposedGeometryNode.SetColorBefore(const Sender: TSFNode; const NewNode: TX3DNode);
+begin
+  if Scene <> nil then
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
 end;
 
 function TAbstractComposedGeometryNode.CoordField: TSFNode;
