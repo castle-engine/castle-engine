@@ -224,14 +224,8 @@ var
 begin
   OldCount := Count;
   Count := Count + AddCount;
-  { List^ upper bound in Delphi may be too small, so ignore range check errors.
-    Unfortunately we cannot use L here. }
-  {$warnings off} // using deprecated
-  {$I norqcheckbegin.inc}
   if Source.Count <> 0 then
-    System.Move(Source.List^[Index], List^[OldCount], SizeOf(T) * AddCount);
-  {$I norqcheckend.inc}
-  {$warnings on}
+    System.Move(Source.Ptr(Index)^, Ptr(OldCount)^, SizeOf(T) * AddCount);
 end;
 
 function TStructList{$ifndef FPC}<T>{$endif}.PerfectlyEquals(
