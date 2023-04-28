@@ -18,19 +18,6 @@
 
 {$ifdef read_interface}
 
-{ When using FPC, and Extended = Double, you cannot overload
-  for both Double and Extended as they are just equal.
-  Extended is just alias for Double.
-
-  Delphi, even when Extended = Double, still treats Extended
-  like a different type, for choosing overloads.
-  It even requires Extended overloads e.g. for MinVar(Extended, ...). }
-{$ifndef PASDOC}
-  {$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
-    {$define EXTENDED_OVERLOADS}
-  {$endif}
-{$endif}
-
 { Swap variables values.
   @groupBegin }
 procedure SwapValues(var a, b: Byte    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
