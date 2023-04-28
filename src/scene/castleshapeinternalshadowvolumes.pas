@@ -291,7 +291,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
     begin
       if EdgesSingle.Count <> 0 then
       begin
-        EdgePtr := PManifoldEdge(EdgesSingle.List);
+        EdgePtr := PManifoldEdge(EdgesSingle.L);
         for I := 0 to EdgesSingle.Count - 1 do
         begin
           { It would also be possible to get EdgePtr^.V0/1 by code like
@@ -364,7 +364,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
     try
       EdgesSingle.Capacity := Triangles.Count * 3 div 2;
 
-      TrianglePtr := PTriangle3(Triangles.List);
+      TrianglePtr := PTriangle3(Triangles.L);
       for I := 0 to Triangles.Count - 1 do
       begin
         { TrianglePtr points to Triangles[I] now }

@@ -162,7 +162,7 @@ var
       { calculate ThisFace.Normal }
       ThisFace^.Normal := IndexedPolygonNormal(
         PInt32Array(CoordIndex.Ptr(ThisFace^.StartIndex)), ThisFace^.IndicesCount,
-        PVector3Array(Vertices.List), Vertices.Count,
+        PVector3Array(Vertices.L), Vertices.Count,
         Vector3(0, 0, 1), Convex);
 
       { move to next face (omits the negative index we're standing on) }
@@ -280,7 +280,7 @@ begin
       while (I < CoordIndex.Count) and (CoordIndex.L[I] >= 0) do Inc(I);
       Result.L[FaceNumber] := IndexedPolygonNormal(
         PInt32Array(CoordIndex.Ptr(StartIndex)), I - StartIndex,
-        PVector3Array(Vertices.List), Vertices.Count, Vector3(0, 0, 0), Convex);
+        PVector3Array(Vertices.L), Vertices.Count, Vector3(0, 0, 0), Convex);
       Inc(FaceNumber);
 
       Inc(I);
@@ -327,7 +327,7 @@ begin
 
   FaceNormal := IndexedPolygonNormal(
     PInt32Array(DirectIndexes), Length(DirectIndexes),
-    PVector3Array(Coord.List), Coord.Count, Vector3(0, 0, 0), Convex);
+    PVector3Array(Coord.L), Coord.Count, Vector3(0, 0, 0), Convex);
 
   for I := 0 to Length(Indexes) - 1 do
   begin

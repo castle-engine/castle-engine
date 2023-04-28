@@ -173,7 +173,7 @@ begin
     for Z := 0 to D - 1 do
       for Y := 0 to H - 1 do
       begin
-        Stream.ReadBuffer(RowData.List^, W * SizeOf(Word));
+        Stream.ReadBuffer(RowData.L^, W * SizeOf(Word));
         { convert row of Words to Bytes }
         TargetRow := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
         for X := 0 to W - 1 do
@@ -316,8 +316,8 @@ begin
   Floats := TSingleList.Create;
   try
     Floats.Count := W * H * D;
-    Stream.ReadBuffer(Floats.List^, Floats.Count * SizeOf(Single));
-    PixelSource := PSingle(Floats.List);
+    Stream.ReadBuffer(Floats.L^, Floats.Count * SizeOf(Single));
+    PixelSource := PSingle(Floats.L);
 
     // move Floats data to Image.Pixels
     for Z := 0 to D - 1 do

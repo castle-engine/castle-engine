@@ -298,7 +298,7 @@ begin
   if Tags.Count <> 0 then
   begin
     Stream.Position := Header.OffsetTags;
-    Stream.ReadBuffer(Tags.List^, SizeOf(TMd3Tag) * Tags.Count);
+    Stream.ReadBuffer(Tags.L^, SizeOf(TMd3Tag) * Tags.Count);
   end;
 
   Surfaces := TMd3SurfaceList.Create(true);
