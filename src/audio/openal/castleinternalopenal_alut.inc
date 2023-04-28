@@ -1,3 +1,5 @@
+{%MainUnit castleinternalopenal.pas}
+
 { Unused for now }
 { translation of AL/alut.h }
 
