@@ -239,7 +239,7 @@ function TStructList{$ifndef FPC}<T>{$endif}.PerfectlyEquals(
 begin
   Result :=
     (Count = SecondValue.Count) and
-    CompareMem(List, SecondValue.List, SizeOf(T) * Count);
+    CompareMem(L, SecondValue.L, SizeOf(T) * Count);
 end;
 
 procedure TStructList{$ifndef FPC}<T>{$endif}.AssignLerpRange(const Fraction: Single;
