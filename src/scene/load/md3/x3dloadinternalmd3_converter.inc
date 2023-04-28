@@ -334,7 +334,7 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     V := PMd3Vertex(Vertexes.Ptr(VertexesInFrameCount * FrameNumber));
     for I := 0 to VertexesInFrameCount - 1 do
     begin
-      Result.FdPoint.Items.List^[I] := Vector3(
+      Result.FdPoint.Items.L[I] := Vector3(
         V^.Position[0] * Md3XyzScale,
         V^.Position[1] * Md3XyzScale,
         V^.Position[2] * Md3XyzScale);
@@ -355,7 +355,7 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     V := PVector2(TextureCoords.L);
     for I := 0 to TextureCoords.Count - 1 do
     begin
-      Result.FdPoint.Items.List^[I] := Vector2(V^[0], 1-V^[1]);
+      Result.FdPoint.Items.L[I] := Vector2(V^[0], 1-V^[1]);
       Inc(V);
     end;
   end;
@@ -371,15 +371,15 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     Result.FdTexCoordIndex.Items.Count := Triangles.Count * 4;
     for I := 0 to Triangles.Count - 1 do
     begin
-      Result.FdCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
-      Result.FdCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
-      Result.FdCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
-      Result.FdCoordIndex.Items.List^[I*4 + 3] := -1;
+      Result.FdCoordIndex.Items.L[I*4 + 0] := Triangles.L[I].Indexes[0];
+      Result.FdCoordIndex.Items.L[I*4 + 1] := Triangles.L[I].Indexes[1];
+      Result.FdCoordIndex.Items.L[I*4 + 2] := Triangles.L[I].Indexes[2];
+      Result.FdCoordIndex.Items.L[I*4 + 3] := -1;
 
-      Result.FdTexCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 3] := -1;
+      Result.FdTexCoordIndex.Items.L[I*4 + 0] := Triangles.L[I].Indexes[0];
+      Result.FdTexCoordIndex.Items.L[I*4 + 1] := Triangles.L[I].Indexes[1];
+      Result.FdTexCoordIndex.Items.L[I*4 + 2] := Triangles.L[I].Indexes[2];
+      Result.FdTexCoordIndex.Items.L[I*4 + 3] := -1;
     end;
   end;
 
@@ -490,7 +490,7 @@ var
     Assert(NumFrames <> 0);
     Assert(Tags.Count <> 0);
 
-    Tag := @Tags.List^[{NumTags * 0 + } TagIndex];
+    Tag := PMd3Tag(Tags.Ptr({NumTags * 0 + } TagIndex));
     TagName := Tag^.Name;
     TagTransform := TTransformNode.Create(TagName);
     TagTransforms.Add(TagTransform);
@@ -540,7 +540,7 @@ var
     for I := 0 to NumFramesInAnimation - 1 do
     begin
       FrameIndex := FirstFrame + I;
-      Tag := @Tags.List^[NumTags * FrameIndex + TagIndex];
+      Tag := PMd3Tag(Tags.Ptr(NumTags * FrameIndex + TagIndex));
       if TagName <> Tag^.Name then
         WritelnWarning('Inconsistent MD3 tag name, changes between frames: "%s", (frame %d) "%s"', [
           TagName,

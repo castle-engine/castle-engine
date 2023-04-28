@@ -2879,7 +2879,7 @@ end;
 function TCastleSceneCore.TGeneratedTextureList.IndexOfTextureNode(TextureNode: TX3DNode): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].TextureNode = TextureNode then
+    if L[Result].TextureNode = TextureNode then
       Exit;
   Result := -1;
 end;
@@ -2950,9 +2950,9 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if (List^[I].TextureNode is TGeneratedShadowMapNode) and
-       (TGeneratedShadowMapNode(List^[I].TextureNode).FdLight.Value = LightNode) then
-      List^[I].Functionality.InternalUpdateNeeded := true;
+    if (L[I].TextureNode is TGeneratedShadowMapNode) and
+       (TGeneratedShadowMapNode(L[I].TextureNode).FdLight.Value = LightNode) then
+      L[I].Functionality.InternalUpdateNeeded := true;
 end;
 
 { TTimeDependentList ------------------------------------------------- }
@@ -4568,8 +4568,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
     begin
       if List <> nil then
         for I := 0 to List.Count - 1 do
-          if List.List^[I].Node = LightNode then
-            LightNode.UpdateLightInstanceState(List.List^[I], StateStack.Top);
+          if List.L[I].Node = LightNode then
+            LightNode.UpdateLightInstanceState(List.L[I], StateStack.Top);
     end;
 
   var
@@ -7521,9 +7521,9 @@ var
   I: Integer;
 begin
   for I := 0 to CompiledScriptHandlers.Count - 1 do
-    if CompiledScriptHandlers.List^[I].Name = HandlerName then
+    if CompiledScriptHandlers.L[I].Name = HandlerName then
     begin
-      CompiledScriptHandlers.List^[I].Handler(ReceivedValue, NextEventTime);
+      CompiledScriptHandlers.L[I].Handler(ReceivedValue, NextEventTime);
       Break;
     end;
 end;

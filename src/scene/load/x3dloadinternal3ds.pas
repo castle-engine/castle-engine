@@ -1123,7 +1123,7 @@ begin
         Coord := TCoordinateNode.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
         Coord.FdPoint.Count := Trimesh3ds.VertsCount;
         for J := 0 to Trimesh3ds.VertsCount-1 do
-          Coord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].Pos;
+          Coord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].Pos;
 
         { Create TextureCoordinate node, or nil if not available }
         if Trimesh3ds.HasTexCoords then
@@ -1131,7 +1131,7 @@ begin
           TexCoord := TTextureCoordinateNode.Create('TexCoord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
           TexCoord.FdPoint.Count := Trimesh3ds.VertsCount;
           for j := 0 to Trimesh3ds.VertsCount - 1 do
-            TexCoord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].TexCoord;
+            TexCoord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].TexCoord;
         end else
           TexCoord := nil;
 
@@ -1164,10 +1164,10 @@ begin
           begin
             with IFS.FdCoordIndex.Items do
             begin
-              List^[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
-              List^[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
-              List^[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
-              List^[FaceNum * 4 + 3] := -1;
+              L[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
+              L[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
+              L[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
+              L[FaceNum * 4 + 3] := -1;
             end;
             Inc(J);
           end;

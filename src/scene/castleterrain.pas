@@ -844,7 +844,7 @@ begin
       );
       // TexCoord.Y grows in different direction, see Height docs for reason
       TexCoord.Y := 1 - TexCoord.Y;
-      Grid.FdHeight.Items.List^[X + Z * SubdivisionsX] := Height(Coord, TexCoord);
+      Grid.FdHeight.Items.L[X + Z * SubdivisionsX] := Height(Coord, TexCoord);
     end;
 
   Shape.Appearance := Appearance;
@@ -937,7 +937,7 @@ var
 
     function FaceNormal(const DeltaX, DeltaY: Integer): TVector3;
     begin
-      Result := FaceNormals.List^[Idx(I + DeltaX, J + DeltaY)];
+      Result := FaceNormals.L[Idx(I + DeltaX, J + DeltaY)];
     end;
 
   begin
@@ -993,7 +993,7 @@ begin
   { calculate Coord }
   for I := 0 to SubdivisionsX do
     for J := 0 to SubdivisionsZ do
-      CalculatePosition(I, J, Coord.List^[Idx(I, J)]);
+      CalculatePosition(I, J, Coord.L[Idx(I, J)]);
   CoordNode.FdPoint.Changed;
 
   { calculate Normals }
@@ -1003,11 +1003,11 @@ begin
     { calculate per-face (flat) normals }
     for I := 0 to SubdivisionsX - 1 do
       for J := 0 to SubdivisionsZ - 1 do
-        CalculateFaceNormal(I, J, FaceNormals.List^[Idx(I, J)]);
+        CalculateFaceNormal(I, J, FaceNormals.L[Idx(I, J)]);
     { calculate smooth vertex normals }
     for I := 0 to SubdivisionsX - 1 do
       for J := 0 to SubdivisionsZ - 1 do
-        CalculateNormal(I, J, Normal.List^[Idx(I, J)]);
+        CalculateNormal(I, J, Normal.L[Idx(I, J)]);
   finally FreeAndNil(FaceNormals) end;
   NormalNode.FdVector.Changed;
 

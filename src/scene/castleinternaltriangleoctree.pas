@@ -215,11 +215,8 @@ uses CastleShapes;
 { TTriangleOctreeNode -------------------------------------------------------------- }
 
 function TTriangleOctreeNode.ItemBoundingBox(const ItemIndex: integer): TBox3D;
-var
-  Triangle: PTriangle3;
 begin
-  Triangle := Addr(ParentTree.Triangles.List^[ItemIndex].Local.Triangle);
-  Result := TriangleBoundingBox(Triangle^);
+  Result := TriangleBoundingBox(ParentTree.Triangles.L[ItemIndex].Local.Triangle);
 end;
 
 procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
@@ -248,6 +245,7 @@ var
 begin
   AddedSomewhere := false;
 
+  { TODO: Use L, but FPC Addr then cannot compile }
   Triangle := Addr(ParentTree.Triangles.List^[ItemIndex].Local.Triangle);
 
   { First prototype of this just run SecondTestAndAdd 8 times, without
@@ -307,7 +305,7 @@ end;
 
 function TTriangleOctreeNode.GetItems(ItemIndex: integer): PTriangle;
 begin
-  Result := PTriangle(ParentTree.Triangles.Ptr(ItemsIndices.List^[ItemIndex]));
+  Result := PTriangle(ParentTree.Triangles.Ptr(ItemsIndices.L[ItemIndex]));
 end;
 
 { TTriangleOctreeNode Collisions ------------------------------------------------------ }

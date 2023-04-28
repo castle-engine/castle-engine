@@ -146,7 +146,7 @@ begin
   begin
     EndIndex := BeginIndex;
     while (EndIndex < CoordIndex.Count) and
-          (CoordIndex.Items.List^[EndIndex] <> -1) do
+          (CoordIndex.Items.L[EndIndex] <> -1) do
       Inc(EndIndex);
 
     result := result + (Cardinal(Max(EndIndex - BeginIndex - 2, 0)));

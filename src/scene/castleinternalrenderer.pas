@@ -2366,7 +2366,7 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
     Lights := Shape.State.Lights;
     if Lights <> nil then
       for I := 0 to Lights.Count - 1 do
-        if Lights.List^[I].Node is TEnvironmentLightNode then
+        if Lights.L[I].Node is TEnvironmentLightNode then
           Exit(true);
     Result := false;
   end;
@@ -2758,7 +2758,7 @@ begin
 
       for I := 0 to TextureTransformUnitsUsedMore.Count - 1 do
       begin
-        ActiveTexture(TextureTransformUnitsUsedMore.List^[I]);
+        ActiveTexture(TextureTransformUnitsUsedMore.L[I]);
         glPopMatrix;
       end;
 
@@ -3214,23 +3214,23 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
             begin
               for I := 0 to Count - 1 do
               begin
-                PVector3(NewCoord)^ := Coords.List^[I];
+                PVector3(NewCoord)^ := Coords.L[I];
                 PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
-                PVector3(NewCoord)^ := Normals.List^[I];
+                PVector3(NewCoord)^ := Normals.L[I];
                 PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
-                PVector3(NewCoord)^ := Tangents.List^[I];
+                PVector3(NewCoord)^ := Tangents.L[I];
                 PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
               end;
             end else
             begin
               for I := 0 to Count - 1 do
               begin
-                PVector3(NewCoord)^ := Coords.List^[I];
+                PVector3(NewCoord)^ := Coords.L[I];
                 PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
-                PVector3(NewCoord)^ := Normals.List^[I];
+                PVector3(NewCoord)^ := Normals.L[I];
                 PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
               end;
             end;

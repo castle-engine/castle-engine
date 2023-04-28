@@ -785,8 +785,8 @@ var
         Lights := State.Lights;
         if Lights <> nil then
           for i := 0 to Lights.Count - 1 do
-            if LightNotBlocked(Lights.List^[i]) then
-              Result := Result + Lights.List^[i].Contribution(Intersection,
+            if LightNotBlocked(Lights.L[i]) then
+              Result := Result + Lights.L[i].Contribution(Intersection,
                 IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Add GlobalLights contribution, just like other lights.
@@ -821,8 +821,8 @@ var
           the headlight. Which is true in the current uses. }
         for I := 0 to GlobalLights.Count - 1 do
           if (Depth = InitialDepth) or
-             LightNotBlocked(GlobalLights.List^[I]) then
-            Result := Result + GlobalLights.List^[I].Contribution(Intersection,
+             LightNotBlocked(GlobalLights.L[I]) then
+            Result := Result + GlobalLights.L[I].Contribution(Intersection,
               IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Calculate recursively reflected and transmitted rays.

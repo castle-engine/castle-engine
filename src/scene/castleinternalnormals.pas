@@ -182,10 +182,10 @@ var
   begin
     Found := false;
     for I := Face.StartIndex to Face.StartIndex + Face.IndicesCount - 1 do
-      if CoordIndex.List^[I] = VertexNum then
+      if CoordIndex.L[I] = VertexNum then
       begin
         Found := true; { Found := true, but keep looking in case duplicated }
-        NormalsResult.List^[I] := Normal;
+        NormalsResult.L[I] := Normal;
       end;
     Assert(Found, 'CastleInternalNormals.SetNormal failed, vertex not on face');
   end;
@@ -206,8 +206,8 @@ var
           so
             CosAngleBetweenNormals(...) > CosCreaseAngle }
         CosAngleBetweenNormals(
-          Faces.List^[ThisVertexFaces.List^[FaceNum1]].Normal,
-          Faces.List^[ThisVertexFaces.List^[FaceNum2]].Normal) >
+          Faces.L[ThisVertexFaces.L[FaceNum1]].Normal,
+          Faces.L[ThisVertexFaces.L[FaceNum2]].Normal) >
           CosCreaseAngle;
     end;
 
@@ -218,12 +218,12 @@ var
     ThisVertexFaces := VerticesFaces[VertexNum];
     for I := 0 to ThisVertexFaces.Count - 1 do
     begin
-      Normal := Faces.List^[ThisVertexFaces[I]].Normal;
+      Normal := Faces.L[ThisVertexFaces[I]].Normal;
       for J := 0 to ThisVertexFaces.Count - 1 do
         if (I <> J) and FaceCanBeSmoothedWith(I, J) then
-          Normal := Normal + Faces.List^[ThisVertexFaces[J]].Normal;
+          Normal := Normal + Faces.L[ThisVertexFaces[J]].Normal;
       Normal := Normal.Normalize;
-      SetNormal(VertexNum, Faces.List^[ThisVertexFaces[I]], Normal);
+      SetNormal(VertexNum, Faces.L[ThisVertexFaces[I]], Normal);
     end;
   end;
 
@@ -277,8 +277,8 @@ begin
     while I < CoordIndex.Count do
     begin
       StartIndex := I;
-      while (I < CoordIndex.Count) and (CoordIndex.List^[I] >= 0) do Inc(I);
-      Result.List^[FaceNumber] := IndexedPolygonNormal(
+      while (I < CoordIndex.Count) and (CoordIndex.L[I] >= 0) do Inc(I);
+      Result.L[FaceNumber] := IndexedPolygonNormal(
         PInt32Array(CoordIndex.Ptr(StartIndex)), I - StartIndex,
         PVector3Array(Vertices.List), Vertices.Count, Vector3(0, 0, 0), Convex);
       Inc(FaceNumber);
@@ -318,7 +318,7 @@ begin
   if CoordIndex <> nil then
   begin
     for I := 0 to Length(Indexes) - 1 do
-      DirectIndexes[I] := CoordIndex.List^[Indexes[I]];
+      DirectIndexes[I] := CoordIndex.L[Indexes[I]];
   end else
   begin
     for I := 0 to Length(Indexes) - 1 do
@@ -337,7 +337,7 @@ begin
       to a non-existing vertex index. VRML/X3D code will warn about it
       elsewhere, here just make sure we don't crash. }
     if Index < Normals.Count then
-      Normals.List^[Index] := Normals.List^[Index] + FaceNormal;
+      Normals.L[Index] := Normals.L[Index] + FaceNormal;
   end;
 end;
 

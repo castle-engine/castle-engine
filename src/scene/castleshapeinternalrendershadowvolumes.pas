@@ -394,7 +394,7 @@ var
 
     for I := 0 to Triangles.Count - 1 do
     begin
-      TrianglesPlaneSide.List^[I] := PlaneSide(TrianglePtr^);
+      TrianglesPlaneSide.L[I] := PlaneSide(TrianglePtr^);
       Inc(TrianglePtr);
     end;
 
@@ -443,8 +443,8 @@ begin
     ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.List);
     for I := 0 to ManifoldEdgesNow.Count - 1 do
     begin
-      PlaneSide0 := TrianglesPlaneSide.List^[ManifoldEdgePtr^.Triangles[0]];
-      PlaneSide1 := TrianglesPlaneSide.List^[ManifoldEdgePtr^.Triangles[1]];
+      PlaneSide0 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[0]];
+      PlaneSide1 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[1]];
 
       { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
         so only then render it's shadow quad.
@@ -487,7 +487,7 @@ begin
     BorderEdgePtr := PBorderEdge(BorderEdgesNow.List);
     for I := 0 to BorderEdgesNow.Count - 1 do
     begin
-      PlaneSide0 := TrianglesPlaneSide.List^[BorderEdgePtr^.TriangleIndex];
+      PlaneSide0 := TrianglesPlaneSide.L[BorderEdgePtr^.TriangleIndex];
 
       { We want to have consistent CCW orientation of shadow quads faces,
         so that face is oriented CCW <=> you're looking at it from outside

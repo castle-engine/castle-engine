@@ -224,9 +224,9 @@ end;
 
 procedure TAbstractIndexedFaceSetGenerator.AddTriangleIndexes(const T0, T1, T2: UInt32);
 begin
-  TrivialIndexesFromCoordIndex.List^[IFSNextIndex] := T0; IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[T0]; Inc(IFSNextIndex);
-  TrivialIndexesFromCoordIndex.List^[IFSNextIndex] := T1; IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[T1]; Inc(IFSNextIndex);
-  TrivialIndexesFromCoordIndex.List^[IFSNextIndex] := T2; IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[T2]; Inc(IFSNextIndex);
+  TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T0; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T0]; Inc(IFSNextIndex);
+  TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T1; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T1]; Inc(IFSNextIndex);
+  TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T2; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T2]; Inc(IFSNextIndex);
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle2(
@@ -266,8 +266,8 @@ begin
   if FacesNeeded then
     for I := IFSNextIndexBegin to IFSNextIndex - 1 do
     begin
-      Arrays.Faces.List^[I].IndexBegin := BeginIndex;
-      Arrays.Faces.List^[I].IndexEnd := EndIndex;
+      Arrays.Faces.L[I].IndexBegin := BeginIndex;
+      Arrays.Faces.L[I].IndexEnd := EndIndex;
     end;
 end;
 

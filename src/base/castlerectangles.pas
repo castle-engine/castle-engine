@@ -1630,7 +1630,7 @@ end;
 function TRectangleList.FindRectangle(const X, Y: Integer): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Contains(X, Y) then
+    if L[Result].Contains(X, Y) then
       Exit;
   Result := -1;
 end;
@@ -1638,7 +1638,7 @@ end;
 function TRectangleList.FindRectangle(const Point: TVector2): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Contains(Point) then
+    if L[Result].Contains(Point) then
       Exit;
   Result := -1;
 end;

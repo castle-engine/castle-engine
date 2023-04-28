@@ -172,6 +172,9 @@ begin
   Result := PtrT({$ifdef FPC} FItems {$else} inherited List {$endif});
 end;
 
+{ List^ upper bound in Delphi may be too small, so ignore range check errors. }
+{$I norqcheckbegin.inc}
+
 function TStructList{$ifndef FPC}<T>{$endif}.Add: PtrT;
 begin
   Count := Count + 1;
@@ -182,6 +185,8 @@ function TStructList{$ifndef FPC}<T>{$endif}.Ptr(const I: TListSize): PtrT;
 begin
   Result := Addr(List^[I]);
 end;
+
+{$I norqcheckend.inc}
 
 procedure TStructList{$ifndef FPC}<T>{$endif}.Assign(const Source: TStructList{$ifndef FPC}<T>{$endif});
 begin
@@ -218,8 +223,12 @@ var
 begin
   OldCount := Count;
   Count := Count + AddCount;
+  { List^ upper bound in Delphi may be too small, so ignore range check errors.
+    Unfortunately we cannot use L here. }
+  {$I norqcheckbegin.inc}
   if Source.Count <> 0 then
     System.Move(Source.List^[Index], List^[OldCount], SizeOf(T) * AddCount);
+  {$I norqcheckend.inc}
 end;
 
 function TStructList{$ifndef FPC}<T>{$endif}.PerfectlyEquals(
@@ -255,7 +264,11 @@ end;
 function TStructList<T>.InternalGetItem(
   const Index: TListSize): T;
 begin
+  { List^ upper bound in Delphi may be too small, so ignore range check errors.
+    Unfortunately we cannot use L here, as then Delphi cannot compile cubic Bezier nodes... }
+  {$I norqcheckbegin.inc}
   Result := List^[Index];
+  {$I norqcheckend.inc}
 end;
 
 procedure TStructList<T>.InternalSetItem(

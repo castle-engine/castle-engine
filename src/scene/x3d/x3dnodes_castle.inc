@@ -375,7 +375,7 @@ procedure TOrientationInterpolator2DNode.EventSet_FractionReceive(
   function KeyValue(Index: Integer): Single;
   begin
     if Index < FdKeyValue.Items.Count then
-      Result := FdKeyValue.Items.List^[Index]
+      Result := FdKeyValue.Items.L[Index]
     else
       Result := 0;
   end;

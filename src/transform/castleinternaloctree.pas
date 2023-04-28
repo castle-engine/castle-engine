@@ -969,11 +969,11 @@ var
   begin
     if TreeNode.IsLeaf then
     begin
-      Inc(LeafNodes.List^[TreeNode.Depth]);
-      ItemsInLeafs.List^[TreeNode.Depth] := ItemsInLeafs.List^[TreeNode.Depth] + Cardinal(TreeNode.ItemsCount);
+      Inc(LeafNodes.L[TreeNode.Depth]);
+      ItemsInLeafs.L[TreeNode.Depth] := ItemsInLeafs.L[TreeNode.Depth] + Cardinal(TreeNode.ItemsCount);
     end else
     begin
-      Inc(NonLeafNodes.List^[TreeNode.Depth]);
+      Inc(NonLeafNodes.L[TreeNode.Depth]);
       for b0 := Low(Boolean) to High(Boolean) do
         for b1 := Low(Boolean) to High(Boolean) do
           for b2 := Low(Boolean) to High(Boolean) do

@@ -321,7 +321,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
               deleting only from the end (normal Delete would want to shift
               EdgesSingle contents in memory, to preserve order of items;
               but we don't care about order). }
-            EdgePtr^ := EdgesSingle.List^[EdgesSingle.Count - 1];
+            EdgePtr^ := EdgesSingle.L[EdgesSingle.Count - 1];
             EdgesSingle.Count := EdgesSingle.Count - 1;
 
             Exit;
@@ -384,8 +384,8 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
         FBorderEdges.Count := EdgesSingle.Count;
         for I := 0 to EdgesSingle.Count - 1 do
         begin
-          FBorderEdges.List^[I].VertexIndex := EdgesSingle.List^[I].VertexIndex;
-          FBorderEdges.List^[I].TriangleIndex := EdgesSingle.List^[I].Triangles[0];
+          FBorderEdges.L[I].VertexIndex := EdgesSingle.L[I].VertexIndex;
+          FBorderEdges.L[I].TriangleIndex := EdgesSingle.L[I].Triangles[0];
         end;
       end;
     finally FreeAndNil(EdgesSingle); end;

@@ -312,7 +312,7 @@ var
         shape only once within this frame (FrameId is useful here). }
       for I := 0 to Node.ItemsIndices.Count - 1 do
       begin
-        Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.List^[I]]);
+        Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
         if Shape.RenderedFrameId <> FrameId then
         begin
           RenderShape(Shape);
@@ -367,7 +367,7 @@ var
 
     for I := 0 to Node.ItemsIndices.Count - 1 do
     begin
-      Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.List^[I]]);
+      Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
       if Shape.RenderedFrameId <> FrameId then
         Box.Include(Shape.BoundingBox);
     end;

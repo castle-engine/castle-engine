@@ -177,7 +177,7 @@ begin
         { convert row of Words to Bytes }
         TargetRow := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
         for X := 0 to W - 1 do
-          TargetRow^[X] := RowData.List^[X] shr 8;
+          TargetRow^[X] := RowData.L[X] shr 8;
          if Padding <> 0 then
            Stream.Seek(Padding, soFromCurrent);
        end;

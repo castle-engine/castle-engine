@@ -296,7 +296,7 @@ end;
 function TLightInstancesList.IndexOfNode(Node: TAbstractLightNode): integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Node = Node then
+    if L[Result].Node = Node then
       Exit;
   Result := -1;
 end;
@@ -334,7 +334,7 @@ begin
     (TLightInstancesList(SecondValue).Count = Count);
   if Result then
     for I := 0 to Count - 1 do
-      if not LightInstanceEquals(List^[I], TLightInstancesList(SecondValue).List^[I]) then
+      if not LightInstanceEquals(L[I], TLightInstancesList(SecondValue).L[I]) then
         Exit(false);
 end;
 

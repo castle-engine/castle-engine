@@ -204,13 +204,13 @@ begin
     FInternalTrianglesCoordIndex.Count := QuadsCount * 6;
     for I := OldQuadsCount to QuadsCount - 1 do
     begin
-      FInternalTrianglesCoordIndex.Items.List^[I * 6    ] := I * 4;
-      FInternalTrianglesCoordIndex.Items.List^[I * 6 + 1] := I * 4 + 1;
-      FInternalTrianglesCoordIndex.Items.List^[I * 6 + 2] := I * 4 + 2;
+      FInternalTrianglesCoordIndex.Items.L[I * 6    ] := I * 4;
+      FInternalTrianglesCoordIndex.Items.L[I * 6 + 1] := I * 4 + 1;
+      FInternalTrianglesCoordIndex.Items.L[I * 6 + 2] := I * 4 + 2;
 
-      FInternalTrianglesCoordIndex.Items.List^[I * 6 + 3] := I * 4;
-      FInternalTrianglesCoordIndex.Items.List^[I * 6 + 4] := I * 4 + 2;
-      FInternalTrianglesCoordIndex.Items.List^[I * 6 + 5] := I * 4 + 3;
+      FInternalTrianglesCoordIndex.Items.L[I * 6 + 3] := I * 4;
+      FInternalTrianglesCoordIndex.Items.L[I * 6 + 4] := I * 4 + 2;
+      FInternalTrianglesCoordIndex.Items.L[I * 6 + 5] := I * 4 + 3;
     end;
   end;
 

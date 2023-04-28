@@ -2594,7 +2594,7 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
     for J := 0 to SceneCastingLights.InternalGlobalLights.Count - 1 do
     begin
       NewGlobalLight := PLightInstance(FRenderParams.FGlobalLights.Add);
-      NewGlobalLight^ := SceneCastingLights.InternalGlobalLights.List^[J];
+      NewGlobalLight^ := SceneCastingLights.InternalGlobalLights.L[J];
       { make NewGlobalLight^ in world coordinates }
       NewGlobalLight^.Transform := SceneCastingLights.WorldTransform * NewGlobalLight^.Transform;
       NewGlobalLight^.TransformScale := Approximate3DScale(SceneCastingLights.WorldTransform) * NewGlobalLight^.TransformScale;

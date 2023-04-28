@@ -970,7 +970,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TMaterialNode.TMyMaterialInfo.ReflDiffuse: TVector3;
@@ -981,7 +981,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TMaterialNode.TMyMaterialInfo.TransSpecular: TVector3;
@@ -992,7 +992,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TMaterialNode.TMyMaterialInfo.TransDiffuse: TVector3;
@@ -1003,7 +1003,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TMaterialNode.TMyMaterialInfo.ReflSpecularExp: Single;
@@ -1112,19 +1112,19 @@ procedure TShapeNode.GenerateTangents;
       Index0 := TriangleIndexes[I    ];
       Index1 := TriangleIndexes[I + 1];
       Index2 := TriangleIndexes[I + 2];
-      TriangleCoord.Data[0] := Coords.List^[Index0];
-      TriangleCoord.Data[1] := Coords.List^[Index1];
-      TriangleCoord.Data[2] := Coords.List^[Index2];
-      TriangleTexCoord.Data[0] := TexCoords.List^[Index0];
-      TriangleTexCoord.Data[1] := TexCoords.List^[Index1];
-      TriangleTexCoord.Data[2] := TexCoords.List^[Index2];
+      TriangleCoord.Data[0] := Coords.L[Index0];
+      TriangleCoord.Data[1] := Coords.L[Index1];
+      TriangleCoord.Data[2] := Coords.L[Index2];
+      TriangleTexCoord.Data[0] := TexCoords.L[Index0];
+      TriangleTexCoord.Data[1] := TexCoords.L[Index1];
+      TriangleTexCoord.Data[2] := TexCoords.L[Index2];
 
       if not CalculateTangent(true, Tangent, TriangleCoord, TriangleTexCoord) then
         Tangent := TVector3.One[0];
 
-      Tangents.List^[Index0] := MakeVectorOrthogonal(Tangent, Normals.List^[Index0]);
-      Tangents.List^[Index1] := MakeVectorOrthogonal(Tangent, Normals.List^[Index1]);
-      Tangents.List^[Index2] := MakeVectorOrthogonal(Tangent, Normals.List^[Index2]);
+      Tangents.L[Index0] := MakeVectorOrthogonal(Tangent, Normals.L[Index0]);
+      Tangents.L[Index1] := MakeVectorOrthogonal(Tangent, Normals.L[Index1]);
+      Tangents.L[Index2] := MakeVectorOrthogonal(Tangent, Normals.L[Index2]);
 
       Inc(I, 3);
     end;

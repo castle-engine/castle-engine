@@ -90,7 +90,7 @@ var
   LightUniqueName: string;
 begin
   for I := 0 to Count - 1 do
-    if List^[I].Light = Light then
+    if L[I].Light = Light then
       Exit(PLight(Ptr(I)));
 
   { add a new TLight record }

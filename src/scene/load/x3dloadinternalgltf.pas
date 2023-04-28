@@ -36,10 +36,6 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
   CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors,
   CastleRenderOptions;
 
-{$ifndef FPC}
-{$POINTERMATH ON}
-{$endif}
-
 { This unit implements reading glTF into X3D.
   We're using PasGLTF from Bero: https://github.com/BeRo1985/pasgltf/
 
@@ -1542,7 +1538,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.Items.List^[0], SizeOf(LongInt) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(LongInt) * Len);
     end;
   end;
 
@@ -1560,7 +1556,7 @@ var
       Field.Count := Len;
       if Len <> 0 then
         // Both glTF and X3D call it "Float", it is "Single" in Pascal
-        Move(A[0], Field.Items.List^[0], SizeOf(Single) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(Single) * Len);
     end;
   end;
 
@@ -1577,7 +1573,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.Items.List^[0], SizeOf(TVector2) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(TVector2) * Len);
     end;
   end;
 
@@ -1594,7 +1590,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.Items.List^[0], SizeOf(TVector3) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(TVector3) * Len);
     end;
   end;
 
@@ -1612,7 +1608,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.List^[0], SizeOf(TVector4) * Len);
+        Move(A[0], Field.L[0], SizeOf(TVector4) * Len);
     end;
   end;
 
@@ -1635,7 +1631,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.List^[0], SizeOf(TVector4Integer) * Len);
+        Move(A[0], Field.L[0], SizeOf(TVector4Integer) * Len);
     end;
   end;
 
@@ -1652,7 +1648,7 @@ var
       Len := Length(A);
       List.Count := Len;
       if Len <> 0 then
-        Move(A[0], List.List^[0], SizeOf(TMatrix4) * Len);
+        Move(A[0], List.L[0], SizeOf(TMatrix4) * Len);
     end;
   end;
 
@@ -1674,12 +1670,12 @@ var
         { Return exact quaternions, without converting to axis-angle.
           This will cooperate with TOrientationInterpolatorNode.KeyValueQuaternions. }
         for I := 0 to Len - 1 do
-          Field.Items.List^[I] := Vector4FromGltf(A[I]);
+          Field.Items.L[I] := Vector4FromGltf(A[I]);
       end else
       begin
         // convert glTF rotation to X3D
         for I := 0 to Len - 1 do
-          Field.Items.List^[I] := RotationFromGltf(A[I]);
+          Field.Items.L[I] := RotationFromGltf(A[I]);
       end;
     end;
   end;
@@ -1718,7 +1714,7 @@ var
     I: Integer;
   begin
     for I := 0 to TexCoord.Count - 1 do
-      TexCoord.List^[I].Y := 1  - TexCoord.List^[I].Y;
+      TexCoord.L[I].Y := 1  - TexCoord.L[I].Y;
   end;
 
   function PossiblyLitGeometry(const Geometry: TAbstractGeometryNode): Boolean;
@@ -2374,7 +2370,7 @@ var
     AnimationSampler.SetTime(TimeFraction);
 
     if SkeletonRootIndex <> -1 then
-      SkeletonRootInverse := AnimationSampler.Transformations.List^[SkeletonRootIndex].InverseTransform
+      SkeletonRootInverse := AnimationSampler.Transformations.L[SkeletonRootIndex].InverseTransform
     else
       SkeletonRootInverse := TMatrix4.Identity;
 
@@ -2382,7 +2378,7 @@ var
       https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
     for I := 0 to Joints.Count - 1 do
       JointMatrix[I] := SkeletonRootInverse *
-        AnimationSampler.Transformations.List^[JointsGltf[I]].Transform *
+        AnimationSampler.Transformations.L[JointsGltf[I]].Transform *
         InverseBindMatrices[I];
 
     { For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
@@ -2869,9 +2865,5 @@ begin
     end;
   except FreeAndNil(Result); raise end;
 end;
-
-{$ifndef FPC}
-{$POINTERMATH OFF}
-{$endif}
 
 end.

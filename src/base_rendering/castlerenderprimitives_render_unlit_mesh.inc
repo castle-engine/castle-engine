@@ -318,7 +318,7 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
     glLoadMatrix(ModelViewProjection);
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(4, GL_FLOAT, SizeOf(TVector4), @(FixedFunctionVertexes.List^[0]));
+    glVertexPointer(4, GL_FLOAT, SizeOf(TVector4), FixedFunctionVertexes.L);
 
     SavedFixedFunctionLighting := RenderContext.FixedFunctionLighting;
     RenderContext.FixedFunctionLighting := false;
@@ -326,7 +326,7 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
     if FixedFunctionIndexes = nil then
       IndexPtr := nil
     else
-      IndexPtr := @(FixedFunctionIndexes.List^[0]);
+      IndexPtr := FixedFunctionIndexes.L;
 
     RenderDrawCall(IndexPtr);
 

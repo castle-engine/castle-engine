@@ -314,7 +314,7 @@ begin
 
   if FdDirection.Items.Count > 0 then
   begin
-    CamDir := FdDirection.Items.List^[0];
+    CamDir := FdDirection.Items.L[0];
     if CamDir.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "direction" must not be zero, assuming defaults');
@@ -325,7 +325,7 @@ begin
 
   if FdUp.Items.Count > 0 then
   begin
-    CamUp := FdUp.Items.List^[0];
+    CamUp := FdUp.Items.L[0];
     if CamUp.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "up" must not be zero, assuming defaults');

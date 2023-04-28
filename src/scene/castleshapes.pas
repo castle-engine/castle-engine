@@ -2173,7 +2173,7 @@ function TShape.AlphaChannel: TAlphaChannel;
         result := TMaterialInfo.DefaultTransparency > SingleEpsilon else
       begin
         for i := 0 to Node.FdTransparency.Items.Count-1 do
-          if Node.FdTransparency.Items.List^[i] <= SingleEpsilon then
+          if Node.FdTransparency.Items.L[i] <= SingleEpsilon then
             Exit(false);
         result := true;
       end;
@@ -2723,13 +2723,13 @@ begin
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
     begin
-      if Lights.List^[I].Node is TEnvironmentLightNode then
+      if Lights.L[I].Node is TEnvironmentLightNode then
       begin
-        HandleEnvironmentLight(TEnvironmentLightNode(Lights.List^[I].Node));
+        HandleEnvironmentLight(TEnvironmentLightNode(Lights.L[I].Node));
         if Result <> nil then Exit;
       end;
 
-      Result := HandleIDecls(Lights.List^[I].Node.FdEffects);
+      Result := HandleIDecls(Lights.L[I].Node.FdEffects);
       if Result <> nil then Exit;
     end;
 
@@ -2895,7 +2895,7 @@ var
       TexCoord := UnknownTexCoord;
 
     if Arrays.Faces <> nil then
-      Face := Arrays.Faces.List^[RangeBeginIndex + I1]
+      Face := Arrays.Faces.L[RangeBeginIndex + I1]
     else
       Face := UnknownFaceIndex;
 
