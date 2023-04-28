@@ -2404,20 +2404,25 @@ var
             """it's not exactly a satisfying fix, but in practice using 1, 0, 0, 0 when the weights would otherwise be zero has avoided these issues in threejs."""
           https://github.com/KhronosGroup/glTF/pull/1352
           https://github.com/Franck-Dernoncourt/NeuroNER/issues/91 }
-        SkinMatrix := JointMatrix.List^[0];
+        SkinMatrix := JointMatrix.L[0];
       end else
       begin
         SkinMatrix :=
-          JointMatrix.List^[VertexJoints.X] * VertexWeights.X +
-          JointMatrix.List^[VertexJoints.Y] * VertexWeights.Y +
-          JointMatrix.List^[VertexJoints.Z] * VertexWeights.Z +
-          JointMatrix.List^[VertexJoints.W] * VertexWeights.W;
+          JointMatrix.L[VertexJoints.X] * VertexWeights.X +
+          JointMatrix.L[VertexJoints.Y] * VertexWeights.Y +
+          JointMatrix.L[VertexJoints.Z] * VertexWeights.Z +
+          JointMatrix.L[VertexJoints.W] * VertexWeights.W;
       end;
-      AnimatedCoords.List^[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
+      { Note: On Delphi, we *have to* use L[...] below and depend on $pointermath on,
+        instead of using List^[...].
+        That's because on Delphi, List^[...] may have too small (declared) upper size
+        due to Delphi not supporting SizeOf(T) in generics.
+        See https://github.com/castle-engine/castle-engine/issues/474 . }
+      AnimatedCoords.L[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
       if AnimatedNormals <> nil then
-        AnimatedNormals.List^[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals[I]);
+        AnimatedNormals.L[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals[I]);
       if AnimatedTangents <> nil then
-        AnimatedTangents.List^[KeyIndex * OriginalTangents.Count + I] := SkinMatrix.MultDirection(OriginalTangents[I]);
+        AnimatedTangents.L[KeyIndex * OriginalTangents.Count + I] := SkinMatrix.MultDirection(OriginalTangents[I]);
     end;
   end;
 

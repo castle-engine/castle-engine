@@ -65,6 +65,11 @@
   {$H+}
   {$macro on}
   {$modeswitch advancedrecords} // Note: no way to specify this by FPC command-line.
+{$else}
+  { Makes TStructList.L useful in Delphi, like "MyArray.L[100]".
+    FPC has this by default.
+    See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Pointer_Math_(Delphi) }
+  {$pointermath on}
 {$endif}
 
 {$writeableconst off} // Note: no way to specify this by FPC command-line.
