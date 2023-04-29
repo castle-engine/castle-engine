@@ -497,7 +497,8 @@
   { Base node type for all composed 3D geometry. }
   TAbstractComposedGeometryNode = class(TAbstractGeometryNode)
   strict private
-    procedure SetTexCoordBefore(const Value: TAbstractTextureCoordinateNode);
+    procedure SetTexCoordBefore(const Sender: TSFNode; const NewNode: TX3DNode);
+    procedure SetColorBefore(const Sender: TSFNode; const NewNode: TX3DNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -592,6 +593,7 @@
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     procedure EventSet_CoordIndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+    procedure SetColorBefore(const Sender: TSFNode; const NewNode: TX3DNode);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -669,6 +671,7 @@
   TLineSetNode = class(TAbstractGeometryNode)
   strict private
     FVertexCountForPair: TInt32List;
+    procedure SetColorBefore(const Sender: TSFNode; const NewNode: TX3DNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     function InternalCoordRangesCounts(out RangeCount: TInt32List;
@@ -714,6 +717,8 @@
 
   { Points. }
   TPointSetNode = class(TAbstractGeometryNode)
+  strict private
+    procedure SetColorBefore(const Sender: TSFNode; const NewNode: TX3DNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -1202,10 +1207,16 @@ end;
 
 { TAbstractComposedGeometryNode ------------------------------------------------------ }
 
-procedure TAbstractComposedGeometryNode.SetTexCoordBefore(const Value: TAbstractTextureCoordinateNode);
+procedure TAbstractComposedGeometryNode.SetTexCoordBefore(const Sender: TSFNode; const NewNode: TX3DNode);
 begin
   if Scene <> nil then
-    Scene.InternalMoveShapeAssociations(FdTexCoord.Value, Value, InternalSceneShape);
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
+end;
+
+procedure TAbstractComposedGeometryNode.SetColorBefore(const Sender: TSFNode; const NewNode: TX3DNode);
+begin
+  if Scene <> nil then
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
 end;
 
 function TAbstractComposedGeometryNode.CoordField: TSFNode;
@@ -1386,6 +1397,12 @@ begin
   Result := false;
 end;
 
+procedure TIndexedLineSetNode.SetColorBefore(const Sender: TSFNode; const NewNode: TX3DNode);
+begin
+  if Scene <> nil then
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
+end;
+
 { TIndexedTriangleFanSetNode ------------------------------------------------- }
 
 constructor TIndexedTriangleFanSetNode.Create(const AX3DName, ABaseUrl: String);
@@ -1562,6 +1579,12 @@ begin
   Result := false;
 end;
 
+procedure TLineSetNode.SetColorBefore(const Sender: TSFNode; const NewNode: TX3DNode);
+begin
+  if Scene <> nil then
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
+end;
+
 { TTangentNode --------------------------------------------------------------- }
 
 procedure TTangentNode.SetVector4D(const List: TVector4List);
@@ -1653,6 +1676,12 @@ end;
 function TPointSetNode.Lit(State: TX3DGraphTraverseState): boolean;
 begin
   Result := false;
+end;
+
+procedure TPointSetNode.SetColorBefore(const Sender: TSFNode; const NewNode: TX3DNode);
+begin
+  if Scene <> nil then
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
 end;
 
 { TTriangleFanSetNode -------------------------------------------------------- }
