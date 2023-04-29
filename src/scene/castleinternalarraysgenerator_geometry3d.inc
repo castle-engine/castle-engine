@@ -264,7 +264,10 @@ begin
   end;
 
   if FacesNeeded then
-    for I := IFSNextIndexBegin to IFSNextIndex - 1 do
+    { Note that IFSNextIndex may be 0,
+      testcase: tests/data/extrusion_empty_spine_concave.x3dv
+      (makes integer overflow with Delphi from autotests). }
+    for I := IFSNextIndexBegin to Integer(IFSNextIndex) - 1 do
     begin
       Arrays.Faces.L[I].IndexBegin := BeginIndex;
       Arrays.Faces.L[I].IndexEnd := EndIndex;
