@@ -340,6 +340,7 @@ procedure TTestCastleUtils.TestDivMod;
 begin
   OneTest(-39, 20, -1, -19);
   OneTest(-9, 5, -1, -4);
+  OneTest(10, 3, 3, 1);
 end;
 
 procedure TTestCastleUtils.TestClamp;
