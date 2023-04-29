@@ -3423,6 +3423,7 @@ var
   SavedDepthFunc: TDepthFunction;
   ARenderOutside: Boolean;
 begin
+  {$Ifndef fpc}SavedDepthFunc := RenderContext.DepthFunc;{$endif}
   HasSavedDepthFunc := BlendingSort = bsYSort;
   if HasSavedDepthFunc then
   begin
