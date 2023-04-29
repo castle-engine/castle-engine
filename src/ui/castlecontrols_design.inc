@@ -16,6 +16,8 @@
 
 {$ifdef read_interface}
 
+  EMaximumDesignDepth = class(Exception);
+
   { Contents of this user-interface control are loaded from an indicated file
     (by the @link(URL) property).
 
@@ -148,7 +150,7 @@ begin
       try
         { Check LoadDepth = MaxLoadDepth to prevent infinite loop when referencing your own design. }
         if LoadDepth = MaxLoadDepth then
-          raise Exception.CreateFmt('Exceeded maximum depth (%d) when loading TCastleDesign within TCastleDesign. It is possible that TCastleDesign references its own design', [
+          raise EMaximumDesignDepth.CreateFmt('Exceeded maximum depth (%d) when loading TCastleDesign within TCastleDesign. It is possible that TCastleDesign references its own design', [
             MaxLoadDepth
           ]);
         Inc(LoadDepth);
