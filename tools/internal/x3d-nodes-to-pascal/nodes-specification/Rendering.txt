@@ -98,6 +98,7 @@ IndexedLineSet : X3DGeometryNode {
   SFNode  [in,out] color          NULL
     range: X3DColorNode
     change: chGeometry
+    setter-before: SetColorBefore
   SFNode  [in,out] coord          NULL
     range: X3DCoordinateNode
     change: chGeometry
@@ -152,6 +153,7 @@ LineSet : X3DGeometryNode {
   SFNode  [in,out] color          NULL
     range: X3DColorNode
     change: chGeometry
+    setter-before: SetColorBefore
   SFNode  [in,out] coord          NULL
     range: X3DCoordinateNode
     change: chGeometry
@@ -190,6 +192,7 @@ PointSet : X3DGeometryNode {
   SFNode [in,out] color    NULL
     range: X3DColorNode
     change: chGeometry
+    setter-before: SetColorBefore
   SFNode [in,out] coord    NULL
     range: X3DCoordinateNode
     change: chGeometry

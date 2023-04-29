@@ -182,6 +182,7 @@ begin
 
   FFdColor := TSFNode.Create(Self, True, 'color', [TAbstractColorNode]);
    FdColor.ChangeAlways := chGeometry;
+   FdColor.OnBeforeValueChange := {$ifdef FPC}@{$endif}SetColorBefore;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
