@@ -404,7 +404,7 @@ begin
 
   FFdMaterial := TSFNode.Create(Self, True, 'material', [TAbstractMaterialNode]);
    FdMaterial.ChangeAlways := chEverything;
-   FdMaterial.OnBeforeValueChange := {$ifdef FPC}@{$endif}SetMaterialBefore;
+   FdMaterial.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdMaterial);
 
   FFdShaders := TMFNode.Create(Self, True, 'shaders', [TAbstractShaderNode]);

@@ -121,6 +121,19 @@
     function GetFields(const Index: Integer): TX3DField;
     function GetEvents(const Index: Integer): TX3DEvent;
     procedure UnregisterSceneCallback(Node: TX3DNode);
+
+    { Move shape associations (created using TShapeTree.AssociateNode)
+      before TSFNode.Value changes (this is compatible with TSFNode.OnBeforeValueChanged).
+
+      Assumes that current node has shape associations, and Sender is a field of this node,
+      and it is also associated with the same shapes.
+      Our InternalSceneShape will be transferred from old to new value of this
+      TSFNode field.
+
+      Does not move associations in some children nodes.
+      For this, assign specialized OnBeforeValueChanged implementation
+      instead of this, like TAbstractShapeNode.SetAppearanceBefore. }
+    procedure MoveShapeAssociations(const Sender: TSFNode; const NewNode: TX3DNode);
   protected
 
     { Does actual DeepCopy work. You can override this to copy some
@@ -3597,6 +3610,12 @@ end;
 
 procedure TX3DNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
 begin
+end;
+
+procedure TX3DNode.MoveShapeAssociations(const Sender: TSFNode; const NewNode: TX3DNode);
+begin
+  if Scene <> nil then
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

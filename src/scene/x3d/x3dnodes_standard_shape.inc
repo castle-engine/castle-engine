@@ -143,7 +143,6 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
-    procedure SetMaterialBefore(const Sender: TSFNode; const NewNode: TX3DNode);
   public
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
@@ -636,12 +635,6 @@ begin
     and TFramesPerSecond.RenderFrameId is always >= 1,
     which means that this will return (correctly) false at the beginning before any rendering run. }
   Result := TFramesPerSecond.RenderFrameId = InternalWasVisibleFrameId;
-end;
-
-procedure TAppearanceNode.SetMaterialBefore(const Sender: TSFNode; const NewNode: TX3DNode);
-begin
-  if Scene <> nil then
-    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
 end;
 
 function TAppearanceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

@@ -20,7 +20,7 @@ X3DComposedGeometryNode : X3DGeometryNode {
   SFNode [in,out] color           NULL
     range: X3DColorNode
     change: chGeometry
-    setter-before: SetColorBefore
+    setter-before: MoveShapeAssociations
   SFNode [in,out] coord           NULL
     range: X3DCoordinateNode
     change: chGeometry
@@ -38,7 +38,7 @@ X3DComposedGeometryNode : X3DGeometryNode {
   SFNode [in,out] texCoord        NULL
     range: X3DTextureCoordinateNode
     change: chGeometry
-    setter-before: SetTexCoordBefore
+    setter-before: MoveShapeAssociations
   SFBool []       ccw             TRUE
     change: chGeometry
   SFBool []       colorPerVertex  TRUE
@@ -98,7 +98,7 @@ IndexedLineSet : X3DGeometryNode {
   SFNode  [in,out] color          NULL
     range: X3DColorNode
     change: chGeometry
-    setter-before: SetColorBefore
+    setter-before: MoveShapeAssociations
   SFNode  [in,out] coord          NULL
     range: X3DCoordinateNode
     change: chGeometry
@@ -153,7 +153,7 @@ LineSet : X3DGeometryNode {
   SFNode  [in,out] color          NULL
     range: X3DColorNode
     change: chGeometry
-    setter-before: SetColorBefore
+    setter-before: MoveShapeAssociations
   SFNode  [in,out] coord          NULL
     range: X3DCoordinateNode
     change: chGeometry
@@ -192,7 +192,7 @@ PointSet : X3DGeometryNode {
   SFNode [in,out] color    NULL
     range: X3DColorNode
     change: chGeometry
-    setter-before: SetColorBefore
+    setter-before: MoveShapeAssociations
   SFNode [in,out] coord    NULL
     range: X3DCoordinateNode
     change: chGeometry

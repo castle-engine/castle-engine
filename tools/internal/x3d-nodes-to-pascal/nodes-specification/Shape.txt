@@ -90,7 +90,7 @@ Appearance : X3DAppearanceNode {
     range: X3DMaterialNode
     change: chEverything
     doc: Material determines how the shape looks, and how it interacts with lighting.
-    setter-before: SetMaterialBefore
+    setter-before: MoveShapeAssociations
   MFNode [in,out] shaders          []
     range: X3DShaderNode
     change: chEverything
