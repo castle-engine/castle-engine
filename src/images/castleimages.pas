@@ -99,7 +99,7 @@ type
   TAlphaChannel = acNone .. acBlending;
 
 const
-  acSimpleYesNo = acBlending deprecated 'use acTest';
+  acSimpleYesNo = acTest deprecated 'use acTest';
   acFullRange = acBlending deprecated 'use acBlending';
   { Default parameters for TEncodedImage.AlphaChannel,
     decide how to detect textures alpha channel. }
