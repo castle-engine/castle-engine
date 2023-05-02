@@ -107,6 +107,7 @@
       When setting the material to something non-nil, we make sure
       to create @link(Appearance) node if necessary. }
     property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
+      {$ifdef FPC}deprecated 'create and assign TAppearanceNode instance explicitly, then set Appearance.Material';{$endif}
 
     { Line properties of this shape. This is a clean, type-safe way
       for accessing Appearance.lineProperties field of this shape. }
