@@ -94,6 +94,7 @@
       When setting this to something non-nil, we make sure
       to also set Appearance to something non-nil. }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
+      {$ifdef FPC}deprecated 'create and assign texture node instance explicitly, then set Appearance.Texture';{$endif}
 
     { Texture transformation of this shape.
       Similar to @link(Texture), this is just a comfortable property
@@ -101,6 +102,7 @@
       checking class types along the way. }
     property TextureTransform: TAbstractTextureTransformNode
       read GetTextureTransform write SetTextureTransform;
+      {$ifdef FPC}deprecated 'create and assign texture transformatiom node instance explicitly, then set Appearance.TextureTransform';{$endif}
 
     { Get / set the material of this shape.
       This is a shortcut to access @link(Appearance) and then set @code(Appearance.Material).
@@ -113,6 +115,7 @@
       for accessing Appearance.lineProperties field of this shape. }
     property LineProperties: TLinePropertiesNode
       read GetLineProperties write SetLineProperties;
+      {$ifdef FPC}deprecated 'create and assign TLinePropertiesNode instance explicitly, then set Appearance.LineProperties';{$endif}
 
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }

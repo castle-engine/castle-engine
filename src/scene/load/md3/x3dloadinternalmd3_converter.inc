@@ -18,7 +18,7 @@
   read of MD3 and convertion to X3D. }
 
 type
-  TMaterialsDictionary = {$ifdef FPC}specialize{$endif} TDictionary<String, TMaterialNode>;
+  TAppearancesDictionary = {$ifdef FPC}specialize{$endif} TDictionary<String, TAppearanceNode>;
 
   { MD3 (Quake3 engine model format) reader and converter to X3D. }
   TMD3Converter = class
@@ -27,7 +27,7 @@ type
     SkinName: String;
 
     { Material nodes instantiated so far by FrameToX3D. }
-    Materials: TMaterialsDictionary;
+    Appearances: TAppearancesDictionary;
 
     { Read the indicated .skin file and fill the Skin contents, if skin file exists. }
     procedure ReadSkinFile(const SkinUrl: string);
@@ -104,7 +104,7 @@ begin
 
   FBaseUrl := ABaseUrl;
   Tags := TMd3TagList.Create;
-  Materials := TMaterialsDictionary.Create;
+  Appearances := TAppearancesDictionary.Create;
 
   SkinName := 'default'; // default skin, SettingsFromAnchor may override it
   SettingsFromAnchor;
@@ -123,7 +123,7 @@ begin
   FreeAndNil(Surfaces);
   FreeAndNil(Skin);
   FreeAndNil(Tags);
-  FreeAndNil(Materials);
+  FreeAndNil(Appearances);
   inherited;
 end;
 
@@ -410,10 +410,11 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     Result := '';
   end;
 
-  function MakeMaterial(const ShaderName: String): TMaterialNode;
+  function MakeAppearance(const ShaderName: String): TAppearanceNode;
   var
     TextureUrl: String;
     TextureNode: TImageTextureNode;
+    Material: TMaterialNode;
   begin
     TextureUrl := Skin.Values[ShaderName];
     { If .skin file was not found, or was empty, or ShaderName isn't found there... }
@@ -426,22 +427,25 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     if TextureUrl = '' then
       TextureUrl := DeleteURIExt(ExtractURIName(BaseUrl));
 
-    if not Materials.TryGetValue(TextureUrl, Result) then
+    if not Appearances.TryGetValue(TextureUrl, Result) then
     begin
-      Result := TMaterialNode.Create(TextureUrl, BaseUrl);
-      Materials.Add(TextureUrl, Result);
+      Result := TAppearanceNode.Create(TextureUrl, BaseUrl);
+      Appearances.Add(TextureUrl, Result);
+
+      Material := TMaterialNode.Create(TextureUrl, BaseUrl);
+      Result.Material := Material;
 
       if TextureUrl = 'none' then
       begin
         { In this case, we explicitly don't want to use a texture,
-          so leave Result.DiffuseTexture = nil. }
+          so leave Material.DiffuseTexture = nil. }
       end else
       begin
         TextureUrl := FixTextureUrl(TextureUrl, ExtractURIPath(BaseUrl));
 
         TextureNode := TImageTextureNode.Create('', BaseUrl);
         TextureNode.SetUrl([TextureUrl]);
-        Result.DiffuseTexture := TextureNode;
+        Material.DiffuseTexture := TextureNode;
       end;
     end;
   end;
@@ -456,7 +460,7 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
 
     Result := TShapeNode.Create(Surface.Name, BaseUrl);
     Result.Geometry := IFS;
-    Result.Material := MakeMaterial(Surface.ShaderName);
+    Result.Appearance := MakeAppearance(Surface.ShaderName);
   end;
 
 var

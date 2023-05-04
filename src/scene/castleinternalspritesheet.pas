@@ -532,6 +532,8 @@ end;
 procedure TCastleSpriteSheetX3DExporter.PrepareContainer;
 var
   Shape: TShapeNode;
+  Material: TUnlitMaterialNode;
+  Appearance: TAppearanceNode;
   Tri: TTriangleSetNode;
   Tex: TAbstractTextureNode;
   TexProperties: TTexturePropertiesNode;
@@ -540,8 +542,13 @@ begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
   FRoot.Meta['source'] := ExtractURIName(FSpriteSheet.URL);
 
+  Material := TUnlitMaterialNode.Create;
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := Material;
+
   Shape := TShapeNode.Create;
-  Shape.Material := TUnlitMaterialNode.Create;
+  Shape.Appearance := Appearance;
 
   TexProperties := TTexturePropertiesNode.Create;
   TexProperties.MagnificationFilter := magDefault;
@@ -577,7 +584,7 @@ begin
     TImageTextureNode(Tex).RepeatT := false; }
     TImageTextureNode(Tex).TextureProperties := TexProperties;
   end;
-  Shape.Texture := Tex;
+  Appearance.Texture := Tex;
 
   Tri := TTriangleSetNode.Create;
   Tri.Solid := false;

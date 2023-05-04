@@ -292,6 +292,7 @@ end;
 function CreateLightVisualizeNodes(out Material: TUnlitMaterialNode; out Sphere: TSphereNode): TX3DRootNode;
 var
   SphereShape: TShapeNode;
+  Appearance: TAppearanceNode;
 begin
   Result := TX3DRootNode.Create;
 
@@ -299,7 +300,11 @@ begin
   Result.AddChildren(SphereShape);
 
   Material := TUnlitMaterialNode.Create;
-  SphereShape.Material := Material;
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := Material;
+
+  SphereShape.Appearance := Appearance;
 end;
 
 { One-time initialization of resources. }

@@ -84,11 +84,6 @@ type
     { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }
     function ShapeNode: TAbstractShapeNode;
 
-    { X3D material node of this triangle. May be @nil in case material is not set
-      or has a different class than one-sided Phong TMaterialNode. }
-    function Material: TMaterialNode; deprecated 'use MaterialInfo';
-    function MaterialNode: TMaterialNode; deprecated 'use MaterialInfo';
-
     { Material information for the material of this triangle.
       See TMaterialInfo for usage description.
       Returns @nil when no node determines material properties
@@ -242,7 +237,7 @@ type
         TNormalNode (anything that can be inside TAbstractGeometryNode.NormalField),
         TTangentNode (anything that can be inside TAbstractGeometryNode.TangentField),
         TColorNode, TColorRGBANode  (anything that can be inside TAbstractGeometryNode.ColorField),
-        TMaterialNode (anything that can be in TShapeNode.Material),
+        TAbstractMaterialNode (anything that can be in TAppearanceNode.Material),
         TTextureCoordinateNode and other stuff that can be inside TAbstractGeometryNode.InternalTexCoord,
         TClipPlaneNode .
 
@@ -1079,24 +1074,6 @@ begin
   Result := State.ShapeNode;
 end;
 
-function TTriangleHelper.Material: TMaterialNode;
-var
-  S: TAbstractShapeNode;
-begin
-  S := ShapeNode;
-  if (S <> nil) and (S.Material is TMaterialNode) then
-    Result := TMaterialNode(S.Material)
-  else
-    Result := nil;
-end;
-
-function TTriangleHelper.MaterialNode: TMaterialNode;
-begin
-  {$warnings off} // using deprecated in deprecated
-  Result := Material;
-  {$warnings on}
-end;
-
 function TTriangleHelper.MaterialInfo: TMaterialInfo;
 begin
   Result := State.MaterialInfo;
@@ -1127,9 +1104,8 @@ function TTriangleHelper.IgnoreForShadowRays: boolean;
     Shape := State.ShapeNode;
     Result :=
       (Shape <> nil) and
-      (Shape.FdAppearance.Value <> nil) and
-      (Shape.FdAppearance.Value is TAppearanceNode) and
-      (not TAppearanceNode(Shape.FdAppearance.Value).FdShadowCaster.Value);
+      (Shape.Appearance <> nil) and
+      (not Shape.Appearance.ShadowCaster);
   end;
 
 begin
@@ -1470,9 +1446,11 @@ begin
     begin
       AssociateNode(AState.ShapeNode);
       if AState.ShapeNode.Appearance <> nil then
+      begin
         AssociateNode(AState.ShapeNode.Appearance);
-      if AState.ShapeNode.Material <> nil then
-        AssociateNode(AState.ShapeNode.Material);
+        if AState.ShapeNode.Appearance.Material <> nil then
+          AssociateNode(AState.ShapeNode.Appearance.Material);
+      end;
     end;
     if AState.ClipPlanes <> nil then
       for I := 0 to AState.ClipPlanes.Count - 1 do
@@ -1518,9 +1496,11 @@ begin
     begin
       UnAssociateNode(AState.ShapeNode);
       if AState.ShapeNode.Appearance <> nil then
+      begin
         UnAssociateNode(AState.ShapeNode.Appearance);
-      if AState.ShapeNode.Material <> nil then
-        UnAssociateNode(AState.ShapeNode.Material);
+        if AState.ShapeNode.Appearance.Material <> nil then
+          UnAssociateNode(AState.ShapeNode.Appearance.Material);
+      end;
     end;
     if AState.ClipPlanes <> nil then
       for I := 0 to AState.ClipPlanes.Count - 1 do

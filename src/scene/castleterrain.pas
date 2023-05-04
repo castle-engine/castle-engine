@@ -1013,7 +1013,7 @@ begin
 
   { calculate Index }
   Index.Count := (SubdivisionsX - 1) * (SubdivisionsZ * 2 + 1);
-  IndexPtr := PInt32(Index.List);
+  IndexPtr := PInt32(Index.L);
   for I := 1 to SubdivisionsX - 1 do
   begin
     for J := 0 to SubdivisionsZ - 1 do
@@ -1026,7 +1026,7 @@ begin
     Inc(IndexPtr);
   end;
   // make sure our Index.Count was set exactly to what we needed
-  Assert((PtrUInt(IndexPtr) - PtrUInt(Index.List)) div SizeOf(Int32) = Index.Count);
+  Assert((PtrUInt(IndexPtr) - PtrUInt(Index.L)) div SizeOf(Int32) = Index.Count);
   Geometry.FdIndex.Changed;
 end;
 

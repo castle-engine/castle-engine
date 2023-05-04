@@ -801,6 +801,7 @@ procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
   var
     RootNode: TX3DRootNode;
     Mat: TUnlitMaterialNode;
+    Appearance: TAppearanceNode;
     Disk: TDisk2DNode;
     DiskShape: TShapeNode;
     DiskTransform: TTransformNode;
@@ -827,7 +828,9 @@ procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
           ElementIntensity^ / 255,
           ElementIntensity^ / 255
         );
-        DiskShape.Material := Mat;
+        Appearance := TAppearanceNode.Create;
+        Appearance.Material := Mat;
+        DiskShape.Appearance := Appearance;
         Inc(ElementIntensity);
       end;
 

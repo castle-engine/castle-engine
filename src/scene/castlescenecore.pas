@@ -8708,6 +8708,8 @@ const
   );
 var
   Shape: TShapeNode;
+  Appearance: TAppearanceNode;
+  Material: TMaterialNode;
   TransformNode: TTransformNode;
   NewRootNode: TX3DRootNode;
 begin
@@ -8723,8 +8725,13 @@ begin
 
       NewRootNode := TX3DRootNode.Create;
       Classes[FPrimitiveGeometry].CreateWithTransform(Shape, TransformNode);
+
       // default Material, to be lit
-      Shape.Material := TMaterialNode.Create;
+      Material := TMaterialNode.Create;
+      Appearance := TAppearanceNode.Create;
+      Appearance.Material := Material;
+      Shape.Appearance := Appearance;
+
       NewRootNode.AddChildren(TransformNode);
       Load(NewRootNode, true);
     end;

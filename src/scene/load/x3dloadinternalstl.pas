@@ -210,31 +210,38 @@ end;
 
 function LoadSTL(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
+  Material: TMaterialNode;
+  Appearance: TAppearanceNode;
   Shape: TShapeNode;
   TriangleSet: TTriangleSetNode;
   Coordinate: TCoordinateNode;
   Normal: TNormalNode;
 begin
-  Result := TX3DRootNode.Create('', BaseUrl);
+  Result := TX3DRootNode.Create;
   try
     { setup common X3D nodes }
-    Coordinate := TCoordinateNode.Create('', BaseUrl);
+    Coordinate := TCoordinateNode.Create;
 
-    Normal := TNormalNode.Create('', BaseUrl);
+    Normal := TNormalNode.Create;
 
     { The TriangleSet is perfect for STL geometry, see
       http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#TriangleSet
       Just a list of vertexes, each 3 vertexes make a triangle. }
-    TriangleSet := TTriangleSetNode.Create('', BaseUrl);
+    TriangleSet := TTriangleSetNode.Create;
     TriangleSet.Coord := Coordinate;
     { TODO: NormalPerVertex := true on TriangleSet not supported (would allow
       to be more compact) }
     TriangleSet.NormalPerVertex := false;
     TriangleSet.Normal := Normal;
 
-    Shape := TShapeNode.Create('', BaseUrl);
-    { assign some Material only to make it lit }
-    Shape.Material := TMaterialNode.Create('', BaseUrl);
+    { create some Material only to make it lit }
+    Material := TMaterialNode.Create;
+
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+
+    Shape := TShapeNode.Create;
+    Shape.Appearance := Appearance;
     Shape.Geometry := TriangleSet;
     Result.AddChildren(Shape);
 

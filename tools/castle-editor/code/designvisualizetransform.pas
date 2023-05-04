@@ -323,6 +323,7 @@ var
   SphereGeometry: TSphereNode;
   SphereShape: TShapeNode;
   SphereMat: TMaterialNode;
+  SphereAppearance: TAppearanceNode;
   SphereRoot: TX3DRootNode;
 {$endif DEBUG_GIZMO_PICK}
 begin
@@ -338,7 +339,11 @@ begin
 
   SphereMat := TMaterialNode.Create;
   SphereMat.DiffuseColor := RedRGB;
-  SphereShape.Material := SphereMat;
+
+  SphereAppearance := TAppearanceNode.Create;
+  SphereAppearance.Material := SphereMat;
+
+  SphereShape.Appearance := SphereAppearance;
 
   SphereRoot := TX3DRootNode.Create;
   SphereRoot.AddChildren(SphereShape);

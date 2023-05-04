@@ -680,7 +680,7 @@ const
 
     if WavefrontPhongMaterials then
     begin
-      MatPhong := TMaterialNode.Create('', BaseUrl);
+      MatPhong := TMaterialNode.Create;
       Result.Material := MatPhong;
       MatPhong.AmbientIntensity := AmbientIntensity(
         Material.AmbientColor, Material.DiffuseColor);
@@ -695,7 +695,7 @@ const
       //   MatPhong.NormalScale := Material.NormalTexture.BumpMultiplier;
     end else
     begin
-      MatPhysical := TPhysicalMaterialNode.Create('', BaseUrl);
+      MatPhysical := TPhysicalMaterialNode.Create;
       Result.Material := MatPhysical;
       MatPhysical.BaseColor := Material.DiffuseColor;
       MatPhysical.Transparency := 1 - Material.Opacity;
@@ -719,6 +719,15 @@ const
     end;
   end;
 
+  function DefaultAppearance: TAppearanceNode;
+  begin
+    Result := TAppearanceNode.Create;
+    if WavefrontPhongMaterials then
+      Result.Material := TMaterialNode.Create
+    else
+      Result.Material := TPhysicalMaterialNode.Create;
+  end;
+
 var
   Obj: TObject3DOBJ;
   Faces: TIndexedFaceSetNode;
@@ -730,7 +739,7 @@ var
 begin
   Appearances := nil;
 
-  Result := TX3DRootNode.Create('', BaseUrl);
+  Result := TX3DRootNode.Create;
   try
     Result.HasForceVersion := true;
     Result.ForceVersion := X3DVersion;
@@ -749,7 +758,7 @@ begin
         FacesWithNormal := Obj.Faces[I].HasNormals;
         FacesWithMaterial := Obj.Faces[I].Material;
 
-        Shape := TShapeNode.Create('', BaseUrl);
+        Shape := TShapeNode.Create;
         Result.AddChildren(Shape);
 
         if FacesWithMaterial <> nil then
@@ -759,7 +768,7 @@ begin
           Shape.Appearance := Appearances.FindName(
             MatOBJNameToX3DName(FacesWithMaterial.Name)) as TAppearanceNode;
         end else
-          Shape.Material := TMaterialNode.Create('', BaseUrl);
+          Shape.Appearance := DefaultAppearance;
 
         { We don't do anything special for the case when FacesWithMaterial = nil
           and FacesWithTexCoord = true. This may be generated e.g. by Blender
@@ -769,7 +778,7 @@ begin
           field, but without texture it will not have any effect.
           This is natural, and there's no reason for now to do anything else. }
 
-        Faces := TIndexedFaceSetNode.Create('', BaseUrl);
+        Faces := TIndexedFaceSetNode.Create;
         Shape.Geometry := Faces;
         Faces.CreaseAngle := NiceCreaseAngle;
         { faces may be concave, see https://sourceforge.net/p/castle-engine/tickets/20

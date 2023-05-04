@@ -191,21 +191,29 @@ var
   geo: TObject3DGEO;
   verts: TCoordinateNode;
   faces: TIndexedFaceSetNode;
+  Material: TMaterialNode;
+  Appearance: TAppearanceNode;
   Shape: TShapeNode;
   i: integer;
 begin
   geo := TObject3DGEO.Create(Stream);
   try
-    result := TX3DRootNode.Create('', BaseUrl);
+    result := TX3DRootNode.Create;
     try
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 
-      Shape := TShapeNode.Create('', BaseUrl);
-      result.AddChildren(Shape);
-      Shape.Material := TMaterialNode.Create('', BaseUrl);
+      Material := TMaterialNode.Create;
 
-      faces := TIndexedFaceSetNode.Create('', BaseUrl);
+      Appearance := TAppearanceNode.Create;
+      Appearance.Material := Material;
+
+      Shape := TShapeNode.Create;
+      Shape.Appearance := Appearance;
+
+      result.AddChildren(Shape);
+
+      faces := TIndexedFaceSetNode.Create;
       Shape.FdGeometry.Value := faces;
       faces.FdCreaseAngle.Value := NiceCreaseAngle;
       faces.FdSolid.Value := false;
@@ -218,7 +226,7 @@ begin
         faces.FdCoordIndex.Items.L[i * 4 + 3] := -1;
       end;
 
-      verts := TCoordinateNode.Create('', BaseUrl);
+      verts := TCoordinateNode.Create;
       faces.Coord := verts;
       verts.SetPoint(geo.Verts);
     except result.Free; raise end;
