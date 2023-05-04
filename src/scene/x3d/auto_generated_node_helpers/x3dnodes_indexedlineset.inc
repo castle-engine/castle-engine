@@ -237,6 +237,7 @@ begin
 
   FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangeAlways := chGeometry;
+   FdCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdCoord);
 
 {$ifndef CASTLE_SLIM_NODES}
