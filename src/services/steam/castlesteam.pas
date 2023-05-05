@@ -182,8 +182,9 @@ begin
     Exit;
   NumAchievements := SteamAPI_ISteamUserStats_GetNumAchievements(SteamUserStats);
   Achievements := TStringList.Create;
-  for I := 0 to Pred(NumAchievements) do
-    Achievements.Add(SteamAPI_ISteamUserStats_GetAchievementName(SteamUserStats, I));
+  if NumAchievements > 0 then
+    for I := 0 to NumAchievements - 1 do
+      Achievements.Add(SteamAPI_ISteamUserStats_GetAchievementName(SteamUserStats, I));
   WriteLnLog('Steam Achievements', Achievements.Count.ToString);
 end;
 
