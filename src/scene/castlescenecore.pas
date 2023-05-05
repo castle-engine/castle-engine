@@ -3358,7 +3358,25 @@ begin
 
   { Not calling UnregisterScene when FOwnsRootNode=true is just an optimization.
     There's no point in calling recursive UnregisterScene if the FRootNode
-    will be freed right afterwards. }
+    will be freed right afterwards.
+
+    TODO: This optimization is actually not without a problem.
+    If the RootNode has some child that has other parents (outside of this
+    scene, or with KeepExistingBegin) then they will remain existing,
+    and will have a dangling reference to this Scene.
+    This happened with internal TAppearanceNode in CastleTerrain at one point.
+
+    In general, we do not guarantee detaching invalid Scene reference now.
+    E.g. if a node will stop being part of a scene,
+    because we do
+
+      Appearance.Material := OldMaterial;
+      // add Appearance to Scene in any way
+      Appearance.Material := NewMaterial;
+      FreeAndNil(Scene);
+
+    ... then OldMaterial will have invalid reference in OldMaterial.Scene.
+  }
   if (FRootNode <> nil) and (not FOwnsRootNode) then
     FRootNode.UnregisterScene;
 

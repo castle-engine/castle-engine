@@ -1778,6 +1778,23 @@ begin
   {$I auto_generated_persistent_vectors/tcastleterrain_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
+
+  { Avoid Appearance having invalid reference in Appearance.Scene.
+    Note that Scene was freed in "inherited" above,
+    but Appearance.Scene may not have been cleared,
+    because of optimization in TCastleSceneCore.FreeRootNode doing:
+
+      if (FRootNode <> nil) and (not FOwnsRootNode) then
+        FRootNode.UnregisterScene;
+
+    See comments in TCastleSceneCore.FreeRootNode about it.
+
+    To avoid crashes at examples/terrain exit, we have to clear
+    Appearance.Scene manually, otherwise TAppearanceNode will try to access
+    it in MoveShapeAssociations. }
+  if Appearance <> nil then
+    Appearance.UnregisterScene;
+
   // remove after RootNode containing this is removed too
   FreeAndNil(Appearance);
 end;
