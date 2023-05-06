@@ -17,7 +17,10 @@ var
 const
   { Here we are using AppID of SteamWorks game example - SpaceWar
     see https://partner.steamgames.com/doc/sdk/api/example
-    Note that using this example will add this game to your Steam library }
+    Note that using this example will add this game to your Steam library
+    For other AppId make sure to modify it both here and in steam_appid.txt
+    Also make sure that you own the app and have it in your Steam library
+    and that it has achievements set up, otherwise no ahievements will be displayed here }
   AppId = UInt32(480);
 
 { One-time initialization of resources. }
