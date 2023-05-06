@@ -155,6 +155,7 @@ end;
 procedure TXMLConfig.Clear;
 begin
   Doc.ReplaceChild(Doc.CreateElement(RootName), Doc.DocumentElement);
+  FModified := true;
 end;
 
 procedure TXMLConfig.Flush;
