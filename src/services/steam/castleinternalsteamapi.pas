@@ -12,11 +12,10 @@ unit CastleInternalSteamApi;
 interface
 
 uses
-  CastleInternalSteamConstantsAndTypes;
+  CastleDynLib, CastleInternalSteamConstantsAndTypes;
 
 procedure InitializeSteamLibrary;
 procedure FinalizeSteamLibrary;
-function SteamLibraryAvailable: Boolean;
 var
 
 { steam_api.h : See full documentation at https://partner.steamgames.com/doc/api/steam_api }
@@ -76,12 +75,12 @@ var
 //SteamAPI_ISteamUserStats_SetStatFloat: function (SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Single): Boolean; CDecl;
 //SteamAPI_ISteamUserStats_UpdateAvgRateStat: function (SteamUserStats: Pointer; const StatName: PAnsiChar; CountThisSession: Single; SessionLength: Double): Boolean; CDecl;
 
-implementation
-uses
-  SysUtils, CastleDynLib;
-
 var
   SteamLibrary: TDynLib;
+
+implementation
+uses
+  SysUtils;
 
 procedure FinalizeSteamLibrary;
 begin
@@ -136,11 +135,6 @@ begin
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_IndicateAchievementProgress) := SteamLibrary.Symbol('SteamAPI_ISteamUserStats_IndicateAchievementProgress');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_StoreStats) := SteamLibrary.Symbol('SteamAPI_ISteamUserStats_StoreStats');
   end;
-end;
-
-function SteamLibraryAvailable: Boolean;
-begin
-  Result := SteamLibrary <> nil;
 end;
 
 end.

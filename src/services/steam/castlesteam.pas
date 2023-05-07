@@ -105,7 +105,8 @@ function Steam: TCastleSteam;
      Check for Steam.Initialized before using non-trivial features of Steam API.
   You need to provide AppId for your app to this function }
 procedure InitSteam(const AppId: Integer);
-
+{ If Steam library is available runtime }
+function SteamLibraryAvailable: Boolean;
 implementation
 uses
   SysUtils,
@@ -298,6 +299,11 @@ destructor TCastleSteam.Destroy;
 begin
   Achievements.Free;
   inherited Destroy;
+end;
+
+function SteamLibraryAvailable: Boolean;
+begin
+  Result := SteamLibrary <> nil;
 end;
 
 initialization // Delphi needs initialization before finalization
