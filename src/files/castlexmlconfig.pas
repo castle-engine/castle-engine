@@ -1119,11 +1119,13 @@ end;
 procedure TCastleConfig.Save;
 begin
   FOnSave.ExecuteAll(Self);
-  Flush; // use ancestor method to save
-  if URL <> '' then
+  if Flush then //use ancestor method to save
     WriteLnLog('Config', 'Saving configuration to "%s"', [URL])
   else
-    WriteLnWarning('Config', 'Configuration was not saved, because no URL is specified. Call TCastleConfig.Load before calling TCastleConfig.Save.');
+    if URL <> '' then
+      WriteLnLog('Config', 'No changes in config to save', [URL])
+    else
+      WriteLnWarning('Config', 'Configuration was not saved, because no URL is specified. Call TCastleConfig.Load before calling TCastleConfig.Save.');
 end;
 
 procedure TCastleConfig.Save(const Stream: TStream);
