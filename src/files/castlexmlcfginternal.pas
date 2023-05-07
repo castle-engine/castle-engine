@@ -93,7 +93,7 @@ type
     procedure Clear;
     { Writes the config to XML file
       returns true if something was written
-      and false if there were no changes in config }
+      and false if there were no changes in config or it wasn't saved for some other reason }
     function Flush : Boolean;    // Writes the XML file
     function  GetValue(const APath, ADefault: String): String; overload;
     function  GetValue(const APath: String; ADefault: Integer): Integer; overload;
