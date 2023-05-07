@@ -91,10 +91,12 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Clear;
-    { Writes the config to XML file
-      returns true if something was written
-      and false if there were no changes in config or it wasn't saved for some other reason }
-    function Flush : Boolean;    // Writes the XML file
+    { Writes the config to XML file in @link(URL).
+      @returns(@true If the file was really written to disk.
+      Returns @false if file was not written,
+      which may happen if there were no changes in config since the last save/load,
+      or if the @link(URL) wasn't set.) }
+    function Flush : Boolean;
     function  GetValue(const APath, ADefault: String): String; overload;
     function  GetValue(const APath: String; ADefault: Integer): Integer; overload;
     function  GetValue(const APath: String; ADefault: Boolean): Boolean; overload;
