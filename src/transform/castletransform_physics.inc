@@ -4093,4 +4093,65 @@ begin
     Core;
 end;
 
+function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin,
+  SphereDirection: TVector3; const SphereRadius: Single;
+  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody
+  ): TPhysicsRayCastResult;
+
+  procedure Core;
+  var
+    KraftShape: TKraftShape;
+    KraftDistance: TKraftScalar;
+    KraftPoint: TKraftVector3;
+    KraftNormal: TKraftVector3;
+  begin
+    { make sure everything is zero when no hit }
+    FillChar(Result, SizeOf(Result), 0);
+
+    { Note: In Kraft, the distance parameters are called "time"
+      (MaxTime, Time instead of more natural MaxDistance, Distance).
+      But all research shows that it is actually "distance" and that is also how
+      other physics engines call it.
+
+      TODO: Check time does not depend on physics frequency? }
+
+    if FKraftEngine.SphereCast(
+      // inputs
+      VectorToKraft(SphereOrigin), SphereRadius, VectorToKraft(SphereDirection), MaxDistance,
+      // outputs
+      KraftShape, KraftDistance, KraftPoint, KraftNormal) then
+    begin
+      Result.Hit := true;
+      Result.Transform := TCastleRigidBody(KraftShape.RigidBody.UserData).FTransform;
+      Result.Point := VectorFromKraft(KraftPoint);
+      Result.Normal := VectorFromKraft(KraftNormal);
+      Result.Distance := KraftDistance;
+    end;
+  end;
+
+var
+  OldIgnoreShapeFlags: TKraftShapeFlags;
+  IgnoreShape: TKraftShape;
+begin
+  // calculate IgnoreShape
+  if IgnoreBody <> nil then
+    IgnoreShape := IgnoreBody.GetKraftShape
+  else
+    IgnoreShape := nil;
+
+  // protect IgnoreShape from being hit, use Core
+  if IgnoreShape <> nil then
+  begin
+    OldIgnoreShapeFlags := IgnoreShape.Flags;
+    try
+      // We use ksfRayCastable flag to not hit the IgnoreBody
+      IgnoreShape.Flags := IgnoreShape.Flags - [ksfSphereCastable];
+      Core;
+    finally
+      IgnoreShape.Flags := OldIgnoreShapeFlags;
+    end;
+  end else
+    Core;
+end;
+
 {$endif read_implementation}
