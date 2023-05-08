@@ -2,6 +2,8 @@
 
 PROFILE Full
 
+# Testcase from https://github.com/castle-engine/view3dscene/issues/55
+
 Viewpoint {
  fieldOfView .4
  centerOfRotation 0 1 0
@@ -16,7 +18,12 @@ Shape {
 }
 DEF CR Transform {
  children Transform {
-  translation .056 -.037 -.2
+  translation .056 -.037 -.2 children Shape {
+   geometry DEF COPYRIGHT Text {
+    string "Box (C) 28.04.2023 Elmar Knittel"
+    fontStyle FontStyle { size 0.00213 family "SANS" justify "END" }
+   }
+  }
  }
 }
 DEF PS ProximitySensor { size 1e4 1e4 1e4 }

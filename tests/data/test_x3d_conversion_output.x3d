@@ -21,7 +21,17 @@
 	</Shape>
 	<Transform DEF="CR">
 		<Transform
-			translation="0.056000001728534698 -0.037000000476837158 -0.20000000298023224" />
+			translation="0.056000001728534698 -0.037000000476837158 -0.20000000298023224">
+			<Shape>
+				<Text DEF="COPYRIGHT"
+					string='"Box (C) 28.04.2023 Elmar Knittel"'>
+					<FontStyle
+						size="0.0021299999207258224"
+						family='"SANS"'
+						justify='"END"' />
+				</Text>
+			</Shape>
+		</Transform>
 	</Transform>
 	<ProximitySensor DEF="PS"
 		size="10000 10000 10000" />

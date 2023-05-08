@@ -22,6 +22,16 @@ Shape {
 DEF CR Transform {
 	children Transform {
 		translation 0.056000001728534698 -0.037000000476837158 -0.20000000298023224
+		children Shape {
+			geometry DEF COPYRIGHT Text {
+				string "Box (C) 28.04.2023 Elmar Knittel"
+				fontStyle FontStyle {
+					size 0.0021299999207258224
+					family "SANS"
+					justify "END"
+				}
+			}
+		}
 	}
 }
 DEF PS ProximitySensor {
