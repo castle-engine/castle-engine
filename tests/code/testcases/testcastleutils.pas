@@ -58,7 +58,8 @@ implementation
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} Unix, BaseUnix, {$endif}
-  Math, CastleUtils, CastleTimeUtils, CastleVectors, CastleLog;
+  Math, CastleUtils, CastleTimeUtils, CastleVectors, CastleLog,
+  CastleTestUtils;
 
 {$warnings off} // knowingly using deprecated, to check they are working
 
@@ -483,11 +484,9 @@ var
   S: Single;
   D: Double;
   E: Extended;
-  OldDecimalSeparator: Char;
+  SavedLocale: TSavedLocale;
 begin
-  OldDecimalSeparator := {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator;
-  // make sure this works even when DecimalSeparator is non-dot
-  {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator := ',';
+  SavedLocale := FakeLocaleDecimalSeparatorComma;
 
   AssertSameValue(0.2, StrToFloatDot('0.2'));
 
@@ -510,7 +509,7 @@ begin
   AssertEquals('0.10', FormatDot('%f', [0.1]));
   AssertEquals('0.1', FloatToStrDot(0.1));
 
-  {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator := OldDecimalSeparator;
+  RestoreLocaleDecimalSeparatorComma(SavedLocale);
 end;
 
 procedure TTestCastleUtils.TestIsPathAbsolute;

@@ -1,0 +1,31 @@
+#X3D V4.0 utf8
+
+PROFILE Full
+
+META "generator" "castle_tester"
+META "source" "test_x3d_conversion_input.x3dv"
+
+Viewpoint {
+	fieldOfView 0.40000000596046448
+	centerOfRotation 0 1 0
+	position -5.875 5.3400001525878906 6.9000000953674316
+	orientation -0.64156997203826904 -0.75999999046325684 -0.10000000149011612 0.87580001354217529
+}
+Shape {
+	appearance Appearance {
+		material Material {
+		}
+	}
+	geometry Box {
+	}
+}
+DEF CR Transform {
+	children Transform {
+		translation 0.056000001728534698 -0.037000000476837158 -0.20000000298023224
+	}
+}
+DEF PS ProximitySensor {
+	size 10000 10000 10000
+}
+ROUTE PS.position_changed TO CR.set_translation
+ROUTE PS.orientation_changed TO CR.set_rotation

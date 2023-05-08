@@ -914,7 +914,7 @@ end;
 
 function TMFFloat.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Format('%g', [Items[ItemNum]]);
+  Result := FormatDot('%g', [Items[ItemNum]]);
 end;
 
 procedure TMFFloat.AddToList(const ItemList: TSingleList; const Item: TSFFloat);
@@ -961,7 +961,7 @@ end;
 
 function TMFDouble.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Format('%g', [Items[ItemNum]]);
+  Result := FormatDot('%g', [Items[ItemNum]]);
 end;
 
 procedure TMFDouble.AddToList(const ItemList: TDoubleList; const Item: TSFDouble);

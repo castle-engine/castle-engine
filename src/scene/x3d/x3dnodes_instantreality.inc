@@ -358,12 +358,12 @@ procedure TLoggerNode.EventWriteReceive(
   begin
     if FdLevel.Value >= 2 then
     begin
-      S := Format('Logger "%s": received field "%s" (%s). Time: %f.',
+      S := FormatDot('Logger "%s": received field "%s" (%s). Time: %f.',
         [X3DName, Value.X3DName, Value.X3DType, Time.Seconds]);
 
       if (FdLevel.Value >= 3) and (Value.ParentNode <> nil) then
       begin
-        S := S + Format(' Sending node: "%s" (%s).',
+        S := S + FormatDot(' Sending node: "%s" (%s).',
           [(Value.ParentNode as TX3DNode).X3DName,
            (Value.ParentNode as TX3DNode).X3DType]);
       end;

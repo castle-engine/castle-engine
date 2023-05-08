@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 4.0//EN" "http://www.web3d.org/specifications/x3d-4.0.dtd">
+<X3D profile="Full" version="4.0"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"
+     xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-4.0.xsd">
+<head>
+	<meta name="generator" content="castle_tester" />
+	<meta name="source" content="test_x3d_conversion_input.x3dv" />
+</head>
+<Scene>
+	<Viewpoint
+		fieldOfView="0.40000000596046448"
+		centerOfRotation="0 1 0"
+		position="-5.875 5.3400001525878906 6.9000000953674316"
+		orientation="-0.64156997203826904 -0.75999999046325684 -0.10000000149011612 0.87580001354217529" />
+	<Shape>
+		<Appearance>
+			<Material />
+		</Appearance>
+		<Box />
+	</Shape>
+	<Transform DEF="CR">
+		<Transform
+			translation="0.056000001728534698 -0.037000000476837158 -0.20000000298023224" />
+	</Transform>
+	<ProximitySensor DEF="PS"
+		size="10000 10000 10000" />
+	<ROUTE fromNode="PS" fromField="position_changed" toNode="CR" toField="set_translation" />
+	<ROUTE fromNode="PS" fromField="orientation_changed" toNode="CR" toField="set_rotation" />
+</Scene>
+</X3D>

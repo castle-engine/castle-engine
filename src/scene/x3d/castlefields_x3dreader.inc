@@ -90,7 +90,7 @@ begin
     LengthConversionFactor := ConversionFactor else
   if Category = 'mass' then
     { TODO } else
-    WritelnWarning('X3D', Format('UNIT category "%s" unknown. Only the categories listed in X3D specification as base units are allowed',
+    WritelnWarning('X3D', FormatDot('UNIT category "%s" unknown. Only the categories listed in X3D specification as base units are allowed',
       [Category]));
 end;
 
