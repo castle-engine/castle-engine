@@ -41,6 +41,7 @@ type
     procedure TestSplitString;
     procedure TestTrimEndingNewline;
     procedure TestAddMultiLine;
+    procedure TestRegexpMatches;
   end;
 
 implementation
@@ -475,6 +476,37 @@ begin
     AssertEquals('simple', SList[7]);
     AssertEquals('', SList[8]);
   finally FreeAndNil(SList) end;
+end;
+
+procedure TTestCastleStringUtils.TestRegexpMatches;
+begin
+  AssertTrue(StringMatchesRegexp('blah', 'blah'));
+  AssertTrue(StringMatchesRegexp('notblah', 'blah'));
+  AssertFalse(StringMatchesRegexp('blah', 'notblah'));
+
+  // test range [0-9]
+  AssertTrue(StringMatchesRegexp('blah12', 'blah[0-9][0-9]'));
+  AssertTrue(StringMatchesRegexp('blah123', 'blah[0-9][0-9]'));
+  AssertFalse(StringMatchesRegexp('blah123', '^blah[0-9][0-9]$'));
+  AssertFalse(StringMatchesRegexp('blah1', 'blah[0-9][0-9]'));
+  AssertFalse(StringMatchesRegexp('blah[0-9][0-9]', 'blah[0-9][0-9]'));
+
+  // test range [\d]
+  AssertTrue(StringMatchesRegexp('blah12', 'blah[\d][\d]'));
+  AssertTrue(StringMatchesRegexp('blah123', 'blah[\d][\d]'));
+  AssertFalse(StringMatchesRegexp('blah123', '^blah[\d][\d]$'));
+  AssertFalse(StringMatchesRegexp('blah1', 'blah[\d][\d]'));
+  AssertFalse(StringMatchesRegexp('blah[\d][\d]', 'blah[\d][\d]'));
+
+  // test +
+  AssertTrue(StringMatchesRegexp('blah111foo', 'blah1+foo'));
+  AssertTrue(StringMatchesRegexp('blah1foo', 'blah1+foo'));
+  AssertFalse(StringMatchesRegexp('blahfoo', 'blah1+foo'));
+
+  // test *
+  AssertTrue(StringMatchesRegexp('blah111foo', 'blah1*foo'));
+  AssertTrue(StringMatchesRegexp('blah1foo', 'blah1*foo'));
+  AssertTrue(StringMatchesRegexp('blahfoo', 'blah1*foo'));
 end;
 
 initialization
