@@ -899,6 +899,9 @@
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single = MaxSingle): TPhysicsRayCastResult;
 
+    function PhysicsSphereCast(const SphereOrigin, SphereDirection: TVector3;
+      const SphereRadius:Single; const MaxDistance: Single = MaxSingle): TPhysicsRayCastResult;
+
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Push this rigid body.
@@ -3678,6 +3681,52 @@ begin
 
   Result := FTransform.World.PhysicsRayCast(RayOriginWorld, RayDirectionWorld,
     MaxDistanceWorld, Self);
+
+  if Result.Hit and (FTransform.Parent <> nil) then
+  begin
+    Result.Distance := FTransform.Parent.WorldToLocalDistance(Result.Distance);
+    Result.Point := FTransform.Parent.WorldToLocal(Result.Point);
+    Result.Normal := FTransform.Parent.WorldToLocalDirection(Result.Normal);
+  end;
+end;
+
+function TCastleRigidBody.PhysicsSphereCast(const SphereOrigin,
+  SphereDirection: TVector3; const SphereRadius: Single;
+  const MaxDistance: Single): TPhysicsRayCastResult;
+var
+  SphereOriginWorld, SphereDirectionWorld: TVector3;
+  MaxDistanceWorld, SphereRadiusWorld: Single;
+begin
+  if FTransform = nil then
+  begin
+    WritelnWarning('Attempt to cast a sphere from TCastleRigidBody not connected to any TCastleTransform. Possibly you forgot to add it using TCastleTransform.AddBehavior.');
+    FillChar(Result, SizeOf(Result), 0); // this in particular sets Result.Hit = false
+    Exit;
+  end;
+
+  if FTransform.World = nil then
+  begin
+    WritelnWarning('Attempt to cast a sphere from TCastleRigidBody not connected to any World. Possibly you forgot to add the TCastleTransform to TCastleViewport.Items.');
+    FillChar(Result, SizeOf(Result), 0); // this in particular sets Result.Hit = false
+    Exit;
+  end;
+
+  if FTransform.Parent <> nil then
+  begin
+    SphereOriginWorld := FTransform.Parent.LocalToWorld(SphereOrigin);
+    SphereDirectionWorld := FTransform.Parent.LocalToWorldDirection(SphereDirection);
+    MaxDistanceWorld := FTransform.Parent.LocalToWorldDistance(MaxDistance);
+    SphereRadiusWorld := FTransform.Parent.LocalToWorldDistance(SphereRadius);
+  end else
+  begin
+    SphereOriginWorld := SphereOrigin;
+    SphereDirectionWorld := SphereDirection;
+    MaxDistanceWorld := MaxDistance;
+    SphereRadiusWorld := SphereRadius;
+  end;
+
+  Result := FTransform.World.PhysicsSphereCast(SphereOriginWorld, SphereDirectionWorld,
+    SphereRadiusWorld, MaxDistanceWorld, Self);
 
   if Result.Hit and (FTransform.Parent <> nil) then
   begin
