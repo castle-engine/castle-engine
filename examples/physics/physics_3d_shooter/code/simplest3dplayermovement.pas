@@ -19,7 +19,7 @@ type
     - Player not rotating (X, Y, Z) should be blocked in rigid body
     - Rotation (direction.XZ) from camera what is player child (no rotation when no camera in player)
     - No air control
-    - Uses parent.up() (never camera up -  t can be changed by rotation)
+    - Uses parent.up(), never camera up to deremine direction of the velocity vector
   }
 
   TSimplest3DPlayerMovement = class(TCastleBehavior)
