@@ -2428,6 +2428,9 @@ procedure TTestX3DNodes.TestConversionDot;
         OutputStr := OutputStream.DataString;
         // Make sure it has Unix line-endings
         StringReplaceAllVar(OutputStr, #13, '', false);
+
+        // to debug why it fails
+        //StringToFile(FileNameAutoInc('debug_' + ExtractURIName(InputUrl), '_%d.txt'), OutputStr);
       finally FreeAndNil(OutputStream) end;
     finally FreeAndNil(Node) end;
 
@@ -2436,7 +2439,10 @@ procedure TTestX3DNodes.TestConversionDot;
     // Make sure it has Unix line-endings
     StringReplaceAllVar(ExpectedOutputStr, #13, '', false);
 
-    AssertEquals(ExpectedOutputStr, OutputStr);
+    //AssertEquals(ExpectedOutputStr, OutputStr);
+    { Since floats have different precision on different platforms (even between Linux x86_64 and Windows x86_64),
+      compare them using regular expressions, that account for possible floating-point output differences. }
+    AssertTrue(StringMatchesRegexp(OutputStr, ExpectedOutputStr));
   end;
 
 var

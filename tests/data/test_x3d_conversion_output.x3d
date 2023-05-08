@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<\?xml version="1.0" encoding="UTF-8"\?>
 <!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 4.0//EN" "http://www.web3d.org/specifications/x3d-4.0.dtd">
 <X3D profile="Full" version="4.0"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"
@@ -9,10 +9,10 @@
 </head>
 <Scene>
 	<Viewpoint
-		fieldOfView="0.40000000596046448"
+		fieldOfView="0.40[\d]*"
 		centerOfRotation="0 1 0"
-		position="-5.875 5.3400001525878906 6.9000000953674316"
-		orientation="-0.64156997203826904 -0.75999999046325684 -0.10000000149011612 0.87580001354217529" />
+		position="-5.875[\d]* 5.34[\d]* 6.90[\d]*"
+		orientation="-0.64[\d]* -0.75[\d]* -0.10[\d]* 0.87[\d]*" />
 	<Shape>
 		<Appearance>
 			<Material />
@@ -21,12 +21,12 @@
 	</Shape>
 	<Transform DEF="CR">
 		<Transform
-			translation="0.056000001728534698 -0.037000000476837158 -0.20000000298023224">
+			translation="0.05[\d]* -0.03[\d]* -0.20[\d]*">
 			<Shape>
 				<Text DEF="COPYRIGHT"
-					string='"Box (C) 28.04.2023 Elmar Knittel"'>
+					string='"Box \(C\) 28.04.2023 Elmar Knittel"'>
 					<FontStyle
-						size="0.0021299999207258224"
+						size="0.00[\d]*"
 						family='"SANS"'
 						justify='"END"' />
 				</Text>
