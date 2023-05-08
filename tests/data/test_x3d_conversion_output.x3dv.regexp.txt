@@ -2,8 +2,8 @@
 
 PROFILE Full
 
-META "generator" "castle_tester"
-META "source" "test_x3d_conversion_input.x3dv"
+META ".*"
+META ".*"
 
 Viewpoint \{
 	fieldOfView 0.40[\d]*

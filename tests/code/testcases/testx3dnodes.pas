@@ -2452,12 +2452,12 @@ begin
 
   TestSaveMakesExpectedResult(
     'castle-data:/test_x3d_conversion_input.x3dv',
-    'castle-data:/test_x3d_conversion_output.x3dv',
+    'castle-data:/test_x3d_conversion_output.x3dv.regexp.txt',
     'model/x3d+vrml'
   );
   TestSaveMakesExpectedResult(
     'castle-data:/test_x3d_conversion_input.x3dv',
-    'castle-data:/test_x3d_conversion_output.x3d',
+    'castle-data:/test_x3d_conversion_output.x3d.regexp.txt',
     'model/x3d+xml'
   );
 

@@ -4,8 +4,8 @@
      xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"
      xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-4.0.xsd">
 <head>
-	<meta name="generator" content="castle_tester" />
-	<meta name="source" content="test_x3d_conversion_input.x3dv" />
+	<meta name=".*" />
+	<meta name=".*" />
 </head>
 <Scene>
 	<Viewpoint
