@@ -201,11 +201,11 @@ end;
 procedure TRotateCameraByMouse.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 
-  {procedure MouseLookUpdate;
+  procedure MouseLookUpdate;
   begin
-    if InternalUsingMouseLook and (Container <> nil) then
-      Container.MouseLookUpdate;
-  end;}
+    if InternalUsingMouseLook and (FocusedContainer <> nil) then
+      FocusedContainer.MouseLookUpdate;
+  end;
 
 begin
   if CastleApplicationMode = appDesign then
