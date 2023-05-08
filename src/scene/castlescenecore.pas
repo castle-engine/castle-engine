@@ -8167,6 +8167,7 @@ var
   AUp: TVector3;
   GravityUp: TVector3;
   Version: TX3DCameraVersion;
+  NewViewNodeMake: TMakeX3DViewpoint;
   NewViewNode: TAbstractChildNode;
   NewViewpointNode: TAbstractViewpointNode;
   NavigationType: string;
@@ -8187,10 +8188,24 @@ begin
   GravityUp := Navigation.Camera.GravityUp;
 
   if RootNode.HasForceVersion and (RootNode.ForceVersion.Major <= 1) then
-    Version := cvVrml1_Inventor else
+    Version := cvVrml1_Inventor
+  else
     Version := cvVrml2_X3d;
-  NewViewNode := MakeCameraNode(Version, '', APosition, ADirection, AUp, GravityUp,
-    NewViewpointNode);
+  NewViewNodeMake := TMakeX3DViewpoint.Create;
+  try
+    NewViewNodeMake.Version := Version;
+    NewViewNodeMake.Position := APosition;
+    NewViewNodeMake.Direction := ADirection;
+    NewViewNodeMake.Up := AUp;
+    NewViewNodeMake.GravityUp := GravityUp;
+
+    if (Navigation is TCastleExamineNavigation) and
+       (not TCastleExamineNavigation(Navigation).AutoCenterOfRotation) then
+      NewViewNodeMake.CenterOfRotation := TCastleExamineNavigation(Navigation).CenterOfRotation;
+
+    NewViewNode := NewViewNodeMake.ToNode(NewViewpointNode);
+  finally FreeAndNil(NewViewNodeMake) end;
+
   NewViewpointNode.FdDescription.Value := AName;
   NewViewpointNode.X3DName := 'Viewpoint' + IntToStr(Random(10000));
   NewViewpointNode.Scene := Self;

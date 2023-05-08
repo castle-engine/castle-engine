@@ -1001,11 +1001,17 @@ var
   begin
     for I := 0 to O3ds.Cameras.Count - 1 do
     begin
+      {$warnings off} // TODO: fix using deprecated MakeCameraNode
+      // TODO: what is 3DS convention for up? +Y or Z? Using GravityUp = Up below is uncomfortable.
+
       Viewpoint := MakeCameraNode(cvVrml2_X3d, BaseUrl,
         O3ds.Cameras[I].Position,
         O3ds.Cameras[I].Direction,
         O3ds.Cameras[I].Up,
         O3ds.Cameras[I].Up { GravityUp equals Up });
+
+      {$warnings on}
+
       Viewpoint.X3DName := ViewpointVRMLName(O3ds.Cameras[I].Name);
       Result.AddChildren(Viewpoint);
 
