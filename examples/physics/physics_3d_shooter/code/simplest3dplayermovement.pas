@@ -130,7 +130,10 @@ function TSimplest3DPlayerMovement.IsPlayerOnGround(
 var
   ColliderBoundingBox: TBox3D;
   ColliderHeight: Single;
+  ColliderRadius: Single;
   RayOrigin: TVector3;
+  SphereOrigin: TVector3;
+
   DistanceToGround: Single;
   GroundRayCast: TPhysicsRayCastResult;
 begin
@@ -140,8 +143,19 @@ begin
     We need add Collider.Translation because sometimes rigid body origin can be
     under the collider. And ray will be casted under the floor. }
   ColliderBoundingBox := PlayerCollider.ScaledLocalBoundingBox;
-  ColliderHeight :=  ColliderBoundingBox.SizeY;
-  RayOrigin := Parent.Translation + PlayerCollider.Translation;
+  ColliderHeight := ColliderBoundingBox.SizeY;
+  ColliderRadius := 0.5;//0.5;//Iff(ColliderBoundingBox.SizeX > ColliderBoundingBox.SizeZ,
+//    ColliderBoundingBox.SizeX, ColliderBoundingBox.SizeZ);
+  SphereOrigin := Parent.Translation + PlayerCollider.Translation;
+
+  {GroundRayCast := PlayerRigidBody.PhysicsSphereCast(
+    SphereOrigin,
+    Vector3(0, -1, 0),
+    ColliderRadius,
+    ColliderHeight * 3
+  );}
+
+  {RayOrigin := Parent.Translation + PlayerCollider.Translation;
 
   GroundRayCast := PlayerRigidBody.PhysicsRayCast(
     RayOrigin,
@@ -179,6 +193,7 @@ begin
       Vector3(0, -1, 0),
       ColliderHeight * 3
     );
+  }
 
   if GroundRayCast.Hit then
   begin
@@ -194,14 +209,14 @@ begin
       DistanceToGround := 0;
 
     Result := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
-    {if Result then
+    if Result then
       WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
     else
-      WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');}
+      WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');
   end else
   begin
     Result := false;
-    {WritelnLog('not on ground');}
+    WritelnLog('not on ground');
   end;
 end;
 
