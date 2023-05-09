@@ -920,8 +920,11 @@ var
     IsOnGroundBool: Boolean;
     Vel: TVector3;
     VLength: Single;
-    AvatarBoundingBox: TBox3D;
-    AvatarHeight: Single;
+    AvatarColliderBoundingBox: TBox3D;
+    ColliderHeight: Single;
+    ColliderRadius: Single;
+    SphereOrigin: TVector3;
+
     MaxHorizontalVelocityChange: Single;
     Acceleration: Single;
     HVelocity: TVector3;
@@ -948,9 +951,12 @@ var
 
       We need add Collider.Translation because sometimes rigid body origin can be
       under the collider. And ray will be casted under the floor. }
-    AvatarBoundingBox := A.BoundingBox;
-    AvatarHeight := AvatarBoundingBox.SizeY;
-    RayOrigin := A.Translation + Collider.Translation;
+    AvatarColliderBoundingBox := Collider.ScaledLocalBoundingBox;
+    ColliderHeight := AvatarColliderBoundingBox.SizeY;
+    ColliderRadius := Iff(AvatarColliderBoundingBox.SizeX > AvatarColliderBoundingBox.SizeZ,
+      AvatarColliderBoundingBox.SizeX, AvatarColliderBoundingBox.SizeZ);
+
+    SphereOrigin := A.Translation + Collider.Translation;
 
     { TODO: In the ideal world, the way we check for ground collisions
       (and determine Ground, IsOnGround)
@@ -975,50 +981,24 @@ var
       When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
       it would make no sense to use old simple physics. }
 
-    GroundRayCast := RBody.PhysicsRayCast(
-      RayOrigin,
+    GroundRayCast := RBody.PhysicsSphereCast(
+      SphereOrigin,
       Vector3(0, -1, 0),
-      AvatarHeight * 3
+      ColliderRadius,
+      ColliderHeight * 3
     );
-
-    { Four more checks - player should slide down when player just
-      on the edge, but sometimes it stay and center ray don't "see" that we are
-      on ground }
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(AvatarBoundingBox.SizeX * 0.49, 0, 0),
-        Vector3(0, -1, 0),
-        AvatarHeight * 3
-      );
-
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(-AvatarBoundingBox.SizeX * 0.49, 0, 0),
-        Vector3(0, -1, 0),
-        AvatarHeight * 3
-      );
-
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(0, 0, AvatarBoundingBox.SizeZ * 0.49),
-        Vector3(0, -1, 0),
-        AvatarHeight * 3
-      );
-
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(0, 0, -AvatarBoundingBox.SizeZ * 0.49),
-        Vector3(0, -1, 0),
-        AvatarHeight * 3
-      );
 
     if GroundRayCast.Hit then
     begin
       DistanceToGround := GroundRayCast.Distance;
 
+      WritelnLog('A Collider.Translation.Y: ' + FloatToStr(Collider.Translation.Y));
       { When collider has own translation we need substract it from distance
         becouse distance will be too big }
       DistanceToGround  := DistanceToGround - Collider.Translation.Y;
+
+      { When we use sphere cast we also should remove it radius }
+      DistanceToGround := DistanceToGround - ColliderRadius;
 
       { Sometimes rigid body center point can be under the collider so
         the distance can be negative }
@@ -1026,9 +1006,12 @@ var
         DistanceToGround := 0;
 
       WritelnLog('A DistanceToGround: ' + FloatToStr(DistanceToGround));
-      WritelnLog('AvatarHeight * 0.1: ' + FloatToStr(AvatarHeight * 0.1));
+      WritelnLog('AvatarHeight * 0.1: ' + FloatToStr(ColliderHeight * 0.1));
+      WritelnLog('Distance comparison ' + FloatToStr((ColliderHeight / 2) - Collider.Translation.Y + ColliderHeight * 0.1));
 
-      IsOnGroundBool := DistanceToGround < AvatarHeight * 0.1;
+      { The default center point is ColliderHeight / 2 but there acn be
+        collider translation also. }
+      IsOnGroundBool := DistanceToGround < (ColliderHeight / 2) - Collider.Translation.Y + ColliderHeight * 0.1;
     end else
     begin
       IsOnGroundBool := false;
