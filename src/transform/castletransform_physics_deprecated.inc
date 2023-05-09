@@ -148,7 +148,7 @@ begin
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
   if not FParent.ExistsInRoot then
-    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable];
+    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable, ksfSphereCastable];
 end;
 
 destructor TCollider.Destroy;
