@@ -9,7 +9,7 @@
       <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/fonts;../src/transform/auto_generated_persistent_vectors;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/services/steam"/>
-        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/vampyre_imaginglib/src/Extensions"/>
+        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/vampyre_imaginglib/src/Extensions;../src/services/steam"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
@@ -343,6 +343,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base/castleutils.pas"/>
         <UnitName Value="CastleUtils"/>
       </Item67>
+      <Item68>
+        <Filename Value="../src/vampyre_imaginglib/src/Source/ImagingTypes.pas"/>
+        <UnitName Value="ImagingTypes"/>
+      </Item68>
       <Item69>
         <Filename Value="../src/base/castleutils_delphi_compatibility.inc"/>
         <Type Value="Include"/>
@@ -351,6 +355,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base/castleutils_filenames.inc"/>
         <Type Value="Include"/>
       </Item70>
+      <Item71>
+        <Filename Value="../src/vampyre_imaginglib/src/Source/ImagingUtility.pas"/>
+        <UnitName Value="ImagingUtility"/>
+      </Item71>
       <Item72>
         <Filename Value="../src/base/castleutils_math.inc"/>
         <Type Value="Include"/>
@@ -696,6 +704,10 @@ See https://castle-engine.io/license.php for details.
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGameNotifications"/>
       </Item156>
+      <Item157>
+        <Filename Value="../src/vampyre_imaginglib/src/Extensions/ImagingExtFileFormats.pas"/>
+        <UnitName Value="ImagingExtFileFormats"/>
+      </Item157>
       <Item158>
         <Filename Value="../src/scene/glsl/generated-pascal/simplest_unlit.fs.inc"/>
         <Type Value="Include"/>
@@ -4393,33 +4405,21 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/vampyre_imaginglib/src/Source/ImagingTarga.pas"/>
         <UnitName Value="ImagingTarga"/>
       </Item1075>
-      <Item68>
-        <Filename Value="../src/vampyre_imaginglib/src/Source/ImagingTypes.pas"/>
-        <UnitName Value="ImagingTypes"/>
-      </Item68>
-      <Item71>
-        <Filename Value="../src/vampyre_imaginglib/src/Source/ImagingUtility.pas"/>
-        <UnitName Value="ImagingUtility"/>
-      </Item71>
-      <Item157>
-        <Filename Value="../src/vampyre_imaginglib/src/Extensions/ImagingExtFileFormats.pas"/>
-        <UnitName Value="ImagingExtFileFormats"/>
-      </Item157>
       <Item1076>
         <Filename Value="../src/services/steam/castleinternalsteamapi.pas"/>
         <UnitName Value="CastleInternalSteamApi"/>
       </Item1076>
       <Item1077>
-        <Filename Value="../src/services/steam/castleinternalsteamconstantsandtypes.pas"/>
-        <UnitName Value="CastleInternalSteamConstantsAndTypes"/>
+        <Filename Value="../src/services/steam/castleinternalsteamcallback.pas"/>
+        <UnitName Value="CastleInternalSteamCallback"/>
       </Item1077>
       <Item1078>
-        <Filename Value="../src/services/steam/castlesteam.pas"/>
-        <UnitName Value="CastleSteam"/>
+        <Filename Value="../src/services/steam/castleinternalsteamconstantsandtypes.pas"/>
+        <UnitName Value="CastleInternalSteamConstantsAndTypes"/>
       </Item1078>
       <Item1079>
-        <Filename Value="../src/services/steam/steamcallback.pas"/>
-        <UnitName Value="SteamCallback"/>
+        <Filename Value="../src/services/steam/castlesteam.pas"/>
+        <UnitName Value="CastleSteam"/>
       </Item1079>
     </Files>
     <CompatibilityMode Value="True"/>
