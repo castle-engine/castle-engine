@@ -3742,10 +3742,7 @@ begin
   if FKraftBody <> nil then
   begin
     if ExistsInRoot then
-    begin
       FKraftBody.AddForceAtPosition(VectorToKraft(Force), VectorToKraft(Position));
-      WakeUp;
-    end;
   end else
     WritelnWarning('Attempting to add force before physics engine initialization.');
 end;
@@ -3760,7 +3757,6 @@ begin
         FKraftBody.AddBodyForce(VectorToKraft(Force))
       else
         FKraftBody.AddWorldForce(VectorToKraft(Force));
-      WakeUp;
     end;
   end else
     WritelnWarning('Attempting to add force before physics engine initialization.');
@@ -3771,10 +3767,7 @@ begin
   if FKraftBody <> nil then
   begin
     if ExistsInRoot then
-    begin
       FKraftBody.AddWorldTorque(VectorToKraft(Torque));
-      WakeUp;
-    end;
   end else
     WritelnWarning('Attempting to add torque before physics engine initialization.');
 end;
@@ -3784,10 +3777,7 @@ begin
   if FKraftBody <> nil then
   begin
     if ExistsInRoot then
-    begin
       FKraftBody.ApplyImpulseAtPosition(VectorToKraft(Point), VectorToKraft(Impulse));
-      WakeUp;
-    end;
   end else
     WritelnWarning('Attempting to apply impulse before physics engine initialization.');
 end;
