@@ -122,7 +122,7 @@ begin
   if Triangles.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetTriangles;
-    Stream.ReadBuffer(Triangles.List^, SizeOf(TMd3Triangle) * Triangles.Count);
+    Stream.ReadBuffer(Triangles.L^, SizeOf(TMd3Triangle) * Triangles.Count);
   end;
 
   { For animations: we have Surface.NumFrames times the vertexes array.
@@ -131,14 +131,14 @@ begin
   if Vertexes.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetXYZNormal;
-    Stream.ReadBuffer(Vertexes.List^, SizeOf(TMd3Vertex) * Vertexes.Count);
+    Stream.ReadBuffer(Vertexes.L^, SizeOf(TMd3Vertex) * Vertexes.Count);
   end;
 
   Shaders.Count := Surface.NumShaders;
   if Shaders.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetShaders;
-    Stream.ReadBuffer(Shaders.List^, SizeOf(TMd3Shader) * Shaders.Count);
+    Stream.ReadBuffer(Shaders.L^, SizeOf(TMd3Shader) * Shaders.Count);
 
     { We only use 1st shader name.
       Interpretation of other shader names is unknown. }
@@ -150,7 +150,7 @@ begin
   if TextureCoords.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetST;
-    Stream.ReadBuffer(TextureCoords.List^, SizeOf(TMd3TexCoord) * TextureCoords.Count);
+    Stream.ReadBuffer(TextureCoords.L^, SizeOf(TMd3TexCoord) * TextureCoords.Count);
   end;
 
   Stream.Position := SurfaceStart + Surface.OffsetEnd;

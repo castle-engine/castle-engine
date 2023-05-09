@@ -38,7 +38,6 @@ uses
   { Testing CGE units }
   TestCastleUtils,
   TestCastleRectangles,
-  TestCastleGenericLists,
   TestCastleFindFiles,
   TestCastleFilesUtils,
   TestCastleUtilsLists,

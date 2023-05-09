@@ -231,7 +231,6 @@ end;
 
 procedure TAbstractComposedGeometryNode.SetTexCoord(const Value: TAbstractTextureCoordinateNode);
 begin
-  SetTexCoordBefore(Value);
   FdTexCoord.Send(Value);
 end;
 
@@ -296,10 +295,12 @@ begin
 
   FFdColor := TSFNode.Create(Self, True, 'color', [TAbstractColorNode]);
    FdColor.ChangeAlways := chGeometry;
+   FdColor.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangeAlways := chGeometry;
+   FdCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdCoord);
 
 {$ifndef CASTLE_SLIM_NODES}
@@ -310,14 +311,17 @@ begin
 
   FFdNormal := TSFNode.Create(Self, True, 'normal', [TAbstractNormalNode]);
    FdNormal.ChangeAlways := chGeometry;
+   FdNormal.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdNormal);
 
   FFdTangent := TSFNode.Create(Self, True, 'tangent', [TTangentNode]);
    FdTangent.ChangeAlways := chGeometry;
+   FdTangent.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdTangent);
 
   FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangeAlways := chGeometry;
+   FdTexCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdTexCoord);
 
   FFdCcw := TSFBool.Create(Self, False, 'ccw', true);

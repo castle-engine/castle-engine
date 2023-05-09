@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2018 Michalis Kamburelis.
 
@@ -38,7 +39,7 @@
 function TClipPlaneList.IndexOfNode(Node: TClipPlaneNode): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Node = Node then
+    if L[Result].Node = Node then
       Exit;
   Result := -1;
 end;
@@ -54,10 +55,10 @@ begin
 
   if Result then
     for I := 0 to Count - 1 do
-      if (List^[I].Node <> TClipPlaneList(SecondValue).List^[I].Node) or
+      if (L[I].Node <> TClipPlaneList(SecondValue).L[I].Node) or
          TMatrix4.PerfectlyEquals(
-           List^[I].Transform,
-           TClipPlaneList(SecondValue).List^[I].Transform) then
+           L[I].Transform,
+           TClipPlaneList(SecondValue).L[I].Transform) then
         Exit(false);
 end;
 

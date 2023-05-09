@@ -97,7 +97,7 @@
 function TTouchList.FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].FingerIndex = FingerIndex then
+    if L[Result].FingerIndex = FingerIndex then
       Exit;
   Result := -1;
 end;
@@ -108,7 +108,7 @@ var
 begin
   Index := FindFingerIndex(FingerIndex);
   if Index <> -1 then
-    Result := List^[Index].Position
+    Result := L[Index].Position
   else
     Result := TVector2.Zero;
 end;
@@ -121,7 +121,7 @@ var
 begin
   Index := FindFingerIndex(FingerIndex);
   if Index <> -1 then
-    List^[Index].Position := Value else
+    L[Index].Position := Value else
   begin
     NewTouch := PTouch(Add);
     NewTouch^.FingerIndex := FingerIndex;

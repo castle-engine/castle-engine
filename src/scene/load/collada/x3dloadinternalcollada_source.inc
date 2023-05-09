@@ -131,9 +131,9 @@ begin
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Value.List^[I].X := Floats.List^[Offset + Stride * I + XIndex];
-    Value.List^[I].Y := Floats.List^[Offset + Stride * I + YIndex];
-    Value.List^[I].Z := Floats.List^[Offset + Stride * I + ZIndex];
+    Value.L[I].X := Floats.L[Offset + Stride * I + XIndex];
+    Value.L[I].Y := Floats.L[Offset + Stride * I + YIndex];
+    Value.L[I].Z := Floats.L[Offset + Stride * I + ZIndex];
   end;
 end;
 
@@ -185,8 +185,8 @@ begin
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Value.List^[I].X := Floats.List^[Offset + Stride * I + SIndex];
-    Value.List^[I].Y := Floats.List^[Offset + Stride * I + TIndex];
+    Value.L[I].X := Floats.L[Offset + Stride * I + SIndex];
+    Value.L[I].Y := Floats.L[Offset + Stride * I + TIndex];
   end;
 end;
 

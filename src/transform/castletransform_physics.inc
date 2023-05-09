@@ -31,7 +31,6 @@
 
   TCastleLayerCollisions = class(TCastleComponent)
   strict private
-    FRootTransform: TCastleAbstractRootTransform;
     function GetCollides(const Layer1, Layer2: TPhysicsLayer): Boolean;
     procedure SetCollides(const Layer1, Layer2: TPhysicsLayer; const AValue: Boolean);
     procedure UpdateRigidBodies;
@@ -1262,14 +1261,15 @@ begin
     Exit;
 
   if Owner.Owner is TCastleAbstractRootTransform then
+  begin
     RootTransform := Owner.Owner as TCastleAbstractRootTransform;
-
-  RigidBodyList := RootTransform.FindAllBehaviors(TCastleRigidBody);
-  try
-    for Behavior in RigidBodyList do
-      TCastleRigidBody(Behavior).UpdateLayer;
-  finally
-    FreeAndNil(RigidBodyList);
+    RigidBodyList := RootTransform.FindAllBehaviors(TCastleRigidBody);
+    try
+      for Behavior in RigidBodyList do
+        TCastleRigidBody(Behavior).UpdateLayer;
+    finally
+      FreeAndNil(RigidBodyList);
+    end;
   end;
 end;
 

@@ -205,6 +205,7 @@ begin
 
   FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
    FdTexCoord.ChangeAlways := chGeometry;
+   FdTexCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdTexCoord);
 
   FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);

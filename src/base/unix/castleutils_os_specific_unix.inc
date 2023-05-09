@@ -1,3 +1,4 @@
+{%MainUnit ../castleutils.pas}
 {
   Copyright 2002-2018 Michalis Kamburelis.
 

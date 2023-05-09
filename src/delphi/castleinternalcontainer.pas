@@ -423,8 +423,6 @@ procedure TCastleContainerEasy.LoadDesign;
 var
   OldCastleApplicationMode: TCastleApplicationMode;
 begin
-  WritelnLog('LoadDesign');
-
   if DesignUrl <> '' then
   begin
     { Make sure InternalCastleApplicationMode is correct, to

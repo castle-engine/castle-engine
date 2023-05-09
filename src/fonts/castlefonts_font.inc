@@ -468,8 +468,8 @@ begin
     begin
       DrawableImage.Color := OutlineColor;
       DrawableImage.Draw(
-        PFloatRectangleArray(GlyphsScreenRects.List),
-        PFloatRectangleArray(GlyphsImageRects.List), GlyphsToRender);
+        PFloatRectangleArray(GlyphsScreenRects.L),
+        PFloatRectangleArray(GlyphsImageRects.L), GlyphsToRender);
     end;
   end;
 
@@ -519,8 +519,8 @@ begin
   begin
     DrawableImage.Color := Color;
     DrawableImage.Draw(
-      PFloatRectangleArray(GlyphsScreenRects.List),
-      PFloatRectangleArray(GlyphsImageRects.List), GlyphsToRender);
+      PFloatRectangleArray(GlyphsScreenRects.L),
+      PFloatRectangleArray(GlyphsImageRects.L), GlyphsToRender);
   end;
 end;
 

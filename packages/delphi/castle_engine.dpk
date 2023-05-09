@@ -1,4 +1,4 @@
-package castle_base;
+package castle_engine;
 
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
@@ -26,7 +26,7 @@ package castle_base;
 {$DEFINE DEBUG}
 {$DEFINE CASTLE_DELPHI_PACKAGE}
 {$ENDIF IMPLICITBUILDING}
-{$DESCRIPTION 'Castle Game Engine - base for other packages'}
+{$DESCRIPTION 'Castle Game Engine - TCastleControl component'}
 {$DESIGNONLY}
 {$IMPLICITBUILD ON}
 
@@ -34,7 +34,8 @@ requires
   rtl,
   vcl,
   xmlrtl,
-  designide;
+  designide,
+  fmx;
 
 contains
   castleinternalcontainer in '..\..\src\delphi\castleinternalcontainer.pas',
@@ -328,7 +329,9 @@ contains
   ImagingJpeg2000 in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingJpeg2000.pas',
   castlescriptarrays in '..\..\src\castlescript\castlescriptarrays.pas',
   castlescriptimages in '..\..\src\castlescript\castlescriptimages.pas',
-  castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas';
+  castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas',
+  fmx.castlecontrol in '..\..\src\delphi\fmx.castlecontrol.pas',
+  vcl.castlecontrol in '..\..\src\delphi\vcl.castlecontrol.pas';
 
 end.
 

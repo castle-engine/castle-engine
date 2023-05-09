@@ -22,6 +22,7 @@ lib/
 # https://docwiki.embarcadero.com/RADStudio/Sydney/en/API_(*.rsm)
 *.rsm
 *.local
+__recovery
 
 # Other backups
 *.blend1
@@ -40,6 +41,8 @@ xcuserdata
 !xcshareddata
 /bin/
 /tools/castle-editor/Castle Game Engine.app/
+# used by https://marketplace.visualstudio.com/items?itemName=alefragnani.jenkins-status
+/.jenkins
 
 # cge build tool stuff
 castle-engine-output
@@ -224,6 +227,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/occlusion_culling/occlusion_culling
 /examples/visualize_triangulation/visualize_triangulation
 /examples/window/multi_window/multi_window
+/examples/window/multiple_windows_and_viewports/multiple_windows_and_viewports
 /examples/window/window_menu/window_menu
 /packages/alternative_castle_window_based_on_lcl.pas
 /packages/castle_base.pas

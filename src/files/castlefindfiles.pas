@@ -519,7 +519,7 @@ begin
         StopSearch := false;
         for i := 0 to FileInfos.Count - 1 do
         begin
-          FileProc(FileInfos.List^[i], FileProcData, StopSearch);
+          FileProc(FileInfos.L[i], FileProcData, StopSearch);
           if StopSearch then Break;
         end;
       end;

@@ -3406,10 +3406,10 @@ begin
   Result := Translation;
   { Using deprecated in deprecated.
     This should be simpler at some point:
-      Result.InternalData[GC] := Lerp(MiddleHeight, B.Data[0][GC], B.Data[1][GC]);
+      Result.Data[GC] := Lerp(MiddleHeight, B.Data[0][GC], B.Data[1][GC]);
   }
   {$warnings off}
-  Result.InternalData[GC] := Result.InternalData[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
+  Result.Data[GC] := Result.Data[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
   {$warnings on}
 end;
 

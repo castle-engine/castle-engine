@@ -382,7 +382,7 @@ var
     I: Integer;
   begin
     TrianglesPlaneSide.Count := Triangles.Count;
-    TrianglePtr := PTriangle3(Triangles.List);
+    TrianglePtr := PTriangle3(Triangles.L);
 
     { If light is directional, no need to render dark cap }
     DarkCap := DarkCap and (LightPos.W <> 0);
@@ -394,7 +394,7 @@ var
 
     for I := 0 to Triangles.Count - 1 do
     begin
-      TrianglesPlaneSide.List^[I] := PlaneSide(TrianglePtr^);
+      TrianglesPlaneSide.L[I] := PlaneSide(TrianglePtr^);
       Inc(TrianglePtr);
     end;
 
@@ -440,11 +440,11 @@ begin
 
     { for each 2-manifold edge, possibly render it's shadow quad }
     ManifoldEdgesNow := ManifoldEdges;
-    ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.List);
+    ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.L);
     for I := 0 to ManifoldEdgesNow.Count - 1 do
     begin
-      PlaneSide0 := TrianglesPlaneSide.List^[ManifoldEdgePtr^.Triangles[0]];
-      PlaneSide1 := TrianglesPlaneSide.List^[ManifoldEdgePtr^.Triangles[1]];
+      PlaneSide0 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[0]];
+      PlaneSide1 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[1]];
 
       { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
         so only then render it's shadow quad.
@@ -484,10 +484,10 @@ begin
       for more involved approach. Rendering shadow quads from border edges,
       like below, is only part of the solution. }
     BorderEdgesNow := BorderEdges;
-    BorderEdgePtr := PBorderEdge(BorderEdgesNow.List);
+    BorderEdgePtr := PBorderEdge(BorderEdgesNow.L);
     for I := 0 to BorderEdgesNow.Count - 1 do
     begin
-      PlaneSide0 := TrianglesPlaneSide.List^[BorderEdgePtr^.TriangleIndex];
+      PlaneSide0 := TrianglesPlaneSide.L[BorderEdgePtr^.TriangleIndex];
 
       { We want to have consistent CCW orientation of shadow quads faces,
         so that face is oriented CCW <=> you're looking at it from outside

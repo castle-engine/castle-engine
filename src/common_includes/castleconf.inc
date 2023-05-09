@@ -65,6 +65,11 @@
   {$H+}
   {$macro on}
   {$modeswitch advancedrecords} // Note: no way to specify this by FPC command-line.
+{$else}
+  { Makes TStructList.L useful in Delphi, like "MyArray.L[100]".
+    FPC has this by default.
+    See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Pointer_Math_(Delphi) }
+  {$pointermath on}
 {$endif}
 
 {$writeableconst off} // Note: no way to specify this by FPC command-line.
@@ -145,6 +150,19 @@
     { Original Pascal 10-byte Extended. }
   {$else}
     {$define EXTENDED_EQUALS_DOUBLE}
+  {$endif}
+{$endif}
+
+{ When using FPC, and Extended = Double, you cannot overload
+  for both Double and Extended as they are just equal.
+  Extended is just alias for Double.
+
+  Delphi, even when Extended = Double, still treats Extended
+  like a different type, for choosing overloads.
+  It even requires Extended overloads e.g. for MinVar(Extended, ...). }
+{$ifndef PASDOC}
+  {$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
+    {$define EXTENDED_OVERLOADS}
   {$endif}
 {$endif}
 

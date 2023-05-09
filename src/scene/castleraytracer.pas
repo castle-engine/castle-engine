@@ -437,11 +437,11 @@ var
     Dimensions := Image.Dimensions;
     for I := 0 to 2 do
     begin
-      PixelInt.InternalData[I] := Round(Pixel[I] - 0.5);
+      PixelInt.Data[I] := Round(Pixel[I] - 0.5);
       if RepeatCoord[I] then
-        PixelInt.InternalData[I] := DivUnsignedModulo(PixelInt[I], Dimensions[I])
+        PixelInt.Data[I] := DivUnsignedModulo(PixelInt[I], Dimensions[I])
       else
-        PixelInt.InternalData[I] := Clamped(PixelInt[I], 0, Dimensions[I] - 1);
+        PixelInt.Data[I] := Clamped(PixelInt[I], 0, Dimensions[I] - 1);
     end;
     Result := Image.Colors[PixelInt[0], PixelInt[1], PixelInt[2]];
   end;
@@ -494,9 +494,9 @@ var
     for I := 0 to 1 do
     begin
       if RepeatCoord[I] then
-        Pixel.InternalData[I] := FloatModulo(Pixel[I], Dimensions[I])
+        Pixel.Data[I] := FloatModulo(Pixel[I], Dimensions[I])
       else
-        Pixel.InternalData[I] := Clamped(Pixel[I], 0, Dimensions[I]);
+        Pixel.Data[I] := Clamped(Pixel[I], 0, Dimensions[I]);
     end;
 
     for I := 0 to 1 do
@@ -505,7 +505,7 @@ var
       // it will not filter 100% nicely on the border pixels
       PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
       PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
-      PixelFrac.InternalData[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
+      PixelFrac.Data[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
     end;
 
     Result :=
@@ -785,8 +785,8 @@ var
         Lights := State.Lights;
         if Lights <> nil then
           for i := 0 to Lights.Count - 1 do
-            if LightNotBlocked(Lights.List^[i]) then
-              Result := Result + Lights.List^[i].Contribution(Intersection,
+            if LightNotBlocked(Lights.L[i]) then
+              Result := Result + Lights.L[i].Contribution(Intersection,
                 IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Add GlobalLights contribution, just like other lights.
@@ -821,8 +821,8 @@ var
           the headlight. Which is true in the current uses. }
         for I := 0 to GlobalLights.Count - 1 do
           if (Depth = InitialDepth) or
-             LightNotBlocked(GlobalLights.List^[I]) then
-            Result := Result + GlobalLights.List^[I].Contribution(Intersection,
+             LightNotBlocked(GlobalLights.L[I]) then
+            Result := Result + GlobalLights.L[I].Contribution(Intersection,
               IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Calculate recursively reflected and transmitted rays.

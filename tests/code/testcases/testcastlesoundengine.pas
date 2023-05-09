@@ -82,7 +82,7 @@ begin
       except
         on E: Exception do
         begin
-          if Pos('Loading WAV files not in PCM format not implemented', E.Message) > 0 then
+          if Pos('Only uncompressed (PCM) WAV files are supported', E.Message) > 0 then
           begin
             // good, we expect this
           end else

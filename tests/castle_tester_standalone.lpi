@@ -20,7 +20,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="81">
+    <Units Count="80">
       <Unit0>
         <Filename Value="castle_tester_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -60,11 +60,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlescene"/>
       </Unit7>
-      <Unit8>
-        <Filename Value="code/testcases/testcastlegenericlists.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="testcastlegenericlists"/>
-      </Unit8>
       <Unit9>
         <Filename Value="code/testcases/testcastlegame.pas"/>
         <IsPartOfProject Value="True"/>
@@ -372,11 +367,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolpackageformat"/>
       </Unit79>
-      <Unit80>
+      <Unit8>
         <Filename Value="code/testcases/testcastledesigncomponents.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastledesigncomponents"/>
-      </Unit80>
+      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

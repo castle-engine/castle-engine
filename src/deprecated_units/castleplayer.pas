@@ -572,7 +572,7 @@ begin
   B.Data[0].Z := -Navigation.Radius;
 
   if World <> nil then
-    B.Data[0].InternalData[World.GravityCoordinate] := -Navigation.PreferredHeight;
+    B.Data[0].Data[World.GravityCoordinate] := -Navigation.PreferredHeight;
 
   B.Data[1].X := Navigation.Radius;
   B.Data[1].Y := Navigation.Radius;

@@ -1456,8 +1456,6 @@ begin
     ExtractTemplate('custom_editor_template/', EditorPath, true);
 
     // use lazbuild to compile CGE packages and CGE editor
-    RunLazbuild(Path, [CgePath + 'src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk']);
-    RunLazbuild(Path, [CgePath + 'src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk']);
     RunLazbuild(Path, [CgePath + 'packages/castle_base.lpk']);
     RunLazbuild(Path, [CgePath + 'packages/castle_components.lpk']);
     RunLazbuild(Path, [CgePath + 'packages/castle_editor_components.lpk']);

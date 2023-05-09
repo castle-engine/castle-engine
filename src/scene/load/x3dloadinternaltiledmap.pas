@@ -378,8 +378,9 @@ end;
 procedure TCastleTiledMapConverter.BuildObjectGroupLayerNode(const LayerNode: TTransformNode;
   const ALayer: TCastleTiledMapData.TLayer);
 var
-  // Material node of a Tiled obj.
-  TiledObjectMaterial: TMaterialNode;
+  // Appearance (refers also to TiledObjectMaterial) node of a Tiled obj.
+  TiledObjectAppearance: TAppearanceNode;
+  TiledObjectMaterial: TUnlitMaterialNode;
   // A Tiled object instance (as saved in TCastleTiledMapData).
   TiledObject: TCastleTiledMapData.TTiledObject;
   // Node of a Tiled object.
@@ -392,6 +393,7 @@ var
   AVector2List: TVector2List;
   I: Cardinal;
 begin
+  TiledObjectAppearance := nil;
   TiledObjectMaterial := nil;
   TiledObjectNode := nil;
   TiledObjectGeometry := nil;
@@ -407,10 +409,12 @@ begin
 
     { All Tiled objects of this layer share the same material node. The color
       depends on the layer color in accordance with handling of Tiled editor. }
-    if not Assigned(TiledObjectMaterial) then
+    if not Assigned(TiledObjectAppearance) then
     begin
-      TiledObjectMaterial := TMaterialNode.Create;
+      TiledObjectMaterial := TUnlitMaterialNode.Create;
       TiledObjectMaterial.EmissiveColor := ALayer.Color;
+      TiledObjectAppearance := TAppearanceNode.Create;
+      TiledObjectAppearance.Material := TiledObjectMaterial;
     end;
 
     { Every Tiled object is based on a transform node. }
@@ -466,7 +470,7 @@ begin
           WritelnWarning('Not supported yet: Ellipse object primitive. Ignored.');
         end;
     end;
-    TiledObjectShape.Material := TiledObjectMaterial;
+    TiledObjectShape.Appearance := TiledObjectAppearance;
     TiledObjectNode.AddChildren(TiledObjectShape);
     LayerNode.AddChildren(TiledObjectNode);
   end;

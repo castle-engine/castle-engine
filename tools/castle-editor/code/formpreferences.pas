@@ -427,8 +427,6 @@ procedure TPreferencesForm.ButtonRegisterLazarusPackagesClick(Sender: TObject);
 
 begin
   try
-    RegisterPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk');
-    RegisterPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk');
     RegisterPackage('packages/castle_base.lpk');
     RegisterPackage('packages/castle_window.lpk');
     RegisterPackage('packages/castle_components.lpk');

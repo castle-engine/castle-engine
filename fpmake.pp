@@ -102,19 +102,19 @@ begin
     P.Targets.AddUnit('ImagingBitmap.pas');
     P.Targets.AddUnit('ImagingCanvases.pas');
     P.Targets.AddUnit('ImagingClasses.pas');
+    P.Targets.AddUnit('ImagingColors.pas');
     P.Targets.AddUnit('ImagingComponents.pas');
     P.Targets.AddUnit('ImagingDds.pas');
     P.Targets.AddUnit('ImagingFormats.pas');
+    P.Targets.AddUnit('ImagingGif.pas');
     P.Targets.AddUnit('ImagingIO.pas');
     P.Targets.AddUnit('ImagingJpeg.pas');
     P.Targets.AddUnit('ImagingNetworkGraphics.pas');
+    P.Targets.AddUnit('ImagingPortableMaps.pas');
+    P.Targets.AddUnit('ImagingRadiance.pas');
     P.Targets.AddUnit('ImagingTarga.pas');
     P.Targets.AddUnit('ImagingTypes.pas');
     P.Targets.AddUnit('ImagingUtility.pas');
-    P.Targets.AddUnit('ImagingPortableMaps.pas');
-    P.Targets.AddUnit('ImagingGif.pas');
-    P.Targets.AddUnit('ImagingColors.pas');
-    P.Targets.AddUnit('ImagingRadiance.pas');
 
     P.SourcePath.Add('src/vampyre_imaginglib/src/Source/JpegLib');
     P.Targets.AddUnit('imjcapimin.pas');
@@ -122,6 +122,7 @@ begin
     P.Targets.AddUnit('imjccoefct.pas');
     P.Targets.AddUnit('imjccolor.pas');
     P.Targets.AddUnit('imjcdctmgr.pas');
+    P.Targets.AddUnit('imjchuff.pas');
     P.Targets.AddUnit('imjcinit.pas');
     P.Targets.AddUnit('imjcmainct.pas');
     P.Targets.AddUnit('imjcmarker.pas');
@@ -151,7 +152,6 @@ begin
     P.Targets.AddUnit('imjfdctflt.pas');
     P.Targets.AddUnit('imjfdctfst.pas');
     P.Targets.AddUnit('imjfdctint.pas');
-    P.Targets.AddUnit('imjchuff.pas');
     P.Targets.AddUnit('imjidctflt.pas');
     P.Targets.AddUnit('imjidctfst.pas');
     P.Targets.AddUnit('imjidctint.pas');
@@ -196,33 +196,6 @@ begin
     P.Targets.AddUnit('ImagingPsd.pas');
     P.Targets.AddUnit('ImagingTiff.pas');
     P.Targets.AddUnit('ImagingXpm.pas');
-
-    { We don't link Jpeg2000 or Tiff from Vampyre when CGE is compiled by fpmake.
-      These units are not portable (though this can be worked around with,
-      using conditional as below for OpenJpeg.pas)
-      and also they require external .o/.a files which I don't know how to make
-      work with fpmake "install" (so that other applications can use them too).
-    }
-
-    (*
-    //P.Targets.AddUnit('ImagingJpeg2000.pas');
-
-    { OpenJpeg only compiles on certain platforms,
-      see $ifdef in ImagingJpeg2000 (ImagingJpeg2000 compiles but is empty
-      on unsupported platforms). }
-    if ((Defaults.OS in AllWindowsOSes) and (Defaults.CPU in [x86])) or
-       ((Defaults.OS = Linux) and (Defaults.CPU in [x86, x86_64])) or
-       ((Defaults.OS = macOS) and (Defaults.CPU in [x86])) then
-    begin
-      P.Targets.AddUnit('OpenJpeg.pas');
-    end;
-    *)
-
-    P.Options.Add('-dDONT_LINK_JPEG2000');
-    { Tiff is actually already disabled in ImagingExtFileFormats.pas,
-      in Vampyre version distributed in CGE,
-      see comments there -- it is not portable. }
-    P.Options.Add('-dDONT_LINK_TIFF');
 
     { Add our unit groups.
       For simplicity, keep things in alphabetical order in each group. }
@@ -287,7 +260,6 @@ begin
     P.Targets.AddUnit('castlecreatures.pas');
     P.Targets.AddUnit('castlefontfamily.pas');
     P.Targets.AddUnit('castlegamenotifications.pas');
-    P.Targets.AddUnit('castlegenericlists.pas');
     P.Targets.AddUnit('castleglcontainer.pas');
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castleinternalusedeprecatedunits.pas');

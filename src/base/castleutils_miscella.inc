@@ -160,7 +160,7 @@ function FloatToStrFDot(const Value: Extended;
   and in general ignores locale (standard StrToFloat looks at ThousandSeparator). }
 function TryStrToFloatDot(const S: String; out Value: Single): Boolean; overload;
 function TryStrToFloatDot(const S: String; out Value: Double): Boolean; overload;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 function TryStrToFloatDot(const S: String; out Value: Extended): Boolean; overload;
 {$endif}
 
@@ -419,7 +419,7 @@ begin
   Result := TryStrToFloat(S, Value, FormatSettings);
 end;
 
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 function TryStrToFloatDot(const S: String; out Value: Extended): Boolean;
 var
   FormatSettings: TFormatSettings;
@@ -469,7 +469,7 @@ begin
   Result := Err = 0;
 end;
 
-{$ifndef EXTENDED_EQUALS_DOUBLE}
+{$ifdef EXTENDED_OVERLOADS}
 function TryStrToFloatDot(const S: String; out Value: Extended): Boolean;
 var
   Err: Integer;

@@ -213,6 +213,9 @@ begin
         FieldConfigure += '   ' + Field.PascalNamePrefixed + '.MustBeNonnegative := true;' + NL;
       if Field.WeakLink then
         FieldConfigure += '   ' + Field.PascalNamePrefixed + '.WeakLink := true;' + NL;
+      if Field.SetterBefore <> '' then
+        FieldConfigure += '   ' + Field.PascalNamePrefixed + '.OnBeforeValueChange := {$ifdef FPC}@{$endif}' + Field.SetterBefore + ';' + NL;
+
       FieldExposed := BoolToStr(Field.AccessType = atInputOutput, true);
 
       if Field.Comment <> '' then
@@ -1244,7 +1247,6 @@ begin
           NL +
           'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL +
           'begin' + NL +
-          Iff(Field.SetterBefore <> '', '  ' + Field.SetterBefore + '(Value);' + NL, '') +
           '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
           'end;' + NL +
           NL +

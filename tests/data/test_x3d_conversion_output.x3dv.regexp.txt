@@ -1,0 +1,41 @@
+#X3D V4.0 utf8
+
+PROFILE Full
+
+META ".*"
+META ".*"
+
+Viewpoint \{
+	fieldOfView 0.40[\d]*
+	centerOfRotation 0 1 0
+	position -5.875[\d]* 5.3400[\d]* 6.90[\d]*
+	orientation -0.64[\d]* -0.759[\d]* -0.10[\d]* 0.87[\d]*
+\}
+Shape \{
+	appearance Appearance \{
+		material Material \{
+		\}
+	\}
+	geometry Box \{
+	\}
+\}
+DEF CR Transform \{
+	children Transform \{
+		translation 0.05[\d]* -0.03[\d]* -0.20[\d]*
+		children Shape \{
+			geometry DEF COPYRIGHT Text \{
+				string "Box \(C\) 28.04.2023 Elmar Knittel"
+				fontStyle FontStyle \{
+					size 0.00[\d]*
+					family "SANS"
+					justify "END"
+				\}
+			\}
+		\}
+	\}
+\}
+DEF PS ProximitySensor \{
+	size 10000 10000 10000
+\}
+ROUTE PS.position_changed TO CR.set_translation
+ROUTE PS.orientation_changed TO CR.set_rotation

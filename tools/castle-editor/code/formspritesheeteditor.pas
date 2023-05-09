@@ -1432,6 +1432,8 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
 
   function Generate3XDWithImage: TX3DRootNode;
   var
+    Material: TUnlitMaterialNode;
+    Appearance: TAppearanceNode;
     Shape: TShapeNode;
     Tri: TTriangleSetNode;
     Tex: TPixelTextureNode;
@@ -1443,8 +1445,13 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
   begin
     Result := TX3DRootNode.Create;
 
+    Material := TUnlitMaterialNode.Create;
+
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+
     Shape := TShapeNode.Create;
-    Shape.Material := TUnlitMaterialNode.Create;
+    Shape.Appearance := Appearance;
 
     Tex := TPixelTextureNode.Create;
     Tex.FdImage.Value := Frame.MakeImageCopy;
@@ -1452,7 +1459,7 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
     Tex.RepeatS := false;
     Tex.RepeatT := false;
     }
-    Shape.Texture := Tex;
+    Appearance.Texture := Tex;
 
     TexProperties := TTexturePropertiesNode.Create;
     TexProperties.BoundaryModeS := bmClampToEdge;

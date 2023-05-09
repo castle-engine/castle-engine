@@ -288,10 +288,10 @@ begin
   begin
     RBody := RigidBodies[I];
     Origin := RBody.Parent.LocalToWorld(TVector3.Zero);
-    VertexesLinearVelocity.List^[I * 2    ] := Origin;
-    VertexesLinearVelocity.List^[I * 2 + 1] := Origin + VelocityScale(RBody.LinearVelocity);
-    VertexesAngularVelocity.List^[I * 2    ] := Origin;
-    VertexesAngularVelocity.List^[I * 2 + 1] := Origin + VelocityScale(RBody.AngularVelocity);
+    VertexesLinearVelocity.L[I * 2    ] := Origin;
+    VertexesLinearVelocity.L[I * 2 + 1] := Origin + VelocityScale(RBody.LinearVelocity);
+    VertexesAngularVelocity.L[I * 2    ] := Origin;
+    VertexesAngularVelocity.L[I * 2 + 1] := Origin + VelocityScale(RBody.AngularVelocity);
   end;
 
   VisualizeVelocitiesLinearLines.FdPoint.Changed;

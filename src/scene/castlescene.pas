@@ -626,7 +626,7 @@ implementation
 
 uses Math,
   CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
-  CastleShapeInternalRenderShadowVolumes,
+  CastleShapeInternalRenderShadowVolumes, CastleURIUtils,
   CastleComponentSerialize, CastleRenderContext, CastleFilesUtils, CastleInternalGLUtils;
 
 {$define read_implementation}
@@ -900,7 +900,7 @@ procedure TCastleScene.GLContextClose;
   begin
     if GeneratedTextures <> nil then
       for I := 0 to GeneratedTextures.Count - 1 do
-        GeneratedTextures.List^[I].Functionality.InternalUpdateNeeded := true;
+        GeneratedTextures.L[I].Functionality.InternalUpdateNeeded := true;
   end;
 
 begin
@@ -1402,7 +1402,9 @@ begin
 
   if not ApplicationProperties.IsGLContextOpen then
   begin
-    WritelnLog('PrepareResources', 'OpenGL context not available, skipping preparing TCastleScene OpenGL resources');
+    WritelnLog('PrepareResources', 'Rendering context not available, skipping preparing TCastleScene rendering resources for "%s"', [
+      URIDisplay(URL)
+    ]);
     Exit;
   end;
 
@@ -2030,9 +2032,9 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
     for I := 0 to GeneratedTextures.Count - 1 do
     begin
-      Shape := TGLShape(GeneratedTextures.List^[I].Shape);
-      TextureNode := GeneratedTextures.List^[I].TextureNode;
-      GenTexFunctionality := GeneratedTextures.List^[I].Functionality;
+      Shape := TGLShape(GeneratedTextures.L[I].Shape);
+      TextureNode := GeneratedTextures.L[I].TextureNode;
+      GenTexFunctionality := GeneratedTextures.L[I].Functionality;
 
       { update GenTexFunctionality.InternalUpdateNeeded }
       if TextureNode is TGeneratedShadowMapNode then
@@ -2235,12 +2237,12 @@ var
 begin
   inherited;
   for I := 0 to GeneratedTextures.Count - 1 do
-    if GeneratedTextures.List^[I].TextureNode is TRenderedTextureNode then
+    if GeneratedTextures.L[I].TextureNode is TRenderedTextureNode then
       { Camera change causes regenerate of RenderedTexture,
         as RenderedTexture with viewpoint = NULL uses current camera.
         See demo_models/rendered_texture/rendered_texture_no_headlight.x3dv
         testcase. }
-      GeneratedTextures.List^[I].Functionality.InternalUpdateNeeded := true;
+      GeneratedTextures.L[I].Functionality.InternalUpdateNeeded := true;
 end;
 
 function TCastleScene.ScreenEffectsCount: Integer;

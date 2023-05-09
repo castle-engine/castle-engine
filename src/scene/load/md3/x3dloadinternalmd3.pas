@@ -42,7 +42,7 @@ type
   EInvalidMD3 = class(Exception);
 
 const
-  GoodIdent = 'IDP3';
+  GoodIdent: AnsiString = 'IDP3';
 
 {$I x3dloadinternalmd3_structs.inc}
 {$I x3dloadinternalmd3_surface.inc}

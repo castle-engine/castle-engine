@@ -128,8 +128,21 @@
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
-    { These should only be get/set by a container owner,
+    { These properties are protected,
+      they should only be get/set by a container owner,
       like TCastleWindow or TCastleControl.
+
+      @deprecated These events, just like similar public events
+      at TCastleWindow or TCastleControl, are deprecated.
+      Because
+
+      1. Most of them are pointers to global routines, not methods ("of object")
+      and we generally prefer to have pointers to methods ("of object").
+
+      2. We advise to manage things by overriding methods,
+      or using events, of TCastleUserInterface and descendants.
+      This includes using methods of TCastleView.
+
       @groupBegin }
     property OnOpen: TContainerEvent read FOnOpen write FOnOpen;
     property OnOpenObject: TContainerObjectEvent read FOnOpenObject write FOnOpenObject;
@@ -170,18 +183,18 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Propagate the event to all the @link(Controls) and to our own OnXxx callbacks.
+    { Propagate the event to all the @link(Controls).
+      You can call these methods explicitly if you want to "fake" some event,
+      e.g. fake pressing or releasing a key by calling @link(EventPress) or
+      @link(EventRelease).
 
-      These methods are called automatically when necessary,
-      so usually you don't call them. But in rare cases, it makes sense
-      to "fake" some event by calling these methods.
+      Deprecated: these methods also call our (deprecated) callbacks like OnPress.
 
-      Most of these methods are called automatically
-      by the container owner, like TCastleWindow or TCastleControl.
-      Some are called by @link(EventUpdate),
-      which is special in this regard, as @link(EventUpdate) is not only
-      responsible for calling @link(TCastleUserInterface.Update) on all @link(Controls),
-      it also calls
+      These methods are called automatically by TCastleWindow or TCastleControl.
+      So if you don't need to "fake" any event, you should not call them from
+      your application.
+
+      Note: @link(EventUpdate) is special in that it also calls (for now)
       @link(EventJoyAxisMove),
       @link(EventJoyButtonPress),
       @link(EventSensorRotation),
@@ -822,7 +835,7 @@ begin
   FNewFocus := TCastleUserInterfaceList.Create(false);
   FFps := TFramesPerSecond.InternalCreate;
   FPressed := TKeysPressed.Create;
-  FContext := TRenderContext.Create;
+  FContext := TRenderContext.Create(nil);
   FBackgroundEnable := true;
   FBackgroundColor := DefaultBackgroundColor;
 
@@ -1699,7 +1712,7 @@ begin
     if RenderContext = FContext then
       RenderContext := nil;
     FreeAndNil(FContext);
-    FContext := TRenderContext.Create;
+    FContext := TRenderContext.Create(nil);
   end;
 end;
 
@@ -2401,7 +2414,7 @@ end;
 procedure TCastleContainer.LoadSettings(const SettingsUrl: String);
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    raise Exception.Create('Rendering context not open when calling TUIContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindow.OnOpen, TCastleControl.OnOpen');
+    raise Exception.Create('Rendering context not open when calling TCastleContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindow.OnOpen, TCastleControl.OnOpen');
   SettingsLoad(Self, SettingsUrl);
 end;
 

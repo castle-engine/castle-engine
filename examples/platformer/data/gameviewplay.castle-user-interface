@@ -14,8 +14,8 @@
           "GravityStrength" : 1.2000000000000000E+003,
           "LayerCollisions" : {
             "$$ClassName" : "TCastleLayerCollisions",
-            "Collides0" : 13,
-            "Collides1" : 4,
+            "Collides0" : 15,
+            "Collides1" : 5,
             "Collides2" : 11,
             "Collides3" : 5
           },

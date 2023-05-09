@@ -246,14 +246,14 @@ begin
   PlaneConstCoord := Random(3);
   PlaneConstVal := Random*1000 - 500;
   FillChar(Plane, SizeOf(Plane), 0);
-  Plane.InternalData[PlaneConstCoord] := -1;
-  Plane.InternalData[3] := PlaneConstVal;
+  Plane.Data[PlaneConstCoord] := -1;
+  Plane.Data[3] := PlaneConstVal;
 
   { czasami uczyn promien rownoleglym do [Simple]Plane (zeby zobaczyc
     czy sobie z tym radzi) }
   if Random(10) = 1 then
   begin
-   RayDirection.InternalData[PlaneConstCoord] := 0;
+   RayDirection.Data[PlaneConstCoord] := 0;
    b1 := TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, RayOrigin, RayDirection);
    b2 := TryPlaneRayIntersection(I2, Plane, RayOrigin, RayDirection);
    Check( (not b1) and (not b2) ,'intersect with parallel plane');

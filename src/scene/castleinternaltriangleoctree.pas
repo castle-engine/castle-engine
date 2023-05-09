@@ -215,11 +215,8 @@ uses CastleShapes;
 { TTriangleOctreeNode -------------------------------------------------------------- }
 
 function TTriangleOctreeNode.ItemBoundingBox(const ItemIndex: integer): TBox3D;
-var
-  Triangle: PTriangle3;
 begin
-  Triangle := Addr(ParentTree.Triangles.List^[ItemIndex].Local.Triangle);
-  Result := TriangleBoundingBox(Triangle^);
+  Result := TriangleBoundingBox(ParentTree.Triangles.L[ItemIndex].Local.Triangle);
 end;
 
 procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
@@ -245,10 +242,12 @@ var
 var
   OSIS_b_low, OSIS_b_high: TOctreeSubnodeIndex;
   OSIS_b_0, OSIS_b_1, OSIS_b_2: boolean;
+  FullTriangle: PTriangle;
 begin
   AddedSomewhere := false;
 
-  Triangle := Addr(ParentTree.Triangles.List^[ItemIndex].Local.Triangle);
+  FullTriangle := PTriangle(ParentTree.Triangles.Ptr(ItemIndex));
+  Triangle := Addr(FullTriangle^.Local.Triangle);
 
   { First prototype of this just run SecondTestAndAdd 8 times, without
     initial SubnodesWithBox checking. It turns out that it's faster
@@ -307,7 +306,7 @@ end;
 
 function TTriangleOctreeNode.GetItems(ItemIndex: integer): PTriangle;
 begin
-  Result := PTriangle(ParentTree.Triangles.Ptr(ItemsIndices.List^[ItemIndex]));
+  Result := PTriangle(ParentTree.Triangles.Ptr(ItemsIndices.L[ItemIndex]));
 end;
 
 { TTriangleOctreeNode Collisions ------------------------------------------------------ }
@@ -608,7 +607,7 @@ var
   I: Integer;
   T: PTriangle;
 begin
-  T := PTriangle(Triangles.List);
+  T := PTriangle(Triangles.L);
   for I := 0 to Triangles.Count - 1 do
   begin
     T^.UpdateWorld;

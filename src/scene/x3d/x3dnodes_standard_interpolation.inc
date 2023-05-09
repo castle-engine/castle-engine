@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -395,13 +396,13 @@ procedure TColorInterpolatorNode.InterpolatorLerp(const Target: TSFVec3f;
   const A: Single; const Index1, Index2: Integer);
 begin
   Target.Value := LerpRgbInHsv(A,
-    FdKeyValue.Items.List^[Index1],
-    FdKeyValue.Items.List^[Index2]);
+    FdKeyValue.Items.L[Index1],
+    FdKeyValue.Items.L[Index2]);
 end;
 
 procedure TColorInterpolatorNode.InterpolatorSet(const Target: TSFVec3f; const Index: Integer);
 begin
-  Target.Value := FdKeyValue.Items.List^[Index];
+  Target.Value := FdKeyValue.Items.L[Index];
 end;
 
 function TColorInterpolatorNode.CreateOutputField: TSFVec3f;
@@ -579,24 +580,24 @@ begin
   if KeyValueQuaternions then
   begin
     // interpolate on quaternions, assuming our inputs are unit quaternions
-    Q1.Data.Vector4 := FdKeyValue.Items.List^[Index1];
-    Q2.Data.Vector4 := FdKeyValue.Items.List^[Index2];
+    Q1.Data.Vector4 := FdKeyValue.Items.L[Index1];
+    Q2.Data.Vector4 := FdKeyValue.Items.L[Index2];
     QResult := SLerp(A, Q1, Q2);
     Target.Value := QResult.ToAxisAngle;
   end else
   begin
     Target.Value := SLerp(A,
-      FdKeyValue.Items.List^[Index1],
-      FdKeyValue.Items.List^[Index2]);
+      FdKeyValue.Items.L[Index1],
+      FdKeyValue.Items.L[Index2]);
   end;
 end;
 
 procedure TOrientationInterpolatorNode.InterpolatorSet(const Target: TSFRotation; const Index: Integer);
 begin
   if KeyValueQuaternions then
-    Target.Value := Quaternion(FdKeyValue.Items.List^[Index]).ToAxisAngle
+    Target.Value := Quaternion(FdKeyValue.Items.L[Index]).ToAxisAngle
   else
-    Target.Value := FdKeyValue.Items.List^[Index];
+    Target.Value := FdKeyValue.Items.L[Index];
 end;
 
 function TOrientationInterpolatorNode.CreateOutputField: TSFRotation;
@@ -653,13 +654,13 @@ procedure TPositionInterpolatorNode.InterpolatorLerp(const Target: TSFVec3f;
   const A: Single; const Index1, Index2: Integer);
 begin
   Target.Value := Lerp(A,
-    FdKeyValue.Items.List^[Index1],
-    FdKeyValue.Items.List^[Index2]);
+    FdKeyValue.Items.L[Index1],
+    FdKeyValue.Items.L[Index2]);
 end;
 
 procedure TPositionInterpolatorNode.InterpolatorSet(const Target: TSFVec3f; const Index: Integer);
 begin
-  Target.Value := FdKeyValue.Items.List^[Index];
+  Target.Value := FdKeyValue.Items.L[Index];
 end;
 
 function TPositionInterpolatorNode.CreateOutputField: TSFVec3f;
@@ -702,13 +703,13 @@ procedure TPositionInterpolator2DNode.InterpolatorLerp(const Target: TSFVec2f;
   const A: Single; const Index1, Index2: Integer);
 begin
   Target.Value := Lerp(A,
-    FdKeyValue.Items.List^[Index1],
-    FdKeyValue.Items.List^[Index2]);
+    FdKeyValue.Items.L[Index1],
+    FdKeyValue.Items.L[Index2]);
 end;
 
 procedure TPositionInterpolator2DNode.InterpolatorSet(const Target: TSFVec2f; const Index: Integer);
 begin
-  Target.Value := FdKeyValue.Items.List^[Index];
+  Target.Value := FdKeyValue.Items.L[Index];
 end;
 
 function TPositionInterpolator2DNode.CreateOutputField: TSFVec2f;
@@ -727,13 +728,13 @@ procedure TScalarInterpolatorNode.InterpolatorLerp(const Target: TSFFloat;
   const A: Single; const Index1, Index2: Integer);
 begin
   Target.Value := Lerp(A,
-    FdKeyValue.Items.List^[Index1],
-    FdKeyValue.Items.List^[Index2]);
+    FdKeyValue.Items.L[Index1],
+    FdKeyValue.Items.L[Index2]);
 end;
 
 procedure TScalarInterpolatorNode.InterpolatorSet(const Target: TSFFloat; const Index: Integer);
 begin
-  Target.Value := FdKeyValue.Items.List^[Index];
+  Target.Value := FdKeyValue.Items.L[Index];
 end;
 
 function TScalarInterpolatorNode.CreateOutputField: TSFFloat;

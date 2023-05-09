@@ -13,6 +13,7 @@ animations
 appearance
 append
 application
+applied
 area
 areas
 args

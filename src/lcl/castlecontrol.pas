@@ -480,14 +480,24 @@ type
 
       Note that we automatically initialize necessary Castle Game Engine resources
       when context is created (@link(GLVersion), @link(GLFeatures) and more).
-    }
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method @link(TCastleUserInterface.GLContextOpen).
+      Or use ApplicationProperties.OnGLContextOpen to know when GL context is
+      created. }
     property OnOpen: TNotifyEvent read FOnOpen write FOnOpen;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextOpen; or use ApplicationProperties.OnGLContextOpen';{$endif}
 
     { Event called when the context is closed, right before the OpenGL context
       is destroyed. This is your last chance to release OpenGL resources,
       like textures, shaders, display lists etc. This is a counterpart
-      to OnOpen event. }
+      to OnOpen event.
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method @link(TCastleUserInterface.GLContextClose).
+      Or use ApplicationProperties.OnGLContextClose. }
     property OnClose: TNotifyEvent read FOnClose write FOnClose;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextClose; or use ApplicationProperties.OnGLContextClose';{$endif}
 
     { Event always called right before OnRender.
       These two events, OnBeforeRender and OnRender,
@@ -501,8 +511,12 @@ type
       time-consuming. It such cases it is not desirable to put such time-consuming
       task inside OnRender because this would cause a sudden big change in
       Fps.OnlyRenderFps value. So you can avoid this by putting
-      this in OnBeforeRender. }
+      this in OnBeforeRender.
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method BeforeRender. Or just use virtual Render or OnRender event. }
     property OnBeforeRender: TNotifyEvent read FOnBeforeRender write FOnBeforeRender;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method BeforeRender; or use virtual Render or OnRender event';{$endif}
 
     { Render window contents here.
 
@@ -520,15 +534,27 @@ type
       So here you can draw on top of the existing UI controls.
       To draw something underneath the existing controls, create a new TCastleUserInterface
       and override it's @link(TCastleUserInterface.Render) and insert it to the controls
-      using @code(Controls.InsertBack(MyBackgroundControl);). }
+      using @code(Controls.InsertBack(MyBackgroundControl);).
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView
+      virtual method Render and OnRender event. }
     property OnRender: TNotifyEvent read FOnRender write FOnRender;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Render or OnRender event';{$endif}
 
     { Called when the control size (@code(Width), @code(Height)) changes.
-      It's also guaranteed to be called right after the OnOpen event. }
-    property OnResize: TNotifyEvent read FOnResize write FOnResize;
+      It's also guaranteed to be called right after the OnOpen event.
 
-    { Called when user presses a key or mouse button or moves mouse wheel. }
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method Resize. }
+    property OnResize: TNotifyEvent read FOnResize write FOnResize;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Resize';{$endif}
+
+    { Called when user presses a key or mouse button or moves mouse wheel.
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method Press and OnPress event. }
     property OnPress: TControlInputPressReleaseEvent read FOnPress write FOnPress;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Press or OnPress event';{$endif}
 
     { Called when user releases a pressed key or mouse button.
 
@@ -550,8 +576,12 @@ type
       then release Shift, then release X". (will "X" be correctly
       released as pressed and then released? yes.
       will small "x" be reported as released at the end? no, as it was never
-      pressed.) }
+      pressed.)
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method Release and OnRelease event. }
     property OnRelease: TControlInputPressReleaseEvent read FOnRelease write FOnRelease;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Release or OnRelease event';{$endif}
 
     { Mouse or a finger on touch device moved.
 
@@ -559,8 +589,12 @@ type
       pressed mouse buttons in MousePressed. When this is called,
       the MousePosition property records the @italic(previous)
       mouse position, while callback parameter NewMousePosition gives
-      the @italic(new) mouse position. }
+      the @italic(new) mouse position.
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method Motion and OnMotion event. }
     property OnMotion: TControlInputMotionEvent read FOnMotion write FOnMotion;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Motion or OnMotion event';{$endif}
 
     { Continuously occuring event.
       This event is called roughly as regularly as redraw,
@@ -568,8 +602,12 @@ type
 
       Note that this is different than LCL "idle" event,
       as it's guaranteed to be run continuously, even when your application
-      is clogged with events (like when using TCastleWalkNavigation.MouseLook). }
+      is clogged with events (like when using TCastleWalkNavigation.MouseLook).
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method Update and OnUpdate event. }
     property OnUpdate: TNotifyEvent read FOnUpdate write FOnUpdate;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Update or OnUpdate event';{$endif}
 
     { Should we automatically redraw the window all the time,
       without the need for an @link(Invalidate) call.
@@ -809,6 +847,8 @@ begin
   Result := SaveScreen_NoFlush(Rect, Parent.SaveScreenBuffer);
 end;
 
+{$warnings off} // keep deprecated OnXxx wor
+
 procedure TCastleControlContainer.EventOpen(const OpenWindowsCount: Cardinal);
 begin
   inherited;
@@ -877,6 +917,8 @@ begin
   if Assigned(Parent.OnResize) then
     Parent.OnResize(Parent);
 end;
+
+{$warnings on}
 
 { TCastleControl -------------------------------------------------- }
 

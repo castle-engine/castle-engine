@@ -1,3 +1,5 @@
+{%MainUnit x3dnodes.pas}
+
 type
   { Common utility class for nodes that implement InternalCoordPolygons
     by calling MakeCoordRanges,
