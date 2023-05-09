@@ -11723,7 +11723,7 @@ begin
     result:=false;
     exit;
    end else begin
-    Time:=-t;
+    Time:=t;
     aU:=U;
     aV:=V;
     result:=true;
