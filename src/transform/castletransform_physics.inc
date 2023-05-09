@@ -2570,20 +2570,6 @@ begin
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[1])),
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
   );
-
-  if DoubleSided then
-  begin
-    { We also add triangles for the other side.
-      Kraft RayCast does not check inverted triangles. }
-    FKraftMesh.AddTriangle(
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
-      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[2])),
-      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[1])),
-      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))
-    );
-  end;
 end;
 
 function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
@@ -2593,6 +2579,7 @@ begin
   ARigidBody.RigidBodyType := krbtStatic;
 
   FKraftMesh := TKraftMesh.Create(APhysics);
+  FKraftMesh.DoubleSided := FDoubleSided;
 
   if FMesh = nil then
   begin
