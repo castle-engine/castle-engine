@@ -825,19 +825,25 @@ function HasNameCounter(const NamePattern: string;
 
 { Does given String match a regular expression.
 
-  When compiled with FPC, this uses RegExpr unit with TRegExpr class.
-  When compiled with Delphi, this uses RegularExpressions unit with TRegEx record.
+  When compiled with FPC, this uses FPC RegExpr unit with TRegExpr class.
+  When compiled with Delphi, this uses Delphi RegularExpressions unit with TRegEx record.
 
   @bold(The FPC and Delphi implementations are not guaranteed to be perfectly compatible.)
+  The FPC implementation has also some important fixes between FPC 3.2.0 and 3.2.2
+  (see our auto-tests in TTestCastleStringUtils.TestRegexpMatches).
   Using this routine is only safe for the subset of regular expressions that are compatible
   between FPC and Delphi implementations.
+
   Simple things, like +, *, ranges like [0-9] and [\d] are compatible,
-  so in many practical cases this is acceptable. If your application needs to support
-  both FPC and Delphi though, be sure to double-test that the regular expressions you use
+  so in many practical cases this is acceptable.
+  But in general, if your application needs to support both FPC and Delphi,
+  be sure to double-test that the regular expressions you use
   are interpreted the same by both FPC and Delphi.
 
   It is possible we will use some consistent regular expression library in the future
-  (e.g. FPC RegExpr should be compatible with Delphi too) to avoid this issue. }
+  (e.g. FPC RegExpr should be compatible with Delphi too) to avoid this issue.
+  Fow now, regexps are not very important for CGE code (or typical games using CGE),
+  so this isn't a critical issue. }
 function StringMatchesRegexp(const S, RegexpPattern: String): Boolean;
 
 { conversions ------------------------------------------------------------ }
