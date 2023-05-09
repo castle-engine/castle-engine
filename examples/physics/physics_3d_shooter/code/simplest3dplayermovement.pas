@@ -148,12 +148,14 @@ begin
 //    ColliderBoundingBox.SizeX, ColliderBoundingBox.SizeZ);
   SphereOrigin := Parent.Translation + PlayerCollider.Translation;
 
-  {GroundRayCast := PlayerRigidBody.PhysicsSphereCast(
+  WritelnLog('check SphereOrigin ' + SphereOrigin.ToString);
+
+  GroundRayCast := PlayerRigidBody.PhysicsSphereCast(
     SphereOrigin,
     Vector3(0, -1, 0),
     ColliderRadius,
     ColliderHeight * 3
-  );}
+  );
 
   {RayOrigin := Parent.Translation + PlayerCollider.Translation;
 
@@ -201,13 +203,19 @@ begin
 
     { When collider has own translation we need substract it from distance
       becouse distance will be too big }
-    DistanceToGround  := DistanceToGround - PlayerCollider.Translation.Y;
+    DistanceToGround := DistanceToGround - PlayerCollider.Translation.Y;
+
+    { When we use sphere cast we also should remove it radius }
+    DistanceToGround := DistanceToGround - ColliderRadius;
 
     { Sometimes rigid body center point can be under the collider so
       the distance can be negative }
     if DistanceToGround < 0 then
       DistanceToGround := 0;
 
+    { We use ColliderHeight / 2 because the cast origin is in
+      center of collider and ColliderHeight * 0.1 to give player control
+      a little faster }
     Result := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
     if Result then
       WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
