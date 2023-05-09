@@ -1646,7 +1646,7 @@ begin
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
   if not ACastleRigidBody.ExistsInRoot then
-    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable];
+    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable, ksfSphereCastable];
 
   UpdateLocalTransform;
 end;
@@ -3251,10 +3251,10 @@ begin
     { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
     if ExistsInRoot then
       KraftShape.Flags := KraftShape.Flags + [ksfCollision,
-        ksfRayCastable]
+        ksfRayCastable, ksfSphereCastable]
     else
       KraftShape.Flags := KraftShape.Flags - [ksfCollision,
-        ksfRayCastable];
+        ksfRayCastable, ksfSphereCastable];
   end;
 
   UpdateColliderAutoSize;
