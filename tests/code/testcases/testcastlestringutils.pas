@@ -46,7 +46,8 @@ type
 
 implementation
 
-uses CastleUtils, CastleStringUtils;
+uses CastleUtils, CastleStringUtils,
+  CastleTestUtils;
 
 procedure TTestCastleStringUtils.TestIntToStrBase;
 var i: Integer;
