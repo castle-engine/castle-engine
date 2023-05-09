@@ -131,11 +131,10 @@ var
   ColliderBoundingBox: TBox3D;
   ColliderHeight: Single;
   ColliderRadius: Single;
-  RayOrigin: TVector3;
   SphereOrigin: TVector3;
 
   DistanceToGround: Single;
-  GroundRayCast: TPhysicsRayCastResult;
+  GroundSphereCast: TPhysicsRayCastResult;
 begin
   { Check player is on ground, we use collider size multiplied by three to try
     found ground.
@@ -148,58 +147,16 @@ begin
     ColliderBoundingBox.SizeX, ColliderBoundingBox.SizeZ);
   SphereOrigin := Parent.Translation + PlayerCollider.Translation;
 
-  WritelnLog('check SphereOrigin ' + SphereOrigin.ToString);
-
-  GroundRayCast := PlayerRigidBody.PhysicsSphereCast(
+  GroundSphereCast := PlayerRigidBody.PhysicsSphereCast(
     SphereOrigin,
     Vector3(0, -1, 0),
     ColliderRadius,
     ColliderHeight * 3
   );
 
-  {RayOrigin := Parent.Translation + PlayerCollider.Translation;
-
-  GroundRayCast := PlayerRigidBody.PhysicsRayCast(
-    RayOrigin,
-    Vector3(0, -1, 0),
-    ColliderHeight * 3
-  );
-
-  { Four more checks - player should slide down when player just
-    on the edge, but sometimes it stay and center ray don't "see" that we are
-    on ground }
-  if not GroundRayCast.Hit then
-    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
-      RayOrigin + Vector3(ColliderBoundingBox.SizeX * 0.49, 0, 0),
-      Vector3(0, -1, 0),
-      ColliderHeight * 3
-    );
-
-  if not GroundRayCast.Hit then
-    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
-      RayOrigin + Vector3(-ColliderBoundingBox.SizeX * 0.49, 0, 0),
-      Vector3(0, -1, 0),
-      ColliderHeight * 3
-    );
-
-  if not GroundRayCast.Hit then
-    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
-      RayOrigin + Vector3(0, 0, ColliderBoundingBox.SizeZ * 0.49),
-      Vector3(0, -1, 0),
-      ColliderHeight * 3
-    );
-
-  if not GroundRayCast.Hit then
-    GroundRayCast := PlayerRigidBody.PhysicsRayCast(
-      RayOrigin + Vector3(0, 0, -ColliderBoundingBox.SizeZ * 0.49),
-      Vector3(0, -1, 0),
-      ColliderHeight * 3
-    );
-  }
-
-  if GroundRayCast.Hit then
+  if GroundSphereCast.Hit then
   begin
-    DistanceToGround := GroundRayCast.Distance;
+    DistanceToGround := GroundSphereCast.Distance;
 
     { When collider has own translation we need substract it from distance
       becouse distance will be too big }
