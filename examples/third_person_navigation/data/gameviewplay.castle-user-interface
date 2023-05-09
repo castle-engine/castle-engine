@@ -10,13 +10,7 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties",
-          "LayerCollisions" : {
-            "$$ClassName" : "TCastleLayerCollisions"
-          },
-          "LayerNames" : {
-            "$$ClassName" : "TCastleLayerNames"
-          }
+          "$$ClassName" : "TPhysicsProperties"
         },
         "$Children" : [
           {
@@ -103,17 +97,8 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleCapsuleCollider",
-                "AutoSize" : false,
                 "Friction" : 1.0000000149011612E-001,
-                "Height" : 3.9385635852813721E+000,
-                "Name" : "CapsuleCollider",
-                "Radius" : 5.2723044157028198E-001,
-                "TranslationPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -2.8192400932312012E-003,
-                  "Y" : 9.9856215715408325E-001,
-                  "Z" : 2.6226125657558441E-002
-                }
+                "Name" : "CapsuleCollider"
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
@@ -401,7 +386,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.3600003051757812E+002
+            "Y" : -3.3600000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -426,7 +411,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.7000003051757812E+002
+            "Y" : -3.7000000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -451,7 +436,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.0400003051757812E+002
+            "Y" : -4.0400000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -476,7 +461,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.3800003051757812E+002
+            "Y" : -4.3800000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -487,7 +472,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.7200003051757812E+002
+            "Y" : -4.7200000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
@@ -661,7 +646,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -6.9000000000000000E+002
+            "Y" : -7.0000000000000000E+002
           },
           "Value" : 1.0000000000000000E+000,
           "VerticalAnchorParent" : "vpTop",
