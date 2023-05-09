@@ -16,7 +16,7 @@
 { Provides basic interaction with Steam API
   Call InitSteam(AppId) and wait for Steam.Initialized before starting using it
   For now features mostly interaction with Steam Achievements
-  Note: Current calls to Steam API require a specific version of SteamWorks: 1.55
+  Note: Current calls to Steam API require a specific version of SteamWorks: 1.57
   You can download the corresponding dynamic library from
   https://partner.steamgames.com/downloads/list
   Note currently only 64 bit libraries on Linux and Windows are supported

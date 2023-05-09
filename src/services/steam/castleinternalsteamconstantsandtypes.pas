@@ -14,9 +14,9 @@ type
 const
   { Note for now we are forced to use "version-specific" calls to Steam API
     There are version-free calls in Steam API headers, however, those just crash
-    for no reason. Therefore for now we must use a specific version of Steamworks: 1.55 }
+    for no reason. Therefore for now we must use a specific version of Steamworks: 1.57 }
   STEAMCLIENT_INTERFACE_VERSION = 'SteamClient020'; // in isteamclient.h, I don't know how to pull it from there
-  STEAMUSER_INTERFACE_VERSION = 'SteamUser021'; // in isteamuser.h
+  STEAMUSER_INTERFACE_VERSION = 'SteamUser023'; // in isteamuser.h
   STEAMUSERSTATS_INTERFACE_VERSION = 'STEAMUSERSTATS_INTERFACE_VERSION012'; // isteamuserstats.h
 
 type
