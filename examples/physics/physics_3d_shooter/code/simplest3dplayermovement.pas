@@ -144,8 +144,8 @@ begin
     under the collider. And ray will be casted under the floor. }
   ColliderBoundingBox := PlayerCollider.ScaledLocalBoundingBox;
   ColliderHeight := ColliderBoundingBox.SizeY;
-  ColliderRadius := 0.5;//0.5;//Iff(ColliderBoundingBox.SizeX > ColliderBoundingBox.SizeZ,
-//    ColliderBoundingBox.SizeX, ColliderBoundingBox.SizeZ);
+  ColliderRadius := Iff(ColliderBoundingBox.SizeX > ColliderBoundingBox.SizeZ,
+    ColliderBoundingBox.SizeX, ColliderBoundingBox.SizeZ);
   SphereOrigin := Parent.Translation + PlayerCollider.Translation;
 
   WritelnLog('check SphereOrigin ' + SphereOrigin.ToString);
