@@ -4193,7 +4193,7 @@ begin
   begin
     OldIgnoreShapeFlags := IgnoreShape.Flags;
     try
-      // We use ksfRayCastable flag to not hit the IgnoreBody
+      // We use ksfSphereCastable flag to not hit the IgnoreBody
       IgnoreShape.Flags := IgnoreShape.Flags - [ksfSphereCastable];
       Core;
     finally
