@@ -104,10 +104,10 @@ var
         LegsOffset1 := FirstFrameOf('LEGS_WALKCR');
         LegsOffset2 := FirstFrameOf('TORSO_GESTURE');
         LegsOffset := LegsOffset1 - LegsOffset2;
-        WritelnLog('Shifting MD3 LEGS animations first frame by LEGS_WALKCR - TORSO_GESTURE difference (%d - %d)', [
+        {WritelnLog('Shifting MD3 LEGS animations first frame by LEGS_WALKCR - TORSO_GESTURE difference (%d - %d)', [
           LegsOffset1,
           LegsOffset2
-        ]);
+        ]);}
       end;
       Anim.FirstFrame := Anim.FirstFrame - LegsOffset;
     end;
