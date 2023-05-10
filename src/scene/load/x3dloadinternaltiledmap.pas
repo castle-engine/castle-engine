@@ -135,14 +135,53 @@ type
 implementation
 
 uses
-  SysUtils, Math,
+  SysUtils, Math, Generics.Defaults,
   CastleTransform, CastleColors, CastleRectangles, CastleUtils,
   CastleRenderOptions, CastleControls, CastleStringUtils,
   CastleImages, CastleURIUtils;
 
+{ TUnicodeCharEqualityComparer ----------------------------------------------- }
+
+{$ifndef FPC}
+
+type
+  { This is necessary to workaround buggy TDictionary on early Delphi versions
+    (Delphi <= 10.2.3 has this bug, Delphi >= 10.4.2 has it fixed). }
+  TTilesetEqualityComparer = class(TCustomComparer<TCastleTiledMapData.TTileset>)
+    function Compare(const Left, Right: TCastleTiledMapData.TTileset): Integer; override;
+    function Equals(const Left, Right: TCastleTiledMapData.TTileset): Boolean; override;
+    function GetHashCode(const Value: TCastleTiledMapData.TTileset): Integer; override;
+  end;
+
+function TTilesetEqualityComparer.Compare(const Left, Right: TCastleTiledMapData.TTileset): Integer;
+begin
+  Result := Left.GetHashCode - Right.GetHashCode;
+end;
+
+function TTilesetEqualityComparer.Equals(const Left, Right: TCastleTiledMapData.TTileset): Boolean;
+begin
+  Result := Left = Right;
+end;
+
+function TTilesetEqualityComparer.GetHashCode(const Value: TCastleTiledMapData.TTileset): Integer;
+begin
+  Result := Value.GetHashCode;
+end;
+
+{$endif}
+
+{ TCastleTiledMapConverter -------------------------------------------------- }
+
 constructor TCastleTiledMapConverter.TLayerConversion.Create;
 begin
+  {$ifndef FPC}
+  { See CastleTextureFontData for explanation at the analogous workaround.
+    This is only necessary for older Delphis (<= 10.2.3),
+    but to ease testing we use it with all Delphi versions. }
+  inherited Create(TTilesetEqualityComparer.Create);
+  {$else}
   inherited;
+  {$endif}
   FLayerTimeSensors := TLayerTimeSensors.Create;
   FLayerAnimations := TLayerAnimations.Create;
 end;
