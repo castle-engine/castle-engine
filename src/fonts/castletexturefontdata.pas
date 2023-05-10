@@ -159,14 +159,74 @@ type
 
 implementation
 
-uses Classes, SysUtils, Character,
+uses Classes, SysUtils, Character, Generics.Defaults,
   CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils, CastleDownload;
+
+{ TUnicodeCharEqualityComparer ----------------------------------------------- }
+
+{$ifndef FPC}
+
+type
+  TUnicodeCharEqualityComparer = class(TCustomComparer<TUnicodeChar>)
+    function Compare(const Left, Right: TUnicodeChar): Integer; override;
+    function Equals(const Left, Right: TUnicodeChar): Boolean; override;
+    function GetHashCode(const Value: TUnicodeChar): Integer; override;
+  end;
+
+function TUnicodeCharEqualityComparer.Compare(const Left, Right: TUnicodeChar): Integer;
+begin
+  Result := Left - Right;
+end;
+
+function TUnicodeCharEqualityComparer.Equals(const Left, Right: TUnicodeChar): Boolean;
+begin
+  Result := Left = Right;
+end;
+
+function TUnicodeCharEqualityComparer.GetHashCode(const Value: TUnicodeChar): Integer;
+begin
+  Result := Value;
+end;
+
+{$endif}
 
 { TTextureFontData.TGlyphDictionary ------------------------------------------ }
 
 constructor TTextureFontData.TGlyphDictionary.Create;
 begin
+  {$ifndef FPC}
+  { Pass TUnicodeCharEqualityComparer to avoid Delphi 10.2.3
+    (and likely ealier versions too) bug (fixed for sure since Delphi 10.4.2).
+
+    In these older Delphi versions,
+    using "inherited", "inherited Create" or "inherited Create(nil)"
+    leaves the created instance in state when internal FComparer is nil
+    (as if TDictionary<TKey,TValue>.Create constructor wasn't called).
+    Looks like having own constructor TGlyphDictionary.Create confuses
+    these early Delphi versions.
+
+    This isn't related to whether this constructor has "reintroduce" or not,
+    tested.
+
+    In effect,
+    - Hash method causes Access Violation,
+    - and in effect all other routines (Add, AddOrSetValue, our SetItems)
+      cause Access Violation.
+
+    We apply this change to any Delphi version, because
+    - The TUnicodeCharEqualityComparer makes sense anyway, the default
+      comparer from Generics.Collections for Cardinal wouldn't do anything
+      substantially different or more optimal.
+    - This way TUnicodeCharEqualityComparer will be tested even when we run
+      through latest Delphi, like 11.
+    - This way we don't care about carefully testing at which Delphi version
+      (10.3.x, 10.4.x?) the bug is fixed.
+  }
+  inherited Create(TUnicodeCharEqualityComparer.Create);
+  {$else}
   inherited;
+  {$endif}
+
   FOwnsGlyphs := true;
 end;
 
