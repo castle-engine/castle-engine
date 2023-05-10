@@ -68,7 +68,7 @@ type
       to update Pressed when needed. }
     procedure UpdateShiftState(const Shift: TShiftState);
   private
-      procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
+    procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
   protected
     procedure CreateHandle; override;
     procedure DestroyHandle; override;
