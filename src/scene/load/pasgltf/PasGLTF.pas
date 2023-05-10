@@ -94,7 +94,7 @@ unit PasGLTF;
  {$warnings off}
 {$else}
  {$warn COMBINING_SIGNED_UNSIGNED off} // CGE added
- {$warn COMBINING_SIGNED_UNSIGNED64 off} // CGE added
+ {$ifdef VER320}  {$warn COMBINING_SIGNED_UNSIGNED64 off} {$endif} // only since Delphi 10.2 // CGE added
  {$warn IMPLICIT_STRING_CAST off} // CGE added
  {$realcompatibility off}
  {$localsymbols on}
