@@ -18,7 +18,7 @@
 
 const
   Md3MaxQPath = 64;
-  Md3Fps = 30;
+  DefaultMd3Fps = 30;
 
 type
   TMd3Triangle = record

@@ -25,20 +25,25 @@ type
   TMd3Animation = class
     Name: String;
 
-    { Time of the first frame.
-      Divide by Md3Fps to get time in seconds. }
+    { Number of the first frame. }
     FirstFrame: Cardinal;
 
-    { Duration of animation.
-      Divide by Md3Fps to get duration in seconds.
+    { Duration of animation, in frames.
+      Divide by @link(Fps) to get duration in seconds.
 
       May be negative in animation.cfg (likely to indicate playing animation backwards,
       not supported). We ignore it for now, i.e. we take
-      Abs(NumFrames)/30 as just duration in seconds. }
+      Abs(NumFrames)/Fps as just duration in seconds. }
     NumFrames: Integer;
 
-    { We read these from animation.cfg, but don't support them now. }
-    LoopingFrames, Fps: Cardinal;
+    { We read this from animation.cfg, but don't support now.
+      It seems that it is either 0 (when animation is not supposed
+      to be used a looped) or equal to NumFrames (when animation is
+      supposed to be used as looped). }
+    LoopingFrames: Cardinal;
+
+    { Frames per second, controlling the speed of this animation. }
+    Fps: Cardinal;
   end;
 
   { MD3 animations list. }

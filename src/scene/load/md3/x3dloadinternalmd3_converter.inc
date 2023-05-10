@@ -561,14 +561,15 @@ var
 
   { Add to Result an animation that drives Switch.WhichChoice,
     changing frames from FirstFrame to FirstFrame + NumFramesInAnimation - 1. }
-  procedure AddAnimation(const AnimationName: String; const FirstFrame, NumFramesInAnimation: Cardinal);
+  procedure AddAnimation(const AnimationName: String;
+    const FirstFrame, NumFramesInAnimation, Fps: Cardinal);
   var
     TimeSensor: TTimeSensorNode;
     IntSequencer: TIntegerSequencerNode;
     I: Integer;
   begin
     TimeSensor := TTimeSensorNode.Create(AnimationName, BaseUrl);
-    TimeSensor.CycleInterval := NumFramesInAnimation / Md3Fps;
+    TimeSensor.CycleInterval := NumFramesInAnimation / Fps;
     Result.AddChildren(TimeSensor);
 
     IntSequencer := TIntegerSequencerNode.Create(AnimationName + '_IntegerSequencer', BaseUrl);
@@ -619,7 +620,7 @@ begin
       AddTag(I);
     Assert(TagTransforms.Count = NumTags);
 
-    AddAnimation(TNodeInterpolator.DefaultAnimationName, 0, NumFrames);
+    AddAnimation(TNodeInterpolator.DefaultAnimationName, 0, NumFrames, DefaultMd3Fps);
 
     AnimationCfgUrl := ExtractURIPath(BaseUrl) + 'animation.cfg';
     if URIFileExists(AnimationCfgUrl) then
@@ -629,7 +630,8 @@ begin
         Animations.ReadAnimationCfg(AnimationCfgUrl);
         Animations.ValidateFrames(NumFrames);
         for I := 0 to Animations.Count - 1 do
-          AddAnimation(Animations[I].Name, Animations[I].FirstFrame, Abs(Animations[I].NumFrames));
+          AddAnimation(Animations[I].Name, Animations[I].FirstFrame, Abs(Animations[I].NumFrames),
+            Animations[I].Fps);
       finally FreeAndNil(Animations) end;
     end;
   finally FreeAndNil(TagTransforms) end;
