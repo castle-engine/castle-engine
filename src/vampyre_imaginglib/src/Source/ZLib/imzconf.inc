@@ -29,5 +29,5 @@
   {$warn IMPLICIT_STRING_CAST off}
   {$warn IMPLICIT_STRING_CAST_LOSS off}
   {$warn COMBINING_SIGNED_UNSIGNED off}
-  {$ifdef VER320}  {$warn COMBINING_SIGNED_UNSIGNED64 off} {$endif} // only since Delphi 10.2
+  {$if CompilerVersion >= 32} {$warn COMBINING_SIGNED_UNSIGNED64 off} {$endif} // only since Delphi 10.2
 {$endif}
