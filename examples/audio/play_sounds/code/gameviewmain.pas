@@ -75,7 +75,7 @@ implementation
 
 uses SysUtils,
   CastleLog, CastleWindow, CastleURIUtils, CastleTimeUtils,
-  CastleSoundBase, CastleViewport;
+  CastleSoundBase, CastleViewport, CastleUtils;
 
 { TButtonSound --------------------------------------------------------- }
 
