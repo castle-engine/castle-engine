@@ -541,6 +541,38 @@ type
     procedure RecordUndo(const UndoComment: String;
       const UndoCommentPriority: TUndoCommentPriority);
 
+    { Call after any change to the design (that changes what will be saved
+      to JSON) happened, except when this was done by user changing value
+      through Object Inspector.
+
+      This:
+      - Refreshes Object Inspector display,
+      - marks design as "modified",
+      - records undo.
+
+      @param(UndoComment Describes the change. You can pass empty String
+        to let auto-generating a sensible comment.)
+
+      @param(UndoCommentPriority How much are you sure that UndoComment
+        is the best message to describe last change.
+        This is used only when UndoComment <> '' and only when an "undo record"
+        was already stored for the current state. The given UndoComment
+        overrides the last if it has higher UndoCommentPriority.
+
+        Usually you want to pass here ucHigh, since usually you have
+        a really good knowledge about the change when calling this method.)
+
+      @param(UndoOnRelease If @true, then do not store "undo record" now,
+        instead schedule storing undo record when user releases the mouse.
+
+        This should be @true only for actions that do something on each mouse
+        move (like dragging transform or UI position/size).
+        In that case, storing "undo record" at each tiny mouse move would be
+        bad -- performance would drop during mouse move, and generating too many
+        "undo records" means that undoing them is not really comfortable.
+
+        For most operations, this is @false.)
+    }
     procedure ModifiedOutsideObjectInspector(const UndoComment: String;
       const UndoCommentPriority: TUndoCommentPriority; const UndoOnRelease: Boolean = false);
 
@@ -3470,6 +3502,13 @@ begin
     finally FreeAndNil(LoadInfo) end;
 
     RestoreSavedSelection(SavedSelection);
+
+    { We use ucHigh, otherwise when changing light source type
+      we'd have older comment "Change OlderComponentName".
+      Note: We still need this ModifiedOutsideObjectInspector call,
+      otherwise change "Change OlderComponentName" doesn't happen and there's
+      no undo / no modified flag after this operation. }
+    ModifiedOutsideObjectInspector('Change Class To ' + R.ComponentClass.ClassName, ucHigh);
   end;
 end;
 
