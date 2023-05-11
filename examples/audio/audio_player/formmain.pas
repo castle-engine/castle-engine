@@ -97,7 +97,7 @@ begin
 
   if PlayingSound.Playing then
   begin
-    LabelOffset.Caption := Format('Offset within played sound: %fs', [PlayingSound.Offset]);
+    LabelOffset.Caption := FormatDot('Offset within played sound: %fs', [PlayingSound.Offset]);
 
     { Show PlayingSound.Offset in UI.
 
