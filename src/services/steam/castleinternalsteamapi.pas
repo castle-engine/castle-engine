@@ -95,20 +95,20 @@ begin
   {$ifdef CPU64}
   SteamLibrary := TDynLib.Load('steam_api64.dll', false);
   {$else}
-  //SteamLibrary := TDynLib.Load('steam_api.dll', false); // Currently not supported
+  SteamLibrary := TDynLib.Load('steam_api.dll', false);
   {$endif}
   {$endif}
 
   {$ifdef UNIX}
   {$ifdef CPU64}
-  SteamLibrary := TDynLib.Load('libsteam_api.so', false);
+  SteamLibrary := TDynLib.Load('libsteam_api.so', false); // Not tested!
   {$else}
-  //SteamLibrary := TDynLib.Load('libsteam_api.so', false); // Currently not supported; note the same name as 64-bit library
+  SteamLibrary := TDynLib.Load('libsteam_api.so', false); // Not tested!
   {$endif}
   {$endif}
 
   {$ifdef darwin} // OSX
-  //SteamLibrary := TDynLib.Load('libsteam_api.dylib', false); // Not tested
+  SteamLibrary := TDynLib.Load('libsteam_api.dylib', false); // Not tested! (failing)
   {$endif}
 
   if SteamLibrary <> nil then
