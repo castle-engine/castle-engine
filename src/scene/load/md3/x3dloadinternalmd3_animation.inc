@@ -158,6 +158,7 @@ begin
           Continue; // empty line
         if (Tokens[0] = 'sex') or // various ignored information
            (Tokens[0] = 'footsteps') or
+           (Tokens[0] = 'headoffset') or // example in upper.md3 submitted by https://forum.castle-engine.io/t/md3-improve-animations-support/775/61?u=michalis
            (Tokens[0] = 'nonsegmented') then
           Continue;
         if Tokens.Count <> 4 then
