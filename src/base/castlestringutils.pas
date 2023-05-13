@@ -14,8 +14,8 @@
 }
 
 { String utilities.
-  Also some operations on chars and PChars.
-  And various conversions strings<->numbers.
+  Also some operations on Chars and PChars.
+  And various conversions strings <-> numbers.
 
   General comments for all procedures that have parameter like IgnoreCase:
   @unorderedList(
@@ -23,9 +23,9 @@
       If such parameter has some default value, this default value should be
       @definitionList(
         @itemLabel @true
-        @item for procedures that only read processed string
+        @item for procedures that only read processed String
         @itemLabel @false
-        @item(for procedures that can modify processed string (for safety,
+        @item(for procedures that can modify processed String (for safety,
           so that accidental modification should be harder))
       ))
 
@@ -47,10 +47,10 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils;
 
 type
-  TDynamicStringArray = array of string;
+  TDynamicStringArray = array of String;
 
   TStringsHelper = class helper for TStrings
-    { Convert TStrings to a dynamic string array. }
+    { Convert TStrings to a dynamic String array. }
     function ToArray: TDynamicStringArray;
 
     { Split the argument into lines (honors any newline convention),
@@ -68,11 +68,11 @@ type
   private
     { Takes Integer, not TListSize -- in FPC, this is also defined as Integer, not TListSize. }
     procedure SetCount(const Value: Integer);
-    function GetL(const Index: TListSize): string;
-    procedure SetL(const Index: TListSize; const S: string);
+    function GetL(const Index: TListSize): String;
+    procedure SetL(const Index: TListSize; const S: String);
   {$ifndef FPC}
   protected
-    function DoCompareText(const A, B: string): Integer;
+    function DoCompareText(const A, B: String): Integer;
   {$endif}
   public
     constructor Create;
@@ -88,11 +88,11 @@ type
     procedure AddRange(const Source: TStrings); overload;
     procedure AddList(const Source: TStrings); deprecated 'use AddRange, consistent with other lists';
 
-    procedure AddRange(const A: array of string); overload;
-    procedure AddArray(const A: array of string); deprecated 'use AddRange, consistent with other lists';
+    procedure AddRange(const A: array of String); overload;
+    procedure AddArray(const A: array of String); deprecated 'use AddRange, consistent with other lists';
 
-    procedure AssignArray(const A: array of string); deprecated 'use Assign';
-    procedure Assign(const A: array of string); {$ifndef FPC} reintroduce; {$endif} overload;
+    procedure AssignArray(const A: array of String); deprecated 'use Assign';
+    procedure Assign(const A: array of String); {$ifndef FPC} reintroduce; {$endif} overload;
     {$ifndef FPC}
     procedure Assign(const Source: TStringList); reintroduce; overload;
     {$endif}
@@ -106,12 +106,12 @@ type
 
       The comparison is case-sensitive, or not, depending on the value
       of CaseSensitive property of this list. }
-    function Equals(SecondValue: TObject): boolean;
+    function Equals(SecondValue: TObject): Boolean;
       // In Delphi, they have non-virtual TStringList.Equals that hides virtual TObject.Equals...
       {$ifdef FPC} override; {$endif}
       overload;
 
-    function Equals(const A: array of string): boolean; overload;
+    function Equals(const A: array of String): Boolean; overload;
 
     { Does the SecondValue have equal length and content.
 
@@ -119,7 +119,7 @@ type
       It is defined for consistency -- on some lists, like @link(TSingleList),
       there is an important difference between Equals (compares with some
       epsilon tolerance) and PerfectlyEquals. }
-    function PerfectlyEquals(const SecondValue: TStringList): boolean;
+    function PerfectlyEquals(const SecondValue: TStringList): Boolean;
 
     { Reverse the order of items on the array. }
     procedure Reverse;
@@ -127,7 +127,7 @@ type
     { Access strings. This is exactly equivalent to just using standard
       TStringList.Strings property, and is useful only for implementing macros
       that work for both TCastleStringList and TStructList. }
-    property L[const Index: TListSize]: string read GetL write SetL;
+    property L[const Index: TListSize]: String read GetL write SetL;
   end;
 
   { String-to-string map. Note that in simple cases you can also
@@ -135,8 +135,8 @@ type
     but this is better if your key/values may be multiline. }
   TStringStringMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, string>)
   strict private
-    function GetItems(const AKey: string): string;
-    procedure SetItems(const AKey: string; const AValue: string);
+    function GetItems(const AKey: String): String;
+    procedure SetItems(const AKey: String; const AValue: String);
   public
     { Set given key value, trying to preserve previous key value too.
       This is useful for safely setting X3D META values.
@@ -147,7 +147,7 @@ type
       @code(Name + '-previous') key.
       This way previous content value is preserved once (but not more,
       to not grow the X3D file indefinitely). }
-    procedure PutPreserve(const Name, Content: string);
+    procedure PutPreserve(const Name, Content: String);
 
     { Create another TStringStringMap with exactly the same contents at the beginning. }
     function CreateCopy: TStringStringMap;
@@ -165,7 +165,7 @@ type
 type
   { }
   TSearchOptions = set of (soMatchCase, soWholeWord, soBackwards);
-  { A set of chars. }
+  { A set of Chars. }
   TSetOfChars = SysUtils.TSysCharSet;
 
 const
@@ -174,7 +174,7 @@ const
   WhiteSpaces = [' ', #9, #10, #13];
   SimpleAsciiCharacters = [#32 .. #126];
 
-function RandomString: string;
+function RandomString: String;
 
 { Replace all occurrences of FromPattern string to ToPattern string,
   within another string S.
