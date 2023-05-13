@@ -1,4 +1,10 @@
 X3DViewpointNode : X3DBindableNode {
+  SFBool     [in,out] autoCenterOfRotation FALSE
+    doc: """
+      When @true, the center of rotation is automatically calculated looking at the middle of scene bounding box. The @link(CenterOfRotation) value is ignored then.
+
+      This field is a Castle Game Engine extension of the X3D standard. The default value (@false) makes behavior compatible with X3D standard. Note that, in contrast, @link(TCastleExamineNavigation.AutoCenterOfRotation) default is @true -- because TCastleExamineNavigation doesn't have to match X3D standard, and the default @true makes it work out-of-the-box on more scenes.
+    """
   SFVec3f    [in,out] centerOfRotation  0 0 0
     range: (-Inf,Inf)
   SFString   [in,out] description       ""

@@ -7621,7 +7621,7 @@ var
   begin
     if ViewpointNode <> nil then
     begin
-      Navigation.AutoCenterOfRotation := false;
+      Navigation.AutoCenterOfRotation := ViewpointNode.AutoCenterOfRotation;
       Navigation.CenterOfRotation := ViewpointNode.Transform.MultPoint(
         ViewpointNode.CenterOfRotation);
     end else
@@ -8199,9 +8199,11 @@ begin
     NewViewNodeMake.Up := AUp;
     NewViewNodeMake.GravityUp := GravityUp;
 
-    if (Navigation is TCastleExamineNavigation) and
-       (not TCastleExamineNavigation(Navigation).AutoCenterOfRotation) then
+    if Navigation is TCastleExamineNavigation then
+    begin
+      NewViewNodeMake.AutoCenterOfRotation := TCastleExamineNavigation(Navigation).AutoCenterOfRotation;
       NewViewNodeMake.CenterOfRotation := TCastleExamineNavigation(Navigation).CenterOfRotation;
+    end;
 
     NewViewNode := NewViewNodeMake.ToNode(NewViewpointNode);
   finally FreeAndNil(NewViewNodeMake) end;

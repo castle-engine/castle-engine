@@ -1956,7 +1956,10 @@ var
       OrthoViewpoint.X3DName := Camera.Name;
       OrthoViewpoint.Position := TVector3.Zero;
       if CastleX3dExtensions then
+      begin
+        OrthoViewpoint.AutoCenterOfRotation := true;
         OrthoViewpoint.GravityTransform := false;
+      end;
       ParentGroup.AddChildren(OrthoViewpoint);
 
       ReadMetadata(Camera.Extras, OrthoViewpoint);
@@ -1970,7 +1973,10 @@ var
       if Camera.Perspective.YFov <> 0 then
         Viewpoint.FieldOfView := Camera.Perspective.YFov;
       if CastleX3dExtensions then
+      begin
+        Viewpoint.AutoCenterOfRotation := true;
         Viewpoint.GravityTransform := false;
+      end;
       ParentGroup.AddChildren(Viewpoint);
 
       ReadMetadata(Camera.Extras, Viewpoint);
