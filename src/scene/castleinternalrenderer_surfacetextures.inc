@@ -1,5 +1,6 @@
+{%MainUnit castleinternalrenderer.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -319,9 +320,9 @@ procedure TGLRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
       '{' + NL +
       { Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
         Read it to place metallic is x, roughness in y. }
-      '  vec2 sample = texture2D({uniform_texture_name}, {coord_name}.st).bg;' + NL +
-      '  metallic *= sample.x;' + NL +
-      '  roughness *= sample.y;' + NL +
+      '  vec2 mr = texture2D({uniform_texture_name}, {coord_name}.st).bg;' + NL +
+      '  metallic *= mr.x;' + NL +
+      '  roughness *= mr.y;' + NL +
       '}');
   end;
 
@@ -356,6 +357,7 @@ procedure TGLRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
 
 var
   SurfaceShader: TCommonSurfaceShaderNode;
+  Material: TAbstractMaterialNode;
   MatPhong: TMaterialNode;
   MatPhysical: TPhysicalMaterialNode;
   MatUnlit: TUnlitMaterialNode;
@@ -390,9 +392,13 @@ begin
         RequireTexCoord(SurfaceShader.DiffuseTextureCoordinatesId); // TODO test X3DOM/InstantReality are they using DiffuseTextureCoordinatesId in this case
     end else
     begin
-      if Shape.State.ShapeNode.Material is TMaterialNode then
+      if Shape.State.ShapeNode.Appearance <> nil then
+        Material := Shape.State.ShapeNode.Appearance.Material
+      else
+        Material := nil;
+      if Material is TMaterialNode then // also checks Material <> nil
       begin
-        MatPhong := TMaterialNode(Shape.State.ShapeNode.Material);
+        MatPhong := TMaterialNode(Material);
         EmissiveTextureEnable(
           MatPhong.EmissiveTexture,
           MappingToIndex(MatPhong.EmissiveTextureMapping));
@@ -413,9 +419,9 @@ begin
         if MatPhong.DiffuseTexture <> nil then
           RequireTexCoord(MappingToIndex(MatPhong.DiffuseTextureMapping));
       end else
-      if Shape.State.ShapeNode.Material is TPhysicalMaterialNode then
+      if Material is TPhysicalMaterialNode then // also checks Material <> nil
       begin
-        MatPhysical := TPhysicalMaterialNode(Shape.State.ShapeNode.Material);
+        MatPhysical := TPhysicalMaterialNode(Material);
         EmissiveTextureEnable(
           MatPhysical.EmissiveTexture,
           MappingToIndex(MatPhysical.EmissiveTextureMapping));
@@ -430,9 +436,9 @@ begin
         if MatPhysical.BaseTexture <> nil then
           RequireTexCoord(MappingToIndex(MatPhysical.BaseTextureMapping));
       end else
-      if Shape.State.ShapeNode.Material is TPhysicalMaterialNode then
+      if Material is TUnlitMaterialNode then  // also checks Material <> nil
       begin
-        MatUnlit := TUnlitMaterialNode(Shape.State.ShapeNode.Material);
+        MatUnlit := TUnlitMaterialNode(Material);
         // These textures will be rendered using the MainTexture mechanism, but they still need tex coords
         if MatUnlit.EmissiveTexture <> nil then
           RequireTexCoord(MappingToIndex(MatUnlit.EmissiveTextureMapping));

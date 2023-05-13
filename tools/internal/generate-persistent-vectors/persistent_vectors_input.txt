@@ -50,8 +50,6 @@
 ../../../src/ui/ TCastleCheckbox TextColor TCastleColor
 ../../../src/ui/ TCastleCheckbox CheckboxColor TCastleColor
 
-../../../src/ui/ TCastleTiledMapControl Origin TVector2
-
 ../../../src/ui/ TCastleCrosshair Color TCastleColor
 
 ../../../src/ui/ TCastleAbstractSlider TextColor TCastleColor
@@ -133,3 +131,5 @@
 
 ../../../src/scene/ TCastleTerrain Size TVector2
 ../../../src/scene/ TCastleTerrain Subdivisions TVector2
+
+../../../src/scene/ TCastleTiledMapControl Origin TVector2

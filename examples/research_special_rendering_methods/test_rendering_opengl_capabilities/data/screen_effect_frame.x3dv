@@ -1,0 +1,33 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# Screen effect that adds a delicate frame around the image.
+# See https://castle-engine.io/x3d_extensions_screen_effects.php .
+
+DEF FrameScreenEffect ScreenEffect {
+  # enabled TRUE # default
+  shaders ComposedShader {
+    language "GLSL"
+    parts ShaderPart {
+      type "FRAGMENT"
+      url "data:text/plain,
+      void main (void)
+      {
+        vec4 col = screenf_get_original_color();
+
+        vec2 screen_pos = screenf_position();
+        float border_distance = min(
+          min(screen_pos.x, float(screen_width) - screen_pos.x),
+          min(screen_pos.y, float(screen_height) - screen_pos.y)
+        );
+        const float border_max_distance = 40.0;
+        border_distance = clamp(border_distance / border_max_distance, 0.0, 1.0);
+        const vec3 border_color = vec3(1.0, 1.0, 0.0);
+        col.rgb = mix(border_color, col.rgb, border_distance);
+
+        gl_FragColor = col;
+      }
+      "
+    }
+  }
+}

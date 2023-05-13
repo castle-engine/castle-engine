@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -104,7 +104,6 @@ end;
 
 procedure TAbstractShapeNode.SetAppearance(const Value: TAppearanceNode);
 begin
-  SetAppearanceBefore(Value);
   FdAppearance.Send(Value);
 end;
 
@@ -176,6 +175,7 @@ begin
 
   FFdAppearance := TSFNode.Create(Self, True, 'appearance', [TAppearanceNode]);
    FdAppearance.ChangeAlways := chVisibleNonGeometry;
+   FdAppearance.OnBeforeValueChange := {$ifdef FPC}@{$endif}SetAppearanceBefore;
   AddField(FFdAppearance);
 
   FFdGeometry := TSFNode.Create(Self, True, 'geometry', [TAbstractGeometryNode]);

@@ -1138,7 +1138,7 @@ begin
   if I <> 0 then
     Result := SEnding(URLWithoutAnchor, I + 1)
   else
-    Result := '';
+    Result := URLWithoutAnchor;
   {$endif}
 end;
 

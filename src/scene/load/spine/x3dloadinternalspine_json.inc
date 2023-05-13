@@ -1,5 +1,6 @@
+{%MainUnit x3dloadinternalspine.pas}
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,7 +41,7 @@ begin
     for I := 0 to JsonArray.Count - 1 do
       if JsonArray[I] is TJSONNumber then
       begin
-        Vec2.InternalData[Vec2Index] := JsonArray[I].AsFloat;
+        Vec2.Data[Vec2Index] := JsonArray[I].AsFloat;
         Inc(Vec2Index);
         if Vec2Index = 2 then
         begin
@@ -53,8 +54,8 @@ begin
   end;
 end;
 
-procedure ReadLongIntList(const Json: TJSONObject; const Name: string;
-  const List: TLongIntList);
+procedure ReadInt32List(const Json: TJSONObject; const Name: string;
+  const List: TInt32List);
 var
   JsonArray: TJSONArray;
   I: Integer;

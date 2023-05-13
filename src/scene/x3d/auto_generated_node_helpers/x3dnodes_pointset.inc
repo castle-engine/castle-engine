@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -146,10 +146,12 @@ begin
 
   FFdColor := TSFNode.Create(Self, True, 'color', [TAbstractColorNode]);
    FdColor.ChangeAlways := chGeometry;
+   FdColor.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangeAlways := chGeometry;
+   FdCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdCoord);
 
 {$ifndef CASTLE_SLIM_NODES}

@@ -506,8 +506,8 @@ begin
         SubBox := Box;
         for i := 0 to 2 do
           if b[i] then
-            SubBox.Data[0].InternalData[i] := MiddlePoint[i] else
-            SubBox.Data[1].InternalData[i] := MiddlePoint[i];
+            SubBox.Data[0].Data[i] := MiddlePoint[i] else
+            SubBox.Data[1].Data[i] := MiddlePoint[i];
 
         TreeSubNodes[b[0], b[1], b[2]] :=
           TOctreeNodeClass(Self.ClassType).Create(
@@ -969,11 +969,11 @@ var
   begin
     if TreeNode.IsLeaf then
     begin
-      Inc(LeafNodes.List^[TreeNode.Depth]);
-      ItemsInLeafs.List^[TreeNode.Depth] := ItemsInLeafs.List^[TreeNode.Depth] + Cardinal(TreeNode.ItemsCount);
+      Inc(LeafNodes.L[TreeNode.Depth]);
+      ItemsInLeafs.L[TreeNode.Depth] := ItemsInLeafs.L[TreeNode.Depth] + Cardinal(TreeNode.ItemsCount);
     end else
     begin
-      Inc(NonLeafNodes.List^[TreeNode.Depth]);
+      Inc(NonLeafNodes.L[TreeNode.Depth]);
       for b0 := Low(Boolean) to High(Boolean) do
         for b1 := Low(Boolean) to High(Boolean) do
           for b2 := Low(Boolean) to High(Boolean) do

@@ -1,3 +1,4 @@
+{%MainUnit x3dfields.pas}
 {
   Copyright 2002-2022 Michalis Kamburelis.
 
@@ -966,7 +967,7 @@ begin
   I := Element.ChildrenIterator;
   try
     if I.GetNext then
-      WritelnWarning('VRML/X3D', Format('X3D field "%s" is not SFNode or MFNode, but a node value (XML element "%s") is specified',
+      WritelnWarning('VRML/X3D', FormatDot('X3D field "%s" is not SFNode or MFNode, but a node value (XML element "%s") is specified',
         [X3DName, I.Current.TagName]));
   finally FreeAndNil(I) end;
 end;

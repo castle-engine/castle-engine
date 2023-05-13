@@ -1,6 +1,6 @@
 {%MainUnit castleviewport.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -178,7 +178,7 @@ begin
     LabelMessageContainer.Exists := T < TimeToExist;
     if LabelMessageContainer.Exists then
     begin
-      LabelMessage.Caption := Format('Speed %f', [MoveSpeed]);
+      LabelMessage.Caption := FormatDot('Speed %f', [MoveSpeed]);
       LabelMessageContainer.Color :=
         ColorOpacity(LabelMessageContainer.Color, AlphaAnimate(ContainerAlpha));
       LabelMessage.Color :=

@@ -107,7 +107,7 @@ begin
       if LowerCase(Setting.Key) = 'height' then
         FHeight := StrToInt(Setting.Value)
       else
-        WritelnWarning('ImageAsX3DModel', 'Unknown setting (%s) in "%s" anchor.',
+        WritelnWarning('LoadNode(Image)', 'Unknown setting (%s) in "%s" anchor.',
           [Setting.Key, FDisplayUrl]);
     end;
   finally
@@ -169,13 +169,20 @@ end;
 procedure TImageAsX3DModelLoader.PrepareShape(
   const CoordArray: array of TVector3; const TexCoordArray: array of TVector2);
 var
+  Material: TUnlitMaterialNode;
+  Appearance: TAppearanceNode;
   Shape: TShapeNode;
   Tri: TTriangleSetNode;
   Tex: TImageTextureNode;
   TexProperties: TTexturePropertiesNode;
 begin
+  Material := TUnlitMaterialNode.Create;
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := Material;
+
   Shape := TShapeNode.Create;
-  Shape.Material := TUnlitMaterialNode.Create;
+  Shape.Appearance := Appearance;
 
   Tex := TImageTextureNode.Create('', FBaseUrl);
   { Take FImage ownership, we will not free it here }
@@ -183,7 +190,7 @@ begin
   { No point in adjusting RepeatS/T: TextureProperties override it.
   Tex.RepeatS := false;
   Tex.RepeatT := false; }
-  Shape.Texture := Tex;
+  Appearance.Texture := Tex;
 
   TexProperties := TTexturePropertiesNode.Create;
   TexProperties.MagnificationFilter := magDefault;

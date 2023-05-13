@@ -23,4 +23,5 @@ fi
 "${FIND}" \
   '(' -iname CastleEngineManifest.xml ')' -and \
   '(' -not -iwholename '*/simplest_manifest_test/*' ')' -and \
-  '(' -execdir bash -c 'if ls *.lfm > /dev/null 2>&1; then echo `pwd`": LCL project"; else castle-engine generate-program; fi' ';' ')'
+  '(' -not -iwholename '*/delphi/*' ')' -and \
+  '(' -execdir bash -c 'if ls *.lfm > /dev/null 2>&1; then echo `pwd`": LCL project"; else castle-engine generate-program --guid-from-name; fi' ';' ')'

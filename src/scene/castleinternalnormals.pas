@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -64,7 +64,7 @@ uses SysUtils, CastleUtils, CastleVectors, X3DNodes;
   @param(Convex Set this to @true if you know the faces are convex.
     This makes calculation faster (but may yield incorrect results
     for concave polygons).) }
-function CreateNormals(CoordIndex: TLongintList;
+function CreateNormals(CoordIndex: TInt32List;
   Vertices: TVector3List;
   CreaseAngleRad: Single;
   const FromCcw, Convex: boolean): TVector3List;
@@ -75,7 +75,7 @@ function CreateNormals(CoordIndex: TLongintList;
   as it's Count is the number of @italic(faces). For each face, a single
   normal is stored, as this is most sensible compact representation.
   Using something larger would be a waste of memory and time. }
-function CreateFlatNormals(coordIndex: TLongintList;
+function CreateFlatNormals(coordIndex: TInt32List;
   vertices: TVector3List;
   const FromCcw, Convex: boolean): TVector3List;
 
@@ -110,7 +110,7 @@ type
 
   TFaceList = {$ifdef FPC}specialize{$endif} TStructList<TFace>;
 
-function CreateNormals(CoordIndex: TLongintList;
+function CreateNormals(CoordIndex: TInt32List;
   Vertices: TVector3List;
   CreaseAngleRad: Single;
   const FromCcw, Convex: boolean): TVector3List;
@@ -161,8 +161,8 @@ var
 
       { calculate ThisFace.Normal }
       ThisFace^.Normal := IndexedPolygonNormal(
-        PLongIntArray(CoordIndex.Ptr(ThisFace^.StartIndex)), ThisFace^.IndicesCount,
-        PVector3Array(Vertices.List), Vertices.Count,
+        PInt32Array(CoordIndex.Ptr(ThisFace^.StartIndex)), ThisFace^.IndicesCount,
+        PVector3Array(Vertices.L), Vertices.Count,
         Vector3(0, 0, 1), Convex);
 
       { move to next face (omits the negative index we're standing on) }
@@ -182,10 +182,10 @@ var
   begin
     Found := false;
     for I := Face.StartIndex to Face.StartIndex + Face.IndicesCount - 1 do
-      if CoordIndex.List^[I] = VertexNum then
+      if CoordIndex.L[I] = VertexNum then
       begin
         Found := true; { Found := true, but keep looking in case duplicated }
-        NormalsResult.List^[I] := Normal;
+        NormalsResult.L[I] := Normal;
       end;
     Assert(Found, 'CastleInternalNormals.SetNormal failed, vertex not on face');
   end;
@@ -206,8 +206,8 @@ var
           so
             CosAngleBetweenNormals(...) > CosCreaseAngle }
         CosAngleBetweenNormals(
-          Faces.List^[ThisVertexFaces.List^[FaceNum1]].Normal,
-          Faces.List^[ThisVertexFaces.List^[FaceNum2]].Normal) >
+          Faces.L[ThisVertexFaces.L[FaceNum1]].Normal,
+          Faces.L[ThisVertexFaces.L[FaceNum2]].Normal) >
           CosCreaseAngle;
     end;
 
@@ -218,12 +218,12 @@ var
     ThisVertexFaces := VerticesFaces[VertexNum];
     for I := 0 to ThisVertexFaces.Count - 1 do
     begin
-      Normal := Faces.List^[ThisVertexFaces[I]].Normal;
+      Normal := Faces.L[ThisVertexFaces[I]].Normal;
       for J := 0 to ThisVertexFaces.Count - 1 do
         if (I <> J) and FaceCanBeSmoothedWith(I, J) then
-          Normal := Normal + Faces.List^[ThisVertexFaces[J]].Normal;
+          Normal := Normal + Faces.L[ThisVertexFaces[J]].Normal;
       Normal := Normal.Normalize;
-      SetNormal(VertexNum, Faces.List^[ThisVertexFaces[I]], Normal);
+      SetNormal(VertexNum, Faces.L[ThisVertexFaces[I]], Normal);
     end;
   end;
 
@@ -260,7 +260,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function CreateFlatNormals(CoordIndex: TLongintList;
+function CreateFlatNormals(CoordIndex: TInt32List;
   Vertices: TVector3List;
   const FromCcw, Convex: boolean): TVector3List;
 var
@@ -277,10 +277,10 @@ begin
     while I < CoordIndex.Count do
     begin
       StartIndex := I;
-      while (I < CoordIndex.Count) and (CoordIndex.List^[I] >= 0) do Inc(I);
-      Result.List^[FaceNumber] := IndexedPolygonNormal(
-        PLongIntArray(CoordIndex.Ptr(StartIndex)), I - StartIndex,
-        PVector3Array(Vertices.List), Vertices.Count, Vector3(0, 0, 0), Convex);
+      while (I < CoordIndex.Count) and (CoordIndex.L[I] >= 0) do Inc(I);
+      Result.L[FaceNumber] := IndexedPolygonNormal(
+        PInt32Array(CoordIndex.Ptr(StartIndex)), I - StartIndex,
+        PVector3Array(Vertices.L), Vertices.Count, Vector3(0, 0, 0), Convex);
       Inc(FaceNumber);
 
       Inc(I);
@@ -298,7 +298,7 @@ type
   TCoordinateNormalsCalculator = class
   public
     Normals: TVector3List;
-    CoordIndex: TLongIntList;
+    CoordIndex: TInt32List;
     Coord: TVector3List;
     Convex: boolean;
     procedure Polygon(const Indexes: array of Cardinal);
@@ -308,17 +308,17 @@ procedure TCoordinateNormalsCalculator.Polygon(
   const Indexes: array of Cardinal);
 var
   FaceNormal: TVector3;
-  { DirectIndexes is LongInt, not Cardinal array, since we cannot
+  { DirectIndexes is Int32, not Cardinal array, since we cannot
     guarantee that CoordIndex items are >= 0. }
-  DirectIndexes: array of LongInt;
+  DirectIndexes: array of Int32;
   I: Integer;
-  Index: LongInt;
+  Index: Int32;
 begin
   SetLength(DirectIndexes, Length(Indexes));
   if CoordIndex <> nil then
   begin
     for I := 0 to Length(Indexes) - 1 do
-      DirectIndexes[I] := CoordIndex.List^[Indexes[I]];
+      DirectIndexes[I] := CoordIndex.L[Indexes[I]];
   end else
   begin
     for I := 0 to Length(Indexes) - 1 do
@@ -326,8 +326,8 @@ begin
   end;
 
   FaceNormal := IndexedPolygonNormal(
-    PLongIntArray(DirectIndexes), Length(DirectIndexes),
-    PVector3Array(Coord.List), Coord.Count, Vector3(0, 0, 0), Convex);
+    PInt32Array(DirectIndexes), Length(DirectIndexes),
+    PVector3Array(Coord.L), Coord.Count, Vector3(0, 0, 0), Convex);
 
   for I := 0 to Length(Indexes) - 1 do
   begin
@@ -337,7 +337,7 @@ begin
       to a non-existing vertex index. VRML/X3D code will warn about it
       elsewhere, here just make sure we don't crash. }
     if Index < Normals.Count then
-      Normals.List^[Index] := Normals.List^[Index] + FaceNormal;
+      Normals.L[Index] := Normals.L[Index] + FaceNormal;
   end;
 end;
 

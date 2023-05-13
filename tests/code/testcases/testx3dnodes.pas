@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestX3DNodes" -*-
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -103,6 +103,8 @@ type
     procedure TestGenericFind;
     {$endif}
     procedure TestProtoExpansion;
+    procedure TestSolidField;
+    procedure TestConversionDot;
   end;
 
 implementation
@@ -110,7 +112,9 @@ implementation
 uses Generics.Collections, Math,
   CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
   X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime, CastleColors,
-  CastleApplicationProperties, CastleTextureImages;
+  CastleApplicationProperties, CastleTextureImages, CastleStringUtils,
+  CastleURIUtils,
+  CastleTestUtils;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -388,10 +392,10 @@ begin
       begin
         CurrentName := N.Fields[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique field name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique field name',
             (K = J) or (not N.Fields[K].IsName(CurrentName)));
         for K := 0 to N.EventsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique event name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique event name',
             not N.Events[K].IsName(CurrentName));
       end;
 
@@ -399,10 +403,10 @@ begin
       begin
         CurrentName := N.Events[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique field name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique field name',
             not N.Fields[K].IsName(CurrentName));
         for K := 0 to N.EventsCount - 1 do
-          AssertTrue(CurrentName + ' must be unique event name',
+          AssertTrue(N.X3DType + '.' + CurrentName + ' must be unique event name',
             (K = J) or (not N.Events[K].IsName(CurrentName)));
       end;
     finally FreeAndNil(N) end;
@@ -2385,6 +2389,79 @@ begin
     CheckProtoInstance(0, 'palette1.png');
     CheckProtoInstance(1, 'palette2.png');
   finally FreeAndNil(RootNode) end;
+end;
+
+procedure TTestX3DNodes.TestSolidField;
+var
+  I, J: Integer;
+  N: TAbstractGeometryNode;
+begin
+  for I := 0 to InstantiableNodes.Count - 1 do
+  begin
+    if InstantiableNodes[I].InheritsFrom(TAbstractGeometryNode) then
+    begin
+      N := InstantiableNodes[I].Create as TAbstractGeometryNode;
+      try
+        for J := 0 to N.FieldsCount - 1 do
+          if N.Fields[J].X3DName = 'solid' then
+            AssertTrue('SolidField overridden correctly for ' + N.X3DType, N.SolidField = N.Fields[J]);
+      finally FreeAndNil(N) end;
+    end;
+  end;
+end;
+
+procedure TTestX3DNodes.TestConversionDot;
+
+  procedure TestSaveMakesExpectedResult(const InputUrl, ExpectedOutputUrl, OutputMime: String);
+  var
+    Node: TX3DRootNode;
+    OutputStr, ExpectedOutputStr: String;
+    OutputStream: TStringStream;
+  begin
+    { Convert Node to MIME-type OutputMime, save result in OutputStr }
+    Node := LoadNode(InputUrl);
+    try
+      OutputStream := TStringStream.Create('');
+      try
+        SaveNode(Node, OutputStream,
+          OutputMime, 'castle_tester', ExtractURIName(InputUrl));
+        OutputStr := OutputStream.DataString;
+        // Make sure it has Unix line-endings
+        StringReplaceAllVar(OutputStr, #13, '', false);
+
+        // to debug why it fails
+        //StringToFile(FileNameAutoInc('debug_' + ExtractURIName(InputUrl), '_%d.txt'), OutputStr);
+      finally FreeAndNil(OutputStream) end;
+    finally FreeAndNil(Node) end;
+
+    { Calculate ExpectedOutputStr }
+    ExpectedOutputStr := FileToString(ExpectedOutputUrl);
+    // Make sure it has Unix line-endings
+    StringReplaceAllVar(ExpectedOutputStr, #13, '', false);
+
+    //AssertEquals(ExpectedOutputStr, OutputStr);
+    { Since floats have different precision on different platforms (even between Linux x86_64 and Windows x86_64),
+      compare them using regular expressions, that account for possible floating-point output differences. }
+    AssertTrue(StringMatchesRegexp(OutputStr, ExpectedOutputStr));
+  end;
+
+var
+  SavedLocale: TSavedLocale;
+begin
+  SavedLocale := FakeLocaleDecimalSeparatorComma;
+
+  TestSaveMakesExpectedResult(
+    'castle-data:/test_x3d_conversion_input.x3dv',
+    'castle-data:/test_x3d_conversion_output.x3dv.regexp.txt',
+    'model/x3d+vrml'
+  );
+  TestSaveMakesExpectedResult(
+    'castle-data:/test_x3d_conversion_input.x3dv',
+    'castle-data:/test_x3d_conversion_output.x3d.regexp.txt',
+    'model/x3d+xml'
+  );
+
+  RestoreLocaleDecimalSeparatorComma(SavedLocale);
 end;
 
 initialization

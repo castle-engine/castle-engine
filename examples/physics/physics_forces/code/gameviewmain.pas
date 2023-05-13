@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -216,50 +216,42 @@ var
   Material: TUnlitMaterialNode;
   Shape: TShapeNode;
   RootNode: TX3DRootNode;
-  VertexCount: TLongIntList;
 begin
   RootNode := TX3DRootNode.Create;
 
-  VertexCount := TLongIntList.Create;
-  try
-    VertexCount.AddDuplicate(2, RigidBodies.Count);
+  { create visualization for angular velocities }
 
-    { create visualization for angular velocities }
+  Material := TUnlitMaterialNode.Create;
+  Material.EmissiveColor := YellowRGB;
 
-    Material := TUnlitMaterialNode.Create;
-    Material.EmissiveColor := YellowRGB;
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := Material;
 
-    Appearance := TAppearanceNode.Create;
-    Appearance.Material := Material;
+  LineSet := TLineSetNode.CreateWithShape(Shape);
+  LineSet.Mode := lmPair; // each pair of vertexes on LineSet.Coord forms a line segment
+  Shape.Appearance := Appearance;
+  RootNode.AddChildren(Shape);
 
-    LineSet := TLineSetNode.CreateWithShape(Shape);
-    LineSet.SetVertexCount(VertexCount);
-    Shape.Appearance := Appearance;
-    RootNode.AddChildren(Shape);
+  VisualizeVelocitiesAngularLines := TCoordinateNode.Create;
+  LineSet.Coord := VisualizeVelocitiesAngularLines;
 
-    VisualizeVelocitiesAngularLines := TCoordinateNode.Create;
-    LineSet.Coord := VisualizeVelocitiesAngularLines;
+  { create visualization for linear velocities }
 
-    { create visualization for linear velocities }
+  Material := TUnlitMaterialNode.Create;
+  Material.EmissiveColor := RedRGB;
 
-    Material := TUnlitMaterialNode.Create;
-    Material.EmissiveColor := RedRGB;
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := Material;
 
-    Appearance := TAppearanceNode.Create;
-    Appearance.Material := Material;
+  LineSet := TLineSetNode.CreateWithShape(Shape);
+  LineSet.Mode := lmPair; // each pair of vertexes on LineSet.Coord forms a line segment
+  Shape.Appearance := Appearance;
+  RootNode.AddChildren(Shape);
 
-    LineSet := TLineSetNode.CreateWithShape(Shape);
-    LineSet.SetVertexCount(VertexCount);
-    Shape.Appearance := Appearance;
-    RootNode.AddChildren(Shape);
+  VisualizeVelocitiesLinearLines := TCoordinateNode.Create;
+  LineSet.Coord := VisualizeVelocitiesLinearLines;
 
-    VisualizeVelocitiesLinearLines := TCoordinateNode.Create;
-    LineSet.Coord := VisualizeVelocitiesLinearLines;
-
-    UpdateVisualizeVelocities;
-  finally
-    FreeAndNil(VertexCount);
-  end;
+  UpdateVisualizeVelocities;
 
   SceneVisualizeVelocities.Load(RootNode, true);
   SceneVisualizeVelocities.Exists := CheckboxVisualizeVelocities.Checked;
@@ -296,10 +288,10 @@ begin
   begin
     RBody := RigidBodies[I];
     Origin := RBody.Parent.LocalToWorld(TVector3.Zero);
-    VertexesLinearVelocity.List^[I * 2    ] := Origin;
-    VertexesLinearVelocity.List^[I * 2 + 1] := Origin + VelocityScale(RBody.LinearVelocity);
-    VertexesAngularVelocity.List^[I * 2    ] := Origin;
-    VertexesAngularVelocity.List^[I * 2 + 1] := Origin + VelocityScale(RBody.AngularVelocity);
+    VertexesLinearVelocity.L[I * 2    ] := Origin;
+    VertexesLinearVelocity.L[I * 2 + 1] := Origin + VelocityScale(RBody.LinearVelocity);
+    VertexesAngularVelocity.L[I * 2    ] := Origin;
+    VertexesAngularVelocity.L[I * 2 + 1] := Origin + VelocityScale(RBody.AngularVelocity);
   end;
 
   VisualizeVelocitiesLinearLines.FdPoint.Changed;

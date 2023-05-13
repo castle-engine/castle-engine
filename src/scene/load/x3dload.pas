@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -316,6 +316,11 @@ var
        (MimeType = 'model/gltf-binary') or
        (MimeType = 'application/x-md3') or
        (MimeType = 'image/x-3ds') or
+       (MimeType = 'application/x-stl') or
+       { other STL mime types }
+       (MimeType = 'application/wavefront-stl') or
+       (MimeType = 'application/vnd.ms-pki.stl') or
+       (MimeType = 'application/x-navistyle') or
        IsImageMimeType(MimeType, true, false) then
       Include(DownloadOptions, soForceMemoryStream);
 
@@ -329,7 +334,7 @@ var
   Gzipped: boolean;
 begin
   { We always download stripping anchor.
-    Spine, sprite sheets (Starling, Cocos2d), images except such anchor.
+    Spine, sprite sheets (Starling, Cocos2d), images, Tiled all expect such anchor.
     Other model formats may support it as well in the future. }
   URLWithoutAnchor := URIDeleteAnchor(URL, true);
 
@@ -381,16 +386,6 @@ function LoadNode(const Stream: TStream;
     Animations: TNodeInterpolator.TAnimationList;
   begin
     Animations := TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, BaseUrl);
-    try
-      Result := TNodeInterpolator.LoadToX3D(Animations);
-    finally FreeAndNil(Animations) end;
-  end;
-
-  function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
-  var
-    Animations: TNodeInterpolator.TAnimationList;
-  begin
-    Animations := LoadMD3Sequence(Stream, BaseUrl);
     try
       Result := TNodeInterpolator.LoadToX3D(Animations);
     finally FreeAndNil(Animations) end;
@@ -594,14 +589,6 @@ begin
     Stream := Download(URL);
     try
       LoadNodeAnimation(TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, AbsoluteBaseUrl));
-    finally FreeAndNil(Stream) end;
-  end else
-  if MimeType = 'application/x-md3' then
-  begin
-    AbsoluteBaseUrl := AbsoluteURI(URL);
-    Stream := Download(URL);
-    try
-      LoadNodeAnimation(LoadMD3Sequence(Stream, AbsoluteBaseUrl));
     finally FreeAndNil(Stream) end;
   end else
     LoadSingle(LoadNode(URL));

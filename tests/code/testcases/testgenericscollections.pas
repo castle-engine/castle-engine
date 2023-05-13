@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestGenericsCollections" -*-
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,6 +31,8 @@ type
     procedure Test1;
     procedure TestFreeingManually;
     procedure TestAddingLists;
+    procedure TestRecordSort;
+    //procedure TestRecordStableSort;
     procedure TestSort;
     procedure TestPack;
     procedure TestMapTryGetValue;
@@ -42,7 +44,8 @@ type
 
 implementation
 
-uses Generics.Defaults;
+uses Generics.Defaults,
+  CastleUtils;
 
 type
   TApple = class
@@ -185,6 +188,94 @@ begin
     AssertEquals('33', L[2].Name);
   finally FreeAndNil(L) end;
 end;
+
+type
+  TRec = record Id: Integer; SortKey: Integer; end;
+  PRec = ^TRec;
+
+  TRecList = class({$ifdef FPC}specialize{$endif} TStructList<TRec>)
+  end;
+
+  TRecComparer = {$ifdef FPC}specialize{$endif} TComparer<TRec>;
+
+function CompareRec({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TRec): Integer;
+begin
+  Result := A.SortKey - B.SortKey;
+end;
+
+procedure TTestGenericsCollections.TestRecordSort;
+var
+  Recs: TRecList;
+begin
+  Recs := TRecList.Create;
+
+  Recs.Count := 6;
+  Recs.L[0].Id := 0;
+  Recs.L[0].SortKey := -1;
+  Recs.L[1].Id := 1;
+  Recs.L[1].SortKey := -1;
+  Recs.L[2].Id := 2;
+  Recs.L[2].SortKey := -1;
+  Recs.L[3].Id := 3;
+  Recs.L[3].SortKey := -1;
+  Recs.L[4].Id := 4;
+  Recs.L[4].SortKey := -10;
+  Recs.L[5].Id := 5;
+  Recs.L[5].SortKey := 10;
+
+  Recs.Sort(TRecComparer.Construct({$ifdef FPC}@{$endif}CompareRec));
+
+  AssertTrue(Recs.L[0].SortKey = -10);
+  AssertTrue(Recs.L[1].SortKey = -1);
+  AssertTrue(Recs.L[2].SortKey = -1);
+  AssertTrue(Recs.L[3].SortKey = -1);
+  AssertTrue(Recs.L[4].SortKey = -1);
+  AssertTrue(Recs.L[5].SortKey = 10);
+
+  FreeAndNil(Recs);
+end;
+
+(*
+// Not tested, because it is not a stable sort -- and that's OK,
+/ nothing guaranteed it, we also don't need it in practice.
+procedure TTestGenericsCollections.TestRecordStableSort;
+var
+  Recs: TRecList;
+begin
+  Recs := TRecList.Create;
+
+  Recs.Count := 6;
+  Recs.L[0].Id := 0;
+  Recs.L[0].SortKey := -1;
+  Recs.L[1].Id := 1;
+  Recs.L[1].SortKey := -1;
+  Recs.L[2].Id := 2;
+  Recs.L[2].SortKey := -1;
+  Recs.L[3].Id := 3;
+  Recs.L[3].SortKey := -1;
+  Recs.L[4].Id := 4;
+  Recs.L[4].SortKey := -10;
+  Recs.L[5].Id := 5;
+  Recs.L[5].SortKey := 10;
+
+  Recs.Sort(TRecComparer.Construct({$ifdef FPC}@{$endif}CompareRec));
+
+  AssertTrue(Recs.L[0].Id = 4);
+  AssertTrue(Recs.L[0].SortKey = -10);
+  AssertTrue(Recs.L[1].Id = 0);
+  AssertTrue(Recs.L[1].SortKey = -1);
+  AssertTrue(Recs.L[2].Id = 1);
+  AssertTrue(Recs.L[2].SortKey = -1);
+  AssertTrue(Recs.L[3].Id = 2);
+  AssertTrue(Recs.L[3].SortKey = -1);
+  AssertTrue(Recs.L[4].Id = 3);
+  AssertTrue(Recs.L[4].SortKey = -1);
+  AssertTrue(Recs.L[5].Id = 5);
+  AssertTrue(Recs.L[5].SortKey = 10);
+
+  FreeAndNil(Recs);
+end;
+*)
 
 procedure TTestGenericsCollections.TestPack;
 var
@@ -370,14 +461,6 @@ begin
     AssertEquals(33, List[1][0]);
     AssertEquals(44, List[1][1]);
 
-    { This test fails on FPC 3.3.1 from 2022-12-27.
-      It worked for FPC 3.3.1 from 2022-07-28.
-      It also worked in FPC 3.2.0.
-
-      Submitted as https://gitlab.com/freepascal.org/fpc/source/-/issues/40074 .
-    }
-    {$ifndef VER3_3}
-
     AssertEquals(0, List.IndexOf(R1));
     AssertEquals(1, List.IndexOf(R2));
 
@@ -410,7 +493,6 @@ begin
     AssertEquals(1, List.Count);
     AssertEquals(33, List[0][0]);
     AssertEquals(44, List[0][1]);
-    {$endif}
   finally FreeAndNil(List) end;
 end;
 

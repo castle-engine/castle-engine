@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,6 +28,8 @@
     procedure SetCenterOfMass(const Value: TVector3);
     function GetCoord: TAbstractCoordinateNode;
     procedure SetCoord(const Value: TAbstractCoordinateNode);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
     function GetMass: Single;
     procedure SetMass(const Value: Single);
     function GetNameField: String;
@@ -53,6 +55,12 @@
     public property FdCoord: TSFNode read FFdCoord;
     {  }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+
+    strict private FFdDescription: TSFString;
+    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    public property FdDescription: TSFString read FFdDescription;
+    {  }
+    property Description: String read GetDescription write SetDescription;
 
     strict private FFdDisplacers: TMFNode;
     { Internal wrapper for property @link(Displacers). This wrapper API may change, we advise to access simpler @link(Displacers) instead. }
@@ -125,6 +133,16 @@ end;
 procedure THAnimSegmentNode.SetCoord(const Value: TAbstractCoordinateNode);
 begin
   FdCoord.Send(Value);
+end;
+
+function THAnimSegmentNode.GetDescription: String;
+begin
+  Result := FdDescription.Value;
+end;
+
+procedure THAnimSegmentNode.SetDescription(const Value: String);
+begin
+  FdDescription.Send(Value);
 end;
 
 procedure THAnimSegmentNode.SetDisplacers(const Value: array of THAnimDisplacerNode);
@@ -215,6 +233,10 @@ begin
   FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCoord);
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chNone;
+  AddField(FFdDescription);
 
   FFdDisplacers := TMFNode.Create(Self, True, 'displacers', [THAnimDisplacerNode]);
    FdDisplacers.ChangeAlways := chVisibleNonGeometry;

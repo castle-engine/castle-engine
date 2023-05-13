@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@
 
   This does:
   - make castle-data: work in Lazarus IDE,
-  - send CGE warnings to  messages.
+  - send CGE warnings to LCL messages window.
 }
 unit CastleInternalLclDesign;
 
@@ -50,10 +50,17 @@ begin
     Doing it now, when DesignUrl seems needed (
     by dialog box that sets DesignUrl,
     by setting TCastleControl.DesignUrl in deserialization)
-    is not a clean way to do this (because we may miss some situations). }
+    is not a clean way to do this (because we may miss some situations).
 
-  if CastleDesignMode and
-     (LazarusIDE <> nil) and
+    Note: We don't check "CastleDesignMode and ..." here now.
+    This was preventing FixApplicationDataInIDE from setting path
+    when we open the dialog to load DesignUrl for the first time in project
+    in Lazarus IDE
+    (testcase: open in Lazarus examples/lazarus/multiple_views/ , open form,
+    try to set DesignUrl by clicking on "..." near it).
+    Our InternalCastleApplicationMode is not yet set at this point.
+  }
+  if (LazarusIDE <> nil) and
      (LazarusIDE.ActiveProject <> nil) then
   begin
     { Override ApplicationData interpretation, and castle-data:/xxx URL meaning. }

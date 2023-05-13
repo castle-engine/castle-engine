@@ -1,5 +1,6 @@
+{%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -120,6 +121,19 @@
     function GetFields(const Index: Integer): TX3DField;
     function GetEvents(const Index: Integer): TX3DEvent;
     procedure UnregisterSceneCallback(Node: TX3DNode);
+
+    { Move shape associations (created using TShapeTree.AssociateNode)
+      before TSFNode.Value changes (this is compatible with TSFNode.OnBeforeValueChanged).
+
+      Assumes that current node has shape associations, and Sender is a field of this node,
+      and it is also associated with the same shapes.
+      Our InternalSceneShape will be transferred from old to new value of this
+      TSFNode field.
+
+      Does not move associations in some children nodes.
+      For this, assign specialized OnBeforeValueChanged implementation
+      instead of this, like TAbstractShapeNode.SetAppearanceBefore. }
+    procedure MoveShapeAssociations(const Sender: TSFNode; const NewNode: TX3DNode);
   protected
 
     { Does actual DeepCopy work. You can override this to copy some
@@ -464,21 +478,32 @@
       This is analogous to standard FreeAndNil. }
     procedure FreeIfUnused;
 
-    { Increase KeepExisting property value to disable automatic freeing
-      of the node when unused.
-      This may be useful in cases when you remove the node from VRML graph
-      hierarchy, but you want to keep a valid reference to it anyway
+    { When KeepExisting is non-zero, the node will not be automatically freed
+      when it will become unused (when reference count changes from non-zero to zero).
+      This is useful when you want to control the node lifetime explicitly.
+
+      For example, you may want to remove the node from X3D graph
+      hierarchy, but keep a valid reference to it anyway
       (for example, maybe you'll free it later by hand or add it somewhere
       else).
 
-      Simple methods KeepExistingBegin and KeepExistingEnd simply increase /
-      decrease KeepExisting value by 1. This is the most usual usage.
-
-      @groupBegin }
+      Methods KeepExistingBegin and KeepExistingEnd simply increase /
+      decrease KeepExisting value by 1. This is the most usual usage. }
     property KeepExisting: Cardinal read FKeepExisting write FKeepExisting;
+
+    { Increase @link(KeepExisting) property by 1, preventing the node from being
+      automatically freed when the reference count changes from non-zero to zero. }
     procedure KeepExistingBegin;
+
+    { Decrease @link(KeepExisting) property by 1. This should match previous
+      @link(KeepExistingBegin) call. When @link(KeepExisting) is zero,
+      the node will be automatically freed when the reference count
+      changes from non-zero to zero.
+
+      Note that merely calling KeepExistingEnd, or changing @link(KeepExisting)
+      property, @italic(will not) free the node. Follow this with @link(FreeIfUnused)
+      or @link(FreeIfUnusedAndNil) to actually free unused node. }
     procedure KeepExistingEnd;
-    { @groupEnd }
 
     { Name of this node. When saving/loading, this comes from VRML/X3D
       "DEF" construct. Empty value means that the name is not defined.
@@ -905,6 +930,8 @@
     function RoutesCount: Integer;
     procedure AddRoute(const Value: TX3DRoute); overload;
     procedure AddRoute(const Source, Destination: TX3DFieldOrEvent); overload;
+    procedure RemoveRoute(const Value: TX3DRoute); overload;
+    procedure RemoveRoute(const Index: Integer); overload;
 
     property ImportsList [const Index: Integer]: TX3DImport read GetImports;
     function ImportsCount: Integer;
@@ -2964,6 +2991,7 @@ begin
   end;
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 class function TX3DNode.VRML1StateNode(out StateNode: TVRML1StateNode): boolean;
 var
   SN: TVRML1StateNode;
@@ -2979,6 +3007,7 @@ begin
     end;
   Result := false;
 end;
+{$warnings on}
 
 class function TX3DNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
@@ -3456,6 +3485,21 @@ begin
   AddRoute(Route);
 end;
 
+procedure TX3DNode.RemoveRoute(const Value: TX3DRoute);
+begin
+  Assert(FRoutes <> nil);
+
+  RemoveRoute(FRoutes.IndexOf(Value));
+end;
+
+procedure TX3DNode.RemoveRoute(const Index: Integer);
+begin
+  Assert(FRoutes <> nil);
+  Assert(Between(Index, 0, FRoutes.Count - 1));
+
+  FRoutes.Delete(Index);
+end;
+
 function TX3DNode.GetImports(const Index: Integer): TX3DImport;
 begin
   if FImports = nil then
@@ -3577,6 +3621,12 @@ end;
 
 procedure TX3DNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
 begin
+end;
+
+procedure TX3DNode.MoveShapeAssociations(const Sender: TSFNode; const NewNode: TX3DNode);
+begin
+  if Scene <> nil then
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

@@ -91,7 +91,12 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Clear;
-    procedure Flush;    // Writes the XML file
+    { Writes the config to XML file in @link(URL).
+      @returns(@true If the file was really written to disk.
+      Returns @false if file was not written,
+      which may happen if there were no changes in config since the last save/load,
+      or if the @link(URL) wasn't set.) }
+    function Flush : Boolean;
     function  GetValue(const APath, ADefault: String): String; overload;
     function  GetValue(const APath: String; ADefault: Integer): Integer; overload;
     function  GetValue(const APath: String; ADefault: Boolean): Boolean; overload;
@@ -155,19 +160,22 @@ end;
 procedure TXMLConfig.Clear;
 begin
   Doc.ReplaceChild(Doc.CreateElement(RootName), Doc.DocumentElement);
+  FModified := true;
 end;
 
-procedure TXMLConfig.Flush;
+function TXMLConfig.Flush: Boolean;
 begin
- if (URL<>EmptyStr) and Modified then
+ if (URL <> EmptyStr) and Modified then
   begin
     if BlowFishKeyPhrase <> '' then
       // TODO: Delphi support
       URLWriteXML(Doc, URL{$ifdef FPC}, BlowFishKeyPhrase{$endif})
     else
       URLWriteXML(Doc, URL);
-    FModified := False;
-  end;
+    FModified := false;
+    Result := true;
+  end else
+    Result := false;
 end;
 
 function TXMLConfig.GetValue(const APath, ADefault: String): String;
@@ -175,8 +183,8 @@ var
   Node, Child, Attr: TDOMNode;
   NodeName: String;
   {$ifdef FPC}
-  PathLen: integer;
-  StartPos, EndPos: integer;
+  PathLen: Integer;
+  StartPos, EndPos:Integer;
   {$else}
   NodeNames: TStrings;
   I: Integer;
@@ -199,11 +207,11 @@ begin
     StartPos := EndPos + 1;
     Child := Node.FindNode(UTF8decode(Escape(NodeName)));
     if not Assigned(Child) then
-      exit;
+      Exit;
     Node := Child;
   end;
   if StartPos > PathLen then
-    exit;
+    Exit;
   SetLength(NodeName, PathLen - StartPos + 1);
   Move(APath[StartPos], NodeName[1], Length(NodeName));
   Attr := Node.Attributes.GetNamedItem(UTF8Decode(Escape(NodeName)));
@@ -238,7 +246,7 @@ end;
 
 function TXMLConfig.GetValue(const APath: String; ADefault: Integer): Integer;
 begin
-  Result := StrToIntDef(GetValue(APath, IntToStr(ADefault)),ADefault);
+  Result := StrToIntDef(GetValue(APath, IntToStr(ADefault)), ADefault);
 end;
 
 function TXMLConfig.GetValue(const APath: String; ADefault: Boolean): Boolean;

@@ -477,7 +477,9 @@ begin
     begin
       Stream.ReadBuffer(Format, SizeOf(Format));
       if Format.FormatTag <> 1 then
-        raise EWavLoadError.Create('Loading WAV files not in PCM format not implemented');
+        raise EWavLoadError.CreateFmt('Not supported format of "%s". Only uncompressed (PCM) WAV files are supported. Convert WAV files to uncompressed e.g. using Audacity or Sox.', [
+          URIDisplay(Url)
+        ]);
       { calculate DataFormat }
       case Format.Channels of
         1:case Format.BitsPerSample of

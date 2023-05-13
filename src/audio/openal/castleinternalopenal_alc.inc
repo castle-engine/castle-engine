@@ -1,3 +1,5 @@
+{%MainUnit castleinternalopenal.pas}
+
 { translation of AL/alc.h }
 
 { we should include here OpenAL_altypes.inc but they are already included

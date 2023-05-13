@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -214,7 +214,6 @@ end;
 
 procedure TAppearanceNode.SetMaterial(const Value: TAbstractMaterialNode);
 begin
-  SetMaterialBefore(Value);
   FdMaterial.Send(Value);
 end;
 
@@ -405,6 +404,7 @@ begin
 
   FFdMaterial := TSFNode.Create(Self, True, 'material', [TAbstractMaterialNode]);
    FdMaterial.ChangeAlways := chEverything;
+   FdMaterial.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdMaterial);
 
   FFdShaders := TMFNode.Create(Self, True, 'shaders', [TAbstractShaderNode]);

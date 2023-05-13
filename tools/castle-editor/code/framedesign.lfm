@@ -6,10 +6,12 @@ object DesignFrame: TDesignFrame
   ClientHeight = 522
   ClientWidth = 1237
   DesignTimePPI = 115
+  OnResize = FrameResize
   ParentFont = False
   TabOrder = 0
   DesignLeft = 403
   DesignTop = 237
+  OnResize = FrameResize
   object SplitterLeft: TSplitter
     Left = 255
     Height = 522
@@ -354,7 +356,6 @@ object DesignFrame: TDesignFrame
       Action = ActionApiReferenceOfCurrent
       AllowAllUp = True
       Anchors = [akTop, akRight]
-      AutoSize = True
       Constraints.MinHeight = 34
       Constraints.MinWidth = 34
       Images = Icons.ToolbarIcons
@@ -1191,18 +1192,29 @@ object DesignFrame: TDesignFrame
         ParentColor = False
         ParentFont = False
       end
-      object SpinEditSnap: TSpinEdit
-        AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Side = asrCenter
-        Left = 263
-        Height = 38
-        Hint = 'Snap (when moving/resizing UI)'
-        Top = 0
-        Width = 60
-        BorderSpacing.Left = 5
-        ParentFont = False
+      object PanelSpinEditAllowVerticalCentering: TPanel
+        Left = 258
+        Height = 28
+        Top = 4
+        Width = 63
+        AutoSize = True
+        BorderSpacing.CellAlignHorizontal = ccaCenter
+        BorderSpacing.CellAlignVertical = ccaCenter
+        BevelOuter = bvNone
+        ClientHeight = 28
+        ClientWidth = 63
         TabOrder = 0
-        Value = 10
+        object SpinEditSnap: TSpinEdit
+          AnchorSideLeft.Side = asrBottom
+          Left = 0
+          Height = 28
+          Hint = 'Snap (when moving/resizing UI)'
+          Top = 0
+          Width = 63
+          ParentFont = False
+          TabOrder = 0
+          Value = 10
+        end
       end
       object ButtonPlayStop: TSpeedButton
         Left = 353

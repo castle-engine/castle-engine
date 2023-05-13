@@ -346,7 +346,18 @@ begin
     if IsFrameListItem(Item) then
       FSelectedFrames.Add(TCastleSpriteSheetFrame(Item.Data));
 
-    Item := FrameListView.GetNextItem(Item, sdBelow, [lisSelected]);
+    { About sdAll:
+
+      In theory, sdBelow should be OK.
+      FrameListView.Selected returns the first selected item,
+      and iterating with sdBelow should return the rest.
+      However LCL WinAPI seems to have a weird bug, with sdBelow we
+      - may not detect all selected
+      - may have infinite loop when only one item is selected.
+
+      The sdAll behaves correctly.
+    }
+    Item := FrameListView.GetNextItem(Item, sdAll, [lisSelected]);
   end;
 end;
 
@@ -1421,6 +1432,8 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
 
   function Generate3XDWithImage: TX3DRootNode;
   var
+    Material: TUnlitMaterialNode;
+    Appearance: TAppearanceNode;
     Shape: TShapeNode;
     Tri: TTriangleSetNode;
     Tex: TPixelTextureNode;
@@ -1432,8 +1445,13 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
   begin
     Result := TX3DRootNode.Create;
 
+    Material := TUnlitMaterialNode.Create;
+
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+
     Shape := TShapeNode.Create;
-    Shape.Material := TUnlitMaterialNode.Create;
+    Shape.Appearance := Appearance;
 
     Tex := TPixelTextureNode.Create;
     Tex.FdImage.Value := Frame.MakeImageCopy;
@@ -1441,7 +1459,7 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
     Tex.RepeatS := false;
     Tex.RepeatT := false;
     }
-    Shape.Texture := Tex;
+    Appearance.Texture := Tex;
 
     TexProperties := TTexturePropertiesNode.Create;
     TexProperties.BoundaryModeS := bmClampToEdge;

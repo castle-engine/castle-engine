@@ -1,5 +1,6 @@
+{%MainUnit castleglimages.pas}
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -68,7 +69,7 @@ procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
 function IsTexture3DSized(const Size: Cardinal): boolean; overload;
 begin
   Result :=
-    (GLFeatures.Texture3D = gsNone) or
+    (not GLFeatures.Texture3D) or
     (
       IsPowerOf2(Size) and
       (Size > 0) and
@@ -78,7 +79,7 @@ end;
 
 function IsTexture3DSized(const R: TCastleImage): boolean; overload;
 begin
-  if GLFeatures.Texture3D <> gsNone then
+  if GLFeatures.Texture3D then
   begin
     Result :=
       IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= GLFeatures.MaxTexture3DSize) and
@@ -91,8 +92,6 @@ end;
 procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
   const Image: TEncodedImage;
   Filter: TTextureFilter; CompositeForMipmaps: TCompositeImage);
-
-{$ifndef OpenGLES}
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -110,17 +109,10 @@ var
     begin
       BeforeUnpackImage(Image);
       try
-        case GLFeatures.Texture3D of
-          gsExtension:
-            glTexImage3DEXT(GL_TEXTURE_3D_EXT, Level, ImageInternalFormat,
-              Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
-              Image.RawPixels);
-          gsStandard:
-            glTexImage3D(GL_TEXTURE_3D, Level, ImageInternalFormat,
-              Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
-              Image.RawPixels);
-          else ;
-        end;
+        if GLFeatures.Texture3D then
+          glTexImage3D(GL_TEXTURE_3D, Level, ImageInternalFormat,
+            Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
+            Image.RawPixels);
         LoadedSize := LoadedSize + Image.Size;
       finally AfterUnpackImage(Image) end;
     end;
@@ -145,9 +137,9 @@ var
       Result := false;
     end;
 
-    if Result and (not GLFeatures.Version_1_2) then
+    if Result and (not GLFeatures.TextureMaxLevel) then
     begin
-      WritelnWarning('Texture', 'Cannot load Composite image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      WritelnWarning('Texture', 'Cannot load Composite image containing mipmaps, because OpenGL(ES) does not support GL_TEXTURE_MAX_LEVEL');
       Result := false;
     end;
 
@@ -162,16 +154,23 @@ var
     end;
   end;
 
+var
+  ImageSwizzle: TVector4Integer;
 begin
   if not (Image is TCastleImage) then
     raise ETextureLoadError.CreateFmt('Image class %s cannot be loaded to OpenGL 3D texture. OpenGL doesn''t allow any 3D texture compression formats',
       [Image.ClassName]);
 
-  ImageInternalFormat := ImageGLInternalFormat(Image);
-  ImageFormat := ImageGLFormat(TCastleImage(Image));
+  UncompressedGLFormatAndInternalFormat(TCastleImage(Image), ImageFormat, ImageInternalFormat, ImageSwizzle);
   LoadedSize := 0;
 
   glTexImage3DImage(TCastleImage(Image), 0);
+
+  if not GLFeatures.Texture3D then
+    raise Exception.Create('3D textures not supported by OpenGL(ES)');
+
+  if GLFeatures.TextureModernFormatsAndSwizzle then
+    glTexParameteriv(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_RGBA, @ImageSwizzle);
 
   if Filter.NeedsMipmaps then
   begin
@@ -193,15 +192,5 @@ begin
 
   SetTextureFilter(GL_TEXTURE_3D, Filter);
 end;
-
-{$else}
-
-begin
-  { TODO-OpenGLES3:
-    Loading 3D textures on OpenGL ES -- use GL_OES_texture_3D extension,
-    or OpenGLES3 }
-end;
-
-{$endif}
 
 {$endif read_implementation}

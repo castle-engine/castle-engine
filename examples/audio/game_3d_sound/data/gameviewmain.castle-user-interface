@@ -31,15 +31,24 @@
             "ExposeTransforms" : [
             ],
             "Name" : "SceneLevel",
+            "PreciseCollisions" : true,
             "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "Spatial" : [
-              "ssRendering",
-              "ssDynamicCollisions"
-            ],
-            "URL" : "castle-data:/levels/base_level.gltf"
+            "URL" : "castle-data:/levels/base_level.gltf",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastlePlaneCollider",
+                "AutoSize" : false,
+                "Name" : "PlaneCollider1",
+                "Restitution" : 3.0000001192092896E-001
+              },
+              {
+                "$$ClassName" : "TCastleRigidBody",
+                "Name" : "RigidBody1"
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -50,7 +59,7 @@
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "RotationPersistent" : {
-              "$$ClassName" : "TCastleVector4Persistent",
+              "$$ClassName" : "TCastleVector4RotationPersistent",
               "W" : 1.5803413391113281E+000,
               "Y" : -9.9999976158142090E-001
             },
@@ -107,7 +116,7 @@
             },
             "ProjectionNear" : 6.0000002384185791E-002,
             "RotationPersistent" : {
-              "$$ClassName" : "TCastleVector4Persistent",
+              "$$ClassName" : "TCastleVector4RotationPersistent",
               "Z" : 1.0000000000000000E+000
             },
             "TranslationPersistent" : {
@@ -170,17 +179,17 @@
           "$$ClassName" : "TCastlePerspective"
         },
         "RotationPersistent" : {
-          "$$ClassName" : "TCastleVector4Persistent",
-          "W" : 7.4157851934432983E-001,
-          "X" : -3.5070198774337769E-001,
-          "Y" : 9.2819875478744507E-001,
-          "Z" : 1.2431991100311279E-001
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 3.0857428908348083E-001,
+          "X" : -6.5955156087875366E-001,
+          "Y" : 7.4854123592376709E-001,
+          "Z" : 6.8393930792808533E-002
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 3.8272514343261719E+000,
-          "Y" : 3.4387977123260498E+000,
-          "Z" : 5.9261441230773926E+000
+          "X" : 1.7127014398574829E+000,
+          "Y" : 2.1116571426391602E+000,
+          "Z" : 4.9565000534057617E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {
@@ -206,50 +215,79 @@
         "Red" : 1.0000000000000000E+000
       },
       "FontSize" : 2.0000000000000000E+001,
-      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
       "Text" : [
         "FPS: xxx"
       ],
-      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     },
     {
-      "$$ClassName" : "TCastleLabel",
+      "$$ClassName" : "TCastleRectangleControl",
+      "AutoSizeToChildren" : true,
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 2.0000000000000000E+000
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 1.0000000000000000E+000,
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000
+      },
       "ColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 1.0000000000000000E+000,
-        "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000
+        "Alpha" : 2.5000000000000000E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
       },
-      "Frame" : true,
-      "FrameColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 2.5000000000000000E-001,
-        "Green" : 2.5000000000000000E-001,
-        "Red" : 2.5000000000000000E-001
+      "Name" : "HelpMessageContainer",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : -1.0000000000000000E+001
       },
-      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-      "Name" : "HelpMessage",
-      "Padding" : 1.0000000000000000E+001,
-      "Text" : [
-        "Movement:",
-        "  AWSD, arrows = move and rotate",
-        "  Space = jump",
-        "  C = crouch",
-        "  See the rest of view3dscene key shortcuts.",
-        "",
-        "Other:",
-        "  F1 = toggle this help",
-        "  F4 = toggle mouse look",
-        "  F5 = save screen"
-      ],
-      "VerticalAnchorDelta" : -1.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop"
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "Name" : "HelpMessage",
+          "Padding" : 1.0000000000000000E+001,
+          "Text" : [
+            "Controls:",
+            "  AWSD, arrows: move and rotate",
+            "  Space: jump",
+            "  C: crouch",
+            "  Right mouse click: toggle mouse look",
+            "  Left mouse click: detonate",
+            "",
+            "Other:",
+            "  F1: toggle this help",
+            "  F5: save screen"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -2.0027160644531250E-005
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        }
+      ]
     },
     {
       "$$ClassName" : "TCastleCrosshair",
@@ -263,11 +301,14 @@
         "URL" : "castle-data:/textures/mute_sign.png"
       },
       "Exists" : false,
-      "HorizontalAnchorDelta" : -1.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "MuteImage",
-      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -1.0000000000000000E+001,
+        "Y" : -1.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     },

@@ -32,7 +32,7 @@ TODO:
 
 - Add snapping to CGE editor, or even full tile editor inside CGE, to make it easy to design such map in CGE editor.
 
-NOTE: You can also design isometric map using [Tiled](https://www.mapeditor.org/) and load it in CGE using `TCastleTiledMapControl`. For examples of using Tiled, see CGE `examples/tiled/` subdirectory. Tiled supports isometric map layout fully.
+NOTE: You can also design isometric map using [Tiled](https://www.mapeditor.org/) and load it in CGE using [TCastleTiledMap](https://castle-engine.io/tiled_maps). For examples of using Tiled, see CGE `examples/tiled/` subdirectory. Tiled supports isometric map layout fully.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

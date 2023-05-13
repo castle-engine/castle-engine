@@ -37,7 +37,7 @@ begin
   {$endif}
 end;
 
-{$ifdef CASTLE_ENABLE_TIFF}
+{$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
 function LoadTIFF(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
@@ -48,7 +48,6 @@ begin
   Result := nil; // just silence FPC warning
   {$endif}
 end;
-{$endif}
 
 function LoadJP2(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
@@ -60,6 +59,7 @@ begin
   Result := nil; // just silence FPC warning
   {$endif}
 end;
+{$endif CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
 
 function LoadJPEG(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
@@ -196,15 +196,6 @@ begin
   {$endif}
 end;
 
-procedure SaveJP2(const Img: TEncodedImage; const Stream: TStream);
-begin
-  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
-  Save_VampyreImaging(Img, Stream, 'jp2');
-  {$else}
-  raise EImageSaveError.Create('Cannot save JP2 (Vampyre Imaging Library not available at compile-time)');
-  {$endif}
-end;
-
 procedure SaveXPM(const Img: TEncodedImage; const Stream: TStream);
 begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
@@ -236,7 +227,7 @@ begin
   {$endif}
 end;
 
-{$ifdef CASTLE_ENABLE_TIFF}
+{$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
 procedure SaveTIFF(const Img: TEncodedImage; const Stream: TStream);
 begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
@@ -245,7 +236,16 @@ begin
   raise EImageSaveError.Create('Cannot save TIFF (Vampyre Imaging Library not available at compile-time)');
   {$endif}
 end;
-{$endif}
+
+procedure SaveJP2(const Img: TEncodedImage; const Stream: TStream);
+begin
+  {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
+  Save_VampyreImaging(Img, Stream, 'jp2');
+  {$else}
+  raise EImageSaveError.Create('Cannot save JP2 (Vampyre Imaging Library not available at compile-time)');
+  {$endif}
+end;
+{$endif CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
 
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream);
 begin

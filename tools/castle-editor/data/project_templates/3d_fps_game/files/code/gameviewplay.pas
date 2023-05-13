@@ -41,7 +41,7 @@ implementation
 
 uses SysUtils, Math,
   CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils,
-  GameViewMenu;
+  GameViewMenu, GameSound;
 
 { TViewPlay ----------------------------------------------------------------- }
 
@@ -108,7 +108,7 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    SoundEngine.Play(SoundEngine.SoundFromName('shoot_sound'));
+    SoundEngine.Play(NamedSound('Shoot'));
 
     { We clicked on enemy if
       - TransformUnderMouse indicates we hit something

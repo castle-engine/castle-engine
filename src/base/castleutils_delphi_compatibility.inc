@@ -1,5 +1,6 @@
+{%MainUnit castleutils.pas}
 {
-  Copyright 2017-2021 Michalis Kamburelis.
+  Copyright 2017-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -47,6 +48,15 @@ type
   PtrInt = NativeInt;
   PtrUInt = NativeUInt;
   WINBOOL = longbool;
+  PUInt16 = ^UInt16;
+  PInt32 = ^Int32;
+  {$ifndef VER340}
+  { Pointer to UInt32.
+    Known to be necessary to be defined in CGE for Delphi 10.2
+    (see https://github.com/castle-engine/castle-engine/issues/475),
+    not necessary with Delphi >= 10.4. }
+  PUInt32 = ^UInt32;
+  {$endif}
   TGetVendorNameEvent  = function: string;
   TGetAppNameEvent  = function: string;
   TEventType = (etCustom, etInfo, etWarning, etError, etDebug);

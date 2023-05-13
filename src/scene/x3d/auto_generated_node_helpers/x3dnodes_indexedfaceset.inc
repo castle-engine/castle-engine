@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -60,9 +60,9 @@
     { Internal wrapper for property @link(ColorIndex). This wrapper API may change, we advise to access simpler @link(ColorIndex) instead. }
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
     {  }
-    procedure SetColorIndex(const Value: array of LongInt); overload;
+    procedure SetColorIndex(const Value: array of Int32); overload;
     {  }
-    procedure SetColorIndex(const Value: TLongIntList); overload;
+    procedure SetColorIndex(const Value: TInt32List); overload;
 
     strict private FFdConvex: TSFBool;
     { Internal wrapper for property @link(Convex). This wrapper API may change, we advise to access simpler @link(Convex) instead. }
@@ -74,9 +74,9 @@
     { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     {  }
-    procedure SetCoordIndex(const Value: array of LongInt); overload;
+    procedure SetCoordIndex(const Value: array of Int32); overload;
     {  }
-    procedure SetCoordIndex(const Value: TLongIntList); overload;
+    procedure SetCoordIndex(const Value: TInt32List); overload;
 
     strict private FFdCreaseAngle: TSFFloat;
     { Internal wrapper for property @link(CreaseAngle). This wrapper API may change, we advise to access simpler @link(CreaseAngle) instead. }
@@ -88,17 +88,17 @@
     { Internal wrapper for property @link(NormalIndex). This wrapper API may change, we advise to access simpler @link(NormalIndex) instead. }
     public property FdNormalIndex: TMFInt32 read FFdNormalIndex;
     {  }
-    procedure SetNormalIndex(const Value: array of LongInt); overload;
+    procedure SetNormalIndex(const Value: array of Int32); overload;
     {  }
-    procedure SetNormalIndex(const Value: TLongIntList); overload;
+    procedure SetNormalIndex(const Value: TInt32List); overload;
 
     strict private FFdTexCoordIndex: TMFInt32;
     { Internal wrapper for property @link(TexCoordIndex). This wrapper API may change, we advise to access simpler @link(TexCoordIndex) instead. }
     public property FdTexCoordIndex: TMFInt32 read FFdTexCoordIndex;
     {  }
-    procedure SetTexCoordIndex(const Value: array of LongInt); overload;
+    procedure SetTexCoordIndex(const Value: array of Int32); overload;
     {  }
-    procedure SetTexCoordIndex(const Value: TLongIntList); overload;
+    procedure SetTexCoordIndex(const Value: TInt32List); overload;
 
 {$endif read_interface}
 
@@ -106,12 +106,12 @@
 
 { TIndexedFaceSetNode ----------------------------------------------- }
 
-procedure TIndexedFaceSetNode.SetColorIndex(const Value: array of LongInt);
+procedure TIndexedFaceSetNode.SetColorIndex(const Value: array of Int32);
 begin
   FdColorIndex.Send(Value);
 end;
 
-procedure TIndexedFaceSetNode.SetColorIndex(const Value: TLongIntList);
+procedure TIndexedFaceSetNode.SetColorIndex(const Value: TInt32List);
 begin
   FdColorIndex.Send(Value);
 end;
@@ -126,12 +126,12 @@ begin
   FdConvex.Send(Value);
 end;
 
-procedure TIndexedFaceSetNode.SetCoordIndex(const Value: array of LongInt);
+procedure TIndexedFaceSetNode.SetCoordIndex(const Value: array of Int32);
 begin
   FdCoordIndex.Send(Value);
 end;
 
-procedure TIndexedFaceSetNode.SetCoordIndex(const Value: TLongIntList);
+procedure TIndexedFaceSetNode.SetCoordIndex(const Value: TInt32List);
 begin
   FdCoordIndex.Send(Value);
 end;
@@ -146,22 +146,22 @@ begin
   FdCreaseAngle.Send(Value);
 end;
 
-procedure TIndexedFaceSetNode.SetNormalIndex(const Value: array of LongInt);
+procedure TIndexedFaceSetNode.SetNormalIndex(const Value: array of Int32);
 begin
   FdNormalIndex.Send(Value);
 end;
 
-procedure TIndexedFaceSetNode.SetNormalIndex(const Value: TLongIntList);
+procedure TIndexedFaceSetNode.SetNormalIndex(const Value: TInt32List);
 begin
   FdNormalIndex.Send(Value);
 end;
 
-procedure TIndexedFaceSetNode.SetTexCoordIndex(const Value: array of LongInt);
+procedure TIndexedFaceSetNode.SetTexCoordIndex(const Value: array of Int32);
 begin
   FdTexCoordIndex.Send(Value);
 end;
 
-procedure TIndexedFaceSetNode.SetTexCoordIndex(const Value: TLongIntList);
+procedure TIndexedFaceSetNode.SetTexCoordIndex(const Value: TInt32List);
 begin
   FdTexCoordIndex.Send(Value);
 end;

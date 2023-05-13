@@ -1,0 +1,391 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$NonVisualComponents" : [
+    {
+      "$$ClassName" : "TCastleFont",
+      "LoadCharacters" : "ΓειασουκόσμεЗдравствуймирŚĆĘĄŹŁŻÓŃśćęąźłżóń",
+      "Name" : "InternationalFont",
+      "URL" : "castle-data:/DejaVuSans.ttf"
+    },
+    {
+      "$$ClassName" : "TCastleFont",
+      "LoadCharacters" : "你好世界中",
+      "MeasureCapHeight" : "HI中",
+      "MeasureHeight" : "AOHIypq中",
+      "Name" : "ChineseFont",
+      "URL" : "castle-data:/DroidSansFallback.ttf"
+    }
+  ],
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.0196078568696976E-001,
+        "Green" : 1.0196078568696976E-001,
+        "Red" : 1.0196078568696976E-001
+      },
+      "FullSize" : true,
+      "Name" : "BackgroundRect"
+    },
+    {
+      "$$ClassName" : "TCastleScrollView",
+      "FullSize" : true,
+      "Name" : "ScrollView1",
+      "ScrollArea" : {
+        "$$ClassName" : "TCastleScrollArea",
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleVerticalGroup",
+            "Height" : 4.6000000000000000E+002,
+            "Name" : "VerticalGroup1",
+            "Padding" : 1.0000000000000000E+001,
+            "Spacing" : 1.0000000000000000E+001,
+            "VerticalAnchorParent" : "vpTop",
+            "VerticalAnchorSelf" : "vpTop",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleLabel",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Green" : 1.0000000000000000E+000,
+                  "Red" : 1.0000000000000000E+000
+                },
+                "CustomFont" : "InternationalFont",
+                "Name" : "LabelInternational",
+                "Text" : [
+                  "TCastleLabel with with international (but not Chinese) font:",
+                  "Greek: Γεια σου κόσμε!,",
+                  "Russian: Здравствуй, мир!",
+                  "Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!"
+                ],
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "X" : 1.0000000000000000E+001,
+                  "Y" : -1.0000000000000000E+001
+                },
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop"
+              },
+              {
+                "$$ClassName" : "TCastleLabel",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Green" : 5.0196081399917603E-001
+                },
+                "Name" : "LabelChineseIntro",
+                "Text" : [
+                  "TCastleLabel with Chinese font:"
+                ],
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "X" : 1.0000000000000000E+001,
+                  "Y" : -1.0500000000000000E+002
+                },
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop"
+              },
+              {
+                "$$ClassName" : "TCastleLabel",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Green" : 5.0196081399917603E-001
+                },
+                "CustomFont" : "ChineseFont",
+                "Name" : "LabelChinese",
+                "Text" : [
+                  "你好世界"
+                ],
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "X" : 1.0000000000000000E+001,
+                  "Y" : -1.3700000000000000E+002
+                },
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop"
+              },
+              {
+                "$$ClassName" : "TCastleViewport",
+                "BackgroundColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 1.0000000000000000E+000,
+                  "Green" : 1.0000000000000000E+000,
+                  "Red" : 0.0000000000000000E+000
+                },
+                "Camera" : "Camera1",
+                "Height" : 2.0000000000000000E+002,
+                "Items" : {
+                  "$$ClassName" : "TCastleRootTransform",
+                  "PhysicsProperties" : {
+                    "$$ClassName" : "TPhysicsProperties"
+                  },
+                  "$Children" : [
+                    {
+                      "$$ClassName" : "TCastleCamera",
+                      "Name" : "Camera1",
+                      "Orthographic" : {
+                        "$$ClassName" : "TCastleOrthographic"
+                      },
+                      "Perspective" : {
+                        "$$ClassName" : "TCastlePerspective"
+                      },
+                      "RotationPersistent" : {
+                        "$$ClassName" : "TCastleVector4RotationPersistent",
+                        "W" : 1.4990800619125366E-001,
+                        "X" : -9.6595489978790283E-001,
+                        "Y" : -2.5713333487510681E-001,
+                        "Z" : -2.8528491035103798E-002
+                      },
+                      "TranslationPersistent" : {
+                        "$$ClassName" : "TCastleVector3Persistent",
+                        "X" : 1.5587654113769531E+001,
+                        "Y" : 5.4406266212463379E+000,
+                        "Z" : 1.6130289077758789E+001
+                      }
+                    },
+                    {
+                      "$$ClassName" : "TCastleText",
+                      "ColorPersistent" : {
+                        "$$ClassName" : "TCastleColorPersistent",
+                        "Blue" : 0.0000000000000000E+000
+                      },
+                      "CustomFont" : "InternationalFont",
+                      "Name" : "TextInternational",
+                      "RenderOptions" : {
+                        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                      },
+                      "Text" : [
+                        "TCastleText (3D) with international (but not Chinese) font:",
+                        "Greek: Γεια σου κόσμε!,",
+                        "Russian: Здравствуй, мир!",
+                        "Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!"
+                      ],
+                      "TranslationPersistent" : {
+                        "$$ClassName" : "TCastleVector3Persistent",
+                        "X" : -9.4568128585815430E+000,
+                        "Y" : 6.5743689537048340E+000
+                      },
+                      "VerticalAlignment" : "vpTop"
+                    },
+                    {
+                      "$$ClassName" : "TCastleText",
+                      "ColorPersistent" : {
+                        "$$ClassName" : "TCastleColorPersistent",
+                        "Blue" : 0.0000000000000000E+000,
+                        "Green" : 5.0196081399917603E-001,
+                        "Red" : 0.0000000000000000E+000
+                      },
+                      "CustomFont" : "InternationalFont",
+                      "Name" : "TextChineseIntro",
+                      "RenderOptions" : {
+                        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                      },
+                      "Text" : [
+                        "TCastleText (3D) with Chinese font:"
+                      ],
+                      "TranslationPersistent" : {
+                        "$$ClassName" : "TCastleVector3Persistent",
+                        "X" : 2.7065593719482422E+001,
+                        "Y" : 6.4224548339843750E+000
+                      },
+                      "VerticalAlignment" : "vpTop"
+                    },
+                    {
+                      "$$ClassName" : "TCastleText",
+                      "ColorPersistent" : {
+                        "$$ClassName" : "TCastleColorPersistent",
+                        "Blue" : 0.0000000000000000E+000,
+                        "Green" : 5.0196081399917603E-001,
+                        "Red" : 0.0000000000000000E+000
+                      },
+                      "CustomFont" : "ChineseFont",
+                      "Name" : "TextChinese",
+                      "RenderOptions" : {
+                        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                      },
+                      "Text" : [
+                        "你好世界"
+                      ],
+                      "TranslationPersistent" : {
+                        "$$ClassName" : "TCastleVector3Persistent",
+                        "X" : 2.7114772796630859E+001,
+                        "Y" : 5.2661247253417969E+000
+                      },
+                      "VerticalAlignment" : "vpTop"
+                    }
+                  ]
+                },
+                "Name" : "Viewport1",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "X" : 1.0000000000000000E+001,
+                  "Y" : -1.6600000000000000E+002
+                },
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop",
+                "Width" : 9.0000000000000000E+002,
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleExamineNavigation",
+                    "Name" : "ExamineNavigation1"
+                  }
+                ],
+                "InternalDesignCamera" : {
+                  "$$ClassName" : "TCastleCamera",
+                  "Name" : "",
+                  "Orthographic" : {
+                    "$$ClassName" : "TCastleOrthographic"
+                  },
+                  "Perspective" : {
+                    "$$ClassName" : "TCastlePerspective"
+                  },
+                  "RotationPersistent" : {
+                    "$$ClassName" : "TCastleVector4RotationPersistent",
+                    "W" : 1.4990800619125366E-001,
+                    "X" : -9.6595048904418945E-001,
+                    "Y" : -2.5713935494422913E-001,
+                    "Z" : -2.8621124103665352E-002
+                  },
+                  "TranslationPersistent" : {
+                    "$$ClassName" : "TCastleVector3Persistent",
+                    "X" : 1.5587654113769531E+001,
+                    "Y" : 5.4406266212463379E+000,
+                    "Z" : 1.6130289077758789E+001
+                  }
+                },
+                "InternalDesignNavigations[dnFly]" : {
+                  "$$ClassName" : "TCastleWalkNavigationDesign",
+                  "Name" : ""
+                },
+                "InternalDesignNavigations[dnExamine]" : {
+                  "$$ClassName" : "TCastleExamineNavigationDesign",
+                  "Exists" : false,
+                  "Name" : ""
+                },
+                "InternalDesignNavigations[dn2D]" : {
+                  "$$ClassName" : "TCastle2DNavigationDesign",
+                  "Exists" : false,
+                  "Name" : ""
+                }
+              },
+              {
+                "$$ClassName" : "TCastleHorizontalGroup",
+                "Name" : "HorizontalGroupInternational",
+                "Spacing" : 2.0000000000000000E+001,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "X" : 1.0000000000000000E+001,
+                  "Y" : -3.7600000000000000E+002
+                },
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop",
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleLabel",
+                    "ColorPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Green" : 1.0000000000000000E+000,
+                      "Red" : 1.0000000000000000E+000
+                    },
+                    "Name" : "LabelForEditInternational",
+                    "Text" : [
+                      "TCastleEdit with international (but not Chinese) font:"
+                    ],
+                    "VerticalAnchorParent" : "vpMiddle",
+                    "VerticalAnchorSelf" : "vpMiddle"
+                  },
+                  {
+                    "$$ClassName" : "TCastleEdit",
+                    "CaptureAllInput" : false,
+                    "CustomFont" : "InternationalFont",
+                    "Name" : "EditInternational",
+                    "Placeholder" : "Polish: ćma źrebię",
+                    "Text" : "Polish: ćma źrebię",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector2Persistent",
+                      "X" : 5.5200000000000000E+002
+                    },
+                    "VerticalAnchorParent" : "vpMiddle",
+                    "VerticalAnchorSelf" : "vpMiddle",
+                    "Width" : 3.0000000000000000E+002
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleHorizontalGroup",
+                "Name" : "HorizontalGroupChinese",
+                "Spacing" : 2.0000000000000000E+001,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "X" : 1.0000000000000000E+001,
+                  "Y" : -4.1700000000000000E+002
+                },
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop",
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleLabel",
+                    "ColorPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Green" : 5.0196081399917603E-001
+                    },
+                    "Name" : "LabelForEditChinese",
+                    "Text" : [
+                      "TCastleEdit with Chinese font:"
+                    ],
+                    "VerticalAnchorParent" : "vpMiddle",
+                    "VerticalAnchorSelf" : "vpMiddle"
+                  },
+                  {
+                    "$$ClassName" : "TCastleEdit",
+                    "CaptureAllInput" : false,
+                    "CustomFont" : "ChineseFont",
+                    "Name" : "EditChinese",
+                    "Placeholder" : "你好世界",
+                    "Text" : "你好世界",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector2Persistent",
+                      "X" : 3.2200000000000000E+002
+                    },
+                    "VerticalAnchorParent" : "vpMiddle",
+                    "VerticalAnchorSelf" : "vpMiddle",
+                    "Width" : 3.0000000000000000E+002
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleButton",
+                "Caption" : "Replace TCastleLabel and TCastleText instances with a bunch of text loaded from various files",
+                "CustomBackgroundDisabled" : {
+                  "$$ClassName" : "TCastleImagePersistent"
+                },
+                "CustomBackgroundFocused" : {
+                  "$$ClassName" : "TCastleImagePersistent"
+                },
+                "CustomBackgroundNormal" : {
+                  "$$ClassName" : "TCastleImagePersistent"
+                },
+                "CustomBackgroundPressed" : {
+                  "$$ClassName" : "TCastleImagePersistent"
+                },
+                "Image" : {
+                  "$$ClassName" : "TCastleImagePersistent"
+                },
+                "Name" : "ButtonLoadFromFiles",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "X" : 1.0000000000000000E+001,
+                  "Y" : -4.5800000000000000E+002
+                },
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

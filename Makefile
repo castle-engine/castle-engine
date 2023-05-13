@@ -78,11 +78,19 @@ FIND := find
 INSTALL := install
 EXE_EXTENSION :=
 
-ifeq ($(OS),Windows_NT)
+# Detect Windows when $OS is Windows_NT or win64.
+# Other $OS, including when $OS is empty / undefined, must be non-Windows.
+# See https://stackoverflow.com/questions/7656425/makefile-ifeq-logical-or#9802777
+# to how this trick to detect an alternative works.
+ifneq (,$(filter $(OS),Windows_NT win64))
+  $(info Detected Windows, OS is $(OS))
+
   # On Windows avoid using Windows built-in "find" program. Use the Cygwin "find".
   FIND := `cygpath --mixed /bin/find`
   EXE_EXTENSION := .exe
 else
+  $(info Detected non-Windows, OS is $(OS))
+
   # Only on Unix, you can use "uname" to further detect Unix variants,
   # see https://stackoverflow.com/questions/714100/os-detecting-makefile
   UNAME_S := $(shell uname -s)
@@ -118,11 +126,10 @@ BUILD_TOOL = ./tools/build-tool/castle-engine$(EXE_EXTENSION)
 
 .PHONY: default
 default: tools
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_base.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_window.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) --add-package-link packages/castle_editor_components.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) tools/castle-editor/castle_editor.lpi
 # move binaries to bin/
 	$(INSTALL) -d bin/
@@ -302,6 +309,9 @@ examples:
 #
 # - tests/delphi_tests: because it requires Delphi, which is not available on non-Windows.
 #
+# - examples/deprecated_library: bacause it requires library first (we could build it..
+#   but it is already tested by examples-laz).
+#
 # - tools/build-tool: because
 #   - compilation is tested by "make tools" already,
 #   - we don't want to clean it, to have it available for "make test-editor-templates" after this
@@ -312,6 +322,7 @@ examples:
 	  '(' -path ./tools/build-tool -prune ')' -o \
 	  '(' -path ./tests/delphi_tests -prune ')' -o \
 	  '(' -path ./examples/delphi -prune ')' -o \
+	  '(' -path ./examples/deprecated_library/lazarus_library_tester -prune ')' -o \
 	  '(' -type d -iname castle-engine-output -prune ')' -o \
 	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
 	  /tmp/cge-projects.txt
@@ -351,17 +362,12 @@ examples-delphi:
 	  $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project $${MANIFEST} --compiler=delphi compile; \
 	done
 
-.PHONY: cleanexamples
-cleanexamples:
-	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES)
-
 .PHONY: examples-laz
 examples-laz:
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
-	lazbuild $(CASTLE_LAZBUILD_OPTIONS) src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_base.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_window.lpk
 	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_components.lpk
+	lazbuild $(CASTLE_LAZBUILD_OPTIONS) packages/castle_editor_components.lpk
 	set -e && for PROJECT_LPI in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
 	done
@@ -372,6 +378,7 @@ examples-laz:
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -path ./tools/build-tool/data -prune ')' -o \
 	  '(' -path ./examples/deprecated_library -prune ')' -o \
+	  '(' -path ./tools/castle-editor/components/mbColorLib/examples -prune ')' -o \
 	  '(' -iname '*.lpi' -print ')'  > \
 	  /tmp/cge-laz-projects.txt
 	echo 'Found projects: '`wc -l < /tmp/cge-laz-projects.txt`
@@ -380,6 +387,20 @@ examples-laz:
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}; \
 	  $(DO_IF_CONSERVE_DISK_SPACE) git clean --force -d -x "`dirname $${PROJECT_LPI}`"; \
 	done
+
+# Cleanup things in examples/ subdir,
+# produced by compilation (using "make examples*" or other methods of compilation)
+# and execution of the examples.
+.PHONY: cleanexamples
+cleanexamples:
+	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES)
+	rm -Rf \
+	  examples/deprecated_library/build-qt_library_tester-* \
+	  examples/deprecated_library/lazarus_library_tester/*.app  \
+	  examples/fonts/font_draw_over_image_output.png \
+	  examples/short_api_samples/transform_save_load/aaa.castle-transform
+# lazarus produces lib/ subdirectories during compilation
+	"$(FIND)" examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 
 # cleaning ------------------------------------------------------------
 
@@ -395,6 +416,7 @@ clean: cleanexamples
 			   '(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
 			   '(' -iname '*.res' -and \
 			       -not -iwholename '*/vampyre_imaginglib/*' -and \
+			       -not -iwholename '*/mbColorLib/*' -and \
 			       -not -iwholename '*/examples/delphi/*' ')' \
 			       -or \
 			   -iname '*.rsj' -or \
@@ -423,18 +445,15 @@ clean: cleanexamples
 	  packages/castle_base.pas \
 	  packages/castle_window.pas \
 	  packages/castle_components.pas \
+	  packages/castle_editor_components.pas \
 	  packages/alternative_castle_window_based_on_lcl.pas \
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
 	  tests/castle-tester \
-	  tests/castle-tester.exe \
-	  examples/fonts/font_draw_over_image_output.png \
-	  examples/short_api_samples/transform_save_load/aaa.castle-transform
+	  tests/castle-tester.exe
 	$(MAKE) -C doc/man/man1/ clean
 # fpmake stuff (binary, units/ produced by fpmake compilation, configs)
 	rm -Rf fpmake fpmake.exe units/ *.fpm .fppkg .config
-# lazarus produces lib/ subdirectories during compilation
-	"$(FIND)" examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 	rm -Rf src/deprecated_library/ios-output/\
 	       src/deprecated_library/libcastleengine.dylib \
 	       src/deprecated_library/castleengine.dll \
@@ -490,8 +509,12 @@ tests:
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+# Run in debug mode, testing DecimalSeparator = comma
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_TEST_DECIMAL_SEPARATOR_COMMA compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
 # Run in debug mode without LibPng
-# (useful to test image processing, e.g. TTestImages.TestLoadImage, using fcl-image, which matters for mobile now)
+# (useful to test image processing, e.g. TTestImages.TestLoadImage, without libpng, which matters for mobile now)
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console

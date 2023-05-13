@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -827,7 +827,7 @@ const
 
     Box := Shape.BoundingBox;
     Position := Box.Center;
-    Position.InternalData[Items.GravityCoordinate] := Box.Data[0].InternalData[Items.GravityCoordinate];
+    Position.Data[Items.GravityCoordinate] := Box.Data[0].Data[Items.GravityCoordinate];
 
     Direction := Info.PlaceholderReferenceDirection;
     Direction := Shape.State.Transformation.Transform.MultDirection(Direction);
@@ -985,10 +985,10 @@ var
       {$warnings off} // using deprecated in deprecated unit
       NewMoveLimit := Items.MainScene.BoundingBox;
       {$warnings on}
-      NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] :=
-      NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] +
-        4 * (NewMoveLimit.Data[1].InternalData[Items.GravityCoordinate] -
-             NewMoveLimit.Data[0].InternalData[Items.GravityCoordinate]);
+      NewMoveLimit.Data[1].Data[Items.GravityCoordinate] :=
+      NewMoveLimit.Data[1].Data[Items.GravityCoordinate] +
+        4 * (NewMoveLimit.Data[1].Data[Items.GravityCoordinate] -
+             NewMoveLimit.Data[0].Data[Items.GravityCoordinate]);
       Items.MoveLimit := NewMoveLimit;
     end;
 
@@ -1146,9 +1146,9 @@ begin
     Player.LevelChanged;
 
   SoundEngine.LoopingChannel[0].Sound := Info.MusicSound;
+  {$warnings off} // using deprecated in deprecated unit
   SoundEngine.PrepareResources;
 
-  {$warnings off} // using deprecated in deprecated unit
   Items.MainScene.ProcessEvents := true;
 
   Dec(Items.MainScene.InternalDirty);
@@ -1656,10 +1656,12 @@ begin
   LevelResources.LoadResources(Element);
   AddAlwaysPreparedResources;
 
+  {$warnings off} // using deprecated in deprecated unit
   if Element.AttributeString('music_sound', SoundName) then
     MusicSound := SoundEngine.SoundFromName(SoundName)
   else
     MusicSound := nil;
+  {$warnings on}
 end;
 
 { TLevelInfoList ------------------------------------------------------- }

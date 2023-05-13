@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -214,7 +214,7 @@ type
   end;
 
   TWavefrontFace = class
-    VertIndices, TexCoordIndices, NormalIndices: TLongIntList;
+    VertIndices, TexCoordIndices, NormalIndices: TInt32List;
     HasTexCoords: boolean;
     HasNormals: boolean;
 
@@ -266,9 +266,9 @@ begin
     on E: EConvertError do
     begin
       SPosition := 1;
-      Result.Data[0] := StrToFloatDot(NextToken(S, SPosition));
-      Result.Data[1] := StrToFloatDot(NextToken(S, SPosition));
-      Result.Data[2] := StrToFloatDot(NextToken(S, SPosition, OnlyNums));
+      Result.X := StrToFloatDot(NextToken(S, SPosition));
+      Result.Y := StrToFloatDot(NextToken(S, SPosition));
+      Result.Z := StrToFloatDot(NextToken(S, SPosition, OnlyNums));
       if NextToken(S, SPosition) <> '' then
         raise EConvertError.Create('Expected end of data when reading vector from string');
       WritelnWarning('Invalid TVector3 format: "%s", ignored the incorrect characters at the end', [S]);
@@ -325,9 +325,9 @@ end;
 constructor TWavefrontFace.Create;
 begin
   inherited;
-  VertIndices := TLongIntList.Create;
-  TexCoordIndices := TLongIntList.Create;
-  NormalIndices := TLongIntList.Create;
+  VertIndices := TInt32List.Create;
+  TexCoordIndices := TInt32List.Create;
+  NormalIndices := TInt32List.Create;
 end;
 
 destructor TWavefrontFace.Destroy;
@@ -361,7 +361,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
         e.g. VectorStr = '2//3' is allowed, and means that vertex
         index is 2, there's no texCoord index, and normal index is 3. }
       procedure ReadIndex(out IndiceExists: boolean;
-        const IndexList: TLongIntList; const Count: Cardinal);
+        const IndexList: TInt32List; const Count: Cardinal);
       var
         NewVertexSeekPos: Integer;
         Index: Integer;
@@ -680,7 +680,7 @@ const
 
     if WavefrontPhongMaterials then
     begin
-      MatPhong := TMaterialNode.Create('', BaseUrl);
+      MatPhong := TMaterialNode.Create;
       Result.Material := MatPhong;
       MatPhong.AmbientIntensity := AmbientIntensity(
         Material.AmbientColor, Material.DiffuseColor);
@@ -695,7 +695,7 @@ const
       //   MatPhong.NormalScale := Material.NormalTexture.BumpMultiplier;
     end else
     begin
-      MatPhysical := TPhysicalMaterialNode.Create('', BaseUrl);
+      MatPhysical := TPhysicalMaterialNode.Create;
       Result.Material := MatPhysical;
       MatPhysical.BaseColor := Material.DiffuseColor;
       MatPhysical.Transparency := 1 - Material.Opacity;
@@ -719,6 +719,15 @@ const
     end;
   end;
 
+  function DefaultAppearance: TAppearanceNode;
+  begin
+    Result := TAppearanceNode.Create;
+    if WavefrontPhongMaterials then
+      Result.Material := TMaterialNode.Create
+    else
+      Result.Material := TPhysicalMaterialNode.Create;
+  end;
+
 var
   Obj: TObject3DOBJ;
   Faces: TIndexedFaceSetNode;
@@ -730,7 +739,7 @@ var
 begin
   Appearances := nil;
 
-  Result := TX3DRootNode.Create('', BaseUrl);
+  Result := TX3DRootNode.Create;
   try
     Result.HasForceVersion := true;
     Result.ForceVersion := X3DVersion;
@@ -749,7 +758,7 @@ begin
         FacesWithNormal := Obj.Faces[I].HasNormals;
         FacesWithMaterial := Obj.Faces[I].Material;
 
-        Shape := TShapeNode.Create('', BaseUrl);
+        Shape := TShapeNode.Create;
         Result.AddChildren(Shape);
 
         if FacesWithMaterial <> nil then
@@ -759,7 +768,7 @@ begin
           Shape.Appearance := Appearances.FindName(
             MatOBJNameToX3DName(FacesWithMaterial.Name)) as TAppearanceNode;
         end else
-          Shape.Material := TMaterialNode.Create('', BaseUrl);
+          Shape.Appearance := DefaultAppearance;
 
         { We don't do anything special for the case when FacesWithMaterial = nil
           and FacesWithTexCoord = true. This may be generated e.g. by Blender
@@ -769,7 +778,7 @@ begin
           field, but without texture it will not have any effect.
           This is natural, and there's no reason for now to do anything else. }
 
-        Faces := TIndexedFaceSetNode.Create('', BaseUrl);
+        Faces := TIndexedFaceSetNode.Create;
         Shape.Geometry := Faces;
         Faces.CreaseAngle := NiceCreaseAngle;
         { faces may be concave, see https://sourceforge.net/p/castle-engine/tickets/20

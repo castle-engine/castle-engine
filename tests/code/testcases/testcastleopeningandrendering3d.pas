@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestOpeningAndRendering3D" -*-
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -64,7 +64,7 @@ implementation
 
 uses SysUtils, StrUtils,
   CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog, CastleApplicationProperties,
-  CastleTransform;
+  CastleTransform, CastleInternalGLUtils;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
@@ -79,7 +79,7 @@ begin
     AssertTrue(Viewport.Items[0] is TCastleCamera);
 
     Scene := TCastleScene.Create(Window);
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.PreciseCollisions := true;
     Scene.ProcessEvents := true;
 
     Viewport := TCastleSceneManager.Create(Window);
@@ -160,7 +160,7 @@ begin
   Window := TCastleWindow.Create(nil);
   try
     Scene := TCastleScene.Create(Window);
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.PreciseCollisions := true;
     Scene.ProcessEvents := true;
 
     Viewport := TCastleAutoNavigationViewport.Create(Window);

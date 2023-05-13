@@ -102,19 +102,19 @@ begin
     P.Targets.AddUnit('ImagingBitmap.pas');
     P.Targets.AddUnit('ImagingCanvases.pas');
     P.Targets.AddUnit('ImagingClasses.pas');
+    P.Targets.AddUnit('ImagingColors.pas');
     P.Targets.AddUnit('ImagingComponents.pas');
     P.Targets.AddUnit('ImagingDds.pas');
     P.Targets.AddUnit('ImagingFormats.pas');
+    P.Targets.AddUnit('ImagingGif.pas');
     P.Targets.AddUnit('ImagingIO.pas');
     P.Targets.AddUnit('ImagingJpeg.pas');
     P.Targets.AddUnit('ImagingNetworkGraphics.pas');
+    P.Targets.AddUnit('ImagingPortableMaps.pas');
+    P.Targets.AddUnit('ImagingRadiance.pas');
     P.Targets.AddUnit('ImagingTarga.pas');
     P.Targets.AddUnit('ImagingTypes.pas');
     P.Targets.AddUnit('ImagingUtility.pas');
-    P.Targets.AddUnit('ImagingPortableMaps.pas');
-    P.Targets.AddUnit('ImagingGif.pas');
-    P.Targets.AddUnit('ImagingColors.pas');
-    P.Targets.AddUnit('ImagingRadiance.pas');
 
     P.SourcePath.Add('src/vampyre_imaginglib/src/Source/JpegLib');
     P.Targets.AddUnit('imjcapimin.pas');
@@ -122,6 +122,7 @@ begin
     P.Targets.AddUnit('imjccoefct.pas');
     P.Targets.AddUnit('imjccolor.pas');
     P.Targets.AddUnit('imjcdctmgr.pas');
+    P.Targets.AddUnit('imjchuff.pas');
     P.Targets.AddUnit('imjcinit.pas');
     P.Targets.AddUnit('imjcmainct.pas');
     P.Targets.AddUnit('imjcmarker.pas');
@@ -151,7 +152,6 @@ begin
     P.Targets.AddUnit('imjfdctflt.pas');
     P.Targets.AddUnit('imjfdctfst.pas');
     P.Targets.AddUnit('imjfdctint.pas');
-    P.Targets.AddUnit('imjchuff.pas');
     P.Targets.AddUnit('imjidctflt.pas');
     P.Targets.AddUnit('imjidctfst.pas');
     P.Targets.AddUnit('imjidctint.pas');
@@ -197,33 +197,6 @@ begin
     P.Targets.AddUnit('ImagingTiff.pas');
     P.Targets.AddUnit('ImagingXpm.pas');
 
-    { We don't link Jpeg2000 or Tiff from Vampyre when CGE is compiled by fpmake.
-      These units are not portable (though this can be worked around with,
-      using conditional as below for OpenJpeg.pas)
-      and also they require external .o/.a files which I don't know how to make
-      work with fpmake "install" (so that other applications can use them too).
-    }
-
-    (*
-    //P.Targets.AddUnit('ImagingJpeg2000.pas');
-
-    { OpenJpeg only compiles on certain platforms,
-      see $ifdef in ImagingJpeg2000 (ImagingJpeg2000 compiles but is empty
-      on unsupported platforms). }
-    if ((Defaults.OS in AllWindowsOSes) and (Defaults.CPU in [x86])) or
-       ((Defaults.OS = Linux) and (Defaults.CPU in [x86, x86_64])) or
-       ((Defaults.OS = macOS) and (Defaults.CPU in [x86])) then
-    begin
-      P.Targets.AddUnit('OpenJpeg.pas');
-    end;
-    *)
-
-    P.Options.Add('-dDONT_LINK_JPEG2000');
-    { Tiff is actually already disabled in ImagingExtFileFormats.pas,
-      in Vampyre version distributed in CGE,
-      see comments there -- it is not portable. }
-    P.Options.Add('-dDONT_LINK_TIFF');
-
     { Add our unit groups.
       For simplicity, keep things in alphabetical order in each group. }
 
@@ -252,7 +225,7 @@ begin
     P.Targets.AddUnit('castleinternalspacefillingcurves.pas');
     P.Targets.AddUnit('castleinternalspheresampling.pas');
     P.Targets.AddUnit('castleinternalsphericalharmonics.pas');
-    P.Targets.AddUnit('castlenurbs.pas');
+    P.Targets.AddUnit('castleinternalnurbs.pas');
     P.Targets.AddUnit('castlesectors.pas');
     P.Targets.AddUnit('castletransform.pas');
     P.Targets.AddUnit('castletriangles.pas');
@@ -287,8 +260,6 @@ begin
     P.Targets.AddUnit('castlecreatures.pas');
     P.Targets.AddUnit('castlefontfamily.pas');
     P.Targets.AddUnit('castlegamenotifications.pas');
-    P.Targets.AddUnit('castlegenericlists.pas');
-    P.Targets.AddUnit('castleglboxes.pas');
     P.Targets.AddUnit('castleglcontainer.pas');
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castleinternalusedeprecatedunits.pas');
@@ -344,11 +315,13 @@ begin
 
     P.SourcePath.Add('src/base_rendering');
     P.Targets.AddUnit('castlegles.pas');
-    P.Targets.AddUnit('castleglversion.pas');
     P.Targets.AddUnit('castleglimages.pas');
-    P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('castleglshaders.pas');
+    P.Targets.AddUnit('castleglutils.pas');
+    P.Targets.AddUnit('castleglversion.pas');
+    P.Targets.AddUnit('castleinternalglutils.pas');
     P.Targets.AddUnit('castlerendercontext.pas');
+    P.Targets.AddUnit('castlerenderprimitives.pas');
 
     P.SourcePath.Add('src/services');
     P.Targets.AddUnit('castleads.pas');
@@ -392,7 +365,6 @@ begin
     P.Targets.AddUnit('castlefonts.pas');
     P.Targets.AddUnit('castleinternalfreetype.pas');
     P.Targets.AddUnit('castleinternalfreetypeh.pas');
-    P.Targets.AddUnit('castleinternalftfont.pas');
     P.Targets.AddUnit('castleinternalrichtext.pas');
     P.Targets.AddUnit('castletexturefont_dejavusans_10.pas');
     P.Targets.AddUnit('castletexturefont_dejavusansmono_18.pas');
@@ -452,7 +424,6 @@ begin
     P.Targets.AddUnit('castlejoysticks.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('castlenotifications.pas');
-    P.Targets.AddUnit('castletiledmap.pas');
     P.Targets.AddUnit('castleuicontrols.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
@@ -515,6 +486,7 @@ begin
     P.Targets.AddUnit('castleshapes.pas');
     P.Targets.AddUnit('castleterrain.pas');
     P.Targets.AddUnit('castlethirdpersonnavigation.pas');
+    P.Targets.AddUnit('castletiledmap.pas');
     P.Targets.AddUnit('castleviewport.pas');
     P.Targets.AddUnit('x3dcamerautils.pas');
     P.Targets.AddUnit('x3dtime.pas');
@@ -531,7 +503,6 @@ begin
     P.Targets.AddUnit('x3dloadinternalgeo.pas');
     P.Targets.AddUnit('x3dloadinternalgltf.pas');
     P.Targets.AddUnit('x3dloadinternalimage.pas');
-    P.Targets.AddUnit('x3dloadinternalmd3.pas');
     P.Targets.AddUnit('x3dloadinternalobj.pas');
     P.Targets.AddUnit('x3dloadinternalstl.pas');
     P.Targets.AddUnit('x3dloadinternaltiledmap.pas');
@@ -539,6 +510,9 @@ begin
 
     P.SourcePath.Add('src/scene/load/spine');
     P.Targets.AddUnit('x3dloadinternalspine.pas');
+
+    P.SourcePath.Add('src/scene/load/md3');
+    P.Targets.AddUnit('x3dloadinternalmd3.pas');
 
     P.SourcePath.Add('src/scene/load/collada');
     P.Targets.AddUnit('x3dloadinternalcollada.pas');

@@ -25,9 +25,11 @@ uses Classes,
 type
   { Simple "menu" user interface, that allows to run the game or quit. }
   TViewMenu = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from view_menu.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonPlay, ButtonOptions, ButtonCredits, ButtonQuit: TCastleButton;
+  private
     procedure ClickPlay(Sender: TObject);
     procedure ClickOptions(Sender: TObject);
     procedure ClickCredits(Sender: TObject);
@@ -43,7 +45,7 @@ var
 implementation
 
 uses CastleApplicationProperties, CastleWindow,
-  GameViewPlay, GameViewOptions, GameViewCredits;
+  GameSound, GameViewPlay, GameViewOptions, GameViewCredits;
 
 { TViewMenu ----------------------------------------------------------------- }
 
@@ -57,12 +59,6 @@ procedure TViewMenu.Start;
 begin
   inherited;
 
-  { Find components, by name, that we need to access from code }
-  ButtonPlay := DesignedComponent('ButtonPlay') as TCastleButton;
-  ButtonOptions := DesignedComponent('ButtonOptions') as TCastleButton;
-  ButtonCredits := DesignedComponent('ButtonCredits') as TCastleButton;
-  ButtonQuit := DesignedComponent('ButtonQuit') as TCastleButton;
-
   ButtonPlay.OnClick := {$ifdef FPC}@{$endif}ClickPlay;
   ButtonOptions.OnClick := {$ifdef FPC}@{$endif}ClickOptions;
   ButtonCredits.OnClick := {$ifdef FPC}@{$endif}ClickCredits;
@@ -72,7 +68,7 @@ begin
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 
   { Play menu music }
-  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');
+  SoundEngine.LoopingChannel[0].Sound := NamedSound('MenuMusic');
 end;
 
 procedure TViewMenu.ClickPlay(Sender: TObject);

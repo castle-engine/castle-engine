@@ -1,6 +1,5 @@
-This directory contains a collection of some *really old documentation*.
-For more useful documentation, see
+This directory contains some documentation that probably isn't useful.
+For this or that reason, the docs here didn't find their way into our manual,
+website etc.
 
-- our manual: https://castle-engine.io/
-
-- our wiki: https://github.com/castle-engine/castle-engine/wiki
+For more useful documentation, see our manual: https://castle-engine.io/ .

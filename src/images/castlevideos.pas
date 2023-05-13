@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,6 +25,7 @@ uses SysUtils, Generics.Collections,
 
 type
   EInvalidFadeFrames = class(Exception);
+  ECannotOpenFirstVideoFrame = class(Exception);
 
   { Video.
 
@@ -228,11 +229,8 @@ type
       notice the extreme time points (in the middle and at the end),
       when objects in the video reverse their directions etc.
       So the video is seamless, and it's a better trick than just setting
-      TimeBackwards := true, but it still doesn't really look good.)
-
-      If ProgressTitle <> '' this will call Progress.Init/Step/Fini
-      from CastleProgress to indicate progress of operation. }
-    procedure MixWithSelfBackwards(const ProgressTitle: string);
+      TimeBackwards := true, but it still doesn't really look good.) }
+    procedure MixWithSelfBackwards;
 
     { Edit the video beginning to fade with the video ending,
       thus forcing the video to play seamless in a loop.
@@ -245,12 +243,8 @@ type
 
       Video must be loaded when using this.
 
-      If ProgressTitle <> '' this will call Progress.Init/Step/Fini
-      from CastleProgress to indicate progress of operation.
-
       @raises(EInvalidFadeFrames When FadeFrames is wrong.) }
-    procedure FadeWithSelf(FadeFrames: Cardinal;
-      const ProgressTitle: string);
+    procedure FadeWithSelf(FadeFrames: Cardinal);
 
     { Similar to IndexFromTime, this is a class method that calculates
       frame index using the same algorithm. (Actually, IndexFromTime
@@ -414,11 +408,10 @@ const
 
 implementation
 
-{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
-uses Classes, {$ifndef FPC} Windows, ShellApi, {$endif} CastleClassUtils, CastleUtils, Math, CastleStringUtils,
-  CastleLog, CastleFilesUtils, CastleProgress, CastleTextureImages,
+uses Classes, {$ifndef FPC} Windows, ShellApi, {$endif} Math,
+  CastleClassUtils, CastleUtils, CastleStringUtils,
+  CastleLog, CastleFilesUtils, CastleTextureImages,
   CastleDownload, CastleURIUtils, CastleFindFiles;
-{$warnings on}
 
 { TVideo --------------------------------------------------------------------- }
 
@@ -582,7 +575,7 @@ procedure TVideo.LoadFromFile(const URL: string;
         Inc(Index);
 
       if Length(FItems) = 0 then
-        raise Exception.CreateFmt('First video image ("%s" or "%s") cannot be loaded (not found, or not supported image format). Cannot load the video',
+        raise ECannotOpenFirstVideoFrame.CreateFmt('First video image ("%s" or "%s") cannot be loaded (not found, or not supported image format). Cannot load the video',
           [FormatNameCounter(URL, 0, false),
            FormatNameCounter(URL, 1, false)]);
     end else
@@ -774,39 +767,29 @@ begin
   Result := Items[0].Height;
 end;
 
-procedure TVideo.MixWithSelfBackwards(const ProgressTitle: string);
+procedure TVideo.MixWithSelfBackwards;
 var
   I, NewCount: Integer;
 begin
   Assert(Loaded);
 
-  if ProgressTitle <> '' then
-    Progress.Init((Count div 2) * 2, ProgressTitle);
-  try
-
-    for I := 0 to Count div 2 do
-    begin
-      Items[I].LerpWith(0.5, Items[Count - 1 - I]);
-      if ProgressTitle <> '' then Progress.Step;
-    end;
-
-    { shrink count to half }
-    NewCount := (Count div 2) + (Count mod 2);
-    for I := NewCount to Count - 1 do
-    begin
-      FreeAndNil(FItems[I]);
-      if ProgressTitle <> '' then Progress.Step;
-    end;
-    SetLength(FItems, NewCount);
-
-    TimeBackwards := true;
-  finally
-    if ProgressTitle <> '' then Progress.Fini;
+  for I := 0 to Count div 2 do
+  begin
+    Items[I].LerpWith(0.5, Items[Count - 1 - I]);
   end;
+
+  { shrink count to half }
+  NewCount := (Count div 2) + (Count mod 2);
+  for I := NewCount to Count - 1 do
+  begin
+    FreeAndNil(FItems[I]);
+  end;
+  SetLength(FItems, NewCount);
+
+  TimeBackwards := true;
 end;
 
-procedure TVideo.FadeWithSelf(FadeFrames: Cardinal;
-  const ProgressTitle: string);
+procedure TVideo.FadeWithSelf(FadeFrames: Cardinal);
 var
   I, NewCount: Integer;
 begin
@@ -816,26 +799,17 @@ begin
     raise EInvalidFadeFrames.CreateFmt('FadeFrames for FadeWithSelf too large: are %d, but frames count div 2 = %s',
       [FadeFrames, Count div 2]);
 
-  if ProgressTitle <> '' then
-    Progress.Init(FadeFrames * 2, ProgressTitle);
-  try
-    for I := 0 to FadeFrames - 1 do
-    begin
-      Items[I].LerpWith(1 - I / FadeFrames, Items[Count - FadeFrames + I]);
-      if ProgressTitle <> '' then Progress.Step;
-    end;
-
-    NewCount := Count - FadeFrames;
-    for I := NewCount to Count - 1 do
-    begin
-      FreeAndNil(FItems[I]);
-      if ProgressTitle <> '' then Progress.Step;
-    end;
-    SetLength(FItems, NewCount);
-
-  finally
-    if ProgressTitle <> '' then Progress.Fini;
+  for I := 0 to FadeFrames - 1 do
+  begin
+    Items[I].LerpWith(1 - I / FadeFrames, Items[Count - FadeFrames + I]);
   end;
+
+  NewCount := Count - FadeFrames;
+  for I := NewCount to Count - 1 do
+  begin
+    FreeAndNil(FItems[I]);
+  end;
+  SetLength(FItems, NewCount);
 end;
 
 function TVideo.AlphaChannel(

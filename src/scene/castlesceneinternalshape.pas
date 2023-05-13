@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,9 +75,9 @@ type
   "ReallyOcclusionQuery(RenderOptions) or ReallyHierarchicalOcclusionQuery(RenderOptions)". }
 function ReallyAnyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 
-{ Checks OcclusionQuery, existence of GL_ARB_occlusion_query,
-  and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
-  be used.
+{ Checks OcclusionQuery, existence of GLFeatures.OcclusionQuery,
+  and GLFeatures.OcclusionQueryCounterBits > 0. If @false,
+  occlusion query cannot be used.
 
   Also, returns @false when HierarchicalOcclusionQuery is @true
   --- because then HierarchicalOcclusionQuery should take precedence.
@@ -85,9 +85,9 @@ function ReallyAnyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boo
   @exclude Internal. }
 function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 
-{ Checks HierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
-  and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
-  be used.
+{ Checks HierarchicalOcclusionQuery, existence of GLFeatures.OcclusionQuery,
+  and GLFeatures.OcclusionQueryCounterBits > 0. If @false,
+  occlusion query cannot be used.
 
   @exclude Internal. }
 function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
@@ -190,14 +190,12 @@ begin
     PreparedUseAlphaChannel := true;
   end;
 
-  {$ifndef OpenGLES}
   if ReallyOcclusionQuery(TCastleScene(ParentScene).RenderOptions) and
      (OcclusionQueryId = 0) then
   begin
-    glGenQueriesARB(1, @OcclusionQueryId);
+    glGenQueries(1, @OcclusionQueryId);
     OcclusionQueryAsked := false;
   end;
-  {$endif}
 end;
 
 procedure TGLShape.GLContextClose;
@@ -207,13 +205,11 @@ begin
   PreparedForRenderer := false;
   PreparedUseAlphaChannel := false;
 
-  {$ifndef OpenGLES}
   if OcclusionQueryId <> 0 then
   begin
-    glDeleteQueriesARB(1, @OcclusionQueryId);
+    glDeleteQueries(1, @OcclusionQueryId);
     OcclusionQueryId := 0;
   end;
-  {$endif}
 
   { Free Arrays and Vbo of all shapes. }
   if Cache <> nil then
@@ -236,9 +232,9 @@ begin
   Result :=
     (RenderOptions.OcclusionQuery or RenderOptions.HierarchicalOcclusionQuery) and
     (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
-    GLFeatures.ARB_occlusion_query and
+    GLFeatures.OcclusionQuery and
     GLFeatures.VertexBufferObject and
-    (GLFeatures.QueryCounterBits > 0);
+    (GLFeatures.OcclusionQueryCounterBits > 0);
   {$warnings on}
 
   // unoptimal version
@@ -254,9 +250,9 @@ begin
   Result := RenderOptions.OcclusionQuery and
     (not RenderOptions.HierarchicalOcclusionQuery) and
     (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
-    GLFeatures.ARB_occlusion_query and
+    GLFeatures.OcclusionQuery and
     GLFeatures.VertexBufferObject and
-    (GLFeatures.QueryCounterBits > 0);
+    (GLFeatures.OcclusionQueryCounterBits > 0);
   {$warnings on}
 end;
 
@@ -265,9 +261,9 @@ begin
   {$warnings off}
   Result := RenderOptions.HierarchicalOcclusionQuery and
     (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
-    GLFeatures.ARB_occlusion_query and
+    GLFeatures.OcclusionQuery and
     GLFeatures.VertexBufferObject and
-    (GLFeatures.QueryCounterBits > 0);
+    (GLFeatures.OcclusionQueryCounterBits > 0);
   {$warnings on}
 end;
 

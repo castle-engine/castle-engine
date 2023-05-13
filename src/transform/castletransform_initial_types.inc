@@ -267,14 +267,14 @@
 function TRayCollision.IndexOfItem(const Item: TCastleTransform): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Item = Item then Exit;
+    if L[Result].Item = Item then Exit;
   Result := -1;
 end;
 
 function TRayCollision.IndexOfItem(const ItemClass: TCastleTransformClass): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Item is ItemClass then Exit;
+    if L[Result].Item is ItemClass then Exit;
   Result := -1;
 end;
 
@@ -283,7 +283,7 @@ end;
 function TCollisionDetails.IndexOfItem(const Item: TCastleTransform): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Item = Item then Exit;
+    if L[Result].Item = Item then Exit;
   Result := -1;
 end;
 

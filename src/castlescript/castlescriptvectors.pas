@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,6 +21,8 @@ unit CastleScriptVectors;
 interface
 
 uses CastleVectors, CastleScript;
+
+{$ifdef CASTLE_SCRIPT_FPC} // TODO: Our current usage of generics doesn't compile with Delphi
 
 type
   TCasScriptVector = class;
@@ -278,11 +280,15 @@ type
     class function ShortName: string; override;
   end;
 
+{$endif CASTLE_SCRIPT_FPC}
+
 implementation
 
 uses Math,
   CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleTransform,
   CastleQuaternions, CastleColors;
+
+{$ifdef CASTLE_SCRIPT_FPC} // TODO: Our current usage of generics doesn't compile with Delphi
 
 { TCasScriptVec ---------------------------------------------------------- }
 
@@ -428,7 +434,7 @@ var
 begin
   MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
   for I := 0 to VectorGetCount - 1 do
-    MyResult.FValue.InternalData[I] :=
+    MyResult.FValue.Data[I] :=
       Max( TSelfClass(Arguments[0]).FValue[I],
            TSelfClass(Arguments[1]).FValue[I] );
   MyResult.ValueAssigned := true;
@@ -444,7 +450,7 @@ var
 begin
   MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
   for I := 0 to VectorGetCount - 1 do
-    MyResult.FValue.InternalData[I] :=
+    MyResult.FValue.Data[I] :=
       Min( TSelfClass(Arguments[0]).FValue[I],
            TSelfClass(Arguments[1]).FValue[I] );
   MyResult.ValueAssigned := true;
@@ -460,7 +466,7 @@ var
 begin
   MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
   for I := 0 to VectorGetCount - 1 do
-    MyResult.FValue.InternalData[I] := TCasScriptFloat(Arguments[I]).Value;
+    MyResult.FValue.Data[I] := TCasScriptFloat(Arguments[I]).Value;
   MyResult.ValueAssigned := true;
 end;
 
@@ -498,7 +504,7 @@ begin
     raise ECasScriptError.CreateFmt('Invalid index %d for vector_set on %d-element vector',
       [Index, VectorGetCount]);
 
-  TSelfClass(Arguments[0]).FValue.InternalData[Index] := TCasScriptFloat(Arguments[2]).Value;
+  TSelfClass(Arguments[0]).FValue.Data[Index] := TCasScriptFloat(Arguments[2]).Value;
   TSelfClass(Arguments[0]).ValueAssigned := true;
 
   AResult := Arguments[0];
@@ -1115,4 +1121,6 @@ initialization
 
   TCasScriptMatrix3d.RegisterFunctions;
   TCasScriptMatrix4d.RegisterFunctions;
+
+{$endif CASTLE_SCRIPT_FPC}
 end.

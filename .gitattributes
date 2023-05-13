@@ -19,6 +19,7 @@
 *.lpk text eol=auto
 *.xml text eol=auto
 *.dpk text eol=auto
+*.md text eol=auto
 
 # Even on Windows, shell scripts line endings must be Unix, to work with Cygwin's bash.
 *.sh text eol=lf

@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -369,16 +369,19 @@
       out RayOrigin, RayDirection: TVector3);
 
     { Animate a camera smoothly into another camera settings.
-      This will gradually change our settings (only the most important
-      settings, that determine actual camera view, i.e. @link(Matrix) result)
-      into another camera.
+      This will gradually change our settings (position, direction, up)
+      to match the target vectors (in world coordinate space).
 
+      If you use overload with OtherCamera:
       Current OtherCamera settings will be internally copied during this call.
       So you can even free OtherCamera instance immediately after calling this.
 
       Calling AnimateTo while the previous animation didn't finish yet
       is OK. This simply cancels the previous animation,
       and starts the new animation from the current position.
+
+      Check @link(Animation) to see if we're currently during the camera
+      animation.
 
       @groupBegin }
     procedure AnimateTo(const OtherCamera: TCastleCamera;
@@ -387,12 +390,7 @@
       const Time: TFloatTime); overload;
     { @groupEnd }
 
-    { Are we currently during animation (caused by @link(AnimateTo)).
-
-      TCastleNavigation descendants may use it to abort normal
-      input handling. E.g. when camera is animating,
-      then the gravity in TCastleWalkNavigation should not work,
-      key/mouse handling in TCastleWalkNavigation shoult not work etc. }
+    { Are we currently during animation (caused by @link(AnimateTo)). }
     function Animation: boolean;
 
     procedure Init(const AInitialPosition, AInitialDirection, AInitialUp,

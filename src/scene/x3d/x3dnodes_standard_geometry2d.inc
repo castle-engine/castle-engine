@@ -1,5 +1,6 @@
+{%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,7 +20,6 @@
   TArc2DNode = class(TAbstractGeometryNode)
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
-
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState;
@@ -27,7 +27,7 @@
     function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_arc2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_arc2d.inc}
   end;
 
   { Type of @link(TArcClose2DNode.ClosureType).
@@ -40,15 +40,15 @@
   TArcClose2DNode = class(TAbstractGeometryNode)
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
-
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function SolidField: TSFBool; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_arcclose2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_arcclose2d.inc}
   end;
 
   { Circle in 2D. }
@@ -59,7 +59,7 @@
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_circle2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_circle2d.inc}
   end;
 
   { Disc (filled circle) in 2D. }
@@ -69,6 +69,7 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
+    function SolidField: TSFBool; override;
 
     {$I auto_generated_node_helpers/x3dnodes_disk2d.inc}
   end;
@@ -79,7 +80,7 @@
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_polyline2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_polyline2d.inc}
   end;
 
   { Set of vertices in 2D. }
@@ -88,7 +89,7 @@
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_polypoint2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_polypoint2d.inc}
   end;
 
   { Rectangle in 2D. }
@@ -96,8 +97,9 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
+    function SolidField: TSFBool; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_rectangle2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_rectangle2d.inc}
   end;
 
   { Set of triangles in 2D. }
@@ -105,8 +107,9 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
+    function SolidField: TSFBool; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_triangleset2d.inc}
+  {$I auto_generated_node_helpers/x3dnodes_triangleset2d.inc}
   end;
 
 {$endif read_interface}
@@ -185,6 +188,11 @@ begin
   Result := 0;
 end;
 
+function TArcClose2DNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
 { TCircle2DNode -------------------------------------------------------------- }
 
 constructor TCircle2DNode.Create(const AX3DName, ABaseUrl: string);
@@ -220,14 +228,14 @@ begin
     for I := 0 to SlicesNow - 1 do
     begin
       SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
-      C.FdPoint.Items.List^[I] := Vector3(
+      C.FdPoint.Items.L[I] := Vector3(
         AngleSin * FdRadius.Value,
         AngleCos * FdRadius.Value,
         0
       );
     end;
     { close the circle }
-    C.FdPoint.Items.List^[SlicesNow] := C.FdPoint.Items.List^[0];
+    C.FdPoint.Items.L[SlicesNow] := C.FdPoint.Items.L[0];
 
     LineSet.Coord := C;
     LineSet.SetVertexCount([SlicesNow + 1]);
@@ -249,6 +257,11 @@ begin
   Result := DefaultTriangulationSlices;
 end;
 
+function TDisk2DNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
 function TDisk2DNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   Slices: Integer;
@@ -265,11 +278,11 @@ begin
 
     C := TCoordinateNode.Create('', BaseUrl);
     C.FdPoint.Items.Count := Slices + 2;
-    C.FdPoint.Items.List^[0] := Vector3(0, 0, 0);
+    C.FdPoint.Items.L[0] := Vector3(0, 0, 0);
     for I := 0 to Slices do
     begin
       SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
-      C.FdPoint.Items.List^[I + 1] := Vector3(
+      C.FdPoint.Items.L[I + 1] := Vector3(
         AngleCos * OuterRadius,
         AngleSin * OuterRadius,
         0
@@ -305,9 +318,9 @@ begin
     C.FdPoint.Items.Count := Count;
     for I := 0 to Count - 1 do
     begin
-      C.FdPoint.Items.List^[I] := Vector3(
-        FdLineSegments.Items.List^[I].X,
-        FdLineSegments.Items.List^[I].Y,
+      C.FdPoint.Items.L[I] := Vector3(
+        FdLineSegments.Items.L[I].X,
+        FdLineSegments.Items.L[I].Y,
         0
       );
     end;
@@ -339,9 +352,9 @@ begin
     C.FdPoint.Items.Count := Count;
     for I := 0 to Count - 1 do
     begin
-      C.FdPoint.Items.List^[I] := Vector3(
-        FdPoint.Items.List^[I].X,
-        FdPoint.Items.List^[I].Y,
+      C.FdPoint.Items.L[I] := Vector3(
+        FdPoint.Items.L[I].X,
+        FdPoint.Items.L[I].Y,
         0
       );
     end;
@@ -357,6 +370,11 @@ begin
   inherited;
   FdSize.ChangeAlways := chGeometry;
   FdSolid.ChangeAlways := chGeometry;
+end;
+
+function TRectangle2DNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
 end;
 
 function Rectangle2DProxy(Original: TAbstractGeometryNode;
@@ -378,17 +396,17 @@ begin
 
     { calculate Coord, TexCoord contents }
 
-    Coord.FdPoint.Items.List^[0] := Vector3(-Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[0] := Vector2(0, 0);
+    Coord.FdPoint.Items.L[0] := Vector3(-Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[0] := Vector2(0, 0);
 
-    Coord.FdPoint.Items.List^[1] := Vector3( Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[1] := Vector2(1, 0);
+    Coord.FdPoint.Items.L[1] := Vector3( Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[1] := Vector2(1, 0);
 
-    Coord.FdPoint.Items.List^[2] := Vector3( Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[2] := Vector2(1, 1);
+    Coord.FdPoint.Items.L[2] := Vector3( Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[2] := Vector2(1, 1);
 
-    Coord.FdPoint.Items.List^[3] := Vector3(-Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[3] := Vector2(0, 1);
+    Coord.FdPoint.Items.L[3] := Vector3(-Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[3] := Vector2(0, 1);
 
     QuadSet.Solid := Solid;
   except FreeAndNil(Result); raise end;
@@ -408,6 +426,11 @@ begin
   FdSolid.ChangeAlways := chGeometry;
 end;
 
+function TTriangleSet2DNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
 function TTriangleSet2DNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   C: TCoordinateNode;
@@ -422,9 +445,9 @@ begin
     C.FdPoint.Items.Count := Count;
     for I := 0 to Count - 1 do
     begin
-      C.FdPoint.Items.List^[I] := Vector3(
-        FdVertices.Items.List^[I].X,
-        FdVertices.Items.List^[I].Y,
+      C.FdPoint.Items.L[I] := Vector3(
+        FdVertices.Items.L[I].X,
+        FdVertices.Items.L[I].Y,
         0
       );
     end;

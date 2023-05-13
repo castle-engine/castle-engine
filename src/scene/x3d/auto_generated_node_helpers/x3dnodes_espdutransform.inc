@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -184,33 +184,33 @@
     { Internal wrapper for property @link(ArticulationParameterDesignatorArray). This wrapper API may change, we advise to access simpler @link(ArticulationParameterDesignatorArray) instead. }
     public property FdArticulationParameterDesignatorArray: TMFInt32 read FFdArticulationParameterDesignatorArray;
     {  }
-    procedure SetArticulationParameterDesignatorArray(const Value: array of LongInt); overload;
+    procedure SetArticulationParameterDesignatorArray(const Value: array of Int32); overload;
     {  }
-    procedure SetArticulationParameterDesignatorArray(const Value: TLongIntList); overload;
+    procedure SetArticulationParameterDesignatorArray(const Value: TInt32List); overload;
 
     strict private FFdArticulationParameterChangeIndicatorArray: TMFInt32;
     { Internal wrapper for property @link(ArticulationParameterChangeIndicatorArray). This wrapper API may change, we advise to access simpler @link(ArticulationParameterChangeIndicatorArray) instead. }
     public property FdArticulationParameterChangeIndicatorArray: TMFInt32 read FFdArticulationParameterChangeIndicatorArray;
     {  }
-    procedure SetArticulationParameterChangeIndicatorArray(const Value: array of LongInt); overload;
+    procedure SetArticulationParameterChangeIndicatorArray(const Value: array of Int32); overload;
     {  }
-    procedure SetArticulationParameterChangeIndicatorArray(const Value: TLongIntList); overload;
+    procedure SetArticulationParameterChangeIndicatorArray(const Value: TInt32List); overload;
 
     strict private FFdArticulationParameterIdPartAttachedToArray: TMFInt32;
     { Internal wrapper for property @link(ArticulationParameterIdPartAttachedToArray). This wrapper API may change, we advise to access simpler @link(ArticulationParameterIdPartAttachedToArray) instead. }
     public property FdArticulationParameterIdPartAttachedToArray: TMFInt32 read FFdArticulationParameterIdPartAttachedToArray;
     {  }
-    procedure SetArticulationParameterIdPartAttachedToArray(const Value: array of LongInt); overload;
+    procedure SetArticulationParameterIdPartAttachedToArray(const Value: array of Int32); overload;
     {  }
-    procedure SetArticulationParameterIdPartAttachedToArray(const Value: TLongIntList); overload;
+    procedure SetArticulationParameterIdPartAttachedToArray(const Value: TInt32List); overload;
 
     strict private FFdArticulationParameterTypeArray: TMFInt32;
     { Internal wrapper for property @link(ArticulationParameterTypeArray). This wrapper API may change, we advise to access simpler @link(ArticulationParameterTypeArray) instead. }
     public property FdArticulationParameterTypeArray: TMFInt32 read FFdArticulationParameterTypeArray;
     {  }
-    procedure SetArticulationParameterTypeArray(const Value: array of LongInt); overload;
+    procedure SetArticulationParameterTypeArray(const Value: array of Int32); overload;
     {  }
-    procedure SetArticulationParameterTypeArray(const Value: TLongIntList); overload;
+    procedure SetArticulationParameterTypeArray(const Value: TInt32List); overload;
 
     strict private FFdArticulationParameterArray: TMFFloat;
     { Internal wrapper for property @link(ArticulationParameterArray). This wrapper API may change, we advise to access simpler @link(ArticulationParameterArray) instead. }
@@ -620,42 +620,42 @@ begin
   FdArticulationParameterCount.Send(Value);
 end;
 
-procedure TEspduTransformNode.SetArticulationParameterDesignatorArray(const Value: array of LongInt);
+procedure TEspduTransformNode.SetArticulationParameterDesignatorArray(const Value: array of Int32);
 begin
   FdArticulationParameterDesignatorArray.Send(Value);
 end;
 
-procedure TEspduTransformNode.SetArticulationParameterDesignatorArray(const Value: TLongIntList);
+procedure TEspduTransformNode.SetArticulationParameterDesignatorArray(const Value: TInt32List);
 begin
   FdArticulationParameterDesignatorArray.Send(Value);
 end;
 
-procedure TEspduTransformNode.SetArticulationParameterChangeIndicatorArray(const Value: array of LongInt);
+procedure TEspduTransformNode.SetArticulationParameterChangeIndicatorArray(const Value: array of Int32);
 begin
   FdArticulationParameterChangeIndicatorArray.Send(Value);
 end;
 
-procedure TEspduTransformNode.SetArticulationParameterChangeIndicatorArray(const Value: TLongIntList);
+procedure TEspduTransformNode.SetArticulationParameterChangeIndicatorArray(const Value: TInt32List);
 begin
   FdArticulationParameterChangeIndicatorArray.Send(Value);
 end;
 
-procedure TEspduTransformNode.SetArticulationParameterIdPartAttachedToArray(const Value: array of LongInt);
+procedure TEspduTransformNode.SetArticulationParameterIdPartAttachedToArray(const Value: array of Int32);
 begin
   FdArticulationParameterIdPartAttachedToArray.Send(Value);
 end;
 
-procedure TEspduTransformNode.SetArticulationParameterIdPartAttachedToArray(const Value: TLongIntList);
+procedure TEspduTransformNode.SetArticulationParameterIdPartAttachedToArray(const Value: TInt32List);
 begin
   FdArticulationParameterIdPartAttachedToArray.Send(Value);
 end;
 
-procedure TEspduTransformNode.SetArticulationParameterTypeArray(const Value: array of LongInt);
+procedure TEspduTransformNode.SetArticulationParameterTypeArray(const Value: array of Int32);
 begin
   FdArticulationParameterTypeArray.Send(Value);
 end;
 
-procedure TEspduTransformNode.SetArticulationParameterTypeArray(const Value: TLongIntList);
+procedure TEspduTransformNode.SetArticulationParameterTypeArray(const Value: TInt32List);
 begin
   FdArticulationParameterTypeArray.Send(Value);
 end;

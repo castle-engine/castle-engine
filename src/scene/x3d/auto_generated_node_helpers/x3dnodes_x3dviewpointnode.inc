@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,6 +24,8 @@
 {$ifdef read_interface}
 
   strict private
+    function GetAutoCenterOfRotation: Boolean;
+    procedure SetAutoCenterOfRotation(const Value: Boolean);
     function GetCenterOfRotation: TVector3;
     procedure SetCenterOfRotation(const Value: TVector3);
     function GetDescription: String;
@@ -43,6 +45,14 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
+
+    strict private FFdAutoCenterOfRotation: TSFBool;
+    { Internal wrapper for property @link(AutoCenterOfRotation). This wrapper API may change, we advise to access simpler @link(AutoCenterOfRotation) instead. }
+    public property FdAutoCenterOfRotation: TSFBool read FFdAutoCenterOfRotation;
+    { When @true, the center of rotation is automatically calculated looking at the middle of scene bounding box. The @link(CenterOfRotation) value is ignored then.
+
+This field is a Castle Game Engine extension of the X3D standard. The default value (@false) makes behavior compatible with X3D standard. Note that, in contrast, @link(TCastleExamineNavigation.AutoCenterOfRotation) default is @true -- because TCastleExamineNavigation doesn't have to match X3D standard, and the default @true makes it work out-of-the-box on more scenes. }
+    property AutoCenterOfRotation: Boolean read GetAutoCenterOfRotation write SetAutoCenterOfRotation;
 
     strict private FFdCenterOfRotation: TSFVec3f;
     { Internal wrapper for property @link(CenterOfRotation). This wrapper API may change, we advise to access simpler @link(CenterOfRotation) instead. }
@@ -121,6 +131,16 @@
 {$ifdef read_implementation}
 
 { TAbstractViewpointNode ----------------------------------------------- }
+
+function TAbstractViewpointNode.GetAutoCenterOfRotation: Boolean;
+begin
+  Result := FdAutoCenterOfRotation.Value;
+end;
+
+procedure TAbstractViewpointNode.SetAutoCenterOfRotation(const Value: Boolean);
+begin
+  FdAutoCenterOfRotation.Send(Value);
+end;
 
 function TAbstractViewpointNode.GetCenterOfRotation: TVector3;
 begin
@@ -211,12 +231,16 @@ procedure TAbstractViewpointNode.CreateNode;
 begin
   inherited;
 
+  FFdAutoCenterOfRotation := TSFBool.Create(Self, True, 'autoCenterOfRotation', false);
+   FdAutoCenterOfRotation.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAutoCenterOfRotation);
+
   FFdCenterOfRotation := TSFVec3f.Create(Self, True, 'centerOfRotation', Vector3(0, 0, 0));
    FdCenterOfRotation.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCenterOfRotation);
 
   FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chVisibleNonGeometry;
+   FdDescription.ChangeAlways := chNone;
   AddField(FFdDescription);
 
   FFdJump := TSFBool.Create(Self, True, 'jump', true);

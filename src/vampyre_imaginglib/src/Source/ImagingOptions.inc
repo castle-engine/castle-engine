@@ -70,7 +70,7 @@
   {$DEFINE DELPHI}
   {$IF (Defined(DCC) and (CompilerVersion >= 25.0))}
     {$LEGACYIFEND ON}
-  {$IFEND}  
+  {$IFEND}
 {$ENDIF}
 
 {$IF (Defined(DCC) and (CompilerVersion >= 18.5))}
@@ -205,14 +205,15 @@
 
 {$IFDEF DELPHI}
   {$UNDEF COMPONENT_SET_LCL}
-  {$DEFINE COMPONENT_SET_VCL}
+  { Castle Game Engine undefined -- we want to support FMX too. }
+  {.$DEFINE COMPONENT_SET_VCL}
 {$ENDIF}
 
 { More compiler options }
 
 {$IFDEF FPC}               // Free Pascal options - some options set above (like min enum size)
                            // are reset to defaults by setting {$MODE} so they are
-                           // redeclared here 
+                           // redeclared here
   {$MODE DELPHI}           // compatible with delphi
   {$GOTO ON}               // alow goto
   {$PACKRECORDS 8}         // same as ALING 8 for Delphi
@@ -222,7 +223,7 @@
   {$ENDIF}
 {$ENDIF}
 
-{$IFDEF HAS_INLINE}        
+{$IFDEF HAS_INLINE}
   {$INLINE ON}             // turns inlining on for compilers that support it
 {$ENDIF}
 
@@ -240,6 +241,6 @@
   {$warn IMPLICIT_STRING_CAST off}
   {$warn IMPLICIT_STRING_CAST_LOSS off}
   {$warn COMBINING_SIGNED_UNSIGNED off}
-  {$warn COMBINING_SIGNED_UNSIGNED64 off}
+  {$if CompilerVersion >= 32} {$warn COMBINING_SIGNED_UNSIGNED64 off} {$ifend} // only since Delphi 10.2
   {$warn WIDECHAR_REDUCED off}
 {$endif}

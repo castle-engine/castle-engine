@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -132,16 +132,20 @@ function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
 { @groupEnd }
 
 { Converting between RGB and HSV.
+
   For HSV, we keep components as floating-point values,
   with hue in 0..6 range, saturation and value in 0..1.
-  For RGB, one version keeps components as bytes (0..255 range),
-  and the other as floating-point values (0..1 range).
+
+  For RGB, we keep components as floating-point values (0..1 range).
+
   @groupBegin }
-function HsvToRgb(const Value: TVector3): TVector3;
+function HsvToRgb(const Value: TVector3): TCastleColorRGB;
+function HsvToRgba(const Value: TVector3; const Alpha: Single): TCastleColor;
 function RgbToHsv(const Value: TVector3): TVector3; overload;
-function RgbToHsv(const Value: TVector3Byte): TVector3; overload;
-function HsvToRgbByte(const Value: TVector3): TVector3Byte;
 { @groupEnd }
+
+function RgbToHsv(const Value: TVector3Byte): TVector3; overload; deprecated 'use float-based colors, like TCastleColorRGB and TCastleColor, not Byte-based like TVector3Byte';
+function HsvToRgbByte(const Value: TVector3): TVector3Byte; deprecated 'use float-based colors, like TCastleColorRGB and TCastleColor, not Byte-based like TVector3Byte';
 
 { Given two colors in RGB, interpolate them in HSV space. }
 function LerpRgbInHsv(const A: Single; const V1, V2: TVector3): TVector3;
@@ -151,7 +155,7 @@ function LerpRgbInHsv(const A: Single; const V1, V2: TVector3): TVector3;
   and so the output contains the alpha value at the end (so it's 8 hex digits),
   unless alpha is opaque in which case it's not written (and result is 6
   hex digits). }
-function ColorToHex(const V: TCastleColor): string;
+function ColorToHex(const V: TCastleColor): String;
 
 { Change color into a hexadecimal notation of it (like in HTML).
   This color has no alpha channel,
@@ -226,30 +230,30 @@ begin
 
     These weights are copied from libpng manual. }
 
-  Result := (0.212671 * V.X+
-             0.715160 * V.Y+
+  Result := (0.212671 * V.X +
+             0.715160 * V.Y +
              0.072169 * V.Z);
 end;
 
 function GrayscaleValue(const v: TCastleColorRGB): Single;
 begin
-  Result := 0.212671 * V.X+
-            0.715160 * V.Y+
+  Result := 0.212671 * V.X +
+            0.715160 * V.Y +
             0.072169 * V.Z;
 end;
 
 function GrayscaleValue(const v: TVector3Byte): Byte;
 begin
   // force multiplication as Word
-  Result := (Word(54 ) * V.X+
-             Word(183) * V.Y+
+  Result := (Word(54 ) * V.X +
+             Word(183) * V.Y +
              Word(19 ) * V.Z) shr 8; //div 256;
 end;
 
 function GrayscaleValue(const v: TVector4Byte): Byte;
 begin
-  Result := (Word(54 ) * V.X+
-             Word(183) * V.Y+
+  Result := (Word(54 ) * V.X +
+             Word(183) * V.Y +
              Word(19 ) * V.Z) shr 8; //div 256;
 end;
 
@@ -361,7 +365,7 @@ begin
   end;
 end;
 
-function HsvToRgb(const Value: TVector3): TVector3;
+function HsvToRgb(const Value: TVector3): TCastleColorRGB;
 var
   F, P, Q, T, V: Single;
 begin
@@ -381,6 +385,11 @@ begin
     4:   begin Result.X := T; Result.Y := P; Result.Z := V; end;
     else begin Result.X := V; Result.Y := P; Result.Z := Q; end;
   end;
+end;
+
+function HsvToRgba(const Value: TVector3; const Alpha: Single): TCastleColor;
+begin
+  Result := Vector4(HsvToRgb(Value), Alpha);
 end;
 
 function RgbToHsv(const Value: TVector3Byte): TVector3;
@@ -447,7 +456,7 @@ begin
   Result := HsvToRgb(HOut);
 end;
 
-function ColorToHex(const V: TCastleColor): string;
+function ColorToHex(const V: TCastleColor): String;
 var
   A: Byte;
 begin
@@ -459,14 +468,14 @@ begin
     Result := Result + IntToHex(A, 2);
 end;
 
-function ColorRGBToHex(const V: TCastleColorRGB): string;
+function ColorRGBToHex(const V: TCastleColorRGB): String;
 begin
   Result := IntToHex(RoundClamp255(V.X * 255), 2) +
             IntToHex(RoundClamp255(V.Y * 255), 2) +
             IntToHex(RoundClamp255(V.Z * 255), 2);
 end;
 
-function HexToColor(const S: string): TCastleColor;
+function HexToColor(const S: String): TCastleColor;
 begin
   if Length(S) = 8 then
     Result := Vector4(
@@ -483,7 +492,7 @@ begin
     raise EConvertError.CreateFmt('Invalid color hex string: "%s"', [S]);
 end;
 
-function HexToColorRGB(const S: string): TCastleColorRGB;
+function HexToColorRGB(const S: String): TCastleColorRGB;
 begin
   if (Length(S) = 8) or
      (Length(S) = 6) then

@@ -1,5 +1,6 @@
+{%MainUnit x3dloadinternalspine.pas}
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -243,8 +244,8 @@ begin
   begin
     PreviousTime := Time[I];
     NextTime     := Time[I + 1];
-    PreviousValue := Colors.List^[I    ];
-    NextValue     := Colors.List^[I + 1];
+    PreviousValue := Colors.L[I    ];
+    NextValue     := Colors.L[I + 1];
 
     if not (Json[I] is TJSONObject) then
     begin

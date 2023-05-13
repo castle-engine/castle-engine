@@ -1,5 +1,5 @@
 {
-  Copyright 2005-2022 Michalis Kamburelis.
+  Copyright 2005-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,22 +31,15 @@ type
     has swapped bottom and top positions). }
   TFrustumPlane = (fpLeft, fpRight, fpBottom, fpTop, fpNear, fpFar);
 
-  TFrustumPoints = packed array [0..7] of packed record
-    case Integer of
-      0: (XYZ: TVector3; W: Single);
-      1: (XYZW: TVector4);
-  end;
+  TFrustumPoints = packed array [0..7] of TVector4;
 
   TFrustumPointsSingle = TFrustumPoints deprecated 'use TFrustumPoints';
 
-  TFrustumPointsDouble = packed array [0..7] of packed record
-    case Integer of
-      0: (XYZ: TVector3Double; W: Double);
-      1: (XYZW: TVector4Double);
-  end deprecated 'use Single-precision TFrustumPoints';
+  TFrustumPointsDouble = packed array [0..7] of TVector4Double
+    {$ifdef FPC}deprecated 'use Single-precision TFrustumPoints'{$endif};
 
 const
-  FrustumPointsQuadsIndexes: array[TFrustumPlane, 0..3]of LongWord =
+  FrustumPointsQuadsIndexes: packed array [TFrustumPlane, 0..3] of UInt16 =
   ( (0, 3, 7, 4),
     (1, 2, 6, 5),
     (2, 3, 7, 6),
@@ -61,7 +54,7 @@ const
     touch only the first 4 (near plane) points of the frustum --- useful
     if you want to draw only the near plane rect. For ZFarInfinity,
     other points may be in infinity. }
-  FrustumPointsLinesIndexes: array[0..11, 0..1]of LongWord =
+  FrustumPointsLinesIndexes: packed array [0..11, 0..1] of UInt16 =
   ( (0, 1), (1, 2), (2, 3), (3, 0),
     (4, 5), (5, 6), (6, 7), (7, 4),
     (0, 4), (1, 5), (2, 6), (3, 7)
@@ -114,14 +107,14 @@ type
       calculated doing ThreePlanesIntersectionPoint on appropriate planes.
 
       Using these points you can easily draw given frustum on screen.
-      Use FrustumPointsQuadsIndexes to obtain indexes to FrustumPoints.
+      Use FrustumPointsQuadsIndexes or FrustumPointsLinesIndexes
+      to obtain indexes matching these FrustumPoints for rendering.
 
       Note that when the far plane is in infinity,
       the 4 points of the far plane will be "in infinity",
       that is will have 4th component set to zero. Or, equivalently,
       they will be directions. Homogeneous coordinates allow us for this,
-      and in fact you can just render such points without any problems
-      in OpenGL.
+      and you can even render such points using @link(TCastleRenderUnlitMesh).
 
       @raises(EPlanesParallel If Frustum doesn't have planes of any
         valid frustum.)
@@ -318,7 +311,7 @@ begin
   Init(ProjectionMatrix * ModelviewMatrix);
 end;
 
-procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPointsSingle);
+procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPoints);
 { It's better to make these calculations using Double precision. }
 // This deliberately uses TFrustumPointsDouble
 // and CalculatePoints based on TFrustumPointsDouble.
@@ -330,7 +323,7 @@ var
 begin
   CalculatePoints(FrustumPointsDouble);
   for I := 0 to High(FrustumPoints) do
-    FrustumPoints[I].XYZW := Vector4(FrustumPointsDouble[I].XYZW);
+    FrustumPoints[I] := Vector4(FrustumPointsDouble[I]);
 end;
 {$warnings on}
 
@@ -338,40 +331,25 @@ procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPointsDouble);
 var
   Camera: TVector3Double;
 begin
-  FrustumPoints[0].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]));
-  FrustumPoints[1].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpTop]));
-  FrustumPoints[2].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpBottom]));
-  FrustumPoints[3].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpBottom]));
-
-  FrustumPoints[0].W := 1;
-  FrustumPoints[1].W := 1;
-  FrustumPoints[2].W := 1;
-  FrustumPoints[3].W := 1;
+  FrustumPoints[0] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]))   , 1);
+  FrustumPoints[1] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpTop]))   , 1);
+  FrustumPoints[2] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpBottom])), 1);
+  FrustumPoints[3] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpBottom])), 1);
 
   if not ZFarInfinity then
   begin
-    FrustumPoints[4].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]));
-    FrustumPoints[5].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpTop]));
-    FrustumPoints[6].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpBottom]));
-    FrustumPoints[7].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpBottom]));
-
-    FrustumPoints[4].W := 1;
-    FrustumPoints[5].W := 1;
-    FrustumPoints[6].W := 1;
-    FrustumPoints[7].W := 1;
+    FrustumPoints[4] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]))   , 1);
+    FrustumPoints[5] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpTop]))   , 1);
+    FrustumPoints[6] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpBottom])), 1);
+    FrustumPoints[7] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpBottom])), 1);
   end else
   begin
     Camera := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]));
 
-    FrustumPoints[4].XYZ := FrustumPoints[0].XYZ - Camera;
-    FrustumPoints[5].XYZ := FrustumPoints[1].XYZ - Camera;
-    FrustumPoints[6].XYZ := FrustumPoints[2].XYZ - Camera;
-    FrustumPoints[7].XYZ := FrustumPoints[3].XYZ - Camera;
-
-    FrustumPoints[4].W := 0;
-    FrustumPoints[5].W := 0;
-    FrustumPoints[6].W := 0;
-    FrustumPoints[7].W := 0;
+    FrustumPoints[4] := Vector4Double(FrustumPoints[0].XYZ - Camera, 0);
+    FrustumPoints[5] := Vector4Double(FrustumPoints[1].XYZ - Camera, 0);
+    FrustumPoints[6] := Vector4Double(FrustumPoints[2].XYZ - Camera, 0);
+    FrustumPoints[7] := Vector4Double(FrustumPoints[3].XYZ - Camera, 0);
   end;
 end;
 

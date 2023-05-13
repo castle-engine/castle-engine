@@ -1,7 +1,6 @@
 {%MainUnit castlerenderoptions.pas}
-
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,10 +34,9 @@ type
     FLineWidth: Single;
     FBumpMapping: TBumpMapping;
     FBumpMappingParallaxHeight: Single;
-    FCustomShader, FCustomShaderAlphaTest: TObject;
+    FInternalCustomShader, FInternalCustomShaderAlphaTest: TObject;
     FMode: TRenderingMode;
     FShadowSampling: TShadowSampling;
-    FVisualizeDepthMap: boolean;
     FDepthTest: boolean;
     FPhongShading: boolean;
     FSolidColor: TCastleColorRGB;
@@ -73,7 +71,6 @@ type
     procedure SetBumpMapping(const Value: TBumpMapping);
     procedure SetMode(const Value: TRenderingMode);
     procedure SetShadowSampling(const Value: TShadowSampling);
-    procedure SetVisualizeDepthMap(const Value: boolean);
     procedure SetBlending(const Value: boolean);
     procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
     procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
@@ -163,7 +160,6 @@ type
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
 
     {$ifdef FPC}
-    { @deprecated @exclude Old name for @link(Textures). }
     property EnableTextures: boolean
       read FTextures write SetTextures default true; deprecated 'use Textures';
 
@@ -174,50 +170,43 @@ type
       particular shape needs (phong shading, bump mapping, shadow maps, compositing shader effects),
       and GLFeatures.EnableFixedFunction. }
     property Shaders: TShadersRendering read GetShaders write SetShaders; deprecated 'use PhongShading';
+    {$endif}
 
     { Custom GLSL shader to use for the whole scene.
       It must be a @link(TX3DShaderProgramBase) instance.
       When this is assigned, @link(Shaders) value is ignored.
 
-      @italic(Avoid using this.) It's not easy to create portable shaders,
-      that work both with OpenGL and OpenGLES. Try using "compositing shaders" instead
-      https://castle-engine.io/compositing_shaders.php which still allow you
-      to write GLSL effects, but they are integrated into standard shader code.
+      @italic(Internal, do not use this.)
+      Because TX3DShaderProgramBase is an internal class, because it's cumbersome to use.
+
+      Use nodes instead, to override shaders or to enhance shaders.
+      See examples/viewport_and_scenes/shader_effects/ ,
+      examples/viewport_and_scenes/shader_override/ .
 
       @exclude }
-    property CustomShader: TObject read FCustomShader write FCustomShader;
-      deprecated 'use Effect node to define GLSL shaders that are more flexible';
+    property InternalCustomShader: TObject
+      read FInternalCustomShader write FInternalCustomShader;
 
     { Alternative custom GLSL shader used when alpha test is necessary.
       It must be a @link(TX3DShaderProgramBase) instance.
       Relevant only if CustomShader <> nil.
 
-      @italic(Do not use this.) This is a temporary hack to enable VSM working
+      @italic(Internal, do not use this.)
+      Because TX3DShaderProgramBase is an internal class, because it's cumbersome to use.
+
+      Use nodes instead, to override shaders or to enhance shaders.
+      See examples/viewport_and_scenes/shader_effects/ ,
+      examples/viewport_and_scenes/shader_override/ .
+
+      This is in practice an internal solution to enable VSM working
       with alpha test. It's not clean, and should not be used for anything else.
 
       @exclude }
-    property CustomShaderAlphaTest: TObject read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
-      deprecated 'use Effect node to define GLSL shaders that are more flexible';
-    {$endif FPC}
+    property InternalCustomShaderAlphaTest: TObject
+      read FInternalCustomShaderAlphaTest write FInternalCustomShaderAlphaTest;
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
-
-    { Visualize depths stored in the shadow maps, instead of using them to
-      actually make shadow.
-
-      Even without turning this on, VRML author can always activate it
-      explicitly for specific lights. For this, you have to use
-      @code(X3DLightNode.defaultShadowMap) field,
-      and place a GeneratedShadowMap node there. If the
-      @code(GeneratedShadowMap.compareMode) is set to @code('NONE'),
-      we will always visualize depths of this shadow map.
-
-      Setting this property to @true has the same effect as setting
-      compareMode to "NONE" on all (explicit and implicitly created)
-      GeneratedShadowMap nodes. }
-    property VisualizeDepthMap: boolean
-      read FVisualizeDepthMap write SetVisualizeDepthMap default false;
 
     { By default, we use depth testing to determine which objects are in front
       of the others. This allows to display all 3D content (all TCastleScene
@@ -274,7 +263,7 @@ type
       The shapes obscured by other shapes will not be rendered.
 
       This is ignored if GPU doesn't support the necessary functionality
-      (for OpenGL, we require ARB_occlusion_query).
+      (TGLFeatures.OcclusionQuery).
 
       We don't advise this approach to occlusion query now.
       While this avoids the problem of "lag of one frame" (compared to @link(OcclusionQuery))
@@ -504,18 +493,12 @@ type
       This may generate speedup on some scenes. }
     property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort default false;
 
-    { You can use this to turn on some effects related to rendering model
-      in special modes.
+    { Activate various effects related to wireframe rendering.
+      When this is weNormal (default), we simply render polygons as polygons.
+      See description of TWireframeEffect for what other modes do.
 
-      When this is weNormal (default), nothing special is
-      done, which means that model polygons are simply passed to OpenGL.
-      Whether this results in filled or wireframe, depends on OpenGL
-      glPolygonMode setting, filled by default.
-
-      How the wireframe effects work when Mode = rmDepth is undefined now.
-      Just don't use Mode = rmDepth if you're unsure.
-
-      See description of TWireframeEffect for what other modes do. }
+      Note: How the wireframe effects work when Mode = rmDepth is undefined now.
+      Don't use Mode = rmDepth with WireframeEffect <> weNormal. }
     property WireframeEffect: TWireframeEffect
       read FWireframeEffect write FWireframeEffect default weNormal;
 
@@ -534,7 +517,7 @@ type
       This is ignored if HierarchicalOcclusionQuery.
 
       This is ignored if GPU doesn't support the necessary functionality
-      (for OpenGL, we require ARB_occlusion_query). }
+      (@link(TGLFeatures.OcclusionQuery)). }
     property OcclusionQuery: boolean
       read FOcclusionQuery write SetOcclusionQuery default false;
 
@@ -709,15 +692,6 @@ begin
       ReleaseCachedResources;
 
     FShadowSampling := Value;
-  end;
-end;
-
-procedure TCastleRenderOptions.SetVisualizeDepthMap(const Value: boolean);
-begin
-  if VisualizeDepthMap <> Value then
-  begin
-    ReleaseCachedResources;
-    FVisualizeDepthMap := Value;
   end;
 end;
 

@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -287,8 +287,8 @@ var
     if TargetImage = nil then
     begin
       Assert(GlyphsToRender < FGlyphsScreenRects.Count);
-      FGlyphsScreenRects.List^[GlyphsToRender] := ScreenRect;
-      FGlyphsImageRects .List^[GlyphsToRender] := ImageRect;
+      FGlyphsScreenRects.L[GlyphsToRender] := ScreenRect;
+      FGlyphsImageRects .L[GlyphsToRender] := ImageRect;
       Inc(GlyphsToRender);
     end else
     begin
@@ -353,7 +353,7 @@ begin
     {$ifdef FPC}
     Inc(TextPtr, CharLen);
     {$else}
-    C := GetUTF32Char(S, TextIndex, NextTextIndex);
+    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
     TextIndex := NextTextIndex;
     {$endif}
     CharIndex := C - Ord(' ');  // TODO: check that
@@ -383,8 +383,8 @@ begin
   begin
     FDrawableImage.Color := Color;
     FDrawableImage.Draw(
-      PFloatRectangleArray(FGlyphsScreenRects.List),
-      PFloatRectangleArray(FGlyphsImageRects.List), GlyphsToRender);
+      PFloatRectangleArray(FGlyphsScreenRects.L),
+      PFloatRectangleArray(FGlyphsImageRects.L), GlyphsToRender);
   end;
 end;
 

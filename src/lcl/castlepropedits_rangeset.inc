@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -115,7 +115,7 @@ end;
 function TRangeSetPropertyEditor.OrdValueToVisualValue(OrdValue: Longint): String;
 
 { Note: This is unused for now.
-  All actualy usage of TRangeSetPropertyEditor is through T3DCoordsRangeSetPropertyEditor,
+  All actual usage of TRangeSetPropertyEditor is through T3DCoordsRangeSetPropertyEditor,
   that overrides this. }
 
 var

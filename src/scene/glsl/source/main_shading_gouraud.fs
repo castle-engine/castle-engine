@@ -1,9 +1,5 @@
 /* Gouraud shading GLSL fragment shader. */
 
-#ifdef GL_ES
-precision mediump float;
-#endif
-
 /* PLUG-DECLARATIONS */
 
 #ifdef HAS_GEOMETRY_SHADER

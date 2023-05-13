@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
   Parts of this file are based on FPC packages/fcl-process/src/process.pp ,
@@ -118,11 +118,26 @@ procedure RunCommandIndirPassthrough(
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil);
 
+var
+  ForcePipesPassthrough: Boolean = false;
+
 { Run command in given (or current) directory with given arguments,
-  letting output (stdout and stderr) to go to our stdout.
-  Command is searched on $PATH following standard OS conventions,
-  if it's not already an absolute filename.
-  Raises exception if command fails (detected by exit code <> 0). }
+  letting output (stdout and stderr) to go to our stdout / stderr.
+
+  ExeName is searched on $PATH following standard OS conventions,
+  if it's not already an absolute exe filename.
+
+  Raises exception if command fails (detected by exit code <> 0).
+
+  If OverrideEnvironmentName is <> '', then we set this one specific
+  environment variable, to the value of OverrideEnvironmentValue.
+
+  Global variable ForcePipesPassthrough can be used to force
+  using pipes to communicate with the process.
+  It should not be necessary (and it may introduce some performance drop,
+  though I didn't observe any in practice)... except on Windows when you run
+  "castle-engine run" in PowerShell in VS Code.
+  For some reason, "castle-engine run" in CGE editor doesn't need it. }
 procedure RunCommandSimple(
   const ExeName: string; const Options: array of string); overload;
 procedure RunCommandSimple(
@@ -134,7 +149,8 @@ procedure RunCommandSimple(
 procedure RunCommandNoWait(
   const CurrentDirectory: string;
   const ExeName: string; const Options: array of string;
-  const Flags: TRunCommandFlags = []);
+  const Flags: TRunCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
 
 { Determine and create a new (unique, with random number in the name) temp directory. }
 function CreateTemporaryDir: string;
@@ -714,7 +730,7 @@ procedure RunCommandSimple(
 
 var
   ProcessStatus: Integer;
-  AbsoluteExeName: string;
+  AbsoluteExeName, IgnoredOutput: string;
 begin
   { use FindExe to use our fixed PathFileSearch that does not accidentally find
     "ant" directory as "ant" executable }
@@ -728,8 +744,12 @@ begin
         [ExeName, ExeName]);
   end;
 
-  RunCommandNoPipes(CurrentDirectory, AbsoluteExeName, Options,
-    ProcessStatus, OverrideEnvironmentName, OverrideEnvironmentValue);
+  if ForcePipesPassthrough then
+    RunCommandIndirPassthrough(CurrentDirectory, AbsoluteExeName, Options,
+      IgnoredOutput, ProcessStatus, OverrideEnvironmentName, OverrideEnvironmentValue)
+  else
+    RunCommandNoPipes(CurrentDirectory, AbsoluteExeName, Options,
+      ProcessStatus, OverrideEnvironmentName, OverrideEnvironmentValue);
 
   // this will cause our own status be non-zero
   if ProcessStatus <> 0 then
@@ -777,7 +797,8 @@ end;
 procedure RunCommandNoWait(
   const CurrentDirectory: string;
   const ExeName: string; const Options: array of string;
-  const Flags: TRunCommandFlags = []);
+  const Flags: TRunCommandFlags = [];
+  const OverrideEnvironment: TStringList = nil);
 var
   P: TProcess;
   I: Integer;
@@ -827,6 +848,8 @@ begin
     P.ShowWindow := swoShow;
     if rcNoConsole in Flags then
       P.Options := P.Options + [poNoConsole];
+    if OverrideEnvironment <> nil then
+      P.Environment := OverrideEnvironment;
 
     WritelnVerbose('Calling ' + P.Executable); // show P.Executable, not ExeName, as code above may set other P.Executable
     WritelnVerbose('  With Working Directory: ' + P.CurrentDirectory);

@@ -1,5 +1,6 @@
+{%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,7 +76,7 @@
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
     function GetLineProperties: TLinePropertiesNode;
     procedure SetLineProperties(const Value: TLinePropertiesNode);
-    procedure SetAppearanceBefore(const Value: TAppearanceNode);
+    procedure SetAppearanceBefore(const Sender: TSFNode; const NewNode: TX3DNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -93,6 +94,7 @@
       When setting this to something non-nil, we make sure
       to also set Appearance to something non-nil. }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
+      {$ifdef FPC}deprecated 'create and assign texture node instance explicitly, then set Appearance.Texture';{$endif}
 
     { Texture transformation of this shape.
       Similar to @link(Texture), this is just a comfortable property
@@ -100,17 +102,20 @@
       checking class types along the way. }
     property TextureTransform: TAbstractTextureTransformNode
       read GetTextureTransform write SetTextureTransform;
+      {$ifdef FPC}deprecated 'create and assign texture transformatiom node instance explicitly, then set Appearance.TextureTransform';{$endif}
 
     { Get / set the material of this shape.
       This is a shortcut to access @link(Appearance) and then set @code(Appearance.Material).
       When setting the material to something non-nil, we make sure
       to create @link(Appearance) node if necessary. }
     property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
+      {$ifdef FPC}deprecated 'create and assign TAppearanceNode instance explicitly, then set Appearance.Material';{$endif}
 
     { Line properties of this shape. This is a clean, type-safe way
       for accessing Appearance.lineProperties field of this shape. }
     property LineProperties: TLinePropertiesNode
       read GetLineProperties write SetLineProperties;
+      {$ifdef FPC}deprecated 'create and assign TLinePropertiesNode instance explicitly, then set Appearance.LineProperties';{$endif}
 
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
@@ -142,7 +147,6 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
-    procedure SetMaterialBefore(const Value: TAbstractMaterialNode);
   public
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
@@ -187,14 +191,6 @@
   public
     {$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
   end;
-
-  { Supported line types (patterns), for @link(TLinePropertiesNode.LineType). }
-  TLineType = (
-    ltSolid,
-    ltDashed,
-    ltDotted,
-    ltDashedDotted,
-    ltDashDotDot);
 
   { Additional visible properties to be applied to all line geometry. }
   TLinePropertiesNode = class(TAbstractAppearanceChildNode)
@@ -456,23 +452,26 @@ begin
   FdGeometry.ChangeAlways := chEverything;
 end;
 
-procedure TAbstractShapeNode.SetAppearanceBefore(const Value: TAppearanceNode);
+procedure TAbstractShapeNode.SetAppearanceBefore(const Sender: TSFNode; const NewNode: TX3DNode);
 var
   OldMaterial, NewMaterial: TX3DNode;
 begin
-  if (Scene <> nil) and
-     (FdAppearance.Value <> Value) then
+  // caller of OnBeforeVisibleChange should have checked this
+  Assert(Sender.Value <> NewNode);
+  Assert(Sender = FdAppearance);
+
+  if Scene <> nil then
   begin
     // move shape associations from old Appearance to new
-    Scene.InternalMoveShapeAssociations(FdAppearance.Value, Value, InternalSceneShape);
+    Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
 
     // move shape associations from old XxxMaterial to new
-    if FdAppearance.Value is TAppearanceNode then
-      OldMaterial := TAppearanceNode(FdAppearance.Value).FdMaterial.Value
+    if Sender.Value is TAppearanceNode then
+      OldMaterial := TAppearanceNode(Sender.Value).FdMaterial.Value
     else
       OldMaterial := nil;
-    if Value is TAppearanceNode then
-      NewMaterial := TAppearanceNode(Value).FdMaterial.Value
+    if NewNode is TAppearanceNode then
+      NewMaterial := TAppearanceNode(NewNode).FdMaterial.Value
     else
       NewMaterial := nil;
     if OldMaterial <> NewMaterial then
@@ -640,13 +639,6 @@ begin
     and TFramesPerSecond.RenderFrameId is always >= 1,
     which means that this will return (correctly) false at the beginning before any rendering run. }
   Result := TFramesPerSecond.RenderFrameId = InternalWasVisibleFrameId;
-end;
-
-procedure TAppearanceNode.SetMaterialBefore(const Value: TAbstractMaterialNode);
-begin
-  if (Scene <> nil) and
-     (FdMaterial.Value <> Value) then
-    Scene.InternalMoveShapeAssociations(FdMaterial.Value, Value, InternalSceneShape);
 end;
 
 function TAppearanceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -979,7 +971,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TMaterialNode.TMyMaterialInfo.ReflDiffuse: TVector3;
@@ -990,7 +982,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TMaterialNode.TMyMaterialInfo.TransSpecular: TVector3;
@@ -1001,7 +993,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TMaterialNode.TMyMaterialInfo.TransDiffuse: TVector3;
@@ -1012,7 +1004,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TMaterialNode.TMyMaterialInfo.ReflSpecularExp: Single;
@@ -1093,7 +1085,7 @@ procedure TShapeNode.GenerateTangents;
     const TexCoords: TVector2List;
     const Tangents: TVector3List);
   var
-    TriangleIndexes: TLongIntList;
+    TriangleIndexes: TInt32List;
     Tangent: TVector3;
     I, Index0, Index1, Index2: Integer;
     TriangleCoord: TTriangle3;
@@ -1121,19 +1113,19 @@ procedure TShapeNode.GenerateTangents;
       Index0 := TriangleIndexes[I    ];
       Index1 := TriangleIndexes[I + 1];
       Index2 := TriangleIndexes[I + 2];
-      TriangleCoord.Data[0] := Coords.List^[Index0];
-      TriangleCoord.Data[1] := Coords.List^[Index1];
-      TriangleCoord.Data[2] := Coords.List^[Index2];
-      TriangleTexCoord.Data[0] := TexCoords.List^[Index0];
-      TriangleTexCoord.Data[1] := TexCoords.List^[Index1];
-      TriangleTexCoord.Data[2] := TexCoords.List^[Index2];
+      TriangleCoord.Data[0] := Coords.L[Index0];
+      TriangleCoord.Data[1] := Coords.L[Index1];
+      TriangleCoord.Data[2] := Coords.L[Index2];
+      TriangleTexCoord.Data[0] := TexCoords.L[Index0];
+      TriangleTexCoord.Data[1] := TexCoords.L[Index1];
+      TriangleTexCoord.Data[2] := TexCoords.L[Index2];
 
       if not CalculateTangent(true, Tangent, TriangleCoord, TriangleTexCoord) then
         Tangent := TVector3.One[0];
 
-      Tangents.List^[Index0] := MakeVectorOrthogonal(Tangent, Normals.List^[Index0]);
-      Tangents.List^[Index1] := MakeVectorOrthogonal(Tangent, Normals.List^[Index1]);
-      Tangents.List^[Index2] := MakeVectorOrthogonal(Tangent, Normals.List^[Index2]);
+      Tangents.L[Index0] := MakeVectorOrthogonal(Tangent, Normals.L[Index0]);
+      Tangents.L[Index1] := MakeVectorOrthogonal(Tangent, Normals.L[Index1]);
+      Tangents.L[Index2] := MakeVectorOrthogonal(Tangent, Normals.L[Index2]);
 
       Inc(I, 3);
     end;

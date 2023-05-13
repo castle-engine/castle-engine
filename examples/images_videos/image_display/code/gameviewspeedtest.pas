@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,6 +23,11 @@ uses Classes,
 
 type
   TViewSpeedTest = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    ButtonGoView: TCastleButton;
+    LabelTestInfo: TCastleLabel;
   private
     const
       TestImages: array [0..11] of String = (
@@ -41,10 +46,6 @@ type
       );
 
     var
-      { Components designed using CGE editor, loaded from the castle-user-interface file. }
-      ButtonGoView: TCastleButton;
-      LabelTestInfo: TCastleLabel;
-
       TestIndex: Cardinal;
 
     procedure ClickGoView(Sender: TObject);
@@ -72,10 +73,6 @@ end;
 procedure TViewSpeedTest.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  ButtonGoView := DesignedComponent('ButtonGoView') as TCastleButton;
-  LabelTestInfo := DesignedComponent('LabelTestInfo') as TCastleLabel;
 
   ButtonGoView.OnClick := {$ifdef FPC}@{$endif} ClickGoView;
 

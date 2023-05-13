@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -52,9 +52,9 @@
     { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     {  }
-    procedure SetCoordIndex(const Value: array of LongInt); overload;
+    procedure SetCoordIndex(const Value: array of Int32); overload;
     {  }
-    procedure SetCoordIndex(const Value: TLongIntList); overload;
+    procedure SetCoordIndex(const Value: TInt32List); overload;
 
 {$endif read_interface}
 
@@ -85,12 +85,12 @@ begin
   FdDirection.Send(Value);
 end;
 
-procedure TPolylineEmitterNode.SetCoordIndex(const Value: array of LongInt);
+procedure TPolylineEmitterNode.SetCoordIndex(const Value: array of Int32);
 begin
   FdCoordIndex.Send(Value);
 end;
 
-procedure TPolylineEmitterNode.SetCoordIndex(const Value: TLongIntList);
+procedure TPolylineEmitterNode.SetCoordIndex(const Value: TInt32List);
 begin
   FdCoordIndex.Send(Value);
 end;

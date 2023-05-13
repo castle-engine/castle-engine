@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,9 +31,9 @@
     { Internal wrapper for property @link(StripCount). This wrapper API may change, we advise to access simpler @link(StripCount) instead. }
     public property FdStripCount: TMFInt32 read FFdStripCount;
     {  }
-    procedure SetStripCount(const Value: array of LongInt); overload;
+    procedure SetStripCount(const Value: array of Int32); overload;
     {  }
-    procedure SetStripCount(const Value: TLongIntList); overload;
+    procedure SetStripCount(const Value: TInt32List); overload;
 
 {$endif read_interface}
 
@@ -41,12 +41,12 @@
 
 { TTriangleStripSetNode ----------------------------------------------- }
 
-procedure TTriangleStripSetNode.SetStripCount(const Value: array of LongInt);
+procedure TTriangleStripSetNode.SetStripCount(const Value: array of Int32);
 begin
   FdStripCount.Send(Value);
 end;
 
-procedure TTriangleStripSetNode.SetStripCount(const Value: TLongIntList);
+procedure TTriangleStripSetNode.SetStripCount(const Value: TInt32List);
 begin
   FdStripCount.Send(Value);
 end;

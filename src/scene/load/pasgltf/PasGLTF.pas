@@ -86,9 +86,15 @@ unit PasGLTF;
  {$endif}
  {$define CAN_INLINE}
  {$define HAS_ADVANCED_RECORDS}
+
+ { CGE: disable FPC warnings at range check errors in constants here.
+   Note that we need to include more than affected lines in warnings off/on
+   section, to effectively disable warnings -- the affected lines are in generic
+   class and it seems they are reported at specialization. }
+ {$warnings off}
 {$else}
  {$warn COMBINING_SIGNED_UNSIGNED off} // CGE added
- {$warn COMBINING_SIGNED_UNSIGNED64 off} // CGE added
+ {$if CompilerVersion >= 32} {$warn COMBINING_SIGNED_UNSIGNED64 off} {$endif} // only since Delphi 10.2 // CGE added
  {$warn IMPLICIT_STRING_CAST off} // CGE added
  {$realcompatibility off}
  {$localsymbols on}
@@ -4724,7 +4730,7 @@ begin
   finally
    FreeAndNil(JSONItem);
   end;
- end; 
+ end;
  if aStream.Position<aStream.Size then begin
   if aStream.Read(ChunkHeader,SizeOf(TChunkHeader))<>SizeOf(ChunkHeader) then begin
    raise EPasGLTFInvalidDocument.Create('Invalid GLB document');
@@ -4763,7 +4769,7 @@ begin
    finally
     FreeAndNil(JSONItem);
    end;
-  end; 
+  end;
  end;
 end;
 

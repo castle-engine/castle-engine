@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -73,7 +73,7 @@
     strict private FFdCompareMode: TSFStringEnum;
     { Internal wrapper for property @link(CompareMode). This wrapper API may change, we advise to access simpler @link(CompareMode) instead. }
     public property FdCompareMode: TSFStringEnum read FFdCompareMode;
-    {  }
+    { @deprecated Deprecated mode to test depth maps with various comparison methods. This was unportable and complicated to maintain, so it is deprecated and has no effect now. }
     property CompareMode: TShadowMapCompareMode read GetCompareMode write SetCompareMode;
 
 {$endif read_interface}

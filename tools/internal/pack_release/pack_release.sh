@@ -277,11 +277,10 @@ pack_platform_dir ()
   # update environment to use CGE in temporary location
   export CASTLE_ENGINE_PATH="${TEMP_PATH_CGE}"
 
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk
-  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_editor_components.lpk
 
   # Make sure no leftovers from previous compilations remain, to not affect tools, to not pack them in release
   "${MAKE}" cleanmore ${MAKE_OPTIONS}
@@ -343,7 +342,10 @@ pack_platform_dir ()
 
   # Add PasDoc docs
   "${MAKE}" -C doc/pasdoc/ clean html ${MAKE_OPTIONS}
-  rm -Rf doc/pasdoc/cache/
+  # Remove pasdoc leftovers,
+  # including pasdoc dir and zip/tar.gz left after tasks like '(Windows) Get PasDoc' and '(macOS) Get PasDoc'.
+  # Otherwise they'd get packaged.
+  rm -Rf doc/pasdoc/cache/ pasdoc/ pasdoc-*.zip pasdoc-*.tar.gz
 
   # Add tools
   add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
@@ -410,7 +412,8 @@ pack_windows_installer ()
     "${ORIGINAL_CASTLE_ENGINE_PATH}/tools/internal/pack_release/cge-windows-setup.iss" \
     "/O${OUTPUT_DIRECTORY}" \
     "/F${ARCHIVE_NAME}" \
-    "/DMyAppSrcDir=${TEMP_PATH}castle_game_engine"
+    "/DMyAppSrcDir=${TEMP_PATH}castle_game_engine" \
+    "/DMyAppVersion=${CGE_VERSION}"
 
   # cleanup to save disk space
   rm -Rf "${TEMP_PATH}"

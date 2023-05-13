@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -120,7 +120,7 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..41] of String = (
+  EnginePaths: array [0..42] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -141,6 +141,7 @@ const
     'scene/x3d',
     'scene/load',
     'scene/load/spine',
+    'scene/load/md3',
     'scene/load/collada',
     'scene/load/pasgltf',
     'audio',
@@ -1105,11 +1106,10 @@ begin
     // register CGE packages first
     if CastleEnginePath <> '' then
     begin
-      LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk');
-      LazbuildAddPackage('src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk');
       LazbuildAddPackage('packages/castle_base.lpk');
       LazbuildAddPackage('packages/castle_window.lpk');
       LazbuildAddPackage('packages/castle_components.lpk');
+      LazbuildAddPackage('packages/castle_editor_components.lpk');
     end;
 
     LazbuildOptions.Clear;

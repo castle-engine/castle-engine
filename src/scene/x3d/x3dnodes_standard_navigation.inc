@@ -1,5 +1,6 @@
+{%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -53,7 +54,11 @@
       and FdGravityUp vectors. See
       https://castle-engine.io/x3d_extensions.php#section_ext_cameras_alt_orient
 
-      Returned CamDir, CamUp, GravityUp are @italic(always normalized). }
+      Returned CamDir, CamUp, GravityUp are @italic(always normalized).
+
+      TODO: This may need transform to world space, not just scene space,
+      just like TAbstractLightNode.GetView does.
+      Test how it behaves in TCastleScene that has some transformation. }
     procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3);
 
     { Description generated smart (trying to use FdDescription field,
@@ -310,7 +315,7 @@ begin
 
   if FdDirection.Items.Count > 0 then
   begin
-    CamDir := FdDirection.Items.List^[0];
+    CamDir := FdDirection.Items.L[0];
     if CamDir.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "direction" must not be zero, assuming defaults');
@@ -321,7 +326,7 @@ begin
 
   if FdUp.Items.Count > 0 then
   begin
-    CamUp := FdUp.Items.List^[0];
+    CamUp := FdUp.Items.L[0];
     if CamUp.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "up" must not be zero, assuming defaults');

@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2022 Michalis Kamburelis.
 
@@ -17,6 +18,8 @@
 
   TAllowedChildren = (acAll, acClasses, acFunctionality);
 
+  TNodeChangeEvent = procedure (const Sender: TSFNode; const NewNode: TX3DNode) of object;
+
   { X3D field holding a reference to a single node.
     It's defined in this unit, not in X3DFields, since it uses
     TX3DNode definition. NULL value of the field is indicated by
@@ -33,6 +36,7 @@
   TSFNode = class(TX3DSingleField)
   strict private
     FParentNode: TX3DNode;
+    FOnBeforeValueChange: TNodeChangeEvent;
     AllowedChildren: TAllowedChildren;
     AllowedChildrenClasses: TX3DNodeClassesList;
     AllowedChildrenFunctionality: TNodeFunctionalityClass;
@@ -208,6 +212,12 @@
       Traverse etc., otherwise you create a cycle in nodes that we generally cannot handle. *)
     property AutomaticWeakLink: Boolean
       read FAutomaticWeakLink write FAutomaticWeakLink default false;
+
+    { Called when @link(Value) changes.
+      Called before the change is actually done,
+      right after we know that new value is different than old value. }
+    property OnBeforeValueChange: TNodeChangeEvent
+      read FOnBeforeValueChange write FOnBeforeValueChange;
   end;
 
   TSFNodeEventHelper = class helper for TSFNodeEvent
@@ -550,6 +560,9 @@ procedure TSFNode.SetValue(const AValue: TX3DNode);
 begin
   if FValue <> AValue then
   begin
+    if Assigned(OnBeforeValueChange) then
+      OnBeforeValueChange(Self, AValue);
+
     if FValue <> nil then
     begin
       if WeakLink then

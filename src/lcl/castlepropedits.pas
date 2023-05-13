@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,6 +31,7 @@ uses PropEdits;
   to enable using them for your own properties in custom components too.
   See examples/advanced_editor/custom_component/code/gamecontrols.pas . }
 {$define read_interface}
+{$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_url.inc}
 {$undef read_interface}
 
@@ -46,9 +47,10 @@ uses // FPC and LCL units
   // CGE units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
-  CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
+  CastleVectors, CastleUtils, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
-  CastleInternalExposeTransformsDialog, CastleSoundEngine, CastleFonts,
+  CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,
+  CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
   CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
 
@@ -60,12 +62,12 @@ uses // FPC and LCL units
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
 {$I castlepropedits_meshcolliderscene.inc}
-{$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
 {$I castlepropedits_protectedsides.inc}
 {$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
+{$I castlepropedits_tiledlayers.inc}
 {$I castlepropedits_rangeset.inc}
 {$I castlepropedits_component_transform.inc}
 {$I castlepropedits_component_scene.inc}
@@ -101,7 +103,11 @@ begin
     'URL', TDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTransformDesign,
     'URL', TTransformDesignURLPropertyEditor);
+  {$warnings off} // define to support deprecated, for now
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
+    'URL', TTiledMapURLPropertyEditor);
+  {$warnings on}
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMap,
     'URL', TTiledMapURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSound,
     'URL', TSoundURLPropertyEditor);
@@ -134,6 +140,11 @@ begin
   RegisterPropertyEditor(TypeInfo(Single), TCastleVector4RotationPersistent, 'W',
     TCastleFloatRotationPropertyEditor);
 
+  { Register before registering for TBorder and any name
+    (not tested if it's really necessary). }
+  RegisterPropertyEditor(TypeInfo(TBorder), nil, 'ProtectedSides',
+    TCastleProtectedSidesEditor);
+
   { Properties that simply use TSubPropertiesEditor.
     Registering properties that use TSubPropertiesEditor
     (not any descendant of it) is still necessary to expand them
@@ -141,15 +152,11 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleRootTransform), TCastleViewport, 'Items',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
-    TCastleProtectedSidesEditor);
+    TSubPropertiesEditor);
 
   { Other properties }
   RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
     TCastleImagePersistentEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
-    TCastleColorPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
-    TCastleColorRGBPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), nil, '',
     TCastleVector2PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), TCastleTransform, 'ScalePersistent',
@@ -168,6 +175,8 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
     TExposeTransformsPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleTiledMap.TLayers), TCastleTiledMap, 'Layers',
+    TTiledLayersPropertyEditor);
 
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleMeshCollider, 'Mesh',
     TMeshColliderMeshPropertyEditor);

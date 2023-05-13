@@ -1,5 +1,6 @@
+{%MainUnit x3dloadinternalspine.pas}
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -228,8 +229,8 @@ begin
   begin
     PreviousTime := Time[I];
     NextTime     := Time[I + 1];
-    PreviousValue := Vector4(Vectors.List^[I    ].X, Vectors.List^[I    ].Y, 0, 0);
-    NextValue     := Vector4(Vectors.List^[I + 1].X, Vectors.List^[I + 1].Y, 0, 0);
+    PreviousValue := Vector4(Vectors.L[I    ].X, Vectors.L[I    ].Y, 0, 0);
+    NextValue     := Vector4(Vectors.L[I + 1].X, Vectors.L[I + 1].Y, 0, 0);
 
     if not (Json[I] is TJSONObject) then
     begin
@@ -559,8 +560,8 @@ begin
   begin
     PreviousTime := Time[I];
     NextTime     := Time[I + 1];
-    PreviousValue := Vector4(Angles.List^[I    ], 0, 0, 0);
-    NextValue     := Vector4(Angles.List^[I + 1], 0, 0, 0);
+    PreviousValue := Vector4(Angles.L[I    ], 0, 0, 0);
+    NextValue     := Vector4(Angles.L[I + 1], 0, 0, 0);
 
     if not (Json[I] is TJSONObject) then
     begin

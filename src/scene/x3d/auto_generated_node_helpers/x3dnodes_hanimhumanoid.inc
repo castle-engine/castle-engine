@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,6 +26,10 @@
   strict private
     function GetCenter: TVector3;
     procedure SetCenter(const Value: TVector3);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
+    function GetLoa: Integer;
+    procedure SetLoa(const Value: Integer);
     function GetNameField: String;
     procedure SetNameField(const Value: String);
     function GetRotation: TVector4;
@@ -52,6 +56,12 @@
     {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
+    strict private FFdDescription: TSFString;
+    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    public property FdDescription: TSFString read FFdDescription;
+    {  }
+    property Description: String read GetDescription write SetDescription;
+
     strict private FFdInfo: TMFString;
     { Internal wrapper for property @link(Info). This wrapper API may change, we advise to access simpler @link(Info) instead. }
     public property FdInfo: TMFString read FFdInfo;
@@ -65,6 +75,12 @@
     public property FdJoints: TMFNode read FFdJoints;
     {  }
     procedure SetJoints(const Value: array of THAnimJointNode);
+
+    strict private FFdLoa: TSFInt32;
+    { Internal wrapper for property @link(Loa). This wrapper API may change, we advise to access simpler @link(Loa) instead. }
+    public property FdLoa: TSFInt32 read FFdLoa;
+    {  }
+    property Loa: Integer read GetLoa write SetLoa;
 
     strict private FFdName: TSFString;
     { Internal wrapper for property @link(NameField). This wrapper API may change, we advise to access simpler @link(NameField) instead. }
@@ -164,6 +180,16 @@ begin
   FdCenter.Send(Value);
 end;
 
+function THAnimHumanoidNode.GetDescription: String;
+begin
+  Result := FdDescription.Value;
+end;
+
+procedure THAnimHumanoidNode.SetDescription(const Value: String);
+begin
+  FdDescription.Send(Value);
+end;
+
 procedure THAnimHumanoidNode.SetInfo(const Value: array of string);
 begin
   FdInfo.Send(Value);
@@ -184,6 +210,16 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(THAnimJointNode));
   FdJoints.Send(A);
+end;
+
+function THAnimHumanoidNode.GetLoa: Integer;
+begin
+  Result := FdLoa.Value;
+end;
+
+procedure THAnimHumanoidNode.SetLoa(const Value: Integer);
+begin
+  FdLoa.Send(Value);
 end;
 
 function THAnimHumanoidNode.GetNameField: String;
@@ -322,6 +358,10 @@ begin
    FdCenter.ChangeAlways := chTransform;
   AddField(FFdCenter);
 
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chNone;
+  AddField(FFdDescription);
+
   FFdInfo := TMFString.Create(Self, True, 'info', []);
    FdInfo.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdInfo);
@@ -329,6 +369,10 @@ begin
   FFdJoints := TMFNode.Create(Self, True, 'joints', [THAnimJointNode]);
    FdJoints.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdJoints);
+
+  FFdLoa := TSFInt32.Create(Self, True, 'loa', -1);
+   FdLoa.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdLoa);
 
   FFdName := TSFString.Create(Self, True, 'name', '');
    FdName.ChangeAlways := chVisibleNonGeometry;

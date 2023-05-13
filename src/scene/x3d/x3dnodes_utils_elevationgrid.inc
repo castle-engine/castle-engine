@@ -1,5 +1,6 @@
+{%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,34 +38,34 @@ function TElevationGridNode.Proxy(var State: TX3DGraphTraverseState): TAbstractG
 }
 var
   Coords: TVector3List;
-  CoordIndexes: TLongIntList;
+  CoordIndexes: TInt32List;
 
   { Add to CoordIndexes a quad from given indexes.
     Actually we add two triangles, looking at Coord to choose the best
     triangulation. }
   procedure Quad(const IndexNum, I1, I2, I3, I4: Integer);
   begin
-    if PointsDistanceSqr(Coords.List^[I1], Coords.List^[I3]) <
-       PointsDistanceSqr(Coords.List^[I2], Coords.List^[I4]) then
+    if PointsDistanceSqr(Coords.L[I1], Coords.L[I3]) <
+       PointsDistanceSqr(Coords.L[I2], Coords.L[I4]) then
     begin
-      CoordIndexes.List^[IndexNum    ] := I1;
-      CoordIndexes.List^[IndexNum + 1] := I2;
-      CoordIndexes.List^[IndexNum + 2] := I3;
-      CoordIndexes.List^[IndexNum + 3] := -1;
-      CoordIndexes.List^[IndexNum + 4] := I3;
-      CoordIndexes.List^[IndexNum + 5] := I4;
-      CoordIndexes.List^[IndexNum + 6] := I1;
-      CoordIndexes.List^[IndexNum + 7] := -1;
+      CoordIndexes.L[IndexNum    ] := I1;
+      CoordIndexes.L[IndexNum + 1] := I2;
+      CoordIndexes.L[IndexNum + 2] := I3;
+      CoordIndexes.L[IndexNum + 3] := -1;
+      CoordIndexes.L[IndexNum + 4] := I3;
+      CoordIndexes.L[IndexNum + 5] := I4;
+      CoordIndexes.L[IndexNum + 6] := I1;
+      CoordIndexes.L[IndexNum + 7] := -1;
     end else
     begin
-      CoordIndexes.List^[IndexNum    ] := I1;
-      CoordIndexes.List^[IndexNum + 1] := I2;
-      CoordIndexes.List^[IndexNum + 2] := I4;
-      CoordIndexes.List^[IndexNum + 3] := -1;
-      CoordIndexes.List^[IndexNum + 4] := I2;
-      CoordIndexes.List^[IndexNum + 5] := I3;
-      CoordIndexes.List^[IndexNum + 6] := I4;
-      CoordIndexes.List^[IndexNum + 7] := -1;
+      CoordIndexes.L[IndexNum    ] := I1;
+      CoordIndexes.L[IndexNum + 1] := I2;
+      CoordIndexes.L[IndexNum + 2] := I4;
+      CoordIndexes.L[IndexNum + 3] := -1;
+      CoordIndexes.L[IndexNum + 4] := I2;
+      CoordIndexes.L[IndexNum + 5] := I3;
+      CoordIndexes.L[IndexNum + 6] := I4;
+      CoordIndexes.L[IndexNum + 7] := -1;
     end;
   end;
 
@@ -110,13 +111,13 @@ begin
       for J := 0 to ZDim - 1 do
         for I := 0 to XDim - 1 do
         begin
-          Coords.List^[I + J * XDim] := Vector3(
+          Coords.L[I + J * XDim] := Vector3(
             FdXSpacing.Value * I,
-            FdHeight.Items.List^[I + J * XDim],
+            FdHeight.Items.L[I + J * XDim],
             FdZSpacing.Value * J);
 
           if not TexCoordProvided then
-            TexCoords.List^[I + J * XDim] := Vector2(
+            TexCoords.L[I + J * XDim] := Vector2(
               I / (XDim - 1),
               J / (ZDim - 1));
         end;

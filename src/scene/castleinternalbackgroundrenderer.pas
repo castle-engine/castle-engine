@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -74,7 +74,7 @@ implementation
 
 uses Math,
   CastleLog, CastleScene, X3DFields, CastleSceneCore, CastleGLImages,
-  CastleRenderContext, CastleRenderOptions;
+  CastleRenderContext, CastleRenderOptions, CastleInternalGLUtils;
 
 const
   { Background rendering doesn't use the same projection near/far as other content.
@@ -411,22 +411,22 @@ const
 
     StackCircleCalc(CircleAngle, CircleY, CircleRadius);
 
-    SphereCoord.Items.List^[Start] := StackTipCalc(TipAngle);
-    SphereColor.Items.List^[Start] := TipColor;
+    SphereCoord.Items.L[Start] := StackTipCalc(TipAngle);
+    SphereColor.Items.L[Start] := TipColor;
     Inc(Next);
 
     for I := 0 to Slices - 1 do
     begin
-      SphereCoord.Items.List^[Next] := CirclePoint(CircleY, CircleRadius, I);
-      SphereColor.Items.List^[Next] := CircleColor;
+      SphereCoord.Items.L[Next] := CirclePoint(CircleY, CircleRadius, I);
+      SphereColor.Items.L[Next] := CircleColor;
       Inc(Next);
 
-      SphereCoordIndex.Items.List^[NextIndex    ] := Start;
-      SphereCoordIndex.Items.List^[NextIndex + 1] := Start + 1 + I;
+      SphereCoordIndex.Items.L[NextIndex    ] := Start;
+      SphereCoordIndex.Items.L[NextIndex + 1] := Start + 1 + I;
       if I <> Slices - 1 then
-        SphereCoordIndex.Items.List^[NextIndex + 2] := Start + 2 + I else
-        SphereCoordIndex.Items.List^[NextIndex + 2] := Start + 1;
-      SphereCoordIndex.Items.List^[NextIndex + 3] := -1;
+        SphereCoordIndex.Items.L[NextIndex + 2] := Start + 2 + I else
+        SphereCoordIndex.Items.L[NextIndex + 2] := Start + 1;
+      SphereCoordIndex.Items.L[NextIndex + 3] := -1;
       NextIndex := NextIndex + 4;
     end;
   end;
@@ -451,22 +451,22 @@ const
 
     for I := 0 to Slices - 1 do
     begin
-      SphereCoord.Items.List^[Next] := CirclePoint(CircleY, CircleRadius, I);
-      SphereColor.Items.List^[Next] := CircleColor;
+      SphereCoord.Items.L[Next] := CirclePoint(CircleY, CircleRadius, I);
+      SphereColor.Items.L[Next] := CircleColor;
       Inc(Next);
 
-      SphereCoordIndex.Items.List^[NextIndex    ] := Start + I;
+      SphereCoordIndex.Items.L[NextIndex    ] := Start + I;
       if I <> Slices - 1 then
       begin
-        SphereCoordIndex.Items.List^[NextIndex + 1] := Start + 1 + I;
-        SphereCoordIndex.Items.List^[NextIndex + 2] := Start + 1 + I - Slices;
+        SphereCoordIndex.Items.L[NextIndex + 1] := Start + 1 + I;
+        SphereCoordIndex.Items.L[NextIndex + 2] := Start + 1 + I - Slices;
       end else
       begin
-        SphereCoordIndex.Items.List^[NextIndex + 1] := Start;
-        SphereCoordIndex.Items.List^[NextIndex + 2] := Start - Slices;
+        SphereCoordIndex.Items.L[NextIndex + 1] := Start;
+        SphereCoordIndex.Items.L[NextIndex + 2] := Start - Slices;
       end;
-      SphereCoordIndex.Items.List^[NextIndex + 3] := Start + I - Slices;
-      SphereCoordIndex.Items.List^[NextIndex + 4] := -1;
+      SphereCoordIndex.Items.L[NextIndex + 3] := Start + I - Slices;
+      SphereCoordIndex.Items.L[NextIndex + 4] := -1;
       NextIndex := NextIndex + 5;
     end;
   end;
@@ -485,17 +485,17 @@ const
     NextIndex := StartIndex;
     SphereCoordIndex.Count := SphereCoordIndex.Count + Slices * 4;
 
-    SphereCoord.Items.List^[Start] := StackTipCalc(TipAngle);
-    SphereColor.Items.List^[Start] := TipColor;
+    SphereCoord.Items.L[Start] := StackTipCalc(TipAngle);
+    SphereColor.Items.L[Start] := TipColor;
 
     for I := 0 to Slices - 1 do
     begin
-      SphereCoordIndex.Items.List^[NextIndex    ] := Start;
+      SphereCoordIndex.Items.L[NextIndex    ] := Start;
       if I <> Slices - 1 then
-        SphereCoordIndex.Items.List^[NextIndex + 1] := Start - Slices + I + 1 else
-        SphereCoordIndex.Items.List^[NextIndex + 1] := Start - Slices;
-      SphereCoordIndex.Items.List^[NextIndex + 2] := Start - Slices + I;
-      SphereCoordIndex.Items.List^[NextIndex + 3] := -1;
+        SphereCoordIndex.Items.L[NextIndex + 1] := Start - Slices + I + 1 else
+        SphereCoordIndex.Items.L[NextIndex + 1] := Start - Slices;
+      SphereCoordIndex.Items.L[NextIndex + 2] := Start - Slices + I;
+      SphereCoordIndex.Items.L[NextIndex + 3] := -1;
       NextIndex := NextIndex + 4;
     end;
   end;
@@ -537,7 +537,6 @@ const
 
     Assert(ColorCount >= 1);
     Assert(AngleCount + 1 = ColorCount);
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     ClearColor := Vector4(Color[0], 1.0);
 
     UseClearColor := ColorCount = 1;
@@ -568,7 +567,6 @@ const
       if Angle[AngleCount - 1] <= GroundHighestAngle + 0.01 then
         RenderLastStack(Color[ColorCount - 1], Pi);
     end;
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
   procedure RenderGround;
@@ -596,12 +594,10 @@ const
 
       NeedsSphere;
 
-      {$ifndef FPC}{$POINTERMATH ON}{$endif}
       RenderFirstStack(Color[0], Pi,
                        Color[1], Pi - Angle[0]);
       for I := 1 to AngleCount - 1 do
         RenderNextStack(Color[I + 1], Pi - Angle[I]);
-      {$ifndef FPC}{$POINTERMATH OFF}{$endif}
     end;
   end;
 

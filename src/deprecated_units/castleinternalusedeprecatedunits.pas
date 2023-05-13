@@ -27,10 +27,10 @@ interface
 
 uses
   {$ifdef MSWINDOWS} CastleWindowsFonts, {$endif}
-  CastleGooglePlayGames, CastleShaders, CastleGenericLists, CastleWarnings,
+  CastleGooglePlayGames, CastleShaders, CastleWarnings,
   CastleLocalization, CastleLocalizationFileLoader,
   CastleSceneManager, Castle3D, Castle2DSceneManager,
-  CastleRenderer, CastleRendererBaseTypes, CastleGLContainer, CastleGLBoxes,
+  CastleRenderer, CastleRendererBaseTypes, CastleGLContainer,
   CastleSoundAllocator, CastleOnScreenMenu, CastleProgress, CastleProgressConsole,
   CastleCreatures, CastleGameNotifications, CastleItems, CastleLevels, CastlePlayer, CastleResources,
   CastleMaterialProperties, CastleUIState, CastleDialogStates;

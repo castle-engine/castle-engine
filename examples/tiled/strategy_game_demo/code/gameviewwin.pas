@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,7 +59,7 @@ begin
   if Event.IsMouseButton(buttonLeft) then
   begin
     Container.View := ViewMainMenu;
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@ type
     or normals or tex coords) or be interleaved with other data. }
   TColladaSource = class
     Name: string;
-    Floats: TFloatList;
+    Floats: TSingleList;
     Params: TCastleStringList;
     { Collada <accessor> description of vectors inside Floats.
       Note that Count here refers to count of whole vectors (so it's usually
@@ -72,7 +72,7 @@ constructor TColladaSource.Create;
 begin
   inherited;
   Params := TCastleStringList.Create;
-  Floats := TFloatList.Create;
+  Floats := TSingleList.Create;
 end;
 
 destructor TColladaSource.Destroy;
@@ -131,9 +131,9 @@ begin
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Value.List^[I].X := Floats.List^[Offset + Stride * I + XIndex];
-    Value.List^[I].Y := Floats.List^[Offset + Stride * I + YIndex];
-    Value.List^[I].Z := Floats.List^[Offset + Stride * I + ZIndex];
+    Value.L[I].X := Floats.L[Offset + Stride * I + XIndex];
+    Value.L[I].Y := Floats.L[Offset + Stride * I + YIndex];
+    Value.L[I].Z := Floats.L[Offset + Stride * I + ZIndex];
   end;
 end;
 
@@ -185,8 +185,8 @@ begin
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Value.List^[I].X := Floats.List^[Offset + Stride * I + SIndex];
-    Value.List^[I].Y := Floats.List^[Offset + Stride * I + TIndex];
+    Value.L[I].X := Floats.L[Offset + Stride * I + SIndex];
+    Value.L[I].Y := Floats.L[Offset + Stride * I + TIndex];
   end;
 end;
 

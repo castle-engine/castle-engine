@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -122,7 +122,7 @@ begin
   if Ext = '.3ds' then Result := 'image/x-3ds' else
   if Ext = '.max' then Result := 'image/x-3ds' else
   if Ext = '.iv' then Result := 'application/x-inventor' else
-  if Ext = '.md3' then Result := 'application/x-md3' else
+  if ExtA = '.md3' then Result := 'application/x-md3' else
   if Ext = '.obj' then Result := 'application/x-wavefront-obj' else
   if Ext = '.geo' then Result := 'application/x-geo' else
   if Ext = '.kanim' then Result := 'application/x-castle-anim-frames' else
@@ -224,7 +224,7 @@ begin
   if Ext = '.castle-user-interface' then Result := 'text/x-castle-user-interface' else
   if Ext = '.castle-transform' then Result := 'text/x-castle-transform' else
   if Ext = '.castle-component' then Result := 'text/x-castle-component' else
-  if Ext = '.tmx' then Result := 'application/x-tiled-map' else
+  if ExtA = '.tmx' then Result := 'application/x-tiled-map' else
     { as a last resort, check URIMimeExtensions }
     URIMimeExtensions.TryGetValue(ExtA, Result);
 end;

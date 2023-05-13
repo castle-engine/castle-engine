@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleTransform" -*-
 {
-  Copyright 2012-2022 Michalis Kamburelis.
+  Copyright 2012-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -70,6 +70,8 @@ type
     procedure TestPhysicsMeshResolving;
     procedure TestPhysicsDefaultAutoSize;
     procedure TestReparentBehavior;
+    procedure TestRemoveParent;
+    procedure TestLayersSetSize;
   end;
 
 implementation
@@ -2351,6 +2353,48 @@ begin
     FreeAndNil(Parent2);
     FreeAndNil(Viewport);
   end;
+end;
+
+procedure TTestCastleTransform.TestRemoveParent;
+var
+  Wor: TCastleRootTransform;
+  Par, Chi: TCastleTransform;
+begin
+  Par := nil;
+  Chi := nil;
+  try
+    Wor := TCastleRootTransform.Create(nil);
+    Wor.Name := 'Wor';
+    Par := TCastleTransform.Create(nil);
+    Par.Name := 'Par';
+    Chi := TCastleTransform.Create(nil);
+    Chi.Name := 'Chi';
+
+    AssertTrue(Chi.Parent = nil);
+    AssertTrue(Chi.World = nil);
+
+    Par.Add(Chi);
+    AssertTrue(Chi.Parent = Par);
+    AssertTrue(Chi.World = nil);
+
+    Wor.Add(Par);
+    AssertTrue(Chi.Parent = Par);
+    AssertTrue(Chi.World = Wor);
+
+    FreeAndNil(Par);
+    AssertTrue(Chi.Parent = nil);
+    AssertTrue(Chi.World = nil);
+  finally
+    FreeAndNil(Wor);
+    FreeAndNil(Chi);
+    FreeAndNil(Par);
+  end;
+end;
+
+procedure TTestCastleTransform.TestLayersSetSize;
+begin
+  { TCastleLayerCollisions.CustomSerialization assumes this }
+  AssertTrue(SizeOf(Int32) = SizeOf(TPhysicsLayers));
 end;
 
 initialization

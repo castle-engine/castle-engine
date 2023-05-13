@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,10 +35,6 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
   CastleImages, CastleVideos, CastleTimeUtils, CastleTransform,
   CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors,
   CastleRenderOptions;
-
-{$ifndef FPC}
-{$POINTERMATH ON}
-{$endif}
 
 { This unit implements reading glTF into X3D.
   We're using PasGLTF from Bero: https://github.com/BeRo1985/pasgltf/
@@ -151,6 +147,16 @@ type
   TGltfAppearanceNode = class(TAppearanceNode)
   public
     DoubleSided: Boolean;
+    { Some glTF geometry is using this.
+      Deliberately defined such that default @false is OK,
+      and during import it may be set to @true. }
+    Used: Boolean;
+    { Some glTF geometry that is possibly lit is using this.
+      All geometries are "lit" except lines and points without normals,
+      see https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#point-and-line-materials .
+      Deliberately defined such that default @false is OK,
+      and during import it may be set to @true. }
+    UsedAsLit: Boolean;
   end;
 
 { TSkinToInitialize ---------------------------------------------------------- }
@@ -287,48 +293,11 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
       end;
   end;
 
-  { Perform PositionInterpolator interpolation.
-    Range and T are like results of KeyRange call. }
-  function InterpolatePosition(const Interpolator: TPositionInterpolatorNode;
-    const Range: Integer; const T: Single): TVector3;
-  var
-    KeyValue: TVector3List;
-  begin
-    KeyValue := Interpolator.FdKeyValue.Items;
-    if Range = 0 then
-      Result := KeyValue[0]
-    else
-    if Range = KeyValue.Count then
-      Result := KeyValue[KeyValue.Count - 1]
-    else
-      Result := TVector3.Lerp(T, KeyValue[Range - 1], KeyValue[Range]);
-  end;
-
-  { Perform OrientationInterpolator interpolation.
-    Range and T are like results of KeyRange call. }
-  function InterpolateOrientation(const Interpolator: TOrientationInterpolatorNode;
-    const Range: Integer; const T: Single): TVector4;
-  var
-    KeyValue: TVector4List;
-  begin
-    KeyValue := Interpolator.FdKeyValue.Items;
-    if Range = 0 then
-      Result := KeyValue[0]
-    else
-    if Range = KeyValue.Count then
-      Result := KeyValue[KeyValue.Count - 1]
-    else
-      // SLerp, like TOrientationInterpolatorNode.InterpolatorLerp
-      Result := SLerp(T, KeyValue[Range - 1], KeyValue[Range]);
-  end;
-
   { Update all CurrentXxx values affected by this animation. }
   procedure UpdateCurrentTransformation;
   var
     Interpolator: TInterpolator;
-    T: Single;
-    Range, TargetIndex: Integer;
-    Key: TSingleList;
+    TargetIndex: Integer;
   begin
     for Interpolator in Animation.Interpolators do
     begin
@@ -336,23 +305,19 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
       if TargetIndex = -1 then
         raise EInternalError.Create('Interpolator.Target not on Nodes list');
 
-      { Below we process time,
+      { Below we process Time,
         similar to TAbstractSingleInterpolatorNode.EventSet_FractionReceive. }
 
-      Key := Interpolator.Node.FdKey.Items;
-      if Key.Count = 0 then
-        // Interpolator nodes containing no keys in the key field shall not produce any events.
-        Exit;
-
-      Range := KeyRange(Key, Time, T);
-
       case Interpolator.Path of
-        gsTranslation: CurrentTranslation[TargetIndex] :=
-          InterpolatePosition(Interpolator.Node as TPositionInterpolatorNode, Range, T);
-        gsRotation: CurrentRotation[TargetIndex] :=
-          InterpolateOrientation(Interpolator.Node as TOrientationInterpolatorNode, Range, T);
-        gsScale: CurrentScale[TargetIndex] :=
-          InterpolatePosition(Interpolator.Node as TPositionInterpolatorNode, Range, T);
+        gsTranslation:
+          CurrentTranslation[TargetIndex] :=
+            (Interpolator.Node as TPositionInterpolatorNode).Interpolate(Time);
+        gsRotation:
+          CurrentRotation[TargetIndex] :=
+            (Interpolator.Node as TOrientationInterpolatorNode).Interpolate(Time);
+        gsScale:
+          CurrentScale[TargetIndex] :=
+            (Interpolator.Node as TPositionInterpolatorNode).Interpolate(Time);
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('Unexpected glTF Interpolator.Path value');
         {$endif}
@@ -729,7 +694,7 @@ procedure TPunctualLights.ReadLight(const LightObject: TPasJSONItemObject);
     begin
       ColorArray := TPasJSONItemArray(Item);
       for I := 0 to Min(2, ColorArray.Count - 1) do
-        Result.InternalData[I] := TPasJSON.GetNumber(ColorArray.Items[I], DefaultColor[I]);
+        Result.Data[I] := TPasJSON.GetNumber(ColorArray.Items[I], DefaultColor[I]);
     end;
   end;
 
@@ -1508,6 +1473,29 @@ var
     finally FreeAndNil(TexTransforms) end;
   end;
 
+  procedure FixAppearances;
+  var
+    I: Integer;
+    App: TGltfAppearanceNode;
+    Mat: TPhysicalMaterialNode;
+  begin
+    for I := 0 to Appearances.Count - 1 do
+    begin
+      App := Appearances[I] as TGltfAppearanceNode;
+      { When rendering unlit points and lines, glTF says to sum base and emissive color,
+        see https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#point-and-line-materials .
+        X3D doesn't do this, as it is a bit weird (we also don't always have "base", our
+        UnlitMaterial just has emissive).
+        As a crude fix, we correct materials that we know are only used by unlit things,
+        to have better emissiveColor. }
+      if App.Used and (not App.UsedAsLit) and (App.Material is TPhysicalMaterialNode) then
+      begin
+        Mat := TPhysicalMaterialNode(App.Material);
+        Mat.EmissiveColor := Mat.EmissiveColor + Mat.BaseColor;
+      end;
+    end;
+  end;
+
   function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
   begin
     Result := GetEnumName(TypeInfo(TPasGLTF.TAccessor.TType), Ord(AccessorType));
@@ -1550,7 +1538,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.Items.List^[0], SizeOf(LongInt) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(LongInt) * Len);
     end;
   end;
 
@@ -1568,7 +1556,7 @@ var
       Field.Count := Len;
       if Len <> 0 then
         // Both glTF and X3D call it "Float", it is "Single" in Pascal
-        Move(A[0], Field.Items.List^[0], SizeOf(Single) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(Single) * Len);
     end;
   end;
 
@@ -1585,7 +1573,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.Items.List^[0], SizeOf(TVector2) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(TVector2) * Len);
     end;
   end;
 
@@ -1602,7 +1590,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.Items.List^[0], SizeOf(TVector3) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(TVector3) * Len);
     end;
   end;
 
@@ -1620,7 +1608,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.List^[0], SizeOf(TVector4) * Len);
+        Move(A[0], Field.L[0], SizeOf(TVector4) * Len);
     end;
   end;
 
@@ -1643,7 +1631,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.List^[0], SizeOf(TVector4Integer) * Len);
+        Move(A[0], Field.L[0], SizeOf(TVector4Integer) * Len);
     end;
   end;
 
@@ -1660,11 +1648,12 @@ var
       Len := Length(A);
       List.Count := Len;
       if Len <> 0 then
-        Move(A[0], List.List^[0], SizeOf(TMatrix4) * Len);
+        Move(A[0], List.L[0], SizeOf(TMatrix4) * Len);
     end;
   end;
 
-  procedure AccessorToRotation(const AccessorIndex: Integer; const Field: TMFRotation; const ForVertex: Boolean);
+  procedure AccessorToRotation(const AccessorIndex: Integer; const Field: TMFRotation; const ForVertex: Boolean;
+    const ReturnQuaternions: Boolean);
   var
     Accessor: TPasGLTF.TAccessor;
     A: TPasGLTF.TVector4DynamicArray;
@@ -1676,9 +1665,18 @@ var
       A := Accessor.DecodeAsVector4Array(ForVertex);
       Len := Length(A);
       Field.Count := Len;
-      // convert glTF rotation to X3D
-      for I := 0 to Len - 1 do
-        Field.Items.List^[I] := RotationFromGltf(A[I]);
+      if ReturnQuaternions then
+      begin
+        { Return exact quaternions, without converting to axis-angle.
+          This will cooperate with TOrientationInterpolatorNode.KeyValueQuaternions. }
+        for I := 0 to Len - 1 do
+          Field.Items.L[I] := Vector4FromGltf(A[I]);
+      end else
+      begin
+        // convert glTF rotation to X3D
+        for I := 0 to Len - 1 do
+          Field.Items.L[I] := RotationFromGltf(A[I]);
+      end;
     end;
   end;
 
@@ -1716,7 +1714,16 @@ var
     I: Integer;
   begin
     for I := 0 to TexCoord.Count - 1 do
-      TexCoord.List^[I].Y := 1  - TexCoord.List^[I].Y;
+      TexCoord.L[I].Y := 1  - TexCoord.L[I].Y;
+  end;
+
+  function PossiblyLitGeometry(const Geometry: TAbstractGeometryNode): Boolean;
+  begin
+    Result := not (
+      (Geometry is TPointSetNode) or
+      (Geometry is TIndexedLineSetNode) or
+      (Geometry is TLineSetNode)
+    );
   end;
 
   procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive;
@@ -1741,10 +1748,19 @@ var
     if Primitive.Indices <> -1 then
     begin
       case Primitive.Mode of
-        TPasGLTF.TMesh.TPrimitive.TMode.Lines        : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
-        // TODO: these will require unpacking and expressing as TIndexedLineSetNode
-        //TPasGLTF.TMesh.TPrimitive.TMode.LineLoop     : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
-        //TPasGLTF.TMesh.TPrimitive.TMode.LineStrip    : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+        // TODO: We don't have indexed points in X3D.
+        TPasGLTF.TMesh.TPrimitive.TMode.Points       : Geometry := TPointSetNode.CreateWithShape(Shape);
+        TPasGLTF.TMesh.TPrimitive.TMode.Lines        :
+          begin
+            Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+            TIndexedLineSetNode(Geometry).Mode := lmPair;
+          end;
+        TPasGLTF.TMesh.TPrimitive.TMode.LineLoop     :
+          begin
+            Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+            TIndexedLineSetNode(Geometry).Mode := lmLoop;
+          end;
+        TPasGLTF.TMesh.TPrimitive.TMode.LineStrip    : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.Triangles    : Geometry := TIndexedTriangleSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.TriangleStrip: Geometry := TIndexedTriangleStripSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.TriangleFan  : Geometry := TIndexedTriangleFanSetNode.CreateWithShape(Shape);
@@ -1757,10 +1773,18 @@ var
     end else
     begin
       case Primitive.Mode of
-        TPasGLTF.TMesh.TPrimitive.TMode.Lines        : Geometry := TLineSetNode.CreateWithShape(Shape);
-        // TODO: these will require unpacking and expressing as TIndexedLineSetNode
-        //TPasGLTF.TMesh.TPrimitive.TMode.LineLoop     : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
-        //TPasGLTF.TMesh.TPrimitive.TMode.LineStrip    : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+        TPasGLTF.TMesh.TPrimitive.TMode.Points       : Geometry := TPointSetNode.CreateWithShape(Shape);
+        TPasGLTF.TMesh.TPrimitive.TMode.Lines        :
+          begin
+            Geometry := TLineSetNode.CreateWithShape(Shape);
+            TLineSetNode(Geometry).Mode := lmPair;
+          end;
+        TPasGLTF.TMesh.TPrimitive.TMode.LineLoop     :
+          begin
+            Geometry := TLineSetNode.CreateWithShape(Shape);
+            TLineSetNode(Geometry).Mode := lmLoop;
+          end;
+        TPasGLTF.TMesh.TPrimitive.TMode.LineStrip    : Geometry := TLineSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.Triangles    : Geometry := TTriangleSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.TriangleStrip: Geometry := TTriangleStripSetNode.CreateWithShape(Shape);
         TPasGLTF.TMesh.TPrimitive.TMode.TriangleFan  : Geometry := TTriangleFanSetNode.CreateWithShape(Shape);
@@ -1790,6 +1814,11 @@ var
         AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
         Geometry.CoordField.Value := Coord;
         Shape.BBox := TBox3D.FromPoints(Coord.FdPoint.Items);
+        { Do special fix for line strip and line loop: glTF specifies just one strip/loop,
+          put it in VertexCount. }
+        if (Geometry is TLineSetNode) and
+           (TLineSetNode(Geometry).Mode in [lmStrip, lmLoop]) then
+          TLineSetNode(Geometry).SetVertexCount([Coord.FdPoint.Count]);
       end else
       if IsPrefix('TEXCOORD_', AttributeName, false) and (Geometry.TexCoordField <> nil) then
       begin
@@ -1862,6 +1891,8 @@ var
         WritelnWarning('glTF', 'Primitive specifies invalid material index %d',
           [Primitive.Material]);
     end;
+    Appearance.Used := true;
+    Appearance.UsedAsLit := Appearance.UsedAsLit or PossiblyLitGeometry(Geometry);
     Shape.Appearance := Appearance;
 
     // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
@@ -1925,7 +1956,10 @@ var
       OrthoViewpoint.X3DName := Camera.Name;
       OrthoViewpoint.Position := TVector3.Zero;
       if CastleX3dExtensions then
+      begin
+        OrthoViewpoint.AutoCenterOfRotation := true;
         OrthoViewpoint.GravityTransform := false;
+      end;
       ParentGroup.AddChildren(OrthoViewpoint);
 
       ReadMetadata(Camera.Extras, OrthoViewpoint);
@@ -1939,7 +1973,10 @@ var
       if Camera.Perspective.YFov <> 0 then
         Viewpoint.FieldOfView := Camera.Perspective.YFov;
       if CastleX3dExtensions then
+      begin
+        Viewpoint.AutoCenterOfRotation := true;
         Viewpoint.GravityTransform := false;
+      end;
       ParentGroup.AddChildren(Viewpoint);
 
       ReadMetadata(Camera.Extras, Viewpoint);
@@ -2105,7 +2142,8 @@ var
           InterpolateOrientation := TOrientationInterpolatorNode.Create;
           Interpolator := InterpolateOrientation;
           InterpolatorOutputEvent := InterpolateOrientation.EventValue_changed;
-          AccessorToRotation(Sampler.Output, InterpolateOrientation.FdKeyValue, false);
+          AccessorToRotation(Sampler.Output, InterpolateOrientation.FdKeyValue, false, CastleX3dExtensions);
+          InterpolateOrientation.KeyValueQuaternions := CastleX3dExtensions;
           TargetField := Node.FdRotation;
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
@@ -2338,7 +2376,7 @@ var
     AnimationSampler.SetTime(TimeFraction);
 
     if SkeletonRootIndex <> -1 then
-      SkeletonRootInverse := AnimationSampler.Transformations.List^[SkeletonRootIndex].InverseTransform
+      SkeletonRootInverse := AnimationSampler.Transformations.L[SkeletonRootIndex].InverseTransform
     else
       SkeletonRootInverse := TMatrix4.Identity;
 
@@ -2346,7 +2384,7 @@ var
       https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
     for I := 0 to Joints.Count - 1 do
       JointMatrix[I] := SkeletonRootInverse *
-        AnimationSampler.Transformations.List^[JointsGltf[I]].Transform *
+        AnimationSampler.Transformations.L[JointsGltf[I]].Transform *
         InverseBindMatrices[I];
 
     { For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
@@ -2368,20 +2406,25 @@ var
             """it's not exactly a satisfying fix, but in practice using 1, 0, 0, 0 when the weights would otherwise be zero has avoided these issues in threejs."""
           https://github.com/KhronosGroup/glTF/pull/1352
           https://github.com/Franck-Dernoncourt/NeuroNER/issues/91 }
-        SkinMatrix := JointMatrix.List^[0];
+        SkinMatrix := JointMatrix.L[0];
       end else
       begin
         SkinMatrix :=
-          JointMatrix.List^[VertexJoints.X] * VertexWeights.X +
-          JointMatrix.List^[VertexJoints.Y] * VertexWeights.Y +
-          JointMatrix.List^[VertexJoints.Z] * VertexWeights.Z +
-          JointMatrix.List^[VertexJoints.W] * VertexWeights.W;
+          JointMatrix.L[VertexJoints.X] * VertexWeights.X +
+          JointMatrix.L[VertexJoints.Y] * VertexWeights.Y +
+          JointMatrix.L[VertexJoints.Z] * VertexWeights.Z +
+          JointMatrix.L[VertexJoints.W] * VertexWeights.W;
       end;
-      AnimatedCoords.List^[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
+      { Note: On Delphi, we *have to* use L[...] below and depend on $pointermath on,
+        instead of using List^[...].
+        That's because on Delphi, List^[...] may have too small (declared) upper size
+        due to Delphi not supporting SizeOf(T) in generics.
+        See https://github.com/castle-engine/castle-engine/issues/474 . }
+      AnimatedCoords.L[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
       if AnimatedNormals <> nil then
-        AnimatedNormals.List^[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals[I]);
+        AnimatedNormals.L[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals[I]);
       if AnimatedTangents <> nil then
-        AnimatedTangents.List^[KeyIndex * OriginalTangents.Count + I] := SkinMatrix.MultDirection(OriginalTangents[I]);
+        AnimatedTangents.L[KeyIndex * OriginalTangents.Count + I] := SkinMatrix.MultDirection(OriginalTangents[I]);
     end;
   end;
 
@@ -2408,6 +2451,15 @@ var
     F := TSFVec3f.Create(nil, true, 'bboxSize', Size);
     ValueTrigger.AddCustomField(F);
     ParentGroup.AddRoute(F, Shape.FdBboxSize);
+  end;
+
+  function ShapeLit(const ShapeNode: TShapeNode): Boolean;
+  begin
+    Result := (ShapeNode.Appearance <> nil) and
+      (
+        (ShapeNode.Appearance.Material is TMaterialNode) or
+        (ShapeNode.Appearance.Material is TPhysicalMaterialNode)
+      );
   end;
 
   { Calculate skin interpolator nodes to deform this one shape.
@@ -2467,8 +2519,7 @@ var
       end;
     end else
     begin
-      if (Shape.Material is TMaterialNode) or
-         (Shape.Material is TPhysicalMaterialNode) then
+      if ShapeLit(Shape) then
         WritelnWarning('TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. ' + 'For now it is adviced to generate glTF with normals included for skinned meshes.');
     end;
 
@@ -2488,9 +2539,8 @@ var
       end;
     end else
     begin
-      if ( (Shape.Material is TMaterialNode) or
-           (Shape.Material is TPhysicalMaterialNode) ) and
-         ((Shape.Material as TAbstractOneSidedMaterialNode).NormalTexture <> nil) then
+      if ShapeLit(Shape) and
+         ((Shape.Appearance.Material as TAbstractOneSidedMaterialNode).NormalTexture <> nil) then
         WritelnWarning('TODO: Tangent vectors are not provided for a skinned geometry (using lit material with normalmap), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. ' + 'For now it is adviced to generate glTF with tangents included for skinned meshes.');
     end;
 
@@ -2796,6 +2846,9 @@ begin
         ReadScene(0, Result);
       end;
 
+      // once appearances Used, UsedAsLit are set, fix them
+      FixAppearances;
+
       // read animations
       for Animation in Document.Animations do
         ReadAnimation(Animation, Result);
@@ -2825,9 +2878,5 @@ begin
     end;
   except FreeAndNil(Result); raise end;
 end;
-
-{$ifndef FPC}
-{$POINTERMATH OFF}
-{$endif}
 
 end.

@@ -555,7 +555,10 @@ begin
       InternalDocument.DocumentElement := Child.InternalNode;
       FDocumentElement := TDOMElement(Child);
     end else
-      FreeAndNil(Child);
+    if Child <> nil then
+      raise EDOMHierarchyRequest.CreateFmt('TDOMDocument.AppendChild accepts only TDOMElement, but given %s', [
+        Child.ClassName
+      ]);
   end else
     raise Exception.Create('Delphi limitation: There can be only one root element!');
 end;

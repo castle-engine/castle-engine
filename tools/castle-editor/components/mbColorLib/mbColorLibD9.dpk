@@ -1,0 +1,111 @@
+package mbColorLibD9;
+
+{$R *.res}
+{$R 'HexaColorPicker.dcr'}
+{$R 'HSColorPicker.dcr'}
+{$R 'HSLColorPicker.dcr'}
+{$R 'LColorPicker.dcr'}
+{$R 'mbColorPreview.dcr'}
+{$R 'mbDeskPickerButton.dcr'}
+{$R 'mbOfficeColorDialog.dcr'}
+{$R 'mbColorPalette.dcr'}
+{$R 'HColorPicker.dcr'}
+{$R 'SColorPicker.dcr'}
+{$R 'VColorPicker.dcr'}
+{$R 'SLColorPicker.dcr'}
+{$R 'HSVColorPicker.dcr'}
+{$R 'HRingPicker.dcr'}
+{$R 'HSLRingPicker.dcr'}
+{$R 'SLHColorPicker.dcr'}
+{$R 'YColorPicker.dcr'}
+{$R 'BAxisColorPicker.dcr'}
+{$R 'BColorPicker.dcr'}
+{$R 'CColorPicker.dcr'}
+{$R 'CIEAColorPicker.dcr'}
+{$R 'CIEBColorPicker.dcr'}
+{$R 'CIELColorPicker.dcr'}
+{$R 'GAxisColorPicker.dcr'}
+{$R 'GColorPicker.dcr'}
+{$R 'KColorPicker.dcr'}
+{$R 'mbColorList.dcr'}
+{$R 'mbColorTree.dcr'}
+{$R 'MColorPicker.dcr'}
+{$R 'RAxisColorPicker.dcr'}
+{$R 'RColorPicker.dcr'}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'MXS -- mbColor Lib v2.0.1 (Color pickers)'}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  vcl,
+  VclSmp,
+  vclx{$IFDEF mbXP_Lib},
+  mbXPLibD9{$ENDIF};
+
+contains
+  HexaColorPicker in 'HexaColorPicker.pas',
+  HSColorPicker in 'HSColorPicker.pas',
+  HSLColorPicker in 'HSLColorPicker.pas',
+  LColorPicker in 'LColorPicker.pas',
+  RGBHSLUtils in 'RGBHSLUtils.pas',
+  mbColorPreview in 'mbColorPreview.pas',
+  mbDeskPickerButton in 'mbDeskPickerButton.pas',
+  ScreenWin in 'ScreenWin.pas' {ScreenForm},
+  OfficeMoreColorsDialog in 'OfficeMoreColorsDialog.pas' {OfficeMoreColorsWin},
+  mbOfficeColorDialog in 'mbOfficeColorDialog.pas',
+  mbColorPalette in 'mbColorPalette.pas',
+  HTMLColors in 'HTMLColors.pas',
+  RGBHSVUtils in 'RGBHSVUtils.pas',
+  VColorPicker in 'VColorPicker.pas',
+  HColorPicker in 'HColorPicker.pas',
+  SColorPicker in 'SColorPicker.pas',
+  mbTrackBarPicker in 'mbTrackBarPicker.pas',
+  SLColorPicker in 'SLColorPicker.pas',
+  HRingPicker in 'HRingPicker.pas',
+  HSLRingPicker in 'HSLRingPicker.pas',
+  HSVColorPicker in 'HSVColorPicker.pas',
+  SLHColorPicker in 'SLHColorPicker.pas',
+  YColorPicker in 'YColorPicker.pas',
+  BAxisColorPicker in 'BAxisColorPicker.pas',
+  BColorPicker in 'BColorPicker.pas',
+  CColorPicker in 'CColorPicker.pas',
+  CIEAColorPicker in 'CIEAColorPicker.pas',
+  CIEBColorPicker in 'CIEBColorPicker.pas',
+  CIELColorPicker in 'CIELColorPicker.pas',
+  GAxisColorPicker in 'GAxisColorPicker.pas',
+  GColorPicker in 'GColorPicker.pas',
+  KColorPicker in 'KColorPicker.pas',
+  mbColorList in 'mbColorList.pas',
+  mbColorPickerControl in 'mbColorPickerControl.pas',
+  mbColorTree in 'mbColorTree.pas',
+  MColorPicker in 'MColorPicker.pas',
+  PalUtils in 'PalUtils.pas',
+  RAxisColorPicker in 'RAxisColorPicker.pas',
+  RColorPicker in 'RColorPicker.pas',
+  RGBCIEUtils in 'RGBCIEUtils.pas',
+  RGBCMYKUtils in 'RGBCMYKUtils.pas',
+  Scanlines in 'Scanlines.pas',
+  SelPropUtils in 'SelPropUtils.pas';
+
+end.

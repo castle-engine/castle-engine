@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,8 @@ unit Vcl.CastleControl;
 interface
 
 uses SysUtils, Classes, Vcl.Controls, Vcl.ExtCtrls, Types,  WinApi.Messages,
-  CastleGLVersion, CastleGLUtils, CastleInternalContextWgl, CastleInternalContainer,
+  CastleGLVersion, CastleGLUtils,
+  CastleInternalContextBase, CastleInternalContextWgl, CastleInternalContainer,
   CastleVectors, CastleKeysMouse;
 
 type
@@ -40,7 +41,7 @@ type
       protected
         function GetMousePosition: TVector2; override;
         procedure SetMousePosition(const Value: TVector2); override;
-        procedure AdjustContext(const AContext: TGLContextWGL); override;
+        procedure AdjustContext(const PlatformContext: TGLContext); override;
         class procedure UpdatingEnable; override;
         class procedure UpdatingDisable; override;
       public
@@ -49,7 +50,6 @@ type
         function Width: Integer; override;
         function Height: Integer; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
-        function Dpi: Single; override;
       end;
 
     var
@@ -68,7 +68,7 @@ type
       to update Pressed when needed. }
     procedure UpdateShiftState(const Shift: TShiftState);
   private
-      procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
+    procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
   protected
     procedure CreateHandle; override;
     procedure DestroyHandle; override;
@@ -133,16 +133,18 @@ begin
   Parent := AParent;
 end;
 
-procedure TCastleControl.TContainer.AdjustContext(const AContext: TGLContextWGL);
+procedure TCastleControl.TContainer.AdjustContext(const PlatformContext: TGLContext);
+{$ifdef MSWINDOWS}
+var
+  WinContext: TGLContextWGL;
 begin
   inherited;
-  AContext.WndPtr := Parent.Handle;
-  AContext.h_Dc := GetWindowDC(AContext.WndPtr);
-end;
-
-function TCastleControl.TContainer.Dpi: Single;
+  WinContext := PlatformContext as TGLContextWGL;
+  WinContext.WndPtr := Parent.Handle;
+  WinContext.h_Dc := GetWindowDC(WinContext.WndPtr);
+{$else}
 begin
-  Result := DefaultDpi;
+{$endif}
 end;
 
 function TCastleControl.TContainer.GetMousePosition: TVector2;
@@ -159,7 +161,13 @@ class procedure TCastleControl.TContainer.UpdatingEnable;
 begin
   inherited;
   UpdatingTimer := TTimer.Create(nil);
-  UpdatingTimer.Interval := 1;
+  if csDesigning in UpdatingTimer.ComponentState then
+    { At design-time, limit FPS.
+      Otherwise even Delphi IDE may become sluggish on very old GPUs.
+      Observed on old laptops with Delphi 10.2.3 and 10.4 on Win64. }
+    UpdatingTimer.Interval := Round(1000 / 60)
+  else
+    UpdatingTimer.Interval := 1;
   UpdatingTimer.OnTimer := {$ifdef FPC}@{$endif} UpdatingTimerEvent;
 end;
 

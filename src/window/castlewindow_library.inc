@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,6 @@
   The external code will get notified about our events using LibraryCallbackProc. }
 
 {$ifdef read_interface_uses}
-CTypes,
 {$endif}
 
 {$ifdef read_implementation_uses}
@@ -75,10 +74,6 @@ procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
 procedure CGEApp_JoystickCount(JoystickCount: CInt); cdecl;
 function CGEApp_HandleOpenUrl(szUrl: PChar): CInt32; cdecl;
 
-{$endif read_global_interface}
-
-{$ifdef read_implementation}
-
 const
   { Constants used for callbacks.
     Must be synchronized with constants in
@@ -92,6 +87,13 @@ const
   ecgelibSetMousePosition      = 3;  // sends x in iParam1 and y in iParam2
   ecgelibWarning               = 4;  // sends message in szParam
 
+  // navigation types (ECgeNavigationType enum)
+  ecgenavWalk      = 0;
+  ecgenavFly       = 1;
+  ecgenavExamine   = 2;
+  ecgenavTurntable = 3;
+  ecgenavNone      = 4;
+
   // mouse cursor codes
   ecgecursorDefault   = 0;
   ecgecursorWait      = 1;
@@ -101,6 +103,10 @@ const
 
 var
   LibraryCallbackProc: TLibraryCallbackProc;
+
+{$endif read_global_interface}
+
+{$ifdef read_implementation}
 
 { TCastleWindow ---------------------------------------------------------- }
 
@@ -413,7 +419,7 @@ begin
     Application.MainWindow.FTop := 0;
     Application.MainWindow.FWidth := InitialWidth;
     Application.MainWindow.FHeight := InitialHeight;
-    Application.MainWindow.Dpi := ADpi;
+    Application.MainWindow.Container.Dpi := ADpi;
     Application.MainWindow.Open;
   except
     on E: TObject do WritelnWarning('CGEApp_Open', ExceptMessage(E));
@@ -519,27 +525,51 @@ begin
 end;
 
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
+
+  { Guess key as String, used e.g. by X3D KeySensor processing.
+    Without this, demo-models/navigation/navigation_info_bind.x3dv would not react to keys 1,2,3. }
+  function GuessKeyStringFromKey(const Key: TKey): String;
+  begin
+    Result := '';
+    case Key of
+      key0..key9: Result := Chr(Ord(Key));
+      keyA..keyZ: Result := LoCase(Chr(Ord(Key)));
+    end;
+  end;
+
+var
+  Key: TKey;
 begin
   try
     CheckMainWindow;
-    if TKey(eKey) <> keyNone then
-      // TODO: calculate sensible char
-      Application.MainWindow.DoKeyDown(TKey(eKey), '');
-    // if TKey(eKey) <> keyNone then
-    //   WritelnLog('key down %s', [KeyToStr(TKey(eKey))]);
+    Key := TKey(eKey);
+    if Key <> keyNone then
+    begin
+      // Writeln(Format('Library received key down %s "%s"', [
+      //   KeyToStr(Key),
+      //   GuessKeyStringFromKey(Key)
+      // ]));
+      Application.MainWindow.DoKeyDown(Key, GuessKeyStringFromKey(Key));
+    end;
   except
     on E: TObject do WritelnWarning('CGEApp_KeyDown', ExceptMessage(E));
   end;
 end;
 
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
+var
+  Key: TKey;
 begin
   try
     CheckMainWindow;
-    if TKey(eKey) <> keyNone then
-      Application.MainWindow.DoKeyUp(TKey(eKey));
-    // if TKey(eKey) <> keyNone then
-    //   WritelnLog('key up %s', [KeyToStr(TKey(eKey))]);
+    Key := TKey(eKey);
+    if Key <> keyNone then
+    begin
+      // Writeln(Format('Library received key up %s', [
+      //   KeyToStr(Key)
+      // ]));
+      Application.MainWindow.DoKeyUp(Key);
+    end;
   except
     on E: TObject do WritelnWarning('CGEApp_KeyUp', ExceptMessage(E));
   end;

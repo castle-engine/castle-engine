@@ -1,6 +1,6 @@
 // -*- compile-command: "castle-engine compile && cd .. && ./run.sh" -*-
 {
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -213,6 +213,9 @@ begin
         FieldConfigure += '   ' + Field.PascalNamePrefixed + '.MustBeNonnegative := true;' + NL;
       if Field.WeakLink then
         FieldConfigure += '   ' + Field.PascalNamePrefixed + '.WeakLink := true;' + NL;
+      if Field.SetterBefore <> '' then
+        FieldConfigure += '   ' + Field.PascalNamePrefixed + '.OnBeforeValueChange := {$ifdef FPC}@{$endif}' + Field.SetterBefore + ';' + NL;
+
       FieldExposed := BoolToStr(Field.AccessType = atInputOutput, true);
 
       if Field.Comment <> '' then
@@ -526,8 +529,8 @@ begin
   end else
   if X3DType = 'MFInt32' then
   begin
-    Names.Add('array of LongInt');
-    Names.Add('TLongIntList');
+    Names.Add('array of Int32');
+    Names.Add('TInt32List');
   end else
   if X3DType = 'MFBool' then
   begin
@@ -1244,7 +1247,6 @@ begin
           NL +
           'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL +
           'begin' + NL +
-          Iff(Field.SetterBefore <> '', '  ' + Field.SetterBefore + '(Value);' + NL, '') +
           '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
           'end;' + NL +
           NL +

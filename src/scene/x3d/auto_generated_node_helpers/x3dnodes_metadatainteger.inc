@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,9 +31,9 @@
     { Internal wrapper for property @link(Value). This wrapper API may change, we advise to access simpler @link(Value) instead. }
     public property FdValue: TMFInt32 read FFdValue;
     {  }
-    procedure SetValue(const Value: array of LongInt); overload;
+    procedure SetValue(const Value: array of Int32); overload;
     {  }
-    procedure SetValue(const Value: TLongIntList); overload;
+    procedure SetValue(const Value: TInt32List); overload;
 
 {$endif read_interface}
 
@@ -41,12 +41,12 @@
 
 { TMetadataIntegerNode ----------------------------------------------- }
 
-procedure TMetadataIntegerNode.SetValue(const Value: array of LongInt);
+procedure TMetadataIntegerNode.SetValue(const Value: array of Int32);
 begin
   FdValue.Send(Value);
 end;
 
-procedure TMetadataIntegerNode.SetValue(const Value: TLongIntList);
+procedure TMetadataIntegerNode.SetValue(const Value: TInt32List);
 begin
   FdValue.Send(Value);
 end;

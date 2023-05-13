@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,23 +30,28 @@ interface
 
 type
   { OpenGL(ES) library version information.
+    Determined looking at information from glGetString(GL_VERSION),
+    glGetString(GL_VENDOR) and such.
 
-    As obtained from glGetString(GL_VERSION), glGetString(GL_VENDOR) and similar
-    routines.
+    User code should never create instances of this class.
+    Only use the singleton @link(GLVersion), already initialized for you.
 
-    This is usually created by CastleGLUtils.GLInformationInitialize. }
+    Internally, this should be always created by GLInformationInitialize. }
   TGenericGLVersion = class
+  strict private
+    FVersionString: String;
   public
-    constructor Create(const VersionString: string);
+    constructor Create(const AVersionString: string);
   public
-    { Required (every OpenGL implemenetation has them)
-      major and minor numbers.
+    { Major and minor version numbers of OpenGL(ES) implementation.
       @groupBegin }
     Major: Integer;
     Minor: Integer;
     { @groupEnd }
 
-    { Release is the optional release number (check ReleaseExists first).
+    { Release version number of OpenGL(ES) implementation.
+      Optional, some OpenGL(ES) implementations may not have "release" number
+      (check ReleaseExists first).
       @groupBegin }
     ReleaseExists: boolean;
     Release: Integer;
@@ -58,20 +63,32 @@ type
     VendorVersion: string;
 
     function AtLeast(AMajor, AMinor: Integer): boolean;
+
+    { Version as a string.
+      This is full unprocessed and untrimmed value, as returned by glGetString(GL_VERSION). }
+    property VersionString: String read FVersionString;
   end;
 
+  { Recognized OpenGL(ES) vendor names.
+
+    Note that we don't try to recognize all vendors, only the most popular ones
+    and the ones whose detection is necessary to workaround/optimize
+    some OpenGL(ES) code. For unrecognized vendors, we just set gvOther. }
   TGLVendorType = (
-    gvUnknown,
+    { Some vendor not covered by other enums. }
+    gvOther,
     { ATI GPU with ATI drivers. }
     gvATI,
     { NVidia GPU with NVidia drivers. }
     gvNvidia,
     { Intel GPU with Intel drivers. }
     gvIntel,
-    { Imagination Technologies (PowerVR) GPU, common on mobile devices. }
+    { Imagination Technologies (PowerVR) GPU, found on mobile devices. }
     gvImaginationTechnologies,
-    { Qualcomm Adreno, mobile devices }
-    gvQualcomm
+    { Qualcomm Adreno, found on mobile devices. }
+    gvQualcomm,
+    { Arm, makers of Mali GPU, found on mobile devices. }
+    gvArm
   );
 
   TGLVersion = class(TGenericGLVersion)
@@ -84,24 +101,19 @@ type
     FVendorMajor: Integer;
     FVendorMinor: Integer;
     FVendorRelease: Integer;
-    FBuggyGenerateMipmap: boolean;
     FBuggyGenerateCubeMap: boolean;
     FBuggyFBOCubeMap: boolean;
-    FBuggyLightModelTwoSide: boolean;
-    FBuggyLightModelTwoSideMessage: string;
     FBuggyVBO: boolean;
-    FBuggyShaderShadowMap: boolean;
     FBuggyFBOMultiSampling: boolean;
     FBuggySwapNonStandardViewport: boolean;
     FBuggyDepth32: boolean;
     FBuggyGLSLFrontFacing: boolean;
     FBuggyGLSLReadVarying: boolean;
-    FBuggyPureShaderPipeline: boolean;
     FBuggyTextureSizeAbove2048: Boolean;
     FBuggyGLSLBumpMappingNumSteps: Boolean;
     function AppleRendererOlderThan(const VersionNumber: Cardinal): Boolean;
   public
-    constructor Create(const VersionString, AVendor, ARenderer: string);
+    constructor Create(const AVersionString, AVendor, ARenderer: string);
 
     { Vendor that created the OpenGL implemenetation.
       This is just glGetString(GL_VENDOR). }
@@ -128,15 +140,6 @@ type
 
     { ATI GPU with ATI drivers on Linux. }
     property Fglrx: boolean read FFglrx;
-
-    { Buggy glGenerateMipmapEXT (Mesa and Intel(Windows) bug).
-
-      This was observed with software (no direct) rendering with
-      7.0.2 (segfaults) and 7.2.? (makes X crashing; sweet).
-      With Mesa 7.5.1 (but tested only with radeon and radeonhd,
-      so possibly it's not really related to Mesa version! Reports welcome)
-      no problems. }
-    property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
 
     { Buggy generation of cube maps on FBO (Intel(Windows) bug).
 
@@ -173,16 +176,8 @@ type
     }
     property BuggyGenerateCubeMap: boolean read FBuggyGenerateCubeMap;
 
-    { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (ATI(Linux) bug).
-      See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
-    property BuggyLightModelTwoSide: boolean read FBuggyLightModelTwoSide;
-    property BuggyLightModelTwoSideMessage: string read FBuggyLightModelTwoSideMessage;
-
     { Buggy VBO (Intel(Windows) bug). }
     property BuggyVBO: boolean read FBuggyVBO;
-
-    { Buggy shadow2DProj in some situations (ATI(Linux) bug). }
-    property BuggyShaderShadowMap: boolean read FBuggyShaderShadowMap;
 
     { Buggy (looks like wireframe) FBO rendering to
       the multi-sampling texture (ATI(Windows) and Intel(Windows) bug).
@@ -213,10 +208,6 @@ type
     { Do not read varying values in vertex shader, treat them as write-only. }
     property BuggyGLSLReadVarying: boolean read FBuggyGLSLReadVarying;
 
-    { Various problems when trying to use shaders to render everything.
-      See https://github.com/castle-engine/view3dscene/issues/6#issuecomment-362826781 }
-    property BuggyPureShaderPipeline: boolean read FBuggyPureShaderPipeline;
-
     { MaxTextureSize above 2048 shall not be trusted. }
     property BuggyTextureSizeAbove2048: Boolean read FBuggyTextureSizeAbove2048;
 
@@ -235,8 +226,11 @@ type
   end;
 
 var
-  { Core OpenGL version information.
-    This is usually created by CastleGLUtils.GLInformationInitialize. }
+  { OpenGL(ES) version information.
+
+    Internally automatically initialized when at least one OpenGL(ES) context is open,
+    may be @nil otherwise.
+    User code should never set this variable. }
   GLVersion: TGLVersion;
 
 function VendorTypeToStr(const VendorType: TGLVendorType): string;
@@ -286,11 +280,13 @@ end;
 
 { TGenericGLVersion ---------------------------------------------------------- }
 
-constructor TGenericGLVersion.Create(const VersionString: string);
+constructor TGenericGLVersion.Create(const AVersionString: string);
 var
   I: Integer;
 begin
   inherited Create;
+
+  FVersionString := AVersionString;
 
   try
     I := 1;
@@ -351,7 +347,7 @@ end;
 
 { TGLVersion ----------------------------------------------------------------- }
 
-constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
+constructor TGLVersion.Create(const AVersionString, AVendor, ARenderer: String);
 
   { Parse VendorMajor / VendorMinor / VendorRelease, starting from S[I]. }
   procedure ParseVendorVersionSuffix(const S: string; var I: Integer);
@@ -465,7 +461,7 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
   end;
 
 begin
-  inherited Create(VersionString);
+  inherited Create(AVersionString);
 
   ParseVendorVersion;
 
@@ -474,30 +470,29 @@ begin
 
   { calculate FVendorType }
   if IsPrefix('NVIDIA', Vendor) then // Actually seen possible values here: 'NVIDIA Corporation'.
-    FVendorType := gvNvidia else
+    FVendorType := gvNvidia
+  else
   { Although "ATI Technologies Inc." is usually found,
     according to http://delphi3d.net/hardware/listreports.php
     also just "ATI" is possible. }
   if (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI') then
-    FVendorType := gvATI else
+    FVendorType := gvATI
+  else
   if IsPrefix('Intel', Vendor) then
-    FVendorType := gvIntel else
+    FVendorType := gvIntel
+  else
   if (Vendor = 'Imagination Technologies') then
-    FVendorType := gvImaginationTechnologies else
+    FVendorType := gvImaginationTechnologies
+  else
   if (Vendor = 'Qualcomm') then
-    FVendorType := gvQualcomm else
-    FVendorType := gvUnknown;
+    FVendorType := gvQualcomm
+  else
+  if SameText(Vendor, 'Arm') then
+    FVendorType := gvArm
+  else
+    FVendorType := gvOther;
 
   FFglrx := {$ifdef LINUX} VendorType = gvATI {$else} false {$endif};
-
-  FBuggyGenerateMipmap :=
-    (Mesa and (not VendorVersionAtLeast(7, 5, 0)))
-    {$ifdef MSWINDOWS}
-    or
-    ( (VendorType = gvIntel) and
-      not VendorVersionAtLeast(9, 0, 0)
-    )
-    {$endif};
 
   FBuggyFBOCubeMap :=
     {$ifdef MSWINDOWS}
@@ -516,30 +511,6 @@ begin
     {$else} false
     {$endif};
 
-  { On which fglrx versions does this occur?
-
-    - On Catalyst 8.12 (fglrx 8.561) all seems to work fine
-      (tested on MacBook Pro "chantal").
-
-    - Catalyst 9.1 (fglrx 8.573) - not known.
-      Below we only *assume* the bug started from 9.1.
-
-    - On Catalyst 9.10 and 10.3 the bug does occur.
-      Tested on Radeon HD 4300 (on HP ProBook "czarny"), Ubuntu x86_64.
-
-    - Bug confirmed also on Ubuntu 10.04 (fglrx 8.723).
-      Tested on Radeon HD 4300 (on HP ProBook "czarny"), Ubuntu x86_64.
-
-    - Bug disappeared on Ubuntu 10.10 (fglrx 8.780). Seems fixed there.
-      (fglrx bugzilla was wiped, so we don't have any official
-      confirmation about this from AMD.) }
-
-  FBuggyLightModelTwoSide := Fglrx and ReleaseExists and
-    (Release >= 8573) and (Release < 8780);
-  if BuggyLightModelTwoSide then
-    FBuggyLightModelTwoSideMessage := 'Detected fglrx (ATI proprietary Linux drivers) version >= 9.x. ' + 'Setting GL_LIGHT_MODEL_TWO_SIDE to GL_TRUE may cause nasty bugs on some shaders (see http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14), so disabling two-sided lighting.' else
-    FBuggyLightModelTwoSideMessage := '';
-
   FBuggyVBO := {$ifdef MSWINDOWS}
     { See demo_models/x3d/background_test_mobile_intel_gpu_bugs.x3d }
     (Vendor = 'Intel') and
@@ -548,20 +519,6 @@ begin
     {$else}
     false
     {$endif};
-
-  FBuggyShaderShadowMap :=
-    { This happens on fglrx, the worst OpenGL driver in the world.
-      card: ATI Mobility Radeon HD 4300,
-      confirmed on
-        Ubuntu 10.10/x86_64 (czarny)
-        Ubuntu 10.10/i386   (czarny)
-        Ubuntu 11.4/x86_64  (czarny)
-        Ubuntu 11.4/i386    (czarny) (fglrx OpenGL version 3.3.10665)
-      not occurs on
-        Ubuntu 9.10/i386    (czarny)
-      Looks like fglrx bug since at least Ubuntu 10.10 (assuming always
-      since Ubuntu 10.04, which is fglrx >= 8.723). }
-    Fglrx and ReleaseExists and (Release >= 8723);
 
   { Reported on Radeon 6600, 6850 - looks like wireframe
      Also on Intel cards - querying multisampled depth buffer returns bad data. }
@@ -629,43 +586,6 @@ begin
     {$ifdef ANDROID}
     (VendorType = gvImaginationTechnologies) and
     (Major = 2)
-    {$else} false
-    {$endif};
-
-  FBuggyPureShaderPipeline :=
-    {$ifdef MSWINDOWS}
-    ( (VendorType = gvIntel) and
-      not VendorVersionAtLeast(9, 0, 0)
-    ) or
-
-    { Workaround various troubles on HP ProBook
-
-        Version string: 3.3.11672 Compatibility Profile Context
-        Version parsed: major: 3, minor: 3, release exists: True, release: 11672, vendor-specific information: "Compatibility Profile Context"
-        Vendor-specific version parsed: major: 0, minor: 0, release: 0
-        Vendor: ATI Technologies Inc.
-        Vendor type: ATI
-        Renderer: ATI Mobility Radeon HD 4300 Series
-
-      Later: bumped to include all troubles on
-      AMD Radeon HD 8200 / R3 Series
-      reported on https://github.com/castle-engine/view3dscene/issues/9 :
-
-        Version string: 4.5.13492 Compatibility Profile Context 22.19.677.257
-        Version parsed: major: 4, minor: 5, release exists: True, release: 13492,
-        vendor-specific information: "Compatibility Profile Context 22.19.677.257"
-        Vendor-specific version parsed: major: 22, minor: 19, release: 677
-        Vendor: ATI Technologies Inc.
-        Vendor type: ATI
-        Renderer: AMD Radeon HD 8200 / R3 Series
-
-      Later: bumped to 13571 after Elmar Knittel mail,
-      https://github.com/castle-engine/view3dscene/issues/9
-      still occurs with later release.
-    }
-    ( (VendorType = gvATI) and
-      ReleaseExists and
-      (Release <= 13571) )
     {$else} false
     {$endif};
 
@@ -743,13 +663,14 @@ begin
 end;
 
 const
-  VendorTypeNames: array [TGLVendorType] of string =
-  ( 'Unknown',
+  VendorTypeNames: array [TGLVendorType] of String = (
+    'Other',
     'ATI',
     'Nvidia',
     'Intel',
     'Imagination Technologies',
-    'Qualcomm'
+    'Qualcomm',
+    'Arm'
   );
 
 function VendorTypeToStr(const VendorType: TGLVendorType): string;

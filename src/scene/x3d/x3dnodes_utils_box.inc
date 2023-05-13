@@ -1,5 +1,6 @@
+{%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,9 +20,9 @@
     material binding per part. Will be used with
     material binding BIND_PER_FACE_INDEXED. Pass @nil if you don't
     need it.) }
-procedure Box_Proxy(CoordIndex: TLongIntList;
+procedure Box_Proxy(CoordIndex: TInt32List;
   Coord: TVector3List; Normal: TVector3List;
-  TexCoord: TVector2List; MaterialIndex: TLongIntList;
+  TexCoord: TVector2List; MaterialIndex: TInt32List;
   Sizes: TVector3);
 
 var
@@ -77,25 +78,25 @@ var
 
     { Normal vector is constant for the whole rectangle }
     if ConstCoordValue > 0 then
-      N.InternalData[ConstCoord] :=  1
+      N.Data[ConstCoord] :=  1
     else
-      N.InternalData[ConstCoord] := -1;
-    N.InternalData[C1] := 0;
-    N.InternalData[C2] := 0;
+      N.Data[ConstCoord] := -1;
+    N.Data[C1] := 0;
+    N.Data[C2] := 0;
 
     for I := 0 to Detail[C1] + 1 do
       for J := 0 to Detail[C2] + 1 do
       begin
         ThisIndex := Index + I * (Detail[C2] + 2) + J;
 
-        Coord.List^[ThisIndex].InternalData[C1] := Lerp(I / (Detail[C1] + 1), X1, X2);
-        Coord.List^[ThisIndex].InternalData[C2] := Lerp(J / (Detail[C2] + 1), Y1, Y2);
-        Coord.List^[ThisIndex].InternalData[ConstCoord] := ConstCoordValue;
+        Coord.L[ThisIndex].Data[C1] := Lerp(I / (Detail[C1] + 1), X1, X2);
+        Coord.L[ThisIndex].Data[C2] := Lerp(J / (Detail[C2] + 1), Y1, Y2);
+        Coord.L[ThisIndex].Data[ConstCoord] := ConstCoordValue;
 
-        Normal.List^[ThisIndex] := N;
+        Normal.L[ThisIndex] := N;
 
         if TexCoord <> nil then
-          TexCoord.List^[ThisIndex] := MakeTexCoord(
+          TexCoord.L[ThisIndex] := MakeTexCoord(
             Lerp(I / (Detail[C1] + 1), TexX1, TexX2),
             Lerp(J / (Detail[C2] + 1), TexY1, TexY2));
       end;
@@ -105,11 +106,11 @@ var
       begin
         FaceIndex := CoordIndex.Count;
         CoordIndex.Count := CoordIndex.Count + 5;
-        CoordIndex.List^[FaceIndex    ] := Index + (I - 1) * (Detail[C2] + 2) + J - 1;
-        CoordIndex.List^[FaceIndex + 1] := Index +  I      * (Detail[C2] + 2) + J - 1;
-        CoordIndex.List^[FaceIndex + 2] := Index +  I      * (Detail[C2] + 2) + J;
-        CoordIndex.List^[FaceIndex + 3] := Index + (I - 1) * (Detail[C2] + 2) + J;
-        CoordIndex.List^[FaceIndex + 4] := -1;
+        CoordIndex.L[FaceIndex    ] := Index + (I - 1) * (Detail[C2] + 2) + J - 1;
+        CoordIndex.L[FaceIndex + 1] := Index +  I      * (Detail[C2] + 2) + J - 1;
+        CoordIndex.L[FaceIndex + 2] := Index +  I      * (Detail[C2] + 2) + J;
+        CoordIndex.L[FaceIndex + 3] := Index + (I - 1) * (Detail[C2] + 2) + J;
+        CoordIndex.L[FaceIndex + 4] := -1;
       end;
 
     if MaterialIndex <> nil then
@@ -144,7 +145,7 @@ begin
 end;
 
 { Make a wireframe box. }
-procedure BoxWireframe_Proxy(CoordIndex: TLongIntList;
+procedure BoxWireframe_Proxy(CoordIndex: TInt32List;
   Coord: TVector3List; Sizes: TVector3);
 begin
   Sizes := Sizes / 2;
@@ -161,13 +162,25 @@ begin
     Vector3(-Sizes.X,  Sizes.Y,  Sizes.Z)
   ]);
 
+  // Each pair of indexes forms a line, matching TIndexedLineSetNode with Mode = lmPair
   CoordIndex.AddRange([
-    0, 1, 2, 3, 0, -1,
-    4, 5, 6, 7, 4, -1,
-    0, 4, -1,
-    1, 5, -1,
-    2, 6, -1,
-    3, 7, -1
+    // line loop on Z = min
+    0, 1,
+    1, 2,
+    2, 3,
+    3, 0,
+
+    // line loop on Z = max
+    4, 5,
+    5, 6,
+    6, 7,
+    7, 4,
+
+    // connect Z = min with Z = max
+    0, 4,
+    1, 5,
+    2, 6,
+    3, 7
   ]);
 end;
 
@@ -182,6 +195,7 @@ function TBoxNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNod
     try
       CoordNode := TCoordinateNode.Create('', BaseUrl);
       ILS.FdCoord.Value := CoordNode;
+      ILS.Mode := lmPair;
 
       BoxWireframe_Proxy(ILS.FdCoordIndex.Items, CoordNode.FdPoint.Items,
         FdSize.Value);
@@ -242,6 +256,7 @@ begin
     BoxFilled;
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TCubeNode_1.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
@@ -250,7 +265,7 @@ var
   TexCoordNode: TTextureCoordinate2Node_1;
   ShapeHints: TShapeHintsNode_1;
   MaterialBinding: TMaterialBindingNode_1;
-  MaterialIndex: TLongIntList;
+  MaterialIndex: TInt32List;
   IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
   IFS := TIndexedFaceSetNode_1.Create(X3DName, BaseUrl);
@@ -308,3 +323,4 @@ begin
     IFS.FdTextureCoordIndex.Items.Assign(IFS.FdCoordIndex.Items);
   except FreeAndNil(Result); raise end;
 end;
+{$warnings on}

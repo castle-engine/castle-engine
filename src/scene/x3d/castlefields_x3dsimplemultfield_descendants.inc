@@ -1,5 +1,6 @@
+{%MainUnit x3dfields.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,15 +33,15 @@
   end;
 
   TMFLong = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
-    LongInt,
+    Int32,
     TSFLong,
-    TLongIntList>)
+    TInt32List>)
   strict private
     FSaveToStreamLineUptoNegative: boolean;
     WrongVertexIndexWarnings: Integer;
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-    procedure AddToList(const ItemList: TLongIntList; const Item: TSFLong); override;
+    procedure AddToList(const ItemList: TInt32List; const Item: TSFLong); override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
     function CreateItemBeforeParse: TSFLong; override;
   public
@@ -425,7 +426,7 @@ begin
   Result := IntToStr(Items[ItemNum])
 end;
 
-procedure TMFLong.AddToList(const ItemList: TLongIntList; const Item: TSFLong);
+procedure TMFLong.AddToList(const ItemList: TInt32List; const Item: TSFLong);
 begin
   Items.Add(Item.Value);
 end;
@@ -454,7 +455,8 @@ begin
   Inc(WrongVertexIndexWarnings);
   if WrongVertexIndexWarnings < MaxWrongVertexIndexWarnings then
     WritelnWarning('X3D', Format('Wrong vertex index in indexed node %s (not enough points in Coordinate node defined: index is %d, we have only %d vertices)',
-      [GeometryX3DType, VertexNum, CoordCount])) else
+      [GeometryX3DType, VertexNum, CoordCount]))
+  else
   if WrongVertexIndexWarnings = MaxWrongVertexIndexWarnings then
     WritelnWarning('X3D', Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
       [GeometryX3DType, WrongVertexIndexWarnings]));
@@ -491,7 +493,7 @@ end;
 
 function TMFMatrix3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.List^[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString;
 end;
 
 procedure TMFMatrix3f.AddToList(const ItemList: TMatrix3List; const Item: TSFMatrix3f);
@@ -528,7 +530,7 @@ end;
 
 function TMFMatrix3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.List^[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString;
 end;
 
 procedure TMFMatrix3d.AddToList(const ItemList: TMatrix3DoubleList; const Item: TSFMatrix3d);
@@ -565,7 +567,7 @@ end;
 
 function TMFMatrix4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.List^[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString;
 end;
 
 procedure TMFMatrix4f.AddToList(const ItemList: TMatrix4List; const Item: TSFMatrix4f);
@@ -602,7 +604,7 @@ end;
 
 function TMFMatrix4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.List^[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString;
 end;
 
 procedure TMFMatrix4d.AddToList(const ItemList: TMatrix4DoubleList; const Item: TSFMatrix4d);
@@ -639,7 +641,7 @@ end;
 
 function TMFVec2f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.List^[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString;
 end;
 
 procedure TMFVec2f.AddToList(const ItemList: TVector2List; const Item: TSFVec2f);
@@ -676,7 +678,7 @@ end;
 
 function TMFVec3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.List^[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString;
 end;
 
 procedure TMFVec3f.AddToList(const ItemList: TVector3List; const Item: TSFVec3f);
@@ -725,7 +727,7 @@ end;
 
 function TMFVec4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.List^[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString;
 end;
 
 procedure TMFVec4f.AddToList(const ItemList: TVector4List; const Item: TSFVec4f);
@@ -774,7 +776,7 @@ end;
 
 function TMFVec2d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.List^[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString;
 end;
 
 procedure TMFVec2d.AddToList(const ItemList: TVector2DoubleList; const Item: TSFVec2d);
@@ -811,7 +813,7 @@ end;
 
 function TMFVec3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.List^[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString;
 end;
 
 procedure TMFVec3d.AddToList(const ItemList: TVector3DoubleList; const Item: TSFVec3d);
@@ -848,7 +850,7 @@ end;
 
 function TMFVec4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.List^[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString;
 end;
 
 procedure TMFVec4d.AddToList(const ItemList: TVector4DoubleList; const Item: TSFVec4d);
@@ -885,7 +887,7 @@ end;
 
 function TMFRotation.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.List^[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString;
 end;
 
 procedure TMFRotation.AddToList(const ItemList: TVector4List; const Item: TSFRotation);
@@ -912,7 +914,7 @@ end;
 
 function TMFFloat.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Format('%g', [Items[ItemNum]]);
+  Result := FormatDot('%g', [Items[ItemNum]]);
 end;
 
 procedure TMFFloat.AddToList(const ItemList: TSingleList; const Item: TSFFloat);
@@ -959,7 +961,7 @@ end;
 
 function TMFDouble.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Format('%g', [Items[ItemNum]]);
+  Result := FormatDot('%g', [Items[ItemNum]]);
 end;
 
 procedure TMFDouble.AddToList(const ItemList: TDoubleList; const Item: TSFDouble);

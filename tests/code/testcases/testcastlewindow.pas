@@ -40,6 +40,7 @@ type
     procedure TestStateSize;
     procedure TestStateSize2;
     procedure TestViewportWithoutCamera;
+    procedure TestPrepareResourcesWithoutContextOpen;
   end;
 
 implementation
@@ -643,7 +644,6 @@ begin
   {$endif}
 end;
 
-
 procedure TTestCastleWindow.TestViewportWithoutCamera;
 var
   Window: TCastleWindow;
@@ -676,6 +676,55 @@ begin
     V.BeforeRender;
     V.Render;
     V.RenderOverChildren;
+
+    FreeAndNil(V);
+  finally
+    {$ifndef CASTLE_TESTER}
+    FreeAndNil(Window);
+    {$else}
+    DestroyWindowForTest;
+    {$endif}
+  end;
+end;
+
+procedure TTestCastleWindow.TestPrepareResourcesWithoutContextOpen;
+var
+  Window: TCastleWindow;
+  V: TCastleViewport;
+  DummyHandleInput: Boolean;
+  Scene, Scene2: TCastleScene;
+begin
+  {$ifndef CASTLE_TESTER}
+  Window := TCastleWindow.Create(nil);
+  {$else}
+  Window := CreateWindowForTest;
+  {$endif}
+  try
+    V := TCastleViewport.Create(Window);
+
+    { test V.PrepareResources has no problem called before context open }
+    V.PrepareResources;
+
+    Scene := TCastleScene.Create(Window);
+    Scene.Load('castle-data:/game/scene.x3d');
+    V.Items.Add(Scene);
+
+    { test V.PrepareResources has no problem called before context open,
+      when it has some scene }
+    V.PrepareResources;
+
+    Scene2 := TCastleScene.Create(Window);
+    Scene2.Load('castle-data:/knight_resource/knight.gltf');
+    V.Items.Add(Scene2);
+
+    { test V.PrepareResources has no problem called before context open,
+      when it has 2 scenes }
+    V.PrepareResources;
+
+    Window.Visible := false;
+    Window.Open;
+
+    V.PrepareResources;
 
     FreeAndNil(V);
   finally

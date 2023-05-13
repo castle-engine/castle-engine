@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2022 Michalis Kamburelis.
+  Copyright 2015-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,6 +24,8 @@
 {$ifdef read_interface}
 
   strict private
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
 {$ifndef CASTLE_SLIM_NODES}
     function GetCrossOrigin: String;
     procedure SetCrossOrigin(const Value: String);
@@ -33,6 +35,12 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
+
+    strict private FFdDescription: TSFString;
+    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    public property FdDescription: TSFString read FFdDescription;
+    {  }
+    property Description: String read GetDescription write SetDescription;
 
     strict private FFdEffects: TMFNode;
     { Internal wrapper for property @link(Effects). This wrapper API may change, we advise to access simpler @link(Effects) instead. }
@@ -61,6 +69,16 @@
 {$ifdef read_implementation}
 
 { TAbstractSingleTextureNode ----------------------------------------------- }
+
+function TAbstractSingleTextureNode.GetDescription: String;
+begin
+  Result := FdDescription.Value;
+end;
+
+procedure TAbstractSingleTextureNode.SetDescription(const Value: String);
+begin
+  FdDescription.Send(Value);
+end;
 
 procedure TAbstractSingleTextureNode.SetEffects(const Value: array of TEffectNode);
 var
@@ -104,6 +122,10 @@ end;
 procedure TAbstractSingleTextureNode.CreateNode;
 begin
   inherited;
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chNone;
+  AddField(FFdDescription);
 
   FFdEffects := TMFNode.Create(Self, False, 'effects', [TEffectNode]);
    FdEffects.ChangeAlways := chEverything;

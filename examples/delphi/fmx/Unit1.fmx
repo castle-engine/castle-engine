@@ -16,7 +16,7 @@ object TestCgeControl: TTestCgeControl
     Left = 512
     Top = 16
   end
-  object Panel1: TPanel
+  object PanelSideBar: TPanel
     Align = Right
     Margins.Top = 10.000000000000000000
     Margins.Right = 10.000000000000000000
@@ -50,7 +50,7 @@ object TestCgeControl: TTestCgeControl
       Anchors = [akRight, akBottom]
       Position.X = 248.000000000000000000
       Position.Y = 464.000000000000000000
-      TabOrder = 1
+      TabOrder = 4
       Text = 'UI'
       OnClick = ButtonUIClick
     end
@@ -66,16 +66,16 @@ object TestCgeControl: TTestCgeControl
       Anchors = [akRight, akBottom]
       AutoSize = True
       Position.X = 4.000000000000000000
-      Position.Y = 426.000000000000000000
-      Size.Width = 310.399993896484400000
+      Position.Y = 422.000000000000000000
+      Size.Width = 312.000000000000000000
       Size.Height = 16.000000000000000000
       Size.PlatformDefault = False
       Text = 'LabelFps'
-      TabOrder = 4
+      TabOrder = 1
     end
   end
   object CastleControl: TCastleControl
-    Container.DesignUrl = 'castle-data:/test_ui.castle-user-interface'
+    Container.DesignUrl = 'castle-data:/test_3d.castle-user-interface'
     Align = Client
     Size.Width = 462.000000000000000000
     Size.Height = 484.000000000000000000
@@ -84,5 +84,6 @@ object TestCgeControl: TTestCgeControl
     Margins.Top = 10.000000000000000000
     Margins.Right = 10.000000000000000000
     Margins.Bottom = 10.000000000000000000
+    TabOrder = 0
   end
 end

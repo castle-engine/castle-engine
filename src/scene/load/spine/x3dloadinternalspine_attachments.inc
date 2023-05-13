@@ -1,5 +1,6 @@
+{%MainUnit x3dloadinternalspine.pas}
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,6 +33,7 @@
     Node: TTransformNode;
     NodeUsedAsChild: boolean;
     Material: TUnlitMaterialNode; //< initialized together with Node, always inside
+    Appearance: TAppearanceNode; //< initialized together with Node, always inside
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); virtual;
     { Create and parse correct TAttachment descendant.
@@ -61,9 +63,9 @@
   public
     Coord: TCoordinateNode;
     UVs: TVector2List;
-    Triangles: TLongIntList;
+    Triangles: TInt32List;
     Vertices: TVector2List;
-    Edges: TLongIntList; //< unused for now
+    Edges: TInt32List; //< unused for now
     { Unused for now.
       Looking as official Spine runtime in spine-csharp and spine-unity,
       it is also unused there. }
@@ -243,11 +245,15 @@ begin
   Shape := TShapeNode.Create('', BaseUrl);
   Node.AddChildren(Shape);
 
-  Shape.Appearance := TAppearanceNode.Create('', BaseUrl);
+  Appearance := TAppearanceNode.Create(
+    Format('Appearance_Slot_%s_Attachment_%s', [SlotName, Name]),
+    BaseUrl);
+  Shape.Appearance := Appearance;
+
   AtlasRegionName := Name;
   if Path <> '' then
     AtlasRegionName := Path;
-  Shape.Appearance.Texture := TextureLoader.UseNode(AtlasRegionName,
+  Appearance.Texture := TextureLoader.UseNode(AtlasRegionName,
     TexCoord, TexRect, TexRotated);
 
   { Other alpha values are not really useful for Spine.
@@ -264,17 +270,16 @@ begin
 
     For TAtlas, it's just simpler. Why auto-detect, when we just know to use blending
     in all normal cases. }
-  Shape.Appearance.AlphaMode := amBlend;
+  Appearance.AlphaMode := amBlend;
 
-  if Shape.Appearance.Texture <> nil then
+  if Appearance.Texture <> nil then
     Shape.Geometry := BuildGeometry(BaseUrl, TexCoord, TexRect, TexRotated);
 
   Material := TUnlitMaterialNode.Create(
     Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
-  Material.EmissiveColor := Vector3(1, 1, 1);
-
-  Shape.Material := Material;
+  Material.EmissiveColor := WhiteRGB;
+  Appearance.Material := Material;
 end;
 
 function TRegionAttachment.BuildGeometry(const BaseUrl: string;
@@ -327,9 +332,9 @@ constructor TAbstractMeshAttachment.Create;
 begin
   inherited;
   UVs := TVector2List.Create;
-  Triangles := TLongIntList.Create;
+  Triangles := TInt32List.Create;
   Vertices := TVector2List.Create;
-  Edges := TLongIntList.Create;
+  Edges := TInt32List.Create;
 end;
 
 destructor TAbstractMeshAttachment.Destroy;
@@ -346,13 +351,13 @@ begin
   inherited;
   ReadVector2List(Json, 'uvs', UVs);
 
-  ReadLongIntList(Json, 'triangles', Triangles);
+  ReadInt32List(Json, 'triangles', Triangles);
   if Triangles.Count mod 3 <> 0 then
     WritelnWarning('Spine', 'Triangles list ends in the middle of the triangle');
   if Triangles.Count = 0 then
     WritelnWarning('Spine', 'Triangles empty, mesh is empty');
 
-  ReadLongIntList(Json, 'edges', Edges);
+  ReadInt32List(Json, 'edges', Edges);
   Hull := Json.Get('hull', 0);
 end;
 
@@ -401,11 +406,11 @@ begin
       (TexRect[0].Y <> 1) or
       (TexRect[1].Y <> 1)) and
      SpineVerboseWarnings then
-    WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "compress whitespace" option selected. '+'Rendering artifacts may occur if mesh faces use the texture in "whitespace" region --- in such case, export again with "compress whitespace" turned off at atlas generation.',
+    WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "Strip whitespace X" or "Strip whitespace Y" options selected. '+'Rendering artifacts may occur if mesh faces use the texture in the "whitespace" region. To be safe, export with "Strip whitespace X = Off" and "Strip whitespace Y = Off" in "Texture Packer Settings".',
       [SlotName, Name]));
 
   if TexRotated then
-    WritelnWarning('Spine ' + URIDisplay(BaseUrl), 'Atlas region is rotated, and is used for mesh attachment. This is not supported (texture will most likely be applied incorrectly), export atlas again with "Rotate" turned off.');
+    WritelnWarning('Spine ' + URIDisplay(BaseUrl), 'Atlas region used for mesh attachment is rotated. This is not supported, texture will be applied incorrectly. Export with "Rotation" turned off in "Texture Packer Settings".');
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
   UVRangeX.X := Min(TexCoord[0].X, TexCoord[2].X);
@@ -548,7 +553,7 @@ begin
 
   List := Coord.FdPoint.Items;
   for I := 0 to List.Count - 1 do
-    List.List^[I] := Bone.ToLocalSpace(List.List^[I]);
+    List.L[I] := Bone.ToLocalSpace(List.L[I]);
 end;
 
 { TPathAttachment ---------------------------------------------------------- }
@@ -603,7 +608,13 @@ begin
     Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
   Material.EmissiveColor := WhiteRGB;
-  Shape.Material := Material;
+
+  Appearance := TAppearanceNode.Create(
+    Format('Appearance_Slot_%s_Attachment_%s', [SlotName, Name]),
+    BaseUrl);
+  Appearance.Material := Material;
+
+  Shape.Appearance := Appearance;
 
   Shape.Render := false;
 
@@ -632,8 +643,8 @@ end;
 destructor TClippingAttachment.Destroy;
 begin
   FreeAndNil(Vertices);
-  // If you didn't call VisualizeClipPolygon in BuildNodes, Material node remains unused
-  FreeIfUnusedAndNil(Material);
+  // If you didn't call VisualizeClipPolygon in BuildNodes, Appearance node remains unused
+  FreeIfUnusedAndNil(Appearance);
   inherited;
 end;
 
@@ -659,7 +670,7 @@ procedure TClippingAttachment.BuildNodes(const BaseUrl: string;
     I: Integer;
   begin
     Shape := TShapeNode.Create('', BaseUrl);
-    Shape.Material := Material;
+    Shape.Appearance := Appearance;
     Node.AddChildren(Shape);
 
     Faces := TIndexedFaceSetNode.Create('', BaseUrl);
@@ -711,6 +722,11 @@ begin
     Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
   Material.EmissiveColor := WhiteRGB;
+
+  Appearance := TAppearanceNode.Create(
+    Format('Appearance_Slot_%s_Attachment_%s', [SlotName, Name]),
+    BaseUrl);
+  Appearance.Material := Material;
 
   // debug
   //VisualizeClipPolygon;

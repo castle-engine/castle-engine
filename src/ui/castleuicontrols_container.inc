@@ -66,6 +66,7 @@
     LastPositionForTooltipTime: TTimerResult;
     Mouse3d: T3DConnexionDevice;
     Mouse3dPollTimer: Single;
+    FDpi: Single;
     FUIScaling: TUIScaling;
     FUIReferenceWidth: Single;
     FUIReferenceHeight: Single;
@@ -93,6 +94,7 @@
 
     function UseForceCaptureInput: boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
+    procedure SetDpi(const Value: Single);
     procedure SetUIScaling(const Value: TUIScaling);
     procedure SetUIReferenceWidth(const Value: Single);
     procedure SetUIReferenceHeight(const Value: Single);
@@ -126,8 +128,21 @@
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
-    { These should only be get/set by a container owner,
+    { These properties are protected,
+      they should only be get/set by a container owner,
       like TCastleWindow or TCastleControl.
+
+      @deprecated These events, just like similar public events
+      at TCastleWindow or TCastleControl, are deprecated.
+      Because
+
+      1. Most of them are pointers to global routines, not methods ("of object")
+      and we generally prefer to have pointers to methods ("of object").
+
+      2. We advise to manage things by overriding methods,
+      or using events, of TCastleUserInterface and descendants.
+      This includes using methods of TCastleView.
+
       @groupBegin }
     property OnOpen: TContainerEvent read FOnOpen write FOnOpen;
     property OnOpenObject: TContainerObjectEvent read FOnOpenObject write FOnOpenObject;
@@ -168,18 +183,18 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Propagate the event to all the @link(Controls) and to our own OnXxx callbacks.
+    { Propagate the event to all the @link(Controls).
+      You can call these methods explicitly if you want to "fake" some event,
+      e.g. fake pressing or releasing a key by calling @link(EventPress) or
+      @link(EventRelease).
 
-      These methods are called automatically when necessary,
-      so usually you don't call them. But in rare cases, it makes sense
-      to "fake" some event by calling these methods.
+      Deprecated: these methods also call our (deprecated) callbacks like OnPress.
 
-      Most of these methods are called automatically
-      by the container owner, like TCastleWindow or TCastleControl.
-      Some are called by @link(EventUpdate),
-      which is special in this regard, as @link(EventUpdate) is not only
-      responsible for calling @link(TCastleUserInterface.Update) on all @link(Controls),
-      it also calls
+      These methods are called automatically by TCastleWindow or TCastleControl.
+      So if you don't need to "fake" any event, you should not call them from
+      your application.
+
+      Note: @link(EventUpdate) is special in that it also calls (for now)
       @link(EventJoyAxisMove),
       @link(EventJoyButtonPress),
       @link(EventSensorRotation),
@@ -201,6 +216,16 @@
     function EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
     function EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
     { @groupEnd }
+
+    { Dots (pixels) per inch. Describes how many pixels fit on a physical inch.
+      So this is determined by the screen resolution in pixels,
+      and by the physical size of the device.
+
+      Some systems may expose a value that actually reflects user preference
+      "how to scale the user-interface", where 96 (DefaultDpi) is default.
+      So do not depend that it is actually related to the physical monitor size.
+      See https://developer.gnome.org/gdk2/stable/GdkScreen.html#gdk-screen-set-resolution . }
+    property Dpi: Single read FDpi write SetDpi {$ifdef FPC}default DefaultDpi{$endif};
 
     { Get the default UI scale of controls.
       Useful only when GLInitialized, when we know that our size is sensible.
@@ -314,9 +339,6 @@
       See @link(TTouch.Position) for a documentation how this is expressed. }
     property MousePosition: TVector2
       read GetMousePosition write SetMousePosition;
-
-    { Dots per inch, specifying the relation of screen pixels to physical size. }
-    function Dpi: Single; virtual;
 
     { Currently pressed mouse buttons. When this changes, you're always
       notified by @link(OnPress) or @link(OnRelease) events.
@@ -805,14 +827,15 @@ begin
   FTooltipDelay := DefaultTooltipDelay;
   FTooltipDistance := DefaultTooltipDistance;
   FCaptureInput := TFingerIndexCaptureMap.Create;
+  FDpi := DefaultDpi;
   FUIScaling := usNone;
   FUIExplicitScale := 1.0;
   FUIScale := 1.0; // default safe value, in case some TCastleUserInterface will look here
   FFocus := TCastleUserInterfaceList.Create(false);
   FNewFocus := TCastleUserInterfaceList.Create(false);
-  FFps := TFramesPerSecond.Create;
+  FFps := TFramesPerSecond.InternalCreate;
   FPressed := TKeysPressed.Create;
-  FContext := TRenderContext.Create;
+  FContext := TRenderContext.Create(nil);
   FBackgroundEnable := true;
   FBackgroundColor := DefaultBackgroundColor;
 
@@ -1415,7 +1438,7 @@ var
   I: Integer;
   HandleInput: boolean;
 begin
-  Fps._UpdateBegin;
+  Fps.InternalUpdateBegin;
 
   if FInputInspector.IsPressed(Self, Fps.SecondsPassed) then
     ToggleInspector;
@@ -1689,7 +1712,7 @@ begin
     if RenderContext = FContext then
       RenderContext := nil;
     FreeAndNil(FContext);
-    FContext := TRenderContext.Create;
+    FContext := TRenderContext.Create(nil);
   end;
 end;
 
@@ -1840,29 +1863,31 @@ class procedure TCastleContainer.RenderControlPrepare(const ViewportRect: TRecta
 begin
   if GLFeatures.EnableFixedFunction then
   begin
-    { Set state that is guaranteed for Render2D calls,
+    { Set OpenGL state that is guaranteed for TCastleUserInterface.Render calls,
       but TCastleUserInterface.Render cannot change it carelessly. }
     {$ifndef OpenGLES}
-    glDisable(GL_LIGHTING);
+    RenderContext.FixedFunctionLighting := false;
     glDisable(GL_FOG);
     {$endif}
-    GLEnableTexture(CastleGLUtils.etNone);
+    GLEnableTexture(etNone);
   end;
 
-  glDisable(GL_DEPTH_TEST);
+  RenderContext.DepthTest := false;
 
   RenderContext.Viewport := ViewportRect;
   OrthoProjection(FloatRectangle(0, 0, ViewportRect.Width, ViewportRect.Height));
 
+  {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
     { Set OpenGL state that may be changed carelessly, and has some
-      guaranteed value, for Render2d calls. }
-    {$ifndef OpenGLES} glLoadIdentity; {$endif}
+      guaranteed value, for TCastleUserInterface.Render calls. }
+    glLoadIdentity;
     {$warnings off}
-    CastleGLUtils.WindowPos := Vector2Integer(0, 0);
+    CastleInternalGLUtils.WindowPos := Vector2Integer(0, 0);
     {$warnings on}
   end;
+  {$endif}
 end;
 
 procedure TCastleContainer.EventRender;
@@ -1874,7 +1899,7 @@ begin
 
   { draw controls in "to" order, back to front }
   for I := 0 to Controls.Count - 1 do
-    Controls[I].RecursiveRender(Rect);
+    Controls[I].InternalRecursiveRender(Rect);
 
   if FTooltipParent <> nil then
   begin
@@ -1909,7 +1934,7 @@ begin
     Control.GLContextOpen;
   Control.CheckResize;
   Control.BeforeRender;
-  Control.RecursiveRender(ViewportRect);
+  Control.InternalRecursiveRender(ViewportRect);
 
   { TODO: calling the methods below is not recursive,
     it will not unprepare the children correctly. }
@@ -2148,6 +2173,16 @@ begin
   end;
 end;
 
+procedure TCastleContainer.SetDpi(const Value: Single);
+begin
+  if FDpi <> Value then
+  begin
+    FDpi := Value;
+    if UIScaling = usDpiScale then
+       UpdateUIScale;
+  end;
+end;
+
 procedure TCastleContainer.SetUIReferenceWidth(const Value: Single);
 begin
   if FUIReferenceWidth <> Value then
@@ -2318,12 +2353,6 @@ begin
   Result := SaveScreenRgba(Rect);
 end;
 
-function TCastleContainer.Dpi: Single;
-begin
-  { Default implementation, if you cannot query real dpi value of the screen. }
-  Result := DefaultDpi;
-end;
-
 function TCastleContainer.Rect: TRectangle;
 begin
   Result := Rectangle(0, 0, Width, Height);
@@ -2385,7 +2414,7 @@ end;
 procedure TCastleContainer.LoadSettings(const SettingsUrl: String);
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    raise Exception.Create('Rendering context not open when calling TUIContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindow.OnOpen, TCastleControl.OnOpen');
+    raise Exception.Create('Rendering context not open when calling TCastleContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindow.OnOpen, TCastleControl.OnOpen');
   SettingsLoad(Self, SettingsUrl);
 end;
 

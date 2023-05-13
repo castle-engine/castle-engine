@@ -1,6 +1,6 @@
 ﻿// -*- compile-command: "./test_single_testcase.sh TTestParsingParameters" -*-
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -98,7 +98,6 @@ var
   I, J: Integer;
 begin
   AssertEquals('Count at ' + ParsTestName, High(ParsedPars2), ParsedPars1.Count - 1);
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   for I := 0 to ParsedPars1.Count - 1 do
   begin
     AssertEquals('OptionNum at '   + ParsTestName, ParsedPars1.L[I].OptionNum  , ParsedPars2[I].OptionNum  );
@@ -107,7 +106,6 @@ begin
     for J := Low(TSeparateArgs) to High(TSeparateArgs) do
       AssertEquals('SeparateArgs at ' + ParsTestName, ParsedPars1.L[I].SeparateArgs[J], ParsedPars2[I].SeparateArgs[J]);
   end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 end;
 
 procedure TTestParsingParameters.TestParsingParameters;
@@ -118,7 +116,6 @@ procedure TTestParsingParameters.TestParsingParameters;
     I: Integer;
   begin
     Result := Name + NL;
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     for I := 0 to v.Count - 1 do
       Result := Result + Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',  [
         I,
@@ -126,7 +123,6 @@ procedure TTestParsingParameters.TestParsingParameters;
         BoolToStr(v.L[I].HasArgument, true),
         v.L[I].Argument
       ]) + NL;
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
   end;
 
   function ParsToStr: String;

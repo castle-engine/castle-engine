@@ -1,6 +1,6 @@
 {%MainUnit castleviewport.pas}
 {
-  Copyright 2013-2022 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -294,6 +294,7 @@ begin
       ntFly:       TouchInterface := tiFlyWalk;
       ntExamine:   TouchInterface := FAutoExamineTouchInterface;
       ntTurntable: TouchInterface := FAutoExamineTouchInterface;
+      // nt2D: TODO
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TCastleTouchNavigation.UpdateAutoTouchInterface not implemented for this NavigationType value');
       {$endif}

@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,14 +25,15 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  strict private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     TiledMap: TCastleTiledMapControl;
     ButtonOpen: TCastleButton;
     CheckboxSmoothScaling: TCastleCheckbox;
     CheckboxSmoothScalingSafeBorder: TCastleCheckbox;
-
+  private
     procedure ClickOpen(Sender: TObject);
     procedure MapMotion(const Sender: TCastleUserInterface;
       const Event: TInputMotion; var Handled: Boolean);
@@ -65,13 +66,6 @@ procedure TViewMain.Start;
 begin
   inherited;
 
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  TiledMap := DesignedComponent('TiledMap') as TCastleTiledMapControl;
-  ButtonOpen := DesignedComponent('ButtonOpen') as TCastleButton;
-  CheckboxSmoothScaling := DesignedComponent('CheckboxSmoothScaling') as TCastleCheckbox;
-  CheckboxSmoothScalingSafeBorder := DesignedComponent('CheckboxSmoothScalingSafeBorder') as TCastleCheckbox;
-
   { Assign events }
   ButtonOpen.OnClick := {$ifdef FPC}@{$endif} ClickOpen;
   TiledMap.OnMotion := {$ifdef FPC}@{$endif} MapMotion;
@@ -98,11 +92,11 @@ end;
 
 procedure TViewMain.ClickOpen(Sender: TObject);
 var
-  URL: String;
+  Url: String;
 begin
-  URL := TiledMap.URL;
-  if Application.MainWindow.FileDialog('Open Map', URL, true, 'Tiled Map (*.tmx)|*.tmx|All Files|*') then
-    TiledMap.URL := URL;
+  Url := TiledMap.Url;
+  if Application.MainWindow.FileDialog('Open Map', Url, true, 'Tiled Map (*.tmx)|*.tmx|All Files|*') then
+    TiledMap.Url := Url;
 end;
 
 procedure TViewMain.MapMotion(const Sender: TCastleUserInterface;
@@ -119,7 +113,7 @@ end;
 procedure TViewMain.MapPress(const Sender: TCastleUserInterface;
   const Event: TInputPressRelease; var Handled: Boolean);
 const
-  MinScale = 0.1;
+  MinScale = 0.05; //< this MinScale allows to view whole data/maps/desert_big.tmx
   MaxScale = 10;
 begin
   if Event.IsMouseWheel(mwUp) then

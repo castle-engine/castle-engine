@@ -1,5 +1,6 @@
+{%MainUnit x3dnodes.pas}
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -68,7 +69,7 @@ begin
   if Index < Coord.Count then
   begin
     WasSomeValidIndex := true;
-    Result := Coord.Items.List^[Index];
+    Result := Coord.Items.L[Index];
   end else
   begin
     CoordIndex.WritelnWarning_WrongVertexIndex(
@@ -82,7 +83,7 @@ begin
   { nie musimy sprawdzac czy indexNum jest dobry -
     CalculateBoundingBoxFromIndices bedzie pytalo tylko o indeksy between
     0..VertIndices.Count-1 }
-  Result := CoordIndex.Items.List^[IndexNum];
+  Result := CoordIndex.Items.L[IndexNum];
 end;
 {$endif CASTLE_PRECISE_MESH_BOUNDING_BOXES}
 
@@ -248,13 +249,13 @@ end;
 function Text_LocalBoundingBox(State: TX3DGraphTraverseState;
   const Size, Spacing: Single;
   const Justify, JustifyMinor: TX3DFontJustify;
-  const Font: TTextureFontData;
+  const Font: TCastleFont;
   const Strings: TCastleStringList): TBox3D;
 var
   YScale, XScale, MaxRowWidth, MinX, MinY, MaxX, MaxY, Descend: Single;
   I: integer;
 begin
-  YScale := Size / Font.RowHeight;
+  YScale := Size / Font.Height;
   { TODO: Use maxEntent, length for X3D and VRML 2.0. Use width for VRML 1.0. }
   XScale := YScale;
 
@@ -286,7 +287,7 @@ begin
   // for JustifyMinor = fjFirst, the level 0 is at baseline, so lower bbox
   if JustifyMinor = fjFirst then
   begin
-    Descend := Size * Font.Descend / Font.RowHeight;
+    Descend := Size * Font.DescenderHeight / Font.Height;
     MinY := MinY - (Descend * Spacing);
     MaxY := MaxY - (Descend * Spacing);
   end;
@@ -376,6 +377,7 @@ begin
    Result := CalculateBoundingBox(@points[firstPoint], High(points)+1-firstPoint, 0, State.Transformation.Transform);
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TConeNode_1.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
@@ -383,6 +385,7 @@ begin
     FdBottomRadius.Value, FdHeight.Value,
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM], false);
 end;
+{$warnings on}
 
 function TConeNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -392,6 +395,7 @@ begin
     FdSide.Value, FdBottom.Value, false);
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TConeNode_1.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
@@ -399,6 +403,7 @@ begin
     FdBottomRadius.Value, FdHeight.Value,
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM], true);
 end;
+{$warnings on}
 
 function TConeNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -465,6 +470,7 @@ begin
   result := TBox3D.Empty;
 end;
 
+{$warnings off} // using deprecated to keep supporting VRML 1
 function TCylinderNode_1.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
@@ -474,6 +480,7 @@ begin
     FdParts.Flags[CYLINDER_PARTS_SIDES],
     FdParts.Flags[CYLINDER_PARTS_TOP]);
 end;
+{$warnings on}
 
 function TCylinderNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -547,12 +554,12 @@ begin
     Result.Data[1].Z := FdZSpacing.Value * (FdZDimension.Value - 1);
 
     { now calculate Result.Data[0].Y and Result.Data[1].Y }
-    Y := FdHeight.Items.List^[0];
+    Y := FdHeight.Items.L[0];
     Result.Data[0].Y := Y;
     Result.Data[1].Y := Y;
     for I := 1 to FdXDimension.Value * FdZDimension.Value - 1 do
     begin
-      Y := FdHeight.Items.List^[I];
+      Y := FdHeight.Items.L[I];
       MinVar(Result.Data[0].Y, Y);
       MaxVar(Result.Data[1].Y, Y);
     end;

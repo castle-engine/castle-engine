@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@ unit CastleCurves;
 interface
 
 uses SysUtils, Classes, Generics.Collections, DOM,
-  CastleVectors, CastleBoxes, CastleUtils, {$ifdef FPC}CastleScript,{$endif}
+  CastleVectors, CastleBoxes, CastleUtils, CastleScript,
   CastleClassUtils, CastleFrustum, X3DNodes;
 
 type
@@ -72,19 +72,22 @@ type
   end;
 
   TCurveList = class({$ifdef FPC}specialize{$endif} TObjectList<TCurve>)
+  protected
+    { Override this function to add other classes inherited from
+      @link(TCurve) to a list. }
+    function GetCurveByType(const CurveTypeStr: string): TCurve; virtual;
   public
     { Load curves definitions from a simple XML file.
       Hint: use https://castle-engine.io/curves_tool to design curves
       visually. }
-    procedure LoadFromFile(const URL: string);
+    procedure LoadFromFile(const URL: string); virtual;
 
     { Save curve definitions to a simple XML file.
       Hint: use https://castle-engine.io/curves_tool to design curves
       visually. }
-    procedure SaveToFile(const URL: string);
+    procedure SaveToFile(const URL: string); virtual;
   end;
 
-  {$ifdef FPC}
   { Curve defined by explicitly giving functions for
     Point(t) = x(t), y(t), z(t) as CastleScript expressions. }
   TCasScriptCurve = class(TCurve)
@@ -131,7 +134,6 @@ type
 
     destructor Destroy; override;
   end;
-  {$endif FPC}
 
   { A basic abstract class for curves determined my some set of ControlPoints.
     Note: it is @italic(not) defined in this class any correspondence between
@@ -176,13 +178,11 @@ type
     { Constructor. }
     constructor Create;
 
-    {$ifdef FPC}
     { Calculate initial control points by sampling given TCasScriptCurve,
       with analytical curve equation.
       TBegin and TEnd are copied from CasScriptCurve. }
     constructor CreateFromEquation(CasScriptCurve: TCasScriptCurve;
       ControlPointsCount: Cardinal);
-    {$endif}
 
     destructor Destroy; override;
 
@@ -196,7 +196,7 @@ type
 
   TCubicBezier2DPoints = array [0..3] of TVector2;
   TCubicBezier3DPoints = array [0..3] of TVector3;
-
+  TCubicBezier3DPointsArray = array of TCubicBezier3DPoints;
   { Piecewise (composite) cubic Bezier curve.
     Each segment (ControlPoints[i]..ControlPoints[i+1])
     is a cubic Bezier curve (Bezier with 4 control points,
@@ -212,12 +212,14 @@ type
   }
   TPiecewiseCubicBezier = class(TControlPointsCurve)
   strict private
-    BezierCurves: array of TCubicBezier3DPoints;
+    BezierCurves: TCubicBezier3DPointsArray;
     ConvexHullPoints: TVector3List;
     FBoundingBox: TBox3D;
   strict protected
     function CreateConvexHullPoints: TVector3List; override;
     procedure DestroyConvexHullPoints(Points: TVector3List); override;
+    { Calculating additional points. }
+    procedure UpdateBezierCurves(var ABezierCurves: TCubicBezier3DPointsArray); virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -370,13 +372,7 @@ begin
       while I.GetNext do
       begin
         CurveTypeStr := I.Current.AttributeString('type');
-        if SameText(CurveTypeStr, TPiecewiseCubicBezier.ClassName) then
-          Curve := TPiecewiseCubicBezier.Create else
-        {$ifdef FPC}
-        if SameText(CurveTypeStr, TCasScriptCurve.ClassName) then
-          Curve := TCasScriptCurve.Create else
-        {$endif}
-          raise ECurveFileInvalid.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
+        Curve:=GetCurveByType(CurveTypeStr);
         Curve.LoadFromElement(I.Current);
         if Curve is TControlPointsCurve then
           TControlPointsCurve(Curve).UpdateControlPoints;
@@ -384,6 +380,17 @@ begin
       end;
     finally FreeAndNil(I); end;
   finally FreeAndNil(Document) end;
+end;
+
+function TCurveList.GetCurveByType(const CurveTypeStr: string): TCurve;
+begin
+ if SameText(CurveTypeStr, TPiecewiseCubicBezier.ClassName) then
+   Result := TPiecewiseCubicBezier.Create
+ else
+ if SameText(CurveTypeStr, TCasScriptCurve.ClassName) then
+   Result := TCasScriptCurve.Create
+ else
+   raise ECurveFileInvalid.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
 end;
 
 procedure TCurveList.SaveToFile(const URL: string);
@@ -406,7 +413,7 @@ begin
 end;
 
 { TCasScriptCurve ------------------------------------------------------------ }
-{$ifdef FPC}
+
 procedure TCasScriptCurve.SetTVariable(AValue: TCasScriptFloat);
 begin
   if FTVariable = AValue then Exit;
@@ -471,7 +478,7 @@ var
 begin
   TVariable.Value := T;
   for I := 0 to 2 do
-    Result.InternalData[I] := (FFunction[I].Execute as TCasScriptFloat).Value;
+    Result.Data[I] := (FFunction[I].Execute as TCasScriptFloat).Value;
 
   {test: Writeln('Point at t = ',FloatToNiceStr(Single(t)), ' is (',
     Result.ToString, ')');}
@@ -513,7 +520,6 @@ begin
   inherited SaveToStream(Stream);
   // TODO: save TCasScriptCurve specifics
 end;
-{$endif FPC}
 
 { TControlPointsCurve ------------------------------------------------ }
 
@@ -552,7 +558,7 @@ begin
       Indexes := ConvexHullIndexes(PotentialConvexHullPoints);
       try
         for I := 0 to Indexes.Count - 1 do
-          Result.Add(PotentialConvexHullPoints.List^[Indexes.List^[I]]);
+          Result.Add(PotentialConvexHullPoints.L[Indexes.L[I]]);
       finally FreeAndNil(Indexes) end;
     end;
   finally DestroyConvexHullPoints(PotentialConvexHullPoints) end;
@@ -567,7 +573,6 @@ begin
   FBoundingBox := TBox3D.Empty;
 end;
 
-{$ifdef FPC}
 constructor TControlPointsCurve.CreateFromEquation(
   CasScriptCurve: TCasScriptCurve; ControlPointsCount: Cardinal);
 var
@@ -578,10 +583,9 @@ begin
   TEnd := CasScriptCurve.TEnd;
   ControlPoints.Count := ControlPointsCount;
   for i := 0 to ControlPointsCount-1 do
-    ControlPoints.List^[i] := CasScriptCurve.PointOfSegment(i, ControlPointsCount-1);
+    ControlPoints.L[i] := CasScriptCurve.PointOfSegment(i, ControlPointsCount-1);
   UpdateControlPoints;
 end;
-{$endif}
 
 destructor TControlPointsCurve.Destroy;
 begin
@@ -674,62 +678,62 @@ begin
   Result := CubicBezier3D(TInsidePiece, BezierCurves[IndexBefore]);
 end;
 
-procedure TPiecewiseCubicBezier.UpdateControlPoints;
+procedure TPiecewiseCubicBezier.UpdateBezierCurves(var ABezierCurves: TCubicBezier3DPointsArray);
+var
+  S: TVector3List;
+  C: TVector3List;
+  I: Integer;
+  PointBegin, PointEnd: TVector3;
+begin
+  { Normal calculations cannot be done when
+    ControlPoints.Count = 2:
+    C.Count would be 1, S.Count would be 2,
+    S[0] would be calculated based on C[0] and S[1],
+    S[1] would be calculated based on C[0] and S[0].
+    So we can't calculate S[0] and S[1] using given equations when
+    ControlPoints.Count = 2.
 
-  procedure UpdateBezierCurves;
-  var
-    S: TVector3List;
-    C: TVector3List;
-    I: Integer;
-    PointBegin, PointEnd: TVector3;
-  begin
-    { Normal calculations cannot be done when
-      ControlPoints.Count = 2:
-      C.Count would be 1, S.Count would be 2,
-      S[0] would be calculated based on C[0] and S[1],
-      S[1] would be calculated based on C[0] and S[0].
-      So we can't calculate S[0] and S[1] using given equations when
-      ControlPoints.Count = 2.
+    Point() method implements a special case for ControlPoints.Count = 2,
+    it just does Lerp then. }
+  if ControlPoints.Count <= 2 then
+    Exit;
 
-      Point() method implements a special case for ControlPoints.Count = 2,
-      it just does Lerp then. }
-    if ControlPoints.Count <= 2 then
-      Exit;
+  { based on SLE mmgk notes, "Krzywe Beziera" page 4 }
+  C := nil;
+  S := nil;
+  try
+    C := TVector3List.Create;
+    C.Count := ControlPoints.Count - 1;
+    { calculate C values }
+    for I := 0 to C.Count - 1 do
+      C[I] := ControlPoints[I + 1] - ControlPoints[I];
 
-    { based on SLE mmgk notes, "Krzywe Beziera" page 4 }
-    C := nil;
-    S := nil;
-    try
-      C := TVector3List.Create;
-      C.Count := ControlPoints.Count - 1;
-      { calculate C values }
-      for I := 0 to C.Count - 1 do
-        C[I] := ControlPoints[I + 1] - ControlPoints[I];
+    S := TVector3List.Create;
+    S.Count := ControlPoints.Count;
+    { calculate S values }
+    for I := 1 to S.Count - 2 do
+      S[I] := (C[I-1] + C[I]) / 2;
+    S[0        ] := C[0        ] * 2 - S[1        ];
+    S[S.Count-1] := C[S.Count-2] * 2 - S[S.Count-2];
 
-      S := TVector3List.Create;
-      S.Count := ControlPoints.Count;
-      { calculate S values }
-      for I := 1 to S.Count - 2 do
-        S[I] := (C[I-1] + C[I]) / 2;
-      S[0        ] := C[0        ] * 2 - S[1        ];
-      S[S.Count-1] := C[S.Count-2] * 2 - S[S.Count-2];
+    SetLength(ABezierCurves, ControlPoints.Count - 1);
 
-      SetLength(BezierCurves, ControlPoints.Count - 1);
-
-      for I := 1 to ControlPoints.Count - 1 do
-      begin
-        PointBegin := ControlPoints.List^[I - 1];
-        PointEnd   := ControlPoints.List^[I];
-        BezierCurves[I - 1][0] := PointBegin;
-        BezierCurves[I - 1][1] := PointBegin + S[I -1] / 3;
-        BezierCurves[I - 1][2] := PointEnd   - S[I   ] / 3;
-        BezierCurves[I - 1][3] := PointEnd;
-      end;
-    finally
-      C.Free;
-      S.Free;
+    for I := 1 to ControlPoints.Count - 1 do
+    begin
+      PointBegin := ControlPoints.L[I - 1];
+      PointEnd   := ControlPoints.L[I];
+      ABezierCurves[I - 1][0] := PointBegin;
+      ABezierCurves[I - 1][1] := PointBegin + S[I -1] / 3;
+      ABezierCurves[I - 1][2] := PointEnd   - S[I   ] / 3;
+      ABezierCurves[I - 1][3] := PointEnd;
     end;
+  finally
+    C.Free;
+    S.Free;
   end;
+end;
+
+procedure TPiecewiseCubicBezier.UpdateControlPoints;
 
   procedure UpdateConvexHullPoints;
   var
@@ -753,7 +757,7 @@ procedure TPiecewiseCubicBezier.UpdateControlPoints;
 
 begin
   inherited;
-  UpdateBezierCurves;
+  UpdateBezierCurves(BezierCurves);
   UpdateConvexHullPoints;
   UpdateBoundingBox;
 end;
@@ -845,10 +849,10 @@ procedure CalculateSpline(const X: Single; const Loop: boolean;
 
     // TODO: make binary search
     I := 1;
-    while (I + 1 < C) and (X > Arguments.List^[I]) do Inc(I);
+    while (I + 1 < C) and (X > Arguments.L[I]) do Inc(I);
 
     IndexOfRightValue := I;
-    XInSegment := (X - Arguments.List^[I - 1]) / (Arguments.List^[I] - Arguments.List^[I - 1]);
+    XInSegment := (X - Arguments.L[I - 1]) / (Arguments.L[I] - Arguments.L[I - 1]);
   end;
 
 var
@@ -863,14 +867,14 @@ begin
     CurveResult := 0;
   end else
   begin
-    FirstArg := Arguments.List^[0];
+    FirstArg := Arguments.L[0];
     if C = 1 then
     begin
       Inside := false;
       CurveResult := FirstArg;
     end else
     begin
-      LastArg := Arguments.List^[C - 1];
+      LastArg := Arguments.L[C - 1];
       Len := LastArg - FirstArg;
       if X < FirstArg then
       begin
@@ -881,7 +885,7 @@ begin
         end else
         begin
           Inside := false;
-          CurveResult := Values.List^[0];
+          CurveResult := Values.L[0];
         end;
       end else
       if X > LastArg then
@@ -893,7 +897,7 @@ begin
         end else
         begin
           Inside := false;
-          CurveResult := Values.List^[C - 1];
+          CurveResult := Values.L[C - 1];
         end;
       end else
       begin
@@ -929,24 +933,24 @@ function CatmullRomSpline(const X: Single; const Loop: boolean;
   begin
     C := Arguments.Count;
 
-    V1 := Values.List^[I - 1];
-    V2 := Values.List^[I];
+    V1 := Values.L[I - 1];
+    V2 := Values.L[I];
 
     if I - 2 = -1 then
     begin
       if Loop then
-        V0 := Values.List^[C - 2] else // not Values.List^[C - 1], as first and last values are usually equal
-        V0 := Values.List^[0];
+        V0 := Values.L[C - 2] else // not Values.L[C - 1], as first and last values are usually equal
+        V0 := Values.L[0];
     end else
-      V0 := Values.List^[I - 2];
+      V0 := Values.L[I - 2];
 
     if I + 1 = C then
     begin
       if Loop then
-        V3 := Values.List^[1] else // not Values.List^[C - 1], as first and last values are usually equal
-        V3 := Values.List^[C - 1];
+        V3 := Values.L[1] else // not Values.L[C - 1], as first and last values are usually equal
+        V3 := Values.L[C - 1];
     end else
-      V3 := Values.List^[I + 1];
+      V3 := Values.L[I + 1];
 
     Result := CatmullRom(V0, V1, V2, V3, XInSegment);
   end;
@@ -983,8 +987,8 @@ function HermiteSpline(const X: Single; const Loop: boolean;
   function HermiteSegment(const I: Integer; const XInSegment: Single): Single;
   begin
     Result := Hermite(
-      Values  .List^[I - 1], Values  .List^[I],
-      Tangents.List^[I - 1], Tangents.List^[I], XInSegment);
+      Values  .L[I - 1], Values  .L[I],
+      Tangents.L[I - 1], Tangents.L[I], XInSegment);
   end;
 
 var
@@ -1018,7 +1022,7 @@ function HermiteTenseSpline(const X: Single; const Loop: boolean;
   function HermiteTenseSegment(const I: Integer; const XInSegment: Single): Single;
   begin
     Result := HermiteTense(
-      Values.List^[I - 1], Values.List^[I], XInSegment);
+      Values.L[I - 1], Values.L[I], XInSegment);
   end;
 
 var
@@ -1067,18 +1071,18 @@ var InResult: TBooleanList;
    for i := 0 to Points.Count-1 do
     if not InResult[i] then
     begin
-     if SameValue(Points.List^[i][1], Points.List^[Start][1]) then
+     if SameValue(Points.L[i][1], Points.L[Start][1]) then
      begin
-      if RightSide = (Points.List^[i][0] > Points.List^[Start][0]) then
+      if RightSide = (Points.L[i][0] > Points.L[Start][0]) then
       begin
        MaxCotanAngle := MaxSingle;
        MaxCotanAngleI := i;
       end;
      end else
-     if RightSide = (Points.List^[i][1] > Points.List^[Start][1]) then
+     if RightSide = (Points.L[i][1] > Points.L[Start][1]) then
      begin
-      ThisCotan:=(Points.List^[i][0] - Points.List^[Start][0]) /
-                 (Points.List^[i][1] - Points.List^[Start][1]);
+      ThisCotan:=(Points.L[i][0] - Points.L[Start][0]) /
+                 (Points.L[i][1] - Points.L[Start][1]);
       if ThisCotan > MaxCotanAngle then
       begin
        MaxCotanAngle := ThisCotan;
@@ -1103,12 +1107,12 @@ begin
  Assert(Points.Count >= 1);
 
  { find i0, index of lowest point in Points }
- MinY := Points.List^[0][1];
+ MinY := Points.L[0][1];
  i0 := 0;
  for i := 1 to Points.Count-1 do
-  if Points.List^[i][1] < MinY then
+  if Points.L[i][1] < MinY then
   begin
-   MinY := Points.List^[i][1];
+   MinY := Points.L[i][1];
    i0 := i;
   end;
 

@@ -21,7 +21,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
         <Filename Value="edit_test.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -36,6 +36,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameinitialize"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="code/gameviewmain.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameviewmain"/>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

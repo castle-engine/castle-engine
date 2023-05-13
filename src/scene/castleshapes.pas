@@ -92,11 +92,6 @@ type
     { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }
     function ShapeNode: TAbstractShapeNode;
 
-    { X3D material node of this triangle. May be @nil in case material is not set
-      or has a different class than one-sided Phong TMaterialNode. }
-    function Material: TMaterialNode; deprecated 'use MaterialInfo';
-    function MaterialNode: TMaterialNode; deprecated 'use MaterialInfo';
-
     { Material information for the material of this triangle.
       See TMaterialInfo for usage description.
       Returns @nil when no node determines material properties
@@ -250,7 +245,7 @@ type
         TNormalNode (anything that can be inside TAbstractGeometryNode.NormalField),
         TTangentNode (anything that can be inside TAbstractGeometryNode.TangentField),
         TColorNode, TColorRGBANode  (anything that can be inside TAbstractGeometryNode.ColorField),
-        TMaterialNode (anything that can be in TShapeNode.Material),
+        TAbstractMaterialNode (anything that can be in TAppearanceNode.Material),
         TTextureCoordinateNode and other stuff that can be inside TAbstractGeometryNode.InternalTexCoord,
         TClipPlaneNode .
 
@@ -1097,24 +1092,6 @@ begin
   Result := State.ShapeNode;
 end;
 
-function TTriangleHelper.Material: TMaterialNode;
-var
-  S: TAbstractShapeNode;
-begin
-  S := ShapeNode;
-  if (S <> nil) and (S.Material is TMaterialNode) then
-    Result := TMaterialNode(S.Material)
-  else
-    Result := nil;
-end;
-
-function TTriangleHelper.MaterialNode: TMaterialNode;
-begin
-  {$warnings off} // using deprecated in deprecated
-  Result := Material;
-  {$warnings on}
-end;
-
 function TTriangleHelper.MaterialInfo: TMaterialInfo;
 begin
   Result := State.MaterialInfo;
@@ -1145,9 +1122,8 @@ function TTriangleHelper.IgnoreForShadowRays: boolean;
     Shape := State.ShapeNode;
     Result :=
       (Shape <> nil) and
-      (Shape.FdAppearance.Value <> nil) and
-      (Shape.FdAppearance.Value is TAppearanceNode) and
-      (not TAppearanceNode(Shape.FdAppearance.Value).FdShadowCaster.Value);
+      (Shape.Appearance <> nil) and
+      (not Shape.Appearance.ShadowCaster);
   end;
 
 begin
@@ -1488,9 +1464,11 @@ begin
     begin
       AssociateNode(AState.ShapeNode);
       if AState.ShapeNode.Appearance <> nil then
+      begin
         AssociateNode(AState.ShapeNode.Appearance);
-      if AState.ShapeNode.Material <> nil then
-        AssociateNode(AState.ShapeNode.Material);
+        if AState.ShapeNode.Appearance.Material <> nil then
+          AssociateNode(AState.ShapeNode.Appearance.Material);
+      end;
     end;
     if AState.ClipPlanes <> nil then
       for I := 0 to AState.ClipPlanes.Count - 1 do
@@ -1536,9 +1514,11 @@ begin
     begin
       UnAssociateNode(AState.ShapeNode);
       if AState.ShapeNode.Appearance <> nil then
+      begin
         UnAssociateNode(AState.ShapeNode.Appearance);
-      if AState.ShapeNode.Material <> nil then
-        UnAssociateNode(AState.ShapeNode.Material);
+        if AState.ShapeNode.Appearance.Material <> nil then
+          UnAssociateNode(AState.ShapeNode.Appearance.Material);
+      end;
     end;
     if AState.ClipPlanes <> nil then
       for I := 0 to AState.ClipPlanes.Count - 1 do
@@ -1793,7 +1773,7 @@ var
     Result := TGeometryArrays.Create;
     if not Box.IsEmpty then
     begin
-      Result.Primitive := gpTriangleFan; // gpQuads; - use triangle fan instead, to work with OpenGLES
+      Result.Primitive := gpTriangleFan;
       Result.Count := 4;
 
       Result.Position(0)^ := Vector3(Box.Data[0][0], Box.Data[0][1], Box.Data[0][2]);
@@ -2052,8 +2032,8 @@ function TShape.CreateTriangleOctree(
 
       procedure TriAssign(TriIndex: integer; c1value, c2value: Single);
       begin
-        Position.Data[TriIndex].InternalData[c1] := c1value;
-        Position.Data[TriIndex].InternalData[c2] := c2value;
+        Position.Data[TriIndex].Data[c1] := c1value;
+        Position.Data[TriIndex].Data[c2] := c2value;
       end;
 
     begin
@@ -2061,12 +2041,12 @@ function TShape.CreateTriangleOctree(
 
       for I := 0 to 2 do
       begin
-        Position.Data[I].InternalData[ConstCoord] := ConstCoordValue;
+        Position.Data[I].Data[ConstCoord] := ConstCoordValue;
         {$warnings off} // silence FPC warning about Normal uninitialized
-        Normal.Data[I].InternalData[C1] := 0;
+        Normal.Data[I].Data[C1] := 0;
         {$warnings on}
-        Normal.Data[I].InternalData[C2] := 0;
-        Normal.Data[I].InternalData[ConstCoord] := 1; { TODO: or -1 }
+        Normal.Data[I].Data[C2] := 0;
+        Normal.Data[I].Data[ConstCoord] := 1; { TODO: or -1 }
       end;
 
       TriAssign(0, x1, y1);
@@ -2190,12 +2170,10 @@ function TShape.AlphaChannel: TAlphaChannel;
       if Node.FdTransparency.Items.Count = 0 then
         result := TMaterialInfo.DefaultTransparency > SingleEpsilon else
       begin
-        {$ifndef FPC}{$POINTERMATH ON}{$endif}
         for i := 0 to Node.FdTransparency.Items.Count-1 do
           if Node.FdTransparency.Items.L[i] <= SingleEpsilon then
             Exit(false);
         result := true;
-        {$ifndef FPC}{$POINTERMATH OFF}{$endif}
       end;
     end;
 
@@ -2739,7 +2717,6 @@ begin
     end;
   end;
 
-  {$ifndef FPC}{$POINTERMATH ON}{$endif}
   Lights := State.Lights;
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
@@ -2753,7 +2730,6 @@ begin
       Result := HandleIDecls(Lights.L[I].Node.FdEffects);
       if Result <> nil then Exit;
     end;
-  {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
   if State.Effects <> nil then
     HandleIDecls(State.Effects);
@@ -2916,12 +2892,10 @@ var
     end else
       TexCoord := UnknownTexCoord;
 
-    {$ifndef FPC}{$POINTERMATH ON}{$endif}
     if Arrays.Faces <> nil then
       Face := Arrays.Faces.L[RangeBeginIndex + I1]
     else
       Face := UnknownFaceIndex;
-    {$ifndef FPC}{$POINTERMATH OFF}{$endif}
 
     TriangleEvent(Self, Position, Normal, TexCoord, Face);
   end;
@@ -2942,18 +2916,6 @@ var
             Inc(I, 3);
           end;
         end;
-      {$ifndef OpenGLES}
-      gpQuads:
-        begin
-          I := 0;
-          while I + 3 < Count do
-          begin
-            Triangle(I, I + 1, I + 2);
-            Triangle(I, I + 2, I + 3);
-            Inc(I, 4);
-          end;
-        end;
-      {$endif}
       gpTriangleFan:
         begin
           I := 0;
@@ -3039,14 +3001,16 @@ function TShape.NiceName: string;
 begin
   Result := OriginalGeometry.NiceName;
 
+  { Slash / seems like a nice way to show it, since it is like a path, just in X3D tree. }
+
   if FGeometryParentNode <> nil then
-    Result := FGeometryParentNode.X3DName + ':' + Result;
+    Result := FGeometryParentNode.X3DName + '/' + Result;
 
   if FGeometryGrandParentNode <> nil then
-    Result := FGeometryGrandParentNode.X3DName + ':' + Result;
+    Result := FGeometryGrandParentNode.X3DName + '/' + Result;
 
   if FGeometryGrandGrandParentNode <> nil then
-    Result := FGeometryGrandGrandParentNode.X3DName + ':' + Result;
+    Result := FGeometryGrandGrandParentNode.X3DName + '/' + Result;
 end;
 
 function TShape.Node: TAbstractShapeNode;
@@ -3746,19 +3710,22 @@ function X3DShapePlaceholder(const Shape: TShape): string;
 begin
   { Shape.Node may be nil for old VRML 1.0 or Inventor. }
   if Shape.Node <> nil then
-    Result := Shape.Node.X3DName else
+    Result := Shape.Node.X3DName
+  else
     Result := '';
 end;
 
 function BlenderPlaceholder(const Shape: TShape): string;
 begin
+  Result := '';
   if Shape.OriginalGeometry is TAbstractGeometryNode_1 then
   begin
     { Geometry node generated by Blender VRML 1.0 exporter has one parent,
       its mesh. The mesh node may have many parents representing its objects
       (unfortunately, the object names are not recorded in exported file,
       so we use mesh name for BlenderPlaceholder. }
-    Result := Shape.GeometryParentNode.X3DName;
+    if Shape.GeometryParentNode <> nil then
+      Result := Shape.GeometryParentNode.X3DName;
   end else
   begin
     { For VRML 2.0 and X3D exporter, the situation is quite similar.
@@ -3784,10 +3751,12 @@ begin
     }
 
     // not needed:
-    // BlenderMeshName := PrefixRemove('ME_', GeometryGrandParentNode.X3DName, false);
+    // if Shape.GeometryGrandParentNode <> nil then
+    //   BlenderMeshName := PrefixRemove('ME_', GeometryGrandParentNode.X3DName, false);
 
-    Result := SuffixRemove('_ifs_TRANSFORM', PrefixRemove('OB_',
-      Shape.GeometryGrandGrandParentNode.X3DName, false), false);
+    if Shape.GeometryGrandGrandParentNode <> nil then
+      Result := SuffixRemove('_ifs_TRANSFORM', PrefixRemove('OB_',
+        Shape.GeometryGrandGrandParentNode.X3DName, false), false);
   end;
 end;
 

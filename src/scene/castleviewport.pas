@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2022 Michalis Kamburelis.
+  Copyright 2009-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -921,7 +921,7 @@ type
       Or you can leave it as @nil. }
     property Navigation: TCastleNavigation read GetNavigation write SetNavigation
       stored false;
-      {$ifdef FPC}deprecated 'no need to set this, instead add TCastleNavigation like "MyViewport.InsertBack(MyNavigation)"';{$endif}
+      {$ifdef FPC}deprecated 'instead of this property: to get, just remember current navigation instance on your side; to set, add it like "MyViewport.InsertBack(MyNavigation)"';{$endif}
 
     { Check collisions (for move) with whole world (except AvoidNavigationCollisions).
       Given parameters are in world coordinates.
@@ -1202,8 +1202,8 @@ implementation
 uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
-  CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
-  CastleRenderContext, CastleApplicationProperties, X3DLoad;
+  CastleInternalSettings, CastleXMLUtils, CastleURIUtils, CastleInternalRenderer,
+  CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
 
 {$define read_implementation}
 {$I castleviewport_autonavigation.inc}
@@ -1805,13 +1805,13 @@ begin
     // use downto, to work in case some Press will remove transform from list
     for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
       if Items.InternalPressReleaseListeners[I].Press(Event) then
-        Exit(ExclusiveEvents);
+        Exit(true);
 
   if Input_Interact.IsEvent(Event) and
      PointingDevicePress then
   begin
     InternalPointingDeviceDragging := true;
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 
@@ -1829,13 +1829,13 @@ begin
     // use downto, to work in case some Release will remove transform from list
     for I := Items.InternalPressReleaseListeners.Count - 1 downto 0 do
       if Items.InternalPressReleaseListeners[I].Release(Event) then
-        Exit(ExclusiveEvents);
+        Exit(true);
 
   if Input_Interact.IsEvent(Event) then
   begin
     InternalPointingDeviceDragging := false;
     if PointingDeviceRelease then
-      Exit(ExclusiveEvents);
+      Exit(true);
   end;
 end;
 
@@ -2323,12 +2323,16 @@ end;
 
 procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
 begin
+  TGLRenderer.ViewportRenderBegin;
+
   {$warnings off} // keep deprecated working
   Render3D(Params);
   {$warnings on}
 
   Params.Frustum := @Params.RenderingCamera.Frustum;
   Items.Render(Params);
+
+  TGLRenderer.ViewportRenderEnd;
 end;
 
 procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
@@ -2474,10 +2478,16 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
       FWarningZFarInfinityDone := true;
       WritelnWarning('Rendering with Shadow Volumes, but ProjectionFar is not ZFarInfinity. Shadow volumes require ProjectionFar = ZFarInfinity. Leave TCastleCamera.ProjectionFar = 0.');
     end;
+
+    { Initialize FShadowVolumeRenderer if needed, along with its OpenGL resources.
+      This way we never even create FShadowVolumeRenderer if we will never render with shadow volumes. }
+    if FShadowVolumeRenderer = nil then
+      FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
+    FShadowVolumeRenderer.DebugRender := ShadowVolumesRender;
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
     FShadowVolumeRenderer.Render(Params,
       {$ifdef FPC}@{$endif}RenderOnePass,
-      {$ifdef FPC}@{$endif}RenderShadowVolume, ShadowVolumesRender);
+      {$ifdef FPC}@{$endif}RenderShadowVolume);
   end;
 
 var
@@ -2584,7 +2594,7 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
     for J := 0 to SceneCastingLights.InternalGlobalLights.Count - 1 do
     begin
       NewGlobalLight := PLightInstance(FRenderParams.FGlobalLights.Add);
-      NewGlobalLight^ := SceneCastingLights.InternalGlobalLights.List^[J];
+      NewGlobalLight^ := SceneCastingLights.InternalGlobalLights.L[J];
       { make NewGlobalLight^ in world coordinates }
       NewGlobalLight^.Transform := SceneCastingLights.WorldTransform * NewGlobalLight^.Transform;
       NewGlobalLight^.TransformScale := Approximate3DScale(SceneCastingLights.WorldTransform) * NewGlobalLight^.TransformScale;
@@ -2844,7 +2854,7 @@ begin
   // SSAOShaderInitialized = false implies SSAOShader = nil
   Assert(SSAOShader = nil);
 
-  if GLFeatures.Shaders <> gsNone then
+  if GLFeatures.Shaders then
   begin
     try
       SSAOShader := TSSAOScreenEffect.Create;
@@ -2873,7 +2883,7 @@ begin
 
   // SSAOShaderInitialized = false implies SSRShader = nil
   Assert(SSRShader = nil);
-  if GLFeatures.Shaders <> gsNone then
+  if GLFeatures.Shaders then
   begin
     try
       SSRShader := TSSRScreenEffect.Create;
@@ -2896,16 +2906,6 @@ end;
 procedure TCastleViewport.GLContextOpen;
 begin
   inherited;
-
-  { We actually need to do it only if GLFeatures.ShadowVolumesPossible
-    and ShadowVolumes for any viewport.
-    But we can as well do it always, it's harmless (just checks some GL
-    extensions). (Otherwise we'd have to handle SetShadowVolumes.) }
-  if FShadowVolumeRenderer = nil then
-  begin
-    FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
-    FShadowVolumeRenderer.GLContextOpen;
-  end;
 end;
 
 procedure TCastleViewport.GLContextClose;
@@ -3350,15 +3350,18 @@ var
   MainLightPosition: TVector4; // value of this is ignored
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    raise Exception.Create('PrepareResources can only be called when rendering context is initialized.' + NL +
+  begin
+    WritelnWarning('It is best to call PrepareResources only once rendering context is initialized, to allow preparing all rendering resources.' + NL +
       'Various events and virtual methods can be used to wait for the context:' + NL +
       '- (if you use CastleWindow) Application.OnInitialize' + NL +
-      '- (if you use CastleWindow) TCastleWindow.OnOpen' + NL +
-      '- (if you use LCL CastleControl) TCastleControl.OnOpen' + NL +
-      '- TCastleUserInterface.GLContextOpen'
+      '- TCastleUserInterface.GLContextOpen' + NL +
+      'We will continue, but some rendering resources may need to be prepared on-demand later.'
     );
+    // despite the warning, allow PrepareResources to run, to make it easy for users
+  end;
 
-  if GLFeatures.ShadowVolumesPossible and
+  if (GLFeatures <> nil) and
+     GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadowVolumes(MainLightPosition) then
     Include(Options, prShadowVolume);
@@ -4093,13 +4096,13 @@ initialization
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleViewport;
   R.Caption := ['Viewport (3D)'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithChildren3D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport.CreateComponentWithChildren3D;
   RegisterSerializableComponent(R);
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleViewport;
   R.Caption := ['Viewport (2D)'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport{$ifdef FPC}(nil){$endif}.CreateComponentWithChildren2D;
+  R.OnCreate := {$ifdef FPC}@{$endif}TCastleViewport.CreateComponentWithChildren2D;
   RegisterSerializableComponent(R);
 
   InitializeWarmupCache;

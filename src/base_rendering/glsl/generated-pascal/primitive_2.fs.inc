@@ -1,9 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "rectangle.fs" }
-'#ifdef GL_ES' + LineEnding +
-'precision mediump float;' + LineEnding +
-'#endif' + LineEnding +
-'' + LineEnding +
+{ DON'T EDIT -- this file was automatically generated from "source/primitive_2.fs" }
 'uniform vec4 color;' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +

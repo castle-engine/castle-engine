@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis, Andrzej Kilijański.
+  Copyright 2022-2023 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -25,12 +25,14 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
     LabelFps: TCastleLabel;
     ButtonMoveSphere: TCastleButton;
     Sphere: TCastleTransform;
-
+  private
     procedure ButtonMoveSphereClick(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -62,12 +64,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  ButtonMoveSphere := DesignedComponent('ButtonMoveSphere') as TCastleButton;
-  Sphere := DesignedComponent('Sphere') as TCastleTransform;
-
   ButtonMoveSphere.OnClick := {$ifdef FPC}@{$endif}ButtonMoveSphereClick;
 end;
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -108,6 +108,15 @@ const
     '3. Or set the environment variable $CASTLE_ENGINE_PATH.';
 
 function CachePath: String;
+
+{ Generate GUID using Seed to determine it, instead of using Random.
+  This is useful when you want to generate GUID that is stable between runs
+  (for example, when you want to have regenerate_auto_files_in_all_examples.sh
+  have stable output).
+
+  This is not a cryptographically secure hash, it's just a simple hash
+  to make GUID stable. }
+function CreateGUIDFromHash(const Seed: String): TGuid;
 
 implementation
 
@@ -280,6 +289,64 @@ end;
 function CachePath: String;
 begin
   Result := InclPathDelim(GetAppConfigDir(false)) + 'cache' + PathDelim;
+end;
+
+{ Hash of arbitrary data. Always 0 for DataSize = 0. }
+function HashData(const Data; const DataSize: SizeInt): UInt32;
+var
+  DataBytes: TByteArray absolute Data;
+  I: SizeInt;
+begin
+  Result := 0;
+  for I := 0 to DataSize - 1 do
+  begin
+    Result := Result xor DataBytes[I];
+    {$I norqcheckbegin.inc}
+    Result := Result * 16777619;
+    {$I norqcheckend.inc}
+  end;
+end;
+
+{ Hash of a String. Always 0 for empty string. }
+function HashString(const S: String): UInt32;
+begin
+  if S = '' then
+    Result := 0
+  else
+    Result := HashData(S[1], Length(S) * SizeOf(Char));
+end;
+
+function CreateGUIDFromHash(const Seed: String): TGuid;
+
+(*
+var
+  { FPC: https://www.freepascal.org/docs-html/rtl/system/randseed.html
+    Delphi: https://docwiki.embarcadero.com/Libraries/Sydney/en/System.RandSeed }
+  SavedRandSeed: {$ifdef FPC} Cardinal {$else} Integer {$endif}};
+begin
+  SavedRandSeed := RandSeed;
+  try
+    RandSeed := HashString(Seed);
+    Result := CreateGUID;
+  finally
+    RandSeed := SavedRandSeed;
+  end;
+*)
+
+{ Use approach that doesn't depend on Random algorithm, which may differ between FPC, Delphi
+  and even their particular versions. }
+
+var
+  I: Integer;
+begin
+  Result.D1 := HashString(Seed);
+  { Below we assign UInt32 values (HashString) to smaller types, just ignore the overflows. }
+  {$I norqcheckbegin.inc}
+  Result.D2 := HashString(Seed + 'D2');
+  Result.D3 := HashString(Seed + 'D3');
+  for I := Low(Result.D4) to High(Result.D4) do
+    Result.D4[I] := HashString(Seed + 'D4' + IntToStr(I));
+  {$I norqcheckend.inc}
 end;
 
 end.

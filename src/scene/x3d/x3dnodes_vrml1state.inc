@@ -1,5 +1,6 @@
+{%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -122,7 +123,9 @@ procedure TVRML1State.SetNode(
 begin
   if FNodes[StateNode] <> Node then
   begin
+    {$warnings off} // using deprecated to keep supporting VRML 1
     Assert((Node = nil) or (Node is VRML1StateClasses[StateNode]));
+    {$warnings on}
 
     if Owned[StateNode] then
       FNodes[StateNode].Free;
@@ -137,7 +140,9 @@ var
 begin
   for SN := Low(SN) to High(SN) do
   begin
+    {$warnings off} // using deprecated to keep supporting VRML 1
     Nodes[SN] := VRML1StateClasses[SN].Create;
+    {$warnings on}
     Owned[SN] := true;
   end;
 end;

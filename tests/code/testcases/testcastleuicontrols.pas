@@ -1,7 +1,7 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleUIControls" -*-
 
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,6 +30,7 @@ type
     procedure TestRectEffective;
     procedure TestRecursiveSize;
     procedure TestForIn;
+    procedure TestDetachParent;
   end;
 
 implementation
@@ -147,6 +148,83 @@ begin
     end;
     AssertSameValue(Y, 4);
   finally FreeAndNil(Owner) end;
+end;
+
+type
+  TTestContainer = class(TCastleContainer)
+  public
+    function Width: Integer; override;
+    function Height: Integer; override;
+  end;
+
+function TTestContainer.Width: Integer;
+begin
+  Result := 100;
+end;
+
+function TTestContainer.Height: Integer;
+begin
+  Result := 100;
+end;
+
+procedure TTestCastleUIControls.TestDetachParent;
+var
+  Container: TTestContainer;
+  U1, U2, U3: TCastleUserInterface;
+begin
+  Container := nil;
+  U1 := nil;
+  U2 := nil;
+  U3 := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    U1 := TCastleUserInterface.Create(nil);
+    U2 := TCastleUserInterface.Create(nil);
+    U3 := TCastleUserInterface.Create(nil);
+
+    AssertTrue(U1.Parent = nil);
+    AssertTrue(U1.Container = nil);
+    AssertTrue(U2.Parent = nil);
+    AssertTrue(U2.Container = nil);
+    AssertTrue(U3.Parent = nil);
+    AssertTrue(U3.Container = nil);
+
+    Container.Controls.InsertFront(U1);
+    AssertTrue(U1.Parent = nil);
+    AssertTrue(U1.Container = Container);
+    AssertTrue(U2.Parent = nil);
+    AssertTrue(U2.Container = nil);
+    AssertTrue(U3.Parent = nil);
+    AssertTrue(U3.Container = nil);
+
+    U1.InsertFront(U2);
+    AssertTrue(U1.Parent = nil);
+    AssertTrue(U1.Container = Container);
+    AssertTrue(U2.Parent = U1);
+    AssertTrue(U2.Container = Container);
+    AssertTrue(U3.Parent = nil);
+    AssertTrue(U3.Container = nil);
+
+    U2.InsertFront(U3);
+    AssertTrue(U1.Parent = nil);
+    AssertTrue(U1.Container = Container);
+    AssertTrue(U2.Parent = U1);
+    AssertTrue(U2.Container = Container);
+    AssertTrue(U3.Parent = U2);
+    AssertTrue(U3.Container = Container);
+
+    FreeAndNil(U2);
+    AssertTrue(U1.Parent = nil);
+    AssertTrue(U1.Container = Container);
+    AssertTrue(U2 = nil);
+    AssertTrue(U3.Parent = nil);
+    AssertTrue(U3.Container = nil);
+  finally
+    FreeAndNil(Container);
+    FreeAndNil(U1);
+    FreeAndNil(U2);
+    FreeAndNil(U3);
+  end;
 end;
 
 initialization
