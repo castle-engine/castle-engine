@@ -72,8 +72,8 @@
         <VerInfo_Locale>1045</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <DCC_Description>Castle Game Engine - base for other packages</DCC_Description>
-        <DCC_BplOutput>output\Delphi10.4+\$(Platform)\$(Config)</DCC_BplOutput>
-        <DCC_DcpOutput>output\$(Platform)\$(Config)</DCC_DcpOutput>
+        <DCC_BplOutput>..\output</DCC_BplOutput>
+        <DCC_DcpOutput>..\output</DCC_DcpOutput>
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
         <DCC_UNSUPPORTED_CONSTRUCT>false</DCC_UNSUPPORTED_CONSTRUCT>
         <DesignOnlyPackage>true</DesignOnlyPackage>
