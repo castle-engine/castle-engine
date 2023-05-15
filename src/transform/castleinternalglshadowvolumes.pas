@@ -273,7 +273,7 @@ function TGLShadowVolumeRenderer.GetCasterShadowPossiblyVisible(const CasterBox:
 var
   I: Integer;
 
-  function CheckPoint(const X, Y, Z: Integer): boolean;
+  function CasterCornerOutsideFrustum(const X, Y, Z: Integer): boolean;
   begin
     Result :=
       CasterBox.Data[X][0] * FrustumAndLightPlanes[I][0] +
@@ -287,14 +287,14 @@ begin
     Exit(false);
   for I := 0 to Integer(FrustumAndLightPlanesCount) - 1 do
   begin
-    if CheckPoint(0, 0, 0) and
-       CheckPoint(0, 0, 1) and
-       CheckPoint(0, 1, 0) and
-       CheckPoint(0, 1, 1) and
-       CheckPoint(1, 0, 0) and
-       CheckPoint(1, 0, 1) and
-       CheckPoint(1, 1, 0) and
-       CheckPoint(1, 1, 1) then
+    if CasterCornerOutsideFrustum(0, 0, 0) and
+       CasterCornerOutsideFrustum(0, 0, 1) and
+       CasterCornerOutsideFrustum(0, 1, 0) and
+       CasterCornerOutsideFrustum(0, 1, 1) and
+       CasterCornerOutsideFrustum(1, 0, 0) and
+       CasterCornerOutsideFrustum(1, 0, 1) and
+       CasterCornerOutsideFrustum(1, 1, 0) and
+       CasterCornerOutsideFrustum(1, 1, 1) then
       Exit(false);
   end;
   Result := true;
