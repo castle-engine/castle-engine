@@ -2649,7 +2649,9 @@ begin
   if FDoubleSided <> Value then
   begin
     FDoubleSided := Value;
-    ShapeChangedNotifyRigidBody;
+
+    if FKraftMesh <> nil then
+       FKraftMesh.DoubleSided := FDoubleSided;
   end;
 end;
 
