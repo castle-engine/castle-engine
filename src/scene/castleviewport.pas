@@ -2269,8 +2269,6 @@ function TCastleViewport.MainLightForShadowVolumes(out AMainLightPosition: TVect
     is undefined after returning @false. }
   function LightForShadowVolumesFromScene(const Scene: TCastleScene;
     out AMainLightPosition: TVector4): Boolean;
-  var
-    AMainLightPosition3D: PVector3;
   begin
     Result :=
       Scene.InternalMainLightForShadowVolumes(AMainLightPosition) and
@@ -2284,11 +2282,11 @@ function TCastleViewport.MainLightForShadowVolumes(out AMainLightPosition: TVect
     { Transform AMainLightPosition to world space. }
     if Result then
     begin
-      AMainLightPosition3D := PVector3(@AMainLightPosition);
       if AMainLightPosition.W = 0 then
-        AMainLightPosition3D^ := Scene.LocalToWorldDirection(AMainLightPosition3D^)
+        AMainLightPosition.XYZ := Scene.LocalToWorldDirection(AMainLightPosition.XYZ)
       else
-        AMainLightPosition3D^ := Scene.LocalToWorld(AMainLightPosition3D^);
+        AMainLightPosition := Vector4(
+          Scene.LocalToWorld(AMainLightPosition.XYZ / AMainLightPosition.W), 1.0);
     end;
   end;
 
