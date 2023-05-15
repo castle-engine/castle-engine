@@ -17,16 +17,6 @@
 {$ifdef read_interface}
 
 //type
-  { Result of @link(TCastleAbstractRootTransform.PhysicsRayCast) and
-    @link(TCastleRigidBody.PhysicsRayCast). }
-  TPhysicsRayCastResult = record
-    { Other fields are guaranteed to be all zero if Hit = @false. }
-    Hit: Boolean;
-    Transform: TCastleTransform;
-    { Distance from ray origin to the hit point. }
-    Distance: Single;
-    Point, Normal: TVector3;
-  end;
 
   { Root of transformations and scenes (tree of TCastleTransform and TCastleScene).
     This is the base abstract class, the non-abstract descendant is @link(TCastleRootTransform). }
@@ -285,7 +275,8 @@
 
     function PhysicsSphereCast(const SphereOrigin: TVector3; const SphereRadius:Single;
       const SphereDirection: TVector3; const MaxDistance: Single = MaxSingle;
-      const IgnoreBody: TCastleRigidBody = nil): TPhysicsRayCastResult;
+      const IgnoreBody: TCastleRigidBody = nil; const CollisionLayers:
+      TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
 
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }

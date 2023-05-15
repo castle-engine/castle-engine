@@ -17,6 +17,16 @@
 { Physics. Integrates TCastleTransform with Kraft physics engine. }
 
 {$ifdef read_interface}
+  { Result of @link(TCastleAbstractRootTransform.PhysicsRayCast) and
+    @link(TCastleRigidBody.PhysicsRayCast). }
+  TPhysicsRayCastResult = record
+    { Other fields are guaranteed to be all zero if Hit = @false. }
+    Hit: Boolean;
+    Transform: TCastleTransform;
+    { Distance from ray origin to the hit point. }
+    Distance: Single;
+    Point, Normal: TVector3;
+  end;
 
   { Information send along with TCollisionEvent event, like
     TCastleRigidBody.OnCollisionEnter, TCastleRigidBody.OnCollisionExit. }
@@ -901,7 +911,8 @@
 
     function PhysicsSphereCast(const SphereOrigin: TVector3;
       const SphereRadius:Single; const SphereDirection: TVector3;
-      const MaxDistance: Single = MaxSingle): TPhysicsRayCastResult;
+      const MaxDistance: Single = MaxSingle; const CollisionLayers:
+      TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -3682,7 +3693,8 @@ end;
 
 function TCastleRigidBody.PhysicsSphereCast(const SphereOrigin: TVector3;
   const SphereRadius: Single; const SphereDirection: TVector3;
-  const MaxDistance: Single): TPhysicsRayCastResult;
+  const MaxDistance: Single; const CollisionLayers:
+  TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
 var
   SphereOriginWorld, SphereDirectionWorld: TVector3;
   MaxDistanceWorld, SphereRadiusWorld: Single;
@@ -3716,7 +3728,7 @@ begin
   end;
 
   Result := FTransform.World.PhysicsSphereCast(SphereOriginWorld, SphereRadiusWorld,
-    SphereDirectionWorld, MaxDistanceWorld, Self);
+    SphereDirectionWorld, MaxDistanceWorld, Self, CollisionLayers);
 
   if Result.Hit and (FTransform.Parent <> nil) then
   begin
@@ -4124,8 +4136,9 @@ end;
 
 function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin: TVector3;
   const SphereRadius: Single; const SphereDirection: TVector3;
-  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody
-  ): TPhysicsRayCastResult;
+  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
+  const CollisionLayers: TPhysicsLayers =
+  [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
 
   procedure Core;
   var
@@ -4148,7 +4161,10 @@ function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin: TVec
       // inputs
       VectorToKraft(SphereOrigin), SphereRadius, VectorToKraft(SphereDirection), MaxDistance,
       // outputs
-      KraftShape, KraftDistance, KraftPoint, KraftNormal) then
+      KraftShape, KraftDistance, KraftPoint, KraftNormal,
+      // collision layers
+      CollisionLayers
+      ) then
     begin
       Result.Hit := true;
       Result.Transform := TCastleRigidBody(KraftShape.RigidBody.UserData).FTransform;
