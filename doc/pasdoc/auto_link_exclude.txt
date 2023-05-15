@@ -22,6 +22,8 @@ attenuation
 attribute
 attributes
 background
+behavior
+behaviors
 barycentric
 between
 bind
