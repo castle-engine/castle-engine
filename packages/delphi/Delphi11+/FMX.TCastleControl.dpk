@@ -38,7 +38,7 @@ requires
 
 
 contains
-  castleinternaldelphidesignutils.pas in '..\..\..\src\delphi\castleinternaldelphidesignutils.pas',
+  castleinternaldelphidesignutils in '..\..\..\src\delphi\castleinternaldelphidesignutils.pas',
   fmx.castlecontrol in '..\..\..\src\delphi\fmx.castlecontrol.pas',
   fmx.castlecontrol.reg in '..\..\..\src\delphi\fmx.castlecontrol.reg.pas';
 

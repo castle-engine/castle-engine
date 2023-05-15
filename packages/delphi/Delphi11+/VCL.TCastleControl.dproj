@@ -120,6 +120,7 @@
         <DCCReference Include="vcl.dcp"/>
         <DCCReference Include="designide.dcp"/>
         <DCCReference Include="..\..\..\src\delphi\castleinternaldelphidesignutils.pas"/>
+        <DCCReference Include="..\..\..\src\delphi\vcl.castlecontrol.pas"/>
         <DCCReference Include="..\..\..\src\delphi\vcl.castlecontrol.reg.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
