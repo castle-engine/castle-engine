@@ -86,9 +86,7 @@ unit kraft;
  {$endif}
  {$excessprecision off}
  {$define KraftAdvancedRecords}
-{$else} //Delphi
- {$hints off} // added by CGE
- {$warn SYMBOL_PLATFORM off} // added by CGE
+{$else}
  {$define LITTLE_ENDIAN}
  {$ifdef cpux64}
   {$define cpuamd64}
@@ -136,31 +134,6 @@ unit kraft;
 {$booleval off}
 {$typeinfo on}
 
-{ Workaround FPC 3.3.1 errors:
-
-  - Reproduced with revision 47824 compilation error, on Darwin (not recorded CPU).
-  - Reproduced also with FPC 3.3.1 revision 48998 with Android/Arm and Android/Aarrch64.
-
-  The errors mention invalid assembler syntax.
-  E.g. Android/Aarrch64 output:
-
-    kraft.s: Assembler messages:
-    kraft.s:86936: Error: operand mismatch -- `fadd d0,s0,s1'
-    kraft.s:86936: Info:    did you mean this?
-    kraft.s:86936: Info:    	fadd s0,s0,s1
-    kraft.s:86936: Info:    other valid variant(s):
-    kraft.s:86936: Info:    	fadd d0,d0,d1
-    kraft.s:86938: Error: operand mismatch -- `fadd d0,d0,s1'
-    kraft.s:86938: Info:    did you mean this?
-    kraft.s:86938: Info:    	fadd d0,d0,d1
-    kraft.s:86938: Info:    other valid variant(s):
-    kraft.s:86938: Info:    	fadd s0,s0,s1
-    kraft.pas(33101) Error: Error while assembling exitcode 1
-}
-{$if defined(FPC) and defined(VER3_3) and (defined(DARWIN) or defined(CPUARM) or defined(CPUAARCH64))}
-  {$undef caninline}
-{$ifend}
-
 {-$define UseMoreCollisionGroups}
 
 {$define UseTriangleMeshFullPerturbation}
@@ -172,26 +145,6 @@ unit kraft;
 {$ifdef KraftUseDouble}
  {$define NonSIMD}
 {$endif}
-
-{ CGE: Define NonSIMD. Without this symbol, Kraft uses some i386-only assembler,
-  that causes crashes (access violation at TRigidBody.SynchronizeFromKraft
-  when doing "FLinearVelocity := VectorFromKraft(FKraftBody.LinearVelocity)"). 
-  Testcase:
-
-    castle-engine --os=win32 --cpu=i386 compile --mode=debug
-    wine ./*.exe
-
-  on all physics examples it seems,
-
-    examples/physics/physics_2d_game_sopwith
-    examples/physics/physics_3d_game
-    examples/platformer
-
-  With at least FPC 3.2.0 (but did not check other FPC versions).
-  As this is an i386-specific optimization only (and our focus is on 64-bit platforms
-  as these are, and will be, majority) so disabling it is not a problem in practice
-  anyway. }
-{$define NonSIMD}
 
 {$if (not defined(fpc)) and defined(cpuamd64)}
  {$define NonSIMD} // Due to inline assembler bugs at the Delphi compiler
@@ -220,12 +173,6 @@ unit kraft;
 {$else}
  {$undef USE_CONSTREF} // For to avoid "then other" FPC codegen issues in this case with constref in connection with "function result is also a function argument" and so on => physics simulation explodes in some cases
 {$ifend}
-
-{ CGE: Avoid FPC note: "nested procedures" not yet supported inside inline procedure/function
-  TODO: submit to Kraft. }
-{$ifdef FPC}
-  {$notes off}
-{$endif}
 
 interface
 
@@ -967,7 +914,7 @@ type TKraftForceMode=(kfmForce,        // The unit of the force parameter is app
      TKraftQuickHull=class;
 
      PKraftQuickHullVector3D=^TKraftQuickHullVector3D;
-     TKraftQuickHullVector3D={$ifdef FPC}object{$else}record{$endif}
+     TKraftQuickHullVector3D=object
       public
        x:double;
        y:double;
@@ -1027,7 +974,7 @@ type TKraftForceMode=(kfmForce,        // The unit of the force parameter is app
      TKraftQuickHullThreeVertices=array[0..2] of TKraftQuickHullVertex;
 
      PKraftQuickHullVertexList=^TKraftQuickHullVertexList;
-     TKraftQuickHullVertexList={$ifdef FPC}object{$else}record{$endif}
+     TKraftQuickHullVertexList=object
       public
        Head:TKraftQuickHullVertex;
        Tail:TKraftQuickHullVertex;
@@ -1042,7 +989,7 @@ type TKraftForceMode=(kfmForce,        // The unit of the force parameter is app
      end;
 
      PKraftQuickHullFaceList=^TKraftQuickHullFaceList;
-     TKraftQuickHullFaceList={$ifdef FPC}object{$else}record{$endif}
+     TKraftQuickHullFaceList=object
       public
        Head:TKraftQuickHullFace;
        Tail:TKraftQuickHullFace;
@@ -1894,7 +1841,7 @@ type TKraftForceMode=(kfmForce,        // The unit of the force parameter is app
      TKraftGJKClosestPoints=array[0..1] of TKraftVector3;
 
      PKraftGJK=^TKraftGJK;
-     TKraftGJK={$ifdef FPC}object{$else}record{$endif}
+     TKraftGJK=object
       public
        Distance:TKraftScalar;
        Iterations:TKraftInt32;
@@ -1995,7 +1942,7 @@ type TKraftForceMode=(kfmForce,        // The unit of the force parameter is app
      PKraftContactPairContactManifoldMode=^TKraftContactPairContactManifoldMode;
      TKraftContactPairContactManifoldMode=(kcpcmmVelocitySolver,kcpcmmPositionSolver,kcpcmmBaumgarte,kcpcmmTemporalCoherence);
 
-     TKraftContactPair={$ifdef FPC}object{$else}record{$endif}
+     TKraftContactPair=object
       public
        Previous:PKraftContactPair;
        Next:PKraftContactPair;
@@ -4040,125 +3987,125 @@ function Vector2TermMatrixMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endi
 function Vector2Lerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector2;const w:TKraftScalar):TKraftVector2; {$ifdef caninline}inline;{$endif}
 
 function Vector3Flip({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
-function Vector3Abs({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
+function Vector3Abs({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Vector3Compare({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):boolean; {$ifdef caninline}inline;{$endif}
 function Vector3CompareEx({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3;const Threshold:TKraftScalar=EPSILON):boolean; {$ifdef caninline}inline;{$endif}
-procedure Vector3DirectAdd(var v1:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v2:TKraftVector3); {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-procedure Vector3DirectSub(var v1:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v2:TKraftVector3); {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3Add({$ifdef USE_CONSTREF}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3Sub({$ifdef USE_CONSTREF}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3Avg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
+procedure Vector3DirectAdd(var v1:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v2:TKraftVector3); {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Vector3DirectSub(var v1:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v2:TKraftVector3); {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3Add({$ifdef USE_CONSTREF}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3Sub({$ifdef USE_CONSTREF}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3Avg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Vector3Avg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2,v3:TKraftVector3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
 function Vector3Avg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} va:PKraftVector3s;Count:TKraftInt32):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
-function Vector3ScalarMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;const s:TKraftScalar):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3Dot({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
+function Vector3ScalarMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;const s:TKraftScalar):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3Dot({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Vector3Cos({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
 function Vector3GetOneUnitOrthogonalVector({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
-function Vector3Cross({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3Neg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3;  {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-procedure Vector3Scale(var v:TKraftVector3;const sx,sy,sz:TKraftScalar); overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-procedure Vector3Scale(var v:TKraftVector3;const s:TKraftScalar); overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3Mul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3Length({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3Dist({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3LengthSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3DistSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
+function Vector3Cross({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3Neg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3;  {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Vector3Scale(var v:TKraftVector3;const sx,sy,sz:TKraftScalar); overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Vector3Scale(var v:TKraftVector3;const s:TKraftScalar); overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3Mul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3Length({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3Dist({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3LengthSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3DistSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Vector3Angle({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2,v3:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
 function Vector3LengthNormalize(var v:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
 procedure Vector3Normalize(var v:TKraftVector3); {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
 procedure Vector3NormalizeEx(var v:TKraftVector3); {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
 function Vector3SafeNorm({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
-function Vector3Norm({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3NormEx({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
+function Vector3Norm({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3NormEx({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 procedure Vector3RotateX(var v:TKraftVector3;const a:TKraftScalar); {$ifdef caninline}inline;{$endif}
 procedure Vector3RotateY(var v:TKraftVector3;const a:TKraftScalar); {$ifdef caninline}inline;{$endif}
 procedure Vector3RotateZ(var v:TKraftVector3;const a:TKraftScalar); {$ifdef caninline}inline;{$endif}
-procedure Vector3MatrixMul(var v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3); overload; {$ifdef caninline}inline;{$endif}
-procedure Vector3MatrixMul(var v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4); overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
+procedure Vector3MatrixMul(var v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3); overload; {$ifdef caninline}inline;{$endif} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Vector3MatrixMul(var v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4); overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 procedure Vector3MatrixMulBasis(var v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4); overload; {$ifdef caninline}inline;{$endif}
 procedure Vector3MatrixMulInverted(var v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4); overload; {$ifdef caninline}inline;{$endif}
-function Vector3TermMatrixMul(const v:TKraftVector3;const m:TKraftMatrix3x3):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3TermMatrixMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
+function Vector3TermMatrixMul(const v:TKraftVector3;const m:TKraftMatrix3x3):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector3TermMatrixMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Vector3TermMatrixMulInverse({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
 function Vector3TermMatrixMulInverted({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
 function Vector3TermMatrixMulTransposed({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
 function Vector3TermMatrixMulTransposed({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
 function Vector3TermMatrixMulTransposedBasis({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
-function Vector3TermMatrixMulBasis({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
+function Vector3TermMatrixMulBasis({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Vector3TermMatrixMulHomogen({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; {$ifdef caninline}inline;{$endif}
 function Vector3Lerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3;const w:TKraftScalar):TKraftVector3; {$ifdef caninline}inline;{$endif}
 function Vector3Perpendicular(v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
-function Vector3TermQuaternionRotate({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
+function Vector3TermQuaternionRotate({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Vector3ProjectToBounds({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} MinVector,MaxVector:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
 function Vector3FlushZero({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3;
 
-function Vector4Compare({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):boolean;
-function Vector4CompareEx({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4;const Threshold:TKraftScalar=EPSILON):boolean;
-function Vector4Add({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftVector4;
-function Vector4Sub({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftVector4;
-function Vector4ScalarMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4;const s:TKraftScalar):TKraftVector4;
-function Vector4Dot({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftScalar;
-function Vector4Cross({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftVector4;
-function Vector4Neg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4):TKraftVector4;
-procedure Vector4Scale(var v:TKraftVector4;const sx,sy,sz:TKraftScalar); overload;
-procedure Vector4Scale(var v:TKraftVector4;const s:TKraftScalar); overload;
-function Vector4Mul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftVector4;
-function Vector4Length({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4):TKraftScalar;
-function Vector4Dist({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftScalar;
-function Vector4LengthSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4):TKraftScalar;
-function Vector4DistSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftScalar;
-function Vector4Angle({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2,v3:TKraftVector4):TKraftScalar;
-procedure Vector4Normalize(var v:TKraftVector4);
-function Vector4Norm({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4):TKraftVector4;
-procedure Vector4RotateX(var v:TKraftVector4;const a:TKraftScalar);
-procedure Vector4RotateY(var v:TKraftVector4;const a:TKraftScalar);
-procedure Vector4RotateZ(var v:TKraftVector4;const a:TKraftScalar);
+function Vector4Compare({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):boolean; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4CompareEx({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4;const Threshold:TKraftScalar=EPSILON):boolean; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4Add({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftVector4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4Sub({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftVector4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4ScalarMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4;const s:TKraftScalar):TKraftVector4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4Dot({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftScalar; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4Cross({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftVector4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4Neg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4):TKraftVector4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Vector4Scale(var v:TKraftVector4;const sx,sy,sz:TKraftScalar); overload; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Vector4Scale(var v:TKraftVector4;const s:TKraftScalar); overload; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4Mul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftVector4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4Length({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4):TKraftScalar; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4Dist({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftScalar; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4LengthSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4):TKraftScalar; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4DistSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4):TKraftScalar; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4Angle({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2,v3:TKraftVector4):TKraftScalar; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Vector4Normalize(var v:TKraftVector4); {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4Norm({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4):TKraftVector4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Vector4RotateX(var v:TKraftVector4;const a:TKraftScalar); {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Vector4RotateY(var v:TKraftVector4;const a:TKraftScalar); {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Vector4RotateZ(var v:TKraftVector4;const a:TKraftScalar); {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 procedure Vector4MatrixMul(var v:TKraftVector4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4);
-function Vector4TermMatrixMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector4;
-function Vector4TermMatrixMulHomogen({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector4;
-procedure Vector4Rotate(var v:TKraftVector4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Axis:TKraftVector4;const a:TKraftScalar);
-function Vector4Lerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4;const w:TKraftScalar):TKraftVector4;
+function Vector4TermMatrixMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4TermMatrixMulHomogen({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Vector4Rotate(var v:TKraftVector4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Axis:TKraftVector4;const a:TKraftScalar); {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Vector4Lerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector4;const w:TKraftScalar):TKraftVector4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 
-function Matrix2x2Inverse(var mr:TKraftMatrix2x2;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix2x2):boolean;
-function Matrix2x2TermInverse({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix2x2):TKraftMatrix2x2;
+function Matrix2x2Inverse(var mr:TKraftMatrix2x2;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix2x2):boolean; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix2x2TermInverse({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix2x2):TKraftMatrix2x2; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 
 function Matrix3x3RotateX(const Angle:TKraftScalar):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
 function Matrix3x3RotateY(const Angle:TKraftScalar):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
 function Matrix3x3RotateZ(const Angle:TKraftScalar):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
-function Matrix3x3Rotate(const Angle:TKraftScalar;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif}Axis:TKraftVector3):TKraftMatrix3x3; overload;
+function Matrix3x3Rotate(const Angle:TKraftScalar;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif}Axis:TKraftVector3):TKraftMatrix3x3; overload; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Matrix3x3Scale(const sx,sy,sz:TKraftScalar):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
 procedure Matrix3x3Add(var m1:TKraftMatrix3x3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m2:TKraftMatrix3x3); {$ifdef caninline}inline;{$endif}
 procedure Matrix3x3Sub(var m1:TKraftMatrix3x3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m2:TKraftMatrix3x3); {$ifdef caninline}inline;{$endif}
-procedure Matrix3x3Mul(var m1:TKraftMatrix3x3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m2:TKraftMatrix3x3);
-function Matrix3x3TermAdd({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix3x3):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
+procedure Matrix3x3Mul(var m1:TKraftMatrix3x3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m2:TKraftMatrix3x3); {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix3x3TermAdd({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix3x3):TKraftMatrix3x3; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend} {$ifdef caninline}inline;{$endif}
 function Matrix3x3TermSub({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix3x3):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
-function Matrix3x3TermMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix3x3):TKraftMatrix3x3;
-function Matrix3x3TermMulTranspose({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix3x3):TKraftMatrix3x3;
+function Matrix3x3TermMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix3x3):TKraftMatrix3x3; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix3x3TermMulTranspose({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix3x3):TKraftMatrix3x3; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 procedure Matrix3x3ScalarMul(var m:TKraftMatrix3x3;s:TKraftScalar); {$ifdef caninline}inline;{$endif}
 function Matrix3x3TermScalarMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3;const s:TKraftScalar):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
 procedure Matrix3x3Transpose(var m:TKraftMatrix3x3); {$ifdef caninline}inline;{$endif}
 function Matrix3x3TermTranspose({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
 function Matrix3x3Determinant({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftScalar; {$ifdef caninline}inline;{$endif}
-function Matrix3x3EulerAngles({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftVector3;
+function Matrix3x3EulerAngles({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftVector3; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 procedure Matrix3x3SetColumn(var m:TKraftMatrix3x3;const c:TKraftInt32;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3); {$ifdef caninline}inline;{$endif}
 function Matrix3x3GetColumn({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3;const c:TKraftInt32):TKraftVector3; {$ifdef caninline}inline;{$endif}
 procedure Matrix3x3SetRow(var m:TKraftMatrix3x3;const r:TKraftInt32;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3); {$ifdef caninline}inline;{$endif}
 function Matrix3x3GetRow({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3;const r:TKraftInt32):TKraftVector3; {$ifdef caninline}inline;{$endif}
-function Matrix3x3Compare({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix3x3):boolean;
-function Matrix3x3Inverse(var mr:TKraftMatrix3x3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix3x3):boolean;
-function Matrix3x3TermInverse({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftMatrix3x3;
-procedure Matrix3x3OrthoNormalize(var m:TKraftMatrix3x3);
-function Matrix3x3Slerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} a,b:TKraftMatrix3x3;const x:TKraftScalar):TKraftMatrix3x3;
-function Matrix3x3FromToRotation({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} FromDirection,ToDirection:TKraftVector3):TKraftMatrix3x3;
-function Matrix3x3Construct({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Forwards,Up:TKraftVector3):TKraftMatrix3x3;
+function Matrix3x3Compare({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix3x3):boolean; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix3x3Inverse(var mr:TKraftMatrix3x3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix3x3):boolean; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix3x3TermInverse({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftMatrix3x3; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Matrix3x3OrthoNormalize(var m:TKraftMatrix3x3); {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix3x3Slerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} a,b:TKraftMatrix3x3;const x:TKraftScalar):TKraftMatrix3x3; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix3x3FromToRotation({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} FromDirection,ToDirection:TKraftVector3):TKraftMatrix3x3; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix3x3Construct({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Forwards,Up:TKraftVector3):TKraftMatrix3x3; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Matrix3x3OuterProduct({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} u,v:TKraftVector3):TKraftMatrix3x3;
 
-function Matrix4x4Set({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftMatrix4x4;
-function Matrix4x4Rotation({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftMatrix4x4;
-function Matrix4x4RotateX(const Angle:TKraftScalar):TKraftMatrix4x4;
-function Matrix4x4RotateY(const Angle:TKraftScalar):TKraftMatrix4x4;
-function Matrix4x4RotateZ(const Angle:TKraftScalar):TKraftMatrix4x4;
-function Matrix4x4Rotate(const Angle:TKraftScalar;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif}Axis:TKraftVector3):TKraftMatrix4x4; overload;
+function Matrix4x4Set({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4Rotation({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4RotateX(const Angle:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4RotateY(const Angle:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4RotateZ(const Angle:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4Rotate(const Angle:TKraftScalar;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif}Axis:TKraftVector3):TKraftMatrix4x4; overload; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Matrix4x4Translate(const x,y,z:TKraftScalar):TKraftMatrix4x4; overload; {$ifdef caninline}inline;{$endif}
 function Matrix4x4Translate({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftMatrix4x4; overload; {$ifdef caninline}inline;{$endif}
 function Matrix4x4Translate({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4):TKraftMatrix4x4; overload; {$ifdef caninline}inline;{$endif}
@@ -4168,94 +4115,94 @@ function Matrix4x4Scale(const sx,sy,sz:TKraftScalar):TKraftMatrix4x4; overload; 
 function Matrix4x4Scale({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} s:TKraftVector3):TKraftMatrix4x4; overload; {$ifdef caninline}inline;{$endif}
 procedure Matrix4x4Add(var m1:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m2:TKraftMatrix4x4); {$ifdef caninline}inline;{$endif}
 procedure Matrix4x4Sub(var m1:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m2:TKraftMatrix4x4); {$ifdef caninline}inline;{$endif}
-procedure Matrix4x4Mul(var m1:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m2:TKraftMatrix4x4); overload;
-procedure Matrix4x4Mul(var mr:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4); overload;
+procedure Matrix4x4Mul(var m1:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m2:TKraftMatrix4x4); overload; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Matrix4x4Mul(var mr:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4); overload; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Matrix4x4TermAdd({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):TKraftMatrix4x4; {$ifdef caninline}inline;{$endif}
 function Matrix4x4TermSub({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):TKraftMatrix4x4; {$ifdef caninline}inline;{$endif}
-function Matrix4x4TermMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):TKraftMatrix4x4;
+function Matrix4x4TermMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Matrix4x4TermMulInverted({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):TKraftMatrix4x4; {$ifdef caninline}inline;{$endif}
 function Matrix4x4TermMulSimpleInverted({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):TKraftMatrix4x4; {$ifdef caninline}inline;{$endif}
-function Matrix4x4TermMulTranspose({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):TKraftMatrix4x4;
-function Matrix4x4Lerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} a,b:TKraftMatrix4x4;const x:TKraftScalar):TKraftMatrix4x4;
-function Matrix4x4Slerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} a,b:TKraftMatrix4x4;const x:TKraftScalar):TKraftMatrix4x4;
+function Matrix4x4TermMulTranspose({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4Lerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} a,b:TKraftMatrix4x4;const x:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4Slerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} a,b:TKraftMatrix4x4;const x:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 procedure Matrix4x4ScalarMul(var m:TKraftMatrix4x4;const s:TKraftScalar); {$ifdef caninline}inline;{$endif}
-procedure Matrix4x4Transpose(var m:TKraftMatrix4x4);
-function Matrix4x4TermTranspose({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftMatrix4x4;
-function Matrix4x4Determinant({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftScalar;
+procedure Matrix4x4Transpose(var m:TKraftMatrix4x4); {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4TermTranspose({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4Determinant({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftScalar; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 procedure Matrix4x4SetColumn(var m:TKraftMatrix4x4;const c:TKraftInt32;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4); {$ifdef caninline}inline;{$endif}
 function Matrix4x4GetColumn({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4;const c:TKraftInt32):TKraftVector4; {$ifdef caninline}inline;{$endif}
 procedure Matrix4x4SetRow(var m:TKraftMatrix4x4;const r:TKraftInt32;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector4); {$ifdef caninline}inline;{$endif}
 function Matrix4x4GetRow({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4;const r:TKraftInt32):TKraftVector4; {$ifdef caninline}inline;{$endif}
-function Matrix4x4Compare({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):boolean;
+function Matrix4x4Compare({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):boolean; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Matrix4x4LengthSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftScalar;
-function Matrix4x4Length({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftScalar;
+function Matrix4x4Length({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftScalar; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Matrix4x4DifferenceSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):TKraftScalar;
-function Matrix4x4Difference({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):TKraftScalar;
-procedure Matrix4x4Reflect(var mr:TKraftMatrix4x4;Plane:TKraftPlane);
-function Matrix4x4TermReflect(Plane:TKraftPlane):TKraftMatrix4x4;
+function Matrix4x4Difference({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix4x4):TKraftScalar; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure Matrix4x4Reflect(var mr:TKraftMatrix4x4;Plane:TKraftPlane); {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4TermReflect(Plane:TKraftPlane):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Matrix4x4SimpleInverse(var mr:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix4x4):boolean; {$ifdef caninline}inline;{$endif}
 function Matrix4x4TermSimpleInverse({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix4x4):TKraftMatrix4x4; {$ifdef caninline}inline;{$endif}
-function Matrix4x4Inverse(var mr:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix4x4):boolean;
-function Matrix4x4TermInverse({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix4x4):TKraftMatrix4x4;
-function Matrix4x4InverseOld(var mr:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix4x4):boolean;
-function Matrix4x4TermInverseOld({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix4x4):TKraftMatrix4x4;
-function Matrix4x4GetSubMatrix3x3({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4;const i,j:TKraftInt32):TKraftMatrix3x3;
-function Matrix4x4Frustum(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4;
-function Matrix4x4Ortho(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4;
-function Matrix4x4OrthoLH(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4;
-function Matrix4x4OrthoRH(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4;
-function Matrix4x4OrthoOffCenterLH(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4;
-function Matrix4x4OrthoOffCenterRH(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4;
-function Matrix4x4Perspective(const fovy,Aspect,zNear,zFar:TKraftScalar):TKraftMatrix4x4;
-function Matrix4x4LookAt({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Eye,Center,Up:TKraftVector3):TKraftMatrix4x4;
-function Matrix4x4Fill({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Eye,RightVector,UpVector,ForwardVector:TKraftVector3):TKraftMatrix4x4;
-function Matrix4x4ConstructX({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} xAxis:TKraftVector3):TKraftMatrix4x4;
-function Matrix4x4ConstructY({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} yAxis:TKraftVector3):TKraftMatrix4x4;
-function Matrix4x4ConstructZ({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} zAxis:TKraftVector3):TKraftMatrix4x4;
-function Matrix4x4ProjectionMatrixClip({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ProjectionMatrix:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ClipPlane:TKraftPlane):TKraftMatrix4x4;
+function Matrix4x4Inverse(var mr:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix4x4):boolean; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4TermInverse({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix4x4):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4InverseOld(var mr:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix4x4):boolean; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4TermInverseOld({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ma:TKraftMatrix4x4):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4GetSubMatrix3x3({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4;const i,j:TKraftInt32):TKraftMatrix3x3; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4Frustum(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4Ortho(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4OrthoLH(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4OrthoRH(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4OrthoOffCenterLH(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4OrthoOffCenterRH(const Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4Perspective(const fovy,Aspect,zNear,zFar:TKraftScalar):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4LookAt({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Eye,Center,Up:TKraftVector3):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4Fill({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Eye,RightVector,UpVector,ForwardVector:TKraftVector3):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4ConstructX({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} xAxis:TKraftVector3):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4ConstructY({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} yAxis:TKraftVector3):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4ConstructZ({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} zAxis:TKraftVector3):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function Matrix4x4ProjectionMatrixClip({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ProjectionMatrix:TKraftMatrix4x4;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} ClipPlane:TKraftPlane):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 
 procedure PlaneNormalize(var Plane:TKraftPlane); {$ifdef caninline}inline;{$endif}
-function PlaneMatrixMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Plane:TKraftPlane;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Matrix:TKraftMatrix4x4):TKraftPlane;
-function PlaneTransform({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Plane:TKraftPlane;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Matrix:TKraftMatrix4x4):TKraftPlane; overload;
-function PlaneTransform({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Plane:TKraftPlane;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Matrix,NormalMatrix:TKraftMatrix4x4):TKraftPlane; overload;
+function PlaneMatrixMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Plane:TKraftPlane;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Matrix:TKraftMatrix4x4):TKraftPlane; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function PlaneTransform({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Plane:TKraftPlane;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Matrix:TKraftMatrix4x4):TKraftPlane; overload; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function PlaneTransform({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Plane:TKraftPlane;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Matrix,NormalMatrix:TKraftMatrix4x4):TKraftPlane; overload; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function PlaneFastTransform({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Plane:TKraftPlane;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Matrix:TKraftMatrix4x4):TKraftPlane; overload; {$ifdef caninline}inline;{$endif}
 function PlaneVectorDistance({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Plane:TKraftPlane;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Point:TKraftVector3):TKraftScalar; overload; {$ifdef caninline}inline;{$endif}
 function PlaneVectorDistance({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Plane:TKraftPlane;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Point:TKraftVector4):TKraftScalar; overload; {$ifdef caninline}inline;{$endif}
 function PlaneFromPoints({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} p1,p2,p3:TKraftVector3):TKraftPlane; overload; {$ifdef caninline}inline;{$endif}
 function PlaneFromPoints({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} p1,p2,p3:TKraftVector4):TKraftPlane; overload; {$ifdef caninline}inline;{$endif}
 
-function QuaternionNormal({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftScalar;
-function QuaternionLengthSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftScalar;
-procedure QuaternionNormalize(var AQuaternion:TKraftQuaternion);
-function QuaternionTermNormalize({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftQuaternion;
-function QuaternionNeg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftQuaternion;
-function QuaternionConjugate({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftQuaternion;
-function QuaternionInverse({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftQuaternion;
-function QuaternionAdd({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q1,q2:TKraftQuaternion):TKraftQuaternion;
-function QuaternionSub({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q1,q2:TKraftQuaternion):TKraftQuaternion;
-function QuaternionScalarMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion;const s:TKraftScalar):TKraftQuaternion;
-function QuaternionMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q1,q2:TKraftQuaternion):TKraftQuaternion;
+function QuaternionNormal({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftScalar; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionLengthSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftScalar; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure QuaternionNormalize(var AQuaternion:TKraftQuaternion); {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionTermNormalize({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionNeg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionConjugate({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionInverse({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionAdd({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q1,q2:TKraftQuaternion):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionSub({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q1,q2:TKraftQuaternion):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionScalarMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion;const s:TKraftScalar):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q1,q2:TKraftQuaternion):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function QuaternionRotateAroundAxis({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q1,q2:TKraftQuaternion):TKraftQuaternion; {$ifdef caninline}inline;{$endif}
 function QuaternionFromAxisAngle({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Axis:TKraftVector3;const Angle:TKraftScalar):TKraftQuaternion; overload; {$ifdef caninline}inline;{$endif}
 function QuaternionFromSpherical(const Latitude,Longitude:TKraftScalar):TKraftQuaternion; {$ifdef caninline}inline;{$endif}
-procedure QuaternionToSpherical({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion;var Latitude,Longitude:TKraftScalar);
+procedure QuaternionToSpherical({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion;var Latitude,Longitude:TKraftScalar); {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function QuaternionFromAngles(const Pitch,Yaw,Roll:TKraftScalar):TKraftQuaternion; overload; {$ifdef caninline}inline;{$endif}
 function QuaternionFromAngles({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Angles:TKraftAngles):TKraftQuaternion; overload; {$ifdef caninline}inline;{$endif}
-function QuaternionFromMatrix3x3({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AMatrix:TKraftMatrix3x3):TKraftQuaternion;
-function QuaternionToMatrix3x3(AQuaternion:TKraftQuaternion):TKraftMatrix3x3;
-function QuaternionFromTangentSpaceMatrix3x3(AMatrix:TKraftMatrix3x3):TKraftQuaternion;
-function QuaternionToTangentSpaceMatrix3x3(AQuaternion:TKraftQuaternion):TKraftMatrix3x3;
-function QuaternionFromMatrix4x4({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AMatrix:TKraftMatrix4x4):TKraftQuaternion;
-function QuaternionToMatrix4x4(AQuaternion:TKraftQuaternion):TKraftMatrix4x4;
+function QuaternionFromMatrix3x3({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AMatrix:TKraftMatrix3x3):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionToMatrix3x3(AQuaternion:TKraftQuaternion):TKraftMatrix3x3; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionFromTangentSpaceMatrix3x3(AMatrix:TKraftMatrix3x3):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionToTangentSpaceMatrix3x3(AQuaternion:TKraftQuaternion):TKraftMatrix3x3; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionFromMatrix4x4({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AMatrix:TKraftMatrix4x4):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionToMatrix4x4(AQuaternion:TKraftQuaternion):TKraftMatrix4x4; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function QuaternionToEuler({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftVector3; {$ifdef caninline}inline;{$endif}
 procedure QuaternionToAxisAngle(AQuaternion:TKraftQuaternion;var Axis:TKraftVector3;var Angle:TKraftScalar); {$ifdef caninline}inline;{$endif}
 function QuaternionGenerator(AQuaternion:TKraftQuaternion):TKraftVector3; {$ifdef caninline}inline;{$endif}
 function QuaternionLerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q1,q2:TKraftQuaternion;const t:TKraftScalar):TKraftQuaternion; {$ifdef caninline}inline;{$endif}
 function QuaternionNlerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q1,q2:TKraftQuaternion;const t:TKraftScalar):TKraftQuaternion; {$ifdef caninline}inline;{$endif}
-function QuaternionSlerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q1,q2:TKraftQuaternion;const t:TKraftScalar):TKraftQuaternion;
-function QuaternionIntegrate({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Omega:TKraftVector3;const DeltaTime:TKraftScalar):TKraftQuaternion;
-function QuaternionSpin({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Omega:TKraftVector3;const DeltaTime:TKraftScalar):TKraftQuaternion; overload;
-procedure QuaternionDirectSpin(var q:TKraftQuaternion;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Omega:TKraftVector3;const DeltaTime:TKraftScalar); overload;
+function QuaternionSlerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q1,q2:TKraftQuaternion;const t:TKraftScalar):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionIntegrate({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Omega:TKraftVector3;const DeltaTime:TKraftScalar):TKraftQuaternion; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+function QuaternionSpin({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Omega:TKraftVector3;const DeltaTime:TKraftScalar):TKraftQuaternion; overload; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
+procedure QuaternionDirectSpin(var q:TKraftQuaternion;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Omega:TKraftVector3;const DeltaTime:TKraftScalar); overload; {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function QuaternionFromToRotation({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} FromDirection,ToDirection:TKraftVector3):TKraftQuaternion; {$ifdef caninline}inline;{$endif}
 
 function InertiaTensorTransform({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Inertia,Transform:TKraftMatrix3x3):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
@@ -4941,9 +4888,15 @@ asm
 {$ifndef fpc}
  .noframe
 {$endif}
+{$if defined(Windows)}
  movss xmm0,dword ptr [v+0]
  movss xmm1,dword ptr [v+4]
  movss xmm2,dword ptr [v+8]
+{$else}
+ movss xmm0,dword ptr [rdi+0]
+ movss xmm1,dword ptr [rdi+4]
+ movss xmm2,dword ptr [rdi+8]
+{$ifend}
  movlhps xmm0,xmm1
  shufps xmm0,xmm2,$88
  xorps xmm3,xmm3
@@ -4954,10 +4907,17 @@ asm
  movaps xmm2,xmm0
  shufps xmm1,xmm1,$55
  shufps xmm2,xmm2,$aa
- movss dword ptr [result+0],xmm0
- movss dword ptr [result+4],xmm1
- movss dword ptr [result+8],xmm2
- movss dword ptr [result+12],xmm3
+{$if defined(Windows)}
+movss dword ptr [result+0],xmm0
+movss dword ptr [result+4],xmm1
+movss dword ptr [result+8],xmm2
+movss dword ptr [result+12],xmm3
+{$else}
+ movss dword ptr [rsi+0],xmm0
+ movss dword ptr [rsi+4],xmm1
+ movss dword ptr [rsi+8],xmm2
+ movss dword ptr [rsi+12],xmm3
+{$ifend}
 end;
 {$else}
 begin
@@ -26131,7 +26091,6 @@ begin
     SolverContact^.Separation:=Contact^.Penetration;
    end;
   end;
-  else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
  end;
 end;
 
@@ -30035,7 +29994,6 @@ begin
     end;
 
    end;
-   else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
   end;
 
   fRigidBodyType:=ARigidBodyType;
@@ -30089,7 +30047,6 @@ begin
     inc(fPhysics.fKinematicRigidBodyCount);
 
    end;
-   else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
   end;
 
   Shape:=fShapeFirst;
@@ -37862,7 +37819,6 @@ begin
     inc(fContinuousTime,fHighResolutionTimer.GetTime-StartTime);
    end;
   end;
-  else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
  end;
 
  Constraint:=fConstraintFirst;
