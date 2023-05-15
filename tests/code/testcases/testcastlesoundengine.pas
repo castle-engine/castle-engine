@@ -29,11 +29,13 @@ type
     procedure TestLoadBufferException;
     procedure TestNotPcmEncodingWarning;
     procedure TestImportancePriority;
+    procedure TestSoundFromDataUri;
   end;
 
 implementation
 
-uses CastleFilesUtils, CastleSoundEngine, CastleApplicationProperties, CastleDownload;
+uses CastleFilesUtils, CastleSoundEngine, CastleApplicationProperties, CastleDownload,
+  CastleLog;
 
 procedure TTestCastleSoundEngine.TestLoadBufferException;
 begin
@@ -124,6 +126,21 @@ begin
     AssertEquals(DefaultSoundImportance, Params.Importance);
     {$endif}
   finally FreeAndNil(Params) end;
+end;
+
+procedure TTestCastleSoundEngine.TestSoundFromDataUri;
+var
+  Sound: TCastleSound;
+  Stream: TStream;
+begin
+  Sound := TCastleSound.Create(nil);
+  try
+    Stream := Download('castle-data:/game/alien_sudden_pain.wav', []);
+    try
+      Sound.LoadFromStream(Stream, 'audio/x-wav');
+    finally FreeAndNil(Stream) end;
+    AssertSameValue(1.46, Sound.Duration, 0.01);
+  finally FreeAndNil(Sound) end;
 end;
 
 initialization
