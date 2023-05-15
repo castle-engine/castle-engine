@@ -9,38 +9,34 @@ package VCL.TCastleControl;
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
-{$LOCALSYMBOLS ON}
+{$LOCALSYMBOLS OFF}
 {$LONGSTRINGS ON}
 {$OPENSTRINGS ON}
-{$OPTIMIZATION OFF}
-{$OVERFLOWCHECKS ON}
-{$RANGECHECKS ON}
-{$REFERENCEINFO ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
 {$SAFEDIVIDE OFF}
-{$STACKFRAMES ON}
+{$STACKFRAMES OFF}
 {$TYPEDADDRESS OFF}
 {$VARSTRINGCHECKS ON}
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DEFINE DEBUG}
+{$DEFINE RELEASE}
 {$ENDIF IMPLICITBUILDING}
-{$IMPLICITBUILD ON}
-{$DESCRIPTION 'Castle Game Engine - base for other packages'}
-{$DESIGNONLY}
 {$LIBSUFFIX AUTO}
 {$IMPLICITBUILD ON}
-{$HPPEMIT NOUSINGNAMESPACE}
 
 requires
   rtl,
   vcl,
-  designide;
+  designide,
+  FMX.TCastleControl;
 
 contains
-  castleinternaldelphidesignutils in '..\..\..\src\delphi\castleinternaldelphidesignutils.pas',
+//  castleinternaldelphidesignutils in '..\..\..\src\delphi\castleinternaldelphidesignutils.pas',
   vcl.castlecontrol in '..\..\..\src\delphi\vcl.castlecontrol.pas',
   vcl.castlecontrol.reg in '..\..\..\src\delphi\vcl.castlecontrol.reg.pas';
-
 
 end.
