@@ -14,7 +14,7 @@
 }
 
 { Control with OpenGL context on a Delphi VCL form. }
-unit Vcl.CastleControl;
+unit vcl.castlecontrol;
 
 {$I castleconf.inc}
 
@@ -109,21 +109,25 @@ type
     property OnMouseMove;
     property OnMouseWheel;
   end;
-
+{ Designtime Only }
+{
 procedure Register;
-
+}
 implementation
 
 uses Windows,
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
   CastleRectangles, CastleUIControls, CastleInternalDelphiUtils;
 
+{ Designtime Only }
+{
 procedure Register;
 begin
   RegisterComponents('Castle', [
     TCastleControl
   ]);
 end;
+}
 
 { TCastleControl.TContainer ---------------------------------------------------}
 

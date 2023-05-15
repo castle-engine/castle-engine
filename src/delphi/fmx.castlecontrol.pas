@@ -14,7 +14,7 @@
 }
 
 { Control with OpenGL context on a Delphi FMX form. }
-unit Fmx.CastleControl;
+unit fmx.castlecontrol;
 
 {$I castleconf.inc}
 
@@ -115,7 +115,10 @@ type
     property CanFocus default True;
   end;
 
+{ Designtime Only }
+{
 procedure Register;
+}
 
 implementation
 
@@ -124,12 +127,15 @@ uses FMX.Presentation.Factory, Types, FMX.Graphics,
   CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
   CastleLog;
 
+{ Designtime Only }
+{
 procedure Register;
 begin
   RegisterComponents('Castle', [
     TCastleControl
   ]);
 end;
+}
 
 { TWinNativeGLControl -------------------------------------------------------- }
 

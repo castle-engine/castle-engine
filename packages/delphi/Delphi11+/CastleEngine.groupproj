@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{417E7BE0-81B9-4F97-8349-6EAFE5746584}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="castle_engine.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="VCL.TControl.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FMX.TControl.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="castle_engine">
+        <MSBuild Projects="castle_engine.dproj"/>
+    </Target>
+    <Target Name="castle_engine:Clean">
+        <MSBuild Projects="castle_engine.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="castle_engine:Make">
+        <MSBuild Projects="castle_engine.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VCL_TControl">
+        <MSBuild Projects="VCL.TControl.dproj"/>
+    </Target>
+    <Target Name="VCL_TControl:Clean">
+        <MSBuild Projects="VCL.TControl.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VCL_TControl:Make">
+        <MSBuild Projects="VCL.TControl.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMX_TControl">
+        <MSBuild Projects="FMX.TControl.dproj"/>
+    </Target>
+    <Target Name="FMX_TControl:Clean">
+        <MSBuild Projects="FMX.TControl.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMX_TControl:Make">
+        <MSBuild Projects="FMX.TControl.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="castle_engine;VCL_TControl;FMX_TControl"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="castle_engine:Clean;VCL_TControl:Clean;FMX_TControl:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="castle_engine:Make;VCL_TControl:Make;FMX_TControl:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

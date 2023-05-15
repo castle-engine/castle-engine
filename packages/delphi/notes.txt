@@ -1,0 +1,21 @@
+$(BDSCOMMONDIR)\Bpl
+$(BDSCOMMONDIR)\Dcp
+
+Search Path + Debug DCU Path
+$(BDSCOMMONDIR)\CGE\$(Platform)\$(Config)
+
+10.2 = {$LIBSUFFIX '250'} / <DllSuffix>250</DllSuffix>
+10.3 = {$LIBSUFFIX '260'} / <DllSuffix>260</DllSuffix>,
+10.4 = {$LIBSUFFIX '270'} / <DllSuffix>260</DllSuffix>,
+11+ = {$LIBSUFFIX Auto} / <DllSuffix>($Auto)</DllSuffix>,
+
+{$RUNONLY}
+
+{$DESIGNONLY}
+  fmx.castlecontrol in '..\..\..\src\delphi\fmx.castlecontrol.pas',
+  vcl.castlecontrol in '..\..\..\src\delphi\vcl.castlecontrol.pas',
+
+{$HPPEMIT NOUSINGNAMESPACE}
+
+  OpenJpeg in '..\..\..\src\vampyre_imaginglib\src\Extensions\OpenJpeg.pas',
+  imjidctasm in '..\..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas',  
