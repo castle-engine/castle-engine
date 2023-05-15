@@ -86,7 +86,9 @@ unit kraft;
  {$endif}
  {$excessprecision off}
  {$define KraftAdvancedRecords}
-{$else}
+{$else} //Delphi
+ {$hints off} // added by CGE
+ {$warn SYMBOL_PLATFORM off} // added by CGE
  {$define LITTLE_ENDIAN}
  {$ifdef cpux64}
   {$define cpuamd64}
@@ -146,6 +148,26 @@ unit kraft;
  {$define NonSIMD}
 {$endif}
 
+{ CGE: Define NonSIMD. Without this symbol, Kraft uses some i386-only assembler,
+  that causes crashes (access violation at TRigidBody.SynchronizeFromKraft
+  when doing "FLinearVelocity := VectorFromKraft(FKraftBody.LinearVelocity)"). 
+  Testcase:
+
+    castle-engine --os=win32 --cpu=i386 compile --mode=debug
+    wine ./*.exe
+
+  on all physics examples it seems,
+
+    examples/physics/physics_2d_game_sopwith
+    examples/physics/physics_3d_game
+    examples/platformer
+
+  With at least FPC 3.2.0 (but did not check other FPC versions).
+  As this is an i386-specific optimization only (and our focus is on 64-bit platforms
+  as these are, and will be, majority) so disabling it is not a problem in practice
+  anyway. }
+{$define NonSIMD}
+
 {$if (not defined(fpc)) and defined(cpuamd64)}
  {$define NonSIMD} // Due to inline assembler bugs at the Delphi compiler
 {$ifend}
@@ -173,6 +195,12 @@ unit kraft;
 {$else}
  {$undef USE_CONSTREF} // For to avoid "then other" FPC codegen issues in this case with constref in connection with "function result is also a function argument" and so on => physics simulation explodes in some cases
 {$ifend}
+
+{ CGE: Avoid FPC note: "nested procedures" not yet supported inside inline procedure/function
+  TODO: submit to Kraft. }
+{$ifdef FPC}
+  {$notes off}
+{$endif}
 
 interface
 
@@ -914,7 +942,7 @@ type TKraftForceMode=(kfmForce,        // The unit of the force parameter is app
      TKraftQuickHull=class;
 
      PKraftQuickHullVector3D=^TKraftQuickHullVector3D;
-     TKraftQuickHullVector3D=object
+     TKraftQuickHullVector3D={$ifdef FPC}object{$else}record{$endif}
       public
        x:double;
        y:double;
@@ -974,7 +1002,7 @@ type TKraftForceMode=(kfmForce,        // The unit of the force parameter is app
      TKraftQuickHullThreeVertices=array[0..2] of TKraftQuickHullVertex;
 
      PKraftQuickHullVertexList=^TKraftQuickHullVertexList;
-     TKraftQuickHullVertexList=object
+     TKraftQuickHullVertexList={$ifdef FPC}object{$else}record{$endif}
       public
        Head:TKraftQuickHullVertex;
        Tail:TKraftQuickHullVertex;
@@ -989,7 +1017,7 @@ type TKraftForceMode=(kfmForce,        // The unit of the force parameter is app
      end;
 
      PKraftQuickHullFaceList=^TKraftQuickHullFaceList;
-     TKraftQuickHullFaceList=object
+     TKraftQuickHullFaceList={$ifdef FPC}object{$else}record{$endif}
       public
        Head:TKraftQuickHullFace;
        Tail:TKraftQuickHullFace;
@@ -1841,7 +1869,7 @@ type TKraftForceMode=(kfmForce,        // The unit of the force parameter is app
      TKraftGJKClosestPoints=array[0..1] of TKraftVector3;
 
      PKraftGJK=^TKraftGJK;
-     TKraftGJK=object
+     TKraftGJK={$ifdef FPC}object{$else}record{$endif}
       public
        Distance:TKraftScalar;
        Iterations:TKraftInt32;
@@ -1942,7 +1970,7 @@ type TKraftForceMode=(kfmForce,        // The unit of the force parameter is app
      PKraftContactPairContactManifoldMode=^TKraftContactPairContactManifoldMode;
      TKraftContactPairContactManifoldMode=(kcpcmmVelocitySolver,kcpcmmPositionSolver,kcpcmmBaumgarte,kcpcmmTemporalCoherence);
 
-     TKraftContactPair=object
+     TKraftContactPair={$ifdef FPC}object{$else}record{$endif}
       public
        Previous:PKraftContactPair;
        Next:PKraftContactPair;
@@ -26091,6 +26119,7 @@ begin
     SolverContact^.Separation:=Contact^.Penetration;
    end;
   end;
+  else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
  end;
 end;
 
@@ -29994,6 +30023,7 @@ begin
     end;
 
    end;
+   else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
   end;
 
   fRigidBodyType:=ARigidBodyType;
@@ -30047,6 +30077,7 @@ begin
     inc(fPhysics.fKinematicRigidBodyCount);
 
    end;
+   else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
   end;
 
   Shape:=fShapeFirst;
@@ -37819,6 +37850,7 @@ begin
     inc(fContinuousTime,fHighResolutionTimer.GetTime-StartTime);
    end;
   end;
+  else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
  end;
 
  Constraint:=fConstraintFirst;
