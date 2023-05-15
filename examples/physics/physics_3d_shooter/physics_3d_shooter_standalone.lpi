@@ -30,7 +30,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="9">
       <Unit0>
         <Filename Value="physics_3d_shooter_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -68,6 +68,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="RotateCameraByKeys"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="code/simplefpsplayermovementwithrotation.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SimpleFpsPlayerMovementWithRotation"/>
+      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
