@@ -42,6 +42,14 @@
                   {
                     "$$ClassName" : "TRotateCameraByMouse",
                     "Name" : "RotateCameraByMouse1"
+                  },
+                  {
+                    "$$ClassName" : "TRotateCameraByKeys",
+                    "Input_DownRotate" : "",
+                    "Input_LeftRotate" : "",
+                    "Input_RightRotate" : "",
+                    "Input_UpRotate" : "",
+                    "Name" : "RotateCameraByKeys1"
                   }
                 ]
               }

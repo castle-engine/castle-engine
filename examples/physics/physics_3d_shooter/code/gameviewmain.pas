@@ -22,7 +22,7 @@ uses Classes,
   CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras,
   CastleViewport, Move3DPlayerDynamic, RotateCameraByMouse,
-  SimplestFpsPlayerMovement;
+  SimplestFpsPlayerMovement, RotateCameraByKeys;
 
 type
   { Main view, where most of the application logic takes place. }
