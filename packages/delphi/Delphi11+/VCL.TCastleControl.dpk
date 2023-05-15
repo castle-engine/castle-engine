@@ -38,7 +38,7 @@ requires
   designide;
 
 contains
-  castleinternaldelphidesignutils.pas in '..\..\..\src\delphi\delphi/castleinternaldelphidesignutils.pas',
+  castleinternaldelphidesignutils.pas in '..\..\..\src\delphi\castleinternaldelphidesignutils.pas',
   vcl.castlecontrol in '..\..\..\src\delphi\vcl.castlecontrol.pas',
   vcl.castlecontrol.reg in '..\..\..\src\delphi\vcl.castlecontrol.reg.pas';
 

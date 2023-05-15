@@ -119,7 +119,7 @@
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="fmx.dcp"/>
         <DCCReference Include="designide.dcp"/>
-        <DCCReference Include="..\..\..\src\delphi\delphi\castleinternaldelphidesignutils.pas"/>
+        <DCCReference Include="..\..\..\src\delphi\castleinternaldelphidesignutils.pas"/>
         <DCCReference Include="..\..\..\src\delphi\fmx.castlecontrol.reg.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
