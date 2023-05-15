@@ -98,7 +98,8 @@ type
 
       Note that if projection has far plane in infinity (indicated by
       ZFarInfinity) then the far plane will be invalid ---
-      first three values of it's equation will be 0. }
+      first three values of it's equation will be 0.
+      Always check @link(ZFarInfinity) before accessing that plane. }
     Planes: array [TFrustumPlane] of TVector4;
 
     ZFarInfinity: boolean;
