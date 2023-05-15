@@ -899,8 +899,9 @@
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single = MaxSingle): TPhysicsRayCastResult;
 
-    function PhysicsSphereCast(const SphereOrigin, SphereDirection: TVector3;
-      const SphereRadius:Single; const MaxDistance: Single = MaxSingle): TPhysicsRayCastResult;
+    function PhysicsSphereCast(const SphereOrigin: TVector3;
+      const SphereRadius:Single; const SphereDirection: TVector3;
+      const MaxDistance: Single = MaxSingle): TPhysicsRayCastResult;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -3679,8 +3680,8 @@ begin
   end;
 end;
 
-function TCastleRigidBody.PhysicsSphereCast(const SphereOrigin,
-  SphereDirection: TVector3; const SphereRadius: Single;
+function TCastleRigidBody.PhysicsSphereCast(const SphereOrigin: TVector3;
+  const SphereRadius: Single; const SphereDirection: TVector3;
   const MaxDistance: Single): TPhysicsRayCastResult;
 var
   SphereOriginWorld, SphereDirectionWorld: TVector3;
@@ -3714,8 +3715,8 @@ begin
     SphereRadiusWorld := SphereRadius;
   end;
 
-  Result := FTransform.World.PhysicsSphereCast(SphereOriginWorld, SphereDirectionWorld,
-    SphereRadiusWorld, MaxDistanceWorld, Self);
+  Result := FTransform.World.PhysicsSphereCast(SphereOriginWorld, SphereRadiusWorld,
+    SphereDirectionWorld, MaxDistanceWorld, Self);
 
   if Result.Hit and (FTransform.Parent <> nil) then
   begin
@@ -4121,8 +4122,8 @@ begin
     Core;
 end;
 
-function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin,
-  SphereDirection: TVector3; const SphereRadius: Single;
+function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin: TVector3;
+  const SphereRadius: Single; const SphereDirection: TVector3;
   const MaxDistance: Single; const IgnoreBody: TCastleRigidBody
   ): TPhysicsRayCastResult;
 

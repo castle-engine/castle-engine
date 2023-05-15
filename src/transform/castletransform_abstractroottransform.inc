@@ -283,8 +283,8 @@
       const MaxDistance: Single = MaxSingle;
       const IgnoreBody: TCastleRigidBody = nil): TPhysicsRayCastResult;
 
-    function PhysicsSphereCast(const SphereOrigin, SphereDirection: TVector3;
-      const SphereRadius:Single; const MaxDistance: Single = MaxSingle;
+    function PhysicsSphereCast(const SphereOrigin: TVector3; const SphereRadius:Single;
+      const SphereDirection: TVector3; const MaxDistance: Single = MaxSingle;
       const IgnoreBody: TCastleRigidBody = nil): TPhysicsRayCastResult;
 
     { Yoo can temporarily disable physics (no transformations will be updated

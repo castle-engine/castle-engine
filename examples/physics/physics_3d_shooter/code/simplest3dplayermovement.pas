@@ -149,8 +149,8 @@ begin
 
   GroundSphereCast := PlayerRigidBody.PhysicsSphereCast(
     SphereOrigin,
-    Vector3(0, -1, 0),
     ColliderRadius,
+    Vector3(0, -1, 0),
     ColliderHeight * 3
   );
 
