@@ -65,7 +65,7 @@
                 "Radius" : 5.0000000000000000E-001
               },
               {
-                "$$ClassName" : "TSimplest3DPlayerMovement",
+                "$$ClassName" : "TSimplestFpsPlayerMovement",
                 "InputBackward" : {
                   "$$ClassName" : "TInputShortcut",
                   "DefaultKey1" : "keyS",
@@ -95,7 +95,7 @@
                   "DefaultKey1" : "keyD",
                   "Key1" : "keyD"
                 },
-                "Name" : "Simplest3DPlayerMovement1"
+                "Name" : "SimplestFpsPlayerMovement1"
               }
             ]
           },

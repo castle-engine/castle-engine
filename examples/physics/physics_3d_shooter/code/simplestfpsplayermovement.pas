@@ -1,4 +1,4 @@
-unit Simplest3DPlayerMovement;
+unit SimplestFpsPlayerMovement;
 
 {$mode ObjFPC}{$H+}
 
@@ -10,19 +10,19 @@ uses
 
 type
 
-  { The simplest 3d physics movement using dynamic rigid body.
-    Designed for first person games.
+  { The simplest FPS (First Person Shooter) physics movement using dynamic
+    rigid body.
 
 
     - Only move right/left/forward/back
     - Constant speed
-    - Player not rotating (X, Y, Z) should be blocked in rigid body
+    - Player rigid body not rotating (X, Y, Z) should be blocked in rigid body
     - Rotation (direction.XZ) from camera what is player child (no rotation when no camera in player)
-    - No air control
+    - No control in air
     - Uses parent.up(), never camera up to deremine direction of the velocity vector
   }
 
-  TSimplest3DPlayerMovement = class(TCastleBehavior)
+  TSimplestFpsPlayerMovement = class(TCastleBehavior)
   strict private
     FWasJumpInput: Boolean;
 
@@ -75,7 +75,7 @@ implementation
 uses Math, CastleBoxes, CastleKeysMouse, CastleComponentSerialize, CastleLog,
   CastleUtils;
 
-function TSimplest3DPlayerMovement.GetParentCamera: TCastleCamera;
+function TSimplestFpsPlayerMovement.GetParentCamera: TCastleCamera;
 var
   I: Integer;
 begin
@@ -86,7 +86,7 @@ begin
   end;
 end;
 
-function TSimplest3DPlayerMovement.GetForwardDirection: TVector3;
+function TSimplestFpsPlayerMovement.GetForwardDirection: TVector3;
 var
   CastleCamera: TCastleCamera;
 begin
@@ -101,7 +101,7 @@ begin
     Result := Parent.Direction;
 end;
 
-function TSimplest3DPlayerMovement.GetDirectionFromInput: TVector3;
+function TSimplestFpsPlayerMovement.GetDirectionFromInput: TVector3;
 begin
   Result := Vector3(0, 0, 0);
 
@@ -124,7 +124,7 @@ begin
     Result := Result + Vector3(0, 1, 0);
 end;
 
-function TSimplest3DPlayerMovement.IsPlayerOnGround(
+function TSimplestFpsPlayerMovement.IsPlayerOnGround(
   const PlayerRigidBody: TCastleRigidBody;
   const PlayerCollider: TCastleCollider): Boolean;
 var
@@ -185,7 +185,7 @@ begin
   end;
 end;
 
-procedure TSimplest3DPlayerMovement.Update(const SecondsPassed: Single;
+procedure TSimplestFpsPlayerMovement.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 var
   RBody: TCastleRigidBody;
@@ -260,7 +260,7 @@ begin
   inherited Update(SecondsPassed, RemoveMe);
 end;
 
-constructor TSimplest3DPlayerMovement.Create(AOwner: TComponent);
+constructor TSimplestFpsPlayerMovement.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
@@ -295,7 +295,7 @@ begin
   InputJump                   .Name := 'Input_Jump';
 end;
 
-function TSimplest3DPlayerMovement.PropertySections(const PropertyName: String
+function TSimplestFpsPlayerMovement.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
@@ -308,7 +308,7 @@ end;
 
 
 initialization
-  RegisterSerializableComponent(TSimplest3DPlayerMovement, ['Physics', 'Simplest 3D Player Movement']);
+  RegisterSerializableComponent(TSimplestFpsPlayerMovement, ['Physics', 'Simplest FPS Player Movement']);
 
 end.
 

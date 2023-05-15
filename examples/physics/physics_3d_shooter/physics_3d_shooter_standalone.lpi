@@ -59,9 +59,8 @@
         <UnitName Value="RotateCameraByMouse"/>
       </Unit5>
       <Unit6>
-        <Filename Value="code/simplest3dplayermovement.pas"/>
+        <Filename Value="code/simplestfpsplayermovement.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Simplest3DPlayerMovement"/>
       </Unit6>
     </Units>
   </ProjectOptions>
