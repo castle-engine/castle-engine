@@ -6,7 +6,7 @@ $(BDSCOMMONDIR)\CGE\$(Platform)\$(Config)
 
 10.2 = {$LIBSUFFIX '250'} / <DllSuffix>250</DllSuffix>
 10.3 = {$LIBSUFFIX '260'} / <DllSuffix>260</DllSuffix>,
-10.4 = {$LIBSUFFIX '270'} / <DllSuffix>260</DllSuffix>,
+10.4 = {$LIBSUFFIX '270'} / <DllSuffix>270</DllSuffix>,
 11+ = {$LIBSUFFIX Auto} / <DllSuffix>($Auto)</DllSuffix>,
 
 {$RUNONLY}

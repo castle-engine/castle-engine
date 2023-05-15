@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{417E7BE0-81B9-4F97-8349-6EAFE5746584}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="castle_engine.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FMX.TCastleControl.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="VCL.TCastleControl.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="castle_engine">
+        <MSBuild Projects="castle_engine.dproj"/>
+    </Target>
+    <Target Name="castle_engine:Clean">
+        <MSBuild Projects="castle_engine.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="castle_engine:Make">
+        <MSBuild Projects="castle_engine.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMX_TCastleControl">
+        <MSBuild Projects="FMX.TCastleControl.dproj"/>
+    </Target>
+    <Target Name="FMX_TCastleControl:Clean">
+        <MSBuild Projects="FMX.TCastleControl.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMX_TCastleControl:Make">
+        <MSBuild Projects="FMX.TCastleControl.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VCL_TCastleControl">
+        <MSBuild Projects="VCL.TCastleControl.dproj"/>
+    </Target>
+    <Target Name="VCL_TCastleControl:Clean">
+        <MSBuild Projects="VCL.TCastleControl.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VCL_TCastleControl:Make">
+        <MSBuild Projects="VCL.TCastleControl.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="castle_engine;FMX_TCastleControl;VCL_TCastleControl"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="castle_engine:Clean;FMX_TCastleControl:Clean;VCL_TCastleControl:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="castle_engine:Make;FMX_TCastleControl:Make;VCL_TCastleControl:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
