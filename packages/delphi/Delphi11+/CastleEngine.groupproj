@@ -6,10 +6,10 @@
         <Projects Include="castle_engine.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="VCL.TControl.dproj">
+        <Projects Include="FMX.TCastleControl.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="FMX.TControl.dproj">
+        <Projects Include="VCL.TCastleControl.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -29,32 +29,32 @@
     <Target Name="castle_engine:Make">
         <MSBuild Projects="castle_engine.dproj" Targets="Make"/>
     </Target>
-    <Target Name="VCL_TControl">
-        <MSBuild Projects="VCL.TControl.dproj"/>
+    <Target Name="FMX_TCastleControl">
+        <MSBuild Projects="FMX.TCastleControl.dproj"/>
     </Target>
-    <Target Name="VCL_TControl:Clean">
-        <MSBuild Projects="VCL.TControl.dproj" Targets="Clean"/>
+    <Target Name="FMX_TCastleControl:Clean">
+        <MSBuild Projects="FMX.TCastleControl.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="VCL_TControl:Make">
-        <MSBuild Projects="VCL.TControl.dproj" Targets="Make"/>
+    <Target Name="FMX_TCastleControl:Make">
+        <MSBuild Projects="FMX.TCastleControl.dproj" Targets="Make"/>
     </Target>
-    <Target Name="FMX_TControl">
-        <MSBuild Projects="FMX.TControl.dproj"/>
+    <Target Name="VCL_TCastleControl">
+        <MSBuild Projects="VCL.TCastleControl.dproj"/>
     </Target>
-    <Target Name="FMX_TControl:Clean">
-        <MSBuild Projects="FMX.TControl.dproj" Targets="Clean"/>
+    <Target Name="VCL_TCastleControl:Clean">
+        <MSBuild Projects="VCL.TCastleControl.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="FMX_TControl:Make">
-        <MSBuild Projects="FMX.TControl.dproj" Targets="Make"/>
+    <Target Name="VCL_TCastleControl:Make">
+        <MSBuild Projects="VCL.TCastleControl.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="castle_engine;VCL_TControl;FMX_TControl"/>
+        <CallTarget Targets="castle_engine;FMX_TCastleControl;VCL_TCastleControl"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="castle_engine:Clean;VCL_TControl:Clean;FMX_TControl:Clean"/>
+        <CallTarget Targets="castle_engine:Clean;FMX_TCastleControl:Clean;VCL_TCastleControl:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="castle_engine:Make;VCL_TControl:Make;FMX_TControl:Make"/>
+        <CallTarget Targets="castle_engine:Make;FMX_TCastleControl:Make;VCL_TCastleControl:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
