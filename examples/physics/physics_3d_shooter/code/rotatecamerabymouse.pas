@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleViewport, CastleUIControls,
-  CastleVectors;
+  CastleVectors,  CastleRenderOptions;
 
 type
   TRotateCameraByMouse = class(TCastleBehavior)
@@ -15,6 +15,7 @@ type
     MinAngleFromGravityUp: Single;
     FLastUpdateMousePosition: TVector2;
     FLastMousePositionIsSet: Boolean;
+    FLockRotation: T3DCoords;
     const
       DefaultMouseLookHorizontalSensitivity = Pi * 0.2 / 180;
       DefaultMouseLookVerticalSensitivity = Pi * 0.2 / 180;
@@ -37,6 +38,8 @@ type
      constructor Create(AOwner: TComponent); override;
   published
     property MouseLook: boolean read FMouseLook write SetMouseLook default false;
+
+    property LockRotation: T3DCoords read FLockRotation write FLockRotation default [];
   end;
 
 implementation
@@ -84,8 +87,10 @@ end;
 
 procedure TRotateCameraByMouse.ProcessMouseLookDelta(const Delta: TVector2);
 begin
-  RotateHorizontal(-Delta.X);
-  RotateVertical(Delta.Y);
+  if not (1 in FLockRotation) then
+    RotateHorizontal(-Delta.X);
+  if not (0 in FLockRotation) then
+    RotateVertical(Delta.Y);
 end;
 
 procedure TRotateCameraByMouse.RotateAroundGravityUp(const Angle: Single);
@@ -236,6 +241,7 @@ begin
   MinAngleFromGravityUp := DefaultMinAngleFromGravityUp;
   FMouseLook := false;
   FLastUpdateMousePosition := Vector2(0, 0);
+  FLockRotation := [];
 end;
 
 initialization
