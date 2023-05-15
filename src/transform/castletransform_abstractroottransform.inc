@@ -263,6 +263,9 @@
 
       This ignores the collider of this body IgnoreBody, if IgnoreBody is not @nil.
 
+      By default, the ray hits all physics layers, but you can choose physics layers
+      in CollisionLayers attribute.
+
       Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
       i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
       The @link(TCastleTransform.Pickable) is only taken into account by the routines
@@ -271,7 +274,8 @@
       In the new system, a similar role will be filled by layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
-      const IgnoreBody: TCastleRigidBody = nil): TPhysicsRayCastResult;
+      const IgnoreBody: TCastleRigidBody = nil; const CollisionLayers:
+      TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
 
     function PhysicsSphereCast(const SphereOrigin: TVector3; const SphereRadius:Single;
       const SphereDirection: TVector3; const MaxDistance: Single = MaxSingle;

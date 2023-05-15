@@ -900,6 +900,9 @@
       Only collisions with the physics colliders (TCastleCollider and TCollider)
       are considered.
 
+      By default, the ray hits all physics layers, but you can choose physics layers
+      in CollisionLayers attribute.
+
       Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
       i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
       The @link(TCastleTransform.Pickable) is only taken into account by the routines
@@ -907,7 +910,8 @@
       (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
       In the new system, a similar role will be filled by layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
-      const MaxDistance: Single = MaxSingle): TPhysicsRayCastResult;
+      const MaxDistance: Single = MaxSingle; const CollisionLayers:
+      TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
 
     function PhysicsSphereCast(const SphereOrigin: TVector3;
       const SphereRadius:Single; const SphereDirection: TVector3;
@@ -3649,7 +3653,8 @@ begin
 end;
 
 function TCastleRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
-  const MaxDistance: Single): TPhysicsRayCastResult;
+  const MaxDistance: Single; const CollisionLayers:
+  TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
   MaxDistanceWorld: Single;
@@ -3681,7 +3686,7 @@ begin
   end;
 
   Result := FTransform.World.PhysicsRayCast(RayOriginWorld, RayDirectionWorld,
-    MaxDistanceWorld, Self);
+    MaxDistanceWorld, Self, CollisionLayers);
 
   if Result.Hit and (FTransform.Parent <> nil) then
   begin
@@ -4076,7 +4081,8 @@ end;
 
 function TCastleAbstractRootTransform.PhysicsRayCast(
   const RayOrigin, RayDirection: TVector3;
-  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody): TPhysicsRayCastResult;
+  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody; const CollisionLayers:
+  TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
 
   procedure Core;
   var
@@ -4099,7 +4105,10 @@ function TCastleAbstractRootTransform.PhysicsRayCast(
       // inputs
       VectorToKraft(RayOrigin), VectorToKraft(RayDirection), MaxDistance,
       // outputs
-      KraftShape, KraftDistance, KraftPoint, KraftNormal) then
+      KraftShape, KraftDistance, KraftPoint, KraftNormal,
+      // collisions layers
+      CollisionLayers
+      ) then
     begin
       Result.Hit := true;
       Result.Transform := TCastleRigidBody(KraftShape.RigidBody.UserData).FTransform;
