@@ -1163,7 +1163,6 @@ begin
   Render_ModelView := GetModelViewTransform;
   Render_Params := Params;
   Render_TestShapeVisibility := TestShapeVisibility;
-  Assert(Assigned(Render_TestShapeVisibility)); // we do not allow TestShapeVisibility = nil for simplicity
 
   { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
   if ReallyAnyOcclusionQuery(RenderOptions) then
