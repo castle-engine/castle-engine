@@ -30,7 +30,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="12">
+    <Units Count="13">
       <Unit0>
         <Filename Value="physics_3d_shooter_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -88,6 +88,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="RotateRigidBodyByMouse"/>
       </Unit11>
+      <Unit12>
+        <Filename Value="code/rotaterigidbody.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="RotateRigidBody"/>
+      </Unit12>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

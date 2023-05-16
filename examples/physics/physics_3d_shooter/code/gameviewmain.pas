@@ -23,7 +23,8 @@ uses Classes,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras,
   CastleViewport, Move3DPlayerDynamic, RotateCameraByMouse,
   SimplestFpsPlayerMovement, RotateCameraByKeys, SimpleFpsPlayerMovementWithRotation,
-  DirectRotateTransformByKeys, RotateRigidBodyByKeys, RotateRigidBodyByMouse;
+  DirectRotateTransformByKeys, RotateRigidBodyByKeys, RotateRigidBodyByMouse,
+  RotateRigidBody;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -58,11 +59,12 @@ begin
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest.castle-user-interface';
   { Rotation in player direct - rotate transform and synchronize physics - fall out level sometimes  }
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_direct.castle-user-interface';
-  { Rotation in player physics - rotate rigid body by mouse and angular velocity }
+  { Rotation in player physics - rotate rigid body by mouse using angular velocity }
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_mouse.castle-user-interface';
-  { Rotation in player physics - rotate rigid body by keys and angular velocity }
-  DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_keys.castle-user-interface';
-  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics.castle-user-interface';
+  { Rotation in player physics - rotate rigid body by keys using angular velocity }
+  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_keys.castle-user-interface';
+  { Rotation in player physics - rotate rigid body by keys nad mouse using angular velocity }
+  DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics.castle-user-interface';
 
   {Old tests }
   //DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';

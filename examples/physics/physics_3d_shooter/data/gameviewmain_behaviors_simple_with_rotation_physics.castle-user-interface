@@ -101,8 +101,10 @@
                 "Name" : "SimpleFpsPlayerMovementWithRotation1"
               },
               {
-                "$$ClassName" : "TRotateRigidBodyByMouse",
-                "Name" : "RotateRigidBodyByMouse1"
+                "$$ClassName" : "TRotateRigidBody",
+                "Input_LeftRotate" : "",
+                "Input_RightRotate" : "",
+                "Name" : "RotateRigidBody1"
               }
             ]
           },
