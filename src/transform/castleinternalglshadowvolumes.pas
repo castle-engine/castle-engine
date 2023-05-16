@@ -242,16 +242,20 @@ procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
 
     for FP := Low(FP) to LastPlane do
     begin
-      { This checks that LightPosition is inside Frustum.Planes[FP] plane.
+      { This checks that LightPos is inside Frustum.Planes[FP] plane.
+        Remember that Frustum.Planes[FP] plane direction (XYZ) points inside
+        the frustum.
 
-        When LightPosition[3] = 1, this is normal test on which side
-        of plane lies a point, so then it's OK (frustum planes point inside
-        the frustum). For LightPosition[3] > 0 this is also  equivalent.
+        For positional lights (point, spot):
+        LightPosition.W <> 0 (usually LightPosition.W = 1.0), and then
+        this is normal test on which side of plane (Frustum.Planes[FP])
+        lies a point in homogeneous coordinates (LightPos).
 
-        For LightPosition[3] = 0 (directional light), this check dot product
-        between light direction and plane direction. So >= 0 means that they
-        point in the same dir (angle < 90 degs), so the light position
-        in infinity can also be considered inside this plane. }
+        For directional lights:
+        LightPosition.W = 0, and then this is a dot product between
+        plane direction (Frustum.Planes[FP]) and inverted light direction (LightPos,
+        equal -LightPosition in this case). So we check if light source position
+        is on the inside of the plane. }
       if TVector4.DotProduct(Frustum.Planes[FP], LightPos) >= 0 then
       begin
         FrustumAndLightPlanes[FrustumAndLightPlanesCount] := Frustum.Planes[FP];
