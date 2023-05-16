@@ -1,6 +1,3 @@
-// TODO: why box is not rendered even if *earlier* something set InternalForceRendering:=true?
-// Looks like it is rejected by something we don't understand.
-
 // TODO: instead of InternalForceRendering: Boolean use render frame id, compare if force in the current frame
 
 {
@@ -392,7 +389,7 @@ type
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
-    { Disable any frustum culling for this shape.
+    { Disable any frustum or distance culling for this shape.
       This is used by shadow volumes: when we render shadow quads of some shape,
       the shape itself also *has* to be rendered, shadow quads construction depends
       on it.
