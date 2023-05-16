@@ -128,7 +128,7 @@ type
         This is used by shadow volumes: when we render shadow quads of some scene,
         the scene itself also *has* to be rendered, shadow quads construction depends
         on it. }
-      InternalForceRendering: Boolean;
+      InternalForceRendering: TFrameId;
 
     { Checks DynamicBatching and not occlusion query. }
     function ReallyDynamicBatching: Boolean;
@@ -967,11 +967,12 @@ end;
 
 procedure TCastleScene.RenderShape_AllTests(const Shape: TShape);
 begin
-  { When Shape.InternalForceRendering = true than we ignore Render_TestShapeVisibility.
+  { When Shape.InternalForceRendering = current
+    than we ignore Render_TestShapeVisibility.
     This way if shadow volumes request rendering something,
     we will definitely render it, regardless of distance culling, frustum culling,
     and regardless of whether we perform them using octree or not. }
-  if ( Shape.InternalForceRendering or
+  if ( (Shape.InternalForceRendering = TFramesPerSecond.RenderFrameId) or
        (not Assigned(Render_TestShapeVisibility)) or
        Render_TestShapeVisibility(TGLShape(Shape))) then
     RenderShape_SomeTests(TGLShape(Shape));
@@ -1725,7 +1726,7 @@ begin
       SceneBox := SceneBox.Transform(Params.Transform^);
     if SVRenderer.GetCasterShadowPossiblyVisible(SceneBox) then
     begin
-      InternalForceRendering := true;
+      InternalForceRendering := TFramesPerSecond.RenderFrameId;
 
       { shadows are cast only by visible scene parts
         (not e.g. invisible collision box of castle-anim-frames) }
@@ -1747,7 +1748,7 @@ begin
         if RenderOptions.WholeSceneManifold or
            SVRenderer.CasterShadowPossiblyVisible then
         begin
-          Shape.InternalForceRendering := true;
+          Shape.InternalForceRendering := TFramesPerSecond.FrameId;
 
           if Params.TransformIdentity then
             T :=                     Shape.State.Transformation.Transform
@@ -1969,7 +1970,7 @@ begin
        (not ExcludeFromStatistics) then
       Inc(Params.Statistics.ScenesVisible);
 
-    if (not InternalForceRendering) and
+    if (InternalForceRendering <> TFramesPerSecond.RenderFrameId) and
        FSceneFrustumCulling and
        (Params.Frustum <> nil) and
        (not Params.Frustum^.Box3DCollisionPossibleSimple(LocalBoundingBox)) then

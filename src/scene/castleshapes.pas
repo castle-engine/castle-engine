@@ -1,5 +1,3 @@
-// TODO: instead of InternalForceRendering: Boolean use render frame id, compare if force in the current frame
-
 {
   Copyright 2003-2023 Michalis Kamburelis.
 
@@ -31,7 +29,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   CastleInternalBaseTriangleOctree, X3DFields, CastleInternalGeometryArrays,
   CastleTriangles, CastleImages, CastleInternalMaterialProperties,
-  CastleShapeInternalShadowVolumes, CastleRenderOptions;
+  CastleShapeInternalShadowVolumes, CastleRenderOptions, CastleTimeUtils;
 
 const
   { }
@@ -389,7 +387,7 @@ type
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
-    { Disable any frustum or distance culling for this shape.
+    { Disable any frustum or distance culling for this shape in this frame.
       This is used by shadow volumes: when we render shadow quads of some shape,
       the shape itself also *has* to be rendered, shadow quads construction depends
       on it.
@@ -397,7 +395,7 @@ type
       Whether the shadow was rendered because of WholeSceneManifold,
       or because SVRenderer.CasterShadowPossiblyVisible was true for this particular shape,
       in all cases it must force rendering the shape too. }
-    InternalForceRendering: Boolean;
+    InternalForceRendering: TFrameId;
 
     { Constructor.
       @param(ParentInfo Recursive information about parents,
@@ -1049,7 +1047,7 @@ var
 implementation
 
 uses Generics.Defaults, Math,
-  CastleSceneCore, CastleInternalNormals, CastleLog, CastleTimeUtils,
+  CastleSceneCore, CastleInternalNormals, CastleLog,
   CastleStringUtils, CastleInternalArraysGenerator, CastleURIUtils;
 
 const
