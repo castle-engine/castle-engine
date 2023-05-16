@@ -34,7 +34,9 @@ package castle_engine;
 
 requires
   rtl,
+  {$IFDEF MSWINDOWS}
   vcl,
+  {$ENDIF}
   xmlrtl,
   fmx;
 
@@ -328,8 +330,11 @@ contains
   castlescriptarrays in '..\..\..\src\castlescript\castlescriptarrays.pas',
   castlescriptimages in '..\..\..\src\castlescript\castlescriptimages.pas',
   castlescriptvectors in '..\..\..\src\castlescript\castlescriptvectors.pas',
-  fmx.castlecontrol in '..\..\..\src\delphi\fmx.castlecontrol.pas',
-  vcl.castlecontrol in '..\..\..\src\delphi\vcl.castlecontrol.pas';
+  fmx.castlecontrol in '..\..\..\src\delphi\fmx.castlecontrol.pas'
+  {$IFDEF MSWINDOWS}
+  , vcl.castlecontrol in '..\..\..\src\delphi\vcl.castlecontrol.pas'
+  {$ENDIF}
+  ;
 
 end.
 
