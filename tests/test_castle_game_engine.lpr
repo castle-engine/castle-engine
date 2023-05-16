@@ -51,6 +51,7 @@ uses
   TestCastleImagesDraw,
   TestCastleBoxes,
   TestCastleFrustum,
+  TestCastleInternalGLShadowVolumes,
   TestCastleFonts,
   TestCastleTransform,
   TestCastleParameters,

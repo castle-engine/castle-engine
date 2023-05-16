@@ -2480,7 +2480,10 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
     { Initialize FShadowVolumeRenderer if needed, along with its OpenGL resources.
       This way we never even create FShadowVolumeRenderer if we will never render with shadow volumes. }
     if FShadowVolumeRenderer = nil then
+    begin
       FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
+      FShadowVolumeRenderer.PrepareRenderingResources;
+    end;
     FShadowVolumeRenderer.DebugRender := ShadowVolumesRender;
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
     FShadowVolumeRenderer.Render(Params,

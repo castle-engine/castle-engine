@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
+  Copyright 2022-2023 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -96,6 +96,7 @@ uses SysUtils,
   TestCastleImagesDraw,
   TestCastleBoxes,
   TestCastleFrustum,
+  TestCastleInternalGLShadowVolumes,
   TestCastleFonts,
   TestCastleTransform,
   TestCastleParameters,

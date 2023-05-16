@@ -86,10 +86,12 @@ type
     { Calculate frustum, knowing projection and modelview matrices.
       This is equivalent to 1-parameter Init
       with Matrix = ModelviewMatrix * ProjectionMatrix.
-      This way you can get from OpenGL your two matrices (modelview
-      and projection) (or you can calculate them using routines
-      like @link(FrustumProjectionMatrix)), then pass them to this routine
-      and you get your current viewing frustum. }
+
+      You can calculate camera matrix (usual modelview in this case) e.g.
+      using @link(TCastleCamera.Matrix).
+      You can calculate projection matrix e.g. using
+      @link(TProjection.Matrix).
+      Pass them to this routine and you get your current viewing frustum. }
     constructor Init(const ProjectionMatrix, ModelviewMatrix: TMatrix4); overload;
   public
     { Six planes defining the frustum.
