@@ -20,7 +20,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="80">
+    <Units Count="81">
       <Unit0>
         <Filename Value="castle_tester_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -372,6 +372,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastledesigncomponents"/>
       </Unit8>
+      <Unit80>
+        <Filename Value="code/testcases/testcastleinternalglshadowvolumes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit80>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

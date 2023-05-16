@@ -40,7 +40,7 @@
         <PackageName Value="FCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="59">
+    <Units Count="60">
       <Unit0>
         <Filename Value="test_castle_game_engine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -283,6 +283,10 @@
         <Filename Value="code/testcases/testcastledesigncomponents.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit14>
+      <Unit59>
+        <Filename Value="code/testcases/testcastleinternalglshadowvolumes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit59>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

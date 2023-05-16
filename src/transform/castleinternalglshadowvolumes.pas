@@ -70,6 +70,9 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    { Create resources that require rendering (OpenGL) context, like @link(Mesh). }
+    procedure PrepareRenderingResources;
+
     { Call this when camera frustum is known and light position (of the shadow
       casting light) is known, typically at the beginning of your drawing routine.
 
@@ -197,6 +200,11 @@ constructor TGLShadowVolumeRenderer.Create;
 begin
   inherited;
   FCount := true;
+end;
+
+procedure TGLShadowVolumeRenderer.PrepareRenderingResources;
+begin
+  Assert(FMesh = nil, 'Call TGLShadowVolumeRenderer.PrepareRenderingResources only once');
   FMesh := TCastleRenderUnlitMesh.Create(DebugRender);
 end;
 
@@ -213,6 +221,7 @@ procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
   procedure CalculateFrustumAndLightPlanes;
   var
     FP, LastPlane: TFrustumPlane;
+    LightPos: TVector4;
   begin
     FrustumAndLightPlanesCount := 0;
 
@@ -222,6 +231,14 @@ procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
     { if infinite far plane, then ignore it }
     if Frustum.ZFarInfinity then
       LastPlane := Pred(LastPlane);
+
+    LightPos := LightPosition;
+    { For directional lights, as LightPos consider the light source
+      being at infinity at the position *from which* the light emanates.
+      We want to add to FrustumAndLightPlanes the planes the are further
+      from this light. }
+    if LightPos.W = 0 then
+      LightPos := -LightPos;
 
     for FP := Low(FP) to LastPlane do
     begin
@@ -235,10 +252,7 @@ procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
         between light direction and plane direction. So >= 0 means that they
         point in the same dir (angle < 90 degs), so the light position
         in infinity can also be considered inside this plane. }
-      if Frustum.Planes[FP][0] * LightPosition[0] +
-         Frustum.Planes[FP][1] * LightPosition[1] +
-         Frustum.Planes[FP][2] * LightPosition[2] +
-         Frustum.Planes[FP][3] * LightPosition[3] >= 0 then
+      if TVector4.DotProduct(Frustum.Planes[FP], LightPos) >= 0 then
       begin
         FrustumAndLightPlanes[FrustumAndLightPlanesCount] := Frustum.Planes[FP];
         Inc(FrustumAndLightPlanesCount);
@@ -250,8 +264,6 @@ procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
       for this. Some pointers on [http://www.terathon.com/gdc06_lengyel.ppt]. }
   end;
 
-var
-  ALightPosition3: TVector3 absolute ALightPosition;
 begin
   FFrustum := Frustum;
   FLightPosition := ALightPosition;
@@ -334,11 +346,9 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
       end;
 
     var
-      LightPosition3: PVector3;
       NearPlane: TVector4;
     begin
-      LightPosition3 := @FLightPosition;
-      if LightPosition[3] <> 0 then
+      if LightPosition.W <> 0 then
       begin
         { Idea: calculate a pyramid between light position and near plane rectangle
           of the frustum. Assuming light point is positional and it does not
@@ -377,26 +387,23 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
           flip NearPlane. Also, calculations of other side planes should
           generate flipped planes. }
 
-        if (NearPlane.X * LightPosition.X +
-            NearPlane.Y * LightPosition.Y +
-            NearPlane.Z * LightPosition.Z +
-            NearPlane.W * LightPosition.W) > 0 then
+        if TVector4.DotProduct(NearPlane, LightPosition) > 0 then
         begin
           NearPlane := -NearPlane;
           Result :=
             InsidePlane(NearPlane) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, LightPosition3^));
+            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, LightPosition.XYZ));
         end else
         begin
           Result :=
             InsidePlane(NearPlane) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, LightPosition3^));
+            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, LightPosition.XYZ));
         end;
       end else
       begin
@@ -416,22 +423,20 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
         NearPlane := TrianglePlane(
           FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ);
 
-        if (NearPlane.X * LightPosition.X +
-            NearPlane.Y * LightPosition.Y +
-            NearPlane.Z * LightPosition.Z) > 0 then
+        if TVector3.DotProduct(NearPlane.XYZ, LightPosition.XYZ) > 0 then
         begin
           Result :=
-            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, (FrustumNearPoints[0].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, (FrustumNearPoints[1].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, (FrustumNearPoints[2].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, (FrustumNearPoints[3].XYZ + LightPosition3^)));
+            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, (FrustumNearPoints[0].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, (FrustumNearPoints[1].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, (FrustumNearPoints[2].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, (FrustumNearPoints[3].XYZ + LightPosition.XYZ)));
         end else
         begin
           Result :=
-            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, (FrustumNearPoints[1].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, (FrustumNearPoints[2].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, (FrustumNearPoints[3].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, (FrustumNearPoints[0].XYZ + LightPosition3^)));
+            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, (FrustumNearPoints[1].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, (FrustumNearPoints[2].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, (FrustumNearPoints[3].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, (FrustumNearPoints[0].XYZ + LightPosition.XYZ)));
         end;
       end;
     end;

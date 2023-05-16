@@ -1,9 +1,6 @@
 // TODO: why box is not rendered even if *earlier* something set InternalForceRendering:=true?
 // Looks like it is rejected by something we don't understand.
 
-// TODO: At the same time, indeed in buggy situation GetCasterShadowPossiblyVisible
-// fails the test, and it should pass the test.
-
 // TODO: instead of InternalForceRendering: Boolean use render frame id, compare if force in the current frame
 
 {
