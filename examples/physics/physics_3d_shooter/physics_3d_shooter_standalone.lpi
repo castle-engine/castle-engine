@@ -30,7 +30,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="9">
+    <Units Count="12">
       <Unit0>
         <Filename Value="physics_3d_shooter_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -73,6 +73,21 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="SimpleFpsPlayerMovementWithRotation"/>
       </Unit8>
+      <Unit9>
+        <Filename Value="code/directrotatetransformbykeys.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DirectRotateTransformByKeys"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="code/rotaterigidbodybykeys.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="RotateRigidBodyByKeys"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="code/rotaterigidbodybymouse.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="RotateRigidBodyByMouse"/>
+      </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

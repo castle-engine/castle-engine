@@ -99,6 +99,14 @@
                   "Key1" : "keyD"
                 },
                 "Name" : "SimpleFpsPlayerMovementWithRotation1"
+              },
+              {
+                "$$ClassName" : "TDirectRotateTransformByKeys",
+                "Input_DownRotate" : "",
+                "Input_LeftRotate" : "",
+                "Input_RightRotate" : "",
+                "Input_UpRotate" : "",
+                "Name" : "DirectRotateTransformByKeys1"
               }
             ]
           },

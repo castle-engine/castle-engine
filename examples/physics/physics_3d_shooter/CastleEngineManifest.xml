@@ -7,8 +7,8 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 
 <project name="physics_3d_shooter"
   standalone_source="physics_3d_shooter_standalone.dpr"
-  game_units="GameInitialize, GameViewMain, Move3DPlayerDynamic, RotateCameraByMouse, SimplestFpsPlayerMovement, RotateCameraByKeys, SimpleFpsPlayerMovementWithRotation"
-  editor_units="Move3DPlayerDynamic, RotateCameraByMouse, SimplestFpsPlayerMovement, RotateCameraByKeys, SimpleFpsPlayerMovementWithRotation"
+  game_units="GameInitialize, GameViewMain, Move3DPlayerDynamic, RotateCameraByMouse, SimplestFpsPlayerMovement, RotateCameraByKeys, SimpleFpsPlayerMovementWithRotation, DirectRotateTransformByKeys, RotateRigidBodyByKeys, RotateRigidBodyByMouse"
+  editor_units="Move3DPlayerDynamic, RotateCameraByMouse, SimplestFpsPlayerMovement, RotateCameraByKeys, SimpleFpsPlayerMovementWithRotation, DirectRotateTransformByKeys, RotateRigidBodyByKeys, RotateRigidBodyByMouse"
   qualified_name="io.castleengine.physics.shooter"
   caption="Physics 3D Shooter"
 >
