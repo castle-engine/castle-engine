@@ -2251,6 +2251,15 @@ type
 
     procedure InternalIncShapesHash;
     property InternalShapesHash: TShapesHash read FShapesHash;
+
+    { Load again the model from current URL.
+      This makes sense to be used when underlying file on disk
+      changed, and you want to reload it.
+
+      TODO: If the file is cached using @link(Cache), then it will not reload
+      the version in cache, so effectively it will not load new version from
+      disk. This will be fixed at some point. }
+    procedure ReloadUrl;
   published
     { When using @link(PlayAnimation) without TPlayAnimationParameters,
       this value is used as the duration (in seconds) of animation cross-fade
@@ -3618,6 +3627,17 @@ begin
     else
       Load(AValue);
   end;
+end;
+
+procedure TCastleSceneCore.ReloadUrl;
+begin
+  { Naive implementation:
+      TempUrl := Url;
+      Url := '';
+      Url := TempUrl;
+    But this would make warning in case of non-empty AutoAnimation,
+    that such animation doesn't exist in empty scene. }
+  Load(Url);
 end;
 
 (* This is working, and ultra-fast thanks to TShapeTree.AssociatedShape,
