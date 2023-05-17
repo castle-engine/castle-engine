@@ -342,6 +342,8 @@ send
 sending
 shader
 shaders
+shadow
+shadows
 shape
 shapes
 shininess
