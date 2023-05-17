@@ -54,9 +54,7 @@ begin
   else
   if Index = InheritedCount then
   begin
-    SavedUrl := (Component as TCastleScene).Url;
-    (Component as TCastleScene).Url := '';
-    (Component as TCastleScene).Url := SavedUrl;
+    (Component as TCastleScene).ReloadUrl;
   end else
     WritelnWarning('TCastleSceneComponentEditor.ExecuteVerb invalid verb index: %d', [Index]);
 end;
