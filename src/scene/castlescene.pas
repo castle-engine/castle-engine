@@ -1736,8 +1736,15 @@ begin
           Otherwise: Not only shadows for invisible objects would look weird,
           but they would actually show errors.
           Shadow volumes *assume* that shadow caster is also rendered (shadow quads
-          are closed). }
-        if (DistanceCulling > 0) and not DistanceCullingCheck(Shape) then
+          are closed).
+
+          When WholeSceneManifold, this early exit is not allowed:
+          for WholeSceneManifold to work, the scene must be rendered as a whole.
+          For now, WholeSceneManifold just disables distance culling.
+          TODO: In the future, we could make WholeSceneManifold work with
+          distance culling: allow to cull the whole scene. }
+        if (not RenderOptions.WholeSceneManifold) and
+           (DistanceCulling > 0) and (not DistanceCullingCheck(Shape)) then
           Continue;
 
         ShapeBox := Shape.BoundingBox;
