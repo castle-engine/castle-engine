@@ -8,6 +8,10 @@ Using `RenderOptions.WholeSceneManifold` allows to tell CGE to use this model as
 
 Note: We use a version of Alpaca model with _"Backface Culling"_ = _On_. Since 2-manifold scenes require consistent face ordering and "closed skin", using _"Backface Culling"_ on them is an obvious performance benefit. That said, the shadow volumes algorithm would also work if backface culling is off (you can test it by using `Alpaca_original_no_backface_culling.gltf` from our data), just rendering then wouldn't be optimal.
 
+![Screenshot](screenshot.png)
+
+![Screenshot from editor](screenshot_editor.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
