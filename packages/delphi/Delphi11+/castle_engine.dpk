@@ -329,7 +329,7 @@ contains
   ImagingJpeg2000 in '..\..\..\src\vampyre_imaginglib\src\Extensions\ImagingJpeg2000.pas',
   castlescriptarrays in '..\..\..\src\castlescript\castlescriptarrays.pas',
   castlescriptimages in '..\..\..\src\castlescript\castlescriptimages.pas',
-  castlescriptvectors in '..\..\..\src\castlescript\castlescriptvectors.pas'
+  castlescriptvectors in '..\..\..\src\castlescript\castlescriptvectors.pas',
   fmx.castlecontrol in '..\..\..\src\delphi\fmx.castlecontrol.pas'  
   {$IFDEF MSWINDOWS}
   , vcl.castlecontrol in '..\..\..\src\delphi\vcl.castlecontrol.pas'
