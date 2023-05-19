@@ -177,14 +177,9 @@ pipeline {
             }
           }
         }
-        /* Raspberry Pi is very slow and overloaded, rebuild for it only on master */
         stage('Raspberry Pi') {
-          when {
-            allOf {
-              not { expression { return params.jenkins_fast } };
-              branch "master"
-            }
-          }
+          /* Raspberry Pi is very slow and overloaded, rebuild for it only on master */
+          when { branch "master" }
           agent {
             label 'raspberry-pi-cge-builder'
           }
@@ -218,16 +213,19 @@ pipeline {
               }
             }
             stage('(RPi) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
               }
             }
             stage('(RPi) Build And Run Auto-Tests') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make tests'
               }
             }
             stage('(RPi) Build Using FpMake') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean test-fpmake'
               }
@@ -243,7 +241,6 @@ pipeline {
           }
         }
         stage('macOS') {
-          when { not { expression { return params.jenkins_fast } } }
           agent {
             label 'mac-cge-builder'
           }
@@ -281,6 +278,7 @@ pipeline {
               }
             }
             stage('(macOS) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean examples'
               }
