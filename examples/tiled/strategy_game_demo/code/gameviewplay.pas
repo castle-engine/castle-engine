@@ -281,23 +281,31 @@ var
   TileRect: TFloatRectangle;
   UnitUnderMouse: TUnit;
   RayOrigin, RayDirection: TVector3;
+  //MapIndex: Integer;
 begin
   ViewportMap.PositionToRay(Container.MousePosition, true, RayOrigin, RayDirection);
 
   { Update TileUnderMouseExists, TileUnderMouse.
-
-    We do not perform full "ray vs map" collision check, because we are in a simple
-    2D situation: We know that RayDirection just points in -Z,
-    we know that Map is not translated in world.
-    So we can just use RayOrigin as parameter for Map.Data.PositionToTile.
-
-    In a more complicated situation (e.g. if your map is possibly transformed,
-    or if you may have different camera direction, maybe even 3D with perspective),
-    we would use
-
-      TODO
-  }
+    See https://castle-engine.io/tiled_maps#tile_under_mouse for an explanation
+    how to query the map tile under mouse. }
   TileUnderMouseExists := Map.Data.PositionToTile(RayOrigin.XY, TileUnderMouse);
+
+  { This is alternative way to query the map tile under mouse,
+    that will work even if map is possibly transformed,
+    directly or by parent TCastleTransform,
+    or if you may have different camera direction, maybe even 3D with perspective.
+
+  TileUnderMouseExists := false;
+  if ViewportMap.MouseRayHit <> nil then
+  begin
+    MapIndex := ViewportMap.MouseRayHit.IndexOfItem(Map);
+    if MapIndex <> -1 then
+    begin
+      TileUnderMouseExists := Map.Data.PositionToTile(
+        ViewportMap.MouseRayHit[MapIndex].Point.XY, TileUnderMouse);
+    end;
+  end;
+  }
 
   { update TileUnderMouseImage, UnitUnderMouse }
   TileUnderMouseImage.Exists := TileUnderMouseExists;
