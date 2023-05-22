@@ -96,6 +96,14 @@ begin
   { Do not allow the body to rotate by default }
   RBody.AngularVelocity := Vector3(0,0,0);
 
+  if ModifiersDown(FocusedContainer.Pressed) = [mkCtrl] then
+  begin
+    if AllowSlowerRotations then
+      SpeedScale := 0.1 {* RotationControlFactor(IsOnGroundBool)};
+  end
+  else
+    SpeedScale := 1.0 {* RotationControlFactor(IsOnGroundBool)};
+
   if buttonRight in FocusedContainer.MousePressed then
   begin
     if not FLastMousePositionIsSet then
@@ -103,15 +111,6 @@ begin
       FLastUpdateMousePosition := FocusedContainer.MousePosition;
       FLastMousePositionIsSet := true;
     end;
-
-    if ModifiersDown(FocusedContainer.Pressed) = [mkCtrl] then
-    begin
-      if AllowSlowerRotations then
-        SpeedScale := 0.1 {* RotationControlFactor(IsOnGroundBool)};
-    end
-    else
-      SpeedScale := 1.0 {* RotationControlFactor(IsOnGroundBool)};
-
     HandleMouseLook;
   end
   else
