@@ -25,7 +25,7 @@ uses Classes,
   SimplestFpsPlayerMovement, RotateCameraByKeys, SimpleFpsPlayerMovementWithRotation,
   DirectRotateTransformByKeys, RotateRigidBodyByKeys, RotateRigidBodyByMouse,
   RotateRigidBody, HeadBobbing, FpsPlayerMovementWithRotationAndStairSupport,
-  FpsCrouch;
+  FpsCrouch, FpsPlayerMovementWithRotationAndFly;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -74,7 +74,11 @@ begin
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs.castle-user-interface';
 
   { Crouch support }
-  DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs_crouch.castle-user-interface';
+  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs_crouch.castle-user-interface';
+
+  { Fly support }
+  DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_fly.castle-user-interface';
+
 
   {Old tests }
   //DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
