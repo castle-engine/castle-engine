@@ -30,7 +30,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="15">
+    <Units Count="16">
       <Unit0>
         <Filename Value="physics_3d_shooter_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -101,8 +101,13 @@
       <Unit14>
         <Filename Value="code/fpsplayermovementwithrotationandstairsupport.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="SimpleFpsPlayerMovementWithRotation"/>
+        <UnitName Value="FpsPlayerMovementWithRotationAndStairSupport"/>
       </Unit14>
+      <Unit15>
+        <Filename Value="code/fpscrouch.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="FpsCrouch"/>
+      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

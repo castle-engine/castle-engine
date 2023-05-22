@@ -24,7 +24,8 @@ uses Classes,
   CastleViewport, Move3DPlayerDynamic, RotateCameraByMouse,
   SimplestFpsPlayerMovement, RotateCameraByKeys, SimpleFpsPlayerMovementWithRotation,
   DirectRotateTransformByKeys, RotateRigidBodyByKeys, RotateRigidBodyByMouse,
-  RotateRigidBody, HeadBobbing, FpsPlayerMovementWithRotationAndStairSupport;
+  RotateRigidBody, HeadBobbing, FpsPlayerMovementWithRotationAndStairSupport,
+  FpsCrouch;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -70,7 +71,10 @@ begin
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_head_bobbing.castle-user-interface';
 
   { Stair support test }
-  DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs.castle-user-interface';
+  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs.castle-user-interface';
+
+  { Crouch support }
+  DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs_crouch.castle-user-interface';
 
   {Old tests }
   //DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
