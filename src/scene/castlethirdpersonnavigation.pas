@@ -213,8 +213,6 @@ type
     function AnimationCrouchRotateStored: Boolean;
     function AnimationJumpStored: Boolean;
     function AnimationFallStored: Boolean;
-    { Change Avatar.AutoAnimation to the 1st animation that is possible. }
-    procedure SetAnimation(const AnimationNames: array of String);
     procedure SetInitialHeightAboveTarget(const Value: Single);
     procedure SetDistanceToAvatarTarget(const Value: Single);
     procedure MySetAvatarTargetForPersistent(const AValue: TVector3);
@@ -226,6 +224,39 @@ type
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
     function Zoom(const Factor: Single): Boolean; override;
+
+    { Make avatar play given animation.
+
+      The desired animation is specified as a list of strings,
+      from the most preferred name of the animation to the least preferred.
+      This allows to perform a "fallback" mechanism in case some animations
+      are missing on the model.
+      For example if AnimationCrouch is not available,
+      we will use AnimationCrouchIdle instead,
+      and if that is also not available we will use AnimationIdle.
+      Some basic animations must still exist -- if even AnimationIdle
+      doesn't exist, we'll just show a warning.
+
+      The default implementation in @className changes
+      @link(TCastleSceneCore.AutoAnimation Avatar.AutoAnimation) method.
+      It does nothing if @link(Avatar) is @nil.
+
+      Moreover the default implementation implements a "fallback" mechanism
+      in case some animations are not available in the scene.
+      This is checked using @link(TCastleSceneCore.HasAnimation Avatar.HasAnimation).
+
+      This method is virtual so you can override it in descendants to apply
+      the animation in any way, e.g. to a hierarchy of scenes composed from MD3
+      pieces. When overriding this, you don't need to call @code(inherited).
+      If you override this to apply the animation to something else than @link(Avatar),
+      then it may even be reasonable to leave @link(Avatar) as @nil,
+      and only set @link(AvatarHierarchy).
+
+      The implementation of this method (after performing the "fallback" mechanism
+      described above to find the real name on the AnimationName list)
+      should check whether the object is not @italic(already playing the same animation).
+      This is important to avoid unnecessary animation restarts. }
+    procedure SetAnimation(const AnimationNames: array of String); virtual;
   public
     const
       DefaultInitialHeightAboveTarget = 1.0;
@@ -758,11 +789,9 @@ begin
       Camera.SetView(CameraPos, CameraDir, CameraUp);
     end;
 
+    SetAnimation([AnimationIdle]);
     if Avatar <> nil then
-    begin
-      SetAnimation([AnimationIdle]);
       Avatar.ForceInitialAnimationPose;
-    end;
   end;
 end;
 
