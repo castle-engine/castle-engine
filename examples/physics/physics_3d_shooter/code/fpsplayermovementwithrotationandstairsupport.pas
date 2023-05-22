@@ -309,7 +309,6 @@ var
   RayOrigin: TVector3;
   StepHit: TPhysicsRayCastResult;
   ColliderBoundingBox: TBox3D;
-
 begin
   RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
   if not Assigned(RBody) then
@@ -320,7 +319,7 @@ begin
     Exit;
 
   IsOnGroundBool := IsPlayerOnGround(RBody, Collider, GroundNormal);
-  WritelnLog('Ground Normal 2 '+ GroundNormal.ToString);
+  //WritelnLog('Ground Normal 2 '+ GroundNormal.ToString);
 
   { No support for air movement }
   if not IsOnGroundBool then
@@ -332,20 +331,20 @@ begin
   ForwardDirection := GetForwardDirection;
   UpDirection := Parent.Up;
 
-  WritelnLog('UpDirection '+ UpDirection.ToString);
-  WritelnLog('ForwardDirection ' + ForwardDirection.ToString);
+  //WritelnLog('UpDirection '+ UpDirection.ToString);
+  //WritelnLog('ForwardDirection ' + ForwardDirection.ToString);
   RightDirection := TVector3.CrossProduct(ForwardDirection, UpDirection);
-  WritelnLog('RightDirection '+ RightDirection.ToString);
+  //WritelnLog('RightDirection '+ RightDirection.ToString);
 
   { Forward ray direction to check }
   ColliderBoundingBox:= Collider.ScaledLocalBoundingBox;
   RayDirection := TVector3.CrossProduct(RightDirection, GroundNormal);
-  WritelnLog('RayDirection '+ RayDirection.ToString);
+  //WritelnLog('RayDirection '+ RayDirection.ToString);
 
-  WritelnLog('Parent Translation ' + Parent.Translation.ToString);
+  //WritelnLog('Parent Translation ' + Parent.Translation.ToString);
   RayOrigin := Parent.Translation + Vector3(0,0.1,0) - Vector3(0, ColliderBoundingBox.SizeY /2 , 0);
 
-  WritelnLog('RayOrigin ' + RayOrigin.ToString);
+  //WritelnLog('RayOrigin ' + RayOrigin.ToString);
 
   { Simplest code:  When input direction is 1.00 0.00 -1.00 this move faster:
 
@@ -376,6 +375,7 @@ begin
   else
     VerticalVelocity := RBody.LinearVelocity.Y;
 
+  { Direct translate player up when he is near a stairs step }
   if (FWasJumpInput = false) and (HorizontalVelocity.IsZero = false) then
   begin
     StepHit := RBody.PhysicsRayCast(RayOrigin, RayDirection, 0.51);
