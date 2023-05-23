@@ -16,11 +16,11 @@ type
     FVerticalRotationInput: TCastleInputAxis;
 
     const
-      DefaultMouseLookHorizontalSensitivity = Pi * 15 / 180;
-      DefaultMouseLookVerticalSensitivity = Pi * 15 / 180;
+      DefaultMouseLookHorizontalSensitivity = 0.25;
+      DefaultMouseLookVerticalSensitivity = 0.25;
       DefaultMinAngleFromGravityUp = Pi * 10 / 180;
-      DefaultRotationHorizontalSpeed = Pi * 150 / 180;
-      DefaultRotationVerticalSpeed = Pi * 150 / 180;
+      DefaultRotationHorizontalSpeed = 1.5;
+      DefaultRotationVerticalSpeed = 1.5;
 
     function Camera: TCastleCamera;
 
@@ -33,8 +33,8 @@ type
   public
      constructor Create(AOwner: TComponent); override;
   published
-    property HorizontalRotationInput: TCastleInputAxis read FHorizontalRotationInput write FHorizontalRotationInput;
-    property VerticalRotationInput: TCastleInputAxis read FVerticalRotationInput write FVerticalRotationInput;
+    property HorizontalRotationInput: TCastleInputAxis read FHorizontalRotationInput;
+    property VerticalRotationInput: TCastleInputAxis read FVerticalRotationInput;
   end;
 
 implementation
