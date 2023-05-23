@@ -8,9 +8,17 @@ Alternatively, you can build and install this package manually in Delphi IDE.
 
 Notes:
 
-- The package supports only _"Windows 32-bit"_ platform, as Delphi IDE is 32-bit right now, so _"Windows 32-bit"_ is the only platform that makes sense for design-time packages (that can be installed, that can depend on `designide`).
+- The package `castle_engine` _"Target platforms"_ must include all platforms supported by Castle Game Engine with Delphi.
 
-  _Castle Game Engine_ itself supports both 32-bit and 64-bit Windows. And we actually recommend to build your applications for Windows-64, as this what users expect nowadays.
+    This means both _"Windows 32-bit"_ and _"Windows 64-bit"_. This allows to drop `TCastleControl` on a form when your application platform is either _"Windows 32-bit"_ or _"Windows 64-bit".
+
+    We generally recommend to build your Windows applications for 64-bit, as this is what users expect nowadays. For maximum compatibility, CGE supports both 32-bit and 64-bit Windows versions, with any compiler.
+
+- However, `castle_engine_design` package _"Target platforms"_ must be only Win32. Because `designide` package is only for Windows 32-bit, just like Delphi IDE.
+
+    And `designide` includes unit `ToolsAPI` which is in turn used by `CastleInternalDelphiDesignUtils` unit.
+
+- As Delphi IDE is 32-bit right now, note that you can use _"Install"_ on a package only when the platform is set to _"Windows 32-bit"_.
 
 - We put DCP output in `./output` subdirectory, this seems simplest and reliable for now.
   Makes it easier to find and refer to packages than in directories like
@@ -39,3 +47,5 @@ Notes:
     This worked when installing in Delphi IDE, however [Delphinus](https://castle-engine.io/download#delphinus) has issues installing packages that depend on other packages like this. So we decided to switch to a single Delphi package `castle_engine` that contains everything, both VCL and FMX components. There seems to be no practical disadvantages of this.
 
     In case we'll want to use run-time packages, they will be split into separate base/fmx/vcl.
+
+- `src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas` is implicitly imported into package -- this is normal and has to stay like this. This unit compiles only for Delphi/Win32 (not Delphi/Win64), it is also used only in case of that platform.

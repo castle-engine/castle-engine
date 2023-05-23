@@ -17,7 +17,7 @@
     "projects":
     [
         {
-            "project": "packages\\delphi\\castle_engine.dproj"
+            "project": "packages\\delphi\\AllPackages.groupproj"
         }
     ]
 }

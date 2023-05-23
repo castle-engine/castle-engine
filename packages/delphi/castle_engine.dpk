@@ -26,15 +26,13 @@ package castle_engine;
 {$DEFINE DEBUG}
 {$DEFINE CASTLE_DELPHI_PACKAGE}
 {$ENDIF IMPLICITBUILDING}
-{$DESCRIPTION 'Castle Game Engine - TCastleControl component'}
-{$DESIGNONLY}
+{$DESCRIPTION 'Castle Game Engine - TCastleControl on VCL and FMX forms'}
 {$IMPLICITBUILD ON}
 
 requires
   rtl,
   vcl,
   xmlrtl,
-  designide,
   fmx;
 
 contains
@@ -82,7 +80,6 @@ contains
   castlexmlutils in '..\..\src\files\castlexmlutils.pas',
   x3dfields in '..\..\src\scene\x3d\x3dfields.pas',
   x3dnodes in '..\..\src\scene\x3d\x3dnodes.pas',
-  castleinternaldelphidesignutils in '..\..\src\delphi\castleinternaldelphidesignutils.pas',
   castlecurves in '..\..\src\castlescript\castlecurves.pas',
   castlescript in '..\..\src\castlescript\castlescript.pas',
   castlescriptcorefunctions in '..\..\src\castlescript\castlescriptcorefunctions.pas',
@@ -331,6 +328,7 @@ contains
   vcl.castlecontrol in '..\..\src\delphi\vcl.castlecontrol.pas';
 
 end.
+
 
 
 
