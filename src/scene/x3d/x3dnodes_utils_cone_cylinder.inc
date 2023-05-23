@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -239,27 +240,27 @@ var
     MiddleCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices + 1;
     GenerateCircle(QuadricSlices, Lerp(StackHeight, BottomRadius, TopRadius), -Height / 2 + StackHeight * Height, PVector3(Coord.Ptr(MiddleCircleIndex)));
-    Coord.List^[Coord.Count - 1] := Coord.List^[MiddleCircleIndex];
+    Coord.L[Coord.Count - 1] := Coord.L[MiddleCircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
-      Normal.List^[MiddleCircleIndex + I] := Normal.List^[SideBottomCircleIndex + I];
-    Normal.List^[Normal.Count - 1] := Normal.List^[MiddleCircleIndex];
+      Normal.L[MiddleCircleIndex + I] := Normal.L[SideBottomCircleIndex + I];
+    Normal.L[Normal.Count - 1] := Normal.L[MiddleCircleIndex];
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
       for I := 0 to QuadricSlices do
-        TexCoord.List^[MiddleCircleIndex + I] := Vector2(I / QuadricSlices, StackHeight);
+        TexCoord.L[MiddleCircleIndex + I] := Vector2(I / QuadricSlices, StackHeight);
     end;
 
     MiddleFaceIndex := CoordIndex.Count;
     CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
     for I := 0 to QuadricSlices - 1 do
     begin
-      CoordIndex.List^[MiddleFaceIndex + I * 5    ] := MiddleCircleIndex     + I;
-      CoordIndex.List^[MiddleFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
-      CoordIndex.List^[MiddleFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
-      CoordIndex.List^[MiddleFaceIndex + I * 5 + 3] := MiddleCircleIndex     + I + 1;
-      CoordIndex.List^[MiddleFaceIndex + I * 5 + 4] := -1;
+      CoordIndex.L[MiddleFaceIndex + I * 5    ] := MiddleCircleIndex     + I;
+      CoordIndex.L[MiddleFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
+      CoordIndex.L[MiddleFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
+      CoordIndex.L[MiddleFaceIndex + I * 5 + 3] := MiddleCircleIndex     + I + 1;
+      CoordIndex.L[MiddleFaceIndex + I * 5 + 4] := -1;
     end;
 
     if MaterialIndex <> nil then
@@ -288,7 +289,7 @@ begin
     GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, PVector3(Coord.Ptr(BottomCircleIndex)));
     Normal.Count := Normal.Count + QuadricSlices;
     for I := 0 to QuadricSlices - 1 do
-      Normal.List^[BottomCircleIndex + I] := Vector3(0, -1, 0);
+      Normal.L[BottomCircleIndex + I] := Vector3(0, -1, 0);
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices;
@@ -306,11 +307,11 @@ begin
     for I := 0 to QuadricSlices - 1 do
     begin
       if I <> QuadricSlices - 1 then
-        CoordIndex.List^[BottomFaceIndex + I * 4  ] := BottomCircleIndex + I + 1 else
-        CoordIndex.List^[BottomFaceIndex + I * 4  ] := BottomCircleIndex;
-      CoordIndex.List^[BottomFaceIndex + I * 4 + 1] := BottomCircleIndex + I;
-      CoordIndex.List^[BottomFaceIndex + I * 4 + 2] := BottomMiddleIndex;
-      CoordIndex.List^[BottomFaceIndex + I * 4 + 3] := -1;
+        CoordIndex.L[BottomFaceIndex + I * 4  ] := BottomCircleIndex + I + 1 else
+        CoordIndex.L[BottomFaceIndex + I * 4  ] := BottomCircleIndex;
+      CoordIndex.L[BottomFaceIndex + I * 4 + 1] := BottomCircleIndex + I;
+      CoordIndex.L[BottomFaceIndex + I * 4 + 2] := BottomMiddleIndex;
+      CoordIndex.L[BottomFaceIndex + I * 4 + 3] := -1;
     end;
 
     if MaterialIndex <> nil then
@@ -331,7 +332,7 @@ begin
     GenerateCircle(QuadricSlices, TopRadius, Height / 2, PVector3(Coord.Ptr(TopCircleIndex)));
     Normal.Count := Normal.Count + QuadricSlices;
     for I := 0 to QuadricSlices - 1 do
-      Normal.List^[TopCircleIndex + I] := Vector3(0, 1, 0);
+      Normal.L[TopCircleIndex + I] := Vector3(0, 1, 0);
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices;
@@ -348,12 +349,12 @@ begin
     CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
     for I := 0 to QuadricSlices - 1 do
     begin
-      CoordIndex.List^[TopFaceIndex + I * 4    ] := TopCircleIndex + I;
+      CoordIndex.L[TopFaceIndex + I * 4    ] := TopCircleIndex + I;
       if I <> QuadricSlices - 1 then
-        CoordIndex.List^[TopFaceIndex + I * 4 + 1] := TopCircleIndex + I + 1 else
-        CoordIndex.List^[TopFaceIndex + I * 4 + 1] := TopCircleIndex;
-      CoordIndex.List^[TopFaceIndex + I * 4 + 2] := TopMiddleIndex;
-      CoordIndex.List^[TopFaceIndex + I * 4 + 3] := -1;
+        CoordIndex.L[TopFaceIndex + I * 4 + 1] := TopCircleIndex + I + 1 else
+        CoordIndex.L[TopFaceIndex + I * 4 + 1] := TopCircleIndex;
+      CoordIndex.L[TopFaceIndex + I * 4 + 2] := TopMiddleIndex;
+      CoordIndex.L[TopFaceIndex + I * 4 + 3] := -1;
     end;
 
     if MaterialIndex <> nil then
@@ -378,16 +379,16 @@ begin
     SideBottomCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices + 1;
     GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, PVector3(Coord.Ptr(SideBottomCircleIndex)));
-    Coord.List^[Coord.Count - 1] := Coord.List^[SideBottomCircleIndex];
+    Coord.L[Coord.Count - 1] := Coord.L[SideBottomCircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
-      Normal.List^[SideBottomCircleIndex + I] := SideNormal(I);
-    Normal.List^[Normal.Count - 1] := Normal.List^[SideBottomCircleIndex];
+      Normal.L[SideBottomCircleIndex + I] := SideNormal(I);
+    Normal.L[Normal.Count - 1] := Normal.L[SideBottomCircleIndex];
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
       for I := 0 to QuadricSlices do
-        TexCoord.List^[SideBottomCircleIndex + I] := Vector2(I / QuadricSlices, 0);
+        TexCoord.L[SideBottomCircleIndex + I] := Vector2(I / QuadricSlices, 0);
     end;
 
     { Add additional "stacks" to the geometry when QuadricStacks > 1 }
@@ -404,16 +405,16 @@ begin
       QuadricSlices * top points.
       See comments at the beginning about "How to make smooth normals...". }
     GenerateCircle(QuadricSlices, TopRadius, Height / 2, PVector3(Coord.Ptr(SideTopCircleIndex)));
-    Coord.List^[Coord.Count - 1] := Coord.List^[SideTopCircleIndex];
+    Coord.L[Coord.Count - 1] := Coord.L[SideTopCircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
-      Normal.List^[SideTopCircleIndex + I] := Normal.List^[SideBottomCircleIndex + I];
-    Normal.List^[Normal.Count - 1] := Normal.List^[SideTopCircleIndex];
+      Normal.L[SideTopCircleIndex + I] := Normal.L[SideBottomCircleIndex + I];
+    Normal.L[Normal.Count - 1] := Normal.L[SideTopCircleIndex];
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
       for I := 0 to QuadricSlices do
-        TexCoord.List^[SideTopCircleIndex + I] := Vector2(I / QuadricSlices, 1);
+        TexCoord.L[SideTopCircleIndex + I] := Vector2(I / QuadricSlices, 1);
     end;
 
     SideFaceIndex := CoordIndex.Count;
@@ -422,11 +423,11 @@ begin
       CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
       for I := 0 to QuadricSlices - 1 do
       begin
-        CoordIndex.List^[SideFaceIndex + I * 5    ] := SideTopCircleIndex    + I;
-        CoordIndex.List^[SideFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
-        CoordIndex.List^[SideFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
-        CoordIndex.List^[SideFaceIndex + I * 5 + 3] := SideTopCircleIndex    + I + 1;
-        CoordIndex.List^[SideFaceIndex + I * 5 + 4] := -1;
+        CoordIndex.L[SideFaceIndex + I * 5    ] := SideTopCircleIndex    + I;
+        CoordIndex.L[SideFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
+        CoordIndex.L[SideFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
+        CoordIndex.L[SideFaceIndex + I * 5 + 3] := SideTopCircleIndex    + I + 1;
+        CoordIndex.L[SideFaceIndex + I * 5 + 4] := -1;
       end;
     end else
     begin
@@ -439,10 +440,10 @@ begin
       CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
       for I := 0 to QuadricSlices - 1 do
       begin
-        CoordIndex.List^[SideFaceIndex + I * 4    ] := SideBottomCircleIndex + I;
-        CoordIndex.List^[SideFaceIndex + I * 4 + 1] := SideBottomCircleIndex + I + 1;
-        CoordIndex.List^[SideFaceIndex + I * 4 + 2] := SideTopCircleIndex    + I + 1;
-        CoordIndex.List^[SideFaceIndex + I * 4 + 3] := -1;
+        CoordIndex.L[SideFaceIndex + I * 4    ] := SideBottomCircleIndex + I;
+        CoordIndex.L[SideFaceIndex + I * 4 + 1] := SideBottomCircleIndex + I + 1;
+        CoordIndex.L[SideFaceIndex + I * 4 + 2] := SideTopCircleIndex    + I + 1;
+        CoordIndex.L[SideFaceIndex + I * 4 + 3] := -1;
       end;
     end;
 

@@ -532,6 +532,8 @@ end;
 procedure TCastleSpriteSheetX3DExporter.PrepareContainer;
 var
   Shape: TShapeNode;
+  Material: TUnlitMaterialNode;
+  Appearance: TAppearanceNode;
   Tri: TTriangleSetNode;
   Tex: TAbstractTextureNode;
   TexProperties: TTexturePropertiesNode;
@@ -540,8 +542,13 @@ begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
   FRoot.Meta['source'] := ExtractURIName(FSpriteSheet.URL);
 
+  Material := TUnlitMaterialNode.Create;
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := Material;
+
   Shape := TShapeNode.Create;
-  Shape.Material := TUnlitMaterialNode.Create;
+  Shape.Appearance := Appearance;
 
   TexProperties := TTexturePropertiesNode.Create;
   TexProperties.MagnificationFilter := magDefault;
@@ -577,7 +584,7 @@ begin
     TImageTextureNode(Tex).RepeatT := false; }
     TImageTextureNode(Tex).TextureProperties := TexProperties;
   end;
-  Shape.Texture := Tex;
+  Appearance.Texture := Tex;
 
   Tri := TTriangleSetNode.Create;
   Tri.Solid := false;
@@ -719,12 +726,12 @@ var
     Values := CoordInterp.FdKeyValue.Items;
     for I := 1 to FrameCount - 1 do
     begin
-      if not CompareMem(Values.List, Values.Ptr(I * PerFrameValues), SizeOf(TVector3) * PerFrameValues) then
+      if not CompareMem(Values.L, Values.Ptr(I * PerFrameValues), SizeOf(TVector3) * PerFrameValues) then
         Exit; // optimization not possible
     end;
 
     { optimization possible: simplify CoordInterp to 1 frame, or even remove CoordInterp }
-    if CompareMem(Values.List, FShapeCoord.FdPoint.Items.List, SizeOf(TVector3) * PerFrameValues) then
+    if CompareMem(Values.L, FShapeCoord.FdPoint.Items.L, SizeOf(TVector3) * PerFrameValues) then
     begin
       FreeIfUnusedAndNil(CoordInterp);
     end else

@@ -17,6 +17,8 @@
 {$ifdef read_interface}
 
 //type
+  EMaximumTransformDesignDepth = class(Exception);
+
   { Contents are loaded from an indicated castle-transform file
     (by the @link(URL) property).
 
@@ -120,7 +122,7 @@ begin
       try
         { Check LoadDepth = MaxLoadDepth to prevent infinite loop when referencing your own design. }
         if LoadDepth = MaxLoadDepth then
-          raise Exception.CreateFmt('Exceeded maximum depth (%d) when loading TCastleTransformDesign within TCastleTransformDesign. It is possible that TCastleTransformDesign references its own design', [
+          raise EMaximumTransformDesignDepth.CreateFmt('Exceeded maximum depth (%d) when loading TCastleTransformDesign within TCastleTransformDesign. It is possible that TCastleTransformDesign references its own design', [
             MaxLoadDepth
           ]);
         Inc(LoadDepth);

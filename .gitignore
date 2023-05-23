@@ -22,6 +22,7 @@ lib/
 # https://docwiki.embarcadero.com/RADStudio/Sydney/en/API_(*.rsm)
 *.rsm
 *.local
+__recovery
 
 # Other backups
 *.blend1
@@ -182,7 +183,6 @@ castle-game-engine-*.fpm
 /examples/test_local_filename_chars/test_local_filename_chars
 /examples/third_person_navigation/third_person_navigation
 /examples/tiled/map_viewer/map_viewer
-/examples/tiled/map_viewer_in_viewport/map_viewer_in_viewport
 /examples/tiled/strategy_game_demo/strategy_game_demo
 /examples/user_interface/custom_cursor/custom_cursor
 /examples/user_interface/dragging_test/dragging_test
@@ -225,6 +225,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/occlusion_culling/occlusion_culling
 /examples/visualize_triangulation/visualize_triangulation
 /examples/window/multi_window/multi_window
+/examples/window/multiple_windows_and_viewports/multiple_windows_and_viewports
 /examples/window/window_menu/window_menu
 /packages/alternative_castle_window_based_on_lcl.pas
 /packages/castle_base.pas

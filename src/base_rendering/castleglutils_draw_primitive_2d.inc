@@ -380,7 +380,7 @@ begin
     end;
 
     if Primitive2DRes.Vao = nil then
-      Primitive2DRes.Vao := TVertexArrayObject.Create;
+      Primitive2DRes.Vao := TVertexArrayObject.Create(nil);
   end;
 
   { apply LineWidth, PointSize.

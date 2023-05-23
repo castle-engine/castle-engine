@@ -8,6 +8,10 @@ Simple demo of shadows:
 
 - For shadow volumes, all objects (primitives and meshes loaded by `TCastleScene`) are potential shadow casters, as long as they are 2-manifold.
 
+![Screenshot](screenshot.png)
+
+![Screenshot from editor](screenshot_editor.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building

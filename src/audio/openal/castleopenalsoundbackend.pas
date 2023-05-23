@@ -509,7 +509,7 @@ begin
 
         Investigation: I found that sometimes changing the buffer
         of the sound doesn't work immediately. Simple
-          Writeln(SoundInfos.List^[Sound].Buffer, ' ',
+          Writeln(SoundInfos.L[Sound].Buffer, ' ',
             alGetSource1ui(FAllocatedSource.ALSource, AL_BUFFER));
         right after alCommonSourceSetup shows this (may output
         two different values). Then if you wait a little, OpenAL

@@ -41,7 +41,7 @@ begin
     for I := 0 to JsonArray.Count - 1 do
       if JsonArray[I] is TJSONNumber then
       begin
-        Vec2.InternalData[Vec2Index] := JsonArray[I].AsFloat;
+        Vec2.Data[Vec2Index] := JsonArray[I].AsFloat;
         Inc(Vec2Index);
         if Vec2Index = 2 then
         begin

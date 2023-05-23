@@ -902,7 +902,7 @@ begin
       if VboStorage[I].IndexesVbo = 0 then
         glGenBuffers(1, @VboStorage[I].IndexesVbo);
       if VboStorage[I].Vao = nil then
-        VboStorage[I].Vao := TVertexArrayObject.Create;
+        VboStorage[I].Vao := TVertexArrayObject.Create(nil);
     end;
 
     { create programs }
@@ -1865,8 +1865,8 @@ begin
   begin
     Assert(BatchingLastImageRects.Count = BatchingLastScreenRects.Count);
     BatchingLastImage.DrawNoBatch(
-      PFloatRectangleArray(BatchingLastScreenRects.List),
-      PFloatRectangleArray(BatchingLastImageRects.List),
+      PFloatRectangleArray(BatchingLastScreenRects.L),
+      PFloatRectangleArray(BatchingLastImageRects.L),
       BatchingLastImageRects.Count);
     BatchingLastScreenRects.Clear;
     BatchingLastImageRects.Clear;

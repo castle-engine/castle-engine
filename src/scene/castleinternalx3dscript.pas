@@ -575,7 +575,7 @@ begin
         begin
           if Items[I].ValueAssigned then
             WasSomeValueAssigned := true;
-          X3DCasScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.List^[I], Time);
+          X3DCasScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.L[I], Time);
         end;
       until not WasSomeValueAssigned;
     finally InsideAfterExecute := false end;
@@ -587,7 +587,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    FLastEventTimes.List^[I] := TX3DTime.Oldest;
+    FLastEventTimes.L[I] := TX3DTime.Oldest;
 end;
 
 end.

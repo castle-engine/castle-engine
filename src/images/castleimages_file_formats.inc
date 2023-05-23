@@ -73,11 +73,13 @@ type
       if you're Ok with losing some of the precision. }
     ifRGBE,
 
-    ifIPL,
-    {$ifdef CASTLE_ENABLE_TIFF}
+    ifIPL
+
+    {$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
+    ,
     ifTIFF,
-    {$endif}
     ifJP2
+    {$endif}
   );
   TImageFormats = set of TImageFormat;
 
@@ -116,13 +118,12 @@ function LoadTGA(const Stream: TStream;
 {function LoadSGI(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;}
 
-{$ifdef CASTLE_ENABLE_TIFF}
+{$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
 function LoadTIFF(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
-{$endif}
-
 function LoadJP2(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+{$endif}
 
 {function LoadEXR(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;}
@@ -191,9 +192,9 @@ procedure SavePNM(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveRGBE(const Img: TEncodedImage; const Stream: TStream); forward;
 procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream); forward;
-procedure SaveJP2(const Img: TEncodedImage; const Stream: TStream); forward;
-{$ifdef CASTLE_ENABLE_TIFF}
+{$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
 procedure SaveTIFF(const Img: TEncodedImage; const Stream: TStream); forward;
+procedure SaveJP2(const Img: TEncodedImage; const Stream: TStream); forward;
 {$endif}
 
 { Detecting class ------------------------------------------------------------ }
@@ -552,14 +553,16 @@ const
     ),
     ( FormatName: 'IPLab image';
       MimeTypesCount: 1;
-      { ipl MIME type invented by Kambi, to make it unique to communicate image format for LoadImage } { }
+      { IPL MIME type invented by Michalis, to make it unique to communicate image format for LoadImage } { }
       MimeTypes: ('image/x-ipl', '', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ipl', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadIPL;
       Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
-    ),
-    {$ifdef CASTLE_ENABLE_TIFF}
+    )
+
+    {$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
+    ,
     ( FormatName: 'TIFF image';
       MimeTypesCount: 1;
       MimeTypes: ('image/tiff', '', '', '', '', '', '');
@@ -568,17 +571,6 @@ const
       Save: {$ifdef FPC}@{$endif}SaveTIFF; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     ),
-    {$endif}
-    (*
-    ( FormatName: 'SGI image';
-      MimeTypesCount: 3;
-      MimeTypes: ('image/sgi', 'image/x-sgi', 'image/x-sgi-rgba', '', '', '', '');
-      ExtsCount: 1; Exts: ('sgi', '', '', '');
-      Load: {$ifdef FPC}@{$endif}LoadSGI;
-      Save: nil; SavedClasses: scRGB;
-      DetectClass: nil;
-    ),
-    *)
     ( FormatName: 'JPEG 2000 image';
       MimeTypesCount: 4;
       MimeTypes: ('image/jp2', 'image/jpeg2000', 'image/jpeg2000-image', 'image/x-jpeg2000-image', '', '', '');
@@ -587,6 +579,8 @@ const
       Save: {$ifdef FPC}@{$endif}SaveJP2; SavedClasses: scG_GA_RGB_RGBA;
       DetectClass: nil;
     )
+    {$endif CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
+
     (*
     ( FormatName: 'EXR image';
       MimeTypesCount: 1;

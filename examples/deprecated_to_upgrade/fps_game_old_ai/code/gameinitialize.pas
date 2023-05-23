@@ -340,7 +340,7 @@ begin
     to adjust initial position as needed. }
   Y := Y - (GetUIFont.Height + ControlsMargin);
   GetUIFont.Print(ControlsMargin, Y, Yellow,
-    Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+    FormatDot('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
   DisplayCurrentAmmo;
 

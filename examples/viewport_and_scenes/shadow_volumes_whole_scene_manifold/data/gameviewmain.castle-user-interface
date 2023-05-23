@@ -11,7 +11,13 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
@@ -23,10 +29,18 @@
             "Perspective" : {
               "$$ClassName" : "TCastlePerspective"
             },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 1.4440441131591797E+000,
+              "X" : -1.4555047452449799E-001,
+              "Y" : -9.8160421848297119E-001,
+              "Z" : -1.2356449663639069E-001
+            },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "Y" : 2.0000000000000000E+000,
-              "Z" : 4.0000000000000000E+000
+              "X" : -1.8389360427856445E+001,
+              "Y" : 7.9976997375488281E+000,
+              "Z" : 1.4479176521301270E+001
             }
           },
           {

@@ -354,9 +354,9 @@ begin
     Offset := 2 * Box.AverageSize;
 
     if WantedDirectionPositive then
-      Position.InternalData[WantedDirection] := Box.Data[0].InternalData[WantedDirection] - Offset
+      Position.Data[WantedDirection] := Box.Data[0].Data[WantedDirection] - Offset
     else
-      Position.InternalData[WantedDirection] := Box.Data[1].InternalData[WantedDirection] + Offset;
+      Position.Data[WantedDirection] := Box.Data[1].Data[WantedDirection] + Offset;
   end;
 
   { GravityUp is just always equal Up here. }

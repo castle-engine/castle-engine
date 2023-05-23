@@ -64,6 +64,8 @@ begin
             if PerspectiveE <> nil then
             begin
               Viewpoint := TViewpointNode.Create(Id + '_viewpoint', BaseUrl);
+              if CastleX3dExtensions then
+                Viewpoint.AutoCenterOfRotation := true;
               Viewpoint.FdPosition.Value := TVector3.Zero;
               CameraGroup.AddChildren(Viewpoint);
 
@@ -85,6 +87,8 @@ begin
               if OrthographicE <> nil then
               begin
                 OrthoViewpoint := TOrthoViewpointNode.Create(Id + '_viewpoint', BaseUrl);
+                if CastleX3dExtensions then
+                  OrthoViewpoint.AutoCenterOfRotation := true;
                 OrthoViewpoint.FdPosition.Value := TVector3.Zero;
                 CameraGroup.AddChildren(OrthoViewpoint);
 

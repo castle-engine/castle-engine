@@ -48,6 +48,8 @@ Usage in short:
 
 - You can also use [Visual Studio Code](https://castle-engine.io/vscode). We feature a Pascal LSP server that can do code completion for Pascal and CGE API.
 
+- Delphinus-Support : For Delphi users that want to use `TCastleControl` in VCL of FMX, you can install the package using [Delphinus](https://github.com/Memnarch/Delphinus/). See [Download: Delphinus](https://castle-engine.io/download) for more details.
+
 Documentation
 -------
 

@@ -1276,7 +1276,7 @@ begin
     { Maximum radius value that allows gravity to work,
       assuming default TCastleTransform.PreferredHeight implementation,
       and assuming that Box is the smallest possible bounding box of our creature. }
-    MaxRadiusForGravity := 0.9 * MiddleHeight * Box.Data[1].InternalData[GC];
+    MaxRadiusForGravity := 0.9 * MiddleHeight * Box.Data[1].Data[GC];
     Result := Min(Box.Radius2D(GC), MaxRadiusForGravity);
   end;
 end;
@@ -1614,7 +1614,7 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebugCaptionsShape.Render := not BBox.IsEmpty;
       if FDebugCaptionsShape.Render then
       begin
-        H := BBox.Data[1].InternalData[World.GravityCoordinate];
+        H := BBox.Data[1].Data[World.GravityCoordinate];
         FDebugCaptionsFontStyle.Size := H / 8;
         FDebugCaptionsTransform.Matrix := TransformToCoordsMatrix(
           { move the caption to be at the top }
@@ -2088,7 +2088,7 @@ var
       {$warnings off} // using deprecated in deprecated
       if (not Gravity) or (I <> World.GravityCoordinate) then
       {$warnings on}
-        AlternativeTarget.InternalData[I] := AlternativeTarget.InternalData[I] + (Random * Distance * 2 - Distance);
+        AlternativeTarget.Data[I] := AlternativeTarget.Data[I] + (Random * Distance * 2 - Distance);
 
     HasAlternativeTarget := true;
 

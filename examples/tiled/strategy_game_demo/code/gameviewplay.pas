@@ -20,7 +20,7 @@ interface
 
 uses Classes,
   CastleControls, CastleTiledMap, CastleUIControls,
-  CastleVectors, CastleKeysMouse,
+  CastleVectors, CastleKeysMouse, CastleScene, CastleViewport,
   GameUnit;
 
 type
@@ -28,13 +28,14 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    MapControl: TCastleTiledMapControl;
+    Map: TCastleTiledMap;
     ButtonQuit: TCastleButton;
     ButtonInstructions: TCastleButton;
     ButtonEndTurn: TCastleButton;
     LabelStatus, LabelTurnStatus: TCastleLabel;
+    ViewportMap: TCastleViewport;
   strict private
-    TileUnderMouseImage: TCastleImageControl;
+    TileUnderMouseImage: TCastleImageTransform;
     TileUnderMouseExists: Boolean;
     TileUnderMouse: TVector2Integer;
     UnitsOnMap: TUnitsOnMap;
@@ -43,8 +44,6 @@ type
     procedure ClickQuit(Sender: TObject);
     procedure ClickInstructions(Sender: TObject);
     procedure ClickEndTurn(Sender: TObject);
-    procedure MapPress(const Sender: TCastleUserInterface;
-      const Event: TInputPressRelease; var Handled: Boolean);
     procedure UpdateTurnStatus;
   public
     { Set this before starting this view. }
@@ -54,6 +53,7 @@ type
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -97,7 +97,7 @@ procedure TViewPlay.Start;
           Un := TUnit.Create(FreeAtStop);
           Un.TilePosition := Pos;
           Un.Initialize(UnitsOnMap, Kind);
-          MapControl.InsertFront(Un.Ui);
+          Map.Add(Un.Transform);
           Exit;
         end;
       end;
@@ -106,8 +106,8 @@ procedure TViewPlay.Start;
   var
     I, W, H, YBegin, YEnd: Integer;
   begin
-    W := MapControl.Map.Width;
-    H := MapControl.Map.Height;
+    W := Map.Data.Width;
+    H := Map.Data.Height;
     YBegin := H div 3;
     YEnd := H - 1 - H div 3;
 
@@ -124,25 +124,23 @@ procedure TViewPlay.Start;
 begin
   inherited;
 
-  MapControl.URL := 'castle-data:/maps/' + MapName + '.tmx';
-  MapControl.OnPress := {$ifdef FPC}@{$endif}MapPress;
+  Map.URL := 'castle-data:/maps/' + MapName + '.tmx';
   ButtonQuit.OnClick := {$ifdef FPC}@{$endif}ClickQuit;
   ButtonInstructions.OnClick := {$ifdef FPC}@{$endif}ClickInstructions;
   ButtonEndTurn.OnClick := {$ifdef FPC}@{$endif}ClickEndTurn;
 
-  UnitsOnMap := TUnitsOnMap.Create(FreeAtStop, MapControl);
+  UnitsOnMap := TUnitsOnMap.Create(FreeAtStop, Map);
 
   PlaceInitialUnits;
 
-  TileUnderMouseImage := TCastleImageControl.Create(FreeAtStop);
-  TileUnderMouseImage.Stretch := true;
-  case MapControl.Map.Orientation of
+  TileUnderMouseImage := TCastleImageTransform.Create(FreeAtStop);
+  case Map.Data.Orientation of
     moOrthogonal: TileUnderMouseImage.URL := 'castle-data:/tile_hover/orthogonal.png';
     moHexagonal : TileUnderMouseImage.URL := 'castle-data:/tile_hover/hexagonal.png';
     else          TileUnderMouseImage.URL := 'castle-data:/tile_hover/isometric.png';
   end;
   TileUnderMouseImage.Exists := false;
-  MapControl.InsertFront(TileUnderMouseImage);
+  Map.Add(TileUnderMouseImage);
 
   HumanTurn := true;
   UpdateTurnStatus;
@@ -185,8 +183,7 @@ begin
   UpdateTurnStatus;
 end;
 
-procedure TViewPlay.MapPress(const Sender: TCastleUserInterface;
-  const Event: TInputPressRelease; var Handled: Boolean);
+function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 
   procedure CheckWin;
   var
@@ -211,15 +208,18 @@ procedure TViewPlay.MapPress(const Sender: TCastleUserInterface;
 var
   UnitUnderMouse: TUnit;
 begin
+  Result := inherited;
+  if Result then Exit;
+
   if Event.IsMouseButton(buttonLeft) and TileUnderMouseExists then
   begin
-    Handled := true;
     UnitUnderMouse := UnitsOnMap[TileUnderMouse];
     if (UnitUnderMouse <> nil) and (UnitUnderMouse.Human = HumanTurn) then
     begin
       // select new unit
       SelectedUnit := UnitUnderMouse;
       UpdateTurnStatus;
+      Exit(true); // event handled
     end else
     if (SelectedUnit <> nil) and
        // CanMove also checks that SelectedUnit.Movement > 0
@@ -240,7 +240,12 @@ begin
         SelectedUnit.TilePosition := TileUnderMouse;
         SelectedUnit.Movement := SelectedUnit.Movement - 1;
       end;
+      Exit(true); // event handled
     end;
+
+    { When clicking on other map tile, do not mark event as handled
+      by Exit(true) here.
+      This allows TCastle2DNavigation to handle clicks to pan the map. }
   end;
 end;
 
@@ -275,19 +280,40 @@ var
   TileStr: String;
   TileRect: TFloatRectangle;
   UnitUnderMouse: TUnit;
+  RayOrigin, RayDirection: TVector3;
+  //MapIndex: Integer;
 begin
-  { update TileUnderMouseExists, TileUnderMouse }
-  TileUnderMouseExists := MapControl.PositionToTile(
-    Container.MousePosition, true, TileUnderMouse);
+  ViewportMap.PositionToRay(Container.MousePosition, true, RayOrigin, RayDirection);
+
+  { Update TileUnderMouseExists, TileUnderMouse.
+    See https://castle-engine.io/tiled_maps#tile_under_mouse for an explanation
+    how to query the map tile under mouse. }
+  TileUnderMouseExists := Map.Data.PositionToTile(RayOrigin.XY, TileUnderMouse);
+
+  { This is alternative way to query the map tile under mouse,
+    that will work even if map is possibly transformed,
+    directly or by parent TCastleTransform,
+    or if you may have different camera direction, maybe even 3D with perspective.
+
+  TileUnderMouseExists := false;
+  if ViewportMap.MouseRayHit <> nil then
+  begin
+    MapIndex := ViewportMap.MouseRayHit.IndexOfItem(Map);
+    if MapIndex <> -1 then
+    begin
+      TileUnderMouseExists := Map.Data.PositionToTile(
+        ViewportMap.MouseRayHit[MapIndex].Point.XY, TileUnderMouse);
+    end;
+  end;
+  }
 
   { update TileUnderMouseImage, UnitUnderMouse }
   TileUnderMouseImage.Exists := TileUnderMouseExists;
   if TileUnderMouseExists then
   begin
-    TileRect := MapControl.TileRectangle(TileUnderMouse, false);
-    TileUnderMouseImage.Translation := Vector2(TileRect.Left, TileRect.Bottom);
-    TileUnderMouseImage.Width := TileRect.Width;
-    TileUnderMouseImage.Height := TileRect.Height;
+    TileRect := Map.TileRectangle(TileUnderMouse);
+    TileUnderMouseImage.Translation := Vector3(TileRect.Center, ZHover);
+    TileUnderMouseImage.Size := Vector2(TileRect.Width, TileRect.Height);
     UnitUnderMouse := UnitsOnMap[TileUnderMouse];
   end else
     UnitUnderMouse := nil;

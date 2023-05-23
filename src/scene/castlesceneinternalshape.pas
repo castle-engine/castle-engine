@@ -38,7 +38,7 @@ type
     { Is UseAlphaChannel calculated and current. }
     PreparedUseAlphaChannel: boolean;
 
-    PassedShapeCulling: Boolean;
+    PassedFrustumAndDistanceCulling: Boolean;
 
     { Used only when RenderOptions.ReallyOcclusionQuery.
       OcclusionQueryId is 0 if not initialized yet.

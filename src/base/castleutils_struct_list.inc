@@ -1,3 +1,4 @@
+{%MainUnit castleutils.pas}
 {
   Copyright 2002-2021 Michalis Kamburelis.
 
@@ -35,10 +36,49 @@ type
       TTypeList = array [0 .. MaxInt div {$ifdef FPC}SizeOf(T){$else}(16 * 16){$endif} - 1] of T;
       PTypeList = ^TTypeList;
 
-    { Access the list contents directly through a pointer.
+    { Access the list contents through a pointer to an array of items.
 
-      This is useful if you have a list of records and you would like to set their fields.
-      This will not work correctly:
+      This is exactly the same pointer as @link(L), but the type is different:
+      List points to an array of items, while L points to a single item.
+
+      Using @link(L) is preferred over this @link(List), because @link(L)
+      avoids "fake infinite list" type TTypeList, that in particular on Delphi
+      may have too small size (and cause range check errors).
+
+      See the @link(L) description for a more detailed explanation and example.
+
+      @seealso L }
+    function List: PTypeList; deprecated 'use L, like MyList.L[123] instead of MyList.List^[123]';
+
+    { Access the list contents through a pointer, to get or set them efficiently.
+
+      Use this to directly access a list value, like this:
+
+      @longCode(#
+        MyIntList.L[I] := 123;
+        // Equivalent but less efficient to syntax without L:
+        // MyIntList[I] := 123;
+
+        MyIntList.L[I] := MyIntList.L[I] + 123;
+        // Equivalent but less efficient to syntax without L:
+        // MyIntList[I] := MyIntList[I] + 123;
+
+        MyRecordList.L[I].MyField := 123;
+        // Never use syntax without L (see below for reasons):
+        // MyRecordList[I].MyField := 123; //< never do this!
+      #)
+
+      The above examples of L work only in FPC ObjFpc mode or in Delphi with pointermath "on"
+      (see https://docwiki.embarcadero.com/RADStudio/Sydney/en/Pointer_Math_(Delphi) ).
+      These are CGE default settings when being compiled with FPC or Delphi,
+      so you can depend on them at least in CGE implementation.
+      Note that Delphi applications just using L don't actually have pointermath "on",
+      it is enough that this unit is compiled with pointermath "on" and then one can use
+      math on PtrT.
+
+      This is in particular useful if you have a list of records and you would like
+      to set their fields. E.g. this is incorrect (and should not even compile if
+      MyField is really a simple field):
 
       @longCode(#
       type
@@ -51,31 +91,18 @@ type
         MyList[I].MyField := 123;
       #)
 
-      (It will not work OK because you would modify only a temporary record
-      returned by the @code(MyList[I]) getter.)
-      Instead, setting by
+      It will not work OK because you would modify only a temporary record
+      returned by the @code(MyList[I]) getter.
 
-      @longCode(#
-        MyList.List^[I].MyField := 123;
-      #)
-
-      will work OK. Or you can use (only in FPC ObjFpc mode) even shorter this:
+      In contrast, this will work OK:
 
       @longCode(#
         MyList.L[I].MyField := 123;
       #)
 
-      @seealso L }
-    function List: PTypeList;
+      Using @link(L) is preferred over this @link(List), because it avoids "fake infinite list"
+      type TTypeList, that in particular on Delphi may have too small size.
 
-    { Access the list contents directly through a pointer to T structure.
-
-      This is exactly the same pointer as @link(List), but the type is different:
-      this points to a single item.
-      This is useful if you have a list of records and you would like to set their fields.
-      This allows to use @code(L[I]) instead of @code(List^[I]) (only in FPC ObjFpc mode).
-
-      See the @link(List) description for a more detailed explanation and example.
       @seealso List }
     function L: PtrT;
 
@@ -152,12 +179,14 @@ end;
 function TStructList{$ifndef FPC}<T>{$endif}.Add: PtrT;
 begin
   Count := Count + 1;
-  Result := Addr(List^[Count - 1]);
+  Result := Ptr(Count - 1);
 end;
 
 function TStructList{$ifndef FPC}<T>{$endif}.Ptr(const I: TListSize): PtrT;
 begin
-  Result := Addr(List^[I]);
+  { List^ upper bound in Delphi may be too small, so ignore range check errors.
+    We cannot use Addr(L[I]) or @L[I] as then FPC compilation fails. }
+  Result := PtrT(PtrUInt(L) + PtrUInt(I) * PtrUInt(SizeOf(T)));
 end;
 
 procedure TStructList{$ifndef FPC}<T>{$endif}.Assign(const Source: TStructList{$ifndef FPC}<T>{$endif});
@@ -196,7 +225,7 @@ begin
   OldCount := Count;
   Count := Count + AddCount;
   if Source.Count <> 0 then
-    System.Move(Source.List^[Index], List^[OldCount], SizeOf(T) * AddCount);
+    System.Move(Source.Ptr(Index)^, Ptr(OldCount)^, SizeOf(T) * AddCount);
 end;
 
 function TStructList{$ifndef FPC}<T>{$endif}.PerfectlyEquals(
@@ -204,7 +233,7 @@ function TStructList{$ifndef FPC}<T>{$endif}.PerfectlyEquals(
 begin
   Result :=
     (Count = SecondValue.Count) and
-    CompareMem(List, SecondValue.List, SizeOf(T) * Count);
+    CompareMem(L, SecondValue.L, SizeOf(T) * Count);
 end;
 
 procedure TStructList{$ifndef FPC}<T>{$endif}.AssignLerpRange(const Fraction: Single;
@@ -232,7 +261,13 @@ end;
 function TStructList<T>.InternalGetItem(
   const Index: TListSize): T;
 begin
+  { List^ upper bound in Delphi may be too small, so ignore range check errors.
+    Unfortunately we cannot use L here, as then Delphi cannot compile cubic Bezier nodes... }
+  {$warnings off} // using deprecated
+  {$I norqcheckbegin.inc}
   Result := List^[Index];
+  {$I norqcheckend.inc}
+  {$warnings on}
 end;
 
 procedure TStructList<T>.InternalSetItem(

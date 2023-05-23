@@ -140,15 +140,21 @@ begin
   RegisterPropertyEditor(TypeInfo(Single), TCastleVector4RotationPersistent, 'W',
     TCastleFloatRotationPropertyEditor);
 
+  { Register before registering for TBorder and any name
+    (not tested if it's really necessary). }
+  RegisterPropertyEditor(TypeInfo(TBorder), nil, 'ProtectedSides',
+    TCastleRegionEditor);
+
+  RegisterPropertyEditor(TypeInfo(TFloatRectanglePersistent), nil, 'RegionPersistent',
+    TCastleRegionEditor);
+
   { Properties that simply use TSubPropertiesEditor.
     Registering properties that use TSubPropertiesEditor
     (not any descendant of it) is still necessary to expand them
     in castle-editor and Lazarus design-time. }
   RegisterPropertyEditor(TypeInfo(TCastleRootTransform), TCastleViewport, 'Items',
     TSubPropertiesEditor);
-  RegisterPropertyEditor(TypeInfo(TBorder), nil, 'ProtectedSides',
-    TCastleRegionEditor);
-  RegisterPropertyEditor(TypeInfo(TFloatRectanglePersistent), nil, 'RegionPersistent',
+  RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
     TCastleRegionEditor);
 
   { Other properties }

@@ -1738,18 +1738,12 @@ type
       Note that, since some fields are only in some descendants (e.g. MoveSpeed
       is only at TCastleWalkNavigation) then some TNavigationInfoNode settings
       are just not transferred to all Navigation instances like
-      TCastleExamineNavigation.
-
-      WorldBox is the expected bounding box of the whole 3D scene.
-      Usually, it should be TCastleViewport.Items.BoundingBox.
-      In simple cases (if this scene is the only TCastleScene instance
-      in your world, and it's not transformed) it may be equal to just
-      @link(BoundingBox) of this scene. }
+      TCastleExamineNavigation }
     procedure InternalUpdateNavigation(
       const Navigation: TCastleNavigation);
 
     { Update TCastleCamera properties based on the current X3D nodes
-      (currently bound X3D Viewpoint NavigationInfo nodes).
+      (currently bound X3D Viewpoint and NavigationInfo nodes).
       When no viewpoint is currently bound, we will go to a suitable
       viewpoint to see the whole world (based on the WorldBox).
 
@@ -2257,6 +2251,15 @@ type
 
     procedure InternalIncShapesHash;
     property InternalShapesHash: TShapesHash read FShapesHash;
+
+    { Load again the model from current URL.
+      This makes sense to be used when underlying file on disk
+      changed, and you want to reload it.
+
+      TODO: If the file is cached using @link(Cache), then it will not reload
+      the version in cache, so effectively it will not load new version from
+      disk. This will be fixed at some point. }
+    procedure ReloadUrl;
   published
     { When using @link(PlayAnimation) without TPlayAnimationParameters,
       this value is used as the duration (in seconds) of animation cross-fade
@@ -2885,7 +2888,7 @@ end;
 function TCastleSceneCore.TGeneratedTextureList.IndexOfTextureNode(TextureNode: TX3DNode): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].TextureNode = TextureNode then
+    if L[Result].TextureNode = TextureNode then
       Exit;
   Result := -1;
 end;
@@ -2956,9 +2959,9 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if (List^[I].TextureNode is TGeneratedShadowMapNode) and
-       (TGeneratedShadowMapNode(List^[I].TextureNode).FdLight.Value = LightNode) then
-      List^[I].Functionality.InternalUpdateNeeded := true;
+    if (L[I].TextureNode is TGeneratedShadowMapNode) and
+       (TGeneratedShadowMapNode(L[I].TextureNode).FdLight.Value = LightNode) then
+      L[I].Functionality.InternalUpdateNeeded := true;
 end;
 
 { TTimeDependentList ------------------------------------------------- }
@@ -3364,7 +3367,25 @@ begin
 
   { Not calling UnregisterScene when FOwnsRootNode=true is just an optimization.
     There's no point in calling recursive UnregisterScene if the FRootNode
-    will be freed right afterwards. }
+    will be freed right afterwards.
+
+    TODO: This optimization is actually not without a problem.
+    If the RootNode has some child that has other parents (outside of this
+    scene, or with KeepExistingBegin) then they will remain existing,
+    and will have a dangling reference to this Scene.
+    This happened with internal TAppearanceNode in CastleTerrain at one point.
+
+    In general, we do not guarantee detaching invalid Scene reference now.
+    E.g. if a node will stop being part of a scene,
+    because we do
+
+      Appearance.Material := OldMaterial;
+      // add Appearance to Scene in any way
+      Appearance.Material := NewMaterial;
+      FreeAndNil(Scene);
+
+    ... then OldMaterial will have invalid reference in OldMaterial.Scene.
+  }
   if (FRootNode <> nil) and (not FOwnsRootNode) then
     FRootNode.UnregisterScene;
 
@@ -3606,6 +3627,17 @@ begin
     else
       Load(AValue);
   end;
+end;
+
+procedure TCastleSceneCore.ReloadUrl;
+begin
+  { Naive implementation:
+      TempUrl := Url;
+      Url := '';
+      Url := TempUrl;
+    But this would make warning in case of non-empty AutoAnimation,
+    that such animation doesn't exist in empty scene. }
+  Load(Url);
 end;
 
 (* This is working, and ultra-fast thanks to TShapeTree.AssociatedShape,
@@ -4574,8 +4606,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
     begin
       if List <> nil then
         for I := 0 to List.Count - 1 do
-          if List.List^[I].Node = LightNode then
-            LightNode.UpdateLightInstanceState(List.List^[I], StateStack.Top);
+          if List.L[I].Node = LightNode then
+            LightNode.UpdateLightInstanceState(List.L[I], StateStack.Top);
     end;
 
   var
@@ -7527,9 +7559,9 @@ var
   I: Integer;
 begin
   for I := 0 to CompiledScriptHandlers.Count - 1 do
-    if CompiledScriptHandlers.List^[I].Name = HandlerName then
+    if CompiledScriptHandlers.L[I].Name = HandlerName then
     begin
-      CompiledScriptHandlers.List^[I].Handler(ReceivedValue, NextEventTime);
+      CompiledScriptHandlers.L[I].Handler(ReceivedValue, NextEventTime);
       Break;
     end;
 end;
@@ -7561,6 +7593,7 @@ procedure TCastleSceneCore.InternalUpdateNavigation(
   const Navigation: TCastleNavigation);
 var
   NavigationNode: TNavigationInfoNode;
+  ViewpointNode: TAbstractViewpointNode;
   Radius: Single;
   RadiusAutoCalculated: Boolean;
 
@@ -7604,8 +7637,23 @@ var
       Navigation.MoveSpeed := NavigationNode.FdSpeed.Value;
   end;
 
+  procedure UpdateExamineNavigation(const Navigation: TCastleExamineNavigation);
+  begin
+    if ViewpointNode <> nil then
+    begin
+      Navigation.AutoCenterOfRotation := ViewpointNode.AutoCenterOfRotation;
+      Navigation.CenterOfRotation := ViewpointNode.Transform.MultPoint(
+        ViewpointNode.CenterOfRotation);
+    end else
+    begin
+      Navigation.AutoCenterOfRotation := true;
+      Navigation.CenterOfRotation := TVector3.Zero; // remove previous customization of this property
+    end;
+  end;
+
 begin
   NavigationNode := NavigationInfoStack.Top;
+  ViewpointNode := ViewpointStack.Top;
 
   { calculate Radius }
   Radius := SensibleCameraRadius(RadiusAutoCalculated);
@@ -7613,6 +7661,8 @@ begin
 
   if Navigation is TCastleWalkNavigation then
     UpdateWalkNavigation(TCastleWalkNavigation(Navigation));
+  if Navigation is TCastleExamineNavigation then
+    UpdateExamineNavigation(TCastleExamineNavigation(Navigation));
 end;
 
 procedure TCastleSceneCore.InternalUpdateCamera(const ACamera: TCastleCamera;
@@ -8137,6 +8187,7 @@ var
   AUp: TVector3;
   GravityUp: TVector3;
   Version: TX3DCameraVersion;
+  NewViewNodeMake: TMakeX3DViewpoint;
   NewViewNode: TAbstractChildNode;
   NewViewpointNode: TAbstractViewpointNode;
   NavigationType: string;
@@ -8157,10 +8208,26 @@ begin
   GravityUp := Navigation.Camera.GravityUp;
 
   if RootNode.HasForceVersion and (RootNode.ForceVersion.Major <= 1) then
-    Version := cvVrml1_Inventor else
+    Version := cvVrml1_Inventor
+  else
     Version := cvVrml2_X3d;
-  NewViewNode := MakeCameraNode(Version, '', APosition, ADirection, AUp, GravityUp,
-    NewViewpointNode);
+  NewViewNodeMake := TMakeX3DViewpoint.Create;
+  try
+    NewViewNodeMake.Version := Version;
+    NewViewNodeMake.Position := APosition;
+    NewViewNodeMake.Direction := ADirection;
+    NewViewNodeMake.Up := AUp;
+    NewViewNodeMake.GravityUp := GravityUp;
+
+    if Navigation is TCastleExamineNavigation then
+    begin
+      NewViewNodeMake.AutoCenterOfRotation := TCastleExamineNavigation(Navigation).AutoCenterOfRotation;
+      NewViewNodeMake.CenterOfRotation := TCastleExamineNavigation(Navigation).CenterOfRotation;
+    end;
+
+    NewViewNode := NewViewNodeMake.ToNode(NewViewpointNode);
+  finally FreeAndNil(NewViewNodeMake) end;
+
   NewViewpointNode.FdDescription.Value := AName;
   NewViewpointNode.X3DName := 'Viewpoint' + IntToStr(Random(10000));
   NewViewpointNode.Scene := Self;
@@ -8696,6 +8763,8 @@ const
   );
 var
   Shape: TShapeNode;
+  Appearance: TAppearanceNode;
+  Material: TMaterialNode;
   TransformNode: TTransformNode;
   NewRootNode: TX3DRootNode;
 begin
@@ -8711,8 +8780,13 @@ begin
 
       NewRootNode := TX3DRootNode.Create;
       Classes[FPrimitiveGeometry].CreateWithTransform(Shape, TransformNode);
+
       // default Material, to be lit
-      Shape.Material := TMaterialNode.Create;
+      Material := TMaterialNode.Create;
+      Appearance := TAppearanceNode.Create;
+      Appearance.Material := Material;
+      Shape.Appearance := Appearance;
+
       NewRootNode.AddChildren(TransformNode);
       Load(NewRootNode, true);
     end;

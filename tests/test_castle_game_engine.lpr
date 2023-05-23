@@ -38,7 +38,6 @@ uses
   { Testing CGE units }
   TestCastleUtils,
   TestCastleRectangles,
-  TestCastleGenericLists,
   TestCastleFindFiles,
   TestCastleFilesUtils,
   TestCastleUtilsLists,
@@ -52,6 +51,7 @@ uses
   TestCastleImagesDraw,
   TestCastleBoxes,
   TestCastleFrustum,
+  TestCastleInternalGLShadowVolumes,
   TestCastleFonts,
   TestCastleTransform,
   TestCastleParameters,

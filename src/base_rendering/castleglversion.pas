@@ -30,23 +30,28 @@ interface
 
 type
   { OpenGL(ES) library version information.
+    Determined looking at information from glGetString(GL_VERSION),
+    glGetString(GL_VENDOR) and such.
 
-    As obtained from glGetString(GL_VERSION), glGetString(GL_VENDOR) and similar
-    routines.
+    User code should never create instances of this class.
+    Only use the singleton @link(GLVersion), already initialized for you.
 
-    This is usually created by CastleGLUtils.GLInformationInitialize. }
+    Internally, this should be always created by GLInformationInitialize. }
   TGenericGLVersion = class
+  strict private
+    FVersionString: String;
   public
-    constructor Create(const VersionString: string);
+    constructor Create(const AVersionString: string);
   public
-    { Required (every OpenGL implemenetation has them)
-      major and minor numbers.
+    { Major and minor version numbers of OpenGL(ES) implementation.
       @groupBegin }
     Major: Integer;
     Minor: Integer;
     { @groupEnd }
 
-    { Release is the optional release number (check ReleaseExists first).
+    { Release version number of OpenGL(ES) implementation.
+      Optional, some OpenGL(ES) implementations may not have "release" number
+      (check ReleaseExists first).
       @groupBegin }
     ReleaseExists: boolean;
     Release: Integer;
@@ -58,10 +63,20 @@ type
     VendorVersion: string;
 
     function AtLeast(AMajor, AMinor: Integer): boolean;
+
+    { Version as a string.
+      This is full unprocessed and untrimmed value, as returned by glGetString(GL_VERSION). }
+    property VersionString: String read FVersionString;
   end;
 
+  { Recognized OpenGL(ES) vendor names.
+
+    Note that we don't try to recognize all vendors, only the most popular ones
+    and the ones whose detection is necessary to workaround/optimize
+    some OpenGL(ES) code. For unrecognized vendors, we just set gvOther. }
   TGLVendorType = (
-    gvUnknown,
+    { Some vendor not covered by other enums. }
+    gvOther,
     { ATI GPU with ATI drivers. }
     gvATI,
     { NVidia GPU with NVidia drivers. }
@@ -94,12 +109,11 @@ type
     FBuggyDepth32: boolean;
     FBuggyGLSLFrontFacing: boolean;
     FBuggyGLSLReadVarying: boolean;
-    FBuggyPureShaderPipeline: boolean;
     FBuggyTextureSizeAbove2048: Boolean;
     FBuggyGLSLBumpMappingNumSteps: Boolean;
     function AppleRendererOlderThan(const VersionNumber: Cardinal): Boolean;
   public
-    constructor Create(const VersionString, AVendor, ARenderer: string);
+    constructor Create(const AVersionString, AVendor, ARenderer: string);
 
     { Vendor that created the OpenGL implemenetation.
       This is just glGetString(GL_VENDOR). }
@@ -194,10 +208,6 @@ type
     { Do not read varying values in vertex shader, treat them as write-only. }
     property BuggyGLSLReadVarying: boolean read FBuggyGLSLReadVarying;
 
-    { Various problems when trying to use shaders to render everything.
-      See https://github.com/castle-engine/view3dscene/issues/6#issuecomment-362826781 }
-    property BuggyPureShaderPipeline: boolean read FBuggyPureShaderPipeline;
-
     { MaxTextureSize above 2048 shall not be trusted. }
     property BuggyTextureSizeAbove2048: Boolean read FBuggyTextureSizeAbove2048;
 
@@ -216,8 +226,11 @@ type
   end;
 
 var
-  { Core OpenGL version information.
-    This is usually created by CastleGLUtils.GLInformationInitialize. }
+  { OpenGL(ES) version information.
+
+    Internally automatically initialized when at least one OpenGL(ES) context is open,
+    may be @nil otherwise.
+    User code should never set this variable. }
   GLVersion: TGLVersion;
 
 function VendorTypeToStr(const VendorType: TGLVendorType): string;
@@ -267,11 +280,13 @@ end;
 
 { TGenericGLVersion ---------------------------------------------------------- }
 
-constructor TGenericGLVersion.Create(const VersionString: string);
+constructor TGenericGLVersion.Create(const AVersionString: string);
 var
   I: Integer;
 begin
   inherited Create;
+
+  FVersionString := AVersionString;
 
   try
     I := 1;
@@ -332,7 +347,7 @@ end;
 
 { TGLVersion ----------------------------------------------------------------- }
 
-constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
+constructor TGLVersion.Create(const AVersionString, AVendor, ARenderer: String);
 
   { Parse VendorMajor / VendorMinor / VendorRelease, starting from S[I]. }
   procedure ParseVendorVersionSuffix(const S: string; var I: Integer);
@@ -446,7 +461,7 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
   end;
 
 begin
-  inherited Create(VersionString);
+  inherited Create(AVersionString);
 
   ParseVendorVersion;
 
@@ -475,7 +490,7 @@ begin
   if SameText(Vendor, 'Arm') then
     FVendorType := gvArm
   else
-    FVendorType := gvUnknown;
+    FVendorType := gvOther;
 
   FFglrx := {$ifdef LINUX} VendorType = gvATI {$else} false {$endif};
 
@@ -574,43 +589,6 @@ begin
     {$else} false
     {$endif};
 
-  FBuggyPureShaderPipeline :=
-    {$ifdef MSWINDOWS}
-    ( (VendorType = gvIntel) and
-      not VendorVersionAtLeast(9, 0, 0)
-    ) or
-
-    { Workaround various troubles on HP ProBook
-
-        Version string: 3.3.11672 Compatibility Profile Context
-        Version parsed: major: 3, minor: 3, release exists: True, release: 11672, vendor-specific information: "Compatibility Profile Context"
-        Vendor-specific version parsed: major: 0, minor: 0, release: 0
-        Vendor: ATI Technologies Inc.
-        Vendor type: ATI
-        Renderer: ATI Mobility Radeon HD 4300 Series
-
-      Later: bumped to include all troubles on
-      AMD Radeon HD 8200 / R3 Series
-      reported on https://github.com/castle-engine/view3dscene/issues/9 :
-
-        Version string: 4.5.13492 Compatibility Profile Context 22.19.677.257
-        Version parsed: major: 4, minor: 5, release exists: True, release: 13492,
-        vendor-specific information: "Compatibility Profile Context 22.19.677.257"
-        Vendor-specific version parsed: major: 22, minor: 19, release: 677
-        Vendor: ATI Technologies Inc.
-        Vendor type: ATI
-        Renderer: AMD Radeon HD 8200 / R3 Series
-
-      Later: bumped to 13571 after Elmar Knittel mail,
-      https://github.com/castle-engine/view3dscene/issues/9
-      still occurs with later release.
-    }
-    ( (VendorType = gvATI) and
-      ReleaseExists and
-      (Release <= 13571) )
-    {$else} false
-    {$endif};
-
   { On old iPhones, OpenGLES reports it can handle 4096 texture size,
     but actually it can crash on them.
     Testcase: Unholy on iOS with Wedding (ice texture).
@@ -685,8 +663,8 @@ begin
 end;
 
 const
-  VendorTypeNames: array [TGLVendorType] of string =
-  ( 'Unknown',
+  VendorTypeNames: array [TGLVendorType] of String = (
+    'Other',
     'ATI',
     'Nvidia',
     'Intel',

@@ -186,15 +186,15 @@ begin
   Result := Count > 0;
   if Result then
   begin
-    Min := List^[0];
-    Max := List^[0];
+    Min := L[0];
+    Max := L[0];
     for I := 1 to Count - 1 do
     begin
-      if List^[I].X < Min.X then Min.X := List^[I].X else
-      if List^[I].X > Max.X then Max.X := List^[I].X;
+      if L[I].X < Min.X then Min.X := L[I].X else
+      if L[I].X > Max.X then Max.X := L[I].X;
 
-      if List^[I].Y < Min.Y then Min.Y := List^[I].Y else
-      if List^[I].Y > Max.Y then Max.Y := List^[I].Y;
+      if L[I].Y < Min.Y then Min.Y := L[I].Y else
+      if L[I].Y > Max.Y then Max.Y := L[I].Y;
     end;
   end;
 end;
@@ -204,12 +204,12 @@ procedure TVector2List.AssignLerpRange(const Fraction: Single;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
-  PtrTarget, Ptr1, Ptr2: PVector2;
+  PtrTarget, Ptr1, Ptr2: PtrT;
 begin
   Count := ACount;
-  PtrTarget := PVector2(List);
-  Ptr1 := @V1.List^[Index1];
-  Ptr2 := @V2.List^[Index2];
+  PtrTarget := L;
+  Ptr1 := V1.Ptr(Index1);
+  Ptr2 := V2.Ptr(Index2);
   for I := 0 to Count - 1 do
   begin
     PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
@@ -231,7 +231,7 @@ begin
   OldCount := Count;
   Count := Count + AddCount;
   if AddCount <> 0 then
-    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector2) * AddCount);
+    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector2) * AddCount);
 end;
 
 procedure TVector2List.AddListRange(const Source: TVector2List; const Index, AddCount: Integer);
@@ -249,7 +249,7 @@ begin
     Result := Count = TVector2List(SecondValue).Count;
     if Result then
       for I := 0 to Count - 1 do
-        if not TVector2.Equals(TVector2List(SecondValue).List^[I], List^[I]) then
+        if not TVector2.Equals(TVector2List(SecondValue).L[I], L[I]) then
         begin
           Result := false;
           Exit;
@@ -270,7 +270,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    List^[I] := -List^[I];
+    L[I] := -L[I];
 end;
 
 procedure TVector3List.Normalize;
@@ -278,7 +278,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    List^[I] := List^[I].Normalize;
+    L[I] := L[I].Normalize;
 end;
 
 procedure TVector3List.MultiplyComponents(const V: TVector3);
@@ -286,7 +286,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    List^[I] := List^[I] * V;
+    L[I] := L[I] * V;
 end;
 
 procedure TVector3List.AssignLerpRange(const Fraction: Single;
@@ -294,12 +294,12 @@ procedure TVector3List.AssignLerpRange(const Fraction: Single;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
-  PtrTarget, Ptr1, Ptr2: PVector3;
+  PtrTarget, Ptr1, Ptr2: PtrT;
 begin
   Count := ACount;
-  PtrTarget := PVector3(List);
-  Ptr1 := @V1.List^[Index1];
-  Ptr2 := @V2.List^[Index2];
+  PtrTarget := L;
+  Ptr1 := V1.Ptr(Index1);
+  Ptr2 := V2.Ptr(Index2);
   for I := 0 to Count - 1 do
   begin
     PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
@@ -317,7 +317,7 @@ begin
   Count := ACount;
   for I := 0 to Count - 1 do
   begin
-    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]).Normalize;
+    L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]).Normalize;
   end;
 end;
 
@@ -328,7 +328,7 @@ var
 begin
   Count := ACount;
   for I := 0 to Count - 1 do
-    List^[I] := LerpRgbInHsv(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
+    L[I] := LerpRgbInHsv(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
 end;
 
 function TVector3List.ToVector4(const W: Single): TVector4List;
@@ -338,7 +338,7 @@ begin
   Result := TVector4List.Create;
   Result.Count := Count;
   for I := 0 to Count - 1 do
-    Result.List^[I] := Vector4(List^[I], W);
+    Result.L[I] := Vector4(L[I], W);
 end;
 
 function TVector3List.MergeCloseVertexes(MergeDistance: Single): Cardinal;
@@ -352,10 +352,10 @@ begin
   V1 := L;
   for I := 0 to Count - 1 do
   begin
-    { Find vertexes closer to List^[I], and merge them.
+    { Find vertexes closer to L[I], and merge them.
 
       Note that this is not optimal: we could avoid processing
-      here List^[I] that were detected previously (and possibly merged)
+      here L[I] that were detected previously (and possibly merged)
       as being equal to some previous items. But in practice this seems
       not needed, as there are not many merged vertices in typical situation,
       so time saving would be minimal (and small temporary memory cost
@@ -391,7 +391,7 @@ begin
   OldCount := Count;
   Count := Count + AddCount;
   if AddCount <> 0 then
-    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector3) * AddCount);
+    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector3) * AddCount);
 end;
 
 procedure TVector3List.AddListRange(const Source: TVector3List; const Index, AddCount: Integer);
@@ -409,7 +409,7 @@ begin
     Result := Count = TVector3List(SecondValue).Count;
     if Result then
       for I := 0 to Count - 1 do
-        if not TVector3.Equals(TVector3List(SecondValue).List^[I], List^[I]) then
+        if not TVector3.Equals(TVector3List(SecondValue).L[I], L[I]) then
         begin
           Result := false;
           Exit;
@@ -424,7 +424,7 @@ begin
   OldCount := Count;
   Count := Count + Source.Count;
   for I := 0 to Source.Count - 1 do
-    List^[OldCount + I] := Transform.MultPoint(Source.List^[I]);
+    L[OldCount + I] := Transform.MultPoint(Source.L[I]);
 end;
 
 { TVector4List ----------------------------------------------------- }
@@ -441,7 +441,7 @@ begin
   OldCount := Count;
   Count := Count + AddCount;
   if AddCount <> 0 then
-    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector4) * AddCount);
+    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector4) * AddCount);
 end;
 
 procedure TVector4List.AddListRange(const Source: TVector4List; const Index, AddCount: Integer);
@@ -454,12 +454,12 @@ procedure TVector4List.AssignLerpRange(const Fraction: Single;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
-  PtrTarget, Ptr1, Ptr2: PVector4;
+  PtrTarget, Ptr1, Ptr2: PtrT;
 begin
   Count := ACount;
-  PtrTarget := PVector4(List);
-  Ptr1 := @V1.List^[Index1];
-  Ptr2 := @V2.List^[Index2];
+  PtrTarget := L;
+  Ptr1 := V1.Ptr(Index1);
+  Ptr2 := V2.Ptr(Index2);
   for I := 0 to Count - 1 do
   begin
     PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
@@ -479,7 +479,7 @@ begin
     Result := Count = TVector4List(SecondValue).Count;
     if Result then
       for I := 0 to Count - 1 do
-        if not TVector4.Equals(TVector4List(SecondValue).List^[I], List^[I]) then
+        if not TVector4.Equals(TVector4List(SecondValue).L[I], L[I]) then
         begin
           Result := false;
           Exit;
@@ -501,7 +501,7 @@ begin
   OldCount := Count;
   Count := Count + AddCount;
   if AddCount <> 0 then
-    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector4Integer) * AddCount);
+    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector4Integer) * AddCount);
 end;
 
 procedure TVector4IntegerList.AddListRange(const Source: TVector4IntegerList; const Index, AddCount: Integer);
@@ -519,7 +519,7 @@ begin
     Result := Count = TVector4IntegerList(SecondValue).Count;
     if Result then
       for I := 0 to Count - 1 do
-        if not TVector4Integer.Equals(TVector4IntegerList(SecondValue).List^[I], List^[I]) then
+        if not TVector4Integer.Equals(TVector4IntegerList(SecondValue).L[I], L[I]) then
         begin
           Result := false;
           Exit;
@@ -534,12 +534,12 @@ procedure TMatrix3List.AssignLerpRange(const Fraction: Single;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
-  PtrTarget, Ptr1, Ptr2: PMatrix3;
+  PtrTarget, Ptr1, Ptr2: PtrT;
 begin
   Count := ACount;
-  PtrTarget := PMatrix3(List);
-  Ptr1 := @V1.List^[Index1];
-  Ptr2 := @V2.List^[Index2];
+  PtrTarget := L;
+  Ptr1 := V1.Ptr(Index1);
+  Ptr2 := V2.Ptr(Index2);
   for I := 0 to Count - 1 do
   begin
     PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
@@ -559,7 +559,7 @@ begin
     Result := Count = TMatrix3List(SecondValue).Count;
     if Result then
       for I := 0 to Count - 1 do
-        if not TMatrix3.Equals(TMatrix3List(SecondValue).List^[I], List^[I]) then
+        if not TMatrix3.Equals(TMatrix3List(SecondValue).L[I], L[I]) then
         begin
           Result := false;
           Exit;
@@ -579,7 +579,7 @@ begin
   OldCount := Count;
   Count := Count + AddCount;
   if AddCount <> 0 then
-    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TMatrix3) * AddCount);
+    System.Move(Source.L[Index], L[OldCount], SizeOf(TMatrix3) * AddCount);
 end;
 
 { TMatrix4List --------------------------------------------------------------- }
@@ -589,12 +589,12 @@ procedure TMatrix4List.AssignLerpRange(const Fraction: Single;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
-  PtrTarget, Ptr1, Ptr2: PMatrix4;
+  PtrTarget, Ptr1, Ptr2: PtrT;
 begin
   Count := ACount;
-  PtrTarget := PMatrix4(List);
-  Ptr1 := @V1.List^[Index1];
-  Ptr2 := @V2.List^[Index2];
+  PtrTarget := L;
+  Ptr1 := V1.Ptr(Index1);
+  Ptr2 := V2.Ptr(Index2);
   for I := 0 to Count - 1 do
   begin
     PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
@@ -614,7 +614,7 @@ begin
     Result := Count = TMatrix4List(SecondValue).Count;
     if Result then
       for I := 0 to Count - 1 do
-        if not TMatrix4.Equals(TMatrix4List(SecondValue).List^[I], List^[I]) then
+        if not TMatrix4.Equals(TMatrix4List(SecondValue).L[I], L[I]) then
         begin
           Result := false;
           Exit;
@@ -634,7 +634,7 @@ begin
   OldCount := Count;
   Count := Count + AddCount;
   if AddCount <> 0 then
-    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TMatrix4) * AddCount);
+    System.Move(Source.L[Index], L[OldCount], SizeOf(TMatrix4) * AddCount);
 end;
 
 {$endif read_implementation}

@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2023 Michalis Kamburelis.
+  Copyright 2023-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Game initialization and logic. }
+{ Game initialization.
+  This unit is cross-platform.
+  It will be used by the platform-specific program or library file. }
 unit GameInitialize;
 
 interface
@@ -21,9 +23,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleScene, CastleControls, CastleLog,
-  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties
+  CastleWindow, CastleLog, CastleUIControls
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMain

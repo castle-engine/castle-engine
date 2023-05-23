@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'map_viewer';
-  ApplicationProperties.Caption := 'map_viewer';
+  ApplicationProperties.Caption := 'View Tiled map using TCastleTiledMap in TCastleViewport';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

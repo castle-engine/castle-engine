@@ -1,4 +1,4 @@
-// -*- compile-command: "./test_single_testcase.sh TTestCastleUtils" -*-
+ï»¿// -*- compile-command: "./test_single_testcase.sh TTestCastleUtils" -*-
 {
   Copyright 2004-2023 Michalis Kamburelis.
 
@@ -41,8 +41,6 @@ type
     procedure TestClamp;
     procedure TestSimpleMath;
     procedure TestMinMax;
-    //procedure TestStableSort;
-    procedure TestSort;
     procedure TestFileExt;
     procedure TestFloatModulo;
     procedure TestRandomIntRange;
@@ -60,70 +58,8 @@ implementation
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} Unix, BaseUnix, {$endif}
-  Math, CastleUtils, CastleTimeUtils, CastleVectors;
-
-{ TODO: This macro should be remade to a generic class.
-
-  This macro depends on parameters (define other macros with these names):
-
-    SpeedTest_Name,
-    SpeedTest_FasterName,
-    SpeedTest_SlowerName (string)
-    SpeedTest_Cycles (Cardinal)
-    SpeedTest_DoFasterCycle (Pascal instruction, without ; at the end)
-    SpeedTest_DoSlowerCycle (Pascal instruction, without ; at the end)
-
-  SpeedTest_DoFasterCycle doesn't have to be faster than SpeedTest_DoSlowerCycle,
-  use your guess here.
-  We just write a message like
-
-    'Faster is faster than Slower by XXX'
-
-  If in reality SpeedTest_DoFasterCycle is slower than SpeedTest_DoSlowerCycle,
-  this message may look like
-
-    'Faster is faster than Slower by 0.5'
-
-  which means that SpeedTest_DoFasterCycle is actually 2x slower than
-  SpeedTest_DoSlowerCycle.
-}
-{$ifdef FPC}
-{$MACRO ON}
-{$define SpeedTest_Declare:=
-  {$ifndef NO_SPEED_TESTS}
-  var
-    SpeedTest_i: Cardinal;
-    SpeedTest_Time0, SpeedTest_Time1, SpeedTest_Time2: Double;
-    StartTime: TProcessTimerResult;
-  {$endif not NO_SPEED_TESTS}
-}
-
-{$define SpeedTest:=
-  {$ifndef NO_SPEED_TESTS}
-  Writeln('SPEED TEST ',SpeedTest_Name, '-------------------');
-
-  StartTime := ProcessTimer;
-  for SpeedTest_i := 1 to SpeedTest_Cycles do ;
-  SpeedTest_Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
-  Writeln(Format('Empty loop = %f',[SpeedTest_Time0]));
-
-  StartTime := ProcessTimer;
-  for SpeedTest_i := 1 to SpeedTest_Cycles do SpeedTest_DoFasterCycle;
-  SpeedTest_Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
-  Writeln(SpeedTest_FasterName, Format(' = %f',[SpeedTest_Time1]));
-
-  StartTime := ProcessTimer;
-  for SpeedTest_i := 1 to SpeedTest_Cycles do SpeedTest_DoSlowerCycle;
-  SpeedTest_Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
-  Writeln(SpeedTest_SlowerName, Format(' = %f',[SpeedTest_Time2]));
-
-  Writeln(SpeedTest_FasterName, ' is faster than ',
-          SpeedTest_SlowerName, ' by ',
-	   Format('%f', [(SpeedTest_Time2-SpeedTest_Time0)/
-	                 (SpeedTest_Time1-SpeedTest_Time0)]));
-  {$endif not NO_SPEED_TESTS}
-}
-{$endif FPC}
+  Math, CastleUtils, CastleTimeUtils, CastleVectors, CastleLog,
+  CastleTestUtils;
 
 {$warnings off} // knowingly using deprecated, to check they are working
 
@@ -174,7 +110,7 @@ begin
  Writeln;
 end;
 
-function NaiveIsMemCharFilled(const Data; Size: Integer; AChar: char): boolean;
+function NaiveIsMemCharFilled(const Data; Size: Integer; AChar: AnsiChar): boolean;
 begin
  result := CheckIsMemCharFilled(Data, Size, AChar) = -1;
 end;
@@ -182,80 +118,109 @@ end;
 procedure TTestCastleUtils.TestCheckIsMemCharFilled;
 
   procedure TimeTestIsMemCharFilled(SizeOfA: Integer);
-  SpeedTest_Declare
-  var pa: pointer;
+  var
+    SpeedTest_i: Cardinal;
+    SpeedTest_Time0, SpeedTest_Time1, SpeedTest_Time2: Double;
+    StartTime: TProcessTimerResult;
+    SpeedTest_Cycles: Integer;
+    SpeedTest_SlowerName, SpeedTest_FasterName: String;
+    pa: pointer;
   begin
-   { testowanie na danych ktore nie sa CharFilled jest problematyczne.
-     Czas wtedy bedzie zalezal liniowo od pozycji na ktorej jest przeklamanie.
-     Zreszta dla danych losowych mamy prawie pewnosc ze przeklamanie bedzie
-     juz na 1 pozycji, wiec jaki sens tu testowac szybkosc ?
-     sChcemy sprawdzic szybkosc dla przypadku pesymistycznego. }
-   pa := GetMem(SizeOfA);
-   try
-    FillChar(pa^, SizeOfA, 'x');
-    {$define SpeedTest_Name := 'IsMemCharFilled on SizeOfA = '+IntToStr(SizeOfA)}
-    {$define SpeedTest_Cycles := 100000}
-    {$define SpeedTest_DoSlowerCycle := NaiveIsMemCharFilled(pa^, SizeOfA, 'x')}
-    {$define SpeedTest_DoFasterCycle := IsMemCharFilled(pa^, SizeOfA, 'x')}
-    {$define SpeedTest_SlowerName := 'NaiveIsMemCharFilled'}
-    {$define SpeedTest_FasterName := 'IsMemCharFilled'}
-    SpeedTest
-   finally FreeMem(pa) end;
+    { testowanie na danych ktore nie sa CharFilled jest problematyczne.
+      Czas wtedy bedzie zalezal liniowo od pozycji na ktorej jest przeklamanie.
+      Zreszta dla danych losowych mamy prawie pewnosc ze przeklamanie bedzie
+      juz na 1 pozycji, wiec jaki sens tu testowac szybkosc ?
+      sChcemy sprawdzic szybkosc dla przypadku pesymistycznego. }
+    pa := GetMem(SizeOfA);
+    try
+      FillChar(pa^, SizeOfA, 'x');
+
+      SpeedTest_Cycles := 100000;
+      SpeedTest_SlowerName := 'NaiveIsMemCharFilled';
+      SpeedTest_FasterName := 'IsMemCharFilled';
+      WritelnLog('SPEED TEST IsMemCharFilled on SizeOfA = '+ IntToStr(SizeOfA));
+
+      StartTime := ProcessTimer;
+      for SpeedTest_i := 1 to SpeedTest_Cycles do ;
+      SpeedTest_Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
+      WritelnLog(Format('Empty loop = %f',[SpeedTest_Time0]));
+
+      StartTime := ProcessTimer;
+      for SpeedTest_i := 1 to SpeedTest_Cycles do
+        IsMemCharFilled(pa^, SizeOfA, 'x');
+      SpeedTest_Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
+      WritelnLog(SpeedTest_FasterName, Format(' = %f',[SpeedTest_Time1]));
+
+      StartTime := ProcessTimer;
+      // measure slower function
+      for SpeedTest_i := 1 to SpeedTest_Cycles do
+        NaiveIsMemCharFilled(pa^, SizeOfA, 'x');
+      SpeedTest_Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
+      WritelnLog(SpeedTest_SlowerName, Format(' = %f',[SpeedTest_Time2]));
+
+      WritelnLog(
+        SpeedTest_FasterName + ' is faster than ' +
+        SpeedTest_SlowerName + ' by ' +
+        Format('%f', [(SpeedTest_Time2-SpeedTest_Time0)/
+                      (SpeedTest_Time1-SpeedTest_Time0)]));
+
+    finally FreeMem(pa) end;
   end;
 
-var a: array[0..100]of char;
-    SizeOfA: Integer;
-    i, YPos: Integer;
+var
+  a: array[0..100]of AnsiChar;
+  SizeOfA: Integer;
+  i, YPos: Integer;
 begin
- for i := 1 to 1000 do
- begin
-  { losuje SizeOfA bo chce zeby sprawdzil czy funkcje
-    [Check]IsMemCharFilled dzialaja dla roznych Size.
-    Zawsze niech SizeOfA >= 2, przypadki SizeOfA < 2 sprawdzimy pozniej osobno. }
-  if Random(2) = 0 then SizeOfA := Random(4) else SizeOfA := Random(100);
-  SizeOfA += 2;
+  for i := 1 to 1000 do
+  begin
+    { losuje SizeOfA bo chce zeby sprawdzil czy funkcje
+      [Check]IsMemCharFilled dzialaja dla roznych Size.
+      Zawsze niech SizeOfA >= 2, przypadki SizeOfA < 2 sprawdzimy pozniej osobno. }
+    if Random(2) = 0 then SizeOfA := Random(4) else SizeOfA := Random(100);
+    SizeOfA := SizeOfA + 2;
 
-  FillChar(a, SizeOfA, 'x');
-  if Random(2) = 0 then
-  begin
-   AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'x') = -1);
-   AssertTrue(IsMemCharFilled(a, SizeOfA, 'x'));
-   if not (CheckIsMemCharFilled(a, SizeOfA, 'y') = 0) then
-   begin
-    WritelnMem(a, SizeOfA);
-    raise Exception.Create('failed');
-   end;
-   AssertTrue(not IsMemCharFilled(a, SizeOfA, 'y'));
-  end else
-  begin
-   YPos := Random(SizeOfA);
-   a[YPos] := 'y';
-   AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'x') = YPos);
-   AssertTrue(not IsMemCharFilled(a, SizeOfA, 'x'));
-   if YPos = 0 then
-    AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'y') = 1) else
-    AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'y') = 0);
-   AssertTrue(not IsMemCharFilled(a, SizeOfA, 'y'));
+    FillChar(a, SizeOfA, 'x');
+    if Random(2) = 0 then
+    begin
+    AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'x') = -1);
+    AssertTrue(IsMemCharFilled(a, SizeOfA, 'x'));
+    if not (CheckIsMemCharFilled(a, SizeOfA, 'y') = 0) then
+    begin
+      WritelnMem(a, SizeOfA);
+      raise Exception.Create('failed');
+    end;
+    AssertTrue(not IsMemCharFilled(a, SizeOfA, 'y'));
+    end else
+    begin
+    YPos := Random(SizeOfA);
+    a[YPos] := 'y';
+    AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'x') = YPos);
+    AssertTrue(not IsMemCharFilled(a, SizeOfA, 'x'));
+    if YPos = 0 then
+      AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'y') = 1) else
+      AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'y') = 0);
+    AssertTrue(not IsMemCharFilled(a, SizeOfA, 'y'));
+    end;
   end;
- end;
 
- { sprawdz dla SizeOfA = 1 }
- a[0] := 'k';
- AssertTrue(CheckIsMemCharFilled(a, 1, 'k') = -1);
- AssertTrue(IsMemCharFilled(a, 1, 'k'));
- AssertTrue(CheckIsMemCharFilled(a, 1, 'g') = 0);
- AssertTrue(not IsMemCharFilled(a, 1, 'g'));
+  { sprawdz dla SizeOfA = 1 }
+  a[0] := 'k';
+  AssertTrue(CheckIsMemCharFilled(a, 1, 'k') = -1);
+  AssertTrue(IsMemCharFilled(a, 1, 'k'));
+  AssertTrue(CheckIsMemCharFilled(a, 1, 'g') = 0);
+  AssertTrue(not IsMemCharFilled(a, 1, 'g'));
 
- { sprawdz dla SizeOfA = 0 (zawsze odpowiedz bedzie brzmiala -1 / true,
-   tak jak kwantyfikator ForAll jest zawsze true dla pustego zbioru...) }
- AssertTrue(CheckIsMemCharFilled(a, 0, 'd') = -1);
- AssertTrue(IsMemCharFilled(a, 0, 'd'));
+  { sprawdz dla SizeOfA = 0 (zawsze odpowiedz bedzie brzmiala -1 / true,
+    tak jak kwantyfikator ForAll jest zawsze true dla pustego zbioru...) }
+  AssertTrue(CheckIsMemCharFilled(a, 0, 'd') = -1);
+  AssertTrue(IsMemCharFilled(a, 0, 'd'));
 
- {$ifdef CASTLEUTILS_SPEED_TESTS}
- TimeTestIsMemCharFilled(100);
- TimeTestIsMemCharFilled(1000);
- TimeTestIsMemCharFilled(10000);
- {$endif}
+  {$ifdef CASTLEUTILS_SPEED_TESTS}
+  TimeTestIsMemCharFilled(100);
+  TimeTestIsMemCharFilled(1000);
+  TimeTestIsMemCharFilled(10000);
+  {$endif}
 end;
 
 procedure TTestCastleUtils.TestSmallest2Exp;
@@ -315,8 +280,8 @@ end;
 procedure TTestCastleUtils.TestStrings;
 begin
   // Uppercase Polish chars. We use UTF-8 now and it should work? Doesn't work yet.
-  // AssertTrue(AnsiSameText('bêcwa³', 'BÊCWA£'));
-  // AssertTrue(not AnsiSameStr('bêcwa³', 'BÊCWA£'));
+  // AssertTrue(AnsiSameText('bï¿½cwaï¿½', 'Bï¿½CWAï¿½'));
+  // AssertTrue(not AnsiSameStr('bï¿½cwaï¿½', 'Bï¿½CWAï¿½'));
 
   AssertTrue(SameText('becwal', 'BECWAL'));
   AssertTrue(not SameText('becwal', 'becwal '));
@@ -376,6 +341,7 @@ procedure TTestCastleUtils.TestDivMod;
 begin
   OneTest(-39, 20, -1, -19);
   OneTest(-9, 5, -1, -4);
+  OneTest(10, 3, 3, 1);
 end;
 
 procedure TTestCastleUtils.TestClamp;
@@ -436,79 +402,6 @@ begin
   AssertTrue(MinIntValue([345, 123, 789]) = 123);
   AssertTrue(MaxIntValue([345, 123, 789]) = 789);
 end;
-
-type
-  TRec = record Id: Integer; SortKey: Integer; end;
-  PRec = ^TRec;
-
-function IsSmallerRec(const A, B, Data: Pointer): boolean;
-begin
-  Result := PRec(A)^.SortKey < PRec(B)^.SortKey;
-end;
-
-procedure TTestCastleUtils.TestSort;
-var
-  Recs: array of TRec;
-begin
-  SetLength(Recs, 6);
-  Recs[0].Id := 0;
-  Recs[0].SortKey := -1;
-  Recs[1].Id := 1;
-  Recs[1].SortKey := -1;
-  Recs[2].Id := 2;
-  Recs[2].SortKey := -1;
-  Recs[3].Id := 3;
-  Recs[3].SortKey := -1;
-  Recs[4].Id := 4;
-  Recs[4].SortKey := -10;
-  Recs[5].Id := 5;
-  Recs[5].SortKey := 10;
-
-  Sort(Pointer(Recs), SizeOf(TRec), @IsSmallerRec, nil, 0, Length(Recs) - 1);
-
-  AssertTrue(Recs[0].SortKey = -10);
-  AssertTrue(Recs[1].SortKey = -1);
-  AssertTrue(Recs[2].SortKey = -1);
-  AssertTrue(Recs[3].SortKey = -1);
-  AssertTrue(Recs[4].SortKey = -1);
-  AssertTrue(Recs[5].SortKey = 10);
-end;
-
-{
-procedure TTestCastleUtils.TestStableSort;
-var
-  Recs: array of TRec;
-begin
-  SetLength(Recs, 6);
-  Recs[0].Id := 0;
-  Recs[0].SortKey := -1;
-  Recs[1].Id := 1;
-  Recs[1].SortKey := -1;
-  Recs[2].Id := 2;
-  Recs[2].SortKey := -1;
-  Recs[3].Id := 3;
-  Recs[3].SortKey := -1;
-  Recs[4].Id := 4;
-  Recs[4].SortKey := -10;
-  Recs[5].Id := 5;
-  Recs[5].SortKey := 10;
-
-  StableSort(Pointer(Recs), SizeOf(TRec), @IsSmallerRec, nil, 0, Length(Recs) - 1);
-
-  AssertTrue(Recs[0].Id = 4);
-  AssertTrue(Recs[0].SortKey = -10);
-  AssertTrue(Recs[1].Id = 0);
-  AssertTrue(Recs[1].SortKey = -1);
-  AssertTrue(Recs[2].Id = 1);
-  AssertTrue(Recs[2].SortKey = -1);
-  AssertTrue(Recs[3].Id = 2);
-  AssertTrue(Recs[3].SortKey = -1);
-  AssertTrue(Recs[4].Id = 3);
-  AssertTrue(Recs[4].SortKey = -1);
-  AssertTrue(Recs[5].Id = 5);
-  AssertTrue(Recs[5].SortKey = 10);
-end;
-}
 
 procedure TTestCastleUtils.TestFileExt;
 begin
@@ -591,11 +484,9 @@ var
   S: Single;
   D: Double;
   E: Extended;
-  OldDecimalSeparator: Char;
+  SavedLocale: TSavedLocale;
 begin
-  OldDecimalSeparator := DecimalSeparator;
-  // make sure this works even when DecimalSeparator is non-dot
-  DecimalSeparator := ',';
+  SavedLocale := FakeLocaleDecimalSeparatorComma;
 
   AssertSameValue(0.2, StrToFloatDot('0.2'));
 
@@ -618,7 +509,7 @@ begin
   AssertEquals('0.10', FormatDot('%f', [0.1]));
   AssertEquals('0.1', FloatToStrDot(0.1));
 
-  DecimalSeparator := OldDecimalSeparator;
+  RestoreLocaleDecimalSeparatorComma(SavedLocale);
 end;
 
 procedure TTestCastleUtils.TestIsPathAbsolute;
@@ -796,9 +687,9 @@ begin
   AssertEquals('123,45', FloatToStr(123.45));
   AssertSameValue(123.45, StrToFloat('123,45'));
   {$else}
-  AssertEquals('123' + DefaultFormatSettings.DecimalSeparator + '45', Format('%f', [123.45]));
-  AssertEquals('123' + DefaultFormatSettings.DecimalSeparator + '45', FloatToStr(123.45));
-  AssertSameValue(123.45, StrToFloat('123' + DefaultFormatSettings.DecimalSeparator + '45'));
+  AssertEquals('123' + {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator + '45', Format('%f', [123.45]));
+  AssertEquals('123' + {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator + '45', FloatToStr(123.45));
+  AssertSameValue(123.45, StrToFloat('123' + {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator + '45'));
   {$endif}
 end;
 

@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2003-2018 Michalis Kamburelis.
 

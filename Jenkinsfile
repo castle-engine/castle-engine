@@ -9,6 +9,9 @@ pipeline {
        they stuck Jenkins much with too many long-running builds.
        Better to wait for previous build to finish. */
     disableConcurrentBuilds()
+    /* Trying to resume builds when controller restarts usually results
+       in job just being stuck forever. So we disable it. */
+    disableResume()
     /* Makes failure in any paralel job to stop the build,
        instead of needlessly trying to finish on one node,
        when another node already failed. */
@@ -174,14 +177,9 @@ pipeline {
             }
           }
         }
-        /* Raspberry Pi is very slow and overloaded, rebuild for it only on master */
         stage('Raspberry Pi') {
-          when {
-            allOf {
-              not { expression { return params.jenkins_fast } };
-              branch "master"
-            }
-          }
+          /* Raspberry Pi is very slow and overloaded, rebuild for it only on master */
+          when { branch "master" }
           agent {
             label 'raspberry-pi-cge-builder'
           }
@@ -215,16 +213,19 @@ pipeline {
               }
             }
             stage('(RPi) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
               }
             }
             stage('(RPi) Build And Run Auto-Tests') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make tests'
               }
             }
             stage('(RPi) Build Using FpMake') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean test-fpmake'
               }
@@ -240,7 +241,6 @@ pipeline {
           }
         }
         stage('macOS') {
-          when { not { expression { return params.jenkins_fast } } }
           agent {
             label 'mac-cge-builder'
           }
@@ -278,6 +278,7 @@ pipeline {
               }
             }
             stage('(macOS) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean examples'
               }
@@ -297,8 +298,6 @@ pipeline {
             */
             stage('(macOS) Build Lazarus Packages') {
               steps {
-                sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackage.lpk'
-                sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS src/vampyre_imaginglib/src/Packages/VampyreImagingPackageExt.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk'
                 sh 'lazbuild $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk'
@@ -333,7 +332,7 @@ pipeline {
             }
           }
         }
-        stage('Windows') {
+        stage('Windows (FPC)') {
           agent {
             label 'windows-cge-builder'
           }
@@ -411,6 +410,170 @@ pipeline {
                 copyArtifacts(projectName: 'castle_game_engine_organization/cge-fpc/master', filter: 'fpc-*.zip')
                 sh 'CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer'
                 archiveArtifacts artifacts: 'castle-engine-setup-*.exe'
+              }
+            }
+          }
+        }
+        stage('Delphi on Windows') {
+          agent {
+            label 'windows-cge-builder'
+          }
+          environment {
+            /* Used by CGE build tool ("castle-engine").
+              Define env based on another env variable.
+              According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+              this should be supported. */
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+            PATH = "${PATH};${CASTLE_ENGINE_PATH}/installed/bin/" // Note: on Windows, PATH is separated by ;
+          }
+          stages {
+            stage('(Delphi) Info') {
+              steps {
+                /* Check versions (and availability) of our requirements early.
+                  Note that we need FPC for Delphi test too, since our internal tools are compiled with FPC. */
+                sh 'fpc -iV'
+                sh 'lazbuild --version'
+                // We want GNU make, not Embarcadero make
+                sh 'make --version'
+              }
+            }
+            stage('(Delphi) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(Delphi) Build Tools') {
+              steps {
+                sh 'rm -Rf installed/'
+                sh 'mkdir -p installed/'
+                /* TODO: do not use "make install" command, as somewhere the Windows path gets
+                  messed up and in the end we have created files like this:
+
+                  "tools/build-tool/data/E\357\200\272jworkspacecastle_game_engine_delphi_master/installed/share/castle-engine/android/integrated-services/google_play_games/app/src/main/java/net/sourceforge/castleengine/ServiceGooglePlayGames.java"
+                */
+                // sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+                sh 'make clean tools'
+                sh 'mkdir -p ${CASTLE_ENGINE_PATH}/installed/bin/'
+                sh 'cp tools/build-tool/castle-engine.exe ${CASTLE_ENGINE_PATH}/installed/bin/'
+              }
+            }
+            stage('(Delphi) Check AutoTests (Win64)') {
+              steps {
+                dir ('tests/delphi_tests/') {
+                  sh 'castle-engine clean'
+                  sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64'
+                  sh 'castle-engine run'
+                }
+              }
+            }
+            stage('(Delphi) Check AutoTests (Win32)') {
+              steps {
+                dir ('tests/delphi_tests/') {
+                  sh 'castle-engine clean'
+                  sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
+                  sh 'castle-engine run'
+                }
+              }
+            }
+            stage('(Delphi) Check AutoTests with NO_WINDOW_SYSTEM (Win64)') {
+              steps {
+                dir ('tests/') {
+                  sh 'castle-engine clean'
+                  sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64 --compiler-option=-dNO_WINDOW_SYSTEM'
+                  sh 'castle-engine run -- --console'
+                }
+              }
+            }
+            stage('(Delphi) Check AutoTests with NO_WINDOW_SYSTEM (Win32)') {
+              steps {
+                dir ('tests/') {
+                  sh 'castle-engine clean'
+                  sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386 --compiler-option=-dNO_WINDOW_SYSTEM'
+                  sh 'castle-engine run -- --console'
+                }
+              }
+            }
+            stage('(Delphi) Build Templates (Win64)') {
+              steps {
+                sh 'make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win64 --cpu=x86_64"'
+              }
+            }
+            stage('(Delphi) Build Templates (Win32)') {
+              steps {
+                sh 'make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win32 --cpu=i386"'
+              }
+            }
+            stage('(Delphi) Build Examples (Win64)') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win64 --cpu=x86_64"'
+              }
+            }
+            stage('(Delphi) Build Examples (Win32)') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386"'
+              }
+            }
+            stage('(Delphi) Build Delphi-specific Examples (Win64)') {
+              steps {
+                dir ('examples/delphi/vcl') {
+                  sh 'castle-engine clean'
+                  sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64'
+                }
+                dir ('examples/delphi/fmx') {
+                  sh 'castle-engine clean'
+                  sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64'
+                }
+              }
+            }
+            stage('(Delphi) Build Delphi-specific Examples (Win32)') {
+              steps {
+                dir ('examples/delphi/vcl') {
+                  sh 'castle-engine clean'
+                  sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
+                }
+                dir ('examples/delphi/fmx') {
+                  sh 'castle-engine clean'
+                  sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
+                }
+              }
+            }
+          }
+        }
+        stage('Check Dependencies') {
+          when { not { expression { return params.jenkins_fast } } }
+          agent {
+            docker {
+              image 'kambi/castle-engine-cloud-builds-tools:cge-none'
+            }
+          }
+          environment {
+            /* Used by CGE build tool ("castle-engine").
+              Define env based on another env variable.
+              According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+              this should be supported. */
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+          }
+          stages {
+            stage('(Check Dependencies) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(Check Dependencies) Build Tools') {
+              steps {
+                sh 'rm -Rf installed/'
+                sh 'mkdir -p installed/'
+                sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+              }
+            }
+            stage('(Check Dependencies) Check Dependencies') {
+              steps {
+                dir ('tools/internal/check_units_dependencies/') {
+                  sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" && make'
+                }
+                archiveArtifacts artifacts: 'test-cge-units-dependencies_all_units.txt,cge_check_units_dependencies.log'
               }
             }
           }

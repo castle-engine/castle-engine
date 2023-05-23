@@ -196,6 +196,9 @@ See https://castle-engine.io/license for details.
     <PublishOptions>
       <Version Value="2"/>
     </PublishOptions>
+    <Provides Count="1">
+      <Item1 Value="castle_lcl"/>
+    </Provides>
     <CustomOptions Items="ExternHelp" Version="2">
       <_ExternHelp Items="Count"/>
     </CustomOptions>

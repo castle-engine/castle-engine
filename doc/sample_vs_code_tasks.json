@@ -90,7 +90,7 @@
         {
             "label": "(CGE) Run",
             "type": "shell",
-            "command": "castle-engine run --mode=debug",
+            "command": "castle-engine run --windows-robust-pipes --mode=debug",
             "options": {
                 "cwd": "${fileDirname}"
             },
@@ -117,7 +117,7 @@
         {
             "label": "(CGE) Run (no sound)",
             "type": "shell",
-            "command": "castle-engine run --mode=debug -- --no-sound",
+            "command": "castle-engine run --windows-robust-pipes --mode=debug -- --no-sound",
             "options": {
                 "cwd": "${fileDirname}"
             },

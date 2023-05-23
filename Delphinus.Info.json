@@ -1,0 +1,16 @@
+{
+    "id": "{da65180a-3257-44bc-bfc4-783386cf6ec8}",
+    "name": "Castle Game Engine",
+    "picture": "doc\\pasdoc\\logo\\castle_game_engine_icon_fit_in_square.png",
+    "licenses":
+    [
+        {
+          "type": "LGPL-2.0-or-later",
+          "file": "COPYING.md"
+        }
+    ],
+    "platforms": "Win32;Win64",
+    "package_compiler_min": 23,
+    "compiler_min": 23,
+    "dependencies": []
+}

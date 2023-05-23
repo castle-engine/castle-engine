@@ -348,7 +348,7 @@ var
       else
         ShareContextGlrc := 0;
 
-      h_GLRc := wglCreateContextAttribsARB(h_Dc, ShareContextGlrc, PGLint(Attribs.List));
+      h_GLRc := wglCreateContextAttribsARB(h_Dc, ShareContextGlrc, PGLint(Attribs.L));
       OSCheck(h_GLRc <> 0, 'wglCreateContextAttribsARB');
     finally FreeAndNil(Attribs) end;
   end;
