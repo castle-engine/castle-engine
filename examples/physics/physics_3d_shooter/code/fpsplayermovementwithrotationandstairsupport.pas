@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleInputs,
-  CastleVectors, CastleUIControls, CastleViewport, CastleClassUtils;
+  CastleVectors, CastleUIControls, CastleViewport, CastleClassUtils, GameInputAxis;
 
 type
 
@@ -27,10 +27,8 @@ type
   strict private
     FWasJumpInput: Boolean;
 
-    FInputForward: TInputShortcut;
-    FInputBackward: TInputShortcut;
-    FInputRightStrafe: TInputShortcut;
-    FInputLeftStrafe: TInputShortcut;
+    FForwardInputAxis: TCastleInputAxis;
+    FSidewayInputAxis: TCastleInputAxis;
     FInputJump: TInputShortcut;
 
     FHorizontalSpeed: Single;
@@ -62,10 +60,8 @@ type
     property HorizontalSpeed: Single read FHorizontalSpeed write FHorizontalSpeed
       {$ifdef FPC}default DefaultHorizontalSpeed{$endif};
 
-    property InputForward: TInputShortcut read FInputForward;
-    property InputBackward: TInputShortcut read FInputBackward;
-    property InputLeftStrafe: TInputShortcut read FInputLeftStrafe;
-    property InputRightStrafe: TInputShortcut read FInputRightStrafe;
+    property ForwardInputAxis: TCastleInputAxis read FForwardInputAxis;
+    property SidewayInputAxis: TCastleInputAxis read FSidewayInputAxis;
     property InputJump: TInputShortcut read FInputJump;
   end;
 
@@ -88,17 +84,8 @@ begin
   if FocusedContainer = nil then
     Exit;
 
-  if InputForward.IsPressed(FocusedContainer) then
-    Result := Result + Vector3(0, 0, -1);
-
-  if InputBackward.IsPressed(FocusedContainer) then
-    Result := Result + Vector3(0, 0, 1);
-
-  if InputRightStrafe.IsPressed(FocusedContainer) then
-    Result := Result + Vector3(-1, 0, 0);
-
-  if InputLeftStrafe.IsPressed(FocusedContainer) then
-    Result := Result + Vector3(1, 0, 0);
+  Result := Result + Vector3(-SidewayInputAxis.Value(FocusedContainer), 0,
+  -FForwardInputAxis.Value(FocusedContainer));
 
   if InputJump.IsPressed(FocusedContainer) then
     Result := Result + Vector3(0, 1, 0);
@@ -170,8 +157,8 @@ end;
 procedure TFpsPlayerMovementWithRotationAndStairSupport.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 begin
-  //UpdateStairsVelocity(SecondsPassed, RemoveMe);
-  UpdateStairsTranslation(SecondsPassed, RemoveMe);
+  UpdateStairsVelocity(SecondsPassed, RemoveMe);
+  //UpdateStairsTranslation(SecondsPassed, RemoveMe);
   inherited Update(SecondsPassed, RemoveMe);
 end;
 
@@ -402,31 +389,20 @@ begin
   FJumpSpeed := DefaultJumpSpeed;
   FHorizontalSpeed := DefaultHorizontalSpeed;
 
-  FInputForward                 := TInputShortcut.Create(Self);
-  FInputBackward                := TInputShortcut.Create(Self);
-  FInputLeftStrafe              := TInputShortcut.Create(Self);
-  FInputRightStrafe             := TInputShortcut.Create(Self);
-  FInputJump                    := TInputShortcut.Create(Self);
+  FForwardInputAxis := TCastleInputAxis.Create(Self);
+  FForwardInputAxis.SetSubComponent(true);
+  FForwardInputAxis.PositiveKey := keyW;
+  FForwardInputAxis.NegativeKey := keyS;
 
-  InputForward                 .Assign(keyW, keyArrowUp);
-  InputBackward                .Assign(keyS, keyArrowDown);
-  InputLeftStrafe              .Assign(keyA);
-  InputRightStrafe             .Assign(keyD);
-  { For move speed we use also character codes +/-, as numpad
-    may be hard to reach on some keyboards (e.g. on laptops). }
-  InputJump                    .Assign(keySpace);
+  FSidewayInputAxis := TCastleInputAxis.Create(Self);
+  FForwardInputAxis.SetSubComponent(true);
+  FSidewayInputAxis.PositiveKey := keyD;
+  FSidewayInputAxis.NegativeKey := keyA;
 
-  InputForward                .SetSubComponent(true);
-  InputBackward               .SetSubComponent(true);
-  InputLeftStrafe             .SetSubComponent(true);
-  InputRightStrafe            .SetSubComponent(true);
-  InputJump                   .SetSubComponent(true);
-
-  InputForward                .Name := 'Input_Forward';
-  InputBackward               .Name := 'Input_Backward';
-  InputLeftStrafe             .Name := 'Input_LeftStrafe';
-  InputRightStrafe            .Name := 'Input_RightStrafe';
-  InputJump                   .Name := 'Input_Jump';
+  FInputJump := TInputShortcut.Create(Self);
+  InputJump.Assign(keySpace);
+  InputJump.SetSubComponent(true);
+  InputJump.Name := 'Input_Jump';
 end;
 
 function TFpsPlayerMovementWithRotationAndStairSupport.PropertySections(const PropertyName: String
