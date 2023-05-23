@@ -384,7 +384,7 @@ function RelativeToCastleDataURL(const URL: String; out WasInsideData: Boolean):
 
 { Encode string by using percent encoding (https://en.wikipedia.org/wiki/Percent-encoding)
   @exclude }
-function InternalUriEscape(const S: String; const Allowed: TSysCharSet): String;
+function InternalUriEscape(const S: String): String;
 
 { Decode string encoded by percent encoding (https://en.wikipedia.org/wiki/Percent-encoding )
   @exclude }
@@ -496,7 +496,7 @@ begin
   {$endif}
 end;
 
-function InternalUriEscape(const S: String; const Allowed: TSysCharSet): String;
+function InternalUriEscapeCore(const S: String; const Allowed: TSysCharSet): String;
 var
   i, L: Integer;
   {$ifdef FPC}
@@ -568,6 +568,17 @@ begin
     Inc(I);
   end;
   {$endif FPC}
+end;
+
+function InternalUriEscape(const S: String): String;
+const
+  SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
+  ALPHA = ['A'..'Z', 'a'..'z'];
+  DIGIT = ['0'..'9'];
+  Unreserved = ALPHA + DIGIT + ['-', '.', '_', '~'];
+  ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
+begin
+  Result := InternalUriEscapeCore(S, ValidPathChars);
 end;
 
 { other routines ------------------------------------------------------------- }
@@ -975,12 +986,6 @@ function FilenameToURISafe(FileName: string): string;
     {$endif}
   end;
 
-const
-  SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
-  ALPHA = ['A'..'Z', 'a'..'z'];
-  DIGIT = ['0'..'9'];
-  Unreserved = ALPHA + DIGIT + ['-', '.', '_', '~'];
-  ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
 var
   I: Integer;
   FilenamePart: String;
@@ -1008,7 +1013,7 @@ begin
     end;
   end;
   {$warnings on}
-  FilenamePart := InternalUriEscape(FilenamePart, ValidPathChars);
+  FilenamePart := InternalUriEscape(FilenamePart);
 
   Result := Result + FilenamePart;
 end;
