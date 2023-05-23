@@ -40,21 +40,13 @@
                 },
                 "$Behaviors" : [
                   {
-                    "$$ClassName" : "TRotateCameraByKeys",
-                    "Input_DownRotate" : "",
-                    "Input_LeftRotate" : "",
-                    "Input_RightRotate" : "",
-                    "Input_UpRotate" : "",
-                    "Name" : "RotateCameraByKeys1"
-                  },
-                  {
                     "$$ClassName" : "TRotateCamera",
                     "HorizontalRotationInput" : {
                       "$$ClassName" : "TCastleInputAxis",
                       "MouseLook" : true,
                       "MouseLookAxis" : "mlaHorizontal",
-                      "MouseLookMultiplier" : 1.0000000000000000E+000,
-                      "Multiplier" : 3.4906580112874508E-003,
+                      "MouseLookMultiplier" : 2.6179939508438110E-001,
+                      "Multiplier" : 2.6179938316345215E+000,
                       "NegativeKey" : "keyArrowLeft",
                       "PositiveKey" : "keyArrowRight"
                     },
@@ -63,8 +55,8 @@
                       "$$ClassName" : "TCastleInputAxis",
                       "MouseLook" : true,
                       "MouseLookAxis" : "mlaVertical",
-                      "MouseLookMultiplier" : 1.0000000000000000E+000,
-                      "Multiplier" : 3.4906580112874508E-003,
+                      "MouseLookMultiplier" : 2.6179939508438110E-001,
+                      "Multiplier" : 2.6179938316345215E+000,
                       "NegativeKey" : "keyNone",
                       "PositiveKey" : "keyNone"
                     }
