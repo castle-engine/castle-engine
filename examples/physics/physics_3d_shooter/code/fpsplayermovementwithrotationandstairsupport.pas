@@ -44,6 +44,7 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure UpdateStairsVelocity(const SecondsPassed: Single; var RemoveMe: TRemoveType);
     procedure UpdateStairsTranslation(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+    procedure UpdateStairsTranslation2(const SecondsPassed: Single; var RemoveMe: TRemoveType);
   public
     const
       DefaultJumpSpeed = 7.0;
@@ -124,7 +125,7 @@ begin
   if GroundSphereCast.Hit then
   begin
     GroundNormal := GroundSphereCast.Normal;
-    WritelnLog('Ground Normal ' + GroundNormal.ToString);
+    //WritelnLog('Ground Normal ' + GroundNormal.ToString);
     DistanceToGround := GroundSphereCast.Distance;
 
     { When collider has own translation we need substract it from distance
@@ -157,8 +158,9 @@ end;
 procedure TFpsPlayerMovementWithRotationAndStairSupport.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 begin
-  UpdateStairsVelocity(SecondsPassed, RemoveMe);
+  //UpdateStairsVelocity(SecondsPassed, RemoveMe);
   //UpdateStairsTranslation(SecondsPassed, RemoveMe);
+  UpdateStairsTranslation2(SecondsPassed, RemoveMe);
   inherited Update(SecondsPassed, RemoveMe);
 end;
 
@@ -196,7 +198,7 @@ begin
     Exit;
 
   IsOnGroundBool := IsPlayerOnGround(RBody, Collider, GroundNormal);
-  WritelnLog('Ground Normal 2 '+ GroundNormal.ToString);
+  //WritelnLog('Ground Normal 2 '+ GroundNormal.ToString);
 
   { No support for air movement }
   if not IsOnGroundBool then
@@ -326,12 +328,12 @@ begin
   { Forward ray direction to check }
   ColliderBoundingBox:= Collider.ScaledLocalBoundingBox;
   RayDirection := TVector3.CrossProduct(RightDirection, GroundNormal);
-  //WritelnLog('RayDirection '+ RayDirection.ToString);
+  WritelnLog('RayDirection '+ RayDirection.ToString);
 
   //WritelnLog('Parent Translation ' + Parent.Translation.ToString);
   RayOrigin := Parent.Translation + Vector3(0,0.1,0) - Vector3(0, ColliderBoundingBox.SizeY /2 , 0);
 
-  //WritelnLog('RayOrigin ' + RayOrigin.ToString);
+  WritelnLog('RayOrigin ' + RayOrigin.ToString);
 
   { Simplest code:  When input direction is 1.00 0.00 -1.00 this move faster:
 
@@ -366,6 +368,114 @@ begin
   if (FWasJumpInput = false) and (HorizontalVelocity.IsZero = false) then
   begin
     StepHit := RBody.PhysicsRayCast(RayOrigin, RayDirection, 0.51);
+    if StepHit.Hit then
+    begin
+      WritelnLog('Found step, step normal ' + StepHit.Normal.ToString);
+      Parent.Translation := Parent.Translation + Vector3(0, 0.3, 0); // maybe step height here
+    end;
+  end;
+
+  { Integrate velocities }
+  IntegratedVelocities := HorizontalVelocity;
+  IntegratedVelocities.Y := VerticalVelocity;
+
+  {Set velocity to rigid body }
+  RBody.LinearVelocity := IntegratedVelocities;
+end;
+
+procedure TFpsPlayerMovementWithRotationAndStairSupport.UpdateStairsTranslation2
+  (const SecondsPassed: Single; var RemoveMe: TRemoveType);
+var
+  RBody: TCastleRigidBody;
+  Collider: TCastleCollider;
+  IsOnGroundBool: Boolean;
+
+  InputDirection: TVector3;
+  ForwardDirection: TVector3;
+  RightDirection: TVector3;
+  UpDirection: TVector3;
+
+  HorizontalVelocity: TVector3;
+  VerticalVelocity: Single;
+
+  IntegratedVelocities: TVector3;
+
+  GroundNormal: TVector3;
+  RayDirection: TVector3;
+  RayOrigin: TVector3;
+  StepHit: TPhysicsRayCastResult;
+  ColliderBoundingBox: TBox3D;
+begin
+  RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if not Assigned(RBody) then
+    Exit;
+
+  Collider := Parent.FindBehavior(TCastleCollider) as TCastleCollider;
+  if not Assigned(Collider) then
+    Exit;
+
+  IsOnGroundBool := IsPlayerOnGround(RBody, Collider, GroundNormal);
+  //WritelnLog('Ground Normal 2 '+ GroundNormal.ToString);
+
+  { No support for air movement }
+  if not IsOnGroundBool then
+    Exit;
+
+  { Get all directions }
+
+  InputDirection := GetDirectionFromInput;
+  ForwardDirection := GetForwardDirection;
+  UpDirection := Parent.Up;
+
+  //WritelnLog('UpDirection '+ UpDirection.ToString);
+  //WritelnLog('ForwardDirection ' + ForwardDirection.ToString);
+  RightDirection := TVector3.CrossProduct(ForwardDirection, UpDirection);
+  //WritelnLog('RightDirection '+ RightDirection.ToString);
+
+  { Forward ray direction to we are on step }
+  ColliderBoundingBox:= Collider.ScaledLocalBoundingBox;
+  RayDirection := Vector3(0, -1, 0);
+  WritelnLog('RayDirection '+ RayDirection.ToString);
+
+  WritelnLog('Parent Translation ' + Parent.Translation.ToString);
+  RayOrigin := Parent.Translation - Vector3(0, 0, ColliderBoundingBox.SizeZ/2);
+
+
+  WritelnLog('RayOrigin ' + RayOrigin.ToString);
+
+  { Simplest code:  When input direction is 1.00 0.00 -1.00 this move faster:
+
+    HorizontalVelocity := ForwardDirection * (InputDirection.Z * HorizontalSpeed)
+    + RightDirection * (InputDirection.X * HorizontalSpeed);
+
+    So we normalize HorizontalVelocity before applying speed.
+  }
+
+  HorizontalVelocity := ForwardDirection * InputDirection.Z
+    + RightDirection * InputDirection.X;
+
+  { Normalize and set velocity to handle faster movement when InputDirection is
+    eg (1, 0, 1). }
+
+  HorizontalVelocity :=  HorizontalVelocity.Normalize * HorizontalSpeed;
+
+  { Jump support }
+
+  if IsOnGroundBool then
+    FWasJumpInput := false;
+
+  if (FWasJumpInput = false) and not IsZero(InputDirection.Y) then
+  begin
+    FWasJumpInput := true;
+    VerticalVelocity := JumpSpeed;
+  end
+  else
+    VerticalVelocity := RBody.LinearVelocity.Y;
+
+  { Direct translate player up when he is near a stairs step }
+  if (FWasJumpInput = false) and (HorizontalVelocity.IsZero = false) then
+  begin
+    StepHit := RBody.PhysicsRayCast(RayOrigin, RayDirection, 0.90);
     if StepHit.Hit then
     begin
       WritelnLog('Found step, step normal ' + StepHit.Normal.ToString);
