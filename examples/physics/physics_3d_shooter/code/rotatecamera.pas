@@ -161,9 +161,7 @@ begin
     Exit;
 
   HorizontalAxisValue := HorizontalRotationInput.Value(FocusedContainer);
-  WritelnLog('Hoizontal ' + FloatToStr(HorizontalAxisValue));
   VerticalAxisValue := VerticalRotationInput.Value(FocusedContainer);
-  WritelnLog('Vert ' + FloatToStr(VerticalAxisValue));
 
   RotateHorizontal(-HorizontalAxisValue * SecondsPassed);
   RotateVertical(VerticalAxisValue * SecondsPassed);
