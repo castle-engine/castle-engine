@@ -16,9 +16,11 @@ type
     FVerticalRotationInput: TCastleInputAxis;
 
     const
-      DefaultMouseLookHorizontalSensitivity = Pi * 0.2 / 180;
-      DefaultMouseLookVerticalSensitivity = Pi * 0.2 / 180;
+      DefaultMouseLookHorizontalSensitivity = Pi * 15 / 180;
+      DefaultMouseLookVerticalSensitivity = Pi * 15 / 180;
       DefaultMinAngleFromGravityUp = Pi * 10 / 180;
+      DefaultRotationHorizontalSpeed = Pi * 150 / 180;
+      DefaultRotationVerticalSpeed = Pi * 150 / 180;
 
     function Camera: TCastleCamera;
 
@@ -163,8 +165,8 @@ begin
   VerticalAxisValue := VerticalRotationInput.Value(FocusedContainer);
   WritelnLog('Vert ' + FloatToStr(VerticalAxisValue));
 
-  RotateHorizontal(HorizontalAxisValue);
-  RotateVertical(VerticalAxisValue);
+  RotateHorizontal(HorizontalAxisValue * SecondsPassed);
+  RotateVertical(VerticalAxisValue * SecondsPassed);
 
   inherited Update(SecondsPassed, RemoveMe);
 end;
@@ -176,15 +178,19 @@ begin
 
   FHorizontalRotationInput := TCastleInputAxis.Create(Self);
   FHorizontalRotationInput.SetSubComponent(true);
+  FHorizontalRotationInput.PositiveKey := keyArrowRight;
+  FHorizontalRotationInput.NegativeKey := keyArrowLeft;
   FHorizontalRotationInput.MouseLook := true;
   FHorizontalRotationInput.MouseLookAxis := mlaHorizontal;
-  FHorizontalRotationInput.Multiplier := DefaultMouseLookHorizontalSensitivity;
+  FHorizontalRotationInput.MouseLookMultiplier := DefaultMouseLookHorizontalSensitivity;
+  FHorizontalRotationInput.Multiplier := DefaultRotationHorizontalSpeed;
 
   FVerticalRotationInput := TCastleInputAxis.Create(Self);
   FVerticalRotationInput.SetSubComponent(true);
   FVerticalRotationInput.MouseLook := true;
   FVerticalRotationInput.MouseLookAxis := mlaVertical;
-  FVerticalRotationInput.Multiplier := DefaultMouseLookVerticalSensitivity;
+  FVerticalRotationInput.MouseLookMultiplier := DefaultMouseLookVerticalSensitivity;
+  FVerticalRotationInput.Multiplier := DefaultRotationVerticalSpeed;
 end;
 
 initialization
