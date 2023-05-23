@@ -61,7 +61,7 @@ begin
 
   case MouseLookAxis of
   mlaHorizontal:
-    Result := -MouseChange.X;
+    Result := MouseChange.X;
   mlaVertical:
     Result := MouseChange.Y;
   end;
@@ -98,7 +98,7 @@ begin
           FLastMousePositionIsSet := true;
         end;
 
-        Result := HandleMouseLook(Container) * FMouseLookMultiplier;
+        Result := HandleMouseLook(Container) * MouseLookMultiplier;
       end else
         FLastMousePositionIsSet := false;
     end;
