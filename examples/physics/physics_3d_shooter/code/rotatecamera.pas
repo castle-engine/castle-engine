@@ -165,7 +165,7 @@ begin
   VerticalAxisValue := VerticalRotationInput.Value(FocusedContainer);
   WritelnLog('Vert ' + FloatToStr(VerticalAxisValue));
 
-  RotateHorizontal(HorizontalAxisValue * SecondsPassed);
+  RotateHorizontal(-HorizontalAxisValue * SecondsPassed);
   RotateVertical(VerticalAxisValue * SecondsPassed);
 
   inherited Update(SecondsPassed, RemoveMe);
