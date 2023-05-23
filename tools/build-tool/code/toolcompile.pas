@@ -120,7 +120,7 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..42] of String = (
+  EnginePaths: array [0..43] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -154,6 +154,7 @@ const
     'ui',
     'ui/windows',
     'services',
+    'services/steam',
     'physics',
     'physics/kraft',
     'deprecated_units',
