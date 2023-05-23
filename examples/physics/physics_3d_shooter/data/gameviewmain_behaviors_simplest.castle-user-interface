@@ -74,36 +74,30 @@
               },
               {
                 "$$ClassName" : "TSimplestFpsPlayerMovement",
-                "InputBackward" : {
-                  "$$ClassName" : "TInputShortcut",
-                  "DefaultKey1" : "keyS",
-                  "DefaultKey2" : "keyArrowDown",
-                  "Key1" : "keyS",
-                  "Key2" : "keyArrowDown"
-                },
-                "InputForward" : {
-                  "$$ClassName" : "TInputShortcut",
-                  "DefaultKey1" : "keyW",
-                  "DefaultKey2" : "keyArrowUp",
-                  "Key1" : "keyW",
-                  "Key2" : "keyArrowUp"
+                "ForwardInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyS",
+                  "PositiveKey" : "keyW"
                 },
                 "InputJump" : {
                   "$$ClassName" : "TInputShortcut",
                   "DefaultKey1" : "keySpace",
                   "Key1" : "keySpace"
                 },
-                "InputLeftStrafe" : {
-                  "$$ClassName" : "TInputShortcut",
-                  "DefaultKey1" : "keyA",
-                  "Key1" : "keyA"
-                },
-                "InputRightStrafe" : {
-                  "$$ClassName" : "TInputShortcut",
-                  "DefaultKey1" : "keyD",
-                  "Key1" : "keyD"
-                },
-                "Name" : "SimplestFpsPlayerMovement1"
+                "Name" : "SimplestFpsPlayerMovement1",
+                "SidewayInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyA",
+                  "PositiveKey" : "keyD"
+                }
               }
             ]
           },

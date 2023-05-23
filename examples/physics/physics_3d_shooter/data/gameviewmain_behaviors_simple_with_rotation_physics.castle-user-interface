@@ -40,12 +40,26 @@
                 },
                 "$Behaviors" : [
                   {
-                    "$$ClassName" : "TRotateCameraByMouse",
-                    "LockRotation" : [
-                      1,
-                      2
-                    ],
-                    "Name" : "RotateCameraByMouse1"
+                    "$$ClassName" : "TRotateCamera",
+                    "HorizontalRotationInput" : {
+                      "$$ClassName" : "TCastleInputAxis",
+                      "MouseLook" : false,
+                      "MouseLookAxis" : "mlaHorizontal",
+                      "MouseLookMultiplier" : 2.6179939508438110E-001,
+                      "Multiplier" : 2.6179938316345215E+000,
+                      "NegativeKey" : "keyArrowLeft",
+                      "PositiveKey" : "keyArrowRight"
+                    },
+                    "Name" : "RotateCamera1",
+                    "VerticalRotationInput" : {
+                      "$$ClassName" : "TCastleInputAxis",
+                      "MouseLook" : true,
+                      "MouseLookAxis" : "mlaVertical",
+                      "MouseLookMultiplier" : 2.5000000000000000E-001,
+                      "Multiplier" : 1.5000000000000000E+000,
+                      "NegativeKey" : "keyNone",
+                      "PositiveKey" : "keyNone"
+                    }
                   }
                 ]
               }
@@ -69,41 +83,42 @@
               },
               {
                 "$$ClassName" : "TSimpleFpsPlayerMovementWithRotation",
-                "InputBackward" : {
-                  "$$ClassName" : "TInputShortcut",
-                  "DefaultKey1" : "keyS",
-                  "DefaultKey2" : "keyArrowDown",
-                  "Key1" : "keyS",
-                  "Key2" : "keyArrowDown"
-                },
-                "InputForward" : {
-                  "$$ClassName" : "TInputShortcut",
-                  "DefaultKey1" : "keyW",
-                  "DefaultKey2" : "keyArrowUp",
-                  "Key1" : "keyW",
-                  "Key2" : "keyArrowUp"
+                "ForwardInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyS",
+                  "PositiveKey" : "keyW"
                 },
                 "InputJump" : {
                   "$$ClassName" : "TInputShortcut",
                   "DefaultKey1" : "keySpace",
                   "Key1" : "keySpace"
                 },
-                "InputLeftStrafe" : {
-                  "$$ClassName" : "TInputShortcut",
-                  "DefaultKey1" : "keyA",
-                  "Key1" : "keyA"
-                },
-                "InputRightStrafe" : {
-                  "$$ClassName" : "TInputShortcut",
-                  "DefaultKey1" : "keyD",
-                  "Key1" : "keyD"
-                },
-                "Name" : "SimpleFpsPlayerMovementWithRotation1"
+                "Name" : "SimpleFpsPlayerMovementWithRotation1",
+                "SidewayInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyA",
+                  "PositiveKey" : "keyD"
+                }
               },
               {
                 "$$ClassName" : "TRotateRigidBody",
-                "Input_LeftRotate" : "",
-                "Input_RightRotate" : "",
+                "HorizontalRotationInput" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseLook" : true,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 2.5000000000000000E-001,
+                  "Multiplier" : 1.5000000000000000E+000,
+                  "NegativeKey" : "keyArrowLeft",
+                  "PositiveKey" : "keyArrowRight"
+                },
                 "Name" : "RotateRigidBody1"
               }
             ]
