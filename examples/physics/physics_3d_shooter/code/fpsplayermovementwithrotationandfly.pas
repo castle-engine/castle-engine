@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleInputs,
-  CastleVectors, CastleUIControls, CastleViewport, CastleClassUtils;
+  CastleVectors, CastleUIControls, CastleViewport, CastleClassUtils,
+  GameInputAxis;
 
 type
 
@@ -27,14 +28,11 @@ type
   strict private
     FWasJumpInput: Boolean;
 
-    FInputForward: TInputShortcut;
-    FInputBackward: TInputShortcut;
-    FInputRightStrafe: TInputShortcut;
-    FInputLeftStrafe: TInputShortcut;
+    FForwardInputAxis: TCastleInputAxis;
+    FSidewayInputAxis: TCastleInputAxis;
+    FFlyUpDownInputAxis: TCastleInputAxis;
     FInputJump: TInputShortcut;
     FInputFly: TInputShortcut;
-    FInputFlyUp: TInputShortcut;
-    FInputFlyDown: TInputShortcut;
 
     FHorizontalSpeed: Single;
     FJumpSpeed: Single;
@@ -68,14 +66,11 @@ type
     property HorizontalSpeed: Single read FHorizontalSpeed write FHorizontalSpeed
       {$ifdef FPC}default DefaultHorizontalSpeed{$endif};
 
-    property InputForward: TInputShortcut read FInputForward;
-    property InputBackward: TInputShortcut read FInputBackward;
-    property InputLeftStrafe: TInputShortcut read FInputLeftStrafe;
-    property InputRightStrafe: TInputShortcut read FInputRightStrafe;
+    property ForwardInputAxis: TCastleInputAxis read FForwardInputAxis;
+    property SidewayInputAxis: TCastleInputAxis read FSidewayInputAxis;
+    property FlyUpDownInputAxis: TCastleInputAxis read FFlyUpDownInputAxis;
     property InputJump: TInputShortcut read FInputJump;
     property InputFly: TInputShortcut read FInputFly;
-    property InputFlyUp: TInputShortcut read FInputFlyUp;
-    property InputFlyDown: TInputShortcut read FInputFlyDown;
   end;
 
 
@@ -98,17 +93,8 @@ begin
   if FocusedContainer = nil then
     Exit;
 
-  if InputForward.IsPressed(FocusedContainer) then
-    Result := Result + Vector3(0, 0, -1);
-
-  if InputBackward.IsPressed(FocusedContainer) then
-    Result := Result + Vector3(0, 0, 1);
-
-  if InputRightStrafe.IsPressed(FocusedContainer) then
-    Result := Result + Vector3(-1, 0, 0);
-
-  if InputLeftStrafe.IsPressed(FocusedContainer) then
-    Result := Result + Vector3(1, 0, 0);
+  Result := Result + Vector3(-SidewayInputAxis.Value(FocusedContainer), 0,
+  -FForwardInputAxis.Value(FocusedContainer));
 
   if InputJump.IsPressed(FocusedContainer) then
     Result := Result + Vector3(0, 1, 0);
@@ -244,10 +230,8 @@ begin
 
   if FIsFlying then
   begin
-    if InputFlyUp.IsPressed(FocusedContainer) then
-      VerticalVelocity := VerticalVelocity + FFlyUpDownSpeed * SecondsPassed;
-    if InputFlyDown.IsPressed(FocusedContainer) then
-      VerticalVelocity := VerticalVelocity - FFlyUpDownSpeed * SecondsPassed;
+    VerticalVelocity := VerticalVelocity + FFlyUpDownSpeed * SecondsPassed *
+    FFlyUpDownInputAxis.Value(FocusedContainer);
   end;
 
   { Integrate velocities }
@@ -274,43 +258,30 @@ begin
   FHorizontalSpeed := DefaultHorizontalSpeed;
   FFlyUpDownSpeed := 2;
 
-  FInputForward                 := TInputShortcut.Create(Self);
-  FInputBackward                := TInputShortcut.Create(Self);
-  FInputLeftStrafe              := TInputShortcut.Create(Self);
-  FInputRightStrafe             := TInputShortcut.Create(Self);
-  FInputJump                    := TInputShortcut.Create(Self);
-  FInputFly                     := TInputShortcut.Create(Self);
-  FInputFlyUp                   := TInputShortcut.Create(Self);
-  FInputFlyDown                 := TInputShortcut.Create(Self);
+  FForwardInputAxis := TCastleInputAxis.Create(Self);
+  FForwardInputAxis.SetSubComponent(true);
+  FForwardInputAxis.PositiveKey := keyW;
+  FForwardInputAxis.NegativeKey := keyS;
 
-  InputForward                 .Assign(keyW, keyArrowUp);
-  InputBackward                .Assign(keyS, keyArrowDown);
-  InputLeftStrafe              .Assign(keyA);
-  InputRightStrafe             .Assign(keyD);
-  { For move speed we use also character codes +/-, as numpad
-    may be hard to reach on some keyboards (e.g. on laptops). }
-  InputJump                    .Assign(keySpace);
-  InputFly                     .Assign(keyF);
-  InputFlyUp                   .Assign(keyT);
-  InputFlyDown                 .Assign(keyG);
+  FSidewayInputAxis := TCastleInputAxis.Create(Self);
+  FSidewayInputAxis.SetSubComponent(true);
+  FSidewayInputAxis.PositiveKey := keyD;
+  FSidewayInputAxis.NegativeKey := keyA;
 
-  InputForward                .SetSubComponent(true);
-  InputBackward               .SetSubComponent(true);
-  InputLeftStrafe             .SetSubComponent(true);
-  InputRightStrafe            .SetSubComponent(true);
-  InputJump                   .SetSubComponent(true);
-  InputFly                    .SetSubComponent(true);
-  InputFlyUp                  .SetSubComponent(true);
-  InputFlyDown                .SetSubComponent(true);
+  FFlyUpDownInputAxis := TCastleInputAxis.Create(Self);
+  FFlyUpDownInputAxis.SetSubComponent(true);
+  FFlyUpDownInputAxis.PositiveKey := keyT;
+  FFlyUpDownInputAxis.NegativeKey := keyG;
 
-  InputForward                .Name := 'Input_Forward';
-  InputBackward               .Name := 'Input_Backward';
-  InputLeftStrafe             .Name := 'Input_LeftStrafe';
-  InputRightStrafe            .Name := 'Input_RightStrafe';
-  InputJump                   .Name := 'Input_Jump';
-  InputFly                    .Name := 'Input_Fly';
-  InputFlyUp                  .Name := 'Input_FlyUp';
-  InputFlyDown                .Name := 'Input_FlyDown';
+  FInputJump := TInputShortcut.Create(Self);
+  InputJump.Assign(keySpace);
+  InputJump.SetSubComponent(true);
+  InputJump.Name := 'Input_Jump';
+
+  FInputFly := TInputShortcut.Create(Self);
+  InputFly.Assign(keyF);
+  InputFly.SetSubComponent(true);
+  InputFly.Name := 'Input_Fly';
 end;
 
 function TFpsPlayerMovementWithRotationAndFly.PropertySections(const PropertyName: String

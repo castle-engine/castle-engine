@@ -395,7 +395,7 @@ begin
   FForwardInputAxis.NegativeKey := keyS;
 
   FSidewayInputAxis := TCastleInputAxis.Create(Self);
-  FForwardInputAxis.SetSubComponent(true);
+  FSidewayInputAxis.SetSubComponent(true);
   FSidewayInputAxis.PositiveKey := keyD;
   FSidewayInputAxis.NegativeKey := keyA;
 
