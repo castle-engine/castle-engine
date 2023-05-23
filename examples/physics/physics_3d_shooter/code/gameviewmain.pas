@@ -59,7 +59,7 @@ begin
   { Rotation in camera only no player rotation }
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest.castle-user-interface';
   { Rotation in camera only no player rotation }
-  DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest_inputaxis.castle-user-interface';
+  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest_inputaxis.castle-user-interface';
   { Rotation in player direct - rotate transform and synchronize physics - fall out level sometimes  }
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_direct.castle-user-interface';
   { Rotation in player physics - rotate rigid body by mouse using angular velocity }
@@ -73,7 +73,7 @@ begin
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_head_bobbing.castle-user-interface';
 
   { Stair support test }
-  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs.castle-user-interface';
 
   { Crouch support }
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs_crouch.castle-user-interface';
