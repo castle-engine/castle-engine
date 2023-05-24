@@ -50,7 +50,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FColorPersistent := TCastleColorPersistent.Create;
+  FColorPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -118,7 +118,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FClipLinePersistent := TCastleVector3Persistent.Create;
+  FClipLinePersistent := TCastleVector3Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -186,7 +186,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FRotationCenterPersistent := TCastleVector2Persistent.Create;
+  FRotationCenterPersistent := TCastleVector2Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -254,7 +254,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FRegionPersistent := TFloatRectanglePersistent.Create;
+  FRegionPersistent := TFloatRectanglePersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.

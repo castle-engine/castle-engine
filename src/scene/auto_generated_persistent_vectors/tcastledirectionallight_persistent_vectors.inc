@@ -50,7 +50,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FColorPersistent := TCastleColorRGBPersistent.Create;
+  FColorPersistent := TCastleColorRGBPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.

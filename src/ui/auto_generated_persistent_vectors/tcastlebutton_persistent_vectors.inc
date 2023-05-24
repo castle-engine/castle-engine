@@ -50,7 +50,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FTintPressedPersistent := TCastleColorPersistent.Create;
+  FTintPressedPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -118,7 +118,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FTintDisabledPersistent := TCastleColorPersistent.Create;
+  FTintDisabledPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -186,7 +186,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FTintFocusedPersistent := TCastleColorPersistent.Create;
+  FTintFocusedPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -254,7 +254,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FTintNormalPersistent := TCastleColorPersistent.Create;
+  FTintNormalPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -322,7 +322,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FCustomTextColorPersistent := TCastleColorPersistent.Create;
+  FCustomTextColorPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -390,7 +390,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FCustomColorPressedPersistent := TCastleColorPersistent.Create;
+  FCustomColorPressedPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -458,7 +458,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FCustomColorDisabledPersistent := TCastleColorPersistent.Create;
+  FCustomColorDisabledPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -526,7 +526,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FCustomColorFocusedPersistent := TCastleColorPersistent.Create;
+  FCustomColorFocusedPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -594,7 +594,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FCustomColorNormalPersistent := TCastleColorPersistent.Create;
+  FCustomColorNormalPersistent := TCastleColorPersistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.

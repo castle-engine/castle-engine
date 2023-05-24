@@ -50,7 +50,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FWorldAnchorPersistent := TCastleVector3Persistent.Create;
+  FWorldAnchorPersistent := TCastleVector3Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -118,7 +118,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FConnectedWorldAnchorPersistent := TCastleVector3Persistent.Create;
+  FConnectedWorldAnchorPersistent := TCastleVector3Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -186,7 +186,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FWorldGroundAnchorPersistent := TCastleVector3Persistent.Create;
+  FWorldGroundAnchorPersistent := TCastleVector3Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
@@ -254,7 +254,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FConnectedWorldGroundAnchorPersistent := TCastleVector3Persistent.Create;
+  FConnectedWorldGroundAnchorPersistent := TCastleVector3Persistent.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.
