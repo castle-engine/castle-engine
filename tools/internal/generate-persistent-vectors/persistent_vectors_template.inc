@@ -50,7 +50,7 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  F${PROPERTY_NAME}Persistent := ${PERSISTENT_PROPERTY_CLASS}.Create;
+  F${PROPERTY_NAME}Persistent := ${PERSISTENT_PROPERTY_CLASS}.Create(nil);
   { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
     on themselves, for backward compatibility. But we should not depend on it,
     some classes (like TFloatRectanglePersisten) may not call it.

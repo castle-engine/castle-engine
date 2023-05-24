@@ -384,7 +384,8 @@ begin
   FInternalVisualizeProtectedSides := true;
   FRegion := TFloatRectangle.Empty;
 
-  FProtectedSides := TBorder.Create({$ifdef FPC}@{$endif}ProtectedSidesChange);
+  FProtectedSides := TBorder.Create(nil);
+  FProtectedSides.OnChange := {$ifdef FPC}@{$endif} ProtectedSidesChange;
   CreateDrawableImage;
 
   {$define read_implementation_constructor}

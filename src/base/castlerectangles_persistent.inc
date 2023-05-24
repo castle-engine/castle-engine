@@ -14,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleVectors types wrapped as a TPersistent instance. }
+{ TFloatRectanglePersistent type wrapped as a TCastleComponent instance. }
 
 {$ifdef read_interface}
 
@@ -54,10 +54,10 @@ type
     InternalGetValue: TGetFloatRectangleEvent;
     InternalSetValue: TSetFloatRectangleEvent;
     InternalDefaultValue: TFloatRectangle;
-    constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TFloatRectangle read GetValue write SetValue;
-    function HasDefaultValue: Boolean;
+    function ValueIsStreamed: Boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function ToString: String; override;
   published
     property Left: Single read GetLeft write SetLeft stored LeftIsStored nodefault;
     property Bottom: Single read GetBottom write SetBottom stored BottomIsStored nodefault;
@@ -65,12 +65,18 @@ type
     property Height: Single read GetHeight write SetHeight stored HeightIsStored nodefault;
   end;
 
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TFloatRectanglePersistent ---------------------------------------------------- }
+
+(*
+Note that analogous TCastleVector2Persistent.Create constructor
+1. is reintroduced, to have AOwner=nil by default
+2. calls SetSubComponent(true) on itself.
+Both 1 and 2 are somewhat dirty, and done only for backward compatibility.
+For new TFloatRectanglePersistent we don't do this.
 
 constructor TFloatRectanglePersistent.Create(const AOwner: TComponent = nil);
 begin
@@ -78,6 +84,7 @@ begin
   { See TCastleVector2Persistent.Create comments about SetSubComponent call. }
   SetSubComponent(true);
 end;
+*)
 
 function TFloatRectanglePersistent.GetValue: TFloatRectangle;
 begin
@@ -209,11 +216,10 @@ begin
   end;
 end;
 
-function TFloatRectanglePersistent.HasDefaultValue: Boolean;
+function TFloatRectanglePersistent.ValueIsStreamed: Boolean;
 begin
-  Result := Value.PerfectlyEquals(InternalDefaultValue);
+  Result := not Value.PerfectlyEquals(InternalDefaultValue);
 end;
-
 
 function TFloatRectanglePersistent.PropertySections(const PropertyName: String): TPropertySections;
 begin
@@ -224,6 +230,11 @@ begin
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TFloatRectanglePersistent.ToString: String;
+begin
+  Result := Value.ToString;
 end;
 
 {$endif read_implementation}
