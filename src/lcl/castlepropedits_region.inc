@@ -22,7 +22,7 @@ type
   TCastleRegionEditor = class(TSubPropertiesEditor)
   public
     function GetName: shortstring; override;
-    function GetValue: string; override;
+    function GetValue: String; override;
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
   end;
@@ -33,17 +33,19 @@ begin
   Result := SuffixRemove('persistent', Result, True);
 end;
 
-function TCastleRegionEditor.GetValue: string;
+function TCastleRegionEditor.GetValue: String;
 var
-  vClassName: string;
-  vName: string;
+  VClassName: String;
+  VName: String;
 begin
-  vName := GetName;
-  if vName = 'Region' then  vClassName := 'TRegion'
+  VName := GetName;
+  if VName = 'Region' then  
+    VClassName := 'TRegion'
   else
-    vClassName := self.GetPropInfo^.PropType^.Name;
-  Result := '(' + SuffixRemove('persistent', vClassName, True) + ')';
-  if vName = 'ProtectedSides' then  Result := Result + ' (9-slice scaling)';
+    VClassName := GetPropInfo^.PropType^.Name;
+  Result := '(' + SuffixRemove('persistent', VClassName, True) + ')';
+  if VName = 'ProtectedSides' then  
+    Result := Result + ' (9-slice scaling)';
 end;
 
 function TCastleRegionEditor.GetAttributes: TPropertyAttributes;
@@ -54,17 +56,18 @@ end;
 procedure TCastleRegionEditor.Edit;
 var
   D: TRegionDesignDialog;
-  comp: TPersistent;
+  Comp: TPersistent;
   ImagePersistent: TCastleImagePersistent;
-  vClassName: string;
+  VClassName: String;
 begin
   ImagePersistent := nil;
 
-  comp := GetComponent(0);
-  if (comp is TCastleImagePersistent) then
-    ImagePersistent := comp as TCastleImagePersistent
-  else if (comp is TCastleImageControl) then
-    ImagePersistent := (comp as TCastleImageControl).Content;
+  Comp := GetComponent(0);
+  if (Comp is TCastleImagePersistent) then
+    ImagePersistent := Comp as TCastleImagePersistent
+  else 
+  if (Comp is TCastleImageControl) then
+    ImagePersistent := (Comp as TCastleImageControl).Content;
 
   if not Assigned(ImagePersistent) then
   begin
@@ -78,18 +81,18 @@ begin
     Exit;
   end;
 
-  vClassName := self.GetPropInfo^.PropType^.Name;
+  VClassName := GetPropInfo^.PropType^.Name;
 
   D := TRegionDesignDialog.Create(Application);
   try
-    if vClassName = TFloatRectanglePersistent.ClassName then
+    if VClassName = TFloatRectanglePersistent.ClassName then
     begin
-      D.Caption := 'Edit ' + 'Region';
+      D.Caption := 'Edit Region';
       D.Load(ImagePersistent.DrawableImage, ImagePersistent.Region);
     end
     else
     begin
-      D.Caption := 'Edit ' + 'Border';
+      D.Caption := 'Edit Border';
       if ImagePersistent.Clipped then
         D.Load(ImagePersistent.DrawableImage, ImagePersistent.Region,
           ImagePersistent.ProtectedSides)
@@ -106,11 +109,10 @@ begin
         TDesignMode.ModeRegion:
           ImagePersistent.Region := D.Region;
         TDesignMode.ModeBorder:
-          D.ApplyToBorder(
-            ImagePersistent.ProtectedSides);
+          D.ApplyToBorder(ImagePersistent.ProtectedSides);
       end;
 
-      self.Modified('');
+      Modified('');
     end;
 
   finally
