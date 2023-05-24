@@ -51,6 +51,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FSizePersistent := TCastleVector2Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FSizePersistent.SetSubComponent(true);
   FSizePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetSizeForPersistent;
   FSizePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetSizeForPersistent;
   FSizePersistent.InternalDefaultValue := Size; // current value is default
@@ -113,6 +119,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FSubdivisionsPersistent := TCastleVector2Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FSubdivisionsPersistent.SetSubComponent(true);
   FSubdivisionsPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetSubdivisionsForPersistent;
   FSubdivisionsPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetSubdivisionsForPersistent;
   FSubdivisionsPersistent.InternalDefaultValue := Subdivisions; // current value is default

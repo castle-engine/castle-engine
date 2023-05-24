@@ -51,6 +51,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FAngularVelocityPersistent := TCastleVector3Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FAngularVelocityPersistent.SetSubComponent(true);
   FAngularVelocityPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAngularVelocityForPersistent;
   FAngularVelocityPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAngularVelocityForPersistent;
   FAngularVelocityPersistent.InternalDefaultValue := AngularVelocity; // current value is default
@@ -113,6 +119,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FLinearVelocityPersistent := TCastleVector3Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FLinearVelocityPersistent.SetSubComponent(true);
   FLinearVelocityPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetLinearVelocityForPersistent;
   FLinearVelocityPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetLinearVelocityForPersistent;
   FLinearVelocityPersistent.InternalDefaultValue := LinearVelocity; // current value is default

@@ -51,6 +51,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FPivotPersistent := TCastleVector2Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FPivotPersistent.SetSubComponent(true);
   FPivotPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetPivotForPersistent;
   FPivotPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetPivotForPersistent;
   FPivotPersistent.InternalDefaultValue := Pivot; // current value is default
@@ -113,6 +119,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FSizePersistent := TCastleVector2Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FSizePersistent.SetSubComponent(true);
   FSizePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetSizeForPersistent;
   FSizePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetSizeForPersistent;
   FSizePersistent.InternalDefaultValue := Size; // current value is default
@@ -175,6 +187,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FRepeatImagePersistent := TCastleVector2Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FRepeatImagePersistent.SetSubComponent(true);
   FRepeatImagePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRepeatImageForPersistent;
   FRepeatImagePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRepeatImageForPersistent;
   FRepeatImagePersistent.InternalDefaultValue := RepeatImage; // current value is default
@@ -237,6 +255,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FShiftPersistent := TCastleVector2Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FShiftPersistent.SetSubComponent(true);
   FShiftPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetShiftForPersistent;
   FShiftPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetShiftForPersistent;
   FShiftPersistent.InternalDefaultValue := Shift; // current value is default
@@ -299,6 +323,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FColorPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FColorPersistent.SetSubComponent(true);
   FColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetColorForPersistent;
   FColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetColorForPersistent;
   FColorPersistent.InternalDefaultValue := Color; // current value is default

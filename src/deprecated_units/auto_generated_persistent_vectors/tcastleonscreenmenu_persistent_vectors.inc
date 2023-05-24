@@ -51,6 +51,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCurrentItemBorderColor1Persistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FCurrentItemBorderColor1Persistent.SetSubComponent(true);
   FCurrentItemBorderColor1Persistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCurrentItemBorderColor1ForPersistent;
   FCurrentItemBorderColor1Persistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCurrentItemBorderColor1ForPersistent;
   FCurrentItemBorderColor1Persistent.InternalDefaultValue := CurrentItemBorderColor1; // current value is default
@@ -113,6 +119,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCurrentItemBorderColor2Persistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FCurrentItemBorderColor2Persistent.SetSubComponent(true);
   FCurrentItemBorderColor2Persistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCurrentItemBorderColor2ForPersistent;
   FCurrentItemBorderColor2Persistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCurrentItemBorderColor2ForPersistent;
   FCurrentItemBorderColor2Persistent.InternalDefaultValue := CurrentItemBorderColor2; // current value is default
@@ -175,6 +187,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCurrentItemColorPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FCurrentItemColorPersistent.SetSubComponent(true);
   FCurrentItemColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCurrentItemColorForPersistent;
   FCurrentItemColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCurrentItemColorForPersistent;
   FCurrentItemColorPersistent.InternalDefaultValue := CurrentItemColor; // current value is default
@@ -237,6 +255,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FNonCurrentItemColorPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FNonCurrentItemColorPersistent.SetSubComponent(true);
   FNonCurrentItemColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetNonCurrentItemColorForPersistent;
   FNonCurrentItemColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetNonCurrentItemColorForPersistent;
   FNonCurrentItemColorPersistent.InternalDefaultValue := NonCurrentItemColor; // current value is default
@@ -299,6 +323,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FNonFocusableItemColorPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FNonFocusableItemColorPersistent.SetSubComponent(true);
   FNonFocusableItemColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetNonFocusableItemColorForPersistent;
   FNonFocusableItemColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetNonFocusableItemColorForPersistent;
   FNonFocusableItemColorPersistent.InternalDefaultValue := NonFocusableItemColor; // current value is default

@@ -51,6 +51,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FColorPersistent := TCastleColorRGBPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FColorPersistent.SetSubComponent(true);
   FColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetColorForPersistent;
   FColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetColorForPersistent;
   FColorPersistent.InternalDefaultValue := Color; // current value is default
@@ -113,6 +119,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FAttenuationPersistent := TCastleVector3Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FAttenuationPersistent.SetSubComponent(true);
   FAttenuationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAttenuationForPersistent;
   FAttenuationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAttenuationForPersistent;
   FAttenuationPersistent.InternalDefaultValue := Attenuation; // current value is default

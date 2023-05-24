@@ -51,6 +51,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FAnchorPersistent := TCastleVector3Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FAnchorPersistent.SetSubComponent(true);
   FAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAnchorForPersistent;
   FAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAnchorForPersistent;
   FAnchorPersistent.InternalDefaultValue := Anchor; // current value is default
@@ -113,6 +119,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTargetWorldPersistent := TCastleVector3Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FTargetWorldPersistent.SetSubComponent(true);
   FTargetWorldPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTargetWorldForPersistent;
   FTargetWorldPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTargetWorldForPersistent;
   FTargetWorldPersistent.InternalDefaultValue := TargetWorld; // current value is default

@@ -51,6 +51,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTintPressedPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FTintPressedPersistent.SetSubComponent(true);
   FTintPressedPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTintPressedForPersistent;
   FTintPressedPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTintPressedForPersistent;
   FTintPressedPersistent.InternalDefaultValue := TintPressed; // current value is default
@@ -113,6 +119,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTintDisabledPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FTintDisabledPersistent.SetSubComponent(true);
   FTintDisabledPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTintDisabledForPersistent;
   FTintDisabledPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTintDisabledForPersistent;
   FTintDisabledPersistent.InternalDefaultValue := TintDisabled; // current value is default
@@ -175,6 +187,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTintFocusedPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FTintFocusedPersistent.SetSubComponent(true);
   FTintFocusedPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTintFocusedForPersistent;
   FTintFocusedPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTintFocusedForPersistent;
   FTintFocusedPersistent.InternalDefaultValue := TintFocused; // current value is default
@@ -237,6 +255,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTintNormalPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FTintNormalPersistent.SetSubComponent(true);
   FTintNormalPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTintNormalForPersistent;
   FTintNormalPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTintNormalForPersistent;
   FTintNormalPersistent.InternalDefaultValue := TintNormal; // current value is default
@@ -299,6 +323,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCustomTextColorPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FCustomTextColorPersistent.SetSubComponent(true);
   FCustomTextColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCustomTextColorForPersistent;
   FCustomTextColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCustomTextColorForPersistent;
   FCustomTextColorPersistent.InternalDefaultValue := CustomTextColor; // current value is default
@@ -361,6 +391,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCustomColorPressedPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FCustomColorPressedPersistent.SetSubComponent(true);
   FCustomColorPressedPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCustomColorPressedForPersistent;
   FCustomColorPressedPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCustomColorPressedForPersistent;
   FCustomColorPressedPersistent.InternalDefaultValue := CustomColorPressed; // current value is default
@@ -423,6 +459,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCustomColorDisabledPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FCustomColorDisabledPersistent.SetSubComponent(true);
   FCustomColorDisabledPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCustomColorDisabledForPersistent;
   FCustomColorDisabledPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCustomColorDisabledForPersistent;
   FCustomColorDisabledPersistent.InternalDefaultValue := CustomColorDisabled; // current value is default
@@ -485,6 +527,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCustomColorFocusedPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FCustomColorFocusedPersistent.SetSubComponent(true);
   FCustomColorFocusedPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCustomColorFocusedForPersistent;
   FCustomColorFocusedPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCustomColorFocusedForPersistent;
   FCustomColorFocusedPersistent.InternalDefaultValue := CustomColorFocused; // current value is default
@@ -547,6 +595,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCustomColorNormalPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FCustomColorNormalPersistent.SetSubComponent(true);
   FCustomColorNormalPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCustomColorNormalForPersistent;
   FCustomColorNormalPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCustomColorNormalForPersistent;
   FCustomColorNormalPersistent.InternalDefaultValue := CustomColorNormal; // current value is default

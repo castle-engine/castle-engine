@@ -51,6 +51,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FCenterPersistent := TCastleVector3Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FCenterPersistent.SetSubComponent(true);
   FCenterPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCenterForPersistent;
   FCenterPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCenterForPersistent;
   FCenterPersistent.InternalDefaultValue := Center; // current value is default
@@ -113,6 +119,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FRotationPersistent := TCastleVector4RotationPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FRotationPersistent.SetSubComponent(true);
   FRotationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRotationForPersistent;
   FRotationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRotationForPersistent;
   FRotationPersistent.InternalDefaultValue := Rotation; // current value is default
@@ -175,6 +187,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FScalePersistent := TCastleVector3Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FScalePersistent.SetSubComponent(true);
   FScalePersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetScaleForPersistent;
   FScalePersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetScaleForPersistent;
   FScalePersistent.InternalDefaultValue := Scale; // current value is default
@@ -237,6 +255,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FScaleOrientationPersistent := TCastleVector4Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FScaleOrientationPersistent.SetSubComponent(true);
   FScaleOrientationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetScaleOrientationForPersistent;
   FScaleOrientationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetScaleOrientationForPersistent;
   FScaleOrientationPersistent.InternalDefaultValue := ScaleOrientation; // current value is default
@@ -299,6 +323,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTranslationPersistent := TCastleVector3Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FTranslationPersistent.SetSubComponent(true);
   FTranslationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTranslationForPersistent;
   FTranslationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTranslationForPersistent;
   FTranslationPersistent.InternalDefaultValue := Translation; // current value is default
@@ -361,6 +391,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FDirectionPersistent := TCastleVector3Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FDirectionPersistent.SetSubComponent(true);
   FDirectionPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetDirectionForPersistent;
   FDirectionPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetDirectionForPersistent;
   FDirectionPersistent.InternalDefaultValue := Direction; // current value is default
@@ -423,6 +459,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FUpPersistent := TCastleVector3Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FUpPersistent.SetSubComponent(true);
   FUpPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetUpForPersistent;
   FUpPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetUpForPersistent;
   FUpPersistent.InternalDefaultValue := Up; // current value is default

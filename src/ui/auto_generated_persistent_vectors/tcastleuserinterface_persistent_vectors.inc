@@ -51,6 +51,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FBorderColorPersistent := TCastleColorPersistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FBorderColorPersistent.SetSubComponent(true);
   FBorderColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetBorderColorForPersistent;
   FBorderColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetBorderColorForPersistent;
   FBorderColorPersistent.InternalDefaultValue := BorderColor; // current value is default
@@ -113,6 +119,12 @@ end;
 
 {$ifdef read_implementation_constructor}
   FTranslationPersistent := TCastleVector2Persistent.Create;
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FTranslationPersistent.SetSubComponent(true);
   FTranslationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTranslationForPersistent;
   FTranslationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTranslationForPersistent;
   FTranslationPersistent.InternalDefaultValue := Translation; // current value is default
