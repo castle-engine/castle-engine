@@ -27,7 +27,7 @@ uses
   castlecontrols, CastleRectangles, CastleLCLUtils, CastleGLUtils, CastleColors;
 
 type
-  TDesignMode = (ModeRegion, ModeBorder);
+  TDesignMode = (dmRegion, dmBorder);
 
   TRegionDesignDialog = class(TForm)
     ButtonPanel1: TButtonPanel;
@@ -84,8 +84,8 @@ type
     function ScreenAdditionalPoints: TArrayScreenPoints;
 
     procedure SetImage(const AImage: TDrawableImage);
-    function ImageWidth(): cardinal;
-    function ImageHeight(): cardinal;
+    function ImageWidth: Cardinal;
+    function ImageHeight: Cardinal;
 
     { Restrict the region within the image rectangle. }
     procedure FixControlPoints;
@@ -107,7 +107,6 @@ type
 
     property Image: TDrawableImage read FImage write SetImage;
   public
-
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure ApplyChange;
@@ -145,7 +144,6 @@ begin
     Result[0] := Vector2Integer(Points[1].X, Points[0].Y);
     Result[1] := Vector2Integer(Points[0].X, Points[1].Y);
   end;
-
 end;
 
 { TRegionDesignDialog }
@@ -183,7 +181,7 @@ begin
 
   FSourceRegion := TFloatRectangle.Empty;
   FRegion := ARegion;
-  FDesignMode := TDesignMode.ModeRegion;
+  FDesignMode := dmRegion;
 
   InitControlPoints;
 end;
@@ -196,7 +194,7 @@ begin
   FBorder := ABorder;
   FSourceRegion := ASourceRegion;
   FRegion := RegionFromBorder(FBorder);
-  FDesignMode := TDesignMode.ModeBorder;
+  FDesignMode := dmBorder;
 
   InitControlPoints;
 end;
@@ -327,40 +325,42 @@ procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
     vRect := ScreenRegionRectangle;
 
     case FDesignMode of
-      TDesignMode.ModeRegion:
-      begin
-        DrawRectangle(vRect,
-          FillColor);
-        DrawRectangleOutline(vRect,
-          LineColor, LineWidth);
-        RenderPoints(ScreenRegionPoints);
-        RenderPoints(ScreenAdditionalPoints);
-      end;
-      TDesignMode.ModeBorder:
-      begin
-        vImageRegionRect := ImageRegionRectangle;
+      dmRegion:
+        begin
+          DrawRectangle(vRect,
+            FillColor);
+          DrawRectangleOutline(vRect,
+            LineColor, LineWidth);
+          RenderPoints(ScreenRegionPoints);
+          RenderPoints(ScreenAdditionalPoints);
+        end;
+      dmBorder:
+        begin
+          vImageRegionRect := ImageRegionRectangle;
 
-        Points[0] := Vector2Integer(vImageRegionRect.Left, 0);
-        Points[1] := Vector2Integer(vImageRegionRect.Left, ImageHeight);
-        RenderLine(Points, LineColor, LineWidth);
+          Points[0] := Vector2Integer(vImageRegionRect.Left, 0);
+          Points[1] := Vector2Integer(vImageRegionRect.Left, ImageHeight);
+          RenderLine(Points, LineColor, LineWidth);
 
-        Points[0] := Vector2Integer(vImageRegionRect.Right, 0);
-        Points[1] := Vector2Integer(vImageRegionRect.Right, ImageHeight);
-        RenderLine(Points, LineColor, LineWidth);
+          Points[0] := Vector2Integer(vImageRegionRect.Right, 0);
+          Points[1] := Vector2Integer(vImageRegionRect.Right, ImageHeight);
+          RenderLine(Points, LineColor, LineWidth);
 
-        Points[0] := Vector2Integer(0, vImageRegionRect.Bottom);
-        Points[1] := Vector2Integer(ImageWidth, vImageRegionRect.Bottom);
-        RenderLine(Points, LineColor, LineWidth);
+          Points[0] := Vector2Integer(0, vImageRegionRect.Bottom);
+          Points[1] := Vector2Integer(ImageWidth, vImageRegionRect.Bottom);
+          RenderLine(Points, LineColor, LineWidth);
 
-        Points[0] := Vector2Integer(0, vImageRegionRect.Top);
-        Points[1] := Vector2Integer(ImageWidth, vImageRegionRect.Top);
-        RenderLine(Points, LineColor, LineWidth);
+          Points[0] := Vector2Integer(0, vImageRegionRect.Top);
+          Points[1] := Vector2Integer(ImageWidth, vImageRegionRect.Top);
+          RenderLine(Points, LineColor, LineWidth);
 
-        RenderPoints(ScreenRegionPoints);
-        RenderPoints(ScreenAdditionalPoints);
-      end;
+          RenderPoints(ScreenRegionPoints);
+          RenderPoints(ScreenAdditionalPoints);
+        end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('FDesignMode?');
+      {$endif}
     end;
-
   end;
 
 begin
@@ -381,8 +381,6 @@ begin
       255, byte(ColorDialog1.Color shr 16) / 255, 1);
 end;
 
-
-
 function TRegionDesignDialog.HitTest(const AControlPoint: TVector2Integer;
   const AMousePoint: TVector2): TDirectionEnables;
 var
@@ -392,25 +390,27 @@ begin
   Result := [];
 
   case FDesignMode of
-    TDesignMode.ModeRegion:
-    begin
-      rc := ScreenRegionRectangle;
-      rc := rc.Grow(CircleRads);
-    end;
-    TDesignMode.ModeBorder:
-    begin
-      rc := ScreenImageFullRectangle;
-      rc := rc.Grow(CircleRads);
-    end;
+    dmRegion:
+      begin
+        rc := ScreenRegionRectangle;
+        rc := rc.Grow(CircleRads);
+      end;
+    dmBorder:
+      begin
+        rc := ScreenImageFullRectangle;
+        rc := rc.Grow(CircleRads);
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('FDesignMode?');
+    {$endif}
   end;
 
   if not rc.Contains(AMousePoint) then Exit;
 
   pt := ImageToScreen(AControlPoint);
 
-  if ABS(pt.X - AMousePoint.X) < CircleRads then Include(Result, EnableX);
-  if ABS(pt.Y - AMousePoint.Y) < CircleRads then Include(Result, EnableY);
-
+  if Abs(pt.X - AMousePoint.X) < CircleRads then Include(Result, EnableX);
+  if Abs(pt.Y - AMousePoint.Y) < CircleRads then Include(Result, EnableY);
 end;
 
 function TRegionDesignDialog.GetDirectionEnables(
@@ -552,7 +552,7 @@ begin
     FMovingImageRec.Moving := True;
   end;
 
-  { MouseWheel. }
+  { Mouse wheel. }
 
   if (Event.EventType = TInputPressReleaseType.itMouseWheel) then
   begin
@@ -670,8 +670,7 @@ begin
       TVector2Integer.Zero;
     FControlPointRec.Points[1] :=
       Vector2Integer(ImageWidth, ImageHeight);
-  end
-  else
+  end else
   begin
     FControlPointRec.Points[0] :=
       Vector2Integer(Floor(FRegion.Left), Floor(FRegion.Bottom));
@@ -706,16 +705,18 @@ begin
   FImage.Load(AImage.Image);
 end;
 
-function TRegionDesignDialog.ImageWidth(): cardinal;
+function TRegionDesignDialog.ImageWidth: Cardinal;
 begin
-  if FSourceRegion.IsEmpty then  Result := FImage.Width
+  if FSourceRegion.IsEmpty then
+    Result := FImage.Width
   else
     Result := Floor(FSourceRegion.Width);
 end;
 
-function TRegionDesignDialog.ImageHeight(): cardinal;
+function TRegionDesignDialog.ImageHeight: Cardinal;
 begin
-  if FSourceRegion.IsEmpty then  Result := FImage.Height
+  if FSourceRegion.IsEmpty then
+    Result := FImage.Height
   else
     Result := Floor(FSourceRegion.Height);
 end;
@@ -729,7 +730,7 @@ begin
     Format('Bottom: %d', [Min(FControlPointRec.Points[0].Y,
     FControlPointRec.Points[1].Y)]);
 
-  if FDesignMode = TDesignMode.ModeRegion then
+  if FDesignMode = dmRegion then
   begin
     StatusBar1.Panels.Items[2].Text :=
       Format('Width: %d', [Abs(FControlPointRec.Points[0].X -

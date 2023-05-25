@@ -94,12 +94,8 @@ begin
     else
     begin
       D.Caption := 'Edit Border';
-      if ImagePersistent.Clipped then
-        D.Load(ImagePersistent.DrawableImage, ImagePersistent.Region,
-          ImagePersistent.ProtectedSides)
-      else
-        D.Load(ImagePersistent.DrawableImage, TFloatRectangle.Empty,
-          ImagePersistent.ProtectedSides);
+      D.Load(ImagePersistent.DrawableImage, ImagePersistent.Region,
+        ImagePersistent.ProtectedSides);
     end;
 
     if D.ShowModal = mrOk then
@@ -107,10 +103,13 @@ begin
       D.ApplyChange;
 
       case D.DesignMode of
-        TDesignMode.ModeRegion:
+        dmRegion:
           ImagePersistent.Region := D.Region;
-        TDesignMode.ModeBorder:
+        dmBorder:
           D.ApplyToBorder(ImagePersistent.ProtectedSides);
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('D.DesignMode?');
+        {$endif}
       end;
 
       Modified('');

@@ -63,7 +63,6 @@
     function GetCache: Boolean;
     function GetProtectedSides: TBorder;
     function GetRegion: TFloatRectangle;
-    function GetRegionEnabled: Boolean;
     procedure SetURL(const Value: String);
     procedure SetDrawableImage(const Value: TDrawableImage);
     procedure SetOwnsDrawableImage(const Value: Boolean);
@@ -76,7 +75,6 @@
     procedure SetClip(const Value: boolean);
     procedure SetClipLine(const Value: TVector3);
     procedure SetRegion(const Value: TFloatRectangle);
-    procedure SetRegionEnabled(const Value: Boolean);
     procedure SetCustomShader(const Value: TGLSLProgram);
     procedure SetFlipVertical(const Value: Boolean);
     procedure SetFlipHorizontal(const Value: Boolean);
@@ -349,8 +347,6 @@
       @seealso TCastleImagePersistent.ProtectedSides }
     property ProtectedSides: TBorder read GetProtectedSides stored false;
 
-    property RegionEnabled: Boolean read GetRegionEnabled write SetRegionEnabled stored false;
-
     { Set this to auto-detect that image is scaled compared to it's desired size.
       This detects URL endings like 'xxx@2x.png', and we will automatically adjust
       to it (the size determined by AutoSize will be actually 2x smaller than
@@ -410,11 +406,6 @@ begin
   Result := FContent.Region;
 end;
 
-function TCastleImageControl.GetRegionEnabled: Boolean;
-begin
-  Result := FContent.RegionEnabled;
-end;
-
 function TCastleImageControl.GetSmoothScaling: Boolean;
 begin
   Result := FContent.SmoothScaling;
@@ -448,11 +439,6 @@ end;
 procedure TCastleImageControl.SetRegion(const Value: TFloatRectangle);
 begin
   FContent.Region := Value;
-end;
-
-procedure TCastleImageControl.SetRegionEnabled(const Value: Boolean);
-begin
-  FContent.RegionEnabled := Value;
 end;
 
 function TCastleImageControl.GetRotation: Single;
@@ -733,10 +719,11 @@ end;
 function TCastleImageControl.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if ArrayContainsString(PropertyName, ['URL', 'Stretch', 'ProptionalScaling'
-    , 'ColPersistent', 'SmoothScaling', 'AlphaChannel', 'FlipHizontal'
-    , 'FlipVertical', 'ProtectedSides', 'RegionPersistent', 'RegionEnabled'
-    , 'Rotation']) then
+  if ArrayContainsString(PropertyName, ['URL', 'Stretch', 'ProptionalScaling',
+      'ColPersistent', 'SmoothScaling', 'AlphaChannel', 'FlipHizontal',
+      'FlipVertical', 'ProtectedSides', 'RegionPersistent',
+      'Rotation'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
