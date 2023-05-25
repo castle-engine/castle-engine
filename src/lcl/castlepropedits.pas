@@ -140,11 +140,12 @@ begin
   RegisterPropertyEditor(TypeInfo(Single), TCastleVector4RotationPersistent, 'W',
     TCastleFloatRotationPropertyEditor);
 
-  { Register before registering for TBorder and any name
-    (not tested if it's really necessary). }
+  { Handle using TCastleRegionEditor.
+    Note: TBorder rule with 'ProtectedSides' name is registered
+    before registering for TBorder with any name below.
+    (Not tested if it's really necessary, but seems safer). }
   RegisterPropertyEditor(TypeInfo(TBorder), nil, 'ProtectedSides',
     TCastleRegionEditor);
-
   RegisterPropertyEditor(TypeInfo(TFloatRectanglePersistent), nil, 'RegionPersistent',
     TCastleRegionEditor);
 
@@ -155,7 +156,7 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleRootTransform), TCastleViewport, 'Items',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
-    TCastleRegionEditor);
+    TSubPropertiesEditor);
 
   { Other properties }
   RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
