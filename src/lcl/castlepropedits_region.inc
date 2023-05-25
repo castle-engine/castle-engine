@@ -1,3 +1,4 @@
+{%MainUnit castlepropedits.pas}
 {
   Copyright 2023 Freedomax.
 
@@ -12,13 +13,13 @@
 
   ----------------------------------------------------------------------------
 }
-  {%MainUnit castlepropedits.pas}
 
-  { Region editor. }
+{ Region editor. }
 
-  { TCastleRegionEditor ------------------------------------------------- }
+{ TCastleRegionEditor ------------------------------------------------- }
 
 type
+  { Edit either TFloatRectanglePersistent or TBorder (when used for 9-slices). }
   TCastleRegionEditor = class(TSubPropertiesEditor)
   public
     function GetName: shortstring; override;
@@ -39,12 +40,12 @@ var
   VName: String;
 begin
   VName := GetName;
-  if VName = 'Region' then  
+  if VName = 'Region' then
     VClassName := 'TRegion'
   else
     VClassName := GetPropInfo^.PropType^.Name;
   Result := '(' + SuffixRemove('persistent', VClassName, True) + ')';
-  if VName = 'ProtectedSides' then  
+  if VName = 'ProtectedSides' then
     Result := Result + ' (9-slice scaling)';
 end;
 
@@ -65,7 +66,7 @@ begin
   Comp := GetComponent(0);
   if (Comp is TCastleImagePersistent) then
     ImagePersistent := Comp as TCastleImagePersistent
-  else 
+  else
   if (Comp is TCastleImageControl) then
     ImagePersistent := (Comp as TCastleImageControl).Content;
 
