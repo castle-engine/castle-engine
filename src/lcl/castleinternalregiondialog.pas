@@ -327,10 +327,8 @@ procedure TRegionDesignDialog.CastleControl1Render(Sender: TObject);
     case FDesignMode of
       dmRegion:
         begin
-          DrawRectangle(vRect,
-            FillColor);
-          DrawRectangleOutline(vRect,
-            LineColor, LineWidth);
+          DrawRectangle(vRect,FillColor);
+          DrawRectangleOutline(vRect, LineColor, LineWidth);
           RenderPoints(ScreenRegionPoints);
           RenderPoints(ScreenAdditionalPoints);
         end;
@@ -377,8 +375,7 @@ procedure TRegionDesignDialog.HelpButtonClick(Sender: TObject);
 begin
   if ColorDialog1.Execute then
     CastleControl1.Container.BackgroundColor :=
-      Vector4(byte(ColorDialog1.Color) / 255, byte(ColorDialog1.Color shr 8) /
-      255, byte(ColorDialog1.Color shr 16) / 255, 1);
+      Vector4(ColorToVector3(ColorDialog1.Color), 1);
 end;
 
 function TRegionDesignDialog.HitTest(const AControlPoint: TVector2Integer;
