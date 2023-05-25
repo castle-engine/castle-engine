@@ -50,7 +50,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  F${PROPERTY_NAME}Persistent := ${PERSISTENT_PROPERTY_CLASS}.Create;
+  F${PROPERTY_NAME}Persistent := ${PERSISTENT_PROPERTY_CLASS}.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  F${PROPERTY_NAME}Persistent.SetSubComponent(true);
   F${PROPERTY_NAME}Persistent.InternalGetValue := {$ifdef FPC}@{$endif}Get${PROPERTY_NAME}ForPersistent;
   F${PROPERTY_NAME}Persistent.InternalSetValue := {$ifdef FPC}@{$endif}Set${PROPERTY_NAME}ForPersistent;
   F${PROPERTY_NAME}Persistent.InternalDefaultValue := ${PROPERTY_NAME}; // current value is default

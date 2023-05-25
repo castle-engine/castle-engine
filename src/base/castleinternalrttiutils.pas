@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,32 +27,56 @@ function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo;
   out Name, Value: String): Boolean;
 
 { Does the property have a default value now.
-  TThis is 100% reliable to use to avoid serializing things that have default value.
+  This is 100% reliable to use to avoid serializing things that have default value.
   Their state is equal to the state when object is created.
+
+  Note that this is not a complete check to determine
+  should the property be serialized or not.
+  You should also check @code(IsStoredProp(PropObject, PropInfo))
+  in case the property has a "stored" method.
+  IsStoredProp works in all cases (whether "stored" indicates a constant,
+  field or some method) and it is @true if there was no "stored" value.
+  So the full check is
+
+  @longCode(#
+    PropertyHasDefaultValue(PropObject, PropInfo) and
+    IsStoredProp(PropObject, PropInfo)
+  #)
 
   @param(TreatSubComponentAsDefault
     Determines how to treat subcomponents,
-    i.e. instances with csSubComponent placed in properties,
-    (with the exception of some special subcomponents with HasDefaultValue
-    methods, like TCastleVectorXxPersistent).
+    i.e. instances with csSubComponent placed in properties
+    (with the exception of subcomponents with
+    TCastleComponent.ValueIsStreamed overridden, like TCastleVectorXxPersistent).
 
     The idea of subcomponent is that these subcomponents are automatically
     created and owned by parent. So their existence is by definition
     "default state". But their contents may have
     been modified compared to a default state.
 
-    By default (when TreatSubComponentAsDefault is @false) we return @false for such subcomponents.
+    By default (when TreatSubComponentAsDefault is @false)
+    we return @false for such subcomponents.
+    In case of TCastleComponent, this means we return "not PropObject.ValueIsStreamed".
     This is safer and better for serialization system:
     serialization should store the contents of such subcomponent.
 
     When TreatSubComponentAsDefault is @true,
     we return @true for them. Even though their contents may be non-default.
-    This is useful for object inspector that may display subcomponents expanded,
+    This is useful for object inspector display,
+    that may display subcomponents expanded,
     so particular subcomponent's non-default properties would be emphasized anyway.
 
-    Note that TreatSubComponentAsDefault doesn't matter for behavior on
-    special subcomponents with HasDefaultValue
-    methods, like TCastleVectorXxPersistent.
+    Note: LCL object inspector avoids the need for this by
+    implementing TClassPropertyEditor.ValueIsStreamed that scans
+    all property editors in the property of subcomponent.
+
+    Note that TreatSubComponentAsDefault doesn't matter
+    when PropObject is TCastleComponent with
+    TCastleComponent.ValueIsStreamed overridden.
+    In this case we always return "not PropObject.ValueIsStreamed",
+    regardless of TreatSubComponentAsDefault value.
+    This means TreatSubComponentAsDefault doesn't affect display
+    of components like TCastleVectorXxPersistent.
   ) }
 function PropertyHasDefaultValue(const PropObject: TObject;
   const PropInfo: PPropInfo; const TreatSubComponentAsDefault: Boolean = false): Boolean;
@@ -60,12 +84,38 @@ function PropertyHasDefaultValue(const PropObject: TObject;
 implementation
 
 uses SysUtils, RtlConsts, Classes,
-  CastleUtils, CastleVectors, CastleStringUtils, CastleColors;
+  CastleUtils, CastleStringUtils, CastleClassUtils;
 
 {$ifndef FPC}
 resourcestring
   SErrNoVariantSupport = 'No variant support for properties. Please use the variants unit in your project and recompile';
 {$endif}
+
+var
+  InternalComponent: TCastleComponent;
+
+{ C is TCastleComponent and it overridden TCastleComponent.ValueIsStreamed.
+
+  Note: In general checking for such "is this method overridden" is dirty,
+  as not expected by developers. But in this case it's used only for internal
+  functionality in this unit, and only for display of properties
+  in CGE inspector.
+
+  For now this is OK. }
+function CustomizedValueIsStreamed(const C: TObject): Boolean;
+type
+  TValueIsStreamed = function: Boolean of object;
+var
+  CurMethod, NotOverriddedMethod: TValueIsStreamed;
+begin
+  Result := false;
+  if C is TCastleComponent then
+  begin
+    CurMethod := {$ifdef FPC}@{$endif} TCastleComponent(C).ValueIsStreamed;
+    NotOverriddedMethod := {$ifdef FPC}@{$endif} InternalComponent.ValueIsStreamed;
+    Result := TMethod(CurMethod).Code <> TMethod(NotOverriddedMethod).Code;
+  end;
+end;
 
 function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo; out Name, Value: String): Boolean;
 
@@ -74,29 +124,13 @@ function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo; out N
     if O = nil then
       Result := 'nil'
     else
-    if O is TCastleVector2Persistent then
+    if CustomizedValueIsStreamed(O) then
     begin
-      Result := TCastleVector2Persistent(O).Value.ToString;
-      Name := SuffixRemove('persistent', Name, true);
-    end else
-    if O is TCastleVector3Persistent then
-    begin
-      Result := TCastleVector3Persistent(O).Value.ToString;
-      Name := SuffixRemove('persistent', Name, true);
-    end else
-    if O is TCastleVector4Persistent then
-    begin
-      Result := TCastleVector4Persistent(O).Value.ToString;
-      Name := SuffixRemove('persistent', Name, true);
-    end else
-    if O is TCastleColorPersistent then
-    begin
-      Result := TCastleColorPersistent(O).Value.ToString;
-      Name := SuffixRemove('persistent', Name, true);
-    end else
-    if O is TCastleColorRGBPersistent then
-    begin
-      Result := TCastleColorRGBPersistent(O).Value.ToString;
+      { We rely here on conventions about objects that implement ValueIsStreamed:
+        - Their Name may end with "Persistent" suffix which we want to hide,
+          to show in inspector e.g. 'Translation' instead of 'TranslationPersistent'.
+        - They implement ToString to show something useful. }
+      Result := O.ToString;
       Name := SuffixRemove('persistent', Name, true);
     end else
     if O is TComponent then
@@ -252,38 +286,20 @@ begin
           (C = nil) or
           (
             { When TreatSubComponentAsDefault:
-              Treat subcomponents (except the ones implementing HasDefaultValue)
+              Treat subcomponents
+              (except the ones overriding TCastleComponent.ValueIsStreamed)
               as having "default value", without analyzing the contents. }
             TreatSubComponentAsDefault and
             (C is TComponent) and
             (csSubComponent in TComponent(C).ComponentStyle) and
-            (C.ClassType <> TCastleVector2Persistent) and
-            (C.ClassType <> TCastleVector3Persistent) and
-            (C.ClassType <> TCastleVector4Persistent) and
-            (C.ClassType <> TCastleColorRGBPersistent) and
-            (C.ClassType <> TCastleColorPersistent) and
-            (C.ClassType <> TBorder)
+            (not CustomizedValueIsStreamed(C))
           ) or
           (
             { Avoid saving common subcomponents with all values left as default.
               This makes .castle-user-interface files smaller, which makes also their
-              diffs easier to read (useful when commiting them, reviewing etc.)
-
-              The TCastleVector*Persistent and TBorder do not descend from TComponent
-              so we cannot actually check are they subcomponents:
-
-                (C is TComponent) and
-                (csSubComponent in TComponent(C).ComponentStyle) and
-
-              TODO: no longer true for TCastleVector*Persistent.
-            }
-            ((C.ClassType = TCastleVector2Persistent) and TCastleVector2Persistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleVector3Persistent) and TCastleVector3Persistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleVector4Persistent) and TCastleVector4Persistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleVector4RotationPersistent) and TCastleVector4RotationPersistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleColorRGBPersistent) and TCastleColorRGBPersistent(C).HasDefaultValue) or
-            ((C.ClassType = TCastleColorPersistent) and TCastleColorPersistent(C).HasDefaultValue) or
-            ((C.ClassType = TBorder) and TBorder(C).HasDefaultValue)
+              diffs easier to read (useful when commiting them, reviewing etc.) }
+            (C is TCastleComponent) and
+            (not TCastleComponent(C).ValueIsStreamed)
           );
       end;
     tkInt64{$ifdef FPC}, tkQWord{$endif}:
@@ -302,4 +318,8 @@ begin
   end;
 end;
 
+initialization
+  InternalComponent := TCastleComponent.Create(nil);
+finalization
+  FreeAndNil(InternalComponent);
 end.

@@ -44,9 +44,9 @@ begin
     AssertFalse(PropertyHasDefaultValue(Cam, GetPropInfo(Cam, 'ProjectionNear')));
     AssertTrue(PropertyHasDefaultValue(Cam, GetPropInfo(Cam, 'ProjectionFar')));
 
-    AssertTrue(Cam.TranslationPersistent.HasDefaultValue);
+    AssertFalse(Cam.TranslationPersistent.ValueIsStreamed);
     Cam.Translation := Vector3(10, 0, 0);
-    AssertFalse(Cam.TranslationPersistent.HasDefaultValue);
+    AssertTrue(Cam.TranslationPersistent.ValueIsStreamed);
 
     { vector components have no defaults (not even 0 is considered default),
       they are decided using IsStoredProp. }

@@ -136,7 +136,7 @@ var
   ColorPersistent: TCastleColorPersistent;
 begin
   ColorPersistent := (GetObjectValue as TCastleColorPersistent);
-  Result := not ColorPersistent.HasDefaultValue;
+  Result := ColorPersistent.ValueIsStreamed;
 end;
 
 function TCastleColorPropertyEditor.AllEqual: Boolean;
@@ -264,7 +264,7 @@ var
   ColorPersistent: TCastleColorRGBPersistent;
 begin
   ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
-  Result := not ColorPersistent.HasDefaultValue;
+  Result := ColorPersistent.ValueIsStreamed;
 end;
 
 function TCastleColorRGBPropertyEditor.AllEqual: Boolean;

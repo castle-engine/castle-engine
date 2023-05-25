@@ -50,7 +50,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FAvatarTargetPersistent := TCastleVector3Persistent.Create;
+  FAvatarTargetPersistent := TCastleVector3Persistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FAvatarTargetPersistent.SetSubComponent(true);
   FAvatarTargetPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAvatarTargetForPersistent;
   FAvatarTargetPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAvatarTargetForPersistent;
   FAvatarTargetPersistent.InternalDefaultValue := AvatarTarget; // current value is default

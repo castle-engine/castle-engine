@@ -50,7 +50,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FDirectionPersistent := TCastleVector3Persistent.Create;
+  FDirectionPersistent := TCastleVector3Persistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FDirectionPersistent.SetSubComponent(true);
   FDirectionPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetDirectionForPersistent;
   FDirectionPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetDirectionForPersistent;
   FDirectionPersistent.InternalDefaultValue := Direction; // current value is default

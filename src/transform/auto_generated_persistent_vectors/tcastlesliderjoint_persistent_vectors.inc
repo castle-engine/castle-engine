@@ -50,7 +50,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FWorldAnchorPersistent := TCastleVector3Persistent.Create;
+  FWorldAnchorPersistent := TCastleVector3Persistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FWorldAnchorPersistent.SetSubComponent(true);
   FWorldAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWorldAnchorForPersistent;
   FWorldAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWorldAnchorForPersistent;
   FWorldAnchorPersistent.InternalDefaultValue := WorldAnchor; // current value is default
@@ -112,7 +118,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FWorldSliderAxisPersistent := TCastleVector3Persistent.Create;
+  FWorldSliderAxisPersistent := TCastleVector3Persistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FWorldSliderAxisPersistent.SetSubComponent(true);
   FWorldSliderAxisPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWorldSliderAxisForPersistent;
   FWorldSliderAxisPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWorldSliderAxisForPersistent;
   FWorldSliderAxisPersistent.InternalDefaultValue := WorldSliderAxis; // current value is default
