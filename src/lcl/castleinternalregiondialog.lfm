@@ -1,24 +1,25 @@
 object RegionDesignDialog: TRegionDesignDialog
-  Left = 713
-  Height = 638
-  Top = 316
-  Width = 1024
+  Left = 444
+  Height = 798
+  Top = 108
+  Width = 1280
   Caption = 'Edit Region To Show'
-  ClientHeight = 638
-  ClientWidth = 1024
+  ClientHeight = 798
+  ClientWidth = 1280
+  DesignTimePPI = 120
   OnCreate = FormCreate
   Position = poMainFormCenter
-  LCLVersion = '2.3.0.0'
+  LCLVersion = '2.2.2.0'
   object ButtonPanel1: TButtonPanel
-    Left = 7
-    Height = 35
-    Top = 574
-    Width = 1010
-    BorderSpacing.Around = 7
+    Left = 9
+    Height = 38
+    Top = 727
+    Width = 1262
+    BorderSpacing.Around = 9
     OKButton.Name = 'OKButton'
     OKButton.DefaultCaption = True
     HelpButton.Name = 'HelpButton'
-    HelpButton.Caption = '&bgcolor'
+    HelpButton.Caption = '&Background Color'
     HelpButton.OnClick = HelpButtonClick
     CloseButton.Name = 'CloseButton'
     CloseButton.DefaultCaption = True
@@ -27,12 +28,13 @@ object RegionDesignDialog: TRegionDesignDialog
     TabOrder = 0
     ShowButtons = [pbOK, pbCancel, pbHelp]
     ShowGlyphs = [pbOK, pbCancel, pbClose]
+    ShowBevel = False
   end
   object CastleControl1: TCastleControl
     Left = 0
-    Height = 567
+    Height = 718
     Top = 0
-    Width = 1024
+    Width = 1280
     Align = alClient
     Options = []
     TabOrder = 1
@@ -43,29 +45,29 @@ object RegionDesignDialog: TRegionDesignDialog
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Height = 22
-    Top = 616
-    Width = 1024
+    Height = 24
+    Top = 774
+    Width = 1280
     Panels = <    
       item
         Text = 'Left '
-        Width = 90
+        Width = 112
       end    
       item
         Text = 'Bottom '
-        Width = 90
+        Width = 112
       end    
       item
         Text = 'Width '
-        Width = 90
+        Width = 112
       end    
       item
         Text = 'Height '
-        Width = 90
+        Width = 112
       end    
       item
         Text = 'CursorPos '
-        Width = 200
+        Width = 250
       end>
     SimplePanel = False
   end
@@ -94,7 +96,7 @@ object RegionDesignDialog: TRegionDesignDialog
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    Left = 152
-    Top = 128
+    Left = 190
+    Top = 160
   end
 end
