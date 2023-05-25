@@ -721,9 +721,12 @@ procedure TCastleImagePersistent.Draw(
     ], Vector4(1, 1, 0, 0.5));
   end;
 
-  function ImageRect():TFloatRectangle;
+  function ImageRect: TFloatRectangle;
   begin
-    if Clipped then Result := FRegion else Result := FloatRectangle(0, 0, FDrawableImage.Width, FDrawableImage.Height);
+    if Clipped then
+      Result := FRegion
+    else
+      Result := FloatRectangle(FDrawableImage.Rect);
   end;
 
 var
