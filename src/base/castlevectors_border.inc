@@ -33,6 +33,9 @@ type
     OnChange: TNotifyEvent;
 
     procedure Assign(Source: TPersistent); override;
+    function ValueIsStreamed: Boolean; override;
+    function ToString: String; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Total top border (Top + AllSides). }
     function TotalTop: Single;
@@ -50,9 +53,6 @@ type
 
     { Anything not zero? }
     function Exists: Boolean;
-
-    function ValueIsStreamed: Boolean; override;
-    function ToString: String; override;
   published
     property Top: Single      read FTop      write SetTop      {$ifdef FPC} default 0 {$endif};
     property Right: Single    read FRight    write SetRight    {$ifdef FPC} default 0 {$endif};
@@ -179,6 +179,16 @@ begin
     FAllSides + FLeft
   );
   Result := V.ToString;
+end;
+
+function TBorder.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+      'Left', 'Bottom', 'Top', 'Right', 'AllSides'
+    ]) then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}
