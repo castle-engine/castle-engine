@@ -236,12 +236,13 @@
       (colors, or maybe even image size) you need to call this. }
     procedure ImageChanged;
 
-    { Value that have been cut by Region }
+    { Width of drawn image. This is like DrawableImage.Width, but limited by Region. }
     function Width: Cardinal;
 
-    { Value that have been cut by Region }
+    { Height of drawn image. This is like DrawableImage.Height, but limited by Region. }
     function Height: Cardinal;
 
+    { Are both @link(Width) and @link(Height) equal to zero. }
     function Empty: Boolean;
 
     { Draw the image in given screen area. }

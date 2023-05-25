@@ -47,9 +47,11 @@ uses // FPC and LCL units
   // CGE units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
-  CastleVectors, CastleRectangles, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
+  CastleVectors, CastleRectangles, CastleUtils, CastleColors, CastleViewport,
+  CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
-  CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,CastleInternalRegionDialog,
+  CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,
+  CastleInternalRegionDialog,
   CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
   CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
