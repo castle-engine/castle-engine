@@ -41,7 +41,7 @@ var
 begin
   VName := GetName;
   if VName = 'Region' then
-    VClassName := 'TRegion'
+    VClassName := 'TFloatRectangle'
   else
     VClassName := GetPropInfo^.PropType^.Name;
   Result := '(' + SuffixRemove('persistent', VClassName, True) + ')';

@@ -96,7 +96,7 @@
 
     { Parameters used in Draw. }
     FProtectedSides: TBorder;
-    FRegion: TRegion;
+    FRegion: TFloatRectangle;
     FRegionEnabled :Boolean;
     FFlipHorizontal: Boolean;
     FFlipVertical: Boolean;
@@ -106,7 +106,7 @@
     function GetOwnsImage: boolean;
     procedure SetOwnsImage(const Value: boolean);
     procedure SetCache(const Value: Boolean);
-    procedure SetRegion(const AValue: TRegion);
+    procedure SetRegion(const AValue: TFloatRectangle);
     procedure SetRegionEnabled(const AValue: Boolean);
     procedure SetScaleProtectedSides(const AValue: Single);
     procedure SetURL(const Value: string);
@@ -229,7 +229,7 @@
 
     { Image region to which we should limit the display.
       Empty (following @link(TFloatRectangle.Empty)) means using the whole image. }
-    property Region: TRegion read FRegion write SetRegion;
+    property Region: TFloatRectangle read FRegion write SetRegion;
 
     property InternalVisualizeProtectedSides: Boolean
       read FInternalVisualizeProtectedSides write FInternalVisualizeProtectedSides default true;
@@ -521,7 +521,7 @@ begin
   end;
 end;
 
-procedure TCastleImagePersistent.SetRegion(const AValue: TRegion);
+procedure TCastleImagePersistent.SetRegion(const AValue: TFloatRectangle);
 begin
   if not FRegion.PerfectlyEquals(AValue) then
   begin

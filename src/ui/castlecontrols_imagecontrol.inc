@@ -62,7 +62,7 @@
     function GetSmoothScaling: Boolean;
     function GetCache: Boolean;
     function GetProtectedSides: TBorder;
-    function GetRegion: TRegion;
+    function GetRegion: TFloatRectangle;
     function GetRegionEnabled: Boolean;
     procedure SetURL(const Value: String);
     procedure SetDrawableImage(const Value: TDrawableImage);
@@ -75,7 +75,7 @@
     procedure SetColor(const Value: TCastleColor);
     procedure SetClip(const Value: boolean);
     procedure SetClipLine(const Value: TVector3);
-    procedure SetRegion(const Value: TRegion);
+    procedure SetRegion(const Value: TFloatRectangle);
     procedure SetRegionEnabled(const Value: Boolean);
     procedure SetCustomShader(const Value: TGLSLProgram);
     procedure SetFlipVertical(const Value: Boolean);
@@ -220,7 +220,10 @@
 
       @seealso TCastleImagePersistent.ClipLine }
     property ClipLine: TVector3 read GetClipLine write SetClipLine;
-    property Region: TRegion read GetRegion write SetRegion;
+
+    { Image region to which we should limit the display.
+      Empty (following @link(TFloatRectangle.Empty)) means using the whole image. }
+    property Region: TFloatRectangle read GetRegion write SetRegion;
 
     { Custom GLSL shading code.
       See TDrawableImage.CustomShader for explanation.
@@ -402,7 +405,7 @@ begin
   Result := FContent.ProtectedSides;
 end;
 
-function TCastleImageControl.GetRegion: TRegion;
+function TCastleImageControl.GetRegion: TFloatRectangle;
 begin
   Result := FContent.Region;
 end;
@@ -442,7 +445,7 @@ begin
   FContent.ClipLine := Value;
 end;
 
-procedure TCastleImageControl.SetRegion(const Value: TRegion);
+procedure TCastleImageControl.SetRegion(const Value: TFloatRectangle);
 begin
   FContent.Region := Value;
 end;

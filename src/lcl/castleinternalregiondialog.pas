@@ -69,7 +69,7 @@ type
     CircleRads = 8;
   var
     FImage: TDrawableImage;
-    FRegion, FSourceRegion: TRegion;
+    FRegion, FSourceRegion: TFloatRectangle;
     FScale: single;
     FTranslation: TVector2;
     FDesignMode: TDesignMode;
@@ -103,7 +103,7 @@ type
     function ImageToScreen(const APoints: TArrayImagePoints): TArrayScreenPoints;
       overload;
 
-    function RegionFromBorder(ABorder: TBorder): TRegion;
+    function RegionFromBorder(ABorder: TBorder): TFloatRectangle;
 
     property Image: TDrawableImage read FImage write SetImage;
   public
@@ -113,12 +113,12 @@ type
     procedure ApplyChange;
     procedure ApplyToBorder(ABorder: TBorder);
 
-    procedure Load(AImage: TDrawableImage; const ARegion: TRegion); overload;
-    procedure Load(AImage: TDrawableImage; const ASourceRegion: TRegion;
-      ABorder: TBorder); overload;
+    procedure Load(AImage: TDrawableImage;
+      const ARegion: TFloatRectangle); overload;
+    procedure Load(AImage: TDrawableImage;
+      const ASourceRegion: TFloatRectangle; ABorder: TBorder); overload;
 
-
-    property Region: TRegion read FRegion;
+    property Region: TFloatRectangle read FRegion;
     property Border: TBorder read FBorder;
     property DesignMode: TDesignMode read FDesignMode;
   end;
@@ -176,7 +176,8 @@ begin
   FRegion := FloatRectangle(rc.Left, rc.Bottom, rc.Width, rc.Height);
 end;
 
-procedure TRegionDesignDialog.Load(AImage: TDrawableImage; const ARegion: TRegion);
+procedure TRegionDesignDialog.Load(AImage: TDrawableImage;
+  const ARegion: TFloatRectangle);
 begin
   Image := AImage;
 
@@ -188,7 +189,7 @@ begin
 end;
 
 procedure TRegionDesignDialog.Load(AImage: TDrawableImage;
-  const ASourceRegion: TRegion; ABorder: TBorder);
+  const ASourceRegion: TFloatRectangle; ABorder: TBorder);
 begin
   Image := AImage;
 
@@ -221,7 +222,7 @@ begin
   end;
 end;
 
-function TRegionDesignDialog.RegionFromBorder(ABorder: TBorder): TRegion;
+function TRegionDesignDialog.RegionFromBorder(ABorder: TBorder): TFloatRectangle;
 begin
   Result := FloatRectangle(FBorder.TotalLeft, FBorder.TotalBottom,
     ImageWidth - FBorder.TotalWidth, ImageHeight - FBorder.TotalHeight);

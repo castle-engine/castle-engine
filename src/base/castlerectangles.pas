@@ -469,8 +469,6 @@ type
 
   TFloatRectangleList = {$ifdef FPC}specialize{$endif} TStructList<TFloatRectangle>;
 
-  TRegion = TFloatRectangle;
-
 {$define read_interface}
 
 {$I castlerectangles_persistent.inc}
