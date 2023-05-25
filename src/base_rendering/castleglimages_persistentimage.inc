@@ -68,7 +68,6 @@
   }
   TCastleImagePersistent = class(TPersistent)
   strict private
-    FScaleProtectedSides: Single;
     FURL: string;
     FCache: boolean;
     FScaleFromUrl: Single;
@@ -106,7 +105,6 @@
     procedure SetOwnsImage(const Value: boolean);
     procedure SetCache(const Value: Boolean);
     procedure SetRegion(AValue: TFloatRectangle);
-    procedure SetScaleProtectedSides(const AValue: Single);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TEncodedImage);
     procedure SetDrawableImage(const Value: TDrawableImage);
@@ -350,8 +348,6 @@
       and https://en.wikipedia.org/wiki/9-slice_scaling to scale the image. }
     property ProtectedSides: TBorder read FProtectedSides;
 
-    property ScaleProtectedSides: Single read FScaleProtectedSides write SetScaleProtectedSides {$Ifdef fpc}default 1{$endif};
-
     { How are protected sides scaled to match the final drawing area on the screen. }
     property ProtectedSidesScaling: TProtectedSidesScaling
       read FProtectedSidesScaling write SetProtectedSidesScaling default pssDefault;
@@ -374,7 +370,6 @@ begin
   FRotationCenter := Vector2(0.5, 0.5);
   FColor := White;
   FScaleCorners := 1;
-  FScaleProtectedSides := 1;
   FScaleFromUrl := 1;
   FInternalVisualizeProtectedSides := true;
   FRegion := TFloatRectangle.Empty;
@@ -553,15 +548,6 @@ begin
   end;
 end;
 
-procedure TCastleImagePersistent.SetScaleProtectedSides(const AValue: Single);
-begin
-  if FScaleProtectedSides <> AValue then
-  begin
-    FScaleProtectedSides:=AValue;
-    DoChange;
-  end;
-end;
-
 function TCastleImagePersistent.GetImage: TEncodedImage;
 begin
   Result := FDrawableImage.Image;
@@ -699,10 +685,10 @@ procedure TCastleImagePersistent.Draw(
   var
     L, R, B, T: Single;
   begin
-    L := ProtectedSides.TotalLeft   * DrawableImage.ScaleCorners * ScaleProtectedSides;
-    R := ProtectedSides.TotalRight  * DrawableImage.ScaleCorners * ScaleProtectedSides;
-    B := ProtectedSides.TotalBottom * DrawableImage.ScaleCorners * ScaleProtectedSides;
-    T := ProtectedSides.TotalTop    * DrawableImage.ScaleCorners * ScaleProtectedSides;
+    L := ProtectedSides.TotalLeft   * DrawableImage.ScaleCorners;
+    R := ProtectedSides.TotalRight  * DrawableImage.ScaleCorners;
+    B := ProtectedSides.TotalBottom * DrawableImage.ScaleCorners;
+    T := ProtectedSides.TotalTop    * DrawableImage.ScaleCorners;
 
     FitWithin(L, R, ScreenRectangle.Width);
     FitWithin(B, T, ScreenRectangle.Height);
@@ -772,7 +758,7 @@ begin
       ProtectedSides.TotalLeft
     );
 
-    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector, FRegion, FScaleProtectedSides);
+    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector, FRegion);
 
     if CastleDesignMode and InternalVisualizeProtectedSides and ProtectedSides.Exists then
       VisualizeProtectedSides;
