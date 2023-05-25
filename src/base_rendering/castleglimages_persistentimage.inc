@@ -227,8 +227,9 @@
       which means that image colors are unchanged. }
     property Color: TCastleColor read FColor write SetColor;
 
-    { Cropped region. "empty region"(Width<0 or Height<0) means using the whole image. }
-    property Region: TRegion read FRegion write SetRegion ;
+    { Image region to which we should limit the display.
+      Empty (following @link(TFloatRectangle.Empty)) means using the whole image. }
+    property Region: TRegion read FRegion write SetRegion;
 
     property InternalVisualizeProtectedSides: Boolean
       read FInternalVisualizeProtectedSides write FInternalVisualizeProtectedSides default true;
