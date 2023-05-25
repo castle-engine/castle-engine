@@ -105,7 +105,7 @@
     function GetOwnsImage: boolean;
     procedure SetOwnsImage(const Value: boolean);
     procedure SetCache(const Value: Boolean);
-    procedure SetRegion(const AValue: TFloatRectangle);
+    procedure SetRegion(AValue: TFloatRectangle);
     procedure SetScaleProtectedSides(const AValue: Single);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TEncodedImage);
@@ -515,9 +515,38 @@ begin
   end;
 end;
 
-procedure TCastleImagePersistent.SetRegion(const AValue: TFloatRectangle);
+procedure TCastleImagePersistent.SetRegion(AValue: TFloatRectangle);
+
+  function RectsEqual(const R1, R2: TFloatRectangle): boolean;
+  begin
+    Result :=
+      (R1.Left = R2.Left) and
+      (R1.Bottom = R2.Bottom) and
+      (R1.Width = R2.Width) and
+      (R1.Height = R2.Height);
+  end;
+
 begin
-  if not FRegion.PerfectlyEquals(AValue) then
+  { Testing using "FRegion.PerfectlyEquals" would result in a bit weird
+    behavior:
+
+    Since multiple values can satisfy IsEmpty=true,
+    so setting some values to Region would be ignored
+    when both old and new values are IsEmpty=true.
+    Although in principle this is correct (since both old and new values
+    mean "empty"), but UX is weird:
+
+    - set some non-empty Region
+    - then change Width to -1
+    - and now you cannot change Height to -1...
+
+    Or:
+
+    - set Region to TFloadRectangle.Empty (both width and height = -1)
+    - try change Width to 100... and it's ignored, because rectangle is still
+      empty, because Height remains -1
+  }
+  if not RectsEqual(FRegion, AValue) then
   begin
     FRegion := AValue;
     DoChange;
