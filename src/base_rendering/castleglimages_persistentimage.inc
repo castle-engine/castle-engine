@@ -522,21 +522,12 @@ begin
 end;
 
 procedure TCastleImagePersistent.SetRegion(const AValue: TRegion);
-function SameFloatRectangle(const a,b:TFloatRectangle):Boolean;
 begin
- Result := (SameValue(a.Left  , b.Left)) and
-      (SameValue(a.Bottom, b.Bottom)) and
-      (SameValue(a.Width , b.Width)) and
-      (SameValue(a.Height, b.Height));
-end;
-
-begin
-  { don't use 'PerfectlyEquals' or 'Equals' to judge.
-    Otherwise, if the Region is empty, it cannot be modified in the editor.}
-  if SameFloatRectangle(FRegion, AValue) then Exit;
-
-  FRegion := AValue;
-  DoChange;
+  if not FRegion.PerfectlyEquals(AValue) then
+  begin
+    FRegion := AValue;
+    DoChange;
+  end;
 end;
 
 procedure TCastleImagePersistent.SetRegionEnabled(const AValue: Boolean);
