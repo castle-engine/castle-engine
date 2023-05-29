@@ -303,7 +303,13 @@ end;
 function TFpsModularMovement.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
-  Result := inherited PropertySections(PropertyName);
+  if ArrayContainsString(PropertyName, [
+     'ForwardInputAxis', 'SidewayInputAxis',
+     'InputJump', 'HorizontalSpeed', 'JumpSpeed'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 initialization
