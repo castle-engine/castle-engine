@@ -79,7 +79,7 @@ end;
 
 
 initialization
-  RegisterSerializableComponent(TStairsSupportByColliderCapsuleRadius, ['Physics', 'Stairs Support By Collider Capsule Radius']);
+  RegisterSerializableComponent(TStairsSupportByColliderCapsuleRadius, ['Navigation', 'Modules', 'Stairs Support By Collider Capsule Radius']);
 
 end.
 

@@ -106,7 +106,7 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(TFpsCrouch, ['Physics', 'Fps Crouch support']);
+  RegisterSerializableComponent(TFpsCrouch, ['Navigation', 'Modules', 'Fps Crouch support']);
 
 end.
 

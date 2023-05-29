@@ -135,7 +135,7 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(THeadBobbing, ['Physics', 'Head Bobbing']);
+  RegisterSerializableComponent(THeadBobbing, ['Navigation', 'Modules', 'Head Bobbing']);
 
 end.
 

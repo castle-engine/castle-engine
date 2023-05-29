@@ -261,7 +261,7 @@ end;
 
 
 initialization
-  RegisterSerializableComponent(TSimpleFpsPlayerMovementWithRotation, ['Physics', 'Simple FPS Player Movement With Player Rotation']);
+  RegisterSerializableComponent(TSimpleFpsPlayerMovementWithRotation, ['Navigation', 'Simple FPS Player Movement With Player Rotation']);
 
 end.
 

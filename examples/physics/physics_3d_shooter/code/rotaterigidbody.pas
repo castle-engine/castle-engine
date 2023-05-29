@@ -103,7 +103,7 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(TRotateRigidBody, ['Physics', 'Rotate Rigid Body By Mouse And Keys']);
+  RegisterSerializableComponent(TRotateRigidBody, ['Navigation', 'Rotate Rigid Body By Mouse And Keys']);
 
 end.
 

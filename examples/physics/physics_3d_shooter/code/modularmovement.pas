@@ -312,7 +312,7 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(TFpsModularMovement, ['Physics', 'Modular FPS Player Movement']);
+  RegisterSerializableComponent(TFpsModularMovement, ['Navigation', 'Modular FPS Player Movement']);
 
 end.
 

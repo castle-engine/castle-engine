@@ -192,7 +192,7 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(TRotateCamera, ['Physics', 'Camera Rotation']);
+  RegisterSerializableComponent(TRotateCamera, ['Navigation', 'Camera Rotation']);
 
 end.
 
