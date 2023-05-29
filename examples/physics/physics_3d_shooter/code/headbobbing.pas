@@ -5,8 +5,7 @@ unit HeadBobbing;
 interface
 
 uses
-  Classes, SysUtils, ModularMovement, CastleTransform, CastleViewport, CastleUIControls,
-  CastleVectors;
+  Classes, SysUtils, ModularMovement, CastleTransform, CastleVectors, CastleClassUtils;
 
 type
   THeadBobbing = class(TAbstractMovementModifier)
