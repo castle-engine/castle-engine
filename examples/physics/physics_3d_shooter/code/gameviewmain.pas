@@ -25,7 +25,8 @@ uses Classes,
   SimplestFpsPlayerMovement, RotateCameraByKeys, SimpleFpsPlayerMovementWithRotation,
   DirectRotateTransformByKeys, RotateRigidBodyByKeys, RotateRigidBodyByMouse,
   RotateRigidBody, HeadBobbing, FpsPlayerMovementWithRotationAndStairSupport,
-  FpsCrouch, FpsPlayerMovementWithRotationAndFly, GameInputAxis, RotateCamera;
+  FpsCrouch, FpsPlayerMovementWithRotationAndFly, GameInputAxis, RotateCamera,
+  ModularMovement;
 
 type
   { Main view, where most of the application logic takes place. }
