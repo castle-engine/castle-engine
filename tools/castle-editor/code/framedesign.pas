@@ -529,6 +529,11 @@ type
     procedure PasteComponent;
     procedure CutComponent;
     procedure DuplicateComponent;
+
+    function AddComponentFromUrl(const AddUrl: String;
+      const ParentComponent: TComponent): TComponent;
+    function AddImported(const AddUrl: String): TComponent;
+
     { Set UIScaling values. }
     procedure UIScaling(const UIScaling: TUIScaling;
       const UIReferenceWidth, UIReferenceHeight: Single);
@@ -3371,6 +3376,20 @@ end;
 
 function TDesignFrame.ShellListAddComponent(const SourceShellList: TCastleShellListView;
   const ParentComponent: TComponent): TComponent;
+var
+  SelectedFileName, SelectedUrl: String;
+begin
+  Result := nil;
+  if SourceShellList.Selected <> nil then
+  begin
+    SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
+    SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+    Result := AddComponentFromUrl(SelectedUrl, ParentComponent);
+  end;
+end;
+
+function TDesignFrame.AddComponentFromUrl(const AddUrl: String;
+  const ParentComponent: TComponent): TComponent;
 
   function AddImageTransform(const Url: String): TCastleImageTransform;
   begin
@@ -3415,36 +3434,57 @@ function TDesignFrame.ShellListAddComponent(const SourceShellList: TCastleShellL
   end;
 
 var
-  SelectedFileName: String;
-  SelectedUrl: String;
   PreferTransform: Boolean;
 begin
   Result := nil;
   PreferTransform := ParentComponent is TCastleTransform;
-  if SourceShellList.Selected <> nil then
+  if LoadImage_FileFilters.Matches(AddUrl) then
   begin
-    SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
-    SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+    if PreferTransform then
+      Result := AddImageTransform(AddUrl)
+    else
+      Result := AddImageControl(AddUrl);
+  end else
+  if TFileFilterList.Matches(LoadScene_FileFilters, AddUrl) then
+    Result := AddScene(AddUrl)
+  else
+  if TFileFilterList.Matches(LoadSound_FileFilters, AddUrl) then
+    Result := AddSound(AddUrl)
+  else
+  if TFileFilterList.Matches(LoadUiDesign_FileFilters, AddUrl) then
+    Result := AddUiDesign(AddUrl)
+  else
+  if TFileFilterList.Matches(LoadTransformDesign_FileFilters, AddUrl) then
+    Result := AddTransformDesign(AddUrl);
+end;
 
-    if LoadImage_FileFilters.Matches(SelectedUrl) then
-    begin
-      if PreferTransform then
-        Result := AddImageTransform(SelectedUrl)
-      else
-        Result := AddImageControl(SelectedUrl);
-    end else
-    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedUrl) then
-      Result := AddScene(SelectedUrl)
-    else
-    if TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl) then
-      Result := AddSound(SelectedUrl)
-    else
-    if TFileFilterList.Matches(LoadUiDesign_FileFilters, SelectedUrl) then
-      Result := AddUiDesign(SelectedUrl)
-    else
-    if TFileFilterList.Matches(LoadTransformDesign_FileFilters, SelectedUrl) then
-      Result := AddTransformDesign(SelectedUrl);
-  end;
+function TDesignFrame.AddImported(const AddUrl: String): TComponent;
+var
+  ParentComponent: TComponent;
+begin
+  ParentComponent := SelectedComponent;
+
+  { If AddUrl makes sense only with parent being TCastleTransform,
+    try to use CurrentViewport.Items as parent.
+    This way we "try harder" to find a parent that allows to drop
+    given item. }
+  if (not (ParentComponent is TCastleTransform)) and
+     (CurrentViewport <> nil) and
+     (
+       // AddUrl can only be loaded to TCastleScene?
+       ( TFileFilterList.Matches(LoadScene_FileFilters, AddUrl) and
+         (not LoadImage_FileFilters.Matches(AddUrl)) ) or
+       // AddUrl can only be loaded to TCastleTransformDesign?
+       (TFileFilterList.Matches(LoadTransformDesign_FileFilters, AddUrl))
+     ) then
+    ParentComponent := CurrentViewport.Items;
+
+  if ParentComponent = nil then
+    raise Exception.CreateFmt('Cannot add imported component "%s". Create and select a valid parent in the design, usually a viewport.', [
+      URIDisplay(AddUrl)
+    ]);
+
+  Result := AddComponentFromUrl(AddUrl, ParentComponent);
 end;
 
 procedure TDesignFrame.SetShowColliders(const AValue: Boolean);

@@ -587,6 +587,12 @@ type
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
+
+    { Can we right now add imported thing from this URL? }
+    function CanAddImported(const AddUrl: String): Boolean;
+
+    { Import URL (to instantiate it in design) now. }
+    procedure AddImported(const AddUrl: String);
   end;
 
 var
@@ -949,6 +955,8 @@ begin
     ImportSketchfabForm := TImportSketchfabForm.Create(Application);
 
   ImportSketchfabForm.ProjectPath := ProjectPath;
+  ImportSketchfabForm.OnCanAddImported := @CanAddImported;
+  ImportSketchfabForm.OnAddImported := @AddImported;
   ImportSketchfabForm.Show;
 end;
 
@@ -3486,6 +3494,26 @@ begin
   Mi := Sender as TMenuItem;
   CurrentPackageFormat := TPackageFormat(Mi.Tag);
   Mi.Checked := true;
+end;
+
+function TProjectForm.CanAddImported(const AddUrl: String): Boolean;
+begin
+  { TODO: Maybe in the future it will query more,
+    e.g. to add glTF we need Design.AddImportedUrl be able to determine
+    parent that is TCastleTransform descendant.
+    For now we let Design.AddImportedUrl to raise exception in such case. }
+  Result := Design <> nil;
+end;
+
+procedure TProjectForm.AddImported(const AddUrl: String);
+begin
+  if Design <> nil then
+  begin
+    if Design.AddImported(AddUrl) = nil then
+      ErrorBox(Format('Coult not import "%s". Make sure the current design has a viewport selected', [
+        URIDisplay(AddUrl)
+      ]));
+  end;
 end;
 
 initialization

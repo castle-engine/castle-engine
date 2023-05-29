@@ -69,7 +69,7 @@ type
     { Use Download* fields to get model zip. }
     procedure DownloadZip(const ZipFileName: String);
     { Extract zip to a subdirectory in ExtractBasePath. }
-    procedure ExtractZip(const ZipFileName, ExtractBasePath: String);
+    procedure ExtractZip(const ZipFileName, ZipUnpackDir: String);
   end;
 
 implementation
@@ -259,28 +259,26 @@ begin
   end;
 end;
 
-procedure TSketchfabModel.ExtractZip(const ZipFileName, ExtractBasePath: String);
+procedure TSketchfabModel.ExtractZip(const ZipFileName, ZipUnpackDir: String);
 var
   Zip: TUnZipper;
-  DirName: String;
 begin
   { Unzip to given directory. }
-  DirName := InclPathDelim(ExtractBasePath) + ModelPrettyId;
-  if DirectoryExists(DirName) then
-    RemoveNonEmptyDir(DirName, true);
-  ForceDirectories(DirName);
+  if DirectoryExists(ZipUnpackDir) then
+    RemoveNonEmptyDir(ZipUnpackDir, true);
+  ForceDirectories(ZipUnpackDir);
 
   Zip := TUnZipper.Create;
   try
     Zip.FileName := ZipFileName;
-    Zip.OutputPath := DirName;
+    Zip.OutputPath := ZipUnpackDir;
     Zip.Examine;
     Zip.UnZipAllFiles;
   finally
     FreeAndNil(Zip);
   end;
 
-  WritelnLog('Model extracted to: ' + DirName);
+  WritelnLog('Model extracted to: ' + ZipUnpackDir);
 end;
 
 end.

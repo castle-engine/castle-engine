@@ -26,6 +26,9 @@ uses
   ComCtrls, FrameDesign, CastleSketchfab;
 
 type
+  TCanAddImported = function (const AddUrl: String): Boolean of object;
+  TAddImported = procedure (const AddUrl: String) of object;
+
   TImportSketchfabForm = class(TForm)
     ButtonDownloadAndAddViewport: TButton;
     ButtonDownloadOnly: TButton;
@@ -38,6 +41,7 @@ type
     ListModels: TListView;
     PanelList: TPanel;
     PanelSearch: TPanel;
+    Timer1: TTimer;
     procedure ButtonCloseClick(Sender: TObject);
     procedure ButtonDownloadAndAddViewportClick(Sender: TObject);
     procedure ButtonDownloadOnlyClick(Sender: TObject);
@@ -49,10 +53,16 @@ type
     procedure FormShow(Sender: TObject);
     procedure ListModelsSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure Timer1Timer(Sender: TObject);
   private
     Models: TSketchfabModelList;
+    { Download currently selected model, raise exception if cannot.
+      Returns URL on disk of the downloaded model. }
+    function DownloadSelectedModel: String;
   public
     ProjectPath: String;
+    OnCanAddImported: TCanAddImported;
+    OnAddImported: TAddImported;
     procedure UpdateEnabled;
   end;
 
@@ -61,7 +71,8 @@ var
 
 implementation
 
-uses CastleOpenDocument, CastleStringUtils, CastleConfig;
+uses CastleOpenDocument, CastleStringUtils, CastleConfig, CastleUtils,
+  CastleURIUtils;
 
 {$R *.lfm}
 
@@ -106,11 +117,21 @@ begin
   UpdateEnabled;
 end;
 
+procedure TImportSketchfabForm.Timer1Timer(Sender: TObject);
+begin
+  { Keep calling UpdateEnabled as OnCanAddImported can change when user
+    closes / opens design. }
+  UpdateEnabled;
+end;
+
 procedure TImportSketchfabForm.UpdateEnabled;
 begin
   ButtonViewSketchfab.Enabled := ListModels.Selected <> nil;
-  ButtonDownloadAndAddViewport.Enabled := ListModels.Selected <> nil;
   ButtonDownloadOnly.Enabled := ListModels.Selected <> nil;
+  ButtonDownloadAndAddViewport.Enabled := (ListModels.Selected <> nil) and
+    Assigned(OnAddImported) and
+    Assigned(OnCanAddImported) and
+    OnCanAddImported('.gltf');
 end;
 
 procedure TImportSketchfabForm.ButtonSearchClick(Sender: TObject);
@@ -148,10 +169,10 @@ begin
   UpdateEnabled;
 end;
 
-procedure TImportSketchfabForm.ButtonDownloadOnlyClick(Sender: TObject);
+function TImportSketchfabForm.DownloadSelectedModel: String;
 var
   Model: TSketchfabModel;
-  BasePath, ZipFileName: String;
+  BasePath, ZipFileName, ZipUnpackDir, ModelFileName: String;
 begin
   if Trim(EditApiToken.Text) = '' then
     raise Exception.Create('You must provide Sketchfab API token to download');
@@ -162,9 +183,17 @@ begin
   BasePath := ProjectPath + 'data' + PathDelim + 'sketchfab' + PathDelim;
   ForceDirectories(BasePath);
   ZipFileName := BasePath + Model.ModelPrettyId + '.zip';
+  ZipUnpackDir := BasePath + Model.ModelPrettyId;
   Model.DownloadZip(ZipFileName);
-  Model.ExtractZip(ZipFileName, BasePath);
+  Model.ExtractZip(ZipFileName, ZipUnpackDir);
 
+  ModelFileName := InclPathDelim(ZipUnpackDir) + 'scene.gltf';
+  Result := MaybeUseDataProtocol(FilenameToURISafe(ModelFileName));
+end;
+
+procedure TImportSketchfabForm.ButtonDownloadOnlyClick(Sender: TObject);
+begin
+  DownloadSelectedModel;
   Close;
 end;
 
@@ -174,9 +203,12 @@ begin
 end;
 
 procedure TImportSketchfabForm.ButtonDownloadAndAddViewportClick(Sender: TObject);
+var
+  DownloadedUrl: String;
 begin
-  ButtonDownloadOnlyClick(ButtonDownloadOnly);
-  // TODO
+  DownloadedUrl := DownloadSelectedModel;
+  OnAddImported(DownloadedUrl);
+  Close;
 end;
 
 end.
