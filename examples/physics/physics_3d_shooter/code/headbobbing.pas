@@ -27,6 +27,8 @@ type
     constructor Create(AOwner: TComponent); override;
 
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property UseHeadBobbing: Boolean read FUseHeadBobbing write FUseHeadBobbing
       default true;
@@ -111,6 +113,17 @@ begin
   CamTransl.Y := HeadBobbingHeight(PlayerHeight, MovementState.IsPlayerOnGround,
     MovementState.IsMoving) - PlayerHeight;
   Camera.Translation := CamTransl;
+end;
+
+function THeadBobbing.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'UseHeadBobbing'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 constructor THeadBobbing.Create(AOwner: TComponent);
