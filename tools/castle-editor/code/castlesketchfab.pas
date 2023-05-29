@@ -48,6 +48,19 @@ type
     ThumbnailUrl, ViewerUrl: String;
     License: String;
 
+    { Model name with all characters potentially unsafe for filename
+      removed/replaced + added model id as a suffix.
+      The idea is that this is unique, just like ModelId,
+      but it is also more recognizable for humans.
+
+      Sketchfab URLs are actually similar,
+      https://sketchfab.com/3d-models/anything-70a23788ef984a7a9a1c9a9fe6d5a651
+      redirects to
+      https://sketchfab.com/3d-models/cat-70a23788ef984a7a9a1c9a9fe6d5a651
+      The end is just model id,
+      the initial "cat" is only for humans. }
+    ModelPrettyId: String;
+
     { Search Sketchfab for Query, return list of model ids. }
     class function Search(const Query: String): TSketchfabModelList;
 
@@ -110,6 +123,31 @@ class function TSketchfabModel.Search(const Query: String): TSketchfabModelList;
       Result := '';
   end;
 
+  function URICleanFilename(const S: String): String;
+
+    function SRemoveConsecuitive(const S: String; const C: Char): String;
+    var
+      SB: TStringBuilder;
+      I: Integer;
+    begin
+      SB := TStringBuilder.Create;
+      try
+        SB.Append(S[1]);
+        for I := 2 to Length(S) do
+          if (S[I] <> C) or (S[I - 1] <> C) then
+            SB.Append(S[I]);
+        Result := SB.ToString;
+      finally FreeAndNil(SB) end;
+    end;
+
+  const
+    ValidFilenameChars = ['a'..'z', 'A'..'Z', '0'..'9', '-', '_', '.'];
+  begin
+    Result := LowerCase(S);
+    Result := SReplaceChars(Result, AllChars - ValidFilenameChars, '_');
+    Result := SRemoveConsecuitive(Result, '_');
+  end;
+
 var
   Download: TCastleDownload;
   Response: String;
@@ -154,6 +192,7 @@ begin
         Model.ThumbnailUrl := SearchThumbnails(JSONObject.Objects['thumbnails'].Arrays['images'], BestThumbnailSize);
         Model.License := JSONObject.Objects['license'].Strings['label'];
         Model.ViewerUrl := JSONObject.Strings['viewerUrl'];
+        Model.ModelPrettyId := URICleanFilename(Model.Name) + '-' + Model.ModelId;
         Result.Add(Model);
       end;
     end else
@@ -226,7 +265,7 @@ var
   DirName: String;
 begin
   { Unzip to given directory. }
-  DirName := InclPathDelim(ExtractBasePath) + ModelId;
+  DirName := InclPathDelim(ExtractBasePath) + ModelPrettyId;
   if DirectoryExists(DirName) then
     RemoveNonEmptyDir(DirName, true);
   ForceDirectories(DirName);

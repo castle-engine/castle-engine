@@ -161,7 +161,7 @@ begin
 
   BasePath := ProjectPath + 'data' + PathDelim + 'sketchfab' + PathDelim;
   ForceDirectories(BasePath);
-  ZipFileName := BasePath + Model.ModelId + '.zip';
+  ZipFileName := BasePath + Model.ModelPrettyId + '.zip';
   Model.DownloadZip(ZipFileName);
   Model.ExtractZip(ZipFileName, BasePath);
 
