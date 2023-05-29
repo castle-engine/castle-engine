@@ -3480,7 +3480,7 @@ begin
     ParentComponent := CurrentViewport.Items;
 
   if ParentComponent = nil then
-    raise Exception.CreateFmt('Cannot add imported component "%s". Create and select a valid parent in the design, usually a viewport.', [
+    raise Exception.CreateFmt('Cannot add imported component "%s".' + NL + NL + 'First select a valid parent in the design, usually a TCastleViewport or TCastleTransform.', [
       URIDisplay(AddUrl)
     ]);
 

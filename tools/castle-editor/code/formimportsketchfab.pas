@@ -72,7 +72,8 @@ var
 implementation
 
 uses CastleOpenDocument, CastleStringUtils, CastleConfig, CastleUtils,
-  CastleURIUtils;
+  CastleURIUtils,
+  EditorUtils;
 
 {$R *.lfm}
 
@@ -101,6 +102,7 @@ end;
 procedure TImportSketchfabForm.FormShow(Sender: TObject);
 begin
   EditApiToken.Text := UserConfig.GetValue('sketchfab/api_token', '');
+  EditQuery.Text := UserConfig.GetValue('sketchfab/last_query', '');
   UpdateEnabled;
 end;
 
@@ -109,6 +111,7 @@ begin
   FreeAndNil(Models);
   ListModels.Items.Clear;
   UserConfig.SetDeleteValue('sketchfab/api_token', EditApiToken.Text, '');
+  UserConfig.SetDeleteValue('sketchfab/last_query', EditQuery.Text, '');
 end;
 
 procedure TImportSketchfabForm.ListModelsSelectItem(Sender: TObject;
@@ -192,8 +195,11 @@ begin
 end;
 
 procedure TImportSketchfabForm.ButtonDownloadOnlyClick(Sender: TObject);
+var
+  DownloadedUrl: String;
 begin
-  DownloadSelectedModel;
+  DownloadedUrl := DownloadSelectedModel;
+  InfoBox('Model downloaded to:' + NL + NL + URIDisplay(DownloadedUrl));
   Close;
 end;
 
