@@ -5,13 +5,13 @@ unit FpsCrouch;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleViewport, CastleUIControls,
+  Classes, SysUtils, ModularMovement, CastleTransform, CastleBehaviors,
   CastleVectors, CastleInputs;
 
-{ Crouch support by scale collider and change player translation }
-
 type
-  TFpsCrouch = class(TCastleBehavior)
+
+  { Crouch support by scale collider and change player translation }
+  TFpsCrouch = class(TAbstractMovementModifier)
   strict private
     FInput_Crouch: TInputShortcut;
     FCrouchSpeed: Single;
@@ -19,12 +19,12 @@ type
   private
     const
       DefaultCrouchSpeed = 3.0;
-
-  protected
-     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
-     constructor Create(AOwner: TComponent); override;
-     property IsCrouching: Boolean read FIsCrouching;
+    constructor Create(AOwner: TComponent); override;
+
+    procedure UpdateMovement(const MovementState: TModularMovementState); override;
+
+    property IsCrouching: Boolean read FIsCrouching;
   published
     property Input_Crouch: TInputShortcut read FInput_Crouch;
 
@@ -39,45 +39,47 @@ uses CastleUtils, CastleComponentSerialize, CastleKeysMouse;
 
 { TRotateRigidBodyByKeys }
 
-procedure TFpsCrouch.Update(const SecondsPassed: Single;
-  var RemoveMe: TRemoveType);
+procedure TFpsCrouch.UpdateMovement(const MovementState: TModularMovementState);
 var
-  SpeedScale: Single;
-  RBody: TCastleRigidBody;
-  Collider: TCastleCollider;
+  Velocity: TVector3;
+  HorizontalSpeed: TVector3;
+  VerticalSpeed: Single;
 begin
-  if CastleApplicationMode = appDesign then
-    Exit;
-
   if FocusedContainer = nil then
     Exit;
-
-  RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-
-  if Rbody = nil then
-    Exit;
-
-  Collider := Parent.FindBehavior(TCastleCollider) as TCastleCollider;
 
   if (not FIsCrouching) and (Input_Crouch.IsPressed(FocusedContainer)) then
   begin
     { Start crouching }
-    Collider.SizeScale := 0.5;
-    Parent.Translation := Parent.Translation + Vector3(0, -(Collider.ScaledLocalBoundingBox.SizeY / 2 * 0.99), 0); // place player on ground, 0.99 to ensure player will be above ground
+    MovementState.Collider.SizeScale := 0.5;
+    Parent.Translation := Parent.Translation + Vector3(0, -(MovementState.Collider.ScaledLocalBoundingBox.SizeY / 2 * 0.90), 0); // place player on ground, 0.99 to ensure player will be above ground
     FIsCrouching := true;
   end else
   if FIsCrouching and (not Input_Crouch.IsPressed(FocusedContainer)) then
   begin
     // TODO: maybe here check we can do it - cant be done in tight places
 
-    Parent.Translation := Parent.Translation + Vector3(0, Collider.ScaledLocalBoundingBox.SizeY / 2 * 1.01, 0); // place player on ground before scale change 1.01 to ensure player will be above ground
-    Collider.SizeScale := 1;
+    Parent.Translation := Parent.Translation + Vector3(0, MovementState.Collider.ScaledLocalBoundingBox.SizeY * 1.01, 0); // place player on ground before scale change 1.01 to ensure player will be above ground
+    MovementState.Collider.SizeScale := 1;
     FIsCrouching := false;
   end;
 
-  // TODO: change player speed?
+  if FIsCrouching then
+  begin
+    Velocity := MovementState.RigidBody.LinearVelocity;
+    if not Velocity.IsZero then
+    begin
+      VerticalSpeed := Velocity.Y;
+      HorizontalSpeed := Velocity;
+      HorizontalSpeed.Y := 0;
 
-  inherited Update(SecondsPassed, RemoveMe);
+      HorizontalSpeed := HorizontalSpeed.Normalize * CrouchSpeed;
+      Velocity := HorizontalSpeed;
+      Velocity.Y := VerticalSpeed;
+
+      MovementState.RigidBody.LinearVelocity := Velocity;
+    end;
+  end;
 end;
 
 constructor TFpsCrouch.Create(AOwner: TComponent);
@@ -86,12 +88,11 @@ begin
   FCrouchSpeed := DefaultCrouchSpeed;
 
   FInput_Crouch              := TInputShortcut.Create(Self);
-
   Input_Crouch              .Assign(keyC);
 end;
 
 initialization
-  RegisterSerializableComponent(TFpsCrouch, ['Physics', 'FPS Crouch support']);
+  RegisterSerializableComponent(TFpsCrouch, ['Physics', 'Fps Crouch support']);
 
 end.
 

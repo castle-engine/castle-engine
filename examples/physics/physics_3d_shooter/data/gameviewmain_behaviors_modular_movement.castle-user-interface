@@ -25,7 +25,7 @@
             "Name" : "Player",
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "Y" : 3.0000000000000000E+000,
+              "Y" : 3.7767143249511719E+000,
               "Z" : 1.1000000000000000E+001
             },
             "$Children" : [
@@ -128,6 +128,11 @@
               {
                 "$$ClassName" : "TStairsSupportByColliderCapsuleRadius",
                 "Name" : "StairsSupportByColliderCapsuleRadius1"
+              },
+              {
+                "$$ClassName" : "TFpsCrouch",
+                "Input_Crouch" : "",
+                "Name" : "FpsCrouch1"
               }
             ]
           },
@@ -282,6 +287,42 @@
                     "Dynamic" : false,
                     "Gravity" : false,
                     "Name" : "RigidBody19"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBox",
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorPersistent",
+                  "Blue" : 4.0784314274787903E-001,
+                  "Green" : 5.8823531866073608E-001
+                },
+                "Name" : "step5",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 5.0000000000000000E+000,
+                  "Y" : 3.0000001192092896E-001,
+                  "Z" : 5.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -3.5056581497192383E+000,
+                  "Y" : 8.0637037754058838E-001,
+                  "Z" : 5.0995435714721680E+000
+                },
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleBoxCollider",
+                    "Name" : "BoxCollider23"
+                  },
+                  {
+                    "$$ClassName" : "TCastleRigidBody",
+                    "Dynamic" : false,
+                    "Gravity" : false,
+                    "Name" : "RigidBody24"
                   }
                 ]
               },
