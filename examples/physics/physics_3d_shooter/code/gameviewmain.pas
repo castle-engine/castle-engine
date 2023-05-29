@@ -74,7 +74,9 @@ begin
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_head_bobbing.castle-user-interface';
 
   { Stair support test }
-  DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs.castle-user-interface';
+  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs.castle-user-interface';
+
+  DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
 
   { Crouch support }
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics_stairs_crouch.castle-user-interface';
