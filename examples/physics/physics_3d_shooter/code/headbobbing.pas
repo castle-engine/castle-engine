@@ -5,26 +5,31 @@ unit HeadBobbing;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleBehaviors, CastleViewport, CastleUIControls,
+  Classes, SysUtils, ModularMovement, CastleTransform, CastleViewport, CastleUIControls,
   CastleVectors;
 
 type
-  THeadBobbing = class(TCastleBehavior)
+  THeadBobbing = class(TAbstractMovementModifier)
   strict private
     HeadBobbingPosition: Single;
     HeadBobbingTime: Single;
     FHeadBobbing: Single;
+    FUseHeadBobbing: Boolean;
     const
       DefaultHeadBobbingTime = 0.5;
       DefaultHeadBobbing = 0.02;
 
-    function UseHeadBobbing: Boolean; // should check we are on ground,
-    function HeadBobbingHeight(PlayerBodyHeight: Single): Single;
+    function HeadBobbingHeight(const PlayerBodyHeight: Single;
+      const IsPlayerOnGround, IsPlayerMoving: Boolean): Single;
   protected
-     function GetParentCamera: TCastleCamera; virtual;
-     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    function GetParentCamera: TCastleCamera; virtual;
   public
-     constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent); override;
+
+    procedure UpdateMovement(const MovementState: TModularMovementState); override;
+  published
+    property UseHeadBobbing: Boolean read FUseHeadBobbing write FUseHeadBobbing
+      default true;
   end;
 
 
@@ -33,20 +38,16 @@ implementation
 
 uses CastleUtils, CastleComponentSerialize;
 
-{ THeadBobbing }
+{ THeadBobbing --------------------------------------------------------------- }
 
-function THeadBobbing.UseHeadBobbing: Boolean;
-begin
-  Result := true;
-end;
-
-function THeadBobbing.HeadBobbingHeight(PlayerBodyHeight: Single): Single;
+function THeadBobbing.HeadBobbingHeight(const PlayerBodyHeight: Single;
+  const IsPlayerOnGround, IsPlayerMoving: Boolean): Single;
 var
   BobbingModifier: Single;
 begin
   Result := PlayerBodyHeight;
 
-  if UseHeadBobbing then
+  if FUseHeadBobbing and IsPlayerOnGround and IsPlayerMoving then
   begin
     { HeadBobbingPosition = 0 means that head is at lowest position.
       HeadBobbingPosition = 0.5 means that head is at highest position.
@@ -91,36 +92,25 @@ begin
   end;
 end;
 
-procedure THeadBobbing.Update(const SecondsPassed: Single;
-  var RemoveMe: TRemoveType);
+procedure THeadBobbing.UpdateMovement(
+  const MovementState: TModularMovementState);
 var
-  RBody: TCastleRigidBody;
-  Collider: TCastleCollider;
   Camera: TCastleCamera;
   CamTransl: TVector3;
   PlayerHeight: Single;
 begin
-  RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  if RBody = nil then
-    Exit;
-
-  Collider := Parent.FindBehavior(TCastleCollider) as TCastleCollider;
-  if Collider = nil then
-    Exit;
-
   Camera := GetParentCamera;
   if Camera = nil then
     Exit;
 
-  PlayerHeight := Collider.ScaledLocalBoundingBox.SizeY;
-  HeadBobbingPosition := HeadBobbingPosition + (SecondsPassed / HeadBobbingTime);
+  PlayerHeight := MovementState.Collider.ScaledLocalBoundingBox.SizeY;
+  HeadBobbingPosition := HeadBobbingPosition + (MovementState.SecondsPassed / HeadBobbingTime);
 
   { Calculate new camera position }
   CamTransl := Camera.Translation;
-  CamTransl.Y := HeadBobbingHeight(PlayerHeight) - PlayerHeight;
+  CamTransl.Y := HeadBobbingHeight(PlayerHeight, MovementState.IsPlayerOnGround,
+    MovementState.IsMoving) - PlayerHeight;
   Camera.Translation := CamTransl;
-
-  inherited Update(SecondsPassed, RemoveMe);
 end;
 
 constructor THeadBobbing.Create(AOwner: TComponent);
@@ -129,6 +119,7 @@ begin
   HeadBobbingPosition := 0;
   HeadBobbingTime := DefaultHeadBobbingTime;
   FHeadBobbing := DefaultHeadBobbing;
+  FUseHeadBobbing := true;
 end;
 
 initialization
