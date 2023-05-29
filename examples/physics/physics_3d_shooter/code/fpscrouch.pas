@@ -16,10 +16,13 @@ type
     FInput_Crouch: TInputShortcut;
     FCrouchSpeed: Single;
     FIsCrouching: Boolean;
-  private
+  protected
+    procedure StartCrouching(const MovementState: TModularMovementState); virtual;
+    procedure StopCrouching(const MovementState: TModularMovementState); virtual;
+  public
     const
       DefaultCrouchSpeed = 3.0;
-  public
+
     constructor Create(AOwner: TComponent); override;
 
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
@@ -28,8 +31,7 @@ type
   published
     property Input_Crouch: TInputShortcut read FInput_Crouch;
 
-    property CrouchSpeed: Single
-      read FCrouchSpeed write FCrouchSpeed
+    property CrouchSpeed: Single read FCrouchSpeed write FCrouchSpeed
       {$ifdef FPC}default DefaultCrouchSpeed{$endif};
   end;
 
@@ -37,7 +39,7 @@ implementation
 
 uses CastleUtils, CastleComponentSerialize, CastleKeysMouse;
 
-{ TRotateRigidBodyByKeys }
+{ TFpsCrouch ----------------------------------------------------------------- }
 
 procedure TFpsCrouch.UpdateMovement(const MovementState: TModularMovementState);
 var
@@ -48,22 +50,20 @@ begin
   if FocusedContainer = nil then
     Exit;
 
+  if MovementState.IsJumping or MovementState.IsPlayerOnGround = false then
+    Exit;
+
   if (not FIsCrouching) and (Input_Crouch.IsPressed(FocusedContainer)) then
   begin
-    { Start crouching }
-    MovementState.Collider.SizeScale := 0.5;
-    Parent.Translation := Parent.Translation + Vector3(0, -(MovementState.Collider.ScaledLocalBoundingBox.SizeY / 2 * 0.90), 0); // place player on ground, 0.99 to ensure player will be above ground
-    FIsCrouching := true;
+    StartCrouching(MovementState);
   end else
   if FIsCrouching and (not Input_Crouch.IsPressed(FocusedContainer)) then
   begin
-    // TODO: maybe here check we can do it - cant be done in tight places
-
-    Parent.Translation := Parent.Translation + Vector3(0, MovementState.Collider.ScaledLocalBoundingBox.SizeY * 1.01, 0); // place player on ground before scale change 1.01 to ensure player will be above ground
-    MovementState.Collider.SizeScale := 1;
-    FIsCrouching := false;
+    // TODO: check we can do it - cant be done in tight places
+    StopCrouching(MovementState);
   end;
 
+  { Modify rigid body speed }
   if FIsCrouching then
   begin
     Velocity := MovementState.RigidBody.LinearVelocity;
@@ -80,6 +80,20 @@ begin
       MovementState.RigidBody.LinearVelocity := Velocity;
     end;
   end;
+end;
+
+procedure TFpsCrouch.StartCrouching(const MovementState: TModularMovementState);
+begin
+  MovementState.Collider.SizeScale := 0.5;
+  Parent.Translation := Parent.Translation + Vector3(0, -(MovementState.Collider.ScaledLocalBoundingBox.SizeY / 2 * 0.90), 0); // place player on ground, 0.99 to ensure player will be above ground
+  FIsCrouching := true;
+end;
+
+procedure TFpsCrouch.StopCrouching(const MovementState: TModularMovementState);
+begin
+  Parent.Translation := Parent.Translation + Vector3(0, MovementState.Collider.ScaledLocalBoundingBox.SizeY * 1.01, 0); // place player on ground before scale change 1.01 to ensure player will be above ground
+  MovementState.Collider.SizeScale := 1;
+  FIsCrouching := false;
 end;
 
 constructor TFpsCrouch.Create(AOwner: TComponent);
