@@ -124,6 +124,10 @@
               {
                 "$$ClassName" : "THeadBobbing",
                 "Name" : "HeadBobbing1"
+              },
+              {
+                "$$ClassName" : "TStairsSupportByColliderCapsuleRadius",
+                "Name" : "StairsSupportByColliderCapsuleRadius1"
               }
             ]
           },

@@ -30,7 +30,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="20">
+    <Units Count="21">
       <Unit0>
         <Filename Value="physics_3d_shooter_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -128,6 +128,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ModularMovement"/>
       </Unit19>
+      <Unit20>
+        <Filename Value="code/stairssupportbycollidercapsuleradius.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="StairsSupportByColliderCapsuleRadius"/>
+      </Unit20>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

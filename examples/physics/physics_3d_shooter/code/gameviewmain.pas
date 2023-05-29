@@ -26,7 +26,7 @@ uses Classes,
   DirectRotateTransformByKeys, RotateRigidBodyByKeys, RotateRigidBodyByMouse,
   RotateRigidBody, HeadBobbing, FpsPlayerMovementWithRotationAndStairSupport,
   FpsCrouch, FpsPlayerMovementWithRotationAndFly, GameInputAxis, RotateCamera,
-  ModularMovement;
+  ModularMovement, StairsSupportByColliderCapsuleRadius;
 
 type
   { Main view, where most of the application logic takes place. }

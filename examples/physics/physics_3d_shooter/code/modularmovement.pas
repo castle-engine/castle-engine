@@ -63,7 +63,6 @@ type
     constructor Create(AOwner: TComponent); override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
-
   published
     property JumpSpeed: Single read FJumpSpeed write FJumpSpeed
       {$ifdef FPC}default DefaultJumpSpeed{$endif};
