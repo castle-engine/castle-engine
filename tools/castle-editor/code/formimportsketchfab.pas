@@ -49,6 +49,7 @@ type
     procedure ButtonTokenUrlClick(Sender: TObject);
     procedure ButtonViewSketchfabClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormDestroy(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListModelsSelectItem(Sender: TObject; Item: TListItem;
@@ -95,23 +96,27 @@ end;
 procedure TImportSketchfabForm.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 begin
+  { Do not free at Close anymore, keep data (like query and last search results).
+    This is more comfortable.
   CloseAction := caFree;
   ImportSketchfabForm := nil; // do not leave dangling pointer
+  }
+end;
+
+procedure TImportSketchfabForm.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(Models);
 end;
 
 procedure TImportSketchfabForm.FormShow(Sender: TObject);
 begin
   EditApiToken.Text := UserConfig.GetValue('sketchfab/api_token', '');
-  EditQuery.Text := UserConfig.GetValue('sketchfab/last_query', '');
   UpdateEnabled;
 end;
 
 procedure TImportSketchfabForm.FormHide(Sender: TObject);
 begin
-  FreeAndNil(Models);
-  ListModels.Items.Clear;
   UserConfig.SetDeleteValue('sketchfab/api_token', EditApiToken.Text, '');
-  UserConfig.SetDeleteValue('sketchfab/last_query', EditQuery.Text, '');
 end;
 
 procedure TImportSketchfabForm.ListModelsSelectItem(Sender: TObject;

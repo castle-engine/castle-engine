@@ -9,6 +9,7 @@ object ImportSketchfabForm: TImportSketchfabForm
   ClientWidth = 1065
   DesignTimePPI = 120
   OnClose = FormClose
+  OnDestroy = FormDestroy
   OnHide = FormHide
   OnShow = FormShow
   Position = poMainFormCenter
