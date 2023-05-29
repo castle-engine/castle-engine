@@ -120,6 +120,10 @@
                   "NegativeKey" : "keyA",
                   "PositiveKey" : "keyD"
                 }
+              },
+              {
+                "$$ClassName" : "THeadBobbing",
+                "Name" : "HeadBobbing1"
               }
             ]
           },
