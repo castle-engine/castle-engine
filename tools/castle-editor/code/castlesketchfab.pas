@@ -124,28 +124,26 @@ class function TSketchfabModel.Search(const Query: String): TSketchfabModelList;
   end;
 
   function URICleanFilename(const S: String): String;
-
-    function SRemoveConsecuitive(const S: String; const C: Char): String;
-    var
-      SB: TStringBuilder;
-      I: Integer;
-    begin
-      SB := TStringBuilder.Create;
-      try
-        SB.Append(S[1]);
-        for I := 2 to Length(S) do
-          if (S[I] <> C) or (S[I - 1] <> C) then
-            SB.Append(S[I]);
-        Result := SB.ToString;
-      finally FreeAndNil(SB) end;
-    end;
-
   const
     ValidFilenameChars = ['a'..'z', 'A'..'Z', '0'..'9', '-', '_', '.'];
   begin
     Result := LowerCase(S);
-    Result := SReplaceChars(Result, AllChars - ValidFilenameChars, '_');
-    Result := SRemoveConsecuitive(Result, '_');
+    Result := SReplaceChars(Result, AllChars - ValidFilenameChars, '-');
+  end;
+
+  function SRemoveConsecuitive(const S: String; const C: Char): String;
+  var
+    SB: TStringBuilder;
+    I: Integer;
+  begin
+    SB := TStringBuilder.Create;
+    try
+      SB.Append(S[1]);
+      for I := 2 to Length(S) do
+        if (S[I] <> C) or (S[I - 1] <> C) then
+          SB.Append(S[I]);
+      Result := SB.ToString;
+    finally FreeAndNil(SB) end;
   end;
 
 var
@@ -192,7 +190,8 @@ begin
         Model.ThumbnailUrl := SearchThumbnails(JSONObject.Objects['thumbnails'].Arrays['images'], BestThumbnailSize);
         Model.License := JSONObject.Objects['license'].Strings['label'];
         Model.ViewerUrl := JSONObject.Strings['viewerUrl'];
-        Model.ModelPrettyId := URICleanFilename(Model.Name) + '-' + Model.ModelId;
+        Model.ModelPrettyId := SRemoveConsecuitive(
+          URICleanFilename(Model.Name) + '-' + Model.ModelId, '-');
         Result.Add(Model);
       end;
     end else
