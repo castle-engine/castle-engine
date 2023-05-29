@@ -3,7 +3,7 @@ object ImportSketchfabForm: TImportSketchfabForm
   Height = 635
   Top = 205
   Width = 1065
-  ActiveControl = ButtonSearch
+  ActiveControl = EditQuery
   Caption = 'Import model from Sketchfab'
   ClientHeight = 635
   ClientWidth = 1065
