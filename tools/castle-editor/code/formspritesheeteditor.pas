@@ -826,10 +826,9 @@ var
   Animation: TCastleSpriteSheetAnimation;
 begin
   Animation := GetCurrentAnimation;
-  Assert(Animation <> nil,
-    'Animation should never be nil when SpinEditFPS is enabled');
-  if CompareValue(Animation.FramesPerSecond, FloatSpinEditFPS.Value,
-    SingleEpsilon) <> EqualsValue then
+  if Animation = nil then
+    Exit; // ignore if no animation (TODO: SpinEditFPS should be disabled then)
+  if not SameValue(Animation.FramesPerSecond, FloatSpinEditFPS.Value) then
   begin
     Animation.FramesPerSecond := FloatSpinEditFPS.Value;
     { To change frames per second file must be regenerated. }
