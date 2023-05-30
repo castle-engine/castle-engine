@@ -16,7 +16,11 @@ type
     Collider: TCastleCollider;
 
     IsPlayerOnGround: Boolean;
+    { Means that player starts jumping in that update, notice that
+      IsPlayerOnGround can be true here }
     IsJumping: Boolean;
+
+    { Means that player changes horizontal position (has horizontal velocity) }
     IsMoving: Boolean;
 
     InputDirection: TVector3;
@@ -55,6 +59,10 @@ type
 
     function IsPlayerOnGround(const PlayerRigidBody: TCastleRigidBody;
       const PlayerCollider: TCastleCollider): Boolean; virtual;
+
+    procedure DefaultMovement(const PlayerRigidBody: TCastleRigidBody;
+      const InputDirection, ForwardDirection, UpDirection, RightDirection: TVector3;
+      var HorizontalVelocity: TVector3; var VerticalVelocity: Single); virtual;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
@@ -179,49 +187,13 @@ begin
   end;
 end;
 
-procedure TFpsModularMovement.Update(const SecondsPassed: Single;
-  var RemoveMe: TRemoveType);
-
+procedure TFpsModularMovement.DefaultMovement(
+  const PlayerRigidBody: TCastleRigidBody; const InputDirection,
+  ForwardDirection, UpDirection, RightDirection: TVector3;
+  var HorizontalVelocity: TVector3; var VerticalVelocity: Single);
 var
-  RBody: TCastleRigidBody;
-  Collider: TCastleCollider;
-  IsOnGroundBool: Boolean;
-
-  InputDirection: TVector3;
-  FullForwardDirection: TVector3;
-  ForwardDirection: TVector3;
-  RightDirection: TVector3;
-  UpDirection: TVector3;
-
-  HorizontalVelocity: TVector3;
-  VerticalVelocity: Single;
-
   IntegratedVelocities: TVector3;
-  Beh: TCastleBehavior;
-
-  MovementState: TModularMovementState;
-  I: Integer;
 begin
-  RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  if not Assigned(RBody) then
-    Exit;
-
-  Collider := Parent.FindBehavior(TCastleCollider) as TCastleCollider;
-  if not Assigned(Collider) then
-    Exit;
-
-  IsOnGroundBool := IsPlayerOnGround(RBody, Collider);
-
-  { No support for air movement }
-  if (not IsOnGroundBool) then
-    Exit;
-
-  { Get all directions }
-  InputDirection := GetDirectionFromInput;
-  ForwardDirection := GetForwardDirection;
-  UpDirection := Parent.Up;
-  RightDirection := TVector3.CrossProduct(ForwardDirection, UpDirection);
-
   { Simplest code:  When input direction is 1.00 0.00 -1.00 this move faster:
 
     HorizontalVelocity := ForwardDirection * (InputDirection.Z * HorizontalSpeed)
@@ -239,23 +211,104 @@ begin
   HorizontalVelocity :=  HorizontalVelocity.Normalize * HorizontalSpeed;
 
   { Jump support }
-
-  if IsOnGroundBool then
-    FWasJumpInput := false;
+  FWasJumpInput := false;
 
   if (FWasJumpInput = false) and not IsZero(InputDirection.Y) then
   begin
     FWasJumpInput := true;
     VerticalVelocity := JumpSpeed;
   end else
-    VerticalVelocity := RBody.LinearVelocity.Y;
+    VerticalVelocity := PlayerRigidBody.LinearVelocity.Y;
 
   { Integrate velocities }
   IntegratedVelocities := HorizontalVelocity;
   IntegratedVelocities.Y := VerticalVelocity;
 
   {Set velocity to rigid body }
-  RBody.LinearVelocity := IntegratedVelocities;
+  PlayerRigidBody.LinearVelocity := IntegratedVelocities;
+end;
+
+procedure TFpsModularMovement.Update(const SecondsPassed: Single;
+  var RemoveMe: TRemoveType);
+
+var
+  RBody: TCastleRigidBody;
+  Collider: TCastleCollider;
+  IsOnGroundBool: Boolean;
+
+  InputDirection: TVector3;
+  ForwardDirection: TVector3;
+  RightDirection: TVector3;
+  UpDirection: TVector3;
+
+  HorizontalVelocity: TVector3;
+  VerticalVelocity: Single;
+
+  Beh: TCastleBehavior;
+
+  MovementState: TModularMovementState;
+  I: Integer;
+  ShouldDoDefaultMovement: Boolean;
+begin
+  RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  if not Assigned(RBody) then
+    Exit;
+
+  Collider := Parent.FindBehavior(TCastleCollider) as TCastleCollider;
+  if not Assigned(Collider) then
+    Exit;
+
+  IsOnGroundBool := IsPlayerOnGround(RBody, Collider);
+
+  { Get all directions }
+  InputDirection := GetDirectionFromInput;
+  ForwardDirection := GetForwardDirection;
+  UpDirection := Parent.Up;
+  RightDirection := TVector3.CrossProduct(ForwardDirection, UpDirection);
+
+  { HorizontalVelocity and VerticalVelocity based on previous values }
+  HorizontalVelocity := RBody.LinearVelocity;
+  HorizontalVelocity.Y := 0;
+  VerticalVelocity := RBody.LinearVelocity.Y;
+
+  ShouldDoDefaultMovement := true;
+
+  { Check for modules and launch them }
+  MovementState := TModularMovementState.Create;
+  try
+    MovementState.SecondsPassed := SecondsPassed;
+    MovementState.RigidBody := RBody;
+    MovementState.Collider := Collider;
+    MovementState.IsPlayerOnGround := IsOnGroundBool;
+    MovementState.IsJumping := FWasJumpInput;
+    MovementState.IsMoving := not HorizontalVelocity.IsZero;
+    MovementState.FullForwardDirection := GetFullForwardDirection;
+    MovementState.ForwardDirection := ForwardDirection;
+    MovementState.RightDirection := RightDirection;
+    MovementState.UpDirection := UpDirection;
+    MovementState.InputDirection := InputDirection;
+
+    for I := 0 to Parent.BehaviorsCount - 1 do
+    begin
+      Beh := Parent.Behaviors[I];
+      if Beh is TAbstractMovementModifier then
+      begin
+        ShouldDoDefaultMovement := TAbstractMovementModifier(Beh).
+          ShouldDoDefaultMovement(MovementState);
+        if not ShouldDoDefaultMovement then
+          break;
+      end;
+    end;
+  finally
+    FreeAndNil(MovementState);
+  end;
+
+  { Default movement moving on ground and jumping }
+  if IsOnGroundBool and ShouldDoDefaultMovement then
+  begin
+    DefaultMovement(RBody, InputDirection, ForwardDirection, UpDirection,
+    RightDirection, HorizontalVelocity, VerticalVelocity);
+  end;
 
   { Check for modules and launch them }
   MovementState := TModularMovementState.Create;
@@ -306,7 +359,7 @@ begin
   FInputJump := TInputShortcut.Create(Self);
   InputJump.Assign(keySpace);
   InputJump.SetSubComponent(true);
-  InputJump.Name := 'Input_Jump';
+  InputJump.Name := 'InputJump';
 end;
 
 function TFpsModularMovement.PropertySections(const PropertyName: String
