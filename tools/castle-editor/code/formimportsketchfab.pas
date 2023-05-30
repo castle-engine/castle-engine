@@ -64,6 +64,7 @@ type
     ProjectPath: String;
     OnCanAddImported: TCanAddImported;
     OnAddImported: TAddImported;
+    OnRefreshFiles: TNotifyEvent;
     procedure UpdateEnabled;
   end;
 
@@ -194,6 +195,8 @@ begin
   ZipUnpackDir := BasePath + Model.ModelPrettyId;
   Model.DownloadZip(ZipFileName);
   Model.ExtractZip(ZipFileName, ZipUnpackDir);
+
+  OnRefreshFiles(Self);
 
   ModelFileName := InclPathDelim(ZipUnpackDir) + 'scene.gltf';
   Result := MaybeUseDataProtocol(FilenameToURISafe(ModelFileName));

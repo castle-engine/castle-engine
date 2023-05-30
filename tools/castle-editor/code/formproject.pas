@@ -532,6 +532,7 @@ type
       Line: Integer = -1;
       Column: Integer = -1);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
+    procedure RefreshAllFiles(Sender: TObject);
     (*Runs custom code editor.
       Use this only when CodeEditor = ceCustom.
       CustomCodeEditorCommand is the command to use (like CodeEditorCommand
@@ -955,6 +956,7 @@ begin
     ImportSketchfabForm := TImportSketchfabForm.Create(Application);
 
   ImportSketchfabForm.ProjectPath := ProjectPath;
+  ImportSketchfabForm.OnRefreshFiles := @RefreshAllFiles;
   ImportSketchfabForm.OnCanAddImported := @CanAddImported;
   ImportSketchfabForm.OnAddImported := @AddImported;
   ImportSketchfabForm.Show;
@@ -3419,6 +3421,11 @@ begin
     end;
     //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
   end;
+end;
+
+procedure TProjectForm.RefreshAllFiles(Sender: TObject);
+begin
+  RefreshFiles(rfEverything);
 end;
 
 procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
