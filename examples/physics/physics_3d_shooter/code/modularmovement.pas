@@ -33,6 +33,8 @@ type
   TAbstractMovementModifier = class(TCastleBehavior)
   public
     procedure UpdateMovement(const MovementState: TModularMovementState); virtual; abstract;
+
+    function ShouldDoDefaultMovement(const MovementState: TModularMovementState): Boolean; virtual;
   end;
 
   TFpsModularMovement = class(TAbstractModularMovement)
@@ -80,6 +82,14 @@ type
 implementation
 
 uses Math, CastleBoxes, CastleUtils, CastleComponentSerialize, CastleKeysMouse;
+
+{ TAbstractMovementModifier -------------------------------------------------- }
+
+function TAbstractMovementModifier.ShouldDoDefaultMovement(
+  const MovementState: TModularMovementState): Boolean;
+begin
+  Result := true;
+end;
 
 { TFpsModularMovement -------------------------------------------------------- }
 
