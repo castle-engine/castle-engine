@@ -2575,7 +2575,7 @@ end;
 
 procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
 
-  function HandleNonModalAssociatedForm(Form: TForm): Boolean;
+  function HandleNonModalAssociatedForm(var Form: TForm): Boolean;
   begin
     Result := true;
     if (Form <> nil) and Form.Visible then
@@ -2584,6 +2584,7 @@ procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
         Exit(false);
       Form.Close; // not needed on GTK2, maybe add ifdef?
     end;
+    FreeAndNil(Form);
   end;
 
 begin
@@ -2595,10 +2596,13 @@ begin
 
   if ProposeSaveDesign then
   begin
-    { Close associated windows if visible }
-    if not HandleNonModalAssociatedForm(SpriteSheetEditorForm) then
+    { Close and free associated windows.
+      Reason for free: E.g. ImportSketchfabForm has some "links" to current project,
+      like TImportSketchfabForm.OnAddImported, so it's simpler to just
+      free it and recreate in new projects. }
+    if not HandleNonModalAssociatedForm(TForm(SpriteSheetEditorForm)) then
       Exit;
-    if not HandleNonModalAssociatedForm(ImportSketchfabForm) then
+    if not HandleNonModalAssociatedForm(TForm(ImportSketchfabForm)) then
       Exit;
 
     Release; // do not call MenuItemDesignClose, to avoid OnCloseQuery
