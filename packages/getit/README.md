@@ -1,8 +1,8 @@
-# Castle Game Engine 
+# Castle Game Engine - GetIt version
 
 ## Instructions
 
-#### Before Package Installation
+### Before Package Installation
 
 This repo (repo_dirname) needs to be placed in e.g. 
 
@@ -14,7 +14,7 @@ A new entry is REQUIRED  called CGEDIR in Tools -> Options -> IDE -> Environment
 
 This needs performing before the package is compiled/installed as $(CGEDIR) is used within the package.
 
-#### Package Installation
+### Package Installation
 
 Build Win32 Debug for castle_engine
 
@@ -26,15 +26,22 @@ Build Win64 Release for castle_engine
 
 Install Win32 Release for castle_engine_design
 
-#### After Package Installation, before use
+### After Package Installation, before use
 
 Append to Win32 Library path ...
+
 $(CGEDIR)\lib\Win32\Release
+
 Append to Win32 DCU path ...
+
 $(CGEDIR)\lib\Win32\Debug
+
 Append to Win64 Library path ...
+
 $(CGEDIR)\lib\Win64\Release
+
 Append to Win64 DCU path ...
+
 $(CGEDIR)\lib\Win64\Debug
 
 RESTART DELPHI (???)
