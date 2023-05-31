@@ -24,6 +24,8 @@ Build Win64 Debug for castle_engine
 
 Build Win64 Release for castle_engine
 
+Build Win32 Release for castle_engine_design (note build + install)
+
 Install Win32 Release for castle_engine_design
 
 ### After Package Installation, before use
@@ -44,4 +46,4 @@ Append to Win64 DCU path ...
 
 $(CGEDIR)\lib\Win64\Debug
 
-RESTART DELPHI (???)
+## RESTART DELPHI
