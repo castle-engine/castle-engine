@@ -1,51 +1,40 @@
-# Delphi package
+# Castle Game Engine 
 
-This directory contains a design-time Delphi package `castle_engine` that registers [TCastleControl component you can drop on a form (VCL, FMX)](https://castle-engine.io/control_on_form).
+## Instructions
 
-We recommend installing this package using [Delphinus](https://castle-engine.io/download#delphinus). It will install the package and extend your Delphi settings, to make CGE units available for all applications.
+#### Before Package Installation
 
-Alternatively, you can build and install this package manually in Delphi IDE.
+This repo (repo_dirname) needs to be placed in e.g. 
 
-Notes:
+`C:\Users\Public\Documents\Embarcadero\Studio\22.0\CatalogRepository`
 
-- The package `castle_engine` _"Target platforms"_ must include all platforms supported by Castle Game Engine with Delphi.
+The 22.0 part of the path is mutable - 22,0 is the Delphi 11 specific path - it'll change for other versions. This path is referred to by Delphi as $(BDSCatalogRepository). 
 
-    This means both _"Windows 32-bit"_ and _"Windows 64-bit"_. This allows to drop `TCastleControl` on a form when your application platform is either _"Windows 32-bit"_ or _"Windows 64-bit".
+A new entry is REQUIRED  called CGEDIR in Tools -> Options -> IDE -> Environment Variables -> User System Overrides, it's value should be $(BDSCatalogRepository)\\(repo_dirname)
 
-    We generally recommend to build your Windows applications for 64-bit, as this is what users expect nowadays. For maximum compatibility, CGE supports both 32-bit and 64-bit Windows versions, with any compiler.
+This needs performing before the package is compiled/installed as $(CGEDIR) is used within the package.
 
-- However, `castle_engine_design` package _"Target platforms"_ must be only Win32. Because `designide` package is only for Windows 32-bit, just like Delphi IDE.
+#### Package Installation
 
-    And `designide` includes unit `ToolsAPI` which is in turn used by `CastleInternalDelphiDesignUtils` unit.
+Build Win32 Debug for castle_engine
 
-- As Delphi IDE is 32-bit right now, note that you can use _"Install"_ on a package only when the platform is set to _"Windows 32-bit"_.
+Build Win32 Release for castle_engine
 
-- We put DCP output in `./output` subdirectory, this seems simplest and reliable for now.
-  Makes it easier to find and refer to packages than in directories like
-  (default) `C:\Users\Public\Documents\Embarcadero\Studio\22.0\Dcp` .
+Build Win64 Debug for castle_engine
 
-- Package settings disable some warnings.
-  Disabling them this way (not in DPK, e.g. by including `castleconf.inc` or writing directives explicitly) seems like the only reliable way to hide them. The directives (and reasons for hiding) are:
+Build Win64 Release for castle_engine
 
-    ```
-    { Disable Delphi warnings that we're not compatible with C++.
-      TODO: In the future we plan to support C++ builder, so these will have to be dealt with. }
-    {$warn DUPLICATE_CTOR_DTOR off}
-    {$warn UNSUPPORTED_CONSTRUCT}
+Install Win32 Release for castle_engine_design
 
-    { Disable Delphi warnings that we import more units implicitly.
-      We do it deliberately, to avoid listing huge number of units in castle_base. }
-    {$warn IMPLICIT_IMPORT off}
-    ```
+#### After Package Installation, before use
 
-- We used to have here a set of packages:
+Append to Win32 Library path ...
+$(CGEDIR)\lib\Win32\Release
+Append to Win32 DCU path ...
+$(CGEDIR)\lib\Win32\Debug
+Append to Win64 Library path ...
+$(CGEDIR)\lib\Win64\Release
+Append to Win64 DCU path ...
+$(CGEDIR)\lib\Win64\Debug
 
-    - `castle_base` with base units
-    - `castle_fmx` with FMX version of TCastleControl, that depended on `castle_base`
-    - `castle_vcl` with VCL version of TCastleControl, that depended on `castle_base`
-
-    This worked when installing in Delphi IDE, however [Delphinus](https://castle-engine.io/download#delphinus) has issues installing packages that depend on other packages like this. So we decided to switch to a single Delphi package `castle_engine` that contains everything, both VCL and FMX components. There seems to be no practical disadvantages of this.
-
-    In case we'll want to use run-time packages, they will be split into separate base/fmx/vcl.
-
-- `src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas` is implicitly imported into package -- this is normal and has to stay like this. This unit compiles only for Delphi/Win32 (not Delphi/Win64), it is also used only in case of that platform.
+RESTART DELPHI (???)
