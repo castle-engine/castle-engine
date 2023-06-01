@@ -1478,7 +1478,7 @@ begin
   Assert(Owner <> nil); // Use SetupDesignTimeCamera only on viewports with owner
 
   NewCamera := TCastleCamera.Create(Owner);
-  NewCamera.Name := InternalProposeName(TCastleCamera, Owner);
+  NewCamera.Name := ProposeComponentName(TCastleCamera, Owner);
   Camera := NewCamera;
   Assert(Camera = NewCamera);
 
@@ -1661,7 +1661,7 @@ begin
 
     if InternalDesignManipulation and (Camera.Name = 'Camera') and (Owner <> nil) then
     begin
-      Camera.Name := InternalProposeName(TCastleCamera, Owner);
+      Camera.Name := ProposeComponentName(TCastleCamera, Owner);
       WritelnLog('Camera in viewport "%s" renamed to "%s" to not conflict with other components', [
         Name,
         Camera.Name
@@ -3859,7 +3859,7 @@ begin
     that you can see as a whole in initial view,
     allows to see screen corner - also has distance from edge. }
   Plane := TCastlePlane.Create(Owner);
-  Plane.Name := InternalProposeName(TCastlePlane, Owner);
+  Plane.Name := ProposeComponentName(TCastlePlane, Owner);
   Plane.Axis := 2;
   Plane.Size := Vector2(200, 200);
   Plane.Material := pmUnlit;
@@ -3906,7 +3906,7 @@ begin
     bright to make PBR colors visible (e.g. yellow sphere should visibly be really yellow),
     low above ground to see the attenuation on floor.  }
   Light := TCastlePointLight.Create(Owner);
-  Light.Name := InternalProposeName(TCastlePointLight, Owner);
+  Light.Name := ProposeComponentName(TCastlePointLight, Owner);
   Light.Translation := Vector3(4.00, 1.00, 1.00);
   Light.Intensity := 10;
   Items.Add(Light);
@@ -3915,7 +3915,7 @@ begin
     that you can see as a whole in initial view,
     serves as floor to place new 3D stuff }
   Plane := TCastlePlane.Create(Owner);
-  Plane.Name := InternalProposeName(TCastlePlane, Owner);
+  Plane.Name := ProposeComponentName(TCastlePlane, Owner);
   Plane.Size := Vector2(10, 10);
   Items.Add(Plane);
 
@@ -3933,7 +3933,7 @@ begin
   end;
 
   NewBackground := TCastleBackground.Create(Owner);
-  NewBackground.Name := InternalProposeName(TCastleBackground, Owner);
+  NewBackground.Name := ProposeComponentName(TCastleBackground, Owner);
   AddNonVisualComponent(NewBackground);
   Background := NewBackground;
 end;
