@@ -634,6 +634,8 @@ type
 
 implementation
 
+{$warnings off} // do not warn about deprecated Castle2DSceneManager usage
+
 uses
   { Standard FPC/Lazarus units }
   // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
@@ -650,6 +652,8 @@ uses
   CastleBehaviors,
   { Editor units }
   FormProject, CastleComponentEditorDesigner;
+
+{$warnings on}
 
 {$R *.lfm}
 
@@ -1557,9 +1561,11 @@ begin
   CastleControl := TCastleControl.Create(Self);
   CastleControl.AutoFocus := true; // needed on Windows to receive AWSD, Ctrl+Z...
   CastleControl.Align := alClient;
+  {$warnings off} // TODO: upgrade it
   CastleControl.OnResize := @CastleControlResize;
   CastleControl.OnOpen := @CastleControlOpen;
   CastleControl.OnUpdate := @CastleControlUpdate;
+  {$warnings on}
   CastleControl.OnDragOver := @CastleControlDragOver;
   CastleControl.OnDragDrop := @CastleControlDragDrop;
   CastleControl.Parent := PanelMiddle; // set Parent last, following https://wiki.freepascal.org/LCL_Tips#Set_the_Parent_as_last
