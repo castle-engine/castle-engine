@@ -143,27 +143,31 @@ object ImportSketchfabForm: TImportSketchfabForm
     AnchorSideTop.Side = asrCenter
     AnchorSideRight.Control = ButtonGrid
     AnchorSideBottom.Control = ListModels
-    Left = 957
-    Height = 30
-    Top = 47
-    Width = 50
+    Left = 985
+    Height = 36
+    Hint = 'List'
+    Top = 41
+    Width = 36
     Anchors = [akRight, akBottom]
-    Caption = 'List'
     Down = True
     GroupIndex = 99
+    Images = Icons.ToolbarIcons
+    ImageIndex = 18
     OnClick = ButtonListClick
   end
   object ButtonGrid: TSpeedButton
     AnchorSideRight.Control = ListModels
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = ListModels
-    Left = 1007
-    Height = 30
-    Top = 47
-    Width = 50
+    Left = 1021
+    Height = 36
+    Hint = 'Grid'
+    Top = 41
+    Width = 36
     Anchors = [akRight, akBottom]
-    Caption = 'Grid'
     GroupIndex = 99
+    Images = Icons.ToolbarIcons
+    ImageIndex = 19
     OnClick = ButtonGridClick
   end
   object ListModels: TListView
