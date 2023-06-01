@@ -3,7 +3,6 @@ object ImportSketchfabForm: TImportSketchfabForm
   Height = 635
   Top = 205
   Width = 1065
-  ActiveControl = EditQuery
   Caption = 'Import model from Sketchfab'
   ClientHeight = 635
   ClientWidth = 1065
@@ -15,44 +14,6 @@ object ImportSketchfabForm: TImportSketchfabForm
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
   LCLVersion = '2.2.2.0'
-  object PanelSearch: TPanel
-    Left = 0
-    Height = 39
-    Top = 8
-    Width = 1065
-    Align = alTop
-    BorderSpacing.Top = 8
-    BevelOuter = bvNone
-    ClientHeight = 39
-    ClientWidth = 1065
-    TabOrder = 0
-    object EditQuery: TLabeledEdit
-      Left = 176
-      Height = 39
-      Top = 0
-      Width = 432
-      EditLabel.Height = 22
-      EditLabel.Width = 158
-      EditLabel.Caption = 'Search for models: '
-      EditLabel.ParentColor = False
-      LabelPosition = lpLeft
-      TabOrder = 0
-    end
-    object ButtonSearch: TButton
-      AnchorSideLeft.Control = EditQuery
-      AnchorSideLeft.Side = asrBottom
-      AnchorSideTop.Control = EditQuery
-      AnchorSideTop.Side = asrCenter
-      Left = 616
-      Height = 31
-      Top = 4
-      Width = 94
-      BorderSpacing.Left = 8
-      Caption = 'Search'
-      OnClick = ButtonSearchClick
-      TabOrder = 1
-    end
-  end
   object ButtonDownloadAndAddViewport: TButton
     AnchorSideRight.Control = ButtonClose
     AnchorSideRight.Side = asrBottom
@@ -66,7 +27,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     BorderSpacing.Bottom = 4
     Caption = 'Download and Add To Viewport'
     OnClick = ButtonDownloadAndAddViewportClick
-    TabOrder = 6
+    TabOrder = 8
   end
   object ButtonDownloadOnly: TButton
     AnchorSideRight.Control = ButtonClose
@@ -81,7 +42,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     BorderSpacing.Bottom = 4
     Caption = 'Download'
     OnClick = ButtonDownloadOnlyClick
-    TabOrder = 5
+    TabOrder = 7
   end
   object ButtonViewSketchfab: TButton
     AnchorSideTop.Side = asrBottom
@@ -94,7 +55,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     BorderSpacing.Top = 4
     Caption = 'View selected in Sketchfab'
     OnClick = ButtonViewSketchfabClick
-    TabOrder = 4
+    TabOrder = 6
   end
   object ButtonClose: TButton
     Left = 994
@@ -105,53 +66,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     AutoSize = True
     Caption = 'Close'
     OnClick = ButtonCloseClick
-    TabOrder = 7
-  end
-  object PanelList: TPanel
-    Left = 8
-    Height = 437
-    Top = 59
-    Width = 1049
-    Align = alTop
-    Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Top = 4
-    BorderSpacing.Around = 8
-    BevelOuter = bvNone
-    ClientHeight = 437
-    ClientWidth = 1049
-    TabOrder = 1
-    object ListModels: TListView
-      Left = 0
-      Height = 437
-      Top = 0
-      Width = 1049
-      Align = alClient
-      Columns = <      
-        item
-          AutoSize = True
-          Caption = 'Name'
-          Width = 67
-        end      
-        item
-          AutoSize = True
-          Caption = 'Face Count'
-          Width = 113
-        end      
-        item
-          AutoSize = True
-          Caption = 'License'
-          Width = 82
-        end      
-        item
-          AutoSize = True
-          Caption = 'Description'
-          Width = 785
-        end>
-      ScrollBars = ssAutoBoth
-      TabOrder = 0
-      ViewStyle = vsReport
-      OnSelectItem = ListModelsSelectItem
-    end
+    TabOrder = 9
   end
   object EditApiToken: TLabeledEdit
     AnchorSideBottom.Control = ButtonTokenUrl
@@ -166,7 +81,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     EditLabel.Caption = 'Sketchfab API token: '
     EditLabel.ParentColor = False
     LabelPosition = lpLeft
-    TabOrder = 2
+    TabOrder = 4
   end
   object ButtonTokenUrl: TButton
     AnchorSideLeft.Control = ButtonViewSketchfab
@@ -183,7 +98,108 @@ object ImportSketchfabForm: TImportSketchfabForm
     Caption = 'Open Sketchfab account to copy API token'
     OnClick = ButtonTokenUrlClick
     ParentFont = False
+    TabOrder = 5
+  end
+  object CheckBoxAnimated: TCheckBox
+    AnchorSideTop.Control = EditQuery
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 26
+    Top = 51
+    Width = 147
+    BorderSpacing.Top = 8
+    Caption = 'Only Animated'
+    OnChange = CheckBoxAnimatedChange
+    TabOrder = 2
+  end
+  object EditQuery: TLabeledEdit
+    Left = 176
+    Height = 39
+    Top = 4
+    Width = 432
+    EditLabel.Height = 22
+    EditLabel.Width = 158
+    EditLabel.Caption = 'Search for models: '
+    EditLabel.ParentColor = False
+    LabelPosition = lpLeft
+    TabOrder = 0
+    OnKeyDown = EditQueryKeyDown
+  end
+  object ButtonSearch: TButton
+    AnchorSideLeft.Control = EditQuery
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = EditQuery
+    AnchorSideTop.Side = asrCenter
+    Left = 616
+    Height = 31
+    Top = 8
+    Width = 94
+    BorderSpacing.Left = 8
+    Caption = 'Search'
+    OnClick = ButtonSearchClick
+    TabOrder = 1
+  end
+  object ButtonList: TSpeedButton
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = ButtonGrid
+    AnchorSideBottom.Control = ListModels
+    Left = 957
+    Height = 30
+    Top = 47
+    Width = 50
+    Anchors = [akRight, akBottom]
+    Caption = 'List'
+    Down = True
+    GroupIndex = 99
+    OnClick = ButtonListClick
+  end
+  object ButtonGrid: TSpeedButton
+    AnchorSideRight.Control = ListModels
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = ListModels
+    Left = 1007
+    Height = 30
+    Top = 47
+    Width = 50
+    Anchors = [akRight, akBottom]
+    Caption = 'Grid'
+    GroupIndex = 99
+    OnClick = ButtonGridClick
+  end
+  object ListModels: TListView
+    AnchorSideTop.Control = CheckBoxAnimated
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 411
+    Top = 85
+    Width = 1049
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Top = 8
+    Columns = <    
+      item
+        AutoSize = True
+        Caption = 'Name'
+        Width = 67
+      end    
+      item
+        AutoSize = True
+        Caption = 'Face Count'
+        Width = 113
+      end    
+      item
+        AutoSize = True
+        Caption = 'License'
+        Width = 82
+      end    
+      item
+        AutoSize = True
+        Caption = 'Description'
+        Width = 785
+      end>
+    ScrollBars = ssAutoBoth
     TabOrder = 3
+    ViewStyle = vsReport
+    OnSelectItem = ListModelsSelectItem
   end
   object Timer1: TTimer
     Interval = 1

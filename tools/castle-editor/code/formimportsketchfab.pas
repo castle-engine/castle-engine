@@ -23,7 +23,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
-  ComCtrls, FrameDesign, CastleSketchfab;
+  ComCtrls, Buttons, FrameDesign, CastleSketchfab;
 
 type
   TCanAddImported = function (const AddUrl: String): Boolean of object;
@@ -32,22 +32,28 @@ type
   TImportSketchfabForm = class(TForm)
     ButtonDownloadAndAddViewport: TButton;
     ButtonDownloadOnly: TButton;
+    ButtonGrid: TSpeedButton;
+    ButtonList: TSpeedButton;
+    ButtonSearch: TButton;
     ButtonTokenUrl: TButton;
     ButtonViewSketchfab: TButton;
     ButtonClose: TButton;
-    ButtonSearch: TButton;
+    CheckBoxAnimated: TCheckBox;
     EditApiToken: TLabeledEdit;
     EditQuery: TLabeledEdit;
     ListModels: TListView;
-    PanelList: TPanel;
-    PanelSearch: TPanel;
     Timer1: TTimer;
     procedure ButtonCloseClick(Sender: TObject);
     procedure ButtonDownloadAndAddViewportClick(Sender: TObject);
     procedure ButtonDownloadOnlyClick(Sender: TObject);
+    procedure ButtonGridClick(Sender: TObject);
+    procedure ButtonListClick(Sender: TObject);
     procedure ButtonSearchClick(Sender: TObject);
     procedure ButtonTokenUrlClick(Sender: TObject);
     procedure ButtonViewSketchfabClick(Sender: TObject);
+    procedure CheckBoxAnimatedChange(Sender: TObject);
+    procedure EditQueryKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure FormHide(Sender: TObject);
@@ -73,7 +79,8 @@ var
 
 implementation
 
-uses CastleOpenDocument, CastleStringUtils, CastleConfig, CastleUtils,
+uses LCLType,
+  CastleOpenDocument, CastleStringUtils, CastleConfig, CastleUtils,
   CastleURIUtils,
   EditorUtils;
 
@@ -92,6 +99,24 @@ var
 begin
   Model := TObject(ListModels.Selected.Data) as TSketchfabModel;
   OpenUrl(Model.ViewerUrl);
+end;
+
+procedure TImportSketchfabForm.CheckBoxAnimatedChange(Sender: TObject);
+begin
+  { None of the conditions below seem perfect.
+    Just refresh always, as Sketchfab website also does it like this. }
+  //if (ListModels.Items.Count <> 0) and (EditQuery.Text <> '') then
+    ButtonSearchClick(ButtonSearch);
+end;
+
+procedure TImportSketchfabForm.EditQueryKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_RETURN then
+  begin
+    ButtonSearchClick(ButtonSearch);
+    Key := 0; // handled
+  end;
 end;
 
 procedure TImportSketchfabForm.FormClose(Sender: TObject;
@@ -164,7 +189,7 @@ begin
   ListModels.Items.Clear;
   FreeAndNil(Models);
 
-  Models := TSketchfabModel.Search(EditQuery.Text);
+  Models := TSketchfabModel.Search(EditQuery.Text, CheckBoxAnimated.Checked);
   for M in Models do
   begin
     ListItem := ListModels.Items.Add;
@@ -209,6 +234,18 @@ begin
   DownloadedUrl := DownloadSelectedModel;
   InfoBox('Model downloaded to:' + NL + NL + URIDisplay(DownloadedUrl));
   Close;
+end;
+
+procedure TImportSketchfabForm.ButtonGridClick(Sender: TObject);
+begin
+  ListModels.ViewStyle := vsIcon;
+  ButtonGrid.Down := true; // ButtonList.Down will be set to false automatically
+end;
+
+procedure TImportSketchfabForm.ButtonListClick(Sender: TObject);
+begin
+  ListModels.ViewStyle := vsReport;
+  ButtonList.Down := true; // ButtonGrid.Down will be set to false automatically
 end;
 
 procedure TImportSketchfabForm.ButtonCloseClick(Sender: TObject);

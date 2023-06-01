@@ -62,7 +62,8 @@ type
     ModelPrettyId: String;
 
     { Search Sketchfab for Query, return list of model ids. }
-    class function Search(const Query: String): TSketchfabModelList;
+    class function Search(const Query: String;
+      const AnimatedOnly: Boolean): TSketchfabModelList;
 
     { Set Download* fields based on ModelId. }
     procedure StartDownload(const ApiToken: String);
@@ -83,7 +84,8 @@ const
 
 { TSketchfabModel (class methods) --------------------------------------------- }
 
-class function TSketchfabModel.Search(const Query: String): TSketchfabModelList;
+class function TSketchfabModel.Search(const Query: String;
+  const AnimatedOnly: Boolean): TSketchfabModelList;
 
   { Find thumbnail URL best matching given Size, in a JSON array
     as returned by Sketchfab search query.
@@ -154,11 +156,39 @@ var
   JSONObject: TJSONObject;
   I: Integer;
   Model: TSketchfabModel;
+  SearchUrl: String;
 begin
   Result := TSketchfabModelList.Create(true);
   Download := TCastleDownload.Create(nil);
   try
-    Download.Url := 'https://api.sketchfab.com/v3/search?type=models&downloadable=true&q=' + InternalUriEscape(Query);
+    { See https://docs.sketchfab.com/data-api/v3/index.html#!/search/get_v3_search_type_models
+      for documentation of this API.
+      Notes:
+
+      - The default "sort_by" is by relevance, which is just like in Sketchfab UI
+        on the website. No need to tweak this default.
+
+      - There is "file_format" API parameter but it is unclear should I specify
+        there glTF somehow.
+        It seems it allows to filter by source formats (like .blend, obj)
+        not by output formats. https://sketchfab.com/developers/download-api
+        says """Models are available in glTF, GLB, and USDZ formats.
+        Models are not currently available in their source formats such
+        as FBX and OBJ through the API.""
+
+        In all practical experiments, models we found have glTF versions.
+
+      - There is "pbr_type" and it is tempting to use it, as CGE doesn't
+        support fully Specular-Glossiness PBR workflow yet.
+        (And we're reluctant to support it, as it is deprecated in glTF 2.0.)
+        However, it seems we cannot tell there "unlit or metallic-roughness".
+    }
+    SearchUrl := 'https://api.sketchfab.com/v3/search?type=models&downloadable=true';
+    if AnimatedOnly then
+      SearchUrl += '&animated=true';
+    SearchUrl += '&q=' + InternalUriEscape(Query);
+    Download.Url := SearchUrl;
+
     Download.Start;
     TProgressForm.WaitFor('Searching Sketchfab', Download);
     Response := StreamToString(Download.Contents);
