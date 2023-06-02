@@ -1111,6 +1111,38 @@ const
   DefaultRecognizeEvenEscapedHash = true;
 
 function ChangeURIExt(const URL, Extension: string): string;
+
+  {$ifndef FPC}
+  { Mask default Delphi ChangeFileExt that behaves badly for filenames
+    like '.hidden'.}
+  function ChangeFileExt(const FileName, NewExtension: String): String;
+  var
+    I: Integer;
+    ExtDotPos: Integer;
+  begin
+    ExtDotPos := 0;
+    for I := Length(FileName) downto 1 do
+      if FileName[I] in AllowDirectorySeparators then
+      begin
+        // no extension, leave ExtDotPos = 0
+        Break;
+      end else
+      if (FileName[I] = '.') and
+         (I > 1) and
+         (not (FileName[I - 1] in AllowDirectorySeparators)) then
+      begin
+        // dot, but not at the beginning of the name -> valid ExtDotPos
+        ExtDotPos := I;
+        Break;
+      end;
+
+    if ExtDotPos <> 0 then
+      Result := Copy(FileName, 1, ExtDotPos - 1) + NewExtension
+    else
+      Result := FileName + NewExtension;
+  end;
+  {$endif}
+
 var
   URLWithoutAnchor, Anchor: String;
 begin

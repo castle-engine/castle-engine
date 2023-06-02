@@ -312,6 +312,8 @@ begin
   AssertEquals('castle-data:/.hidden', DeleteURIExt('castle-data:/.hidden'));
   AssertEquals('https://blah/.hidden', DeleteURIExt('https://blah/.hidden.x3d'));
   AssertEquals('castle-data:/.hidden', DeleteURIExt('castle-data:/.hidden.x3d'));
+  AssertEquals('https://blah/.hidden.x3d', DeleteURIExt('https://blah/.hidden.x3d.gz'));
+  AssertEquals('castle-data:/.hidden.x3d', DeleteURIExt('castle-data:/.hidden.x3d.gz'));
 end;
 
 initialization
