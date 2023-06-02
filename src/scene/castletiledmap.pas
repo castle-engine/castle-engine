@@ -13,14 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ Loading and rendering maps created in Tiled (see https://castle-engine.io/tiled_maps ).
+{ Loading and rendering maps created in Tiled.
+  See @url(https://castle-engine.io/tiled_maps manual about using Tiled maps)
+  for more details.
 
   Most basic usage is to add @link(TCastleTiledMap) component to a viewport
   and set @link(TCastleTiledMap.URL) to load your Tiled map (TMX file).
   You can test it using CGE editor.
 
-  See the [examples/tiled/](https://github.com/castle-engine/castle-engine/tree/master/examples/tiled)
-  directory of Castle Game Engine. }
+  See the examples in Castle Game Engine:
+  @url(https://github.com/castle-engine/castle-engine/tree/master/examples/tiled examples/tiled/). }
 unit CastleTiledMap;
 
 {$I castleconf.inc}
