@@ -35,6 +35,7 @@ type
     procedure TestURIExists;
     procedure TestRelativeToCastleDataURL;
     procedure TestExtractURI;
+    procedure TestDotfile;
   end;
 
 implementation
@@ -296,6 +297,21 @@ begin
   AssertEquals('armor.tga', ExtractURIName('armor.tga'));
   AssertEquals('armor.tga', ExtractURIName('/armor.tga'));
   AssertEquals('armor.tga', ExtractURIName('blabla/armor.tga'));
+end;
+
+procedure TTestURIUtils.TestDotfile;
+begin
+  { Test that dot on 1st place is not treated as extension start. }
+
+  AssertEquals('.hidden', ExtractURIName('https://blah/.hidden'));
+  AssertEquals('.hidden', ExtractURIName('castle-data:/.hidden'));
+  AssertEquals('.hidden.x3d', ExtractURIName('https://blah/.hidden.x3d'));
+  AssertEquals('.hidden.x3d', ExtractURIName('castle-data:/.hidden.x3d'));
+
+  AssertEquals('https://blah/.hidden', DeleteURIExt('https://blah/.hidden'));
+  AssertEquals('castle-data:/.hidden', DeleteURIExt('castle-data:/.hidden'));
+  AssertEquals('https://blah/.hidden', DeleteURIExt('https://blah/.hidden.x3d'));
+  AssertEquals('castle-data:/.hidden', DeleteURIExt('castle-data:/.hidden.x3d'));
 end;
 
 initialization
