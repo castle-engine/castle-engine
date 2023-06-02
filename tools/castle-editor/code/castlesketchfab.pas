@@ -29,6 +29,22 @@ uses
   CastleFilesUtils, CastleDownload, CastleStringUtils, CastleURIUtils, CastleLog,
   CastleUtils, CastleClassUtils, CastleApplicationProperties, CastleImages;
 
+const
+  { Sketchfab API returns thumbnails in various sizes,
+    we will pick the closest one to this. }
+  BestThumbnailSize = 256;
+
+  { The thumbnails in TSketchfabModel.ThumbnailImage are resized to this size.
+    This allows to display them nicely in LCL TListView (which requires
+    constant size for all images, otherwise it stretched them in ugly way).
+
+    The aspect ratio of ThumbnailOptimalWidth / ThumbnailOptimalHeight
+    follows the aspect ratio of most (but not all)
+    Sketchfab thumbnails, so they typically fill the desired area nicely
+    (without excessive white space around). }
+  ThumbnailOptimalWidth = BestThumbnailSize;
+  ThumbnailOptimalHeight = 144;
+
 type
   TSketchfabModel = class;
 
@@ -121,11 +137,6 @@ implementation
 
 uses FormProgress,
   CastleVectors;
-
-const
-  { Sketchfab API returns thumbnails in various sizes,
-    we will pick the closest one to this. }
-  BestThumbnailSize = 256;
 
 { TSketchfabModel (class methods) --------------------------------------------- }
 
@@ -388,27 +399,28 @@ begin
   Result := ThumbnailDownload <> nil;
 end;
 
-{ Make Image size exactly square Size x Size.
+{ Make Image size exactly W x H.
 
-  Reason: Sketchfab thumbnails are not always square,
+  Reason: Sketchfab thumbnails have various aspect ratios (some are square,
+  some are 16:9...),
   also they are not guaranteed to match BestThumbnailSize even in one dimension.
-  And we need them to be exactly square
+  And we need them to be exactly ThumbnailOptimalWidth x ThumbnailOptimalHeight,
   as LCL TListView rendering will assume that, otherwise images are stretched
   in ugly way. }
-procedure FixImageSize(var Image: TCastleImage; const Size: Integer);
+procedure FixImageSize(var Image: TCastleImage; const W, H: Integer);
 var
   NewW, NewH: Integer;
   NewImage: TRGBImage;
 begin
-  { Make at least one side equal to Size. }
-  if Image.Width > Image.Height then
+  { Make at least one side equal to desired W or H. }
+  if Image.Width / Image.Height > W / H then
   begin
-    NewW := Size;
-    NewH := Round(Size * Image.Height / Image.Width);
+    NewW := W;
+    NewH := Round(W * Image.Height / Image.Width);
   end else
   begin
-    NewW := Round(Size * Image.Width / Image.Height);
-    NewH := Size;
+    NewW := Round(H * Image.Width / Image.Height);
+    NewH := H;
   end;
 
   { Note: TCastleImage.Resize does nothing when NewW/H match current size.
@@ -416,11 +428,11 @@ begin
   Image.Resize(NewW, NewH);
 
   { Too small? Then place in the center of white square. }
-  if (NewW < Size) or (NewH < Size) then
+  if (NewW < W) or (NewH < H) then
   begin
-    NewImage := TRGBImage.Create(Size, Size);
+    NewImage := TRGBImage.Create(W, H);
     NewImage.Clear(Vector4Byte(255, 255, 255, 255));
-    NewImage.DrawFrom(Image, (Size - NewW) div 2, (Size - NewH) div 2, dmOverwrite);
+    NewImage.DrawFrom(Image, (W - NewW) div 2, (H - NewH) div 2, dmOverwrite);
     FreeAndNil(Image);
     Image := NewImage;
   end;
@@ -436,7 +448,7 @@ begin
   if Sender.Status = dsSuccess then
   begin
     FThumbnailImage := LoadImage(Sender.Contents, Sender.MimeType, []);
-    FixImageSize(FThumbnailImage, BestThumbnailSize);
+    FixImageSize(FThumbnailImage, ThumbnailOptimalWidth, ThumbnailOptimalHeight);
     if Assigned(OnThumbnailDownloaded) then
       OnThumbnailDownloaded(Self);
   end else

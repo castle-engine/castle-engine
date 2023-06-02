@@ -141,6 +141,8 @@ end;
 
 procedure TImportSketchfabForm.FormCreate(Sender: TObject);
 begin
+  ImageListModelThumbnails.Width := ThumbnailOptimalWidth;
+  ImageListModelThumbnails.Height := ThumbnailOptimalHeight;
 end;
 
 procedure TImportSketchfabForm.FormDestroy(Sender: TObject);
