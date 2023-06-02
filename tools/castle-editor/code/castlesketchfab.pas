@@ -119,7 +119,8 @@ type
 
 implementation
 
-uses FormProgress;
+uses FormProgress,
+  CastleVectors;
 
 const
   { Sketchfab API returns thumbnails in various sizes,
@@ -387,6 +388,44 @@ begin
   Result := ThumbnailDownload <> nil;
 end;
 
+{ Make Image size exactly square Size x Size.
+
+  Reason: Sketchfab thumbnails are not always square,
+  also they are not guaranteed to match BestThumbnailSize even in one dimension.
+  And we need them to be exactly square
+  as LCL TListView rendering will assume that, otherwise images are stretched
+  in ugly way. }
+procedure FixImageSize(var Image: TCastleImage; const Size: Integer);
+var
+  NewW, NewH: Integer;
+  NewImage: TRGBImage;
+begin
+  { Make at least one side equal to Size. }
+  if Image.Width > Image.Height then
+  begin
+    NewW := Size;
+    NewH := Round(Size * Image.Height / Image.Width);
+  end else
+  begin
+    NewW := Round(Size * Image.Width / Image.Height);
+    NewH := Size;
+  end;
+
+  { Note: TCastleImage.Resize does nothing when NewW/H match current size.
+    So we don't check it here. }
+  Image.Resize(NewW, NewH);
+
+  { Too small? Then place in the center of white square. }
+  if (NewW < Size) or (NewH < Size) then
+  begin
+    NewImage := TRGBImage.Create(Size, Size);
+    NewImage.Clear(Vector4Byte(255, 255, 255, 255));
+    NewImage.DrawFrom(Image, (Size - NewW) div 2, (Size - NewH) div 2, dmOverwrite);
+    FreeAndNil(Image);
+    Image := NewImage;
+  end;
+end;
+
 procedure TSketchfabModel.ThumbnailDownloadFinish(
   const Sender: TCastleDownload; var FreeSender: Boolean);
 begin
@@ -397,6 +436,7 @@ begin
   if Sender.Status = dsSuccess then
   begin
     FThumbnailImage := LoadImage(Sender.Contents, Sender.MimeType, []);
+    FixImageSize(FThumbnailImage, BestThumbnailSize);
     if Assigned(OnThumbnailDownloaded) then
       OnThumbnailDownloaded(Self);
   end else
