@@ -8,6 +8,7 @@ object ImportSketchfabForm: TImportSketchfabForm
   ClientWidth = 1065
   DesignTimePPI = 120
   OnClose = FormClose
+  OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnHide = FormHide
   OnShow = FormShow
@@ -200,6 +201,8 @@ object ImportSketchfabForm: TImportSketchfabForm
         Caption = 'Description'
         Width = 785
       end>
+    LargeImages = ImageListModelThumbnails
+    LargeImagesWidth = 256
     ScrollBars = ssAutoBoth
     TabOrder = 3
     ViewStyle = vsReport
@@ -209,6 +212,12 @@ object ImportSketchfabForm: TImportSketchfabForm
     Interval = 1
     OnTimer = Timer1Timer
     Left = 895
+    Top = 22
+  end
+  object ImageListModelThumbnails: TImageList
+    Height = 256
+    Width = 256
+    Left = 768
     Top = 22
   end
 end

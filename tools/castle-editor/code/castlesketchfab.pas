@@ -27,22 +27,28 @@ uses
   {$ifndef VER3_0} OpenSslSockets, {$endif}
   { CGE units }
   CastleFilesUtils, CastleDownload, CastleStringUtils, CastleURIUtils, CastleLog,
-  CastleUtils, CastleClassUtils, CastleApplicationProperties;
+  CastleUtils, CastleClassUtils, CastleApplicationProperties, CastleImages;
 
 type
   TSketchfabModel = class;
 
   TSketchfabModelList = {$ifdef FPC}specialize{$endif} TObjectList<TSketchfabModel>;
 
+  { Notification when thumbnail is downloaded for given model.
+    When this is called, Sender.ThumbnailImage is non-nil for sure. }
+  TThumbnailDownloadedEvent = procedure (const Sender: TSketchfabModel) of object;
+
   TSketchfabModel = class
   private
     DownloadURL: String;
+    ThumbnailDownload: TCastleDownload;
+    FThumbnailImage: TCastleImage;
+    FThumbnailImageError: Boolean;
+    procedure ThumbnailDownloadFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
   public
     ModelId: String;
 
-    { Various additional info about model,
-      set by @link(Search) and @link(SearchGetFirst).
-      Not used in this application, but will be useful for UI in CGE. }
+    { Various additional info about model, set by @link(Search). }
     Name, Description: String;
     FaceCount: UInt64;
     ThumbnailUrl, ViewerUrl: String;
@@ -61,9 +67,21 @@ type
       the initial "cat" is only for humans. }
     ModelPrettyId: String;
 
+    { Set to be notified when ThumbnailImage is downloaded successfully. }
+    OnThumbnailDownloaded: TThumbnailDownloadedEvent;
+
+    { When thumbnail image is downloaded, it is placed here right
+      before calling @link(OnThumbnailDownload). }
+    property ThumbnailImage: TCastleImage read FThumbnailImage;
+
+    { If thumbnail download was attempted but failed. }
+    property ThumbnailImageError: Boolean read FThumbnailImageError;
+
     { Search Sketchfab for Query, return list of model ids. }
     class function Search(const Query: String;
       const AnimatedOnly: Boolean): TSketchfabModelList;
+
+    destructor Destroy; override;
 
     { Set Download* fields based on ModelId. }
     procedure StartDownload(const ApiToken: String);
@@ -71,6 +89,32 @@ type
     procedure DownloadZip(const ZipFileName: String);
     { Extract zip to a subdirectory in ExtractBasePath. }
     procedure ExtractZip(const ZipFileName, ZipUnpackDir: String);
+
+    { Start downloading thumbnail,
+      to set @link(ThumbnailImage) and call @link(OnThumbnailDownloaded).
+      Does nothing if download is already in progress.
+      Calls @link(OnThumbnailDownloaded) immediately if thumbnail is already
+      downloaded. }
+    procedure StartThumbnailDownload;
+
+    { If the thumbnail download is in progress, abort it.
+      Sets ThumbnailDownloading to @false. }
+    procedure AbortThumbnailDownload;
+
+    { Are we currently downloading thumbnail.
+
+      This is set to @true by StartThumbnailDownload.
+
+      This changes to @false by
+
+      - AbortThumbnailDownload
+
+      - or when thumbnail is downloaded with success
+        (then we set ThumbnailImage to non-nil and call OnThumbnailDownloaded)
+
+      - or when thumbnail is downloaded with failure
+        (then we set ThumbnailImageError to @true). }
+    function ThumbnailDownloading: Boolean;
   end;
 
 implementation
@@ -233,6 +277,13 @@ end;
 
 { TSketchfabModel (instance methods) ----------------------------------------- }
 
+destructor TSketchfabModel.Destroy;
+begin
+  FreeAndNil(ThumbnailDownload);
+  FreeAndNil(FThumbnailImage);
+  inherited;
+end;
+
 procedure TSketchfabModel.StartDownload(const ApiToken: String);
 const
   ApiUrl = 'https://api.sketchfab.com/v3/models';
@@ -308,6 +359,55 @@ begin
   end;
 
   WritelnLog('Model extracted to: ' + ZipUnpackDir);
+end;
+
+procedure TSketchfabModel.StartThumbnailDownload;
+begin
+  if not ThumbnailDownloading then
+  begin
+    if ThumbnailImage <> nil then
+      OnThumbnailDownloaded(Self)
+    else
+    begin
+      ThumbnailDownload := TCastleDownload.Create(nil);
+      ThumbnailDownload.Url := ThumbnailUrl;
+      ThumbnailDownload.OnFinish := @ThumbnailDownloadFinish;
+      ThumbnailDownload.Start;
+    end;
+  end;
+end;
+
+procedure TSketchfabModel.AbortThumbnailDownload;
+begin
+  FreeAndNil(ThumbnailDownload);
+end;
+
+function TSketchfabModel.ThumbnailDownloading: Boolean;
+begin
+  Result := ThumbnailDownload <> nil;
+end;
+
+procedure TSketchfabModel.ThumbnailDownloadFinish(
+  const Sender: TCastleDownload; var FreeSender: Boolean);
+begin
+  Assert(FThumbnailImage = nil);
+  Assert(Sender = ThumbnailDownload);
+  ThumbnailDownload := nil;
+
+  if Sender.Status = dsSuccess then
+  begin
+    FThumbnailImage := LoadImage(Sender.Contents, Sender.MimeType, []);
+    if Assigned(OnThumbnailDownloaded) then
+      OnThumbnailDownloaded(Self);
+  end else
+  begin
+    FThumbnailImageError := true;
+    WritelnWarning('Failed to download thumbnail for "%s" from Sketchfab: "%s"', [
+      Name,
+      Sender.ErrorMessage
+    ]);
+  end;
+  FreeSender := true;
 end;
 
 end.

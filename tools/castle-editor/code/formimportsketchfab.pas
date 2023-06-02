@@ -23,12 +23,15 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
-  ComCtrls, Buttons, FrameDesign, CastleSketchfab;
+  ComCtrls, Buttons,
+  FrameDesign,
+  CastleSketchfab, CastleImages;
 
 type
   TCanAddImported = function (const AddUrl: String): Boolean of object;
   TAddImported = procedure (const AddUrl: String) of object;
 
+  { Form to import Sketchfab models. }
   TImportSketchfabForm = class(TForm)
     ButtonDownloadAndAddViewport: TButton;
     ButtonDownloadOnly: TButton;
@@ -43,6 +46,7 @@ type
     EditQuery: TLabeledEdit;
     ListModels: TListView;
     Timer1: TTimer;
+    ImageListModelThumbnails: TImageList;
     procedure ButtonCloseClick(Sender: TObject);
     procedure ButtonDownloadAndAddViewportClick(Sender: TObject);
     procedure ButtonDownloadOnlyClick(Sender: TObject);
@@ -55,6 +59,7 @@ type
     procedure EditQueryKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -63,9 +68,14 @@ type
     procedure Timer1Timer(Sender: TObject);
   private
     Models: TSketchfabModelList;
+
     { Download currently selected model, raise exception if cannot.
       Returns URL on disk of the downloaded model. }
     function DownloadSelectedModel: String;
+
+    { Update the displayed thumbnail of the given model.
+      This is called when thumbnail is downloaded. }
+    procedure ThumbnailDownloaded(const Model: TSketchfabModel);
   public
     ProjectPath: String;
     OnCanAddImported: TCanAddImported;
@@ -79,14 +89,14 @@ var
 
 implementation
 
-uses LCLType,
+uses LCLType, IntfGraphics, GraphType, FpImage,
   CastleOpenDocument, CastleStringUtils, CastleConfig, CastleUtils,
-  CastleURIUtils,
+  CastleURIUtils, CastleLog, CastleApplicationProperties,
   EditorUtils;
 
 {$R *.lfm}
 
-{ TImportSketchfabForm }
+{ TImportSketchfabForm ------------------------------------------------------- }
 
 procedure TImportSketchfabForm.ButtonTokenUrlClick(Sender: TObject);
 begin
@@ -129,6 +139,10 @@ begin
   }
 end;
 
+procedure TImportSketchfabForm.FormCreate(Sender: TObject);
+begin
+end;
+
 procedure TImportSketchfabForm.FormDestroy(Sender: TObject);
 begin
   FreeAndNil(Models);
@@ -136,13 +150,20 @@ end;
 
 procedure TImportSketchfabForm.FormShow(Sender: TObject);
 begin
+  Timer1.Enabled := true;
   EditApiToken.Text := UserConfig.GetValue('sketchfab/api_token', '');
   UpdateEnabled;
 end;
 
 procedure TImportSketchfabForm.FormHide(Sender: TObject);
+var
+  M: TSketchfabModel;
 begin
   UserConfig.SetDeleteValue('sketchfab/api_token', EditApiToken.Text, '');
+  Timer1.Enabled := false;
+  // do not use resources to download thumbnails, when window not visible
+  for M in Models do
+    M.AbortThumbnailDownload;
 end;
 
 procedure TImportSketchfabForm.ListModelsSelectItem(Sender: TObject;
@@ -152,10 +173,98 @@ begin
 end;
 
 procedure TImportSketchfabForm.Timer1Timer(Sender: TObject);
+const
+  MaxThumbnailDownloads = 3;
+var
+  M: TSketchfabModel;
+  ThumbnailDownloadsCount: Integer;
 begin
   { Keep calling UpdateEnabled as OnCanAddImported can change when user
     closes / opens design. }
   UpdateEnabled;
+
+  if Models <> nil then
+  begin
+    // to process downloading thumbnails
+    ApplicationProperties._Update;
+
+    { Calculate ThumbnailDownloadsCount.
+      It's simplest to let TSketchfabModel manage downloading internally,
+      and only monitor it this way, so we don't manage here any list
+      of "current downloads", instead we just iterate over all models
+      in each timer call. }
+    ThumbnailDownloadsCount := 0;
+    for M in Models do
+      if M.ThumbnailDownloading then
+        Inc(ThumbnailDownloadsCount);
+
+    if ThumbnailDownloadsCount < MaxThumbnailDownloads then
+      for M in Models do
+      begin
+        if (M.ThumbnailImage = nil) and
+           (not M.ThumbnailDownloading) and
+           (not M.ThumbnailImageError) then
+        begin
+          WritelnLog('Sketchfab', 'Starting downloading thumbnail for model: ' + M.Name);
+          M.OnThumbnailDownloaded := @ThumbnailDownloaded;
+          M.StartThumbnailDownload;
+          // add one download in one timer call
+          Exit;
+        end;
+      end;
+  end;
+end;
+
+procedure TImportSketchfabForm.ThumbnailDownloaded(const Model: TSketchfabModel);
+
+  { Add given image to ImageListModelThumbnails and return the index. }
+  function AddImageToList(const Image: TCastleImage): Integer;
+  var
+    IntfImage: TLazIntfImage;
+    RawImage: TRawImage;
+    CustomFPImage: TFPCustomImage;
+    Bitmap: TBitmap;
+  begin
+    RawImage.Init;
+    { TListView on WIN32 widgetset need RGB image }
+    {$ifdef LCLWIN32}
+    RawImage.Description.Init_BPP24_R8G8B8_BIO_TTB(Image.Width, Image.Height);
+    {$else}
+    RawImage.Description.Init_BPP32_R8G8B8A8_BIO_TTB(Image.Width, Image.Height);
+    {$endif}
+    RawImage.CreateData(True);
+
+    IntfImage := TLazIntfImage.Create(0, 0);
+    IntfImage.SetRawImage(RawImage);
+    CustomFPImage := Image.ToFpImage;
+    try
+      IntfImage.CopyPixels(CustomFPImage);
+    finally
+      FreeAndNil(CustomFPImage);
+    end;
+
+    Bitmap := TBitmap.Create;
+    Bitmap.LoadFromIntfImage(IntfImage);
+    Result := ImageListModelThumbnails.Add(Bitmap, nil);
+  end;
+
+var
+  ModelIndex: Integer;
+begin
+  ModelIndex := Models.IndexOf(Model);
+  if ModelIndex = -1 then
+  begin
+    WritelnWarning('Downloaded thumbnail but model instance no longer on list');
+    Exit;
+  end;
+
+  Assert(Model.ThumbnailImage <> nil);
+  WritelnLog('Sketchfab', Format('Downloaded thumbnail for model "%s"', [Model.Name]));
+  ListModels.Items[ModelIndex].ImageIndex := AddImageToList(Model.ThumbnailImage);
+
+  { Show new images in the list. }
+  if ListModels.ViewStyle = vsIcon then
+    ListModels.Refresh;
 end;
 
 procedure TImportSketchfabForm.UpdateEnabled;
@@ -188,6 +297,7 @@ var
 begin
   ListModels.Items.Clear;
   FreeAndNil(Models);
+  ImageListModelThumbnails.Clear;
 
   Models := TSketchfabModel.Search(EditQuery.Text, CheckBoxAnimated.Checked);
   for M in Models do
