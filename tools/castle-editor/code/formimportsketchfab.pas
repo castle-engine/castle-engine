@@ -264,7 +264,15 @@ begin
 
   { Show new images in the list. }
   if ListModels.ViewStyle = vsIcon then
-    ListModels.Refresh;
+  begin
+    //ListModels.Refresh;
+
+    // a bit of a hack, but it's the only way I found to refresh images
+    ListModels.BeginUpdate;
+    ListModels.ViewStyle := vsReport;
+    ListModels.ViewStyle := vsIcon;
+    ListModels.EndUpdate;
+  end;
 end;
 
 procedure TImportSketchfabForm.UpdateEnabled;
