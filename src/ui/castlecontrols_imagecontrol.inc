@@ -719,7 +719,7 @@ end;
 function TCastleImageControl.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if ArrayContainsString(PropertyName, ['URL', 'Stretch', 'ProptionalScaling',
+  if ArrayContainsString(PropertyName, ['URL', 'Stretch', 'ProportionalScaling',
       'ColPersistent', 'SmoothScaling', 'AlphaChannel', 'FlipHizontal',
       'FlipVertical', 'ProtectedSides', 'RegionPersistent',
       'Rotation'
