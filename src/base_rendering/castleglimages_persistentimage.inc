@@ -376,6 +376,7 @@ begin
   FRegion := TFloatRectangle.Empty;
 
   FProtectedSides := TBorder.Create(nil);
+  FProtectedSides.SetSubComponent(true);
   FProtectedSides.OnChange := {$ifdef FPC}@{$endif} ProtectedSidesChange;
   CreateDrawableImage;
 
