@@ -203,6 +203,7 @@ object ImportSketchfabForm: TImportSketchfabForm
       end>
     LargeImages = ImageListModelThumbnails
     LargeImagesWidth = 256
+    RowSelect = True
     ScrollBars = ssAutoBoth
     TabOrder = 3
     ViewStyle = vsReport
