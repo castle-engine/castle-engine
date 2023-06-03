@@ -164,8 +164,9 @@ begin
   UserConfig.SetDeleteValue('sketchfab/api_token', EditApiToken.Text, '');
   Timer1.Enabled := false;
   // do not use resources to download thumbnails, when window not visible
-  for M in Models do
-    M.AbortThumbnailDownload;
+  if Models <> nil then
+    for M in Models do
+      M.AbortThumbnailDownload;
 end;
 
 procedure TImportSketchfabForm.ListModelsSelectItem(Sender: TObject;
