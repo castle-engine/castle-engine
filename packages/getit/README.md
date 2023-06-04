@@ -7,6 +7,8 @@
 This repo (repo_dirname) needs to be placed in e.g. 
 
 `C:\Users\Public\Documents\Embarcadero\Studio\22.0\CatalogRepository`
+or
+`C:\Users\[USERNAME]\Documents\Embarcadero\Studio\22.0\CatalogRepository`
 
 The 22.0 part of the path is mutable - 22,0 is the Delphi 11 specific path - it'll change for other versions. This path is referred to by Delphi as $(BDSCatalogRepository). 
 
@@ -22,7 +24,9 @@ Build Win32 Release for castle_engine
 
 Build Win64 Debug for castle_engine
 
-Build Win64 Release for castle_engine
+Build Win64 Release for castle_engine (note build + install)
+
+Install Win32 Release for castle_engine
 
 Build Win32 Release for castle_engine_design (note build + install)
 
