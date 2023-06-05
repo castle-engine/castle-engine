@@ -313,6 +313,8 @@
     applied }
     function ScaledLocalBoundingBox: TBox3D; virtual; abstract;
 
+    function GetCurrentMass: Single;
+
     { Local collider translation, relative to parent TCastleTransform.
       Note that CalculateSize and AutoSize mechanisms set it automatically. }
     property Translation: TVector3 read FTranslation write SetTranslation;
@@ -1868,6 +1870,15 @@ begin
   try
     CalculateSizeCore;
   finally FCalculatingSize := false end;
+end;
+
+function TCastleCollider.GetCurrentMass: Single;
+begin
+  if FKraftShape <> nil then
+  begin
+    Result := FKraftShape.MassData.Mass;
+  end else
+    Result := Mass;
 end;
 
 function TCastleCollider.WorldScaleScalar: Single;
