@@ -35,22 +35,21 @@ type
   end;
 
   TAbstractMovementModifier = class(TCastleBehavior)
+  strict private
+    FExists: Boolean;
   public
     procedure UpdateMovement(const MovementState: TModularMovementState); virtual; abstract;
 
-    function ShouldDoDefaultMovement(const MovementState: TModularMovementState): Boolean; virtual;
+    constructor Create(AOwner: TComponent); override;
+  published
+    property Exists: Boolean read FExists write FExists default true;
   end;
 
   TFpsModularMovement = class(TAbstractModularMovement)
   strict private
-    FWasJumpInput: Boolean;
-
     FForwardInputAxis: TCastleInputAxis;
     FSidewayInputAxis: TCastleInputAxis;
     FInputJump: TInputShortcut;
-
-    FHorizontalSpeed: Single;
-    FJumpSpeed: Single;
   protected
     function GetFullForwardDirection: TVector3; virtual;
     function GetForwardDirection: TVector3; virtual;
@@ -59,10 +58,6 @@ type
 
     function IsPlayerOnGround(const PlayerRigidBody: TCastleRigidBody;
       const PlayerCollider: TCastleCollider): Boolean; virtual;
-
-    procedure DefaultMovement(const PlayerRigidBody: TCastleRigidBody;
-      const InputDirection, ForwardDirection, UpDirection, RightDirection: TVector3;
-      var HorizontalVelocity: TVector3; var VerticalVelocity: Single); virtual;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
@@ -74,12 +69,6 @@ type
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
-    property JumpSpeed: Single read FJumpSpeed write FJumpSpeed
-      {$ifdef FPC}default DefaultJumpSpeed{$endif};
-
-    property HorizontalSpeed: Single read FHorizontalSpeed write FHorizontalSpeed
-      {$ifdef FPC}default DefaultHorizontalSpeed{$endif};
-
     property ForwardInputAxis: TCastleInputAxis read FForwardInputAxis;
     property SidewayInputAxis: TCastleInputAxis read FSidewayInputAxis;
     property InputJump: TInputShortcut read FInputJump;
@@ -91,13 +80,15 @@ implementation
 
 uses Math, CastleBoxes, CastleUtils, CastleComponentSerialize, CastleKeysMouse;
 
-{ TAbstractMovementModifier -------------------------------------------------- }
+{ TAbstractMovementModifier }
 
-function TAbstractMovementModifier.ShouldDoDefaultMovement(
-  const MovementState: TModularMovementState): Boolean;
+constructor TAbstractMovementModifier.Create(AOwner: TComponent);
 begin
-  Result := true;
+  inherited Create(AOwner);
+  FExists := true;
 end;
+
+{ TAbstractMovementModifier -------------------------------------------------- }
 
 { TFpsModularMovement -------------------------------------------------------- }
 
@@ -187,50 +178,8 @@ begin
   end;
 end;
 
-procedure TFpsModularMovement.DefaultMovement(
-  const PlayerRigidBody: TCastleRigidBody; const InputDirection,
-  ForwardDirection, UpDirection, RightDirection: TVector3;
-  var HorizontalVelocity: TVector3; var VerticalVelocity: Single);
-var
-  IntegratedVelocities: TVector3;
-begin
-  { Simplest code:  When input direction is 1.00 0.00 -1.00 this move faster:
-
-    HorizontalVelocity := ForwardDirection * (InputDirection.Z * HorizontalSpeed)
-    + RightDirection * (InputDirection.X * HorizontalSpeed);
-
-    So we normalize HorizontalVelocity before applying speed.
-  }
-
-  HorizontalVelocity := ForwardDirection * InputDirection.Z
-    + RightDirection * InputDirection.X;
-
-  { Normalize and set velocity to handle faster movement when InputDirection is
-    eg (1, 0, 1). }
-
-  HorizontalVelocity :=  HorizontalVelocity.Normalize * HorizontalSpeed;
-
-  { Jump support }
-  FWasJumpInput := false;
-
-  if (FWasJumpInput = false) and not IsZero(InputDirection.Y) then
-  begin
-    FWasJumpInput := true;
-    VerticalVelocity := JumpSpeed;
-  end else
-    VerticalVelocity := PlayerRigidBody.LinearVelocity.Y;
-
-  { Integrate velocities }
-  IntegratedVelocities := HorizontalVelocity;
-  IntegratedVelocities.Y := VerticalVelocity;
-
-  {Set velocity to rigid body }
-  PlayerRigidBody.LinearVelocity := IntegratedVelocities;
-end;
-
 procedure TFpsModularMovement.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
-
 var
   RBody: TCastleRigidBody;
   Collider: TCastleCollider;
@@ -241,14 +190,12 @@ var
   RightDirection: TVector3;
   UpDirection: TVector3;
 
-  HorizontalVelocity: TVector3;
-  VerticalVelocity: Single;
-
   Beh: TCastleBehavior;
+
+  HorizontalVelocity: TVector3;
 
   MovementState: TModularMovementState;
   I: Integer;
-  ShouldDoDefaultMovement: Boolean;
 begin
   RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
   if not Assigned(RBody) then
@@ -269,9 +216,6 @@ begin
   { HorizontalVelocity and VerticalVelocity based on previous values }
   HorizontalVelocity := RBody.LinearVelocity;
   HorizontalVelocity.Y := 0;
-  VerticalVelocity := RBody.LinearVelocity.Y;
-
-  ShouldDoDefaultMovement := true;
 
   { Check for modules and launch them }
   MovementState := TModularMovementState.Create;
@@ -280,7 +224,7 @@ begin
     MovementState.RigidBody := RBody;
     MovementState.Collider := Collider;
     MovementState.IsPlayerOnGround := IsOnGroundBool;
-    MovementState.IsJumping := FWasJumpInput;
+    MovementState.IsJumping := false;
     MovementState.IsMoving := not HorizontalVelocity.IsZero;
     MovementState.FullForwardDirection := GetFullForwardDirection;
     MovementState.ForwardDirection := ForwardDirection;
@@ -291,44 +235,8 @@ begin
     for I := 0 to Parent.BehaviorsCount - 1 do
     begin
       Beh := Parent.Behaviors[I];
-      if Beh is TAbstractMovementModifier then
-      begin
-        ShouldDoDefaultMovement := TAbstractMovementModifier(Beh).
-          ShouldDoDefaultMovement(MovementState);
-        if not ShouldDoDefaultMovement then
-          break;
-      end;
-    end;
-  finally
-    FreeAndNil(MovementState);
-  end;
-
-  { Default movement moving on ground and jumping }
-  if IsOnGroundBool and ShouldDoDefaultMovement then
-  begin
-    DefaultMovement(RBody, InputDirection, ForwardDirection, UpDirection,
-    RightDirection, HorizontalVelocity, VerticalVelocity);
-  end;
-
-  { Check for modules and launch them }
-  MovementState := TModularMovementState.Create;
-  try
-    MovementState.SecondsPassed := SecondsPassed;
-    MovementState.RigidBody := RBody;
-    MovementState.Collider := Collider;
-    MovementState.IsPlayerOnGround := IsOnGroundBool;
-    MovementState.IsJumping := FWasJumpInput;
-    MovementState.IsMoving := not HorizontalVelocity.IsZero;
-    MovementState.FullForwardDirection := GetFullForwardDirection;
-    MovementState.ForwardDirection := ForwardDirection;
-    MovementState.RightDirection := RightDirection;
-    MovementState.UpDirection := UpDirection;
-    MovementState.InputDirection := InputDirection;
-
-    for I := 0 to Parent.BehaviorsCount - 1 do
-    begin
-      Beh := Parent.Behaviors[I];
-      if Beh is TAbstractMovementModifier then
+      if (Beh is TAbstractMovementModifier) and
+         (TAbstractMovementModifier(Beh).Exists) then
         TAbstractMovementModifier(Beh).UpdateMovement(MovementState);
     end;
   finally
@@ -341,11 +249,6 @@ end;
 constructor TFpsModularMovement.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-
-  FWasJumpInput := false;
-  FJumpSpeed := DefaultJumpSpeed;
-  FHorizontalSpeed := DefaultHorizontalSpeed;
-
   FForwardInputAxis := TCastleInputAxis.Create(Self);
   FForwardInputAxis.SetSubComponent(true);
   FForwardInputAxis.PositiveKey := keyW;

@@ -72,13 +72,13 @@
                   0,
                   2
                 ],
-                "Name" : "RigidBody8"
+                "Name" : "PlayerRigidBody"
               },
               {
                 "$$ClassName" : "TCastleCapsuleCollider",
                 "AutoSize" : false,
                 "Height" : 1.0000000000000000E+000,
-                "Name" : "CapsuleCollider2",
+                "Name" : "CapsuleCollider",
                 "Radius" : 5.0000000000000000E-001
               },
               {
@@ -92,7 +92,7 @@
                   "NegativeKey" : "keyArrowLeft",
                   "PositiveKey" : "keyArrowRight"
                 },
-                "Name" : "RotateRigidBody1"
+                "Name" : "RotateRigidBody"
               },
               {
                 "$$ClassName" : "TFpsModularMovement",
@@ -110,7 +110,7 @@
                   "DefaultKey1" : "keySpace",
                   "Key1" : "keySpace"
                 },
-                "Name" : "FpsModularMovement1",
+                "Name" : "FpsModularMovement",
                 "SidewayInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
                   "MouseLook" : false,
@@ -122,20 +122,8 @@
                 }
               },
               {
-                "$$ClassName" : "THeadBobbing",
-                "Name" : "HeadBobbing1"
-              },
-              {
-                "$$ClassName" : "TStairsSupportByColliderCapsuleRadius",
-                "Name" : "StairsSupportByColliderCapsuleRadius1"
-              },
-              {
-                "$$ClassName" : "TFpsCrouch",
-                "Input_Crouch" : "",
-                "Name" : "FpsCrouch1"
-              },
-              {
                 "$$ClassName" : "TFpsFlySupport",
+                "Exists" : false,
                 "FlyForwardInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
                   "MouseLook" : false,
@@ -159,7 +147,24 @@
                   "DefaultKey1" : "keyF",
                   "Key1" : "keyF"
                 },
-                "Name" : "FpsFlySupport1"
+                "Name" : "FpsFlySupport"
+              },
+              {
+                "$$ClassName" : "TFpsWalkSupport",
+                "Name" : "FpsWalkSupport"
+              },
+              {
+                "$$ClassName" : "THeadBobbing",
+                "Name" : "HeadBobbing"
+              },
+              {
+                "$$ClassName" : "TStairsSupportByColliderCapsuleRadius",
+                "Name" : "StairsSupportByColliderCapsuleRadius"
+              },
+              {
+                "$$ClassName" : "TFpsCrouch",
+                "Input_Crouch" : "",
+                "Name" : "FpsCrouch"
               }
             ]
           },
@@ -1020,6 +1025,20 @@
         "$$ClassName" : "TCastleVector2Persistent",
         "X" : 1.0000000000000000E+001,
         "Y" : -1.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "Name" : "LabelFlyWalk",
+      "Text" : [
+        "Walking"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : -9.0000000000000000E+001
       },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"

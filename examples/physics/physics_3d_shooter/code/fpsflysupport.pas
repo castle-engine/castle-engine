@@ -17,14 +17,11 @@ type
   }
   TFpsFlySupport = class(TAbstractMovementModifier)
   strict private
-    FInputFly: TInputShortcut;
     FFlyUpDownInputAxis: TCastleInputAxis;
     FFlyForwardInputAxis: TCastleInputAxis;
 
-    FWasFlyInput: Boolean;
     FFlyingForwardAcceleration: Single; { m/s^2 }
     FFlyingUpDownAcceleration: Single; { m/s^2 }
-    FIsFlying: Boolean;
     FFlyingDumpFactor: Single;
   public
     const
@@ -34,12 +31,7 @@ type
     constructor Create(AOwner: TComponent); override;
 
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
-
-    function ShouldDoDefaultMovement(const MovementState: TModularMovementState): Boolean; override;
-
-    property IsFlying: Boolean read FIsFlying;
   published
-    property InputFly: TInputShortcut read FInputFly;
     property FlyUpDownInputAxis: TCastleInputAxis read FFlyUpDownInputAxis;
     property FlyForwardInputAxis: TCastleInputAxis read FFlyForwardInputAxis;
   end;
@@ -58,57 +50,31 @@ begin
   if FocusedContainer = nil then
     Exit;
 
-  { change flying mode }
-  if (not FWasFlyInput) and InputFly.IsPressed(FocusedContainer) then
-  begin
-    FWasFlyInput := true;
+  MovementState.RigidBody.Gravity := false;
 
-    FIsFlying := not FIsFlying;
-    { There are many ways how flying can be done in that example we
-      disable Gravity and option to fly up or down }
-    MovementState.RigidBody.Gravity := not FIsFlying;
-  end;
+  { Max speed? Let the programer set it himself  }
+  //MovementState.RigidBody.MaxLinearVelocity := FFlyingForwardMaxSpeed;
 
-  if not InputFly.IsPressed(FocusedContainer) then
-    FWasFlyInput := false;
+  { Special linear velocity dump every frame to reduce old velocity and make player
+    more controllable. I don't want to use LinearVelocityDump from rigid body
+    to do not change user dumping settings }
 
-  if FIsFlying then
-  begin
-    { Max speed? Let the programer set it himself  }
-    //MovementState.RigidBody.MaxLinearVelocity := FFlyingForwardMaxSpeed;
+  FlyingDamping := (1 - FFlyingDumpFactor * MovementState.SecondsPassed);
+  if FlyingDamping < 0 then
+    FlyingDamping := 0;
 
-    { Special linear velocity dump every frame to reduce old velocity and make player
-      more controllable. I don't want to use LinearVelocityDump from rigid body
-      to do not change user dumping settings }
+  RigidBody := MovementState.RigidBody;
+  RigidBody.LinearVelocity := RigidBody.LinearVelocity * FlyingDamping;
 
-    FlyingDamping := (1 - FFlyingDumpFactor * MovementState.SecondsPassed);
-    if FlyingDamping < 0 then
-      FlyingDamping := 0;
+  { Simple use of F = m * a }
 
-    RigidBody := MovementState.RigidBody;
-    RigidBody.LinearVelocity := RigidBody.LinearVelocity * FlyingDamping;
+  RigidBody.AddForce(MovementState.ForwardDirection.Normalize *
+    MovementState.Collider.GetCurrentMass * FFlyingForwardAcceleration *
+    -FlyForwardInputAxis.Value(FocusedContainer), false);
 
-    { Simple use of F = m * a }
-
-    RigidBody.AddForce(MovementState.ForwardDirection.Normalize *
-      MovementState.Collider.GetCurrentMass * FFlyingForwardAcceleration *
-      -FlyForwardInputAxis.Value(FocusedContainer), false);
-
-    RigidBody.AddForce(MovementState.UpDirection.Normalize *
-      MovementState.Collider.GetCurrentMass * FFlyingUpDownAcceleration *
-      FlyUpDownInputAxis.Value(FocusedContainer), false);
-  end;
-end;
-
-function TFpsFlySupport.ShouldDoDefaultMovement(
-  const MovementState: TModularMovementState): Boolean;
-begin
-  if (not FWasFlyInput) and InputFly.IsPressed(FocusedContainer) then
-  begin
-    { In this case we  are not flying but we will start in that frame. }
-    Result := FIsFlying;
-  end else
-    Result := not FIsFlying;
+  RigidBody.AddForce(MovementState.UpDirection.Normalize *
+    MovementState.Collider.GetCurrentMass * FFlyingUpDownAcceleration *
+    FlyUpDownInputAxis.Value(FocusedContainer), false);
 end;
 
 constructor TFpsFlySupport.Create(AOwner: TComponent);
@@ -116,14 +82,7 @@ begin
   inherited Create(AOwner);
   FFlyingForwardAcceleration := DefaultFlyingForwardAcceleration;
   FFlyingUpDownAcceleration := DefaultFlyingUpDownAcceleration;
-  FFlyingDumpFactor := 1;
-
-  FIsFlying := false;
-
-  FInputFly := TInputShortcut.Create(Self);
-  FInputFly.SetSubComponent(true);
-  InputFly.Assign(keyF);
-  InputFly.Name := 'InputFly';
+  FFlyingDumpFactor := 0.85;
 
   FFlyForwardInputAxis := TCastleInputAxis.Create(Self);
   FFlyForwardInputAxis.SetSubComponent(true);

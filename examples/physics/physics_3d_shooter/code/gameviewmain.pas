@@ -26,7 +26,7 @@ uses Classes,
   DirectRotateTransformByKeys, RotateRigidBodyByKeys, RotateRigidBodyByMouse,
   RotateRigidBody, HeadBobbing, FpsPlayerMovementWithRotationAndStairSupport,
   FpsCrouch, FpsPlayerMovementWithRotationAndFly, GameInputAxis, RotateCamera,
-  ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport;
+  ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport, FpsWalkSupport;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -37,6 +37,10 @@ type
     LabelFps: TCastleLabel;
     WalkNavigation: TCastleWalkNavigation;
     Viewport: TCastleViewport;
+    FpsFlySupport: TFpsFlySupport;
+    FpsWalkSupport: TFpsWalkSupport;
+    RotateRigidBody: TRotateRigidBody;
+    LabelFlyWalk: TCastleLabel;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -161,6 +165,30 @@ begin
     else
       AddBullet;
     Exit(true);
+  end;
+
+  if Assigned(FpsFlySupport) and Assigned(FpsWalkSupport) and Assigned(RotateRigidBody) then
+  begin
+    if Event.IsKey(keyF) then
+    begin
+      if FpsFlySupport.Exists then
+      begin
+        FpsFlySupport.Exists := false;
+        FpsWalkSupport.Exists := true;
+        LabelFlyWalk.Caption := 'Walking';
+        RotateRigidBody.HorizontalRotationInput.PositiveKey := keyArrowRight;
+        RotateRigidBody.HorizontalRotationInput.NegativeKey := keyArrowLeft;
+        RotateRigidBody.RotationHorizontalSpeed := 1.5;
+      end else
+      begin
+        FpsFlySupport.Exists := true;
+        FpsWalkSupport.Exists := false;
+        LabelFlyWalk.Caption := 'Flying';
+        RotateRigidBody.HorizontalRotationInput.PositiveKey := keyD;
+        RotateRigidBody.HorizontalRotationInput.NegativeKey := keyA;
+        RotateRigidBody.RotationHorizontalSpeed := 0.4;
+      end;
+    end;
   end;
 end;
 
