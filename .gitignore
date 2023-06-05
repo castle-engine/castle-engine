@@ -223,6 +223,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/view_3d_model_basic/view_3d_model_basic
 /examples/viewport_and_scenes/viewport_3d_tutorial/my-new-project-3d
 /examples/viewport_and_scenes/occlusion_culling/occlusion_culling
+/examples/viewport_and_scenes/shadows_distance_culling/shadows_distance_culling
 /examples/visualize_triangulation/visualize_triangulation
 /examples/window/multi_window/multi_window
 /examples/window/multiple_windows_and_viewports/multiple_windows_and_viewports

@@ -1,0 +1,590 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Background" : "Background1",
+      "Camera" : "Camera1",
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 2.8137614727020264E+000,
+              "X" : 4.3874932453036308E-003,
+              "Y" : 9.9931198358535767E-001,
+              "Z" : -3.6833178251981735E-002
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 9.9999994039535522E-001,
+              "Y" : 1.0000002384185791E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.7172756195068359E+001,
+              "Y" : 3.1091368198394775E+000,
+              "Z" : 2.4386553764343262E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Intensity" : 5.0000000000000000E+000,
+            "Name" : "PointLight1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 4.0000000000000000E+000,
+              "Y" : 1.3716628074645996E+001,
+              "Z" : 1.0000000000000000E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastleTerrain",
+            "Data" : "TerrainNoise1",
+            "Layer1" : {
+              "$$ClassName" : "TCastleTerrainLayer",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorRGBPersistent",
+                "Blue" : 5.0980392843484879E-002,
+                "Green" : 9.6862745285034180E-001
+              }
+            },
+            "Layer2" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Layer3" : {
+              "$$ClassName" : "TCastleTerrainLayer",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorRGBPersistent",
+                "Blue" : 9.2941176891326904E-001,
+                "Green" : 1.8823529779911041E-001
+              }
+            },
+            "Layer4" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Name" : "Terrain1",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "SubdivisionsPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 2.5600000000000000E+002,
+              "Y" : 2.5600000000000000E+002
+            },
+            "$NonVisualComponents" : [
+              {
+                "$$ClassName" : "TCastleTerrainNoise",
+                "Name" : "TerrainNoise1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleDirectionalLight",
+            "Intensity" : 5.0000000000000000E+000,
+            "Name" : "DirectionalLight1",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 1.0861198902130127E+000,
+              "X" : -8.9734089374542236E-001,
+              "Y" : -3.8806676864624023E-001,
+              "Z" : 2.1018929779529572E-001
+            },
+            "Shadows" : true,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 4.5689406394958496E+000,
+              "Y" : 1.7129913330078125E+001,
+              "Z" : -8.2889242172241211E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference1",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 6.8100128173828125E+000,
+              "Z" : 1.3188278198242188E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface2",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference2",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.6621093750000000E-004,
+              "Y" : 5.8623504638671875E+000,
+              "Z" : 4.8072547912597656E+000
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface3",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference3",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 5.4500579833984375E+000,
+              "Z" : -3.8757133483886719E+000
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface4",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference4",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 9.3826751708984375E+000,
+              "Z" : -1.1152385711669922E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface5",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference5",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 8.4010925292968750E+000,
+              "Z" : -1.7390899658203125E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface6",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference6",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0741264343261719E+001,
+              "Y" : 7.2986755371093750E+000,
+              "Z" : -1.7390899658203125E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface7",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference7",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0741264343261719E+001,
+              "Y" : 4.6022033691406250E+000,
+              "Z" : -2.1471214294433594E+000
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface8",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference8",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0741264343261719E+001,
+              "Y" : 1.6229553222656250E+000,
+              "Z" : 1.9912399291992188E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface9",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference12",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.1027709960937500E+001,
+              "Y" : 2.7776947021484375E+000,
+              "Z" : 1.9912399291992188E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface13",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference14",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.9371292114257812E+001,
+              "Y" : 3.4718475341796875E+000,
+              "Z" : 1.9912399291992188E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface15",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference15",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.9371292114257812E+001,
+              "Y" : 5.0550384521484375E+000,
+              "Z" : 5.0077743530273438E+000
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface16",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference17",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.3004249572753906E+001,
+              "Y" : 5.3265533447265625E+000,
+              "Z" : 7.1005630493164063E-001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface18",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference18",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.3004249572753906E+001,
+              "Y" : 6.4699249267578125E+000,
+              "Z" : -2.5635910034179687E+000
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface19",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference19",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 9.5768203735351562E+000,
+              "Y" : 3.1597747802734375E+000,
+              "Z" : -2.5635910034179687E+000
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface20",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference20",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 9.5768203735351562E+000,
+              "Y" : 4.7551574707031250E+000,
+              "Z" : 2.7089355468750000E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface21",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference16",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.9371292114257812E+001,
+              "Y" : 5.0550384521484375E+000,
+              "Z" : 5.0077743530273438E+000
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface17",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference13",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.7619113922119141E+001,
+              "Y" : 1.6815185546875000E+000,
+              "Z" : 1.9912399291992188E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface14",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference10",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -2.0687625885009766E+001,
+              "Y" : 2.2799224853515625E+000,
+              "Z" : 2.3279335021972656E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface11",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference11",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -2.0687625885009766E+001,
+              "Y" : 8.6896057128906250E+000,
+              "Z" : 3.9929672241210938E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface12",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference9",
+            "Reference" : "SceneHouse1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0741264343261719E+001,
+              "Y" : 1.6229553222656250E+000,
+              "Z" : 1.9912399291992188E+001
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface10",
+                "Target" : "Terrain1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "Transform1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.4193817138671875E+001,
+              "Y" : 2.8622131347656250E+000
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleScene",
+                "DistanceCulling" : 2.0000000000000000E+001,
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneHouse1",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : -6.5121710300445557E-001
+                },
+                "URL" : "castle-data:/house.gltf"
+              }
+            ],
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleStickToSurface",
+                "Name" : "StickToSurface1",
+                "Target" : "Terrain1"
+              }
+            ]
+          }
+        ]
+      },
+      "Name" : "Viewport1",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        }
+      ],
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleWalkNavigation",
+          "MoveSpeed" : 2.0000000000000000E+001,
+          "Name" : "WalkNavigation1"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 2.7406768798828125E+000,
+          "X" : 7.5489976443350315E-003,
+          "Y" : 9.9893188476562500E-001,
+          "Z" : -4.5587789267301559E-002
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 2.5463474273681641E+001,
+          "Y" : 5.0583915710449219E+000,
+          "Z" : 7.1803236007690430E-001
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "MoveSpeed" : 1.7113283157348633E+001,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 4.6274510025978088E-001,
+        "Green" : 4.6274510025978088E-001,
+        "Red" : 4.6274510025978088E-001
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    }
+  ]
+}
