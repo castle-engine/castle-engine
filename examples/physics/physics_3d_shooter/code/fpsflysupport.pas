@@ -69,11 +69,11 @@ begin
   { Simple use of F = m * a }
 
   RigidBody.AddForce(MovementState.ForwardDirection.Normalize *
-    MovementState.Collider.GetCurrentMass * FFlyingForwardAcceleration *
+    MovementState.Collider.GetEffectiveMass * FFlyingForwardAcceleration *
     -FlyForwardInputAxis.Value(FocusedContainer), false);
 
   RigidBody.AddForce(MovementState.UpDirection.Normalize *
-    MovementState.Collider.GetCurrentMass * FFlyingUpDownAcceleration *
+    MovementState.Collider.GetEffectiveMass * FFlyingUpDownAcceleration *
     FlyUpDownInputAxis.Value(FocusedContainer), false);
 end;
 
