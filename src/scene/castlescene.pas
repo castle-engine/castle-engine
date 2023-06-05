@@ -97,7 +97,8 @@ type
 
       FReceiveShadowVolumes: Boolean;
       FTempPrepareParams: TPrepareParams;
-      { Camera position, in local scene coordinates, known during the Render call. }
+      { Camera position, in local scene coordinates, known during
+        the LocalRender or LocalRenderShadowVolume calls. }
       RenderCameraPosition: TVector3;
       FCastGlobalLights: Boolean;
       FWasVisibleFrameId: TFrameId;
@@ -1718,6 +1719,8 @@ begin
 
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
+    // DistanceCullingCheck uses this value, and it may be called here
+    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
 
     { calculate and check SceneBox }
     SceneBox := LocalBoundingBox;
