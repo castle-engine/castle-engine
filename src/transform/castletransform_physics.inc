@@ -576,8 +576,14 @@
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { Real height - colliders are created using aproximated world scale so Height
+      property do not return real size. If you need know this size use that function. }
     function CalculateScaledHeight: Single;
+
+    { Real radius - colliders are created using aproximated world scale so Radius
+      do not return real size. If you need know this size use that function. }
     function CalculateScaledRadius: Single;
+
     { Colliders are created using world scale so it's local boundingbox with scale
     applied. Size used to create physics engine object. }
     function ScaledLocalBoundingBox: TBox3D; override;
