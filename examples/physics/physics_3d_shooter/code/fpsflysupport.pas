@@ -96,7 +96,7 @@ begin
 
     RigidBody.AddForce(MovementState.UpDirection.Normalize *
       MovementState.Collider.GetCurrentMass * FFlyingUpDownAcceleration *
-      -FlyUpDownInputAxis.Value(FocusedContainer), false);
+      FlyUpDownInputAxis.Value(FocusedContainer), false);
   end;
 end;
 
