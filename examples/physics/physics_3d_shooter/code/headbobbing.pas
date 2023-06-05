@@ -19,7 +19,7 @@ type
       DefaultHeadBobbing = 0.02;
 
     function HeadBobbingHeight(const PlayerBodyHeight: Single;
-      const IsPlayerOnGround, IsPlayerMoving: Boolean): Single;
+      const IsPlayerOnGround, IsPlayerMoving, IsGravity: Boolean): Single;
   protected
     function GetParentCamera: TCastleCamera; virtual;
   public
@@ -42,13 +42,13 @@ uses CastleUtils, CastleComponentSerialize;
 { THeadBobbing --------------------------------------------------------------- }
 
 function THeadBobbing.HeadBobbingHeight(const PlayerBodyHeight: Single;
-  const IsPlayerOnGround, IsPlayerMoving: Boolean): Single;
+  const IsPlayerOnGround, IsPlayerMoving, IsGravity: Boolean): Single;
 var
   BobbingModifier: Single;
 begin
   Result := PlayerBodyHeight;
 
-  if FUseHeadBobbing and IsPlayerOnGround and IsPlayerMoving then
+  if FUseHeadBobbing and IsPlayerOnGround and IsPlayerMoving and IsGravity then
   begin
     { HeadBobbingPosition = 0 means that head is at lowest position.
       HeadBobbingPosition = 0.5 means that head is at highest position.
@@ -110,7 +110,7 @@ begin
   { Calculate new camera position }
   CamTransl := Camera.Translation;
   CamTransl.Y := HeadBobbingHeight(PlayerHeight, MovementState.IsPlayerOnGround,
-    MovementState.IsMoving) - PlayerHeight;
+    MovementState.IsMoving, MovementState.RigidBody.Gravity) - PlayerHeight;
   Camera.Translation := CamTransl;
 end;
 
