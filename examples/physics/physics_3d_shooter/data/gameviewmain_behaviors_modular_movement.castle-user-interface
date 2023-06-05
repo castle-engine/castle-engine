@@ -133,6 +133,33 @@
                 "$$ClassName" : "TFpsCrouch",
                 "Input_Crouch" : "",
                 "Name" : "FpsCrouch1"
+              },
+              {
+                "$$ClassName" : "TFpsFlySupport",
+                "FlyForwardInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyS",
+                  "PositiveKey" : "keyW"
+                },
+                "FlyUpDownInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyE",
+                  "PositiveKey" : "keyQ"
+                },
+                "InputFly" : {
+                  "$$ClassName" : "TInputShortcut",
+                  "DefaultKey1" : "keyF",
+                  "Key1" : "keyF"
+                },
+                "Name" : "FpsFlySupport1"
               }
             ]
           },

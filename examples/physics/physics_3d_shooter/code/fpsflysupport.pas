@@ -25,15 +25,11 @@ type
     FFlyingForwardAcceleration: Single; { m/s^2 }
     FFlyingUpDownAcceleration: Single; { m/s^2 }
     FIsFlying: Boolean;
-    FFlyingForwardMaxSpeed: Single; { m/s }
-    FFlyingUpDownMaxSpeed: Single; { m/s }
+    FFlyingDumpFactor: Single;
   public
     const
-      DefaultFlyingForwardAcceleration  = 5;
-      DefaultFlyingUpDownAcceleration  = 2;
-
-      DefaultFlyingForwardMaxSpeed = 15.0;
-      DefaultFlyingUpDownMaxSpeed = 10.0;
+      DefaultFlyingForwardAcceleration  = 10;
+      DefaultFlyingUpDownAcceleration  = 5;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -46,12 +42,6 @@ type
     property InputFly: TInputShortcut read FInputFly;
     property FlyUpDownInputAxis: TCastleInputAxis read FFlyUpDownInputAxis;
     property FlyForwardInputAxis: TCastleInputAxis read FFlyForwardInputAxis;
-
-    { Max horizontal flying speed }
-    property FlyingForwardMaxSpeed: Single read FFlyingForwardMaxSpeed write FFlyingForwardMaxSpeed
-      {$ifdef FPC}default DefaultFlyingForwardMaxSpeed{$endif};
-
-    property FlyingUpDownMaxSpeed: Single read FFlyingUpDownMaxSpeed write FFlyingUpDownMaxSpeed;
   end;
 
 implementation
@@ -62,19 +52,8 @@ uses Math, CastleUtils, CastleComponentSerialize, CastleKeysMouse, CastleLog;
 
 procedure TFpsFlySupport.UpdateMovement(const MovementState: TModularMovementState);
 var
-  HorizontalVelocity: TVector3;
-  HorizontalVelocityChange: TVector3;
-  VerticalVelocity: Single;
-
-  HorizontalVelocityDelta: Single;
-  UpDownVelocityDelta: Single;
-
-  NewHorizontalVelocity: Single;
-  NewVerticalVelocity: Single;
-
-  IntegratedVelocity: TVector3;
-
-  Direction: TVector3;
+  FlyingDamping: Single;
+  RigidBody: TCastleRigidBody;
 begin
   if FocusedContainer = nil then
     Exit;
@@ -95,29 +74,29 @@ begin
 
   if FIsFlying then
   begin
-    { How the velocity will change based on inputs based on deltav = a*t }
+    { Max speed? Let the programer set it himself  }
+    //MovementState.RigidBody.MaxLinearVelocity := FFlyingForwardMaxSpeed;
 
-    HorizontalVelocityDelta := {-FlyForwardInputAxis.Value(FocusedContainer) *}
-      FFlyingForwardAcceleration * MovementState.SecondsPassed;
-    UpDownVelocityDelta := FlyUpDownInputAxis.Value(FocusedContainer) *
-      FFlyingUpDownAcceleration * MovementState.SecondsPassed;
+    { Special linear velocity dump every frame to reduce old velocity and make player
+      more controllable. I don't want to use LinearVelocityDump from rigid body
+      to do not change user dumping settings }
 
-    { get current horizontal and vertical velocity }
-    HorizontalVelocity := MovementState.RigidBody.LinearVelocity;
-    HorizontalVelocity.Y := 0;
+    FlyingDamping := (1 - FFlyingDumpFactor * MovementState.SecondsPassed);
+    if FlyingDamping < 0 then
+      FlyingDamping := 0;
 
-    VerticalVelocity := MovementState.RigidBody.LinearVelocity.Y;
+    RigidBody := MovementState.RigidBody;
+    RigidBody.LinearVelocity := RigidBody.LinearVelocity * FlyingDamping;
 
-    HorizontalVelocity := -MovementState.ForwardDirection.Normalize * HorizontalVelocity.Length;
-    HorizontalVelocityChange := -MovementState.ForwardDirection.Normalize * HorizontalVelocityDelta;
-    WritelnLog('HorizontalVelocity' + HorizontalVelocity.ToString);
-    WritelnLog('HorizontalVelocityChange' + HorizontalVelocityChange.ToString);
+    { Simple use of F = m * a }
 
-    NewVerticalVelocity := Min(VerticalVelocity + UpDownVelocityDelta, FFlyingForwardMaxSpeed);
+    RigidBody.AddForce(MovementState.ForwardDirection.Normalize *
+      MovementState.Collider.GetCurrentMass * FFlyingForwardAcceleration *
+      -FlyForwardInputAxis.Value(FocusedContainer), false);
 
-    IntegratedVelocity := HorizontalVelocity +  HorizontalVelocityChange + Vector3(0, NewVerticalVelocity, 0);
-
-    MovementState.RigidBody.LinearVelocity := IntegratedVelocity;
+    RigidBody.AddForce(MovementState.UpDirection.Normalize *
+      MovementState.Collider.GetCurrentMass * FFlyingUpDownAcceleration *
+      -FlyUpDownInputAxis.Value(FocusedContainer), false);
   end;
 end;
 
@@ -137,8 +116,9 @@ begin
   inherited Create(AOwner);
   FFlyingForwardAcceleration := DefaultFlyingForwardAcceleration;
   FFlyingUpDownAcceleration := DefaultFlyingUpDownAcceleration;
-  FFlyingForwardMaxSpeed := DefaultFlyingForwardMaxSpeed;
-  FFlyingUpDownMaxSpeed := DefaultFlyingUpDownMaxSpeed;
+  FFlyingDumpFactor := 1;
+
+  FIsFlying := false;
 
   FInputFly := TInputShortcut.Create(Self);
   FInputFly.SetSubComponent(true);
@@ -154,8 +134,6 @@ begin
   FFlyUpDownInputAxis.SetSubComponent(true);
   FFlyUpDownInputAxis.PositiveKey := keyQ;
   FFlyUpDownInputAxis.NegativeKey := keyE;
-
-  FIsFlying := false;
 end;
 
 initialization

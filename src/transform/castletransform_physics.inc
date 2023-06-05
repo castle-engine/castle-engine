@@ -564,8 +564,6 @@
 
     procedure SetRadius(const AValue: Single);
     procedure SetHeight(const AValue: Single);
-    function CalculateScaledHeight: Single;
-    function CalculateScaledRadius: Single;
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -575,6 +573,8 @@
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    function CalculateScaledHeight: Single;
+    function CalculateScaledRadius: Single;
     { Colliders are created using world scale so it's local boundingbox with scale
     applied. Size used to create physics engine object. }
     function ScaledLocalBoundingBox: TBox3D; override;
