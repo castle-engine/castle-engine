@@ -88,8 +88,9 @@ begin
     { There are many ways how flying can be done in that example we
       disable Gravity and option to fly up or down }
     MovementState.RigidBody.Gravity := not FIsFlying;
-  end
-  else
+  end;
+
+  if not InputFly.IsPressed(FocusedContainer) then
     FWasFlyInput := false;
 
   if FIsFlying then
