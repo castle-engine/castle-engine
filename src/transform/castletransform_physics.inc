@@ -316,6 +316,25 @@
     { Returns forced mass or calculated from density. }
     function EffectiveMass: Single;
 
+    { Return middle of the collider in parent of parent castle transform.
+
+      It makes it easier to perform ray casts and sphere casts from the
+      center of our collider. In many cases we don't want to use
+      TCastleTransform.Middle because it may depend from the bounding box,
+      which depends on animation frame. That can make ray/sphere cast results
+      unpredictable.
+
+      In most cases that should be simple Parent.Translation but Collider can
+      also have its own translation that changes its position.
+
+      Consider case when loaded model point 0,0 is not in the center of model
+      bounding box for example under the model. Then if you simply spherecast
+      down from Parent.Translation it can miss the floor.
+
+      When Parent is nil this function returns only collider translation.
+    }
+    function Middle: TVector3;
+
     { Local collider translation, relative to parent TCastleTransform.
       Note that CalculateSize and AutoSize mechanisms set it automatically. }
     property Translation: TVector3 read FTranslation write SetTranslation;
@@ -1886,6 +1905,14 @@ begin
     Result := FKraftShape.MassData.Mass;
   end else
     Result := Mass;
+end;
+
+function TCastleCollider.Middle: TVector3;
+begin
+  if Parent = nil then
+    Exit(Translation);
+
+  Result := Parent.Translation + Translation;
 end;
 
 function TCastleCollider.WorldScaleScalar: Single;
