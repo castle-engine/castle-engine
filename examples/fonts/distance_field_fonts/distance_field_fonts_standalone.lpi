@@ -22,7 +22,7 @@
             <Filename Value="distance_field_fonts"/>
           </Target>
           <SearchPaths>
-            <IncludeFiles Value="code;code/TEMP"/>
+            <IncludeFiles Value="code"/>
             <OtherUnitFiles Value="code"/>
             <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
@@ -61,7 +61,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="6">
+    <Units Count="4">
       <Unit0>
         <Filename Value="distance_field_fonts_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -79,14 +79,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="GameViewMain"/>
       </Unit3>
-      <Unit4>
-        <Filename Value="code/TEMP/image.fs.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="code/TEMP/image.vs.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -95,7 +87,7 @@
       <Filename Value="distance_field_fonts"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="code;code/TEMP"/>
+      <IncludeFiles Value="code"/>
       <OtherUnitFiles Value="code"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>

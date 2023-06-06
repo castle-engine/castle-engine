@@ -48,8 +48,22 @@ begin
   inherited;
   DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 
-  VS := {$I image.vs.inc};
-  FS := {$I image.fs.inc};
+  VS := 'attribute vec2 vertex;' + LineEnding +
+        'attribute vec2 tex_coord;' + LineEnding +
+        'uniform vec2 viewport_size;' + LineEnding +
+        'varying vec2 tex_coord_frag;' + LineEnding +
+        'void main(void)' + LineEnding +
+        '{' + LineEnding +
+        '  gl_Position = vec4(vertex * 2.0 / viewport_size - vec2(1.0), 0.0, 1.0);' + LineEnding +
+        '  tex_coord_frag = tex_coord;' + LineEnding +
+        '}' + LineEnding;
+  FS := 'varying vec2 tex_coord_frag;' + LineEnding +
+        'uniform sampler2D image_texture;' + LineEnding +
+        'void main(void)' + LineEnding +
+        '{' + LineEnding +
+        'gl_FragColor = texture2D(image_texture, tex_coord_frag);' + LineEnding +
+        'if (gl_FragColor.x < 0.75) discard; else gl_FragColor = vec4(1.0,1.0,1.0,1.0);' +
+        '}' + LineEnding;
 
   NewProgram := TGLSLProgram.Create;
   NewProgram.Name := 'TDistanceFieldCut';
@@ -77,7 +91,7 @@ end;
 procedure TViewMain.Render;
 begin
   inherited Render;
-  NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame.Draw(0, 0, 1999, 1999);
+  NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame.Draw(0, 0, 4999, 4999);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
