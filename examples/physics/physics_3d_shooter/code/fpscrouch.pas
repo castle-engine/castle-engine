@@ -41,6 +41,15 @@ uses CastleUtils, CastleComponentSerialize, CastleKeysMouse;
 
 { TFpsCrouch ----------------------------------------------------------------- }
 
+constructor TFpsCrouch.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FCrouchSpeed := DefaultCrouchSpeed;
+
+  FInput_Crouch              := TInputShortcut.Create(Self);
+  Input_Crouch              .Assign(keyC);
+end;
+
 procedure TFpsCrouch.UpdateMovement(const MovementState: TModularMovementState);
 var
   Velocity: TVector3;
@@ -94,15 +103,6 @@ begin
   Parent.Translation := Parent.Translation + Vector3(0, MovementState.Collider.ScaledLocalBoundingBox.SizeY * 1.01, 0); // place player on ground before scale change 1.01 to ensure player will be above ground
   MovementState.Collider.SizeScale := 1;
   FIsCrouching := false;
-end;
-
-constructor TFpsCrouch.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  FCrouchSpeed := DefaultCrouchSpeed;
-
-  FInput_Crouch              := TInputShortcut.Create(Self);
-  Input_Crouch              .Assign(keyC);
 end;
 
 initialization
