@@ -1,6 +1,6 @@
 # Shadows And Distance Culling Test
 
-Test shadows and `TCastleScene.DistanceCulling` cooperating together OK.
+Test [shadows](https://castle-engine.io/shadow_volumes) (with and without `WholeSceneManifold`) and distance culling (using `TCastleScene.DistanceCulling`) cooperating together OK.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
