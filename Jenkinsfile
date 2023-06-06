@@ -22,7 +22,10 @@ pipeline {
   agent none
 
   parameters {
-    booleanParam(name: 'jenkins_fast', defaultValue: false, description: 'Use at emergencies, to make pipeline build faster')
+    /* Since our Jenkins servers are really overloaded now,
+       we build by default with jenkins_fast=true,
+       and rely on Jenkinsfile.non-critical to perform all non-critical tests. */
+    booleanParam(name: 'jenkins_fast', defaultValue: true, description: 'Make pipeline build faster')
   }
 
   stages {
