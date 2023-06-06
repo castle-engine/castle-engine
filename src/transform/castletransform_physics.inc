@@ -314,7 +314,7 @@
     function ScaledLocalBoundingBox: TBox3D; virtual; abstract;
 
     { Returns forced mass or calculated from density. }
-    function GetEffectiveMass: Single;
+    function EffectiveMass: Single;
 
     { Local collider translation, relative to parent TCastleTransform.
       Note that CalculateSize and AutoSize mechanisms set it automatically. }
@@ -1879,7 +1879,7 @@ begin
   finally FCalculatingSize := false end;
 end;
 
-function TCastleCollider.GetEffectiveMass: Single;
+function TCastleCollider.EffectiveMass: Single;
 begin
   if FKraftShape <> nil then
   begin
