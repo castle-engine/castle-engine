@@ -8,19 +8,26 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleFonts;
+  CastleVectors, CastleComponentSerialize, CastleGlImages,
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleFonts, CastleGlShaders;
 
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
+  private
+    NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame: TDrawableImage;
+    NewProgram: TGLSLProgram;
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
+
+    //ImageControl1: TCastleImageControl;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Start; override;
+    procedure Render; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
   end;
@@ -35,9 +42,31 @@ uses SysUtils;
 { TViewMain ----------------------------------------------------------------- }
 
 constructor TViewMain.Create(AOwner: TComponent);
+var
+  VS, FS: String;
 begin
   inherited;
   DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
+
+  VS := {$I image.vs.inc};
+  FS := {$I image.fs.inc};
+
+  NewProgram := TGLSLProgram.Create;
+  NewProgram.Name := 'TDistanceFieldCut';
+  NewProgram.AttachVertexShader(VS);
+  NewProgram.AttachFragmentShader(FS);
+  NewProgram.Link;
+
+  NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame := TDrawableImage.Create('castle-data:/$$$TEMP$$$.png');
+  NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame.CustomShader := NewProgram;
+end;
+
+destructor TViewMain.Destroy;
+begin
+  //NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame.CustomShader := nil;
+  NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame.Free;
+  //NewProgram.Free; MEMORY LEAK WEEEEE :) OR JUST CRASHES
+  inherited Destroy;
 end;
 
 procedure TViewMain.Start;
@@ -45,12 +74,18 @@ begin
   inherited;
 end;
 
+procedure TViewMain.Render;
+begin
+  inherited Render;
+  NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame.Draw(0, 0, 1999, 1999);
+end;
+
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
-  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  LabelFps.Caption := NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame.CustomShader.Name;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;

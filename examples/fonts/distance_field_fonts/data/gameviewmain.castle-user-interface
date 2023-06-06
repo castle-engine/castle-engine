@@ -44,7 +44,14 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
           "CustomFont" : "Font1",
+          "Exists" : false,
           "FontSize" : 1.1100000000000000E+002,
           "Name" : "Label1",
           "Text" : [
@@ -55,16 +62,19 @@
         },
         {
           "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
           "CustomFont" : "Font1",
+          "Exists" : false,
           "FontSize" : 1.1100000000000000E+002,
           "Name" : "Label2",
           "Text" : [
             "Distance Field Font"
           ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -1.0879999542236328E+002
-          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         }
