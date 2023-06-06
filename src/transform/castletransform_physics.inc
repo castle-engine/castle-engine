@@ -316,7 +316,8 @@
     { Returns forced mass or calculated from density. }
     function EffectiveMass: Single;
 
-    { Return middle of the collider in parent of parent castle transform.
+    { Return middle of the collider in parent of parent castle transform
+      coordinate system.
 
       It makes it easier to perform ray casts and sphere casts from the
       center of our collider. In many cases we don't want to use
