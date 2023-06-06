@@ -2185,7 +2185,7 @@ end;
 
 function TCastleBoxCollider.ScaledLocalBoundingBox: TBox3D;
 begin
-  TBox3D.FromCenterSize(Translation, CalculateScaledSize);
+  Result := TBox3D.FromCenterSize(Translation, CalculateScaledSize);
 end;
 
 procedure TCastleBoxCollider.SetSize(const AValue: TVector3);
