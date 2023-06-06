@@ -61,13 +61,17 @@ begin
   //ColliderBoundingBox:= CapsuleCollider.ScaledLocalBoundingBox;
 
   RayDirection := Vector3(0, -1, 0);
-  RayOrigin := Parent.Translation - Vector3(0, 0, CapsuleCollider.Radius);
+  RayOrigin := Parent.Translation - Vector3(0, 0, CapsuleCollider.CalculateScaledRadius * 0.95);
 
-  StepHit := MovementState.RigidBody.PhysicsRayCast(RayOrigin, RayDirection, CapsuleCollider.Height/2 + CapsuleCollider.Radius * 0.95 );
+  WritelnLog('Parent translation: '+ Parent.Translation.ToString);
+  WritelnLog('CalculateScaledHeight: '+ FloatToStr(CapsuleCollider.CalculateScaledHeight));
+  WritelnLog('CalculateScaledRadius: '+ FloatToStr(CapsuleCollider.CalculateScaledRadius));
+
+  StepHit := MovementState.RigidBody.PhysicsRayCast(RayOrigin, RayDirection, (CapsuleCollider.CalculateScaledHeight /2  + CapsuleCollider.CalculateScaledRadius * 0.95));
   if StepHit.Hit then
   begin
     //WritelnLog('Found step, step normal ' + StepHit.Normal.ToString);
-    Parent.Translation := Parent.Translation + Vector3(0, CapsuleCollider.Radius * 0.75, 0);
+    Parent.Translation := Parent.Translation + Vector3(0, CapsuleCollider.CalculateScaledRadius * 0.75, 0);
   end;
 end;
 
