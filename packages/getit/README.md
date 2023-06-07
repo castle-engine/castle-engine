@@ -18,17 +18,13 @@ This needs performing before the package is compiled/installed as $(CGEDIR) is u
 
 ### Package Installation
 
-Build Win32 Debug for castle_engine
-
-Build Win32 Release for castle_engine
-
 Build Win64 Debug for castle_engine
 
-Build Win64 Release for castle_engine (note build + install)
+Build Win64 Release for castle_engine
+
+Build Win32 Debug for castle_engine
 
 Install Win32 Release for castle_engine
-
-Build Win32 Release for castle_engine_design (note build + install)
 
 Install Win32 Release for castle_engine_design
 
