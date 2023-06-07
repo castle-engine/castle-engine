@@ -90,6 +90,7 @@ castle-game-engine-*.fpm
 /examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
 /examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/eye_of_beholder/eye_of_beholder
+/examples/fonts/distance_field_fonts/distance_field_fonts
 /examples/fonts/font_draw_over_image/font_draw_over_image
 /examples/fonts/font_draw_over_image/font_draw_over_image_output.png
 /examples/fonts/html_text/html_text

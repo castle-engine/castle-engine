@@ -8,7 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="distance_field_fonts"
   standalone_source="distance_field_fonts_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.distancefieldfonts"
+  qualified_name="io.castleengine.distance.field.fonts"
   caption="Distance Field Fonts"
 >
   <compiler_options>
