@@ -23,9 +23,7 @@ type
     Label1: TCastleLabel;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure Start; override;
-    procedure Render; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
   end;
@@ -46,24 +44,10 @@ begin
   DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 end;
 
-destructor TViewMain.Destroy;
-begin
-  //NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame.CustomShader := nil;
-//NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame.Free;
-  //NewProgram.Free; //MEMORY LEAK WEEEEE :) OR JUST CRASHES
-  inherited Destroy;
-end;
-
 procedure TViewMain.Start;
 begin
   inherited;
-  SaveImage((Label1.CustomFont as TCastleFont).FontData.Image, '1.png');
-end;
-
-procedure TViewMain.Render;
-begin
-  inherited Render;
-  //NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame.Draw(0, 0, 4999, 4999);
+  //SaveImage((Label1.CustomFont as TCastleFont).FontData.Image, '1.png');
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -71,7 +55,7 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
-  //LabelFps.Caption := NonManagedDrawableImageThatDoesntGetItsCustomShaderResetToNilEveryFrame.CustomShader.Name;
+  LabelFps.Caption := Round(Container.Fps.RealFps).ToString;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
