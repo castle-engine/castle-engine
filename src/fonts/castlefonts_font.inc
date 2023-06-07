@@ -406,14 +406,14 @@ var
       ScreenRect := PFloatRectangle(GlyphsScreenRects.Ptr(GlyphsToRender));
       ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif} + FFont.DistanceFieldPadding) * Scale + OutlineMoveX * Outline;
       ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif} + FFont.DistanceFieldPadding) * Scale + OutlineMoveY * Outline;
-      ScreenRect^.Width  := (G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif} + FFont.DistanceFieldPadding) * Scale;
-      ScreenRect^.Height := (G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif} + FFont.DistanceFieldPadding) * Scale;
+      ScreenRect^.Width  := (G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
+      ScreenRect^.Height := (G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
 
       ImageRect := PFloatRectangle(GlyphsImageRects.Ptr(GlyphsToRender));
       ImageRect^.Left   := G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
       ImageRect^.Bottom := G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
-      ImageRect^.Width  := G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif} + FFont.DistanceFieldPadding; // I don't know why we have to add this here????
-      ImageRect^.Height := G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif} + FFont.DistanceFieldPadding;
+      ImageRect^.Width  := G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
+      ImageRect^.Height := G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
 
       Inc(GlyphsToRender);
     end;
