@@ -344,7 +344,7 @@ var
           if GetPixelSafe(RX, RY) then
           begin
             // opaque pixel - calculate distance to nearest transparent pixel
-            Image.PixelPtr(ImageX + RX, ImageY + Bitmap^.Height - 1 - RY)^ := 255;
+            Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ := 255;
           end else
           begin
             // transparent pixel - calculate distance to nearest opaque pixel
