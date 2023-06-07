@@ -272,17 +272,13 @@ type
     procedure LocalRender(const Params: TRenderParams); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
-      algorithm. Uses ShadowVolumeRenderer for rendering, and to detect if rendering
+      algorithm.
+
+      Uses Params.ShadowVolumeRenderer for rendering, and to detect if rendering
       is necessary at all.
-      It will calculate current bounding box (looking at ParentTransform,
-      ParentTransformIsIdentity and LocalBoundingBox method).
 
       It always uses silhouette optimization. This is the usual,
       fast method of rendering shadow volumes.
-      Will not do anything (treat scene like not casting shadows,
-      like CastShadows = false) if the model is not perfect 2-manifold,
-      i.e. has some BorderEdges (although we could handle some BorderEdges
-      for some points of view, this could leading to rendering artifacts).
 
       All shadow quads are generated from scene triangles transformed
       by ParentTransform. We must be able to correctly detect front and
@@ -312,8 +308,7 @@ type
       Faces (both shadow quads and caps) are rendered such that
       CCW <=> you're looking at it from outside
       (i.e. it's considered front face of this shadow volume). }
-    procedure LocalRenderShadowVolume(const Params: TRenderParams;
-      const ShadowVolumeRenderer: TBaseShadowVolumeRenderer); override;
+    procedure LocalRenderShadowVolume(const Params: TRenderParams); override;
 
     procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
   public
@@ -1693,8 +1688,7 @@ end;
 
 { Shadow volumes ------------------------------------------------------------- }
 
-procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams;
-  const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
+procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams);
 
   function NiceName: String;
   begin
@@ -1720,7 +1714,7 @@ begin
        otherwise weird artifacts are visible. }
      (RenderOptions.WireframeEffect <> weWireframeOnly) then
   begin
-    SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
+    SVRenderer := Params.ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 

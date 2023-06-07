@@ -491,8 +491,7 @@
       This is @bold(mostly an internal method). You should not need to override
       it during normal engine usage. If you render everything using TCastleScene,
       then rendering shadow volumes is also automatically handled by TCastleScene. }
-    procedure LocalRenderShadowVolume(const Params: TRenderParams;
-      const ShadowVolumeRenderer: TBaseShadowVolumeRenderer); virtual;
+    procedure LocalRenderShadowVolume(const Params: TRenderParams); virtual;
 
     { Can we use simple @link(Translation) to express our whole transformation
       (IOW, we have no scaling, no rotation).
@@ -836,13 +835,13 @@
     { Render shadow quads for all the things rendered by @link(Render).
       This is done only if @link(Exists) and @link(CastShadows).
 
-      It does shadow volumes culling inside (so ShadowVolumeRenderer should
-      have FrustumCullingInit already initialized).
+      It does shadow volumes culling inside.
+      Params.ShadowVolumeRenderer is guaranteed to be non-nil
+      and have TGLShadowVolumeRenderer.FrustumCullingInit already called.
 
       Params.Transform,InverseTransform,TransformIdentity describe the transformation,
       just like for @link(Render). }
-    procedure RenderShadowVolume(const Params: TRenderParams;
-      const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
+    procedure RenderShadowVolume(const Params: TRenderParams);
 
     { Prepare resources, making various methods (like rendering and such)
       to execute fast.
@@ -2604,15 +2603,14 @@ begin
   end;
 end;
 
-procedure TCastleTransform.LocalRenderShadowVolume(const Params: TRenderParams;
-  const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
+procedure TCastleTransform.LocalRenderShadowVolume(const Params: TRenderParams);
 var
   I: Integer;
 begin
   if Exists and CastShadows then
   begin
     for I := 0 to List.Count - 1 do
-      List[I].RenderShadowVolume(Params, ShadowVolumeRenderer);
+      List[I].RenderShadowVolume(Params);
   end;
 end;
 
@@ -3316,8 +3314,7 @@ begin
     RenderContext.DepthRange := SavedDepthRange;
 end;
 
-procedure TCastleTransform.RenderShadowVolume(const Params: TRenderParams;
-  const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
+procedure TCastleTransform.RenderShadowVolume(const Params: TRenderParams);
 var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
@@ -3329,7 +3326,7 @@ begin
   T := Translation;
   if FOnlyTranslation and T.IsZero then
   begin
-    LocalRenderShadowVolume(Params, ShadowVolumeRenderer);
+    LocalRenderShadowVolume(Params);
   end else
   begin
     { TODO: This is a copy-paste of transformation algorithm from TCastleTransform.Render. }
@@ -3365,7 +3362,7 @@ begin
       // 2x slower: NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
     end;
 
-    LocalRenderShadowVolume(Params, ShadowVolumeRenderer);
+    LocalRenderShadowVolume(Params);
 
     { Restore OldXxx values.
       They can be restored fast, thanks to using pointers to matrix/frustum. }

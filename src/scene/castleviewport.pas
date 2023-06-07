@@ -280,8 +280,9 @@ type
     procedure ApplyProjection; virtual;
 
     { Render shadow quads for all the things rendered by @link(RenderOnePass).
-      You can use here ShadowVolumeRenderer instance, which is guaranteed
-      to be initialized with TGLShadowVolumeRenderer.InitFrustumAndLight,
+
+      The Params.ShadowVolumeRenderer is guaranteed to be set now to valid non-nil
+      instance. The TGLShadowVolumeRenderer.InitFrustumAndLight was already called,
       so you can do shadow volumes culling. }
     procedure RenderShadowVolume(const Params: TRenderParams);
 
@@ -358,6 +359,12 @@ type
     { Render one pass, with current camera and parameters (e.g. only transparent
       or only opaque shapes).
       All current camera settings are saved in RenderParams.RenderingCamera.
+
+      The Params.ShadowVolumeRenderer is guaranteed to be set now.
+      It is either valid non-nil instance (you can use it to detect which
+      shape's shadow is possibly visible) or @nil if we don't render with
+      shadow volumes now.
+
       @param(Params Rendering parameters, see @link(TRenderParams).) }
     procedure RenderOnePass(const Params: TRenderParams); virtual;
 
@@ -2336,7 +2343,7 @@ end;
 procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
 begin
   Params.Frustum := @Params.RenderingCamera.Frustum;
-  Items.RenderShadowVolume(Params, FShadowVolumeRenderer);
+  Items.RenderShadowVolume(Params);
 end;
 
 procedure TCastleViewport.InitializeGlobalLights(const GlobalLights: TLightInstancesList);
@@ -2463,8 +2470,8 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
       covered by non-transparent objects (that are in fact further away from
       the camera). }
 
+    Params.ShadowVolumeRenderer := nil;
     Params.InShadow := false;
-
     Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
     Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
   end;
@@ -2484,6 +2491,7 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
       FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
       FShadowVolumeRenderer.PrepareRenderingResources;
     end;
+    Params.ShadowVolumeRenderer := FShadowVolumeRenderer;
     FShadowVolumeRenderer.DebugRender := ShadowVolumesRender;
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
     FShadowVolumeRenderer.Render(Params,

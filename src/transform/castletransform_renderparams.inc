@@ -267,6 +267,10 @@
     ProjectionBox: TBox3DEvent;
     ProjectionViewportWidth, ProjectionViewportHeight: Single;
 
+    { If we are rendering with shadow volumes, this is non-nil
+      and can be used to render shadow volumes or query what shadow is visible. }
+    ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
+
     constructor Create;
 
     { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }
