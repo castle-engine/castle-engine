@@ -30,7 +30,7 @@ type
   TCastleFont = class(TCastleAbstractFont)
   strict private
     FFont: TTextureFontData; //< nil when no font loaded successfully
-    FOwnsFont: boolean;
+    FOwnsFont: Boolean;
     DrawableImage: TDrawableImage;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
     FURL: String;
@@ -38,7 +38,7 @@ type
     FAntiAliased: Boolean;
     FLoadBasicCharacters: Boolean;
     FLoadCharacters: String;
-    function GetSmoothScaling: boolean;
+    function GetSmoothScaling: Boolean;
     function GetScale: Single;
     procedure SetScale(const AValue: Single);
     procedure SetURL(const Value: String);
@@ -100,11 +100,11 @@ type
 
     procedure PrepareResources; override;
     procedure Print(const X, Y: Single; const Color: TCastleColor;
-      const S: string); override;
-    function TextWidth(const S: string): Single; override;
-    function TextHeight(const S: string): Single; override;
-    function TextHeightBase(const S: string): Single; override;
-    function TextMove(const S: string): TVector2; override;
+      const S: String); override;
+    function TextWidth(const S: String): Single; override;
+    function TextHeight(const S: String): Single; override;
+    function TextHeightBase(const S: String): Single; override;
+    function TextMove(const S: String): TVector2; override;
 
     { Underlying font data. }
     property FontData: TTextureFontData read FFont; {$ifdef FPC}deprecated 'you should not need to use this directly';{$endif} // can't be removed from delphi because x3dnodes_standard_text.inc uses that
@@ -138,7 +138,7 @@ type
     property LoadBasicCharacters: Boolean read FLoadBasicCharacters write SetLoadBasicCharacters default true;
 
     { Load from font all characters listed here. As everywhere in CGE
-      (same as in Lazarus LCL), this is an string composed from UTF-8 characters. }
+      (same as in Lazarus LCL), this is an String composed from UTF-8 characters. }
     property LoadCharacters: String read FLoadCharacters write SetLoadCharacters;
   end;
 
@@ -210,7 +210,7 @@ constructor TCastleFont.Create(const URL: String;
   const ACharacters: TSetOfChars);
 var
   Chars: TUnicodeCharList;
-  C: char;
+  C: Char;
 begin
   Chars := TUnicodeCharList.Create;
   try
@@ -296,7 +296,7 @@ begin
     DrawableImage.SmoothScaling := GetSmoothScaling;
 end;
 
-function TCastleFont.GetSmoothScaling: boolean;
+function TCastleFont.GetSmoothScaling: Boolean;
 begin
   Assert(FFont <> nil); // should never be called otherwise
   Result := Size <> FFont.Size;
@@ -316,7 +316,7 @@ begin
 end;
 
 procedure TCastleFont.Print(const X, Y: Single; const Color: TCastleColor;
-  const S: string);
+  const S: String);
 var
   ScreenX, ScreenY: Single;
   G: TTextureFontData.TGlyph;
@@ -524,7 +524,7 @@ begin
   end;
 end;
 
-function TCastleFont.TextWidth(const S: string): Single;
+function TCastleFont.TextWidth(const S: String): Single;
 begin
   if FFont = nil then
     Exit(0); // font not loaded
@@ -533,21 +533,21 @@ begin
     Result := Result + Outline * 2 * StringLength(S);
 end;
 
-function TCastleFont.TextHeight(const S: string): Single;
+function TCastleFont.TextHeight(const S: String): Single;
 begin
   if FFont = nil then
     Exit(0); // font not loaded
   Result := FFont.TextHeight(S) * Scale + Outline * 2;
 end;
 
-function TCastleFont.TextHeightBase(const S: string): Single;
+function TCastleFont.TextHeightBase(const S: String): Single;
 begin
   if FFont = nil then
     Exit(0); // font not loaded
   Result := FFont.TextHeightBase(S) * Scale + Outline * 2;
 end;
 
-function TCastleFont.TextMove(const S: string): TVector2;
+function TCastleFont.TextMove(const S: String): TVector2;
 var
   M: TVector2Integer;
 begin
