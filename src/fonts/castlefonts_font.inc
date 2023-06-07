@@ -332,6 +332,7 @@ procedure TCastleFont.PrepareResources;
     NewProgram.AttachFragmentShader(FS);
     NewProgram.Link;
     DrawableImage.CustomShader := NewProgram;
+    DrawableImage.SmoothScaling := true;
   end;
 
 begin
@@ -399,8 +400,8 @@ var
       ImageRect := PFloatRectangle(GlyphsImageRects.Ptr(GlyphsToRender));
       ImageRect^.Left   := G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif} - FFont.DistanceFieldPadding;
       ImageRect^.Bottom := G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif} - FFont.DistanceFieldPadding;
-      ImageRect^.Width  := G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
-      ImageRect^.Height := G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
+      ImageRect^.Width  := G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif} + FFont.DistanceFieldPadding;
+      ImageRect^.Height := G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif} + FFont.DistanceFieldPadding;
 
       Inc(GlyphsToRender);
     end;

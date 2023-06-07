@@ -344,7 +344,16 @@ var
           if GetPixelSafe(RX, RY) then
           begin
             // opaque pixel - calculate distance to nearest transparent pixel
-            Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ := 255;
+            D := Sqr(DistanceFieldPadding);
+            for DY := -DistanceFieldPadding to DistanceFieldPadding do
+              for DX := -DistanceFieldPadding to DistanceFieldPadding do
+                if not GetPixelSafe(RX + DX, RY + DY) then
+                begin
+                  TempD := Sqr(DX) + Sqr(DY);
+                  if D > TempD then
+                    D := TempD;
+                end;
+            Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ := 128 + Trunc(127 * Sqrt(D) / DistanceFieldPadding);
           end else
           begin
             // transparent pixel - calculate distance to nearest opaque pixel
@@ -357,7 +366,7 @@ var
                   if D > TempD then
                     D := TempD;
                 end;
-            Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ := Trunc(128 * Sqrt(Sqr(DistanceFieldPadding) - D) / DistanceFieldPadding);
+            Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ := Trunc(127 * (1 - Sqrt(D-1) / Sqrt(Sqr(DistanceFieldPadding)-1)));
           end;
     end;
 
