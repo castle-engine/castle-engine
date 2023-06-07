@@ -29,6 +29,7 @@ type
     ready TTextureFontData instance. }
   TCastleFont = class(TCastleAbstractFont)
   strict private
+    FDistanceField: Boolean;
     FFont: TTextureFontData; //< nil when no font loaded successfully
     FOwnsFont: Boolean;
     DrawableImage: TDrawableImage;
@@ -40,6 +41,7 @@ type
     FLoadCharacters: String;
     function GetSmoothScaling: Boolean;
     function GetScale: Single;
+    procedure SetDistanceField(AValue: Boolean);
     procedure SetScale(const AValue: Single);
     procedure SetURL(const Value: String);
     procedure SetOptimalSize(const Value: Cardinal);
@@ -119,6 +121,8 @@ type
       the @url(https://www.freetype.org/ FreeType library), even bitmap fonts,
       see @url(https://www.freetype.org/freetype2/docs/ft2faq.html#general-what the summary of font formats supported by FreeType). }
     property URL: String read FURL write SetURL;
+
+    property DistanceField: Boolean read FDistanceField write SetDistanceField;
 
     { Optimal font size (in real device pixels),
       the font will be scaled when other size is actually needed.
@@ -200,7 +204,7 @@ begin
     Unload
   else
   begin
-    NewFontData := TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters);
+    NewFontData := TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters, FDistanceField);
     Load(NewFontData, true, AdjustProperties);
   end;
 end;
@@ -275,6 +279,13 @@ begin
     Result := Size / FFont.Size
   else
     Result := Size;
+end;
+
+procedure TCastleFont.SetDistanceField(AValue: Boolean);
+begin
+  if FDistanceField = AValue then Exit;
+  FDistanceField := AValue;
+  Reload;
 end;
 
 procedure TCastleFont.SetScale(const AValue: Single);
