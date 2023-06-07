@@ -5,7 +5,29 @@
   "$NonVisualComponents" : [
     {
       "$$ClassName" : "TCastleFont",
-      "Name" : "Font1",
+      "DistanceField" : false,
+      "Name" : "FontAlphaProtaNormal30",
+      "OptimalSize" : 30,
+      "URL" : "castle-data:/AlphaProta.otf"
+    },
+    {
+      "$$ClassName" : "TCastleFont",
+      "DistanceField" : false,
+      "Name" : "FontDejaVuSansNormal30",
+      "OptimalSize" : 30,
+      "URL" : "castle-data:/DejaVuSans.ttf"
+    },
+    {
+      "$$ClassName" : "TCastleFont",
+      "DistanceField" : true,
+      "Name" : "FontAlphaProtaDistance30",
+      "OptimalSize" : 30,
+      "URL" : "castle-data:/AlphaProta.otf"
+    },
+    {
+      "$$ClassName" : "TCastleFont",
+      "DistanceField" : true,
+      "Name" : "FontDejaVuSansDistance30",
       "OptimalSize" : 30,
       "URL" : "castle-data:/DejaVuSans.ttf"
     }
@@ -51,9 +73,9 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "CustomFont" : "Font1",
-          "FontSize" : 2.0000000000000000E+002,
-          "Name" : "Label1",
+          "CustomFont" : "FontAlphaProtaNormal30",
+          "FontSize" : 1.1100000000000000E+002,
+          "Name" : "LabelAlphaProtaNormal111",
           "Text" : [
             "Normal Font"
           ],
@@ -68,15 +90,57 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "CustomFont" : "Font1",
-          "FontSize" : 2.0000000000000000E+002,
-          "Name" : "Label2",
+          "CustomFont" : "FontAlphaProtaDistance30",
+          "FontSize" : 1.1100000000000000E+002,
+          "Name" : "LabelAlphaProtaDistance111",
           "Text" : [
             "Distance Field Font"
           ],
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -2.4000000000000000E+002
+            "Y" : -1.0880000305175781E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "FontDejaVuSansNormal30",
+          "FontSize" : 1.6000000000000000E+002,
+          "Name" : "LabelDejaVuSansNormal160",
+          "Text" : [
+            "Normal Font"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -2.1760000610351562E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CustomFont" : "FontDejaVuSansDistance30",
+          "FontSize" : 1.6000000000000000E+002,
+          "Name" : "LabelDejaVuSansDistance160",
+          "Text" : [
+            "Distance Field Font"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -4.1360003662109375E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
