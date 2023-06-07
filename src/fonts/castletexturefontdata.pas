@@ -292,8 +292,8 @@ var
       end;
 
       Result := TGlyph.Create;
-      Result.Width    := Bitmap^.Width;
-      Result.Height   := Bitmap^.Height;
+      Result.Width    := Bitmap^.Width + 2 * DistanceFieldPadding;
+      Result.Height   := Bitmap^.Height + 2 * DistanceFieldPadding;
       Result.X        := -Bitmap^.X;
       Result.Y        := Bitmap^.Height - 1 + Bitmap^.Y;
       Result.AdvanceX := Bitmap^.AdvanceX shr 10; // 64 * 16, looks like this is just magic for freetype
@@ -325,6 +325,9 @@ var
     procedure DrawCharDistanceField;
     var
       RX, RY: Integer;
+      DX, DY: Integer;
+      D, TempD: Integer; //6^2 + 6^2 = 72
+
       function GetPixelSafe(const AX, AY: Integer): Boolean; inline; // TODO: Single? Byte?
       begin
         if (AX >= 0) and (AX < Bitmap^.Width) and
@@ -333,6 +336,7 @@ var
         else
           Exit(false);
       end;
+
     begin
       // for now slow and inefficient, to optimize later
       for RY := -DistanceFieldPadding to Bitmap^.Height - 1 + DistanceFieldPadding do
@@ -344,7 +348,16 @@ var
           end else
           begin
             // transparent pixel - calculate distance to nearest opaque pixel
-            Image.PixelPtr(ImageX + RX, ImageY + Bitmap^.Height - 1 - RY)^ := 0;
+            D := Sqr(DistanceFieldPadding);
+            for DY := -DistanceFieldPadding to DistanceFieldPadding do
+              for DX := -DistanceFieldPadding to DistanceFieldPadding do
+                if GetPixelSafe(RX + DX, RY + DY) then
+                begin
+                  TempD := Sqr(DX) + Sqr(DY);
+                  if D > TempD then
+                    D := TempD;
+                end;
+            Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ := Trunc(128 * Sqrt(Sqr(DistanceFieldPadding) - D) / DistanceFieldPadding);
           end;
     end;
 

@@ -303,10 +303,45 @@ begin
 end;
 
 procedure TCastleFont.PrepareResources;
+
+  procedure AttachDistanceFieldShader;
+  var
+    VS, FS: String;
+    NewProgram: TGLSLProgram;
+  begin
+    VS := 'attribute vec2 vertex;' + LineEnding +
+          'attribute vec2 tex_coord;' + LineEnding +
+          'uniform vec2 viewport_size;' + LineEnding +
+          'varying vec2 tex_coord_frag;' + LineEnding +
+          'void main(void)' + LineEnding +
+          '{' + LineEnding +
+          '  gl_Position = vec4(vertex * 2.0 / viewport_size - vec2(1.0), 0.0, 1.0);' + LineEnding +
+          '  tex_coord_frag = tex_coord;' + LineEnding +
+          '}' + LineEnding;
+    FS := 'varying vec2 tex_coord_frag;' + LineEnding +
+          'uniform sampler2D image_texture;' + LineEnding +
+          'void main(void)' + LineEnding +
+          '{' + LineEnding +
+          'gl_FragColor = texture2D(image_texture, tex_coord_frag);' + LineEnding +
+          'if (gl_FragColor.a < 0.45) discard; else gl_FragColor = vec4(1.0,1.0,1.0,1.0);' +
+          '}' + LineEnding;
+
+    NewProgram := TGLSLProgram.Create;
+    NewProgram.Name := 'TDistanceFieldCut';
+    NewProgram.AttachVertexShader(VS); // Memory leak tracks here
+    NewProgram.AttachFragmentShader(FS);
+    NewProgram.Link;
+    DrawableImage.CustomShader := NewProgram;
+  end;
+
 begin
   inherited;
   if (FFont <> nil) and (DrawableImage = nil) then
+  begin
     DrawableImage := TDrawableImage.Create(FFont.Image, GetSmoothScaling, false);
+    if FFont.DistanceField then
+      AttachDistanceFieldShader;
+  end;
 end;
 
 procedure TCastleFont.GLContextClose;
@@ -329,8 +364,8 @@ var
     if TargetImage <> nil then
     begin
       TargetImage.DrawFrom(FFont.Image,
-        Round(ScreenX - G.X * Scale + OutlineMoveX * Outline - FFont.DistanceFieldPadding),
-        Round(ScreenY - G.Y * Scale + OutlineMoveY * Outline - FFont.DistanceFieldPadding),
+        Round(ScreenX - G.X * Scale + OutlineMoveX * Outline),
+        Round(ScreenY - G.Y * Scale + OutlineMoveY * Outline),
         G.ImageX,
         G.ImageY,
         G.Width,
@@ -356,14 +391,14 @@ var
       {.$define EXTRA_GLYPH_SPACE}
 
       ScreenRect := PFloatRectangle(GlyphsScreenRects.Ptr(GlyphsToRender));
-      ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveX * Outline;
-      ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveY * Outline;
+      ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveX * Outline - FFont.DistanceFieldPadding;
+      ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveY * Outline - FFont.DistanceFieldPadding;
       ScreenRect^.Width  := (G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
       ScreenRect^.Height := (G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
 
       ImageRect := PFloatRectangle(GlyphsImageRects.Ptr(GlyphsToRender));
-      ImageRect^.Left   := G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
-      ImageRect^.Bottom := G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
+      ImageRect^.Left   := G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif} - FFont.DistanceFieldPadding;
+      ImageRect^.Bottom := G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif} - FFont.DistanceFieldPadding;
       ImageRect^.Width  := G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
       ImageRect^.Height := G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
 
