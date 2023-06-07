@@ -329,8 +329,8 @@ var
     if TargetImage <> nil then
     begin
       TargetImage.DrawFrom(FFont.Image,
-        Round(ScreenX - G.X * Scale + OutlineMoveX * Outline),
-        Round(ScreenY - G.Y * Scale + OutlineMoveY * Outline),
+        Round(ScreenX - G.X * Scale + OutlineMoveX * Outline - FFont.DistanceFieldPadding),
+        Round(ScreenY - G.Y * Scale + OutlineMoveY * Outline - FFont.DistanceFieldPadding),
         G.ImageX,
         G.ImageY,
         G.Width,

@@ -33,6 +33,10 @@ type
   { Data for a 2D font initialized from a FreeType font file, like ttf. }
   TTextureFontData = class
   public
+    const
+      DistanceFieldPadding = 6;
+      DistanceField = true;
+  public
     type
       { Information about a particular font glyph. }
       TGlyph = class
@@ -318,6 +322,32 @@ var
       end;
     end;
 
+    procedure DrawCharDistanceField;
+    var
+      RX, RY: Integer;
+      function GetPixelSafe(const AX, AY: Integer): Boolean; inline; // TODO: Single? Byte?
+      begin
+        if (AX >= 0) and (AX <= Bitmap^.Width) and
+           (AY >= 0) and (AY <= Bitmap^.Height) then
+          Exit(Bitmap^.Data^[AX + AY * Bitmap^.Pitch] > 0)
+        else
+          Exit(false);
+      end;
+    begin
+      // for now slow and inefficient, to optimize later
+      for RY := -DistanceFieldPadding to Bitmap^.Height - 1 + DistanceFieldPadding do
+        for RX := -DistanceFieldPadding to Bitmap^.Width - 1 + DistanceFieldPadding do
+          if GetPixelSafe(RX, RY) then
+          begin
+            // opaque pixel - calculate distance to nearest transparent pixel
+            Image.PixelPtr(ImageX + RX, ImageY + Bitmap^.Height - 1 - RY)^ := 255;
+          end else
+          begin
+            // transparent pixel - calculate distance to nearest opaque pixel
+            Image.PixelPtr(ImageX + RX, ImageY + Bitmap^.Height - 1 - RY)^ := 0;
+          end;
+    end;
+
     { Extracting data with Pitch, like in TFreeTypeFont.DrawCharBW. }
     procedure DrawCharBW;
     const
@@ -354,8 +384,12 @@ var
           [URL, C, Ord(C)]));
         Exit;
       end;
+      if DistanceField then
+        DrawCharDistanceField
+      else
       if AntiAliased then
-        DrawChar else
+        DrawChar
+      else
         DrawCharBW;
     finally FreeAndNil(Bitmaps) end;
   end;
@@ -422,6 +456,11 @@ begin
 
     MaxWidth := MaxWidth + GlyphPadding;
     MaxHeight := MaxHeight + GlyphPadding;
+    if DistanceField then
+    begin
+      MaxWidth += 2 * DistanceFieldPadding;
+      MaxHeight += 2 * DistanceFieldPadding;
+    end;
 
     ImageSize := 8;
     while (ImageSize div MaxHeight) * (ImageSize div MaxWidth) < GlyphsCount do
