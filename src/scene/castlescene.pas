@@ -221,8 +221,13 @@ type
     { Check frustum and distance culling. }
     function ShapePossiblyVisible(Shape: TShape): boolean;
 
-    { Check distance culling. Call only when DistanceCulling > 0. }
-    function DistanceCullingCheck(Shape: TShape): boolean;
+    { Should given shape be rendered, according to distance culling.
+      Call only when DistanceCulling > 0. }
+    function DistanceCullingCheck(Shape: TShape): Boolean;
+
+    { Should given scene be rendered, according to distance culling.
+      Call only when DistanceCulling > 0. }
+    function DistanceCullingCheckScene: Boolean;
 
     procedure SetShapeFrustumCulling(const Value: Boolean);
     procedure SetDistanceCulling(const Value: Single);
@@ -1728,10 +1733,18 @@ begin
       SceneBox := SceneBox.Transform(Params.Transform^);
     if SVRenderer.GetCasterShadowPossiblyVisible(SceneBox) then
     begin
+      { Do not render shadows for objects eliminated by DistanceCulling.
+        This checks per-scene, when RenderOptions.WholeSceneManifold. }
+      if RenderOptions.WholeSceneManifold then
+      begin
+        if (DistanceCulling > 0) and (not DistanceCullingCheckScene) then
+          Exit;
+      end;
+
       InternalForceRendering := TFramesPerSecond.RenderFrameId;
 
-      { shadows are cast only by visible scene parts
-        (not e.g. invisible collision box of castle-anim-frames) }
+      { Using below OnlyVisible=true,
+        because shadows are cast only by visible scene parts. }
       ShapeList := Shapes.TraverseList({ OnlyActive } true, { OnlyVisible } true);
       for Shape in ShapeList do
       begin
@@ -1741,15 +1754,22 @@ begin
           Shadow volumes *assume* that shadow caster is also rendered (shadow quads
           are closed).
 
-          When WholeSceneManifold, this early exit is not allowed:
-          for WholeSceneManifold to work, the scene must be rendered as a whole.
-          For now, WholeSceneManifold just disables distance culling.
-          TODO: In the future, we could make WholeSceneManifold work with
-          distance culling: allow to cull the whole scene. }
-        if (not RenderOptions.WholeSceneManifold) and
-           (DistanceCulling > 0) and (not DistanceCullingCheck(Shape)) then
-          Continue;
+          This is done per-shape when WholeSceneManifold=false.
 
+          When WholeSceneManifold=true, this is done per-scene, above. }
+        if not RenderOptions.WholeSceneManifold then
+        begin
+          if (DistanceCulling > 0) and (not DistanceCullingCheck(Shape)) then
+            Continue;
+        end;
+
+        { Do not render shadows when frustum+light check says it is definitely
+          not visible.
+
+          This is done per-shape when WholeSceneManifold=false.
+
+          When WholeSceneManifold=true, we render all shapes here.
+          The per-scene check already passed above. }
         ShapeBox := Shape.BoundingBox;
         if not Params.TransformIdentity then
           ShapeBox := ShapeBox.Transform(Params.Transform^);
@@ -1757,7 +1777,7 @@ begin
         if RenderOptions.WholeSceneManifold or
            SVRenderer.CasterShadowPossiblyVisible then
         begin
-          Shape.InternalForceRendering := TFramesPerSecond.FrameId;
+          Shape.InternalForceRendering := TFramesPerSecond.RenderFrameId;
 
           if Params.TransformIdentity then
             T :=                     Shape.State.Transformation.Transform
@@ -1796,11 +1816,27 @@ function TCastleScene.ShapePossiblyVisible(Shape: TShape): boolean;
   end;
 
 begin
+  if Shape.InternalForceRendering = TFramesPerSecond.RenderFrameId then
+    Exit(true);
+
   Result :=
     // frustum culling
     ( (not FShapeFrustumCulling) or FrustumCullingCheck(Shape) ) and
     // distance culling
     ( (DistanceCulling <= 0 ) or DistanceCullingCheck(Shape) );
+end;
+
+function TCastleScene.DistanceCullingCheckScene: Boolean;
+var
+  Box: TBox3D;
+begin
+  // This should be only called when DistanceCulling indicates this check is necessary
+  Assert(DistanceCulling > 0);
+  Box := LocalBoundingBoxNoChildren;
+  Result :=
+    (not Box.IsEmpty) and
+    (Box.PointDistanceSqr(RenderCameraPosition) <=
+     Sqr(DistanceCulling));
 end;
 
 function TCastleScene.DistanceCullingCheck(Shape: TShape): boolean;
@@ -1842,6 +1878,9 @@ begin
 
   if not Shape.PassedFrustumAndDistanceCulling then
   begin
+    if Shape.InternalForceRendering = TFramesPerSecond.RenderFrameId then
+      Shape.PassedFrustumAndDistanceCulling := true
+    else
     if CollidesForSure then
       // frustum culling already passed, but still check distance culling
       Shape.PassedFrustumAndDistanceCulling := (DistanceCulling <= 0) or DistanceCullingCheck(Shape)
