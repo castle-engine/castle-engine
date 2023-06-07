@@ -267,6 +267,7 @@ begin
      (PropertyName = 'OptimalSize') or
      (PropertyName = 'AntiAliased') or
      (PropertyName = 'LoadCharacters') or
+     (PropertyName = 'DistanceField') or
      (PropertyName = 'LoadBasicCharacters') then
     Result := [psBasic]
   else
