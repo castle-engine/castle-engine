@@ -400,7 +400,7 @@ var
       ImageRect := PFloatRectangle(GlyphsImageRects.Ptr(GlyphsToRender));
       ImageRect^.Left   := G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif} - FFont.DistanceFieldPadding;
       ImageRect^.Bottom := G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif} - FFont.DistanceFieldPadding;
-      ImageRect^.Width  := G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif} + FFont.DistanceFieldPadding;
+      ImageRect^.Width  := G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif} + FFont.DistanceFieldPadding; // I don't know why we have to add this here????
       ImageRect^.Height := G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif} + FFont.DistanceFieldPadding;
 
       Inc(GlyphsToRender);

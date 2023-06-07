@@ -32,10 +32,12 @@ type
 
   { Data for a 2D font initialized from a FreeType font file, like ttf. }
   TTextureFontData = class
-  public
+  private
     const
-      DistanceFieldPadding = 6;
-      DistanceField = true;
+      CDistanceFieldPadding = Integer(6);
+    var
+      FDistanceFieldPadding: Integer;
+      FDistanceField: Boolean;
   public
     type
       { Information about a particular font glyph. }
@@ -96,6 +98,7 @@ type
       FallbackGlyphWarnings: Integer;
 
     procedure CalculateFallbackGlyph;
+    function GetDistanceFieldPadding: Integer;
     procedure MakeFallbackWarning(const C: TUnicodeChar);
   public
     { Create by reading a FreeType font file, like ttf.
@@ -108,7 +111,7 @@ type
       @raises EFreeTypeLibraryNotFound If the freetype library is not installed. }
     constructor Create(const AUrl: string;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      ACharacters: TUnicodeCharList = nil);
+      ACharacters: TUnicodeCharList = nil; const ADistanceField: Boolean = false);
 
     { Create from a ready data for glyphs and image.
       Useful when font data is embedded inside the Pascal source code.
@@ -159,6 +162,8 @@ type
       (for example letter "y" has the tail below the baseline in most fonts). }
     function TextHeightBase(const S: string): Integer;
     function TextMove(const S: string): TVector2Integer;
+    property DistanceField: Boolean read FDistanceField;
+    property DistanceFieldPadding: Integer read GetDistanceFieldPadding;
   end;
 
 implementation
@@ -257,9 +262,9 @@ end;
 
 { TTextureFontData ----------------------------------------------------------------- }
 
-constructor TTextureFontData.Create(const AUrl: String;
-  const ASize: Cardinal; const AnAntiAliased: Boolean;
-  ACharacters: TUnicodeCharList);
+constructor TTextureFontData.Create(const AUrl: string; const ASize: Cardinal;
+  const AnAntiAliased: Boolean; ACharacters: TUnicodeCharList;
+  const ADistanceField: Boolean);
 var
   FontId: Integer;
 
@@ -430,6 +435,7 @@ var
   TemporaryCharacters: boolean;
 begin
   inherited Create;
+  FDistanceField := ADistanceField;
   FUrl := AUrl;
   FSize := ASize;
   FAntiAliased := AnAntiAliased;
@@ -595,6 +601,14 @@ begin
         FFallbackGlyph := FFirstExistingGlyph;
         FFallbackGlyphChar := FFirstExistingGlyphChar;
       end;
+end;
+
+function TTextureFontData.GetDistanceFieldPadding: Integer;
+begin
+  if DistanceField then
+    Exit(CDistanceFieldPadding)
+  else
+    Exit(0);
 end;
 
 function TTextureFontData.Glyph(const C: TUnicodeChar;
