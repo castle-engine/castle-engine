@@ -1451,7 +1451,7 @@ type
       Note that if you do a footsteps sound in your game (see
       stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
       then you will want this property to match your footsteps sound length,
-      things feel and sound na['{74C18F67-AEFE-4EF9-BD26-70296531E3BD}']tural then.
+      things feel and sound natural then.
       Also, often it sounds better to record two footsteps inside
       a single sound file, in which case the footstep sound length should be twice
       as long as this property. For example, record 2 steps inside a 1-second long
