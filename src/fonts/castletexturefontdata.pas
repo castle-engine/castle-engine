@@ -327,8 +327,8 @@ var
       RX, RY: Integer;
       function GetPixelSafe(const AX, AY: Integer): Boolean; inline; // TODO: Single? Byte?
       begin
-        if (AX >= 0) and (AX <= Bitmap^.Width) and
-           (AY >= 0) and (AY <= Bitmap^.Height) then
+        if (AX >= 0) and (AX < Bitmap^.Width) and
+           (AY >= 0) and (AY < Bitmap^.Height) then
           Exit(Bitmap^.Data^[AX + AY * Bitmap^.Pitch] > 0)
         else
           Exit(false);
