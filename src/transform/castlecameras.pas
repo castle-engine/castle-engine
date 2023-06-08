@@ -3156,13 +3156,13 @@ begin
 end;
 
 function TCastleWalkNavigation.GetColliderHeight(const ColliderBoundingBox: TBox3D
-  ): Single; overload;
+  ): Single;
 begin
   Result := ColliderBoundingBox.SizeY;
 end;
 
 function TCastleWalkNavigation.GetColliderHeight(
-  const PlayerCollider: TCastleCollider): Single; overload;
+  const PlayerCollider: TCastleCollider): Single;
 var
   ColliderBoundingBox: TBox3D;
 begin
@@ -3356,10 +3356,12 @@ function TCastleWalkNavigation.GetMoveDirectionFromInput(
       if MousePosDelta.X > Tolerance then
         MoveDirection := TVector3.CrossProduct(Camera.Direction, PlayerBody.Up);
 
-      {if MousePosDelta.Y < -5 then
+      (*
+      if MousePosDelta.Y < -5 then
         MoveVertical(-MoveSizeY * SecondsPassed, 1);    { fly up }
       if MousePosDelta.Y > 5 then
-        MoveVertical(-MoveSizeY * SecondsPassed, -1);   { fly down }}
+        MoveVertical(-MoveSizeY * SecondsPassed, -1);   { fly down }
+      *)
     end;
   end;
 
