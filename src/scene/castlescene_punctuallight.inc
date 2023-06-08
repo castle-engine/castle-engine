@@ -38,15 +38,15 @@ type
     { Cast shadows from this light.
 
       Right now this property activates
-      @url(https://castle-engine.io/x3d_extensions_shadow_volumes.php shadow volumes).
-      Please consult the @url(https://castle-engine.io/x3d_extensions_shadow_volumes.php shadow volumes documentation)
+      @url(https://castle-engine.io/shadow_volumes shadow volumes).
+      Please consult the @url(https://castle-engine.io/shadow_volumes shadow volumes documentation)
       about important requirements of this technique,
       namely: models that cast shadows must be 2-manifold.
       Moreover, right now, only one light in the world can cast shadows using
       shadow volumes.
 
       In the future we want to offer a choice between using
-      @url(https://castle-engine.io/x3d_extensions_shadow_volumes.php shadow volumes)
+      @url(https://castle-engine.io/shadow_volumes shadow volumes)
       and
       @url(https://castle-engine.io/x3d_extensions_shadow_maps.php shadow maps). }
     property Shadows: Boolean read FShadows write SetShadows default false;
