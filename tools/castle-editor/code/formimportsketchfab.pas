@@ -157,6 +157,13 @@ begin
   Timer1.Enabled := true;
   EditApiToken.Text := UserConfig.GetValue('sketchfab/api_token', '');
   UpdateEnabled;
+
+  { Make ListModels fill as much as it can.
+    Otherwise bottom things (EditApiToken and lower) are anchored to form bottom,
+    rest is anchored to form top, and the gap between
+    ListModels and "bottom things" can get larger on different font scaling values
+    on user's desktop. }
+  ListModels.Height := EditApiToken.Top - 8 - ListModels.Top;
 end;
 
 procedure TImportSketchfabForm.FormHide(Sender: TObject);
