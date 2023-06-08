@@ -8,7 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="falling-out-of-level"
   standalone_source="falling_out_of_level_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.fallingoutoflevel"
+  qualified_name="io.castleengine.falling.out.of.level"
   caption="Falling Out of Level"
 >
   <compiler_options>
