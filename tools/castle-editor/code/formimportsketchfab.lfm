@@ -28,7 +28,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     BorderSpacing.Bottom = 4
     Caption = 'Download and Add To Viewport'
     OnClick = ButtonDownloadAndAddViewportClick
-    TabOrder = 6
+    TabOrder = 8
   end
   object ButtonDownloadOnly: TButton
     AnchorSideRight.Control = ButtonClose
@@ -43,7 +43,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     BorderSpacing.Bottom = 4
     Caption = 'Download'
     OnClick = ButtonDownloadOnlyClick
-    TabOrder = 5
+    TabOrder = 7
   end
   object ButtonViewSketchfab: TButton
     AnchorSideTop.Side = asrBottom
@@ -56,7 +56,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     BorderSpacing.Top = 4
     Caption = 'View selected in Sketchfab'
     OnClick = ButtonViewSketchfabClick
-    TabOrder = 4
+    TabOrder = 6
   end
   object ButtonClose: TButton
     Left = 994
@@ -67,7 +67,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     AutoSize = True
     Caption = 'Close'
     OnClick = ButtonCloseClick
-    TabOrder = 7
+    TabOrder = 9
   end
   object ButtonTokenUrl: TButton
     AnchorSideLeft.Control = ButtonViewSketchfab
@@ -84,7 +84,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     Caption = 'Open Sketchfab account to copy API token'
     OnClick = ButtonTokenUrlClick
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 5
   end
   object CheckBoxAnimated: TCheckBox
     AnchorSideTop.Side = asrBottom
@@ -95,7 +95,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     BorderSpacing.Top = 8
     Caption = 'Only Animated'
     OnChange = CheckBoxAnimatedChange
-    TabOrder = 1
+    TabOrder = 2
   end
   object ButtonSearch: TButton
     AnchorSideLeft.Control = EditQuery
@@ -110,7 +110,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     BorderSpacing.Left = 8
     Caption = 'Search'
     OnClick = ButtonSearchClick
-    TabOrder = 0
+    TabOrder = 1
   end
   object ButtonList: TSpeedButton
     AnchorSideTop.Side = asrCenter
@@ -177,7 +177,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     LargeImagesWidth = 256
     RowSelect = True
     ScrollBars = ssAutoBoth
-    TabOrder = 2
+    TabOrder = 3
     ViewStyle = vsReport
     OnSelectItem = ListModelsSelectItem
   end
@@ -192,7 +192,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     Width = 432
     BorderSpacing.Left = 8
     OnKeyDown = EditQueryKeyDown
-    TabOrder = 8
+    TabOrder = 0
   end
   object LabelQuery: TLabel
     Left = 16
@@ -214,7 +214,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     Anchors = [akLeft, akBottom]
     BorderSpacing.Left = 8
     BorderSpacing.Bottom = 4
-    TabOrder = 9
+    TabOrder = 4
   end
   object Label1: TLabel
     AnchorSideTop.Control = EditApiToken
