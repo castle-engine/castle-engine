@@ -387,17 +387,6 @@ type
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
-    { Disable any frustum or distance culling for this shape in this frame
-      (when it is equal TFramesPerSecond.RenderFrameId).
-      This is used by shadow volumes: when we render shadow quads of some shape,
-      the shape itself also *has* to be rendered, shadow quads construction depends
-      on it.
-
-      Whether the shadow was rendered because of WholeSceneManifold,
-      or because SVRenderer.CasterShadowPossiblyVisible was true for this particular shape,
-      in all cases it must force rendering the shape too. }
-    InternalForceRendering: TFrameId;
-
     { Constructor.
       @param(ParentInfo Recursive information about parents,
         for the geometry node of given shape.

@@ -125,12 +125,6 @@ type
       Render_Params: TRenderParams;
       Render_TestShapeVisibility: TTestShapeVisibility;
 
-      { Disable any frustum culling for this scene.
-        This is used by shadow volumes: when we render shadow quads of some scene,
-        the scene itself also *has* to be rendered, shadow quads construction depends
-        on it. }
-      InternalForceRendering: TFrameId;
-
     { Checks DynamicBatching and not occlusion query. }
     function ReallyDynamicBatching: Boolean;
 
@@ -223,7 +217,7 @@ type
 
     { Should given shape be rendered, according to distance culling.
       Call only when DistanceCulling > 0. }
-    function DistanceCullingCheck(Shape: TShape): Boolean;
+    function DistanceCullingCheckShape(const Shape: TShape): Boolean;
 
     { Should given scene be rendered, according to distance culling.
       Call only when DistanceCulling > 0. }
@@ -969,13 +963,7 @@ end;
 
 procedure TCastleScene.RenderShape_AllTests(const Shape: TShape);
 begin
-  { When Shape.InternalForceRendering = current
-    than we ignore Render_TestShapeVisibility.
-    This way if shadow volumes request rendering something,
-    we will definitely render it, regardless of distance culling, frustum culling,
-    and regardless of whether we perform them using octree or not. }
-  if ( (Shape.InternalForceRendering = TFramesPerSecond.RenderFrameId) or
-       (not Assigned(Render_TestShapeVisibility)) or
+  if ( (not Assigned(Render_TestShapeVisibility)) or
        Render_TestShapeVisibility(TGLShape(Shape))) then
     RenderShape_SomeTests(TGLShape(Shape));
 end;
@@ -1720,7 +1708,7 @@ begin
 
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
-    // DistanceCullingCheck uses this value, and it may be called here
+    // DistanceCullingCheck* uses this value, and it may be called here
     RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
 
     { calculate and check SceneBox }
@@ -1730,32 +1718,28 @@ begin
     if SVRenderer.GetCasterShadowPossiblyVisible(SceneBox) then
     begin
       { Do not render shadows for objects eliminated by DistanceCulling.
-        This checks per-scene, when RenderOptions.WholeSceneManifold. }
-      if RenderOptions.WholeSceneManifold then
-      begin
-        if (DistanceCulling > 0) and (not DistanceCullingCheckScene) then
-          Exit;
-      end;
-
-      InternalForceRendering := TFramesPerSecond.RenderFrameId;
+        This checks per-scene. }
+      if (DistanceCulling > 0) and (not DistanceCullingCheckScene) then
+        Exit;
 
       { Using below OnlyVisible=true,
         because shadows are cast only by visible scene parts. }
       ShapeList := Shapes.TraverseList({ OnlyActive } true, { OnlyVisible } true);
       for Shape in ShapeList do
       begin
-        { Do not render shadows for objects eliminated by DistanceCulling.
+        { Do not render shadows for shapes eliminated by DistanceCulling.
+
           Otherwise: Not only shadows for invisible objects would look weird,
           but they would actually show errors.
           Shadow volumes *assume* that shadow caster is also rendered (shadow quads
-          are closed).
+          are closed) if that shadow caster is visible in frustum.
 
           This is done per-shape when WholeSceneManifold=false.
-
-          When WholeSceneManifold=true, this is done per-scene, above. }
+          When WholeSceneManifold=true, we cannot do per-shape check:
+          the whole scene should be rendered. }
         if not RenderOptions.WholeSceneManifold then
         begin
-          if (DistanceCulling > 0) and (not DistanceCullingCheck(Shape)) then
+          if (DistanceCulling > 0) and (not DistanceCullingCheckShape(Shape)) then
             Continue;
         end;
 
@@ -1773,8 +1757,6 @@ begin
         if RenderOptions.WholeSceneManifold or
            SVRenderer.CasterShadowPossiblyVisible then
         begin
-          Shape.InternalForceRendering := TFramesPerSecond.RenderFrameId;
-
           if Params.TransformIdentity then
             T :=                     Shape.State.Transformation.Transform
           else
@@ -1812,14 +1794,11 @@ function TCastleScene.ShapePossiblyVisible(Shape: TShape): boolean;
   end;
 
 begin
-  if Shape.InternalForceRendering = TFramesPerSecond.RenderFrameId then
-    Exit(true);
-
   Result :=
     // frustum culling
     ( (not FShapeFrustumCulling) or FrustumCullingCheck(Shape) ) and
     // distance culling
-    ( (DistanceCulling <= 0 ) or DistanceCullingCheck(Shape) );
+    ( (DistanceCulling <= 0 ) or DistanceCullingCheckShape(Shape) );
 end;
 
 function TCastleScene.DistanceCullingCheckScene: Boolean;
@@ -1835,8 +1814,17 @@ begin
      Sqr(DistanceCulling));
 end;
 
-function TCastleScene.DistanceCullingCheck(Shape: TShape): boolean;
+function TCastleScene.DistanceCullingCheckShape(const Shape: TShape): boolean;
 begin
+  { When WholeSceneManifold, we have to render whole scene, or nothing.
+
+    Shadow volumes work correctly only if shadow caster (at least the part of it
+    in frustum, that affects the screen) is also rendered.
+
+    So distance culling cannot eliminate particular shapes. }
+  if RenderOptions.WholeSceneManifold then
+    Exit(true);
+
   // This should be only called when DistanceCulling indicates this check is necessary
   Assert(DistanceCulling > 0);
   Result :=
@@ -1874,12 +1862,9 @@ begin
 
   if not Shape.PassedFrustumAndDistanceCulling then
   begin
-    if Shape.InternalForceRendering = TFramesPerSecond.RenderFrameId then
-      Shape.PassedFrustumAndDistanceCulling := true
-    else
     if CollidesForSure then
       // frustum culling already passed, but still check distance culling
-      Shape.PassedFrustumAndDistanceCulling := (DistanceCulling <= 0) or DistanceCullingCheck(Shape)
+      Shape.PassedFrustumAndDistanceCulling := (DistanceCulling <= 0) or DistanceCullingCheckShape(Shape)
     else
       // this function performs frustum culling and distance culling too
       Shape.PassedFrustumAndDistanceCulling := ShapePossiblyVisible(Shape);
@@ -2014,10 +1999,21 @@ begin
        (not ExcludeFromStatistics) then
       Inc(Params.Statistics.ScenesVisible);
 
-    if (InternalForceRendering <> TFramesPerSecond.RenderFrameId) and
-       FSceneFrustumCulling and
+    if FSceneFrustumCulling and
        (Params.Frustum <> nil) and
        (not Params.Frustum^.Box3DCollisionPossibleSimple(LocalBoundingBox)) then
+    begin
+      FrameProfiler.Stop(fmRenderScene);
+      Exit;
+    end;
+
+    // RenderCameraPosition is used by DistanceCullingCheck* below
+    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
+
+    { Do distance culling for whole scene.
+      When WholeSceneManifold=true, this is the only place where
+      we check distance culling, we cannot do per-shape distance culling then. }
+    if (DistanceCulling > 0) and (not DistanceCullingCheckScene) then
     begin
       FrameProfiler.Stop(fmRenderScene);
       Exit;
@@ -2029,7 +2025,6 @@ begin
       Inc(Params.Statistics.ScenesRendered);
 
     FrustumForShapeCulling := Params.Frustum;
-    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
 
     if Assigned(InternalVisibilityTest) then
       LocalRenderOutside(InternalVisibilityTest, Params)
