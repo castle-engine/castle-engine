@@ -374,7 +374,19 @@ end;
 
 procedure TImportSketchfabForm.ButtonListClick(Sender: TObject);
 begin
-  ListModels.ViewStyle := vsReport;
+  //try
+    ListModels.ViewStyle := vsReport;
+  (*
+  // On LCL GTK2, switching between list/grid repeatedly unfortunately may crash.
+  // Debugging, it is in GTK2 code.
+  // We tried workarounding it as below, but this is not effective,
+  // there will be more crashes.
+
+  except
+    on EAccessViolation do
+      WritelnWarning('Hiding crash as ListModels.ViewStyle switch, possible with LCL on GTK2 if you switch between grid/list repeatedly');
+  end;
+  *)
   ButtonList.Down := true; // ButtonGrid.Down will be set to false automatically
 end;
 
