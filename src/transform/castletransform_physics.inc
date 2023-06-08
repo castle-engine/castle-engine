@@ -1892,7 +1892,7 @@ function TCastleCollider.PropertySections(
 begin
   if ArrayContainsString(PropertyName, [
      'Density', 'Friction', 'Mass', 'Restitution', 'SizeScale', 'LayerCollisions',
-     'LayerNames'
+     'LayerNames', 'RotationPersistent', 'TranslationPersistent'
      ]) then
     Result := [psBasic]
   else
