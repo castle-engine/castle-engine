@@ -42,8 +42,10 @@ type
     ButtonViewSketchfab: TButton;
     ButtonClose: TButton;
     CheckBoxAnimated: TCheckBox;
-    EditApiToken: TLabeledEdit;
-    EditQuery: TLabeledEdit;
+    EditApiToken: TEdit;
+    EditQuery: TEdit;
+    Label1: TLabel;
+    LabelQuery: TLabel;
     ListModels: TListView;
     Timer1: TTimer;
     ImageListModelThumbnails: TImageList;
