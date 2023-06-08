@@ -274,7 +274,7 @@ type
     { Render shadow volume (sides and caps) of this scene, for shadow volume
       algorithm.
 
-      Uses Params.ShadowVolumeRenderer for rendering, and to detect if rendering
+      Uses ShadowVolumeRenderer for rendering, and to detect if rendering
       is necessary at all.
 
       It always uses silhouette optimization. This is the usual,
@@ -308,7 +308,8 @@ type
       Faces (both shadow quads and caps) are rendered such that
       CCW <=> you're looking at it from outside
       (i.e. it's considered front face of this shadow volume). }
-    procedure LocalRenderShadowVolume(const Params: TRenderParams); override;
+    procedure LocalRenderShadowVolume(const Params: TRenderParams;
+      const ShadowVolumeRenderer: TBaseShadowVolumeRenderer); override;
 
     procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
   public
@@ -1688,7 +1689,8 @@ end;
 
 { Shadow volumes ------------------------------------------------------------- }
 
-procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams);
+procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams;
+  const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 
   function NiceName: String;
   begin
@@ -1714,7 +1716,7 @@ begin
        otherwise weird artifacts are visible. }
      (RenderOptions.WireframeEffect <> weWireframeOnly) then
   begin
-    SVRenderer := Params.ShadowVolumeRenderer as TGLShadowVolumeRenderer;
+    SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
