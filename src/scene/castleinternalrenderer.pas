@@ -2366,7 +2366,7 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
     Lights := Shape.State.Lights;
     if Lights <> nil then
       for I := 0 to Lights.Count - 1 do
-        if Lights.List^[I].Node is TEnvironmentLightNode then
+        if Lights.L[I].Node is TEnvironmentLightNode then
           Exit(true);
     Result := false;
   end;
@@ -2401,7 +2401,8 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
   begin
     Result :=
       (Shape.Node <> nil) and
-      (Shape.Node.Material is TPhysicalMaterialNode);
+      (Shape.Node.Appearance <> nil) and
+      (Shape.Node.Appearance.Material is TPhysicalMaterialNode);
   end;
 
 var
@@ -2446,9 +2447,12 @@ procedure TGLRenderer.RenderShapeLineProperties(const Shape: TX3DRendererShape;
 var
   LP: TLinePropertiesNode;
 begin
-  if Shape.Node <> nil then { Shape.Node is nil for VRML <= 1.0 }
-    LP := Shape.Node.LineProperties else
+  if (Shape.Node <> nil) and { Shape.Node is nil for VRML <= 1.0 }
+     (Shape.Node.Appearance <> nil) then
+    LP := Shape.Node.Appearance.LineProperties
+  else
     LP := nil;
+
   if (LP <> nil) and LP.FdApplied.Value then
   begin
     RenderContext.LineWidth := Max(1.0, RenderOptions.LineWidth * LP.FdLineWidthScaleFactor.Value);
@@ -2604,7 +2608,10 @@ begin
   State := Shape.State;
 
   if (State.ShapeNode = nil { VRML 1.0, always some texture transform }) or
-     (State.ShapeNode.TextureTransform <> nil { VRML 2.0 with tex transform }) then
+     ( (State.ShapeNode <> nil) and
+       (State.ShapeNode.Appearance <> nil) and
+       (State.ShapeNode.Appearance.TextureTransform <> nil { VRML 2.0 with tex transform })
+     ) then
   begin
     {$ifndef OpenGLES}
     if GLFeatures.EnableFixedFunction then
@@ -2654,7 +2661,11 @@ begin
       end;
     end else
     begin
-      TextureTransform := State.ShapeNode.TextureTransform;
+      // conditions above should have already checked this, we have some texture transform
+      Assert(State.ShapeNode <> nil);
+      Assert(State.ShapeNode.Appearance <> nil);
+      Assert(State.ShapeNode.Appearance.TextureTransform <> nil);
+      TextureTransform := State.ShapeNode.Appearance.TextureTransform;
       if TextureTransform <> nil then
       begin
         if TextureTransform is TMultiTextureTransformNode then
@@ -2758,7 +2769,7 @@ begin
 
       for I := 0 to TextureTransformUnitsUsedMore.Count - 1 do
       begin
-        ActiveTexture(TextureTransformUnitsUsedMore.List^[I]);
+        ActiveTexture(TextureTransformUnitsUsedMore.L[I]);
         glPopMatrix;
       end;
 
@@ -3214,23 +3225,23 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
             begin
               for I := 0 to Count - 1 do
               begin
-                PVector3(NewCoord)^ := Coords.List^[I];
+                PVector3(NewCoord)^ := Coords.L[I];
                 PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
-                PVector3(NewCoord)^ := Normals.List^[I];
+                PVector3(NewCoord)^ := Normals.L[I];
                 PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
-                PVector3(NewCoord)^ := Tangents.List^[I];
+                PVector3(NewCoord)^ := Tangents.L[I];
                 PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
               end;
             end else
             begin
               for I := 0 to Count - 1 do
               begin
-                PVector3(NewCoord)^ := Coords.List^[I];
+                PVector3(NewCoord)^ := Coords.L[I];
                 PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
 
-                PVector3(NewCoord)^ := Normals.List^[I];
+                PVector3(NewCoord)^ := Normals.L[I];
                 PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
               end;
             end;

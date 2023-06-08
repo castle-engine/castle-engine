@@ -34,7 +34,7 @@ type
       AllLayers = [Low(TLayerIndex)..High(TLayerIndex)];
   strict private
     FForceTilesetSpacing: Boolean;
-    FMap: TCastleTiledMapData;
+    FData: TCastleTiledMapData;
     FURL: String;
     FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
     FScene: TCastleScene;
@@ -57,7 +57,15 @@ type
 
     { Currently loaded map (from @link(URL)), if any.
       @nil if no map is loaded (when @link(URL) is empty). Read-only. }
-    property Map: TCastleTiledMapData read FMap;
+    property Data: TCastleTiledMapData read FData;
+
+    property Map: TCastleTiledMapData read FData; {$ifdef FPC} deprecated 'use Data'; {$endif}
+
+    { Rectangle coordinates where a tile at given TilePosition would be rendered on the map.
+      This doesn't check whether TilePosition is within map range -- any coordinates
+      (negative, or larger than map size) are allowed. }
+    function TileRectangle(const TilePosition: TVector2Integer;
+      const TilesetIndex: Cardinal = 0): TFloatRectangle;
   published
     { URL (or just filename) of the Tiled map file (TMX).
 
@@ -165,7 +173,7 @@ end;
 destructor TCastleTiledMap.Destroy;
 begin
   FreeAndNil(FScene);
-  FreeAndNil(FMap);
+  FreeAndNil(FData);
   inherited;
 end;
 
@@ -218,13 +226,13 @@ procedure TCastleTiledMap.ReloadMap;
 var
   Converter: TCastleTiledMapConverter;
 begin
-  FreeAndNil(FMap);
+  FreeAndNil(FData);
   FScene.Load(nil, true);
 
   if FURL <> '' then
   begin
-    FMap := TCastleTiledMapData.Create(URL);
-    Converter := TCastleTiledMapConverter.Create(FMap);
+    FData := TCastleTiledMapData.Create(URL);
+    Converter := TCastleTiledMapConverter.Create(FData);
     try
       Converter.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
       Converter.ForceTilesetSpacing := ForceTilesetSpacing;
@@ -307,6 +315,22 @@ end;
 function TCastleTiledMap.HasAnimations: Boolean;
 begin
   Result := FScene.AnimationsList.Count > 0;
+end;
+
+function TCastleTiledMap.TileRectangle(const TilePosition: TVector2Integer;
+  const TilesetIndex: Cardinal): TFloatRectangle;
+var
+  Tileset: TCastleTiledMapData.TTileset;
+begin
+  if (Data = nil) or (TilesetIndex >= Data.Tilesets.Count) then
+    raise Exception.CreateFmt('Invalid tileset index %d', [TilesetIndex]);
+
+  Tileset := Data.Tilesets[TilesetIndex];
+  Result := FloatRectangle(
+    Data.TileRenderPosition(TilePosition) + Vector2(Tileset.TileOffset.X, - Tileset.TileOffset.Y),
+    Tileset.TileWidth,
+    Tileset.TileHeight
+  );
 end;
 
 {$endif read_implementation}

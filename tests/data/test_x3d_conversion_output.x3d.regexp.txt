@@ -1,0 +1,41 @@
+<\?xml version="1.0" encoding="UTF-8"\?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 4.0//EN" "http://www.web3d.org/specifications/x3d-4.0.dtd">
+<X3D profile="Full" version="4.0"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"
+     xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-4.0.xsd">
+<head>
+	<meta name=".*" />
+	<meta name=".*" />
+</head>
+<Scene>
+	<Viewpoint
+		fieldOfView="0.40[\d]*"
+		centerOfRotation="0 1 0"
+		position="-5.875[\d]* 5.34[\d]* 6.90[\d]*"
+		orientation="-0.64[\d]* -0.75[\d]* -0.10[\d]* 0.87[\d]*" />
+	<Shape>
+		<Appearance>
+			<Material />
+		</Appearance>
+		<Box />
+	</Shape>
+	<Transform DEF="CR">
+		<Transform
+			translation="0.05[\d]* -0.03[\d]* -0.20[\d]*">
+			<Shape>
+				<Text DEF="COPYRIGHT"
+					string='"Box \(C\) 28.04.2023 Elmar Knittel"'>
+					<FontStyle
+						size="0.00[\d]*"
+						family='"SANS"'
+						justify='"END"' />
+				</Text>
+			</Shape>
+		</Transform>
+	</Transform>
+	<ProximitySensor DEF="PS"
+		size="10000 10000 10000" />
+	<ROUTE fromNode="PS" fromField="position_changed" toNode="CR" toField="set_translation" />
+	<ROUTE fromNode="PS" fromField="orientation_changed" toNode="CR" toField="set_rotation" />
+</Scene>
+</X3D>

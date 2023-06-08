@@ -59,50 +59,6 @@ type
   TPrepareResourcesOption = CastleTransform.TPrepareResourcesOption;
   TPrepareResourcesOptions = CastleTransform.TPrepareResourcesOptions;
 
-  { Possible checks done while frustum culling.
-
-    This is used by TCastleScene.FrustumCulling (what checks
-    should be done when shapes octree is not available) and
-    TCastleScene.OctreeFrustumCulling (what checks
-    should be done when shapes octree is available).
-
-    In the second case, checks done by TFrustumCulling are applied
-    after octree traverse. That is, octree already eliminated some shapes,
-    and fully included some other shapes while traversing.
-    TFrustumCulling are used in this
-    case only as a "last resort", to check only the shapes in octree leaves
-    that are in "possibly-colliding" state with frustum.
-
-    Generally, more checks mean that more shapes may be eliminated but
-    also that we waste more time on checks themselves. What is optimal
-    depends on given 3D model, and how you expect the player to view it
-    (e.g. if player usually sees the whole model, then TFrustumCulling
-    checks may be useless waste of time; OTOH, if player stands inside
-    the model composed from many shapes then TFrustumCulling may help). }
-  TFrustumCulling = (
-    { No checks.
-
-      Setting this as TCastleScene.FrustumCulling
-      turns off frustum culling entirely, which is usually not a wise thing
-      to do. Setting this as TCastleScene.OctreeFrustumCulling
-      means that frustum culling is only done during octree traversal
-      (we only visit octree nodes possibly colliding with frustum),
-      this is also not optimal. }
-    fcNone,
-
-    { Check shape's bounding sphere for collision with frustum. }
-    fcSphere,
-
-    { Check shape's bounding box for collision with frustum. }
-    fcBox,
-
-    { Check shape's bounding sphere, and then box, for collision with frustum.
-      This is the most rigoristic check, but usually this is a waste of time:
-      in most cases, when bounding sphere collides, then bounding box
-      collides too. }
-    fcBoth
-  );
-
   { Complete loading, processing and rendering of a scene.
     This is a descendant of @link(TCastleSceneCore) that adds efficient rendering. }
   TCastleScene = class(TCastleSceneCore)
@@ -141,7 +97,8 @@ type
 
       FReceiveShadowVolumes: Boolean;
       FTempPrepareParams: TPrepareParams;
-      { Camera position, in local scene coordinates, known during the Render call. }
+      { Camera position, in local scene coordinates, known during
+        the LocalRender or LocalRenderShadowVolume calls. }
       RenderCameraPosition: TVector3;
       FCastGlobalLights: Boolean;
       FWasVisibleFrameId: TFrameId;
@@ -156,11 +113,7 @@ type
         Callbacks assigned to ShapeCullingFunc and ShapeCullingOctreeFunc may use it. }
       FrustumForShapeCulling: PFrustum;
 
-      FFrustumCulling: TFrustumCulling;
-      FOctreeFrustumCulling: TFrustumCulling;
       FShapeFrustumCulling, FSceneFrustumCulling: Boolean;
-      ShapeCullingFunc: TTestShapeVisibility;
-      ShapeCullingOctreeFunc: TTestShapeVisibility;
 
       OcclusionQueryUtilsRenderer: TOcclusionQueryUtilsRenderer;
       SimpleOcclusionQueryRenderer: TSimpleOcclusionQueryRenderer;
@@ -259,20 +212,17 @@ type
     function ShapeFog(const Shape: TShape; const GlobalFog: TFogNode): TFogFunctionality;
     function EffectiveBlendingSort: TBlendingSort;
 
-    function FrustumCulling_None(Shape: TShape): boolean;
-    function FrustumCulling_Sphere(Shape: TShape): boolean;
-    function FrustumCulling_Box(Shape: TShape): boolean;
-    function FrustumCulling_Both(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_None(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_Sphere(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_Box(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_Both(Shape: TShape): boolean;
+    { Check frustum and distance culling. }
+    function ShapePossiblyVisible(Shape: TShape): boolean;
 
-    function DistanceCullingCheck(Shape: TShape): boolean;
+    { Should given shape be rendered, according to distance culling.
+      Call only when DistanceCulling > 0. }
+    function DistanceCullingCheckShape(const Shape: TShape): Boolean;
 
-    procedure UpdateShapeCullingCallbacks;
-    procedure SetFrustumCulling(const Value: TFrustumCulling);
-    procedure SetOctreeFrustumCulling(const Value: TFrustumCulling);
+    { Should given scene be rendered, according to distance culling.
+      Call only when DistanceCulling > 0. }
+    function DistanceCullingCheckScene: Boolean;
+
     procedure SetShapeFrustumCulling(const Value: Boolean);
     procedure SetDistanceCulling(const Value: Single);
 
@@ -316,17 +266,13 @@ type
     procedure LocalRender(const Params: TRenderParams); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
-      algorithm. Uses ShadowVolumeRenderer for rendering, and to detect if rendering
+      algorithm.
+
+      Uses ShadowVolumeRenderer for rendering, and to detect if rendering
       is necessary at all.
-      It will calculate current bounding box (looking at ParentTransform,
-      ParentTransformIsIdentity and LocalBoundingBox method).
 
       It always uses silhouette optimization. This is the usual,
       fast method of rendering shadow volumes.
-      Will not do anything (treat scene like not casting shadows,
-      like CastShadows = false) if the model is not perfect 2-manifold,
-      i.e. has some BorderEdges (although we could handle some BorderEdges
-      for some points of view, this could leading to rendering artifacts).
 
       All shadow quads are generated from scene triangles transformed
       by ParentTransform. We must be able to correctly detect front and
@@ -459,22 +405,6 @@ type
       Note that this @bold(does not copy other scene properties),
       like @link(ProcessEvents) or @link(Spatial) or @link(RenderOptions) contents. }
     function Clone(const AOwner: TComponent): TCastleScene;
-
-    {$ifdef FPC}
-    { What kind of per-shape frustum culling do when
-      ShapeFrustumCulling is @true,
-      and we don't have octree (ssRendering is not included in @link(TCastleSceneCore.Spatial)). }
-    property FrustumCulling: TFrustumCulling
-      read FFrustumCulling write SetFrustumCulling default fcBox;
-      deprecated 'use simpler ShapeFrustumCulling';
-
-    { What kind of per-shape frustum culling do when
-      ShapeFrustumCulling is @true,
-      and we have octree (ssRendering is included in @link(TCastleSceneCore.Spatial)). }
-    property OctreeFrustumCulling: TFrustumCulling
-      read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
-      deprecated 'use simpler ShapeFrustumCulling';
-    {$endif}
 
     { Whether the scene was (potentially, at least partially) visible in the last rendering event.
 
@@ -771,9 +701,6 @@ begin
 
   FSceneFrustumCulling := true;
   FShapeFrustumCulling := true;
-  FFrustumCulling := fcBox;
-  FOctreeFrustumCulling := fcBox;
-  UpdateShapeCullingCallbacks;
 
   FReceiveShadowVolumes := true;
 
@@ -900,7 +827,7 @@ procedure TCastleScene.GLContextClose;
   begin
     if GeneratedTextures <> nil then
       for I := 0 to GeneratedTextures.Count - 1 do
-        GeneratedTextures.List^[I].Functionality.InternalUpdateNeeded := true;
+        GeneratedTextures.L[I].Functionality.InternalUpdateNeeded := true;
   end;
 
 begin
@@ -1752,6 +1679,16 @@ end;
 
 procedure TCastleScene.LocalRenderShadowVolume(const Params: TRenderParams;
   const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
+
+  function NiceName: String;
+  begin
+    Result := Name;
+    if (Name = '') and
+       (csTransient in ComponentStyle) and
+       (Parent <> nil) then
+      Result := 'child(' + Parent.Name + ')';
+  end;
+
 var
   SceneBox, ShapeBox: TBox3D;
   SVRenderer: TGLShadowVolumeRenderer;
@@ -1771,26 +1708,48 @@ begin
 
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
+    // DistanceCullingCheck* uses this value, and it may be called here
+    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
+
     { calculate and check SceneBox }
     SceneBox := LocalBoundingBox;
     if not Params.TransformIdentity then
       SceneBox := SceneBox.Transform(Params.Transform^);
-    SVRenderer.InitCaster(SceneBox);
-    if SVRenderer.CasterShadowPossiblyVisible then
+    if SVRenderer.GetCasterShadowPossiblyVisible(SceneBox) then
     begin
-      { shadows are cast only by visible scene parts
-        (not e.g. invisible collision box of castle-anim-frames) }
+      { Do not render shadows for objects eliminated by DistanceCulling.
+        This checks per-scene. }
+      if (DistanceCulling > 0) and (not DistanceCullingCheckScene) then
+        Exit;
+
+      { Using below OnlyVisible=true,
+        because shadows are cast only by visible scene parts. }
       ShapeList := Shapes.TraverseList({ OnlyActive } true, { OnlyVisible } true);
       for Shape in ShapeList do
       begin
-        { Do not render shadows for objects eliminated by DistanceCulling.
+        { Do not render shadows for shapes eliminated by DistanceCulling.
+
           Otherwise: Not only shadows for invisible objects would look weird,
           but they would actually show errors.
           Shadow volumes *assume* that shadow caster is also rendered (shadow quads
-          are closed). }
-        if (DistanceCulling > 0) and not DistanceCullingCheck(Shape) then
-          Continue;
+          are closed) if that shadow caster is visible in frustum.
 
+          This is done per-shape when WholeSceneManifold=false.
+          When WholeSceneManifold=true, we cannot do per-shape check:
+          the whole scene should be rendered. }
+        if not RenderOptions.WholeSceneManifold then
+        begin
+          if (DistanceCulling > 0) and (not DistanceCullingCheckShape(Shape)) then
+            Continue;
+        end;
+
+        { Do not render shadows when frustum+light check says it is definitely
+          not visible.
+
+          This is done per-shape when WholeSceneManifold=false.
+
+          When WholeSceneManifold=true, we render all shapes here.
+          The per-scene check already passed above. }
         ShapeBox := Shape.BoundingBox;
         if not Params.TransformIdentity then
           ShapeBox := ShapeBox.Transform(Params.Transform^);
@@ -1816,62 +1775,56 @@ begin
   end;
 end;
 
-{ Frustum culling ------------------------------------------------------------ }
+function TCastleScene.ShapePossiblyVisible(Shape: TShape): boolean;
 
-function TCastleScene.FrustumCulling_None(Shape: TShape): boolean;
-begin
-  Result := true;
-end;
+  function FrustumCullingCheck(Shape: TShape): Boolean;
+  begin
+    Result := FrustumForShapeCulling^.Box3DCollisionPossibleSimple(Shape.BoundingBox);
 
-function TCastleScene.FrustumCulling_Sphere(Shape: TShape): boolean;
-begin
-  Result :=
-    Shape.FrustumBoundingSphereCollisionPossibleSimple(FrustumForShapeCulling^);
-end;
+    // Alternative: sphere
+    // Result := Shape.FrustumBoundingSphereCollisionPossibleSimple(FrustumForShapeCulling^);
 
-function TCastleScene.FrustumCulling_Box(Shape: TShape): boolean;
-begin
-  Result :=
-    FrustumForShapeCulling^.Box3DCollisionPossibleSimple(Shape.BoundingBox);
-end;
+    // Alternative: sphere and box
+    // Result := Shape.FrustumBoundingSphereCollisionPossibleSimple(FrustumForShapeCulling^) and
+    //   FrustumForShapeCulling^.Box3DCollisionPossibleSimple(Shape.BoundingBox);
 
-function TCastleScene.FrustumCulling_Both(Shape: TShape): boolean;
+    { We used to allow users to configure the check using FrustumCulling
+      and OctreeFrustumCulling, but in the end this was a lot of effort
+      and actually not useful. }
+  end;
+
 begin
   Result :=
-    Shape.FrustumBoundingSphereCollisionPossibleSimple(
-      FrustumForShapeCulling^) and
-    FrustumForShapeCulling^.Box3DCollisionPossibleSimple(
-      Shape.BoundingBox);
+    // frustum culling
+    ( (not FShapeFrustumCulling) or FrustumCullingCheck(Shape) ) and
+    // distance culling
+    ( (DistanceCulling <= 0 ) or DistanceCullingCheckShape(Shape) );
 end;
 
-function TCastleScene.DistanceCulling_FrustumCulling_None(Shape: TShape): boolean;
+function TCastleScene.DistanceCullingCheckScene: Boolean;
+var
+  Box: TBox3D;
 begin
-  Result := DistanceCullingCheck(Shape);
+  // This should be only called when DistanceCulling indicates this check is necessary
+  Assert(DistanceCulling > 0);
+  Box := LocalBoundingBoxNoChildren;
+  Result :=
+    (not Box.IsEmpty) and
+    (Box.PointDistanceSqr(RenderCameraPosition) <=
+     Sqr(DistanceCulling));
 end;
 
-function TCastleScene.DistanceCulling_FrustumCulling_Sphere(Shape: TShape): boolean;
+function TCastleScene.DistanceCullingCheckShape(const Shape: TShape): boolean;
 begin
-  Result := DistanceCullingCheck(Shape) and
-    Shape.FrustumBoundingSphereCollisionPossibleSimple(FrustumForShapeCulling^);
-end;
+  { When WholeSceneManifold, we have to render whole scene, or nothing.
 
-function TCastleScene.DistanceCulling_FrustumCulling_Box(Shape: TShape): boolean;
-begin
-  Result := DistanceCullingCheck(Shape) and
-    FrustumForShapeCulling^.Box3DCollisionPossibleSimple(Shape.BoundingBox);
-end;
+    Shadow volumes work correctly only if shadow caster (at least the part of it
+    in frustum, that affects the screen) is also rendered.
 
-function TCastleScene.DistanceCulling_FrustumCulling_Both(Shape: TShape): boolean;
-begin
-  Result := DistanceCullingCheck(Shape) and
-    Shape.FrustumBoundingSphereCollisionPossibleSimple(
-      FrustumForShapeCulling^) and
-    FrustumForShapeCulling^.Box3DCollisionPossibleSimple(
-      Shape.BoundingBox);
-end;
+    So distance culling cannot eliminate particular shapes. }
+  if RenderOptions.WholeSceneManifold then
+    Exit(true);
 
-function TCastleScene.DistanceCullingCheck(Shape: TShape): boolean;
-begin
   // This should be only called when DistanceCulling indicates this check is necessary
   Assert(DistanceCulling > 0);
   Result :=
@@ -1879,91 +1832,16 @@ begin
      Sqr(DistanceCulling + Shape.BoundingSphereRadius))
 end;
 
-procedure TCastleScene.UpdateShapeCullingCallbacks;
-
-  function ShapeCullingToCallback(
-    const FC: TFrustumCulling;
-    const DoDistanceCulling, MustBeAssigned: Boolean): TTestShapeVisibility;
-  begin
-    if DoDistanceCulling then
-      case FC of
-        fcNone  : Result := {$ifdef FPC}@{$endif}DistanceCulling_FrustumCulling_None;
-        fcSphere: Result := {$ifdef FPC}@{$endif}DistanceCulling_FrustumCulling_Sphere;
-        fcBox   : Result := {$ifdef FPC}@{$endif}DistanceCulling_FrustumCulling_Box;
-        fcBoth  : Result := {$ifdef FPC}@{$endif}DistanceCulling_FrustumCulling_Both;
-        {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('ShapeCullingToCallback:FC?');
-        {$endif}
-      end
-    else
-      case FC of
-        fcNone  :
-          if MustBeAssigned then
-            Result := {$ifdef FPC}@{$endif}FrustumCulling_None
-          else
-            Result := nil; // FrustumCulling_None always returns true
-        fcSphere: Result := {$ifdef FPC}@{$endif}FrustumCulling_Sphere;
-        fcBox   : Result := {$ifdef FPC}@{$endif}FrustumCulling_Box;
-        fcBoth  : Result := {$ifdef FPC}@{$endif}FrustumCulling_Both;
-        {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('ShapeCullingToCallback:FC?');
-        {$endif}
-      end;
-  end;
-
-var
-  FC: TFrustumCulling;
-  DoDistanceCulling: Boolean;
-begin
-  DoDistanceCulling := FDistanceCulling > 0;
-
-  FC := FFrustumCulling;
-  if not FShapeFrustumCulling then
-    // when FShapeFrustumCulling = false, we always behave like FFrustumCulling = fcNone
-    FC := fcNone;
-  ShapeCullingFunc := ShapeCullingToCallback(FC, DoDistanceCulling, false);
-
-  FC := FOctreeFrustumCulling;
-  if not FShapeFrustumCulling then
-    // when FShapeFrustumCulling = false, we always behave like FOctreeFrustumCulling = fcNone
-    FC := fcNone;
-  ShapeCullingOctreeFunc := ShapeCullingToCallback(FC, DoDistanceCulling, true);
-end;
-
 procedure TCastleScene.SetShapeFrustumCulling(const Value: Boolean);
 begin
   if FShapeFrustumCulling <> Value then
-  begin
     FShapeFrustumCulling := Value;
-    UpdateShapeCullingCallbacks;
-  end;
-end;
-
-procedure TCastleScene.SetFrustumCulling(const Value: TFrustumCulling);
-begin
-  if FFrustumCulling <> Value then
-  begin
-    FFrustumCulling := Value;
-    UpdateShapeCullingCallbacks;
-  end;
-end;
-
-procedure TCastleScene.SetOctreeFrustumCulling(const Value: TFrustumCulling);
-begin
-  if FOctreeFrustumCulling <> Value then
-  begin
-    FOctreeFrustumCulling := Value;
-    UpdateShapeCullingCallbacks;
-  end;
 end;
 
 procedure TCastleScene.SetDistanceCulling(const Value: Single);
 begin
   if FDistanceCulling <> Value then
-  begin
     FDistanceCulling := Value;
-    UpdateShapeCullingCallbacks;
-  end;
 end;
 
 { Render --------------------------------------------------------------------- }
@@ -1972,7 +1850,7 @@ function TCastleScene.RenderFrustumOctree_TestShape(
   Shape: TShape): boolean;
 begin
   { We know that all shapes passed here are TGLShape, so we can cast }
-  Result := TGLShape(Shape).PassedShapeCulling;
+  Result := TGLShape(Shape).PassedFrustumAndDistanceCulling;
 end;
 
 procedure TCastleScene.RenderWithOctree_CheckShapeCulling(
@@ -1982,14 +1860,14 @@ var
 begin
   Shape := TGLShape(InternalOctreeRendering.ShapesList[ShapeIndex]);
 
-  if not Shape.PassedShapeCulling then
+  if not Shape.PassedFrustumAndDistanceCulling then
   begin
     if CollidesForSure then
       // frustum culling already passed, but still check distance culling
-      Shape.PassedShapeCulling := (DistanceCulling <= 0) or DistanceCullingCheck(Shape)
+      Shape.PassedFrustumAndDistanceCulling := (DistanceCulling <= 0) or DistanceCullingCheckShape(Shape)
     else
       // this function performs frustum culling and distance culling too
-      Shape.PassedShapeCulling := ShapeCullingOctreeFunc(Shape);
+      Shape.PassedFrustumAndDistanceCulling := ShapePossiblyVisible(Shape);
   end;
 end;
 
@@ -2032,9 +1910,9 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
     for I := 0 to GeneratedTextures.Count - 1 do
     begin
-      Shape := TGLShape(GeneratedTextures.List^[I].Shape);
-      TextureNode := GeneratedTextures.List^[I].TextureNode;
-      GenTexFunctionality := GeneratedTextures.List^[I].Functionality;
+      Shape := TGLShape(GeneratedTextures.L[I].Shape);
+      TextureNode := GeneratedTextures.L[I].TextureNode;
+      GenTexFunctionality := GeneratedTextures.L[I].Functionality;
 
       { update GenTexFunctionality.InternalUpdateNeeded }
       if TextureNode is TGeneratedShadowMapNode then
@@ -2086,7 +1964,7 @@ end;
 
 procedure TCastleScene.ResetShapeVisible(const Shape: TShape);
 begin
-  TGLShape(Shape).PassedShapeCulling := false;
+  TGLShape(Shape).PassedFrustumAndDistanceCulling := false;
 end;
 
 procedure TCastleScene.LocalRender(const Params: TRenderParams);
@@ -2129,13 +2007,24 @@ begin
       Exit;
     end;
 
+    // RenderCameraPosition is used by DistanceCullingCheck* below
+    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
+
+    { Do distance culling for whole scene.
+      When WholeSceneManifold=true, this is the only place where
+      we check distance culling, we cannot do per-shape distance culling then. }
+    if (DistanceCulling > 0) and (not DistanceCullingCheckScene) then
+    begin
+      FrameProfiler.Stop(fmRenderScene);
+      Exit;
+    end;
+
     if (not Params.Transparent) and
        (Params.InternalPass = 0) and
        (not ExcludeFromStatistics) then
       Inc(Params.Statistics.ScenesRendered);
 
     FrustumForShapeCulling := Params.Frustum;
-    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
 
     if Assigned(InternalVisibilityTest) then
       LocalRenderOutside(InternalVisibilityTest, Params)
@@ -2150,9 +2039,9 @@ begin
         ShapeCullingOctreeFunc test. Thanks to octree, many shapes
         don't even reach the stage when ShapeCullingOctreeFunc could be called. }
       TestOctreeWithFrustum(InternalOctreeRendering);
-      LocalRenderOutside({$ifdef FPC}@{$endif}RenderFrustumOctree_TestShape, Params);
+      LocalRenderOutside({$ifdef FPC}@{$endif} RenderFrustumOctree_TestShape, Params);
     end else
-      LocalRenderOutside(ShapeCullingFunc, Params);
+      LocalRenderOutside({$ifdef FPC}@{$endif} ShapePossiblyVisible, Params);
 
     FrameProfiler.Stop(fmRenderScene);
   end;
@@ -2237,12 +2126,12 @@ var
 begin
   inherited;
   for I := 0 to GeneratedTextures.Count - 1 do
-    if GeneratedTextures.List^[I].TextureNode is TRenderedTextureNode then
+    if GeneratedTextures.L[I].TextureNode is TRenderedTextureNode then
       { Camera change causes regenerate of RenderedTexture,
         as RenderedTexture with viewpoint = NULL uses current camera.
         See demo_models/rendered_texture/rendered_texture_no_headlight.x3dv
         testcase. }
-      GeneratedTextures.List^[I].Functionality.InternalUpdateNeeded := true;
+      GeneratedTextures.L[I].Functionality.InternalUpdateNeeded := true;
 end;
 
 function TCastleScene.ScreenEffectsCount: Integer;

@@ -43,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionImportSketchfab: TAction;
     ActionShowStatistics: TAction;
     ActionRunParameterCapabilitiesForceFixedFunction: TAction;
     ActionRunParameterCapabilitiesForceModern: TAction;
@@ -119,6 +120,8 @@ type
     MenuItem39: TMenuItem;
     MenuItem40: TMenuItem;
     MenuItem41: TMenuItem;
+    MenuItem42: TMenuItem;
+    Separator13: TMenuItem;
     Separator12: TMenuItem;
     MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem;
     Separator11: TMenuItem;
@@ -327,6 +330,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionImportSketchfabExecute(Sender: TObject);
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
     procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
     procedure ActionFocusDesignExecute(Sender: TObject);
@@ -528,6 +532,7 @@ type
       Line: Integer = -1;
       Column: Integer = -1);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
+    procedure RefreshAllFiles(Sender: TObject);
     (*Runs custom code editor.
       Use this only when CodeEditor = ceCustom.
       CustomCodeEditorCommand is the command to use (like CodeEditorCommand
@@ -583,6 +588,12 @@ type
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
+
+    { Can we right now add imported thing from this URL? }
+    function CanAddImported(const AddUrl: String): Boolean;
+
+    { Import URL (to instantiate it in design) now. }
+    procedure AddImported(const AddUrl: String);
   end;
 
 var
@@ -601,7 +612,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleClassUtils, CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  FormSystemInformation, FormRestartCustomEditor,
+  FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
   ToolFpcVersion;
 
@@ -748,6 +759,20 @@ begin
 end;
 
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+
+  function HandleNonModalAssociatedForm(Form: TForm): Boolean;
+  begin
+    Result := true;
+    if (Form <> nil) and Form.Visible then
+    begin
+      if not Form.CloseQuery then
+      begin
+        CanClose := false;
+        Exit(false);
+      end;
+    end;
+  end;
+
 begin
   if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
@@ -758,17 +783,19 @@ begin
 
   if ProposeSaveDesign then
   begin
-    { Close sprite sheet editor window if visible }
-    if (SpriteSheetEditorForm <> nil) and (SpriteSheetEditorForm.Visible) then
+    { Close associated windows if visible }
+    if not HandleNonModalAssociatedForm(SpriteSheetEditorForm) then
     begin
-      if not SpriteSheetEditorForm.CloseQuery then
-      begin
-        CanClose := false;
-        Exit;
-      end;
+      CanClose := false;
+      Exit;
+    end;
+    if not HandleNonModalAssociatedForm(ImportSketchfabForm) then
+    begin
+      CanClose := false;
+      Exit;
     end;
 
-    Application.Terminate
+    Application.Terminate;
   end else
     CanClose := false;
 end;
@@ -921,6 +948,18 @@ procedure TProjectForm.ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.ShowAllJointsTools;
+end;
+
+procedure TProjectForm.ActionImportSketchfabExecute(Sender: TObject);
+begin
+  if ImportSketchfabForm = nil then
+    ImportSketchfabForm := TImportSketchfabForm.Create(Application);
+
+  ImportSketchfabForm.ProjectPath := ProjectPath;
+  ImportSketchfabForm.OnRefreshFiles := @RefreshAllFiles;
+  ImportSketchfabForm.OnCanAddImported := @CanAddImported;
+  ImportSketchfabForm.OnAddImported := @AddImported;
+  ImportSketchfabForm.Show;
 end;
 
 procedure TProjectForm.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
@@ -2537,6 +2576,19 @@ begin
 end;
 
 procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
+
+  function HandleNonModalAssociatedForm(var Form: TForm): Boolean;
+  begin
+    Result := true;
+    if (Form <> nil) and Form.Visible then
+    begin
+      if not Form.CloseQuery then
+        Exit(false);
+      Form.Close; // not needed on GTK2, maybe add ifdef?
+    end;
+    FreeAndNil(Form);
+  end;
+
 begin
   if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
@@ -2546,13 +2598,14 @@ begin
 
   if ProposeSaveDesign then
   begin
-    { Close sprite sheet editor window if visible }
-    if (SpriteSheetEditorForm <> nil) and (SpriteSheetEditorForm.Visible) then
-    begin
-      if not SpriteSheetEditorForm.CloseQuery then
-        Exit;
-      SpriteSheetEditorForm.Close; // not needed on GTK2, maybe add ifdef?
-    end;
+    { Close and free associated windows.
+      Reason for free: E.g. ImportSketchfabForm has some "links" to current project,
+      like TImportSketchfabForm.OnAddImported, so it's simpler to just
+      free it and recreate in new projects. }
+    if not HandleNonModalAssociatedForm(TForm(SpriteSheetEditorForm)) then
+      Exit;
+    if not HandleNonModalAssociatedForm(TForm(ImportSketchfabForm)) then
+      Exit;
 
     Release; // do not call MenuItemDesignClose, to avoid OnCloseQuery
     ChooseProjectForm.Show;
@@ -3370,6 +3423,11 @@ begin
   end;
 end;
 
+procedure TProjectForm.RefreshAllFiles(Sender: TObject);
+begin
+  RefreshFiles(rfEverything);
+end;
+
 procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
 var
   DirToRefresh, ErrorStr, TreeViewPath, SavedSelectedFileNameInRoot: String;
@@ -3447,6 +3505,26 @@ begin
   Mi := Sender as TMenuItem;
   CurrentPackageFormat := TPackageFormat(Mi.Tag);
   Mi.Checked := true;
+end;
+
+function TProjectForm.CanAddImported(const AddUrl: String): Boolean;
+begin
+  { TODO: Maybe in the future it will query more,
+    e.g. to add glTF we need Design.AddImportedUrl be able to determine
+    parent that is TCastleTransform descendant.
+    For now we let Design.AddImportedUrl to raise exception in such case. }
+  Result := Design <> nil;
+end;
+
+procedure TProjectForm.AddImported(const AddUrl: String);
+begin
+  if Design <> nil then
+  begin
+    if Design.AddImported(AddUrl) = nil then
+      ErrorBox(Format('Coult not import "%s". Make sure the current design has a viewport selected', [
+        URIDisplay(AddUrl)
+      ]));
+  end;
 end;
 
 initialization

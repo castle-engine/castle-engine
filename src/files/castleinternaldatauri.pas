@@ -95,6 +95,11 @@ type
     function ExtractStream: TStream;
   end;
 
+{ Return data URI String that corresponds to given Stream contents.
+  When loading, we rewind stream positon 0 zero,
+  and read the whole stream.) }
+function StreamToDataUri(const AStream: TStream; const MimeType: String): String;
+
 implementation
 
 uses Base64,
@@ -256,6 +261,24 @@ function TDataURI.ExtractStream: TStream;
 begin
   Result := Stream;
   FStream := nil;
+end;
+
+{ routines ------------------------------------------------------------------ }
+
+function StreamToDataUri(const AStream: TStream; const MimeType: String): String;
+var
+  Base64Encode: TBase64EncodingStream;
+  ResultStr: TStringStream;
+begin
+  ResultStr := TStringStream.Create;
+  try
+    WriteStr(ResultStr, 'data:' + MimeType + ';base64,');
+    Base64Encode := TBase64EncodingStream.Create(ResultStr);
+    try
+      Base64Encode.CopyFrom(AStream, 0);
+    finally FreeAndNil(Base64Encode) end;
+    Result := ResultStr.DataString;
+  finally FreeAndNil(ResultStr) end;
 end;
 
 end.

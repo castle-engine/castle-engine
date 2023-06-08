@@ -31,12 +31,7 @@ type
       It is used by default ValueIsStreamed implementation, but we override that. }
     function GetDefaultValue: String; override;
     { Determines if value is displayed bold or not.
-
-      Default implementation looks at GetDefaultValue but also at HasDefaultValue
-      value, which is always true for our vectors but TPropertyEditor.HasDefaultValue
-      will be always false.
-
-      So we override it to check using TCastleVectorXxPersistent.HasDefaultValue. }
+      We override it to check using TCastleVectorXxPersistent.ValueIsStreamed. }
     function ValueIsStreamed: boolean; override;
     function AllEqual: Boolean; override;
   end;
@@ -96,7 +91,7 @@ var
   VectorPersistent: TCastleVector2Persistent;
 begin
   VectorPersistent := (GetObjectValue as TCastleVector2Persistent);
-  Result := not VectorPersistent.HasDefaultValue;
+  Result := VectorPersistent.ValueIsStreamed;
 end;
 
 function TCastleVector2PropertyEditor.AllEqual: Boolean;
@@ -189,7 +184,7 @@ var
   VectorPersistent: TCastleVector3Persistent;
 begin
   VectorPersistent := (GetObjectValue as TCastleVector3Persistent);
-  Result := not VectorPersistent.HasDefaultValue;
+  Result := VectorPersistent.ValueIsStreamed;
 end;
 
 function TCastleVector3PropertyEditor.AllEqual: Boolean;
@@ -331,7 +326,7 @@ var
   VectorPersistent: TCastleVector4Persistent;
 begin
   VectorPersistent := (GetObjectValue as TCastleVector4Persistent);
-  Result := not VectorPersistent.HasDefaultValue;
+  Result := VectorPersistent.ValueIsStreamed;
 end;
 
 function TCastleVector4PropertyEditor.AllEqual: Boolean;

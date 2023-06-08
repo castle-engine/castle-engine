@@ -35,7 +35,7 @@ var
   V, N: TVector3;
   RayDirectionPT: TVector2;
   RayDirection: TVector3;
-  VertexTransfer: PVector3;
+  VertexTransfer: TVector3List.PtrT;
 begin
   RadianceTransfer.Count := Coord.Count * SHBasisCount;
 
@@ -43,14 +43,14 @@ begin
   try
     for I := 0 to Coord.Count - 1 do
     begin
-      VertexTransfer := Addr(RadianceTransfer.List^[I * SHBasisCount]);
+      VertexTransfer := RadianceTransfer.Ptr(I * SHBasisCount);
 
       { V = scene-space vertex coord }
-      V := Transform.MultPoint(Coord.List^[I]);
+      V := Transform.MultPoint(Coord.L[I]);
 
       { N = scene-space normal coord
         TODO: MultDirection will not work under non-uniform scaling matrix correctly. }
-      N := Transform.MultDirection(Normals.List^[I]).Normalize;
+      N := Transform.MultDirection(Normals.L[I]).Normalize;
 
       for SHBase := 0 to SHBasisCount - 1 do
         VertexTransfer[SHBase] := TVector3.Zero;

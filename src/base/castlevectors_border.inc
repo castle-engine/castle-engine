@@ -20,7 +20,7 @@
 
 type
   { Configurable border size for @link(TCastleUserInterface.Border). }
-  TBorder = class(TPersistent)
+  TBorder = class(TCastleComponent)
   strict private
     FTop, FRight, FBottom, FLeft, FAllSides: Single;
     FOnChange: TNotifyEvent;
@@ -30,8 +30,12 @@ type
     procedure SetRight(const AValue: Single);
     procedure SetTop(const AValue: Single);
   public
-    constructor Create(const AOnChange: TNotifyEvent);
+    OnChange: TNotifyEvent;
+
     procedure Assign(Source: TPersistent); override;
+    function ValueIsStreamed: Boolean; override;
+    function ToString: String; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Total top border (Top + AllSides). }
     function TotalTop: Single;
@@ -49,7 +53,6 @@ type
 
     { Anything not zero? }
     function Exists: Boolean;
-    function HasDefaultValue: Boolean;
   published
     property Top: Single      read FTop      write SetTop      {$ifdef FPC} default 0 {$endif};
     property Right: Single    read FRight    write SetRight    {$ifdef FPC} default 0 {$endif};
@@ -63,12 +66,6 @@ type
 {$ifdef read_implementation}
 
 { TBorder -------------------------------------------------------------------- }
-
-constructor TBorder.Create(const AOnChange: TNotifyEvent);
-begin
-  inherited Create;
-  FOnChange := AOnChange;
-end;
 
 procedure TBorder.SetAllSides(const AValue: Single);
 begin
@@ -144,13 +141,13 @@ begin
     (FLeft <> 0);
 end;
 
-function TBorder.HasDefaultValue: Boolean;
+function TBorder.ValueIsStreamed: Boolean;
 begin
   { For now, TBorder is by default always equal zero.
-    So for now, this method is equal to "not Exists".
+    So for now, this method is equal to "Exists".
     (This may change some day if we'll use TBorder as subcomponent
     and will want to customize it's default value in parent.) }
-  Result := not Exists;
+  Result := Exists;
 end;
 
 procedure TBorder.Assign(Source: TPersistent);
@@ -169,6 +166,29 @@ begin
     { Since TBorder is a direct TPersistent descendant,
       it calls inherited ONLY when it cannot handle Source class. }
     inherited Assign(Source);
+end;
+
+function TBorder.ToString: String;
+var
+  V: TVector4;
+begin
+  V := Vector4(
+    FAllSides + FTop,
+    FAllSides + FRight,
+    FAllSides + FBottom,
+    FAllSides + FLeft
+  );
+  Result := V.ToString;
+end;
+
+function TBorder.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+      'Left', 'Bottom', 'Top', 'Right', 'AllSides'
+    ]) then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$endif read_implementation}

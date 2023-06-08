@@ -1440,16 +1440,16 @@ procedure TGLRenderedTextureNode.Update(
 
     Normal := TVector3.Zero;
 
-    Tri[0] := Points.List^[0];
-    Tri[1] := Points.List^[1];
-    Tri[2] := Points.List^[2];
+    Tri[0] := Points.L[0];
+    Tri[1] := Points.L[1];
+    Tri[2] := Points.L[2];
     if Tri.IsValid then
       Normal := Tri.Normal;
 
     for I := 3 to Points.Count - 1 do
     begin
       Tri[1] := Tri[2];
-      Tri[2] := Points.List^[I];
+      Tri[2] := Points.L[I];
       if Tri.IsValid then
         Normal := Normal + Tri.Normal;
     end;

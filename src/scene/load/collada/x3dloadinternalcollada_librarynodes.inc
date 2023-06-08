@@ -60,11 +60,11 @@ begin
       if LibraryNodesAvailable <> nil then
       begin
         for J := 0 to LibraryNodesAvailable.Count - 1 do
-          if (not LibraryNodesAvailable.List^[J].Handled) and
-             (LibraryNodesAvailable.List^[J].Element.AttributeStringDef('id', '') = Id) then
+          if (not LibraryNodesAvailable.L[J].Handled) and
+             (LibraryNodesAvailable.L[J].Element.AttributeStringDef('id', '') = Id) then
           begin
-            LibraryNodesAvailable.List^[J].Handled := true;
-            ReadNodeElement(LibraryNodesSwitch, LibraryNodesAvailable.List^[J].Element);
+            LibraryNodesAvailable.L[J].Handled := true;
+            ReadNodeElement(LibraryNodesSwitch, LibraryNodesAvailable.L[J].Element);
             Node := LibraryNodesSwitch.FdChildren.FindName(Id) as TAbstractChildNode;
             break;
           end;
@@ -117,10 +117,10 @@ begin
       Note that some nodes may cause resolving of other nodes faster,
       due to ReadInstanceNode requiring some node faster. }
     for J := 0 to LibraryNodesAvailable.Count - 1 do
-      if not LibraryNodesAvailable.List^[J].Handled then
+      if not LibraryNodesAvailable.L[J].Handled then
       begin
-        LibraryNodesAvailable.List^[J].Handled := true;
-        ReadNodeElement(LibraryNodesSwitch, LibraryNodesAvailable.List^[J].Element);
+        LibraryNodesAvailable.L[J].Handled := true;
+        ReadNodeElement(LibraryNodesSwitch, LibraryNodesAvailable.L[J].Element);
       end;
   finally FreeAndNil(LibraryNodesAvailable) end;
 end;

@@ -18,7 +18,7 @@
   read of MD3 and convertion to X3D. }
 
 type
-  TMaterialsDictionary = {$ifdef FPC}specialize{$endif} TDictionary<String, TMaterialNode>;
+  TAppearancesDictionary = {$ifdef FPC}specialize{$endif} TDictionary<String, TAppearanceNode>;
 
   { MD3 (Quake3 engine model format) reader and converter to X3D. }
   TMD3Converter = class
@@ -27,7 +27,7 @@ type
     SkinName: String;
 
     { Material nodes instantiated so far by FrameToX3D. }
-    Materials: TMaterialsDictionary;
+    Appearances: TAppearancesDictionary;
 
     { Read the indicated .skin file and fill the Skin contents, if skin file exists. }
     procedure ReadSkinFile(const SkinUrl: string);
@@ -104,7 +104,7 @@ begin
 
   FBaseUrl := ABaseUrl;
   Tags := TMd3TagList.Create;
-  Materials := TMaterialsDictionary.Create;
+  Appearances := TAppearancesDictionary.Create;
 
   SkinName := 'default'; // default skin, SettingsFromAnchor may override it
   SettingsFromAnchor;
@@ -123,7 +123,7 @@ begin
   FreeAndNil(Surfaces);
   FreeAndNil(Skin);
   FreeAndNil(Tags);
-  FreeAndNil(Materials);
+  FreeAndNil(Appearances);
   inherited;
 end;
 
@@ -298,7 +298,7 @@ begin
   if Tags.Count <> 0 then
   begin
     Stream.Position := Header.OffsetTags;
-    Stream.ReadBuffer(Tags.List^, SizeOf(TMd3Tag) * Tags.Count);
+    Stream.ReadBuffer(Tags.L^, SizeOf(TMd3Tag) * Tags.Count);
   end;
 
   Surfaces := TMd3SurfaceList.Create(true);
@@ -334,7 +334,7 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     V := PMd3Vertex(Vertexes.Ptr(VertexesInFrameCount * FrameNumber));
     for I := 0 to VertexesInFrameCount - 1 do
     begin
-      Result.FdPoint.Items.List^[I] := Vector3(
+      Result.FdPoint.Items.L[I] := Vector3(
         V^.Position[0] * Md3XyzScale,
         V^.Position[1] * Md3XyzScale,
         V^.Position[2] * Md3XyzScale);
@@ -355,7 +355,7 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     V := PVector2(TextureCoords.L);
     for I := 0 to TextureCoords.Count - 1 do
     begin
-      Result.FdPoint.Items.List^[I] := Vector2(V^[0], 1-V^[1]);
+      Result.FdPoint.Items.L[I] := Vector2(V^[0], 1-V^[1]);
       Inc(V);
     end;
   end;
@@ -371,15 +371,15 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     Result.FdTexCoordIndex.Items.Count := Triangles.Count * 4;
     for I := 0 to Triangles.Count - 1 do
     begin
-      Result.FdCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
-      Result.FdCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
-      Result.FdCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
-      Result.FdCoordIndex.Items.List^[I*4 + 3] := -1;
+      Result.FdCoordIndex.Items.L[I*4 + 0] := Triangles.L[I].Indexes[0];
+      Result.FdCoordIndex.Items.L[I*4 + 1] := Triangles.L[I].Indexes[1];
+      Result.FdCoordIndex.Items.L[I*4 + 2] := Triangles.L[I].Indexes[2];
+      Result.FdCoordIndex.Items.L[I*4 + 3] := -1;
 
-      Result.FdTexCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 3] := -1;
+      Result.FdTexCoordIndex.Items.L[I*4 + 0] := Triangles.L[I].Indexes[0];
+      Result.FdTexCoordIndex.Items.L[I*4 + 1] := Triangles.L[I].Indexes[1];
+      Result.FdTexCoordIndex.Items.L[I*4 + 2] := Triangles.L[I].Indexes[2];
+      Result.FdTexCoordIndex.Items.L[I*4 + 3] := -1;
     end;
   end;
 
@@ -410,10 +410,11 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     Result := '';
   end;
 
-  function MakeMaterial(const ShaderName: String): TMaterialNode;
+  function MakeAppearance(const ShaderName: String): TAppearanceNode;
   var
     TextureUrl: String;
     TextureNode: TImageTextureNode;
+    Material: TMaterialNode;
   begin
     TextureUrl := Skin.Values[ShaderName];
     { If .skin file was not found, or was empty, or ShaderName isn't found there... }
@@ -426,22 +427,25 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     if TextureUrl = '' then
       TextureUrl := DeleteURIExt(ExtractURIName(BaseUrl));
 
-    if not Materials.TryGetValue(TextureUrl, Result) then
+    if not Appearances.TryGetValue(TextureUrl, Result) then
     begin
-      Result := TMaterialNode.Create(TextureUrl, BaseUrl);
-      Materials.Add(TextureUrl, Result);
+      Result := TAppearanceNode.Create(TextureUrl, BaseUrl);
+      Appearances.Add(TextureUrl, Result);
+
+      Material := TMaterialNode.Create(TextureUrl, BaseUrl);
+      Result.Material := Material;
 
       if TextureUrl = 'none' then
       begin
         { In this case, we explicitly don't want to use a texture,
-          so leave Result.DiffuseTexture = nil. }
+          so leave Material.DiffuseTexture = nil. }
       end else
       begin
         TextureUrl := FixTextureUrl(TextureUrl, ExtractURIPath(BaseUrl));
 
         TextureNode := TImageTextureNode.Create('', BaseUrl);
         TextureNode.SetUrl([TextureUrl]);
-        Result.DiffuseTexture := TextureNode;
+        Material.DiffuseTexture := TextureNode;
       end;
     end;
   end;
@@ -456,7 +460,7 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
 
     Result := TShapeNode.Create(Surface.Name, BaseUrl);
     Result.Geometry := IFS;
-    Result.Material := MakeMaterial(Surface.ShaderName);
+    Result.Appearance := MakeAppearance(Surface.ShaderName);
   end;
 
 var
@@ -490,7 +494,7 @@ var
     Assert(NumFrames <> 0);
     Assert(Tags.Count <> 0);
 
-    Tag := @Tags.List^[{NumTags * 0 + } TagIndex];
+    Tag := PMd3Tag(Tags.Ptr({NumTags * 0 + } TagIndex));
     TagName := Tag^.Name;
     TagTransform := TTransformNode.Create(TagName);
     TagTransforms.Add(TagTransform);
@@ -540,7 +544,7 @@ var
     for I := 0 to NumFramesInAnimation - 1 do
     begin
       FrameIndex := FirstFrame + I;
-      Tag := @Tags.List^[NumTags * FrameIndex + TagIndex];
+      Tag := PMd3Tag(Tags.Ptr(NumTags * FrameIndex + TagIndex));
       if TagName <> Tag^.Name then
         WritelnWarning('Inconsistent MD3 tag name, changes between frames: "%s", (frame %d) "%s"', [
           TagName,
@@ -557,14 +561,15 @@ var
 
   { Add to Result an animation that drives Switch.WhichChoice,
     changing frames from FirstFrame to FirstFrame + NumFramesInAnimation - 1. }
-  procedure AddAnimation(const AnimationName: String; const FirstFrame, NumFramesInAnimation: Cardinal);
+  procedure AddAnimation(const AnimationName: String;
+    const FirstFrame, NumFramesInAnimation, Fps: Cardinal);
   var
     TimeSensor: TTimeSensorNode;
     IntSequencer: TIntegerSequencerNode;
     I: Integer;
   begin
     TimeSensor := TTimeSensorNode.Create(AnimationName, BaseUrl);
-    TimeSensor.CycleInterval := NumFramesInAnimation / Md3Fps;
+    TimeSensor.CycleInterval := NumFramesInAnimation / Fps;
     Result.AddChildren(TimeSensor);
 
     IntSequencer := TIntegerSequencerNode.Create(AnimationName + '_IntegerSequencer', BaseUrl);
@@ -615,7 +620,7 @@ begin
       AddTag(I);
     Assert(TagTransforms.Count = NumTags);
 
-    AddAnimation(TNodeInterpolator.DefaultAnimationName, 0, NumFrames);
+    AddAnimation(TNodeInterpolator.DefaultAnimationName, 0, NumFrames, DefaultMd3Fps);
 
     AnimationCfgUrl := ExtractURIPath(BaseUrl) + 'animation.cfg';
     if URIFileExists(AnimationCfgUrl) then
@@ -625,7 +630,8 @@ begin
         Animations.ReadAnimationCfg(AnimationCfgUrl);
         Animations.ValidateFrames(NumFrames);
         for I := 0 to Animations.Count - 1 do
-          AddAnimation(Animations[I].Name, Animations[I].FirstFrame, Abs(Animations[I].NumFrames));
+          AddAnimation(Animations[I].Name, Animations[I].FirstFrame, Abs(Animations[I].NumFrames),
+            Animations[I].Fps);
       finally FreeAndNil(Animations) end;
     end;
   finally FreeAndNil(TagTransforms) end;

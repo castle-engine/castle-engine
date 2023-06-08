@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2022 Michalis Kamburelis.
 
@@ -426,9 +427,9 @@ end;
 
 function TExtrusionNode.CrossSection3D(Index: integer): TVector3;
 begin
-  Result.X := FdCrossSection.Items.List^[Index].X;
+  Result.X := FdCrossSection.Items.L[Index].X;
   Result.Y := 0;
-  Result.Z := FdCrossSection.Items.List^[Index].Y;
+  Result.Z := FdCrossSection.Items.L[Index].Y;
 end;
 
 function TExtrusionNode.SpineClosed: boolean;
@@ -507,8 +508,8 @@ var
     if TexCoords <> nil then
     begin
       if SpecialTex then
-        IFS.FdTexCoordIndex.Items.List^[Index] := SpecialTexIndex else
-        IFS.FdTexCoordIndex.Items.List^[Index] :=
+        IFS.FdTexCoordIndex.Items.L[Index] := SpecialTexIndex else
+        IFS.FdTexCoordIndex.Items.L[Index] :=
           SpineIndex * FdCrossSection.Count + CrossSectionIndex;
     end;
 
@@ -526,7 +527,7 @@ var
        E.CrossSectionClosed then
       CrossSectionIndex := 0;
 
-    IFS.FdCoordIndex.Items.List^[Index] :=
+    IFS.FdCoordIndex.Items.L[Index] :=
       SpineIndex * FdCrossSection.Count + CrossSectionIndex;
 
     Inc(Index);
@@ -534,9 +535,9 @@ var
 
   procedure NextIndexFaceDelimiter;
   begin
-    IFS.FdCoordIndex.Items.List^[Index] := -1;
+    IFS.FdCoordIndex.Items.L[Index] := -1;
     if TexCoords <> nil then
-      IFS.FdTexCoordIndex.Items.List^[Index] := -1;
+      IFS.FdTexCoordIndex.Items.L[Index] := -1;
     Inc(Index);
   end;
 
@@ -582,7 +583,7 @@ begin
         E.SpineTransformVar(I, LastY, LastZ, Transform);
         for J := 0 to FdCrossSection.Count - 1 do
         begin
-          CoordNode.FdPoint.Items.List^[I * FdCrossSection.Count + J] :=
+          CoordNode.FdPoint.Items.L[I * FdCrossSection.Count + J] :=
             Transform.MultPoint(CrossSection3D(J));
         end;
       end;
@@ -611,7 +612,7 @@ begin
 
         for I := 0 to E.High do
           for J := 0 to FdCrossSection.Count - 1 do
-            TexCoords.List^[I * FdCrossSection.Count + J] := SideTexCoord(I, J);
+            TexCoords.L[I * FdCrossSection.Count + J] := SideTexCoord(I, J);
 
         { calculate TexCapsTranslation, TexCapsScale }
         if FdBeginCap.Value or FdEndCap.Value then
@@ -643,9 +644,8 @@ begin
 
           for I := 0 to FdCrossSection.Count - 1 do
           begin
-            TexCoordNode.FdPoint.Items.List^[
-              SidesCount + I] :=
-                (FdCrossSection.Items.List^[I] +
+            TexCoordNode.FdPoint.Items.L[SidesCount + I] :=
+                (FdCrossSection.Items.L[I] +
                  Vector2(TexCapsTranslation, TexCapsTranslation))
                 * TexCapsScale;
           end;

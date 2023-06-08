@@ -23,6 +23,13 @@ uses
   imjpeglib,
   imjdct,		{ Private declarations for DCT subsystem }
   imjidctfst,
+  { CGE note:
+    Note that BASM is defined in imjconfig.inc only for Delphi Win32.
+
+    So the imjidctasm unit is only compiled in case of Delphi/Win32,
+    and it is implicitly included in Delphi castle_engine package.
+    And that's good for now -- as we want to keep the CGE Delphi package good
+    also for Win64 etc., we don't list imjidctasm explicitly there. }
   {$IFDEF BASM}
   imjidctasm,
   {$ELSE}
@@ -104,7 +111,7 @@ type
   a matching multiplier table. }
 
 {METHODDEF}
-procedure start_pass (cinfo : j_decompress_ptr);  
+procedure start_pass (cinfo : j_decompress_ptr);
 var
   idct : my_idct_ptr;
   ci, i : int;

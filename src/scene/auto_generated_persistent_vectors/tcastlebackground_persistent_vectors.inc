@@ -50,7 +50,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FSkyTopColorPersistent := TCastleColorRGBPersistent.Create;
+  FSkyTopColorPersistent := TCastleColorRGBPersistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FSkyTopColorPersistent.SetSubComponent(true);
   FSkyTopColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetSkyTopColorForPersistent;
   FSkyTopColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetSkyTopColorForPersistent;
   FSkyTopColorPersistent.InternalDefaultValue := SkyTopColor; // current value is default
@@ -112,7 +118,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FSkyEquatorColorPersistent := TCastleColorRGBPersistent.Create;
+  FSkyEquatorColorPersistent := TCastleColorRGBPersistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FSkyEquatorColorPersistent.SetSubComponent(true);
   FSkyEquatorColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetSkyEquatorColorForPersistent;
   FSkyEquatorColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetSkyEquatorColorForPersistent;
   FSkyEquatorColorPersistent.InternalDefaultValue := SkyEquatorColor; // current value is default
@@ -174,7 +186,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FGroundBottomColorPersistent := TCastleColorRGBPersistent.Create;
+  FGroundBottomColorPersistent := TCastleColorRGBPersistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FGroundBottomColorPersistent.SetSubComponent(true);
   FGroundBottomColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetGroundBottomColorForPersistent;
   FGroundBottomColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetGroundBottomColorForPersistent;
   FGroundBottomColorPersistent.InternalDefaultValue := GroundBottomColor; // current value is default
@@ -236,7 +254,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FGroundEquatorColorPersistent := TCastleColorRGBPersistent.Create;
+  FGroundEquatorColorPersistent := TCastleColorRGBPersistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FGroundEquatorColorPersistent.SetSubComponent(true);
   FGroundEquatorColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetGroundEquatorColorForPersistent;
   FGroundEquatorColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetGroundEquatorColorForPersistent;
   FGroundEquatorColorPersistent.InternalDefaultValue := GroundEquatorColor; // current value is default
@@ -298,7 +322,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FRotationPersistent := TCastleVector4RotationPersistent.Create;
+  FRotationPersistent := TCastleVector4RotationPersistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FRotationPersistent.SetSubComponent(true);
   FRotationPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetRotationForPersistent;
   FRotationPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetRotationForPersistent;
   FRotationPersistent.InternalDefaultValue := Rotation; // current value is default

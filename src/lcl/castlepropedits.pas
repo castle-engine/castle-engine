@@ -47,9 +47,11 @@ uses // FPC and LCL units
   // CGE units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
-  CastleVectors, CastleUtils, CastleViewport, CastleDialogs,
+  CastleVectors, CastleRectangles, CastleUtils, CastleColors, CastleViewport,
+  CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,
+  CastleInternalRegionDialog,
   CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
   CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
@@ -64,7 +66,7 @@ uses // FPC and LCL units
 {$I castlepropedits_meshcolliderscene.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
-{$I castlepropedits_protectedsides.inc}
+{$I castlepropedits_region.inc}
 {$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
 {$I castlepropedits_tiledlayers.inc}
@@ -140,10 +142,14 @@ begin
   RegisterPropertyEditor(TypeInfo(Single), TCastleVector4RotationPersistent, 'W',
     TCastleFloatRotationPropertyEditor);
 
-  { Register before registering for TBorder and any name
-    (not tested if it's really necessary). }
+  { Handle using TCastleRegionEditor.
+    Note: TBorder rule with 'ProtectedSides' name is registered
+    before registering for TBorder with any name below.
+    (Not tested if it's really necessary, but seems safer). }
   RegisterPropertyEditor(TypeInfo(TBorder), nil, 'ProtectedSides',
-    TCastleProtectedSidesEditor);
+    TCastleRegionEditor);
+  RegisterPropertyEditor(TypeInfo(TFloatRectanglePersistent), nil, 'RegionPersistent',
+    TCastleRegionEditor);
 
   { Properties that simply use TSubPropertiesEditor.
     Registering properties that use TSubPropertiesEditor

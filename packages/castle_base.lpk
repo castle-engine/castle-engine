@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1080">
+    <Files Count="1079">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -343,10 +343,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base/castleutils.pas"/>
         <UnitName Value="CastleUtils"/>
       </Item67>
-      <Item68>
-        <Filename Value="../src/base/castleutils_basic_algorithms.inc"/>
-        <Type Value="Include"/>
-      </Item68>
       <Item69>
         <Filename Value="../src/base/castleutils_delphi_compatibility.inc"/>
         <Type Value="Include"/>
@@ -355,10 +351,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base/castleutils_filenames.inc"/>
         <Type Value="Include"/>
       </Item70>
-      <Item71>
-        <Filename Value="../src/base/castleutils_implement_sort.inc"/>
-        <Type Value="Include"/>
-      </Item71>
       <Item72>
         <Filename Value="../src/base/castleutils_math.inc"/>
         <Type Value="Include"/>
@@ -704,11 +696,6 @@ See https://castle-engine.io/license.php for details.
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGameNotifications"/>
       </Item156>
-      <Item157>
-        <Filename Value="../src/deprecated_units/castlegenericlists.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleGenericLists"/>
-      </Item157>
       <Item158>
         <Filename Value="../src/scene/glsl/generated-pascal/simplest_unlit.fs.inc"/>
         <Type Value="Include"/>
@@ -4406,26 +4393,34 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/vampyre_imaginglib/src/Source/ImagingTarga.pas"/>
         <UnitName Value="ImagingTarga"/>
       </Item1075>
-      <Item1076>
+      <Item68>
         <Filename Value="../src/vampyre_imaginglib/src/Source/ImagingTypes.pas"/>
         <UnitName Value="ImagingTypes"/>
-      </Item1076>
-      <Item1077>
+      </Item68>
+      <Item71>
         <Filename Value="../src/vampyre_imaginglib/src/Source/ImagingUtility.pas"/>
         <UnitName Value="ImagingUtility"/>
-      </Item1077>
-      <Item1078>
+      </Item71>
+      <Item157>
         <Filename Value="../src/vampyre_imaginglib/src/Extensions/ImagingExtFileFormats.pas"/>
         <UnitName Value="ImagingExtFileFormats"/>
-      </Item1078>
+      </Item157>
       <Item1079>
         <Filename Value="../src/transform/castlebehaviors_move.inc"/>
         <Type Value="Include"/>
       </Item1079>
-      <Item1080>
+      <Item1078>
         <Filename Value="../src/transform/auto_generated_persistent_vectors/tcastlemovebehavior_persistent_vectors.inc"/>
         <Type Value="Include"/>
-      </Item1080>
+      </Item1078>
+  	  <Item1076>
+        <Filename Value="../src/base/castlerectangles_persistent.inc"/>
+        <Type Value="Include"/>
+      </Item1076>
+      <Item1077>
+        <Filename Value="../src/files/castleinternalurlutils.pas"/>
+        <UnitName Value="CastleInternalUrlUtils"/>
+      </Item1077>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">

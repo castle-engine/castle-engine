@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install FPC+Lazarus
-        uses: gcarreno/setup-lazarus@v3.1.1
+        uses: gcarreno/setup-lazarus@v3.2.15
         with:
           lazarus-version: ${{ matrix.lazarus-versions }}
           # Cache makes Windows jobs fail (they timeout),

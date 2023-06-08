@@ -16,8 +16,6 @@
 
 unit TestCastleStringUtils;
 
-{$ifdef FPC}{$mode objfpc}{$H+}{$endif}
-
 interface
 
 uses
@@ -41,11 +39,13 @@ type
     procedure TestSplitString;
     procedure TestTrimEndingNewline;
     procedure TestAddMultiLine;
+    procedure TestRegexpMatches;
   end;
 
 implementation
 
-uses CastleUtils, CastleStringUtils;
+uses CastleUtils, CastleStringUtils,
+  CastleTestUtils;
 
 procedure TTestCastleStringUtils.TestIntToStrBase;
 var i: Integer;
@@ -475,6 +475,46 @@ begin
     AssertEquals('simple', SList[7]);
     AssertEquals('', SList[8]);
   finally FreeAndNil(SList) end;
+end;
+
+procedure TTestCastleStringUtils.TestRegexpMatches;
+begin
+  AssertTrue(StringMatchesRegexp('blah', 'blah'));
+  AssertTrue(StringMatchesRegexp('notblah', 'blah'));
+  AssertFalse(StringMatchesRegexp('blah', 'notblah'));
+
+  // test range [0-9]
+  AssertTrue(StringMatchesRegexp('blah12', 'blah[0-9][0-9]'));
+  AssertTrue(StringMatchesRegexp('blah123', 'blah[0-9][0-9]'));
+  AssertFalse(StringMatchesRegexp('blah123', '^blah[0-9][0-9]$'));
+  AssertFalse(StringMatchesRegexp('blah1', 'blah[0-9][0-9]'));
+  AssertFalse(StringMatchesRegexp('blah[0-9][0-9]', 'blah[0-9][0-9]'));
+
+  // test range [\d]
+  AssertTrue(StringMatchesRegexp('blah12', 'blah[\d][\d]'));
+  AssertTrue(StringMatchesRegexp('blah123', 'blah[\d][\d]'));
+  AssertFalse(StringMatchesRegexp('blah123', '^blah[\d][\d]$'));
+  AssertFalse(StringMatchesRegexp('blah1', 'blah[\d][\d]'));
+  AssertFalse(StringMatchesRegexp('blah[\d][\d]', 'blah[\d][\d]'));
+
+  // test +
+  { First test unfortunately fails with FPC 3.2.0, fixed only in 3.2.2.
+
+    It's a rather important bug (the regexp tested is very simple),
+    but luckily CGE doesn't really use regexp much now (and probably never will),
+    so it's not a big issue in CGE case. }
+  {$ifndef VER3_2_0}
+  AssertTrue(StringMatchesRegexp('blah111foo', 'blah1+foo'));
+  {$endif}
+  AssertTrue(StringMatchesRegexp('blah1foo', 'blah1+foo'));
+  AssertFalse(StringMatchesRegexp('blahfoo', 'blah1+foo'));
+
+  // test *
+  {$ifndef VER3_2_0} // fails with FPC 3.2.0, fixed only in 3.2.2
+  AssertTrue(StringMatchesRegexp('blah111foo', 'blah1*foo'));
+  {$endif}
+  AssertTrue(StringMatchesRegexp('blah1foo', 'blah1*foo'));
+  AssertTrue(StringMatchesRegexp('blahfoo', 'blah1*foo'));
 end;
 
 initialization

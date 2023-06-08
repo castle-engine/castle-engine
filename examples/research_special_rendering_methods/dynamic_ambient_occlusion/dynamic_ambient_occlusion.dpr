@@ -160,7 +160,7 @@ procedure CalculateElements;
       { Grow Elements array }
       ShapeElementIndex := Elements.Count;
       Elements.Count := Elements.Count + Coord.Count;
-      ShapeElements := Addr(Elements.List^[ShapeElementIndex]);
+      ShapeElements := PAOElement(Elements.Ptr(ShapeElementIndex));
 
       SetLength(Shapes[ShapeIndex].CoordToElement, Coord.Count);
 
@@ -174,7 +174,7 @@ procedure CalculateElements;
       for I := 0 to Coord.Count - 1 do
       begin
         ShapeElements[I].Position :=
-          Shape.State.Transformation.Transform.MultPoint(Coord.Items.List^[I]);
+          Shape.State.Transformation.Transform.MultPoint(Coord.Items.L[I]);
         ShapeElements[I].Normal := TVector3.Zero;
         ShapeElements[I].Area := 0;
       end;
@@ -239,11 +239,11 @@ begin
 
   for I := 0 to Elements.Count - 1 do
   begin
-    if not Elements.List^[I].Normal.IsPerfectlyZero then
+    if not Elements.L[I].Normal.IsPerfectlyZero then
     begin
       { Then Element I should be on position GoodElementsCount. }
       if GoodElementsCount <> I then
-        Elements.List^[GoodElementsCount] := Elements.List^[I];
+        Elements.L[GoodElementsCount] := Elements.L[I];
       Shapes[ShapeIndex].CoordToElement[ShapeCoord] := GoodElementsCount;
       Inc(GoodElementsCount);
     end else
@@ -350,7 +350,7 @@ begin
   { calculate maximum area, which is just AreaScale }
   AreaScale := 0;
   for I := 0 to Elements.Count - 1 do
-    MaxVar(AreaScale, Elements.List^[I].Area);
+    MaxVar(AreaScale, Elements.L[I].Area);
 
   { calculate PositionScale, PositionShift.
     We have min/max in Scene.BoundingBox. }
@@ -801,6 +801,7 @@ procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
   var
     RootNode: TX3DRootNode;
     Mat: TUnlitMaterialNode;
+    Appearance: TAppearanceNode;
     Disk: TDisk2DNode;
     DiskShape: TShapeNode;
     DiskTransform: TTransformNode;
@@ -816,7 +817,7 @@ procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
     begin
       Disk := TDisk2DNode.CreateWithTransform(DiskShape, DiskTransform);
       { Area = Pi * Radius^2, so Radius := Sqrt(Area/Pi) }
-      Disk.OuterRadius := Sqrt(Elements.List^[I].Area / Pi);
+      Disk.OuterRadius := Sqrt(Elements.L[I].Area / Pi);
       Disk.Solid := false;
 
       if ElementsIntensityTex <> nil then
@@ -827,14 +828,16 @@ procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
           ElementIntensity^ / 255,
           ElementIntensity^ / 255
         );
-        DiskShape.Material := Mat;
+        Appearance := TAppearanceNode.Create;
+        Appearance.Material := Mat;
+        DiskShape.Appearance := Appearance;
         Inc(ElementIntensity);
       end;
 
-      DiskTransform.Translation := Elements.List^[I].Position;
+      DiskTransform.Translation := Elements.L[I].Position;
       DiskTransform.Rotation := OrientationFromDirectionUp(
-        Elements.List^[I].Normal,
-        AnyOrthogonalVector(Elements.List^[I].Normal)
+        Elements.L[I].Normal,
+        AnyOrthogonalVector(Elements.L[I].Normal)
       );
       RootNode.AddChildren(DiskTransform);
     end;

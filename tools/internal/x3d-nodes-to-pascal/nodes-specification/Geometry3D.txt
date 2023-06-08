@@ -10,6 +10,7 @@ Box : X3DGeometryNode {
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
+    setter-before: MoveShapeAssociations
 }
 
 Cone : X3DGeometryNode {
@@ -29,6 +30,7 @@ Cone : X3DGeometryNode {
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
+    setter-before: MoveShapeAssociations
   SFInt32    [in,out]      slices      -1
     range: {-1} + [3, infinity)
     change: chGeometry
@@ -56,6 +58,7 @@ Cylinder : X3DGeometryNode {
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
+    setter-before: MoveShapeAssociations
   SFInt32    [in,out]      slices      -1
     range: {-1} + [3, infinity)
     change: chGeometry
@@ -82,6 +85,7 @@ ElevationGrid : X3DGeometryNode {
   SFNode  [in,out] texCoord        NULL
     range: X3DTextureCoordinateNode
     change: chGeometry
+    setter-before: MoveShapeAssociations
   SFBool  []       ccw             TRUE
     change: chGeometry
   SFBool  []       colorPerVertex  TRUE
@@ -151,6 +155,7 @@ Extrusion : X3DGeometryNode {
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
+    setter-before: MoveShapeAssociations
 }
 
 IndexedFaceSet : X3DComposedGeometryNode {
@@ -196,6 +201,7 @@ Sphere : X3DGeometryNode {
   SFNode     [in,out]      texCoord    NULL
     range: TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate
     change: chGeometry
+    setter-before: MoveShapeAssociations
   SFInt32    [in,out]      slices      -1
     range: {-1} + [3, infinity)
     change: chGeometry

@@ -41,7 +41,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="28">
+    <Units Count="30">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -216,6 +216,22 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormRestartCustomEditor"/>
       </Unit27>
+      <Unit28>
+        <Filename Value="code/formimportsketchfab.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ImportSketchfabForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormImportSketchfab"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="code/formprogress.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ProgressForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormProgress"/>
+      </Unit29>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -263,7 +279,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="4">
+    <Exceptions Count="5">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -276,6 +292,9 @@
       <Item4>
         <Name Value="EExecutableNotFound"/>
       </Item4>
+      <Item5>
+        <Name Value="EHTTPClient"/>
+      </Item5>
     </Exceptions>
   </Debugging>
 </CONFIG>

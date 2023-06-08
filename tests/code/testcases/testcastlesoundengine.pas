@@ -29,18 +29,20 @@ type
     procedure TestLoadBufferException;
     procedure TestNotPcmEncodingWarning;
     procedure TestImportancePriority;
+    procedure TestSoundFromDataUri;
   end;
 
 implementation
 
-uses CastleFilesUtils, CastleSoundEngine, CastleApplicationProperties, CastleDownload;
+uses CastleFilesUtils, CastleSoundEngine, CastleApplicationProperties, CastleDownload,
+  CastleLog;
 
 procedure TTestCastleSoundEngine.TestLoadBufferException;
 begin
   try
     SoundEngine.LoadBuffer('castle-data:/sound/non-existing.wav');
     if not SoundEngine.IsContextOpenSuccess then
-      Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
+      Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 1');
   except on EDownloadError{ESoundFileError} do ; end;
@@ -48,7 +50,7 @@ begin
   try
     SoundEngine.LoadBuffer('castle-data:/sound/non-existing.ogg');
     if not SoundEngine.IsContextOpenSuccess then
-      Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
+      Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 2');
   except on EDownloadError{ESoundFileError} do ; end;
@@ -56,7 +58,7 @@ begin
   try
     SoundEngine.LoadBuffer('castle-data:/sound/invalid.wav');
     if not SoundEngine.IsContextOpenSuccess then
-      Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
+      Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 3');
   except on ESoundFileError do ; end;
@@ -64,7 +66,7 @@ begin
   try
     SoundEngine.LoadBuffer('castle-data:/sound/invalid.ogg');
     if not SoundEngine.IsContextOpenSuccess then
-      Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
+      Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 4');
   except on ESoundFileError do ; end;
@@ -82,7 +84,7 @@ begin
       except
         on E: Exception do
         begin
-          if Pos('Loading WAV files not in PCM format not implemented', E.Message) > 0 then
+          if Pos('Only uncompressed (PCM) WAV files are supported', E.Message) > 0 then
           begin
             // good, we expect this
           end else
@@ -90,7 +92,7 @@ begin
         end;
       end;
     end else
-      Writeln('OpenAL cannot be initialized, TestNotPcmEncodingWarning doesn''t really do anything');
+      Writeln('Sound backend cannot be initialized, TestNotPcmEncodingWarning doesn''t really do anything');
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
@@ -124,6 +126,27 @@ begin
     AssertEquals(DefaultSoundImportance, Params.Importance);
     {$endif}
   finally FreeAndNil(Params) end;
+end;
+
+procedure TTestCastleSoundEngine.TestSoundFromDataUri;
+var
+  Sound: TCastleSound;
+  Stream: TStream;
+begin
+  if not SoundEngine.IsContextOpenSuccess then
+  begin
+    Writeln('Sound backend cannot be initialized, TestSoundFromDataUri ignored');
+    Exit;
+  end;
+
+  Sound := TCastleSound.Create(nil);
+  try
+    Stream := Download('castle-data:/game/alien_sudden_pain.wav', []);
+    try
+      Sound.LoadFromStream(Stream, 'audio/x-wav');
+    finally FreeAndNil(Stream) end;
+    AssertSameValue(1.46, Sound.Duration, 0.01);
+  finally FreeAndNil(Sound) end;
 end;
 
 initialization

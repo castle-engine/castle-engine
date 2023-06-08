@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -227,14 +228,14 @@ begin
     for I := 0 to SlicesNow - 1 do
     begin
       SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
-      C.FdPoint.Items.List^[I] := Vector3(
+      C.FdPoint.Items.L[I] := Vector3(
         AngleSin * FdRadius.Value,
         AngleCos * FdRadius.Value,
         0
       );
     end;
     { close the circle }
-    C.FdPoint.Items.List^[SlicesNow] := C.FdPoint.Items.List^[0];
+    C.FdPoint.Items.L[SlicesNow] := C.FdPoint.Items.L[0];
 
     LineSet.Coord := C;
     LineSet.SetVertexCount([SlicesNow + 1]);
@@ -277,11 +278,11 @@ begin
 
     C := TCoordinateNode.Create('', BaseUrl);
     C.FdPoint.Items.Count := Slices + 2;
-    C.FdPoint.Items.List^[0] := Vector3(0, 0, 0);
+    C.FdPoint.Items.L[0] := Vector3(0, 0, 0);
     for I := 0 to Slices do
     begin
       SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
-      C.FdPoint.Items.List^[I + 1] := Vector3(
+      C.FdPoint.Items.L[I + 1] := Vector3(
         AngleCos * OuterRadius,
         AngleSin * OuterRadius,
         0
@@ -317,9 +318,9 @@ begin
     C.FdPoint.Items.Count := Count;
     for I := 0 to Count - 1 do
     begin
-      C.FdPoint.Items.List^[I] := Vector3(
-        FdLineSegments.Items.List^[I].X,
-        FdLineSegments.Items.List^[I].Y,
+      C.FdPoint.Items.L[I] := Vector3(
+        FdLineSegments.Items.L[I].X,
+        FdLineSegments.Items.L[I].Y,
         0
       );
     end;
@@ -351,9 +352,9 @@ begin
     C.FdPoint.Items.Count := Count;
     for I := 0 to Count - 1 do
     begin
-      C.FdPoint.Items.List^[I] := Vector3(
-        FdPoint.Items.List^[I].X,
-        FdPoint.Items.List^[I].Y,
+      C.FdPoint.Items.L[I] := Vector3(
+        FdPoint.Items.L[I].X,
+        FdPoint.Items.L[I].Y,
         0
       );
     end;
@@ -395,17 +396,17 @@ begin
 
     { calculate Coord, TexCoord contents }
 
-    Coord.FdPoint.Items.List^[0] := Vector3(-Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[0] := Vector2(0, 0);
+    Coord.FdPoint.Items.L[0] := Vector3(-Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[0] := Vector2(0, 0);
 
-    Coord.FdPoint.Items.List^[1] := Vector3( Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[1] := Vector2(1, 0);
+    Coord.FdPoint.Items.L[1] := Vector3( Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[1] := Vector2(1, 0);
 
-    Coord.FdPoint.Items.List^[2] := Vector3( Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[2] := Vector2(1, 1);
+    Coord.FdPoint.Items.L[2] := Vector3( Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[2] := Vector2(1, 1);
 
-    Coord.FdPoint.Items.List^[3] := Vector3(-Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[3] := Vector2(0, 1);
+    Coord.FdPoint.Items.L[3] := Vector3(-Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[3] := Vector2(0, 1);
 
     QuadSet.Solid := Solid;
   except FreeAndNil(Result); raise end;
@@ -444,9 +445,9 @@ begin
     C.FdPoint.Items.Count := Count;
     for I := 0 to Count - 1 do
     begin
-      C.FdPoint.Items.List^[I] := Vector3(
-        FdVertices.Items.List^[I].X,
-        FdVertices.Items.List^[I].Y,
+      C.FdPoint.Items.L[I] := Vector3(
+        FdVertices.Items.L[I].X,
+        FdVertices.Items.L[I].Y,
         0
       );
     end;

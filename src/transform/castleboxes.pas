@@ -1079,15 +1079,15 @@ var
 begin
   if IsEmpty then
   begin
-    Data[0] := Points.List^[0];
-    Data[1] := Points.List^[0];
+    Data[0] := Points.L[0];
+    Data[1] := Points.L[0];
     StartIndex := 1;
   end else
     StartIndex := 0;
 
   for I := StartIndex to Points.Count - 1 do
   begin
-    V := Points.List^[I];
+    V := Points.L[I];
     MinVar(Data[0].X, V.X);
     MaxVar(Data[1].X, V.X);
     MinVar(Data[0].Y, V.Y);
@@ -1106,11 +1106,16 @@ begin
     Result := TBox3D.Empty
   else
   begin
-    Result.Data[0] := Points.List^[0];
-    Result.Data[1] := Points.List^[0];
+    Result.Data[0] := Points.L[0];
+    Result.Data[1] := Points.L[0];
     for I := 1 to Points.Count - 1 do
     begin
-      V := Points.List^[I];
+      { Note: On Delphi, we *have to* use L[...] below and depend on $pointermath on,
+        instead of using List^[...].
+        That's because on Delphi, List^[...] may have too small (declared) upper size
+        due to Delphi not supporting SizeOf(T) in generics.
+        See https://github.com/castle-engine/castle-engine/issues/474 . }
+      V := Points.L[I];
       MinVar(Result.Data[0].X, V.X);
       MaxVar(Result.Data[1].X, V.X);
       MinVar(Result.Data[0].Y, V.Y);
@@ -2566,13 +2571,13 @@ end;
 
 function CalculateBoundingBox(Verts: TVector3List): TBox3D;
 begin
-  Result := CalculateBoundingBox(PVector3(Verts.List), Verts.Count, 0);
+  Result := CalculateBoundingBox(PVector3(Verts.L), Verts.Count, 0);
 end;
 
 function CalculateBoundingBox(Verts: TVector3List;
   const Transform: TMatrix4): TBox3D;
 begin
-  Result := CalculateBoundingBox(PVector3(Verts.List), Verts.Count, 0,
+  Result := CalculateBoundingBox(PVector3(Verts.L), Verts.Count, 0,
     Transform);
 end;
 

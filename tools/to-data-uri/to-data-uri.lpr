@@ -33,7 +33,6 @@ uses SysUtils, Classes, Base64, CastleParameters, CastleDownload,
 var
   MimeType: string;
   Stream: TStream;
-  Base64Encode: TBase64EncodingStream;
 begin
   EnableBlockingDownloads := true;
   Parameters.CheckHigh(1);
@@ -41,14 +40,8 @@ begin
   try
     { Note that MimeType may be empty if not recognized.
       That's Ok, data: URI spec allows it. }
-    WriteStr(StdOutStream, 'data:' + MimeType + ';base64,');
-
-    Base64Encode := TBase64EncodingStream.Create(StdOutStream);
-    Base64Encode.CopyFrom(Stream, 0);
+    Writeln(StreamToDataUri(Stream, MimeType));
   finally
-    FreeAndNil(Base64Encode);
     FreeAndNil(Stream);
   end;
-
-  WritelnStr(StdOutStream, '');
 end.

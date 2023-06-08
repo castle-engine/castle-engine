@@ -35,6 +35,7 @@ type
     procedure TestURIExists;
     procedure TestRelativeToCastleDataURL;
     procedure TestExtractURI;
+    procedure TestDotfile;
   end;
 
 implementation
@@ -113,12 +114,6 @@ var
   Filename: String;
   FilenameAsUri: String;
   FilenameFromUri: String;
-const
-  SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
-  ALPHA = ['A'..'Z', 'a'..'z'];
-  DIGIT = ['0'..'9'];
-  Unreserved = ALPHA + DIGIT + ['-', '.', '_', '~'];
-  ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
 {$endif}
 begin
   { FilenameToURISafe must percent-encode,
@@ -158,7 +153,7 @@ begin
   AssertEquals(Filename, FilenameFromUri);
 
   FilenamePart := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars ćma źrebak żmija wąż królik.txt';
-  FilenamePartPercent := InternalUriEscape(FilenamePart, ValidPathChars);
+  FilenamePartPercent := InternalUriEscape(FilenamePart);
   AssertEquals('C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt', FilenamePartPercent);
   FilenamePartUnescaped := InternalUriUnescape(FilenamePartPercent);
   AssertEquals(FilenamePart, FilenamePartUnescaped);
@@ -302,6 +297,23 @@ begin
   AssertEquals('armor.tga', ExtractURIName('armor.tga'));
   AssertEquals('armor.tga', ExtractURIName('/armor.tga'));
   AssertEquals('armor.tga', ExtractURIName('blabla/armor.tga'));
+end;
+
+procedure TTestURIUtils.TestDotfile;
+begin
+  { Test that dot on 1st place is not treated as extension start. }
+
+  AssertEquals('.hidden', ExtractURIName('https://blah/.hidden'));
+  AssertEquals('.hidden', ExtractURIName('castle-data:/.hidden'));
+  AssertEquals('.hidden.x3d', ExtractURIName('https://blah/.hidden.x3d'));
+  AssertEquals('.hidden.x3d', ExtractURIName('castle-data:/.hidden.x3d'));
+
+  AssertEquals('https://blah/.hidden', DeleteURIExt('https://blah/.hidden'));
+  AssertEquals('castle-data:/.hidden', DeleteURIExt('castle-data:/.hidden'));
+  AssertEquals('https://blah/.hidden', DeleteURIExt('https://blah/.hidden.x3d'));
+  AssertEquals('castle-data:/.hidden', DeleteURIExt('castle-data:/.hidden.x3d'));
+  AssertEquals('https://blah/.hidden.x3d', DeleteURIExt('https://blah/.hidden.x3d.gz'));
+  AssertEquals('castle-data:/.hidden.x3d', DeleteURIExt('castle-data:/.hidden.x3d.gz'));
 end;
 
 initialization

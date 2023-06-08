@@ -331,7 +331,7 @@ begin
   if ForceSynchronous and (not EnableBlockingDownloads) then
   begin
     Status := dsError;
-    ErrorMessage := 'Downloading network resources (from "http" or "https" protocols) is not enabled';
+    ErrorMessage := 'Downloading network resources (from "http" or "https"  protocols) is not enabled. Set global EnableBlockingDownloads:=true to enable.';
     Exit;
   end;
 

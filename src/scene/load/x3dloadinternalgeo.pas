@@ -162,7 +162,7 @@ begin
 
   Verts.Count := VertsCount;
   for i := 0 to Verts.Count-1 do
-    Verts.List^[I] := Vector3FromStr(Reader.Readln);
+    Verts.L[I] := Vector3FromStr(Reader.Readln);
 
   if PolysCount <> -1 then
   begin
@@ -191,34 +191,42 @@ var
   geo: TObject3DGEO;
   verts: TCoordinateNode;
   faces: TIndexedFaceSetNode;
+  Material: TMaterialNode;
+  Appearance: TAppearanceNode;
   Shape: TShapeNode;
   i: integer;
 begin
   geo := TObject3DGEO.Create(Stream);
   try
-    result := TX3DRootNode.Create('', BaseUrl);
+    result := TX3DRootNode.Create;
     try
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 
-      Shape := TShapeNode.Create('', BaseUrl);
-      result.AddChildren(Shape);
-      Shape.Material := TMaterialNode.Create('', BaseUrl);
+      Material := TMaterialNode.Create;
 
-      faces := TIndexedFaceSetNode.Create('', BaseUrl);
+      Appearance := TAppearanceNode.Create;
+      Appearance.Material := Material;
+
+      Shape := TShapeNode.Create;
+      Shape.Appearance := Appearance;
+
+      result.AddChildren(Shape);
+
+      faces := TIndexedFaceSetNode.Create;
       Shape.FdGeometry.Value := faces;
       faces.FdCreaseAngle.Value := NiceCreaseAngle;
       faces.FdSolid.Value := false;
       faces.FdCoordIndex.Count := geo.Faces.Count * 4;
       for i := 0 to geo.Faces.Count-1 do
       begin
-        faces.FdCoordIndex.Items.List^[i * 4    ] := geo.Faces.List^[i].X;
-        faces.FdCoordIndex.Items.List^[i * 4 + 1] := geo.Faces.List^[i].Y;
-        faces.FdCoordIndex.Items.List^[i * 4 + 2] := geo.Faces.List^[i].Z;
-        faces.FdCoordIndex.Items.List^[i * 4 + 3] := -1;
+        faces.FdCoordIndex.Items.L[i * 4    ] := geo.Faces.L[i].X;
+        faces.FdCoordIndex.Items.L[i * 4 + 1] := geo.Faces.L[i].Y;
+        faces.FdCoordIndex.Items.L[i * 4 + 2] := geo.Faces.L[i].Z;
+        faces.FdCoordIndex.Items.L[i * 4 + 3] := -1;
       end;
 
-      verts := TCoordinateNode.Create('', BaseUrl);
+      verts := TCoordinateNode.Create;
       faces.Coord := verts;
       verts.SetPoint(geo.Verts);
     except result.Free; raise end;

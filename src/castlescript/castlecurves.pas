@@ -558,7 +558,7 @@ begin
       Indexes := ConvexHullIndexes(PotentialConvexHullPoints);
       try
         for I := 0 to Indexes.Count - 1 do
-          Result.Add(PotentialConvexHullPoints.List^[Indexes.List^[I]]);
+          Result.Add(PotentialConvexHullPoints.L[Indexes.L[I]]);
       finally FreeAndNil(Indexes) end;
     end;
   finally DestroyConvexHullPoints(PotentialConvexHullPoints) end;
@@ -583,7 +583,7 @@ begin
   TEnd := CasScriptCurve.TEnd;
   ControlPoints.Count := ControlPointsCount;
   for i := 0 to ControlPointsCount-1 do
-    ControlPoints.List^[i] := CasScriptCurve.PointOfSegment(i, ControlPointsCount-1);
+    ControlPoints.L[i] := CasScriptCurve.PointOfSegment(i, ControlPointsCount-1);
   UpdateControlPoints;
 end;
 
@@ -720,8 +720,8 @@ begin
 
     for I := 1 to ControlPoints.Count - 1 do
     begin
-      PointBegin := ControlPoints.List^[I - 1];
-      PointEnd   := ControlPoints.List^[I];
+      PointBegin := ControlPoints.L[I - 1];
+      PointEnd   := ControlPoints.L[I];
       ABezierCurves[I - 1][0] := PointBegin;
       ABezierCurves[I - 1][1] := PointBegin + S[I -1] / 3;
       ABezierCurves[I - 1][2] := PointEnd   - S[I   ] / 3;
@@ -849,10 +849,10 @@ procedure CalculateSpline(const X: Single; const Loop: boolean;
 
     // TODO: make binary search
     I := 1;
-    while (I + 1 < C) and (X > Arguments.List^[I]) do Inc(I);
+    while (I + 1 < C) and (X > Arguments.L[I]) do Inc(I);
 
     IndexOfRightValue := I;
-    XInSegment := (X - Arguments.List^[I - 1]) / (Arguments.List^[I] - Arguments.List^[I - 1]);
+    XInSegment := (X - Arguments.L[I - 1]) / (Arguments.L[I] - Arguments.L[I - 1]);
   end;
 
 var
@@ -867,14 +867,14 @@ begin
     CurveResult := 0;
   end else
   begin
-    FirstArg := Arguments.List^[0];
+    FirstArg := Arguments.L[0];
     if C = 1 then
     begin
       Inside := false;
       CurveResult := FirstArg;
     end else
     begin
-      LastArg := Arguments.List^[C - 1];
+      LastArg := Arguments.L[C - 1];
       Len := LastArg - FirstArg;
       if X < FirstArg then
       begin
@@ -885,7 +885,7 @@ begin
         end else
         begin
           Inside := false;
-          CurveResult := Values.List^[0];
+          CurveResult := Values.L[0];
         end;
       end else
       if X > LastArg then
@@ -897,7 +897,7 @@ begin
         end else
         begin
           Inside := false;
-          CurveResult := Values.List^[C - 1];
+          CurveResult := Values.L[C - 1];
         end;
       end else
       begin
@@ -933,24 +933,24 @@ function CatmullRomSpline(const X: Single; const Loop: boolean;
   begin
     C := Arguments.Count;
 
-    V1 := Values.List^[I - 1];
-    V2 := Values.List^[I];
+    V1 := Values.L[I - 1];
+    V2 := Values.L[I];
 
     if I - 2 = -1 then
     begin
       if Loop then
-        V0 := Values.List^[C - 2] else // not Values.List^[C - 1], as first and last values are usually equal
-        V0 := Values.List^[0];
+        V0 := Values.L[C - 2] else // not Values.L[C - 1], as first and last values are usually equal
+        V0 := Values.L[0];
     end else
-      V0 := Values.List^[I - 2];
+      V0 := Values.L[I - 2];
 
     if I + 1 = C then
     begin
       if Loop then
-        V3 := Values.List^[1] else // not Values.List^[C - 1], as first and last values are usually equal
-        V3 := Values.List^[C - 1];
+        V3 := Values.L[1] else // not Values.L[C - 1], as first and last values are usually equal
+        V3 := Values.L[C - 1];
     end else
-      V3 := Values.List^[I + 1];
+      V3 := Values.L[I + 1];
 
     Result := CatmullRom(V0, V1, V2, V3, XInSegment);
   end;
@@ -987,8 +987,8 @@ function HermiteSpline(const X: Single; const Loop: boolean;
   function HermiteSegment(const I: Integer; const XInSegment: Single): Single;
   begin
     Result := Hermite(
-      Values  .List^[I - 1], Values  .List^[I],
-      Tangents.List^[I - 1], Tangents.List^[I], XInSegment);
+      Values  .L[I - 1], Values  .L[I],
+      Tangents.L[I - 1], Tangents.L[I], XInSegment);
   end;
 
 var
@@ -1022,7 +1022,7 @@ function HermiteTenseSpline(const X: Single; const Loop: boolean;
   function HermiteTenseSegment(const I: Integer; const XInSegment: Single): Single;
   begin
     Result := HermiteTense(
-      Values.List^[I - 1], Values.List^[I], XInSegment);
+      Values.L[I - 1], Values.L[I], XInSegment);
   end;
 
 var
@@ -1071,18 +1071,18 @@ var InResult: TBooleanList;
    for i := 0 to Points.Count-1 do
     if not InResult[i] then
     begin
-     if SameValue(Points.List^[i][1], Points.List^[Start][1]) then
+     if SameValue(Points.L[i][1], Points.L[Start][1]) then
      begin
-      if RightSide = (Points.List^[i][0] > Points.List^[Start][0]) then
+      if RightSide = (Points.L[i][0] > Points.L[Start][0]) then
       begin
        MaxCotanAngle := MaxSingle;
        MaxCotanAngleI := i;
       end;
      end else
-     if RightSide = (Points.List^[i][1] > Points.List^[Start][1]) then
+     if RightSide = (Points.L[i][1] > Points.L[Start][1]) then
      begin
-      ThisCotan:=(Points.List^[i][0] - Points.List^[Start][0]) /
-                 (Points.List^[i][1] - Points.List^[Start][1]);
+      ThisCotan:=(Points.L[i][0] - Points.L[Start][0]) /
+                 (Points.L[i][1] - Points.L[Start][1]);
       if ThisCotan > MaxCotanAngle then
       begin
        MaxCotanAngle := ThisCotan;
@@ -1107,12 +1107,12 @@ begin
  Assert(Points.Count >= 1);
 
  { find i0, index of lowest point in Points }
- MinY := Points.List^[0][1];
+ MinY := Points.L[0][1];
  i0 := 0;
  for i := 1 to Points.Count-1 do
-  if Points.List^[i][1] < MinY then
+  if Points.L[i][1] < MinY then
   begin
-   MinY := Points.List^[i][1];
+   MinY := Points.L[i][1];
    i0 := i;
   end;
 

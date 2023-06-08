@@ -372,7 +372,14 @@ type
       where map bottom-left corner is (0, 0).
 
       This method returns @false if the position is outside of the map.
-      Valid map tiles are defined as by @link(TilePositionValid). }
+      Valid map tiles are defined as by @link(TilePositionValid).
+
+      Note: Regardless of the result (@true or @false), the TilePosition
+      is reliably defined and set.
+      It is just outside of the map range if the result is @false.
+      If you don't care about it (that is, you want to accept even positions that
+      are outside of map range) that you're free to use TilePosition for
+      whatever calculations. }
     function PositionToTile(const Position: TVector2;
       out TilePosition: TVector2Integer): Boolean;
 

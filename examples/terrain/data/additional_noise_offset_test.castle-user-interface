@@ -1,0 +1,202 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Background" : "Background1",
+      "Camera" : "Camera1",
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 2.0000000000000000E+000,
+              "Z" : 4.0000000000000000E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastleTerrain",
+            "Data" : "TerrainNoise1",
+            "Layer1" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Layer2" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Layer3" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Layer4" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Name" : "Terrain1",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "$NonVisualComponents" : [
+              {
+                "$$ClassName" : "TCastleTerrainNoise",
+                "Name" : "TerrainNoise1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTerrain",
+            "Data" : "TerrainNoise1",
+            "Layer1" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Layer2" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Layer3" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Layer4" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Name" : "Terrain2",
+            "QueryOffsetPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 1.0000000000000000E+002
+            },
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0000000000000000E+002
+            }
+          },
+          {
+            "$$ClassName" : "TCastleTerrain",
+            "Data" : "TerrainNoise1",
+            "Layer1" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Layer2" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Layer3" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Layer4" : {
+              "$$ClassName" : "TCastleTerrainLayer"
+            },
+            "Name" : "Terrain3",
+            "QueryOffsetPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 1.0000000000000000E+002,
+              "Y" : 1.0000000000000000E+002
+            },
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0000000000000000E+002,
+              "Z" : 1.0000000000000000E+002
+            }
+          },
+          {
+            "$$ClassName" : "TCastleDirectionalLight",
+            "Intensity" : 5.0000000000000000E+000,
+            "Name" : "DirectionalLight1",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 1.3065584897994995E+000,
+              "X" : -9.9999922513961792E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 1.0473854064941406E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleDirectionalLight",
+            "Intensity" : 5.0000000000000000E+000,
+            "Name" : "DirectionalLight2",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 2.2737858295440674E+000,
+              "X" : -9.8155927658081055E-001,
+              "Y" : -8.1599749624729156E-002,
+              "Z" : 1.7285902798175812E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 1.8077804565429688E+001,
+              "Z" : -2.8104036331176758E+001
+            }
+          }
+        ]
+      },
+      "Name" : "Viewport1",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 8.7985193729400635E-001,
+          "X" : -8.4535247087478638E-001,
+          "Y" : 4.9601525068283081E-001,
+          "Z" : 1.9836390018463135E-001
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 1.2082550811767578E+002,
+          "Y" : 1.1679869842529297E+002,
+          "Z" : 1.7578593444824219E+002
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "MoveSpeed" : 8.5769599914550781E+001,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    }
+  ]
+}

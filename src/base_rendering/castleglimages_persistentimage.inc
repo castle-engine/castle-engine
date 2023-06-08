@@ -95,6 +95,7 @@
 
     { Parameters used in Draw. }
     FProtectedSides: TBorder;
+    FRegion: TFloatRectangle;
     FFlipHorizontal: Boolean;
     FFlipVertical: Boolean;
     FProtectedSidesScaling: TProtectedSidesScaling;
@@ -103,6 +104,7 @@
     function GetOwnsImage: boolean;
     procedure SetOwnsImage(const Value: boolean);
     procedure SetCache(const Value: Boolean);
+    procedure SetRegion(AValue: TFloatRectangle);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TEncodedImage);
     procedure SetDrawableImage(const Value: TDrawableImage);
@@ -221,6 +223,10 @@
       which means that image colors are unchanged. }
     property Color: TCastleColor read FColor write SetColor;
 
+    { Image region to which we should limit the display.
+      Empty (following @link(TFloatRectangle.Empty)) means using the whole image. }
+    property Region: TFloatRectangle read FRegion write SetRegion;
+
     property InternalVisualizeProtectedSides: Boolean
       read FInternalVisualizeProtectedSides write FInternalVisualizeProtectedSides default true;
 
@@ -230,8 +236,13 @@
       (colors, or maybe even image size) you need to call this. }
     procedure ImageChanged;
 
+    { Width of drawn image. This is like DrawableImage.Width, but limited by Region. }
     function Width: Cardinal;
+
+    { Height of drawn image. This is like DrawableImage.Height, but limited by Region. }
     function Height: Cardinal;
+
+    { Are both @link(Width) and @link(Height) equal to zero. }
     function Empty: Boolean;
 
     { Draw the image in given screen area. }
@@ -362,8 +373,11 @@ begin
   FScaleCorners := 1;
   FScaleFromUrl := 1;
   FInternalVisualizeProtectedSides := true;
+  FRegion := TFloatRectangle.Empty;
 
-  FProtectedSides := TBorder.Create({$ifdef FPC}@{$endif}ProtectedSidesChange);
+  FProtectedSides := TBorder.Create(nil);
+  FProtectedSides.SetSubComponent(true);
+  FProtectedSides.OnChange := {$ifdef FPC}@{$endif} ProtectedSidesChange;
   CreateDrawableImage;
 
   {$define read_implementation_constructor}
@@ -498,6 +512,44 @@ begin
   end;
 end;
 
+procedure TCastleImagePersistent.SetRegion(AValue: TFloatRectangle);
+
+  function RectsEqual(const R1, R2: TFloatRectangle): boolean;
+  begin
+    Result :=
+      (R1.Left = R2.Left) and
+      (R1.Bottom = R2.Bottom) and
+      (R1.Width = R2.Width) and
+      (R1.Height = R2.Height);
+  end;
+
+begin
+  { Testing using "FRegion.PerfectlyEquals" would result in a bit weird
+    behavior:
+
+    Since multiple values can satisfy IsEmpty=true,
+    so setting some values to Region would be ignored
+    when both old and new values are IsEmpty=true.
+    Although in principle this is correct (since both old and new values
+    mean "empty"), but UX is weird:
+
+    - set some non-empty Region
+    - then change Width to -1
+    - and now you cannot change Height to -1...
+
+    Or:
+
+    - set Region to TFloadRectangle.Empty (both width and height = -1)
+    - try change Width to 100... and it's ignored, because rectangle is still
+      empty, because Height remains -1
+  }
+  if not RectsEqual(FRegion, AValue) then
+  begin
+    FRegion := AValue;
+    DoChange;
+  end;
+end;
+
 function TCastleImagePersistent.GetImage: TEncodedImage;
 begin
   Result := FDrawableImage.Image;
@@ -570,17 +622,23 @@ end;
 
 function TCastleImagePersistent.Width: Cardinal;
 begin
-  Result := FDrawableImage.Width;
+  if not FRegion.IsEmpty then
+    Result := Min(Floor(FRegion.Width), FDrawableImage.Width)
+  else
+    Result := FDrawableImage.Width;
 end;
 
 function TCastleImagePersistent.Height: Cardinal;
 begin
-  Result := FDrawableImage.Height;
+  if not FRegion.IsEmpty then
+    Result := Min(Floor(FRegion.Height), FDrawableImage.Height)
+  else
+    Result := FDrawableImage.Height;
 end;
 
 function TCastleImagePersistent.Empty: Boolean;
 begin
-  Result := (FDrawableImage.Width = 0) or (FDrawableImage.Height = 0);
+  Result := (Width = 0) or (Height = 0);
 end;
 
 procedure TCastleImagePersistent.DrawUiBegin(const NewScaleCorners: Single);
@@ -651,6 +709,14 @@ procedure TCastleImagePersistent.Draw(
     ], Vector4(1, 1, 0, 0.5));
   end;
 
+  function ImageRect: TFloatRectangle;
+  begin
+    if not FRegion.IsEmpty then
+      Result := FRegion
+    else
+      Result := FloatRectangle(FDrawableImage.Rect);
+  end;
+
 var
   ProtectedSidesVector: TVector4;
 begin
@@ -681,9 +747,9 @@ begin
   if not FProtectedSides.Exists then
   begin
     if FlipHorizontal or FlipVertical then
-      FDrawableImage.DrawFlipped(ScreenRectangle, FlipHorizontal, FlipVertical)
+      FDrawableImage.DrawFlipped(ScreenRectangle, ImageRect, FlipHorizontal, FlipVertical)
     else
-      FDrawableImage.Draw(ScreenRectangle);
+      FDrawableImage.Draw(ScreenRectangle, ImageRect);
   end else
   begin
     // TODO: FlipHorizontal, FlipVertical ignored in this case
@@ -693,7 +759,8 @@ begin
       ProtectedSides.TotalBottom,
       ProtectedSides.TotalLeft
     );
-    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector);
+
+    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector, FRegion);
 
     if CastleDesignMode and InternalVisualizeProtectedSides and ProtectedSides.Exists then
       VisualizeProtectedSides;

@@ -19,8 +19,7 @@
   With older LCL (1.6.4, at the time of FPC 3.0.2) we get
     src/lcl/castlepropedits_float.inc(37,10) Error: (5000) Identifier not found "HasDefaultValue"
     src/lcl/castlepropedits_float.inc(46,13) Error: (5000) Identifier not found "FormatValue"
-  Possibly this could be defined for more versions, not only >= 2.0.8
-  -- testing needed.
+  It doesn't seem useful to support older LCL anyway now.
 }
 {$if LCL_FULLVERSION >= 02000800}
   {$define LCL_HAS_DEFAULT_VALUE}
@@ -85,7 +84,7 @@ begin
   PropInfo := GetPropInfo;
   { Hard-cast Default to Single,
     this is how default value for Single property is stored,
-    consistent with HasDefaultValue in CastleComponentSerialize
+    consistent with PropertyHasDefaultValue in CastleInternalRttiUtils
     which is consistent with other FPC/Lazarus code. }
   DefFloatValue := PSingle(@PropInfo^.Default)^;
   Result := FormatValue(DefFloatValue);

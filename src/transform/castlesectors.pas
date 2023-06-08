@@ -176,7 +176,7 @@ var
   I: Integer;
 begin
   for I := 0 to Boxes.Count - 1 do
-    if Boxes.List^[I].Contains(Point) then
+    if Boxes.L[I].Contains(Point) then
       Exit(true);
   Result := false;
 end;
@@ -186,7 +186,7 @@ var
   I: Integer;
 begin
   for I := 0 to Boxes.Count - 1 do
-    if Boxes.List^[I].Collision(Box) then
+    if Boxes.L[I].Collision(Box) then
       Exit(true);
   Result := false;
 end;

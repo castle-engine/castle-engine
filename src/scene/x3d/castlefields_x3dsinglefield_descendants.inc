@@ -1,3 +1,4 @@
+{%MainUnit x3dfields.pas}
 {
   Copyright 2002-2022 Michalis Kamburelis.
 
@@ -1149,7 +1150,7 @@ end;
 
 procedure TSFFloat.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Format('%g', [Value]));
+  Writer.Write(FormatDot('%g', [Value]));
 end;
 
 function TSFFloat.EqualsDefaultValue: boolean;
@@ -1261,7 +1262,7 @@ end;
 
 procedure TSFDouble.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Format('%g', [Value]));
+  Writer.Write(FormatDot('%g', [Value]));
 end;
 
 function TSFDouble.EqualsDefaultValue: boolean;
@@ -1473,7 +1474,7 @@ begin
   if Value.IsEmpty then
     Writer.Write('0 0 1') else
   begin
-    Writer.Writeln(Format('%d %d %d', [
+    Writer.Writeln(FormatDot('%d %d %d', [
       Value.Width,
       Value.Height,
       Value.ColorComponentsCount]));
@@ -1485,7 +1486,7 @@ begin
       for i := 0 to Value.Width * Value.Height - 1 do
       begin
         pixel := TGrayscaleImage(Value).PixelsArray^[i];
-        Writer.Write(Format('0x%.2x ', [pixel]));
+        Writer.Write(FormatDot('0x%.2x ', [pixel]));
       end;
     end else
     if Value is TGrayscaleAlphaImage then
@@ -1494,7 +1495,7 @@ begin
       begin
         ga := TGrayscaleAlphaImage(Value).PixelsArray^[i];
         pixel := (ga.X shl 8) or ga.Y;
-        Writer.Write(Format('0x%.4x ', [pixel]));
+        Writer.Write(FormatDot('0x%.4x ', [pixel]));
       end;
     end else
     if Value is TRGBImage then
@@ -1503,7 +1504,7 @@ begin
       begin
         rgb := TRGBImage(Value).PixelsArray^[i];
         pixel := (rgb.X shl 16) or (rgb.Y shl 8) or rgb.Z;
-        Writer.Write(Format('0x%.6x ', [pixel]));
+        Writer.Write(FormatDot('0x%.6x ', [pixel]));
       end;
     end else
     if Value is TRGBAlphaImage then
@@ -1512,7 +1513,7 @@ begin
       begin
         rgba := TRGBAlphaImage(Value).PixelsArray^[i];
         pixel := (rgba.X shl 24) or (rgba.Y shl 16) or (rgba.Z shl 8) or rgba[3];
-        Writer.Write(Format('0x%.8x ', [pixel]));
+        Writer.Write(FormatDot('0x%.8x ', [pixel]));
       end;
     end else
       raise Exception.Create('TSFImage.SaveToStreamValue - not implemented TCastleImage descendant');
@@ -2485,7 +2486,7 @@ end;
 
 procedure TSFRotation.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Axis.ToRawString +' ' +Format('%g', [RotationRad]));
+  Writer.Write(Axis.ToRawString +' ' +FormatDot('%g', [RotationRad]));
 end;
 
 function TSFRotation.RotatedPoint(const pt: TVector3): TVector3;
@@ -2497,7 +2498,7 @@ begin
       results (actually, Result would be filled with Nan values).
       VRML spec says that SFRotation should always specify a normalized vector. }
     Result := Pt;
-    WritelnWarning('X3D', Format('SFRotation field (%s) specifies rotation around zero vector', [NiceName]));
+    WritelnWarning('X3D', FormatDot('SFRotation field (%s) specifies rotation around zero vector', [NiceName]));
   end;
 end;
 

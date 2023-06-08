@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -88,14 +89,14 @@ var
       begin
         ThisIndex := Index + I * (Detail[C2] + 2) + J;
 
-        Coord.List^[ThisIndex].Data[C1] := Lerp(I / (Detail[C1] + 1), X1, X2);
-        Coord.List^[ThisIndex].Data[C2] := Lerp(J / (Detail[C2] + 1), Y1, Y2);
-        Coord.List^[ThisIndex].Data[ConstCoord] := ConstCoordValue;
+        Coord.L[ThisIndex].Data[C1] := Lerp(I / (Detail[C1] + 1), X1, X2);
+        Coord.L[ThisIndex].Data[C2] := Lerp(J / (Detail[C2] + 1), Y1, Y2);
+        Coord.L[ThisIndex].Data[ConstCoord] := ConstCoordValue;
 
-        Normal.List^[ThisIndex] := N;
+        Normal.L[ThisIndex] := N;
 
         if TexCoord <> nil then
-          TexCoord.List^[ThisIndex] := MakeTexCoord(
+          TexCoord.L[ThisIndex] := MakeTexCoord(
             Lerp(I / (Detail[C1] + 1), TexX1, TexX2),
             Lerp(J / (Detail[C2] + 1), TexY1, TexY2));
       end;
@@ -105,11 +106,11 @@ var
       begin
         FaceIndex := CoordIndex.Count;
         CoordIndex.Count := CoordIndex.Count + 5;
-        CoordIndex.List^[FaceIndex    ] := Index + (I - 1) * (Detail[C2] + 2) + J - 1;
-        CoordIndex.List^[FaceIndex + 1] := Index +  I      * (Detail[C2] + 2) + J - 1;
-        CoordIndex.List^[FaceIndex + 2] := Index +  I      * (Detail[C2] + 2) + J;
-        CoordIndex.List^[FaceIndex + 3] := Index + (I - 1) * (Detail[C2] + 2) + J;
-        CoordIndex.List^[FaceIndex + 4] := -1;
+        CoordIndex.L[FaceIndex    ] := Index + (I - 1) * (Detail[C2] + 2) + J - 1;
+        CoordIndex.L[FaceIndex + 1] := Index +  I      * (Detail[C2] + 2) + J - 1;
+        CoordIndex.L[FaceIndex + 2] := Index +  I      * (Detail[C2] + 2) + J;
+        CoordIndex.L[FaceIndex + 3] := Index + (I - 1) * (Detail[C2] + 2) + J;
+        CoordIndex.L[FaceIndex + 4] := -1;
       end;
 
     if MaterialIndex <> nil then

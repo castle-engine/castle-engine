@@ -1930,19 +1930,9 @@ type
 
     { OpenAndRun stuff --------------------------------------------------------- }
 
-    { Shortcut for Open (create and show the window with GL contex)
-      and Application.Run (run the event loop). }
-    procedure OpenAndRun; overload;
-
-    { Shortcut for setting Caption, OnRender,
-      then calling Open (create and show the window with GL contex)
-      and Application.Run (run the event loop).
-
-      @deprecated Deprecated, it is cleaner to just set Caption and OnRender
-      as properties, and then use parameterless OpenAndRun version.
-      In many programs, OnRender is not even used, as you render your stuff
-      inside various TCastleUserInterface instances. }
-    procedure OpenAndRun(const ACaption: string; AOnRender: TContainerEvent); overload; deprecated;
+    { Do @link(Open) (initialize rendering context, show the window)
+      followed by @link(TCastleApplication.Run Application.Run) (run the event loop). }
+    procedure OpenAndRun;
 
     { Parsing parameters ------------------------------------------------------- }
 
@@ -3695,13 +3685,6 @@ begin
 end;
 
 { OpenAndRun ----------------------------------------------------------------- }
-
-procedure TCastleWindow.OpenAndRun(const ACaption: string; AOnRender: TContainerEvent);
-begin
-  SetPublicCaption(ACaption);
-  OnRender := AOnRender;
-  OpenAndRun;
-end;
 
 procedure TCastleWindow.OpenAndRun;
 begin

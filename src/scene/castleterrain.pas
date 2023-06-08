@@ -576,7 +576,7 @@ type
     FData: TCastleTerrainData;
     FDataObserver: TFreeNotificationObserver;
     FTriangulate: Boolean;
-    FSize: TVector2;
+    FSize, FQueryOffset: TVector2;
     FLayersInfluence: Single;
     FSteepEmphasize: Single;
     FSubdivisions: TVector2;
@@ -595,6 +595,7 @@ type
     procedure SetTriangulate(const Value: Boolean);
     procedure SetSubdivisions(const Value: TVector2);
     procedure SetSize(const Value: TVector2);
+    procedure SetQueryOffset(const Value: TVector2);
     function GetHeight(const Index: Integer): Single;
     procedure SetHeight(const Index: Integer; const Value: Single);
     procedure SetLayersInfluence(const Value: Single);
@@ -657,6 +658,18 @@ type
       Changing this requires rebuild of terrain geometry, so it's costly.
       Avoid doing it at runtime. }
     property Size: TVector2 read FSize write SetSize;
+
+    { Offset the range of input values used to query the @link(Data).
+
+      By default (when this is zero) we query the @link(TCastleTerrainData.Height)
+      using @code(Coord) values ranging in X from -Size/2 to Size/2,
+      similarly in Z.
+
+      This vector offsets the range of queried values.
+
+      It can be used to display a terrain noise matching neighboring terrain
+      noise. }
+    property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
@@ -844,7 +857,7 @@ begin
       );
       // TexCoord.Y grows in different direction, see Height docs for reason
       TexCoord.Y := 1 - TexCoord.Y;
-      Grid.FdHeight.Items.List^[X + Z * SubdivisionsX] := Height(Coord, TexCoord);
+      Grid.FdHeight.Items.L[X + Z * SubdivisionsX] := Height(Coord, TexCoord);
     end;
 
   Shape.Appearance := Appearance;
@@ -937,7 +950,7 @@ var
 
     function FaceNormal(const DeltaX, DeltaY: Integer): TVector3;
     begin
-      Result := FaceNormals.List^[Idx(I + DeltaX, J + DeltaY)];
+      Result := FaceNormals.L[Idx(I + DeltaX, J + DeltaY)];
     end;
 
   begin
@@ -993,7 +1006,7 @@ begin
   { calculate Coord }
   for I := 0 to SubdivisionsX do
     for J := 0 to SubdivisionsZ do
-      CalculatePosition(I, J, Coord.List^[Idx(I, J)]);
+      CalculatePosition(I, J, Coord.L[Idx(I, J)]);
   CoordNode.FdPoint.Changed;
 
   { calculate Normals }
@@ -1003,17 +1016,17 @@ begin
     { calculate per-face (flat) normals }
     for I := 0 to SubdivisionsX - 1 do
       for J := 0 to SubdivisionsZ - 1 do
-        CalculateFaceNormal(I, J, FaceNormals.List^[Idx(I, J)]);
+        CalculateFaceNormal(I, J, FaceNormals.L[Idx(I, J)]);
     { calculate smooth vertex normals }
     for I := 0 to SubdivisionsX - 1 do
       for J := 0 to SubdivisionsZ - 1 do
-        CalculateNormal(I, J, Normal.List^[Idx(I, J)]);
+        CalculateNormal(I, J, Normal.L[Idx(I, J)]);
   finally FreeAndNil(FaceNormals) end;
   NormalNode.FdVector.Changed;
 
   { calculate Index }
   Index.Count := (SubdivisionsX - 1) * (SubdivisionsZ * 2 + 1);
-  IndexPtr := PInt32(Index.List);
+  IndexPtr := PInt32(Index.L);
   for I := 1 to SubdivisionsX - 1 do
   begin
     for J := 0 to SubdivisionsZ - 1 do
@@ -1026,7 +1039,7 @@ begin
     Inc(IndexPtr);
   end;
   // make sure our Index.Count was set exactly to what we needed
-  Assert((PtrUInt(IndexPtr) - PtrUInt(Index.List)) div SizeOf(Int32) = Index.Count);
+  Assert((PtrUInt(IndexPtr) - PtrUInt(Index.L)) div SizeOf(Int32) = Index.Count);
   Geometry.FdIndex.Changed;
 end;
 
@@ -1778,6 +1791,23 @@ begin
   {$I auto_generated_persistent_vectors/tcastleterrain_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
+
+  { Avoid Appearance having invalid reference in Appearance.Scene.
+    Note that Scene was freed in "inherited" above,
+    but Appearance.Scene may not have been cleared,
+    because of optimization in TCastleSceneCore.FreeRootNode doing:
+
+      if (FRootNode <> nil) and (not FOwnsRootNode) then
+        FRootNode.UnregisterScene;
+
+    See comments in TCastleSceneCore.FreeRootNode about it.
+
+    To avoid crashes at examples/terrain exit, we have to clear
+    Appearance.Scene manually, otherwise TAppearanceNode will try to access
+    it in MoveShapeAssociations. }
+  if Appearance <> nil then
+    Appearance.UnregisterScene;
+
   // remove after RootNode containing this is removed too
   FreeAndNil(Appearance);
 end;
@@ -1838,7 +1868,7 @@ procedure TCastleTerrain.UpdateGeometry;
 
 var
   Root: TX3DRootNode;
-  Range: TFloatRectangle;
+  InputRange, OutputRange: TFloatRectangle;
 begin
   { During deserialization, defer the real work to the Loaded moment,
     to avoid regenerating heights multiple times. }
@@ -1848,31 +1878,34 @@ begin
     Exit;
   end;
 
-  Range := FloatRectangle(-Size.X/2, -Size.Y/2, Size.X, Size.Y);
+  OutputRange := FloatRectangle(-Size.X/2, -Size.Y/2, Size.X, Size.Y);
+
+  InputRange := OutputRange;
+  InputRange.LeftBottom := InputRange.LeftBottom + QueryOffset;
 
   if Data <> nil then
   begin
     if TerrainNode = nil then
     begin
       if Triangulate then
-        TerrainNode := Data.CreateTriangulatedNode(Subdivisions, Range, Range, Appearance)
+        TerrainNode := Data.CreateTriangulatedNode(Subdivisions, InputRange, OutputRange, Appearance)
       else
-        TerrainNode := Data.CreateNode(Subdivisions, Range, Range, Appearance);
+        TerrainNode := Data.CreateNode(Subdivisions, InputRange, OutputRange, Appearance);
       Root := TX3DRootNode.Create;
       Root.AddChildren(TerrainNode);
       Scene.Load(Root, true);
     end else
     begin
       if Triangulate then
-        Data.UpdateTriangulatedNode(TerrainNode, Subdivisions, Range, Range)
+        Data.UpdateTriangulatedNode(TerrainNode, Subdivisions, InputRange, OutputRange)
       else
-        Data.UpdateNode(TerrainNode, Subdivisions, Range, Range);
+        Data.UpdateNode(TerrainNode, Subdivisions, InputRange, OutputRange);
     end;
   end else
   begin
     { When Data is empty, show a simple quad to visualize Size of the terrain. }
     Root := TX3DRootNode.Create;
-    Root.AddChildren(CreateQuadShape(Range));
+    Root.AddChildren(CreateQuadShape(OutputRange));
     Scene.Load(Root, true);
     { Do not let subsequent calls to use TerrainNode as it was destroyed
       by Scene.Load above.
@@ -1959,6 +1992,15 @@ begin
   end;
 end;
 
+procedure TCastleTerrain.SetQueryOffset(const Value: TVector2);
+begin
+  if not TVector2.PerfectlyEquals(FQueryOffset, Value) then
+  begin
+    FQueryOffset := Value;
+    UpdateGeometry;
+  end;
+end;
+
 function TCastleTerrain.GetHeight(const Index: Integer): Single;
 begin
   Result := HeightsFields[Index].Value;
@@ -2003,7 +2045,7 @@ begin
        'SizePersistent', 'PreciseCollisions',
        'Height1', 'Height2',
        'Layer1', 'Layer2', 'Layer3', 'Layer4',
-       'LayersInfluence', 'SteepEmphasize'
+       'LayersInfluence', 'SteepEmphasize', 'QueryOffsetPersistent'
      ]) then
     Result := [psBasic]
   else

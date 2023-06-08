@@ -9,6 +9,9 @@ pipeline {
        they stuck Jenkins much with too many long-running builds.
        Better to wait for previous build to finish. */
     disableConcurrentBuilds()
+    /* Trying to resume builds when controller restarts usually results
+       in job just being stuck forever. So we disable it. */
+    disableResume()
     /* Makes failure in any paralel job to stop the build,
        instead of needlessly trying to finish on one node,
        when another node already failed. */
@@ -19,7 +22,10 @@ pipeline {
   agent none
 
   parameters {
-    booleanParam(name: 'jenkins_fast', defaultValue: false, description: 'Use at emergencies, to make pipeline build faster')
+    /* Since our Jenkins servers are really overloaded now,
+       we build by default with jenkins_fast=true,
+       and rely on Jenkinsfile.non-critical to perform all non-critical tests. */
+    booleanParam(name: 'jenkins_fast', defaultValue: true, description: 'Make pipeline build faster')
   }
 
   stages {
@@ -174,14 +180,9 @@ pipeline {
             }
           }
         }
-        /* Raspberry Pi is very slow and overloaded, rebuild for it only on master */
         stage('Raspberry Pi') {
-          when {
-            allOf {
-              not { expression { return params.jenkins_fast } };
-              branch "master"
-            }
-          }
+          /* Raspberry Pi is very slow and overloaded, rebuild for it only on master */
+          when { branch "master" }
           agent {
             label 'raspberry-pi-cge-builder'
           }
@@ -215,16 +216,19 @@ pipeline {
               }
             }
             stage('(RPi) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
               }
             }
             stage('(RPi) Build And Run Auto-Tests') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make tests'
               }
             }
             stage('(RPi) Build Using FpMake') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean test-fpmake'
               }
@@ -240,7 +244,6 @@ pipeline {
           }
         }
         stage('macOS') {
-          when { not { expression { return params.jenkins_fast } } }
           agent {
             label 'mac-cge-builder'
           }
@@ -278,6 +281,7 @@ pipeline {
               }
             }
             stage('(macOS) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean examples'
               }

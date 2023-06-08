@@ -1,3 +1,4 @@
+{%MainUnit castleutils.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -244,7 +245,7 @@ begin
     But, in exchange, it's fast. }
   Count := Source.Count;
   if Count <> 0 then
-    System.Move(Source.List^[0], List^[0], SizeOf(UInt32) * Count);
+    System.Move(Source.L[0], L[0], SizeOf(UInt32) * Count);
 end;
 
 { TFloatList ------------------------------------------------------------ }
@@ -299,12 +300,12 @@ procedure TSingleList.AssignLerpRange(const Fraction: Single;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
-  PtrTarget, Ptr1, Ptr2: PSingle;
+  PtrTarget, Ptr1, Ptr2: PtrT;
 begin
   Count := ACount;
-  PtrTarget := PSingle(List);
-  Ptr1 := @V1.List^[Index1];
-  Ptr2 := @V2.List^[Index2];
+  PtrTarget := L;
+  Ptr1 := V1.Ptr(Index1);
+  Ptr2 := V2.Ptr(Index2);
   for I := 0 to Count - 1 do
   begin
     PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
@@ -330,7 +331,7 @@ begin
     Result := Count = TSingleList(SecondValue).Count;
     if Result then
       for I := 0 to Count - 1 do
-        if not SameValue(TSingleList(SecondValue).List^[I], List^[I]) then
+        if not SameValue(TSingleList(SecondValue).L[I], L[I]) then
         begin
           Result := false;
           Exit;
@@ -410,12 +411,12 @@ procedure TDoubleList.AssignLerpRange(const Fraction: Single;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
-  PtrTarget, Ptr1, Ptr2: PDouble;
+  PtrTarget, Ptr1, Ptr2: PtrT;
 begin
   Count := ACount;
-  PtrTarget := PDouble(List);
-  Ptr1 := @V1.List^[Index1];
-  Ptr2 := @V2.List^[Index2];
+  PtrTarget := L;
+  Ptr1 := V1.Ptr(Index1);
+  Ptr2 := V2.Ptr(Index2);
   for I := 0 to Count - 1 do
   begin
     PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
@@ -435,7 +436,7 @@ begin
     Result := Count = TDoubleList(SecondValue).Count;
     if Result then
       for I := 0 to Count - 1 do
-        if not SameValue(TDoubleList(SecondValue).List^[I], List^[I]) then
+        if not SameValue(TDoubleList(SecondValue).L[I], L[I]) then
         begin
           Result := false;
           Exit;

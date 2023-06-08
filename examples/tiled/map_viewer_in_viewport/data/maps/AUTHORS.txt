@@ -1,6 +1,0 @@
-These maps come from Tiled examples on
-https://github.com/bjorn/tiled .
-
-License: GPL 2, as far as we know.
-Tiled repository contains 3 licenses, see also
-https://github.com/bjorn/tiled/blob/master/COPYING .

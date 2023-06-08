@@ -50,7 +50,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FGravityUpPersistent := TCastleVector3Persistent.Create;
+  FGravityUpPersistent := TCastleVector3Persistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FGravityUpPersistent.SetSubComponent(true);
   FGravityUpPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetGravityUpForPersistent;
   FGravityUpPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetGravityUpForPersistent;
   FGravityUpPersistent.InternalDefaultValue := GravityUp; // current value is default
