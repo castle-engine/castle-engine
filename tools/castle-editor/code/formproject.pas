@@ -2377,6 +2377,19 @@ begin
 
   if Design = nil then
     ListOpenExistingViewRefresh;
+
+  { Synchronize action state with new design.
+    Testcase:
+    - open project
+    - open design
+    - toggle "Show Colliders" to true by clicking in menu
+    - close design
+    - open design again
+    - -> desired effect: "Show Colliders" is synchronized with Design.ShowColliders,
+      which means it is reset to false now.
+  }
+  if Design <> nil then
+    ActionShowColliders.Checked := Design.ShowColliders;
 end;
 
 procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
