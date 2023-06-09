@@ -493,8 +493,8 @@ begin
     MaxHeight := MaxHeight + GlyphPadding;
     if DistanceField then
     begin
-      MaxWidth += 2 * DistanceFieldPadding;
-      MaxHeight += 2 * DistanceFieldPadding;
+      MaxWidth := MaxWidth + 2 * DistanceFieldPadding;
+      MaxHeight := MaxHeight + 2 * DistanceFieldPadding;
     end;
 
     ImageSize := 8;
