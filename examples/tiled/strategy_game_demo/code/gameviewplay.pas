@@ -19,7 +19,7 @@ unit GameViewPlay;
 interface
 
 uses Classes,
-  CastleControls, CastleTiledMap, CastleUIControls,
+  CastleControls, CastleTiledMap, CastleUIControls, CastleTransform,
   CastleVectors, CastleKeysMouse, CastleScene, CastleViewport,
   GameUnit;
 
@@ -36,6 +36,7 @@ type
     ViewportMap: TCastleViewport;
   strict private
     TileUnderMouseImage: TCastleImageTransform;
+    SelectedUnitVisualization: TCastleTransform;
     TileUnderMouseExists: Boolean;
     TileUnderMouse: TVector2Integer;
     UnitsOnMap: TUnitsOnMap;
@@ -142,6 +143,11 @@ begin
   TileUnderMouseImage.Exists := false;
   Map.Add(TileUnderMouseImage);
 
+  SelectedUnitVisualization := TransformLoad(
+    'castle-data:/unit_selected.castle-transform', FreeAtStop);
+  SelectedUnitVisualization.Exists := false;
+  Map.Add(SelectedUnitVisualization);
+
   HumanTurn := true;
   UpdateTurnStatus;
 end;
@@ -151,8 +157,10 @@ begin
   { Make sure to clear fields, otherwise stopping + starting this view again
     (when you exit the game and start a new game) could have non-nil but
     invalid SelectedUnit reference. }
-  TileUnderMouseExists := false;
   SelectedUnit := nil;
+  TileUnderMouseExists := false;
+  // set to nil, as it will be freed by FreeAtStop
+  SelectedUnitVisualization := nil;
   inherited;
 end;
 
@@ -179,6 +187,7 @@ procedure TViewPlay.ClickEndTurn(Sender: TObject);
 begin
   HumanTurn := not HumanTurn;
   SelectedUnit := nil;
+  SelectedUnitVisualization.Exists := false;
   ResetMovement;
   UpdateTurnStatus;
 end;
@@ -205,6 +214,12 @@ function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
     end;
   end;
 
+  procedure ShowSelectedUnit;
+  begin
+    SelectedUnitVisualization.Exists := true;
+    SelectedUnitVisualization.Parent := SelectedUnit.Transform;
+  end;
+
 var
   UnitUnderMouse: TUnit;
 begin
@@ -218,6 +233,7 @@ begin
     begin
       // select new unit
       SelectedUnit := UnitUnderMouse;
+      ShowSelectedUnit;
       UpdateTurnStatus; // SelectedUnit changed
       Exit(true); // event handled
     end else
