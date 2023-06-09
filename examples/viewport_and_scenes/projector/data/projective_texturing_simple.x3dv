@@ -1,0 +1,28 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+Shape {
+  appearance Appearance {
+    texture ImageTexture {
+      url "test_texture.png"
+      textureProperties TextureProperties {
+        boundaryModeS "CLAMP"
+        boundaryModeT "CLAMP"
+      }
+    }
+  }
+  geometry Box {
+    texCoord ProjectedTextureCoordinate {
+      projector DEF MyProjector SpotLight {
+        # Projecting texture direction and location,
+        # relative (local) to the TCastleScene that has loaded this X3D file.
+        direction 1 1 1
+        location 10 10 10
+        # Size of light in radians, determines also cast texture size.
+        cutOffAngle 0.05
+        # We turn the light off, to use it only for projector.
+        on FALSE
+      }
+    }
+  }
+}
