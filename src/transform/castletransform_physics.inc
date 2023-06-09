@@ -1,4 +1,4 @@
-﻿{%MainUnit castletransform.pas}
+{%MainUnit castletransform.pas}
 {
   Copyright 2017-2023 Michalis Kamburelis.
 
