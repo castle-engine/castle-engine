@@ -218,7 +218,7 @@ begin
     begin
       // select new unit
       SelectedUnit := UnitUnderMouse;
-      UpdateTurnStatus;
+      UpdateTurnStatus; // SelectedUnit changed
       Exit(true); // event handled
     end else
     if (SelectedUnit <> nil) and
@@ -233,12 +233,14 @@ begin
         // so UnitUnderMouse pointer afterwards is no longer valid.
         UnitUnderMouse := nil;
         SelectedUnit.Movement := 0;
+        UpdateTurnStatus; // SelectedUnit stats changed
         CheckWin;
       end else
       begin
         // move
         SelectedUnit.TilePosition := TileUnderMouse;
         SelectedUnit.Movement := SelectedUnit.Movement - 1;
+        UpdateTurnStatus; // SelectedUnit stats changed
       end;
       Exit(true); // event handled
     end;
@@ -278,9 +280,12 @@ procedure TViewPlay.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 const
   HoverAlpha = 0.75;
-  ColorAllowed: TCastleColor = (X: 1; Y: 0; Z: 0; W: HoverAlpha); // red
-  ColorNotAllowed: TCastleColor = (X: 0.25; Y: 1; Z: 0.25; W: HoverAlpha); // light green
-  ColorMoveAllowed: TCastleColor = (X: 1; Y: 1; Z: 1; W: HoverAlpha); // yellow
+  { When choosing colors, be sure to choose something clearly visible on our
+    tiles background. Light green, or yellow. or light blue -> not good,
+    as would mix with some map tiles. }
+  ColorNotAllowed: TCastleColor = (X: 1; Y: 0; Z: 0; W: HoverAlpha); // red
+  ColorAllowed: TCastleColor = (X: 0; Y: 1; Z: 0; W: HoverAlpha); // green
+  ColorMoveAllowed: TCastleColor = (X: 1; Y: 1; Z: 1; W: HoverAlpha); // white
 var
   TileStr: String;
   TileRect: TFloatRectangle;
@@ -324,10 +329,8 @@ begin
     UnitUnderMouse := nil;
 
   { update TileUnderMouseImage.Color }
-  if SelectedUnit = nil then
-    TileUnderMouseImage.Color := ColorAllowed
-  else
-  if SelectedUnit.CanMove(TileUnderMouse) then
+  if (SelectedUnit <> nil) and
+     SelectedUnit.CanMove(TileUnderMouse) then
     // can move by clicking here
     TileUnderMouseImage.Color := ColorMoveAllowed
   else
