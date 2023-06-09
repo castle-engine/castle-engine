@@ -326,12 +326,35 @@ var
       end;
     end;
 
+    { Generate distance field font texture.
+      The algorithm is roughly described at https://libgdx.com/wiki/graphics/2d/fonts/distance-field-fonts
+      Here we adjust it for anti-aliased image received in Bitmap^
+      For every pixel we calculate distance to:
+      a) at least partially opaque pixel
+      b) full transparent pixel
+      Then we blend those two distances based on opaqueness of the current pixel:
+      * for fully opaque pixel it's distance to the nearest transaprent pixel
+      * for fully transparent pixel it's distance to the nearest opaque pixel
+      * for semi-transparent pixel it's something in-between
+        (the formula was invented by trial-and-error and could be improved)
+      Note 1: We do not normalize the result as we're supposed to!
+        It'll force us to use two-pass algorithm, which will slow things down significantly
+        And it seems like the current algorithm is enough to get a good quality image
+      Note 2: This algorithm is O(n^4) and as such is rather slow
+        (approx. 50 times slower than generating a normal font texture),
+        however, absolute time can be considered negligible (far under a second).
+        This means distance field font will take longer time to load,
+        it's a single-time loading procedure though.
+        TCastleFont will also apply a different shader on top of the generated texture
+        which also can slow down performance a tiny bit,
+        however this effect should be completely negligible.
+      Note 3: We also add special padding to each symbol of the font,
+        which sometimes results in larger texure generated }
     procedure DrawCharDistanceField;
     var
       RX, RY, AX, AY: Integer;
       DX, DY: Integer;
       MaxB: Byte;
-      MaxDTransparent: Integer;
       DTransparent, DOpaque, TempD: Integer; //6^2 + 6^2 = 72
       Opqaueness: Single;
     begin
@@ -510,6 +533,7 @@ begin
 
     ImageX := 0;
     ImageY := 0;
+
     for C in ACharacters do
     begin
       GlyphInfo := Glyph(C, false);
