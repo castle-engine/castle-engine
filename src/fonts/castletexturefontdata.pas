@@ -36,7 +36,6 @@ type
     const
       CDistanceFieldPadding = Integer(6);
     var
-      FDistanceFieldPadding: Integer;
       FDistanceField: Boolean;
   public
     type
@@ -368,15 +367,17 @@ var
                   if DOpaque > TempD then
                     DOpaque := TempD;
                 end else
-                if DTransparent > TempD then
-                  DTransparent := TempD;
+                begin
+                  if DTransparent > TempD then
+                    DTransparent := TempD;
+                end;
               end;
             Opqaueness := Single(GetPixelSafe(RX, RY)) / Single(MaxB);
             Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ :=
-            Trunc(
-              Opqaueness * (128 + 127 * Sqrt(DTransparent) / DistanceFieldPadding) +
-              (1 - Opqaueness) * (127 * Sqrt(DTransparent) / DistanceFieldPadding)
-            );
+              Trunc(
+                Opqaueness * (128 + 127 * Sqrt(DTransparent) / DistanceFieldPadding) +
+                (1 - Opqaueness) * (127 * Sqrt(Sqr(DistanceFieldPadding) - DOpaque) / DistanceFieldPadding)
+              );
           end;
     end;
 
