@@ -62,7 +62,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleComponentSerialize, CastleUtils, CastleRectangles,
+  CastleComponentSerialize, CastleUtils, CastleRectangles, CastleColors,
   GameViewMainMenu, GameViewInstructions, GameViewWin;
 
 constructor TViewPlay.Create(AOwner: TComponent);
@@ -276,6 +276,11 @@ end;
 
 procedure TViewPlay.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
+const
+  HoverAlpha = 0.75;
+  ColorAllowed: TCastleColor = (X: 1; Y: 0; Z: 0; W: HoverAlpha); // red
+  ColorNotAllowed: TCastleColor = (X: 0.25; Y: 1; Z: 0.25; W: HoverAlpha); // light green
+  ColorMoveAllowed: TCastleColor = (X: 1; Y: 1; Z: 1; W: HoverAlpha); // yellow
 var
   TileStr: String;
   TileRect: TFloatRectangle;
@@ -320,19 +325,19 @@ begin
 
   { update TileUnderMouseImage.Color }
   if SelectedUnit = nil then
-    TileUnderMouseImage.Color := Vector4(1, 1, 1, 0.75)
+    TileUnderMouseImage.Color := ColorAllowed
   else
   if SelectedUnit.CanMove(TileUnderMouse) then
     // can move by clicking here
-    TileUnderMouseImage.Color := Vector4(0, 1, 0, 0.75)
+    TileUnderMouseImage.Color := ColorMoveAllowed
   else
   if (UnitUnderMouse <> nil) and
      (UnitUnderMouse.Human = HumanTurn) then
     // can select by clicking here
-    TileUnderMouseImage.Color := Vector4(1, 1, 1, 0.75)
+    TileUnderMouseImage.Color := ColorAllowed
   else
     // cannot do anything by clicking here
-    TileUnderMouseImage.Color := Vector4(1, 0, 0, 0.75);
+    TileUnderMouseImage.Color := ColorNotAllowed;
 
   { update LabelStatus }
   if TileUnderMouseExists then
