@@ -576,7 +576,7 @@ type
     FData: TCastleTerrainData;
     FDataObserver: TFreeNotificationObserver;
     FTriangulate: Boolean;
-    FSize: TVector2;
+    FSize, FQueryOffset: TVector2;
     FLayersInfluence: Single;
     FSteepEmphasize: Single;
     FSubdivisions: TVector2;
@@ -595,6 +595,7 @@ type
     procedure SetTriangulate(const Value: Boolean);
     procedure SetSubdivisions(const Value: TVector2);
     procedure SetSize(const Value: TVector2);
+    procedure SetQueryOffset(const Value: TVector2);
     function GetHeight(const Index: Integer): Single;
     procedure SetHeight(const Index: Integer; const Value: Single);
     procedure SetLayersInfluence(const Value: Single);
@@ -657,6 +658,18 @@ type
       Changing this requires rebuild of terrain geometry, so it's costly.
       Avoid doing it at runtime. }
     property Size: TVector2 read FSize write SetSize;
+
+    { Offset the range of input values used to query the @link(Data).
+
+      By default (when this is zero) we query the @link(TCastleTerrainData.Height)
+      using @code(Coord) values ranging in X from -Size/2 to Size/2,
+      similarly in Z.
+
+      This vector offsets the range of queried values.
+
+      It can be used to display a terrain noise matching neighboring terrain
+      noise. }
+    property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
@@ -1855,7 +1868,7 @@ procedure TCastleTerrain.UpdateGeometry;
 
 var
   Root: TX3DRootNode;
-  Range: TFloatRectangle;
+  InputRange, OutputRange: TFloatRectangle;
 begin
   { During deserialization, defer the real work to the Loaded moment,
     to avoid regenerating heights multiple times. }
@@ -1865,31 +1878,34 @@ begin
     Exit;
   end;
 
-  Range := FloatRectangle(-Size.X/2, -Size.Y/2, Size.X, Size.Y);
+  OutputRange := FloatRectangle(-Size.X/2, -Size.Y/2, Size.X, Size.Y);
+
+  InputRange := OutputRange;
+  InputRange.LeftBottom := InputRange.LeftBottom + QueryOffset;
 
   if Data <> nil then
   begin
     if TerrainNode = nil then
     begin
       if Triangulate then
-        TerrainNode := Data.CreateTriangulatedNode(Subdivisions, Range, Range, Appearance)
+        TerrainNode := Data.CreateTriangulatedNode(Subdivisions, InputRange, OutputRange, Appearance)
       else
-        TerrainNode := Data.CreateNode(Subdivisions, Range, Range, Appearance);
+        TerrainNode := Data.CreateNode(Subdivisions, InputRange, OutputRange, Appearance);
       Root := TX3DRootNode.Create;
       Root.AddChildren(TerrainNode);
       Scene.Load(Root, true);
     end else
     begin
       if Triangulate then
-        Data.UpdateTriangulatedNode(TerrainNode, Subdivisions, Range, Range)
+        Data.UpdateTriangulatedNode(TerrainNode, Subdivisions, InputRange, OutputRange)
       else
-        Data.UpdateNode(TerrainNode, Subdivisions, Range, Range);
+        Data.UpdateNode(TerrainNode, Subdivisions, InputRange, OutputRange);
     end;
   end else
   begin
     { When Data is empty, show a simple quad to visualize Size of the terrain. }
     Root := TX3DRootNode.Create;
-    Root.AddChildren(CreateQuadShape(Range));
+    Root.AddChildren(CreateQuadShape(OutputRange));
     Scene.Load(Root, true);
     { Do not let subsequent calls to use TerrainNode as it was destroyed
       by Scene.Load above.
@@ -1976,6 +1992,15 @@ begin
   end;
 end;
 
+procedure TCastleTerrain.SetQueryOffset(const Value: TVector2);
+begin
+  if not TVector2.PerfectlyEquals(FQueryOffset, Value) then
+  begin
+    FQueryOffset := Value;
+    UpdateGeometry;
+  end;
+end;
+
 function TCastleTerrain.GetHeight(const Index: Integer): Single;
 begin
   Result := HeightsFields[Index].Value;
@@ -2020,7 +2045,7 @@ begin
        'SizePersistent', 'PreciseCollisions',
        'Height1', 'Height2',
        'Layer1', 'Layer2', 'Layer3', 'Layer4',
-       'LayersInfluence', 'SteepEmphasize'
+       'LayersInfluence', 'SteepEmphasize', 'QueryOffsetPersistent'
      ]) then
     Result := [psBasic]
   else

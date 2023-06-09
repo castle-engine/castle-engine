@@ -132,6 +132,7 @@
 ../../../src/scene/ TCastleTerrainLayer Color TCastleColorRGB
 
 ../../../src/scene/ TCastleTerrain Size TVector2
+../../../src/scene/ TCastleTerrain QueryOffset TVector2
 ../../../src/scene/ TCastleTerrain Subdivisions TVector2
 
 ../../../src/scene/ TCastleTiledMapControl Origin TVector2

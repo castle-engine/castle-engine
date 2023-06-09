@@ -511,8 +511,13 @@ type
     procedure BeforeProposeSaveDesign;
     procedure AddComponent(const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent);
+    { Create and add a new component to the design.
+      @param(BaseNewComponentName Base of new name (without numeric suffix to
+        make it unique), passed to @link(ProposeComponentName).
+        Leave it empty to derive name from ComponentClass.ClassName.) }
     function AddComponent(const ParentComponent: TComponent; const ComponentClass: TComponentClass;
-      const ComponentOnCreate: TNotifyEvent): TComponent;
+      const ComponentOnCreate: TNotifyEvent;
+      const BaseNewComponentName: String = ''): TComponent;
     procedure DeleteComponent;
     { Free component C (which should be part of this designed, owned by DesignOwner)
       and all children.
@@ -629,6 +634,8 @@ type
 
 implementation
 
+{$warnings off} // do not warn about deprecated Castle2DSceneManager usage
+
 uses
   { Standard FPC/Lazarus units }
   // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
@@ -638,12 +645,15 @@ uses
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleURIUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
+  CastleInternalUrlUtils,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
   CastleBehaviors,
   { Editor units }
   FormProject, CastleComponentEditorDesigner;
+
+{$warnings on}
 
 {$R *.lfm}
 
@@ -1551,9 +1561,11 @@ begin
   CastleControl := TCastleControl.Create(Self);
   CastleControl.AutoFocus := true; // needed on Windows to receive AWSD, Ctrl+Z...
   CastleControl.Align := alClient;
+  {$warnings off} // TODO: upgrade it
   CastleControl.OnResize := @CastleControlResize;
   CastleControl.OnOpen := @CastleControlOpen;
   CastleControl.OnUpdate := @CastleControlUpdate;
+  {$warnings on}
   CastleControl.OnDragOver := @CastleControlDragOver;
   CastleControl.OnDragDrop := @CastleControlDragDrop;
   CastleControl.Parent := PanelMiddle; // set Parent last, following https://wiki.freepascal.org/LCL_Tips#Set_the_Parent_as_last
@@ -2043,14 +2055,15 @@ end;
 
 function TDesignFrame.AddComponent(const ParentComponent: TComponent;
   const ComponentClass: TComponentClass;
-  const ComponentOnCreate: TNotifyEvent): TComponent;
+  const ComponentOnCreate: TNotifyEvent;
+  const BaseNewComponentName: String): TComponent;
 
   function CreateComponent: TComponent;
   begin
     Result := ComponentClass.Create(DesignOwner) as TComponent;
     if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
       ComponentOnCreate(Result);
-    Result.Name := InternalProposeName(ComponentClass, DesignOwner);
+    Result.Name := ProposeComponentName(ComponentClass, DesignOwner, BaseNewComponentName);
   end;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
@@ -3390,22 +3403,27 @@ end;
 
 function TDesignFrame.AddComponentFromUrl(const AddUrl: String;
   const ParentComponent: TComponent): TComponent;
+var
+  BaseNameFromUrl: String;
 
   function AddImageTransform(const Url: String): TCastleImageTransform;
   begin
-    Result := AddComponent(ParentComponent, TCastleImageTransform, nil) as TCastleImageTransform;
+    Result := AddComponent(ParentComponent, TCastleImageTransform, nil,
+      'Image' + BaseNameFromUrl) as TCastleImageTransform;
     Result.Url := Url;
   end;
 
   function AddImageControl(const Url: String): TCastleImageControl;
   begin
-    Result := AddComponent(ParentComponent, TCastleImageControl, nil) as TCastleImageControl;
+    Result := AddComponent(ParentComponent, TCastleImageControl, nil,
+      'Image' + BaseNameFromUrl) as TCastleImageControl;
     Result.Url := Url;
   end;
 
   function AddScene(const Url: String): TCastleScene;
   begin
-    Result := AddComponent(ParentComponent, TCastleScene, nil) as TCastleScene;
+    Result := AddComponent(ParentComponent, TCastleScene, nil,
+      'Scene' + BaseNameFromUrl) as TCastleScene;
     Result.Url := Url;
   end;
 
@@ -3414,22 +3432,27 @@ function TDesignFrame.AddComponentFromUrl(const AddUrl: String;
     SoundSource: TCastleSoundSource;
     Sound: TCastleSound;
   begin
-    Result := AddComponent(ParentComponent, TCastleTransform, nil) as TCastleTransform;
-    SoundSource := AddComponent(Result, TCastleSoundSource, nil) as TCastleSoundSource;
-    Sound := AddComponent(SoundSource, TCastleSound, nil) as TCastleSound;
+    Result := AddComponent(ParentComponent, TCastleTransform, nil,
+      'Transform' + BaseNameFromUrl) as TCastleTransform;
+    SoundSource := AddComponent(Result, TCastleSoundSource, nil,
+      'SoundSource' + BaseNameFromUrl) as TCastleSoundSource;
+    Sound := AddComponent(SoundSource, TCastleSound, nil,
+      'Sound' + BaseNameFromUrl) as TCastleSound;
     Sound.Url := Url;
     SoundSource.Sound := Sound;
   end;
 
   function AddUiDesign(const Url: String): TCastleDesign;
   begin
-    Result := AddComponent(ParentComponent, TCastleDesign, nil) as TCastleDesign;
+    Result := AddComponent(ParentComponent, TCastleDesign, nil,
+      'Design' + BaseNameFromUrl) as TCastleDesign;
     Result.Url := Url;
   end;
 
   function AddTransformDesign(const Url: String): TCastleTransformDesign;
   begin
-    Result := AddComponent(ParentComponent, TCastleTransformDesign, nil) as TCastleTransformDesign;
+    Result := AddComponent(ParentComponent, TCastleTransformDesign, nil,
+      'Design' + BaseNameFromUrl) as TCastleTransformDesign;
     Result.Url := Url;
   end;
 
@@ -3438,6 +3461,7 @@ var
 begin
   Result := nil;
   PreferTransform := ParentComponent is TCastleTransform;
+  BaseNameFromUrl := GetBaseNameFromUrl(AddUrl);
   if LoadImage_FileFilters.Matches(AddUrl) then
   begin
     if PreferTransform then
@@ -5995,7 +6019,7 @@ begin
   NewRoot := ComponentClass.Create(NewDesignOwner);
   if Assigned(ComponentOnCreate) then
     ComponentOnCreate(NewRoot);
-  NewRoot.Name := InternalProposeName(ComponentClass, NewDesignOwner);
+  NewRoot.Name := ProposeComponentName(ComponentClass, NewDesignOwner);
 
   { In these special cases, set FullSize to true,
     since this is almost certainly what user wants when creating a new UI

@@ -532,6 +532,7 @@ type
       Line: Integer = -1;
       Column: Integer = -1);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
+    procedure RefreshAllFiles(Sender: TObject);
     (*Runs custom code editor.
       Use this only when CodeEditor = ceCustom.
       CustomCodeEditorCommand is the command to use (like CodeEditorCommand
@@ -955,6 +956,7 @@ begin
     ImportSketchfabForm := TImportSketchfabForm.Create(Application);
 
   ImportSketchfabForm.ProjectPath := ProjectPath;
+  ImportSketchfabForm.OnRefreshFiles := @RefreshAllFiles;
   ImportSketchfabForm.OnCanAddImported := @CanAddImported;
   ImportSketchfabForm.OnAddImported := @AddImported;
   ImportSketchfabForm.Show;
@@ -2375,6 +2377,19 @@ begin
 
   if Design = nil then
     ListOpenExistingViewRefresh;
+
+  { Synchronize action state with new design.
+    Testcase:
+    - open project
+    - open design
+    - toggle "Show Colliders" to true by clicking in menu
+    - close design
+    - open design again
+    - -> desired effect: "Show Colliders" is synchronized with Design.ShowColliders,
+      which means it is reset to false now.
+  }
+  if Design <> nil then
+    ActionShowColliders.Checked := Design.ShowColliders;
 end;
 
 procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
@@ -2575,7 +2590,7 @@ end;
 
 procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
 
-  function HandleNonModalAssociatedForm(Form: TForm): Boolean;
+  function HandleNonModalAssociatedForm(var Form: TForm): Boolean;
   begin
     Result := true;
     if (Form <> nil) and Form.Visible then
@@ -2584,6 +2599,7 @@ procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
         Exit(false);
       Form.Close; // not needed on GTK2, maybe add ifdef?
     end;
+    FreeAndNil(Form);
   end;
 
 begin
@@ -2595,10 +2611,13 @@ begin
 
   if ProposeSaveDesign then
   begin
-    { Close associated windows if visible }
-    if not HandleNonModalAssociatedForm(SpriteSheetEditorForm) then
+    { Close and free associated windows.
+      Reason for free: E.g. ImportSketchfabForm has some "links" to current project,
+      like TImportSketchfabForm.OnAddImported, so it's simpler to just
+      free it and recreate in new projects. }
+    if not HandleNonModalAssociatedForm(TForm(SpriteSheetEditorForm)) then
       Exit;
-    if not HandleNonModalAssociatedForm(ImportSketchfabForm) then
+    if not HandleNonModalAssociatedForm(TForm(ImportSketchfabForm)) then
       Exit;
 
     Release; // do not call MenuItemDesignClose, to avoid OnCloseQuery
@@ -3415,6 +3434,11 @@ begin
     end;
     //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
   end;
+end;
+
+procedure TProjectForm.RefreshAllFiles(Sender: TObject);
+begin
+  RefreshFiles(rfEverything);
 end;
 
 procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);

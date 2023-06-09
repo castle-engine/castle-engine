@@ -56,7 +56,7 @@ Feel free to be inspired by this and create a full game using this!
 
     In the current implementation, this is only used for the player. But you could add NPCs, or other scene parts (like a window shutter moved by the wind), that are 3D.
 
-    Note that to use shadow volumes, your 3D model must be 2-manifold. See https://castle-engine.io/x3d_extensions_shadow_volumes.php .
+    Note that to use shadow volumes, your 3D model must be 2-manifold. See https://castle-engine.io/shadow_volumes .
 
 - QUESTION: Should you draw on the location image (render.png in the example above) self-shadows caused by the location geometry?
 

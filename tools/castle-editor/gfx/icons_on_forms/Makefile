@@ -28,7 +28,9 @@ SOURCE_FOR_MULTIPLE_SIZES:=pause-solid.svg \
   tool-rotate.svg \
   tool-scale.svg \
   tool-select.svg \
-  tool-interact.svg
+  tool-interact.svg \
+  list.svg \
+  grid.svg
 
 # ----------------------------------------------------------------------------
 # Implementation

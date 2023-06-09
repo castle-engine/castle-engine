@@ -16,6 +16,16 @@ defaults:
     shell: bash
 
 jobs:
+  test-compiler-independent:
+    name: Compiler-Independent Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Shell Tests
+        run: ./tools/internal/cge_shell_tests
+
   test-fpc-stable:
     name: Base Tests (FPC Stable)
     runs-on: ubuntu-latest
