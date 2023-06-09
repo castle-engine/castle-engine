@@ -36,9 +36,6 @@
     function OtherTransform: TCastleTransform;
   end;
 
-  TPhysicsLayer = 0..19;
-  TPhysicsLayers = set of TPhysicsLayer;
-
   TCastleLayerCollisions = class(TCastleComponent)
   strict private
     function GetCollides(const Layer1, Layer2: TPhysicsLayer): Boolean;
@@ -939,13 +936,13 @@
       (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
       In the new system, a similar role will be filled by layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
-      const MaxDistance: Single = MaxSingle; const CollisionLayers:
-      TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
+      const MaxDistance: Single = MaxSingle;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
 
     function PhysicsSphereCast(const SphereOrigin: TVector3;
       const SphereRadius:Single; const SphereDirection: TVector3;
-      const MaxDistance: Single = MaxSingle; const CollisionLayers:
-      TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
+      const MaxDistance: Single = MaxSingle;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -2345,7 +2342,7 @@ var
 begin
   ScaledRadius := CalculateScaledRadius;
   Result := TBox3D.FromCenterSize(Translation,
-    Vector3(ScaledRadius * 2, ScaledRadius * 2, ScaledRadius * 2));
+    CastleVectors.Vector3(ScaledRadius * 2, ScaledRadius * 2, ScaledRadius * 2));
 end;
 
 procedure TCastleSphereCollider.SetRadius(const AValue: Single);
@@ -2611,7 +2608,7 @@ begin
   ScaledRadius := CalculateScaledRadius;
   ScaledHeight := CalculateScaledHeight;
   Result := TBox3D.FromCenterSize(Translation,
-    Vector3(ScaledRadius * 2, ScaledHeight + ScaledRadius * 2, ScaledRadius * 2));
+    CastleVectors.Vector3(ScaledRadius * 2, ScaledHeight + ScaledRadius * 2, ScaledRadius * 2));
 end;
 
 { TCastleMeshCollider -------------------------------------------------------- }
@@ -3699,8 +3696,8 @@ begin
 end;
 
 function TCastleRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
-  const MaxDistance: Single; const CollisionLayers:
-  TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
+  const MaxDistance: Single;
+  const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
   MaxDistanceWorld: Single;
@@ -3744,8 +3741,8 @@ end;
 
 function TCastleRigidBody.PhysicsSphereCast(const SphereOrigin: TVector3;
   const SphereRadius: Single; const SphereDirection: TVector3;
-  const MaxDistance: Single; const CollisionLayers:
-  TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
+  const MaxDistance: Single;
+  const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
 var
   SphereOriginWorld, SphereDirectionWorld: TVector3;
   MaxDistanceWorld, SphereRadiusWorld: Single;
@@ -4127,8 +4124,8 @@ end;
 
 function TCastleAbstractRootTransform.PhysicsRayCast(
   const RayOrigin, RayDirection: TVector3;
-  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody; const CollisionLayers:
-  TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
+  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
+  const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
 
   procedure Core;
   var
@@ -4192,8 +4189,7 @@ end;
 function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin: TVector3;
   const SphereRadius: Single; const SphereDirection: TVector3;
   const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
-  const CollisionLayers: TPhysicsLayers =
-  [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
+  const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
 
   procedure Core;
   var
