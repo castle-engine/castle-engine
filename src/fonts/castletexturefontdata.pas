@@ -328,22 +328,12 @@ var
 
     procedure DrawCharDistanceField;
     var
-      RX, RY: Integer;
+      RX, RY, AX, AY: Integer;
       DX, DY: Integer;
       MaxB: Byte;
       MaxDTransparent: Integer;
       DTransparent, DOpaque, TempD: Integer; //6^2 + 6^2 = 72
       Opqaueness: Single;
-
-      function GetPixelSafe(const AX, AY: Integer): Byte; inline;
-      begin
-        if (AX >= 0) and (AX < Bitmap^.Width) and
-           (AY >= 0) and (AY < Bitmap^.Height) then
-          Exit(Bitmap^.Data^[AX + AY * Bitmap^.Pitch])
-        else
-          Exit(0);
-      end;
-
     begin
       MaxB := 0;
       for RY := 0 to Bitmap^.Height - 1 do
@@ -351,8 +341,8 @@ var
           if Bitmap^.Data^[RY + RY * Bitmap^.Pitch] > MaxB then
             MaxB := Bitmap^.Data^[RY + RY * Bitmap^.Pitch];
       if MaxB = 0 then
-        MaxB := 255; //doesn't matter in this case, symbol doesn't have a single opaque pixel
-      // for now slow and inefficient, to optimize later
+        MaxB := 255; //doesn't matter in this case, the glyph doesn't have a single opaque pixel
+
       for RY := -DistanceFieldPadding to Bitmap^.Height - 1 + DistanceFieldPadding do
         for RX := -DistanceFieldPadding to Bitmap^.Width - 1 + DistanceFieldPadding do
           begin
@@ -363,7 +353,9 @@ var
               for DX := -DistanceFieldPadding to DistanceFieldPadding do
               begin
                 TempD := Sqr(DX) + Sqr(DY);
-                if GetPixelSafe(RX + DX, RY + DY) > 0 then
+                AX := RX + DX;
+                AY := RY + DY;
+                if (AX >= 0) and (AX < Bitmap^.Width) and (AY >= 0) and (AY < Bitmap^.Height) and (Bitmap^.Data^[AX + AY * Bitmap^.Pitch] > 0) then
                 begin
                   if DOpaque > TempD then
                     DOpaque := TempD;
@@ -373,7 +365,10 @@ var
                     DTransparent := TempD;
                 end;
               end;
-            Opqaueness := Single(GetPixelSafe(RX, RY)) / Single(MaxB);
+            if (RX >= 0) and (RX < Bitmap^.Width) and (RY >= 0) and (RY < Bitmap^.Height) then
+              Opqaueness := Single(Bitmap^.Data^[RX + RY * Bitmap^.Pitch]) / Single(MaxB)
+            else
+              Opqaueness := 0;
             Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ :=
               Trunc(
                 Opqaueness * (128 + 127 * Single(DTransparent) / Sqr(DistanceFieldPadding)) +
