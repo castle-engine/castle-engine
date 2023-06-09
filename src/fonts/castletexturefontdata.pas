@@ -331,6 +331,7 @@ var
       RX, RY: Integer;
       DX, DY: Integer;
       MaxB: Byte;
+      MaxDTransparent: Integer;
       DTransparent, DOpaque, TempD: Integer; //6^2 + 6^2 = 72
       Opqaueness: Single;
 
@@ -375,8 +376,8 @@ var
             Opqaueness := Single(GetPixelSafe(RX, RY)) / Single(MaxB);
             Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ :=
               Trunc(
-                Opqaueness * (128 + 127 * Sqrt(DTransparent) / DistanceFieldPadding) +
-                (1 - Opqaueness) * (127 * Sqrt(Sqr(DistanceFieldPadding) - DOpaque) / DistanceFieldPadding)
+                Opqaueness * (128 + 127 * Single(DTransparent) / Sqr(DistanceFieldPadding)) +
+                (1 - Opqaueness) * (127 * (1.0 - Single(DOpaque) / Sqr(DistanceFieldPadding)))
               );
           end;
     end;
@@ -532,8 +533,6 @@ begin
         end;
       end;
     end;
-
-    SaveImage(Image, '1.png');
 
     // Debug: SaveImage(Image, '/tmp/a.png');
   finally
