@@ -1,7 +1,5 @@
 unit ModularMovement;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

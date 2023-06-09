@@ -1,7 +1,5 @@
 unit RotateRigidBodyByKeys;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

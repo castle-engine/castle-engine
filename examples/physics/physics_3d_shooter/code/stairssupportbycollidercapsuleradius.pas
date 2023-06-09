@@ -1,7 +1,5 @@
 unit StairsSupportByColliderCapsuleRadius;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

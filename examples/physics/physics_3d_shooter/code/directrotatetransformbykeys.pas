@@ -1,7 +1,5 @@
 unit DirectRotateTransformByKeys;
 
-{$mode ObjFPC}{$H+}
-
 { Rotates transform direct by keys }
 
 interface

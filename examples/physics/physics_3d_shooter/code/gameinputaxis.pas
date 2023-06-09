@@ -1,7 +1,5 @@
 unit GameInputAxis;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

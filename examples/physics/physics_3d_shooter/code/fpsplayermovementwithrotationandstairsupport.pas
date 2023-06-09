@@ -1,7 +1,5 @@
 unit FpsPlayerMovementWithRotationAndStairSupport;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

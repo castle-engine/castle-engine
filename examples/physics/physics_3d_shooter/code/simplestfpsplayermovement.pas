@@ -1,7 +1,5 @@
 unit SimplestFpsPlayerMovement;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

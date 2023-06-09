@@ -1,7 +1,5 @@
 unit RotateRigidBodyByMouse;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

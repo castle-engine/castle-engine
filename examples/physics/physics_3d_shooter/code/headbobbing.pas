@@ -1,7 +1,5 @@
 unit HeadBobbing;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

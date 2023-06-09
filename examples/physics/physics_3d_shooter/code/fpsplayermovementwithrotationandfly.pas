@@ -1,7 +1,5 @@
 unit FpsPlayerMovementWithRotationAndFly;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

@@ -1,7 +1,5 @@
 unit Move3DPlayerDynamic;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses
@@ -334,14 +332,16 @@ begin
   RBody.LinearVelocity := HorizontalVelocity;
   Exit;
 
-{  if GetDirectionFromInput(IsOnGroundBool, InputDirection) then
+  (*
+  if GetDirectionFromInput(IsOnGroundBool, InputDirection) then
   begin
     { We get the acceleration value and that value is
       specified for 60 frames per seconds, then we must
       protect it's value to update's rate changes }
     DeltaHVelocity := GetAcceleration * 60 * SecondsPassed *
       MovementControlFactor(IsOnGroundBool);
-  end;}
+  end;
+  *)
 
   JumpVelocity := 0;
   if (FocusedContainer <> nil) and (InputJump.IsPressed(FocusedContainer))

@@ -1,7 +1,5 @@
 unit FpsWalkSupport;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

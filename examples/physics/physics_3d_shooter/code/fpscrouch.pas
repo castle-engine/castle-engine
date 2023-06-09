@@ -1,7 +1,5 @@
 unit FpsCrouch;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

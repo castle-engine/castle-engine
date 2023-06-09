@@ -1,7 +1,5 @@
 unit RotateCameraByKeys;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

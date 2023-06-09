@@ -1,7 +1,5 @@
 unit RotateCameraByMouse;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

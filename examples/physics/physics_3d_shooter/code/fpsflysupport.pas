@@ -1,7 +1,5 @@
 unit FpsFlySupport;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

@@ -1,4 +1,4 @@
-{%MainUnit castletransform.pas}
+﻿{%MainUnit castletransform.pas}
 {
   Copyright 2017-2023 Michalis Kamburelis.
 
@@ -4189,7 +4189,7 @@ end;
 function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin: TVector3;
   const SphereRadius: Single; const SphereDirection: TVector3;
   const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
-  const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
+  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
 
   procedure Core;
   var
