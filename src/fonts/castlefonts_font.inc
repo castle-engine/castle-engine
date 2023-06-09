@@ -335,7 +335,9 @@ procedure TCastleFont.PrepareResources;
           'void main(void)' + LineEnding +
           '{' + LineEnding +
           'gl_FragColor = texture2D(image_texture, tex_coord_frag);' + LineEnding +
-          'if (gl_FragColor.a < 0.5) discard; else gl_FragColor = vec4(1.0,1.0,1.0,1.0);' +
+          'if (gl_FragColor.a <= 0.495) discard;' + LineEnding +
+          'else if ((gl_FragColor.a > 0.495) && (gl_FragColor.a < 0.505)) gl_FragColor = vec4(1.0,1.0,1.0,(gl_FragColor.a - 0.495) * 100.0);' + LineEnding +
+          'else gl_FragColor = vec4(1.0,1.0,1.0,1.0);' +
           '}' + LineEnding;
 
     NewProgram := TGLSLProgram.Create;
