@@ -30,7 +30,7 @@ type
       These fields will be automatically initialized at Start. }
     Map: TCastleTiledMap;
     ButtonQuit: TCastleButton;
-    ButtonInstructions: TCastleButton;
+    ButtonInstructions, ButtonInstructions2: TCastleButton;
     ButtonEndTurn: TCastleButton;
     LabelStatus, LabelTurnStatus: TCastleLabel;
     ViewportMap: TCastleViewport;
@@ -44,6 +44,7 @@ type
     SelectedUnit: TUnit;
     procedure ClickQuit(Sender: TObject);
     procedure ClickInstructions(Sender: TObject);
+    procedure ClickInstructions2(Sender: TObject);
     procedure ClickEndTurn(Sender: TObject);
     procedure UpdateTurnStatus;
   public
@@ -64,7 +65,8 @@ implementation
 
 uses SysUtils,
   CastleComponentSerialize, CastleUtils, CastleRectangles, CastleColors,
-  GameViewMainMenu, GameViewInstructions, GameViewWin;
+  GameViewMainMenu, GameViewInstructions, GameViewInstructions2,
+  GameViewWin;
 
 constructor TViewPlay.Create(AOwner: TComponent);
 begin
@@ -128,6 +130,7 @@ begin
   Map.URL := 'castle-data:/maps/' + MapName + '.tmx';
   ButtonQuit.OnClick := {$ifdef FPC}@{$endif}ClickQuit;
   ButtonInstructions.OnClick := {$ifdef FPC}@{$endif}ClickInstructions;
+  ButtonInstructions2.OnClick := {$ifdef FPC}@{$endif}ClickInstructions2;
   ButtonEndTurn.OnClick := {$ifdef FPC}@{$endif}ClickEndTurn;
 
   UnitsOnMap := TUnitsOnMap.Create(FreeAtStop, Map);
@@ -172,6 +175,11 @@ end;
 procedure TViewPlay.ClickInstructions(Sender: TObject);
 begin
   Container.PushView(ViewInstructions);
+end;
+
+procedure TViewPlay.ClickInstructions2(Sender: TObject);
+begin
+  Container.PushView(ViewInstructions2);
 end;
 
 procedure TViewPlay.ClickEndTurn(Sender: TObject);

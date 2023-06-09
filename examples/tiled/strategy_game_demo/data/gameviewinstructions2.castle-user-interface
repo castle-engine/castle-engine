@@ -1,0 +1,327 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 7.5000000000000000E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
+      },
+      "FullSize" : true,
+      "Name" : "RectangleControl1"
+    },
+    {
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "URL" : "castle-data:/images/parchment_alpha.png"
+      },
+      "HeightFraction" : 1.0000000000000000E+000,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "ImageControl1",
+      "ProportionalScaling" : "psFit",
+      "Stretch" : true,
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "WidthFraction" : 1.0000000000000000E+000,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "FontSize" : 2.2000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "MaxWidth" : 1.0000000000000000E+003,
+          "Name" : "LabelContent",
+          "Text" : [
+            "You can:",
+            "",
+            "- pan (move) the map (just click and drag anywhere that is not a unit) ",
+            "",
+            "- zoom (mouse wheel).",
+            "",
+            "Unit icon displayed on the map contains unit statistics:",
+            ""
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : 2.2000000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle"
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "Caption" : "Close",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "FontSize" : 3.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpRight",
+          "HorizontalAnchorSelf" : "hpRight",
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonClose",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -6.0000000000000000E+001,
+            "Y" : 5.0000000000000000E+001
+          }
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Red" : 5.0196081399917603E-001
+          },
+          "CustomFont" : "Font1",
+          "FontSize" : 6.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelHeader",
+          "Text" : [
+            "\"Map and Units\""
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -7.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$NonVisualComponents" : [
+            {
+              "$$ClassName" : "TCastleFont",
+              "Name" : "Font1",
+              "OptimalSize" : 100,
+              "URL" : "castle-data:/fonts/DejaVuSerif-Bold.ttf"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleViewport",
+          "BackgroundColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 2.5000000000000000E-001,
+            "Green" : 2.5000000000000000E-001,
+            "Red" : 2.5000000000000000E-001
+          },
+          "Camera" : "Camera1",
+          "Height" : 5.0000000000000000E+002,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Items" : {
+            "$$ClassName" : "TCastleRootTransform",
+            "PhysicsProperties" : {
+              "$$ClassName" : "TPhysicsProperties",
+              "LayerCollisions" : {
+                "$$ClassName" : "TCastleLayerCollisions"
+              },
+              "LayerNames" : {
+                "$$ClassName" : "TCastleLayerNames"
+              }
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleCamera",
+                "Name" : "Camera1",
+                "Orthographic" : {
+                  "$$ClassName" : "TCastleOrthographic",
+                  "Height" : 2.8000000000000000E+002,
+                  "OriginPersistent" : {
+                    "$$ClassName" : "TCastleVector2Persistent",
+                    "X" : 5.0000000000000000E-001,
+                    "Y" : 5.0000000000000000E-001
+                  }
+                },
+                "Perspective" : {
+                  "$$ClassName" : "TCastlePerspective"
+                },
+                "ProjectionType" : "ptOrthographic",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Z" : 5.0000000000000000E+002
+                }
+              },
+              {
+                "$$ClassName" : "TCastleTransformDesign",
+                "Name" : "DesignUnit1",
+                "RevertURL" : "castle-data:/unit.castle-transform",
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleTransform",
+                    "Name" : "UnitRoot",
+                    "$Children" : [
+                      {
+                        "$$ClassName" : "TCastleImageTransform",
+                        "ColorPersistent" : {
+                          "$$ClassName" : "TCastleColorPersistent",
+                          "Alpha" : 7.5000000000000000E-001,
+                          "Blue" : 2.9803922772407532E-001,
+                          "Green" : 4.0000000596046448E-001
+                        },
+                        "Name" : "Background",
+                        "Url" : "castle-data:/units/unit_background_frame.png"
+                      },
+                      {
+                        "$$ClassName" : "TCastleImageTransform",
+                        "Name" : "ImageIcon",
+                        "SizePersistent" : {
+                          "$$ClassName" : "TCastleVector2Persistent",
+                          "Y" : 1.8000000000000000E+002
+                        },
+                        "TranslationPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "Z" : 1.0000000000000000E+001
+                        },
+                        "Url" : "castle-data:/units/human1.png"
+                      },
+                      {
+                        "$$ClassName" : "TCastleText",
+                        "ColorPersistent" : {
+                          "$$ClassName" : "TCastleColorPersistent",
+                          "Blue" : 0.0000000000000000E+000,
+                          "Green" : 0.0000000000000000E+000,
+                          "Red" : 0.0000000000000000E+000
+                        },
+                        "Name" : "TextAttack",
+                        "RenderOptions" : {
+                          "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                        },
+                        "Size" : 2.0000000000000000E+001,
+                        "Text" : [
+                          "Attack"
+                        ],
+                        "TranslationPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : -1.1301948547363281E+002,
+                          "Y" : 1.1185552978515625E+002,
+                          "Z" : 2.0000000000000000E+001
+                        },
+                        "VerticalAlignment" : "vpTop"
+                      },
+                      {
+                        "$$ClassName" : "TCastleText",
+                        "ColorPersistent" : {
+                          "$$ClassName" : "TCastleColorPersistent",
+                          "Blue" : 0.0000000000000000E+000,
+                          "Green" : 0.0000000000000000E+000,
+                          "Red" : 0.0000000000000000E+000
+                        },
+                        "Name" : "TextLife",
+                        "RenderOptions" : {
+                          "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                        },
+                        "Size" : 2.0000000000000000E+001,
+                        "Text" : [
+                          "Life"
+                        ],
+                        "TranslationPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : -1.1301948547363281E+002,
+                          "Y" : -1.1303272247314453E+002,
+                          "Z" : 2.0000000000000000E+001
+                        }
+                      },
+                      {
+                        "$$ClassName" : "TCastleText",
+                        "Alignment" : "hpRight",
+                        "ColorPersistent" : {
+                          "$$ClassName" : "TCastleColorPersistent",
+                          "Blue" : 0.0000000000000000E+000,
+                          "Green" : 0.0000000000000000E+000,
+                          "Red" : 0.0000000000000000E+000
+                        },
+                        "Name" : "TextMovement",
+                        "RenderOptions" : {
+                          "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                        },
+                        "Size" : 2.0000000000000000E+001,
+                        "Text" : [
+                          "Movement"
+                        ],
+                        "TranslationPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "X" : 1.1108586883544922E+002,
+                          "Y" : -1.1303272247314453E+002,
+                          "Z" : 2.0000000000000000E+001
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "Name" : "ViewportUnitDemo",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.3000000000000000E+002
+          },
+          "Transparent" : true,
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 5.0000000000000000E+002,
+          "InternalDesignCamera" : {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic",
+              "Height" : 2.8000000000000000E+002,
+              "OriginPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 5.0000000000000000E-001,
+                "Y" : 5.0000000000000000E-001
+              }
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "ProjectionType" : "ptOrthographic",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "Z" : 1.0000000000000000E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 6.0000000000000000E+002
+            }
+          },
+          "InternalDesignNavigationType" : 2,
+          "InternalDesignNavigations[dnFly]" : {
+            "$$ClassName" : "TCastleWalkNavigationDesign",
+            "Exists" : false,
+            "Name" : ""
+          },
+          "InternalDesignNavigations[dnExamine]" : {
+            "$$ClassName" : "TCastleExamineNavigationDesign",
+            "Exists" : false,
+            "Name" : ""
+          },
+          "InternalDesignNavigations[dn2D]" : {
+            "$$ClassName" : "TCastle2DNavigationDesign",
+            "Name" : ""
+          }
+        }
+      ]
+    }
+  ]
+}
