@@ -3697,7 +3697,7 @@ end;
 
 function TCastleRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
   const MaxDistance: Single;
-  const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
+  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
   MaxDistanceWorld: Single;
@@ -3742,7 +3742,7 @@ end;
 function TCastleRigidBody.PhysicsSphereCast(const SphereOrigin: TVector3;
   const SphereRadius: Single; const SphereDirection: TVector3;
   const MaxDistance: Single;
-  const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
+  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
 var
   SphereOriginWorld, SphereDirectionWorld: TVector3;
   MaxDistanceWorld, SphereRadiusWorld: Single;
@@ -4125,7 +4125,7 @@ end;
 function TCastleAbstractRootTransform.PhysicsRayCast(
   const RayOrigin, RayDirection: TVector3;
   const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
-  const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
+  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
 
   procedure Core;
   var
