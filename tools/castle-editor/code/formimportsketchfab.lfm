@@ -227,6 +227,22 @@ object ImportSketchfabForm: TImportSketchfabForm
     Caption = 'Sketchfab API token: '
     ParentColor = False
   end
+  object LabelDocs: TLabel
+    Cursor = crHandPoint
+    Left = 1016
+    Height = 22
+    Top = 7
+    Width = 41
+    Anchors = [akTop, akRight]
+    AutoSize = False
+    Caption = 'Docs'
+    Font.Color = clBlue
+    Font.Height = 19
+    Font.Style = [fsUnderline]
+    ParentColor = False
+    ParentFont = False
+    OnClick = LabelDocsClick
+  end
   object Timer1: TTimer
     Enabled = False
     Interval = 1

@@ -45,6 +45,7 @@ type
     EditApiToken: TEdit;
     EditQuery: TEdit;
     Label1: TLabel;
+    LabelDocs: TLabel;
     LabelQuery: TLabel;
     ListModels: TListView;
     Timer1: TTimer;
@@ -65,6 +66,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure LabelDocsClick(Sender: TObject);
     procedure ListModelsSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure Timer1Timer(Sender: TObject);
@@ -164,6 +166,11 @@ begin
     ListModels and "bottom things" can get larger on different font scaling values
     on user's desktop. }
   ListModels.Height := EditApiToken.Top - 8 - ListModels.Top;
+end;
+
+procedure TImportSketchfabForm.LabelDocsClick(Sender: TObject);
+begin
+  OpenUrl('https://castle-engine.io/sketchfab');
 end;
 
 procedure TImportSketchfabForm.FormHide(Sender: TObject);
