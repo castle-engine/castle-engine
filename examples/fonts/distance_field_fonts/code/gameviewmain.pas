@@ -28,9 +28,6 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
-
-    //ImageControl1: TCastleImageControl;
-    Label1: TCastleLabel;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -56,7 +53,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-  //SaveImage((Label1.CustomFont as TCastleFont).FontData.Image, '1.png');
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

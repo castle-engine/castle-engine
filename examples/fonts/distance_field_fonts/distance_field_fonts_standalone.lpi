@@ -73,6 +73,7 @@
       <Unit2>
         <Filename Value="code/gameinitialize.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="GameInitialize"/>
       </Unit2>
       <Unit3>
         <Filename Value="code/gameviewmain.pas"/>
