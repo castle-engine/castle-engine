@@ -18,19 +18,12 @@
 
 //type // allow type declaration to continue
 
-  { Sound engine, responsible for loading and playing sound.
+  { Sound engine, responsible for loading and playing sounds.
+    See @url(https://castle-engine.io/manual_sound.php
+    manual about sound in Castle Game Engine) for an overview of sound support.
 
     There should always be only one instance of this class,
-    accessed through the global @link(SoundEngine) variable.
-    See docs at @link(SoundEngine) for more details.
-
-    The sound engine is actually a wrapper over a backend, like OpenAL.
-    You can explicitly initialize OpenAL context by ContextOpen,
-    and explicitly close it by ContextClose. If you did not call ContextOpen
-    explicitly (that is, IsContextOpen is @false), then the first LoadBuffer
-    or TRepoSoundEngine.Sound or TRepoSoundEngine.Sound3D
-    will automatically do it for you. If you do not call ContextClose
-    explicitly, then at destructor we'll do it automatically. }
+    accessed through the global @link(SoundEngine) routine. }
   TSoundEngine = class(TSoundAllocator)
   private
     type
@@ -48,7 +41,6 @@
       FOnOpenClose: TNotifyEventList;
       FResumeToInitialized, FPaused: boolean;
       FListenerPosition, FListenerDirection, FListenerUp: TVector3;
-      FEnableSaveToConfig, DeviceSaveToConfig: boolean;
       FInitialPitchMultiplier: Single;
       FDefaultRolloffFactor: Single;
       FDefaultReferenceDistance: Single;
@@ -87,9 +79,11 @@
     constructor Create;
     destructor Destroy; override;
 
-    { Initialize sound engine.
-      Initializes sound backend (like OpenAL library).
+    { Initialize sound backend.
       Sets @link(IsContextOpen), @link(IsContextOpenSuccess), @link(Information).
+
+      You don't usually need to call this -- everything will be initialized
+      automatically when you first load a sound (or try to load and play it).
 
       You can set @link(Device) before calling this.
 
@@ -102,22 +96,22 @@
       could not be initialized. }
     procedure ContextOpen;
 
-    { Release sound backend resources.
+    { Close the sound backend, releasing all sound resources and stopping playback.
       This sets @link(IsContextOpen) and @link(IsContextOpenSuccess) to @false.
-      It's allowed and harmless to call this when one of them is already @false. }
+      It's allowed and harmless to call this when one of them is already @false.
+
+      You don't usually need to call this -- everything will be released
+      automatically when the sound engine is destroyed (at program finalization). }
     procedure ContextClose;
 
     { Sound backend, like OpenAL or FMOD or SOX.
+      See @url(https://castle-engine.io/openal OpenAL) or
+      @url(https://castle-engine.io/fmod FMOD).
+
       Do not change or access this yourself.
       You can change this only by calling procedure like UseFMODSoundBackend
       from CastleFMODSoundBackend unit. }
     property InternalBackend: TSoundEngineBackend read Backend write SetInternalBackend;
-
-    procedure ALContextOpen; deprecated 'use ContextOpen';
-    procedure ALContextClose; deprecated 'use ContextClose';
-
-    procedure LoadFromConfig(const Config: TCastleConfig); override; deprecated 'load sound properties explicitly from UserConfig';
-    procedure SaveToConfig(const Config: TCastleConfig); override; deprecated 'save sound properties explicitly to UserConfig';
 
     { Do we have active sound rendering context.
       This is @true when you successfully
@@ -132,10 +126,6 @@
 
       In case of OpenAL backend, this also implies that OpenAL library is loaded. }
     property IsContextOpenSuccess: boolean read FIsContextOpenSuccess;
-    {$ifdef FPC}
-    property ALActive: boolean read FIsContextOpenSuccess;
-      deprecated 'use IsContextOpenSuccess';
-    {$endif}
 
     { Did we attempt to initialize sound rendering context.
       This indicates that ContextOpen was called,
@@ -143,12 +133,6 @@
       Contrary to IsContextOpenSuccess,
       this @italic(doesn't care if ContextOpen was a success). }
     property IsContextOpen: boolean read FIsContextOpen;
-    {$ifdef FPC}
-    property ALInitialized: Boolean read FIsContextOpen; deprecated 'use IsContextOpen';
-
-    property SoundInitializationReport: string read FInformation;
-      deprecated 'use Information';
-    {$endif}
 
     { Multiline information about the currently initialized
       sound backend (OpenAL, FMOD etc.). }
@@ -363,18 +347,12 @@
       to be encoded in Lisp-like language inside the @link(Device) string. }
     function Devices: TSoundDeviceList;
 
-    function DeviceNiceName: string; deprecated 'use DeviceCaption';
     function DeviceCaption: string;
 
     { Events fired after sound context is being open or closed.
       More precisely, when IsContextOpen changes (and so, possibly, IsContextOpenSuccess
       changed). }
     property OnOpenClose: TNotifyEventList read FOnOpenClose;
-
-    { Should we save @link(Enable) to config file in SaveToConfig call.
-      This is always reset to @true after setting @link(Enable) value. }
-    property EnableSaveToConfig: boolean
-      read FEnableSaveToConfig write FEnableSaveToConfig default true;
 
     class property LogSoundLoading: Boolean
       read GetLogSoundLoading write SetLogSoundLoading;
@@ -386,8 +364,10 @@
     {$endif FPC}
 
     { Sound volume, affects all sounds (effects and music).
-      This must always be within 0..1 range.
-      0.0 means that there are no effects (this case should be optimized). }
+      Must be within 0..1 range.
+
+      Setting volume to 0.0 means that there is no sound output
+      (this case should be optimized). The sounds played are still tracked. }
     property Volume: Single read FVolume write SetVolume
       {$ifdef FPC}default DefaultVolume{$endif};
 
@@ -399,16 +379,27 @@
       Note that you will need to reload your buffers and sources again. }
     property Device: string read FDevice write SetDevice;
 
-    { Enable sound.
+    { Enable sound. Value @true, the default, means that we will initialize
+      sound backend and play all sounds as you expect.
 
-      If @false, then ContextOpen will not initialize any device.
+      If this is @false, then we will not initialize any sound backend even
+      if you try to load or play some sound.
       This is useful if you simply want to disable any sound output
       (or backend, like OpenAL, usage), even when sound library (like OpenAL)
       is available.
 
-      If the sound context is already initialized when setting this,
-      we will eventually close it. (More precisely, we will
-      do ContextClose and then ContextOpen again. This behaves correctly.) }
+      Setting this to @false when the sound backend
+      is already initialized will close it, stopping the playback of
+      all existing sound sources.
+
+      Note that when sound backend is not initialized,
+      sounds are not tracked, and non-looping sounds are just discarded.
+      So toggling this property between @false and @true
+      will simply restart all looping sounds from the beginning.
+      So setting this to @false is not a way to "pause" or "mute" sound playback,
+      it's a way to "stop" sound playback.
+      If you want to mute all sounds, but be able to unmute them when necessary,
+      set the @link(Volume) to zero. }
     property Enabled: boolean read FEnabled write SetEnabled default DefaultEnabled;
 
     {$ifdef FPC}
@@ -454,8 +445,6 @@ begin
   FDopplerFactor := 0.0;
   FEnabled := DefaultEnabled;
   FDevice := DefaultDevice;
-  FEnableSaveToConfig := true;
-  DeviceSaveToConfig := true;
   LoadedBuffers := TInternalSoundBuffersList.Create(true);
   FOnOpenClose := TNotifyEventList.Create;
   FInitialPitchMultiplier := 1.0;
@@ -464,10 +453,6 @@ begin
   FListenerPosition := TVector3.Zero;
   FListenerDirection := Vector3(0, 0, -1);
   FListenerUp := Vector3(0, 1, 0);
-
-  // automatic loading/saving is more troublesome than it's worth
-  // Config.AddLoadListener(@LoadFromConfig);
-  // Config.AddSaveListener(@SaveToConfig);
 
   ApplicationProperties.OnInitializeJavaActivity.Add(
     {$ifdef FPC}@{$endif} ReinitializeJavaActivity);
@@ -488,13 +473,6 @@ begin
     ApplicationProperties(false).OnResume.Remove(
       {$ifdef FPC}@{$endif} ApplicationResume);
   end;
-
-  // automatic loading/saving is more troublesome than it's worth
-  // if Config <> nil then
-  // begin
-  //   Config.RemoveLoadListener(@LoadFromConfig);
-  //   Config.RemoveSaveListener(@SaveToConfig);
-  // end;
 
   ContextClose;
 
@@ -646,16 +624,6 @@ begin
     FIsContextOpen := false; // set it early, so that OnOpenClose knows it's false
     ContextCloseCore;
   end;
-end;
-
-procedure TSoundEngine.ALContextOpen;
-begin
-  ContextOpen;
-end;
-
-procedure TSoundEngine.ALContextClose;
-begin
-  ContextClose;
 end;
 
 function TSoundEngine.PlaySound(const Parameters: TPlaySoundParameters): TInternalSoundSource;
@@ -1024,7 +992,6 @@ begin
       ContextOpen;
     end else
       FDevice := Value;
-    DeviceSaveToConfig := true; // caller will eventually change it to false
   end;
 end;
 
@@ -1039,7 +1006,6 @@ begin
       ContextOpen;
     end else
       FEnabled := Value;
-    FEnableSaveToConfig := true; // caller will eventually change it to false
   end;
 end;
 
@@ -1052,11 +1018,9 @@ begin
   case OptionNum of
     0: begin
          Engine.Device := Argument;
-         Engine.DeviceSaveToConfig := false;
        end;
     1: begin
          Engine.Enabled := false;
-         Engine.EnableSaveToConfig := false;
        end;
     else raise EInternalError.Create('CastleSoundEngine.OptionProc');
   end;
@@ -1105,11 +1069,6 @@ begin
     Backend.SetListener(Position, Direction, Up);
 end;
 
-function TSoundEngine.DeviceNiceName: string;
-begin
-  Result := DeviceCaption;
-end;
-
 function TSoundEngine.DeviceCaption: string;
 var
   I: Integer;
@@ -1119,28 +1078,6 @@ begin
       Exit(Devices[I].Caption);
 
   Result := 'Unnamed Sound Device'; // some default
-end;
-
-procedure TSoundEngine.LoadFromConfig(const Config: TCastleConfig);
-begin
-  {$warnings off} // using deprecated from deprecated
-  inherited;
-  {$warnings on}
-
-  Device := Config.GetValue('sound/device', DefaultDevice);
-  Enabled := Config.GetValue('sound/enable', DefaultEnabled);
-end;
-
-procedure TSoundEngine.SaveToConfig(const Config: TCastleConfig);
-begin
-  if DeviceSaveToConfig then
-    Config.SetDeleteValue('sound/device', Device, DefaultDevice);
-  if EnableSaveToConfig then
-    Config.SetDeleteValue('sound/enable', Enabled, DefaultEnabled);
-
-  {$warnings off} // using deprecated from deprecated
-  inherited;
-  {$warnings on}
 end;
 
 procedure TSoundEngine.ReinitializeJavaActivity(Sender: TObject);
