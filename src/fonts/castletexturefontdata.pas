@@ -331,47 +331,52 @@ var
     var
       RX, RY: Integer;
       DX, DY: Integer;
-      D, TempD: Integer; //6^2 + 6^2 = 72
+      MaxB: Byte;
+      DTransparent, DOpaque, TempD: Integer; //6^2 + 6^2 = 72
+      Opqaueness: Single;
 
-      function GetPixelSafe(const AX, AY: Integer): Boolean; inline; // TODO: Single? Byte?
+      function GetPixelSafe(const AX, AY: Integer): Byte; inline;
       begin
         if (AX >= 0) and (AX < Bitmap^.Width) and
            (AY >= 0) and (AY < Bitmap^.Height) then
-          Exit(Bitmap^.Data^[AX + AY * Bitmap^.Pitch] > 0)
+          Exit(Bitmap^.Data^[AX + AY * Bitmap^.Pitch])
         else
-          Exit(false);
+          Exit(0);
       end;
 
     begin
+      MaxB := 0;
+      for RY := 0 to Bitmap^.Height - 1 do
+        for RX := 0 to Bitmap^.Width - 1 do
+          if Bitmap^.Data^[RY + RY * Bitmap^.Pitch] > MaxB then
+            MaxB := Bitmap^.Data^[RY + RY * Bitmap^.Pitch];
+      if MaxB = 0 then
+        MaxB := 255; //doesn't matter in this case, symbol doesn't have a single opaque pixel
       // for now slow and inefficient, to optimize later
       for RY := -DistanceFieldPadding to Bitmap^.Height - 1 + DistanceFieldPadding do
         for RX := -DistanceFieldPadding to Bitmap^.Width - 1 + DistanceFieldPadding do
-          if GetPixelSafe(RX, RY) then
           begin
             // opaque pixel - calculate distance to nearest transparent pixel
-            D := Sqr(DistanceFieldPadding);
+            DTransparent := Sqr(DistanceFieldPadding);
+            DOpaque := Sqr(DistanceFieldPadding);
             for DY := -DistanceFieldPadding to DistanceFieldPadding do
               for DX := -DistanceFieldPadding to DistanceFieldPadding do
-                if not GetPixelSafe(RX + DX, RY + DY) then
+              begin
+                TempD := Sqr(DX) + Sqr(DY);
+                if GetPixelSafe(RX + DX, RY + DY) > 0 then
                 begin
-                  TempD := Sqr(DX) + Sqr(DY);
-                  if D > TempD then
-                    D := TempD;
-                end;
-            Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ := 128 + Trunc(127 * Sqrt(D) / DistanceFieldPadding);
-          end else
-          begin
-            // transparent pixel - calculate distance to nearest opaque pixel
-            D := Sqr(DistanceFieldPadding);
-            for DY := -DistanceFieldPadding to DistanceFieldPadding do
-              for DX := -DistanceFieldPadding to DistanceFieldPadding do
-                if GetPixelSafe(RX + DX, RY + DY) then
-                begin
-                  TempD := Sqr(DX) + Sqr(DY);
-                  if D > TempD then
-                    D := TempD;
-                end;
-            Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ := Trunc(127 * (1 - Sqrt(D-1) / Sqrt(Sqr(DistanceFieldPadding)-1)));
+                  if DOpaque > TempD then
+                    DOpaque := TempD;
+                end else
+                if DTransparent > TempD then
+                  DTransparent := TempD;
+              end;
+            Opqaueness := Single(GetPixelSafe(RX, RY)) / Single(MaxB);
+            Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ :=
+            Trunc(
+              Opqaueness * (128 + 127 * Sqrt(DTransparent) / DistanceFieldPadding) +
+              (1 - Opqaueness) * (127 * Sqrt(DTransparent) / DistanceFieldPadding)
+            );
           end;
     end;
 
@@ -526,6 +531,8 @@ begin
         end;
       end;
     end;
+
+    SaveImage(Image, '1.png');
 
     // Debug: SaveImage(Image, '/tmp/a.png');
   finally
