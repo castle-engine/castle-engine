@@ -46,6 +46,8 @@ Usage in short:
 
     You can install the `castle_components.lpk` package in Lazarus, to have LCL component `TCastleControl` (see https://castle-engine.io/control_on_form ).
 
+    You can build the most important CGE packages and tools (editor, build tool) using Lazarus [project group](https://wiki.freepascal.org/Project_Groups) called `most_important_lazarus_packages_and_tools.lpg`.
+
 - You can also use [Visual Studio Code](https://castle-engine.io/vscode). We feature a Pascal LSP server that can do code completion for Pascal and CGE API.
 
 - Delphinus-Support : For Delphi users that want to use `TCastleControl` in VCL of FMX, you can install the package using [Delphinus](https://github.com/Memnarch/Delphinus/). See [Download: Delphinus](https://castle-engine.io/download) for more details.
