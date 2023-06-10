@@ -2341,13 +2341,12 @@ type
           Using this flag adds an additional optimization during rendering.
           It allows to use frustum culling with an octree.
           Whether the frustum culling is actually used depends
-          on @link(TCastleScene.OctreeFrustumCulling) value (by default: yes).
+          on @link(TCastleScene.ShapeFrustumCulling) value (by default: yes).
 
           Without this flag, we can still use frustum culling,
           but it's less effective as it considers each shape separately.
-          Whether the frustum culling is actually used depends
-          in this case
-          on @link(TCastleScene.FrustumCulling) value (by default: yes).
+          Whether the frustum culling is actually used also depends
+          on @link(TCastleScene.ShapeFrustumCulling) value.
 
           Using frustum culling (preferably with ssRendering flag)
           is highly adviced if your camera usually only sees

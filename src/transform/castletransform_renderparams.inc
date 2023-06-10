@@ -29,7 +29,7 @@
       When ShapesRendered is much smaller than ShapesVisible,
       it means that the algorithm for removing invisible scene parts
       works good.
-      This includes per-shape frustum culling (see @link(TCastleScene.FrustumCulling)),
+      This includes per-shape frustum culling (see @link(TCastleScene.ShapeFrustumCulling)),
       distance culling (@link(TCastleScene.DistanceCulling)),
       occlusion culling (see @link(
       TCastleRenderOptions.OcclusionQuery)). }

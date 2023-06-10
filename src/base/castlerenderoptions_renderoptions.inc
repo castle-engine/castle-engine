@@ -272,8 +272,8 @@ type
       is slow and it does not treat transparent shapes correctly.
 
       This requires the usage of ssRendering in TCastleSceneCore.Spatial.
-      Also, it always does frustum culling (like fcBox for now),
-      regardless of TCastleScene.OctreeFrustumCulling setting.
+      Also, it always does frustum culling,
+      regardless of @link(TCastleScene.ShapeFrustumCullig) setting.
 
       The algorithm used underneath is "Coherent Hierarchical Culling",
       described in detail in "GPU Gems 2",
