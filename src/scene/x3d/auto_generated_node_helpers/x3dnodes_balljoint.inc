@@ -27,6 +27,7 @@
     function GetAnchorPoint: TVector3;
     procedure SetAnchorPoint(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

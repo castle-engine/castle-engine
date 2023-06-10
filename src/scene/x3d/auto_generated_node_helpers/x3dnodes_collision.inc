@@ -29,6 +29,7 @@
     function GetProxy: TAbstractChildNode;
     procedure SetProxy(const Value: TAbstractChildNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

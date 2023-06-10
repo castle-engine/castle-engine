@@ -27,6 +27,7 @@
     function GetScaleFactor: TVector3;
     procedure SetScaleFactor(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;

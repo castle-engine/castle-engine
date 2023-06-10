@@ -29,6 +29,7 @@
     function GetViewport: TAbstractViewportNode;
     procedure SetViewport(const Value: TAbstractViewportNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

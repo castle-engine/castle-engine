@@ -57,6 +57,7 @@
     function GetAlphaChannel: TAutoAlphaChannel;
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

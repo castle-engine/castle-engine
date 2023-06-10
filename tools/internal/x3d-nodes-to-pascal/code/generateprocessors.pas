@@ -1135,6 +1135,10 @@ end;
 procedure THelperProcessor.NodeBegin(const Node: TX3DNodeInformation);
 begin
   OutputPublicInterface +=
+    { CreateNode needs some doc, to avoid using template
+      "Automatically generated node properties."
+      as accidental documentation comment. }
+    '    { Create node fields and events. }' + NL +
     '    procedure CreateNode; override;' + NL +
     '    class function ClassX3DType: string; override;' + NL;
 

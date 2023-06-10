@@ -33,6 +33,7 @@
     procedure SetFogCoord(const Value: TFogCoordinateNode);
 {$endif not CASTLE_SLIM_NODES}
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

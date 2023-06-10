@@ -63,6 +63,7 @@
     function GetUseGlobalGravity: Boolean;
     procedure SetUseGlobalGravity(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

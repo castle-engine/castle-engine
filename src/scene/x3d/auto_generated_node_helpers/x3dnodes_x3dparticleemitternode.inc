@@ -33,6 +33,7 @@
     function GetSurfaceArea: Single;
     procedure SetSurfaceArea(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

@@ -27,6 +27,7 @@
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

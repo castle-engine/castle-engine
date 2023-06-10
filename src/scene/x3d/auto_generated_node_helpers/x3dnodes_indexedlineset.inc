@@ -37,6 +37,7 @@
     function GetMode: TLineMode;
     procedure SetMode(const Value: TLineMode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

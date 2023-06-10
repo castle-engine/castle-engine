@@ -27,6 +27,7 @@
     function GetTimeOut: TFloatTime;
     procedure SetTimeOut(const Value: TFloatTime);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

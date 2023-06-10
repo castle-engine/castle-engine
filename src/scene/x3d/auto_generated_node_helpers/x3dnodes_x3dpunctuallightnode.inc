@@ -39,6 +39,7 @@
     function GetDefaultShadowMap: TGeneratedShadowMapNode;
     procedure SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

@@ -29,6 +29,7 @@
     function GetBody2: TRigidBodyNode;
     procedure SetBody2(const Value: TRigidBodyNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
