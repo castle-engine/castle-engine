@@ -45,7 +45,6 @@ type
   {$I castlecontrols_scrollview.inc}
   {$I castlecontrols_switchcontrol.inc}
   {$I castlecontrols_checkbox.inc}
-  {$I castlecontrols_tableview.inc}
   {$I castlecontrols_timer.inc}
   {$I castlecontrols_edit.inc}
   {$I castlecontrols_groups.inc}
@@ -82,7 +81,6 @@ uses Math, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_scrollview.inc}
 {$I castlecontrols_switchcontrol.inc}
 {$I castlecontrols_checkbox.inc}
-{$I castlecontrols_tableview.inc}
 {$I castlecontrols_timer.inc}
 {$I castlecontrols_edit.inc}
 {$I castlecontrols_groups.inc}
