@@ -20,7 +20,12 @@
 
 type
   { Text that is displayed and transformed as TCastleTransform,
-    inside TCastleViewport, and can be manipulated in 3D. }
+    inside TCastleViewport, and can be manipulated in 3D.
+
+    See @url(https://castle-engine.io/manual_text.php
+    manual about displaying text and fonts).
+    See @url(https://castle-engine.io/viewport_and_scenes#_text_tcastletext
+    manual about TCastleText in a viewport). }
   TCastleText = class(TCastleAbstractPrimitive)
   strict private
     FText: TStrings;
