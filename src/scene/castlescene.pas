@@ -734,30 +734,18 @@ begin
   if Renderer <> nil then
     (RenderOptions as TSceneRenderOptions).OwnerScene := nil;
 
-  { We must release all connections between RootNode and Renderer first.
-    Reason: when freeing RootNode, image references (from texture nodes)
+  { Release now all connections between RootNode and Renderer.
+
+    Old reason: when freeing RootNode in "inherited"
+    (if OwnsRootNode = false), image references (from texture nodes)
     are decremented. So cache used when loading these images must be
     available.
 
-    If we used custom renderer, then this is not
-    our problem: if OwnsRootNode then RootNode will be freed soon
-    by "inherited", if not OwnsRootNode then it's the using programmer
-    responsibility to free both RootNode and CustomRenderer
-    in exactly this order.
+    This old reason is no longer relevant: cache is now global GLContextCache,
+    it doesn't go away when we free Renderer.
+    Annd X3D nodes should have no other links to renderer.
 
-    If we used our own renderer (actually, this is needed only if we used
-    own own cache, so caller didn't provide a renderer and didn't provide
-    a cache (ACache = nil for constructor), but we don't store this information
-    for now) : we must make sure that freeing RootNode is safe.
-
-    If OwnsRootNode then we know that inherited will free RootNode
-    and so the simpler solution, to just FreeAndNil(Renderer) after
-    inherited, would be possible. But it's not possible, since
-    OwnsRootNode may be false and then programmer may want to free
-    RootNode at undefined later time.
-
-    So we have to guarantee, *now*, that freeing RootNode is safe ---
-    no dangling references to Renderer.Cache. }
+    Maybe we can remove this call one day, after testing. }
   FreeResources([frTextureDataInNodes, frBackgroundImageInNodes]);
 
   FreeAndNil(Renderer);
