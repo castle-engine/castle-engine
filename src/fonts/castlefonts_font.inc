@@ -123,7 +123,10 @@ type
       see @url(https://www.freetype.org/freetype2/docs/ft2faq.html#general-what the summary of font formats supported by FreeType). }
     property URL: String read FURL write SetURL;
 
-    property DistanceField: Boolean read FDistanceField write SetDistanceField;
+    { If this font texture is a regular image (false, default)
+      or a distance field image (true) which is slower to load,
+      generates larger texture but is upscaled in much higher quality }
+    property DistanceField: Boolean read FDistanceField write SetDistanceField default false;
 
     { Optimal font size (in real device pixels),
       the font will be scaled when other size is actually needed.
