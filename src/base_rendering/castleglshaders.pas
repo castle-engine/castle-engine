@@ -281,6 +281,18 @@ type
 
     class function GetCurrent: TGLSLProgram; static;
     class procedure SetCurrent(const Value: TGLSLProgram); static;
+
+    { Make sure all shaders are detached and deleted, to free all resources.
+      This may be called repeatedly, calling it the 2nd time will not free
+      any more resources.
+
+      Note that we don't support calling "Link" repeatedly,
+      this class assumes that TGLSLProgram is only linked once and then used,
+      for now.
+      So calling GLContextClose multiple times has really simple semantics:
+      2nd call just does nothing. The shader is not useful after the 1st
+      GLContextClose call. }
+    procedure GLContextClose;
   public
     { Shader name is used in log messages. Any String is OK. }
     Name: String;
@@ -1096,26 +1108,40 @@ begin
   {$endif CASTLE_COLLECT_SHADER_SOURCE}
 end;
 
+procedure TGLSLProgram.GLContextClose;
+begin
+  { This is called from destructor,
+    which may be called if exception is raised from constructor,
+    so be careful to check here things -- e.g. check that
+    ShaderIds was created. }
+
+  if ShaderIds <> nil then
+    DetachAllShaders;
+
+  if GLFeatures.Shaders and (ProgramId <> 0) then
+  begin
+    glDeleteProgram(ProgramId);
+    ProgramId := 0;
+  end;
+
+  if FUniformLocations <> nil then
+    FUniformLocations.Clear;
+  if FAttributeLocations <> nil then
+    FAttributeLocations.Clear;
+end;
+
 destructor TGLSLProgram.Destroy;
 {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
 var
   ShaderType: TShaderType;
 {$endif CASTLE_COLLECT_SHADER_SOURCE}
 begin
-  { make sure all shaders are detached and deleted, to free all resources }
-
-  { Destructor may be called if exception raised from constructor,
-    so better check that ShaderIds was created. }
-  if ShaderIds <> nil then
-    DetachAllShaders;
+  GLContextClose;
 
   {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   for ShaderType := Low(TShaderType) to High(TShaderType) do
     FreeAndNil(FSource[ShaderType]);
   {$endif}
-
-  if GLFeatures.Shaders then
-    glDeleteProgram(ProgramId);
 
   FreeAndNil(ShaderIds);
   FreeAndNil(FUniformLocations);
