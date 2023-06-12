@@ -35,12 +35,14 @@ type
   TAbstractMovementModifier = class(TCastleBehavior)
   strict private
     FExists: Boolean;
+  protected
+    procedure SetExists(const AValue: Boolean); virtual;
   public
     procedure UpdateMovement(const MovementState: TModularMovementState); virtual; abstract;
 
     constructor Create(AOwner: TComponent); override;
   published
-    property Exists: Boolean read FExists write FExists default true;
+    property Exists: Boolean read FExists write SetExists default true;
   end;
 
   TFpsModularMovement = class(TAbstractModularMovement)
@@ -80,6 +82,11 @@ uses Math, CastleBoxes, CastleUtils, CastleComponentSerialize, CastleKeysMouse,
   CastleLog;
 
 { TAbstractMovementModifier }
+
+procedure TAbstractMovementModifier.SetExists(const AValue: Boolean);
+begin
+  FExists := AValue;
+end;
 
 constructor TAbstractMovementModifier.Create(AOwner: TComponent);
 begin
