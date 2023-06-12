@@ -33,6 +33,7 @@ type
     FFont: TTextureFontData; //< nil when no font loaded successfully
     FOwnsFont: Boolean;
     DrawableImage: TDrawableImage;
+    DistanceFieldShader: TGLSLProgram;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
     FURL: String;
     FOptimalSize: Cardinal;
@@ -319,7 +320,6 @@ procedure TCastleFont.PrepareResources;
   procedure AttachDistanceFieldShader;
   var
     VS, FS: String;
-    NewProgram: TGLSLProgram;
   begin
     VS := 'attribute vec2 vertex;' + LineEnding +
           'attribute vec2 tex_coord;' + LineEnding +
@@ -340,12 +340,13 @@ procedure TCastleFont.PrepareResources;
           'else gl_FragColor = vec4(1.0,1.0,1.0,1.0);' +
           '}' + LineEnding;
 
-    NewProgram := TGLSLProgram.Create;
-    NewProgram.Name := 'TDistanceFieldCut';
-    NewProgram.AttachVertexShader(VS); // Memory leak tracks here
-    NewProgram.AttachFragmentShader(FS);
-    NewProgram.Link;
-    DrawableImage.CustomShader := NewProgram;
+    FreeAndNil(DistanceFieldShader);
+    DistanceFieldShader := TGLSLProgram.Create;
+    DistanceFieldShader.Name := 'TDistanceFieldCut';
+    DistanceFieldShader.AttachVertexShader(VS); // Memory leak tracks here
+    DistanceFieldShader.AttachFragmentShader(FS);
+    DistanceFieldShader.Link;
+    DrawableImage.CustomShader := DistanceFieldShader;
     DrawableImage.SmoothScaling := true;
   end;
 
@@ -362,6 +363,7 @@ end;
 procedure TCastleFont.GLContextClose;
 begin
   FreeAndNil(DrawableImage);
+  FreeAndNil(DistanceFieldShader);
   inherited;
 end;
 
