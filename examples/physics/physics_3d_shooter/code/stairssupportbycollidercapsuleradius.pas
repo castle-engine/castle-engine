@@ -15,6 +15,9 @@ type
 
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
 
+    function CanBePlayerMovedUp(const MovementState: TModularMovementState;
+      const CapsuleHeight, CapsuleRadius, StepHeight: Single):Boolean;
+
     function PropertySections(const PropertyName: String): TPropertySections; override;
   end;
 
@@ -61,21 +64,56 @@ begin
   end;
 
   CapsuleCollider := MovementState.Collider as TCastleCapsuleCollider;
-  //ColliderBoundingBox:= CapsuleCollider.ScaledLocalBoundingBox;
+
+  CapsuleRadius := CapsuleCollider.CalculateScaledRadius;
+  CapsuleHeight := CapsuleCollider.CalculateScaledHeight;
+
+  { Full collider height is CapsuleRadius * 2 + CapsuleHeight }
 
   RayDirection := Vector3(0, -1, 0);
-  RayOrigin := Parent.Translation - Vector3(0, 0, CapsuleCollider.CalculateScaledRadius * 0.95);
+  RayOrigin := CapsuleCollider.Middle() - Vector3(0, 0, CapsuleRadius * 0.95);
 
-  WritelnLog('Parent translation: '+ Parent.Translation.ToString);
-  WritelnLog('CalculateScaledHeight: '+ FloatToStr(CapsuleCollider.CalculateScaledHeight));
-  WritelnLog('CalculateScaledRadius: '+ FloatToStr(CapsuleCollider.CalculateScaledRadius));
+  StepHit := MovementState.RigidBody.PhysicsRayCast(RayOrigin, RayDirection,
+  CapsuleHeight / 2  + CapsuleRadius * 0.95);
 
-  StepHit := MovementState.RigidBody.PhysicsRayCast(RayOrigin, RayDirection, (CapsuleCollider.CalculateScaledHeight /2  + CapsuleCollider.CalculateScaledRadius * 0.95));
   if StepHit.Hit then
   begin
-    //WritelnLog('Found step, step normal ' + StepHit.Normal.ToString);
-    Parent.Translation := Parent.Translation + Vector3(0, CapsuleCollider.CalculateScaledRadius * 0.75, 0);
+    WritelnLog('Found step, step normal ' + StepHit.Normal.ToString);
+
+    { Calculate step height }
+    StepHeight := CapsuleRadius + CapsuleHeight / 2 - StepHit.Distance;
+    WritelnLog('Step height: ' + FloatToStr(StepHeight));
+
+    { check we can teleport player a little up }
+
+    if CanBePlayerMovedUp(MovementState, CapsuleHeight, CapsuleRadius, StepHeight) then
+      Parent.Translation := Parent.Translation + Vector3(0, StepHeight * 0.90, 0);
   end;
+end;
+
+function TStairsSupportByColliderCapsuleRadius.CanBePlayerMovedUp(
+  const MovementState: TModularMovementState; const CapsuleHeight,
+  CapsuleRadius, StepHeight: Single): Boolean;
+var
+  Collider: TCastleCollider;
+  RBody: TCastleRigidBody;
+
+  CastDirection: TVector3;
+  CastOrigin: TVector3;
+
+  CastResult: TPhysicsRayCastResult;
+begin
+  Collider := MovementState.Collider;
+  RBody := MovementState.RigidBody;
+
+  CastDirection := Vector3(0, 1, 0);
+  CastOrigin := Collider.Middle;
+
+  CastResult := RBody.PhysicsSphereCast(CastOrigin, CapsuleRadius, CastDirection,
+  CapsuleHeight / 2 + StepHeight); // no CapsuleRadius here because we add it and remove in one step
+
+  Result := not CastResult.Hit;
+  WritelnLog(Iff(Result, 'can be moved up', 'no space to move up'));
 end;
 
 function TStairsSupportByColliderCapsuleRadius.PropertySections(
