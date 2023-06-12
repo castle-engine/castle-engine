@@ -38,9 +38,9 @@ type
   protected
     procedure SetExists(const AValue: Boolean); virtual;
   public
-    procedure UpdateMovement(const MovementState: TModularMovementState); virtual; abstract;
-
     constructor Create(AOwner: TComponent); override;
+
+    procedure UpdateMovement(const MovementState: TModularMovementState); virtual; abstract;
   published
     property Exists: Boolean read FExists write SetExists default true;
   end;
@@ -81,12 +81,7 @@ implementation
 uses Math, CastleBoxes, CastleUtils, CastleComponentSerialize, CastleKeysMouse,
   CastleLog;
 
-{ TAbstractMovementModifier }
-
-procedure TAbstractMovementModifier.SetExists(const AValue: Boolean);
-begin
-  FExists := AValue;
-end;
+{ TAbstractMovementModifier -------------------------------------------------- }
 
 constructor TAbstractMovementModifier.Create(AOwner: TComponent);
 begin
@@ -94,9 +89,31 @@ begin
   FExists := true;
 end;
 
-{ TAbstractMovementModifier -------------------------------------------------- }
+procedure TAbstractMovementModifier.SetExists(const AValue: Boolean);
+begin
+  FExists := AValue;
+end;
 
 { TFpsModularMovement -------------------------------------------------------- }
+
+constructor TFpsModularMovement.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FForwardInputAxis := TCastleInputAxis.Create(Self);
+  FForwardInputAxis.SetSubComponent(true);
+  FForwardInputAxis.PositiveKey := keyW;
+  FForwardInputAxis.NegativeKey := keyS;
+
+  FSidewayInputAxis := TCastleInputAxis.Create(Self);
+  FSidewayInputAxis.SetSubComponent(true);
+  FSidewayInputAxis.PositiveKey := keyD;
+  FSidewayInputAxis.NegativeKey := keyA;
+
+  FInputJump := TInputShortcut.Create(Self);
+  InputJump.Assign(keySpace);
+  InputJump.SetSubComponent(true);
+  InputJump.Name := 'InputJump';
+end;
 
 function TFpsModularMovement.GetFullForwardDirection: TVector3;
 begin
@@ -267,25 +284,6 @@ begin
   end;
 
   inherited Update(SecondsPassed, RemoveMe);
-end;
-
-constructor TFpsModularMovement.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  FForwardInputAxis := TCastleInputAxis.Create(Self);
-  FForwardInputAxis.SetSubComponent(true);
-  FForwardInputAxis.PositiveKey := keyW;
-  FForwardInputAxis.NegativeKey := keyS;
-
-  FSidewayInputAxis := TCastleInputAxis.Create(Self);
-  FSidewayInputAxis.SetSubComponent(true);
-  FSidewayInputAxis.PositiveKey := keyD;
-  FSidewayInputAxis.NegativeKey := keyA;
-
-  FInputJump := TInputShortcut.Create(Self);
-  InputJump.Assign(keySpace);
-  InputJump.SetSubComponent(true);
-  InputJump.Name := 'InputJump';
 end;
 
 function TFpsModularMovement.PropertySections(const PropertyName: String
