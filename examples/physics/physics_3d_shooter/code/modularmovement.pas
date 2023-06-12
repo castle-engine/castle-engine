@@ -76,7 +76,8 @@ type
 
 implementation
 
-uses Math, CastleBoxes, CastleUtils, CastleComponentSerialize, CastleKeysMouse;
+uses Math, CastleBoxes, CastleUtils, CastleComponentSerialize, CastleKeysMouse,
+  CastleLog;
 
 { TAbstractMovementModifier }
 
@@ -122,7 +123,11 @@ var
   ColliderBoundingBox: TBox3D;
   ColliderHeight: Single;
   ColliderRadius: Single;
-  SphereOrigin: TVector3;
+  SphereCastOrigin: TVector3;
+  { Needed when casted sphere is bigger or equal than ColliderHeight / 2 because kraft
+    do not see any bodies that it hit while casting. This can happen when our
+    player gently digs into the ground. }
+  SphereCastOriginUpAdjustment: Single;
 
   DistanceToGround: Single;
   GroundSphereCast: TPhysicsRayCastResult;
@@ -134,12 +139,24 @@ begin
     under the collider. And ray will be casted under the floor. }
   ColliderBoundingBox := PlayerCollider.ScaledLocalBoundingBox;
   ColliderHeight := ColliderBoundingBox.SizeY;
-  ColliderRadius := Iff(ColliderBoundingBox.SizeX > ColliderBoundingBox.SizeZ,
-    ColliderBoundingBox.SizeX, ColliderBoundingBox.SizeZ);
-  SphereOrigin := Parent.Translation + PlayerCollider.Translation;
+  { From testing average size is the best here, better than min or max size. }
+  ColliderRadius := (ColliderBoundingBox.SizeX + ColliderBoundingBox.SizeZ) / 2;
+  SphereCastOrigin := PlayerCollider.Middle;
+
+  { When casting sphere is equal or bigger than ColliderHeight / 2 we need
+    move it up or reduce sphere size }
+  {if not (ColliderRadius < ColliderHeight / 2 * 0.9) then
+     ColliderRadius := ColliderHeight / 2 * 0.9;}
+
+  { Adjust sphere cast origin when radius is equal or bigger than ColliderHeight / 2 }
+  if ColliderRadius - ColliderHeight / 2 > -0.1  then
+  begin
+    SphereCastOriginUpAdjustment := ColliderRadius - ColliderHeight / 2 + 0.1;
+    SphereCastOrigin.Y := SphereCastOrigin.Y + SphereCastOriginUpAdjustment;
+  end;
 
   GroundSphereCast := PlayerRigidBody.PhysicsSphereCast(
-    SphereOrigin,
+    SphereCastOrigin,
     ColliderRadius,
     Vector3(0, -1, 0),
     ColliderHeight * 3
@@ -149,30 +166,31 @@ begin
   begin
     DistanceToGround := GroundSphereCast.Distance;
 
-    { When collider has own translation we need substract it from distance
-      becouse distance will be too big }
-    DistanceToGround := DistanceToGround - PlayerCollider.Translation.Y;
+    { Remove half of full collider height and cast adjustment - we cast sphere
+      from middle of collider with adjustment when casted sphere radius
+      is equal or bigger than ColliderHeight / 2 }
+    DistanceToGround  := DistanceToGround - (ColliderHeight / 2 + SphereCastOriginUpAdjustment);
 
-    { When we use sphere cast we also should remove it radius }
-    DistanceToGround := DistanceToGround - ColliderRadius;
+    { When we use sphere cast we also should add its radius.
+      Distance is from cast origin to "moved" casted sphere origin. }
+    DistanceToGround := DistanceToGround + ColliderRadius;
 
     { Sometimes rigid body center point can be under the collider so
-      the distance can be negative }
+      the distance can be negative - mostly when player dig a little in ground }
     if DistanceToGround < 0 then
       DistanceToGround := 0;
 
-    { We use ColliderHeight / 2 because the cast origin is in
-      center of collider and ColliderHeight * 0.1 to give player control
-      a little faster }
-    Result := DistanceToGround < (ColliderHeight / 2) + ColliderHeight * 0.1;
-    {if Result then
+    { We assume that the player is on the ground a little faster to allow
+     smoother control }
+    Result := DistanceToGround < ColliderHeight * 0.1;
+    if Result then
       WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
     else
-      WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');}
+      WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');
   end else
   begin
     Result := false;
-    {WritelnLog('not on ground');}
+    WritelnLog('not on ground');
   end;
 end;
 
