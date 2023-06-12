@@ -953,12 +953,18 @@ var
     ColliderHeight: Single;
     ColliderRadius: Single;
 
+    SphereCastOrigin: TVector3;
+    { Needed when casted sphere is bigger or equal than ColliderHeight / 2 because kraft
+      do not see any bodies that it hit while casting. This can happen when our
+      player gently digs into the ground. }
+    SphereCastOriginUpAdjustment: Single;
+
     MaxHorizontalVelocityChange: Single;
     Acceleration: Single;
     HVelocity: TVector3;
     VVelocity: Single;
     MoveDirection: TVector3;
-    GroundRayCast: TPhysicsRayCastResult;
+    GroundSphereCast: TPhysicsRayCastResult;
     DistanceToGround: Single;
     Jump: Single;
     RayOrigin: TVector3;
@@ -980,40 +986,53 @@ var
     ColliderHeight := AvatarColliderBoundingBox.SizeY;
     { From testing average size is the best here, better than min or max size. }
     ColliderRadius := (AvatarColliderBoundingBox.SizeX + AvatarColliderBoundingBox.SizeZ) / 2;
+    SphereCastOrigin := Collider.Middle;
+
+    { Adjust sphere cast origin when radius is equal or bigger than ColliderHeight / 2 }
+    if ColliderRadius - ColliderHeight / 2 > -0.1  then
+    begin
+      SphereCastOriginUpAdjustment := ColliderRadius - ColliderHeight / 2 + 0.1;
+      SphereCastOrigin.Y := SphereCastOrigin.Y + SphereCastOriginUpAdjustment;
+    end;
 
     { We use Collider.Middle here  because sometimes transform origin can be
       under the collider. And cast will be casted under the floor. }
-    GroundRayCast := RBody.PhysicsSphereCast(
-      Collider.Middle,
+    GroundSphereCast := RBody.PhysicsSphereCast(
+      SphereCastOrigin,
       ColliderRadius,
       Vector3(0, -1, 0),
       ColliderHeight * 2
     );
 
-    if GroundRayCast.Hit then
+    if GroundSphereCast.Hit then
     begin
-      DistanceToGround := GroundRayCast.Distance;
+      DistanceToGround := GroundSphereCast.Distance;
 
-      { Remove half of full collider height - we cast sphere from middle of
-        collider }
-      DistanceToGround  := DistanceToGround - ColliderHeight / 2;
+      { Remove half of full collider height and cast adjustment - we cast sphere
+        from middle of collider with adjustment when casted sphere radius
+        is equal or bigger than ColliderHeight / 2 }
+      DistanceToGround  := DistanceToGround - (ColliderHeight / 2 + SphereCastOriginUpAdjustment);
 
       { When we use sphere cast we also should add its radius.
-        Distance is from cast origin to sphere origin. }
+        Distance is from cast origin to "moved" casted sphere origin. }
       DistanceToGround := DistanceToGround + ColliderRadius;
 
       { Sometimes rigid body center point can be under the collider so
-        the distance can be negative }
+        the distance can be negative - mostly when player dig a little in ground }
       if DistanceToGround < 0 then
         DistanceToGround := 0;
 
-      //WritelnLog('Distance to ground: ' + FloatToStr(DistanceToGround));
       { We assume that the player is on the ground a little faster to allow
        smoother control }
       IsOnGroundBool := DistanceToGround < ColliderHeight * 0.1;
+      if IsOnGroundBool then
+        WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
+      else
+        WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');
     end else
     begin
       IsOnGroundBool := false;
+      WritelnLog('not on ground');
       DistanceToGround := -1; // For animation checking
     end;
 
