@@ -30,7 +30,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="23">
+    <Units Count="16">
       <Unit0>
         <Filename Value="physics_3d_shooter_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -49,100 +49,65 @@
         <UnitName Value="GameViewMain"/>
       </Unit3>
       <Unit4>
-        <Filename Value="code/move3dplayerdynamic.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="Move3DPlayerDynamic"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="code/rotatecamerabymouse.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="RotateCameraByMouse"/>
-      </Unit5>
-      <Unit6>
         <Filename Value="code/simplestfpsplayermovement.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="SimplestFpsPlayerMovement"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="code/rotatecamerabykeys.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="RotateCameraByKeys"/>
-      </Unit7>
-      <Unit8>
+      </Unit4>
+      <Unit5>
         <Filename Value="code/simplefpsplayermovementwithrotation.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="SimpleFpsPlayerMovementWithRotation"/>
-      </Unit8>
-      <Unit9>
+      </Unit5>
+      <Unit6>
         <Filename Value="code/directrotatetransformbykeys.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DirectRotateTransformByKeys"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="code/rotaterigidbodybykeys.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="RotateRigidBodyByKeys"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="code/rotaterigidbodybymouse.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="RotateRigidBodyByMouse"/>
-      </Unit11>
-      <Unit12>
+      </Unit6>
+      <Unit7>
         <Filename Value="code/rotaterigidbody.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="RotateRigidBody"/>
-      </Unit12>
-      <Unit13>
+      </Unit7>
+      <Unit8>
         <Filename Value="code/headbobbing.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="HeadBobbing"/>
-      </Unit13>
-      <Unit14>
-        <Filename Value="code/fpsplayermovementwithrotationandstairsupport.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="FpsPlayerMovementWithRotationAndStairSupport"/>
-      </Unit14>
-      <Unit15>
+      </Unit8>
+      <Unit9>
         <Filename Value="code/fpscrouch.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FpsCrouch"/>
-      </Unit15>
-      <Unit16>
-        <Filename Value="code/fpsplayermovementwithrotationandfly.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="FpsPlayerMovementWithRotationAndFly"/>
-      </Unit16>
-      <Unit17>
+      </Unit9>
+      <Unit10>
         <Filename Value="code/gameinputaxis.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="GameInputAxis"/>
-      </Unit17>
-      <Unit18>
+      </Unit10>
+      <Unit11>
         <Filename Value="code/rotatecamera.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="RotateCamera"/>
-      </Unit18>
-      <Unit19>
+      </Unit11>
+      <Unit12>
         <Filename Value="code/modularmovement.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ModularMovement"/>
-      </Unit19>
-      <Unit20>
+      </Unit12>
+      <Unit13>
         <Filename Value="code/stairssupportbycollidercapsuleradius.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="StairsSupportByColliderCapsuleRadius"/>
-      </Unit20>
-      <Unit21>
+      </Unit13>
+      <Unit14>
         <Filename Value="code/fpsflysupport.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FpsFlySupport"/>
-      </Unit21>
-      <Unit22>
+      </Unit14>
+      <Unit15>
         <Filename Value="code/fpswalksupport.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FpsWalkSupport"/>
-      </Unit22>
+      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
