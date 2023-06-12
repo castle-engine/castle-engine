@@ -34,10 +34,15 @@ procedure TStairsSupportByColliderCapsuleRadius.UpdateMovement(
   const MovementState: TModularMovementState);
 var
   CapsuleCollider: TCastleCapsuleCollider;
+  CapsuleRadius: Single;
+  CapsuleHeight: Single;
+
+
 
   RayDirection: TVector3;
   RayOrigin: TVector3;
   StepHit: TPhysicsRayCastResult;
+  StepHeight: Single;
 begin
   { Works only when player on ground and moving }
   if MovementState.IsJumping or (MovementState.IsPlayerOnGround = false) or
