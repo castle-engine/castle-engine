@@ -68,7 +68,7 @@ begin
   { Rotation in player physics - rotate rigid body by keys nad mouse using angular velocity }
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics.castle-user-interface';
 
-  //DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
+  DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
 
   {Old tests }
   //DesignUrl := 'castle-data:/gameviewmain_scaled_player_test.castle-user-interface';
