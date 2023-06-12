@@ -34,8 +34,9 @@ type
   TTextureFontData = class
   private
     const
-      CDistanceFieldPadding = Integer(6);
+      DistanceFieldPadding = Integer(6);
     var
+      FAdditionalPadding: Integer;
       FDistanceField: Boolean;
   public
     type
@@ -97,7 +98,6 @@ type
       FallbackGlyphWarnings: Integer;
 
     procedure CalculateFallbackGlyph;
-    function GetDistanceFieldPadding: Integer;
     procedure MakeFallbackWarning(const C: TUnicodeChar);
   public
     { Create by reading a FreeType font file, like ttf.
@@ -162,7 +162,7 @@ type
     function TextHeightBase(const S: string): Integer;
     function TextMove(const S: string): TVector2Integer;
     property DistanceField: Boolean read FDistanceField;
-    property DistanceFieldPadding: Integer read GetDistanceFieldPadding;
+    property AdditionalPadding: Integer read FAdditionalPadding;
   end;
 
 implementation
@@ -296,8 +296,8 @@ var
       end;
 
       Result := TGlyph.Create;
-      Result.Width    := Bitmap^.Width + 2 * DistanceFieldPadding;
-      Result.Height   := Bitmap^.Height + 2 * DistanceFieldPadding;
+      Result.Width    := Bitmap^.Width + 2 * AdditionalPadding;
+      Result.Height   := Bitmap^.Height + 2 * AdditionalPadding;
       Result.X        := -Bitmap^.X;
       Result.Y        := Bitmap^.Height - 1 + Bitmap^.Y;
       Result.AdvanceX := Bitmap^.AdvanceX shr 10; // 64 * 16, looks like this is just magic for freetype
@@ -366,14 +366,14 @@ var
       if MaxB = 0 then
         MaxB := 255; //doesn't matter in this case, the glyph doesn't have a single opaque pixel
 
-      for RY := -DistanceFieldPadding to Bitmap^.Height - 1 + DistanceFieldPadding do
-        for RX := -DistanceFieldPadding to Bitmap^.Width - 1 + DistanceFieldPadding do
+      for RY := -AdditionalPadding to Bitmap^.Height - 1 + AdditionalPadding do
+        for RX := -AdditionalPadding to Bitmap^.Width - 1 + AdditionalPadding do
           begin
             // opaque pixel - calculate distance to nearest transparent pixel
-            DTransparent := Sqr(DistanceFieldPadding);
-            DOpaque := Sqr(DistanceFieldPadding);
-            for DY := -DistanceFieldPadding to DistanceFieldPadding do
-              for DX := -DistanceFieldPadding to DistanceFieldPadding do
+            DTransparent := Sqr(AdditionalPadding);
+            DOpaque := Sqr(AdditionalPadding);
+            for DY := -AdditionalPadding to AdditionalPadding do
+              for DX := -AdditionalPadding to AdditionalPadding do
               begin
                 TempD := Sqr(DX) + Sqr(DY);
                 AX := RX + DX;
@@ -392,10 +392,10 @@ var
               Opqaueness := Single(Bitmap^.Data^[RX + RY * Bitmap^.Pitch]) / Single(MaxB)
             else
               Opqaueness := 0;
-            Image.PixelPtr(ImageX + RX + DistanceFieldPadding, ImageY + Bitmap^.Height - 1 - RY + DistanceFieldPadding)^ :=
+            Image.PixelPtr(ImageX + RX + AdditionalPadding, ImageY + Bitmap^.Height - 1 - RY + AdditionalPadding)^ :=
               Trunc(
-                Opqaueness * (128 + 127 * Single(DTransparent) / Sqr(DistanceFieldPadding)) +
-                (1 - Opqaueness) * (127 * (1.0 - Single(DOpaque) / Sqr(DistanceFieldPadding)))
+                Opqaueness * (128 + 127 * Single(DTransparent) / Sqr(AdditionalPadding)) +
+                (1 - Opqaueness) * (127 * (1.0 - Single(DOpaque) / Sqr(AdditionalPadding)))
               );
           end;
     end;
@@ -461,6 +461,10 @@ var
 begin
   inherited Create;
   FDistanceField := ADistanceField;
+  if DistanceField then
+    FAdditionalPadding := DistanceFieldPadding
+  else
+    FAdditionalPadding := 0;
   FUrl := AUrl;
   FSize := ASize;
   FAntiAliased := AnAntiAliased;
@@ -511,8 +515,8 @@ begin
     MaxHeight := MaxHeight + GlyphPadding;
     if DistanceField then
     begin
-      MaxWidth := MaxWidth + 2 * DistanceFieldPadding;
-      MaxHeight := MaxHeight + 2 * DistanceFieldPadding;
+      MaxWidth := MaxWidth + 2 * AdditionalPadding;
+      MaxHeight := MaxHeight + 2 * AdditionalPadding;
     end;
 
     ImageSize := 8;
@@ -627,14 +631,6 @@ begin
         FFallbackGlyph := FFirstExistingGlyph;
         FFallbackGlyphChar := FFirstExistingGlyphChar;
       end;
-end;
-
-function TTextureFontData.GetDistanceFieldPadding: Integer;
-begin
-  if DistanceField then
-    Exit(CDistanceFieldPadding)
-  else
-    Exit(0);
 end;
 
 function TTextureFontData.Glyph(const C: TUnicodeChar;

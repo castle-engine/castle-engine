@@ -411,8 +411,8 @@ var
       {.$define EXTRA_GLYPH_SPACE}
 
       ScreenRect := PFloatRectangle(GlyphsScreenRects.Ptr(GlyphsToRender));
-      ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif} + FFont.DistanceFieldPadding) * Scale + OutlineMoveX * Outline;
-      ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif} + FFont.DistanceFieldPadding) * Scale + OutlineMoveY * Outline;
+      ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif} + FFont.AdditionalPadding) * Scale + OutlineMoveX * Outline;
+      ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif} + FFont.AdditionalPadding) * Scale + OutlineMoveY * Outline;
       ScreenRect^.Width  := (G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
       ScreenRect^.Height := (G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
 
