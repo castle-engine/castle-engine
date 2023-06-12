@@ -51,6 +51,9 @@ var
 
   PlayerRigidBody: TCastleRigidBody;
 begin
+  { Can be false by fly support }
+  MovementState.RigidBody.Gravity := true;
+
   if not MovementState.IsPlayerOnGround then
     Exit;
 
