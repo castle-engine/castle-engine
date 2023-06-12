@@ -143,11 +143,6 @@
                   "NegativeKey" : "keyE",
                   "PositiveKey" : "keyQ"
                 },
-                "InputFly" : {
-                  "$$ClassName" : "TInputShortcut",
-                  "DefaultKey1" : "keyF",
-                  "Key1" : "keyF"
-                },
                 "Name" : "FpsFlySupport"
               },
               {
@@ -159,13 +154,13 @@
                 "Name" : "HeadBobbing"
               },
               {
-                "$$ClassName" : "TStairsSupportByColliderCapsuleRadius",
-                "Name" : "StairsSupportByColliderCapsuleRadius"
-              },
-              {
                 "$$ClassName" : "TFpsCrouch",
                 "Input_Crouch" : "",
                 "Name" : "FpsCrouch"
+              },
+              {
+                "$$ClassName" : "TStairsSupportByColliderCapsuleRadius",
+                "Name" : "StairsSupportByColliderCapsuleRadius1"
               }
             ]
           },
