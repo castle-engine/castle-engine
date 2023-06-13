@@ -1083,12 +1083,6 @@
       ],
       "$Children" : [
         {
-          "$$ClassName" : "TCastleWalkNavigation",
-          "Exists" : false,
-          "MoveSpeed" : 1.0000000000000000E+001,
-          "Name" : "WalkNavigation"
-        },
-        {
           "$$ClassName" : "TCastleCrosshair",
           "Name" : "Crosshair1"
         }
