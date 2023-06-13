@@ -21,11 +21,8 @@ interface
 uses Classes,
   CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras,
-  CastleViewport, Move3DPlayerDynamic, RotateCameraByMouse,
-  SimplestFpsPlayerMovement, RotateCameraByKeys, SimpleFpsPlayerMovementWithRotation,
-  DirectRotateTransformByKeys, RotateRigidBodyByKeys, RotateRigidBodyByMouse,
-  RotateRigidBody, HeadBobbing, FpsPlayerMovementWithRotationAndStairSupport,
-  FpsCrouch, FpsPlayerMovementWithRotationAndFly, GameInputAxis, RotateCamera,
+  CastleViewport, SimplestFpsPlayerMovement, SimpleFpsPlayerMovementWithRotation,
+  DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, GameInputAxis, RotateCamera,
   ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport, FpsWalkSupport;
 
 type
