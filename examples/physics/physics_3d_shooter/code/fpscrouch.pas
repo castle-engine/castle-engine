@@ -14,9 +14,12 @@ type
     FInput_Crouch: TInputShortcut;
     FCrouchSpeed: Single;
     FIsCrouching: Boolean;
+    FWasCrouchingInput: Boolean;
   protected
     procedure StartCrouching(const MovementState: TModularMovementState); virtual;
     procedure StopCrouching(const MovementState: TModularMovementState); virtual;
+
+    function CanPlayerStandUp(const MovementState: TModularMovementState): Boolean;
   public
     const
       DefaultCrouchSpeed = 3.0;
@@ -35,7 +38,8 @@ type
 
 implementation
 
-uses CastleUtils, CastleComponentSerialize, CastleKeysMouse;
+uses CastleUtils, CastleComponentSerialize, CastleKeysMouse, CastleBoxes,
+  CastleLog;
 
 { TFpsCrouch ----------------------------------------------------------------- }
 
@@ -60,14 +64,20 @@ begin
   if MovementState.IsJumping or MovementState.IsPlayerOnGround = false then
     Exit;
 
-  if (not FIsCrouching) and (Input_Crouch.IsPressed(FocusedContainer)) then
+  if not FWasCrouchingInput then
   begin
-    StartCrouching(MovementState);
+    if Input_Crouch.IsPressed(FocusedContainer) then
+    begin
+      FWasCrouchingInput := true;
+      if not FIsCrouching then
+        StartCrouching(MovementState)
+      else
+        StopCrouching(MovementState);
+    end;
   end else
-  if FIsCrouching and (not Input_Crouch.IsPressed(FocusedContainer)) then
   begin
-    // TODO: check we can do it - cant be done in tight places
-    StopCrouching(MovementState);
+    if not Input_Crouch.IsPressed(FocusedContainer) then
+      FWasCrouchingInput := false;
   end;
 
   { Modify rigid body speed }
@@ -98,9 +108,59 @@ end;
 
 procedure TFpsCrouch.StopCrouching(const MovementState: TModularMovementState);
 begin
-  Parent.Translation := Parent.Translation + Vector3(0, MovementState.Collider.ScaledLocalBoundingBox.SizeY * 1.01, 0); // place player on ground before scale change 1.01 to ensure player will be above ground
-  MovementState.Collider.SizeScale := 1;
-  FIsCrouching := false;
+  if FIsCrouching and CanPlayerStandUp(MovementState) then
+  begin
+    Parent.Translation := Parent.Translation + Vector3(0, MovementState.Collider.ScaledLocalBoundingBox.SizeY * 1.01, 0); // place player on ground before scale change 1.01 to ensure player will be above ground
+    MovementState.Collider.SizeScale := 1;
+    FIsCrouching := false;
+  end;
+end;
+
+function TFpsCrouch.CanPlayerStandUp(const MovementState: TModularMovementState
+  ): Boolean;
+var
+  Collider: TCastleCollider;
+  RBody: TCastleRigidBody;
+  ColliderBoundigBox: TBox3D;
+  ColliderRadius: Single;
+  ColliderHeight: Single;
+
+  CastDirection: TVector3;
+  CastOrigin: TVector3;
+  CastOriginUpAdjustment: Single;
+
+  CastResult: TPhysicsRayCastResult;
+begin
+  Collider := MovementState.Collider;
+  RBody := MovementState.RigidBody;
+
+  CastDirection := Vector3(0, 1, 0);
+  CastOrigin := Collider.Middle;
+
+  ColliderBoundigBox := Collider.ScaledLocalBoundingBox;
+  ColliderRadius := Iff(ColliderBoundigBox.SizeX > ColliderBoundigBox.SizeZ,
+    ColliderBoundigBox.SizeX, ColliderBoundigBox.SizeZ);
+  WritelnLog('ColliderRadius: ' + FloatToStr(ColliderRadius));
+  WritelnLog('ColliderBoundigBox: ' + ColliderBoundigBox.ToString);
+  ColliderHeight := ColliderBoundigBox.SizeY;
+  WritelnLog('ColliderHeight: ' + FloatToStr(ColliderHeight));
+
+  { Adjust sphere cast origin when radius is equal or bigger than ColliderHeight / 2 }
+  if ColliderRadius - ColliderHeight / 2 > -0.1  then
+  begin
+    CastOriginUpAdjustment := ColliderRadius - ColliderHeight / 2 + 0.1;
+    CastOriginUpAdjustment := 0;
+    CastOrigin.Y := CastOrigin.Y + CastOriginUpAdjustment;
+  end;
+
+  WritelnLog('CastOriginUpAdjustment: ' + FloatToStr(CastOriginUpAdjustment));
+  WritelnLog('MaxDistance: ' + FloatToStr(ColliderHeight / 2 + ColliderHeight - CastOriginUpAdjustment));
+
+  CastResult := RBody.PhysicsSphereCast(CastOrigin, ColliderRadius, CastDirection,
+  ColliderHeight / 2 + ColliderHeight - CastOriginUpAdjustment);
+
+  Result := not CastResult.Hit;
+  WritelnLog(Iff(Result, 'can be moved up', 'no space to move up'));
 end;
 
 initialization
