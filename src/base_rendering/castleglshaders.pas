@@ -684,6 +684,12 @@ procedure InternalSetCurrentProgram(const Value: TGLSLProgram);
 begin
   if Value <> nil then
   begin
+    if Value.ProgramId = 0 then
+    begin
+      WritelnWarning('Trying to use a GLSL shader after the OpenGL context for which it was prepared closed; you have to create new TGLSLProgram instance');
+      glUseProgram(0);
+      Exit;
+    end;
     if GLFeatures.Shaders then
       glUseProgram(Value.ProgramId);
   end else
