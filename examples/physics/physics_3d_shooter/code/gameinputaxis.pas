@@ -54,8 +54,20 @@ uses Math, CastleLog;
 function TCastleInputAxis.HandleMouseLook(const Container: TCastleContainer): Single;
 var
   MouseChange: TVector2;
+  Event: TInputMotion;
 begin
-  MouseChange := (Container.MousePosition) - FLastUpdateMousePosition;
+  // MouseChange := (Container.MousePosition) - FLastUpdateMousePosition;
+
+  // TODO: try to use here - MouseChange := Container.MouseLookDelta(Event, RenderRect);
+  // and prepare TMotionEvent by myself to do that
+  Event.OldPosition := FLastUpdateMousePosition;
+  Event.Position := Container.MousePosition;
+  Event.Pressed := Container.MousePressed;
+
+  // TODO ?
+  //Event.FingerIndex := ;
+  // TODO: how to set render rect?
+  MouseChange := Container.MouseLookDelta(Event);
 
   case MouseLookAxis of
   mlaHorizontal:
