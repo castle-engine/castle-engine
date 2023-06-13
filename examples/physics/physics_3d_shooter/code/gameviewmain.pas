@@ -43,6 +43,7 @@ type
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
   end;
 
 var
@@ -51,7 +52,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleTransform;
+  CastleTransform, CastleLog;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -83,7 +84,7 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-  WalkNavigation.MouseLook := buttonRight in Container.MousePressed;
+  //WalkNavigation.MouseLook := buttonRight in Container.MousePressed;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -143,6 +144,15 @@ begin
     Exit(true);
   end;
 
+  { Hide cursor for mouse look }
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    //Viewport.Cursor := mcForceNone;
+    Container.OverrideCursor := mcForceNone;
+    WritelnLog('none');
+  end;
+
+  { Fly support }
   if Assigned(FpsFlySupport) and Assigned(FpsWalkSupport) and Assigned(RotateRigidBody) then
   begin
     if Event.IsKey(keyF) then
@@ -166,6 +176,19 @@ begin
       end;
     end;
   end;
+end;
+
+function TViewMain.Release(const Event: TInputPressRelease): boolean;
+begin
+  { Show cursor for mouse look }
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    //Viewport.Cursor := mcDefault;
+    Container.OverrideCursor := mcDefault;
+    WritelnLog('default');
+  end;
+
+  Result := inherited Release(Event);
 end;
 
 end.
