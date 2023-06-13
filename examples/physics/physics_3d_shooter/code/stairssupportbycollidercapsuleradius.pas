@@ -40,8 +40,6 @@ var
   CapsuleRadius: Single;
   CapsuleHeight: Single;
 
-
-
   RayDirection: TVector3;
   RayOrigin: TVector3;
   StepHit: TPhysicsRayCastResult;
@@ -78,11 +76,11 @@ begin
 
   if StepHit.Hit then
   begin
-    WritelnLog('Found step, step normal ' + StepHit.Normal.ToString);
+    //WritelnLog('Found step, step normal ' + StepHit.Normal.ToString);
 
     { Calculate step height }
     StepHeight := CapsuleRadius + CapsuleHeight / 2 - StepHit.Distance;
-    WritelnLog('Step height: ' + FloatToStr(StepHeight));
+    //WritelnLog('Step height: ' + FloatToStr(StepHeight));
 
     { check we can teleport player a little up }
 
@@ -113,7 +111,7 @@ begin
   CapsuleHeight / 2 + StepHeight); // no CapsuleRadius here because we add it and remove in one step
 
   Result := not CastResult.Hit;
-  WritelnLog(Iff(Result, 'can be moved up', 'no space to move up'));
+  //WritelnLog(Iff(Result, 'can be moved up', 'no space to move up'));
 end;
 
 function TStairsSupportByColliderCapsuleRadius.PropertySections(
