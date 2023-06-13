@@ -293,6 +293,7 @@ type
       2nd call just does nothing. The shader is not useful after the 1st
       GLContextClose call. }
     procedure GLContextClose;
+    procedure OnGlContextClose(Sender: TObject);
   public
     { Shader name is used in log messages. Any String is OK. }
     Name: String;
@@ -617,7 +618,7 @@ var
 implementation
 
 uses CastleStringUtils, CastleLog, CastleGLVersion, CastleRenderContext,
-  CastleInternalGLUtils;
+  CastleInternalGLUtils, CastleApplicationProperties;
 
 { Wrapper around glGetShaderInfoLog.
   Based on Dean Ellis BasicShader.dpr, but somewhat fixed ? <> 0 not > 1. }
@@ -684,6 +685,12 @@ procedure InternalSetCurrentProgram(const Value: TGLSLProgram);
 begin
   if Value <> nil then
   begin
+    if Value.ProgramId = 0 then
+    begin
+      WritelnWarning('Trying to use a GLSL shader after the OpenGL context for which it was prepared closed; you have to create new TGLSLProgram instance');
+      glUseProgram(0);
+      Exit;
+    end;
     if GLFeatures.Shaders then
       glUseProgram(Value.ProgramId);
   end else
@@ -1095,6 +1102,8 @@ begin
   if ProgramId = 0 then
     raise EGLSLError.Create('Cannot create GLSL shader program');
 
+  ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}OnGlContextClose);
+
   ShaderIds := TGLuintList.Create;
 
   FUniformMissing := umWarning;
@@ -1139,12 +1148,18 @@ begin
     FAttributeLocations.Clear;
 end;
 
+procedure TGLSLProgram.OnGlContextClose(Sender: TObject);
+begin
+  GLContextClose;
+end;
+
 destructor TGLSLProgram.Destroy;
 {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
 var
   ShaderType: TShaderType;
 {$endif CASTLE_COLLECT_SHADER_SOURCE}
 begin
+  ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef FPC}@{$endif}OnGlContextClose);
   GLContextClose;
 
   {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
