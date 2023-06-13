@@ -1113,13 +1113,22 @@ begin
   { This is called from destructor,
     which may be called if exception is raised from constructor,
     so be careful to check here things -- e.g. check that
-    ShaderIds was created. }
+    ShaderIds was created.
+
+    Note that, if resources have already been freed, we try to not assume
+    that GLFeatures is <> nil. So you can free TGLSLProgram even after
+    context is closed.
+  }
 
   if ShaderIds <> nil then
     DetachAllShaders;
 
-  if GLFeatures.Shaders and (ProgramId <> 0) then
+  if ProgramId <> 0 then
   begin
+    { ProgramId can be non-zero only if GLFeatures.Shaders,
+      and right now GLFeatures must be <> nil because we must free while
+      GL context is available. }
+    Assert(GLFeatures.Shaders);
     glDeleteProgram(ProgramId);
     ProgramId := 0;
   end;
@@ -1610,12 +1619,15 @@ var
   ShaderType: TShaderType;
   {$endif CASTLE_COLLECT_SHADER_SOURCE}
 begin
-  if GLFeatures.Shaders then
-    for I := 0 to ShaderIds.Count - 1 do
-    begin
-      glDetachShader   (ProgramId, ShaderIds[I]);
-      glDeleteShader   (ShaderIds[I]);
-    end;
+  for I := 0 to ShaderIds.Count - 1 do
+  begin
+    { ShaderIds can be non-empty only if GLFeatures.Shaders,
+      and right now GLFeatures must be <> nil because we must free while
+      GL context is available. }
+    Assert(GLFeatures.Shaders);
+    glDetachShader(ProgramId, ShaderIds[I]);
+    glDeleteShader(ShaderIds[I]);
+  end;
 
   ShaderIds.Count := 0;
 
