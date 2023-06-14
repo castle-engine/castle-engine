@@ -163,7 +163,9 @@ type
 
     { Parent TCastleSceneCore instance. This cannot be declared here as
       TCastleSceneCore (this would create circular unit dependency),
-      but it always is TCastleSceneCore. }
+      but it always is TCastleSceneCore.
+      May be @nil (now used by shapes created for batching, that don't belong
+      to any scene). }
     property ParentScene: TX3DEventsEngine read FParentScene write FParentScene;
 
     { Traverse shapes inside. There are a few alternative ways to do this:
@@ -963,13 +965,21 @@ type
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); overload; deprecated 'use Tree.TraverseList(...)';
 
-    { Sort shapes by distance to given Position point, closest first. }
+    { Sort shapes by distance to given Position point, closest first.
+
+      TODO: Should not be needed anymore?
+      We should only sort collected shapes?
+    }
     procedure SortFrontToBack(const Position: TVector3);
 
     { Sort shapes by distance to given Position point, farthest first.
 
       BlendingSort determines the sorting algorithm.
-      See @link(TBlendingSort) documentation. }
+      See @link(TBlendingSort) documentation.
+
+      TODO: Should not be needed anymore?
+      We should only sort collected shapes?
+    }
     procedure SortBackToFront(const Position: TVector3;
       const BlendingSort: TBlendingSort);
   end;
@@ -1879,10 +1889,13 @@ procedure TShape.Changed(const InactiveOnly: boolean;
         and this an important optimization (makes mesh deformation cheaper). }
       FShadowVolumes.InvalidateManifoldAndBorderEdges;
 
-    if ChangedOnlyCoord then
-      TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self)
-    else
-      TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
+    if ParentScene <> nil then
+    begin
+      if ChangedOnlyCoord then
+        TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self)
+      else
+        TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
+    end;
   end;
 
 begin
@@ -1954,7 +1967,7 @@ begin
      ] <> [] then
     (FOriginalGeometry as TTextNode).FontChanged;
 
-  if not InactiveOnly then
+  if (ParentScene <> nil) and (not InactiveOnly) then
     TCastleSceneCore(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 

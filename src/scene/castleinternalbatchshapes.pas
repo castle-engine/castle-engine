@@ -23,10 +23,6 @@ interface
 uses CastleSceneInternalShape, CastleShapes, X3DNodes, X3DFields, X3DLoad;
 
 type
-  TCreateShapeEvent = function(const AGeometry: TAbstractGeometryNode;
-    const AState: TX3DGraphTraverseState;
-    const ParentInfo: PTraversingInfo): TShape of object;
-
   TBatchShapes = class
   strict private
     const
@@ -59,12 +55,12 @@ type
         mpTrianglesTexCoord
       );
       TMergeSlot = 0 .. MergeSlots - 1;
-      TMergingShapes = array [TMergePipeline, TMergeSlot] of TGLShape;
+      TMergingShapes = array [TMergePipeline, TMergeSlot] of TCollectedShape;
     const
       MergePipelinesWithTexCoord = [mpFacesTexCoord, mpTrianglesTexCoord];
       MergePipelinesWithFaces = [mpFacesNoTexCoord, mpFacesTexCoord];
     var
-      FCollected: TShapeList;
+      FCollected: TCollectedShapeList;
       FPool: TMergingShapes;
       FPoolUsed: array [TMergePipeline] of Integer;
 
@@ -76,7 +72,7 @@ type
       FUnorderedPreviousShapes: TMergingShapes;
 
       { When PreserveShapeOrder=true, we use this. }
-      FOrderPreviousShape: TGLShape;
+      FOrderPreviousShape: TCollectedShape;
       FOrderPreviousShapeMerging: Boolean;
       FOrderPreviousShapePipeline: TMergePipeline;
 
@@ -113,7 +109,7 @@ type
         Reset to @false in each @link(FreeCollected). }
       PreserveShapeOrder: Boolean;
 
-    constructor Create(const CreateShape: TCreateShapeEvent);
+    constructor Create;
     destructor Destroy; override;
 
     { Merge given shape into the @link(Collected) shapes.
@@ -121,13 +117,13 @@ type
       shape. Returns @true if the shape was added to @link(Collected),
       otherwise it was not, and should be rendered by the caller immediately
       without the help of batching. }
-    function Collect(const Shape: TGLShape): Boolean;
+    function Collect(const Shape: TCollectedShape): Boolean;
 
     procedure Commit;
 
     { Currently collected shapes by @link(Collect).
       Call @link(Commit) before reading this. }
-    property Collected: TShapeList read FCollected;
+    property Collected: TCollectedShapeList read FCollected;
 
     { Release all shapes and clear the @link(Collected) list. }
     procedure FreeCollected;
@@ -148,16 +144,24 @@ uses SysUtils,
 
 {.$define CASTLE_DEBUG_BATCHING}
 
-constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
+constructor TBatchShapes.Create;
 
   function MergePipelineToStr(const P: TBatchShapes.TMergePipeline): String;
+  const
+    Names: array [TBatchShapes.TMergePipeline] of String = (
+      'FacesNoTexCoord',
+      'FacesTexCoord',
+      'TrianglesNoTexCoord',
+      'TrianglesTexCoord'
+    );
   begin
-    {$ifdef FPC}
-    WriteStr(Result, P);
-    {$else}
-    // TODO: Delphi Support
-    raise Exception.Create('Delphi not implemented!');
-    {$endif}
+    Result := Names[P];
+  end;
+
+  function CreateShape(const AGeometry: TAbstractGeometryNode;
+    const AState: TX3DGraphTraverseState; const ParentInfo: PTraversingInfo): TShape;
+  begin
+    Result := TGLShape.Create(nil, AGeometry, AState, ParentInfo);
   end;
 
   procedure InitializePool;
@@ -169,6 +173,7 @@ constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
     Shape: TGLShape;
     P: TMergePipeline;
     Slot: TMergeSlot;
+    CollectedShape: TCollectedShape;
   begin
     for P := Low(TMergePipeline) to High(TMergePipeline) do
       for Slot := Low(TMergeSlot) to High(TMergeSlot) do
@@ -194,7 +199,13 @@ constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
         // initialize Shape, add it to FPool
         Shape := CreateShape(Geometry, State, @ParentInfo) as TGLShape;
         Shape.DisableSharedCache := true;
-        FPool[P, Slot] := Shape;
+
+        CollectedShape := TCollectedShape.Create;
+        CollectedShape.Shape := Shape;
+        // CollectedShape.RenderOptions := TODO
+        // CollectedShape.SceneTransform := TODO
+
+        FPool[P, Slot] := CollectedShape;
 
         {$ifdef CASTLE_DEBUG_BATCHING}
         Shape.Node.X3DName := 'Batched_' + MergePipelineToStr(P) + '_' + IntToStr(Slot);
@@ -204,12 +215,8 @@ constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
 
 begin
   inherited Create;
-
-  FCollected := TShapeList.Create;
-  FCollected.OwnsObjects := false;
-
+  FCollected := TCollectedShapeList.Create(false);
   FPoolGeometries := TGroupNode.Create;
-
   InitializePool;
 end;
 
@@ -225,7 +232,13 @@ begin
   FreeAndNil(FCollected);
   for P := Low(TMergePipeline) to High(TMergePipeline) do
     for Slot := Low(TMergeSlot) to High(TMergeSlot) do
-      FreeAndNil(FPool[P, Slot]);
+    begin
+      if FPool[P, Slot] <> nil then
+      begin
+        FreeAndNil(FPool[P, Slot].Shape);
+        FreeAndNil(FPool[P, Slot]);
+      end;
+    end;
   FreeAndNil(FPoolGeometries);
   inherited;
 end;
@@ -239,7 +252,12 @@ begin
   end;
 end;
 
-function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
+function TBatchShapes.Collect(const Shape: TCollectedShape): Boolean;
+begin
+  Result := false;
+end;
+
+(* TODO: upgrade to use TCollectedShape
 
   { Is this Shape suitable to consider for merging with @italic(anything).
     If yes, then we also determine the proper TMergePipeline. }
@@ -664,6 +682,8 @@ begin
     DoIgnoreShapeOrder;
 end;
 
+*)
+
 procedure TBatchShapes.FreeCollected;
 var
   P: TMergePipeline;
@@ -675,10 +695,13 @@ begin
     for Slot := Low(TMergeSlot) to High(TMergeSlot) do
       if FMergeTarget[P, Slot] <> nil then
       begin
+        // all shapes from batching pool should have Shape assigned
+        Assert(FMergeTarget[P, Slot].Shape <> nil);
+
         // don't wait for ClearMerge for this, do this earlier to release reference count
-        FMergeTarget[P, Slot].Node.FdAppearance.Value := nil;
+        FMergeTarget[P, Slot].Shape.Node.FdAppearance.Value := nil;
         // make sure this is unassigned, otherwise TX3DGraphTraverseState.Destroy would free it
-        FMergeTarget[P, Slot].State.Lights := nil;
+        FMergeTarget[P, Slot].Shape.State.Lights := nil;
         FMergeTarget[P, Slot] := nil;
       end;
     FPoolUsed[P] := 0;
@@ -690,13 +713,15 @@ procedure TBatchShapes.Commit;
 
   procedure DebugOutput;
   var
-    Shape: TShape;
+    CollectedShape: TCollectedShape;
+    Shape: TGLShape;
     RootNode: TX3DRootNode;
     Geometry: TAbstractGeometryNode;
   begin
     RootNode := TX3DRootNode.Create;
-    for Shape in FCollected do
+    for CollectedShape in FCollected do
     begin
+      Shape := CollectedShape.Shape;
       Geometry := Shape.OriginalGeometry;
       WritelnLog('Collected shape: %s, geometry: %s, bbox: %s', [
         Shape.Node.X3DName,
@@ -710,8 +735,11 @@ procedure TBatchShapes.Commit;
     if RootNode.FdChildren.Count <> 0 then
       SaveNode(RootNode, 'cge_batching_output.x3d', ApplicationName);
 
-    for Shape in FCollected do
+    for CollectedShape in FCollected do
+    begin
+      Shape := CollectedShape.Shape;
       Shape.Node.KeepExistingEnd;
+    end;
 
     FreeAndNil(RootNode);
   end;
@@ -731,12 +759,15 @@ begin
       end;
       if FMergeTarget[P, Slot] <> nil then
       begin
+        // all shapes from batching pool should have Shape assigned
+        Assert(FMergeTarget[P, Slot].Shape <> nil);
+
         { Mark changes from
           - TIndexedFaceSetNode.FdCoordIndex, TIndexedTriangleSetNode.FdIndex
           - TCoordinateNode.FdPoint
           - TTextureCoordinateNode.FdPoint
         }
-        FMergeTarget[P, Slot].Changed(false, [chCoordinate, chTextureCoordinate, chGeometry]);
+        FMergeTarget[P, Slot].Shape.Changed(false, [chCoordinate, chTextureCoordinate, chGeometry]);
       end;
     end;
 
@@ -759,7 +790,7 @@ var
 begin
   for P := Low(TMergePipeline) to High(TMergePipeline) do
     for Slot := Low(TMergeSlot) to High(TMergeSlot) do
-      FPool[P, Slot].GLContextClose;
+      FPool[P, Slot].Shape.GLContextClose;
 end;
 
 procedure TBatchShapes.Merge(const Target, Source: TGLShape;
@@ -870,7 +901,7 @@ var
 begin
   PipelinesCount := Ord(High(TMergePipeline)) + 1;
   Assert(Index div MergeSlots < PipelinesCount);
-  Result := FPool[TMergePipeline(Index div MergeSlots), Index mod MergeSlots];
+  Result := FPool[TMergePipeline(Index div MergeSlots), Index mod MergeSlots].Shape;
 end;
 
 function TBatchShapes.PoolShapesCount: Integer;

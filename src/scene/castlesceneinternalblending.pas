@@ -27,12 +27,11 @@ uses CastleSceneCore, CastleGLUtils, CastleShapes, CastleSceneInternalShape,
 type
   TBlendingRenderer = class
   private
-    SceneCore: TCastleSceneCore;
     Active: Boolean; //< between RenderBegin and RenderEnd
     function DefaultSourceFactor: TBlendingSourceFactor;
     function DefaultDestinationFactor: TBlendingDestinationFactor;
   public
-    constructor Create(const AScene: TCastleSceneCore);
+    constructor Create;
 
     { Start rendering shapes with blending. }
     procedure RenderBegin;
@@ -64,20 +63,25 @@ uses SysUtils,
 
 { TBlendingRenderer ---------------------------------------------------------- }
 
-constructor TBlendingRenderer.Create(const AScene: TCastleSceneCore);
+constructor TBlendingRenderer.Create;
 begin
   inherited Create;
-  SceneCore := AScene;
 end;
 
 function TBlendingRenderer.DefaultSourceFactor: TBlendingSourceFactor;
 begin
-  Result := TCastleScene(SceneCore).RenderOptions.BlendingSourceFactor;
+  Result :=
+  //TCastleScene(SceneCore).RenderOptions.BlendingSourceFactor;
+  TCastleRenderOptions.DefaultBlendingSourceFactor;
+  // TODO: apply per-scene RenderOptions.BlendingSourceFactor
 end;
 
 function TBlendingRenderer.DefaultDestinationFactor: TBlendingDestinationFactor;
 begin
-  Result := TCastleScene(SceneCore).RenderOptions.BlendingDestinationFactor;
+  Result :=
+  //TCastleScene(SceneCore).RenderOptions.BlendingDestinationFactor;
+  TCastleRenderOptions.DefaultBlendingDestinationFactor;
+  // TODO: apply per-scene RenderOptions.BlendingDestinationFactor
 end;
 
 procedure TBlendingRenderer.RenderBegin;

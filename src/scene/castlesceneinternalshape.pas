@@ -21,7 +21,8 @@ unit CastleSceneInternalShape;
 
 interface
 
-uses X3DNodes, X3DFields, CastleImages,
+uses Generics.Collections,
+  X3DNodes, X3DFields, CastleImages, CastleVectors,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleGLUtils, CastleInternalRenderer, CastleRenderOptions;
 
@@ -29,7 +30,7 @@ type
   { Shape within a scene rendered using OpenGL.
     This is TShape extended with some information needed by TCastleScene.
     Non-internal units never expose instances of this class. }
-  TGLShape = class abstract(TX3DRendererShape)
+  TGLShape = class(TX3DRendererShape)
   public
     { Keeps track if this shape was passed to Renderer.Prepare. }
     PreparedForRenderer: boolean;
@@ -61,13 +62,38 @@ type
     procedure PrepareResources;
     procedure GLContextClose;
 
-    { Access the Renderer of parent TCastleScene. }
-    function Renderer: TGLRenderer; virtual; abstract;
-
     { Request from parent TCastleScene to call our PrepareResources at next time. }
-    procedure SchedulePrepareResources; virtual; abstract;
+    // TODO: restore somehow?
+    //procedure SchedulePrepareResources; virtual; abstract;
 
     function UseBlending: Boolean;
+  end;
+
+  { Shape with additional information how to render it inside a world,
+    that allows to render it independently of the containing TCastleScene. }
+  TCollectedShape = class
+    Shape: TGLShape;
+    RenderOptions: TCastleRenderOptions;
+    SceneTransform: TMatrix4;
+  end;
+
+  TCollectedShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TCollectedShape>)
+  strict private
+    SortPosition: TVector3;
+    function IsSmallerBackToFront2D(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function IsSmallerBackToFront3DBox(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function IsSmallerBackToFront3DOrigin(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function IsSmallerBackToFront3DGround(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+  public
+    { Sort shapes by distance to given Position point, farthest first.
+      BlendingSort determines the sorting algorithm.
+      See @link(TBlendingSort) documentation. }
+    procedure SortBackToFront(const Position: TVector3;
+      const BlendingSort: TBlendingSort);
   end;
 
 { Checks that any occlusion query algorithm should be used,
@@ -94,7 +120,8 @@ function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOpti
 
 implementation
 
-uses CastleScene, CastleVectors;
+uses Generics.Defaults, Math,
+  CastleScene, CastleBoxes;
 
 { TGLShape --------------------------------------------------------------- }
 
@@ -160,17 +187,17 @@ begin
        chFontStyleFontChanged
      ] <> [] then
   begin
-    Renderer.UnprepareTexture(State.MainTexture);
+    //TODO:Renderer.UnprepareTexture(State.MainTexture);
     PreparedForRenderer := false;
     PreparedUseAlphaChannel := false;
-    SchedulePrepareResources;
+    //TODO:SchedulePrepareResources;
   end;
 
   { When Material.transparency changes, recalculate UseAlphaChannel. }
   if chAlphaChannel in Changes then
   begin
     PreparedUseAlphaChannel := false;
-    SchedulePrepareResources;
+    //TODO:SchedulePrepareResources;
   end;
 end;
 
@@ -178,7 +205,7 @@ procedure TGLShape.PrepareResources;
 begin
   if not PreparedForRenderer then
   begin
-    Renderer.Prepare(Self);
+    //TODO:Renderer.Prepare(Self);
     PreparedForRenderer := true;
   end;
 
@@ -212,11 +239,14 @@ begin
   end;
 
   { Free Arrays and Vbo of all shapes. }
+  //TODO:
+  (*
   if Cache <> nil then
     Renderer.Cache.Shape_DecReference(Self, Cache);
   for Pass := Low(Pass) to High(Pass) do
     if ProgramCache[Pass] <> nil then
       Renderer.Cache.Program_DecReference(ProgramCache[Pass]);
+  *)
 end;
 
 function TGLShape.UseBlending: Boolean;
@@ -265,6 +295,83 @@ begin
     GLFeatures.VertexBufferObject and
     (GLFeatures.OcclusionQueryCounterBits > 0);
   {$warnings on}
+end;
+
+{ TCollectedShape ---------------------------------------------------------- }
+
+type
+  TCollectedShapeComparer = {$ifdef FPC}specialize{$endif} TComparer<TCollectedShape>;
+
+(*
+TODO: unused now.
+If anything, this should just revert other sort method?
+
+function TCollectedShapeList.IsSmallerFrontToBack(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  { To revert the order, we revert the order of A and B as passed to CompareBackToFront3D. }
+  Result := TBox3D.CompareBackToFront3D(
+    B.BoundingBox,
+    A.BoundingBox,
+    SortPosition);
+end;
+*)
+
+function TCollectedShapeList.IsSmallerBackToFront2D(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := TBox3D.CompareBackToFront2D(
+    A.Shape.BoundingBox.Transform(A.SceneTransform),
+    B.Shape.BoundingBox.Transform(B.SceneTransform));
+end;
+
+function TCollectedShapeList.IsSmallerBackToFront3DBox(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := TBox3D.CompareBackToFront3D(
+    A.Shape.BoundingBox.Transform(A.SceneTransform),
+    B.Shape.BoundingBox.Transform(B.SceneTransform),
+    SortPosition);
+end;
+
+function TCollectedShapeList.IsSmallerBackToFront3DOrigin(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+var
+  PointA, PointB: TVector3;
+begin
+  PointA := (A.SceneTransform * A.Shape.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+  PointB := (B.SceneTransform * B.Shape.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+  Result := Sign(
+    PointsDistanceSqr(PointB, SortPosition) -
+    PointsDistanceSqr(PointA, SortPosition));
+end;
+
+function TCollectedShapeList.IsSmallerBackToFront3DGround(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+var
+  PointA, PointB: TVector3;
+begin
+  { TODO: what's more efficient - MultTransform 2x, or multiply matrix + MultTransform? }
+  PointA := (A.SceneTransform * A.Shape.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+  PointB := (B.SceneTransform * B.Shape.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+  PointA.Y := 0;
+  PointB.Y := 0;
+  Result := Sign(
+    PointsDistanceSqr(PointB, SortPosition) -
+    PointsDistanceSqr(PointA, SortPosition));
+end;
+
+procedure TCollectedShapeList.SortBackToFront(const Position: TVector3;
+  const BlendingSort: TBlendingSort);
+begin
+  SortPosition := Position;
+  case BlendingSort of
+    bs2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront2D));
+    bs3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DBox));
+    bs3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DOrigin));
+    bs3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DGround));
+    else ;
+  end;
 end;
 
 end.

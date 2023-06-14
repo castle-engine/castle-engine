@@ -28,7 +28,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleBoxes, CastleInternalBackgroundRenderer, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
   CastleInputs, CastleRectangles, CastleColors, CastleComponentSerialize,
-  CastleProjection, CastleScreenEffects;
+  CastleProjection, CastleScreenEffects, CastleInternalShapesRenderer;
 
 type
   TCastleViewport = class;
@@ -159,6 +159,9 @@ type
       FInternalGridAxis: Boolean;
       FGizmoGridAxis: TInternalCastleEditorGizmo;
       FWarningZFarInfinityDone: Boolean;
+
+      ShapesCollector: TShapesCollector;
+      ShapesRenderer: TShapesRenderer;
 
     procedure CommonCreate(const AOwner: TComponent; const ADesignManipulation: Boolean);
     function FillsWholeContainer: boolean;
@@ -1300,6 +1303,8 @@ begin
   FClearDepth := true;
   InternalDistortFieldOfViewY := 1;
   InternalDistortViewAspect := 1;
+  ShapesCollector := TShapesCollector.Create;
+  ShapesRenderer := TShapesRenderer.Create;
 
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
@@ -1510,6 +1515,8 @@ begin
   FreeAndNil(FRenderParams);
   FreeAndNil(FPrepareParams);
   FreeAndNil(FRenderWithoutScreenEffectsRenderingCamera);
+  FreeAndNil(ShapesCollector);
+  FreeAndNil(ShapesRenderer);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -2323,12 +2330,17 @@ procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
 begin
   TGLRenderer.ViewportRenderBegin;
 
+  ShapesCollector.Clear;
+  Assert(Params.Collector = ShapesCollector);
+
   {$warnings off} // keep deprecated working
   Render3D(Params);
   {$warnings on}
 
   Params.Frustum := @Params.RenderingCamera.Frustum;
   Items.Render(Params);
+
+  ShapesRenderer.Render(ShapesCollector, Params, Items.BlendingSort);
 
   TGLRenderer.ViewportRenderEnd;
 end;
@@ -2624,6 +2636,7 @@ begin
   { various FRenderParams initialization }
   FRenderParams.UserPass := CustomRenderingPass;
   FRenderParams.RenderingCamera := RenderingCamera;
+  FRenderParams.Collector := ShapesCollector;
 
   { calculate FRenderParams.Projection*, simplified from just like CalculateProjection does }
   FRenderParams.ProjectionBox := {$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox;
@@ -2915,6 +2928,9 @@ begin
 
   FreeAndNil(SSAOShader);
   SSAOShaderInitialized := false;
+
+  if ShapesRenderer <> nil then
+    ShapesRenderer.GLContextClose;
 
   inherited;
 end;

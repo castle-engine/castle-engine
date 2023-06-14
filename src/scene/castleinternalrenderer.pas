@@ -680,16 +680,27 @@ type
     var
       RenderMode: TRenderMode;
 
-    { Constructor. Always pass a cache instance --- preferably,
-      something created and used by many scenes. }
-    constructor Create(const RenderOptionsClass: TCastleRenderOptionsClass;
-      const ACache: TGLRendererContextCache);
+    { Constructor. }
+    constructor Create;
     destructor Destroy; override;
 
-    { Rendering attributes. You can change them only when renderer
+    { Rendering options.
+      May be changed often, before each shape rendering.
+
+      TODO: Old comment was this, for a good reason:
+      resources like textures are initialized for specific options:
+
+      You can change them only when renderer
       is not tied to the current OpenGL context, so only after construction
-      or after UnprepareAll call (before any Prepare or Render* calls). }
-    property RenderOptions: TCastleRenderOptions read FRenderOptions;
+      or after UnprepareAll call (before any Prepare or Render* calls).
+
+      What to do now with TShapesRenderer????
+      We may have the same shape,texture prepared with different render options.
+      One renderer for all -> will not differentiate it anymore.
+
+      Change this to RenderShape parameter. }
+    property RenderOptions: TCastleRenderOptions read FRenderOptions
+      write FRenderOptions;
 
     property Cache: TGLRendererContextCache read FCache;
 
@@ -775,6 +786,12 @@ var
 
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
   LogRenderer: boolean = false;
+
+  { Global OpenGL context cache.
+    This caches common things, like textures, shapes, and much more.
+    Our OpenGL resources are currently shared across all OpenGL contexts,
+    and they all automatically share this cache. }
+  GLContextCache: TGLRendererContextCache;
 
 {$undef read_interface}
 
@@ -1661,13 +1678,9 @@ end;
 
 { TGLRenderer ---------------------------------------------------------- }
 
-constructor TGLRenderer.Create(
-  const RenderOptionsClass: TCastleRenderOptionsClass;
-  const ACache: TGLRendererContextCache);
+constructor TGLRenderer.Create;
 begin
   inherited Create;
-
-  FRenderOptions := RenderOptionsClass.Create(nil);
 
   GLTextureNodes := TGLTextureNodes.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
@@ -1675,7 +1688,9 @@ begin
 
   PreparedShader := TShader.Create;
 
-  FCache := ACache;
+  // all instances use just global GLContextCache now
+  FCache := GLContextCache;
+
   Assert(FCache <> nil);
 end;
 
@@ -1686,7 +1701,6 @@ begin
   FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(GLTextureNodes);
   FreeAndNil(ScreenEffectPrograms);
-  FreeAndNil(FRenderOptions);
   FreeAndNil(PreparedShader);
 
   FCache := nil; // we don't own cache
@@ -3510,4 +3524,8 @@ end;
 initialization
   TCastleRenderOptions.DefaultMinificationFilter := minLinearMipmapLinear;
   TCastleRenderOptions.DefaultMagnificationFilter := magLinear;
+
+  GLContextCache := TGLRendererContextCache.Create;
+finalization
+  GLContextCache.FreeWhenEmpty(@GLContextCache);
 end.

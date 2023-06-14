@@ -267,6 +267,9 @@
     ProjectionBox: TBox3DEvent;
     ProjectionViewportWidth, ProjectionViewportHeight: Single;
 
+    { Always TShapesCollector at actual rendering. }
+    Collector: TObject;
+
     constructor Create;
 
     { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }
