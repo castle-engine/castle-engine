@@ -17,7 +17,13 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
@@ -1175,7 +1181,6 @@
             "$Children" : [
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1203,7 +1208,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1231,7 +1235,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1259,7 +1262,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1287,7 +1289,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1316,7 +1317,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1345,7 +1345,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1374,7 +1373,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1403,7 +1401,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1432,7 +1429,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1461,7 +1457,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1491,14 +1486,11 @@
             ]
           },
           {
-            "$$ClassName" : "TCastleScene",
-            "AutoAnimation" : "ArmatureAction",
-            "ExposeTransforms" : [
-            ],
-            "Name" : "Door01",
-            "ProcessEvents" : true,
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "Transform1",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "Z" : 1.0000000000000000E+000
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -1506,14 +1498,14 @@
               "Y" : 1.9104719161987305E-001,
               "Z" : -6.2677322387695312E+001
             },
-            "URL" : "castle-data:/level/Door.gltf",
             "$Children" : [
               {
                 "$$ClassName" : "TCastleScene",
-                "AutoAnimation" : "ArmatureAction",
+                "AutoAnimation" : "Cube.055",
+                "Collides" : false,
                 "ExposeTransforms" : [
                 ],
-                "Name" : "Door2",
+                "Name" : "Door01",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions"
@@ -1524,15 +1516,14 @@
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : -5.8411717414855957E-002,
-                  "Y" : -7.8714728355407715E-002,
-                  "Z" : -2.1622358322143555E+001
+                  "Y" : 5.7837228775024414E+000
                 },
                 "URL" : "castle-data:/level/Door.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
-                "AutoAnimation" : "ArmatureAction",
+                "AutoAnimation" : "Cube.055",
+                "Collides" : false,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Door3",
@@ -1542,20 +1533,60 @@
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
-                  "W" : 4.7750515937805176E+000,
-                  "X" : -8.7422748151766427E-008,
-                  "Y" : 9.9999934434890747E-001,
-                  "Z" : -9.3080060992178915E-008
+                  "W" : 1.5081337690353394E+000,
+                  "X" : -1.7245863273274153E-004,
+                  "Y" : -9.9999994039535522E-001,
+                  "Z" : 1.8380480469204485E-004
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 8.4451074600219727E+000,
                   "Y" : 3.6714613437652588E-002,
-                  "Z" : -3.0696132659912109E+001
+                  "Z" : -3.0696136474609375E+001
+                },
+                "URL" : "castle-data:/level/Door.gltf"
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "AutoAnimation" : "Cube.055",
+                "Collides" : false,
+                "ExposeTransforms" : [
+                ],
+                "Name" : "Door2",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.5707962512969971E+000,
+                  "Y" : 9.9999988079071045E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -5.8411717414855957E-002,
+                  "Y" : -7.8714728355407715E-002,
+                  "Z" : -2.1622360229492188E+001
                 },
                 "URL" : "castle-data:/level/Door.gltf"
               }
             ]
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneRobot1",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -4.0868353843688965E+000,
+              "Y" : 1.5743732452392578E-002,
+              "Z" : -1.9852491378784180E+001
+            },
+            "URL" : "castle-data:/level/Robot.gltf"
           }
         ],
         "$Behaviors" : [
@@ -1634,21 +1665,20 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 3.4102890491485596E+000,
-          "X" : -3.0200828332453966E-003,
-          "Y" : 9.9979883432388306E-001,
-          "Z" : -1.9827723503112793E-002
+          "W" : 5.0697332620620728E-001,
+          "X" : -4.9808669090270996E-001,
+          "Y" : -8.5969221591949463E-001,
+          "Z" : -1.1330886185169220E-001
         },
         "ScalePersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 9.9999994039535522E-001,
-          "Y" : 1.0000001192092896E+000
+          "Y" : 9.9999994039535522E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 6.5312862396240234E-001,
-          "Y" : 2.0971159934997559E+000,
-          "Z" : -9.1287734985351562E+001
+          "X" : -8.2753105163574219E+000,
+          "Y" : 3.4159612655639648E+000,
+          "Z" : -1.1959161758422852E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
@@ -1669,6 +1699,7 @@
     },
     {
       "$$ClassName" : "TCastleDesign",
+      "Exists" : false,
       "FullSize" : true,
       "Height" : 7.8000000000000000E+002,
       "Name" : "DesignHud",
