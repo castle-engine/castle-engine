@@ -130,9 +130,11 @@ type
   end;
 
 var
-  Verbose: boolean;
+  Verbose: Boolean;
 
-  OutputPath: String;
+  { When will the .inc files be generated.
+    May but doesn't have to end with PathDelim. }
+  OutputPath: String = '../../../src/scene/x3d/auto_generated_node_helpers/';
 
 implementation
 
@@ -1396,7 +1398,8 @@ procedure THelperProcessor.NodeEnd(const Node: TX3DNodeInformation);
   var
     OutputFileName: string;
   begin
-    OutputFileName := OutputPath + 'x3dnodes_' + LowerCase(Node.X3DType) +
+    OutputFileName := InclPathDelim(OutputPath) +
+      'x3dnodes_' + LowerCase(Node.X3DType) +
       Iff(Node.Vrml1, '_1', '') + '.inc';
 
     StringToFile(OutputFileName,

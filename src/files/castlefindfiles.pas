@@ -165,6 +165,11 @@ function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
   const Options: TFindFilesOptions): Cardinal; overload;
 { @groupEnd }
 
+{ Like @link(FindFiles), but return found files as a list.
+  Caller is resopnsible for freeing the returned list. }
+function FindFilesList(const Path, Mask: string; const FindDirectories: boolean;
+  const Options: TFindFilesOptions): TFileInfoList;
+
 { Search for a file, ignoring the case.
   Path must be absolute URL and contain the final slash.
   Returns URL relative to Path.
@@ -698,6 +703,33 @@ begin
     if Result then
       FileInfo := Helper.FoundFile;
   finally FreeAndNil(Helper) end;
+end;
+
+type
+  TFindFilesListHelper = class
+    List: TFileInfoList;
+    procedure Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  end;
+
+  procedure TFindFilesListHelper.Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  begin
+    List.Add(FileInfo);
+  end;
+
+function FindFilesList(const Path, Mask: string; const FindDirectories: boolean;
+  const Options: TFindFilesOptions): TFileInfoList;
+var
+  Helper: TFindFilesListHelper;
+begin
+  Result := TFileInfoList.Create;
+  try
+    Helper := TFindFilesListHelper.Create;
+    try
+      Helper.List := Result;
+      FindFiles(Path, Mask, FindDirectories,
+        {$ifdef FPC}@{$endif} Helper.Callback, Options);
+    finally FreeAndNil(Helper) end;
+  except FreeAndNil(Result); raise end;
 end;
 
 end.

@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="12"/>
     <General>
       <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="x3d-nodes-to-pascal"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
@@ -16,9 +18,6 @@
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -26,9 +25,10 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default"/>
+      </Modes>
     </RunParams>
     <RequiredPackages Count="1">
       <Item1>
@@ -39,7 +39,6 @@
       <Unit0>
         <Filename Value="x3d-nodes-to-pascal.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="x3d-nodes-to-pascal"/>
       </Unit0>
       <Unit1>
         <Filename Value="code/generateprocessors.pas"/>
@@ -54,10 +53,19 @@
       <Filename Value="x3d-nodes-to-pascal"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="code/"/>
-      <OtherUnitFiles Value="code/"/>
+      <IncludeFiles Value="code;$(ProjOutDir)"/>
+      <OtherUnitFiles Value="code"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Other>
+      <Verbosity>
+        <ShowHints Value="False"/>
+      </Verbosity>
+      <ConfigFile>
+        <CustomConfigFile Value="True"/>
+        <ConfigFilePath Value="../../../castle-fpc-messages.cfg"/>
+      </ConfigFile>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
