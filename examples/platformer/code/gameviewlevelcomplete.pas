@@ -40,7 +40,8 @@ var
 
 implementation
 
-uses CastleSoundEngine, GameViewCredits;
+uses CastleSoundEngine,
+  GameSound, GameViewCredits;
 
 constructor TViewLevelComplete.Create(AOwner: TComponent);
 begin
@@ -59,7 +60,7 @@ begin
   ButtonCredits.OnClick := {$ifdef FPC}@{$endif}ClickCredits;
 
   { Play menu music }
-  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');
+  SoundEngine.LoopingChannel[0].Sound := NamedSound('MenuMusic');
 end;
 
 end.

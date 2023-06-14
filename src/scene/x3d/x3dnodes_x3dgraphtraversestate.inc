@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2018 Michalis Kamburelis.
 
@@ -472,20 +473,24 @@ var
   Mat: TAbstractMaterialNode;
   SurfaceShader: TCommonSurfaceShaderNode;
 begin
+  Result := nil;
   if ShapeNode <> nil then
   begin
-    {$warnings off} // using deprecated to keep backward compatibility
-    SurfaceShader := ShapeNode.CommonSurfaceShader;
-    {$warnings on}
-    if SurfaceShader <> nil then
-      Result := SurfaceShader.MaterialInfo
-    else
+    if ShapeNode.Appearance <> nil then
     begin
-      Mat := ShapeNode.Material;
-      if Mat <> nil then
-        Result := Mat.MaterialInfo
+      {$warnings off} // using deprecated to keep backward compatibility
+      SurfaceShader := ShapeNode.Appearance.CommonSurfaceShader;
+      {$warnings on}
+      if SurfaceShader <> nil then
+        Result := SurfaceShader.MaterialInfo
       else
-        Result := nil;
+      begin
+        Mat := ShapeNode.Appearance.Material;
+        if Mat <> nil then
+          Result := Mat.MaterialInfo
+        else
+          Result := nil;
+      end;
     end;
   end else
     Result := VRML1State.Material.MaterialInfo;

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{AA0B6EDA-544E-498B-932C-58F005CC16E0}</ProjectGuid>
+        <ProjectGuid>{FE449074-2006-2199-14A7-3ACDC85BEE81}</ProjectGuid>
         <MainSource>image_compare.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -826,10 +826,9 @@ var
   Animation: TCastleSpriteSheetAnimation;
 begin
   Animation := GetCurrentAnimation;
-  Assert(Animation <> nil,
-    'Animation should never be nil when SpinEditFPS is enabled');
-  if CompareValue(Animation.FramesPerSecond, FloatSpinEditFPS.Value,
-    SingleEpsilon) <> EqualsValue then
+  if Animation = nil then
+    Exit; // ignore if no animation (TODO: SpinEditFPS should be disabled then)
+  if not SameValue(Animation.FramesPerSecond, FloatSpinEditFPS.Value) then
   begin
     Animation.FramesPerSecond := FloatSpinEditFPS.Value;
     { To change frames per second file must be regenerated. }
@@ -1432,6 +1431,8 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
 
   function Generate3XDWithImage: TX3DRootNode;
   var
+    Material: TUnlitMaterialNode;
+    Appearance: TAppearanceNode;
     Shape: TShapeNode;
     Tri: TTriangleSetNode;
     Tex: TPixelTextureNode;
@@ -1443,8 +1444,13 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
   begin
     Result := TX3DRootNode.Create;
 
+    Material := TUnlitMaterialNode.Create;
+
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+
     Shape := TShapeNode.Create;
-    Shape.Material := TUnlitMaterialNode.Create;
+    Shape.Appearance := Appearance;
 
     Tex := TPixelTextureNode.Create;
     Tex.FdImage.Value := Frame.MakeImageCopy;
@@ -1452,7 +1458,7 @@ procedure TSpriteSheetEditorForm.RegenerateFramePreview(const Frame: TCastleSpri
     Tex.RepeatS := false;
     Tex.RepeatT := false;
     }
-    Shape.Texture := Tex;
+    Appearance.Texture := Tex;
 
     TexProperties := TTexturePropertiesNode.Create;
     TexProperties.BoundaryModeS := bmClampToEdge;

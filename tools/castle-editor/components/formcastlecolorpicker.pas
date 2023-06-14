@@ -305,10 +305,10 @@ end;
 procedure TCastleColorPickerForm.SetHValueInCirclePickerPanel(
   const NewValue: Single);
 var
-  NewValueRounded: Single;
+  //NewValueRounded: Single; // unused
   NewValueForControl: Single; // THSCirclePicker uses value from 0..1
 begin
-  NewValueRounded := RoundTo(NewValue, ColorPrecision);
+  //NewValueRounded := RoundTo(NewValue, ColorPrecision);
   NewValueForControl := RoundTo(NewValue / 6, ColorPrecision);
   if not SameValue(RoundTo(HSPanelCirclePicker.RelHue, ColorPrecision),
       NewValueForControl, ColorEpsilon) then

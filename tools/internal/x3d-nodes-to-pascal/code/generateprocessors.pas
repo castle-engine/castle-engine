@@ -130,9 +130,11 @@ type
   end;
 
 var
-  Verbose: boolean;
+  Verbose: Boolean;
 
-  OutputPath: String;
+  { When will the .inc files be generated.
+    May but doesn't have to end with PathDelim. }
+  OutputPath: String = '../../../src/scene/x3d/auto_generated_node_helpers/';
 
 implementation
 
@@ -213,6 +215,9 @@ begin
         FieldConfigure += '   ' + Field.PascalNamePrefixed + '.MustBeNonnegative := true;' + NL;
       if Field.WeakLink then
         FieldConfigure += '   ' + Field.PascalNamePrefixed + '.WeakLink := true;' + NL;
+      if Field.SetterBefore <> '' then
+        FieldConfigure += '   ' + Field.PascalNamePrefixed + '.OnBeforeValueChange := {$ifdef FPC}@{$endif}' + Field.SetterBefore + ';' + NL;
+
       FieldExposed := BoolToStr(Field.AccessType = atInputOutput, true);
 
       if Field.Comment <> '' then
@@ -1132,6 +1137,10 @@ end;
 procedure THelperProcessor.NodeBegin(const Node: TX3DNodeInformation);
 begin
   OutputPublicInterface +=
+    { CreateNode needs some doc, to avoid using template
+      "Automatically generated node properties."
+      as accidental documentation comment. }
+    '    { Create node fields and events. }' + NL +
     '    procedure CreateNode; override;' + NL +
     '    class function ClassX3DType: string; override;' + NL;
 
@@ -1244,7 +1253,6 @@ begin
           NL +
           'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL +
           'begin' + NL +
-          Iff(Field.SetterBefore <> '', '  ' + Field.SetterBefore + '(Value);' + NL, '') +
           '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
           'end;' + NL +
           NL +
@@ -1390,7 +1398,8 @@ procedure THelperProcessor.NodeEnd(const Node: TX3DNodeInformation);
   var
     OutputFileName: string;
   begin
-    OutputFileName := OutputPath + 'x3dnodes_' + LowerCase(Node.X3DType) +
+    OutputFileName := InclPathDelim(OutputPath) +
+      'x3dnodes_' + LowerCase(Node.X3DType) +
       Iff(Node.Vrml1, '_1', '') + '.inc';
 
     StringToFile(OutputFileName,

@@ -187,6 +187,7 @@ constructor TPlayer.Create(AKind: TCreatureKind);
   var
     Sphere: TSphereNode;
     Material: TMaterialNode;
+    Appearance: TAppearanceNode;
   begin
     Sphere := TSphereNode.Create;
     Sphere.Radius := 0.1;
@@ -194,8 +195,11 @@ constructor TPlayer.Create(AKind: TCreatureKind);
     Material := TMaterialNode.Create;
     Material.DiffuseColor := RedRGB;
 
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+
     FTargetVisualizeShape := TShapeNode.Create;
-    FTargetVisualizeShape.Material := Material;
+    FTargetVisualizeShape.Appearance := Appearance;
     FTargetVisualizeShape.Geometry := Sphere;
 
     FTargetVisualize := TTransformNode.Create;

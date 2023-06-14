@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{0DBD8478-FBFE-45F7-A8E1-9A5D65DC5CC5}</ProjectGuid>
+        <ProjectGuid>{25D2EFA3-65B5-6422-0976-E35055C22F9C}</ProjectGuid>
         <MainSource>zombie_fighter_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

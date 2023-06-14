@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2022 Michalis Kamburelis.
 
@@ -36,12 +37,24 @@
     classes.  }
   TMFNode = class(TX3DMultField)
   strict private
-    FDefaultItems: TX3DNodeList;
-    FDefaultValueExists: boolean;
-    FParentNode: TX3DNode;
-    AllowedChildren: TAllowedChildren;
-    AllowedChildrenClasses: TX3DNodeClassesList;
-    AllowedChildrenFunctionality: TNodeFunctionalityClass;
+    type
+      TEnumerator = record
+      strict private
+        FList: TX3DNodeList;
+        FPosition: Integer;
+        function GetCurrent: TX3DNode; inline;
+      public
+        constructor Create(const AList: TX3DNodeList);
+        function MoveNext: Boolean; inline;
+        property Current: TX3DNode read GetCurrent;
+      end;
+    var
+      FDefaultItems: TX3DNodeList;
+      FDefaultValueExists: boolean;
+      FParentNode: TX3DNode;
+      AllowedChildren: TAllowedChildren;
+      AllowedChildrenClasses: TX3DNodeClassesList;
+      AllowedChildrenFunctionality: TNodeFunctionalityClass;
     function GetItems(const Index: Integer): TX3DNode;
     procedure AddSelfParentField(const AItems: TX3DNodeList);
     procedure AssignItemsDeepCopy(const SourceItems: TX3DNodeList;
@@ -86,6 +99,8 @@
       const AExposed: boolean; const AName: string;
       const AnAllowedChildrenFunctionality: TNodeFunctionalityClass); overload;
     destructor Destroy; override;
+
+    function GetEnumerator: TEnumerator;
 
     procedure Replace(const Index: Integer; Node: TX3DNode);
 
@@ -725,5 +740,30 @@ end;
 //     Changed;
 //   end;
 // end;
+
+function TMFNode.GetEnumerator: TEnumerator;
+begin
+  Result := TEnumerator.Create(FItems);
+end;
+
+{ TMFNode.TEnumerator ------------------------------------------------- }
+
+function TMFNode.TEnumerator.GetCurrent: TX3DNode;
+begin
+  Result := FList[FPosition];
+end;
+
+constructor TMFNode.TEnumerator.Create(const AList: TX3DNodeList);
+begin
+//  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TMFNode.TEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
+end;
 
 {$endif read_implementation}

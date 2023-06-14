@@ -316,6 +316,11 @@ var
        (MimeType = 'model/gltf-binary') or
        (MimeType = 'application/x-md3') or
        (MimeType = 'image/x-3ds') or
+       (MimeType = 'application/x-stl') or
+       { other STL mime types }
+       (MimeType = 'application/wavefront-stl') or
+       (MimeType = 'application/vnd.ms-pki.stl') or
+       (MimeType = 'application/x-navistyle') or
        IsImageMimeType(MimeType, true, false) then
       Include(DownloadOptions, soForceMemoryStream);
 

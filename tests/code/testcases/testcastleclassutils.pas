@@ -44,6 +44,7 @@ type
     procedure TestLineColumn_SimplePeekCharStream;
     procedure TestLineColumn_BufferedReadStream;
     procedure TestForIn;
+    procedure TestGetBaseNameFromUrl;
   end;
 
   TFoo = class
@@ -60,7 +61,8 @@ type
 
 implementation
 
-uses Generics.Defaults;
+uses Generics.Defaults,
+  CastleStringUtils, CastleInternalUrlUtils;
 
 { TFoo, TFoosList ------------------------------------------------------------ }
 
@@ -361,6 +363,72 @@ begin
   FreeAndNil(C1);
   FreeAndNil(C2);
   FreeAndNil(C3);
+end;
+
+type
+  TCastleTransform = class(TCastleComponent)
+  end;
+
+procedure TTestCastleClassUtils.TestGetBaseNameFromUrl;
+var
+  Parent: TComponent;
+  NewComponent: TComponent;
+begin
+  AssertEquals('FooBar123', GetBaseNameFromUrl('castle-data:/foo-bar_123.gltf'));
+
+  AssertEquals('', GetUrlParentName('castle-data:/foo-bar_123.gltf'));
+  AssertEquals('', GetUrlParentName('castle-data:/'));
+  AssertEquals('xyz', GetUrlParentName('castle-data:/xyz/foo-bar_123.gltf'));
+  AssertEquals('xyz-123abcSOMETHING', GetUrlParentName('castle-data:/xyz-123abcSOMETHING/foo-bar_123.gltf'));
+  AssertEquals('xyz', GetUrlParentName('castle-data:/xyz-123abc/foo-bar_123.gltf'));
+
+  Parent := TComponent.Create(nil);
+  try
+    NewComponent := TComponent.Create(Parent);
+    AssertEquals('', NewComponent.Name);
+    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent);
+    AssertEquals('Component1', NewComponent.Name);
+
+    NewComponent := TComponent.Create(Parent);
+    AssertEquals('', NewComponent.Name);
+    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent);
+    AssertEquals('Component2', NewComponent.Name);
+
+    NewComponent := TCastleTransform.Create(Parent);
+    AssertEquals('', NewComponent.Name);
+    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent);
+    AssertEquals('Transform1', NewComponent.Name);
+
+    NewComponent := TCastleTransform.Create(Parent);
+    AssertEquals('', NewComponent.Name);
+    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent);
+    AssertEquals('Transform2', NewComponent.Name);
+
+    NewComponent := TCastleTransform.Create(Parent);
+    AssertEquals('', NewComponent.Name);
+    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent,
+      'Scene' + GetBaseNameFromUrl('castle-data:/something/blah_blahXyz--123_foo.wrl'));
+    AssertEquals('SceneBlahBlahXyz123Foo1', NewComponent.Name);
+
+    NewComponent := TCastleTransform.Create(Parent);
+    AssertEquals('', NewComponent.Name);
+    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent,
+      'Scene' + GetBaseNameFromUrl('castle-data:/something/blah_blahXyz--123_foo.wrl'));
+    AssertEquals('SceneBlahBlahXyz123Foo2', NewComponent.Name);
+
+    NewComponent := TCastleTransform.Create(Parent);
+    AssertEquals('', NewComponent.Name);
+    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent,
+      'Scene' + GetBaseNameFromUrl('castle-data:/sketchfab/blah_blahXyz--123_foo-1231083912abcdef/scene.gltf'));
+    AssertEquals('SceneBlahBlahXyz123Foo3', NewComponent.Name);
+
+    NewComponent := TCastleTransform.Create(Parent);
+    AssertEquals('', NewComponent.Name);
+    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent,
+      'Scene' + GetBaseNameFromUrl('castle-data:/something/.wrl'));
+    AssertEquals('SceneWrl1', NewComponent.Name);
+
+  finally FreeAndNil(Parent) end;
 end;
 
 initialization

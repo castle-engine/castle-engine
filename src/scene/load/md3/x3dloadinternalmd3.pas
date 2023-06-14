@@ -28,13 +28,10 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
-  CastleInternalNodeInterpolator;
+  CastleInternalNodeInterpolator, CastleQuaternions;
 
-{ Load MD3 model, with skin (from Md3Skin) and animations. }
+{ Load MD3 model, with skin and animations. }
 function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
-
-var
-  Md3Skin: String = 'default';
 
 implementation
 
@@ -45,7 +42,7 @@ type
   EInvalidMD3 = class(Exception);
 
 const
-  GoodIdent = 'IDP3';
+  GoodIdent: AnsiString = 'IDP3';
 
 {$I x3dloadinternalmd3_structs.inc}
 {$I x3dloadinternalmd3_surface.inc}

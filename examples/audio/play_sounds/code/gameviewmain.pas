@@ -75,7 +75,7 @@ implementation
 
 uses SysUtils,
   CastleLog, CastleWindow, CastleURIUtils, CastleTimeUtils,
-  CastleSoundBase, CastleViewport;
+  CastleSoundBase, CastleViewport, CastleUtils;
 
 { TButtonSound --------------------------------------------------------- }
 
@@ -97,7 +97,7 @@ begin
   // Sound.Stream := true;
   Sound.URL := SoundFileURL;
 
-  Caption := Format('%s (%f)', [
+  Caption := FormatDot('%s (%f)', [
     // extract last URL component, i.e. just the filename
     URIDisplay(SoundFileURL, true),
     Sound.Duration

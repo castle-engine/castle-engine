@@ -65,21 +65,23 @@ const
   begin
     Result :=
       Format(
-        '  Vendor-specific version parsed: major: %d, minor: %d, release: %d' + NL +
-        '  Vendor: %s' + NL +
-        '  Vendor type: %s' + NL +
+        '  Version in suffix, specific to vendor: major: %d, minor: %d, release: %d' + NL +
         NL +
-        '  Renderer: %s' + NL +
-        '  Fglrx (ancient ATI drivers on Linux): %s' + NL +
-        '  Mesa: %s', [
+        '  Vendor string: %s' + NL +
+        '  Vendor type: %s' + NL +
+        '  Special vendors:' + NL +
+        '    Fglrx: %s' + NL +
+        '    Mesa: %s' + NL +
+        NL +
+        '  Renderer: %s', [
         Version.VendorMajor,
         Version.VendorMinor,
         Version.VendorRelease,
-        PAnsiChar(glGetString(GL_VENDOR)),
+        Version.Vendor,
         VendorTypeToStr(Version.VendorType),
-        PAnsiChar(glGetString(GL_RENDERER)),
         BoolToStr(Version.Fglrx, true),
-        BoolToStr(Version.Mesa, true)
+        BoolToStr(Version.Mesa, true),
+        Version.Renderer
       ]);
   end;
 
@@ -94,7 +96,6 @@ const
         '  Buggy 32-bit depth buffer: %s' + NL +
         '  Buggy GLSL gl_FrontFacing: %s' + NL +
         '  Buggy GLSL read varying: %s' + NL +
-        '  Buggy Pure Shader Pipeline: %s' + NL +
         '  Buggy Texture Size Above 2048: %s' + NL +
         '  Buggy Shader Bump Mapping num_steps: %s', [
         BoolToStr(Version.BuggyVBO, true),
@@ -104,7 +105,6 @@ const
         BoolToStr(Version.BuggyDepth32, true),
         BoolToStr(Version.BuggyGLSLFrontFacing, true),
         BoolToStr(Version.BuggyGLSLReadVarying, true),
-        BoolToStr(Version.BuggyPureShaderPipeline, true),
         BoolToStr(Version.BuggyTextureSizeAbove2048, true),
         BoolToStr(Version.BuggyGLSLBumpMappingNumSteps, true)
       ]);
@@ -158,7 +158,7 @@ begin
     NL +
     '  Context requested: ' + CapabilitiesStr[TGLFeatures.RequestCapabilities] + NL +
     NL +
-    '  Version string: ' + PAnsiChar(glGetString(GL_VERSION)) + NL +
+    '  Version string: ' + GLVersion.VersionString + NL +
     VersionReport(GLVersion) + NL +
     VendorReport(GLVersion) + NL +
     NL +

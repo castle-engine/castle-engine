@@ -392,10 +392,9 @@ type
 
   TCaptionPart = (cpPublic, cpFps);
 
-  { Non-abstract implementation of TCastleContainer that cooperates with TCastleWindow.
-    To use it, you need to also create descendant of TCastleWindow,
-    and override TCastleWindow.CreateContainer.
-    That said, it is much better to use TCastleView and override methods there. }
+  { Container suitable to be used in TCastleWindow.
+    Never create instances of this, just create TCastleWindow,
+    and use container of it (in @link(TCastleWindow.Container)). }
   TWindowContainer = class(TCastleContainer)
   private
     Parent: TCastleWindow;
@@ -1215,9 +1214,17 @@ type
       Use this callback only to create OpenGL resources
       (destroyed in OnClose).
 
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method @link(TCastleUserInterface.GLContextOpen).
+      Or use Application.OnInitialize for initialization.
+      Or use ApplicationProperties.OnGLContextOpen to know when GL context is
+      created.
+
       @groupBegin }
     property OnOpen: TContainerEvent read GetOnOpen write SetOnOpen;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextOpen; or use Application.OnInitialize for initialization; or use ApplicationProperties.OnGLContextOpen';{$endif}
     property OnOpenObject: TContainerObjectEvent read GetOnOpenObject write SetOnOpenObject;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual methods GLContextOpen; or use Application.OnInitialize for initialization; or use ApplicationProperties.OnGLContextOpenObject';{$endif}
     { @groupEnd }
 
     { Minimum and maximum window sizes. Always
@@ -1448,8 +1455,11 @@ type
       So here you can draw on top of the existing controls.
       To draw something underneath the existing controls, create a new TCastleUserInterface
       and override it's @link(TCastleUserInterface.Render) and insert it to the controls
-      using @code(Controls.InsertBack(MyBackgroundControl);). }
+      using @code(Controls.InsertBack(MyBackgroundControl);).
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual method Render and OnRender event. }
     property OnRender: TContainerEvent read GetOnRender write SetOnRender;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Render or OnRender event';{$endif}
 
     {$ifdef FPC}
     { @deprecated Deprecated name for OnRender. }
@@ -1468,24 +1478,43 @@ type
       time-consuming. It such cases it is not desirable to put such time-consuming
       task inside OnRender because this would cause a sudden big change in
       Fps.OnlyRenderFps value. So you can avoid this by putting
-      this in OnBeforeRender. }
+      this in OnBeforeRender.
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method BeforeRender. Or just use virtual Render or OnRender event. }
     property OnBeforeRender: TContainerEvent read GetOnBeforeRender write SetOnBeforeRender;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method BeforeRender; or use virtual Render or OnRender event';{$endif}
 
     { Called when the window size (@link(Width), @link(Height)) changes.
       It's also guaranteed to be called during @link(Open),
       right after the EventOpen (OnOpen) event.
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method Resize.
+
       @seealso ResizeAllowed }
     property OnResize: TContainerEvent read GetOnResize write SetOnResize;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Resize';{$endif}
 
     { Called when the window is closed, right before the OpenGL context
       is destroyed. This is your last chance to release OpenGL resources,
       like textures, shaders, display lists etc. This is a counterpart
-      to OnOpen event. }
-    property OnClose: TContainerEvent read GetOnClose write SetOnClose;
-    property OnCloseObject: TContainerObjectEvent read GetOnCloseObject write SetOnCloseObject;
+      to OnOpen event.
 
-    { Called when user presses a key or mouse button or moves mouse wheel. }
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method @link(TCastleUserInterface.GLContextClose).
+      Or use ApplicationProperties.OnGLContextClose. }
+    property OnClose: TContainerEvent read GetOnClose write SetOnClose;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextClose; or use ApplicationProperties.OnGLContextClose';{$endif}
+    property OnCloseObject: TContainerObjectEvent read GetOnCloseObject write SetOnCloseObject;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextClose; or use ApplicationProperties.OnGLContextCloseObject';{$endif}
+
+    { Called when user presses a key or mouse button or moves mouse wheel.
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method Press and OnPress event. }
     property OnPress: TInputPressReleaseEvent read GetOnPress write SetOnPress;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Press or OnPress event';{$endif}
 
     { Called when user releases a pressed key or mouse button.
 
@@ -1507,8 +1536,12 @@ type
       then release Shift, then release X". (will "X" be correctly
       released as pressed and then released? yes.
       will small "x" be reported as released at the end? no, as it was never
-      pressed.) }
+      pressed.)
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method Release and OnRelease event. }
     property OnRelease: TInputPressReleaseEvent read GetOnRelease write SetOnRelease;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Release or OnRelease event';{$endif}
 
     { Called when user tries to close the window.
       This is called when you use window manager features to close the window,
@@ -1552,8 +1585,12 @@ type
       pressed mouse buttons in MousePressed. When this is called,
       the MousePosition property records the @italic(previous)
       mouse position, while callback parameter NewMousePosition gives
-      the @italic(new) mouse position. }
+      the @italic(new) mouse position.
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method Motion and OnMotion event. }
     property OnMotion: TInputMotionEvent read GetOnMotion write SetOnMotion;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Motion or OnMotion event';{$endif}
 
     { Send fake motion event, without actually moving the mouse through the backend.
       This is useful only for automatic tests.
@@ -1574,8 +1611,12 @@ type
       @link(Pressed) keys state, or animate something displayed on this window.
       This allows various "modal boxes" and such (see CastleMessages)
       to nicely "pause" such processing by temporarily replacing
-      OnUpdate and other events of a window that displays a modal box. }
+      OnUpdate and other events of a window that displays a modal box.
+
+      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
+      method Update and OnUpdate event. }
     property OnUpdate: TContainerEvent read GetOnUpdate write SetOnUpdate;
+      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Update or OnUpdate event';{$endif}
 
     {$ifdef FPC}
     { @deprecated Deprecated name for OnUpdate. }
@@ -1889,19 +1930,9 @@ type
 
     { OpenAndRun stuff --------------------------------------------------------- }
 
-    { Shortcut for Open (create and show the window with GL contex)
-      and Application.Run (run the event loop). }
-    procedure OpenAndRun; overload;
-
-    { Shortcut for setting Caption, OnRender,
-      then calling Open (create and show the window with GL contex)
-      and Application.Run (run the event loop).
-
-      @deprecated Deprecated, it is cleaner to just set Caption and OnRender
-      as properties, and then use parameterless OpenAndRun version.
-      In many programs, OnRender is not even used, as you render your stuff
-      inside various TCastleUserInterface instances. }
-    procedure OpenAndRun(const ACaption: string; AOnRender: TContainerEvent); overload; deprecated;
+    { Do @link(Open) (initialize rendering context, show the window)
+      followed by @link(TCastleApplication.Run Application.Run) (run the event loop). }
+    procedure OpenAndRun;
 
     { Parsing parameters ------------------------------------------------------- }
 
@@ -3654,13 +3685,6 @@ begin
 end;
 
 { OpenAndRun ----------------------------------------------------------------- }
-
-procedure TCastleWindow.OpenAndRun(const ACaption: string; AOnRender: TContainerEvent);
-begin
-  SetPublicCaption(ACaption);
-  OnRender := AOnRender;
-  OpenAndRun;
-end;
 
 procedure TCastleWindow.OpenAndRun;
 begin

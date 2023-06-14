@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{26802396-4C61-458A-AAB2-904B2F46BBC3}</ProjectGuid>
+        <ProjectGuid>{93CBDC94-68E6-6A79-7407-9A2D28BB4EE1}</ProjectGuid>
         <MainSource>physics_joints_3d_joints_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

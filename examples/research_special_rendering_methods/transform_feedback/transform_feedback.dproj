@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{9C2E8F9D-3433-49EC-9A2E-2530BA8A7603}</ProjectGuid>
+        <ProjectGuid>{FDA57883-AE55-ACC2-2996-037075E24FBC}</ProjectGuid>
         <MainSource>transform_feedback.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

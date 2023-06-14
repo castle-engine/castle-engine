@@ -76,6 +76,7 @@ procedure TViewMain.Start;
     LineSet: TLineSetNode;
     LineProperties: TLinePropertiesNode;
     Material: TMaterialNode;
+    Appearance: TAppearanceNode;
   begin
     RectCoords := TCoordinateNode.Create;
     UpdateRectangleCoordinates;
@@ -87,11 +88,15 @@ procedure TViewMain.Start;
     Material := TMaterialNode.Create;
     Material.EmissiveColor := YellowRGB;
     //Material.Transparency := 0.8;
-    Shape.Material := Material;
 
     LineProperties := TLinePropertiesNode.Create;
     LineProperties.LineWidthScaleFactor := 2;
-    Shape.Appearance.LineProperties := LineProperties;
+
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+    Appearance.LineProperties := LineProperties;
+
+    Shape.Appearance := Appearance;
 
     Result := TX3DRootNode.Create;
     Result.AddChildren(Shape);

@@ -51,6 +51,7 @@
     function GetCollider: TCollisionCollectionNode;
     procedure SetCollider(const Value: TCollisionCollectionNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

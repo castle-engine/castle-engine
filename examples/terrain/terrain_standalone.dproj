@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3DBE674B-621B-43D5-A4EE-F38A985DD2DF}</ProjectGuid>
+        <ProjectGuid>{4F809EC3-AA15-A882-69D6-43B0B5228FFC}</ProjectGuid>
         <MainSource>terrain_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{6D204F3C-D3F1-4DD6-91F8-4FE1359D4C90}</ProjectGuid>
+        <ProjectGuid>{EA08614A-C328-C4BB-9E31-780BEA7DC457}</ProjectGuid>
         <MainSource>fmod_api_test.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

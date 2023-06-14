@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{B87673D3-6D05-4853-9BB0-698FB4F6BC91}</ProjectGuid>
+        <ProjectGuid>{3F88CF79-5A6F-58DC-7BE8-A10EC734ED5A}</ProjectGuid>
         <MainSource>animate_transform_by_code_2_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

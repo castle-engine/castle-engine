@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{486CCB13-D1BB-428D-9814-BDD379C45804}</ProjectGuid>
+        <ProjectGuid>{6E7D7750-16CA-185D-B84B-DE7104972ABD}</ProjectGuid>
         <MainSource>build_3d_object_by_code_2_tunnel_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

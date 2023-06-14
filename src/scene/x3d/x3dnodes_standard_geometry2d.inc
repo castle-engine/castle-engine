@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -227,14 +228,14 @@ begin
     for I := 0 to SlicesNow - 1 do
     begin
       SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
-      C.FdPoint.Items.List^[I] := Vector3(
+      C.FdPoint.Items.L[I] := Vector3(
         AngleSin * FdRadius.Value,
         AngleCos * FdRadius.Value,
         0
       );
     end;
     { close the circle }
-    C.FdPoint.Items.List^[SlicesNow] := C.FdPoint.Items.List^[0];
+    C.FdPoint.Items.L[SlicesNow] := C.FdPoint.Items.L[0];
 
     LineSet.Coord := C;
     LineSet.SetVertexCount([SlicesNow + 1]);
@@ -264,34 +265,89 @@ end;
 function TDisk2DNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   Slices: Integer;
-  C: TCoordinateNode;
-  Triangles: TTriangleFanSetNode absolute Result;
-  I: Integer;
-  AngleSin, AngleCos: Float;
+
+  { Make a disc from triangles, no inner radius (no hole inside). }
+  procedure ProxyTriangles;
+  var
+    C: TCoordinateNode;
+    Triangles: TTriangleFanSetNode absolute Result;
+    I: Integer;
+    AngleSin, AngleCos: Float;
+  begin
+    Triangles := TTriangleFanSetNode.Create(X3DName, BaseUrl);
+    try
+      C := TCoordinateNode.Create('', BaseUrl);
+      C.FdPoint.Items.Count := Slices + 2;
+      C.FdPoint.Items.L[0] := Vector3(0, 0, 0);
+      for I := 0 to Slices do
+      begin
+        SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
+        C.FdPoint.Items.L[I + 1] := Vector3(
+          AngleCos * OuterRadius,
+          AngleSin * OuterRadius,
+          0
+        );
+      end;
+
+      Triangles.Coord := C;
+      Triangles.SetFanCount([Slices + 2]);
+      Triangles.Solid := Solid;
+    except FreeAndNil(Result); raise end;
+  end;
+
+  { Make a disc from quads, with inner radius (hole inside). }
+  procedure ProxyQuads;
+  var
+    C: TCoordinateNode;
+    Quads: TIndexedQuadSetNode absolute Result;
+    I: Integer;
+    AngleSin, AngleCos: Float;
+    Indexes: TInt32List;
+  begin
+    Quads := TIndexedQuadSetNode.Create(X3DName, BaseUrl);
+    try
+      C := TCoordinateNode.Create('', BaseUrl);
+      C.FdPoint.Items.Count := Slices * 2;
+      for I := 0 to Slices - 1 do
+      begin
+        SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
+        C.FdPoint.Items.L[I] := Vector3(
+          AngleCos * OuterRadius,
+          AngleSin * OuterRadius,
+          0
+        );
+        C.FdPoint.Items.L[I + Slices] := Vector3(
+          AngleCos * InnerRadius,
+          AngleSin * InnerRadius,
+          0
+        );
+      end;
+
+      Indexes := TInt32List.Create;
+      try
+        Indexes.Count := Slices * 4;
+        for I := 0 to Slices - 1 do
+        begin
+          Indexes.L[I * 4    ] := I;
+          Indexes.L[I * 4 + 1] := (I + 1) mod Slices;
+          Indexes.L[I * 4 + 2] := (I + 1) mod Slices + Slices;
+          Indexes.L[I * 4 + 3] := I + Slices;
+        end;
+
+        Quads.Coord := C;
+        Quads.SetIndex(Indexes);
+        Quads.Solid := Solid;
+      finally FreeAndNil(Indexes); end;
+    except FreeAndNil(Result); raise end;
+  end;
+
 begin
   Slices := CalculateSlices;
 
-  Triangles := TTriangleFanSetNode.Create(X3DName, BaseUrl);
-  try
-    // TODO: assumes innerRadius = 0
-
-    C := TCoordinateNode.Create('', BaseUrl);
-    C.FdPoint.Items.Count := Slices + 2;
-    C.FdPoint.Items.List^[0] := Vector3(0, 0, 0);
-    for I := 0 to Slices do
-    begin
-      SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
-      C.FdPoint.Items.List^[I + 1] := Vector3(
-        AngleCos * OuterRadius,
-        AngleSin * OuterRadius,
-        0
-      );
-    end;
-
-    Triangles.Coord := C;
-    Triangles.SetFanCount([Slices + 2]);
-    Triangles.Solid := Solid;
-  except FreeAndNil(Result); raise end;
+  if InnerRadius <= 0 then
+    ProxyTriangles
+  else
+    ProxyQuads;
 end;
 
 { TPolyline2DNode ------------------------------------------------------------ }
@@ -317,9 +373,9 @@ begin
     C.FdPoint.Items.Count := Count;
     for I := 0 to Count - 1 do
     begin
-      C.FdPoint.Items.List^[I] := Vector3(
-        FdLineSegments.Items.List^[I].X,
-        FdLineSegments.Items.List^[I].Y,
+      C.FdPoint.Items.L[I] := Vector3(
+        FdLineSegments.Items.L[I].X,
+        FdLineSegments.Items.L[I].Y,
         0
       );
     end;
@@ -351,9 +407,9 @@ begin
     C.FdPoint.Items.Count := Count;
     for I := 0 to Count - 1 do
     begin
-      C.FdPoint.Items.List^[I] := Vector3(
-        FdPoint.Items.List^[I].X,
-        FdPoint.Items.List^[I].Y,
+      C.FdPoint.Items.L[I] := Vector3(
+        FdPoint.Items.L[I].X,
+        FdPoint.Items.L[I].Y,
         0
       );
     end;
@@ -395,17 +451,17 @@ begin
 
     { calculate Coord, TexCoord contents }
 
-    Coord.FdPoint.Items.List^[0] := Vector3(-Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[0] := Vector2(0, 0);
+    Coord.FdPoint.Items.L[0] := Vector3(-Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[0] := Vector2(0, 0);
 
-    Coord.FdPoint.Items.List^[1] := Vector3( Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[1] := Vector2(1, 0);
+    Coord.FdPoint.Items.L[1] := Vector3( Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[1] := Vector2(1, 0);
 
-    Coord.FdPoint.Items.List^[2] := Vector3( Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[2] := Vector2(1, 1);
+    Coord.FdPoint.Items.L[2] := Vector3( Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[2] := Vector2(1, 1);
 
-    Coord.FdPoint.Items.List^[3] := Vector3(-Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.List^[3] := Vector2(0, 1);
+    Coord.FdPoint.Items.L[3] := Vector3(-Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[3] := Vector2(0, 1);
 
     QuadSet.Solid := Solid;
   except FreeAndNil(Result); raise end;
@@ -444,9 +500,9 @@ begin
     C.FdPoint.Items.Count := Count;
     for I := 0 to Count - 1 do
     begin
-      C.FdPoint.Items.List^[I] := Vector3(
-        FdVertices.Items.List^[I].X,
-        FdVertices.Items.List^[I].Y,
+      C.FdPoint.Items.L[I] := Vector3(
+        FdVertices.Items.L[I].X,
+        FdVertices.Items.L[I].Y,
         0
       );
     end;

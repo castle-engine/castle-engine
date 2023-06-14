@@ -1478,7 +1478,7 @@ begin
   Assert(Owner <> nil); // Use SetupDesignTimeCamera only on viewports with owner
 
   NewCamera := TCastleCamera.Create(Owner);
-  NewCamera.Name := InternalProposeName(TCastleCamera, Owner);
+  NewCamera.Name := ProposeComponentName(TCastleCamera, Owner);
   Camera := NewCamera;
   Assert(Camera = NewCamera);
 
@@ -1661,7 +1661,7 @@ begin
 
     if InternalDesignManipulation and (Camera.Name = 'Camera') and (Owner <> nil) then
     begin
-      Camera.Name := InternalProposeName(TCastleCamera, Owner);
+      Camera.Name := ProposeComponentName(TCastleCamera, Owner);
       WritelnLog('Camera in viewport "%s" renamed to "%s" to not conflict with other components', [
         Name,
         Camera.Name
@@ -2269,8 +2269,6 @@ function TCastleViewport.MainLightForShadowVolumes(out AMainLightPosition: TVect
     is undefined after returning @false. }
   function LightForShadowVolumesFromScene(const Scene: TCastleScene;
     out AMainLightPosition: TVector4): Boolean;
-  var
-    AMainLightPosition3D: PVector3;
   begin
     Result :=
       Scene.InternalMainLightForShadowVolumes(AMainLightPosition) and
@@ -2284,11 +2282,11 @@ function TCastleViewport.MainLightForShadowVolumes(out AMainLightPosition: TVect
     { Transform AMainLightPosition to world space. }
     if Result then
     begin
-      AMainLightPosition3D := PVector3(@AMainLightPosition);
       if AMainLightPosition.W = 0 then
-        AMainLightPosition3D^ := Scene.LocalToWorldDirection(AMainLightPosition3D^)
+        AMainLightPosition.XYZ := Scene.LocalToWorldDirection(AMainLightPosition.XYZ)
       else
-        AMainLightPosition3D^ := Scene.LocalToWorld(AMainLightPosition3D^);
+        AMainLightPosition := Vector4(
+          Scene.LocalToWorld(AMainLightPosition.XYZ / AMainLightPosition.W), 1.0);
     end;
   end;
 
@@ -2482,7 +2480,10 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
     { Initialize FShadowVolumeRenderer if needed, along with its OpenGL resources.
       This way we never even create FShadowVolumeRenderer if we will never render with shadow volumes. }
     if FShadowVolumeRenderer = nil then
+    begin
       FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
+      FShadowVolumeRenderer.PrepareRenderingResources;
+    end;
     FShadowVolumeRenderer.DebugRender := ShadowVolumesRender;
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
     FShadowVolumeRenderer.Render(Params,
@@ -2594,7 +2595,7 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
     for J := 0 to SceneCastingLights.InternalGlobalLights.Count - 1 do
     begin
       NewGlobalLight := PLightInstance(FRenderParams.FGlobalLights.Add);
-      NewGlobalLight^ := SceneCastingLights.InternalGlobalLights.List^[J];
+      NewGlobalLight^ := SceneCastingLights.InternalGlobalLights.L[J];
       { make NewGlobalLight^ in world coordinates }
       NewGlobalLight^.Transform := SceneCastingLights.WorldTransform * NewGlobalLight^.Transform;
       NewGlobalLight^.TransformScale := Approximate3DScale(SceneCastingLights.WorldTransform) * NewGlobalLight^.TransformScale;
@@ -3350,15 +3351,18 @@ var
   MainLightPosition: TVector4; // value of this is ignored
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    raise Exception.Create('PrepareResources can only be called when rendering context is initialized.' + NL +
+  begin
+    WritelnWarning('It is best to call PrepareResources only once rendering context is initialized, to allow preparing all rendering resources.' + NL +
       'Various events and virtual methods can be used to wait for the context:' + NL +
       '- (if you use CastleWindow) Application.OnInitialize' + NL +
-      '- (if you use CastleWindow) TCastleWindow.OnOpen' + NL +
-      '- (if you use LCL CastleControl) TCastleControl.OnOpen' + NL +
-      '- TCastleUserInterface.GLContextOpen'
+      '- TCastleUserInterface.GLContextOpen' + NL +
+      'We will continue, but some rendering resources may need to be prepared on-demand later.'
     );
+    // despite the warning, allow PrepareResources to run, to make it easy for users
+  end;
 
-  if GLFeatures.ShadowVolumesPossible and
+  if (GLFeatures <> nil) and
+     GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadowVolumes(MainLightPosition) then
     Include(Options, prShadowVolume);
@@ -3855,7 +3859,7 @@ begin
     that you can see as a whole in initial view,
     allows to see screen corner - also has distance from edge. }
   Plane := TCastlePlane.Create(Owner);
-  Plane.Name := InternalProposeName(TCastlePlane, Owner);
+  Plane.Name := ProposeComponentName(TCastlePlane, Owner);
   Plane.Axis := 2;
   Plane.Size := Vector2(200, 200);
   Plane.Material := pmUnlit;
@@ -3902,7 +3906,7 @@ begin
     bright to make PBR colors visible (e.g. yellow sphere should visibly be really yellow),
     low above ground to see the attenuation on floor.  }
   Light := TCastlePointLight.Create(Owner);
-  Light.Name := InternalProposeName(TCastlePointLight, Owner);
+  Light.Name := ProposeComponentName(TCastlePointLight, Owner);
   Light.Translation := Vector3(4.00, 1.00, 1.00);
   Light.Intensity := 10;
   Items.Add(Light);
@@ -3911,7 +3915,7 @@ begin
     that you can see as a whole in initial view,
     serves as floor to place new 3D stuff }
   Plane := TCastlePlane.Create(Owner);
-  Plane.Name := InternalProposeName(TCastlePlane, Owner);
+  Plane.Name := ProposeComponentName(TCastlePlane, Owner);
   Plane.Size := Vector2(10, 10);
   Items.Add(Plane);
 
@@ -3929,7 +3933,7 @@ begin
   end;
 
   NewBackground := TCastleBackground.Create(Owner);
-  NewBackground.Name := InternalProposeName(TCastleBackground, Owner);
+  NewBackground.Name := ProposeComponentName(TCastleBackground, Owner);
   AddNonVisualComponent(NewBackground);
   Background := NewBackground;
 end;

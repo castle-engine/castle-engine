@@ -651,53 +651,59 @@
     }
     procedure BeforeRender; virtual;
 
-    { Render a control. Called only when @link(Exists) and GLInitialized,
-      you can depend on it in the implementation of this method.
+    { Render a control. Called only when @link(Exists) and render context is initialized.
 
-      @bold(Do not explicitly call this method.)
-      Instead, render controls by adding them to the
-      @link(TCastleContainer.Controls) list, or render them explicitly
-      (for off-screen rendering) by @link(TCastleContainer.RenderControl).
-      This is method should only be overridden in your own code.
+      @bold(Do not call this method.) It will be automatically called by the engine
+      when needed. It will be called when UI is part of @link(TCastleContainer.Controls) list
+      or rendered (e.g. for off-screen rendering) by @link(TCastleContainer.RenderControl).
 
-      Before calling this method we always set some OpenGL state,
-      and you can depend on it (and you can carelessly change it,
-      as it will be reset again before rendering other control).
+      You should only override this method.
 
-      OpenGL state always set:
+      See https://castle-engine.io/manual_2d_ui_custom_drawn.php for examples
+      what you can put here.
+
+      You can depend on some OpenGL state being set before calling this method.
+      You can depend on it being set, and you can carelessly change it.
+      This state we set:
 
       @unorderedList(
         @item(Viewport is set to include whole container.)
 
         @item(Depth test is off.)
 
-        @item(@italic((For fixed-function pipeline:))
-          The 2D orthographic projection is always set at the beginning.
-          Useful for 2D controls, 3D controls can just override projection
-          matrix, e.g. use @link(CastleRenderContext.PerspectiveProjection).)
+        @item(For ancient fixed-function pipeline (see @link(TGLFeatures.RequestCapabilities)):
 
-        @item(@italic((For fixed-function pipeline:))
-          The modelview matrix is set to identity. The matrix mode
-          is always modelview.)
+          @unorderedList(
+            @item(The 2D orthographic projection is always set at the beginning.
+              Useful for 2D controls.)
 
-        @item(@italic((For fixed-function pipeline:))
-          The raster position is set to (0,0).
-          The (deprecated) WindowPos is also set to (0,0).)
+            @item(The modelview matrix is set to identity. The matrix mode
+              is always modelview.)
 
-        @item(@italic((For fixed-function pipeline:))
-          Texturing, lighting, fog is off.)
+            @item(The raster position is set to (0,0).
+              The (deprecated) WindowPos is also set to (0,0).)
+
+            @item(Texturing, lighting, fog is off.)
+          )
+        )
       )
 
-      Beware that GLSL @link(TRenderContext.CurrentProgram RenderContext.CurrentProgram) has undefined value when this is called.
+      Beware that GLSL @link(TRenderContext.CurrentProgram RenderContext.CurrentProgram)
+      has undefined value when this is called.
       You should always set it, before making direct OpenGL drawing calls
-      (all the engine drawing routines of course do it already, this is only a concern
+      (all the engine drawing routines do it already, this is only a concern
       if you make direct OpenGL / OpenGLES calls). }
     procedure Render; virtual;
 
     { Render a control contents @italic(over the children controls).
       This is analogous to @link(Render), but it executes after children are drawn.
       You should usually prefer to override @link(Render) instead of this method,
-      as the convention is that the parent is underneath children. }
+      as the convention is that the parent is underneath children.
+
+      You should only override this method (do not call it, it will be called by the engine).
+
+      See https://castle-engine.io/manual_2d_ui_custom_drawn.php for examples
+      what you can put here. }
     procedure RenderOverChildren; virtual;
 
     { Render a tooltip of this control. If you want to have tooltip for
@@ -1476,7 +1482,9 @@ begin
   FCapturesEvents := true;
   FWidth := DefaultWidth;
   FHeight := DefaultHeight;
-  FBorder := TBorder.Create({$ifdef FPC}@{$endif}BorderChange);
+  FBorder := TBorder.Create(nil);
+  FBorder.SetSubComponent(true);
+  FBorder.OnChange := {$ifdef FPC}@{$endif} BorderChange;
   FLastSeenUIScale := 1.0;
   FEditorSelectOnHover := true;
 

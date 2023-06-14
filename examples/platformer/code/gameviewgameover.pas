@@ -40,7 +40,8 @@ var
 
 implementation
 
-uses CastleSoundEngine, GameViewMenu;
+uses CastleSoundEngine,
+  GameSound, GameViewMenu;
 
 constructor TViewGameOver.Create(AOwner: TComponent);
 begin
@@ -59,7 +60,7 @@ begin
   ButtonMenu.OnClick := {$ifdef FPC}@{$endif}ClickMenu;
 
   { Play menu music }
-  SoundEngine.LoopingChannel[0].Sound := SoundEngine.SoundFromName('menu_music');
+  SoundEngine.LoopingChannel[0].Sound := NamedSound('MenuMusic');
 end;
 
 end.

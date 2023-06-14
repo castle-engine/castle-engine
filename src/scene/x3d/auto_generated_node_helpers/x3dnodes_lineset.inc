@@ -35,6 +35,7 @@
     function GetMode: TLineMode;
     procedure SetMode(const Value: TLineMode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -73,9 +74,53 @@
     strict private FFdVertexCount: TMFInt32;
     { Internal wrapper for property @link(VertexCount). This wrapper API may change, we advise to access simpler @link(VertexCount) instead. }
     public property FdVertexCount: TMFInt32 read FFdVertexCount;
-    {  }
+    { Array of counts that split the line vertexes. Exact interpretation depends on the @link(Mode) value:
+
+@definitionList(
+@itemLabel lmStrip
+@item(Render a number of line strips.
+Each count on this array is the count of vertexes in a line strip.
+Each line strip is a polyline, i.e. a sequence of lines from the first vertex
+(in given line strip) to the last vertex (again, in given line strip).)
+
+@itemLabel lmLoop
+@item(Render a number of line loops.
+Each count on this array is the number of vertexes in a line loop.
+Each line loop is a closed polyline, i.e. a sequence of lines from the first vertex
+(in given line loop)
+to the last vertex (again, in given line loop).
+Moreover, within each line loop, there's a closing line from last vertex
+to the first.)
+
+@itemLabel lmPair
+@item(Render a number of line segments.
+Counts of this array are ignored, so there's not much point in calling SetVertexCount.
+In this mode, every 2 vertexes define a line segment.)
+) }
     procedure SetVertexCount(const Value: array of Int32); overload;
-    {  }
+    { Array of counts that split the line vertexes. Exact interpretation depends on the @link(Mode) value:
+
+@definitionList(
+@itemLabel lmStrip
+@item(Render a number of line strips.
+Each count on this array is the count of vertexes in a line strip.
+Each line strip is a polyline, i.e. a sequence of lines from the first vertex
+(in given line strip) to the last vertex (again, in given line strip).)
+
+@itemLabel lmLoop
+@item(Render a number of line loops.
+Each count on this array is the number of vertexes in a line loop.
+Each line loop is a closed polyline, i.e. a sequence of lines from the first vertex
+(in given line loop)
+to the last vertex (again, in given line loop).
+Moreover, within each line loop, there's a closing line from last vertex
+to the first.)
+
+@itemLabel lmPair
+@item(Render a number of line segments.
+Counts of this array are ignored, so there's not much point in calling SetVertexCount.
+In this mode, every 2 vertexes define a line segment.)
+) }
     procedure SetVertexCount(const Value: TInt32List); overload;
 
     strict private FFdMode: TSFStringEnum;
@@ -182,10 +227,12 @@ begin
 
   FFdColor := TSFNode.Create(Self, True, 'color', [TAbstractColorNode]);
    FdColor.ChangeAlways := chGeometry;
+   FdColor.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangeAlways := chGeometry;
+   FdCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdCoord);
 
 {$ifndef CASTLE_SLIM_NODES}

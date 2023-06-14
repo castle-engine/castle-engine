@@ -95,6 +95,18 @@
     { @exclude Remove notification when sound property occurs. }
     procedure InternalRemoveChangeNotification(const Notify: TCastleSoundChangeEvent);
 
+    { Load sound contents from given TStream.
+
+      @param(AStream Stream to load.
+        When loading, we rewind stream positon 0 zero,
+        and read the whole stream.)
+
+      @param(MimeType Valid MIME type that indicates a sound file type,
+        like @code(audio/x-wav) or @code(audio/ogg).
+        See TUrlFile.MimeType implementation for currently supported
+        MIME file types.) }
+    procedure LoadFromStream(const AStream: TStream; const MimeType: String);
+
     { Loaded sound buffer, for playing the buffer with the @link(SoundEngine).
       @nil if not loaded.
       @exclude }
@@ -344,6 +356,12 @@ begin
     if not IsLoading then
       ReloadBuffer;
   end;
+end;
+
+procedure TCastleSound.LoadFromStream(const AStream: TStream; const MimeType: String);
+begin
+  // TODO: unoptimal implementation, we should pass TStream downward, not base64-encode it
+  URL := StreamToDataUri(AStream, MimeType);
 end;
 
 procedure TCastleSound.SetVolume(const Value: Single);

@@ -161,13 +161,13 @@ begin
 
   { Verts index in octal notation indicates which of 8 vertexes it is. }
   Verts[0] := Vector4(Box.Data[0], 1);
-  Verts[1] := Vector4(Box.Data[0], 1); Verts[1].InternalData[0] := Box.Data[1][0];
-  Verts[2] := Vector4(Box.Data[0], 1); Verts[2].InternalData[1] := Box.Data[1][1];
-  Verts[4] := Vector4(Box.Data[0], 1); Verts[4].InternalData[2] := Box.Data[1][2];
+  Verts[1] := Vector4(Box.Data[0], 1); Verts[1].Data[0] := Box.Data[1][0];
+  Verts[2] := Vector4(Box.Data[0], 1); Verts[2].Data[1] := Box.Data[1][1];
+  Verts[4] := Vector4(Box.Data[0], 1); Verts[4].Data[2] := Box.Data[1][2];
 
-  Verts[3] := Vector4(Box.Data[1], 1); Verts[3].InternalData[2] := Box.Data[0][2];
-  Verts[5] := Vector4(Box.Data[1], 1); Verts[5].InternalData[1] := Box.Data[0][1];
-  Verts[6] := Vector4(Box.Data[1], 1); Verts[6].InternalData[0] := Box.Data[0][0];
+  Verts[3] := Vector4(Box.Data[1], 1); Verts[3].Data[2] := Box.Data[0][2];
+  Verts[5] := Vector4(Box.Data[1], 1); Verts[5].Data[1] := Box.Data[0][1];
+  Verts[6] := Vector4(Box.Data[1], 1); Verts[6].Data[0] := Box.Data[0][0];
   Verts[7] := Vector4(Box.Data[1], 1);
 
   RenderBox.ModelViewProjection := ModelViewProjectionMatrix;
@@ -312,7 +312,7 @@ var
         shape only once within this frame (FrameId is useful here). }
       for I := 0 to Node.ItemsIndices.Count - 1 do
       begin
-        Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.List^[I]]);
+        Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
         if Shape.RenderedFrameId <> FrameId then
         begin
           RenderShape(Shape);
@@ -367,7 +367,7 @@ var
 
     for I := 0 to Node.ItemsIndices.Count - 1 do
     begin
-      Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.List^[I]]);
+      Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
       if Shape.RenderedFrameId <> FrameId then
         Box.Include(Shape.BoundingBox);
     end;

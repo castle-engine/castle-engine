@@ -13,6 +13,7 @@ animations
 appearance
 append
 application
+applied
 area
 areas
 args
@@ -21,6 +22,8 @@ attenuation
 attribute
 attributes
 background
+behavior
+behaviors
 barycentric
 between
 bind
@@ -69,6 +72,7 @@ contents
 contribution
 controls
 convex
+corners
 coordinates
 count
 create
@@ -307,6 +311,7 @@ rects
 red
 reference
 references
+region
 register
 registered
 release
@@ -339,6 +344,8 @@ send
 sending
 shader
 shaders
+shadow
+shadows
 shape
 shapes
 shininess

@@ -244,8 +244,8 @@ begin
   begin
     PreviousTime := Time[I];
     NextTime     := Time[I + 1];
-    PreviousValue := Colors.List^[I    ];
-    NextValue     := Colors.List^[I + 1];
+    PreviousValue := Colors.L[I    ];
+    NextValue     := Colors.L[I + 1];
 
     if not (Json[I] is TJSONObject) then
     begin

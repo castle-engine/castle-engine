@@ -18,10 +18,16 @@
   read of MD3 and convertion to X3D. }
 
 type
+  TAppearancesDictionary = {$ifdef FPC}specialize{$endif} TDictionary<String, TAppearanceNode>;
+
   { MD3 (Quake3 engine model format) reader and converter to X3D. }
   TMD3Converter = class
   strict private
     FBaseUrl: String;
+    SkinName: String;
+
+    { Material nodes instantiated so far by FrameToX3D. }
+    Appearances: TAppearancesDictionary;
 
     { Read the indicated .skin file and fill the Skin contents, if skin file exists. }
     procedure ReadSkinFile(const SkinUrl: string);
@@ -36,13 +42,20 @@ type
     class function FixTextureUrl(const TextureUrl, TexturePath: String): String; static;
 
     { Load a specific animation frame from a given MD3 model.
-      @param FrameNumber Frame number to load, must be < Md3.FramesCount.
+      @param FrameNumber Frame number to load, must be < Md3.NumFrames.
       @param SceneBox Will be increased by given frame bbox. }
     function FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBox3D): TGroupNode;
+
+    { Read settings (for now, only SkinName) from anchor inside BaseUrl. }
+    procedure SettingsFromAnchor;
   public
     Name: String;
     Surfaces: TMd3SurfaceList;
-    FramesCount: Cardinal;
+    Tags: TMd3TagList;
+    NumFrames: Integer;
+
+    // Always 0 when NumFrames = 0
+    NumTags: Integer;
 
     { Skin information maps shader names -> texture URLs.
       Empty (but never @nil) if the skin file was not found. }
@@ -51,10 +64,15 @@ type
     { Reads MD3 from a stream, with given absolute base URL.
 
       We also read the associated skin file, if it exists.
-      We look for file called '<basename>_<Md3Skin>.skin',
-      where <basename> is the basename (no path, no extension) from BaseUrl,
-      and Md3Skin is a global variable in this unit.
-      So e.g. for 'head.md3' we read 'head_default.skin' by default.
+      We look for file called '<basename>_<SkinName>.skin',
+      where
+
+      - <basename> is the basename (no path, no extension, no anchor) from BaseUrl
+      - <SkinName> may be specified as anchor #skin=xxx at the end of BaseUrl,
+        by default 'default'.
+
+      So e.g. for 'head.md3' we read 'head_default.skin' by default,
+      for 'head.md3#skin:light' we read 'head_light.skin'.
 
       We strip the path from texture URLs found in the skin file,
       because the texture URLs are often given relative to main quake/tremulous/etc.
@@ -85,9 +103,16 @@ begin
   inherited Create;
 
   FBaseUrl := ABaseUrl;
+  Tags := TMd3TagList.Create;
+  Appearances := TAppearancesDictionary.Create;
+
+  SkinName := 'default'; // default skin, SettingsFromAnchor may override it
+  SettingsFromAnchor;
+  // for all following operations, we don't want #anchor in URL anymore
+  FBaseUrl := URIDeleteAnchor(FBaseUrl, true);
 
   Skin := TStringList.Create;
-  SkinUrl := DeleteURIExt(BaseUrl) + '_' + Md3Skin + '.skin';
+  SkinUrl := DeleteURIExt(BaseUrl) + '_' + SkinName + '.skin';
   ReadSkinFile(SkinUrl);
 
   ReadMd3(Stream);
@@ -97,10 +122,36 @@ destructor TMD3Converter.Destroy;
 begin
   FreeAndNil(Surfaces);
   FreeAndNil(Skin);
+  FreeAndNil(Tags);
+  FreeAndNil(Appearances);
   inherited;
 end;
 
-class function TMD3Converter.FixTextureUrl(const TextureUrl, TexturePath: String): String; static;
+procedure TMD3Converter.SettingsFromAnchor;
+var
+  SettingsMap: TStringStringMap;
+  Setting: {$ifdef FPC}TStringStringMap.TDictionaryPair{$else}TPair<String, String>{$endif};
+begin
+  SettingsMap := TStringStringMap.Create;
+  try
+    URIGetSettingsFromAnchor(BaseUrl, SettingsMap);
+    for Setting in SettingsMap do
+    begin
+      if LowerCase(Setting.Key) = 'skin' then
+      begin
+        SkinName := Setting.Value;
+      end else
+        WritelnWarning('MD3', 'Unknown setting (%s) in "%s" anchor.', [
+          Setting.Key,
+          URIDisplay(BaseUrl)
+        ]);
+    end;
+  finally
+    FreeAndNil(SettingsMap);
+  end;
+end;
+
+class function TMD3Converter.FixTextureUrl(const TextureUrl, TexturePath: String): String;
 begin
   { Directory recorded in TextureUrl is useless for us,
     it's usually a relative directory inside quake/tremulous/etc.
@@ -121,7 +172,7 @@ begin
       So we have to check also for tga here.
       E.g. tremulous-unpacked-data/models/players/human_base/head }
     if URIFileExists(TexturePath + ChangeURIExt(Result, '.tga')) then
-      Result := ChangeURIExt(Result, '.tga') else
+      Result := ChangeURIExt(Result, '.tga');
   end;
 end;
 
@@ -154,6 +205,10 @@ begin
         begin
           SkinKey := Trim(Copy(S, 1, CommaPos - 1));
           TextureUrl := Trim(SEnding(S, CommaPos + 1));
+          { Tremulous uses 'gfx/null' instead of just 'null',
+            see tremulous-data/data-1.1.0/models/players/human_base/upper_light.skin }
+          if TextureUrl = 'gfx/null' then
+            TextureUrl := 'null';
           if (TextureUrl <> '') and
              (TextureUrl <> 'null') then
             TextureUrl := FixTextureUrl(TextureUrl, TexturePath);
@@ -194,12 +249,6 @@ type
     Radius: Single;
     Name: array [0..15] of AnsiChar;
   end;
-
-  TMd3Tag = record
-    Name: array [0..Md3MaxQPath - 1] of AnsiChar;
-    Origin: TVector3;
-    Axis: array [0..2] of TVector3;
-  end;
   *)
 
 var
@@ -223,8 +272,16 @@ begin
     raise EInvalidMD3.CreateFmt('Only supported version of MD3 file is "%d"',
       [GoodVersion]);
 
-  Name := Header.Name; // unused
-  FramesCount := Header.NumFrames;
+  Name := Header.Name;
+  NumFrames := Header.NumFrames;
+  NumTags := Header.NumTags;
+
+  { Due to the way MD3 is specified, there's no way to specify tags
+    when there are no animation frames.
+    Simplify code so that we can rely on it,
+    so that we know NumTags<>0 => NumFrames<>0. }
+  if NumFrames = 0 then
+    NumTags := 0;
 
   (* Unused for now
   if Header.NumFrames <> 0 then
@@ -235,16 +292,14 @@ begin
       Stream.ReadBuffer(Frame, SizeOf(Frame));
     end;
   end;
+  *)
 
-  if Header.NumTags <> 0 then
+  Tags.Count := NumFrames * NumTags;
+  if Tags.Count <> 0 then
   begin
     Stream.Position := Header.OffsetTags;
-    for I := 0 to Header.NumTags - 1 do
-    begin
-      Stream.ReadBuffer(Tag, SizeOf(Tag));
-    end;
+    Stream.ReadBuffer(Tags.L^, SizeOf(TMd3Tag) * Tags.Count);
   end;
-  *)
 
   Surfaces := TMd3SurfaceList.Create(true);
 
@@ -257,9 +312,9 @@ begin
       NewSurface.Read(Stream);
       Surfaces.Add(NewSurface);
 
-      if FramesCount <> NewSurface.FramesCount then
+      if NumFrames <> NewSurface.NumFrames then
         raise EInvalidMD3.CreateFmt('Surface frame count (%d) is different than ' +
-          'model''s frame count (%d)', [FramesCount, NewSurface.FramesCount]);
+          'model''s frame count (%d)', [NumFrames, NewSurface.NumFrames]);
     end;
   end;
 end;
@@ -279,7 +334,7 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     V := PMd3Vertex(Vertexes.Ptr(VertexesInFrameCount * FrameNumber));
     for I := 0 to VertexesInFrameCount - 1 do
     begin
-      Result.FdPoint.Items.List^[I] := Vector3(
+      Result.FdPoint.Items.L[I] := Vector3(
         V^.Position[0] * Md3XyzScale,
         V^.Position[1] * Md3XyzScale,
         V^.Position[2] * Md3XyzScale);
@@ -300,7 +355,7 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     V := PVector2(TextureCoords.L);
     for I := 0 to TextureCoords.Count - 1 do
     begin
-      Result.FdPoint.Items.List^[I] := Vector2(V^[0], 1-V^[1]);
+      Result.FdPoint.Items.L[I] := Vector2(V^[0], 1-V^[1]);
       Inc(V);
     end;
   end;
@@ -316,42 +371,82 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
     Result.FdTexCoordIndex.Items.Count := Triangles.Count * 4;
     for I := 0 to Triangles.Count - 1 do
     begin
-      Result.FdCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
-      Result.FdCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
-      Result.FdCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
-      Result.FdCoordIndex.Items.List^[I*4 + 3] := -1;
+      Result.FdCoordIndex.Items.L[I*4 + 0] := Triangles.L[I].Indexes[0];
+      Result.FdCoordIndex.Items.L[I*4 + 1] := Triangles.L[I].Indexes[1];
+      Result.FdCoordIndex.Items.L[I*4 + 2] := Triangles.L[I].Indexes[2];
+      Result.FdCoordIndex.Items.L[I*4 + 3] := -1;
 
-      Result.FdTexCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 3] := -1;
+      Result.FdTexCoordIndex.Items.L[I*4 + 0] := Triangles.L[I].Indexes[0];
+      Result.FdTexCoordIndex.Items.L[I*4 + 1] := Triangles.L[I].Indexes[1];
+      Result.FdTexCoordIndex.Items.L[I*4 + 2] := Triangles.L[I].Indexes[2];
+      Result.FdTexCoordIndex.Items.L[I*4 + 3] := -1;
     end;
   end;
 
-  function MakeTexture(const ShaderName: String): TImageTextureNode;
+  { First value in TStringList key-value pairs, that is not ''.
+
+    Used to get first texture specified in .skin, as a fallback (Tremulous creatures use it).
+
+    Moreover, omit cases where texture is '' (Tremulous skins like
+    models/players/human_bsuit/upper_default.skin depend on it, as they start with tags:
+
+      tag_head,
+      tag_weapon,
+      u_torso,models/players/human_bsuit/human_bsuit.jpg
+      tag_torso,
+
+    ). }
+  function FirstNonEmptyValue(const StrList: TStringList): String;
+  var
+    I: Integer;
+  begin
+    for I := 0 to StrList.Count - 1 do
+    begin
+      Result := StrList.ValueFromIndex[I];
+      if Result <> '' then
+        Exit;
+    end;
+
+    Result := '';
+  end;
+
+  function MakeAppearance(const ShaderName: String): TAppearanceNode;
   var
     TextureUrl: String;
+    TextureNode: TImageTextureNode;
+    Material: TMaterialNode;
   begin
     TextureUrl := Skin.Values[ShaderName];
     { If .skin file was not found, or was empty, or ShaderName isn't found there... }
     if TextureUrl = '' then
       TextureUrl := ShaderName;
-    { Use first texture specified in .skin, as a fallback (Tremulous creatures use it) }
-    if (TextureUrl = '') and (Skin.Count <> 0) then
-      TextureUrl := Skin.ValueFromIndex[0];
+    { Use first non-empty texture specified in .skin, as a fallback. }
+    if TextureUrl = '' then
+      TextureUrl := FirstNonEmptyValue(Skin);
     { Use basename of MD3 for texture basename. }
     if TextureUrl = '' then
       TextureUrl := DeleteURIExt(ExtractURIName(BaseUrl));
 
-    if TextureUrl = 'none' then
+    if not Appearances.TryGetValue(TextureUrl, Result) then
     begin
-      { In this case, we explicitly don't want to use a texture. }
-      Result := nil;
-    end else
-    begin
-      Result := TImageTextureNode.Create('', BaseUrl);
-      TextureUrl := FixTextureUrl(TextureUrl, ExtractURIPath(BaseUrl));
-      Result.SetUrl([TextureUrl]);
+      Result := TAppearanceNode.Create(TextureUrl, BaseUrl);
+      Appearances.Add(TextureUrl, Result);
+
+      Material := TMaterialNode.Create(TextureUrl, BaseUrl);
+      Result.Material := Material;
+
+      if TextureUrl = 'none' then
+      begin
+        { In this case, we explicitly don't want to use a texture,
+          so leave Material.DiffuseTexture = nil. }
+      end else
+      begin
+        TextureUrl := FixTextureUrl(TextureUrl, ExtractURIPath(BaseUrl));
+
+        TextureNode := TImageTextureNode.Create('', BaseUrl);
+        TextureNode.SetUrl([TextureUrl]);
+        Material.DiffuseTexture := TextureNode;
+      end;
     end;
   end;
 
@@ -365,8 +460,7 @@ function TMD3Converter.FrameToX3D(const FrameNumber: Cardinal; var SceneBox: TBo
 
     Result := TShapeNode.Create(Surface.Name, BaseUrl);
     Result.Geometry := IFS;
-    Result.Material := TMaterialNode.Create('', BaseUrl);
-    Result.Texture := MakeTexture(Surface.ShaderName);
+    Result.Appearance := MakeAppearance(Surface.ShaderName);
   end;
 
 var
@@ -381,17 +475,101 @@ end;
 function TMD3Converter.ToX3D: TX3DRootNode;
 var
   Switch: TSwitchNode;
+  TagTransforms: TX3DNodeList; // list of TTransformNode, once for each MD3 tag
+
+  { Create TTransformNode corresponding to tag.
+    Add it to Result, set TagTransforms[TagIndex]. }
+  procedure AddTag(const TagIndex: Cardinal);
+  var
+    Tag: PMd3Tag;
+    TagTransform: TTransformNode;
+    TagName: String;
+    {.$define CASTLE_MD3_VISUALIZE_TAG}
+    {$ifdef CASTLE_MD3_VISUALIZE_TAG}
+    Cone: TConeNode;
+    ConeShape: TShapeNode;
+    {$endif}
+  begin
+    // tags do not exist when NumFrames = 0, regardless of NumTags
+    Assert(NumFrames <> 0);
+    Assert(Tags.Count <> 0);
+
+    Tag := PMd3Tag(Tags.Ptr({NumTags * 0 + } TagIndex));
+    TagName := Tag^.Name;
+    TagTransform := TTransformNode.Create(TagName);
+    TagTransforms.Add(TagTransform);
+    Result.AddChildren(TagTransform);
+
+    {$ifdef CASTLE_MD3_VISUALIZE_TAG}
+    Cone := TConeNode.CreateWithShape(ConeShape);
+    TagTransform.AddChildren(ConeShape);
+    {$endif}
+  end;
+
+  procedure AddTagAnimation(const TagIndex: Cardinal;
+    const AnimationTimeSensor: TTimeSensorNode;
+    const FirstFrame, NumFramesInAnimation: Cardinal);
+  var
+    FrameIndex, I: Integer;
+    TagName: String;
+    Tag: PMd3Tag;
+    TagTransform: TTransformNode;
+    OriginInterpolator: TPositionInterpolatorNode;
+    OrientationInterpolator: TOrientationInterpolatorNode;
+  begin
+    // tags do not exist when NumFrames = 0, regardless of NumTags
+    Assert(NumFrames <> 0);
+    Assert(Tags.Count <> 0);
+
+    TagTransform := TagTransforms[TagIndex] as TTransformNode;
+    TagName := TagTransform.X3DName;
+
+    OriginInterpolator := TPositionInterpolatorNode.Create(
+      TagName + '_' + AnimationTimeSensor.X3DName + '_Origin');
+    OriginInterpolator.FdKey.Count := NumFramesInAnimation;
+    OriginInterpolator.FdKeyValue.Count := NumFramesInAnimation;
+    Result.AddChildren(OriginInterpolator);
+    Result.AddRoute(AnimationTimeSensor.EventFraction_changed, OriginInterpolator.EventSet_fraction);
+    Result.AddRoute(OriginInterpolator.EventValue_changed, TagTransform.FdTranslation);
+
+    OrientationInterpolator := TOrientationInterpolatorNode.Create(
+      TagName + '_' + AnimationTimeSensor.X3DName + '_Orientation');
+    OrientationInterpolator.KeyValueQuaternions := true;
+    OrientationInterpolator.FdKey.Count := NumFramesInAnimation;
+    OrientationInterpolator.FdKeyValue.Count := NumFramesInAnimation;
+    Result.AddChildren(OrientationInterpolator);
+    Result.AddRoute(AnimationTimeSensor.EventFraction_changed, OrientationInterpolator.EventSet_fraction);
+    Result.AddRoute(OrientationInterpolator.EventValue_changed, TagTransform.FdRotation);
+
+    for I := 0 to NumFramesInAnimation - 1 do
+    begin
+      FrameIndex := FirstFrame + I;
+      Tag := PMd3Tag(Tags.Ptr(NumTags * FrameIndex + TagIndex));
+      if TagName <> Tag^.Name then
+        WritelnWarning('Inconsistent MD3 tag name, changes between frames: "%s", (frame %d) "%s"', [
+          TagName,
+          FrameIndex,
+          Tag^.Name
+        ]);
+
+      OriginInterpolator.FdKey.Items[I] := I / NumFramesInAnimation;
+      OriginInterpolator.FdKeyValue.Items[I] := Tag^.Origin;
+      OrientationInterpolator.FdKey.Items[I] := I / NumFramesInAnimation;
+      OrientationInterpolator.FdKeyValue.Items[I] := QuatFromRotationMatrix(Tag^.Orientation).Data.Vector4;
+    end;
+  end;
 
   { Add to Result an animation that drives Switch.WhichChoice,
-    changing frames from FirstFrame to FirstFrame + NumFrames - 1. }
-  procedure AddAnimation(const AnimationName: String; const FirstFrame, NumFrames: Cardinal);
+    changing frames from FirstFrame to FirstFrame + NumFramesInAnimation - 1. }
+  procedure AddAnimation(const AnimationName: String;
+    const FirstFrame, NumFramesInAnimation, Fps: Cardinal);
   var
     TimeSensor: TTimeSensorNode;
     IntSequencer: TIntegerSequencerNode;
     I: Integer;
   begin
     TimeSensor := TTimeSensorNode.Create(AnimationName, BaseUrl);
-    TimeSensor.CycleInterval := NumFrames / Md3Fps;
+    TimeSensor.CycleInterval := NumFramesInAnimation / Fps;
     Result.AddChildren(TimeSensor);
 
     IntSequencer := TIntegerSequencerNode.Create(AnimationName + '_IntegerSequencer', BaseUrl);
@@ -401,11 +579,11 @@ var
       As multiple IntegerSequencer may affect this Switch (once we add support
       for other animations) this is important. }
     IntSequencer.ForceContinuousValue_Changed := true;
-    IntSequencer.FdKey.Count := NumFrames;
-    IntSequencer.FdKeyValue.Count := NumFrames;
-    for I := 0 to NumFrames - 1 do
+    IntSequencer.FdKey.Count := NumFramesInAnimation;
+    IntSequencer.FdKeyValue.Count := NumFramesInAnimation;
+    for I := 0 to Integer(NumFramesInAnimation) - 1 do
     begin
-      IntSequencer.FdKey.Items[I] := I / NumFrames;
+      IntSequencer.FdKey.Items[I] := I / NumFramesInAnimation;
       IntSequencer.FdKeyValue.Items[I] := FirstFrame + I;
     end;
     Result.AddChildren(IntSequencer);
@@ -413,6 +591,9 @@ var
     Result.AddRoute(TimeSensor.EventFraction_changed, IntSequencer.EventSet_fraction);
     Result.AddRoute(IntSequencer.EventValue_changed, Switch.FdWhichChoice);
     Result.ExportNode(TimeSensor);
+
+    for I := 0 to NumTags - 1 do
+      AddTagAnimation(I, TimeSensor, FirstFrame, NumFramesInAnimation);
   end;
 
 var
@@ -429,22 +610,31 @@ begin
 
   Switch := TSwitchNode.Create('', BaseUrl);
   Switch.WhichChoice := 0; // show something non-empty on load
-  for I := 0 to FramesCount - 1 do
+  for I := 0 to NumFrames - 1 do
     Switch.AddChildren(FrameToX3D(I, SceneBox));
   Result.AddChildren(Switch);
 
-  AddAnimation(TNodeInterpolator.DefaultAnimationName, 0, FramesCount);
+  TagTransforms := TX3DNodeList.Create(false);
+  try
+    for I := 0 to NumTags - 1 do
+      AddTag(I);
+    Assert(TagTransforms.Count = NumTags);
 
-  AnimationCfgUrl := ExtractURIPath(BaseUrl) + 'animation.cfg';
-  if URIFileExists(AnimationCfgUrl) then
-  begin
-    Animations := TMd3Animations.Create;
-    try
-      Animations.ReadAnimationCfg(AnimationCfgUrl);
-      for I := 0 to Animations.Count - 1 do
-        AddAnimation(Animations[I].Name, Animations[I].FirstFrame, Abs(Animations[I].NumFrames));
-    finally FreeAndNil(Animations) end;
-  end;
+    AddAnimation(TNodeInterpolator.DefaultAnimationName, 0, NumFrames, DefaultMd3Fps);
+
+    AnimationCfgUrl := ExtractURIPath(BaseUrl) + 'animation.cfg';
+    if URIFileExists(AnimationCfgUrl) then
+    begin
+      Animations := TMd3Animations.Create;
+      try
+        Animations.ReadAnimationCfg(AnimationCfgUrl);
+        Animations.ValidateFrames(NumFrames);
+        for I := 0 to Animations.Count - 1 do
+          AddAnimation(Animations[I].Name, Animations[I].FirstFrame, Abs(Animations[I].NumFrames),
+            Animations[I].Fps);
+      finally FreeAndNil(Animations) end;
+    end;
+  finally FreeAndNil(TagTransforms) end;
 
   { MD3 files have no camera. I add camera here, just to force GravityUp
     to be in +Z, since this is the convention used in all MD3 files that

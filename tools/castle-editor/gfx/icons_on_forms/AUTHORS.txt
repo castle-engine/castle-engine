@@ -21,6 +21,8 @@ rotate-cw.svg
 settings.svg
 square.svg
 trash-2.svg
+grid
+list
 
 old/plus-square.svg
 old/pause-circle.svg

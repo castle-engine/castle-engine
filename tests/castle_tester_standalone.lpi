@@ -60,11 +60,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastlescene"/>
       </Unit7>
-      <Unit8>
-        <Filename Value="code/testcases/testcastlegenericlists.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="testcastlegenericlists"/>
-      </Unit8>
       <Unit9>
         <Filename Value="code/testcases/testcastlegame.pas"/>
         <IsPartOfProject Value="True"/>
@@ -372,10 +367,14 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolpackageformat"/>
       </Unit79>
-      <Unit80>
+      <Unit8>
         <Filename Value="code/testcases/testcastledesigncomponents.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="testcastledesigncomponents"/>
+      </Unit8>
+      <Unit80>
+        <Filename Value="code/testcases/testcastleinternalglshadowvolumes.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit80>
     </Units>
   </ProjectOptions>

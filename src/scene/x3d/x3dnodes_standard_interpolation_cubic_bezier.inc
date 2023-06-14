@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2022 Michalis Kamburelis.
 
@@ -18,7 +19,17 @@
   strict private
     type
       TCalculatedCurve2D = array [0..10] of TVector2;
-      TCalculatedCurve2DList = {$ifdef FPC}specialize{$endif} TStructList<TCalculatedCurve2D>;
+      TCalculatedCurve2DRec = record
+        { Wrap this array in extra record, otherwise Delphi gets
+          confused what List.L[123] means, because
+          - it can mean to access 123th item of List, following pointer math
+          - it can mean to access 123th item of first element of List,
+            following Delphi "no need to dereferenece pointer to array or record"
+            idea.
+        }
+        Points: TCalculatedCurve2D;
+      end;
+      TCalculatedCurve2DList = {$ifdef FPC}specialize{$endif} TStructList<TCalculatedCurve2DRec>;
     var
       FCalculatedCurves: TCalculatedCurve2DList;
       CubicBezierValueWarningDone: boolean;
@@ -223,7 +234,8 @@ begin
   begin
     FCalculatedCurves.Count := FdControlPoints.Items.Count;
     for I := 0 to FdControlPoints.Items.Count - 1 do
-      CalculatedCurve2D(FdControlPoints.Items.List^[I], FCalculatedCurves.List^[I]);
+      CalculatedCurve2D(FdControlPoints.Items.L[I],
+        FCalculatedCurves.L[I].Points);
   end;
 end;
 
@@ -240,7 +252,7 @@ begin
      (FCalculatedCurves.Count = FdControlPoints.Count) then
   begin
     Result := CubicBezierPercent(T, ControlPointPtr^,
-      FCalculatedCurves.List^[ControlPointsIndex]);
+      FCalculatedCurves.L[ControlPointsIndex].Points);
   end else
   begin
     if not CubicBezierValueWarningDone then
@@ -284,7 +296,7 @@ procedure TCubicBezier2DOrientationInterpolatorNode.EventSet_FractionReceive(
   function KeyValue(Index: Integer): Single;
   begin
     if Index < FdKeyValue.Items.Count then
-      Result := FdKeyValue.Items.List^[Index] else
+      Result := FdKeyValue.Items.L[Index] else
       Result := 0;
   end;
 
@@ -332,7 +344,7 @@ procedure TCubicBezierPositionInterpolatorNode.EventSet_FractionReceive(
   function KeyValue(Index: Integer): TVector3;
   begin
     if Index < FdKeyValue.Items.Count then
-      Result := FdKeyValue.Items.List^[Index] else
+      Result := FdKeyValue.Items.L[Index] else
       Result := TVector3.Zero;
   end;
 

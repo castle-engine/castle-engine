@@ -37,6 +37,7 @@
     function GetCollision: TShapeCollision;
     procedure SetCollision(const Value: TShapeCollision);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -104,7 +105,6 @@ end;
 
 procedure TAbstractShapeNode.SetAppearance(const Value: TAppearanceNode);
 begin
-  SetAppearanceBefore(Value);
   FdAppearance.Send(Value);
 end;
 
@@ -176,6 +176,7 @@ begin
 
   FFdAppearance := TSFNode.Create(Self, True, 'appearance', [TAppearanceNode]);
    FdAppearance.ChangeAlways := chVisibleNonGeometry;
+   FdAppearance.OnBeforeValueChange := {$ifdef FPC}@{$endif}SetAppearanceBefore;
   AddField(FFdAppearance);
 
   FFdGeometry := TSFNode.Create(Self, True, 'geometry', [TAbstractGeometryNode]);

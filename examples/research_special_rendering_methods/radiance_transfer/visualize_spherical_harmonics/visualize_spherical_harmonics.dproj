@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{35CD9C9F-D3D4-4205-8F5D-B213CE33BF5C}</ProjectGuid>
+        <ProjectGuid>{C2EA40AB-3F9D-3E0A-81EE-5BC8CD3AA714}</ProjectGuid>
         <MainSource>visualize_spherical_harmonics.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

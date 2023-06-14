@@ -37,6 +37,7 @@
     function GetMode: TLineMode;
     procedure SetMode(const Value: TLineMode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -232,10 +233,12 @@ begin
 
   FFdColor := TSFNode.Create(Self, True, 'color', [TAbstractColorNode]);
    FdColor.ChangeAlways := chGeometry;
+   FdColor.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, True, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangeAlways := chGeometry;
+   FdCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdCoord);
 
 {$ifndef CASTLE_SLIM_NODES}

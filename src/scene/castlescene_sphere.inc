@@ -35,6 +35,9 @@ type
 
     { When this is @true, the object is visible (and lit) from both sides. }
     property DoubleSided: Boolean read FDoubleSided write SetDoubleSided default false;
+
+    { CollisionSphereRadius is always derived from Radius for this component. }
+    property CollisionSphereRadius stored false;
   end;
 
 {$endif read_interface}

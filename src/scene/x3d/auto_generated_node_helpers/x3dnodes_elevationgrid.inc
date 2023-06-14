@@ -49,6 +49,7 @@
     function GetZSpacing: Single;
     procedure SetZSpacing(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -336,6 +337,7 @@ begin
 
   FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangeAlways := chGeometry;
+   FdTexCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdTexCoord);
 
   FFdCcw := TSFBool.Create(Self, False, 'ccw', true);

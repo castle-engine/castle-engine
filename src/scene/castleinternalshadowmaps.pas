@@ -90,7 +90,7 @@ var
   LightUniqueName: string;
 begin
   for I := 0 to Count - 1 do
-    if List^[I].Light = Light then
+    if L[I].Light = Light then
       Exit(PLight(Ptr(I)));
 
   { add a new TLight record }
@@ -172,8 +172,9 @@ begin
   begin
     Shape.InternalBeforeChange;
     try
-      if Shape.Node.Texture is TMultiTextureNode then
-        RemoveOldShadowMap(TMultiTextureNode(Shape.Node.Texture).FdTexture);
+      if (Shape.Node.Appearance <> nil) and
+         (Shape.Node.Appearance.Texture is TMultiTextureNode) then
+        RemoveOldShadowMap(TMultiTextureNode(Shape.Node.Appearance.Texture).FdTexture);
       if (Shape.Geometry.TexCoordField <> nil) and
          (Shape.Geometry.TexCoordField.Value <> nil) and
          (Shape.Geometry.TexCoordField.Value is TMultiTextureCoordinateNode) then
@@ -371,38 +372,42 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
 
     MaterialTexture := nil;
 
-    ShapeMaterial := Shape.Node.Material;
-    if (ShapeMaterial is TMaterialNode) and
-       (TMaterialNode(ShapeMaterial).DiffuseTexture <> nil) then
+    if Shape.Node.Appearance <> nil then
     begin
-      { main texture in Material.diffuseTexture }
-      MaterialTexture := ExtractMaterialTexture(
-        TMaterialNode(ShapeMaterial).FdDiffuseTexture,
-        TMaterialNode(ShapeMaterial).DiffuseTextureMapping);
-      Texture := MaterialTexture;
-    end else
-    if (ShapeMaterial is TPhysicalMaterialNode) and
-       (TPhysicalMaterialNode(ShapeMaterial).BaseTexture <> nil) then
-    begin
-      { main texture in PhysicalMaterial.baseTexture }
-      MaterialTexture := ExtractMaterialTexture(
-        TPhysicalMaterialNode(ShapeMaterial).FdBaseTexture,
-        TPhysicalMaterialNode(ShapeMaterial).BaseTextureMapping);
-      Texture := MaterialTexture;
-    end else
-    if (ShapeMaterial is TUnlitMaterialNode) and
-       (TUnlitMaterialNode(ShapeMaterial).EmissiveTexture <> nil) then
-    begin
-      { main texture in UnlitMaterial.emissiveTexture }
-      MaterialTexture := ExtractMaterialTexture(
-        TUnlitMaterialNode(ShapeMaterial).FdEmissiveTexture,
-        TUnlitMaterialNode(ShapeMaterial).EmissiveTextureMapping);
-      Texture := MaterialTexture;
-    end else
-    begin
-      { main texture in Appearance.texture }
-      Texture := Shape.Node.Texture;
+      ShapeMaterial := Shape.Node.Appearance.Material;
+      if (ShapeMaterial is TMaterialNode) and
+        (TMaterialNode(ShapeMaterial).DiffuseTexture <> nil) then
+      begin
+        { main texture in Material.diffuseTexture }
+        MaterialTexture := ExtractMaterialTexture(
+          TMaterialNode(ShapeMaterial).FdDiffuseTexture,
+          TMaterialNode(ShapeMaterial).DiffuseTextureMapping);
+        Texture := MaterialTexture;
+      end else
+      if (ShapeMaterial is TPhysicalMaterialNode) and
+        (TPhysicalMaterialNode(ShapeMaterial).BaseTexture <> nil) then
+      begin
+        { main texture in PhysicalMaterial.baseTexture }
+        MaterialTexture := ExtractMaterialTexture(
+          TPhysicalMaterialNode(ShapeMaterial).FdBaseTexture,
+          TPhysicalMaterialNode(ShapeMaterial).BaseTextureMapping);
+        Texture := MaterialTexture;
+      end else
+      if (ShapeMaterial is TUnlitMaterialNode) and
+        (TUnlitMaterialNode(ShapeMaterial).EmissiveTexture <> nil) then
+      begin
+        { main texture in UnlitMaterial.emissiveTexture }
+        MaterialTexture := ExtractMaterialTexture(
+          TUnlitMaterialNode(ShapeMaterial).FdEmissiveTexture,
+          TUnlitMaterialNode(ShapeMaterial).EmissiveTextureMapping);
+        Texture := MaterialTexture;
+      end else
+      begin
+        { main texture in Appearance.texture }
+        Texture := Shape.Node.Appearance.Texture;
+      end;
     end;
+
     HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount);
     { set Texture.
       Note: don't use "Shape.Node.Texture := ", we have to avoid calling
@@ -453,8 +458,12 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
       Shape.OriginalGeometry.TexCoordField.Value := TexCoord;
     end;
 
-    TextureTransform := Shape.Node.TextureTransform;
+    if Shape.Node.Appearance <> nil then
+      TextureTransform := Shape.Node.Appearance.TextureTransform
+    else
+      TextureTransform := nil;
     HandleTextureTransform(TextureTransform);
+
     { set TextureTransform.
       Note: don't use "Shape.Node.TextureTransform := ", we have to avoid calling
       "Send(xxx)" underneath here, as it would cause CastleSceneCore processing

@@ -1,0 +1,17 @@
+{
+  "$$ClassName" : "TCastleBox",
+  "Name" : "Box1",
+  "RenderOptions" : {
+    "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+  },
+  "$Behaviors" : [
+    {
+      "$$ClassName" : "TCastleBoxCollider",
+      "Name" : "BoxCollider1"
+    },
+    {
+      "$$ClassName" : "TCastleRigidBody",
+      "Name" : "RigidBody1"
+    }
+  ]
+}

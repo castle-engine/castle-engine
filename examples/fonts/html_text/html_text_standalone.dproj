@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{AF9F4A07-48DE-4615-825B-15FEA3B1E085}</ProjectGuid>
+        <ProjectGuid>{4A551604-EEF6-F089-44D7-6AFDF88B1EB1}</ProjectGuid>
         <MainSource>html_text_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

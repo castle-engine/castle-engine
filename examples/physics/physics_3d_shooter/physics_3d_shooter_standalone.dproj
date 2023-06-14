@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{6EB02E24-FFDB-4CB7-88DF-BB3EB82B1D5E}</ProjectGuid>
+        <ProjectGuid>{E7BAA395-1323-1190-BF2C-E55273E09906}</ProjectGuid>
         <MainSource>physics_3d_shooter_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

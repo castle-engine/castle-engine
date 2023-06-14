@@ -153,8 +153,6 @@
   public
     constructor Create;
     destructor Destroy; override;
-    procedure LoadFromConfig(const Config: TCastleConfig); override; deprecated 'load sound properties explicitly from UserConfig';
-    procedure SaveToConfig(const Config: TCastleConfig); override; deprecated 'save sound properties explicitly to UserConfig';
 
     { The XML file that contains description of your sounds.
       This should be an URL (in simple cases, just a filename)
@@ -558,21 +556,10 @@ begin
   FSounds.Add(TSoundInfoBuffer.Create);
 
   FLoopingChannels := TLoopingChannelList.Create(true);
-
-  // automatic loading/saving is more troublesome than it's worth
-  // Config.AddLoadListener(@LoadFromConfig);
-  // Config.AddSaveListener(@SaveToConfig);
 end;
 
 destructor TRepoSoundEngine.Destroy;
 begin
-  // automatic loading/saving is more troublesome than it's worth
-  // if Config <> nil then
-  // begin
-  //   Config.RemoveLoadListener(@LoadFromConfig);
-  //   Config.RemoveSaveListener(@SaveToConfig);
-  // end;
-
   FreeAndNil(FSoundImportanceNames);
   FreeAndNil(FSounds);
   FreeAndNil(FSoundGroups);
@@ -825,39 +812,6 @@ procedure TRepoSoundEngine.PrepareResources;
 begin
   if not IsContextOpen and (FSounds.Count > 1) then
     ContextOpen;
-end;
-
-procedure TRepoSoundEngine.LoadFromConfig(const Config: TCastleConfig);
-begin
-  {$warnings off} // using deprecated from deprecated
-  inherited;
-  {$warnings on}
-
-  Volume := Config.GetFloat('sound/volume', DefaultVolume);
-  {$ifdef FPC}
-  {$warnings off} // using deprecated from deprecated
-  MusicPlayer.Volume := Config.GetFloat('sound/music/volume',
-    TLoopingChannel.DefaultVolume);
-  {$warnings on}
-  {$endif}
-end;
-
-procedure TRepoSoundEngine.SaveToConfig(const Config: TCastleConfig);
-begin
-  Config.SetDeleteFloat('sound/volume', Volume, DefaultVolume);
-  {$ifdef FPC}
-  {$warnings off} // using deprecated from deprecated
-  { This may be called from destructors and the like, so better check
-    that MusicPlayer is not nil. }
-  if FLoopingChannels <> nil then
-    Config.SetDeleteFloat('sound/music/volume',
-      MusicPlayer.Volume, TLoopingChannel.DefaultVolume);
-  {$warnings on}
-  {$endif}
-
-  {$warnings off} // using deprecated from deprecated
-  inherited;
-  {$warnings on}
 end;
 
 function TRepoSoundEngine.GetLoopingChannel(const Index: Cardinal): TLoopingChannel;

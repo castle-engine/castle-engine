@@ -35,6 +35,7 @@
     function GetEndCap: Boolean;
     procedure SetEndCap(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -285,6 +286,7 @@ begin
 
   FFdTexCoord := TSFNode.Create(Self, True, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiGeneratedTextureCoordinateNode]);
    FdTexCoord.ChangeAlways := chGeometry;
+   FdTexCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdTexCoord);
 end;
 

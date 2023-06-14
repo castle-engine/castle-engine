@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -339,7 +340,7 @@
       the State reference. Simply speaking, do
 
       @longcode(#
-        State := TX3DGraphTraverseState.CreateCopy(State);)
+        State := TX3DGraphTraverseState.CreateCopy(State);
       #)
 
       You should @italic(not) just modify the fields
@@ -495,8 +496,6 @@
 
   { Base node type for all composed 3D geometry. }
   TAbstractComposedGeometryNode = class(TAbstractGeometryNode)
-  strict private
-    procedure SetTexCoordBefore(const Value: TAbstractTextureCoordinateNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -1200,12 +1199,6 @@ begin
 end;
 
 { TAbstractComposedGeometryNode ------------------------------------------------------ }
-
-procedure TAbstractComposedGeometryNode.SetTexCoordBefore(const Value: TAbstractTextureCoordinateNode);
-begin
-  if Scene <> nil then
-    Scene.InternalMoveShapeAssociations(FdTexCoord.Value, Value, InternalSceneShape);
-end;
 
 function TAbstractComposedGeometryNode.CoordField: TSFNode;
 begin

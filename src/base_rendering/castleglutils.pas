@@ -22,7 +22,7 @@ unit CastleGLUtils;
 interface
 
 uses
-  SysUtils, Math, Generics.Collections,
+  SysUtils, Math, Generics.Collections, Classes,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions;

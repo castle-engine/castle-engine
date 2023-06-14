@@ -53,6 +53,7 @@
     function GetZSpacing: Double;
     procedure SetZSpacing(const Value: Double);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

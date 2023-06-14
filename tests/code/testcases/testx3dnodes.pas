@@ -104,6 +104,7 @@ type
     {$endif}
     procedure TestProtoExpansion;
     procedure TestSolidField;
+    procedure TestConversionDot;
   end;
 
 implementation
@@ -111,7 +112,9 @@ implementation
 uses Generics.Collections, Math,
   CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
   X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime, CastleColors,
-  CastleApplicationProperties, CastleTextureImages;
+  CastleApplicationProperties, CastleTextureImages, CastleStringUtils,
+  CastleURIUtils,
+  CastleTestUtils;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -2405,6 +2408,60 @@ begin
       finally FreeAndNil(N) end;
     end;
   end;
+end;
+
+procedure TTestX3DNodes.TestConversionDot;
+
+  procedure TestSaveMakesExpectedResult(const InputUrl, ExpectedOutputUrl, OutputMime: String);
+  var
+    Node: TX3DRootNode;
+    OutputStr, ExpectedOutputStr: String;
+    OutputStream: TStringStream;
+  begin
+    { Convert Node to MIME-type OutputMime, save result in OutputStr }
+    Node := LoadNode(InputUrl);
+    try
+      OutputStream := TStringStream.Create('');
+      try
+        SaveNode(Node, OutputStream,
+          OutputMime, 'castle_tester', ExtractURIName(InputUrl));
+        OutputStr := OutputStream.DataString;
+        // Make sure it has Unix line-endings
+        StringReplaceAllVar(OutputStr, #13, '', false);
+
+        // to debug why it fails
+        //StringToFile(FileNameAutoInc('debug_' + ExtractURIName(InputUrl), '_%d.txt'), OutputStr);
+      finally FreeAndNil(OutputStream) end;
+    finally FreeAndNil(Node) end;
+
+    { Calculate ExpectedOutputStr }
+    ExpectedOutputStr := FileToString(ExpectedOutputUrl);
+    // Make sure it has Unix line-endings
+    StringReplaceAllVar(ExpectedOutputStr, #13, '', false);
+
+    //AssertEquals(ExpectedOutputStr, OutputStr);
+    { Since floats have different precision on different platforms (even between Linux x86_64 and Windows x86_64),
+      compare them using regular expressions, that account for possible floating-point output differences. }
+    AssertTrue(StringMatchesRegexp(OutputStr, ExpectedOutputStr));
+  end;
+
+var
+  SavedLocale: TSavedLocale;
+begin
+  SavedLocale := FakeLocaleDecimalSeparatorComma;
+
+  TestSaveMakesExpectedResult(
+    'castle-data:/test_x3d_conversion_input.x3dv',
+    'castle-data:/test_x3d_conversion_output.x3dv.regexp.txt',
+    'model/x3d+vrml'
+  );
+  TestSaveMakesExpectedResult(
+    'castle-data:/test_x3d_conversion_input.x3dv',
+    'castle-data:/test_x3d_conversion_output.x3d.regexp.txt',
+    'model/x3d+xml'
+  );
+
+  RestoreLocaleDecimalSeparatorComma(SavedLocale);
 end;
 
 initialization

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{853CF204-8806-43E7-8402-96822D0365F3}</ProjectGuid>
+        <ProjectGuid>{5F56CF53-9E05-9C72-9906-73E0E552BF2C}</ProjectGuid>
         <MainSource>collisions_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

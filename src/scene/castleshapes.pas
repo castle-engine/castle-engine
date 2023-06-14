@@ -29,7 +29,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   CastleInternalBaseTriangleOctree, X3DFields, CastleInternalGeometryArrays,
   CastleTriangles, CastleImages, CastleInternalMaterialProperties,
-  CastleShapeInternalShadowVolumes, CastleRenderOptions;
+  CastleShapeInternalShadowVolumes, CastleRenderOptions, CastleTimeUtils;
 
 const
   { }
@@ -83,11 +83,6 @@ type
 
     { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }
     function ShapeNode: TAbstractShapeNode;
-
-    { X3D material node of this triangle. May be @nil in case material is not set
-      or has a different class than one-sided Phong TMaterialNode. }
-    function Material: TMaterialNode; deprecated 'use MaterialInfo';
-    function MaterialNode: TMaterialNode; deprecated 'use MaterialInfo';
 
     { Material information for the material of this triangle.
       See TMaterialInfo for usage description.
@@ -242,7 +237,7 @@ type
         TNormalNode (anything that can be inside TAbstractGeometryNode.NormalField),
         TTangentNode (anything that can be inside TAbstractGeometryNode.TangentField),
         TColorNode, TColorRGBANode  (anything that can be inside TAbstractGeometryNode.ColorField),
-        TMaterialNode (anything that can be in TShapeNode.Material),
+        TAbstractMaterialNode (anything that can be in TAppearanceNode.Material),
         TTextureCoordinateNode and other stuff that can be inside TAbstractGeometryNode.InternalTexCoord,
         TClipPlaneNode .
 
@@ -1042,7 +1037,7 @@ var
 implementation
 
 uses Generics.Defaults, Math,
-  CastleSceneCore, CastleInternalNormals, CastleLog, CastleTimeUtils,
+  CastleSceneCore, CastleInternalNormals, CastleLog,
   CastleStringUtils, CastleInternalArraysGenerator, CastleURIUtils;
 
 const
@@ -1079,24 +1074,6 @@ begin
   Result := State.ShapeNode;
 end;
 
-function TTriangleHelper.Material: TMaterialNode;
-var
-  S: TAbstractShapeNode;
-begin
-  S := ShapeNode;
-  if (S <> nil) and (S.Material is TMaterialNode) then
-    Result := TMaterialNode(S.Material)
-  else
-    Result := nil;
-end;
-
-function TTriangleHelper.MaterialNode: TMaterialNode;
-begin
-  {$warnings off} // using deprecated in deprecated
-  Result := Material;
-  {$warnings on}
-end;
-
 function TTriangleHelper.MaterialInfo: TMaterialInfo;
 begin
   Result := State.MaterialInfo;
@@ -1127,9 +1104,8 @@ function TTriangleHelper.IgnoreForShadowRays: boolean;
     Shape := State.ShapeNode;
     Result :=
       (Shape <> nil) and
-      (Shape.FdAppearance.Value <> nil) and
-      (Shape.FdAppearance.Value is TAppearanceNode) and
-      (not TAppearanceNode(Shape.FdAppearance.Value).FdShadowCaster.Value);
+      (Shape.Appearance <> nil) and
+      (not Shape.Appearance.ShadowCaster);
   end;
 
 begin
@@ -1470,9 +1446,11 @@ begin
     begin
       AssociateNode(AState.ShapeNode);
       if AState.ShapeNode.Appearance <> nil then
+      begin
         AssociateNode(AState.ShapeNode.Appearance);
-      if AState.ShapeNode.Material <> nil then
-        AssociateNode(AState.ShapeNode.Material);
+        if AState.ShapeNode.Appearance.Material <> nil then
+          AssociateNode(AState.ShapeNode.Appearance.Material);
+      end;
     end;
     if AState.ClipPlanes <> nil then
       for I := 0 to AState.ClipPlanes.Count - 1 do
@@ -1518,9 +1496,11 @@ begin
     begin
       UnAssociateNode(AState.ShapeNode);
       if AState.ShapeNode.Appearance <> nil then
+      begin
         UnAssociateNode(AState.ShapeNode.Appearance);
-      if AState.ShapeNode.Material <> nil then
-        UnAssociateNode(AState.ShapeNode.Material);
+        if AState.ShapeNode.Appearance.Material <> nil then
+          UnAssociateNode(AState.ShapeNode.Appearance.Material);
+      end;
     end;
     if AState.ClipPlanes <> nil then
       for I := 0 to AState.ClipPlanes.Count - 1 do
@@ -2034,8 +2014,8 @@ function TShape.CreateTriangleOctree(
 
       procedure TriAssign(TriIndex: integer; c1value, c2value: Single);
       begin
-        Position.Data[TriIndex].InternalData[c1] := c1value;
-        Position.Data[TriIndex].InternalData[c2] := c2value;
+        Position.Data[TriIndex].Data[c1] := c1value;
+        Position.Data[TriIndex].Data[c2] := c2value;
       end;
 
     begin
@@ -2043,12 +2023,12 @@ function TShape.CreateTriangleOctree(
 
       for I := 0 to 2 do
       begin
-        Position.Data[I].InternalData[ConstCoord] := ConstCoordValue;
+        Position.Data[I].Data[ConstCoord] := ConstCoordValue;
         {$warnings off} // silence FPC warning about Normal uninitialized
-        Normal.Data[I].InternalData[C1] := 0;
+        Normal.Data[I].Data[C1] := 0;
         {$warnings on}
-        Normal.Data[I].InternalData[C2] := 0;
-        Normal.Data[I].InternalData[ConstCoord] := 1; { TODO: or -1 }
+        Normal.Data[I].Data[C2] := 0;
+        Normal.Data[I].Data[ConstCoord] := 1; { TODO: or -1 }
       end;
 
       TriAssign(0, x1, y1);
@@ -2173,7 +2153,7 @@ function TShape.AlphaChannel: TAlphaChannel;
         result := TMaterialInfo.DefaultTransparency > SingleEpsilon else
       begin
         for i := 0 to Node.FdTransparency.Items.Count-1 do
-          if Node.FdTransparency.Items.List^[i] <= SingleEpsilon then
+          if Node.FdTransparency.Items.L[i] <= SingleEpsilon then
             Exit(false);
         result := true;
       end;
@@ -2723,13 +2703,13 @@ begin
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
     begin
-      if Lights.List^[I].Node is TEnvironmentLightNode then
+      if Lights.L[I].Node is TEnvironmentLightNode then
       begin
-        HandleEnvironmentLight(TEnvironmentLightNode(Lights.List^[I].Node));
+        HandleEnvironmentLight(TEnvironmentLightNode(Lights.L[I].Node));
         if Result <> nil then Exit;
       end;
 
-      Result := HandleIDecls(Lights.List^[I].Node.FdEffects);
+      Result := HandleIDecls(Lights.L[I].Node.FdEffects);
       if Result <> nil then Exit;
     end;
 
@@ -2895,7 +2875,7 @@ var
       TexCoord := UnknownTexCoord;
 
     if Arrays.Faces <> nil then
-      Face := Arrays.Faces.List^[RangeBeginIndex + I1]
+      Face := Arrays.Faces.L[RangeBeginIndex + I1]
     else
       Face := UnknownFaceIndex;
 

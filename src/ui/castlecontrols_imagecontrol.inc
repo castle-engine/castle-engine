@@ -62,6 +62,7 @@
     function GetSmoothScaling: Boolean;
     function GetCache: Boolean;
     function GetProtectedSides: TBorder;
+    function GetRegion: TFloatRectangle;
     procedure SetURL(const Value: String);
     procedure SetDrawableImage(const Value: TDrawableImage);
     procedure SetOwnsDrawableImage(const Value: Boolean);
@@ -73,6 +74,7 @@
     procedure SetColor(const Value: TCastleColor);
     procedure SetClip(const Value: boolean);
     procedure SetClipLine(const Value: TVector3);
+    procedure SetRegion(const Value: TFloatRectangle);
     procedure SetCustomShader(const Value: TGLSLProgram);
     procedure SetFlipVertical(const Value: Boolean);
     procedure SetFlipHorizontal(const Value: Boolean);
@@ -216,6 +218,10 @@
 
       @seealso TCastleImagePersistent.ClipLine }
     property ClipLine: TVector3 read GetClipLine write SetClipLine;
+
+    { Image region to which we should limit the display.
+      Empty (following @link(TFloatRectangle.Empty)) means using the whole image. }
+    property Region: TFloatRectangle read GetRegion write SetRegion;
 
     { Custom GLSL shading code.
       See TDrawableImage.CustomShader for explanation.
@@ -395,7 +401,12 @@ begin
   Result := FContent.ProtectedSides;
 end;
 
-function TCastleImageControl.GetSmoothScaling: boolean;
+function TCastleImageControl.GetRegion: TFloatRectangle;
+begin
+  Result := FContent.Region;
+end;
+
+function TCastleImageControl.GetSmoothScaling: Boolean;
 begin
   Result := FContent.SmoothScaling;
 end;
@@ -423,6 +434,11 @@ end;
 procedure TCastleImageControl.SetClipLine(const Value: TVector3);
 begin
   FContent.ClipLine := Value;
+end;
+
+procedure TCastleImageControl.SetRegion(const Value: TFloatRectangle);
+begin
+  FContent.Region := Value;
 end;
 
 function TCastleImageControl.GetRotation: Single;
@@ -467,8 +483,8 @@ var
 begin
   inherited;
 
-  ImageWidth  := FContent.DrawableImage.Width;
-  ImageHeight := FContent.DrawableImage.Height;
+  ImageWidth  := FContent.Width;
+  ImageHeight := FContent.Height;
   if FDetectScaleFromUrl and (FContent.ScaleFromUrl <> 1) then
   begin
     ImageWidth  := ImageWidth / FContent.ScaleFromUrl;
@@ -703,16 +719,11 @@ end;
 function TCastleImageControl.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'URL') or
-     (PropertyName = 'Stretch') or
-     (PropertyName = 'ProportionalScaling') or
-     (PropertyName = 'ColorPersistent') or
-     (PropertyName = 'SmoothScaling') or
-     (PropertyName = 'AlphaChannel') or
-     (PropertyName = 'FlipHorizontal') or
-     (PropertyName = 'FlipVertical') or
-     (PropertyName = 'ProtectedSides') or
-     (PropertyName = 'Rotation') then
+  if ArrayContainsString(PropertyName, ['URL', 'Stretch', 'ProportionalScaling',
+      'ColPersistent', 'SmoothScaling', 'AlphaChannel', 'FlipHizontal',
+      'FlipVertical', 'ProtectedSides', 'RegionPersistent',
+      'Rotation', 'Content'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

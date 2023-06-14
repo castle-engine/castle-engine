@@ -252,6 +252,7 @@ begin
   inherited Create(nil);
   Window := AWindow;
 
+  {$warnings off} // keep deprecated OnXxx working
   OldOpenObject := Window.OnOpenObject;
   OldCloseObject := Window.OnCloseObject;
   { Note that we do not touch OnOpen and OnClose. Let them happen.
@@ -265,10 +266,9 @@ begin
   OldResize := Window.OnResize;
   OldUpdate := Window.OnUpdate;
   {$ifdef FPC}
-  {$warnings off} // keep deprecated working
   OldTimer := Window.OnTimer;
-  {$warnings on}
   {$endif}
+  {$warnings on}
   OldMenuClick := Window.OnMenuClick;
   oldCaption := Window.Caption;
   oldUserdata := Window.Userdata;
@@ -287,6 +287,7 @@ end;
 
 destructor TGLMode.TWindowState.Destroy;
 begin
+  {$warnings off} // keep deprecated OnXxx working
   Window.OnOpenObject := OldOpenObject;
   Window.OnCloseObject := OldCloseObject;
   Window.OnMotion := OldMotion;
@@ -298,10 +299,9 @@ begin
   Window.OnResize := OldResize;
   Window.OnUpdate := OldUpdate;
   {$ifdef FPC}
-  {$warnings off} // keep deprecated working
   Window.OnTimer := OldTimer;
-  {$warnings on}
   {$endif}
+  {$warnings on}
   Window.OnMenuClick := OldMenuClick;
   Window.Caption := oldCaption;
   Window.Userdata := oldUserdata;
@@ -362,6 +362,7 @@ end;
 procedure TGLMode.TWindowState.SetStandardState(
   NewRender, NewResize, NewCloseQuery: TContainerEvent);
 begin
+  {$warnings off} // keep deprecated OnXxx working
   Window.OnOpenObject := {$ifdef FPC}@{$endif}WindowOpen;
   Window.OnCloseObject := {$ifdef FPC}@{$endif}WindowClose;
   Window.OnMotion := nil;
@@ -372,15 +373,14 @@ begin
   Window.OnCloseQuery := nil;
   Window.OnUpdate := nil;
   {$ifdef FPC}
-  {$warnings off} // keep deprecated working
   Window.OnTimer := nil;
-  {$warnings on}
   {$endif}
   Window.OnResize := nil;
-  Window.OnMenuClick := nil;
   Window.OnRender := NewRender;
   Window.OnResize := NewResize;
   Window.OnCloseQuery := NewCloseQuery;
+  {$warnings on}
+  Window.OnMenuClick := nil;
   {Window.Caption := leave current value}
   Window.Userdata := nil;
   Window.AutoRedisplay := false;

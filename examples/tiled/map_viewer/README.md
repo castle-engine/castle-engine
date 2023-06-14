@@ -1,18 +1,26 @@
-# Viewer for Tiled maps
+# View Tiled map as TCastleTiledMap in TCastleViewport
 
-Use `TCastleTiledMapControl` control to load any Tiled map.
+Load and view any Tiled map using `TCastleTiledMap` component in `TCastleViewport`.
 
-**Deprecated**: We recommend using `TCastleTiledMap` (see https://castle-engine.io/tiled_maps ) in a viewport now. See `examples/tiled/map_viewer_in_viewport` project.
+## Screenshot
+
+![Screenshot](screenshot.png)
+
+## Features
 
 You can
 
 - open any Tiled map (`*.tmx` file),
 
-- pan the map (drag with left mouse button pressed),
+- pan the map (drag with left mouse button pressed, this is working thanks to standard `TCastle2DNavigation`),
 
-- zoom (use mouse wheel).
+- zoom (use mouse wheel, this is working thanks to standard `TCastle2DNavigation`).
 
 Our `data` subdirectory contains a number of Tiled maps. You can also go ahead and download [Tiled, free map editor](https://www.mapeditor.org/) to edit these maps or create new ones.
+
+Note about using `TCastleTiledMap` in a viewport:
+
+- It works most sensible in orthographic view with camera direction along Z. (This is our default 2D camera.) Otherwise the distance in Z between each layer may be visible.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

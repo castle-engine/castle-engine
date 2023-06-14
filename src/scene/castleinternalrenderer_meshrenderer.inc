@@ -372,7 +372,8 @@ begin
       begin
         CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ShapeModelView);
         CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(RenderContext.ProjectionMatrix);
-        CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ShapeModelView));
+        if Shader.NeedsNormals then
+          CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ShapeModelView));
 
         FinalizeLightingModel;
 

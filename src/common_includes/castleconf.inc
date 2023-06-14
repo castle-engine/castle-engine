@@ -65,6 +65,11 @@
   {$H+}
   {$macro on}
   {$modeswitch advancedrecords} // Note: no way to specify this by FPC command-line.
+{$else}
+  { Makes TStructList.L useful in Delphi, like "MyArray.L[100]".
+    FPC has this by default.
+    See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Pointer_Math_(Delphi) }
+  {$pointermath on}
 {$endif}
 
 {$writeableconst off} // Note: no way to specify this by FPC command-line.
@@ -148,6 +153,19 @@
   {$endif}
 {$endif}
 
+{ When using FPC, and Extended = Double, you cannot overload
+  for both Double and Extended as they are just equal.
+  Extended is just alias for Double.
+
+  Delphi, even when Extended = Double, still treats Extended
+  like a different type, for choosing overloads.
+  It even requires Extended overloads e.g. for MinVar(Extended, ...). }
+{$ifndef PASDOC}
+  {$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
+    {$define EXTENDED_OVERLOADS}
+  {$endif}
+{$endif}
+
 { We used to disable inline functions/methods when compiling from
   Lazarus package (when CASTLE_ENGINE_LAZARUS_PACKAGE),
   to workaround FPC bug http://bugs.freepascal.org/view.php?id=12223 .
@@ -177,7 +195,7 @@
   {$hints off}
   {$warn COMPARING_SIGNED_UNSIGNED off}
   {$warn COMBINING_SIGNED_UNSIGNED off}
-  {$warn COMBINING_SIGNED_UNSIGNED64 off}
+  {$if CompilerVersion >= 32} {$warn COMBINING_SIGNED_UNSIGNED64 off} {$endif} // only since Delphi 10.2
   {$warn IMPLICIT_STRING_CAST off}
   { TODO: We'd like to unhide this. }
   {$warn IMPLICIT_STRING_CAST_LOSS off}

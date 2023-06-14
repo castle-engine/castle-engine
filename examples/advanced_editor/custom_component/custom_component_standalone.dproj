@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{C49C5B72-004D-4544-A808-6E91F947683F}</ProjectGuid>
+        <ProjectGuid>{62224B00-959A-972D-C85B-EE8114A73ACD}</ProjectGuid>
         <MainSource>custom_component_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

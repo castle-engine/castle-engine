@@ -7,6 +7,10 @@ using Castle Game Engine editor.
 
 The actual game logic is mostly inside `GameViewPlay` and `GameUnit` units.
 
+Read [Castle Game Engine documentation about Tiled maps](https://castle-engine.io/tiled_maps) to learn more.
+
+![Screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building

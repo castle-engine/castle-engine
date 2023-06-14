@@ -287,8 +287,8 @@ var
     if TargetImage = nil then
     begin
       Assert(GlyphsToRender < FGlyphsScreenRects.Count);
-      FGlyphsScreenRects.List^[GlyphsToRender] := ScreenRect;
-      FGlyphsImageRects .List^[GlyphsToRender] := ImageRect;
+      FGlyphsScreenRects.L[GlyphsToRender] := ScreenRect;
+      FGlyphsImageRects .L[GlyphsToRender] := ImageRect;
       Inc(GlyphsToRender);
     end else
     begin
@@ -383,8 +383,8 @@ begin
   begin
     FDrawableImage.Color := Color;
     FDrawableImage.Draw(
-      PFloatRectangleArray(FGlyphsScreenRects.List),
-      PFloatRectangleArray(FGlyphsImageRects.List), GlyphsToRender);
+      PFloatRectangleArray(FGlyphsScreenRects.L),
+      PFloatRectangleArray(FGlyphsImageRects.L), GlyphsToRender);
   end;
 end;
 

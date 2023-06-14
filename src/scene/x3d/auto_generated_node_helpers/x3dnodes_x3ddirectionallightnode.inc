@@ -31,6 +31,7 @@
     function GetProjectionLocation: TVector3;
     procedure SetProjectionLocation(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

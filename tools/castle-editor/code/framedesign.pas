@@ -477,6 +477,12 @@ type
       If T = nil, updates everywhere (TODO: for now,
       only in CurrentViewport). Otherwise updates only in T. }
     procedure UpdateColliders(T: TCastleTransform = nil);
+
+    { Get parent of non-visual component.
+      Since there's no TCastleComponent.NonVisualParent or such, so we find parent using
+      ControlsTree knowledge.
+      Returns nil if no parent. }
+    function NonVisualComponentParent(const C: TCastleComponent): TCastleComponent;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -505,8 +511,13 @@ type
     procedure BeforeProposeSaveDesign;
     procedure AddComponent(const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent);
+    { Create and add a new component to the design.
+      @param(BaseNewComponentName Base of new name (without numeric suffix to
+        make it unique), passed to @link(ProposeComponentName).
+        Leave it empty to derive name from ComponentClass.ClassName.) }
     function AddComponent(const ParentComponent: TComponent; const ComponentClass: TComponentClass;
-      const ComponentOnCreate: TNotifyEvent): TComponent;
+      const ComponentOnCreate: TNotifyEvent;
+      const BaseNewComponentName: String = ''): TComponent;
     procedure DeleteComponent;
     { Free component C (which should be part of this designed, owned by DesignOwner)
       and all children.
@@ -523,6 +534,11 @@ type
     procedure PasteComponent;
     procedure CutComponent;
     procedure DuplicateComponent;
+
+    function AddComponentFromUrl(const AddUrl: String;
+      const ParentComponent: TComponent): TComponent;
+    function AddImported(const AddUrl: String): TComponent;
+
     { Set UIScaling values. }
     procedure UIScaling(const UIScaling: TUIScaling;
       const UIReferenceWidth, UIReferenceHeight: Single);
@@ -535,6 +551,38 @@ type
     procedure RecordUndo(const UndoComment: String;
       const UndoCommentPriority: TUndoCommentPriority);
 
+    { Call after any change to the design (that changes what will be saved
+      to JSON) happened, except when this was done by user changing value
+      through Object Inspector.
+
+      This:
+      - Refreshes Object Inspector display,
+      - marks design as "modified",
+      - records undo.
+
+      @param(UndoComment Describes the change. You can pass empty String
+        to let auto-generating a sensible comment.)
+
+      @param(UndoCommentPriority How much are you sure that UndoComment
+        is the best message to describe last change.
+        This is used only when UndoComment <> '' and only when an "undo record"
+        was already stored for the current state. The given UndoComment
+        overrides the last if it has higher UndoCommentPriority.
+
+        Usually you want to pass here ucHigh, since usually you have
+        a really good knowledge about the change when calling this method.)
+
+      @param(UndoOnRelease If @true, then do not store "undo record" now,
+        instead schedule storing undo record when user releases the mouse.
+
+        This should be @true only for actions that do something on each mouse
+        move (like dragging transform or UI position/size).
+        In that case, storing "undo record" at each tiny mouse move would be
+        bad -- performance would drop during mouse move, and generating too many
+        "undo records" means that undoing them is not really comfortable.
+
+        For most operations, this is @false.)
+    }
     procedure ModifiedOutsideObjectInspector(const UndoComment: String;
       const UndoCommentPriority: TUndoCommentPriority; const UndoOnRelease: Boolean = false);
 
@@ -586,6 +634,8 @@ type
 
 implementation
 
+{$warnings off} // do not warn about deprecated Castle2DSceneManager usage
+
 uses
   { Standard FPC/Lazarus units }
   // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
@@ -595,12 +645,15 @@ uses
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleURIUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
+  CastleInternalUrlUtils,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
   CastleBehaviors,
   { Editor units }
   FormProject, CastleComponentEditorDesigner;
+
+{$warnings on}
 
 {$R *.lfm}
 
@@ -1508,9 +1561,11 @@ begin
   CastleControl := TCastleControl.Create(Self);
   CastleControl.AutoFocus := true; // needed on Windows to receive AWSD, Ctrl+Z...
   CastleControl.Align := alClient;
+  {$warnings off} // TODO: upgrade it
   CastleControl.OnResize := @CastleControlResize;
   CastleControl.OnOpen := @CastleControlOpen;
   CastleControl.OnUpdate := @CastleControlUpdate;
+  {$warnings on}
   CastleControl.OnDragOver := @CastleControlDragOver;
   CastleControl.OnDragDrop := @CastleControlDragDrop;
   CastleControl.Parent := PanelMiddle; // set Parent last, following https://wiki.freepascal.org/LCL_Tips#Set_the_Parent_as_last
@@ -2000,14 +2055,15 @@ end;
 
 function TDesignFrame.AddComponent(const ParentComponent: TComponent;
   const ComponentClass: TComponentClass;
-  const ComponentOnCreate: TNotifyEvent): TComponent;
+  const ComponentOnCreate: TNotifyEvent;
+  const BaseNewComponentName: String): TComponent;
 
   function CreateComponent: TComponent;
   begin
     Result := ComponentClass.Create(DesignOwner) as TComponent;
     if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
       ComponentOnCreate(Result);
-    Result.Name := InternalProposeName(ComponentClass, DesignOwner);
+    Result.Name := ProposeComponentName(ComponentClass, DesignOwner, BaseNewComponentName);
   end;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
@@ -2403,6 +2459,30 @@ begin
   end;
 end;
 
+function TDesignFrame.NonVisualComponentParent(const C: TCastleComponent): TCastleComponent;
+var
+  CNode: TTreeNode;
+  ParentComp: TComponent;
+begin
+  if not TreeNodeMap.TryGetValue(C, CNode) then
+    raise EInternalError.Create('Cannot duplicate non-visual component: we cannot find the node in ControlsTree');
+
+  // This can happen if C is root component in design
+  if CNode.Parent = nil then
+    Exit(nil);
+
+  { Note: SelectedFromNode will automatically lookup higher parent,
+    in case parent is special "Non-visual component" text node. }
+  ParentComp := SelectedFromNode(CNode.Parent);
+  if ParentComp = nil then
+    raise EInternalError.Create('Cannot duplicate non-visual component: parent node not a regular component');
+
+  if not (ParentComp is TCastleComponent) then
+    raise EInternalError.Create('Cannot duplicate non-visual component: parent is TComponent but not TCastleComponent');
+
+  Result := ParentComp as TCastleComponent;
+end;
+
 procedure TDesignFrame.DuplicateComponent;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
@@ -2453,6 +2533,25 @@ procedure TDesignFrame.DuplicateComponent;
     FinishAddingComponent(NewComp);
   end;
 
+  procedure DuplicateNonVisualComponent(const Selected: TCastleComponent);
+  var
+    ParentComp, NewComp: TCastleComponent;
+    ComponentString: String;
+    InsertIndex: Integer;
+  begin
+    ParentComp := NonVisualComponentParent(Selected);
+    if ParentComp = nil then
+    begin
+      ErrorBox('To duplicate, select component with exactly one parent');
+      Exit;
+    end;
+    ComponentString := ComponentToString(Selected);
+    NewComp := StringToComponent(ComponentString, DesignOwner) as TCastleComponent;
+    InsertIndex := ParentComp.NonVisualComponentsIndexOf(Selected);
+    ParentComp.InsertNonVisualComponent(InsertIndex + 1, NewComp);
+    FinishAddingComponent(NewComp);
+  end;
+
 var
   Sel: TComponent;
 begin
@@ -2467,7 +2566,10 @@ begin
     if Sel is TCastleTransform then
       DuplicateTransform(Sel as TCastleTransform)
     else
-      ErrorBox('To duplicate, select TCastleUserInterface or TCastleTransform component');
+    if Sel is TCastleComponent then
+      DuplicateNonVisualComponent(Sel as TCastleComponent)
+    else
+      ErrorBox('To duplicate, select TCastleUserInterface, TCastleTransform or TCastleComponent component');
   end else
     ErrorBox('To duplicate, select exactly one component that is not a subcomponent');
 end;
@@ -3287,22 +3389,41 @@ end;
 
 function TDesignFrame.ShellListAddComponent(const SourceShellList: TCastleShellListView;
   const ParentComponent: TComponent): TComponent;
+var
+  SelectedFileName, SelectedUrl: String;
+begin
+  Result := nil;
+  if SourceShellList.Selected <> nil then
+  begin
+    SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
+    SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+    Result := AddComponentFromUrl(SelectedUrl, ParentComponent);
+  end;
+end;
+
+function TDesignFrame.AddComponentFromUrl(const AddUrl: String;
+  const ParentComponent: TComponent): TComponent;
+var
+  BaseNameFromUrl: String;
 
   function AddImageTransform(const Url: String): TCastleImageTransform;
   begin
-    Result := AddComponent(ParentComponent, TCastleImageTransform, nil) as TCastleImageTransform;
+    Result := AddComponent(ParentComponent, TCastleImageTransform, nil,
+      'Image' + BaseNameFromUrl) as TCastleImageTransform;
     Result.Url := Url;
   end;
 
   function AddImageControl(const Url: String): TCastleImageControl;
   begin
-    Result := AddComponent(ParentComponent, TCastleImageControl, nil) as TCastleImageControl;
+    Result := AddComponent(ParentComponent, TCastleImageControl, nil,
+      'Image' + BaseNameFromUrl) as TCastleImageControl;
     Result.Url := Url;
   end;
 
   function AddScene(const Url: String): TCastleScene;
   begin
-    Result := AddComponent(ParentComponent, TCastleScene, nil) as TCastleScene;
+    Result := AddComponent(ParentComponent, TCastleScene, nil,
+      'Scene' + BaseNameFromUrl) as TCastleScene;
     Result.Url := Url;
   end;
 
@@ -3311,56 +3432,83 @@ function TDesignFrame.ShellListAddComponent(const SourceShellList: TCastleShellL
     SoundSource: TCastleSoundSource;
     Sound: TCastleSound;
   begin
-    Result := AddComponent(ParentComponent, TCastleTransform, nil) as TCastleTransform;
-    SoundSource := AddComponent(Result, TCastleSoundSource, nil) as TCastleSoundSource;
-    Sound := AddComponent(SoundSource, TCastleSound, nil) as TCastleSound;
+    Result := AddComponent(ParentComponent, TCastleTransform, nil,
+      'Transform' + BaseNameFromUrl) as TCastleTransform;
+    SoundSource := AddComponent(Result, TCastleSoundSource, nil,
+      'SoundSource' + BaseNameFromUrl) as TCastleSoundSource;
+    Sound := AddComponent(SoundSource, TCastleSound, nil,
+      'Sound' + BaseNameFromUrl) as TCastleSound;
     Sound.Url := Url;
     SoundSource.Sound := Sound;
   end;
 
   function AddUiDesign(const Url: String): TCastleDesign;
   begin
-    Result := AddComponent(ParentComponent, TCastleDesign, nil) as TCastleDesign;
+    Result := AddComponent(ParentComponent, TCastleDesign, nil,
+      'Design' + BaseNameFromUrl) as TCastleDesign;
     Result.Url := Url;
   end;
 
   function AddTransformDesign(const Url: String): TCastleTransformDesign;
   begin
-    Result := AddComponent(ParentComponent, TCastleTransformDesign, nil) as TCastleTransformDesign;
+    Result := AddComponent(ParentComponent, TCastleTransformDesign, nil,
+      'Design' + BaseNameFromUrl) as TCastleTransformDesign;
     Result.Url := Url;
   end;
 
 var
-  SelectedFileName: String;
-  SelectedUrl: String;
   PreferTransform: Boolean;
 begin
   Result := nil;
   PreferTransform := ParentComponent is TCastleTransform;
-  if SourceShellList.Selected <> nil then
+  BaseNameFromUrl := GetBaseNameFromUrl(AddUrl);
+  if LoadImage_FileFilters.Matches(AddUrl) then
   begin
-    SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
-    SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+    if PreferTransform then
+      Result := AddImageTransform(AddUrl)
+    else
+      Result := AddImageControl(AddUrl);
+  end else
+  if TFileFilterList.Matches(LoadScene_FileFilters, AddUrl) then
+    Result := AddScene(AddUrl)
+  else
+  if TFileFilterList.Matches(LoadSound_FileFilters, AddUrl) then
+    Result := AddSound(AddUrl)
+  else
+  if TFileFilterList.Matches(LoadUiDesign_FileFilters, AddUrl) then
+    Result := AddUiDesign(AddUrl)
+  else
+  if TFileFilterList.Matches(LoadTransformDesign_FileFilters, AddUrl) then
+    Result := AddTransformDesign(AddUrl);
+end;
 
-    if LoadImage_FileFilters.Matches(SelectedUrl) then
-    begin
-      if PreferTransform then
-        Result := AddImageTransform(SelectedUrl)
-      else
-        Result := AddImageControl(SelectedUrl);
-    end else
-    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedUrl) then
-      Result := AddScene(SelectedUrl)
-    else
-    if TFileFilterList.Matches(LoadSound_FileFilters, SelectedUrl) then
-      Result := AddSound(SelectedUrl)
-    else
-    if TFileFilterList.Matches(LoadUiDesign_FileFilters, SelectedUrl) then
-      Result := AddUiDesign(SelectedUrl)
-    else
-    if TFileFilterList.Matches(LoadTransformDesign_FileFilters, SelectedUrl) then
-      Result := AddTransformDesign(SelectedUrl);
-  end;
+function TDesignFrame.AddImported(const AddUrl: String): TComponent;
+var
+  ParentComponent: TComponent;
+begin
+  ParentComponent := SelectedComponent;
+
+  { If AddUrl makes sense only with parent being TCastleTransform,
+    try to use CurrentViewport.Items as parent.
+    This way we "try harder" to find a parent that allows to drop
+    given item. }
+  if (not (ParentComponent is TCastleTransform)) and
+     (CurrentViewport <> nil) and
+     (
+       // AddUrl can only be loaded to TCastleScene?
+       ( TFileFilterList.Matches(LoadScene_FileFilters, AddUrl) and
+         (not LoadImage_FileFilters.Matches(AddUrl)) ) or
+       // AddUrl can only be loaded to TCastleTransformDesign?
+       (TFileFilterList.Matches(LoadTransformDesign_FileFilters, AddUrl))
+     ) then
+    ParentComponent := CurrentViewport.Items;
+
+  if ParentComponent = nil then
+    raise Exception.CreateFmt('Cannot add imported component "%s".' + NL + NL + 'First select a valid parent in the design, usually a TCastleViewport or TCastleTransform.', [
+      URIDisplay(AddUrl)
+    ]);
+
+  Result := AddComponentFromUrl(AddUrl, ParentComponent);
 end;
 
 procedure TDesignFrame.SetShowColliders(const AValue: Boolean);
@@ -3418,6 +3566,13 @@ begin
     finally FreeAndNil(LoadInfo) end;
 
     RestoreSavedSelection(SavedSelection);
+
+    { We use ucHigh, otherwise when changing light source type
+      we'd have older comment "Change OlderComponentName".
+      Note: We still need this ModifiedOutsideObjectInspector call,
+      otherwise change "Change OlderComponentName" doesn't happen and there's
+      no undo / no modified flag after this operation. }
+    ModifiedOutsideObjectInspector('Change Class To ' + R.ComponentClass.ClassName, ucHigh);
   end;
 end;
 
@@ -5413,7 +5568,7 @@ procedure TDesignFrame.FrameResize(Sender: TObject);
 
 begin
   UpdateEditorDataForPropertyEditors;
-  
+
   FixButtonSquare(ButtonInteractMode);
   FixButtonSquare(ButtonSelectMode);
   FixButtonSquare(ButtonTranslateMode);
@@ -5864,7 +6019,7 @@ begin
   NewRoot := ComponentClass.Create(NewDesignOwner);
   if Assigned(ComponentOnCreate) then
     ComponentOnCreate(NewRoot);
-  NewRoot.Name := InternalProposeName(ComponentClass, NewDesignOwner);
+  NewRoot.Name := ProposeComponentName(ComponentClass, NewDesignOwner);
 
   { In these special cases, set FullSize to true,
     since this is almost certainly what user wants when creating a new UI

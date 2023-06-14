@@ -27,6 +27,7 @@
     function GetMode: TColorMode;
     procedure SetMode(const Value: TColorMode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

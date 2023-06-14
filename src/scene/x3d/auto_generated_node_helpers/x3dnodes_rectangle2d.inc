@@ -27,6 +27,7 @@
     function GetSize: TVector2;
     procedure SetSize(const Value: TVector2);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

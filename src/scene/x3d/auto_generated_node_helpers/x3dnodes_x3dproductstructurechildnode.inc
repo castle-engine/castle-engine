@@ -27,6 +27,7 @@
     function GetNameField: String;
     procedure SetNameField(const Value: String);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

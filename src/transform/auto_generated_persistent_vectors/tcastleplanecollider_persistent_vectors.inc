@@ -50,7 +50,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FNormalPersistent := TCastleVector3Persistent.Create;
+  FNormalPersistent := TCastleVector3Persistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FNormalPersistent.SetSubComponent(true);
   FNormalPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetNormalForPersistent;
   FNormalPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetNormalForPersistent;
   FNormalPersistent.InternalDefaultValue := Normal; // current value is default

@@ -628,17 +628,30 @@ type
     }
     procedure SetTransient;
 
-    { Use this component as a container to easily reference any other TComponent instances,
-      and add given TComponent to it.
-      This is useful to group non-visual components, esp. in CGE editor.
+    { Add non-visual component to this component.
+      This is used to organize non-visual components in a tree hierarchy,
+      in CGE designs and editor.
 
       @seealso NonVisualComponentsCount
       @seealso NonVisualComponents
       @seealso NonVisualComponentsEnumerate }
     procedure AddNonVisualComponent(const NonVisualComponent: TComponent);
 
+    { Insert non-visual component to this component.
+      This is used to organize non-visual components in a tree hierarchy,
+      in CGE designs and editor.
+
+      @seealso NonVisualComponentsCount
+      @seealso NonVisualComponents
+      @seealso NonVisualComponentsEnumerate }
+    procedure InsertNonVisualComponent(const Index: Integer; const NonVisualComponent: TComponent);
+
     { Remove component previously added by AddNonVisualComponent. }
     procedure RemoveNonVisualComponent(const NonVisualComponent: TComponent);
+
+    { Index of component previously added non-visual component.
+      Returns -1 if component was not found. }
+    function NonVisualComponentsIndexOf(const NonVisualComponent: TComponent): Integer;
 
     { Count of components added by AddNonVisualComponent.
 
@@ -662,6 +675,34 @@ type
       Note: We can't use @code(csLoading in ComponentState) because in Delphi
       it is not possible to control it from CastleComponentSerialize. }
     property IsLoading: Boolean read FIsLoading;
+
+    { Whether the current value of this object should be written
+      to the stream. This should be @true if @italic(anything) inside
+      this object should be serialized (which means it has non-default
+      value or "stored" specifier indicates that it should be serialized).
+
+      This is used by CastleComponentSerialize, which is used in
+      Castle Game Engine for all serialization.
+
+      In simple cases, this just says whether the current value of this object
+      equals to some default value.
+
+      The default implementation of this class returns @true (so always write).
+
+      Descendants that override this to sometimes return @false
+      (so no need to write) must be very careful: any addition of a new field
+      requires extending this method, otherwise new field may not be saved sometimes
+      (when all other fields are default). Descentants of such classes
+      must also be aware of it.
+      This check must include everything that is inside this object in JSON,
+      including subcomponents and children objects (as done e.g. by
+      @link(TSerializationProcess.ReadWriteList)).
+      In practice, overriding this method is only reasonable for simple classes
+      that will not change much in the future, like TCastleVector3Persistent.
+
+      The name of this method is consistent with TPropertyEditor.ValueIsStreamed
+      in LCL. }
+    function ValueIsStreamed: Boolean; virtual;
   end;
 
 { Enumerate all properties that are possible to translate in this component
@@ -841,7 +882,7 @@ type
       is under / above each other), you want to place NewItem at the same
       position as previous TCastleOnScreenMenu instance, if any. }
     function MakeSingle(ReplaceClass: TClass; NewItem: TObject;
-      AddEnd: boolean): TObject;
+      AddEnd: boolean): TObject; deprecated 'this is a complicated method without clear use-case now; do not use';
 
     { Extract (remove from the list, but never free) given item index.
       This is similar TObjectList.Extract, except it takes an index. }
@@ -880,9 +921,23 @@ function DumpStackToString(const BaseFramePointer: Pointer): string;
 function DumpExceptionBackTraceToString: string;
 {$endif}
 
-{ Propose a name for given component class, making it unique in given ComponentsOwner. }
+{ Propose a name for given component class, making it unique
+  in given ComponentsOwner.
+
+  If you provide non-empty BaseName, it will be used as component base name,
+  and we will only add numeric suffix to make it unique.
+  Make sure in this case that BaseName is a valid Pascal identifier.
+
+  If you leave empty BaseName, we will use ComponentClass.ClassName
+  to generate a useful base name. Again, we will add numeric suffix
+  to make it unique. }
+function ProposeComponentName(const ComponentClass: TComponentClass;
+  const ComponentsOwner: TComponent;
+  BaseName: String = ''): String;
+
 function InternalProposeName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent): String;
+  deprecated 'use ProposeComponentName';
 
 type
   TFreeNotificationObserver = class;
@@ -1804,6 +1859,22 @@ begin
   FNonVisualComponents.Add(NonVisualComponent);
 end;
 
+procedure TCastleComponent.InsertNonVisualComponent(const Index: Integer; const NonVisualComponent: TComponent);
+begin
+  // create FNonVisualComponents on-demand, to not burden typical TCastleComponent that doesn't need this
+  if FNonVisualComponents = nil then
+    FNonVisualComponents := TComponentList.Create(false);
+  FNonVisualComponents.Insert(Index, NonVisualComponent);
+end;
+
+function TCastleComponent.NonVisualComponentsIndexOf(const NonVisualComponent: TComponent): Integer;
+begin
+  if FNonVisualComponents <> nil then
+    Result := FNonVisualComponents.IndexOf(NonVisualComponent)
+  else
+    Result := -1;
+end;
+
 procedure TCastleComponent.RemoveNonVisualComponent(const NonVisualComponent: TComponent);
 begin
   if FNonVisualComponents <> nil then
@@ -1847,6 +1918,11 @@ begin
     for I := FNonVisualComponents.Count - 1 downto 0 do // downto, as list may shrink during loop
       if FNonVisualComponents[I].ComponentStyle * [csSubComponent, csTransient] = [] then
         FNonVisualComponents[I].Free; // will remove itself from Behaviors list
+end;
+
+function TCastleComponent.ValueIsStreamed: Boolean;
+begin
+  Result := true;
 end;
 
 { TComponent routines -------------------------------------------------------- }
@@ -2292,6 +2368,13 @@ end;
 
 function InternalProposeName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent): String;
+begin
+  Result := ProposeComponentName(ComponentClass, ComponentsOwner, '');
+end;
+
+function ProposeComponentName(const ComponentClass: TComponentClass;
+  const ComponentsOwner: TComponent;
+  BaseName: String): String;
 
   { Cleanup S (right now, always taken from some ClassName)
     to be a nice component name, which also must make it a valid Pascal identifier. }
@@ -2327,7 +2410,10 @@ var
   ResultBase: String;
   I: Integer;
 begin
-  ResultBase := CleanComponentName(ComponentClass.ClassName);
+  if BaseName <> '' then
+    ResultBase := BaseName
+  else
+    ResultBase := CleanComponentName(ComponentClass.ClassName);
 
   { A simple test of the CleanComponentName routine.
     This is *not* a good place for such automated test, but for now it was simplest to put it here. }

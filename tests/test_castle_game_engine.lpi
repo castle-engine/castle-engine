@@ -99,10 +99,6 @@
         <Filename Value="code/testcases/testcastlegame.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit13>
-      <Unit14>
-        <Filename Value="code/testcases/testcastlegenericlists.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit14>
       <Unit15>
         <Filename Value="code/testcases/testcastleglversion.pas"/>
         <IsPartOfProject Value="True"/>
@@ -283,8 +279,12 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToolFpcVersion"/>
       </Unit58>
-      <Unit59>
+      <Unit14>
         <Filename Value="code/testcases/testcastledesigncomponents.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit14>
+      <Unit59>
+        <Filename Value="code/testcases/testcastleinternalglshadowvolumes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit59>
     </Units>

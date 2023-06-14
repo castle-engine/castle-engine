@@ -1,3 +1,4 @@
+{%MainUnit castleutils.pas}
 {
   Copyright 2002-2018 Michalis Kamburelis.
 
@@ -32,12 +33,12 @@ procedure FreeMemNiling(var p: pointer);
 { Check is memory filled with the given character.
   Returns -1 is @true, or the number (between 0 .. Size - 1)
   or the first character different than AChar. }
-function CheckIsMemCharFilled(const Data; Size: Integer; AChar: Char): Integer;
+function CheckIsMemCharFilled(const Data; Size: Integer; AChar: AnsiChar): Integer;
 
 { Check is memory filled with the given character.
   Returns simple boolean, use CheckIsMemCharFilled to get more informative
   result. }
-function IsMemCharFilled(const Data; Size: Integer; AChar: Char): boolean;
+function IsMemCharFilled(const Data; Size: Integer; AChar: AnsiChar): boolean;
 
 { Check is memory filled with the Word (2 byte sequence).
   Size if the number of words (not bytes), this is consequent
@@ -97,9 +98,9 @@ begin
   {$endif}
 end;
 
-function CheckIsMemCharFilled(const Data; Size: Integer; AChar: Char): Integer;
+function CheckIsMemCharFilled(const Data; Size: Integer; AChar: AnsiChar): Integer;
 var i: Integer;
-    p: PChar;
+    p: PAnsiChar;
 begin
  { TODO: hmm, taka optymalizacje jak w IsMemCharFilled moznaby tu zrobic,
    idac po 32 lub 16.}
@@ -112,11 +113,11 @@ begin
  result := -1;
 end;
 
-function IsMemCharFilled(const Data; Size: Integer; AChar: Char): boolean;
+function IsMemCharFilled(const Data; Size: Integer; AChar: AnsiChar): boolean;
 var p: Pointer;
     p32: PLongWord absolute p;
     p16: PWord absolute p;
-    p8: PChar absolute p;
+    p8: PAnsiChar absolute p;
     Good32: LongWord;
     Good16: Word;
 begin

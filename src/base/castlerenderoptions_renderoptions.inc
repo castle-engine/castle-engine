@@ -272,8 +272,8 @@ type
       is slow and it does not treat transparent shapes correctly.
 
       This requires the usage of ssRendering in TCastleSceneCore.Spatial.
-      Also, it always does frustum culling (like fcBox for now),
-      regardless of TCastleScene.OctreeFrustumCulling setting.
+      Also, it always does frustum culling,
+      regardless of @link(TCastleScene.ShapeFrustumCullig) setting.
 
       The algorithm used underneath is "Coherent Hierarchical Culling",
       described in detail in "GPU Gems 2",
@@ -531,7 +531,7 @@ type
       shape may be not 2-manifold). This means that you guarantee that
       all border edges of all shapes match with each other, closing the skin
       of the model perfectly.
-      See https://castle-engine.io/x3d_extensions_shadow_volumes.php
+      See https://castle-engine.io/shadow_volumes
       about using shadow volumes and the requirement to be 2-manifold.
 
       If this is @true then, even if some shapes are not 2-manifold,

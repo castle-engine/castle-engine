@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{5FF6AA79-9ADC-4EA1-B7EA-672284D38110}</ProjectGuid>
+        <ProjectGuid>{77C873CA-59A8-5B3B-1EB1-F88B6AFD44D7}</ProjectGuid>
         <MainSource>combine_multiple_x3d_into_one_scene_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

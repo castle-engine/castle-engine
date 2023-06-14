@@ -18,19 +18,6 @@
 
 {$ifdef read_interface}
 
-{ When using FPC, and Extended = Double, you cannot overload
-  for both Double and Extended as they are just equal.
-  Extended is just alias for Double.
-
-  Delphi, even when Extended = Double, still treats Extended
-  like a different type, for choosing overloads.
-  It even requires Extended overloads e.g. for MinVar(Extended, ...). }
-{$ifndef PASDOC}
-  {$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
-    {$define EXTENDED_OVERLOADS}
-  {$endif}
-{$endif}
-
 { Swap variables values.
   @groupBegin }
 procedure SwapValues(var a, b: Byte    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -969,32 +956,35 @@ end;
 
 procedure CastleDivMod(Dividend: Integer; Divisor: Word;
   out Result, Remainder: SmallInt);
-{$ifdef VER2_4_0}
-{ Workaround http://bugs.freepascal.org/view.php?id=15453.
-  DivMod overload with SmallInt params already exist in Math unit,
-  so this is not our concern. }
+var
+  UnsignedResult, UnsignedRemainder: Word;
 begin
+  { This should not be necessary for FPC, we support only
+    FPC >= 3.2.0 and http://bugs.freepascal.org/view.php?id=15453
+    (treatment of negative Dividend) is fixed since FPC 2.4.2.
+    So FPC could just call DivMod?
+
+    Still this is necessary for Delphi (that supports only unsigned
+    1st param for DivMod).
+
+    For consistency we use this code with both FPC and Delphi. }
+
   if Dividend < 0 then
   begin
     { Use DivMod with >=0 dividend }
-    DivMod(-Dividend, Divisor, Result, Remainder);
+    DivMod(-Dividend, Divisor, UnsignedResult, UnsignedRemainder);
     { The documented behavior of Pascal's div/mod operators and DivMod
       on negative dividends is to return Result closer to zero and
       a negative Remainder. Which means that we can just negate both
       Result and Remainder, and all it's Ok. }
-    Result := -Result;
-    Remainder := -Remainder;
+    Result := -UnsignedResult;
+    Remainder := -UnsignedRemainder;
   end else
-    DivMod(Dividend, Divisor, Result, Remainder);
-{$else}
-{ Workaround lack of DivMod overload with signed (SmallInt) params.
-  This is needed only for old FPC (at least older than 2.2.4). }
-var
-  UnsignedResult: Word absolute Result;
-  UnsignedRemainder: Word absolute Remainder;
-begin
-  DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
-{$endif}
+  begin
+    DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
+    Result := UnsignedResult;
+    Remainder := UnsignedRemainder;
+  end;
 end;
 
 procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;

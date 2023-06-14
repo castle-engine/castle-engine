@@ -287,7 +287,9 @@ begin
       'src/base/android',
       'src/files/indy'
     ],
-    [ ]);
+    [
+      'src/vampyre_imaginglib'
+    ]);
   finally FreeAndNil(Lpk) end;
 
   Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_window.lpk');

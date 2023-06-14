@@ -660,7 +660,7 @@ var
       end;
 
       if ScreenPointVao = nil then
-        ScreenPointVao := TVertexArrayObject.Create;
+        ScreenPointVao := TVertexArrayObject.Create(nil);
 
       RenderContext.CurrentProgram := Shader;
       RenderContext.CurrentVao := ScreenPointVao;

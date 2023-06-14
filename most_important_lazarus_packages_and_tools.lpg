@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectGroup FileVersion="2">
+    <Targets>
+      <Target FileName="packages/castle_base.lpk"/>
+      <Target FileName="packages/castle_components.lpk"/>
+      <Target FileName="packages/castle_editor_components.lpk"/>
+      <Target FileName="packages/castle_window.lpk"/>
+      <Target FileName="tools/castle-editor/castle_editor.lpi">
+        <BuildModes>
+          <Mode Name="default"/>
+        </BuildModes>
+      </Target>
+      <Target FileName="tools/build-tool/castle-engine.lpi">
+        <BuildModes>
+          <Mode Name="default"/>
+        </BuildModes>
+      </Target>
+    </Targets>
+  </ProjectGroup>
+</CONFIG>

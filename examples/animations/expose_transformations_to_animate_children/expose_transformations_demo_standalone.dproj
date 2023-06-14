@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{D4093BD4-84EE-4F95-B21E-3B73F4FBB573}</ProjectGuid>
+        <ProjectGuid>{7CF0861F-C809-C676-CD3A-A71481EE5BC8}</ProjectGuid>
         <MainSource>expose_transformations_demo_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

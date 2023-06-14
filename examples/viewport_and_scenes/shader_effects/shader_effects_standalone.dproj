@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{E58BB7E8-FD40-4732-9BF3-C4E792BE1F32}</ProjectGuid>
+        <ProjectGuid>{672B270B-E1BD-E02A-A10E-7BE8ED5AC734}</ProjectGuid>
         <MainSource>shader_effects_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

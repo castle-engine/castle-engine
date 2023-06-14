@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3DF8A49C-7B21-44E2-894A-869DFCAEF8A9}</ProjectGuid>
+        <ProjectGuid>{D20395F7-0321-018E-55C2-2F9C0976E350}</ProjectGuid>
         <MainSource>eye_of_beholder_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

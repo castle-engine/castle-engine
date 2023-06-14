@@ -27,6 +27,7 @@
     function GetSpacing: Single;
     procedure SetSpacing(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;

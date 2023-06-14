@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{1D7394BF-DC71-4488-8723-6486A9936422}</ProjectGuid>
+        <ProjectGuid>{54EF1186-A03C-A1CF-D265-AC3F861960F3}</ProjectGuid>
         <MainSource>dds_decompose.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

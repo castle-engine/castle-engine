@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{E3ECBB96-4A18-46F9-B074-2E359B3F92B4}</ProjectGuid>
+        <ProjectGuid>{B3CD79C8-7C62-7DF5-40D3-66F98C1FB245}</ProjectGuid>
         <MainSource>physics_explosion_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

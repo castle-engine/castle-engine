@@ -27,6 +27,7 @@
     function GetShape: TShapeNode;
     procedure SetShape(const Value: TShapeNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 

@@ -41,12 +41,12 @@ type
     ShaderName: String;
 
     { Frames within this surface.
-      This is always the same as the TObject3DMD3.FramesCount of enclosing
+      This is always the same as the TObject3DMD3.NumFrames of enclosing
       TObject3DMD3 instance (yes, this assumption is checked when loading
       MD3, as it must be @true for any valid MD3 file). }
-    FramesCount: Cardinal;
+    NumFrames: Cardinal;
 
-    { Vertexes array has VertexesInFrameCount * FramesCount items,
+    { Vertexes array has VertexesInFrameCount * NumFrames items,
       each set of VertexesInFrameCount is for a different animation frame.
       TextureCoords always has VertexesInFrameCount (texture is not
       animated). }
@@ -101,7 +101,7 @@ begin
       [GoodIdent]);
 
   Name := Surface.Name;
-  FramesCount := Surface.NumFrames;
+  NumFrames := Surface.NumFrames;
   VertexesInFrameCount := Surface.NumVerts;
 
   (* Tests:
@@ -122,7 +122,7 @@ begin
   if Triangles.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetTriangles;
-    Stream.ReadBuffer(Triangles.List^, SizeOf(TMd3Triangle) * Triangles.Count);
+    Stream.ReadBuffer(Triangles.L^, SizeOf(TMd3Triangle) * Triangles.Count);
   end;
 
   { For animations: we have Surface.NumFrames times the vertexes array.
@@ -131,25 +131,26 @@ begin
   if Vertexes.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetXYZNormal;
-    Stream.ReadBuffer(Vertexes.List^, SizeOf(TMd3Vertex) * Vertexes.Count);
+    Stream.ReadBuffer(Vertexes.L^, SizeOf(TMd3Vertex) * Vertexes.Count);
   end;
 
   Shaders.Count := Surface.NumShaders;
   if Shaders.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetShaders;
-    Stream.ReadBuffer(Shaders.List^, SizeOf(TMd3Shader) * Shaders.Count);
+    Stream.ReadBuffer(Shaders.L^, SizeOf(TMd3Shader) * Shaders.Count);
+
     { We only use 1st shader name.
       Interpretation of other shader names is unknown. }
-    if Shaders.Count > 0 then
-      ShaderName := Shaders[0].Name;
+    Assert(Shaders.Count <> 0);
+    ShaderName := Shaders[0].Name;
   end;
 
   TextureCoords.Count := VertexesInFrameCount;
   if TextureCoords.Count <> 0 then
   begin
     Stream.Position := SurfaceStart + Surface.OffsetST;
-    Stream.ReadBuffer(TextureCoords.List^, SizeOf(TMd3TexCoord) * TextureCoords.Count);
+    Stream.ReadBuffer(TextureCoords.L^, SizeOf(TMd3TexCoord) * TextureCoords.Count);
   end;
 
   Stream.Position := SurfaceStart + Surface.OffsetEnd;

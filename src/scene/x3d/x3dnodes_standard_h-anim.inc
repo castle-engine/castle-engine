@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2008-2023 Michalis Kamburelis.
 
@@ -299,7 +300,7 @@ begin
   if SkinCoord.Count <> VertexJoints.Count then Exit(nil);
 
   for I := 0 to VertexJoints.Count - 1 do
-    SkinCoord.List^[I] := UpdateVertex(VertexJoints.List^[I]);
+    SkinCoord.L[I] := UpdateVertex(VertexJoints.L[I]);
 end;
 
 procedure THAnimHumanoidNode.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -351,8 +352,8 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
 
       for I := 0 to SkinCoord.Count - 1 do
       begin
-        VertexJoints.List^[I].RestPosition := SkinCoord.List^[I];
-        VertexJoints.List^[I].Count := 0; { initially }
+        VertexJoints.L[I].RestPosition := SkinCoord.L[I];
+        VertexJoints.L[I].Count := 0; { initially }
       end;
 
       for I := 0 to FdJoints.Count - 1 do
@@ -375,7 +376,7 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
               Weight := Joint.FdSkinCoordWeight.Items[J] else
               Weight := 1;
 
-            VertexJoints.List^[CoordIndex].Add(Joint, Weight);
+            VertexJoints.L[CoordIndex].Add(Joint, Weight);
           end;
         end;
     end;

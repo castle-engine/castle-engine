@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{EB5C04CC-678E-4F84-A09D-182E7A8EDD29}</ProjectGuid>
+        <ProjectGuid>{DD183B83-A955-A7C2-2996-037075E24FBC}</ProjectGuid>
         <MainSource>remote_logging_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

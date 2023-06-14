@@ -736,19 +736,26 @@ procedure TCocos2dLoader.PrepareShape(const CoordArray: array of TVector3;
   const TexCoordArray: array of TVector2);
 var
   Shape: TShapeNode;
+  Appearance: TAppearanceNode;
+  Material: TUnlitMaterialNode;
   Tri: TTriangleSetNode;
   Tex: TImageTextureNode;
   TexProperties: TTexturePropertiesNode;
 begin
+  Material := TUnlitMaterialNode.Create;
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := Material;
+
   Shape := TShapeNode.Create;
-  Shape.Material := TUnlitMaterialNode.Create;
+  Shape.Appearance := Appearance;
 
   Tex := TImageTextureNode.Create;
   Tex.FdUrl.Send(FImagePath);
   { No point in adjusting RepeatS/T: TextureProperties override it.
   Tex.RepeatS := false;
   Tex.RepeatT := false; }
-  Shape.Texture := Tex;
+  Appearance.Texture := Tex;
 
   TexProperties := TTexturePropertiesNode.Create;
   TexProperties.MagnificationFilter := magDefault;

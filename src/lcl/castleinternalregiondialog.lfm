@@ -1,0 +1,102 @@
+object RegionDesignDialog: TRegionDesignDialog
+  Left = 444
+  Height = 798
+  Top = 108
+  Width = 1280
+  Caption = 'Edit Region To Show'
+  ClientHeight = 798
+  ClientWidth = 1280
+  DesignTimePPI = 120
+  OnCreate = FormCreate
+  Position = poMainFormCenter
+  LCLVersion = '2.2.2.0'
+  object ButtonPanel1: TButtonPanel
+    Left = 9
+    Height = 38
+    Top = 727
+    Width = 1262
+    BorderSpacing.Around = 9
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.Caption = '&Background Color'
+    HelpButton.OnClick = HelpButtonClick
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 0
+    ShowButtons = [pbOK, pbCancel, pbHelp]
+    ShowGlyphs = [pbOK, pbCancel, pbClose]
+    ShowBevel = False
+  end
+  object CastleControl1: TCastleControl
+    Left = 0
+    Height = 718
+    Top = 0
+    Width = 1280
+    Align = alClient
+    Options = []
+    TabOrder = 1
+    OnRender = CastleControl1Render
+    OnPress = CastleControl1Press
+    OnRelease = CastleControl1Release
+    OnMotion = CastleControl1Motion
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 24
+    Top = 774
+    Width = 1280
+    Panels = <    
+      item
+        Text = 'Left '
+        Width = 112
+      end    
+      item
+        Text = 'Bottom '
+        Width = 112
+      end    
+      item
+        Text = 'Width '
+        Width = 112
+      end    
+      item
+        Text = 'Height '
+        Width = 112
+      end    
+      item
+        Text = 'CursorPos '
+        Width = 250
+      end>
+    SimplePanel = False
+  end
+  object ColorDialog1: TColorDialog
+    Title = 'Select background color'
+    Color = clGray
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    Left = 190
+    Top = 160
+  end
+end

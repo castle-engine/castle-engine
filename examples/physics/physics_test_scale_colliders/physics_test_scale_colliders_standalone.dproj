@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{183D7FF6-2906-4C08-B3EE-AF3E624F405D}</ProjectGuid>
+        <ProjectGuid>{D1BAB4AC-7ABE-7C51-BC4F-E27570039629}</ProjectGuid>
         <MainSource>physics_test_scale_colliders_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

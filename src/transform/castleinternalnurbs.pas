@@ -353,17 +353,17 @@ function TNurbsCurveCalculator.GetPoint(const U: Single; const Tangent: PVector3
       for I := 0 to Order - 1 do
       begin
         Index := KnotInterval - (Order - 1) + I;
-        Result := Result + Basis[I] * Points.List^[Index];
+        Result := Result + Basis[I] * Points.L[Index];
       end;
     end else
     begin
       for I := 0 to Order - 1 do
       begin
         Index := KnotInterval - (Order - 1) + I;
-        WeightSum := WeightSum + Basis[I] * Weight.List^[Index];
+        WeightSum := WeightSum + Basis[I] * Weight.L[Index];
         { Note that Points are already "pre-multiplied" by weights,
           see https://castle-engine.io/x3d_implementation_nurbs.php#section_homogeneous_coordinates }
-        Result := Result + Basis[I] * Points.List^[Index];
+        Result := Result + Basis[I] * Points.L[Index];
       end;
       Assert(not IsZero(WeightSum));
       Result := Result / WeightSum;
@@ -454,7 +454,7 @@ function TNurbsSurfaceCalculator.GetPoint(const U, V: Single; const Normal: PVec
         begin
           UIndex := UKnotInterval - (UOrder - 1) + I;
           VIndex := VKnotInterval - (VOrder - 1) + J;
-          Result := Result + UBasis[I] * VBasis[J] * Points.List^[UIndex + VIndex * UDimension];
+          Result := Result + UBasis[I] * VBasis[J] * Points.L[UIndex + VIndex * UDimension];
         end;
     end else
     begin
@@ -463,8 +463,8 @@ function TNurbsSurfaceCalculator.GetPoint(const U, V: Single; const Normal: PVec
         begin
           UIndex := UKnotInterval - (UOrder - 1) + I;
           VIndex := VKnotInterval - (VOrder - 1) + J;
-          WeightSum := WeightSum + UBasis[I] * VBasis[J] * Weight.List^[UIndex + VIndex * UDimension];
-          Result := Result + UBasis[I] * VBasis[J] * Points.List^[UIndex + VIndex * UDimension];
+          WeightSum := WeightSum + UBasis[I] * VBasis[J] * Weight.L[UIndex + VIndex * UDimension];
+          Result := Result + UBasis[I] * VBasis[J] * Points.L[UIndex + VIndex * UDimension];
         end;
       Assert(not IsZero(WeightSum));
       Result := Result / WeightSum;
@@ -578,19 +578,19 @@ begin
       nkPeriodicUniform:
         begin
           for I := 0 to Knot.Count - 1 do
-            Knot.List^[I] := I;
+            Knot.L[I] := I;
         end;
       nkEndpointUniform:
         begin
           for I := 0 to Order - 1 do
           begin
-            Knot.List^[I] := 0;
-            Knot.List^[Cardinal(I) + Dimension] := Dimension - Order + 1;
+            Knot.L[I] := 0;
+            Knot.L[Cardinal(I) + Dimension] := Dimension - Order + 1;
           end;
           for I := Order to Dimension - 1 do
-            Knot.List^[I] := I - Order + 1;
+            Knot.L[I] := I - Order + 1;
           for I := 0 to Dimension + Order - 1 do
-            Knot.List^[I] := Knot.List^[I] / (Dimension - Order + 1);
+            Knot.L[I] := Knot.L[I] / (Dimension - Order + 1);
         end;
       nkPiecewiseBezier:
         begin
@@ -617,11 +617,11 @@ begin
 
           for I := 0 to Order - 1 do
           begin
-            Knot.List^[I] := 0;
-            Knot.List^[Cardinal(I) + Dimension] := Segments;
+            Knot.L[I] := 0;
+            Knot.L[Cardinal(I) + Dimension] := Segments;
           end;
           for I := Order to Dimension - 1 do
-            Knot.List^[I] := (I - Order) div (Order - 1) + 1;
+            Knot.L[I] := (I - Order) div (Order - 1) + 1;
         end;
       else raise EInternalError.Create('NurbsKnotIfNeeded 594');
     end;
@@ -645,16 +645,16 @@ begin
     if Point.Count = 0 then
       Result := TBox3D.Empty else
     begin
-      W := Weight.List^[0];
+      W := Weight.L[0];
       if W = 0 then W := 1;
 
-      Result.Data[0] := Point.List^[0] / W;
+      Result.Data[0] := Point.L[0] / W;
       Result.Data[1] := Result.Data[0];
 
       for I := 1 to Point.Count - 1 do
       begin
         V := PVector3(Point.Ptr(I));
-        W := Weight.List^[I];
+        W := Weight.L[I];
         if W = 0 then W := 1;
 
         MinVar(Result.Data[0].X, V^.X / W);
@@ -696,18 +696,18 @@ begin
     if Point.Count = 0 then
       Result := TBox3D.Empty else
     begin
-      W := Weight.List^[0];
+      W := Weight.L[0];
       if W = 0 then W := 1;
 
-      Result.Data[0] := Transform.MultPoint(Point.List^[0] / W);
+      Result.Data[0] := Transform.MultPoint(Point.L[0] / W);
       Result.Data[1] := Result.Data[0];
 
       for I := 1 to Point.Count - 1 do
       begin
-        W := Weight.List^[I];
+        W := Weight.L[I];
         if W = 0 then W := 1;
 
-        V := Transform.MultPoint(Point.List^[I] / W);
+        V := Transform.MultPoint(Point.L[I] / W);
 
         MinVar(Result.Data[0].X, V.X);
         MinVar(Result.Data[0].Y, V.Y);

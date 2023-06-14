@@ -1,10 +1,18 @@
 /* Gouraud shading GLSL vertex shader. */
 
+/* Plug into PLUG-DECLARATIONS-EARLY things that need to be defined
+   before uniforms below, like definition of CASTLE_HAS_NORMALS.
+   TODO: Can we unify this with PLUG-DECLARATIONS? */
+/* PLUG-DECLARATIONS-EARLY */
+
 uniform mat4 castle_ModelViewMatrix;
 uniform mat4 castle_ProjectionMatrix;
-uniform mat3 castle_NormalMatrix;
 attribute vec4 castle_Vertex;
+
+#if defined(CASTLE_HAS_NORMALS)
+uniform mat3 castle_NormalMatrix;
 attribute vec3 castle_Normal;
+#endif
 
 /* PLUG-DECLARATIONS */
 
@@ -47,7 +55,21 @@ vec4 castle_apply_color_per_vertex(vec4 color)
 void main(void)
 {
   vec4 vertex_object = castle_Vertex;
-  vec3 normal_object = castle_Normal;
+  vec3 normal_object =
+    #if defined(CASTLE_HAS_NORMALS)
+    castle_Normal;
+    #else
+    /* When CASTLE_HAS_NORMALS not defined, then TShader.NeedsNormals = false.
+       Renderer may then not define castle_Normal attribute at all,
+       so we cannot use it (using it causes invisible objects on ATI GPUs,
+       even though undefined normal_object value is not used by anything;
+       see
+       https://github.com/castle-engine/castle-engine/issues/462
+       https://trello.com/c/QH9d9A8o/92-bug-unable-to-see-and-use-gizmos )
+    */
+    vec3(0.0, 0.0, 1.0);
+    #endif
+
   /* PLUG: vertex_object_space_change (vertex_object, normal_object) */
   /* PLUG: vertex_object_space (vertex_object, normal_object) */
 
@@ -63,7 +85,12 @@ void main(void)
   #endif
 
   castle_vertex_eye = castle_ModelViewMatrix * vertex_object;
-  castle_normal_eye = normalize(castle_NormalMatrix * normal_object);
+  castle_normal_eye =
+    #if defined(CASTLE_HAS_NORMALS)
+    normalize(castle_NormalMatrix * normal_object);
+    #else
+    vec3(0.0, 0.0, 1.0);
+    #endif
 
   /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */
 

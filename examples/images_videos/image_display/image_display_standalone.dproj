@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{F4602697-8575-481B-9AEB-167DDF38E981}</ProjectGuid>
+        <ProjectGuid>{9ED574DB-E9ED-E85A-117E-EB585DCA37A4}</ProjectGuid>
         <MainSource>image_display_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

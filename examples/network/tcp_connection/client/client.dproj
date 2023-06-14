@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{B6C23A31-7A22-4C1F-AAF7-429CF976FE62}</ProjectGuid>
+        <ProjectGuid>{1A58DFCE-24E4-2677-8A1D-64F73ED118AB}</ProjectGuid>
         <MainSource>client.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

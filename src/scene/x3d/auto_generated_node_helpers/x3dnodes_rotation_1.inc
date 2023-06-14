@@ -27,6 +27,7 @@
     function GetRotation: TVector4;
     procedure SetRotation(const Value: TVector4);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{D9CCC9E9-4580-4914-9EAC-F205428F9900}</ProjectGuid>
+        <ProjectGuid>{4E4C9364-8216-83A9-E477-0A9D982BBE51}</ProjectGuid>
         <MainSource>play_animation_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

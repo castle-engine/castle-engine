@@ -434,11 +434,6 @@ begin
       CHUNK_RGBB, CHUNK_RGBB_GAMMA:
         begin
           Stream.ReadBuffer(Col3Byte, SizeOf(Col3Byte));
-          {$ifdef ENDIAN_BIG}
-          b := Col3Byte[0];
-          Col3Byte[0] := Col3Byte[2];
-          Col3Byte[2] := b;
-          {$endif ENDIAN_BIG}
           Col := Vector3(Col3Byte);
           result := true;
           break;
@@ -772,7 +767,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
       { init face }
       Stream.ReadBuffer(Word3, SizeOf(Word3));
       for j := 0 to 2 do
-        VertsIndices.InternalData[j] := LEtoN(Word3[j]);
+        VertsIndices.Data[j] := LEtoN(Word3[j]);
       Stream.ReadLE(Flags);
       { decode Flags }
       for j := 0 to 2 do
@@ -1006,11 +1001,17 @@ var
   begin
     for I := 0 to O3ds.Cameras.Count - 1 do
     begin
+      {$warnings off} // TODO: fix using deprecated MakeCameraNode
+      // TODO: what is 3DS convention for up? +Y or Z? Using GravityUp = Up below is uncomfortable.
+
       Viewpoint := MakeCameraNode(cvVrml2_X3d, BaseUrl,
         O3ds.Cameras[I].Position,
         O3ds.Cameras[I].Direction,
         O3ds.Cameras[I].Up,
         O3ds.Cameras[I].Up { GravityUp equals Up });
+
+      {$warnings on}
+
       Viewpoint.X3DName := ViewpointVRMLName(O3ds.Cameras[I].Name);
       Result.AddChildren(Viewpoint);
 
@@ -1128,7 +1129,7 @@ begin
         Coord := TCoordinateNode.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
         Coord.FdPoint.Count := Trimesh3ds.VertsCount;
         for J := 0 to Trimesh3ds.VertsCount-1 do
-          Coord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].Pos;
+          Coord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].Pos;
 
         { Create TextureCoordinate node, or nil if not available }
         if Trimesh3ds.HasTexCoords then
@@ -1136,7 +1137,7 @@ begin
           TexCoord := TTextureCoordinateNode.Create('TexCoord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
           TexCoord.FdPoint.Count := Trimesh3ds.VertsCount;
           for j := 0 to Trimesh3ds.VertsCount - 1 do
-            TexCoord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].TexCoord;
+            TexCoord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].TexCoord;
         end else
           TexCoord := nil;
 
@@ -1169,10 +1170,10 @@ begin
           begin
             with IFS.FdCoordIndex.Items do
             begin
-              List^[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
-              List^[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
-              List^[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
-              List^[FaceNum * 4 + 3] := -1;
+              L[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
+              L[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
+              L[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
+              L[FaceNum * 4 + 3] := -1;
             end;
             Inc(J);
           end;

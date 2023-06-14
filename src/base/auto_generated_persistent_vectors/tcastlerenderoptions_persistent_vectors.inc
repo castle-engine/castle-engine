@@ -50,7 +50,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FWireframeColorPersistent := TCastleColorRGBPersistent.Create;
+  FWireframeColorPersistent := TCastleColorRGBPersistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FWireframeColorPersistent.SetSubComponent(true);
   FWireframeColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetWireframeColorForPersistent;
   FWireframeColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetWireframeColorForPersistent;
   FWireframeColorPersistent.InternalDefaultValue := WireframeColor; // current value is default

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{30308345-9224-4C0C-A390-42FD9BDDE858}</ProjectGuid>
+        <ProjectGuid>{44F76B02-0D00-0E93-E679-C05332C50C9F}</ProjectGuid>
         <MainSource>draw_space_filling_curve.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

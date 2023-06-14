@@ -86,17 +86,17 @@ begin
   end;
   if URI.Port <> 0 then
     Result := Result + ':' + IntToStr(URI.Port);
-  Result := Result + InternalURIEscape(URI.Path, ValidPathChars);
+  Result := Result + InternalURIEscape(URI.Path);
   if Length(URI.Document) > 0 then
   begin
     if (Length(URI.Path) > 0) and ((Length(Result) = 0) or (Result[Length(Result)] <> '/')) then
       Result := Result + '/';
-    Result := Result + InternalURIEscape(URI.Document, ValidPathChars);
+    Result := Result + InternalURIEscape(URI.Document);
   end;
   if Length(URI.Params) > 0 then
-    Result := Result + '?' + InternalURIEscape(URI.Params, ValidPathChars);
+    Result := Result + '?' + InternalURIEscape(URI.Params);
   if Length(URI.Bookmark) > 0 then
-    Result := Result + '#' + InternalURIEscape(URI.Bookmark, ValidPathChars);
+    Result := Result + '#' + InternalURIEscape(URI.Bookmark);
 end;
 
 function ParseURI(const URI: String; Decode : Boolean = True):  TURI;
@@ -418,7 +418,7 @@ begin
     end;
   end;
   if Encode then
-    FilenamePart := InternalURIEscape(FilenamePart, ValidPathChars);
+    FilenamePart := InternalURIEscape(FilenamePart);
 
   Result := Result + FilenamePart;
 end;

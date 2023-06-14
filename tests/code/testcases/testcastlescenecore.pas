@@ -56,6 +56,7 @@ type
     procedure TestFontStyleChanges;
     procedure TestUnassociate;
     procedure TestUnassociate2;
+    procedure TestUnassociate3;
     procedure TestUnassociateChangeMaterialOneLeft;
     procedure TestUnassociateChangeMaterialSharedAppearance;
     procedure TestUnassociateChangeAppearance;
@@ -710,7 +711,38 @@ begin
       NewMaterial := TMaterialNode.Create;
       NewMaterial.Scene := Scene;
       NewMaterial.DiffuseColor := Vector3(0, 1, 1);
-      Shape.Material := NewMaterial;
+      Shape.Material := NewMaterial; // using deprecated Shape.Material, TestUnassociate3 will test undeprecated way
+    finally FreeAndNil(Scene) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestSceneCore.TestUnassociate3;
+var
+  Shape: TShapeNode;
+  Appearance: TAppearanceNode;
+  NewMaterial: TMaterialNode;
+  Scene: TCastleScene;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    Scene := TCastleScene.Create(nil);
+    try
+      Scene.Load('castle-data:/test_for_material_change.x3dv');
+      Scene.PreciseCollisions := true;
+      Scene.ProcessEvents := true;
+
+      Shape := Scene.Node('MyShape') as TShapeNode;
+
+      NewMaterial := TMaterialNode.Create;
+      NewMaterial.Scene := Scene;
+      NewMaterial.DiffuseColor := Vector3(0, 1, 1);
+
+      Appearance := TAppearanceNode.Create;
+      Appearance.Material := NewMaterial;
+
+      Shape.Appearance := Appearance;
     finally FreeAndNil(Scene) end;
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);

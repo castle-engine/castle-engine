@@ -14,6 +14,8 @@ Please use this approach instead of manually compiling/installing .lpk files, an
 
 Base engine code and components.
 
+This also includes [Vampyre Imaging Library](https://imaginglib.sourceforge.io/) (you do not have to install it by a separate package).
+
 ### castle_window.lpk
 
 `TCastleWindow` class and associated unit.

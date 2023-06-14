@@ -57,6 +57,7 @@
     function GetAlphaChannel: TAutoAlphaChannel;
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -214,7 +215,6 @@ end;
 
 procedure TAppearanceNode.SetMaterial(const Value: TAbstractMaterialNode);
 begin
-  SetMaterialBefore(Value);
   FdMaterial.Send(Value);
 end;
 
@@ -405,6 +405,7 @@ begin
 
   FFdMaterial := TSFNode.Create(Self, True, 'material', [TAbstractMaterialNode]);
    FdMaterial.ChangeAlways := chEverything;
+   FdMaterial.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdMaterial);
 
   FFdShaders := TMFNode.Create(Self, True, 'shaders', [TAbstractShaderNode]);
