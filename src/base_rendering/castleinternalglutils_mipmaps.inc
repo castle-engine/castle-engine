@@ -48,6 +48,7 @@ procedure GenerateMipmap(target: TGLenum);
 begin
   if GLFeatures.Framebuffer then
   begin
+    Assert(Assigned(glGenerateMipmap));
     glGenerateMipmap(Target);
   end else
     raise EGenerateMipmapNotAvailable.Create('Framebuffer not supported, glGenerateMipmap not available');

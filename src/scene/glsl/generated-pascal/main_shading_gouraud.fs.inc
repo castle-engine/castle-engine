@@ -2,10 +2,6 @@
 { DON'T EDIT -- this file was automatically generated from "source/main_shading_gouraud.fs" }
 '/* Gouraud shading GLSL fragment shader. */' + LineEnding +
 '' + LineEnding +
-'#ifdef GL_ES' + LineEnding +
-'precision mediump float;' + LineEnding +
-'#endif' + LineEnding +
-'' + LineEnding +
 '/* PLUG-DECLARATIONS */' + LineEnding +
 '' + LineEnding +
 '#ifdef HAS_GEOMETRY_SHADER' + LineEnding +

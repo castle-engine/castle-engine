@@ -1,6 +1,6 @@
 {%MainUnit castleviewport.pas}
 {
-  Copyright 2013-2022 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,6 +33,8 @@
     { Fly mode, comfortable to move around around the scene without gravity.
       Uses TCastleWalkNavigation. }
     ntFly,
+    { 2D mode, where the camera always looks along with Z axis, and you can pan / zoom in XY. }
+    nt2D,
     { Disable user navigation on the scene.
       Uses TCastleWalkNavigation. }
     ntNone
@@ -63,6 +65,7 @@
   strict private
     FInternalExamineNavigation: TCastleExamineNavigation;
     FInternalWalkNavigation: TCastleWalkNavigation;
+    FInternal2DNavigation: TCastle2DNavigation;
     FAutoNavigation: Boolean;
     FWithinSetNavigationType: Boolean;
     InsideBoundNavigationInfoChanged: Boolean;
@@ -112,9 +115,11 @@
       )
     }
     function WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleWalkNavigation;
+      deprecated 'instead of this, just get and set "Navigation"; you can check if it is "TCastleWalkNavigation", you can set it to new "TCastleWalkNavigation" instance';
 
     { Return the currently used navigation as TCastleExamineNavigation, making sure that current
-      NavigationType is something using TCastleExamineNavigation.
+      NavigationType is something using TCastleExamineNavigation (but not TCastle2DNavigation,
+      this wants a 3D navigation).
 
       @unorderedList(
         @item(
@@ -140,6 +145,7 @@
       )
     }
     function ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation;
+      deprecated 'instead of this, just get and set "Navigation"; you can check if it is "TCastleExamineNavigation", you can set it to new "TCastleExamineNavigation" instance';
 
     { Navigation instances internally used by this viewport.
       Using these methods automatically creates these instances
@@ -157,13 +163,10 @@
       are preserved when you switch
       e.g. NavigationType from ntWalk to ntExamine to ntWalk again.
 
-      @deprecated This is deprecated now, because it causes auto-detection
-      of navigation parameters, which is (in general) more surprising than helpful.
-      E.g. it adjusts navigation radius, speed and more properties.
-
       @groupBegin }
     function InternalExamineNavigation: TCastleExamineNavigation;
     function InternalWalkNavigation: TCastleWalkNavigation;
+    function Internal2DNavigation: TCastle2DNavigation;
     { @groupEnd }
 
     { Assign @link(Navigation) to a default TCastleNavigation suitable
@@ -274,6 +277,15 @@ class function TCastleAutoNavigationViewport.NavigationTypeFromNavigationInfo(co
       Result := true;
       NavigationType := ntTurntable
     end else
+    if (S = '2D') or
+       { PLANE and PLANE_create3000.github.io names are used by X_ITE,
+         see "Online X3D File Format Converter Powered by X_ITE" thread on x3d-public mailing list. }
+       (S = 'PLANE') or
+       (S = 'PLANE_create3000.github.io') then
+    begin
+      Result := true;
+      NavigationType := nt2D;
+    end else
     if S = 'ANY' then
     begin
       { Do nothing, also do not report this NavigationInfo.type as unknown. }
@@ -332,12 +344,24 @@ begin
   Result := FInternalWalkNavigation;
 end;
 
+function TCastleAutoNavigationViewport.Internal2DNavigation: TCastle2DNavigation;
+begin
+  if FInternal2DNavigation = nil then
+  begin
+    FInternal2DNavigation := TCastle2DNavigation.Create(Self);
+    FInternal2DNavigation.SetTransient;
+  end;
+  Result := FInternal2DNavigation;
+end;
+
 function TCastleAutoNavigationViewport.ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleExamineNavigation;
 var
   NewNavigation: TCastleExamineNavigation;
 begin
   {$warnings off} // using deprecated in deprecated
-  if not (Navigation is TCastleExamineNavigation) then
+  if (not (Navigation is TCastleExamineNavigation)) or
+     // when TCastle2DNavigation, we want to change it 3D examine navigation here
+     (Navigation is TCastle2DNavigation) then
   begin
     if not SwitchNavigationTypeIfNeeded then
       Exit(nil);
@@ -409,6 +433,9 @@ begin
   if (Nav <> nil) and (Nav.Input = []) then
     Exit(ntNone);
 
+  if Nav is TCastle2DNavigation then
+    Result:= nt2D
+  else
   if Nav is TCastleExamineNavigation then
   begin
     if TCastleExamineNavigation(Nav).Turntable then
@@ -488,6 +515,17 @@ begin
         W.PreferGravityUpForRotations := true;
         W.PreferGravityUpForMoving := false;
         W.Gravity := false;
+      end;
+    nt2D:
+      begin
+        {$warnings off} // using deprecated Navigation, that should be internal
+        if Navigation <> Internal2DNavigation then
+        begin
+          if Navigation <> nil then // copy properties like Input, Radius from current Navigation
+            Internal2DNavigation.Assign(Navigation);
+          Navigation := Internal2DNavigation;
+        end;
+        {$warnings on}
       end;
     ntNone:
       begin
@@ -569,6 +607,8 @@ begin
       FInternalWalkNavigation := nil;
     if AComponent = FInternalExamineNavigation then
       FInternalExamineNavigation := nil;
+    if AComponent = FInternal2DNavigation then
+      FInternal2DNavigation := nil;
   end;
 end;
 

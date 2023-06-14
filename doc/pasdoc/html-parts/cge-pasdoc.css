@@ -1,5 +1,5 @@
 /*
-  Copyright 1998-2022 Michalis Kamburelis, PasDoc developers.
+  Copyright 1998-2023 Michalis Kamburelis, PasDoc developers.
 
   This file was part of "PasDoc" and is adapted to "Castle Game Engine".
 
@@ -298,22 +298,7 @@
 .pasdoc-container table.table_tag th > p:last-child,
        td.itemdesc > p:last-child { margin-bottom: 0em; }
 
-/* The trick how to replace using CSS from
-   http://blog.escapecreative.com/how-to-replace-text-with-css/
-   https://stackoverflow.com/questions/7896402/how-can-i-replace-text-with-css
-*/
 .pasdoc-container .navigation h2 {
     text-align: left;
-    visibility: hidden;
-    height: 1em; /* otherwise it may be tall as underneath the text "Castle Game Engine" has 2 lines */
-    /* to make position:absolute in ::after work */
-    position: relative;
-}
-.pasdoc-container .navigation h2::after {
-    /* otherwise, it's hidden along with parent h2 */
-    visibility: visible;
-    position: absolute;
-    top: 0;
-    left: 0;
-    content: "API Reference";
+    padding: 0 !important;
 }

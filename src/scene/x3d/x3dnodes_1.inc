@@ -55,8 +55,8 @@
     function FontTextureNode: TAbstractTexture2DNode; override;
 
     { Force recalculating the shape when font changed.
-      For now, we don't detect font changes (when TFontStyleNode.OnFont
-      returns something different) outselves. }
+      For now, we don't detect font changes (e.g. when TFontStyleNode.CustomFont changed)
+      automatically. }
     procedure FontChanged;
 
     function Justify: TX3DFontJustify;
@@ -188,7 +188,7 @@
     function Family: TX3DFontFamily;
     function Bold: boolean;
     function Italic: boolean;
-    function Font: TTextureFontData;
+    function Font: TCastleFont;
   {$I auto_generated_node_helpers/x3dnodes_fontstyle_1.inc}
   end;
 
@@ -739,18 +739,9 @@ begin
 end;
 {$warnings on}
 
-function TFontStyleNode_1.Font: TTextureFontData;
-var
-  TemporaryFontStyle: TFontStyleNode;
+function TFontStyleNode_1.Font: TCastleFont;
 begin
-  TemporaryFontStyle := TFontStyleNode.Create('', BaseUrl);
-  try
-    TemporaryFontStyle.Family := Family;
-    TemporaryFontStyle.Bold := Bold;
-    TemporaryFontStyle.Italic := Italic;
-    { get font for a default FontStyle node }
-    Result := TemporaryFontStyle.Font;
-  finally FreeAndNil(TemporaryFontStyle) end;
+  Result := TFontStyleNode.GetDefaultFont(Family, Bold, Italic);
 end;
 
 constructor TLODNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');

@@ -849,7 +849,7 @@ begin
     This is low-priority due to low MultiTexture usage. }
   Shader.MultiTextureColor := Vector4(TextureNode.Color, TextureNode.Alpha);
 
-  for I := 0 to TextureSlotsUsed - InitialTextureSlotsUsed - 1 do
+  for I := 0 to Integer(TextureSlotsUsed) - Integer(InitialTextureSlotsUsed) - 1 do
   begin
     ChildTex := TextureNode.FdTexture[I];
     Success := false;

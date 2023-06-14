@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -297,7 +297,8 @@
     { @groupEnd }
 
     { @exclude
-      Fix X3D names inside to make sure all nodes that are part of ROUTE have non-empty names. }
+      Fix X3D names inside to make sure all nodes that are part of ROUTE have non-empty names.
+      See doc/miscellaneous_notes/avoid_renaming_node_names_at_import.md for documentation why we do this. }
     procedure InternalFixNodeNames;
   end;
 
@@ -665,6 +666,16 @@ end;
 
 { TFixNamesHandler ----------------------------------------------------------- }
 
+{ Log renames done by TX3DRootNode.InternalFixNodeNames (to make node names
+  that are relevant for ROUTEs unique).
+
+  Disabled by default now, as it seemed too spammy, e.g. in case of glTF models in
+  examples/viewport_and_scenes/occlusion_query/ .
+  And it's also not that critical for usual case,
+  it only matters if someone wants to access renamed nodes using FindNode.
+}
+{.$define CASTLE_LOG_NODE_RENAMES}
+
 type
   TFixNamesHandler = class
   strict private
@@ -672,9 +683,11 @@ type
       Visited: TList;
       Prefixes: TStringList;
       Names: TCastleStringList;
+    {$ifdef CASTLE_LOG_NODE_RENAMES}
       LogsDone: Cardinal;
     const
       MaxLogsDone = 5;
+    {$endif}
   public
     constructor Create;
     destructor Destroy; override;
@@ -736,9 +749,14 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
   var
     I: Integer;
     Number: Int64;
+    {$ifdef CASTLE_LOG_NODE_RENAMES}
     OriginalName: String;
+    {$endif CASTLE_LOG_NODE_RENAMES}
   begin
+    {$ifdef CASTLE_LOG_NODE_RENAMES}
     OriginalName := Node.X3DName;
+    {$endif CASTLE_LOG_NODE_RENAMES}
+
     I := BackPos('_', Node.X3DName);
     if I <> 0 then
     begin
@@ -751,6 +769,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
     end else
       RenameUniquelyCore(Node, Node.X3DName + '_', 2);
 
+    {$ifdef CASTLE_LOG_NODE_RENAMES}
     if LogsDone < MaxLogsDone then
     begin
       WritelnLog('Renaming node "%s" -> "%s" to have unique name; these renames are done to allow saving ROUTEs later', [
@@ -761,6 +780,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
       if LogsDone = MaxLogsDone then
         WritelnLog('Further renames done in this file will not be reported, to not flood log with messages');
     end;
+    {$endif CASTLE_LOG_NODE_RENAMES}
   end;
 
   { Assuming Node.X3DName <> '', make sure it is unique name. }
@@ -809,8 +829,8 @@ begin
 
   { make sure node name is unique.
 
-    Not done anymore: see discussion in src/scene/load/README_node_names_at_import.md .
-    These renames to not prevent 100% name clashes anyway,
+    Not done anymore: see discussion in doc/miscellaneous_notes/avoid_renaming_node_names_at_import.md .
+    These renames do not prevent 100% name clashes anyway,
     and they are not expected and not reliable (from user's POV,
     it is hard to predict which node gets _2, _3 suffix).
   }

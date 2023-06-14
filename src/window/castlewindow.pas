@@ -410,7 +410,6 @@ type
     function ScaledStatusBarHeight: Cardinal; override;
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
-    function Dpi: Single; override;
     function Focused: boolean; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
@@ -515,7 +514,6 @@ type
     FMinHeight: Integer;
     FMaxWidth: Integer;
     FMaxHeight: Integer;
-    FDpi: Single;
     // Using deprecated TWindowContainer - should be internal in the future
     {$warnings off}
     FContainer: TWindowContainer;
@@ -817,7 +815,7 @@ type
 
     { Do MakeCurrent,
          EventBeforeRender,
-         EventRender (inside Fps._RenderBegin/End)
+         EventRender (inside Fps.InternalRenderBegin/End)
          flush gl command pipeline (and swap gl buffers if DoubleBuffer)
 
       - Take care of AutoRedisplay, like
@@ -979,16 +977,6 @@ type
       Always (Left,Bottom) are zero, and (Width,Height) correspond to window
       sizes. }
     function Rect: TRectangle;
-
-    { Dots (pixels) per inch. Describes how many pixels fit on a physical inch.
-      So this is determined by the screen resolution in pixels,
-      and by the physical size of the device.
-
-      Some systems may expose a value that actually reflects user preference
-      "how to scale the user-interface", where 96 (DefaultDpi) is default.
-      So do not depend that it is actually related to the physical monitor size.
-      See https://developer.gnome.org/gdk2/stable/GdkScreen.html#gdk-screen-set-resolution . }
-    property Dpi: Single read FDpi write FDpi {$ifdef FPC}default DefaultDpi{$endif};
 
     { Window position on the screen. If one (or both) of them is equal
       to WindowPositionCenter at the initialization (Open) time,
@@ -2702,11 +2690,6 @@ begin
   Parent.MousePosition := Value;
 end;
 
-function TWindowContainer.Dpi: Single;
-begin
-  Result := Parent.Dpi;
-end;
-
 function TWindowContainer.Focused: boolean;
 begin
   Result := Parent.Focused;
@@ -2765,7 +2748,6 @@ begin
   FVisible := true;
   FAutoRedisplay := true;
   OwnsMainMenu := true;
-  FDpi := DefaultDpi;
   FMousePosition := Vector2(-1, -1);
   FMainMenuVisible := true;
   // Using deprecated CreateContainer - should be internal in the future
@@ -2836,7 +2818,7 @@ procedure TCastleWindow.OpenCore;
 
     UIScale := TCastleContainer.InternalCalculateUIScale(
       Theme.LoadingUIScaling, Theme.LoadingUIReferenceWidth, Theme.LoadingUIReferenceHeight, Theme.LoadingUIExplicitScale,
-      Dpi, FRealWidth, FRealHeight);
+      Container.Dpi, FRealWidth, FRealHeight);
     TextRect := Theme.ImagesPersistent[tiLoading].Image.Rect.
       ScaleAroundCenter(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).
@@ -3239,7 +3221,7 @@ begin
   if Closed then Exit; { check, in case window got closed in the event }
 
   FrameProfiler.Start(fmRender);
-  Fps._RenderBegin;
+  Fps.InternalRenderBegin;
   try
     Container.EventRender;
     if Closed then Exit; { check, in case window got closed in the event }
@@ -3283,7 +3265,7 @@ begin
 
     if AutoRedisplay then Invalidate;
   finally
-    Fps._RenderEnd;
+    Fps.InternalRenderEnd;
     FrameProfiler.Stop(fmRender);
   end;
 end;
@@ -4558,7 +4540,7 @@ begin
       if Window.Closed then Continue {don't Inc(I)};
       if Terminated then Exit;
     end else
-      Window.Fps._Sleeping;
+      Window.Fps.InternalSleeping;
 
     Inc(I);
   end;
@@ -4576,7 +4558,7 @@ var
   I: Integer;
 begin
   for I := 0 to OpenWindowsCount - 1 do
-    OpenWindows[I].Fps._Sleeping;
+    OpenWindows[I].Fps.InternalSleeping;
 end;
 
 function TCastleApplication.AllowSuspendForInput: boolean;
@@ -4906,16 +4888,45 @@ const
   {$endif}
 
 begin
-  {$ifdef DARWIN}
-  RemoveMacOsProcessSerialNumber;
+  {$ifndef FPC}
+  try
   {$endif}
 
-  SoundEngine.ParseParameters;
+    {$ifdef DARWIN}
+    RemoveMacOsProcessSerialNumber;
+    {$endif}
 
-  if MainWindow <> nil then
-    MainWindow.ParseParameters;
+    SoundEngine.ParseParameters;
 
-  Parameters.Parse(Options, @ApplicationOptionProc, Self, true);
+    if MainWindow <> nil then
+      MainWindow.ParseParameters;
+
+    Parameters.Parse(Options, @ApplicationOptionProc, Self, true);
+
+  { With FPC, if something here raises an exception,
+    we just let it be unhandled and stop the application.
+    FPC makes by default a nice error box, on Windows too.
+    However Delphi crashes with SEGFAULT on Windows,
+    testcase:
+
+    - cd examples/research_special_rendering_methods/test_rendering_opengl_capabilities
+    - ./test_rendering_opengl_capabilities_standalone.exe --capabilities=something-invalid
+    - or
+      ./test_rendering_opengl_capabilities_standalone.exe --no-sound=excessive-argument
+    - reproducible also in Delphi debugger, however without any useful backtrace.
+
+    Workaround for now is just to capture exception here,
+    and display a nice error box ourselves. }
+
+  {$ifndef FPC}
+  except
+    on E: TObject do
+    begin
+      ErrorWrite(ExceptMessage(E));
+      Halt(1);
+    end;
+  end;
+  {$endif}
 end;
 
 function TCastleApplication.OpenGLES: Boolean;

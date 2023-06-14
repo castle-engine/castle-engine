@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2022 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,11 +30,14 @@ type
     - 17 calls to DoLoadSomethingSmall
   }
   TViewLoading = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    LabelPercent: TCastleLabel;
   strict private
     const
       FakeLoadingAdditionalStepsCount = 17;
     var
-      LabelPercent: TCastleLabel;
       { Variable that simulates loading progress,
         we will grow it from 0 to FakeLoadingAdditionalStepsCount during loading. }
       FakeLoadingAdditionalSteps: Cardinal;
@@ -68,9 +71,6 @@ end;
 procedure TViewLoading.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelPercent := DesignedComponent('LabelPercent') as TCastleLabel;
 
   LoadingFinished := false;
   FakeLoadingAdditionalSteps := 0;

@@ -1,23 +1,22 @@
 object Form1: TForm1
-  Left = 665
-  Height = 497
+  Left = 463
+  Height = 415
   Top = 222
-  Width = 773
+  Width = 847
   Caption = 'Test Castle Game Engine shared library from LCL application'
-  ClientHeight = 497
-  ClientWidth = 773
-  DesignTimePPI = 115
+  ClientHeight = 415
+  ClientWidth = 847
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
-  LCLVersion = '2.2.2.0'
+  LCLVersion = '2.2.4.0'
   object OpenGLControl1: TOpenGLControl
-    Left = 10
-    Height = 428
-    Top = 59
-    Width = 753
+    Left = 8
+    Height = 358
+    Top = 49
+    Width = 831
     Align = alClient
-    BorderSpacing.Around = 10
+    BorderSpacing.Around = 8
     OnKeyDown = OpenGLControl1KeyDown
     OnKeyUp = OpenGLControl1KeyUp
     OnMouseDown = OpenGLControl1MouseDown
@@ -27,39 +26,95 @@ object Form1: TForm1
     OnPaint = OpenGLControl1Paint
   end
   object Panel1: TPanel
-    Left = 10
-    Height = 39
-    Top = 10
-    Width = 753
+    Left = 8
+    Height = 33
+    Top = 8
+    Width = 831
     Align = alTop
-    BorderSpacing.Around = 10
+    BorderSpacing.Around = 8
     BevelOuter = bvNone
     ChildSizing.LeftRightSpacing = 10
     ChildSizing.HorizontalSpacing = 10
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 100
-    ClientHeight = 39
-    ClientWidth = 753
+    ClientHeight = 33
+    ClientWidth = 831
     TabOrder = 1
-    object BtnScreenshot: TButton
+    object BtnOpen: TButton
       Left = 10
-      Height = 37
+      Height = 32
       Top = 0
-      Width = 105
+      Width = 88
+      Caption = 'Open file...'
+      OnClick = BtnOpenClick
+      TabOrder = 6
+    end
+    object BtnNavWalk: TToggleBox
+      Left = 108
+      Height = 32
+      Top = 0
+      Width = 64
+      Caption = 'Walk'
+      OnClick = BtnWalkClick
+      TabOrder = 1
+    end
+    object BtnNavFly: TToggleBox
+      Tag = 1
+      Left = 182
+      Height = 32
+      Top = 0
+      Width = 52
+      Caption = 'Fly'
+      OnClick = BtnWalkClick
+      TabOrder = 2
+    end
+    object BtnNavExamine: TToggleBox
+      Tag = 2
+      Left = 244
+      Height = 32
+      Top = 0
+      Width = 85
+      Caption = 'Examine'
+      OnClick = BtnWalkClick
+      TabOrder = 3
+    end
+    object BtnNavTurntable: TToggleBox
+      Tag = 3
+      Left = 339
+      Height = 32
+      Top = 0
+      Width = 92
+      Caption = 'Turntable'
+      OnClick = BtnWalkClick
+      TabOrder = 4
+    end
+    object CbViewpoints: TComboBox
+      Left = 441
+      Height = 20
+      Top = 0
+      Width = 100
+      ItemHeight = 26
+      OnChange = CbViewpointsChange
+      Style = csDropDownList
+      TabOrder = 5
+      Text = '0'
+    end
+    object BtnScreenshot: TButton
+      Left = 551
+      Height = 32
+      Top = 0
+      Width = 91
       AutoSize = True
       Caption = 'Screenshot'
       Color = clNone
       OnClick = BtnScreenshotClick
       TabOrder = 0
     end
-    object LabelNavigationType: TLabel
-      Left = 125
-      Height = 37
-      Top = 0
-      Width = 167
-      Caption = 'LabelNavigationType'
-      Layout = tlCenter
-      ParentColor = False
-    end
+  end
+  object OpenDialog1: TOpenDialog
+    Filter = '3D scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.gltf;*.glb'
+    Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
+    Left = 521
+    Top = 27
   end
 end

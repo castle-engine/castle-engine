@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,8 +25,9 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     ButtonAnimationWalk: TCastleButton;
     ButtonAnimationAttack: TCastleButton;
@@ -37,6 +38,7 @@ type
     SceneHumanoid: TCastleScene;
     SceneAxe: TCastleScene;
     SceneSword: TCastleScene;
+  private
     procedure ClickAnimationWalk(Sender: TObject);
     procedure ClickAnimationAttack(Sender: TObject);
     procedure ClickAnimationStop(Sender: TObject);
@@ -68,18 +70,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  ButtonAnimationWalk := DesignedComponent('ButtonAnimationWalk') as TCastleButton;
-  ButtonAnimationAttack := DesignedComponent('ButtonAnimationAttack') as TCastleButton;
-  ButtonAnimationStop := DesignedComponent('ButtonAnimationStop') as TCastleButton;
-  ButtonWeaponAxe := DesignedComponent('ButtonWeaponAxe') as TCastleButton;
-  ButtonWeaponSword := DesignedComponent('ButtonWeaponSword') as TCastleButton;
-  ButtonWeaponNone := DesignedComponent('ButtonWeaponNone') as TCastleButton;
-  SceneHumanoid := DesignedComponent('SceneHumanoid') as TCastleScene;
-  SceneAxe := DesignedComponent('SceneAxe') as TCastleScene;
-  SceneSword := DesignedComponent('SceneSword') as TCastleScene;
 
   ButtonAnimationWalk.OnClick := {$ifdef FPC}@{$endif}ClickAnimationWalk;
   ButtonAnimationAttack.OnClick := {$ifdef FPC}@{$endif}ClickAnimationAttack;

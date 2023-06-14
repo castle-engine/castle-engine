@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,6 +25,11 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
+    LabelFps: TCastleLabel;
+    MainViewport: TCastleViewport;
   private
     type
       TRotateBehavior = class(TCastleBehavior)
@@ -33,10 +38,6 @@ type
         procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
       end;
     var
-      { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
-      LabelFps: TCastleLabel;
-      MainViewport: TCastleViewport;
-
       StarsCount: Cardinal;
   public
     constructor Create(AOwner: TComponent); override;
@@ -113,10 +114,6 @@ var
 
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
 
   StarTemplate := TCastleScene.Create(FreeAtStop);
   StarTemplate.Load('castle-data:/star.gltf');

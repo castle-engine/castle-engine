@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -54,11 +54,10 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
-
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
-
     function TexCoordField: TSFNode; override;
     function AutoGenerate3DTexCoords: boolean; override;
+    function SolidField: TSFBool; override;
 
   {$I auto_generated_node_helpers/x3dnodes_teapot.inc}
   end;
@@ -112,6 +111,8 @@
   TPlaneNode = class(TAbstractGeometryNode)
   public
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
+    function SolidField: TSFBool; override;
+
   {$I auto_generated_node_helpers/x3dnodes_plane.inc}
   end;
 
@@ -295,6 +296,11 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
+function TTeapotNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
 function TTeapotNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := inherited;
@@ -434,6 +440,11 @@ end;
 function TPlaneNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 begin
   Result := Rectangle2DProxy(Self, FdSize.Value, FdSolid.Value);
+end;
+
+function TPlaneNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
 end;
 
 { TTogglerNode --------------------------------------------------------------- }

@@ -519,9 +519,10 @@ type
       end;
 
   private
-    FOwnsRootNode: boolean;
     FShapes: TShapeTree;
-    FRootNode: TX3DRootNode;
+    FRootNode, FRootNodeCacheOrigin: TX3DRootNode;
+    FOwnsRootNode: Boolean;
+    FPendingSetUrl: String;
     FOnPointingDeviceSensorsChange: TNotifyEvent;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
@@ -533,6 +534,7 @@ type
     LastUpdateFrameId: TFrameId;
     LastCameraStateId: TFrameId;
     FDefaultAnimationTransition: Single;
+    FCache: Boolean;
 
     { All InternalUpdateCamera calls will disable smooth (animated)
       transitions when this is true.
@@ -912,6 +914,15 @@ type
 
     function PointingDevicePressRelease(const DoPress: boolean;
       const Distance: Single; const CancelAction: boolean): boolean;
+
+    { Like Load but with additional ARootNodeCacheOrigin parameter. }
+    procedure LoadCore(const ARootNode: TX3DRootNode;
+      const ARootNodeCacheOrigin: TX3DRootNode;
+      const AOwnsRootNode: boolean;
+      const AOptions: TSceneLoadOptions);
+    { Free FRootNode and FRootNodeCacheOrigin and set it to @nil.
+      Always use this to free FRootNode. }
+    procedure FreeRootNode;
   protected
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
     ScreenEffectNodes: TX3DNodeList;
@@ -1129,6 +1140,7 @@ type
       The @link(URL) property is also changed. }
     procedure Save(const AURL: string);
 
+    procedure BeforeDestruction; override;
     destructor Destroy; override;
 
     { Tree of shapes in the scene, acting as a simplfied mirror
@@ -1383,6 +1395,7 @@ type
 
     { If @true, RootNode will be freed by destructor of this class. }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode default true;
+      {$ifdef FPC} deprecated 'set OwnsRootNode only at loading, do not depend on this property'; {$endif}
 
     { A spatial structure containing all visible shapes.
       Add ssRendering to @link(Spatial) property, otherwise it's @nil.
@@ -2219,8 +2232,8 @@ type
     procedure ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode = nil);
 
     { Force recalculating the text shapes when font changed.
-      For now, we don't detect font changes (when TFontStyleNode.OnFont
-      returns something different) ourselves.
+      For now, we don't detect font changes (e.g. when TFontStyleNode.CustomFont changed)
+      automatically.
       This calls @link(TTextNode.FontChanged) and @link(TAsciiTextNode_1.FontChanged)
       on all appropriate nodes. }
     procedure FontChanged;
@@ -2572,6 +2585,16 @@ type
     { Name prefix for all children created by ExposeTransforms.
       Useful to keep names unique in the scene. }
     property ExposeTransformsPrefix: String read FExposeTransformsPrefix write SetExposeTransformsPrefix;
+
+    { Use cache to load given scene.
+      This makes sense when you have multiple TCastleScene instances using the same URL,
+      loading them will be much faster if they share the cache,
+      so set @name to @true for all of them.
+
+      If you have only one scene using given URL, using cache is not necessary
+      and in fact it will result in a bit of wasted memory.
+      So better to keep @name at @false then. }
+    property Cache: Boolean read FCache write FCache default false;
   end;
 
   {$define read_interface}
@@ -3283,6 +3306,12 @@ begin
     anyway when RootNode = nil). }
 end;
 
+procedure TCastleSceneCore.BeforeDestruction;
+begin
+  FreeRootNode;
+  inherited;
+end;
+
 destructor TCastleSceneCore.Destroy;
 begin
   { This also deinitializes script nodes. }
@@ -3320,42 +3349,57 @@ begin
   FreeAndNil(AnimationAffectedFields);
   FreeAndNil(PreviousPartialAffectedFields);
 
-  if OwnsRootNode then
-    FreeAndNil(FRootNode) else
-  begin
-    { This will call RootNode.UnregisterScene. }
-    {$ifdef FPC}
-    {$warnings off}
-    { consciously using deprecated feature; in the future,
-      we will just explicitly call
-        if RootNode <> nil then RootNode.UnregisterScene;
-      here. }
-    Static := true;
-    {$warnings on}
-    {$else}
-      if RootNode <> nil then
-        RootNode.UnregisterScene;
-    {$endif}
-    FRootNode := nil;
-  end;
-
   inherited;
 end;
 
-procedure TCastleSceneCore.Load(const ARootNode: TX3DRootNode; const AOwnsRootNode: boolean;
+procedure TCastleSceneCore.FreeRootNode;
+begin
+  { These must be done always before freeing }
+  BeforeNodesFree;
+  PointingDeviceClear;
+
+  if FRootNodeCacheOrigin <> nil then
+    X3DCache.FreeNode(FRootNodeCacheOrigin);
+  Assert(FRootNodeCacheOrigin = nil);
+
+  { Not calling UnregisterScene when FOwnsRootNode=true is just an optimization.
+    There's no point in calling recursive UnregisterScene if the FRootNode
+    will be freed right afterwards. }
+  if (FRootNode <> nil) and (not FOwnsRootNode) then
+    FRootNode.UnregisterScene;
+
+  if FOwnsRootNode then
+    FreeAndNil(FRootNode)
+  else
+    FRootNode := nil;
+  Assert(FRootNode = nil);
+end;
+
+procedure TCastleSceneCore.Load(const ARootNode: TX3DRootNode; const AOwnsRootNode: Boolean;
+  const AOptions: TSceneLoadOptions);
+begin
+  LoadCore(ARootNode, nil, AOwnsRootNode, AOptions);
+end;
+
+procedure TCastleSceneCore.LoadCore(const ARootNode: TX3DRootNode;
+  const ARootNodeCacheOrigin: TX3DRootNode;
+  const AOwnsRootNode: boolean;
   const AOptions: TSceneLoadOptions);
 var
   RestoreProcessEvents: boolean;
 begin
+  { ARootNodeCacheOrigin can be non-nil only if ARootNode is non-nil. }
+  Assert(not ((ARootNodeCacheOrigin <> nil) and (ARootNode = nil)));
+
   { temporarily turn off events, to later initialize and turn them on }
   RestoreProcessEvents := ProcessEvents;
   ProcessEvents := false;
-  BeforeNodesFree;
-  PointingDeviceClear;
-  if OwnsRootNode then FreeAndNil(FRootNode);
+
+  FreeRootNode;
 
   FRootNode := ARootNode; // set using FRootNode, we will call ChangedAll later
-  OwnsRootNode := AOwnsRootNode;
+  FRootNodeCacheOrigin := ARootNodeCacheOrigin;
+  FOwnsRootNode := AOwnsRootNode;
   ScheduledShadowMapsProcessing := true;
 
   { We can't call UpdateHeadlightOnFromNavigationInfo here,
@@ -3401,10 +3445,14 @@ end;
 procedure TCastleSceneCore.Load(const AURL: string; const AOptions: TSceneLoadOptions);
 var
   TimeStart: TCastleProfilerTime;
-  NewRoot: TX3DRootNode;
+  NewRoot, NewRootCacheOrigin: TX3DRootNode;
+  C: TCastleCollider;
 begin
   TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TCastleSceneCore)');
   try
+    NewRoot := nil; // set this as RootNode when AURL is ''
+    NewRootCacheOrigin := nil;
+
     if AURL <> '' then
     begin
       { If LoadNode fails:
@@ -3422,10 +3470,19 @@ begin
       }
 
       try
-        // first try to load using cache, this way <warmup_cache> for scenes works
-        NewRoot := X3DCache.TryCopyNode(AURL);
-        if NewRoot = nil then
-          NewRoot := LoadNode(AURL);
+        if Cache then
+        begin
+          NewRootCacheOrigin := X3DCache.LoadNode(AURL);
+          NewRoot := NewRootCacheOrigin.DeepCopy as TX3DRootNode;
+        end else
+        begin
+            { Load using cache, in case the scene was cached using
+            <warmup_cache> or Cache. This way we use cache (without incrementing
+            reference count in cache) even when Cache=false. }
+          NewRoot := X3DCache.TryCopyNode(AURL);
+          if NewRoot = nil then
+            NewRoot := LoadNode(AURL);
+        end;
       except
         on E: Exception do
         begin
@@ -3434,13 +3491,11 @@ begin
             WritelnWarning('TCastleSceneCore', 'Failed to load scene "%s": %s',
               [URIDisplay(AURL), ExceptMessage(E)]);
             NewRoot := nil;
+            NewRootCacheOrigin := nil;
           end else
             raise;
         end;
       end;
-    end else
-    begin
-      NewRoot := nil; // when AURL is ''
     end;
 
     { Set FURL before calling Load below.
@@ -3448,12 +3503,21 @@ begin
       in case AutoAnimation is used) will mention the new URL, not the old one. }
     FURL := AURL;
 
-    Load(NewRoot, true, AOptions);
+    LoadCore(NewRoot, NewRootCacheOrigin, true, AOptions);
 
     { When loading from URL, reset FPrimitiveGeometry.
       Otherwise deserialization would be undefined -- do we load contents
       from URL or PrimitiveGeometry? }
     FPrimitiveGeometry := pgNone;
+
+    { After loading a new model we need to
+      - update sizes calculated by AutoSize for simple colliders
+      - update triangles used by TCastleMeshCollider (note that this code
+        will only update TCastleMeshCollider that is our behavior,
+        it doesn't notify TCastleMeshCollider instances elsewhere that may refer to us). }
+    C := FindBehavior(TCastleCollider) as TCastleCollider;
+    if C <> nil then
+      C.InternalTransformChanged(Self);
   finally Profiler.Stop(TimeStart) end;
 end;
 
@@ -3480,6 +3544,19 @@ end;
 procedure TCastleSceneCore.Loaded;
 begin
   inherited;
+
+  {$ifdef FPC} // with non-FPC, we don't define PrimitiveGeometry at all
+  {$warnings off} // using deprecated to warn about it
+  if PrimitiveGeometry <> pgNone then
+    WritelnWarning('PrimitiveGeometry is deprecated. Instead: use specialized components like TCastleBox, TCastleSphere');
+  {$warnings on}
+  {$endif}
+
+  if FPendingSetUrl <> '' then
+  begin
+    Url := FPendingSetUrl;
+    FPendingSetUrl := '';
+  end;
   UpdateAutoAnimation(false);
   ExposeTransformsChange(nil);
 end;
@@ -3506,12 +3583,7 @@ procedure TCastleSceneCore.SetRootNode(const Value: TX3DRootNode);
 begin
   if FRootNode <> Value then
   begin
-    if OwnsRootNode then
-    begin
-      BeforeNodesFree;
-      PointingDeviceClear;
-      FreeAndNil(FRootNode);
-    end;
+    FreeRootNode;
     FRootNode := Value;
     ScheduleChangedAll;
   end;
@@ -3525,21 +3597,14 @@ begin
 end;
 
 procedure TCastleSceneCore.SetURL(const AValue: string);
-var
-  C: TCastleCollider;
 begin
   if AValue <> FURL then
   begin
-    Load(AValue);
-
-    { After loading a new model we need to
-      - update sizes calculated by AutoSize for simple colliders
-      - update triangles used by TCastleMeshCollider (note that this code
-        will only update TCastleMeshCollider that is our behavior,
-        it doesn't notify TCastleMeshCollider instances elsewhere that may refer to us). }
-    C := FindBehavior(TCastleCollider) as TCastleCollider;
-    if C <> nil then
-      C.InternalTransformChanged(Self);
+    if IsLoading and (AValue <> '') then
+      { Defer actually loading URL to later, when Loading is called, to use proper Cache value. }
+      FPendingSetUrl := AValue
+    else
+      Load(AValue);
   end;
 end;
 
@@ -8570,15 +8635,11 @@ end;
 function TCastleSceneCore.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'URL') or
-     (PropertyName = 'ProcessEvents') or
-     (PropertyName = 'AutoAnimation') or
-     (PropertyName = 'AutoAnimationLoop') or
-     (PropertyName = 'DefaultAnimationTransition') or
-     (PropertyName = 'PreciseCollisions') or
-     (PropertyName = 'ExposeTransforms') or
-     (PropertyName = 'TimePlaying') or
-     (PropertyName = 'TimePlayingSpeed') then
+  if ArrayContainsString(PropertyName, [
+       'URL', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop',
+       'DefaultAnimationTransition', 'PreciseCollisions', 'ExposeTransforms',
+       'TimePlaying', 'TimePlayingSpeed', 'Cache'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

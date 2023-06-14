@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,11 +21,13 @@
     which is a more comfortable descendant of this class. }
   TCastleScrollViewCustom = class(TCastleUserInterface)
   strict private
-    FScroll: Single;
+    FScrollbarFrame: TCastleImagePersistent;
+    FScrollbarSlider: TCastleImagePersistent;
     FScrollbarVisible: Boolean;
+    FScrollbarVerticalMargin: Single;
     { Rects in screen coordinates (like RenderRect),
       after UI scaling and anchors. }
-    ScrollbarFrame, ScrollbarSlider: TFloatRectangle;
+    ScrollbarFrameRect, ScrollbarSliderRect: TFloatRectangle;
     ScrollBarDragging: Boolean;
     FKeyScrollSpeed, FWheelScrollSpeed: Single;
     FScrollBarWidth: Single;
@@ -33,15 +35,21 @@
     DragSinceLastUpdate, DragSpeed, TimeSinceDraggingStopped, TimeSinceDraggingStarted: Double;
     ScrollbarActive: Single;
     FTintScrollBarInactive: TCastleColor;
-    procedure SetScroll(Value: Single);
     { Stop any movement due to inertial force. }
     procedure ResetInertialForce;
+    procedure SetScrollbarVerticalMargin(const AValue: Single);
   protected
     FScrollbarLeft: Boolean;
 
     procedure DoScrollChange; virtual;
 
+    procedure CustomScrollBarChanged(Sender: TObject);
+
     property ScrollbarVisible: Boolean read FScrollbarVisible;
+
+    function GetScroll: Single; virtual; abstract;
+    procedure SetScroll(Value: Single); virtual; abstract;
+    function GetScrollStored: Boolean; virtual; abstract;
 
     { How much @link(Scroll) is represented by the height of the scrollbar slider.
       Among other things, this determines how much @link(Scroll) changes
@@ -59,6 +67,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure RenderOverChildren; override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function PreviewPress(const Event: TInputPressRelease): boolean; override;
@@ -119,20 +128,42 @@
       (just like @link(TCastleUserInterface.Translation),
       @link(TCastleUserInterface.Height),
       @link(TCastleUserInterface.EffectiveHeight)...).
+      And it is always synchronized with @code(ScrollArea.Translation.Y).
 
       In case of @link(TCastleScrollViewManual),
       it can correspond to anything you want.
       You handle @link(TCastleScrollViewManual.OnChange) yourself,
       and interpret this value in whatever way you want. }
-    property Scroll: Single read FScroll write SetScroll {$ifdef FPC}default 0{$endif};
+    property Scroll: Single read GetScroll write SetScroll stored GetScrollStored
+      {$ifdef FPC}default 0{$endif};
+
+    { Customize the image of scrollbar frame, drawn on the right side of this control. }
+    property ScrollbarFrame: TCastleImagePersistent read FScrollbarFrame;
+
+    { Customize the image of scrollbar slider, drawn within ScrollbarFrame. }
+    property ScrollbarSlider: TCastleImagePersistent read FScrollbarSlider;
+
+    { Vertical space between the scrollbar and borders of the scrollview.
+      Can be used e.g. to draw up/down buttons by adding them to the @link(TCastleScrollViewCustom).
+
+      TODO: We should add automatic PageUpDown buttons activated by property
+      ButtonsUpDown: Boolean, with gfx customizable by ButtonUp, ButtonDown.
+      Then the property ScrollbarVerticalMargin should be deprecated. }
+    property ScrollbarVerticalMargin: Single
+      read FScrollbarVerticalMargin write SetScrollbarVerticalMargin {$ifdef FPC}default 0{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
-  { @exclude Internal class to represent @link(TCastleScrollView.ScrollArea). }
-  TInternalCastleScrollArea = class(TCastleUserInterface)
+  { Class that represents scrollable area inside @link(TCastleScrollView.ScrollArea).
+    Never create instances of this class directly -- it should only be created by TCastleScrollView. }
+  TCastleScrollArea = class(TCastleUserInterface)
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property AutoSizeToChildren default true;
     { Do not store VerticalAnchorXxx properties, they should be only controlled
       using @link(TCastleScrollViewCustom.Scroll).
       Note: we cannot prevent storing (duplicated in this case)
@@ -149,11 +180,13 @@
     dragging the whole area - see @link(EnableDragging)). }
   TCastleScrollView = class(TCastleScrollViewCustom)
   strict private
-    FScrollArea: TInternalCastleScrollArea;
+    FScrollArea: TCastleScrollArea;
   protected
     function GetPageSize: Single; override;
     function GetCompleteSize: Single; override;
-    procedure DoScrollChange; override;
+    function GetScroll: Single; override;
+    procedure SetScroll(Value: Single); override;
+    function GetScrollStored: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -171,7 +204,7 @@
         @item(Leave the ScrollArea anchors as default: ScrollArea should be
           anchored to the top-left corner of the parent.)
       ) }
-    property ScrollArea: TInternalCastleScrollArea read FScrollArea;
+    property ScrollArea: TCastleScrollArea read FScrollArea;
   end;
 
   { Control with a scrollbar.
@@ -190,12 +223,16 @@
   strict private
     FOnChange: TNotifyEvent;
     FPageSize, FCompleteSize: Single;
+    FScroll: Single;
     procedure SetPageSize(const AValue: Single);
     procedure SetCompleteSize(const AValue: Single);
   protected
     function GetPageSize: Single; override;
     function GetCompleteSize: Single; override;
     procedure DoScrollChange; override;
+    function GetScroll: Single; override;
+    procedure SetScroll(Value: Single); override;
+    function GetScrollStored: Boolean; override;
   public
     const
       DefaultPageSize = 1;
@@ -230,6 +267,11 @@ begin
   FWheelScrollSpeed := DefaultWheelScrollSpeed;
   FTintScrollBarInactive := White;
 
+  FScrollbarFrame := TCastleImagePersistent.Create;
+  FScrollbarFrame.OnChange := {$Ifdef FPC}@{$endif} CustomScrollBarChanged;
+  FScrollbarSlider := TCastleImagePersistent.Create;
+  FScrollbarSlider.OnChange := {$Ifdef FPC}@{$endif} CustomScrollBarChanged;
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -237,6 +279,9 @@ end;
 
 destructor TCastleScrollViewCustom.Destroy;
 begin
+  FreeAndNil(FScrollbarFrame);
+  FreeAndNil(FScrollbarSlider);
+
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc}
   {$undef read_implementation_destructor}
@@ -246,34 +291,73 @@ end;
 procedure TCastleScrollViewCustom.RenderOverChildren;
 var
   Color: TCastleColor;
+  FinalFrame: TCastleImagePersistent;
+  FinalSlider: TCastleImagePersistent;
 begin
   if ScrollBarVisible then
   begin
     Color := Lerp(ScrollbarActive, TintScrollBarInactive, White);
-    Theme.Draw(ScrollbarFrame, tiScrollbarFrame, UIScale, Color);
-    Theme.Draw(ScrollbarSlider, tiScrollbarSlider, UIScale, Color);
+
+    if FScrollbarFrame.Empty then
+      FinalFrame := Theme.ImagesPersistent[tiScrollbarFrame]
+    else
+      FinalFrame := FScrollbarFrame;
+
+    FinalFrame.DrawUiBegin(UIScale);
+    FinalFrame.Color := FinalFrame.Color * Color;
+    FinalFrame.Draw(ScrollbarFrameRect);
+    FinalFrame.DrawUiEnd;
+
+    if FScrollbarSlider.Empty then
+      FinalSlider := Theme.ImagesPersistent[tiScrollbarSlider]
+    else
+      FinalSlider := FScrollbarSlider;
+
+    FinalSlider.DrawUiBegin(UIScale);
+    FinalSlider.Color := FinalSlider.Color * Color;
+    FinalSlider.Draw(ScrollbarSliderRect);
+    FinalSlider.DrawUiEnd;
   end;
+
   inherited;
+end;
+
+function TCastleScrollViewCustom.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+       'ScrollBarWidth', 'ScrollbarFrame', 'ScrollbarSlider'
+     ]) then
+    Result := [psBasic]
+  else
+  if ArrayContainsString(PropertyName, ['ScrollbarVerticalMargin']) then
+    Result := [psBasic, psLayout]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TCastleScrollViewCustom.DoScrollChange;
 begin
 end;
 
-procedure TCastleScrollViewCustom.SetScroll(Value: Single);
+procedure TCastleScrollViewCustom.CustomScrollBarChanged(Sender: TObject);
 begin
-  ClampVar(Value, ScrollMin, ScrollMax);
-  if FScroll <> Value then
-  begin
-    FScroll := Value;
-    DoScrollChange;
-  end;
+  VisibleChange([chRender]);
 end;
 
 procedure TCastleScrollViewCustom.ResetInertialForce;
 begin
   DragSpeed := 0;
   TimeSinceDraggingStopped := 0;
+end;
+
+procedure TCastleScrollViewCustom.SetScrollbarVerticalMargin(const AValue: Single);
+begin
+  if FScrollbarVerticalMargin <> AValue then
+  begin
+    FScrollbarVerticalMargin := AValue;
+    VisibleChange([chRender]);
+  end;
 end;
 
 procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
@@ -287,23 +371,25 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
     SR := RenderRect;
 
     if FScrollbarLeft then
-      ScrollbarFrame := SR.LeftPart(EffectiveScrollBarWidth * UIScale)
+      ScrollbarFrameRect := SR.LeftPart(EffectiveScrollBarWidth * UIScale)
     else
-      ScrollbarFrame := SR.RightPart(EffectiveScrollBarWidth * UIScale);
+      ScrollbarFrameRect := SR.RightPart(EffectiveScrollBarWidth * UIScale);
 
-    ScrollbarSlider := ScrollbarFrame;
+    ScrollbarFrameRect := ScrollbarFrameRect.Grow(0, - FScrollbarVerticalMargin * UIScale);
+
+    ScrollbarSliderRect := ScrollbarFrameRect;
     if GetCompleteSize = 0 then
       FScrollBarVisible := false
     else
     begin
-      ScrollbarSlider.Height := GetPageSize * SR.Height / GetCompleteSize;
-      ScrollbarSlider.Height := Max(
-        Theme.MinimumScrollbarSliderHeight * UIScale, ScrollbarSlider.Height);
-      // limit ScrollbarSlider.Height to not be taller then this control
-      ScrollbarSlider.Height := Min(
-        EffectiveHeightForChildren * UIScale, ScrollbarSlider.Height);
+      ScrollbarSliderRect.Height := GetPageSize * ScrollbarFrameRect.Height / GetCompleteSize;
+      ScrollbarSliderRect.Height := Max(
+        Theme.MinimumScrollbarSliderHeight * UIScale, ScrollbarSliderRect.Height);
+      // limit ScrollbarSliderRect.Height to not be taller then this control
+      ScrollbarSliderRect.Height := Min(
+        EffectiveHeightForChildren * UIScale, ScrollbarSliderRect.Height);
 
-      FScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height + SingleEpsilon;
+      FScrollBarVisible := ScrollbarFrameRect.Height > ScrollbarSliderRect.Height + SingleEpsilon;
       { equivalent would be to set
           ScrollBarVisible := GetPageSize < GetCompleteSize;
         But this way makes it clear that MapRange below is valid,
@@ -312,10 +398,10 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
     if FScrollBarVisible then
     begin
       { above calculation of FScrollBarVisible must guarantee this. }
-      Assert(ScrollbarFrame.Height > ScrollbarSlider.Height);
-      ScrollbarSlider.Bottom := ScrollbarSlider.Bottom +
+      Assert(ScrollbarFrameRect.Height > ScrollbarSliderRect.Height);
+      ScrollbarSliderRect.Bottom := ScrollbarSliderRect.Bottom +
         (MapRange(Scroll, ScrollMin, ScrollMax,
-          ScrollbarFrame.Height - ScrollbarSlider.Height, 0));
+          ScrollbarFrameRect.Height - ScrollbarSliderRect.Height, 0));
     end else
     begin
       ScrollBarDragging := false;
@@ -341,7 +427,7 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
         Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
       end;
-      HandleInput := not ExclusiveEvents;
+      HandleInput := false;
     end;
   end;
 
@@ -421,6 +507,11 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
 
 begin
   inherited;
+
+  // clamp Scroll, in case the contents shrunk, see https://github.com/castle-engine/castle-engine/issues/465
+  if not Between(Scroll, ScrollMin, ScrollMax) then
+    Scroll := Scroll;
+
   UpdateScrollBarVisibleAndRects;
   HandleKeys;
   DraggingInertialForce;
@@ -433,26 +524,26 @@ begin
   if Result then Exit;
 
   { Process clicks in PreviewPress,
-    since we draw ScrollbarFrame in RenderOverChildren.
-    So clicking on ScrollbarFrame should be captured, before passing them
+    since we draw ScrollbarFrameRect in RenderOverChildren.
+    So clicking on ScrollbarFrameRect should be captured, before passing them
     to children (e.g. TCastleButton inside ScrollArea). }
 
   if ScrollBarVisible and
      Event.IsMouseButton(buttonLeft) and
-     ScrollbarFrame.Contains(Event.Position) then
+     ScrollbarFrameRect.Contains(Event.Position) then
   begin
-    if Event.Position[1] < ScrollbarSlider.Bottom then
+    if Event.Position[1] < ScrollbarSliderRect.Bottom then
     begin
       Scroll := Scroll + GetPageSize;
       ResetInertialForce;
     end else
-    if Event.Position[1] >= ScrollbarSlider.Top then
+    if Event.Position[1] >= ScrollbarSliderRect.Top then
     begin
       Scroll := Scroll - GetPageSize;
       ResetInertialForce;
     end else
       ScrollBarDragging := true;
-    Exit(ExclusiveEvents);
+    Exit(true);
   end;
 end;
 
@@ -478,25 +569,25 @@ begin
             begin
               Scroll := Scroll - GetPageSize;
               ResetInertialForce;
-              Result := ExclusiveEvents;
+              Result := true;
             end;
           keyPageDown, keyNumpadPageDown:
             begin
               Scroll := Scroll + GetPageSize;
               ResetInertialForce;
-              Result := ExclusiveEvents;
+              Result := true;
             end;
           keyHome, keyNumpadHome:
             begin
               Scroll := ScrollMin;
               ResetInertialForce;
-              Result := ExclusiveEvents;
+              Result := true;
             end;
           keyEnd, keyNumpadEnd:
             begin
               Scroll := ScrollMax;
               ResetInertialForce;
-              Result := ExclusiveEvents;
+              Result := true;
             end;
           else ;
         end;
@@ -505,14 +596,14 @@ begin
         begin
           Scroll := Scroll - Event.MouseWheelScroll * WheelScrollSpeed;
           ResetInertialForce;
-          Result := ExclusiveEvents;
+          Result := true;
         end;
       else ;
     end;
 
   { We do not process mouse button clicks (or touches) here
     (not on an entire TCastleScrollViewCustom area -- the code in PreviewPress
-    handles clicks inside ScrollbarFrame only).
+    handles clicks inside ScrollbarFrameRect only).
     We only process dragging (with buttonLeft) inside TCastleScrollViewCustom.Update
     and TCastleScrollViewCustom.Motion.
 
@@ -527,7 +618,7 @@ begin
     with a long text (to make scrolling relevant).)  }
 
   if EnableDragging and Event.IsMouseButton(buttonLeft) and ScrollBarVisible then
-    Result := ExclusiveEvents;
+    Result := true;
 end;
 
 function TCastleScrollViewCustom.Release(const Event: TInputPressRelease): boolean;
@@ -538,7 +629,7 @@ begin
   if Event.IsMouseButton(buttonLeft) then
   begin
     ScrollBarDragging := false;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 end;
 
@@ -551,19 +642,19 @@ begin
 
   if ScrollBarDragging then
   begin
-    { In scaled pixels, dragging by ScrollbarFrame.Height equals changing
+    { In scaled pixels, dragging by ScrollbarFrameRect.Height equals changing
       Scroll by GetCompleteSize. }
     Scroll := Scroll + GetCompleteSize *
-      (Event.OldPosition[1] - Event.Position[1]) / ScrollbarFrame.Height;
+      (Event.OldPosition[1] - Event.Position[1]) / ScrollbarFrameRect.Height;
     ResetInertialForce;
-    Result := ExclusiveEvents;
+    Result := true;
   end else
   if EnableDragging and (buttonLeft in Event.Pressed) then
   begin
     Drag := ((Event.Position[1] - Event.OldPosition[1]) / UIScale);
     Scroll := Scroll + Drag;
     DragSinceLastUpdate := DragSinceLastUpdate + Drag;
-    Result := ExclusiveEvents;
+    Result := true;
   end;
 end;
 
@@ -589,16 +680,31 @@ end;
 {$I auto_generated_persistent_vectors/tcastlescrollviewcustom_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
+{ TCastleScrollArea ---------------------------------------------------------- }
+
+constructor TCastleScrollArea.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  if not (
+      (AOwner is TCastleScrollView) and
+      (TCastleScrollView(AOwner).ScrollArea = nil)
+     ) then
+    raise Exception.Create('TCastleScrollArea can only be created as a subcomponent of TCastleScrollView, do not create it yourself');
+
+  AutoSizeToChildren := true;
+  Anchor(vpTop);
+end;
+
 { TCastleScrollView ---------------------------------------------------------- }
 
 constructor TCastleScrollView.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FScrollArea := TInternalCastleScrollArea.Create(Self);
+  FScrollArea := TCastleScrollArea.Create(Self);
   FScrollArea.SetSubComponent(true);
   FScrollArea.Name := 'ScrollArea';
-  FScrollArea.Anchor(vpTop);
   InsertFront(FScrollArea);
 
   ClipChildren := true;
@@ -614,10 +720,21 @@ begin
   Result := ScrollArea.EffectiveHeight;
 end;
 
-procedure TCastleScrollView.DoScrollChange;
+function TCastleScrollView.GetScroll: Single;
 begin
-  inherited;
-  FScrollArea.Anchor(vpTop, Scroll);
+  Result := FScrollArea.Translation.Y;
+end;
+
+procedure TCastleScrollView.SetScroll(Value: Single);
+begin
+  ClampVar(Value, ScrollMin, ScrollMax);
+  FScrollArea.Anchor(vpTop, Value); // sets FScrollArea.Translation.Y
+end;
+
+function TCastleScrollView.GetScrollStored: Boolean;
+begin
+  // no point in storing Scroll, it is always synchronized with ScrollArea.Translation.Y
+  Result := false;
 end;
 
 { TCastleScrollViewManual ---------------------------------------------------- }
@@ -664,6 +781,26 @@ begin
 
   // since ScrollMax changed, make sure Scroll is within bounds
   Scroll := Scroll;
+end;
+
+function TCastleScrollViewManual.GetScroll: Single;
+begin
+  Result := FScroll;
+end;
+
+procedure TCastleScrollViewManual.SetScroll(Value: Single);
+begin
+  ClampVar(Value, ScrollMin, ScrollMax);
+  if FScroll <> Value then
+  begin
+    FScroll := Value;
+    DoScrollChange;
+  end;
+end;
+
+function TCastleScrollViewManual.GetScrollStored: Boolean;
+begin
+  Result := true;
 end;
 
 {$endif read_implementation}

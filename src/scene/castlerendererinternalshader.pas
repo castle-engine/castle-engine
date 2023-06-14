@@ -384,6 +384,49 @@ type
     FrustumDimensions: TFloatRectangle;
   end;
 
+  { Possible ways to implement clip planes. }
+  TClipPlaneAlgorithm = (
+    {$ifndef OpenGLES}
+    { Use glClipPlane, glEnable(GL_CLIP_PLANE*) calls.
+
+      These are deprecated in newer OpenGL versions.
+
+      The only thing GLSL needs to do is to set gl_ClipVertex
+      to a vertex position in eye space. This way it will work both when
+      shaders are used for rendering and when not.
+    }
+    cpFixedFunction,
+
+    { Vertex shader must calculate gl_ClipDistance[] for each plane.
+      The clipping must also be enabled by glEnable(GL_CLIP_DISTANCE*).
+
+      This works in new OpenGL >= 3.1 without deprecated stuff.
+
+      This requires
+      - OpenGL >= 3.0 (for "glEnable with GL_CLIP_DISTANCE*" in OpenGL API),
+      - and again OpenGL >= 3.0 (for GLSL >= 1.30 that includes "gl_ClipDistance"
+        built-in).
+      - we actuallly bump it to 3.1, so that CastleGLShaders will add a #version,
+        which is required for gl_ClipDistance access.
+
+      See
+      https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/gl_ClipDistance.xhtml
+      https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.1.40.pdf ,
+      https://www.gamedev.net/forums/topic/625559-gl_clipvertex-alternative/ }
+    cpClipDistance,
+    {$endif}
+
+    { We pass the necessary information and do discard in fragment shader.
+
+      This works everywhere where we have shaders,
+      including in OpenGLES 2
+      (without EXT_clip_cull_distance.txt, which is only since OpenGLES 3).
+      So we write to varying castle_ClipDistance[] (exactly like gl_ClipDistance)
+      and then we discard in fragment shader fragments with distance < 0.
+    }
+    cpDiscard
+  );
+
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
     you can create TX3DShaderProgram instance
@@ -454,6 +497,8 @@ type
 
     FShapeBoundingBoxInWorldKnown: Boolean;
     FShapeBoundingBoxInWorld: TBox3D;
+
+    FClipPlaneAlgorithm: TClipPlaneAlgorithm;
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
@@ -2501,74 +2546,76 @@ const
   begin
     { This routine closely cooperates with method EnableClipPlane to set
       up the necessary OpenGL(ES) state.
-      See EnableClipPlane for comments what and why we do. }
+      See TClipPlaneAlgorithm for comments what and why we do. }
 
     if ClipPlanesCount <> 0 then
     begin
-      {$ifndef OpenGLES}
-      if GLFeatures.EnableFixedFunction or (not GLFeatures.Version_3_0) then
-      begin
-        Plug(stVertex,
-          'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
-          '{' +NL+
-          '  gl_ClipVertex = vertex_eye;' +NL+
-          '}');
-      end else
+      case FClipPlaneAlgorithm of
+        {$ifndef OpenGLES}
+        cpFixedFunction:
+          begin
+            Plug(stVertex,
+              'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
+              '{' +NL+
+              '  gl_ClipVertex = vertex_eye;' +NL+
+              '}');
+          end;
 
-      if not ForceOpenGLESClipPlanes then
-      begin
-        PlugVertexDeclarations := '';
-        PlugVertexImplementation := '';
+        cpClipDistance:
+          begin
+            PlugVertexDeclarations := '';
+            PlugVertexImplementation := '';
 
-        for I := 0 to ClipPlanesCount - 1 do
-        begin
-          PlaneName := 'castle_ClipPlane' + IntToStr(I);
-          PlugVertexDeclarations := PlugVertexDeclarations +
-            'uniform vec4 ' + PlaneName + ';' + NL;
-          PlugVertexImplementation := PlugVertexImplementation +
-            '  gl_ClipDistance[' + IntToStr(I) + '] = dot(' + PlaneName + ', vertex_eye);' + NL;
-        end;
+            for I := 0 to ClipPlanesCount - 1 do
+            begin
+              PlaneName := 'castle_ClipPlane' + IntToStr(I);
+              PlugVertexDeclarations := PlugVertexDeclarations +
+                'uniform vec4 ' + PlaneName + ';' + NL;
+              PlugVertexImplementation := PlugVertexImplementation +
+                '  gl_ClipDistance[' + IntToStr(I) + '] = dot(' + PlaneName + ', vertex_eye);' + NL;
+            end;
 
-        Plug(stVertex,
-          '#version 130' + NL + // needed to use gl_ClipDistance
-          PlugVertexDeclarations +
-          'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
-          '{' +NL+
-          PlugVertexImplementation +
-          '}');
-      end else
+            Plug(stVertex,
+              PlugVertexDeclarations +
+              'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
+              '{' +NL+
+              PlugVertexImplementation +
+              '}');
+          end;
+        {$endif}
 
-      {$endif}
-      begin
-        PlugVertexDeclarations := '';
-        PlugVertexImplementation := '';
-        PlugFragmentImplementation := '';
+        cpDiscard:
+          begin
+            PlugVertexDeclarations := '';
+            PlugVertexImplementation := '';
+            PlugFragmentImplementation := '';
 
-        for I := 0 to ClipPlanesCount - 1 do
-        begin
-          PlaneName := 'castle_ClipPlane' + IntToStr(I);
-          PlugVertexDeclarations := PlugVertexDeclarations +
-            'uniform vec4 ' + PlaneName + ';' + NL;
-          PlugVertexImplementation := PlugVertexImplementation +
-            '  castle_ClipDistance[' + IntToStr(I) + '] = dot(' + PlaneName + ', vertex_eye);' + NL;
-          PlugFragmentImplementation := PlugFragmentImplementation +
-            '  if (castle_ClipDistance[' + IntToStr(I) + '] < 0.0) discard;' + NL;
-        end;
+            for I := 0 to ClipPlanesCount - 1 do
+            begin
+              PlaneName := 'castle_ClipPlane' + IntToStr(I);
+              PlugVertexDeclarations := PlugVertexDeclarations +
+                'uniform vec4 ' + PlaneName + ';' + NL;
+              PlugVertexImplementation := PlugVertexImplementation +
+                '  castle_ClipDistance[' + IntToStr(I) + '] = dot(' + PlaneName + ', vertex_eye);' + NL;
+              PlugFragmentImplementation := PlugFragmentImplementation +
+                '  if (castle_ClipDistance[' + IntToStr(I) + '] < 0.0) discard;' + NL;
+            end;
 
-        Plug(stVertex,
-          'varying float castle_ClipDistance[' + IntToStr(ClipPlanesCount) + '];' +NL+
-          PlugVertexDeclarations +
-          'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
-          '{' +NL+
-          PlugVertexImplementation +
-          '}');
+            Plug(stVertex,
+              'varying float castle_ClipDistance[' + IntToStr(ClipPlanesCount) + '];' +NL+
+              PlugVertexDeclarations +
+              'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
+              '{' +NL+
+              PlugVertexImplementation +
+              '}');
 
-        Plug(stFragment,
-          'varying float castle_ClipDistance[' + IntToStr(ClipPlanesCount) + '];' +NL+
-          'void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)' +NL+
-          '{' +NL+
-          PlugFragmentImplementation +
-          '}');
+            Plug(stFragment,
+              'varying float castle_ClipDistance[' + IntToStr(ClipPlanesCount) + '];' +NL+
+              'void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)' +NL+
+              '{' +NL+
+              PlugFragmentImplementation +
+              '}');
+          end;
       end;
     end;
 
@@ -2940,36 +2987,6 @@ var
     AProgram.Disable;
   end;
 
-  procedure DoLogShaders;
-  const
-    ShaderTypeNameX3D: array [TShaderType] of string =
-    ( 'VERTEX', 'GEOMETRY', 'FRAGMENT' );
-  var
-    ShaderType: TShaderType;
-    LogStr, LogStrPart: string;
-    I: Integer;
-  begin
-    LogStr :=
-      '# Generated shader code for shape ' + ShapeNiceName + ' by ' + ApplicationName + '.' + NL +
-      '# To try this out, paste this inside Appearance node in VRML/X3D classic encoding.' + NL +
-      'shaders ComposedShader {' + NL +
-      '  language "GLSL"' + NL +
-      '  parts [' + NL;
-    for ShaderType := Low(ShaderType) to High(ShaderType) do
-      for I := 0 to Source[ShaderType].Count - 1 do
-      begin
-        LogStrPart := Source[ShaderType][I];
-        LogStrPart := StringReplace(LogStrPart, '/* PLUG:', '/* ALREADY-PROCESSED-PLUG:', [rfReplaceAll]);
-        LogStrPart := StringReplace(LogStrPart, '/* PLUG-DECLARATIONS */', '/* ALREADY-PROCESSED-PLUG-DECLARATIONS */', [rfReplaceAll]);
-        LogStr := LogStr + '    ShaderPart { type "' + ShaderTypeNameX3D[ShaderType] +
-          '" url "data:text/plain,' +
-          StringToX3DClassic(LogStrPart, false) + '"' + NL +
-          '    }';
-      end;
-    LogStr := LogStr + '  ]' + NL + '}';
-    WritelnLogMultiline('Generated Shader', LogStr);
-  end;
-
   procedure EnableMirrorPlaneTexCoords;
   begin
     if NeedsMirrorPlaneTexCoords then
@@ -2984,40 +3001,6 @@ var
     if Source[stFragment].Count > 0 then
       Source[stFragment][0] := StringReplace(Source[stFragment][0],
         '/* CASTLE-COMMON-CODE */', {$I common.fs.inc}, [rfReplaceAll]);
-  end;
-
-  { To use sampler2DShadow, and call texture and textureProj on it,
-    on OpenGLES we need to require higher GLSL version. }
-  procedure EnableShadowSamplers;
-  begin
-    {$ifdef OpenGLES}
-    if UsesShadowMaps then
-    begin
-      Assert(GLFeatures.TextureDepthCompare);
-
-      if Source[stVertex].Count > 0 then
-        Source[stVertex  ][0] := '#version 300 es' + NL +
-          '#define attribute in' + NL +
-          '#define varying out' + NL +
-          '#define texture2D texture' + NL +
-          '#define texture2DProj textureProj' + NL +
-          { Otherwise each sampler2DShadow would have to contain precision specifier.
-            EXT_shadow_samplers says that lowp is default, so presumably it is OK:
-            https://registry.khronos.org/OpenGL/extensions/EXT/EXT_shadow_samplers.txt }
-          'precision lowp sampler2DShadow;' + NL +
-          Source[stVertex  ][0];
-
-      if Source[stFragment].Count > 0 then
-        Source[stFragment][0] := '#version 300 es' + NL +
-          '#define varying in' + NL +
-          '#define texture2D texture' + NL +
-          '#define texture2DProj textureProj' + NL +
-          '#define gl_FragColor castle_FragColor' + NL +
-          'out mediump vec4 castle_FragColor;' + NL +
-          'precision lowp sampler2DShadow;' + NL +
-          Source[stFragment][0];
-    end;
-    {$endif}
   end;
 
 var
@@ -3045,7 +3028,6 @@ begin
   if GroupEffects <> nil then
     EnableEffects(GroupEffects);
   EnableMirrorPlaneTexCoords;
-  EnableShadowSamplers;
 
   if HasGeometryMain then
   begin
@@ -3087,9 +3069,6 @@ begin
       end;
   end;
 
-  if LogShaders then
-    DoLogShaders;
-
   try
     if (Source[stVertex].Count = 0) and
        (Source[stFragment].Count = 0) then
@@ -3097,6 +3076,7 @@ begin
 
     for ShaderType := Low(ShaderType) to High(ShaderType) do
       AProgram.AttachShader(ShaderType, Source[ShaderType]);
+    AProgram.Name := 'TShader:Shape:' + ShapeNiceName;
     AProgram.Link;
 
     if SelectedNode <> nil then
@@ -3128,10 +3108,7 @@ const
   VS = {$I fallback.vs.inc};
   FS = {$I fallback.fs.inc};
 begin
-  if LogShaders then
-    WritelnLogMultiline('Using Fallback GLSL shaders',
-      'Fallback vertex shader:' + NL +  VS + NL +
-      'Fallback fragment shader:' + NL + FS);
+  AProgram.Name := 'TShader:Fallback';
   AProgram.AttachShader(stVertex, VS);
   AProgram.AttachShader(stFragment, FS);
   AProgram.Link;
@@ -3194,9 +3171,7 @@ begin
   { Enable for shader pipeline }
 
   TextureShader := TTextureShader.Create;
-  TextureShader.HasMatrixTransform :=
-    (TextureMatrix.IndexOf(TextureUnit) <> -1)
-    and not (GLVersion.BuggyShaderShadowMap and (TextureType = tt2DShadow));
+  TextureShader.HasMatrixTransform := (TextureMatrix.IndexOf(TextureUnit) <> -1);
   TextureShader.TextureUnit := TextureUnit;
   TextureShader.TextureType := TextureType;
   TextureShader.Node := Node;
@@ -3248,7 +3223,7 @@ begin
   { Enable for fixed-function pipeline }
   if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
-  { Rest of code code fixed-function pipeline
+  { Rest of code for fixed-function pipeline
     (glTexGeni and glEnable(GL_TEXTURE_GEN_*)) is below }
 
   TexCoordName := TTextureShader.CoordName(TextureUnit);
@@ -3435,25 +3410,10 @@ begin
   { This effectively adds 2003 * ClipPlanesCount to hash. }
   FCodeHash.AddInteger(2003);
 
-  { Below we have THREE different implementations of clip planes:
-    1. old desktop OpenGL (fast, but deprecated)
-    2. new desktop OpenGL (fast, not deprecated)
-    3. OpenGLES (slow), possible on desktop OpenGL also when ForceOpenGLESClipPlanes.
-  }
-
   {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction or (not GLFeatures.Version_3_0) then
+  if GLFeatures.EnableFixedFunction or (not GLFeatures.Version_3_1) then
   begin
-    { In case of older OpenGL (< 3.0, or with EnableFixedFunction),
-      we rely on glClipPlane, glEnable(GL_CLIP_PLANE*) calls.
-
-      The only thing GLSL needs to do is to set gl_ClipVertex
-      to a vertex position in eye space. This way it will work both when
-      shaders are used for rendering and when not.
-      (Remember that EnableFixedFunction=true does mean that shaders
-      are *possible but not guaranteed*. We don't know at this point
-      if the rendering will use shaders or not.)
-    }
+    FClipPlaneAlgorithm := cpFixedFunction;
 
     glClipPlane(GL_CLIP_PLANE0 + ClipPlaneIndex, Vector4Double(Plane));
     glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
@@ -3461,20 +3421,7 @@ begin
 
   if not ForceOpenGLESClipPlanes then
   begin
-    { In new OpenGL without deprecated stuff, the vertex shader
-      must calculate gl_ClipDistance[] for each plane.
-      The clipping must also be enabled by glEnable(GL_CLIP_DISTANCE*).
-
-      This requires
-      - OpenGL >= 3.0 (for "glEnable with GL_CLIP_DISTANCE*" in OpenGL API),
-      - and again OpenGL >= 3.0 (for GLSL >= 1.30 that includes "gl_ClipDistance"
-        built-in).
-
-      See
-      https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/gl_ClipDistance.xhtml
-      https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.1.40.pdf ,
-      https://www.gamedev.net/forums/topic/625559-gl_clipvertex-alternative/
-    }
+    FClipPlaneAlgorithm := cpClipDistance;
 
     glEnable(GL_CLIP_DISTANCE0 + ClipPlaneIndex);
 
@@ -3489,12 +3436,7 @@ begin
 
   {$endif}
   begin
-    { In OpenGLES 2
-      (without EXT_clip_cull_distance.txt, which is only since OpenGLES 3),
-      one has to do discard in the fragment shader.
-      So we write to varying castle_ClipDistance[] (exactly like gl_ClipDistance)
-      and then we discard in fragment shader fragments with distance < 0.
-    }
+    FClipPlaneAlgorithm := cpDiscard;
 
     Uniform := TDynamicUniformVec4.Create;
     Uniform.Name := 'castle_ClipPlane' + IntToStr(ClipPlaneIndex);
@@ -3509,11 +3451,12 @@ end;
 procedure TShader.DisableClipPlane(const ClipPlaneIndex: Cardinal);
 begin
   {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction or (not GLFeatures.Version_3_0) then
-    glDisable(GL_CLIP_PLANE0 + ClipPlaneIndex)
-  else
-  if not ForceOpenGLESClipPlanes then
-    glDisable(GL_CLIP_DISTANCE0 + ClipPlaneIndex);
+  case FClipPlaneAlgorithm of
+    cpFixedFunction:
+      glDisable(GL_CLIP_PLANE0 + ClipPlaneIndex);
+    cpClipDistance:
+      glDisable(GL_CLIP_DISTANCE0 + ClipPlaneIndex);
+  end;
   {$endif}
 end;
 

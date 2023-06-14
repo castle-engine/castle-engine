@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,9 +25,9 @@ uses Classes,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
-    //LabelFps: TCastleLabel;
+  //published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -40,7 +40,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleVectors, CastleTransform,
+  CastleVectors,
   { needed in the uses clause, to register TImageGrid }
   GameControls;
 
@@ -55,15 +55,12 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-  { Find components, by name, that we need to access from code }
-  //LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
-  //LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
 end.

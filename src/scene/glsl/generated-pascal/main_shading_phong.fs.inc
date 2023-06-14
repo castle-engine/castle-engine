@@ -5,10 +5,6 @@
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding +
 '*/' + LineEnding +
 '' + LineEnding +
-'#ifdef GL_ES' + LineEnding +
-'precision mediump float;' + LineEnding +
-'#endif' + LineEnding +
-'' + LineEnding +
 '/* PLUG-DECLARATIONS */' + LineEnding +
 '' + LineEnding +
 '#ifdef HAS_GEOMETRY_SHADER' + LineEnding +

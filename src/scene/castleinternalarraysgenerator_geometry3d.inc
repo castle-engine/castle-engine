@@ -33,7 +33,7 @@ type
 
     { Add triangle indexes to IndexesFromCoordIndex, TrivialIndexesFromCoordIndex,
       increase IFSNextIndex by 3. }
-    procedure AddTriangleIndexes(const T0, T1, T2: TGeometryIndex);
+    procedure AddTriangleIndexes(const T0, T1, T2: UInt32);
 
     procedure PrepareIndexesCoordsRange1(
       const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
@@ -222,7 +222,7 @@ begin
   end;
 end;
 
-procedure TAbstractIndexedFaceSetGenerator.AddTriangleIndexes(const T0, T1, T2: TGeometryIndex);
+procedure TAbstractIndexedFaceSetGenerator.AddTriangleIndexes(const T0, T1, T2: UInt32);
 begin
   TrivialIndexesFromCoordIndex.List^[IFSNextIndex] := T0; IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[T0]; Inc(IFSNextIndex);
   TrivialIndexesFromCoordIndex.List^[IFSNextIndex] := T1; IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[T1]; Inc(IFSNextIndex);
@@ -285,9 +285,9 @@ begin
   end;
 
   { calculate TrivialIndexesFromCoordIndex, IndexesFromCoordIndex contents: triangulate }
-  IndexesFromCoordIndex := TGeometryIndexList.Create;
+  IndexesFromCoordIndex := TUInt32List.Create;
   IndexesFromCoordIndex.Count := IFSIndexesCount;
-  TrivialIndexesFromCoordIndex := TGeometryIndexList.Create;
+  TrivialIndexesFromCoordIndex := TUInt32List.Create;
   TrivialIndexesFromCoordIndex.Count := IFSIndexesCount;
   IFSNextIndex := 0;
   Geometry.InternalMakeCoordRanges(State,

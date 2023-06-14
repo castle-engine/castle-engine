@@ -1,186 +1,192 @@
 {
+  "$$ClassName" : "TCastleUserInterface",
   "FullSize" : true,
   "Name" : "Group1",
   "$Children" : [
     {
+      "$$ClassName" : "TCastleRectangleControl",
       "FullSize" : true,
-      "Name" : "RectangleControl1",
-      "$Children" : [
-      ],
-      "$ClassName" : "TCastleRectangleControl"
+      "Name" : "RectangleControl1"
     },
     {
-      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "$$ClassName" : "TCastleHorizontalGroup",
       "Name" : "ButtonsLeft",
       "Spacing" : 1.0000000000000000E+001,
-      "VerticalAnchorDelta" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : 1.0000000000000000E+001
+      },
       "$Children" : [
         {
+          "$$ClassName" : "TCastleButton",
           "Caption" : "HTML",
           "CustomBackgroundDisabled" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundFocused" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundNormal" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundPressed" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "Image" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "Name" : "ButtonHtml",
           "Pressed" : true,
           "Toggle" : true,
           "VerticalAnchorParent" : "vpMiddle",
-          "VerticalAnchorSelf" : "vpMiddle",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleButton"
+          "VerticalAnchorSelf" : "vpMiddle"
         },
         {
+          "$$ClassName" : "TCastleButton",
           "Caption" : "Wrap",
           "CustomBackgroundDisabled" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundFocused" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundNormal" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundPressed" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
-          "HorizontalAnchorDelta" : 1.1400000000000000E+002,
           "Image" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "Name" : "ButtonWrap",
           "Pressed" : true,
           "Toggle" : true,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.1400000762939453E+002
+          },
           "VerticalAnchorParent" : "vpMiddle",
-          "VerticalAnchorSelf" : "vpMiddle",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleButton"
+          "VerticalAnchorSelf" : "vpMiddle"
         }
-      ],
-      "$ClassName" : "TCastleHorizontalGroup"
+      ]
     },
     {
-      "HorizontalAnchorDelta" : -1.0000000000000000E+001,
+      "$$ClassName" : "TCastleHorizontalGroup",
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "ButtonsRight",
       "Spacing" : 1.0000000000000000E+001,
-      "VerticalAnchorDelta" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -1.0000000000000000E+001,
+        "Y" : 1.0000000000000000E+001
+      },
       "$Children" : [
         {
+          "$$ClassName" : "TCastleButton",
           "Caption" : "Left",
           "CustomBackgroundDisabled" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundFocused" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundNormal" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundPressed" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "Image" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "Name" : "ButtonAlignLeft",
           "Pressed" : true,
           "Toggle" : true,
           "VerticalAnchorParent" : "vpMiddle",
-          "VerticalAnchorSelf" : "vpMiddle",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleButton"
+          "VerticalAnchorSelf" : "vpMiddle"
         },
         {
+          "$$ClassName" : "TCastleButton",
           "Caption" : "Middle",
           "CustomBackgroundDisabled" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundFocused" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundNormal" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundPressed" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
-          "HorizontalAnchorDelta" : 8.8000000000000000E+001,
           "Image" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "Name" : "ButtonAlignMiddle",
           "Toggle" : true,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 8.8000000000000000E+001
+          },
           "VerticalAnchorParent" : "vpMiddle",
-          "VerticalAnchorSelf" : "vpMiddle",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleButton"
+          "VerticalAnchorSelf" : "vpMiddle"
         },
         {
+          "$$ClassName" : "TCastleButton",
           "Caption" : "Right",
           "CustomBackgroundDisabled" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundFocused" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundNormal" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "CustomBackgroundPressed" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
-          "HorizontalAnchorDelta" : 2.1600000000000000E+002,
           "Image" : {
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent"
           },
           "Name" : "ButtonAlignRight",
           "Toggle" : true,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 2.1600000000000000E+002
+          },
           "VerticalAnchorParent" : "vpMiddle",
-          "VerticalAnchorSelf" : "vpMiddle",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleButton"
+          "VerticalAnchorSelf" : "vpMiddle"
         }
-      ],
-      "$ClassName" : "TCastleHorizontalGroup"
+      ]
     },
     {
+      "$$ClassName" : "TCastleScrollView",
       "Border" : {
+        "$$ClassName" : "TBorder",
         "AllSides" : 1.0000000000000000E+001,
-        "Bottom" : 6.0000000000000000E+001,
-        "$ClassName" : "TBorder"
+        "Bottom" : 6.0000000000000000E+001
       },
       "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
         "Blue" : 1.0000000000000000E+000,
         "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000,
-        "$ClassName" : "TCastleColorPersistent"
+        "Red" : 1.0000000000000000E+000
       },
       "EnableDragging" : true,
       "FullSize" : true,
       "Name" : "ScrollView",
       "ScrollArea" : {
+        "$$ClassName" : "TCastleScrollArea",
         "Height" : 5.0000000000000000E+002,
-        "Name" : "ScrollArea",
         "Width" : 5.0000000000000000E+002,
         "$Children" : [
           {
+            "$$ClassName" : "TCastleLabel",
             "Html" : true,
             "Name" : "LabelMain",
             "Text" : [
@@ -205,18 +211,10 @@
               "You can also use HTML paragraph &lt;p&gt; and &lt;br&gt; and &lt;br/&gt; elements.<br>Newline.<br/>Another newline.<p>Paragraph &lt;p&gt; is simply just 2 newlines, so it makes a line-size break. <p>Line wrapping always works Ok, <font color=\"#00FF00\">even if you go crazy with colors and <b><i>bold/italic</i></b></font>. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
             ],
             "VerticalAnchorParent" : "vpTop",
-            "VerticalAnchorSelf" : "vpTop",
-            "$Children" : [
-            ],
-            "$ClassName" : "TCastleLabel"
+            "VerticalAnchorSelf" : "vpTop"
           }
-        ],
-        "$ClassName" : "TInternalCastleScrollArea"
-      },
-      "$Children" : [
-      ],
-      "$ClassName" : "TCastleScrollView"
+        ]
+      }
     }
-  ],
-  "$ClassName" : "TCastleUserInterface"
+  ]
 }

@@ -915,13 +915,9 @@ begin
                   Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
                   Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
                   {$I image.fs.inc};
-            if LogShaders then
-            begin
-              WritelnLogMultiline('TDrawableImage GLSL vertex shader', VS);
-              WritelnLogMultiline('TDrawableImage GLSL fragment shader', FS);
-            end;
 
             NewProgram.Prog := TGLSLProgram.Create;
+            NewProgram.Prog.Name := 'TDrawableImage';
             NewProgram.Prog.AttachVertexShader(VS);
             NewProgram.Prog.AttachFragmentShader(FS);
             NewProgram.Prog.Link;

@@ -23,9 +23,11 @@ uses Classes,
 
 type
   TViewLevelComplete = class(TCastleView)
-  private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     ButtonCredits: TCastleButton;
-
+  private
     procedure ClickCredits(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -54,8 +56,6 @@ end;
 procedure TViewLevelComplete.Start;
 begin
   inherited;
-
-  ButtonCredits := DesignedComponent('ButtonCredits') as TCastleButton;
   ButtonCredits.OnClick := {$ifdef FPC}@{$endif}ClickCredits;
 
   { Play menu music }

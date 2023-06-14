@@ -385,7 +385,7 @@ begin
   begin
     FPressPos := Event.Position;
     FMotionIsClick := true;
-    Result := ExclusiveEvents;   // be sure to get messages
+    Result := true;   // be sure to get messages
   end;
 end;
 

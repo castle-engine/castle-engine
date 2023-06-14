@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2021 Michalis Kamburelis.
+  Copyright 2001-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,7 +40,7 @@ type
     procedure SetSourceFont(const Value: TCastleAbstractFont);
     procedure SubFontFontSizeChange(Sender: TObject);
   strict protected
-    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
+    procedure Measure(out AHeight, ACapHeight, ADescenderHeight: Single); override;
     procedure GLContextClose; override;
     procedure SetSize(const Value: Single); override;
   protected
@@ -301,16 +301,16 @@ begin
   end;
 end;
 
-procedure TCustomizedFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
+procedure TCustomizedFont.Measure(out AHeight, ACapHeight, ADescenderHeight: Single);
 begin
   { In usual circumstances, overriding Measure in TCustomizedFont is not needed.
     The default implementation of ancestor would work OK,
-    by calling TextHeight to measure "Wy" for RowHeight,
+    by calling TextHeight to measure "Wy" for Height,
     and TCustomizedFont.TextHeight refers to FSourceFont.TextHeight already.
 
     But if the FSourceFont has some custom override for Measure,
     like TLargeDigitsFont.Measure in testcastlefonts.pas
-    that returns constant instead of measuring "Wy" height for RowHeight
+    that returns constant instead of measuring "Wy" height for Height
     (because TLargeDigitsFont doesn't have "Wy" letters)
     then it would be ignored.
     This would cause problems when wrapping a font in TCustomizedFont
@@ -322,14 +322,14 @@ begin
 
   if SubFont = nil then
   begin
-    ARowHeight := 0;
-    ARowHeightBase := 0;
-    ADescend := 0;
+    AHeight := 0;
+    ACapHeight := 0;
+    ADescenderHeight := 0;
     Exit; // subfonts not set yet
   end;
 
   SubFontCustomizeBegin;
-  SubFont.Measure(ARowHeight, ARowHeightBase, ADescend);
+  SubFont.Measure(AHeight, ACapHeight, ADescenderHeight);
   SubFontCustomizeEnd;
 end;
 

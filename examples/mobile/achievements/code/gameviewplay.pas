@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,19 +25,19 @@ uses Classes,
 type
   { Main "playing game" view, where most of the game logic takes place. }
   TViewPlay = class(TCastleView)
-  private
-    { DragonFlying and DragonFlyingTarget manage currect dragon (SceneDragon)
-      animation and it's movement. }
-    DragonFlying: Boolean;
-    DragonFlyingTarget: TVector2;
-
-    { Components designed using CGE editor, loaded from gameviewplay.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     SceneDragon: TCastleScene;
     CheckboxCameraFollow: TCastleCheckbox;
     ButtonShowAchievements: TCastleButton;
-
+  private
+    { DragonFlying and DragonFlyingTarget manage currect dragon (SceneDragon)
+      animation and it's movement. }
+    DragonFlying: Boolean;
+    DragonFlyingTarget: TVector2;
     procedure ChangeCheckboxCameraFollow(Sender: TObject);
     procedure ClickShowAchievements(Sender: TObject);
   public
@@ -66,14 +66,6 @@ end;
 procedure TViewPlay.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
-  SceneDragon := DesignedComponent('SceneDragon') as TCastleScene;
-  CheckboxCameraFollow := DesignedComponent('CheckboxCameraFollow') as TCastleCheckbox;
-  ButtonShowAchievements := DesignedComponent('ButtonShowAchievements') as TCastleButton;
-
   CheckboxCameraFollow.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxCameraFollow;
   ButtonShowAchievements.OnClick := {$ifdef FPC}@{$endif} ClickShowAchievements;
 end;

@@ -341,6 +341,8 @@ const
     GL_TRIANGLE_FAN,
     GL_TRIANGLE_STRIP,
     GL_LINE_STRIP,
+    GL_LINE_LOOP,
+    GL_LINES,
     GL_POINTS
   );
 var

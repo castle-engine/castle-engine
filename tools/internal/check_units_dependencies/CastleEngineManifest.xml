@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
 <project name="check_one_unit_dependencies" standalone_source="check_one_unit_dependencies.lpr">
   <data exists="false" />
 </project>

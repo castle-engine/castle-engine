@@ -32,6 +32,8 @@
     function GetFogCoord: TFogCoordinateNode;
     procedure SetFogCoord(const Value: TFogCoordinateNode);
 {$endif not CASTLE_SLIM_NODES}
+    function GetMode: TLineMode;
+    procedure SetMode(const Value: TLineMode);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -75,6 +77,12 @@
     procedure SetVertexCount(const Value: array of Int32); overload;
     {  }
     procedure SetVertexCount(const Value: TInt32List); overload;
+
+    strict private FFdMode: TSFStringEnum;
+    { Internal wrapper for property @link(Mode). This wrapper API may change, we advise to access simpler @link(Mode) instead. }
+    public property FdMode: TSFStringEnum read FFdMode;
+    { How to interpret the vertexes: as a set of strips, loops, or just pairs of vertexes. See possible @link(TLineMode) values for details. }
+    property Mode: TLineMode read GetMode write SetMode;
 
 {$endif read_interface}
 
@@ -147,6 +155,16 @@ begin
   FdVertexCount.Send(Value);
 end;
 
+function TLineSetNode.GetMode: TLineMode;
+begin
+  Result := TLineMode(FdMode.EnumValue);
+end;
+
+procedure TLineSetNode.SetMode(const Value: TLineMode);
+begin
+  FdMode.SendEnumValue(Ord(Value));
+end;
+
 class function TLineSetNode.ClassX3DType: String;
 begin
   Result := 'LineSet';
@@ -179,6 +197,10 @@ begin
   FFdVertexCount := TMFInt32.Create(Self, True, 'vertexCount', []);
    FdVertexCount.ChangeAlways := chGeometry;
   AddField(FFdVertexCount);
+
+  FFdMode := TSFStringEnum.Create(Self, False, 'mode', @LineModeNames, Ord(High(LineModeNames)) + 1, Ord(lmStrip));
+   FdMode.ChangeAlways := chGeometry;
+  AddField(FFdMode);
 end;
 
 {$endif read_implementation}

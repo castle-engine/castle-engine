@@ -870,7 +870,6 @@ type
 
     { Append code to embed this image inside Pascal source code. }
     procedure SaveToPascalCode(const ImageName: string;
-      const ShowProgress: boolean;
       var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
 
     { Set the RGB colors for transparent pixels to the nearest non-transparent
@@ -2016,7 +2015,6 @@ function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
 
 implementation
 
-{$warnings off} // TODO: temporarily, this uses deprecated CastleProgress
 uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   {$ifdef USE_VAMPYRE_IMAGING} Imaging, ImagingClasses, ImagingTypes,
     { Using ImagingExtFileFormats explicitly is necessary to include extra formats when
@@ -2027,10 +2025,9 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
       VampyreImagingPackage.lpk and VampyreImagingPackageExt.lpk). }
     ImagingExtFileFormats,
   {$endif}
-  CastleInternalZLib, CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
+  CastleInternalZLib, CastleStringUtils, CastleFilesUtils, CastleLog, CastleDynLib,
   CastleInternalCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils,
   CastleStreamUtils;
-{$warnings on}
 
 { parts ---------------------------------------------------------------------- }
 
@@ -2751,7 +2748,6 @@ begin
 end;
 
 procedure TCastleImage.SaveToPascalCode(const ImageName: string;
-  const ShowProgress: boolean;
   var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
 var
   NameWidth, NameHeight, NameDepth, NamePixels: string;
@@ -2781,11 +2777,6 @@ begin
       +IntToStr(PixelSize) + ' - 1] of Byte = (' + NL +
     '    ';
 
-  if ShowProgress then
-    Progress.Init((Size - 1) div 12,
-      Format('Generating %s (%s, alpha: %s)',
-        [ImageName, ClassName, AlphaToString[AlphaChannel]]));
-
   pb := PByte(RawPixels);
   for I := 1 to Size - 1 do
   begin
@@ -2793,7 +2784,6 @@ begin
     if (i mod 12) = 0 then
     begin
       CodeImplementation := CodeImplementation + NL + '    ';
-      if ShowProgress then Progress.Step;
     end else
       CodeImplementation := CodeImplementation + ' ';
     Inc(pb);
@@ -2813,8 +2803,6 @@ begin
     'end;' + NL +
     NL +
     '';
-
-  if ShowProgress then Progress.Fini;
 
   CodeFinalization := CodeFinalization +
     '  FreeAndNil(F' +ImageName+ ');' +nl;
@@ -3666,27 +3654,18 @@ var
   X, Y, Z: Integer;
 begin
   Result := MakeCopy;
-  if ProgressTitle <> '' then
-    Progress.Init(Width * Height * Depth, ProgressTitle);
-  try
-    for X := 0 to Width - 1 do
-      for Y := 0 to Height - 1 do
-        for Z := 0 to Depth - 1 do
+  for X := 0 to Width - 1 do
+    for Y := 0 to Height - 1 do
+      for Z := 0 to Depth - 1 do
+      begin
+        P := Result.PixelPtr(X, Y, Z);
+        if P^.W <> High(Byte) then
         begin
-          P := Result.PixelPtr(X, Y, Z);
-          if P^.W <> High(Byte) then
-          begin
-            NewP := FindNearestNonTransparentPixel(X, Y, Z);
-            if NewP <> nil then
-              Move(NewP^, P^, SizeOf(TVector3Byte));
-          end;
-          if ProgressTitle <> '' then
-            Progress.Step;
+          NewP := FindNearestNonTransparentPixel(X, Y, Z);
+          if NewP <> nil then
+            Move(NewP^, P^, SizeOf(TVector3Byte));
         end;
-  finally
-    if ProgressTitle <> '' then
-      Progress.Fini;
-  end;
+      end;
 end;
 
 { TRGBFloatImage ------------------------------------------------------------ }

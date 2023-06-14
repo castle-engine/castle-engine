@@ -1,3 +1,4 @@
+{%MainUnit x3dloadinternalspine.pas}
 {
   Copyright 2014-2023 Michalis Kamburelis.
 
@@ -401,11 +402,11 @@ begin
       (TexRect[0].Y <> 1) or
       (TexRect[1].Y <> 1)) and
      SpineVerboseWarnings then
-    WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "compress whitespace" option selected. '+'Rendering artifacts may occur if mesh faces use the texture in "whitespace" region --- in such case, export again with "compress whitespace" turned off at atlas generation.',
+    WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "Strip whitespace X" or "Strip whitespace Y" options selected. '+'Rendering artifacts may occur if mesh faces use the texture in the "whitespace" region. To be safe, export with "Strip whitespace X = Off" and "Strip whitespace Y = Off" in "Texture Packer Settings".',
       [SlotName, Name]));
 
   if TexRotated then
-    WritelnWarning('Spine ' + URIDisplay(BaseUrl), 'Atlas region is rotated, and is used for mesh attachment. This is not supported (texture will most likely be applied incorrectly), export atlas again with "Rotate" turned off.');
+    WritelnWarning('Spine ' + URIDisplay(BaseUrl), 'Atlas region used for mesh attachment is rotated. This is not supported, texture will be applied incorrectly. Export with "Rotation" turned off in "Texture Packer Settings".');
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
   UVRangeX.X := Min(TexCoord[0].X, TexCoord[2].X);

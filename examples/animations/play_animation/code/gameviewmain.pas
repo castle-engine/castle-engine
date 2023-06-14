@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2022 Michalis Kamburelis, Andrzej Kilijański.
+  Copyright 2018-2023 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -27,8 +27,9 @@ uses SysUtils, Classes, Math,
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
-  private
-    { Components designed using CGE editor, loaded from gameviewmain.castle-user-interface. }
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
     Viewport: TCastleViewport;
     Scene: TCastleScene;
@@ -36,7 +37,7 @@ type
     SceneAnimationButtons: TCastleUserInterface;
     CheckboxForward, CheckboxLoop, CheckboxMagFilterNearest, CheckboxMinFilterNearest, CheckboxAnimationNamingLoadOpt: TCastleCheckbox;
     SliderTransition, SliderScale, SliderFPSLoadOpt: TCastleFloatSlider;
-
+  private
     { Event handlers }
     procedure OpenScene(const Url: String);
     procedure ClickButtonOpen3D(Sender: TObject);
@@ -78,26 +79,6 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  LabelFps := DesignedComponent('LabelFps') as TCastleLabel;
-  Viewport := DesignedComponent('Viewport') as TCastleViewport;
-  Scene := DesignedComponent('Scene') as TCastleScene;
-  ButtonOpen3D := DesignedComponent('ButtonOpen3D') as TCastleButton;
-  ButtonOpen2DSpine := DesignedComponent('ButtonOpen2DSpine') as TCastleButton;
-  ButtonOpen2DStarling := DesignedComponent('ButtonOpen2DStarling') as TCastleButton;
-  ButtonOpen2DCocos2d := DesignedComponent('ButtonOpen2DCocos2d') as TCastleButton;
-  ButtonOpen2DImage := DesignedComponent('ButtonOpen2DImage') as TCastleButton;
-  ButtonOpenDialog := DesignedComponent('ButtonOpenDialog') as TCastleButton;
-  SliderFPSLoadOpt := DesignedComponent('SliderFPSLoadOpt') as TCastleFloatSlider;
-  CheckboxAnimationNamingLoadOpt := DesignedComponent('CheckboxAnimationNamingLoadOpt') as TCastleCheckbox;
-  CheckboxForward := DesignedComponent('CheckboxForward') as TCastleCheckbox;
-  CheckboxLoop := DesignedComponent('CheckboxLoop') as TCastleCheckbox;
-  SliderTransition := DesignedComponent('SliderTransition') as TCastleFloatSlider;
-  CheckboxMagFilterNearest := DesignedComponent('CheckboxMagFilterNearest') as TCastleCheckbox;
-  CheckboxMinFilterNearest := DesignedComponent('CheckboxMinFilterNearest') as TCastleCheckbox;
-  SliderScale := DesignedComponent('SliderScale') as TCastleFloatSlider;
-  SceneAnimationButtons := DesignedComponent('SceneAnimationButtons') as TCastleUserInterface;
 
   { attach events }
   ButtonOpen3D.OnClick := {$ifdef FPC}@{$endif} ClickButtonOpen3D;

@@ -23,6 +23,9 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetKeyValueQuaternions: Boolean;
+    procedure SetKeyValueQuaternions(const Value: Boolean);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -38,6 +41,12 @@
     strict private FEventValue_changed: TSFRotationEvent;
     {  }
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
+
+    strict private FFdKeyValueQuaternions: TSFBool;
+    { Internal wrapper for property @link(KeyValueQuaternions). This wrapper API may change, we advise to access simpler @link(KeyValueQuaternions) instead. }
+    public property FdKeyValueQuaternions: TSFBool read FFdKeyValueQuaternions;
+    { When @true, key values are provided as unit quaternions. By default (when @false) they have to be axis angle rotations. This allows extra optimization in case your input data is in quaternions, which is true in case of glTF. It is then most efficient to just put quternions in TOrientationInterpolatorNode.FdKeyValue and set this to @true.  Otherwise, you would 1. needlessly convert quaternion -> axisangle when reading glTF file, 2. needlessly convert axisangle -> quaternion as a first step of SLerp. }
+    property KeyValueQuaternions: Boolean read GetKeyValueQuaternions write SetKeyValueQuaternions;
 
 {$endif read_interface}
 
@@ -55,6 +64,16 @@ begin
   FdKeyValue.Send(Value);
 end;
 
+function TOrientationInterpolatorNode.GetKeyValueQuaternions: Boolean;
+begin
+  Result := FdKeyValueQuaternions.Value;
+end;
+
+procedure TOrientationInterpolatorNode.SetKeyValueQuaternions(const Value: Boolean);
+begin
+  FdKeyValueQuaternions.Send(Value);
+end;
+
 class function TOrientationInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'OrientationInterpolator';
@@ -70,6 +89,10 @@ begin
 
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
+
+  FFdKeyValueQuaternions := TSFBool.Create(Self, True, 'keyValueQuaternions', false);
+   FdKeyValueQuaternions.ChangeAlways := chNone;
+  AddField(FFdKeyValueQuaternions);
 end;
 
 {$endif read_implementation}

@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2022 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,9 +24,12 @@ uses Classes, CastleControls, CastleUIControls, CastleOnScreenMenu,
 
 type
   TViewPlay = class(TCastleView)
-  strict private
+  published
+    { Components designed using CGE editor.
+      These fields will be automatically initialized at Start. }
     MainViewport, MapViewport: TCastleViewport;
     ButtonBack: TCastleButton;
+  strict private
     procedure ClickBack(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -57,11 +60,6 @@ end;
 procedure TViewPlay.Start;
 begin
   inherited;
-
-  { Find components, by name, that we need to access from code }
-  MainViewport := DesignedComponent('MainViewport') as TCastleViewport;
-  MapViewport := DesignedComponent('MapViewport') as TCastleViewport;
-  ButtonBack := DesignedComponent('ButtonBack') as TCastleButton;
 
   { turn off head bobbing, it makes a feeling that sprites sometimes "tremble" }
 //  WalkNavigation.HeadBobbing := 0;
