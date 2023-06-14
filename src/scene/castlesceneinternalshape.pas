@@ -31,10 +31,21 @@ type
     This is TShape extended with some information needed by TCastleScene.
     Non-internal units never expose instances of this class. }
   TGLShape = class(TX3DRendererShape)
-  public
-    { Keeps track if this shape was passed to Renderer.Prepare. }
-    PreparedForRenderer: boolean;
+  strict private
+    { Shape resources are associated with (prepared for) this renderer,
+      if non-nil.
+      - PrepareResources (and internal RendererAttach) set it to non-nil,
+      - GLContextClose (and internal RendererDetach) sets it to nil. }
+    Renderer: TGLRenderer;
 
+    { Unassociate with Renderer and set it to nil, if non-nil. }
+    procedure RendererDetach;
+
+    { Associate with ARenderer and assign it as Renderer.
+      Doesn't take care of deinitializing previous Renderer value,
+      or even checking is it different than ARenderer. }
+    procedure RendererAttach(const ARenderer: TGLRenderer);
+  public
     UseAlphaChannel: TAlphaChannel;
     { Is UseAlphaChannel calculated and current. }
     PreparedUseAlphaChannel: boolean;
@@ -59,7 +70,7 @@ type
 
     procedure Changed(const InactiveOnly: boolean;
       const Changes: TX3DChanges); override;
-    procedure PrepareResources;
+    procedure PrepareResources(const ARenderer: TGLRenderer);
     procedure GLContextClose;
 
     { Request from parent TCastleScene to call our PrepareResources at next time. }
@@ -187,8 +198,11 @@ begin
        chFontStyleFontChanged
      ] <> [] then
   begin
-    //TODO:Renderer.UnprepareTexture(State.MainTexture);
-    PreparedForRenderer := false;
+    if Renderer <> nil then
+    begin
+      Renderer.UnprepareTexture(State.MainTexture);
+      RendererDetach;
+    end;
     PreparedUseAlphaChannel := false;
     //TODO:SchedulePrepareResources;
   end;
@@ -201,12 +215,49 @@ begin
   end;
 end;
 
-procedure TGLShape.PrepareResources;
-begin
-  if not PreparedForRenderer then
+procedure TGLShape.RendererDetach;
+
+  { When Renderer is nil, we should not hold any resources connected to it. }
+  procedure CheckNoCaches;
+  var
+    Pass: TTotalRenderingPass;
   begin
-    //TODO:Renderer.Prepare(Self);
-    PreparedForRenderer := true;
+    Assert(Cache = nil, 'When Renderer = nil, Cache should also be nil');
+    for Pass := Low(Pass) to High(Pass) do
+      Assert(ProgramCache[Pass] = nil, 'When Renderer = nil, all ProgramCache[Pass] should also be nil');
+  end;
+
+var
+  Pass: TTotalRenderingPass;
+begin
+  if Renderer <> nil then
+  begin
+    { Free Arrays and Vbo of all shapes. }
+    if Cache <> nil then
+      Renderer.Cache.Shape_DecReference(Self, Cache);
+    for Pass := Low(Pass) to High(Pass) do
+      if ProgramCache[Pass] <> nil then
+        Renderer.Cache.Program_DecReference(ProgramCache[Pass]);
+    Renderer := nil;
+  end;
+
+  CheckNoCaches;
+end;
+
+procedure TGLShape.RendererAttach(const ARenderer: TGLRenderer);
+begin
+  Renderer := ARenderer;
+  Renderer.RenderOptions := TCastleScene(ParentScene).RenderOptions;
+  Renderer.Prepare(Self);
+end;
+
+procedure TGLShape.PrepareResources(const ARenderer: TGLRenderer);
+begin
+  if Renderer <> ARenderer then
+  begin
+    RendererDetach;
+    if ARenderer <> nil then
+      RendererAttach(ARenderer);
   end;
 
   if not PreparedUseAlphaChannel then
@@ -226,10 +277,9 @@ begin
 end;
 
 procedure TGLShape.GLContextClose;
-var
-  Pass: TTotalRenderingPass;
 begin
-  PreparedForRenderer := false;
+  RendererDetach;
+
   PreparedUseAlphaChannel := false;
 
   if OcclusionQueryId <> 0 then
@@ -237,16 +287,6 @@ begin
     glDeleteQueries(1, @OcclusionQueryId);
     OcclusionQueryId := 0;
   end;
-
-  { Free Arrays and Vbo of all shapes. }
-  //TODO:
-  (*
-  if Cache <> nil then
-    Renderer.Cache.Shape_DecReference(Self, Cache);
-  for Pass := Low(Pass) to High(Pass) do
-    if ProgramCache[Pass] <> nil then
-      Renderer.Cache.Program_DecReference(ProgramCache[Pass]);
-  *)
 end;
 
 function TGLShape.UseBlending: Boolean;

@@ -59,7 +59,7 @@ type
     SimpleOcclusionQueryRenderer: TSimpleOcclusionQueryRenderer;
     HierarchicalOcclusionQueryRenderer: THierarchicalOcclusionQueryRenderer;
     BlendingRenderer: TBlendingRenderer;
-    Renderer: TGLRenderer;
+    FRenderer: TGLRenderer;
     FBatching: TBatchShapes;
 
     { Checks DynamicBatching and TODO: not occlusion query. }
@@ -93,7 +93,16 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    procedure PrepareResources;
     procedure GLContextClose;
+
+    { Shapes can use this to initialize their resources.
+
+      TODO: This is hack, association shape->Renderer should not be necessary.
+      Shape should store its stuff in GLContextCache and have references to it,
+      and be independent from Renderer.
+      This property should not be public then. }
+    property Renderer: TGLRenderer read FRenderer;
 
     { Render all given shapes.
 
@@ -160,7 +169,7 @@ begin
   HierarchicalOcclusionQueryRenderer := THierarchicalOcclusionQueryRenderer.Create(
     {Self} nil { TODO occlusion query broken }, OcclusionQueryUtilsRenderer);
   BlendingRenderer := TBlendingRenderer.Create;
-  Renderer := TGLRenderer.Create;
+  FRenderer := TGLRenderer.Create;
 end;
 
 destructor TShapesRenderer.Destroy;
@@ -169,9 +178,71 @@ begin
   FreeAndNil(SimpleOcclusionQueryRenderer);
   FreeAndNil(OcclusionQueryUtilsRenderer);
   FreeAndNil(BlendingRenderer);
-  FreeAndNil(Renderer);
+  FreeAndNil(FRenderer);
   FreeAndNil(FBatching);
   inherited;
+end;
+
+procedure TShapesRenderer.PrepareResources;
+
+  { Call TGLShape.PrepareResources for shapes in "batching pool". }
+  procedure BatchingShapesPrepareResources;
+  var
+    I: Integer;
+  begin
+    for I := 0 to Batching.PoolShapesCount - 1 do
+    begin
+      Assert(Batching.PoolShapes[I] <> nil);
+      Batching.PoolShapes[I].PrepareResources(FRenderer);
+    end;
+  end;
+
+  { Simulate rendering for shapes in "batching pool". }
+  procedure BatchingShapesRender;
+  var
+    I: Integer;
+    DummyStatistics: TRenderStatistics;
+    DummyCamera: TRenderingCamera;
+    DummyRenderOptions: TCastleRenderOptions;
+    SavedRenderMode: TGLRenderer.TRenderMode;
+    Shape: TGLShape;
+  begin
+    // TODO: should not be required for rendering here?
+    DummyRenderOptions := TCastleRenderOptions.Create(nil);
+    try
+      Renderer.RenderOptions := DummyRenderOptions;
+
+      SavedRenderMode := Renderer.RenderMode;
+      Renderer.RenderMode := rmPrepareRenderSelf;
+
+      DummyCamera := TRenderingCamera.Create;
+      try
+        DummyCamera.FromMatrix(TVector3.Zero,
+          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+
+        Renderer.RenderBegin(nil, DummyCamera, nil, 0, 0, 0, @DummyStatistics);
+
+        for I := 0 to Batching.PoolShapesCount - 1 do
+        begin
+          Shape := Batching.PoolShapes[I];
+          TGLShape(Shape).SceneModelView := TMatrix4.Identity;
+          TGLShape(Shape).Fog := nil;
+          Renderer.RenderShape(TGLShape(Shape));
+        end;
+
+        Renderer.RenderEnd;
+      finally FreeAndNil(DummyCamera) end;
+
+      Renderer.RenderMode := SavedRenderMode; // restore Renderer.RenderMode
+    finally FreeAndNil(DummyRenderOptions) end;
+  end;
+
+begin
+  if ReallyDynamicBatching then
+  begin
+    BatchingShapesPrepareResources;
+    BatchingShapesRender;
+  end;
 end;
 
 procedure TShapesRenderer.GLContextClose;
@@ -207,7 +278,7 @@ begin
   if IsGlobalLight and
     (*Do not filter out headlight nodes, even if they belong to current scene.
       Headlight nodes are always considered "global lights" and are not present
-      on our InternalGlobalLights list, so we don't want to filter them out here.
+      on our GlobalLights list, so we don't want to filter them out here.
 
       Testcase: castle-game, with "Tower" level that defines in basic_castle_final.x3dv
       headlight like this:
@@ -262,7 +333,7 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
       Batching.Commit;
       for Shape in Batching.Collected do
       begin
-        Shape.Shape.PrepareResources; // otherwise, shapes from batching FPool would never have PrepareResources called?
+        Shape.Shape.PrepareResources(FRenderer); // otherwise, shapes from batching FPool would never have PrepareResources called?
         RenderShape_NoTests(Shape);
       end;
       Batching.FreeCollected;

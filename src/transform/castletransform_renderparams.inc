@@ -281,10 +281,12 @@
 
   { Information that a TCastleTransform object needs to prepare rendering.
 
-    This is @bold(mostly an internal class). You should not need to create it,
+    This is an internal class.
+
+    You should not need to create it,
     you should not need to read anything inside or deal with this class otherwise.
 
-    The only official usage allowed is to pass an instance of this class
+    The only usage allowed, but deprecated, is to pass an instance of this class
     taken from @link(TCastleViewport.PrepareParams)
     as a parameter to @link(TCastleTransform.PrepareResources).
     You should treat this class as a "black box" in normal applications. }
@@ -296,14 +298,18 @@
       And all the lighting is dynamic, so of course you can always
       turn on / off things like a headlight during the game.
       However, passing here the appropriate lights will mean that the shaders
-      are immediately prepared for the current lighting.
+      are immediately prepared for the current lighting. }
+    GlobalLights: TAbstractLightInstancesList;
 
-      @exclude }
-    InternalGlobalLights: TAbstractLightInstancesList;
+    { World fog, in any, to prepare for. }
+    GlobalFog: TAbstractFogNode;
 
-    { World fog, in any, to prepare for.
-      @exclude }
-    InternalGlobalFog: TAbstractFogNode;
+    { Renderer used by encompassing viewport. Always TGLRenderer.
+      Shapes can use this to initialize their resources.
+
+      TODO: Passing this around is a hack, shapes should not associate
+      with TGLRenderer, see TShapesRenderer.Renderer TODO also. }
+    Renderer: TObject;
   end;
 
 {$endif read_interface}

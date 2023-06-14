@@ -284,6 +284,7 @@ type
 
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const Params: TPrepareParams); override;
+      deprecated 'this is internal; use TCastleViewport.PrepareResources to prepare transformations';
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
@@ -512,7 +513,8 @@ implementation
 uses Math,
   CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
   CastleShapeInternalRenderShadowVolumes, CastleURIUtils,
-  CastleComponentSerialize, CastleRenderContext, CastleFilesUtils, CastleInternalGLUtils;
+  CastleComponentSerialize, CastleRenderContext, CastleFilesUtils,
+  CastleInternalGLUtils, CastleInternalRenderer;
 
 {$define read_implementation}
 {$I castlescene_roottransform.inc}
@@ -1050,10 +1052,9 @@ end;
 procedure TCastleScene.PrepareResources(
   const Options: TPrepareResourcesOptions;
   const Params: TPrepareParams);
-begin
-end;
+var
+  Renderer: TGLRenderer;
 
-(* TODO: no Renderer here anymore to use for prepare
   procedure PrepareShapesResources;
   var
     ShapeList: TShapeList;
@@ -1062,11 +1063,7 @@ end;
   begin
     ShapeList := Shapes.TraverseList(false, false);
     for Shape in ShapeList do
-      TGLShape(Shape).PrepareResources;
-
-    if DynamicBatching then
-      for I := 0 to Batching.PoolShapesCount - 1 do
-        Batching.PoolShapes[I].PrepareResources;
+      TGLShape(Shape).PrepareResources(Renderer);
   end;
 
   procedure PrepareRenderShapes;
@@ -1110,7 +1107,7 @@ end;
       GoodParams := Params;
     end;
 
-    ReceivedGlobalLights := GoodParams.InternalGlobalLights as TLightInstancesList;
+    ReceivedGlobalLights := GoodParams.GlobalLights as TLightInstancesList;
 
     { We need some non-nil TRenderingCamera instance to be able
       to render with lights. }
@@ -1126,6 +1123,7 @@ end;
       DummyCamera.FromMatrix(TVector3.Zero,
         TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
 
+      Renderer.RenderOptions := RenderOptions;
       Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0, @DummyStatistics);
 
       for Shape in ShapeList do
@@ -1136,18 +1134,9 @@ end;
           with SceneModelView matrix = zero. }
         TGLShape(Shape).SceneModelView := TMatrix4.Identity;
         TGLShape(Shape).SceneTransform := TMatrix4.Identity;
-        TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
+        TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.GlobalFog as TFogNode);
         Renderer.RenderShape(TGLShape(Shape));
       end;
-
-      if DynamicBatching then
-        for I := 0 to Batching.PoolShapesCount - 1 do
-        begin
-          Shape := Batching.PoolShapes[I];
-          TGLShape(Shape).SceneModelView := TMatrix4.Identity;
-          TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
-          Renderer.RenderShape(TGLShape(Shape));
-        end;
 
       Renderer.RenderEnd;
     finally FreeAndNil(DummyCamera) end;
@@ -1200,6 +1189,8 @@ begin
     if PossiblyTimeConsuming then
       TimeStart := Profiler.Start('Prepare Scene Resources ' + URL);
 
+    Renderer := Params.Renderer as TGLRenderer;
+
     if not PreparedShapesResources then
     begin
       { Use PreparedShapesResources to avoid expensive (for large scenes)
@@ -1228,7 +1219,7 @@ begin
     if PossiblyTimeConsuming then
       Profiler.Stop(TimeStart);
   finally Dec(InternalDirty) end;
-end; *)
+end;
 
 procedure TCastleScene.LocalRenderOutside(
   const TestShapeVisibility: TTestShapeVisibility;
@@ -1439,8 +1430,8 @@ begin
       It's much simpler to just call PrepareResources at the beginning.
       The PrepareResources is already optimized to do nothing,
       if everything is ready. }
-    FTempPrepareParams.InternalGlobalLights := Params.GlobalLights;
-    FTempPrepareParams.InternalGlobalFog := Params.GlobalFog;
+    FTempPrepareParams.GlobalLights := Params.GlobalLights;
+    FTempPrepareParams.GlobalFog := Params.GlobalFog;
     PrepareResources([prRenderSelf], FTempPrepareParams);
 
     RenderWithShadowMaps;

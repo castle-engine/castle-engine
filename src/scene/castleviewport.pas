@@ -556,7 +556,7 @@ type
       and this method,
       it's usually easier to call @link(TCastleViewport.PrepareResources).
       Then the appropriate TPrepareParams will be passed automatically. }
-    function PrepareParams: TPrepareParams;
+    function PrepareParams: TPrepareParams; deprecated 'use TCastleViewport.PrepareResources to prepare transforms';
 
     function BaseLights: TLightInstancesList; deprecated 'this is internal info, you should not need this; use PrepareParams to get opaque information to pass to TCastleTransform.PrepareResources';
 
@@ -2434,35 +2434,37 @@ end;
 function TCastleViewport.PrepareParams: TPrepareParams;
 { Note: you cannot refer to PrepareParams inside
   the TCastleTransform.PrepareResources or TCastleTransform.Render implementation,
-  as they may change the referenced PrepareParams.InternalGlobalLights value.
+  as they may change the referenced PrepareParams.GlobalLights value.
 }
 begin
   { We just reuse FRenderParams.FGlobalLights below as a temporary
     TLightInstancesList that we already have created. }
 
-  { initialize FPrepareParams.InternalGlobalLights }
+  { initialize FPrepareParams.GlobalLights }
   FRenderParams.FGlobalLights.Clear;
   InitializeGlobalLights(FRenderParams.FGlobalLights);
-  FPrepareParams.InternalGlobalLights := FRenderParams.FGlobalLights;
+  FPrepareParams.GlobalLights := FRenderParams.FGlobalLights;
 
-  { initialize FPrepareParams.InternalGlobalFog }
+  { initialize FPrepareParams.GlobalFog }
   if Fog <> nil then
-    FPrepareParams.InternalGlobalFog := Fog.InternalFogNode
+    FPrepareParams.GlobalFog := Fog.InternalFogNode
   else
   {$warnings off} // using deprecated MainScene to keep it working
   if UseGlobalFog and
      (Items.MainScene <> nil) then
-    FPrepareParams.InternalGlobalFog := Items.MainScene.FogStack.Top
+    FPrepareParams.GlobalFog := Items.MainScene.FogStack.Top
   {$warnings on}
   else
-    FPrepareParams.InternalGlobalFog := nil;
+    FPrepareParams.GlobalFog := nil;
+
+  FPrepareParams.Renderer := ShapesRenderer.Renderer;
 
   Result := FPrepareParams;
 end;
 
 function TCastleViewport.BaseLights: TLightInstancesList;
 begin
-  Result := PrepareParams.InternalGlobalLights as TLightInstancesList;
+  Result := PrepareParams.GlobalLights as TLightInstancesList;
 end;
 
 procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
@@ -3397,6 +3399,8 @@ begin
   end;
 
   Item.PrepareResources(Options, PrepareParams);
+
+  ShapesRenderer.PrepareResources;
 end;
 
 procedure TCastleViewport.PrepareResources(
