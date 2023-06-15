@@ -2322,8 +2322,11 @@ begin
   Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
-  LightsRenderer := TLightsRenderer.Create(LightRenderEvent, RenderOptions.MaxLightsPerShape);
+  LightsRenderer := TLightsRenderer.Create;
+  LightsRenderer.LightRenderEvent := LightRenderEvent;
   LightsRenderer.RenderingCamera := RenderingCamera;
+
+  LightsRenderer.MaxLightsPerShape := RenderOptions.MaxLightsPerShape;
 
   { Set RenderContext properties, constant for all shapes within this scene.
     Note that all TCastleTransform rendering code that is not inside TCastleScene
