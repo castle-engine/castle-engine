@@ -234,6 +234,7 @@ procedure TShapesRenderer.PrepareResources;
       finally FreeAndNil(DummyCamera) end;
 
       Renderer.RenderMode := SavedRenderMode; // restore Renderer.RenderMode
+      Renderer.RenderOptions := nil; // do not leave dangling pointer
     finally FreeAndNil(DummyRenderOptions) end;
   end;
 
@@ -345,6 +346,11 @@ var
   ReceivedGlobalLights: TLightInstancesList;
   CollectedShape: TCollectedShape;
 begin
+  { TODO: This optimization should be useless, remove.
+    For now it helps with hack that access 0th scene RenderOptions below. }
+  if Shapes.FCollected.Count = 0 then
+    Exit;
+
   if Params.InShadow then
     LightRenderEvent := {$ifdef FPC}@{$endif}LightRenderInShadow
   else
@@ -374,18 +380,22 @@ begin
   else
     ReceivedGlobalLights := nil};
 
+  { Initialize Batching.
+    PreserveShapeOrder may be overridden to true below. }
+  if ReallyDynamicBatching then
+  begin
+    Batching.PreserveShapeOrder := false;
+    Assert(Batching.Collected.Count = 0);
+  end;
+
   if Params.Transparent then
   begin
     { We'll draw partially transparent objects now,
       only from scenes with RenderOptions.Blending. }
 
     if ReallyDynamicBatching then
-    begin
-      // TODO: assert Batching is empty now
       Batching.PreserveShapeOrder := true;
-    end;
-
-    {
+  {
       TODO: The sorting is repeated at every render call.
       This is not optimal in case of 2D, where it would be more efficient
       to only call @link(SortBackToFront2D) when necessary, e.g. when adding/removing
@@ -405,35 +415,33 @@ begin
     We cannot do per-scene operation here.
   }
 
-  if Shapes.FCollected.Count <> 0 then
-  begin
-    // TODO: hack to enable Renderer.RenderBegin
-    Renderer.RenderOptions := Shapes.FCollected[0].RenderOptions;
+  // TODO: hack to enable Renderer.RenderBegin
+  Renderer.RenderOptions := Shapes.FCollected[0].RenderOptions;
 
-    Renderer.RenderBegin(ReceivedGlobalLights, Params.RenderingCamera,
-      LightRenderEvent, Params.InternalPass,
-      {InternalScenePass}{TODO}0, Params.UserPass, @Params.Statistics);
-    try
-      for CollectedShape in Shapes.FCollected do
+  Renderer.RenderBegin(ReceivedGlobalLights, Params.RenderingCamera,
+    LightRenderEvent, Params.InternalPass,
+    {InternalScenePass}{TODO}0, Params.UserPass, @Params.Statistics);
+  try
+    for CollectedShape in Shapes.FCollected do
+    begin
+      if not (ReallyDynamicBatching and Batching.Collect(CollectedShape)) then
       begin
-        if not (ReallyDynamicBatching and Batching.Collect(CollectedShape)) then
-        begin
-          Renderer.RenderOptions := CollectedShape.RenderOptions;
-          RenderShape_NoTests(CollectedShape);
-        end;
+        Renderer.RenderOptions := CollectedShape.RenderOptions;
+        RenderShape_NoTests(CollectedShape);
       end;
+    end;
 
-      BatchingCommit;
+    BatchingCommit;
 
-      { this must be called after BatchingCommit,
-        since BatchingCommit may render some shapes }
+    { This must be called after BatchingCommit,
+      since BatchingCommit may render some shapes }
+    if Params.Transparent then
       BlendingRenderer.RenderEnd;
 
-      { As each RenderShape_SomeTests inside could set OcclusionBoxState,
-        be sure to restore state now. }
-      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(true);
-    finally Renderer.RenderEnd end;
-  end;
+    { As each RenderShape_SomeTests inside could set OcclusionBoxState,
+      be sure to restore state now. }
+    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(true);
+  finally Renderer.RenderEnd end;
 
   // TODO: fixed-function transform has to move to shape rendering
   // {$ifndef OpenGLES}
