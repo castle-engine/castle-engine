@@ -1059,7 +1059,6 @@ var
   var
     ShapeList: TShapeList;
     Shape: TShape;
-    I: Integer;
   begin
     ShapeList := Shapes.TraverseList(false, false);
     for Shape in ShapeList do
@@ -1433,7 +1432,9 @@ begin
     FTempPrepareParams.GlobalLights := Params.GlobalLights;
     FTempPrepareParams.GlobalFog := Params.GlobalFog;
     FTempPrepareParams.RendererToPrepareShapes := Params.RendererToPrepareShapes;
+    {$warnings off} // calling deprecated, but for internal purpose -- do not warn
     PrepareResources([prRenderSelf], FTempPrepareParams);
+    {$warnings on}
 
     RenderWithShadowMaps;
   end;

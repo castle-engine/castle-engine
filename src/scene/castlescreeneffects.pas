@@ -777,7 +777,9 @@ begin
     { We depend here on undocumented TCastleScene.PrepareResources behavior:
       when there is no prRenderSelf or prRenderClones,
       then PrepareParams (3rd argument below) is unused, and may be nil. }
+    {$warnings off} // using deprecated, this should be internal
     ScreenEffectsScene.PrepareResources([prScreenEffects], nil);
+    {$warnings on}
 end;
 
 procedure TCastleScreenEffects.BeforeRender;

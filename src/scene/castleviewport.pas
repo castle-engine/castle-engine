@@ -2464,7 +2464,9 @@ end;
 
 function TCastleViewport.BaseLights: TLightInstancesList;
 begin
+  {$warnings off} // using deprecated in deprecated, to keep it working
   Result := PrepareParams.GlobalLights as TLightInstancesList;
+  {$warnings on}
 end;
 
 procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
@@ -3401,7 +3403,9 @@ begin
     ApplyProjection;
   end;
 
+  {$warnings off} // using deprecated, this should be internal
   Item.PrepareResources(Options, PrepareParams);
+  {$warnings on}
 
   ShapesRenderer.PrepareResources;
 end;
