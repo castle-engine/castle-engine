@@ -2494,7 +2494,7 @@ procedure TGLRenderer.RenderShapeLights(const Shape: TX3DRendererShape;
   const Shader: TShader;
   const Lighting: boolean);
 var
-  SceneLights: TLightInstancesList;
+  FinalGlobalLights, SceneLights: TLightInstancesList;
 begin
   { This is done after setting Shader.MaterialSpecularColor
     by RenderMaterialsBegin,
@@ -2506,12 +2506,17 @@ begin
     there is no point in setting up lights. }
   if Lighting then
   begin
+    if RenderOptions.ReceiveGlobalLights then
+      FinalGlobalLights := GlobalLights
+    else
+      FinalGlobalLights := nil;
+
     if RenderOptions.ReceiveSceneLights then
       SceneLights := Shape.State.Lights
     else
       SceneLights := nil;
 
-    LightsRenderer.Render(GlobalLights, SceneLights, Shader);
+    LightsRenderer.Render(Shape, FinalGlobalLights, SceneLights, Shader);
   end;
 
   RenderShapeFog(Shape, Shader, Lighting);

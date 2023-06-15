@@ -21,14 +21,15 @@ unit CastleRendererInternalLights;
 interface
 
 uses CastleVectors, CastleGLUtils, X3DNodes, CastleRendererInternalShader,
-  CastleTransform;
+  CastleTransform, CastleShapes;
 
 type
   { Callback type for @link(TLightsRenderer.LightRenderEvent).
     Modify whether the light is "on" right before it's rendered.
     By default, LightOn is the value of Light.LightNode.FdOn field.
     This is useful to filter lights. }
-  TLightRenderEvent = procedure (const Light: TLightInstance;
+  TLightRenderEvent = procedure (const Shape: TShape;
+    const Light: TLightInstance;
     const IsGlobalLight: Boolean; var LightOn: boolean) of object;
 
   { Render lights. }
@@ -76,7 +77,8 @@ type
       this renderer considers lights on both lists the same.
       But TLightRenderEvent can apply different filtering on them.
     }
-    procedure Render(const GlobalLights, SceneLights: TLightInstancesList;
+    procedure Render(const Shape: TShape;
+      const GlobalLights, SceneLights: TLightInstancesList;
       const Shader: TShader);
 
     { Modify whether light is "on" right before rendering the light.
@@ -265,7 +267,7 @@ begin
   Inc(Statistics[Result]);
 end;
 
-procedure TLightsRenderer.Render(
+procedure TLightsRenderer.Render(const Shape: TShape;
   const GlobalLights, SceneLights: TLightInstancesList;
   const Shader: TShader);
 var
@@ -321,7 +323,7 @@ var
 
       LightOn := Light^.Node.FdOn.Value;
       if Assigned(LightRenderEvent) then
-        LightRenderEvent(Light^, IsGlobalLight, LightOn);
+        LightRenderEvent(Shape, Light^, IsGlobalLight, LightOn);
 
       if LightOn and InsideLightRadius(Light^) then
       begin

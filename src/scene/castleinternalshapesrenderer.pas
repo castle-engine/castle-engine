@@ -78,7 +78,8 @@ type
       It's useful to pass this as LightRenderEvent to @link(Render)
       when you use shadow algorithm that requires
       you to make a first pass rendering the scene all shadowed. }
-    procedure LightRenderInShadow(const Light: TLightInstance;
+    procedure LightRenderInShadow(const Shape: TShape;
+      const Light: TLightInstance;
       const IsGlobalLight: Boolean; var LightOn: boolean);
 
     { Turn off global lights that are duplicated in current scene.
@@ -87,7 +88,8 @@ type
       and so they work regardless of TCastleScene.CastGlobalLights
       and RenderOptions.ReceiveGlobalLights,
       and are controled by RenderOptions.ReceiveSceneLights. }
-    procedure LightRender(const Light: TLightInstance;
+    procedure LightRender(const Shape: TShape;
+      const Light: TLightInstance;
       const IsGlobalLight: Boolean; var LightOn: boolean);
   public
     constructor Create;
@@ -265,36 +267,36 @@ begin
   Result := FBatching;
 end;
 
-procedure TShapesRenderer.LightRenderInShadow(const Light: TLightInstance;
+procedure TShapesRenderer.LightRenderInShadow(const Shape: TShape;
+  const Light: TLightInstance;
   const IsGlobalLight: Boolean; var LightOn: boolean);
 begin
   if Light.Node.FdShadowVolumes.Value then
     LightOn := false;
-  LightRender(Light, IsGlobalLight, LightOn);
+  LightRender(Shape, Light, IsGlobalLight, LightOn);
 end;
 
-procedure TShapesRenderer.LightRender(const Light: TLightInstance;
+procedure TShapesRenderer.LightRender(const Shape: TShape;
+  const Light: TLightInstance;
   const IsGlobalLight: Boolean; var LightOn: boolean);
 begin
   if IsGlobalLight and
-    (*Do not filter out headlight nodes, even if they belong to current scene.
-      Headlight nodes are always considered "global lights" and are not present
-      on our GlobalLights list, so we don't want to filter them out here.
+      (*Do not filter out headlight nodes, even if they belong to current scene.
+        Headlight nodes are always considered "global lights" and are not present
+        on our GlobalLights list, so we don't want to filter them out here.
 
-      Testcase: castle-game, with "Tower" level that defines in basic_castle_final.x3dv
-      headlight like this:
+        Testcase: castle-game, with "Tower" level that defines in basic_castle_final.x3dv
+        headlight like this:
 
-        NavigationInfo {
-          headlight TRUE
-          headlightNode DirectionalLight {
-            ...
+          NavigationInfo {
+            headlight TRUE
+            headlightNode DirectionalLight {
+              ...
+            }
           }
-        }
-    *)
-    (not Light.Node.InternalHeadlight)
-    // TODO: we don't render from particular scene. what does this mean for this code?
-    {and
-    (Light.Node.Scene = Self)} then
+      *)
+      (not Light.Node.InternalHeadlight) and
+      (Light.Node.Scene = Shape.ParentScene) then
     LightOn := false;
 end;
 
@@ -343,7 +345,6 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
 
 var
   LightRenderEvent: TLightRenderEvent;
-  ReceivedGlobalLights: TLightInstancesList;
   CollectedShape: TCollectedShape;
 begin
   { TODO: This optimization should be useless, remove.
@@ -373,12 +374,6 @@ begin
   //   glLoadMatrix(Render_ModelView);
   // end;
   // {$endif}
-
-  // TODO: we do not render from any particular scene now, fix this code
-  //if RenderOptions.ReceiveGlobalLights then
-    ReceivedGlobalLights := Params.GlobalLights as TLightInstancesList{
-  else
-    ReceivedGlobalLights := nil};
 
   { Initialize Batching.
     PreserveShapeOrder may be overridden to true below. }
@@ -418,7 +413,8 @@ begin
   // TODO: hack to enable Renderer.RenderBegin
   Renderer.RenderOptions := Shapes.FCollected[0].RenderOptions;
 
-  Renderer.RenderBegin(ReceivedGlobalLights, Params.RenderingCamera,
+  Renderer.RenderBegin(Params.GlobalLights as TLightInstancesList,
+    Params.RenderingCamera,
     LightRenderEvent, Params.InternalPass,
     {InternalScenePass}{TODO}0, Params.UserPass, @Params.Statistics);
   try
