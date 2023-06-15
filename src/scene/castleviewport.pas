@@ -2457,7 +2457,7 @@ begin
   else
     FPrepareParams.GlobalFog := nil;
 
-  FPrepareParams.Renderer := ShapesRenderer.Renderer;
+  FPrepareParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
 
   Result := FPrepareParams;
 end;
@@ -2593,7 +2593,10 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
         {$endif}
       end;
       RenderingCamera.RotationOnly := true;
-      BackgroundRenderer.Render(RenderingCamera, BackgroundWireframe, RenderRect, FProjection);
+      { TODO: BackgroundRenderer should have its own ShapesRenderer,
+        ShapesCollector. }
+      BackgroundRenderer.Render(RenderingCamera, BackgroundWireframe,
+        RenderRect, FProjection, ShapesCollector, ShapesRenderer);
       RenderingCamera.RotationOnly := false;
     end;
   end;

@@ -1189,7 +1189,7 @@ begin
     if PossiblyTimeConsuming then
       TimeStart := Profiler.Start('Prepare Scene Resources ' + URL);
 
-    Renderer := Params.Renderer as TGLRenderer;
+    Renderer := Params.RendererToPrepareShapes as TGLRenderer;
 
     if not PreparedShapesResources then
     begin
@@ -1432,6 +1432,7 @@ begin
       if everything is ready. }
     FTempPrepareParams.GlobalLights := Params.GlobalLights;
     FTempPrepareParams.GlobalFog := Params.GlobalFog;
+    FTempPrepareParams.RendererToPrepareShapes := Params.RendererToPrepareShapes;
     PrepareResources([prRenderSelf], FTempPrepareParams);
 
     RenderWithShadowMaps;

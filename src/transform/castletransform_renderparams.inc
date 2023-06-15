@@ -270,6 +270,12 @@
     { Always TShapesCollector at actual rendering. }
     Collector: TObject;
 
+    { Always TGLRenderer at actual rendering, to prepare shapes.
+
+      TODO: Passing this around is a hack, shapes should not associate
+      with TGLRenderer, see TShapesRenderer.Renderer TODO also. }
+    RendererToPrepareShapes: TObject;
+
     constructor Create;
 
     { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }
@@ -309,7 +315,7 @@
 
       TODO: Passing this around is a hack, shapes should not associate
       with TGLRenderer, see TShapesRenderer.Renderer TODO also. }
-    Renderer: TObject;
+    RendererToPrepareShapes: TObject;
   end;
 
 {$endif read_interface}
