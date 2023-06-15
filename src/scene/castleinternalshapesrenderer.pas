@@ -227,9 +227,8 @@ procedure TShapesRenderer.PrepareResources;
         for I := 0 to Batching.PoolShapesCount - 1 do
         begin
           Shape := Batching.PoolShapes[I];
-          TGLShape(Shape).SceneModelView := TMatrix4.Identity;
           TGLShape(Shape).Fog := nil;
-          Renderer.RenderShape(TGLShape(Shape));
+          Renderer.RenderShape(TGLShape(Shape), TMatrix4.Identity);
         end;
 
         Renderer.RenderEnd;
@@ -315,16 +314,11 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
 
     Shape := CollectedShape.Shape;
 
-    // TODO: Change these matrices to Renderer.RenderShape params
-    Shape.SceneTransform := CollectedShape.SceneTransform;
-    Shape.SceneModelView := Params.RenderingCamera.CurrentMatrix *
-      CollectedShape.SceneTransform;
-
     // TODO: Change RenderOptions to Renderer.RenderShape param
     Renderer.RenderOptions := CollectedShape.RenderOptions;
 
     BlendingRenderer.BeforeRenderShape(Shape);
-    Renderer.RenderShape(Shape);
+    Renderer.RenderShape(Shape, CollectedShape.SceneTransform);
   end;
 
   procedure BatchingCommit;

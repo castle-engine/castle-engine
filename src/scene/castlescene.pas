@@ -1126,14 +1126,14 @@ var
 
       for Shape in ShapeList do
       begin
-        { set sensible Shape.ModelView, otherwise it is zero
-          and TShader.EnableClipPlane will raise an exception since
-          PlaneTransform(Plane, SceneModelView); will fail,
-          with SceneModelView matrix = zero. }
-        TGLShape(Shape).SceneModelView := TMatrix4.Identity;
-        TGLShape(Shape).SceneTransform := TMatrix4.Identity;
         TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.GlobalFog as TFogNode);
-        Renderer.RenderShape(TGLShape(Shape));
+        Renderer.RenderShape(TGLShape(Shape),
+          { Pass sensible SceneTransform parameter below,
+            so that TShader.EnableClipPlane will not raise an exception.
+            PlaneTransform(Plane, SceneModelView) should not fail,
+            so matrix should be sensible for homegeneous coordinate transformation
+            (so identity is OK, zero is not OK). }
+          TMatrix4.Identity);
       end;
 
       Renderer.RenderEnd;

@@ -56,6 +56,10 @@ type
 
     CurrentMeshShader: TX3DShaderProgramBase;
 
+    { Complete transformation from shape local coordinates to camera shape:
+      Camera transformation * scene transformation * shape transformation. }
+    ShapeModelView: TMatrix4;
+
     constructor Create(ARenderer: TGLRenderer; AShape: TX3DRendererShape);
 
     { Render the whole geometry.
@@ -370,10 +374,10 @@ begin
 
       if CurrentMeshShader <> nil then
       begin
-        CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ShapeModelView);
+        CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(ShapeModelView);
         CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(RenderContext.ProjectionMatrix);
         if Shader.NeedsNormals then
-          CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ShapeModelView));
+          CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(ShapeModelView));
 
         FinalizeLightingModel;
 
@@ -559,7 +563,7 @@ begin
     scale is used.
     See https://github.com/castle-engine/castle-engine/issues/336 . }
   if RenderOptions.RobustNegativeScale and
-     (Shape.ShapeModelView.Determinant < 0) then
+     (ShapeModelView.Determinant < 0) then
     RenderContext.FrontFaceCcw := not Arrays.FrontFaceCcw
   else
     RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;

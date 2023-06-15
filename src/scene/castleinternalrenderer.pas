@@ -451,9 +451,6 @@ type
   { Shape that can be rendered. }
   TX3DRendererShape = class(TShape)
   private
-    { Set to SceneModelView combined with particular shape transformation. }
-    ShapeModelView: TMatrix4;
-
     { Generate VBO if needed, and reload VBO contents.
       Assumes GLVertexBufferObject is true.
 
@@ -477,14 +474,6 @@ type
     ProgramCache: array [TTotalRenderingPass] of TShaderProgramCache;
 
     Cache: TShapeCache;
-
-    { Assign this each time before passing this shape to RenderShape.
-      Should contain camera and scene transformation (but not particular shape transformation). }
-    SceneModelView: TMatrix4;
-
-    { Assign this each time before passing this shape to RenderShape.
-      Should contain only scene transformation (but not particular shape transformation). }
-    SceneTransform: TMatrix4;
 
     { Assign this each time before passing this shape to RenderShape. }
     Fog: TFogFunctionality;
@@ -741,7 +730,15 @@ type
       const AStatistics: PRenderStatistics);
     procedure RenderEnd;
 
-    procedure RenderShape(const Shape: TX3DRendererShape);
+    { Render given shape.
+
+      @param(SceneTransform The transformation from scene to world,
+        i.e. the transformation that should be multiplied by the Shape
+        transformation (in @code(Shape.State.Transformation.Transform))
+        to get the final transformation to world.)
+    }
+    procedure RenderShape(const Shape: TX3DRendererShape;
+      const SceneTransform: TMatrix4);
 
     { Update generated texture for this shape.
 
@@ -2370,7 +2367,8 @@ begin
   Statistics := nil;
 end;
 
-procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
+procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape;
+  const SceneTransform: TMatrix4);
 
   function ShapeUsesEnvironmentLight(const Shape: TX3DRendererShape): boolean;
   var
@@ -2451,7 +2449,8 @@ begin
     Shader.ShapeRequiresShaders := true;
 
   Shader.ShapeBoundingBoxInSceneEvent := {$ifdef FPC}@{$endif} Shape.BoundingBox;
-  Shader.SceneTransform := Shape.SceneTransform;
+  Shader.SceneTransform := SceneTransform;
+  Shader.SceneModelView := RenderingCamera.CurrentMatrix * SceneTransform;
   Shader.ShadowSampling := RenderOptions.ShadowSampling;
   RenderShapeLineProperties(Shape, Shader);
 end;
@@ -2499,8 +2498,6 @@ begin
   { This is done after setting Shader.MaterialSpecularColor
     by RenderMaterialsBegin,
     as MaterialSpecularColor must be already set during Shader.EnableLight. }
-
-  Shader.SceneModelView := Shape.SceneModelView;
 
   { When lighting is off (for either shaders or fixed-function),
     there is no point in setting up lights. }
@@ -2861,7 +2858,6 @@ begin
   end;
   {$endif}
 
-    Shape.ShapeModelView := Shape.SceneModelView * Shape.State.Transformation.Transform;
     RenderShapeCreateMeshRenderer(Shape, Shader, Lighting);
 
   {$ifndef OpenGLES}
@@ -2893,6 +2889,8 @@ var
       { If we have GeneratorClass, create TCompleteCoordinateRenderer.
         We'll initialize TCompleteCoordinateRenderer.Arrays later. }
       MeshRenderer := TCompleteCoordinateRenderer.Create(Self, Shape);
+      MeshRenderer.ShapeModelView :=
+        Shader.SceneModelView * Shape.State.Transformation.Transform;
       Shape.BumpMappingAllowed := GeneratorClass.BumpMappingAllowed;
     end;
   end;
