@@ -32,11 +32,7 @@ type
     Non-internal units never expose instances of this class. }
   TGLShape = class(TX3DRendererShape)
   strict private
-    { Shape resources are associated with (prepared for) this renderer,
-      if non-nil.
-      - PrepareResources (and internal RendererAttach) set it to non-nil,
-      - GLContextClose (and internal RendererDetach) sets it to nil. }
-    Renderer: TGLRenderer;
+    FRenderer: TGLRenderer;
 
     { Unassociate with Renderer and set it to nil, if non-nil. }
     procedure RendererDetach;
@@ -78,6 +74,12 @@ type
     //procedure SchedulePrepareResources; virtual; abstract;
 
     function UseBlending: Boolean;
+
+    { Shape resources are associated with (prepared for) this renderer,
+      if non-nil.
+      - PrepareResources (and internal RendererAttach) set it to non-nil,
+      - GLContextClose (and internal RendererDetach) sets it to nil. }
+    property Renderer: TGLRenderer read FRenderer;
   end;
 
   { Shape with additional information how to render it inside a world,
@@ -238,7 +240,7 @@ begin
     for Pass := Low(Pass) to High(Pass) do
       if ProgramCache[Pass] <> nil then
         Renderer.Cache.Program_DecReference(ProgramCache[Pass]);
-    Renderer := nil;
+    FRenderer := nil;
   end;
 
   CheckNoCaches;
@@ -246,7 +248,7 @@ end;
 
 procedure TGLShape.RendererAttach(const ARenderer: TGLRenderer);
 begin
-  Renderer := ARenderer;
+  FRenderer := ARenderer;
   Renderer.RenderOptions := TCastleScene(ParentScene).RenderOptions;
   Renderer.Prepare(Self);
 end;

@@ -1072,7 +1072,6 @@ var
     ReceivedGlobalLights: TLightInstancesList;
     GoodParams, OwnParams: TPrepareParams;
     DummyCamera: TRenderingCamera;
-    I: Integer;
     DummyStatistics: TRenderStatistics;
   begin
     if LogRenderer then
@@ -1719,6 +1718,9 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
       TextureNode := GeneratedTextures.L[I].TextureNode;
       GenTexFunctionality := GeneratedTextures.L[I].Functionality;
 
+      if Shape.Renderer = nil then
+        Continue;
+
       { update GenTexFunctionality.InternalUpdateNeeded }
       if TextureNode is TGeneratedShadowMapNode then
       begin
@@ -1744,12 +1746,10 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
       if TextureNode is TGeneratedShadowMapNode then
         AvoidNonShadowCasterRendering := true;
 
-(* TODO: no renderer to do this now
-      Renderer.UpdateGeneratedTextures(Shape, TextureNode,
+      Shape.Renderer.UpdateGeneratedTextures(Shape, TextureNode,
         RenderFunc, ProjectionNear, ProjectionFar,
         ViewpointStack.Top,
         World.MainCamera <> nil, CamPos, CamDir, CamUp);
-*)
 
       AvoidShapeRendering := nil;
       AvoidNonShadowCasterRendering := false;
