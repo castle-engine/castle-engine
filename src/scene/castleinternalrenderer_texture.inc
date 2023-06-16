@@ -31,6 +31,7 @@
       @groupBegin }
     procedure HandleTextureProperties(
       const TextureProperties: TTexturePropertiesNode;
+      const RenderOptions: TCastleRenderOptions;
       const RepeatS, RepeatT, RepeatR: TGLenum;
       out Filter: TTextureFilter;
       out BoundaryModeS, BoundaryModeT, BoundaryModeR: TGLenum;
@@ -39,6 +40,7 @@
 
     procedure HandleTextureProperties(
       const TextureProperties: TTexturePropertiesNode;
+      const RenderOptions: TCastleRenderOptions;
       const RepeatS, RepeatT: TGLenum;
       out Filter: TTextureFilter;
       out BoundaryModeS, BoundaryModeT: TGLenum;
@@ -47,6 +49,7 @@
 
     procedure HandleTextureProperties(
       const TextureProperties: TTexturePropertiesNode;
+      const RenderOptions: TCastleRenderOptions;
       out Filter: TTextureFilter;
       out Anisotropy: TGLfloat;
       out GUITexture: boolean); overload;
@@ -167,6 +170,7 @@
       Returns @nil if Node not suitable for TGLTextureNode (not handled,
       or not really a texture node at all). }
     function Prepare(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions;
       const ANode: TAbstractTextureNode;
       const ARenderer: TGLRenderer): TGLTextureNode;
 
@@ -210,7 +214,8 @@
   TGLMultiTextureNode = class(TGLTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TX3DGraphTraverseState); override;
+    procedure PrepareCore(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions); override;
   public
     { ANode must be TMultiTextureNode }
     constructor Create(const ARenderer: TGLRenderer;
@@ -241,7 +246,8 @@
     FGLName: TGLuint;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TX3DGraphTraverseState); override;
+    procedure PrepareCore(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions); override;
   public
     NormalMap, HeightMap: TGLuint;
     HeightMapScale: Single;
@@ -258,7 +264,8 @@
   TGLMovieTextureNode = class(TGL2DTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TX3DGraphTraverseState); override;
+    procedure PrepareCore(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions); override;
   public
     GLVideo: TGLVideo3D;
 
@@ -277,7 +284,8 @@
     RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TX3DGraphTraverseState); override;
+    procedure PrepareCore(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions); override;
   public
     { The actual decided image size and mipmap status. }
     Width, Height: Cardinal;
@@ -320,7 +328,8 @@
   TGLComposedCubeMapTextureNode = class(TGLCubeMapTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TX3DGraphTraverseState); override;
+    procedure PrepareCore(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions); override;
   public
     function TextureNode: TComposedCubeMapTextureNode;
   end;
@@ -328,7 +337,8 @@
   TGLImageCubeMapTextureNode = class(TGLCubeMapTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TX3DGraphTraverseState); override;
+    procedure PrepareCore(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions); override;
   public
     function TextureNode: TImageCubeMapTextureNode;
   end;
@@ -338,7 +348,8 @@
     RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TX3DGraphTraverseState); override;
+    procedure PrepareCore(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions); override;
   public
     { The right size of the texture,
       that satisfies all OpenGL cube map sizes requirements
@@ -361,7 +372,8 @@
   TGL3DTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TX3DGraphTraverseState); override;
+    procedure PrepareCore(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions); override;
   public
     GLName: TGLuint;
 
@@ -382,7 +394,8 @@
     FGLName: TGLuint;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TX3DGraphTraverseState); override;
+    procedure PrepareCore(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions); override;
   public
     { The right size of the texture,
       that satisfies all OpenGL sizes requirements. }
@@ -409,7 +422,8 @@
   TGLShaderTexture = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TX3DGraphTraverseState); override;
+    procedure PrepareCore(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions); override;
   public
     function TextureNode: TShaderTextureNode;
     procedure Unprepare; override;
@@ -454,6 +468,7 @@ end;
 
 procedure TGLTextureNode.HandleTextureProperties(
   const TextureProperties: TTexturePropertiesNode;
+  const RenderOptions: TCastleRenderOptions;
   const RepeatS, RepeatT, RepeatR: TGLenum;
   out Filter: TTextureFilter;
   out BoundaryModeS, BoundaryModeT, BoundaryModeR: TGLenum;
@@ -484,11 +499,11 @@ procedure TGLTextureNode.HandleTextureProperties(
   begin
     case FilterAuto of
       minDefault:
-        case Renderer.RenderOptions.MinificationFilter of
+        case RenderOptions.MinificationFilter of
           minDefault: Result := TCastleRenderOptions.DefaultMinificationFilter;
           minFastest: Result := minNearest;
           minNicest : Result := minLinearMipmapLinear;
-          else        Result := Renderer.RenderOptions.MinificationFilter;
+          else        Result := RenderOptions.MinificationFilter;
         end;
       minFastest: Result := minNearest;
       minNicest : Result := minLinearMipmapLinear;
@@ -502,11 +517,11 @@ procedure TGLTextureNode.HandleTextureProperties(
   begin
     case FilterAuto of
       magDefault:
-        case Renderer.RenderOptions.MagnificationFilter of
+        case RenderOptions.MagnificationFilter of
           magDefault: Result := TCastleRenderOptions.DefaultMagnificationFilter;
           magFastest: Result := magNearest;
           magNicest : Result := magLinear;
-          else        Result := Renderer.RenderOptions.MagnificationFilter;
+          else        Result := RenderOptions.MagnificationFilter;
         end;
       magFastest: Result := magNearest;
       magNicest : Result := magLinear;
@@ -549,7 +564,7 @@ begin
     BoundaryModeR := BoundaryModeGL(TextureProperties.BoundaryModeR);
   end else
   begin
-    Filter := TextureFilter(Renderer.RenderOptions);
+    Filter := TextureFilter(RenderOptions);
     Anisotropy := 1;
     GUITexture := false;
 
@@ -563,6 +578,7 @@ end;
 
 procedure TGLTextureNode.HandleTextureProperties(
   const TextureProperties: TTexturePropertiesNode;
+  const RenderOptions: TCastleRenderOptions;
   const RepeatS, RepeatT: TGLenum;
   out Filter: TTextureFilter;
   out BoundaryModeS, BoundaryModeT: TGLenum;
@@ -573,12 +589,14 @@ var
 const
   DummyRepeatMode = GL_REPEAT;
 begin
-  HandleTextureProperties(TextureProperties, RepeatS, RepeatT, DummyRepeatMode,
+  HandleTextureProperties(TextureProperties, RenderOptions,
+    RepeatS, RepeatT, DummyRepeatMode,
     Filter, BoundaryModeS, BoundaryModeT, Dummy, Anisotropy, GUITexture);
 end;
 
 procedure TGLTextureNode.HandleTextureProperties(
   const TextureProperties: TTexturePropertiesNode;
+  const RenderOptions: TCastleRenderOptions;
   out Filter: TTextureFilter;
   out Anisotropy: TGLfloat;
   out GUITexture: boolean);
@@ -588,7 +606,8 @@ const
   DummyRepeatMode = GL_REPEAT;
 begin
   HandleTextureProperties(
-    TextureProperties, DummyRepeatMode, DummyRepeatMode, DummyRepeatMode,
+    TextureProperties, RenderOptions,
+    DummyRepeatMode, DummyRepeatMode, DummyRepeatMode,
     Filter, Dummy[0], Dummy[1], Dummy[2], Anisotropy, GUITexture);
 end;
 
@@ -641,6 +660,7 @@ begin
 end;
 
 function TGLTextureNodes.Prepare(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions;
   const ANode: TAbstractTextureNode;
   const ARenderer: TGLRenderer): TGLTextureNode;
 var
@@ -656,7 +676,7 @@ begin
        (TextureNodeIndex(ANode) = -1) then
     begin
       Result := GLTextureNodeClass.Create(ARenderer, Self, ANode);
-      Result.Prepare(State);
+      Result.Prepare(State, RenderOptions);
       Add(Result);
     end;
   end;
@@ -765,7 +785,8 @@ begin
   Result := TMultiTextureNode(inherited TextureNode);
 end;
 
-procedure TGLMultiTextureNode.PrepareCore(State: TX3DGraphTraverseState);
+procedure TGLMultiTextureNode.PrepareCore(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions);
 var
   ChildTex: TX3DNode;
   I: Integer;
@@ -778,7 +799,8 @@ begin
       if ChildTex is TMultiTextureNode then
         WritelnWarning('VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node') else
       begin
-        Renderer.GLTextureNodes.Prepare(State, TAbstractTextureNode(ChildTex), Renderer);
+        Renderer.GLTextureNodes.Prepare(State, RenderOptions,
+          TAbstractTextureNode(ChildTex), Renderer);
       end;
     end;
   end;
@@ -966,7 +988,8 @@ begin
   Result := TAbstractTexture2DNode(inherited TextureNode);
 end;
 
-procedure TGLImageTextureNode.PrepareCore(State: TX3DGraphTraverseState);
+procedure TGLImageTextureNode.PrepareCore(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
@@ -977,7 +1000,7 @@ var
 begin
   { HandledNode already made sure IsTextureImage = @true }
 
-  HandleTextureProperties(TextureNode.TextureProperties,
+  HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
     TextureRepeatToGL(TextureNode.RepeatS), TextureRepeatToGL(TextureNode.RepeatT),
     Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
 
@@ -1056,7 +1079,8 @@ begin
   Result := TMovieTextureNode(inherited TextureNode);
 end;
 
-procedure TGLMovieTextureNode.PrepareCore(State: TX3DGraphTraverseState);
+procedure TGLMovieTextureNode.PrepareCore(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
@@ -1067,7 +1091,7 @@ var
 begin
   { HandledNode already made sure IsTextureVideo = @true }
 
-  HandleTextureProperties(TextureNode.TextureProperties,
+  HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
     TextureRepeatToGL(TextureNode.RepeatS), TextureRepeatToGL(TextureNode.RepeatT),
     Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
 
@@ -1153,7 +1177,8 @@ begin
   Result := TRenderedTextureNode(inherited TextureNode);
 end;
 
-procedure TGLRenderedTextureNode.PrepareCore(State: TX3DGraphTraverseState);
+procedure TGLRenderedTextureNode.PrepareCore(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions);
 var
   InitialImage: TCastleImage;
   Filter: TTextureFilter;
@@ -1165,7 +1190,7 @@ var
   GUITexture: boolean;
   Sizing: TTextureSizing;
 begin
-  HandleTextureProperties(TextureNode.TextureProperties,
+  HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
     TextureRepeatToGL(TextureNode.FdRepeatS.Value), TextureRepeatToGL(TextureNode.FdRepeatT.Value),
     Filter, BoundaryModeS, BoundaryModeT, Anisotropy, GUITexture);
 
@@ -1699,7 +1724,8 @@ begin
   Result := TComposedCubeMapTextureNode(inherited TextureNode);
 end;
 
-procedure TGLComposedCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseState);
+procedure TGLComposedCubeMapTextureNode.PrepareCore(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
@@ -1718,7 +1744,7 @@ begin
     Exit;
   end;
 
-  HandleTextureProperties(TextureNode.TextureProperties,
+  HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
     Filter, Anisotropy, GUITexture);
 
   try
@@ -1766,7 +1792,8 @@ begin
   Result := TImageCubeMapTextureNode(inherited TextureNode);
 end;
 
-procedure TGLImageCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseState);
+procedure TGLImageCubeMapTextureNode.PrepareCore(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
@@ -1786,7 +1813,7 @@ begin
 
   try
 
-    HandleTextureProperties(TextureNode.TextureProperties,
+    HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
       Filter, Anisotropy, GUITexture);
 
     { TODO: this is a quick and dirty method:
@@ -1826,7 +1853,8 @@ begin
   Result := TGeneratedCubeMapTextureNode(inherited TextureNode);
 end;
 
-procedure TGLGeneratedCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseState);
+procedure TGLGeneratedCubeMapTextureNode.PrepareCore(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
@@ -1839,7 +1867,7 @@ begin
     Exit;
   end;
 
-  HandleTextureProperties(TextureNode.TextureProperties,
+  HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
     Filter, Anisotropy, GUITexture);
 
   { calculate Filter, Anisotropy, NeedsMipmaps }
@@ -1957,7 +1985,8 @@ begin
   Result := TAbstractTexture3DNode(inherited TextureNode);
 end;
 
-procedure TGL3DTextureNode.PrepareCore(State: TX3DGraphTraverseState);
+procedure TGL3DTextureNode.PrepareCore(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
@@ -1979,7 +2008,7 @@ begin
     Setting TextureLoaded already did necessary WritelnWarnings. }
   if TextureNode.TextureImage = nil then Exit;
 
-  HandleTextureProperties(TextureNode.TextureProperties,
+  HandleTextureProperties(TextureNode.TextureProperties, RenderOptions,
     TextureRepeatToGL(TextureNode.FdRepeatS.Value), TextureRepeatToGL(TextureNode.FdRepeatT.Value),
     TextureRepeatToGL(TextureNode.FdRepeatR.Value), Filter, BoundaryModeS, BoundaryModeT, BoundaryModeR, Anisotropy, GUITexture);
 
@@ -2047,7 +2076,8 @@ begin
     GLFeatures.TextureFloat;
 end;
 
-procedure TGLGeneratedShadowMap.PrepareCore(State: TX3DGraphTraverseState);
+procedure TGLGeneratedShadowMap.PrepareCore(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions);
 var
   TextureWrap: TTextureWrap2D;
   Filter: TTextureFilter;
@@ -2060,11 +2090,11 @@ begin
     But it's only for NV_texture_rectangle, without bilinear filtering
     or mipmapping, so it's not useful for VSM at all. }
 
-  VarianceShadowMaps := ClassVarianceShadowMaps(Renderer.RenderOptions);
+  VarianceShadowMaps := ClassVarianceShadowMaps(RenderOptions);
 
   WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: RenderOptions.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)', [
     BoolToStr(VarianceShadowMaps, true),
-    ShadowSamplingNames[Renderer.RenderOptions.ShadowSampling],
+    ShadowSamplingNames[RenderOptions.ShadowSampling],
     BoolToStr(GLFeatures.Shaders, true),
     BoolToStr(GLFeatures.TextureFloat, true)
   ]));
@@ -2227,7 +2257,8 @@ begin
   Result := ANode is TShaderTextureNode;
 end;
 
-procedure TGLShaderTexture.PrepareCore(State: TX3DGraphTraverseState);
+procedure TGLShaderTexture.PrepareCore(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions);
 begin
   { no need to do anything }
 end;

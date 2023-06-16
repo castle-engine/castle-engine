@@ -42,7 +42,6 @@ type
     FShape: TX3DRendererShape;
     FGeometry: TAbstractGeometryNode;
     FState: TX3DGraphTraverseState;
-    FRenderOptions: TCastleRenderOptions;
   protected
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor. }
@@ -50,7 +49,6 @@ type
     property Shape: TX3DRendererShape read FShape;
     property Geometry: TAbstractGeometryNode read FGeometry;
     property State: TX3DGraphTraverseState read FState;
-    property RenderOptions: TCastleRenderOptions read FRenderOptions;
   public
     PrepareRenderShape: Boolean;
 
@@ -59,6 +57,8 @@ type
     { Complete transformation from shape local coordinates to camera shape:
       Camera transformation * scene transformation * shape transformation. }
     ShapeModelView: TMatrix4;
+
+    RenderOptions: TCastleRenderOptions;
 
     constructor Create(ARenderer: TGLRenderer; AShape: TX3DRendererShape);
 
@@ -163,7 +163,6 @@ begin
   FShape := AShape;
   FGeometry := AShape.Geometry;
   FState := AShape.State;
-  FRenderOptions := Renderer.RenderOptions;
 end;
 
 { TBaseCoordinateRenderer ------------------------------------------------ }

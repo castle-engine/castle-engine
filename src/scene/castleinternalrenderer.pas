@@ -82,6 +82,14 @@
          When you render manually inside TCastleTransform.LocalRender,
          you can also assume the state is set to this value,
          and if you change it -- make sure to save/restore it.
+
+      Note that custom rendering inside TCastleTransform.LocalRender
+      never happens between TGLRenderer.RenderBegin and TGLRenderer.RenderEnd calls.
+      It didn't happen in the past (before TShapesRenderer) because
+      each scene did it's own RenderBegin+RenderEnd.
+      It doesn't happen now (after TShapesRenderer) because
+      the RenderBegin+RenderEnd is done at the end of viewport rendering,
+      after all TCastleTransform.LocalRender calls ended.
     )
 
     @item(
@@ -418,7 +426,7 @@ type
       Caller is responsible for checking are Arrays / Vbo zero and
       eventually initializing and setting. }
     function Shape_IncReference(const Shape: TX3DRendererShape;
-      const ARenderer: TGLRenderer): TShapeCache;
+      const RenderOptions: TCastleRenderOptions): TShapeCache;
 
     procedure Shape_DecReference(const Shape: TX3DRendererShape;
       var ShapeCache: TShapeCache);
@@ -547,6 +555,8 @@ type
       used by RenderShapeEnd. }
     TextureTransformUnitsUsedMore: TInt32List;
 
+    PrepareTextureRenderOptions: TCastleRenderOptions;
+
     function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 
     {$ifndef OpenGLES}
@@ -567,7 +577,7 @@ type
 
     { Check RenderOptions (like RenderOptions.BumpMapping) and OpenGL
       context capabilities to see if bump mapping can be used. }
-    function BumpMapping: TBumpMapping;
+    function BumpMapping(const RenderOptions: TCastleRenderOptions): TBumpMapping;
 
     {$I castleinternalrenderer_surfacetextures.inc}
   private
@@ -586,8 +596,6 @@ type
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
 
-    FRenderOptions: TCastleRenderOptions;
-
     FCache: TGLRendererContextCache;
 
     { Lights shining on all shapes, may be @nil. Set in each RenderBegin. }
@@ -601,7 +609,8 @@ type
     Pass: TTotalRenderingPass;
 
     { Get X3D fog parameters, based on fog node and RenderOptions. }
-    procedure GetFog(const AFogFunctionality: TFogFunctionality;
+    class procedure GetFog(const AFogFunctionality: TFogFunctionality;
+      const RenderOptions: TCastleRenderOptions;
       out Enabled, Volumetric: boolean;
       out VolumetricDirection: TVector3;
       out VolumetricVisibilityStart: Single);
@@ -621,36 +630,46 @@ type
     class procedure DisableCurrentTexture;
 
     procedure RenderShapeLineProperties(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
       const Shader: TShader);
     procedure RenderShapeMaterials(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
       const Shader: TShader);
     procedure RenderShapeLights(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
       const Shader: TShader;
       const Lighting: boolean);
     procedure RenderShapeFog(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
       const Shader: TShader;
       const Lighting: boolean);
     procedure RenderShapeTextureTransform(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
       const Shader: TShader;
       const Lighting: boolean);
     procedure RenderShapeClipPlanes(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
       const Shader: TShader;
       const Lighting: boolean);
     procedure RenderShapeCreateMeshRenderer(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
       const Shader: TShader;
       const Lighting: boolean);
     procedure RenderShapeShaders(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
       const Shader: TShader;
       const Lighting: boolean;
       const GeneratorClass: TArraysGeneratorClass;
       const ExposedMeshRenderer: TObject);
     procedure RenderShapeTextures(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
       const Shader: TShader;
       const Lighting: boolean;
       const GeneratorClass: TArraysGeneratorClass;
       const ExposedMeshRenderer: TObject;
       const UsedGLSLTexCoordsNeeded: Cardinal);
     procedure RenderShapeInside(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
       const Shader: TShader;
       const Lighting: boolean;
       const GeneratorClass: TArraysGeneratorClass;
@@ -673,30 +692,16 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Rendering options.
-      May be changed often, before each shape rendering.
-
-      TODO: Old comment was this, for a good reason:
-      resources like textures are initialized for specific options:
-
-      You can change them only when renderer
-      is not tied to the current OpenGL context, so only after construction
-      or after UnprepareAll call (before any Prepare or Render* calls).
-
-      What to do now with TShapesRenderer????
-      We may have the same shape,texture prepared with different render options.
-      One renderer for all -> will not differentiate it anymore.
-
-      Change this to RenderShape parameter. }
-    property RenderOptions: TCastleRenderOptions read FRenderOptions
-      write FRenderOptions;
-
     property Cache: TGLRendererContextCache read FCache;
 
-    { Prepare given Shape for rendering.
-      Between preparing and unpreparing, nodes passed here are "frozen":
-      do not change, do not free them. }
-    procedure Prepare(Shape: TX3DRendererShape);
+    { Prepare given Shape for rendering with given RenderOptions.
+
+      Between preparing and unpreparing, nodes passed here,
+      and RenderOptions too, are "frozen":
+      do not change, do not free them.
+      If you need to change / free, first unprepare them. }
+    procedure Prepare(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions);
 
     { Release resources for this texture. }
     procedure UnprepareTexture(Node: TAbstractTextureNode);
@@ -738,6 +743,7 @@ type
         to get the final transformation to world.)
     }
     procedure RenderShape(const Shape: TX3DRendererShape;
+      const RenderOptions: TCastleRenderOptions;
       const SceneTransform: TMatrix4);
 
     { Update generated texture for this shape.
@@ -764,7 +770,8 @@ type
 
       The GLSL program (TGLSLProgram) will be stored here,
       and will be automatically freed during UnprepareAll call. }
-    procedure PrepareScreenEffect(Node: TScreenEffectNode);
+    procedure PrepareScreenEffect(const Node: TScreenEffectNode;
+      const RenderOptions: TCastleRenderOptions);
   end;
 
 const
@@ -1452,7 +1459,7 @@ end;
 
 function TGLRendererContextCache.Shape_IncReference(
   const Shape: TX3DRendererShape;
-  const ARenderer: TGLRenderer): TShapeCache;
+  const RenderOptions: TCastleRenderOptions): TShapeCache;
 var
   FogEnabled, FogVolumetric: boolean;
   FogVolumetricDirection: TVector3;
@@ -1493,7 +1500,7 @@ var
   DisableSharedCache: Boolean;
   Caches: TShapeCacheList;
 begin
-  ARenderer.GetFog(Shape.Fog, FogEnabled, FogVolumetric,
+  TGLRenderer.GetFog(Shape.Fog, RenderOptions, FogEnabled, FogVolumetric,
     FogVolumetricDirection, FogVolumetricVisibilityStart);
 
   DisableSharedCache := TGLShape(Shape).DisableSharedCache;
@@ -1504,7 +1511,7 @@ begin
     begin
       Result := Caches[I];
       if (Result.Geometry = Shape.Geometry) and
-         Result.RenderOptions.EqualForShapeCache(ARenderer.RenderOptions) and
+         Result.RenderOptions.EqualForShapeCache(RenderOptions) and
          Result.State.Equals(Shape.State, IgnoreStateTransform) and
          FogVolumetricEqual(
            Result.FogVolumetric,
@@ -1525,7 +1532,7 @@ begin
 
   Result := TShapeCache.Create;
   Caches.Add(Result);
-  Result.RenderOptions := ARenderer.RenderOptions;
+  Result.RenderOptions := RenderOptions;
   Result.Geometry := Shape.Geometry;
   Result.State := Shape.State;
   Result.FogVolumetric := FogVolumetric;
@@ -1916,16 +1923,20 @@ end;
 
 function TGLRenderer.PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 begin
-  GLTextureNodes.Prepare(Shape.State, Texture, Self);
+  GLTextureNodes.Prepare(Shape.State, PrepareTextureRenderOptions, Texture, Self);
   Result := nil;
 end;
 
-procedure TGLRenderer.Prepare(Shape: TX3DRendererShape);
+procedure TGLRenderer.Prepare(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions);
 begin
+  PrepareTextureRenderOptions := RenderOptions;
   Shape.EnumerateTextures({$ifdef FPC}@{$endif}PrepareTexture);
+  PrepareTextureRenderOptions := nil;
 end;
 
-procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
+procedure TGLRenderer.PrepareScreenEffect(const Node: TScreenEffectNode;
+  const RenderOptions: TCastleRenderOptions);
 
   procedure PrepareIDecls(const IDecls: TX3DInterfaceDeclarationList;
     State: TX3DGraphTraverseState);
@@ -1935,7 +1946,7 @@ procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
     begin
       if (TextureNode <> nil) and
          (TextureNode is TAbstractTextureNode) then
-        GLTextureNodes.Prepare(State, TAbstractTextureNode(TextureNode), Self);
+        GLTextureNodes.Prepare(State, RenderOptions, TAbstractTextureNode(TextureNode), Self);
     end;
 
   var
@@ -2063,7 +2074,7 @@ begin
     ScreenEffectPrograms.Count := 0; { this will free programs inside }
 end;
 
-function TGLRenderer.BumpMapping: TBumpMapping;
+function TGLRenderer.BumpMapping(const RenderOptions: TCastleRenderOptions): TBumpMapping;
 begin
   if (RenderOptions.BumpMapping <> bmNone) and
      RenderOptions.Textures and
@@ -2098,7 +2109,8 @@ begin
   GLEnableTexture(etNone);
 end;
 
-procedure TGLRenderer.GetFog(const AFogFunctionality: TFogFunctionality;
+class procedure TGLRenderer.GetFog(const AFogFunctionality: TFogFunctionality;
+  const RenderOptions: TCastleRenderOptions;
   out Enabled, Volumetric: boolean;
   out VolumetricDirection: TVector3;
   out VolumetricVisibilityStart: Single);
@@ -2309,35 +2321,12 @@ begin
     [     AInternalPass,       AInternalScenePass,       AUserPass ],
     [High(AInternalPass), High(AInternalScenePass), High(AUserPass)]);
 
-  {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction then
-  begin
-    glPushMatrix;
-
-    if RenderOptions.Mode = rmSolidColor then
-      glColorv(RenderOptions.SolidColor);
-  end;
-  {$endif}
-
   Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
   LightsRenderer := TLightsRenderer.Create;
   LightsRenderer.LightRenderEvent := LightRenderEvent;
   LightsRenderer.RenderingCamera := RenderingCamera;
-
-  LightsRenderer.MaxLightsPerShape := RenderOptions.MaxLightsPerShape;
-
-  { Set RenderContext properties, constant for all shapes within this scene.
-    Note that all TCastleTransform rendering code that is not inside TCastleScene
-    (e.g. custom TCastleTransform descendant using TCastleRenderUnlitMesh)
-    must be prepared that this state may be whatever, and so it must save, set and restore this state.
-
-    ViewportRenderEnd resets these things, so that this state does not "leak"
-    for stuff rendered outside of TCastleViewport. }
-  RenderContext.PointSize := RenderOptions.PointSize;
-  RenderContext.LineWidth := RenderOptions.LineWidth;
-  RenderContext.DepthTest := RenderOptions.DepthTest;
 end;
 
 procedure TGLRenderer.RenderEnd;
@@ -2352,13 +2341,6 @@ begin
   FogFunctionality := nil;
   FogEnabled := false;
 
-  {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction then
-  begin
-    glPopMatrix;
-  end;
-  {$endif}
-
   { We need this in RenderEnd, not only in ViewportRenderEnd.
     Otherwise some operations could make the current texture unit not bound
     to any valid texture, causing the glUniform1i setting shader uniform for texture
@@ -2371,94 +2353,157 @@ begin
 end;
 
 procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   const SceneTransform: TMatrix4);
 
-  function ShapeUsesEnvironmentLight(const Shape: TX3DRendererShape): boolean;
-  var
-    I: Integer;
-    Lights: TLightInstancesList;
+  procedure InitializeFromRenderOptions;
   begin
-    Lights := Shape.State.Lights;
-    if Lights <> nil then
-      for I := 0 to Lights.Count - 1 do
-        if Lights.L[I].Node is TEnvironmentLightNode then
-          Exit(true);
-    Result := false;
+    { Set RenderContext properties, determined by RenderOptions.
+
+      These do not change within one TCastleScene,
+      but since the shape rendering order is now independent of TCastleScene
+      division (TShapesRenderer may render shapes from different TCastleScenes
+      in any order), so we have to assume that each RenderShape changes
+      RenderOptions.
+
+      Note that all TCastleTransform rendering code that is not inside TCastleScene
+      (e.g. custom TCastleTransform descendant using TCastleRenderUnlitMesh)
+      must be prepared that this state may be whatever, and so it must save,
+      set and restore this state.
+
+      ViewportRenderEnd resets these things, so that this state does not "leak"
+      for stuff rendered outside of TCastleViewport. }
+    RenderContext.PointSize := RenderOptions.PointSize;
+    RenderContext.LineWidth := RenderOptions.LineWidth;
+    RenderContext.DepthTest := RenderOptions.DepthTest;
+
+    LightsRenderer.MaxLightsPerShape := RenderOptions.MaxLightsPerShape;
   end;
 
-  function ShapeMaybeUsesShadowMaps(const Shape: TX3DRendererShape): boolean;
-  var
-    Tex, SubTexture: TX3DNode;
-    I: Integer;
-  begin
-    Result := false;
-    if (Shape.Node <> nil) and
-       (Shape.Node.Appearance <> nil) then
+  { Initialize new Shader instance.
+    (May reuse previous Shader instance, but then it clears its contents.) }
+  function InitializeShader: TShader;
+
+    function ShapeUsesEnvironmentLight(const Shape: TX3DRendererShape): boolean;
+    var
+      I: Integer;
+      Lights: TLightInstancesList;
     begin
-      Tex := Shape.Node.Appearance.Texture;
-
-      if Tex is TGeneratedShadowMapNode then
-        Exit(true);
-
-      if Tex is TMultiTextureNode then
-      begin
-        for I := 0 to TMultiTextureNode(Tex).FdTexture.Count - 1 do
-        begin
-          SubTexture := TMultiTextureNode(Tex).FdTexture[I];
-          if SubTexture is TGeneratedShadowMapNode then
+      Lights := Shape.State.Lights;
+      if Lights <> nil then
+        for I := 0 to Lights.Count - 1 do
+          if Lights.L[I].Node is TEnvironmentLightNode then
             Exit(true);
+      Result := false;
+    end;
+
+    function ShapeMaybeUsesShadowMaps(const Shape: TX3DRendererShape): boolean;
+    var
+      Tex, SubTexture: TX3DNode;
+      I: Integer;
+    begin
+      Result := false;
+      if (Shape.Node <> nil) and
+        (Shape.Node.Appearance <> nil) then
+      begin
+        Tex := Shape.Node.Appearance.Texture;
+
+        if Tex is TGeneratedShadowMapNode then
+          Exit(true);
+
+        if Tex is TMultiTextureNode then
+        begin
+          for I := 0 to TMultiTextureNode(Tex).FdTexture.Count - 1 do
+          begin
+            SubTexture := TMultiTextureNode(Tex).FdTexture[I];
+            if SubTexture is TGeneratedShadowMapNode then
+              Exit(true);
+          end;
         end;
       end;
     end;
+
+    function ShapeMaterialRequiresPhongShading(const Shape: TX3DRendererShape): boolean;
+    begin
+      Result :=
+        (Shape.Node <> nil) and
+        (Shape.Node.Appearance <> nil) and
+        (Shape.Node.Appearance.Material is TPhysicalMaterialNode);
+    end;
+
+  var
+    PhongShading: boolean;
+  begin
+    { instead of TShader.Create, reuse existing PreparedShader for speed }
+    Result := PreparedShader;
+    Result.Clear;
+    Result.RenderingCamera := RenderingCamera;
+
+    { calculate PhongShading }
+    PhongShading := RenderOptions.PhongShading;
+    { if Shape specifies Shading = Gouraud or Phong, use it }
+    if Shape.Node <> nil then
+      if Shape.Node.Shading = shPhong then
+        PhongShading := true
+      else
+      if Shape.Node.Shading = shGouraud then
+        PhongShading := false;
+    { if some feature requires PhongShading, make it true }
+    if ShapeMaybeUsesSurfaceTexture(Shape) or
+      ShapeMaybeUsesShadowMaps(Shape) or
+      ShapeMaterialRequiresPhongShading(Shape) or
+      ShapeUsesEnvironmentLight(Shape) or
+      (not Shape.Geometry.Solid) { two-sided lighting required by solid=FALSE } then
+      PhongShading := true;
+
+    Result.Initialize(PhongShading);
+
+    if PhongShading then
+      Result.ShapeRequiresShaders := true;
+
+    Result.ShapeBoundingBoxInSceneEvent := {$ifdef FPC}@{$endif} Shape.BoundingBox;
+    Result.SceneTransform := SceneTransform;
+    Result.SceneModelView := RenderingCamera.CurrentMatrix * SceneTransform;
+    Result.ShadowSampling := RenderOptions.ShadowSampling;
   end;
 
-  function ShapeMaterialRequiresPhongShading(const Shape: TX3DRendererShape): boolean;
+  procedure FixedFunctionBegin(const SceneModelView: TMatrix4);
   begin
-    Result :=
-      (Shape.Node <> nil) and
-      (Shape.Node.Appearance <> nil) and
-      (Shape.Node.Appearance.Material is TPhysicalMaterialNode);
+    {$ifndef OpenGLES}
+    if GLFeatures.EnableFixedFunction then
+    begin
+      glPushMatrix;
+      glLoadMatrix(SceneModelView);
+
+      if RenderOptions.Mode = rmSolidColor then
+        glColorv(RenderOptions.SolidColor);
+    end;
+    {$endif}
+  end;
+
+  procedure FixedFunctionEnd;
+  begin
+    {$ifndef OpenGLES}
+    if GLFeatures.EnableFixedFunction then
+      glPopMatrix;
+    {$endif}
   end;
 
 var
-  PhongShading: boolean;
   Shader: TShader;
 begin
-  { instead of TShader.Create, reuse existing PreparedShader for speed }
-  Shader := PreparedShader;
-  Shader.Clear;
-  Shader.RenderingCamera := RenderingCamera;
+  InitializeFromRenderOptions;
 
-  { calculate PhongShading }
-  PhongShading := RenderOptions.PhongShading;
-  { if Shape specifies Shading = Gouraud or Phong, use it }
-  if Shape.Node <> nil then
-    if Shape.Node.Shading = shPhong then
-      PhongShading := true
-    else
-    if Shape.Node.Shading = shGouraud then
-      PhongShading := false;
-  { if some feature requires PhongShading, make it true }
-  if ShapeMaybeUsesSurfaceTexture(Shape) or
-     ShapeMaybeUsesShadowMaps(Shape) or
-     ShapeMaterialRequiresPhongShading(Shape) or
-     ShapeUsesEnvironmentLight(Shape) or
-     (not Shape.Geometry.Solid) { two-sided lighting required by solid=FALSE } then
-    PhongShading := true;
+  Shader := InitializeShader;
+  FixedFunctionBegin(Shader.SceneModelView);
 
-  Shader.Initialize(PhongShading);
+  RenderShapeLineProperties(Shape, RenderOptions, Shader);
 
-  if PhongShading then
-    Shader.ShapeRequiresShaders := true;
-
-  Shader.ShapeBoundingBoxInSceneEvent := {$ifdef FPC}@{$endif} Shape.BoundingBox;
-  Shader.SceneTransform := SceneTransform;
-  Shader.SceneModelView := RenderingCamera.CurrentMatrix * SceneTransform;
-  Shader.ShadowSampling := RenderOptions.ShadowSampling;
-  RenderShapeLineProperties(Shape, Shader);
+  FixedFunctionEnd;
 end;
 
 procedure TGLRenderer.RenderShapeLineProperties(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   const Shader: TShader);
 var
   LP: TLinePropertiesNode;
@@ -2479,20 +2524,22 @@ begin
     RenderContext.LineType := ltSolid;
   end;
 
-  RenderShapeMaterials(Shape, Shader);
+  RenderShapeMaterials(Shape, RenderOptions, Shader);
 end;
 
 procedure TGLRenderer.RenderShapeMaterials(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   const Shader: TShader);
 
   {$I castleinternalrenderer_materials.inc}
 
 begin
   RenderMaterialsBegin;
-  RenderShapeLights(Shape, Shader, Lighting);
+  RenderShapeLights(Shape, RenderOptions, Shader, Lighting);
 end;
 
 procedure TGLRenderer.RenderShapeLights(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   const Shader: TShader;
   const Lighting: boolean);
 var
@@ -2519,10 +2566,11 @@ begin
     LightsRenderer.Render(Shape, FinalGlobalLights, SceneLights, Shader);
   end;
 
-  RenderShapeFog(Shape, Shader, Lighting);
+  RenderShapeFog(Shape, RenderOptions, Shader, Lighting);
 end;
 
 procedure TGLRenderer.RenderShapeFog(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   const Shader: TShader;
   const Lighting: boolean);
 
@@ -2539,7 +2587,8 @@ const
   var
     VisibilityRangeScaled: Single;
   begin
-    GetFog(AFogFunctionality, FogEnabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
+    GetFog(AFogFunctionality, RenderOptions,
+      FogEnabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
 
     if FogEnabled then
     begin
@@ -2602,10 +2651,11 @@ begin
   if FogEnabled then
     Shader.EnableFog(FogType, FogCoordinateSource[FogVolumetric],
       FogColor, FogVisibilityRangeScaled);
-  RenderShapeTextureTransform(Shape, Shader, Lighting);
+  RenderShapeTextureTransform(Shape, RenderOptions, Shader, Lighting);
 end;
 
 procedure TGLRenderer.RenderShapeTextureTransform(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   const Shader: TShader; const Lighting: boolean);
 var
   TextureTransform: TAbstractTextureTransformNode;
@@ -2767,7 +2817,7 @@ begin
     {$endif}
   end;
 
-  RenderShapeClipPlanes(Shape, Shader, Lighting);
+  RenderShapeClipPlanes(Shape, RenderOptions, Shader, Lighting);
 
   if GLFeatures.EnableFixedFunction then
   begin
@@ -2800,6 +2850,7 @@ begin
 end;
 
 procedure TGLRenderer.RenderShapeClipPlanes(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   const Shader: TShader;
   const Lighting: boolean);
 var
@@ -2861,7 +2912,7 @@ begin
   end;
   {$endif}
 
-    RenderShapeCreateMeshRenderer(Shape, Shader, Lighting);
+    RenderShapeCreateMeshRenderer(Shape, RenderOptions, Shader, Lighting);
 
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
@@ -2872,6 +2923,7 @@ begin
 end;
 
 procedure TGLRenderer.RenderShapeCreateMeshRenderer(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   const Shader: TShader; const Lighting: boolean);
 var
   GeneratorClass: TArraysGeneratorClass;
@@ -2894,6 +2946,7 @@ var
       MeshRenderer := TCompleteCoordinateRenderer.Create(Self, Shape);
       MeshRenderer.ShapeModelView :=
         Shader.SceneModelView * Shape.State.Transformation.Transform;
+      MeshRenderer.RenderOptions := RenderOptions;
       Shape.BumpMappingAllowed := GeneratorClass.BumpMappingAllowed;
     end;
   end;
@@ -2914,7 +2967,7 @@ begin
   Assert(MeshRenderer <> nil);
 
   try
-    RenderShapeShaders(Shape, Shader, Lighting,
+    RenderShapeShaders(Shape, RenderOptions, Shader, Lighting,
       GeneratorClass, MeshRenderer);
   finally
     FreeAndNil(MeshRenderer);
@@ -2922,6 +2975,7 @@ begin
 end;
 
 procedure TGLRenderer.RenderShapeShaders(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   const Shader: TShader;
   const Lighting: boolean;
   const GeneratorClass: TArraysGeneratorClass;
@@ -3015,11 +3069,12 @@ begin
     end;
   end;
 
-  RenderShapeTextures(Shape, Shader, Lighting,
+  RenderShapeTextures(Shape, RenderOptions, Shader, Lighting,
     GeneratorClass, TMeshRenderer(ExposedMeshRenderer), UsedGLSLTexCoordsNeeded);
 end;
 
 procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   const Shader: TShader;
   const Lighting: boolean;
   const GeneratorClass: TArraysGeneratorClass;
@@ -3145,7 +3200,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
       end;
 
       { If there is special texture like a normalmap, enable it. }
-      BumpMappingEnable(Shape, BoundTextureUnits, TexCoordsNeeded, Shader);
+      BumpMappingEnable(Shape, RenderOptions, BoundTextureUnits, TexCoordsNeeded, Shader);
       SurfaceTexturesEnable(Shape, BoundTextureUnits, TexCoordsNeeded, Shader);
     end;
 
@@ -3180,7 +3235,8 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
 begin
   RenderTexturesBegin;
   try
-    RenderShapeInside(Shape, Shader, Lighting, GeneratorClass, TMeshRenderer(ExposedMeshRenderer));
+    RenderShapeInside(Shape, RenderOptions, Shader, Lighting, GeneratorClass,
+      TMeshRenderer(ExposedMeshRenderer));
   finally RenderTexturesEnd end;
 end;
 
@@ -3324,6 +3380,7 @@ begin
 end;
 
 procedure TGLRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   const Shader: TShader;
   const Lighting: boolean;
   const GeneratorClass: TArraysGeneratorClass;
@@ -3344,7 +3401,7 @@ begin
 
     { calculate Shape.Cache }
     if Shape.Cache = nil then
-      Shape.Cache := Cache.Shape_IncReference(Shape, Self);
+      Shape.Cache := Cache.Shape_IncReference(Shape, RenderOptions);
 
     { calculate Shape.Cache.Arrays }
     if (Shape.Cache.Arrays = nil) or

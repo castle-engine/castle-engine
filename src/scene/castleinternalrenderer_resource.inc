@@ -35,7 +35,8 @@
       convert them to WritelnWarning and make Unprepare to undo the preparations.
       So Prepare-Unprepare work like constructor-destructor, with Unprepare
       having to be prepared to eventually finilize even incomplete instance. }
-    procedure PrepareCore(State: TX3DGraphTraverseState); virtual; abstract;
+    procedure PrepareCore(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions); virtual; abstract;
   public
     constructor Create(const ARenderer: TGLRenderer;
       const AList: TResourceRendererList;
@@ -50,7 +51,8 @@
 
     { Do the time-consuming preparations before using this node with renderer.
       Calls PrepareCore. }
-    procedure Prepare(State: TX3DGraphTraverseState);
+    procedure Prepare(const State: TX3DGraphTraverseState;
+      const RenderOptions: TCastleRenderOptions);
 
     { Release all resources allocated by Prepare method.
       This is exposed so that you can override it, but do not call it directly
@@ -113,10 +115,11 @@ begin
   inherited;
 end;
 
-procedure TResourceRenderer.Prepare(State: TX3DGraphTraverseState);
+procedure TResourceRenderer.Prepare(const State: TX3DGraphTraverseState;
+  const RenderOptions: TCastleRenderOptions);
 begin
   try
-    PrepareCore(State);
+    PrepareCore(State, RenderOptions);
     if not NodeDestructionNotificationActive then
     begin
       Node.AddDestructionNotification({$ifdef FPC}@{$endif} NodeDestructionNotification);

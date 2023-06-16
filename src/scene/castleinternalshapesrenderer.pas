@@ -212,8 +212,6 @@ procedure TShapesRenderer.PrepareResources;
     // TODO: should not be required for rendering here?
     DummyRenderOptions := TCastleRenderOptions.Create(nil);
     try
-      Renderer.RenderOptions := DummyRenderOptions;
-
       SavedRenderMode := Renderer.RenderMode;
       Renderer.RenderMode := rmPrepareRenderSelf;
 
@@ -228,14 +226,13 @@ procedure TShapesRenderer.PrepareResources;
         begin
           Shape := Batching.PoolShapes[I];
           TGLShape(Shape).Fog := nil;
-          Renderer.RenderShape(TGLShape(Shape), TMatrix4.Identity);
+          Renderer.RenderShape(TGLShape(Shape), DummyRenderOptions, TMatrix4.Identity);
         end;
 
         Renderer.RenderEnd;
       finally FreeAndNil(DummyCamera) end;
 
       Renderer.RenderMode := SavedRenderMode; // restore Renderer.RenderMode
-      Renderer.RenderOptions := nil; // do not leave dangling pointer
     finally FreeAndNil(DummyRenderOptions) end;
   end;
 
@@ -306,7 +303,8 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
   var
     Shape: TGLShape;
   begin
-    { TODO: ignore ExcludeFromStatistics now (we could access them from Shape.ParaneScene...
+    { TODO: ignore ExcludeFromStatistics now (we could access them
+      from Shape.ParaneScene...
       but this would be bad for batching.)
       Just remove ExcludeFromStatistics? }
     if (Params.InternalPass = 0) {and not ExcludeFromStatistics} then
@@ -314,11 +312,9 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
 
     Shape := CollectedShape.Shape;
 
-    // TODO: Change RenderOptions to Renderer.RenderShape param
-    Renderer.RenderOptions := CollectedShape.RenderOptions;
-
     BlendingRenderer.BeforeRenderShape(Shape);
-    Renderer.RenderShape(Shape, CollectedShape.SceneTransform);
+    Renderer.RenderShape(Shape,
+      CollectedShape.RenderOptions, CollectedShape.SceneTransform);
   end;
 
   procedure BatchingCommit;
@@ -360,15 +356,6 @@ begin
   //   //OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true; // not needed anymore
   // end;
 
-  // TODO: fixed-function transform has to move to shape rendering
-  // {$ifndef OpenGLES}
-  // if GLFeatures.EnableFixedFunction then
-  // begin
-  //   glPushMatrix;
-  //   glLoadMatrix(Render_ModelView);
-  // end;
-  // {$endif}
-
   { Initialize Batching.
     PreserveShapeOrder may be overridden to true below. }
   if ReallyDynamicBatching then
@@ -384,8 +371,8 @@ begin
 
     if ReallyDynamicBatching then
       Batching.PreserveShapeOrder := true;
-  {
-      TODO: The sorting is repeated at every render call.
+
+    { TODO: The sorting is repeated at every render call.
       This is not optimal in case of 2D, where it would be more efficient
       to only call @link(SortBackToFront2D) when necessary, e.g. when adding/removing
       objects from the world.
@@ -393,19 +380,11 @@ begin
       To avoid this overhead, just leave this property at bsNone
       and call @link(SortBackToFront2D) when necessary.
     }
-
     Shapes.FCollected.SortBackToFront(Params.RenderingCamera.Position,
       BlendingSort);
+
     BlendingRenderer.RenderBegin;
   end;
-
-  { TODO:
-    Renderer.RenderBegin/End must go.
-    We cannot do per-scene operation here.
-  }
-
-  // TODO: hack to enable Renderer.RenderBegin
-  Renderer.RenderOptions := Shapes.FCollected[0].RenderOptions;
 
   Renderer.RenderBegin(Params.GlobalLights as TLightInstancesList,
     Params.RenderingCamera,
@@ -415,10 +394,7 @@ begin
     for CollectedShape in Shapes.FCollected do
     begin
       if not (ReallyDynamicBatching and Batching.Collect(CollectedShape)) then
-      begin
-        Renderer.RenderOptions := CollectedShape.RenderOptions;
         RenderShape_NoTests(CollectedShape);
-      end;
     end;
 
     BatchingCommit;
@@ -432,12 +408,6 @@ begin
       be sure to restore state now. }
     OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(true);
   finally Renderer.RenderEnd end;
-
-  // TODO: fixed-function transform has to move to shape rendering
-  // {$ifndef OpenGLES}
-  // if GLFeatures.EnableFixedFunction then
-  //   glPopMatrix;
-  // {$endif}
 end;
 
 function TShapesRenderer.ReallyDynamicBatching: boolean;

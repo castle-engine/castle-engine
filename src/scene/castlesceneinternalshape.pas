@@ -247,10 +247,12 @@ begin
 end;
 
 procedure TGLShape.RendererAttach(const ARenderer: TGLRenderer);
+var
+  RenderOptions: TCastleRenderOptions;
 begin
   FRenderer := ARenderer;
-  Renderer.RenderOptions := TCastleScene(ParentScene).RenderOptions;
-  Renderer.Prepare(Self);
+  RenderOptions := TCastleScene(ParentScene).RenderOptions;
+  Renderer.Prepare(Self, RenderOptions);
 end;
 
 procedure TGLShape.PrepareResources(const ARenderer: TGLRenderer);

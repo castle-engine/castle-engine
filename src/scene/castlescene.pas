@@ -1121,13 +1121,13 @@ var
       DummyCamera.FromMatrix(TVector3.Zero,
         TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
 
-      Renderer.RenderOptions := RenderOptions;
-      Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0, @DummyStatistics);
+      Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0,
+        @DummyStatistics);
 
       for Shape in ShapeList do
       begin
         TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.GlobalFog as TFogNode);
-        Renderer.RenderShape(TGLShape(Shape),
+        Renderer.RenderShape(TGLShape(Shape), RenderOptions,
           { Pass sensible SceneTransform parameter below,
             so that TShader.EnableClipPlane will not raise an exception.
             PlaneTransform(Plane, SceneModelView) should not fail,
@@ -1211,7 +1211,8 @@ begin
     if prScreenEffects in Options then
     begin
       for I := 0 to ScreenEffectNodes.Count - 1 do
-        Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TScreenEffectNode);
+        Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TScreenEffectNode,
+          RenderOptions);
     end;
 
     if PossiblyTimeConsuming then
