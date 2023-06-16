@@ -1070,7 +1070,6 @@ var
     ShapeList: TShapeList;
     Shape: TShape;
     ReceivedGlobalLights: TLightInstancesList;
-    GoodParams, OwnParams: TPrepareParams;
     DummyCamera: TRenderingCamera;
     DummyStatistics: TRenderStatistics;
   begin
@@ -1093,19 +1092,7 @@ var
       Renderer.RenderMode := rmPrepareRenderClones;
     end;
 
-    { calculate OwnParams, GoodParams }
-    if Params = nil then
-    begin
-      WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources. Get the params from Viewport.PrepareParams (create a temporary TCastleViewport if you need to).');
-      OwnParams := TPrepareParams.Create;
-      GoodParams := OwnParams;
-    end else
-    begin
-      OwnParams := nil;
-      GoodParams := Params;
-    end;
-
-    ReceivedGlobalLights := GoodParams.GlobalLights as TLightInstancesList;
+    ReceivedGlobalLights := Params.GlobalLights as TLightInstancesList;
 
     { We need some non-nil TRenderingCamera instance to be able
       to render with lights. }
@@ -1126,7 +1113,7 @@ var
 
       for Shape in ShapeList do
       begin
-        TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.GlobalFog as TFogNode);
+        TGLShape(Shape).Fog := ShapeFog(Shape, Params.GlobalFog as TFogNode);
         Renderer.RenderShape(TGLShape(Shape), RenderOptions,
           { Pass sensible SceneTransform parameter below,
             so that TShader.EnableClipPlane will not raise an exception.
@@ -1138,8 +1125,6 @@ var
 
       Renderer.RenderEnd;
     finally FreeAndNil(DummyCamera) end;
-
-    FreeAndNil(OwnParams);
 
     Renderer.RenderMode := rmRender; // restore Renderer.RenderMode
   end;
