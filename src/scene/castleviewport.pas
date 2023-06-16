@@ -2644,6 +2644,7 @@ begin
   FRenderParams.UserPass := CustomRenderingPass;
   FRenderParams.RenderingCamera := RenderingCamera;
   FRenderParams.Collector := ShapesCollector;
+  FRenderParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
 
   { calculate FRenderParams.Projection*, simplified from just like CalculateProjection does }
   FRenderParams.ProjectionBox := {$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox;

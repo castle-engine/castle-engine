@@ -1187,7 +1187,9 @@ begin
     if PossiblyTimeConsuming then
       TimeStart := Profiler.Start('Prepare Scene Resources ' + URL);
 
+    Assert(Params <> nil);
     Renderer := Params.RendererToPrepareShapes as TGLRenderer;
+    Assert(Renderer <> nil);
 
     if not PreparedShapesResources then
     begin
@@ -1431,6 +1433,7 @@ begin
       if everything is ready. }
     FTempPrepareParams.GlobalLights := Params.GlobalLights;
     FTempPrepareParams.GlobalFog := Params.GlobalFog;
+    Assert(Params.RendererToPrepareShapes <> nil);
     FTempPrepareParams.RendererToPrepareShapes := Params.RendererToPrepareShapes;
     {$warnings off} // calling deprecated, but for internal purpose -- do not warn
     PrepareResources([prRenderSelf], FTempPrepareParams);
