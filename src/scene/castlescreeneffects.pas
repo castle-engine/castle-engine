@@ -24,7 +24,7 @@ uses SysUtils, Classes,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleGLShaders, CastleUIControls, X3DNodes, CastleGLImages,
   CastleRectangles, CastleScene, CastleTransform, CastleCameras, CastleGLUtils,
-  CastleRenderOptions;
+  CastleRenderOptions, CastleInternalRenderer;
 
 { Standard GLSL vertex shader for screen effect.
   @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
@@ -130,6 +130,8 @@ type
       FScreenEffectsTimeScale: Single;
       { World to pass dummy camera position to ScreenEffectsScene. }
       World: TCastleRootTransform;
+      FRenderer: TGLRenderer;
+      FPrepareParams: TPrepareParams;
 
       { OpenGL(ES) resources for screen effects. }
       { If a texture for screen effects is ready, then
@@ -322,10 +324,19 @@ begin
   inherited;
   FScreenEffectsTimeScale := 1;
   FScreenEffectsEnable := true;
+
+  FRenderer := TGLRenderer.Create;
+
+  FPrepareParams := TPrepareParams.Create;
+  FPrepareParams.GlobalLights := nil;
+  FPrepareParams.GlobalFog := nil;
+  FPrepareParams.RendererToPrepareShapes := FRenderer;
 end;
 
 destructor TCastleScreenEffects.Destroy;
 begin
+  FreeAndNil(FPrepareParams);
+  FreeAndNil(FRenderer);
   inherited;
 end;
 
@@ -774,12 +785,11 @@ end;
 procedure TCastleScreenEffects.PrepareResources;
 begin
   if ScreenEffectsScene <> nil then
-    { We depend here on undocumented TCastleScene.PrepareResources behavior:
-      when there is no prRenderSelf or prRenderClones,
-      then PrepareParams (3rd argument below) is unused, and may be nil. }
+  begin
     {$warnings off} // using deprecated, this should be internal
-    ScreenEffectsScene.PrepareResources([prScreenEffects], nil);
+    ScreenEffectsScene.PrepareResources([prScreenEffects], FPrepareParams);
     {$warnings on}
+  end;
 end;
 
 procedure TCastleScreenEffects.BeforeRender;
