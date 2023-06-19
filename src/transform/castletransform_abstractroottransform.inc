@@ -403,12 +403,12 @@
       ) }
     property Paused: boolean read FPaused write SetPaused default false;
 
-    { When rendering, sort all the children (all shapes in all scenes),
-      making blending correct when there are multiple partially-transparent objects
-      in the world.
-      You need this when multiple objects (like TCastleScene and
-      TCastleImageTransform) that
-      use blending (partial transparency) within the world. }
+    { When rendering using blending (partial transparency),
+      sort the children (all shapes in all scenes).
+
+      This makes blending correct when there are multiple partially-transparent
+      objects visible.
+      See @url(https://castle-engine.io/blending blending manual). }
     property BlendingSort: TBlendingSort read FBlendingSort write FBlendingSort default bsNone;
   end;
 

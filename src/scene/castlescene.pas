@@ -195,7 +195,6 @@ type
 
     { Fog for this shape. @nil if none. }
     function ShapeFog(const Shape: TShape; const GlobalFog: TFogNode): TFogFunctionality;
-    function EffectiveBlendingSort: TBlendingSort;
 
     { Check frustum and distance culling. }
     function ShapePossiblyVisible(Shape: TShape): boolean;
@@ -217,7 +216,6 @@ type
     procedure SetCastGlobalLights(const Value: Boolean);
   private
     PreparedShapesResources, PreparedRender: Boolean;
-    class procedure CreateComponent2D(Sender: TObject);
   protected
     function CreateShape(const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState;
@@ -292,11 +290,6 @@ type
     function HasColliderMesh: Boolean; override;
     { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
     procedure ColliderMesh(const TriangleEvent: TTriangleEvent); override;
-
-    { Adjust parameters for rendering 2D scenes. Sets BlendingSort := bs2D,
-      which is good when your transparent objects have proper order along the Z axis
-      (useful e.g. for Spine animations). }
-    procedure Setup2D;
   private
     { Node for which FBackground is currently prepared. }
     FBackgroundNode: TAbstractBindableNode;
@@ -778,23 +771,6 @@ begin
     Result := GlobalFog.Functionality(TFogFunctionality) as TFogFunctionality;
 end;
 
-function TCastleScene.EffectiveBlendingSort: TBlendingSort;
-begin
-  if (NavigationInfoStack.Top <> nil) and
-     (NavigationInfoStack.Top.BlendingSort <> obsDefault) then
-  begin
-    case NavigationInfoStack.Top.BlendingSort of
-      obsNone    : Result := bsNone;
-      obs2D      : Result := bs2D;
-      obs3D      : Result := bs3D;
-      obs3DOrigin: Result := bs3DOrigin;
-      obs3DGround: Result := bs3DGround;
-      else raise EInternalError.Create('TCastleScene.EffectiveBlendingSort:NavigationInfoStack.Top.BlendingSort?');
-    end;
-  end else
-    Result := RenderOptions.BlendingSort;
-end;
-
 procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
 var
   SceneTransform: TMatrix4;
@@ -985,17 +961,11 @@ procedure TCastleScene.LocalRenderInside(
         end else
         { this means Params.Transparent = true }
         begin
-          { sort for blending, if BlendingSort not bsNone.
-            Note that bs2D does not require knowledge of the camera,
-            RenderCameraPosition is unused in this case by FilteredShapes.SortBackToFront }
-          if EffectiveBlendingSort in [bs3D, bs2D] then
-          begin
-            ShapesFilterBlending(Shapes, true, true, false,
-              TestShapeVisibility, FilteredShapes, true);
-            for I := 0 to FilteredShapes.Count - 1 do
-              CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
-          end else
-            Shapes.Traverse({$ifdef FPC}@{$endif}CollectShape_AllTests_Blending, true, true, false);
+          { Filter by blending. }
+          ShapesFilterBlending(Shapes, true, true, false,
+            TestShapeVisibility, FilteredShapes, true);
+          for I := 0 to FilteredShapes.Count - 1 do
+            CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
         end;
 
       end else
@@ -1429,11 +1399,6 @@ begin
 
     RenderWithShadowMaps;
   end;
-end;
-
-class procedure TCastleScene.CreateComponent2D(Sender: TObject);
-begin
-  (Sender as TCastleScene).Setup2D;
 end;
 
 procedure TCastleScene.BeforeNodesFree(const InternalChangedAll: boolean);
@@ -2009,11 +1974,6 @@ begin
   Result := (inherited Clone(AOwner)) as TCastleScene;
 end;
 
-procedure TCastleScene.Setup2D;
-begin
-  RenderOptions.BlendingSort := bs2D;
-end;
-
 procedure TCastleScene.ChangeWorld(const Value: TCastleAbstractRootTransform);
 begin
   if World <> Value then
@@ -2097,17 +2057,8 @@ begin
   Result := FGlobalLights;
 end;
 
-var
-  R: TRegisteredComponent;
 initialization
   RegisterSerializableComponent(TCastleScene, 'Scene');
-
-  R := TRegisteredComponent.Create;
-  R.ComponentClass := TCastleScene;
-  R.Caption := ['Scene (Optimal Blending for 2D Models)'];
-  R.OnCreate := {$ifdef FPC}@{$endif}TCastleScene.CreateComponent2D;
-  RegisterSerializableComponent(R);
-
   RegisterSerializableComponent(TCastleBox, 'Box');
   RegisterSerializableComponent(TCastleSphere, 'Sphere');
   RegisterSerializableComponent(TCastlePlane, 'Plane');

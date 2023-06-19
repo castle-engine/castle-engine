@@ -46,7 +46,6 @@ type
     FBlending: boolean;
     FBlendingSourceFactor: TBlendingSourceFactor;
     FBlendingDestinationFactor: TBlendingDestinationFactor;
-    FBlendingSort: TBlendingSort;
     FOcclusionSort: boolean;
     FWireframeColor: TCastleColorRGB;
     FWireframeEffect: TWireframeEffect;
@@ -74,7 +73,6 @@ type
     procedure SetBlending(const Value: boolean);
     procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
     procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
-    procedure SetBlendingSort(const Value: TBlendingSort);
     procedure SetOcclusionQuery(const Value: boolean);
     procedure SetPhongShading(const Value: boolean);
     { @groupEnd }
@@ -107,28 +105,30 @@ type
       { Default value of Attributes.BlendingDestinationFactor.
         See TCastleRenderOptions.BlendingDestinationFactor.
 
-        Using bdOneMinusSrcAlpha is the standard value for 3D graphic stuff,
-        often producing best results. However, it causes troubles when
-        multiple transparent shapes are visible on the same screen pixel.
-        For closed convex 3D objects, using backface culling
-        (solid = TRUE for geometry) helps. For multiple transparent shapes,
-        sorting the transparent shapes helps,
-        see @link(TCastleRenderOptions.BlendingSort).
-        Sometimes, no solution works for all camera angles.
+        Using bdOneMinusSrcAlpha is the standard and follows most intuitive
+        transparency equation. However, it can show artifacts
+        when multiple transparent shapes are visible on the same screen pixel.
+        Solutions:
 
-        Another disadvantage of bdOneMinusSrcAlpha may be that
-        the color of opaque shapes disappears too quickly from
-        resulting image (since bdOneMinusSrcAlpha scales it down).
-        So the image may be darker than you like.
+        @orderedList(
+          @item(For closed convex 3D objects, use backface culling.
 
-        You can instead consider using bdOne, that doesn't require sorting
+            To do this, set on geometries "solid" field to @true,
+            like @link(TAbstractComposedGeometryNode.Solid).
+            You usually do this in 3D authoring application, like Blender,
+            and the information is exported to glTF or X3D and used by CGE.)
+
+          @item(When multiple transparent shapes are possible,
+            sort the transparent shapes, using
+            @link(TCastleAbstractRootTransform.BlendingSort).)
+        )
+
+        Another blending effect may be achieved by using bdOne.
+        This doesn't require sorting
         and never has problems with multiple transparent shapes.
         On the other hand, it only adds to the color,
         often making too bright results. }
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
-
-      { Default value of @link(TCastleRenderOptions.BlendingSort). }
-      DefaultBlendingSort = bs3D;
 
       DefaultWireframeColor: TCastleColorRGB = (X: 0; Y: 0; Z: 0);
 
@@ -479,16 +479,6 @@ type
       default DefaultBlendingDestinationFactor;
     { @groupEnd }
 
-    { How to sort the rendered objects using blending (partial transparency).
-      See the @link(TBlendingSort) documentation for possible values.
-
-      This may be overridden in a specific 3D models
-      by using NavigationInfo node with blendingSort field,
-      see TNavigationInfoNode.BlendingSort. }
-    property BlendingSort: TBlendingSort
-      read FBlendingSort write SetBlendingSort
-      default DefaultBlendingSort;
-
     { Sort the opaque objects when rendering.
       This may generate speedup on some scenes. }
     property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort default false;
@@ -579,7 +569,6 @@ begin
   FBlending := true;
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
-  FBlendingSort := DefaultBlendingSort;
   FOcclusionSort := false;
   FSolidWireframeScale := DefaultSolidWireframeScale;
   FSolidWireframeBias := DefaultSolidWireframeBias;
@@ -619,7 +608,6 @@ begin
     Blending := TCastleRenderOptions(Source).Blending;
     BlendingSourceFactor := TCastleRenderOptions(Source).BlendingSourceFactor;
     BlendingDestinationFactor := TCastleRenderOptions(Source).BlendingDestinationFactor;
-    BlendingSort := TCastleRenderOptions(Source).BlendingSort;
     OcclusionSort := TCastleRenderOptions(Source).OcclusionSort;
     OcclusionQuery := TCastleRenderOptions(Source).OcclusionQuery;
     {$warnings off}
@@ -723,11 +711,6 @@ procedure TCastleRenderOptions.SetBlendingDestinationFactor(
   const Value: TBlendingDestinationFactor);
 begin
   FBlendingDestinationFactor := Value;
-end;
-
-procedure TCastleRenderOptions.SetBlendingSort(const Value: TBlendingSort);
-begin
-  FBlendingSort := Value;
 end;
 
 procedure TCastleRenderOptions.SetOcclusionQuery(const Value: boolean);
