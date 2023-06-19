@@ -3837,6 +3837,7 @@ procedure TCastleViewport.SetupChildren2D;
 var
   Plane: TCastlePlane;
 begin
+  Items.BlendingSort := bs2D;
   FullSize := true;
   SetupDesignTimeCamera;
   { Better Origin default, makes things in center }
@@ -3894,6 +3895,7 @@ var
   Plane: TCastlePlane;
   NewBackground: TCastleBackground;
 begin
+  Items.BlendingSort := bs3D;
   FullSize := true;
   SetupDesignTimeCamera;
   Camera.Translation := Vector3(0.00, 2.00, 4.00);
