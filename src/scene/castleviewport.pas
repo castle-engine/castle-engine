@@ -368,10 +368,10 @@ type
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
-    function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
-
-    function InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram; override;
-    function InternalExtraScreenEffectsCount: Integer; override;
+    function InternalExtraGetScreenEffects(
+      const Index: Integer): TGLSLProgram; override;
+    function InternalExtraScreenEffectsCount(
+      const PrepareParams: TPrepareParams): Integer; override;
     function InternalExtraScreenEffectsNeedDepth: Boolean; override;
 
     { Called when PointingDevicePress was not handled by any TCastleTransform object.
@@ -514,24 +514,6 @@ type
       This is automatically used at first rendering if @link(AutoCamera).
       You can also use it explicitly. }
     procedure AssignDefaultCamera; virtual;
-
-    { Screen effects are shaders that post-process the rendered screen.
-      If any screen effects are active, we will automatically render
-      screen to a temporary texture, processing it with
-      each shader.
-
-      By default, screen effects come from MainScene.ScreenEffects,
-      so the effects may be defined by VRML/X3D author using ScreenEffect
-      nodes (see docs: [https://castle-engine.io/x3d_extensions_screen_effects.php]).
-      Descendants may override GetScreenEffects, ScreenEffectsCount,
-      and ScreenEffectsNeedDepth to add screen effects by code.
-      Each viewport may have it's own, different screen effects.
-
-      @groupBegin }
-    property ScreenEffects [const Index: Integer]: TGLSLProgram read GetScreenEffects;
-    function ScreenEffectsCount: Integer; virtual;
-    function ScreenEffectsNeedDepth: boolean; virtual;
-    { @groupEnd }
 
     { Does the graphic card support our ScreenSpaceAmbientOcclusion shader.
       This does @italic(not) depend on the current state of
@@ -2774,21 +2756,6 @@ end;
 
 function TCastleViewport.InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
-  Result := GetScreenEffects(Index);
-end;
-
-function TCastleViewport.InternalExtraScreenEffectsCount: Integer;
-begin
-  Result := ScreenEffectsCount;
-end;
-
-function TCastleViewport.InternalExtraScreenEffectsNeedDepth: Boolean;
-begin
-  Result := ScreenEffectsNeedDepth;
-end;
-
-function TCastleViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
-begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
   if ScreenSpaceReflections then
@@ -2803,31 +2770,32 @@ begin
     if Index = 1 then
       Result := SSRShader
     else
-      Result := Items.MainScene.ScreenEffects(Index - 2);
+      Result := Items.MainScene.InternalScreenEffects(Index - 2);
   end else
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
   begin
     if Index = 0 then
       Result := SSAOShader
     else
-      Result := Items.MainScene.ScreenEffects(Index - 1);
+      Result := Items.MainScene.InternalScreenEffects(Index - 1);
   end else
   if ScreenSpaceReflections and (SSRShader <> nil) then
   begin
     if Index = 0 then
       Result := SSRShader
     else
-      Result := Items.MainScene.ScreenEffects(Index - 1);
+      Result := Items.MainScene.InternalScreenEffects(Index - 1);
   end else
   if Items.MainScene <> nil then
-    Result := Items.MainScene.ScreenEffects(Index)
+    Result := Items.MainScene.InternalScreenEffects(Index)
   else
     { no Index is valid, since ScreenEffectsCount = 0 in this class }
     Result := nil;
   {$warnings on}
 end;
 
-function TCastleViewport.ScreenEffectsCount: Integer;
+function TCastleViewport.InternalExtraScreenEffectsCount(
+  const PrepareParams: TPrepareParams): Integer;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -2836,7 +2804,7 @@ begin
 
   {$warnings off} // using deprecated MainScene to keep it working
   if Items.MainScene <> nil then
-    Result := Items.MainScene.ScreenEffectsCount
+    Result := Items.MainScene.InternalScreenEffectsCount(PrepareParams)
   else
     Result := 0;
   {$warnings off}
@@ -2847,7 +2815,7 @@ begin
     Inc(Result);
 end;
 
-function TCastleViewport.ScreenEffectsNeedDepth: boolean;
+function TCastleViewport.InternalExtraScreenEffectsNeedDepth: Boolean;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -2860,7 +2828,7 @@ begin
     Exit(true);
   {$warnings off} // using deprecated MainScene to keep it working
   if Items.MainScene <> nil then
-    Result := Items.MainScene.ScreenEffectsNeedDepth
+    Result := Items.MainScene.InternalScreenEffectsNeedDepth
   else
   {$warnings on}
     Result := false;

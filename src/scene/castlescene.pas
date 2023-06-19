@@ -355,9 +355,10 @@ type
     { Screen effects information, used by TCastleViewport.ScreenEffects.
       ScreenEffectsCount may actually prepare screen effects.
       @groupBegin }
-    function ScreenEffects(Index: Integer): TGLSLProgram;
-    function ScreenEffectsCount: Integer;
-    function ScreenEffectsNeedDepth: boolean;
+    function InternalScreenEffects(Index: Integer): TGLSLProgram;
+    function InternalScreenEffectsCount(
+      const PrepareParams: TPrepareParams): Integer;
+    function InternalScreenEffectsNeedDepth: boolean;
     { @groupEnd }
 
     { Create a scene with the same contents (X3D scene graph) as this one.
@@ -1925,10 +1926,12 @@ begin
       GeneratedTextures.L[I].Functionality.InternalUpdateNeeded := true;
 end;
 
-function TCastleScene.ScreenEffectsCount: Integer;
+function TCastleScene.InternalScreenEffectsCount(
+  const PrepareParams: TPrepareParams): Integer;
 var
   I: Integer;
   SE: TScreenEffectNode;
+  Renderer: TGLRenderer;
 begin
   Result := 0;
 
@@ -1939,19 +1942,21 @@ begin
     TextureMemoryProfiler. }
   RegisterGLContextClose;
 
-  (* TODO: no renderer anymore, no way to prepare SE, no way to check shader<>nil
+  Assert(PrepareParams <> nil);
+  Assert(PrepareParams.RendererToPrepareShapes <> nil);
+  Renderer := PrepareParams.RendererToPrepareShapes as TGLRenderer;
 
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin
     SE := TScreenEffectNode(ScreenEffectNodes[I]);
-    Renderer.PrepareScreenEffect(SE);
+    // Note: Renderer.PrepareScreenEffect exits fast if already was done on this shape
+    Renderer.PrepareScreenEffect(SE, RenderOptions);
     if SE.Shader <> nil then
       Inc(Result);
   end;
-  *)
 end;
 
-function TCastleScene.ScreenEffects(Index: Integer): TGLSLProgram;
+function TCastleScene.InternalScreenEffects(Index: Integer): TGLSLProgram;
 var
   I: Integer;
   SE: TScreenEffectNode;
@@ -1965,14 +1970,15 @@ begin
     SE := TScreenEffectNode(ScreenEffectNodes[I]);
     if SE.Shader <> nil then
       if Index = 0 then
-        Exit(TGLSLProgram(SE.Shader)) else
+        Exit(TGLSLProgram(SE.Shader))
+      else
         Dec(Index);
   end;
 
   raise EInternalError.Create('TCastleScene.ScreenEffects: Invalid index');
 end;
 
-function TCastleScene.ScreenEffectsNeedDepth: boolean;
+function TCastleScene.InternalScreenEffectsNeedDepth: boolean;
 var
   I: Integer;
 begin
