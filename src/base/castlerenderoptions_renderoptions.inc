@@ -23,7 +23,7 @@ type
 
   { Options that control rendering,
     available at every scene through @link(TCastleScene.RenderOptions). }
-  TCastleRenderOptions = class(TComponent)
+  TCastleRenderOptions = class(TCastleComponent)
   strict private
     FLighting: boolean;
     FReceiveSceneLights, FReceiveGlobalLights: boolean;
@@ -152,6 +152,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
     { Is the second TCastleRenderOptions instance on all fields
       that affect TShapeCache, that is things that affect generated geometry
@@ -741,6 +742,26 @@ begin
       We could do this by OwnerScene.PreparedRender := false.
       Or just ReleaseCachedResources. }
     ReleaseCachedResources;
+  end;
+end;
+
+procedure TCastleRenderOptions.CustomSerialization(const SerializationProcess: TSerializationProcess);
+var
+  SceneName, BlendingSortStr: String;
+begin
+  inherited;
+  BlendingSortStr := '';
+  SerializationProcess.ReadWriteString('BlendingSort', BlendingSortStr, false);
+  if BlendingSortStr <> '' then
+  begin
+    if Owner <> nil then
+      SceneName := Owner.Name
+    else
+      SceneName := '<name unknown>';
+    WritelnWarning('Scene "%s" uses "BlendingSort" = "%s", this is no longer supported. Instead set Viewport.Items.BlendingSort.', [
+      SceneName,
+      BlendingSortStr
+    ]);
   end;
 end;
 
