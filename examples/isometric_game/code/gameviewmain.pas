@@ -164,7 +164,10 @@ procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean
 begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
-  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  LabelFps.Caption :=
+    'FPS: ' + Container.Fps.ToString + NL +
+    'DynamicBatching: ' + BoolToStr(DynamicBatching, true) + NL +
+    'Stats: ' + MainViewport.Statistics.ToString;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -172,24 +175,12 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TViewMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
-
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
+  if Event.IsKey(keyB) then
   begin
-    // DoSomething;
+    // TODO: enable from editor
+    DynamicBatching := not DynamicBatching;
     Exit(true); // key was handled
   end;
-  }
 end;
 
 end.

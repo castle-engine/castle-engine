@@ -64,6 +64,8 @@ type
       Never change it after initial render. }
     DisableSharedCache: Boolean;
 
+    OverrideRenderOptions: TCastleRenderOptions;
+
     procedure Changed(const InactiveOnly: boolean;
       const Changes: TX3DChanges); override;
     procedure PrepareResources(const ARenderer: TGLRenderer);
@@ -245,11 +247,17 @@ var
   RenderOptions: TCastleRenderOptions;
 begin
   FRenderer := ARenderer;
-  RenderOptions := TCastleScene(ParentScene).RenderOptions;
+  // TODO: always depend on local RenderOptions field
+  if OverrideRenderOptions <> nil then
+    RenderOptions := OverrideRenderOptions
+  else
+    RenderOptions := TCastleScene(ParentScene).RenderOptions;
   Renderer.PrepareShape(Self, RenderOptions);
 end;
 
 procedure TGLShape.PrepareResources(const ARenderer: TGLRenderer);
+var
+  RenderOptions: TCastleRenderOptions;
 begin
   if Renderer <> ARenderer then
   begin
@@ -266,7 +274,13 @@ begin
     PreparedUseAlphaChannel := true;
   end;
 
-  if ReallyOcclusionQuery(TCastleScene(ParentScene).RenderOptions) and
+  // TODO: always depend on local RenderOptions field
+  if OverrideRenderOptions <> nil then
+    RenderOptions := OverrideRenderOptions
+  else
+    RenderOptions := TCastleScene(ParentScene).RenderOptions;
+
+  if ReallyOcclusionQuery(RenderOptions) and
      (OcclusionQueryId = 0) then
   begin
     glGenQueries(1, @OcclusionQueryId);
