@@ -224,22 +224,16 @@ procedure TGLShape.RendererDetach;
   var
     Pass: TTotalRenderingPass;
   begin
+    { This follows from TGLRenderer.UnprepareShape implementation. }
     Assert(Cache = nil, 'When Renderer = nil, Cache should also be nil');
     for Pass := Low(Pass) to High(Pass) do
       Assert(ProgramCache[Pass] = nil, 'When Renderer = nil, all ProgramCache[Pass] should also be nil');
   end;
 
-var
-  Pass: TTotalRenderingPass;
 begin
   if Renderer <> nil then
   begin
-    { Free Arrays and Vbo of all shapes. }
-    if Cache <> nil then
-      Renderer.Cache.Shape_DecReference(Self, Cache);
-    for Pass := Low(Pass) to High(Pass) do
-      if ProgramCache[Pass] <> nil then
-        Renderer.Cache.Program_DecReference(ProgramCache[Pass]);
+    Renderer.UnprepareShape(Self);
     FRenderer := nil;
   end;
 
@@ -252,7 +246,7 @@ var
 begin
   FRenderer := ARenderer;
   RenderOptions := TCastleScene(ParentScene).RenderOptions;
-  Renderer.Prepare(Self, RenderOptions);
+  Renderer.PrepareShape(Self, RenderOptions);
 end;
 
 procedure TGLShape.PrepareResources(const ARenderer: TGLRenderer);

@@ -21,8 +21,9 @@
 
   @orderedList(
     @item(
-      Call @link(TGLRenderer.Prepare) for all
-      the states that you want to later render. The order of calling TGLRenderer.Prepare
+      Call @link(TGLRenderer.PrepareShape) for all
+      the shapes (geometry and state) that you want to later render.
+      The order of calling TGLRenderer.PrepareShape
       methods doesn't matter, also you are free to prepare states that you
       will not actually use later. Of course a state, once prepared,
       may be used in rendering as many times as you want.
@@ -32,19 +33,20 @@
       must have exactly the same (fields, properties) values as when
       it was prepared. In particular, it must have the same
       pointers to nodes Last*/Active* and their contents
-      also must be the same. TGLRenderer.Prepare
+      also must be the same. TGLRenderer.PrepareSha[e]
       may save some associations between objects and OpenGL resources,
       so it's important that the same pointer must always point to the
       same object (until it's unprepared).
 
-      TGLRenderer.Prepare requires active OpenGL context. It doesn't modify
+      TGLRenderer.PrepareShape requires active OpenGL context. It doesn't modify
       OpenGL state (only allocates some resources like texture names).
       It cannot be called inside a display list.
     )
 
     @item(
-      When you want to release resources, you should call TGLRenderer.Unprepare on
-      nodes that you want to change or free. This should be used
+      When you want to release resources, you should call
+      TGLRenderer.UnprepareShape on
+      shapes that you want to change or free. This should be used
       with nodes that were passed as Last*/Active*
       in some State for TGLRenderer.Prepare.
 
@@ -559,6 +561,7 @@ type
     PrepareTextureRenderOptions: TCastleRenderOptions;
 
     function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
+    function UnprepareTextureCallback(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 
     {$ifndef OpenGLES}
     { Call glPushMatrix, assuming that current matrix mode is GL_TEXTURE
@@ -701,8 +704,9 @@ type
       and RenderOptions too, are "frozen":
       do not change, do not free them.
       If you need to change / free, first unprepare them. }
-    procedure Prepare(const Shape: TX3DRendererShape;
+    procedure PrepareShape(const Shape: TX3DRendererShape;
       const RenderOptions: TCastleRenderOptions);
+    procedure UnprepareShape(const Shape: TX3DRendererShape);
 
     { Release resources for this texture. }
     procedure UnprepareTexture(Node: TAbstractTextureNode);
@@ -1932,12 +1936,32 @@ begin
   Result := nil;
 end;
 
-procedure TGLRenderer.Prepare(const Shape: TX3DRendererShape;
+procedure TGLRenderer.PrepareShape(const Shape: TX3DRendererShape;
   const RenderOptions: TCastleRenderOptions);
 begin
   PrepareTextureRenderOptions := RenderOptions;
-  Shape.EnumerateTextures({$ifdef FPC}@{$endif}PrepareTexture);
+  Shape.EnumerateTextures({$ifdef FPC}@{$endif} PrepareTexture);
   PrepareTextureRenderOptions := nil;
+end;
+
+function TGLRenderer.UnprepareTextureCallback(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
+begin
+  UnprepareTexture(Texture);
+  Result := nil;
+end;
+
+procedure TGLRenderer.UnprepareShape(const Shape: TX3DRendererShape);
+var
+  ShapePass: TTotalRenderingPass;
+begin
+  Shape.EnumerateTextures({$ifdef FPC}@{$endif} UnprepareTextureCallback);
+
+  { Free Arrays and Vbo of all shapes. }
+  if Shape.Cache <> nil then
+    Cache.Shape_DecReference(Shape, Shape.Cache);
+  for ShapePass := Low(ShapePass) to High(ShapePass) do
+    if Shape.ProgramCache[ShapePass] <> nil then
+      Cache.Program_DecReference(Shape.ProgramCache[ShapePass]);
 end;
 
 procedure TGLRenderer.PrepareScreenEffect(const Node: TScreenEffectNode;
