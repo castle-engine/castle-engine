@@ -171,7 +171,7 @@ begin
   HierarchicalOcclusionQueryRenderer := THierarchicalOcclusionQueryRenderer.Create(
     {Self} nil { TODO occlusion query broken }, OcclusionQueryUtilsRenderer);
   BlendingRenderer := TBlendingRenderer.Create;
-  FRenderer := TGLRenderer.Create;
+  FRenderer := TGLRenderer.Create(nil);
 end;
 
 destructor TShapesRenderer.Destroy;

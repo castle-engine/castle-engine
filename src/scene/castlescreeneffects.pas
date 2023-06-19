@@ -331,7 +331,7 @@ begin
   FScreenEffectsTimeScale := 1;
   FScreenEffectsEnable := true;
 
-  FRenderer := TGLRenderer.Create;
+  FRenderer := TGLRenderer.Create(nil);
 
   FPrepareParams := TPrepareParams.Create;
   FPrepareParams.GlobalLights := nil;

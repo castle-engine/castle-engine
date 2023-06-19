@@ -511,7 +511,7 @@ type
     destructor Destroy; override;
   end;
 
-  TGLRenderer = class
+  TGLRenderer = class(TComponent)
   private
     { ---------------------------------------------------------
       GLContext-specific things, so freed (or reset in some other way to default
@@ -693,7 +693,7 @@ type
       RenderMode: TRenderMode;
 
     { Constructor. }
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     property Cache: TGLRendererContextCache read FCache;
@@ -1691,9 +1691,9 @@ end;
 
 { TGLRenderer ---------------------------------------------------------- }
 
-constructor TGLRenderer.Create;
+constructor TGLRenderer.Create(AOwner: TComponent);
 begin
-  inherited Create;
+  inherited;
 
   GLTextureNodes := TGLTextureNodes.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
@@ -1709,6 +1709,16 @@ end;
 
 destructor TGLRenderer.Destroy;
 begin
+  { Call TComponent destructor early, to call notifications that cause
+    TGLShape.RendererDetach when everything related to renderer is still valid.
+
+    Testcase:
+    - create empty project,
+    - add 3D viewport to initial design,
+    - undo.
+    Without this fix, it will SEGFAULT. }
+  inherited;
+
   UnprepareAll;
 
   FreeAndNil(TextureTransformUnitsUsedMore);
@@ -1717,8 +1727,6 @@ begin
   FreeAndNil(PreparedShader);
 
   FCache := nil; // we don't own cache
-
-  inherited;
 end;
 
 { TShapeCache ---------------------------------------------------------------- }

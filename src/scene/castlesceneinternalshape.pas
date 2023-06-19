@@ -22,7 +22,7 @@ unit CastleSceneInternalShape;
 interface
 
 uses Generics.Collections,
-  X3DNodes, X3DFields, CastleImages, CastleVectors,
+  X3DNodes, X3DFields, CastleImages, CastleVectors, CastleClassUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleGLUtils, CastleInternalRenderer, CastleRenderOptions;
 
@@ -33,6 +33,9 @@ type
   TGLShape = class(TX3DRendererShape)
   strict private
     FRenderer: TGLRenderer;
+    FRendererObserver: TFreeNotificationObserver;
+
+    procedure RendererFreeNotification(const Sender: TFreeNotificationObserver);
 
     { Unassociate with Renderer and set it to nil, if non-nil. }
     procedure RendererDetach;
@@ -66,6 +69,7 @@ type
 
     OverrideRenderOptions: TCastleRenderOptions;
 
+    destructor Destroy; override;
     procedure Changed(const InactiveOnly: boolean;
       const Changes: TX3DChanges); override;
     procedure PrepareResources(const ARenderer: TGLRenderer);
@@ -135,10 +139,16 @@ function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOpti
 
 implementation
 
-uses Generics.Defaults, Math,
+uses Generics.Defaults, Math, SysUtils,
   CastleScene, CastleBoxes;
 
 { TGLShape --------------------------------------------------------------- }
+
+destructor TGLShape.Destroy;
+begin
+  FreeAndNil(FRendererObserver);
+  inherited;
+end;
 
 procedure TGLShape.Changed(const InactiveOnly: boolean;
   const Changes: TX3DChanges);
@@ -242,11 +252,25 @@ begin
   CheckNoCaches;
 end;
 
+procedure TGLShape.RendererFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  RendererDetach;
+end;
+
 procedure TGLShape.RendererAttach(const ARenderer: TGLRenderer);
 var
   RenderOptions: TCastleRenderOptions;
 begin
+  // create FRendererObserver on-demand
+  if FRendererObserver = nil then
+  begin
+    FRendererObserver := TFreeNotificationObserver.Create(nil);
+    FRendererObserver.OnFreeNotification := {$ifdef FPC}@{$endif} RendererFreeNotification;
+  end;
+
   FRenderer := ARenderer;
+  FRendererObserver.Observed := ARenderer;
+
   // TODO: always depend on local RenderOptions field
   if OverrideRenderOptions <> nil then
     RenderOptions := OverrideRenderOptions
