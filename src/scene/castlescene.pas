@@ -600,11 +600,10 @@ begin
   if OwnerScene = nil then
     Exit;
 
-  { We have to do at least Renderer.UnprepareAll.
-    Actually, we have to do more: TCastleScene must also be disconnected
-    from OpenGL, to release screen effects (referencing renderer shaders)
-    and such. So full GLContextClose is needed. }
-
+  { TCastleScene must be disconnected from OpenGL, to release
+    - resources from shapes (shaders, textures, VBOs)
+    - screen effects (referencing renderer shaders, maybe also textures if used)
+    So full GLContextClose is needed. }
   OwnerScene.GLContextClose;
 
   { If OcclusionQuery just changed:
@@ -728,7 +727,10 @@ procedure TCastleScene.GLContextClose;
           that eventually calls GLSLRenderers.UnprepareAll,
           that eventually calls Cache.GLSLProgram_DecReference on this shader,
           that eventuallly destroys TGLSLProgram instance.
-          So below only set it to nil. }
+          So below only set it to nil.
+
+          TODO: This leaves shader effects resources hanging until
+          TShapesRenderer is destroyed, so potentially for a long time now. }
         Node.Shader := nil;
         Node.ShaderLoaded := false;
       end;

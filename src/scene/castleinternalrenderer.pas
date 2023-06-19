@@ -111,7 +111,8 @@
     @item(
       Since the first prepare / render calls, this renderer assumes it's
       always called in the same OpenGL context. To break association
-      with OpenGL context call TGLRenderer.UnprepareAll (this is like calling TGLRenderer.Unprepare
+      with OpenGL context call TGLRenderer.UnprepareAll
+      (this is like calling TGLRenderer.Unprepare
       on every prepared thing + clearing some remaining resources).
     )
   )
@@ -706,7 +707,7 @@ type
     { Release resources for this texture. }
     procedure UnprepareTexture(Node: TAbstractTextureNode);
 
-    { Release every OpenGL and X3D resource. That is release any knowledge
+    { Release every OpenGL resource. That is release any knowledge
       connecting us to the current OpenGL context and any knowledge
       about your prepared X3D nodes, states etc.
 
@@ -715,7 +716,11 @@ type
 
       Destructor callls UnprepareAll automatically. So be sure to either
       call UnprepareAll or destroy this renderer
-      when your OpenGL context is still active. }
+      when your OpenGL context is still active.
+
+      Note: Since TShaderRenderer uses single TGLRenderer to render all
+      scenes, avoid calling this unless you want to unprepare
+      *all* resources of *all* scenes. }
     procedure UnprepareAll;
 
     { Surround all TGLRenderer usage in ViewportRenderBegin / ViewportRenderEnd calls.
