@@ -10,8 +10,15 @@
       "FullSize" : true,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
+        "BlendingSort" : "bs3D",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
