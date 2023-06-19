@@ -1695,8 +1695,8 @@ constructor TGLRenderer.Create(AOwner: TComponent);
 begin
   inherited;
 
-  GLTextureNodes := TGLTextureNodes.Create(false);
-  ScreenEffectPrograms := TGLSLProgramList.Create;
+  GLTextureNodes := TGLTextureNodes.Create([doOwnsValues]);
+  ScreenEffectPrograms := TGLSLProgramList.Create(true);
   TextureTransformUnitsUsedMore := TInt32List.Create;
 
   PreparedShader := TShader.Create;
@@ -2094,7 +2094,7 @@ end;
 
 procedure TGLRenderer.UnprepareTexture(Node: TAbstractTextureNode);
 begin
-  GLTextureNodes.Unprepare(Node);
+  GLTextureNodes.Remove(Node);
 end;
 
 procedure TGLRenderer.UnprepareAll;
@@ -2106,9 +2106,9 @@ begin
     Testcase: castle-game. }
 
   if GLTextureNodes <> nil then
-    GLTextureNodes.UnprepareAll;
+    GLTextureNodes.Clear; { will free all textures, calling also Unprepare on them }
   if ScreenEffectPrograms <> nil then
-    ScreenEffectPrograms.Count := 0; { this will free programs inside }
+    ScreenEffectPrograms.Clear; { this will free programs inside }
 end;
 
 function TGLRenderer.BumpMapping(const RenderOptions: TCastleRenderOptions): TBumpMapping;

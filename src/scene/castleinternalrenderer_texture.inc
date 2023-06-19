@@ -146,18 +146,10 @@
   end;
 
   TGLTextureNodes = class(TResourceRendererList)
-  private
-    function GetItems(const Index: Integer): TGLTextureNode;
   public
-    { Looks for item with given ANode.
-      Returns -1 if not found. }
-    function TextureNodeIndex(ANode: TAbstractTextureNode): Integer;
-
     { Looks for item with given ANode.
       Returns @nil if not found. }
     function TextureNode(ANode: TAbstractTextureNode): TGLTextureNode;
-
-    property Items[const Index: Integer]: TGLTextureNode read GetItems; default;
 
     { Prepare texture node, adding it to the list, if not prepared already.
       Accepts multi texture or not-multi texture nodes, accepts (and ignores)
@@ -644,19 +636,9 @@ end;
 
 { TGLTextureNodes ------------------------------------------------------------ }
 
-function TGLTextureNodes.TextureNodeIndex(ANode: TAbstractTextureNode): Integer;
-begin
-  Result := inherited NodeIndex(ANode);
-end;
-
 function TGLTextureNodes.TextureNode(ANode: TAbstractTextureNode): TGLTextureNode;
 begin
   Result := TGLTextureNode(inherited Node(ANode));
-end;
-
-function TGLTextureNodes.GetItems(const Index: Integer): TGLTextureNode;
-begin
-  Result := TGLTextureNode(inherited Items[Index]);
 end;
 
 function TGLTextureNodes.Prepare(const State: TX3DGraphTraverseState;
@@ -673,11 +655,12 @@ begin
     GLTextureNodeClass := TGLTextureNodeClass.ClassForTextureNode(ANode);
 
     if (GLTextureNodeClass <> nil { Ignore if not handled node. }) and
-       (TextureNodeIndex(ANode) = -1) then
+       (not ContainsKey(ANode)) then
     begin
       Result := GLTextureNodeClass.Create(ARenderer, Self, ANode);
       Result.Prepare(State, RenderOptions);
-      Add(Result);
+      // Makes Add, not AddOrSetValue, because ANode should not be in the list yet
+      Add(ANode, Result);
     end;
   end;
 end;
@@ -816,7 +799,7 @@ begin
     ChildTex := TextureNode.FdTexture[I];
     if (ChildTex is TAbstractTextureNode) and // also checks ChildTex <> nil
        (not (ChildTex is TMultiTextureNode)) then
-      Renderer.GLTextureNodes.Unprepare(ChildTex);
+      Renderer.GLTextureNodes.Remove(ChildTex);
   end;
   inherited;
 end;
