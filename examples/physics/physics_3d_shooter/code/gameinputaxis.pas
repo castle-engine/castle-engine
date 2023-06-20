@@ -110,7 +110,7 @@ begin
     begin
       if buttonRight in Container.MousePressed then
       begin
-        if not FLastMousePositionIsSet then
+        {if not FLastMousePositionIsSet then
         begin
           FLastUpdateMousePosition := Container.MousePosition;
           FLastMousePositionIsSet := true;
@@ -118,9 +118,20 @@ begin
           WritelnLog('MouseLookPress');
         end;
         Container.MouseLookUpdate;
-        Result := HandleMouseLook(Container) * MouseLookMultiplier;
+        Result := HandleMouseLook(Container) * MouseLookMultiplier;}
+
+        case MouseLookAxis of
+        mlaHorizontal:
+          Result := Container.MouseLookLastDelta.X * MouseLookMultiplier;
+        mlaVertical:
+          Result := Container.MouseLookLastDelta.Y * MouseLookMultiplier;
+        end;
+
+        WritelnLog('REsult: ' + FloatToStr(Result));
       end else
+      begin
         FLastMousePositionIsSet := false;
+      end;
     end;
   end else
     FLastMousePositionIsSet := false;

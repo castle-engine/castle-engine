@@ -86,6 +86,7 @@
     FBackgroundColor: TCastleColor;
     FInputInspector: TInputInspector;
     FInspector: TCastleUserInterface; //< always TCastleInspector
+    FMouseLookLastDelta: TVector2;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
@@ -339,6 +340,9 @@
       See @link(TTouch.Position) for a documentation how this is expressed. }
     property MousePosition: TVector2
       read GetMousePosition write SetMousePosition;
+
+    { Last delta from mouse when currsor was hidden }
+    property MouseLookLastDelta: TVector2 read FMouseLookLastDelta;
 
     { Currently pressed mouse buttons. When this changes, you're always
       notified by @link(OnPress) or @link(OnRelease) events.
@@ -1776,6 +1780,7 @@ procedure TCastleContainer.EventMotion(const Event: TInputMotion);
 var
   I: Integer;
   Capture: TCastleUserInterface;
+  Delta: TVector2;
 begin
   UpdateFocusAndMouseCursor;
 
@@ -1813,6 +1818,13 @@ begin
   { pass to container event }
   if Assigned(OnMotion) then
     OnMotion(Self, Event);
+
+  if OverrideCursor = mcForceNone then
+  begin
+    WritelnLog('aha');
+    FMouseLookLastDelta := MouseLookDelta(Event);
+  end else
+    FMouseLookLastDelta := TVector2.Zero;
 end;
 
 procedure TCastleContainer.ControlsVisibleChange(const Sender: TCastleUserInterface;
