@@ -376,13 +376,40 @@ function TBatchShapes.Collect(const TransformedShape: TCollectedShape): Boolean;
         );
     end;
 
+    function TexturePropertiesContentsMatch(const P1, P2: TTexturePropertiesNode): Boolean;
+    begin
+      Result :=
+        (P1.AnisotropicDegree = P2.AnisotropicDegree) and
+        (P1.BoundaryModeR = P2.BoundaryModeR) and
+        (P1.BoundaryModeS = P2.BoundaryModeS) and
+        (P1.BoundaryModeT = P2.BoundaryModeT) and
+        (P1.MagnificationFilter = P2.MagnificationFilter) and
+        (P1.MinificationFilter = P2.MinificationFilter) and
+        (P1.GenerateMipMaps = P2.GenerateMipMaps) and // unhandled, but soon may be handled
+        (P1.GuiTexture = P2.GuiTexture);
+    end;
+
+    function TexturePropertiesEqual(const P1, P2: TX3DNode): Boolean;
+    begin
+      Result :=
+        (P1 = P2) or
+        (
+          (P1 is TTexturePropertiesNode) and
+          (P2 is TTexturePropertiesNode) and
+          TexturePropertiesContentsMatch(TTexturePropertiesNode(P1), TTexturePropertiesNode(P2))
+        );
+    end;
+
     function ImageTextureContentsMatch(const Texture1, Texture2: TImageTextureNode): Boolean;
     begin
       Result :=
         Texture1.FdUrl.Equals(Texture2.FdUrl) and
         (Texture1.FlipVertically = Texture2.FlipVertically) and
         (Texture1.AlphaChannel = Texture2.AlphaChannel) and
-        Texture1.FdEffects.Equals(Texture2.FdEffects);
+        (Texture1.RepeatS = Texture2.RepeatS) and
+        (Texture1.RepeatT = Texture2.RepeatT) and
+        Texture1.FdEffects.Equals(Texture2.FdEffects) and
+        TexturePropertiesEqual(Texture1.FdTextureProperties.Value, Texture2.FdTextureProperties.Value);
     end;
 
     function TexturesEqual(const Texture1, Texture2: TX3DNode): Boolean;
