@@ -319,7 +319,11 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
       but this would be bad for batching.)
       Just remove ExcludeFromStatistics? }
     if (Params.InternalPass = 0) {and not ExcludeFromStatistics} then
+    begin
       Inc(Params.Statistics.ShapesRendered);
+      if Params.Transparent then
+        Inc(Params.Statistics.ShapesRenderedBlending);
+    end;
 
     Shape := CollectedShape.Shape;
 

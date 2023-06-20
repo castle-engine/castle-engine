@@ -35,6 +35,10 @@
       TCastleRenderOptions.OcclusionQuery)). }
     ShapesRendered, ShapesVisible: Cardinal;
 
+    { Subset of shapes counted in ShapesRendered that have been rendered using
+      blending (partial transparency). }
+    ShapesRenderedBlending: Cardinal;
+
     { The number of shapes that were not rendered,
       but their bounding box was rendered to check with occlusion query.
       This is always zero when not using occlusion query (see
@@ -335,8 +339,9 @@ begin
   else
     OcclusionStats := '';
 
-  Result := Format('Shapes %d%s / %d, Scenes: %d / %d, Draw calls: %d', [
+  Result := Format('Shapes %d (with blending: %d)%s / %d, Scenes: %d / %d, Draw calls: %d', [
     ShapesRendered,
+    ShapesRenderedBlending,
     OcclusionStats,
     ShapesVisible,
     ScenesRendered,
