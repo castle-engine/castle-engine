@@ -132,8 +132,8 @@ const
   end;
 
 const
-  TilesCountX = 10;
-  TilesCountY = 20;
+  TilesCountX = 20;
+  TilesCountY = 40;
 var
   X, Y: Integer;
 begin
@@ -158,6 +158,9 @@ begin
   MainViewport.Camera.Translation := Vector3(
     TilePosition(TilesCountX div 2, TilesCountY div 2),
     100);
+
+  // TODO
+  //DynamicBatching := true;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
