@@ -1332,7 +1332,7 @@ begin
     Assert(FViewport.Camera <> nil);
     FViewport.FullSize := true;
     FViewport.InsertFront(FNavigation);
-    FViewport.Setup2D;
+    FViewport.Setup2D(false);
     FViewport.Camera.Orthographic.Origin := Vector2(0.5, 0.5);
     CastleControlPreview.Controls.InsertFront(FViewport);
 

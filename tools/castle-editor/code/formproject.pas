@@ -81,7 +81,6 @@ type
     ActionComponentCopy: TAction;
     ActionViewportToggleProjection: TAction;
     ActionViewportSetup2D: TAction;
-    ActionViewportSort2D: TAction;
     ActionViewportAlignCameraToView: TAction;
     ActionViewportTop: TAction;
     ActionNavigationToggle2D: TAction;
@@ -168,7 +167,6 @@ type
     MenuItem20: TMenuItem;
     Separator4: TMenuItem;
     MenuItem18: TMenuItem;
-    MenuItem19: TMenuItem;
     MenuItem2: TMenuItem;
     Separator2: TMenuItem;
     MenuItem13: TMenuItem;
@@ -395,7 +393,6 @@ type
     procedure ActionViewportLeftExecute(Sender: TObject);
     procedure ActionViewportRightExecute(Sender: TObject);
     procedure ActionViewportSetup2DExecute(Sender: TObject);
-    procedure ActionViewportSort2DExecute(Sender: TObject);
     procedure ActionViewportTopExecute(Sender: TObject);
     procedure ActionViewportViewAllExecute(Sender: TObject);
     procedure ActionViewportViewSelectedExecute(Sender: TObject);
@@ -1289,12 +1286,6 @@ procedure TProjectForm.ActionViewportSetup2DExecute(Sender: TObject);
 begin
   if Design <> nil then
     Design.ViewportSetup2D;
-end;
-
-procedure TProjectForm.ActionViewportSort2DExecute(Sender: TObject);
-begin
-  if Design <> nil then
-    Design.ViewportSort(bs2D);
 end;
 
 procedure TProjectForm.ActionViewportTopExecute(Sender: TObject);

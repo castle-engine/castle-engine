@@ -635,14 +635,23 @@
 
     { Insert a child at a specific position on the children list.
 
-      Usually the order of children doesn't matter, so there's not much point
-      in using this method. You can as well use @link(Add).
-      In particular, for rendering opaque (3D or 2D objects) the front/back is decided by
-      the actual translation of the object in 3D, i.e. what is closer to the camera.
+      Note: Usually the order of children doesn't matter, so you can as well
+      add children at the end, using @link(Add).
+
+      In particular, when rendering opaque (3D or 2D) objects, the front/back
+      is decided by the actual translation of the object,
+      i.e. what is closer to the camera.
       (In a typical 2D setup, larger Z values mean "closer to the camera".)
       The position on the children list doesn't matter in this case.
 
-      However, the position matters in case of blending.
+      When rendering with blending, we recommend to use
+      @link(TCastleAbstractRootTransform.BlendingSort) to automatically use
+      proper order when rendering partially-transparent objects.
+      This will mean that the order of children really doesn't matter.
+
+      However, the position matters in case of blending,
+      if you left @link(TCastleAbstractRootTransform.BlendingSort)
+      at bsNone.
       See https://castle-engine.io/blending .
       For correct blending, when you have multiple partially-transparent scenes,
       the partially-transparent objects must be sorted from back to front on the list.
@@ -755,6 +764,7 @@
 
       Calling this method makes sense if you use
       @url(https://castle-engine.io/blending blending)
+      and left @link(TCastleAbstractRootTransform.BlendingSort) at bsNone,
       and multiple partially-transparent objects may
       be visible at the same place on the screen.
       Sorting avoids artifacts when rendering.
@@ -784,10 +794,7 @@
 
       Note that this doesn't take care of sorting the shapes
       within the scenes. For this, you should set
-      @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
-      to a value like bs3D or bs3DOrigin or bs3DGround, to keep it sorted.
-      The bs3D is the default now (see @link(TCastleRenderOptions.DefaultBlendingSort)),
-      so you typically don't need to worry about it.
+      @link(TCastleAbstractRootTransform.BlendingSort).
 
       See the TBlendingSort documentation for the exact specification
       of sorting algorithms. Using BlendingSort = bsNone does nothing.
@@ -795,6 +802,7 @@
       @seealso SortBackToFront2D }
     procedure SortBackToFront(const BlendingSort: TBlendingSort;
       const CameraPosition: TVector3);
+      deprecated 'use Viewport.Items.BlendingSort (TCastleAbstractRootTransform.BlendingSort) to sort objects for blending';
 
     { Sort objects back-to-front @italic(right now)
       following the 2D blending sorting algorithm.
@@ -803,6 +811,7 @@
 
       @seealso SortBackToFront }
     procedure SortBackToFront2D;
+      deprecated 'use Viewport.Items.BlendingSort (TCastleAbstractRootTransform.BlendingSort) to sort objects for blending';
 
     { Bounding box of this object, in the coordinate system of the parent transformation.
       This method takes into account current transformation

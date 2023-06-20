@@ -942,46 +942,15 @@ type
   end deprecated{ 'use Tree.TraverseList(...)'};
 
   TShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TShape>)
-  strict private
-    SortPosition: TVector3;
-    function IsSmallerFrontToBack(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-    function IsSmallerBackToFront2D(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-    function IsSmallerBackToFront3DBox(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-    function IsSmallerBackToFront3DOrigin(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-    function IsSmallerBackToFront3DGround(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
   private
     { Like regular Add, but parameter is "const" to satisfy TShapeTraverseFunc signature. }
     procedure AddConst(const S: TShape);
   public
     constructor Create; overload;
-
     { Constructor that initializes list contents by traversing given tree. }
     constructor Create(const Tree: TShapeTree; const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); overload; deprecated 'use Tree.TraverseList(...)';
-
-    { Sort shapes by distance to given Position point, closest first.
-
-      TODO: Should not be needed anymore?
-      We should only sort collected shapes?
-    }
-    procedure SortFrontToBack(const Position: TVector3);
-
-    { Sort shapes by distance to given Position point, farthest first.
-
-      BlendingSort determines the sorting algorithm.
-      See @link(TBlendingSort) documentation.
-
-      TODO: Should not be needed anymore?
-      We should only sort collected shapes?
-    }
-    procedure SortBackToFront(const Position: TVector3;
-      const BlendingSort: TBlendingSort);
   end;
 
 var
@@ -3620,73 +3589,6 @@ end;
 procedure TShapeList.AddConst(const S: TShape);
 begin
   Add(S);
-end;
-
-type
-  TShapeComparer = {$ifdef FPC}specialize{$endif} TComparer<TShape>;
-
-function TShapeList.IsSmallerFrontToBack(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-begin
-  { To revert the order, we revert the order of A and B as passed to CompareBackToFront3D. }
-  Result := TBox3D.CompareBackToFront3D(B.BoundingBox, A.BoundingBox, SortPosition);
-end;
-
-function TShapeList.IsSmallerBackToFront2D(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-begin
-  Result := TBox3D.CompareBackToFront2D(A.BoundingBox, B.BoundingBox);
-end;
-
-function TShapeList.IsSmallerBackToFront3DBox(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-begin
-  Result := TBox3D.CompareBackToFront3D(A.BoundingBox, B.BoundingBox, SortPosition);
-end;
-
-function TShapeList.IsSmallerBackToFront3DOrigin(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-var
-  PointA, PointB: TVector3;
-begin
-  PointA := A.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
-  PointB := B.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
-  Result := Sign(
-    PointsDistanceSqr(PointB, SortPosition) -
-    PointsDistanceSqr(PointA, SortPosition));
-end;
-
-function TShapeList.IsSmallerBackToFront3DGround(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-var
-  PointA, PointB: TVector3;
-begin
-  PointA := A.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
-  PointB := B.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
-  PointA.Y := 0;
-  PointB.Y := 0;
-  Result := Sign(
-    PointsDistanceSqr(PointB, SortPosition) -
-    PointsDistanceSqr(PointA, SortPosition));
-end;
-
-procedure TShapeList.SortFrontToBack(const Position: TVector3);
-begin
-  SortPosition := Position;
-  Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerFrontToBack));
-end;
-
-procedure TShapeList.SortBackToFront(const Position: TVector3;
-  const BlendingSort: TBlendingSort);
-begin
-  SortPosition := Position;
-  case BlendingSort of
-    bs2D      : Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront2D));
-    bs3D      : Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DBox));
-    bs3DOrigin: Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DOrigin));
-    bs3DGround: Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DGround));
-    else ;
-  end;
 end;
 
 { TPlaceholderNames ------------------------------------------------------- }

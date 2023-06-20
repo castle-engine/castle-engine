@@ -498,9 +498,6 @@ object ProjectForm: TProjectForm
       object MenuItem18: TMenuItem
         Action = ActionViewportSetup2D
       end
-      object MenuItem19: TMenuItem
-        Action = ActionViewportSort2D
-      end
     end
     object MenuItemPhysics: TMenuItem
       Caption = 'Physics'
@@ -1135,12 +1132,6 @@ object ProjectForm: TProjectForm
       Category = 'Viewport'
       Caption = '2D Camera And Projection At Runtime'
       OnExecute = ActionViewportSetup2DExecute
-      OnUpdate = ActionViewportUpdate
-    end
-    object ActionViewportSort2D: TAction
-      Category = 'Viewport'
-      Caption = 'Sort Items For Correct 2D Blending'
-      OnExecute = ActionViewportSort2DExecute
       OnUpdate = ActionViewportUpdate
     end
     object ActionViewportToggleProjection: TAction
