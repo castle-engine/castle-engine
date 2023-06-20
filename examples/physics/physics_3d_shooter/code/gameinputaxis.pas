@@ -20,10 +20,6 @@ type
     FMouseLookMultiplier: Single;
     FMultiplier: Single;
 
-    FLastUpdateMousePosition: TVector2;
-    FLastMousePositionIsSet: Boolean;
-
-    function HandleMouseLook(const Container: TCastleContainer): Single;
   public
     const
       DefaultMultiplier = 1.0;
@@ -51,48 +47,12 @@ uses Math, CastleLog;
 
 { TCastleInputAxis  ---------------------------------------------------------- }
 
-function TCastleInputAxis.HandleMouseLook(const Container: TCastleContainer): Single;
-var
-  MouseChange: TVector2;
-  Event: TInputMotion;
-begin
-  if Container.InternalMouseLookIgnoreNextMotion then
-  begin
-    Result := 0;
-    FLastUpdateMousePosition := Container.MousePosition;
-    WritelnLog('Motion Ignored');
-    Exit;
-  end;
-
-  // MouseChange := (Container.MousePosition) - FLastUpdateMousePosition;
-
-  // TODO: try to use here - MouseChange := Container.MouseLookDelta(Event, RenderRect);
-  // and prepare TMotionEvent by myself to do that
-  Event.OldPosition := FLastUpdateMousePosition;
-  Event.Position := Container.MousePosition;
-  Event.Pressed := Container.MousePressed;
-
-  // TODO ?
-  //Event.FingerIndex := ;
-  // TODO: how to set render rect?
-  MouseChange := Container.MouseLookDelta(Event);
-
-  case MouseLookAxis of
-  mlaHorizontal:
-    Result := MouseChange.X;
-  mlaVertical:
-    Result := MouseChange.Y;
-  end;
-  FLastUpdateMousePosition := Container.MousePosition;
-end;
-
 constructor TCastleInputAxis.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
   FMouseLookMultiplier := DefaultMouseLookMultiplier;
   FMultiplier := DefaultMultiplier;
-  FLastUpdateMousePosition := Vector2(0, 0);
 end;
 
 function TCastleInputAxis.Value(const Container: TCastleContainer): Single;
@@ -108,33 +68,14 @@ begin
     // check mouse look and add mouse look multiplier
     if FMouseLook then
     begin
-      if buttonRight in Container.MousePressed then
-      begin
-        {if not FLastMousePositionIsSet then
-        begin
-          FLastUpdateMousePosition := Container.MousePosition;
-          FLastMousePositionIsSet := true;
-          Container.MouseLookPress;
-          WritelnLog('MouseLookPress');
-        end;
-        Container.MouseLookUpdate;
-        Result := HandleMouseLook(Container) * MouseLookMultiplier;}
-
-        case MouseLookAxis of
-        mlaHorizontal:
-          Result := Container.MouseLookLastDelta.X * MouseLookMultiplier;
-        mlaVertical:
-          Result := Container.MouseLookLastDelta.Y * MouseLookMultiplier;
-        end;
-
-        WritelnLog('REsult: ' + FloatToStr(Result));
-      end else
-      begin
-        FLastMousePositionIsSet := false;
+      case MouseLookAxis of
+      mlaHorizontal:
+        Result := Container.MouseLookLastDelta.X * MouseLookMultiplier;
+      mlaVertical:
+        Result := Container.MouseLookLastDelta.Y * MouseLookMultiplier;
       end;
     end;
-  end else
-    FLastMousePositionIsSet := false;
+  end;
 
   Result := Result * Multiplier;
 end;
