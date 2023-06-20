@@ -161,6 +161,8 @@ type
     function GetScreenEffectsCount: Cardinal;
     function GetScreenEffectsNeedDepth: Boolean;
     function GetScreenEffect(const Index: Integer): TGLSLProgram;
+
+    procedure GLContextCloseEvent(Sender: TObject);
   protected
     { Valid only between Render and RenderOverChildren calls.
       Tells whether we actually use screen effects, thus RenderWithoutScreenEffects
@@ -274,7 +276,8 @@ type
 
 implementation
 
-uses CastleUtils, CastleLog, CastleRenderContext, CastleInternalGLUtils;
+uses CastleUtils, CastleLog, CastleRenderContext, CastleInternalGLUtils,
+  CastleApplicationProperties;
 
 function ScreenEffectVertex: string;
 begin
@@ -337,13 +340,25 @@ begin
   FPrepareParams.GlobalLights := nil;
   FPrepareParams.GlobalFog := nil;
   FPrepareParams.RendererToPrepareShapes := FRenderer;
+
+  ApplicationProperties.OnGLContextCloseObject.Add(
+    {$ifdef FPC}@{$endif} GLContextCloseEvent);
 end;
 
 destructor TCastleScreenEffects.Destroy;
 begin
+  ApplicationProperties.OnGLContextCloseObject.Remove(
+    {$ifdef FPC}@{$endif} GLContextCloseEvent);
+
   FreeAndNil(FPrepareParams);
   FreeAndNil(FRenderer);
   inherited;
+end;
+
+procedure TCastleScreenEffects.GLContextCloseEvent(Sender: TObject);
+begin
+  if ScreenEffectsScene <> nil then
+    ScreenEffectsScene.GLContextClose;
 end;
 
 procedure TCastleScreenEffects.AddScreenEffect(const Node: TAbstractChildNode);

@@ -716,14 +716,15 @@ procedure TCastleScene.GLContextClose;
       for I := 0 to ScreenEffectNodes.Count - 1 do
       begin
         Node := TScreenEffectNode(ScreenEffectNodes[I]);
-        { The TGLSLProgram instance here will be released by Rendered.UnprepareAll,
-          that eventually calls GLSLRenderers.UnprepareAll,
-          that eventually calls Cache.GLSLProgram_DecReference on this shader,
-          that eventuallly destroys TGLSLProgram instance.
+        { The TGLSLProgram instance here will be released by
+          TGLRenderer.GLContextCloseEvent,
+          that calls ScreenEffectPrograms.Clear.
+
           So below only set it to nil.
 
           TODO: This leaves shader effects resources hanging until
-          TShapesRenderer is destroyed, so potentially for a long time now. }
+          TGLRenderer.GLContextCloseEvent occurred,
+          so potentially for a long time now. }
         Node.Shader := nil;
         Node.ShaderLoaded := false;
       end;

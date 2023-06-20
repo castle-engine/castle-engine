@@ -260,9 +260,6 @@ end;
 
 procedure TShapesRenderer.GLContextClose;
 begin
-  if Renderer <> nil then
-    Renderer.UnprepareAll;
-
   if OcclusionQueryUtilsRenderer <> nil then
     OcclusionQueryUtilsRenderer.GLContextClose;
 

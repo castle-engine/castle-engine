@@ -111,11 +111,31 @@
     )
 
     @item(
-      Since the first prepare / render calls, this renderer assumes it's
-      always called in the same OpenGL context. To break association
-      with OpenGL context call TGLRenderer.UnprepareAll
-      (this is like calling TGLRenderer.Unprepare
-      on every prepared thing + clearing some remaining resources).
+      All render commands that affect state (like RenderBegin, RenderEnd,
+      ViewportRenderBegin, ViewportRenderEnd)
+      must be done in the same OpenGL context, until you finish
+      given rendering by ViewportRenderEnd.
+
+      All the commands, including rendering and preparing (like PrepareShape),
+      must be done in the OpenGL contexts that share resources.
+      CGE TCastleWindow and TCastleControl guarantee this automatically,
+      all OpenGL contexts used by CGE share resources.
+
+      When the last OpenGL context is destroyed, all resources are automatically
+      released.
+
+      For some things, like textures, you don't need to worry about OpenGL
+      context anymore: because outside of CastleInternalRenderer unit,
+      you don't reference OpenGL texture resources directly. You only have
+      TX3DNode instances, and the fact that their OpenGL counterparts have been
+      released probably doesn't bother you.
+
+      For some other things, like TX3DRendererShape.Cache and
+      TX3DRendererShape.ProgramCache, you still have to make sure you free
+      them before OpenGL context gets destroyed.
+      That is why both TCastleViewport and TCastleScreenEffects take good
+      care to pass GLContextClose event to TCastleScene.GLContextClose
+      which passes it to TGLShape.GLContextClose for all shapes.
     )
   )
 
@@ -515,7 +535,7 @@ type
   private
     { ---------------------------------------------------------
       GLContext-specific things, so freed (or reset in some other way to default
-      uninitialized values) in UnprepareAll. }
+      uninitialized values) in GLContextCloseEvent. }
 
     GLTextureNodes: TGLTextureNodes;
     ScreenEffectPrograms: TGLSLProgramList;
@@ -584,6 +604,20 @@ type
     function BumpMapping(const RenderOptions: TCastleRenderOptions): TBumpMapping;
 
     {$I castleinternalrenderer_surfacetextures.inc}
+
+    { Release every OpenGL resource. That is release any knowledge
+      connecting us to the current OpenGL context and any knowledge
+      about your prepared X3D nodes, states etc.
+
+      Calling this is valid (and ignored) call if everything
+      is already released.
+
+      Destructor calls this automatically.
+
+      Note: Since TShaderRenderer uses single TGLRenderer to render all
+      scenes, avoid calling this unless you want to unprepare
+      *all* resources of *all* scenes. }
+    procedure GLContextCloseEvent(Sender: TObject);
   private
     { ----------------------------------------------------------------- }
 
@@ -711,22 +745,6 @@ type
     { Release resources for this texture. }
     procedure UnprepareTexture(Node: TAbstractTextureNode);
 
-    { Release every OpenGL resource. That is release any knowledge
-      connecting us to the current OpenGL context and any knowledge
-      about your prepared X3D nodes, states etc.
-
-      Calling UnprepareAll is valid (and ignored) call if everything
-      is already released.
-
-      Destructor callls UnprepareAll automatically. So be sure to either
-      call UnprepareAll or destroy this renderer
-      when your OpenGL context is still active.
-
-      Note: Since TShaderRenderer uses single TGLRenderer to render all
-      scenes, avoid calling this unless you want to unprepare
-      *all* resources of *all* scenes. }
-    procedure UnprepareAll;
-
     { Surround all TGLRenderer usage in ViewportRenderBegin / ViewportRenderEnd calls.
 
       The idea is that outer component, like TCastleViewport,
@@ -778,7 +796,7 @@ type
       was successfully loaded.
 
       The GLSL program (TGLSLProgram) will be stored here,
-      and will be automatically freed during UnprepareAll call. }
+      and will be automatically freed when GL context is lost. }
     procedure PrepareScreenEffect(const Node: TScreenEffectNode;
       const RenderOptions: TCastleRenderOptions);
   end;
@@ -813,7 +831,7 @@ implementation
 uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
-  CastleCameras, CastleSceneInternalShape,
+  CastleCameras, CastleSceneInternalShape, CastleApplicationProperties,
   CastleRenderContext, CastleInternalGLUtils;
 
 {$define read_implementation}
@@ -1703,12 +1721,17 @@ begin
 
   // all instances use just global GLContextCache now
   FCache := GLContextCache;
-
   Assert(FCache <> nil);
+
+  ApplicationProperties.OnGLContextCloseObject.Add(
+    {$ifdef FPC}@{$endif} GLContextCloseEvent);
 end;
 
 destructor TGLRenderer.Destroy;
 begin
+  ApplicationProperties.OnGLContextCloseObject.Remove(
+    {$ifdef FPC}@{$endif} GLContextCloseEvent);
+
   { Call TComponent destructor early, to call notifications that cause
     TGLShape.RendererDetach when everything related to renderer is still valid.
 
@@ -1719,7 +1742,7 @@ begin
     Without this fix, it will SEGFAULT. }
   inherited;
 
-  UnprepareAll;
+  GLContextCloseEvent(nil);
 
   FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(GLTextureNodes);
@@ -2097,7 +2120,7 @@ begin
   GLTextureNodes.Remove(Node);
 end;
 
-procedure TGLRenderer.UnprepareAll;
+procedure TGLRenderer.GLContextCloseEvent(Sender: TObject);
 begin
   { Secure here in case various fields are nil, in case
     - we are in the middle of TGLRenderer constructor
