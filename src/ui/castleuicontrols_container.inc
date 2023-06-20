@@ -585,6 +585,8 @@
     function MouseLookDelta(const Event: TInputMotion): TVector2; overload;
       deprecated 'use MouseLookDelta overload with ControlRect parameter';
 
+    function InternalMouseLookIgnoreNextMotion: Boolean;
+
     { Force passing events to the given control first,
       regardless if this control is under the mouse cursor.
       Before we even send events to the currently "capturing" control
@@ -2030,6 +2032,11 @@ begin
   Result := MouseLookDelta(Event, FloatRectangle(Rect));
 end;
 
+function TCastleContainer.InternalMouseLookIgnoreNextMotion: Boolean;
+begin
+  Result := FMouseLookIgnoreNextMotion;
+end;
+
 function TCastleContainer.MouseLookDelta(const Event: TInputMotion;
   const ControlRect: TFloatRectangle): TVector2;
 
@@ -2126,6 +2133,7 @@ begin
 
   if FMouseLookIgnoreNextMotion then
   begin
+    WritelnLog('Ignored move');
     FMouseLookIgnoreNextMotion := false;
     FMouseLookWaitingForMiddle := false;
     FMouseLookMotionToSubtract := TVector2.Zero;

@@ -56,6 +56,14 @@ var
   MouseChange: TVector2;
   Event: TInputMotion;
 begin
+  if Container.InternalMouseLookIgnoreNextMotion then
+  begin
+    Result := 0;
+    FLastUpdateMousePosition := Container.MousePosition;
+    WritelnLog('Motion Ignored');
+    Exit;
+  end;
+
   // MouseChange := (Container.MousePosition) - FLastUpdateMousePosition;
 
   // TODO: try to use here - MouseChange := Container.MouseLookDelta(Event, RenderRect);
@@ -106,8 +114,10 @@ begin
         begin
           FLastUpdateMousePosition := Container.MousePosition;
           FLastMousePositionIsSet := true;
+          Container.MouseLookPress;
+          WritelnLog('MouseLookPress');
         end;
-
+        Container.MouseLookUpdate;
         Result := HandleMouseLook(Container) * MouseLookMultiplier;
       end else
         FLastMousePositionIsSet := false;
