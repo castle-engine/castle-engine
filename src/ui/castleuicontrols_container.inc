@@ -89,7 +89,8 @@
     FMouseLookLastDelta: TVector2;
     FLastUpdateMousePosition: TVector2;
     FLastMousePositionIsSet: Boolean;
-
+    FMouseLookControlRect: TFloatRectangle;
+    FMouseLookStarted: Boolean;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
@@ -344,8 +345,16 @@
     property MousePosition: TVector2
       read GetMousePosition write SetMousePosition;
 
-    { Last delta from mouse when currsor was hidden }
+    { Last delta from mouse look - updated after StartMouseLook() }
     property MouseLookLastDelta: TVector2 read FMouseLookLastDelta;
+
+    { Hides cursor and starts updating relative mouse position change in
+      MouseLookLastDelta.
+
+      Do not call MouseLookDelta() function directly when you
+      want to use Start/StopMouseLook() }
+    procedure StartMouseLook(const ControlRect: TFloatRectangle);
+    procedure StopMouseLook;
 
     { Currently pressed mouse buttons. When this changes, you're always
       notified by @link(OnPress) or @link(OnRelease) events.
@@ -1447,7 +1456,7 @@ procedure TCastleContainer.EventUpdate;
   var
     Event: TInputMotion;
   begin
-    if OverrideCursor = mcForceNone then
+    if FMouseLookStarted then
     begin
       if not FLastMousePositionIsSet then
       begin
@@ -1459,7 +1468,7 @@ procedure TCastleContainer.EventUpdate;
       Event.Position := MousePosition;
       Event.Pressed := MousePressed;
 
-      FMouseLookLastDelta := MouseLookDelta(Event);
+      FMouseLookLastDelta := MouseLookDelta(Event, FMouseLookControlRect);
       FLastUpdateMousePosition := MousePosition;
     end else
       FMouseLookLastDelta := TVector2.Zero;
@@ -2335,6 +2344,20 @@ end;
 function TCastleContainer.StatusBarHeight: Single;
 begin
   Result := ScaledStatusBarHeight / FUIScale;
+end;
+
+procedure TCastleContainer.StartMouseLook(const ControlRect: TFloatRectangle);
+begin
+  OverrideCursor := mcForceNone;
+  FMouseLookStarted := true;
+  FMouseLookControlRect := ControlRect;
+  MouseLookPress;
+end;
+
+procedure TCastleContainer.StopMouseLook;
+begin
+  OverrideCursor := mcDefault;
+  FMouseLookStarted := false;
 end;
 
 function TCastleContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;

@@ -144,12 +144,13 @@ begin
     Exit(true);
   end;
 
-  { Hide cursor for mouse look }
+  { Start mouse look }
   if Event.IsMouseButton(buttonRight) then
   begin
     //Viewport.Cursor := mcForceNone;
-    Container.OverrideCursor := mcForceNone;
-    WritelnLog('none');
+    //Container.OverrideCursor := mcForceNone;
+    Container.StartMouseLook(Viewport.RenderRect);
+    WritelnLog('Mouse look started');
   end;
 
   { Fly support }
@@ -184,8 +185,9 @@ begin
   if Event.IsMouseButton(buttonRight) then
   begin
     //Viewport.Cursor := mcDefault;
-    Container.OverrideCursor := mcDefault;
-    WritelnLog('default');
+    //Container.OverrideCursor := mcDefault;
+    Container.StopMouseLook;
+    WritelnLog('Mouse look stoped.');
   end;
 
   Result := inherited Release(Event);
