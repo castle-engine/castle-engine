@@ -32,6 +32,12 @@ type
     Non-internal units never expose instances of this class. }
   TGLShape = class(TX3DRendererShape)
   strict private
+    { TODO: having reference from shape to renderer is not optimal.
+      Shapes needs to observe Renderer - the TGLRenderer "free notification
+      list" is likely long.
+      Ultimately shapes should not need renderer to prepare / unprepare.
+      Renderer instance should only be used for rendering,
+      rest (prepare) should be stored in cache independent of renderer. }
     FRenderer: TGLRenderer;
     FRendererObserver: TFreeNotificationObserver;
 
