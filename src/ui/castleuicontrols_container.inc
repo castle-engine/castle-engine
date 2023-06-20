@@ -87,6 +87,9 @@
     FInputInspector: TInputInspector;
     FInspector: TCastleUserInterface; //< always TCastleInspector
     FMouseLookLastDelta: TVector2;
+    FLastUpdateMousePosition: TVector2;
+    FLastMousePositionIsSet: Boolean;
+
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
@@ -1440,6 +1443,28 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
+  procedure UpdateMouseLook;
+  var
+    Event: TInputMotion;
+  begin
+    if OverrideCursor = mcForceNone then
+    begin
+      if not FLastMousePositionIsSet then
+      begin
+        FLastMousePositionIsSet := true;
+        FLastUpdateMousePosition := MousePosition;
+      end;
+
+      Event.OldPosition := FLastUpdateMousePosition;
+      Event.Position := MousePosition;
+      Event.Pressed := MousePressed;
+
+      FMouseLookLastDelta := MouseLookDelta(Event);
+      FLastUpdateMousePosition := MousePosition;
+    end else
+      FMouseLookLastDelta := TVector2.Zero;
+  end;
+
 var
   I: Integer;
   HandleInput: boolean;
@@ -1471,6 +1496,8 @@ begin
       RecursiveUpdate(Controls[I], HandleInput);
     Dec(I);
   end;
+
+  UpdateMouseLook;
 
   if Assigned(OnUpdate) then OnUpdate(Self);
 end;
@@ -1818,13 +1845,6 @@ begin
   { pass to container event }
   if Assigned(OnMotion) then
     OnMotion(Self, Event);
-
-  if OverrideCursor = mcForceNone then
-  begin
-    WritelnLog('aha');
-    FMouseLookLastDelta := MouseLookDelta(Event);
-  end else
-    FMouseLookLastDelta := TVector2.Zero;
 end;
 
 procedure TCastleContainer.ControlsVisibleChange(const Sender: TCastleUserInterface;
