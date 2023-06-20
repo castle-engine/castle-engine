@@ -191,12 +191,26 @@ procedure TShapesRenderer.PrepareResources;
   procedure BatchingShapesPrepareResources;
   var
     I: Integer;
+    DummyRenderOptions: TCastleRenderOptions;
+    NeedsRenderOptions: Boolean;
   begin
-    for I := 0 to Batching.PoolShapesCount - 1 do
-    begin
-      Assert(Batching.PoolShapes[I] <> nil);
-      Batching.PoolShapes[I].PrepareResources(FRenderer);
-    end;
+    // TODO: should not be required here?
+    DummyRenderOptions := TCastleRenderOptions.Create(nil);
+    try
+      for I := 0 to Batching.PoolShapesCount - 1 do
+      begin
+        Assert(Batching.PoolShapes[I] <> nil);
+        NeedsRenderOptions := Batching.PoolShapes[I].OverrideRenderOptions = nil;
+        { We need to set OverrideRenderOptions,
+          otherwise the PoolShapes[I] would not have any RenderOptions
+          instance, which is necessary to be prepared. }
+        if NeedsRenderOptions then
+          Batching.PoolShapes[I].OverrideRenderOptions := DummyRenderOptions;
+        Batching.PoolShapes[I].PrepareResources(FRenderer);
+        if NeedsRenderOptions then
+          Batching.PoolShapes[I].OverrideRenderOptions := nil;
+      end;
+    finally FreeAndNil(DummyRenderOptions) end;
   end;
 
   { Simulate rendering for shapes in "batching pool". }

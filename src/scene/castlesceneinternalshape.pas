@@ -276,6 +276,7 @@ begin
     RenderOptions := OverrideRenderOptions
   else
     RenderOptions := TCastleScene(ParentScene).RenderOptions;
+  Assert(RenderOptions <> nil);
   Renderer.PrepareShape(Self, RenderOptions);
 end;
 
@@ -303,6 +304,7 @@ begin
     RenderOptions := OverrideRenderOptions
   else
     RenderOptions := TCastleScene(ParentScene).RenderOptions;
+  Assert(RenderOptions <> nil);
 
   if ReallyOcclusionQuery(RenderOptions) and
      (OcclusionQueryId = 0) then
