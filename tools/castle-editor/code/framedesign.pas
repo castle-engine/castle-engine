@@ -5747,7 +5747,7 @@ begin
   V := CurrentViewport;
   if V = nil then Exit;
 
-  V.Setup2D(false);
+  V.Setup2D;
   ModifiedOutsideObjectInspector('2D Camera And Projection At Runtime: ' + V.Name, ucHigh);
 end;
 

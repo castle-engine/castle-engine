@@ -638,11 +638,13 @@ type
         )
       )
 
-      If AdjustBlendingSort then this also sets @link(TCastleAbstractRootTransform.BlendingSort)
+      If AdjustBlendingSort (default @true, as this is usually desired)
+      then this also sets
+      @link(TCastleAbstractRootTransform.BlendingSort)
       to bs2D, which is a recommended value for 2D games.
       See @url(https://castle-engine.io/blending blending).
     }
-    procedure Setup2D(const AdjustBlendingSort: Boolean);
+    procedure Setup2D(const AdjustBlendingSort: Boolean = true);
 
     { Convert 2D position on the viewport into 3D "world coordinates",
       by colliding camera ray with a plane parallel to the viewport at given Depth.
@@ -3856,7 +3858,7 @@ begin
     e.g. to squeeze it into some TCastleButton) and keep the same fov.
     You can also change UI scaling and keep the same fov. }
   Camera.Orthographic.Height := 1000;
-  Setup2D(true); // BlendingSort is already bs2D anyway
+  Setup2D; // BlendingSort is already bs2D anyway, this will set it again, let it
 
   { purpose: initial 2D object,
     that you can see as a whole in initial view,

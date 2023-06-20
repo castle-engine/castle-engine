@@ -172,7 +172,7 @@ begin
   { When not deserializing, do Setup2D now.
     When deserializing, the camera should already be saved with 2D configuration. }
   if Camera <> nil then
-    Setup2D(false);
+    Setup2D;
   AutoNavigation := false;
 end;
 
@@ -262,7 +262,7 @@ begin
   begin
     WritelnWarning('Creating camera, because it was missing in design file. For the future, please uppgrade to use TCastleViewport instead of deprecated TCastle2DSceneManager.');
     SetupCamera;
-    Setup2D(false);
+    Setup2D;
   end;
 end;
 
