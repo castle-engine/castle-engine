@@ -376,10 +376,32 @@ function TBatchShapes.Collect(const TransformedShape: TCollectedShape): Boolean;
         );
     end;
 
+    function ImageTextureContentsMatch(const Texture1, Texture2: TImageTextureNode): Boolean;
+    begin
+      Result :=
+        Texture1.FdUrl.Equals(Texture2.FdUrl) and
+        (Texture1.FlipVertically = Texture2.FlipVertically) and
+        (Texture1.AlphaChannel = Texture2.AlphaChannel) and
+        Texture1.FdEffects.Equals(Texture2.FdEffects);
+    end;
+
+    function TexturesEqual(const Texture1, Texture2: TX3DNode): Boolean;
+    begin
+      Result :=
+        (Texture1 = Texture2) or
+        (
+          (Texture1 is TImageTextureNode) and
+          (Texture2 is TImageTextureNode) and
+          ImageTextureContentsMatch(TImageTextureNode(Texture1), TImageTextureNode(Texture2))
+        );
+    end;
+
     function MaterialTexturesEqual(const Texture1, Texture2: TX3DNode;
       const Texture1Mapping, Texture2Mapping: String): Boolean;
     begin
-      Result := (Texture1 = Texture2) and (Texture1Mapping = Texture2Mapping);
+      Result :=
+        TexturesEqual(Texture1, Texture2) and
+        (Texture1Mapping = Texture2Mapping);
     end;
 
     { Checks contents of M1 and M2,
