@@ -16,10 +16,6 @@
 { Render shapes, possibly coming from different TCastleScene instances. }
 unit CastleInternalShapesRenderer;
 
-{ TODO:
-  - what happens with background (skybox) rendering?
-}
-
 {$I castleconf.inc}
 
 interface
@@ -61,6 +57,7 @@ type
     BlendingRenderer: TBlendingRenderer;
     FRenderer: TGLRenderer;
     FBatching: TBatchShapes;
+    FDynamicBatching: Boolean;
 
     { Checks DynamicBatching and TODO: not occlusion query. }
     function ReallyDynamicBatching: Boolean;
@@ -121,6 +118,12 @@ type
       Transform and Params.TransformIdentity should be only in former. }
     procedure Render(const Shapes: TShapesCollector;
       const Params: TRenderParams; const BlendingSort: TBlendingSort);
+
+    { Combine (right before rendering) multiple shapes with a similar appearance into one.
+      This can drastically reduce the number of "draw calls",
+      making rendering much faster. }
+    property DynamicBatching: Boolean
+      read FDynamicBatching write FDynamicBatching default false;
   end;
 
 implementation
@@ -427,7 +430,11 @@ end;
 
 function TShapesRenderer.ReallyDynamicBatching: boolean;
 begin
-  Result := DynamicBatching; // TODO: nothing more for now, should check occlusion culling though
+  {$warnings off} // using deprecated CastleScene.DynamicBatching to keep it working
+  Result := Self.DynamicBatching or CastleScene.DynamicBatching;
+  {$warnings on}
+
+  // TODO: nothing more for now, should check occlusion culling though
 end;
 
 end.

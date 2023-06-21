@@ -456,10 +456,8 @@ type
 var
   InternalEnableRendering: Boolean = true;
 
-  { Combine (right before rendering) multiple shapes with a similar appearance into one.
-    This can drastically reduce the number of "draw calls",
-    making rendering much faster. }
-  DynamicBatching: Boolean = false;
+  DynamicBatching: Boolean = false
+    deprecated 'use TCastleViewport.DynamicBatching';
 
 const
   { We recommend using CastleRenderOptions unit to get these types.

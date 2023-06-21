@@ -159,6 +159,7 @@ type
       FInternalGridAxis: Boolean;
       FGizmoGridAxis: TInternalCastleEditorGizmo;
       FWarningZFarInfinityDone: Boolean;
+      FDynamicBatching: Boolean;
 
       ShapesCollector: TShapesCollector;
       ShapesRenderer: TShapesRenderer;
@@ -241,6 +242,7 @@ type
     procedure SetCamera(const Value: TCastleCamera);
     procedure CameraFreeNotification(const Sender: TFreeNotificationObserver);
     procedure ItemsFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SetDynamicBatching(const Value: Boolean);
   private
     var
       FProjection: TProjection;
@@ -1155,6 +1157,12 @@ type
       that is right now: @link(TCastleWalkNavigation) (when @link(TCastleWalkNavigation.Gravity) = @true). }
     property PreventInfiniteFallingDown: Boolean
       read FPreventInfiniteFallingDown write FPreventInfiniteFallingDown default false;
+
+    { Combine (right before rendering) multiple shapes with a similar appearance into one.
+      This can drastically reduce the number of "draw calls",
+      making rendering much faster. }
+    property DynamicBatching: Boolean
+      read FDynamicBatching write SetDynamicBatching default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -3962,12 +3970,10 @@ end;
 
 function TCastleViewport.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Transparent') or
-     (PropertyName = 'Camera') or
-     (PropertyName = 'Navigation') or
-     (PropertyName = 'Background') or
-     (PropertyName = 'Fog') or
-     (PropertyName = 'BackgroundColorPersistent') then
+  if ArrayContainsString(PropertyName, [
+        'Transparent', 'Camera', 'Navigation', 'Background',
+        'Fog', 'BackgroundColorPersistent', 'DynamicBatching', 'Items'
+      ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -4057,6 +4063,16 @@ begin
     WritelnWarning('Viewport named "%s" uses AutoNavigation, this is no longer supported. Instead: 1. (Advised) Add explicit navigation instance to viewport. 2. (Eventually, a temporary solution) Use TCastleAutoNavigationViewport.', [
       Name
     ]);
+  end;
+end;
+
+procedure TCastleViewport.SetDynamicBatching(const Value: Boolean);
+begin
+  if FDynamicBatching <> Value then
+  begin
+    FDynamicBatching := Value;
+    if ShapesRenderer <> nil then
+      ShapesRenderer.DynamicBatching := Value;
   end;
 end;
 
