@@ -819,14 +819,7 @@ begin
             - TCoordinateNode.FdPoint
             - TTextureCoordinateNode.FdPoint
           }
-          chCoordinate, chTextureCoordinate, chGeometry,
-          { We changed appearance, potentially a new texture - recalculate
-            whether to use alpha channel.
-
-            Testcase: examples/isometric_game with DynamicBatching set in Start
-            to true. Without this enum, the initial rendering would be wrong,
-            textures would not use blending. }
-          chTextureImage
+          chCoordinate, chTextureCoordinate, chGeometry
         ]);
       end;
     end;
