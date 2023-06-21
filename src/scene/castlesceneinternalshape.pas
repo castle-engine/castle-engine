@@ -54,10 +54,6 @@ type
     { Request from parent TCastleScene to call our PrepareResources at next time. }
     procedure SchedulePrepareResources;
   public
-    UseAlphaChannel: TAlphaChannel;
-    { Is UseAlphaChannel calculated and current. }
-    PreparedUseAlphaChannel: boolean;
-
     PassedFrustumAndDistanceCulling: Boolean;
 
     { Used only when RenderOptions.ReallyOcclusionQuery.
@@ -222,14 +218,6 @@ begin
       Renderer.UnprepareTexture(State.MainTexture);
       RendererDetach;
     end;
-    PreparedUseAlphaChannel := false;
-    SchedulePrepareResources;
-  end;
-
-  { When Material.transparency changes, recalculate UseAlphaChannel. }
-  if chAlphaChannel in Changes then
-  begin
-    PreparedUseAlphaChannel := false;
     SchedulePrepareResources;
   end;
 end;
@@ -282,14 +270,6 @@ begin
       RendererAttach(ARenderer);
   end;
 
-  if not PreparedUseAlphaChannel then
-  begin
-    { UseAlphaChannel is used by RenderScene to decide is Blending used for given
-      shape. }
-    UseAlphaChannel := AlphaChannel;
-    PreparedUseAlphaChannel := true;
-  end;
-
   // TODO: always depend on local RenderOptions field
   if OverrideRenderOptions <> nil then
     RenderOptions := OverrideRenderOptions
@@ -338,8 +318,6 @@ begin
   RendererDetach;
   FreeCaches;
 
-  PreparedUseAlphaChannel := false;
-
   if OcclusionQueryId <> 0 then
   begin
     glDeleteQueries(1, @OcclusionQueryId);
@@ -349,7 +327,7 @@ end;
 
 function TGLShape.UseBlending: Boolean;
 begin
-  Result := UseAlphaChannel = acBlending;
+  Result := AlphaChannel = acBlending;
 end;
 
 procedure TGLShape.SchedulePrepareResources;

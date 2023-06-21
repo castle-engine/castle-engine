@@ -2126,7 +2126,11 @@ function TShape.AlphaChannel: TAlphaChannel;
       Note that when "transparency" field is empty, then we assume
       a default transparency (0) should be used. So AllMaterialsTransparent
       is @false then (contrary to the strict definition of "all",
-      which should be true for empty sets). }
+      which should be true for empty sets).
+
+      This potentially isn't efficient (iterating over all materials
+      every time we need to return AlphaChannel) but it doesn't matter much,
+      this is only for deprecated VRML 1.0. }
     function AllMaterialsTransparent(const Node: TMaterialNode_1): boolean;
     var
       i: Integer;

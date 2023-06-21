@@ -3228,7 +3228,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     if RenderOptions.Textures and
        NodeTextured(Shape.Geometry) then
     begin
-      AlphaTest := TGLShape(Shape).UseAlphaChannel = acTest;
+      AlphaTest := TGLShape(Shape).AlphaChannel = acTest;
 
       if GLFontTextureNode <> nil then
         GLFontTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);

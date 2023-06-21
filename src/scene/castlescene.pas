@@ -1353,7 +1353,6 @@ begin
       After a while, it turns out this was a useless complication of code
       logic. There are many things that *have* to be prepared before whole
       rendering, for example
-      - UseBlending must be calculated for all shapes.
       - Occlusion query id must be generated (as we may start occlusion query
         before actually rendering the shape).
 

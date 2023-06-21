@@ -323,7 +323,7 @@ begin
   AddField(FFdShininess);
 
   FFdTransparency := TMFFloat.Create(Self, True, 'transparency', [TMaterialInfo.DefaultTransparency]);
-   FdTransparency.ChangeAlways := chAlphaChannel;
+   FdTransparency.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransparency);
 
   FFdMirror := TMFFloat.Create(Self, True, 'mirror', [0.0]);
