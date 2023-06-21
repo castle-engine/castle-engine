@@ -50,6 +50,9 @@ type
       Doesn't take care of deinitializing previous Renderer value,
       or even checking is it different than ARenderer. }
     procedure RendererAttach(const ARenderer: TGLRenderer);
+
+    { Request from parent TCastleScene to call our PrepareResources at next time. }
+    procedure SchedulePrepareResources;
   public
     UseAlphaChannel: TAlphaChannel;
     { Is UseAlphaChannel calculated and current. }
@@ -80,10 +83,6 @@ type
       const Changes: TX3DChanges); override;
     procedure PrepareResources(const ARenderer: TGLRenderer);
     procedure GLContextClose;
-
-    { Request from parent TCastleScene to call our PrepareResources at next time. }
-    // TODO: restore somehow?
-    //procedure SchedulePrepareResources; virtual; abstract;
 
     function UseBlending: Boolean;
 
@@ -224,14 +223,14 @@ begin
       RendererDetach;
     end;
     PreparedUseAlphaChannel := false;
-    //TODO:SchedulePrepareResources;
+    SchedulePrepareResources;
   end;
 
   { When Material.transparency changes, recalculate UseAlphaChannel. }
   if chAlphaChannel in Changes then
   begin
     PreparedUseAlphaChannel := false;
-    //TODO:SchedulePrepareResources;
+    SchedulePrepareResources;
   end;
 end;
 
@@ -351,6 +350,12 @@ end;
 function TGLShape.UseBlending: Boolean;
 begin
   Result := UseAlphaChannel = acBlending;
+end;
+
+procedure TGLShape.SchedulePrepareResources;
+begin
+  if ParentScene <> nil then
+    TCastleScene(ParentScene).InternalSchedulePrepareResources;
 end;
 
 { global routines ------------------------------------------------------------ }

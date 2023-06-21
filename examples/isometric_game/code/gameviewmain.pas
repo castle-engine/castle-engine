@@ -157,8 +157,7 @@ begin
     TilePosition(TilesCountX div 2, TilesCountY div 2),
     100);
 
-  // TODO
-  //DynamicBatching := true;
+  DynamicBatching := true;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

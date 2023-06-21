@@ -347,12 +347,17 @@ type
 
     { Screen effects information, used by TCastleViewport.ScreenEffects.
       ScreenEffectsCount may actually prepare screen effects.
+      @exclude
       @groupBegin }
     function InternalScreenEffects(Index: Integer): TGLSLProgram;
     function InternalScreenEffectsCount(
       const PrepareParams: TPrepareParams): Integer;
     function InternalScreenEffectsNeedDepth: boolean;
     { @groupEnd }
+
+    { Make TGLShape.PrepareResources call on all shapes before next render.
+      @exclude }
+    procedure InternalSchedulePrepareResources;
 
     { Create a scene with the same contents (X3D scene graph) as this one.
       The created scene has exactly the same class as this one
@@ -2029,6 +2034,11 @@ begin
     and TFramesPerSecond.RenderFrameId is always >= 1,
     which means that this will return (correctly) false at the beginning before any rendering run. }
   Result := TFramesPerSecond.RenderFrameId = FWasVisibleFrameId;
+end;
+
+procedure TCastleScene.InternalSchedulePrepareResources;
+begin
+  PreparedShapesResources := false;
 end;
 
 { TBasicRenderParams --------------------------------------------------------- }

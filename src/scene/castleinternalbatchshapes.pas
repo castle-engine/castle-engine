@@ -813,12 +813,21 @@ begin
         // all shapes from batching pool should have Shape assigned
         Assert(FMergeTarget[P, Slot].Shape <> nil);
 
-        { Mark changes from
-          - TIndexedFaceSetNode.FdCoordIndex, TIndexedTriangleSetNode.FdIndex
-          - TCoordinateNode.FdPoint
-          - TTextureCoordinateNode.FdPoint
-        }
-        FMergeTarget[P, Slot].Shape.Changed(false, [chCoordinate, chTextureCoordinate, chGeometry]);
+        FMergeTarget[P, Slot].Shape.Changed(false, [
+          { Mark changes from
+            - TIndexedFaceSetNode.FdCoordIndex, TIndexedTriangleSetNode.FdIndex
+            - TCoordinateNode.FdPoint
+            - TTextureCoordinateNode.FdPoint
+          }
+          chCoordinate, chTextureCoordinate, chGeometry,
+          { We changed appearance, potentially a new texture - recalculate
+            whether to use alpha channel.
+
+            Testcase: examples/isometric_game with DynamicBatching set in Start
+            to true. Without this enum, the initial rendering would be wrong,
+            textures would not use blending. }
+          chTextureImage
+        ]);
       end;
     end;
 
