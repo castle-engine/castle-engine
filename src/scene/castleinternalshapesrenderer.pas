@@ -105,7 +105,7 @@ type
 
     { Render all given shapes.
 
-      Note: Params.Transform and Params.TransformIdentity may be ignored
+      Note: Params.Transform / InverseTransform may be ignored
       by this routine.
       They should be set to indicate identity.
       They are meaningless here: we have scene transformation in each collected
@@ -115,7 +115,7 @@ type
 
       TODO: Split TRenderParams into stuff needed at collection,
       and needed at rendering collecting shapes.
-      Transform and Params.TransformIdentity should be only in former. }
+      Transform / InverseTransform should be only in former. }
     procedure Render(const Shapes: TShapesCollector;
       const Params: TRenderParams; const BlendingSort: TBlendingSort);
 

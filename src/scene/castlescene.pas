@@ -743,8 +743,6 @@ begin
 end;
 
 procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
-var
-  SceneTransform: TMatrix4;
 begin
   { Whether the Shape is rendered directly or through batching,
     mark it "was visible this frame".
@@ -753,18 +751,14 @@ begin
   if Shape.Node <> nil then
     Shape.Node.InternalWasVisibleFrameId := TFramesPerSecond.RenderFrameId;
 
-  if Render_Params.TransformIdentity then
-    SceneTransform := TMatrix4.Identity
-  else
-    SceneTransform := Render_Params.Transform^;
-
   // TODO: shape may be rendered in various scenes with different fog?
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
   // TODO: occlusion query where to do
   //OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(false);
 
-  Render_Collector.Add(Shape, RenderOptions, SceneTransform);
+  Render_Collector.Add(Shape, RenderOptions,
+    Render_Params.Transform^);
   IsVisibleNow := true;
 end;
 
@@ -969,7 +963,7 @@ begin
   //   OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
   //     RenderContext.ProjectionMatrix *
   //     Params.RenderingCamera.CurrentMatrix *
-  //     Params.Transform (if not Params.TransformIdentity);
+  //     Params.Transform;
   //   //OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true; // not needed anymore
   // end;
 
@@ -1425,7 +1419,7 @@ var
   SVRenderer: TGLShadowVolumeRenderer;
   ShapeList: TShapeList;
   Shape: TShape;
-  T: TMatrix4;
+  ShapeWorldTransform: TMatrix4;
   ForceOpaque: boolean;
 begin
   if CheckVisible and
@@ -1443,9 +1437,7 @@ begin
     RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
 
     { calculate and check SceneBox }
-    SceneBox := LocalBoundingBox;
-    if not Params.TransformIdentity then
-      SceneBox := SceneBox.Transform(Params.Transform^);
+    SceneBox := LocalBoundingBox.Transform(Params.Transform^);
     if SVRenderer.GetCasterShadowPossiblyVisible(SceneBox) then
     begin
       { Do not render shadows for objects eliminated by DistanceCulling.
@@ -1481,21 +1473,18 @@ begin
 
           When WholeSceneManifold=true, we render all shapes here.
           The per-scene check already passed above. }
-        ShapeBox := Shape.BoundingBox;
-        if not Params.TransformIdentity then
-          ShapeBox := ShapeBox.Transform(Params.Transform^);
+        ShapeBox := Shape.BoundingBox.Transform(Params.Transform^);
         SVRenderer.InitCaster(ShapeBox);
         if RenderOptions.WholeSceneManifold or
            SVRenderer.CasterShadowPossiblyVisible then
         begin
-          if Params.TransformIdentity then
-            T :=                     Shape.State.Transformation.Transform
-          else
-            T := Params.Transform^ * Shape.State.Transformation.Transform;
+          ShapeWorldTransform := Params.Transform^ *
+            Shape.State.Transformation.Transform;
           Shape.InternalShadowVolumes.RenderSilhouetteShadowVolume(
             Params,
             SVRenderer.Mesh,
-            SVRenderer.LightPosition, T,
+            SVRenderer.LightPosition,
+            ShapeWorldTransform,
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
             ForceOpaque,

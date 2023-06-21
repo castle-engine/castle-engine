@@ -870,7 +870,7 @@
       It does shadow volumes culling inside (so ShadowVolumeRenderer should
       have FrustumCullingInit already initialized).
 
-      Params.Transform,InverseTransform,TransformIdentity describe the transformation,
+      Params.Transform/InverseTransform describe the transformation,
       just like for @link(Render). }
     procedure RenderShadowVolume(const Params: TRenderParams;
       const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
@@ -3249,7 +3249,7 @@ var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
   NewParamsTransformation: TTransformation;
-  OldParamsTransformIdentity, OldInMeaningfulParent: Boolean;
+  OldInMeaningfulParent: Boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
   HasSavedDepthRange: Boolean;
@@ -3295,7 +3295,6 @@ begin
     begin
       //FrameProfiler.Start(fmRenderTransform);
 
-      OldParamsTransformIdentity := Params.TransformIdentity;
       OldParamsTransform         := Params.Transform;
       OldParamsInverseTransform  := Params.InverseTransform;
       OldFrustum                 := Params.Frustum;
@@ -3305,7 +3304,6 @@ begin
       NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
       NewFrustumValue                          := OldFrustum^;
 
-      Params.TransformIdentity := false;
       Params.Transform        := @NewParamsTransformation.Transform;
       Params.InverseTransform := @NewParamsTransformation.InverseTransform;
       Params.Frustum          := @NewFrustumValue;
@@ -3335,7 +3333,6 @@ begin
 
       { Restore OldXxx values.
         They can be restored fast, thanks to using pointers to matrix/frustum. }
-      Params.TransformIdentity := OldParamsTransformIdentity;
       Params.Transform         := OldParamsTransform;
       Params.InverseTransform  := OldParamsInverseTransform;
       Params.Frustum           := OldFrustum;
@@ -3355,7 +3352,6 @@ var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
   NewParamsTransformation: TTransformation;
-  OldParamsTransformIdentity: Boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
 begin
@@ -3367,7 +3363,6 @@ begin
   begin
     { TODO: This is a copy-paste of transformation algorithm from TCastleTransform.Render. }
 
-    OldParamsTransformIdentity := Params.TransformIdentity;
     OldParamsTransform         := Params.Transform;
     OldParamsInverseTransform  := Params.InverseTransform;
     OldFrustum                 := Params.Frustum;
@@ -3377,7 +3372,6 @@ begin
     NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
     NewFrustumValue                          := OldFrustum^;
 
-    Params.TransformIdentity := false;
     Params.Transform        := @NewParamsTransformation.Transform;
     Params.InverseTransform := @NewParamsTransformation.InverseTransform;
     Params.Frustum          := @NewFrustumValue;
@@ -3402,7 +3396,6 @@ begin
 
     { Restore OldXxx values.
       They can be restored fast, thanks to using pointers to matrix/frustum. }
-    Params.TransformIdentity := OldParamsTransformIdentity;
     Params.Transform         := OldParamsTransform;
     Params.InverseTransform  := OldParamsInverseTransform;
     Params.Frustum           := OldFrustum;

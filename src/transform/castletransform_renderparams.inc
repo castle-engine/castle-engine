@@ -236,12 +236,8 @@
       that determines shaders used. }
     UserPass: TUserRenderingPass;
 
-    { Transformation that should be applied to the rendered result.
-      If TransformIdentity, then Transform and InverseTransform is always identity.
-      @groupBegin }
+    { Transformation that should be applied to the rendered result. }
     Transform, InverseTransform: PMatrix4;
-    TransformIdentity: boolean;
-    { @groupEnd }
 
     { Current rendering statistics, should be updated by each
       @link(TCastleTransform.LocalRender) call. }
@@ -284,9 +280,6 @@
 
     { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }
     function GlobalLights: TAbstractLightInstancesList; virtual; abstract;
-
-    function RenderTransform: TMatrix4; deprecated 'use Transform';
-    function RenderTransformIdentity: boolean; deprecated 'use TransformIdentity';
   end;
 
   { Information that a TCastleTransform object needs to prepare rendering.
@@ -449,18 +442,7 @@ begin
   inherited;
   Transform := @GlobalIdentityMatrix;
   InverseTransform := @GlobalIdentityMatrix;
-  TransformIdentity := true;
   InMeaningfulParent := true;
-end;
-
-function TRenderParams.RenderTransform: TMatrix4;
-begin
-  Result := Transform^;
-end;
-
-function TRenderParams.RenderTransformIdentity: boolean;
-begin
-  Result := TransformIdentity;
 end;
 
 {$endif read_implementation}
