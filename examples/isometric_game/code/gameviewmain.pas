@@ -145,14 +145,12 @@ begin
     begin
       AddImage(RandomGround, X, Y, Vector2(0.5, 0.5), 0);
       if Random(10) = 0 then
-        AddImage(RandomTree, X, Y, Vector2(0.5, 0.1), 1);
+      begin
+        AddImage(RandomTree, X, Y, Vector2(0.5, 0.1),
+          // Place trees in front of the ground, bottom trees more in front\
+          1 + (TilesCountY - Y));
+      end;
     end;
-
-  { This call is only necessary if you use some transformations with blending.
-    Our AddImage doesn't add such transformations (it always sets acTest),
-    still we do this call in case you add other things to the viewport.
-    See https://castle-engine.io/blending for explanation why is this necessary (for now). }
-  MainViewport.Items.SortBackToFront2D;
 
   { Place camera such that it looks at the center tile initially }
   MainViewport.Camera.Translation := Vector3(
