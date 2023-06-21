@@ -56,7 +56,7 @@ type
   public
     PassedFrustumAndDistanceCulling: Boolean;
 
-    { Used only when RenderOptions.ReallyOcclusionQuery.
+    { Used only when TCastleViewport.OcclusionCulling.
       OcclusionQueryId is 0 if not initialized yet.
       When it's 0, value of OcclusionQueryAsked doesn't matter,
       OcclusionQueryAsked is always reset to @false when initializing
@@ -100,13 +100,23 @@ type
   TCollectedShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TCollectedShape>)
   strict private
     SortPosition: TVector3;
-    function IsSmallerBackToFront2D(
+
+    function CompareBackToFront2D(
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
-    function IsSmallerBackToFront3DBox(
+    function CompareBackToFront3DBox(
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
-    function IsSmallerBackToFront3DOrigin(
+    function CompareBackToFront3DOrigin(
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
-    function IsSmallerBackToFront3DGround(
+    function CompareBackToFront3DGround(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+
+    function CompareFrontToBack2D(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareFrontToBack3DBox(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareFrontToBack3DOrigin(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareFrontToBack3DGround(
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
   public
     { Sort shapes by distance to given Position point, farthest first.
@@ -114,29 +124,13 @@ type
       See @link(TBlendingSort) documentation. }
     procedure SortBackToFront(const Position: TVector3;
       const BlendingSort: TBlendingSort);
+
+    { Sort shapes by distance to given Position point, closest first.
+      BlendingSort determines the sorting algorithm.
+      See @link(TBlendingSort) documentation. }
+    procedure SortFrontToBack(const Position: TVector3;
+      const BlendingSort: TBlendingSort);
   end;
-
-{ Checks that any occlusion query algorithm should be used,
-  equivalent to
-  "ReallyOcclusionQuery(RenderOptions) or ReallyHierarchicalOcclusionQuery(RenderOptions)". }
-function ReallyAnyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
-
-{ Checks OcclusionQuery, existence of GLFeatures.OcclusionQuery,
-  and GLFeatures.OcclusionQueryCounterBits > 0. If @false,
-  occlusion query cannot be used.
-
-  Also, returns @false when HierarchicalOcclusionQuery is @true
-  --- because then HierarchicalOcclusionQuery should take precedence.
-
-  @exclude Internal. }
-function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
-
-{ Checks HierarchicalOcclusionQuery, existence of GLFeatures.OcclusionQuery,
-  and GLFeatures.OcclusionQueryCounterBits > 0. If @false,
-  occlusion query cannot be used.
-
-  @exclude Internal. }
-function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 
 implementation
 
@@ -276,13 +270,6 @@ begin
   else
     RenderOptions := TCastleScene(ParentScene).RenderOptions;
   Assert(RenderOptions <> nil);
-
-  if ReallyOcclusionQuery(RenderOptions) and
-     (OcclusionQueryId = 0) then
-  begin
-    glGenQueries(1, @OcclusionQueryId);
-    OcclusionQueryAsked := false;
-  end;
 end;
 
 procedure TGLShape.GLContextClose;
@@ -336,70 +323,12 @@ begin
     TCastleScene(ParentScene).InternalSchedulePrepareResources;
 end;
 
-{ global routines ------------------------------------------------------------ }
-
-function ReallyAnyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
-begin
-  {$warnings off}
-  Result :=
-    (RenderOptions.OcclusionQuery or RenderOptions.HierarchicalOcclusionQuery) and
-    (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
-    GLFeatures.OcclusionQuery and
-    GLFeatures.VertexBufferObject and
-    (GLFeatures.OcclusionQueryCounterBits > 0);
-  {$warnings on}
-
-  // unoptimal version
-  Assert(Result = (
-    ReallyOcclusionQuery(RenderOptions) or
-    ReallyHierarchicalOcclusionQuery(RenderOptions)
-  ));
-end;
-
-function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
-begin
-  {$warnings off}
-  Result := RenderOptions.OcclusionQuery and
-    (not RenderOptions.HierarchicalOcclusionQuery) and
-    (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
-    GLFeatures.OcclusionQuery and
-    GLFeatures.VertexBufferObject and
-    (GLFeatures.OcclusionQueryCounterBits > 0);
-  {$warnings on}
-end;
-
-function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
-begin
-  {$warnings off}
-  Result := RenderOptions.HierarchicalOcclusionQuery and
-    (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
-    GLFeatures.OcclusionQuery and
-    GLFeatures.VertexBufferObject and
-    (GLFeatures.OcclusionQueryCounterBits > 0);
-  {$warnings on}
-end;
-
 { TCollectedShape ---------------------------------------------------------- }
 
 type
   TCollectedShapeComparer = {$ifdef FPC}specialize{$endif} TComparer<TCollectedShape>;
 
-(*
-TODO: unused now.
-If anything, this should just revert other sort method?
-
-function TCollectedShapeList.IsSmallerFrontToBack(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
-begin
-  { To revert the order, we revert the order of A and B as passed to CompareBackToFront3D. }
-  Result := TBox3D.CompareBackToFront3D(
-    B.BoundingBox,
-    A.BoundingBox,
-    SortPosition);
-end;
-*)
-
-function TCollectedShapeList.IsSmallerBackToFront2D(
+function TCollectedShapeList.CompareBackToFront2D(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
 begin
   Result := TBox3D.CompareBackToFront2D(
@@ -407,7 +336,7 @@ begin
     B.Shape.BoundingBox.Transform(B.SceneTransform));
 end;
 
-function TCollectedShapeList.IsSmallerBackToFront3DBox(
+function TCollectedShapeList.CompareBackToFront3DBox(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
 begin
   Result := TBox3D.CompareBackToFront3D(
@@ -416,7 +345,7 @@ begin
     SortPosition);
 end;
 
-function TCollectedShapeList.IsSmallerBackToFront3DOrigin(
+function TCollectedShapeList.CompareBackToFront3DOrigin(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
 var
   PointA, PointB: TVector3;
@@ -428,7 +357,7 @@ begin
     PointsDistanceSqr(PointA, SortPosition));
 end;
 
-function TCollectedShapeList.IsSmallerBackToFront3DGround(
+function TCollectedShapeList.CompareBackToFront3DGround(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
 var
   PointA, PointB: TVector3;
@@ -448,10 +377,47 @@ procedure TCollectedShapeList.SortBackToFront(const Position: TVector3;
 begin
   SortPosition := Position;
   case BlendingSort of
-    bs2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront2D));
-    bs3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DBox));
-    bs3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DOrigin));
-    bs3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DGround));
+    bs2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront2D));
+    bs3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DBox));
+    bs3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DOrigin));
+    bs3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DGround));
+    else ;
+  end;
+end;
+
+function TCollectedShapeList.CompareFrontToBack2D(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := -CompareBackToFront2D(A, B);
+end;
+
+function TCollectedShapeList.CompareFrontToBack3DBox(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := -CompareBackToFront3DBox(A, B);
+end;
+
+function TCollectedShapeList.CompareFrontToBack3DOrigin(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := -CompareBackToFront3DOrigin(A, B);
+end;
+
+function TCollectedShapeList.CompareFrontToBack3DGround(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := -CompareBackToFront3DGround(A, B);
+end;
+
+procedure TCollectedShapeList.SortFrontToBack(const Position: TVector3;
+  const BlendingSort: TBlendingSort);
+begin
+  SortPosition := Position;
+  case BlendingSort of
+    bs2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack2D));
+    bs3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DBox));
+    bs3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DOrigin));
+    bs3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DGround));
     else ;
   end;
 end;

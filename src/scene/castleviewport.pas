@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, X3DNodes, CastleInternalBaseTriangleOctree, CastleScene,
-  CastleSceneCore, CastleCameras,
+  CastleSceneCore, CastleCameras, CastleRenderOptions,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleInternalBackgroundRenderer, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
@@ -160,6 +160,8 @@ type
       FGizmoGridAxis: TInternalCastleEditorGizmo;
       FWarningZFarInfinityDone: Boolean;
       FDynamicBatching: Boolean;
+      FOcclusionCulling: Boolean;
+      FOcclusionSort: TBlendingSort;
 
       ShapesCollector: TShapesCollector;
       ShapesRenderer: TShapesRenderer;
@@ -243,6 +245,8 @@ type
     procedure CameraFreeNotification(const Sender: TFreeNotificationObserver);
     procedure ItemsFreeNotification(const Sender: TFreeNotificationObserver);
     procedure SetDynamicBatching(const Value: Boolean);
+    procedure SetOcclusionCulling(const Value: Boolean);
+    procedure SetOcclusionSort(const Value: TBlendingSort);
   private
     var
       FProjection: TProjection;
@@ -1163,6 +1167,48 @@ type
       making rendering much faster. }
     property DynamicBatching: Boolean
       read FDynamicBatching write SetDynamicBatching default false;
+
+    { Use the occlusion culling to optimize the rendering.
+      The shapes obscured by other shapes will not be rendered.
+      This makes sense when in your view, many shapes are typically obscured by others.
+
+      See the https://castle-engine.io/occlusion_query
+      for details how does this work.
+
+      This is ignored if GPU doesn't support the necessary functionality
+      (@link(TGLFeatures.OcclusionQuery)). }
+    property OcclusionCulling: boolean
+      read FOcclusionCulling write SetOcclusionCulling default false;
+
+    { Sort the opaque shapes when rendering, from front to back.
+      This may make a speedup when big shapes in front of camera obscure
+      many shapes behind.
+
+      In general this is an independent optimization from @link(OcclusionCulling),
+      albeit it makes sense in similar situations.
+
+      When combined with @link(OcclusionCulling), it makes occlusion culling
+      even more effective.
+      See https://castle-engine.io/occlusion_culling and test the
+      @url(https://github.com/castle-engine/castle-engine/tree/master/examples/viewport_and_scenes/occlusion_culling
+      examples/viewport_and_scenes/occlusion_culling) in editor.
+      Use F8 in CGE editor to show statistics, and observe that
+
+      @unorderedList(
+        @item(OcclusionCulling=false and OcclusionSort=bsNone results in most shapes
+          being rendered (like 300).)
+
+        @item(OcclusionCulling=true and OcclusionSort=bsNone is better, when
+          looking at a building wall obscuring most city you can easily
+          have only 30 shapes rendered.)
+
+        @item(OcclusionCulling=true and OcclusionSort=bs3D is even better.
+          Looking at a building wall obscuring most city you can easily
+          have only a few shapes rendered.)
+      )
+    }
+    property OcclusionSort: TBlendingSort
+      read FOcclusionSort write SetOcclusionSort default bsNone;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -3972,7 +4018,8 @@ function TCastleViewport.PropertySections(const PropertyName: String): TProperty
 begin
   if ArrayContainsString(PropertyName, [
         'Transparent', 'Camera', 'Navigation', 'Background',
-        'Fog', 'BackgroundColorPersistent', 'DynamicBatching', 'Items'
+        'Fog', 'BackgroundColorPersistent', 'DynamicBatching', 'Items',
+        'OcclusionSort', 'OcclusionCulling'
       ]) then
     Result := [psBasic]
   else
@@ -4073,6 +4120,26 @@ begin
     FDynamicBatching := Value;
     if ShapesRenderer <> nil then
       ShapesRenderer.DynamicBatching := Value;
+  end;
+end;
+
+procedure TCastleViewport.SetOcclusionCulling(const Value: Boolean);
+begin
+  if FOcclusionCulling <> Value then
+  begin
+    FOcclusionCulling := Value;
+    if ShapesRenderer <> nil then
+      ShapesRenderer.OcclusionCulling := Value;
+  end;
+end;
+
+procedure TCastleViewport.SetOcclusionSort(const Value: TBlendingSort);
+begin
+  if FOcclusionSort <> Value then
+  begin
+    FOcclusionSort := Value;
+    if ShapesRenderer <> nil then
+      ShapesRenderer.OcclusionSort := Value;
   end;
 end;
 

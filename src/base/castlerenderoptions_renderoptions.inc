@@ -46,12 +46,8 @@ type
     FBlending: boolean;
     FBlendingSourceFactor: TBlendingSourceFactor;
     FBlendingDestinationFactor: TBlendingDestinationFactor;
-    FOcclusionSort: boolean;
     FWireframeColor: TCastleColorRGB;
     FWireframeEffect: TWireframeEffect;
-    FOcclusionQuery: boolean;
-    FHierarchicalOcclusionQuery: boolean;
-    FDebugHierOcclusionQueryResults: boolean;
     FSolidWireframeScale: Single;
     FSolidWireframeBias: Single;
     FSilhouetteScale: Single;
@@ -73,8 +69,7 @@ type
     procedure SetBlending(const Value: boolean);
     procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
     procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
-    procedure SetOcclusionQuery(const Value: boolean);
-    procedure SetPhongShading(const Value: boolean);
+    procedure SetPhongShading(const Value: Boolean);
     { @groupEnd }
   protected
     { Called before changing an attribute that requires the release
@@ -260,54 +255,6 @@ type
     property WireframeColor: TCastleColorRGB
       read FWireframeColor write FWireframeColor;
 
-    { Use the advanced version of the occlusion query:
-      "Coherent Hierarchical Culling", to optimize the rendered shapes.
-      The shapes obscured by other shapes will not be rendered.
-
-      This is ignored if GPU doesn't support the necessary functionality
-      (TGLFeatures.OcclusionQuery).
-
-      We don't advise this approach to occlusion query now.
-      While this avoids the problem of "lag of one frame" (compared to @link(OcclusionQuery))
-      when the object should appear...
-      But the resulting algorithm (at least in our current implementation)
-      is slow and it does not treat transparent shapes correctly.
-
-      This requires the usage of ssRendering in TCastleSceneCore.Spatial.
-      Also, it always does frustum culling,
-      regardless of @link(TCastleScene.ShapeFrustumCullig) setting.
-
-      The algorithm used underneath is "Coherent Hierarchical Culling",
-      described in detail in "GPU Gems 2",
-      Chapter 6: "Hardware Occlusion Queries Made Useful",
-      by Michael Wimmer and Jiri Bittner. Online on
-      [http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter06.html].
-
-      @exclude
-      @bold(Experimental):
-      Using the "Hierarchical Occlusion Query" is not adviced in the current implementation,
-      it is slow and it does not treat transparent shapes correctly.
-    }
-    property HierarchicalOcclusionQuery: boolean
-      read FHierarchicalOcclusionQuery
-      write FHierarchicalOcclusionQuery default false;
-      {$ifdef FPC}experimental;{$endif FPC}
-
-    { View only the shapes that were detected as visible by occlusion query
-      in last Render.
-
-      Use this only after render with HierarchicalOcclusionQuery.
-      TODO: for OcclusionQuery I would also like to make it work,
-      for now not done as frustum information is gone.
-      This will disable actual occlusion query,
-      instead reusing results from last occlusion
-      query done when this debug flag was @false.
-
-      Useful to quickly visualize the benefits of occlusion query. }
-    property DebugHierOcclusionQueryResults: boolean
-      read FDebugHierOcclusionQueryResults
-      write FDebugHierOcclusionQueryResults default false;
-
     { @deprecated @exclude Old name for @link(ReceiveSceneLights). }
     property UseSceneLights: boolean
       read FReceiveSceneLights write FReceiveSceneLights default true;
@@ -317,11 +264,6 @@ type
     property SceneLights: boolean
       read FReceiveSceneLights write FReceiveSceneLights default true;
       {$ifdef FPC}deprecated 'use ReceiveSceneLights';{$endif}
-
-    { @deprecated @exclude Old name for @link(OcclusionQuery). }
-    property UseOcclusionQuery: boolean
-      read FOcclusionQuery write SetOcclusionQuery default false;
-      {$ifdef FPC}deprecated 'use OcclusionQuery';{$endif}
   published
     { Enable real-time lighting when rendering. }
     property Lighting: boolean read FLighting write FLighting default true;
@@ -481,10 +423,6 @@ type
       default DefaultBlendingDestinationFactor;
     { @groupEnd }
 
-    { Sort the opaque objects when rendering.
-      This may generate speedup on some scenes. }
-    property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort default false;
-
     { Activate various effects related to wireframe rendering.
       When this is weNormal (default), we simply render polygons as polygons.
       See description of TWireframeEffect for what other modes do.
@@ -498,20 +436,6 @@ type
     property SolidWireframeBias: Single read FSolidWireframeBias write FSolidWireframeBias {$ifdef FPC}default DefaultSolidWireframeBias{$endif};
     property SilhouetteScale: Single read FSilhouetteScale write FSilhouetteScale {$ifdef FPC}default DefaultSilhouetteScale{$endif};
     property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias {$ifdef FPC}default DefaultSilhouetteBias{$endif};
-
-    { Use the occlusion query to optimize the rendering.
-      The shapes obscured by other shapes will not be rendered.
-      This makes sense when in your view, many shapes are typically obscured by others.
-
-      See the https://castle-engine.io/occlusion_query
-      for details how does this work.
-
-      This is ignored if HierarchicalOcclusionQuery.
-
-      This is ignored if GPU doesn't support the necessary functionality
-      (@link(TGLFeatures.OcclusionQuery)). }
-    property OcclusionQuery: boolean
-      read FOcclusionQuery write SetOcclusionQuery default false;
 
     { Support lighting and backface culling for models using negative scale.
       This has a small performance cost, and so is disabled by default. }
@@ -571,7 +495,6 @@ begin
   FBlending := true;
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
-  FOcclusionSort := false;
   FSolidWireframeScale := DefaultSolidWireframeScale;
   FSolidWireframeBias := DefaultSolidWireframeBias;
   FSilhouetteScale := DefaultSilhouetteScale;
@@ -610,11 +533,6 @@ begin
     Blending := TCastleRenderOptions(Source).Blending;
     BlendingSourceFactor := TCastleRenderOptions(Source).BlendingSourceFactor;
     BlendingDestinationFactor := TCastleRenderOptions(Source).BlendingDestinationFactor;
-    OcclusionSort := TCastleRenderOptions(Source).OcclusionSort;
-    OcclusionQuery := TCastleRenderOptions(Source).OcclusionQuery;
-    {$warnings off}
-    HierarchicalOcclusionQuery := TCastleRenderOptions(Source).HierarchicalOcclusionQuery;
-    {$warnings on}
   end else
     inherited;
 end;
@@ -715,21 +633,6 @@ begin
   FBlendingDestinationFactor := Value;
 end;
 
-procedure TCastleRenderOptions.SetOcclusionQuery(const Value: boolean);
-begin
-  if OcclusionQuery <> Value then
-  begin
-    FOcclusionQuery := Value;
-
-    if OcclusionQuery then
-    begin
-      { Make PrepareShapesResources again, to cause TGLShape.PrepareResources
-        that initializes OcclusionQueryId for each shape }
-      ReleaseCachedResources;
-    end;
-  end;
-end;
-
 procedure TCastleRenderOptions.SetPhongShading(const Value: boolean);
 begin
   if PhongShading <> Value then
@@ -747,21 +650,45 @@ begin
 end;
 
 procedure TCastleRenderOptions.CustomSerialization(const SerializationProcess: TSerializationProcess);
+
+  function SceneCaption: String;
+  begin
+    if Owner <> nil then
+      Result := 'Scene "' + Owner.Name + '"'
+    else
+      Result := 'RenderOptions (in unnamed scene)';
+  end;
+
 var
-  SceneName, BlendingSortStr: String;
+  BlendingSortStr: String;
+  B: Boolean;
 begin
   inherited;
   BlendingSortStr := '';
   SerializationProcess.ReadWriteString('BlendingSort', BlendingSortStr, false);
   if BlendingSortStr <> '' then
   begin
-    if Owner <> nil then
-      SceneName := Owner.Name
-    else
-      SceneName := '<name unknown>';
-    WritelnWarning('Scene "%s" uses "BlendingSort" = "%s", this is no longer supported. Instead set Viewport.Items.BlendingSort.', [
-      SceneName,
+    WritelnWarning('%s uses "BlendingSort" = "%s", this is no longer supported on scene. Instead set Viewport.Items.BlendingSort.', [
+      SceneCaption,
       BlendingSortStr
+    ]);
+  end;
+
+  B := false;
+  SerializationProcess.ReadWriteBoolean('OcclusionSort', B, false);
+  if B then
+  begin
+    WritelnWarning('%s uses "OcclusionSort", this is no longer supported on scene. Instead set Viewport.OcclusionSort.', [
+      SceneCaption
+    ]);
+  end;
+
+  B := false;
+  SerializationProcess.ReadWriteBoolean('OcclusionQuery', B, false);
+  if B then
+  begin
+    WritelnWarning('%s uses "OcclusionQuery", this is no longer supported on scene. Instead set Viewport.OcclusionCulling.', [
+      SceneCaption
     ]);
   end;
 end;
@@ -773,9 +700,9 @@ begin
         'MinificationFilter', 'MagnificationFilter', 'PointSize', 'LineWidth',
         'BumpMapping', 'BumpMappingParallaxHeight', 'PhongShading', 'ShadowSampling',
         'MaxLightsPerShape', 'Blending', 'BlendingSourceFactor', 'BlendingDestinationFactor',
-        'OcclusionSort', 'WireframeEffect',
+        'WireframeEffect',
         'SolidWireframeScale', 'SolidWireframeBias', 'SilhouetteScale',
-        'SilhouetteBias', 'OcclusionQuery', 'RobustNegativeScale',
+        'SilhouetteBias', 'RobustNegativeScale',
         'WholeSceneManifold'
       ]) then
     Result := [psBasic]

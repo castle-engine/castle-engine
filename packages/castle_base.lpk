@@ -1416,8 +1416,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleSceneInternalBlending"/>
       </Item332>
       <Item333>
-        <Filename Value="../src/scene/castlesceneinternalocclusion.pas"/>
-        <UnitName Value="CastleSceneInternalOcclusion"/>
+        <Filename Value="../src/scene/castleinternalocclusionculling.pas"/>
+        <UnitName Value="CastleInternalOcclusionCulling"/>
       </Item333>
       <Item334>
         <Filename Value="../src/scene/castlesceneinternalshape.pas"/>

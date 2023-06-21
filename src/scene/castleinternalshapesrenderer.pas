@@ -21,7 +21,7 @@ unit CastleInternalShapesRenderer;
 interface
 
 uses CastleVectors, CastleSceneInternalShape, CastleRenderOptions,
-  CastleSceneInternalOcclusion, CastleSceneInternalBlending,
+  CastleInternalOcclusionCulling, CastleSceneInternalBlending,
   CastleInternalBatchShapes, CastleInternalRenderer, CastleTransform,
   X3DNodes, CastleShapes;
 
@@ -51,19 +51,22 @@ type
     are sorted with each other). }
   TShapesRenderer = class
   strict private
-    OcclusionQueryUtilsRenderer: TOcclusionQueryUtilsRenderer;
-    SimpleOcclusionQueryRenderer: TSimpleOcclusionQueryRenderer;
-    HierarchicalOcclusionQueryRenderer: THierarchicalOcclusionQueryRenderer;
-    BlendingRenderer: TBlendingRenderer;
+    FOcclusionCullingRenderer: TOcclusionCullingRenderer;
+    FBlendingRenderer: TBlendingRenderer;
     FRenderer: TGLRenderer;
     FBatching: TBatchShapes;
     FDynamicBatching: Boolean;
+    FOcclusionCulling: Boolean;
+    FOcclusionSort: TBlendingSort;
 
-    { Checks DynamicBatching and TODO: not occlusion query. }
-    function ReallyDynamicBatching: Boolean;
+    { Checks we need DynamicBatching and we don't use occlusion culling. }
+    function EffectiveDynamicBatching: Boolean;
+
+    { Checks we need occlusion culling, and GPU has capability for it. }
+    function EffectiveOcclusionCulling: Boolean;
 
     { Created on demand TBatchShapes instance.
-      Use only if ReallyDynamicBatching to not create needlessly. }
+      Use only if EffectiveDynamicBatching to not create needlessly. }
     function Batching: TBatchShapes;
 
     { Like LightRender, additionally turn off lights that are not
@@ -88,6 +91,13 @@ type
     procedure LightRender(const Shape: TShape;
       const Light: TLightInstance;
       const IsGlobalLight: Boolean; var LightOn: boolean);
+
+    procedure SetOcclusionCulling(const Value: Boolean);
+
+    procedure RenderShape_NoTests(
+      const CollectedShape: TCollectedShape; const Params: TRenderParams);
+    procedure RenderShape_OcclusionTests(
+      const CollectedShape: TCollectedShape; const Params: TRenderParams);
   public
     constructor Create;
     destructor Destroy; override;
@@ -124,12 +134,34 @@ type
       making rendering much faster. }
     property DynamicBatching: Boolean
       read FDynamicBatching write FDynamicBatching default false;
+
+    { Use the occlusion culling to optimize the rendering.
+      The shapes obscured by other shapes will not be rendered.
+      This makes sense when in your view, many shapes are typically obscured by others.
+
+      See the https://castle-engine.io/occlusion_query
+      for details how does this work.
+
+      This is ignored if GPU doesn't support the necessary functionality
+      (@link(TGLFeatures.OcclusionQuery)). }
+    property OcclusionCulling: boolean
+      read FOcclusionCulling write SetOcclusionCulling default false;
+
+    { Sort the opaque shapes when rendering, from front to back.
+      This may make a speedup when big shapes in front of camera obscure
+      many shapes behind.
+
+      It can be combined with @link(OcclusionCulling) to make it even faster,
+      but in general it's an independent optimization from  @link(OcclusionCulling),
+      albeit it makes sense in similar situations. }
+    property OcclusionSort: TBlendingSort
+      read FOcclusionSort write FOcclusionSort default bsNone;
   end;
 
 implementation
 
 uses SysUtils,
-  CastleScene;
+  CastleScene, CastleGLUtils, CastleRenderContext;
 
 { TShapesCollector ----------------------------------------------------------- }
 
@@ -168,21 +200,16 @@ end;
 constructor TShapesRenderer.Create;
 begin
   inherited;
-  OcclusionQueryUtilsRenderer := TOcclusionQueryUtilsRenderer.Create;
-  SimpleOcclusionQueryRenderer := TSimpleOcclusionQueryRenderer.Create(
-    {Self} nil { TODO occlusion query broken }, OcclusionQueryUtilsRenderer);
-  HierarchicalOcclusionQueryRenderer := THierarchicalOcclusionQueryRenderer.Create(
-    {Self} nil { TODO occlusion query broken }, OcclusionQueryUtilsRenderer);
-  BlendingRenderer := TBlendingRenderer.Create;
+  FOcclusionCullingRenderer := TOcclusionCullingRenderer.Create;
+  FBlendingRenderer := TBlendingRenderer.Create;
   FRenderer := TGLRenderer.Create(nil);
+  FOcclusionSort := bsNone;
 end;
 
 destructor TShapesRenderer.Destroy;
 begin
-  FreeAndNil(HierarchicalOcclusionQueryRenderer);
-  FreeAndNil(SimpleOcclusionQueryRenderer);
-  FreeAndNil(OcclusionQueryUtilsRenderer);
-  FreeAndNil(BlendingRenderer);
+  FreeAndNil(FOcclusionCullingRenderer);
+  FreeAndNil(FBlendingRenderer);
   FreeAndNil(FRenderer);
   FreeAndNil(FBatching);
   inherited;
@@ -254,7 +281,7 @@ procedure TShapesRenderer.PrepareResources;
   end;
 
 begin
-  if ReallyDynamicBatching then
+  if EffectiveDynamicBatching then
   begin
     BatchingShapesPrepareResources;
     BatchingShapesRender;
@@ -263,8 +290,8 @@ end;
 
 procedure TShapesRenderer.GLContextClose;
 begin
-  if OcclusionQueryUtilsRenderer <> nil then
-    OcclusionQueryUtilsRenderer.GLContextClose;
+  if FOcclusionCullingRenderer <> nil then
+    FOcclusionCullingRenderer.Utils.GLContextClose;
 
   if FBatching <> nil then
     FBatching.GLContextClose;
@@ -310,42 +337,80 @@ begin
     LightOn := false;
 end;
 
+procedure TShapesRenderer.RenderShape_NoTests(
+  const CollectedShape: TCollectedShape; const Params: TRenderParams);
+var
+  Shape: TGLShape;
+begin
+  { TODO: ignore ExcludeFromStatistics now (we could access them
+    from Shape.ParaneScene...
+    but this would be bad for batching.)
+    Just remove ExcludeFromStatistics? }
+  if (Params.InternalPass = 0) {and not ExcludeFromStatistics} then
+  begin
+    Inc(Params.Statistics.ShapesRendered);
+    if Params.Transparent then
+      Inc(Params.Statistics.ShapesRenderedBlending);
+  end;
+
+  Shape := CollectedShape.Shape;
+
+  // OcclusionBoxStateEnd will do nothing if OcclusionCulling = false
+  FOcclusionCullingRenderer.Utils.OcclusionBoxStateEnd(false);
+
+  FBlendingRenderer.BeforeRenderShape(Shape);
+  Renderer.RenderShape(Shape,
+    CollectedShape.RenderOptions, CollectedShape.SceneTransform);
+end;
+
+procedure TShapesRenderer.RenderShape_OcclusionTests(
+  const CollectedShape: TCollectedShape; const Params: TRenderParams);
+begin
+  { About "Params.RenderingCamera.Target = rtScreen" below:
+
+    We do not make occlusion query when rendering to something else
+    than screen (like shadow map or cube map environment for mirror).
+    Such views are drastically different from normal camera view,
+    so the whole idea that "what is visible in this frame is similar
+    to what was visible in previous frame" breaks down there.
+
+    TODO: In the future, this could be solved nicer, by having separate
+    occlusion query states for different views. But this isn't easy
+    to implement, as occlusion query state is part of TShape and
+    octree nodes (for hierarchical occ query), so all these things
+    should have a map "target->oq state" for various rendering targets. }
+
+  if EffectiveOcclusionCulling and
+      (Params.RenderingCamera.Target = rtScreen) then
+  begin
+    FOcclusionCullingRenderer.Render(CollectedShape, Params,
+      {$ifdef FPC}@{$endif} RenderShape_NoTests);
+  end else
+    RenderShape_NoTests(CollectedShape, Params);
+end;
+
 procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
   const Params: TRenderParams; const BlendingSort: TBlendingSort);
-
-  procedure RenderShape_NoTests(const CollectedShape: TCollectedShape);
-  var
-    Shape: TGLShape;
-  begin
-    { TODO: ignore ExcludeFromStatistics now (we could access them
-      from Shape.ParaneScene...
-      but this would be bad for batching.)
-      Just remove ExcludeFromStatistics? }
-    if (Params.InternalPass = 0) {and not ExcludeFromStatistics} then
-    begin
-      Inc(Params.Statistics.ShapesRendered);
-      if Params.Transparent then
-        Inc(Params.Statistics.ShapesRenderedBlending);
-    end;
-
-    Shape := CollectedShape.Shape;
-
-    BlendingRenderer.BeforeRenderShape(Shape);
-    Renderer.RenderShape(Shape,
-      CollectedShape.RenderOptions, CollectedShape.SceneTransform);
-  end;
 
   procedure BatchingCommit;
   var
     Shape: TCollectedShape;
   begin
-    if ReallyDynamicBatching then
+    if EffectiveDynamicBatching then
     begin
       Batching.Commit;
       for Shape in Batching.Collected do
       begin
-        Shape.Shape.PrepareResources(FRenderer); // otherwise, shapes from batching FPool would never have PrepareResources called?
-        RenderShape_NoTests(Shape);
+        { Otherwise, shapes from batching FPool
+          would never have PrepareResources called.
+          Note: Unsure if this is still necessary. }
+        Shape.Shape.PrepareResources(FRenderer);
+
+        { Should we call RenderShape_NoTests or RenderShape_OcclusionTests?
+          Doesn't matter, we know that occlusion culling is not done when
+          batching is used, so RenderShape_OcclusionTests just calls
+          RenderShape_NoTests. }
+        RenderShape_NoTests(Shape, Params);
       end;
       Batching.FreeCollected;
     end;
@@ -365,18 +430,17 @@ begin
   else
     LightRenderEvent := {$ifdef FPC}@{$endif}LightRender;
 
-  // TODO: occlusion query at viewport controlled (and sorted)?
-  { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
-  // if ReallyAnyOcclusionQuery(RenderOptions) then
-  // begin
-  //   OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
-  //     RenderContext.ProjectionMatrix * Render_ModelView;
-  //   //OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true; // not needed anymore
-  // end;
+  if EffectiveOcclusionCulling then
+  begin
+    FOcclusionCullingRenderer.Utils.ProjectionMatrix :=
+      RenderContext.ProjectionMatrix;
+    FOcclusionCullingRenderer.Utils.CameraMatrix :=
+      Params.RenderingCamera.Matrix;
+  end;
 
   { Initialize Batching.
     PreserveShapeOrder may be overridden to true below. }
-  if ReallyDynamicBatching then
+  if EffectiveDynamicBatching then
   begin
     Batching.PreserveShapeOrder := false;
     Assert(Batching.Collected.Count = 0);
@@ -387,21 +451,22 @@ begin
     { We'll draw partially transparent objects now,
       only from scenes with RenderOptions.Blending. }
 
-    if ReallyDynamicBatching then
+    if EffectiveDynamicBatching then
       Batching.PreserveShapeOrder := true;
 
     { TODO: The sorting is repeated at every render call.
-      This is not optimal in case of 2D, where it would be more efficient
-      to only call @link(SortBackToFront2D) when necessary, e.g. when adding/removing
-      objects from the world.
-
-      To avoid this overhead, just leave this property at bsNone
-      and call @link(SortBackToFront2D) when necessary.
-    }
+      This is not optimal,
+      we could instead reuse results from sorting in previous render call,
+      if everything is still OK (nothing was added/removed from the world,
+      order is still OK). }
     Shapes.FCollected.SortBackToFront(Params.RenderingCamera.Position,
       BlendingSort);
 
-    BlendingRenderer.RenderBegin;
+    FBlendingRenderer.RenderBegin;
+  end else
+  begin
+    Shapes.FCollected.SortFrontToBack(Params.RenderingCamera.Position,
+      OcclusionSort);
   end;
 
   Renderer.RenderBegin(Params.GlobalLights as TLightInstancesList,
@@ -411,8 +476,8 @@ begin
   try
     for CollectedShape in Shapes.FCollected do
     begin
-      if not (ReallyDynamicBatching and Batching.Collect(CollectedShape)) then
-        RenderShape_NoTests(CollectedShape);
+      if not (EffectiveDynamicBatching and Batching.Collect(CollectedShape)) then
+        RenderShape_OcclusionTests(CollectedShape, Params);
     end;
 
     BatchingCommit;
@@ -420,60 +485,75 @@ begin
     { This must be called after BatchingCommit,
       since BatchingCommit may render some shapes }
     if Params.Transparent then
-      BlendingRenderer.RenderEnd;
+      FBlendingRenderer.RenderEnd;
 
-    { As each RenderShape_SomeTests inside could set OcclusionBoxState,
-      be sure to restore state now. }
-    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(true);
+    { As each RenderShape_OcclusionTests inside could set OcclusionBoxState,
+      be sure to restore state now.
+      OcclusionBoxStateEnd will do nothing if EffectiveOcclusionCulling = false. }
+    FOcclusionCullingRenderer.Utils.OcclusionBoxStateEnd(true);
   finally Renderer.RenderEnd end;
 end;
 
-function TShapesRenderer.ReallyDynamicBatching: boolean;
+function TShapesRenderer.EffectiveDynamicBatching: boolean;
 begin
   {$warnings off} // using deprecated CastleScene.DynamicBatching to keep it working
-  Result := Self.DynamicBatching or CastleScene.DynamicBatching;
+  Result :=
+    (Self.DynamicBatching or CastleScene.DynamicBatching) and
+    (not EffectiveOcclusionCulling);
   {$warnings on}
-
-  // TODO: nothing more for now, should check occlusion culling though
 end;
 
-// TODO
-//procedure SetOcclusionCulling
-
-  { If OcclusionQuery just changed:
-    If you switch OcclusionQuery on, then off, then move around the scene
-    a lot, then switch OcclusionQuery back on --- you don't want to use
-    results from previous query that was done many frames ago. }
-
-  // Should be done differently, looking at frame ids?
-
-(*
-procedure TCastleScene.ViewChangedSuddenly;
-var
-  ShapeList: TShapeList;
-  Shape: TShape;
+function TShapesRenderer.EffectiveOcclusionCulling: Boolean;
 begin
-  inherited;
-
-  if ReallyOcclusionQuery(RenderOptions) then
-  begin
-    // too spammy log, esp. during editor operations, that reload view
-    //WritelnLog('Occlusion query', 'View changed suddenly');
-
-    { Set OcclusionQueryAsked := false for all shapes. }
-    ShapeList := Shapes.TraverseList(false, false, false);
-    for Shape in ShapeList do
-      TGLShape(Shape).OcclusionQueryAsked := false;
-  end;
+  Result :=
+    OcclusionCulling and
+    (GLFeatures <> nil) and // paranoid check from old code, maybe not needed anymore
+    GLFeatures.OcclusionQuery and
+    GLFeatures.VertexBufferObject and
+    (GLFeatures.OcclusionQueryCounterBits > 0);
 end;
-*)
 
-{ TODO: also Invalidate occlusion culling if camera moved a lot.
+procedure TShapesRenderer.SetOcclusionCulling(const Value: Boolean);
+begin
+  if FOcclusionCulling <> Value then
+  begin
+    FOcclusionCulling := Value;
+  end;
 
-  Should take care of all viewpoints switching, like
-  - switching to other viewpoint through view3dscene "viewpoints" menu,
-  - just getting an event set_bind = true through vrml route.
-  - calling Camera.SetView / SetWorldView to teleport.
-}
+  (*
+  TODO:
+
+  If OcclusionCulling just changed:
+  If you switch OcclusionCulling on, then off, then move around the scene
+  a lot, then switch OcclusionCulling back on --- you don't want to use
+  results from previous query that was done many frames ago. }
+
+  Old approach below. Should be done differently, looking at frame ids?
+
+  procedure TCastleScene.ViewChangedSuddenly;
+  var
+    ShapeList: TShapeList;
+    Shape: TShape;
+  begin
+    inherited;
+
+    if EffectiveOcclusionCulling then
+    begin
+      { Set OcclusionQueryAsked := false for all shapes. }
+      ShapeList := Shapes.TraverseList(false, false, false);
+      for Shape in ShapeList do
+        TGLShape(Shape).OcclusionQueryAsked := false;
+    end;
+  end;
+  *)
+
+  { TODO: also Invalidate occlusion culling if camera moved a lot.
+
+    Should take care of all viewpoints switching, like
+    - switching to other viewpoint through view3dscene "viewpoints" menu,
+    - just getting an event set_bind = true through vrml route.
+    - calling Camera.SetView / SetWorldView to teleport.
+  }
+end;
 
 end.

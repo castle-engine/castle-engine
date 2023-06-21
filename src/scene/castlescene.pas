@@ -341,7 +341,8 @@ type
     { Whether the scene was (potentially, at least partially) visible in the last rendering event.
 
       The "was visible" means that "some shape was visible", that is:
-      some shape passed frustum culling and occlusion culling (see https://castle-engine.io/occlusion_query )
+      some shape passed frustum culling, distance culling
+      and (TODO) occlusion culling (see https://castle-engine.io/occlusion_query )
       tests.
 
       For this method it doesn't matter if the scene contains some lights
@@ -738,19 +739,15 @@ procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
 begin
   { Whether the Shape is rendered directly or through batching,
     mark it "was visible this frame".
-    Shape passed the frustum culling and occlusion culling tests at this point. }
+    Shape passed the frustum culling, distance culling
+    and (TODO) occlusion culling tests at this point. }
   FWasVisibleFrameId := TFramesPerSecond.RenderFrameId;
   if Shape.Node <> nil then
     Shape.Node.InternalWasVisibleFrameId := TFramesPerSecond.RenderFrameId;
 
-  // TODO: shape may be rendered in various scenes with different fog?
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
-  // TODO: occlusion query where to do
-  //OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd(false);
-
-  Render_Collector.Add(Shape, RenderOptions,
-    Render_Params.Transform^);
+  Render_Collector.Add(Shape, RenderOptions, Render_Params.Transform^);
   IsVisibleNow := true;
 end;
 
@@ -762,36 +759,7 @@ begin
        (Shape.Node = nil) or Shape.Node.Render
      ) then
   begin
-    { We do not make occlusion query when rendering to something else
-      than screen (like shadow map or cube map environment for mirror).
-      Such views are drastically different from normal camera view,
-      so the whole idea that "what is visible in this frame is similar
-      to what was visible in previous frame" breaks down there.
-
-      TODO: In the future, this could be solved nicer, by having separate
-      occlusion query states for different views. But this isn't easy
-      to implement, as occlusion query state is part of TShape and
-      octree nodes (for hierarchical occ query), so all these things
-      should have a map "target->oq state" for various rendering targets. }
-
-    (* TODO: occlusion query
-
-    if ReallyOcclusionQuery(RenderOptions) and
-       (Render_Params.RenderingCamera.Target = rtScreen) then
-    begin
-      SimpleOcclusionQueryRenderer.Render(Shape, {$ifdef FPC}@{$endif}CollectShape_NoTests, Render_Params);
-    end else
-    {$warnings off}
-    if RenderOptions.DebugHierOcclusionQueryResults and
-       RenderOptions.HierarchicalOcclusionQuery then
-    {$warnings on}
-    begin
-      if HierarchicalOcclusionQueryRenderer.WasLastVisible(Shape) then
-        CollectShape_NoTests(Shape);
-    end else
-    *)
-      { No occlusion query-related stuff. Just render the shape. }
-      CollectShape_NoTests(Shape);
+    CollectShape_NoTests(Shape);
   end;
 end;
 
@@ -878,56 +846,25 @@ procedure TCastleScene.LocalRenderInside(
   var
     I: Integer;
   begin
-    (*
-    TODO: HierarchicalOcclusionQueryRenderer removed now.
-
-    if ReallyHierarchicalOcclusionQuery(RenderOptions) and
-       (not RenderOptions.DebugHierOcclusionQueryResults) and
-       (Params.RenderingCamera.Target = rtScreen) and
-       (InternalOctreeRendering <> nil) then
+    if RenderOptions.Blending then
     begin
-      HierarchicalOcclusionQueryRenderer.Render({$ifdef FPC}@{$endif}CollectShape_SomeTests, Params,
-        RenderCameraPosition);
-    end else
-    *)
-    begin
-      if RenderOptions.Blending then
+      if not Params.Transparent then
       begin
-        if not Params.Transparent then
-        begin
-          { draw fully opaque objects }
-          if ReallyOcclusionQuery(RenderOptions) or RenderOptions.OcclusionSort then
-          begin
-            ShapesFilterBlending(Shapes, true, true, false,
-              TestShapeVisibility, FilteredShapes, false);
-
-            { ShapesSplitBlending already filtered shapes through
-              TestShapeVisibility callback, so later we can render them
-              with CollectShape_SomeTests to skip checking TestShapeVisibility
-              twice. This is a good thing: it means that sorting below has
-              much less shapes to consider. }
-            // TODO: SortFrontToBack (occlusion sorting) move to TShapesRenderer
-            //FilteredShapes.SortFrontToBack(RenderCameraPosition);
-            // if ReallyDynamicBatching then
-            //   Batching.PreserveShapeOrder := true;
-
-            for I := 0 to FilteredShapes.Count - 1 do
-              CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
-          end else
-            Shapes.Traverse({$ifdef FPC}@{$endif}CollectShape_AllTests_Opaque, true, true, false);
-        end else
-        { this means Params.Transparent = true }
-        begin
-          { Filter by blending. }
-          ShapesFilterBlending(Shapes, true, true, false,
-            TestShapeVisibility, FilteredShapes, true);
-          for I := 0 to FilteredShapes.Count - 1 do
-            CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
-        end;
-
+        { Opaque objects, for Params.Transparent = false }
+        ShapesFilterBlending(Shapes, true, true, false,
+          TestShapeVisibility, FilteredShapes, false);
+        for I := 0 to FilteredShapes.Count - 1 do
+          CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
       end else
-        CollectAllAsOpaque;
-    end;
+      begin
+        { Partially transparent (blending) objects, for Params.Transparent = true }
+        ShapesFilterBlending(Shapes, true, true, false,
+          TestShapeVisibility, FilteredShapes, true);
+        for I := 0 to FilteredShapes.Count - 1 do
+          CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
+      end;
+    end else
+      CollectAllAsOpaque;
   end;
 
 begin
@@ -947,17 +884,6 @@ begin
   Render_Params := Params;
   Render_TestShapeVisibility := TestShapeVisibility;
   Render_Collector := Params.Collector as TShapesCollector;
-
-  // TODO: occlusion query at viewport controlled (and sorted)?
-  { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
-  // if ReallyAnyOcclusionQuery(RenderOptions) then
-  // begin
-  //   OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
-  //     RenderContext.ProjectionMatrix *
-  //     Params.RenderingCamera.CurrentMatrix *
-  //     Params.Transform;
-  //   //OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true; // not needed anymore
-  // end;
 
   case RenderOptions.Mode of
     rmDepth:
