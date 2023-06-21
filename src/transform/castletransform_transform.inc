@@ -2586,7 +2586,9 @@ end;
 
 procedure TCastleTransform.SortBackToFront2D;
 begin
+  {$warnings off} // using deprecated in deprecated
   SortBackToFront(bs2D, TVector3.Zero);
+  {$warnings on}
 end;
 
 function TCastleTransform.LocalBoundingBox: TBox3D;
