@@ -236,26 +236,12 @@ begin
 end;
 
 procedure TGLShape.RendererDetach;
-
-  { When Renderer is nil, we should not hold any resources connected to it. }
-  procedure CheckNoCaches;
-  var
-    Pass: TTotalRenderingPass;
-  begin
-    { This follows from TGLRenderer.UnprepareShape implementation. }
-    Assert(Cache = nil, 'When Renderer = nil, Cache should also be nil');
-    for Pass := Low(Pass) to High(Pass) do
-      Assert(ProgramCache[Pass] = nil, 'When Renderer = nil, all ProgramCache[Pass] should also be nil');
-  end;
-
 begin
   if Renderer <> nil then
   begin
     Renderer.UnprepareShape(Self);
     FRenderer := nil;
   end;
-
-  CheckNoCaches;
 end;
 
 procedure TGLShape.RendererFreeNotification(const Sender: TFreeNotificationObserver);
@@ -321,8 +307,37 @@ begin
 end;
 
 procedure TGLShape.GLContextClose;
+
+  { Free Arrays and Vbo of all shapes. }
+  procedure FreeCaches;
+  var
+    Pass: TTotalRenderingPass;
+  begin
+    { We don't put this in Renderer.UnprepareShape, even though it would make
+      sense for consistency, because
+
+      - In the long run, we want to make prepare/unprepare independent from
+        Renderer.
+      - This makes escape-universe assertion fail at exit:
+        When Renderer = nil, Cache should also be nil (castlesceneinternalshape.pas, line 246)
+    }
+    if Cache <> nil then
+    begin
+      GLContextCache.Shape_DecReference(Self, Cache);
+      Assert(Cache = nil, 'At the end of GLContextClose, Cache should be nil');
+    end;
+
+    for Pass := Low(Pass) to High(Pass) do
+    begin
+      if ProgramCache[Pass] <> nil then
+        GLContextCache.Program_DecReference(ProgramCache[Pass]);
+      Assert(ProgramCache[Pass] = nil, 'At the end of GLContextClose, all ProgramCache[Pass] should be nil');
+    end;
+  end;
+
 begin
   RendererDetach;
+  FreeCaches;
 
   PreparedUseAlphaChannel := false;
 

@@ -1982,17 +1982,8 @@ begin
 end;
 
 procedure TGLRenderer.UnprepareShape(const Shape: TX3DRendererShape);
-var
-  ShapePass: TTotalRenderingPass;
 begin
   Shape.EnumerateTextures({$ifdef FPC}@{$endif} UnprepareTextureCallback);
-
-  { Free Arrays and Vbo of all shapes. }
-  if Shape.Cache <> nil then
-    Cache.Shape_DecReference(Shape, Shape.Cache);
-  for ShapePass := Low(ShapePass) to High(ShapePass) do
-    if Shape.ProgramCache[ShapePass] <> nil then
-      Cache.Program_DecReference(Shape.ProgramCache[ShapePass]);
 end;
 
 procedure TGLRenderer.PrepareScreenEffect(const Node: TScreenEffectNode;
