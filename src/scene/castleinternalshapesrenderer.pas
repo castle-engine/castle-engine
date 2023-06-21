@@ -437,4 +437,43 @@ begin
   // TODO: nothing more for now, should check occlusion culling though
 end;
 
+// TODO
+//procedure SetOcclusionCulling
+
+  { If OcclusionQuery just changed:
+    If you switch OcclusionQuery on, then off, then move around the scene
+    a lot, then switch OcclusionQuery back on --- you don't want to use
+    results from previous query that was done many frames ago. }
+
+  // Should be done differently, looking at frame ids?
+
+(*
+procedure TCastleScene.ViewChangedSuddenly;
+var
+  ShapeList: TShapeList;
+  Shape: TShape;
+begin
+  inherited;
+
+  if ReallyOcclusionQuery(RenderOptions) then
+  begin
+    // too spammy log, esp. during editor operations, that reload view
+    //WritelnLog('Occlusion query', 'View changed suddenly');
+
+    { Set OcclusionQueryAsked := false for all shapes. }
+    ShapeList := Shapes.TraverseList(false, false, false);
+    for Shape in ShapeList do
+      TGLShape(Shape).OcclusionQueryAsked := false;
+  end;
+end;
+*)
+
+{ TODO: also Invalidate occlusion culling if camera moved a lot.
+
+  Should take care of all viewpoints switching, like
+  - switching to other viewpoint through view3dscene "viewpoints" menu,
+  - just getting an event set_bind = true through vrml route.
+  - calling Camera.SetView / SetWorldView to teleport.
+}
+
 end.

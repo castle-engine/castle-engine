@@ -35,7 +35,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleGLUtils, CastleInternalShapeOctree, CastleInternalGLShadowVolumes, X3DFields,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
-  CastleSceneInternalShape, CastleSceneInternalOcclusion,
+  CastleSceneInternalShape,
   CastleRenderOptions, CastleTimeUtils, CastleImages,
   CastleBehaviors, CastleInternalShapesRenderer, CastleSceneInternalBlending;
 
@@ -314,8 +314,6 @@ type
 
     function Attributes: TCastleRenderOptions; deprecated 'use RenderOptions';
 
-    procedure ViewChangedSuddenly; override;
-
     procedure InternalCameraChanged; override;
 
     { Screen effects information, used by TCastleViewport.ScreenEffects.
@@ -574,12 +572,6 @@ begin
     - screen effects (referencing renderer shaders, maybe also textures if used)
     So full GLContextClose is needed. }
   OwnerScene.GLContextClose;
-
-  { If OcclusionQuery just changed:
-    If you switch OcclusionQuery on, then off, then move around the scene
-    a lot, then switch OcclusionQuery back on --- you don't want to use
-    results from previous query that was done many frames ago. }
-  OwnerScene.ViewChangedSuddenly;
 end;
 
 { TCastleScene ------------------------------------------------------------ }
@@ -1817,25 +1809,6 @@ end;
 function TCastleScene.Attributes: TCastleRenderOptions;
 begin
   Result := RenderOptions;
-end;
-
-procedure TCastleScene.ViewChangedSuddenly;
-var
-  ShapeList: TShapeList;
-  Shape: TShape;
-begin
-  inherited;
-
-  if ReallyOcclusionQuery(RenderOptions) then
-  begin
-    // too spammy log, esp. during editor operations, that reload view
-    //WritelnLog('Occlusion query', 'View changed suddenly');
-
-    { Set OcclusionQueryAsked := false for all shapes. }
-    ShapeList := Shapes.TraverseList(false, false, false);
-    for Shape in ShapeList do
-      TGLShape(Shape).OcclusionQueryAsked := false;
-  end;
 end;
 
 procedure TCastleScene.InternalCameraChanged;

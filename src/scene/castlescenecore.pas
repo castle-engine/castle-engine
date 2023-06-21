@@ -205,8 +205,6 @@ type
   end;
 
   TViewpointStack = class(TX3DBindableStack)
-  protected
-    procedure DoBoundChanged; override;
   public
     function Top: TAbstractViewpointNode;
     procedure PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: boolean);
@@ -1851,26 +1849,6 @@ type
     property OnHeadlightOnChanged: TNotifyEvent
       read FOnHeadlightOnChanged write FOnHeadlightOnChanged;
 
-    { Notify the scene that camera position/direction changed a lot.
-      It may be called when you make a sudden change to the camera,
-      like teleporting the player to a completely different scene part.
-
-      This may be used as a hint by some optimizations. It tells that what
-      will be visible in the next rendered frame will be probably
-      very different from what was visible in the last frame.
-
-      @italic(Current implementation notes:)
-
-      Currently, this is used by TCastleScene if you use
-      @link(TCastleRenderOptions.OcclusionQuery RenderOptions.OcclusionQuery).
-      Normally, occlusion query tries to reuse results from previous
-      frame, using the assumption that usually camera changes slowly
-      and objects appear progressively in the view. When you make
-      a sudden camera jump/change, this assumption breaks, so it's
-      better to resign from occlusion query for the very next frame.
-      This method will do exactly that. }
-    procedure ViewChangedSuddenly; virtual;
-
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const Params: TPrepareParams); override;
 
@@ -2856,18 +2834,6 @@ begin
 end;
 
 { TViewpointStack ------------------------------------------------------------ }
-
-procedure TViewpointStack.DoBoundChanged;
-begin
-  { The new viewpoint may be in some totally different place of the scene,
-    so call ViewChangedSuddenly.
-
-    This takes care of all viewpoints switching, like
-    - switching to other viewpoint through view3dscene "viewpoints" menu,
-    - just getting an event set_bind = true through vrml route. }
-  ParentScene.ViewChangedSuddenly;
-  inherited;
-end;
 
 function TViewpointStack.Top: TAbstractViewpointNode;
 begin
@@ -7964,11 +7930,6 @@ begin
     HeadlightOn := NavigationInfoStack.Top.Headlight
   else
     HeadlightOn := DefaultNavigationInfoHeadlight;
-end;
-
-procedure TCastleSceneCore.ViewChangedSuddenly;
-begin
-  { Nothing meaningful to do in this class }
 end;
 
 procedure TCastleSceneCore.PrepareResources(const Options: TPrepareResourcesOptions;
