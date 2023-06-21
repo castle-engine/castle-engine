@@ -25,6 +25,16 @@ uses CastleSceneCore, CastleGLUtils, CastleShapes, CastleSceneInternalShape,
   CastleRenderOptions;
 
 type
+  { Render shapes with blending.
+
+    OpenGL state of glDepthMask (RenderContext.DepthBufferUpdate),
+    and blending (RenderContext.BlendingEnable, RenderContext.BlendingDisable)
+    are controlled by this function. This function will unconditionally
+    change (and restore later to original value) this state,
+    to perform correct blending (transparency rendering).
+
+    To make a correct rendering, always
+    render transparent shapes at the end (after all opaque). }
   TBlendingRenderer = class
   private
     Active: Boolean; //< between RenderBegin and RenderEnd

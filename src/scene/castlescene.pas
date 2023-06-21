@@ -152,43 +152,16 @@ type
     { Render everything using LocalRenderInside.
       The rendering parameters are configurable by @link(RenderOptions).
 
-      TODO: update comment below:
+      The shapes are only filtered here:
 
-      For more details about rendering, see @link(CastleRenderer) unit comments.
-      This method internally uses TGLRenderer instance, additionally
-      handling the blending:
+      - frustum culling,
+      - distance culling,
+      - filtering by transparency (only shapes matching Params.Transparent are returned)
+      - filtering using TestShapeVisibility.
 
-      @unorderedList(
-        @item(
-          OpenGL state of glDepthMask (RenderContext.DepthBufferUpdate),
-          glEnable/Disable(GL_BLEND), glBlendFunc
-          is controlled by this function. This function will unconditionally
-          change (and restore later to original value) this state,
-          to perform correct blending (transparency rendering).
+      Shapes that pass send to Params.Collector.
 
-          To make a correct rendering, we always
-          render transparent shapes at the end (after all opaque),
-          and with depth-buffer in read-only mode.)
-
-        @item(Only a subset of shapes indicated by Params.Transparent is rendered.
-          This is necessary if you want to mix in one 3D world many scenes
-          (like TCastleScene instances), and each of them may have some opaque
-          and some transparent
-          parts. In such case, you want to render everything opaque
-          (from every scene) first, and only then render everything transparent.
-          For shadow volumes, this is even more complicated.)
-
-        @item(Note that when RenderOptions.Blending is @false then everything
-          is always opaque, so tgOpaque renders everything and tgTransparent
-          renders nothing.)
-      )
-
-      @param(TestShapeVisibility Filters which shapes are visible.
-
-        Note that shapes are further filtered by optimizations
-        like frustum culling (@link(ShapeFrustumCulling))
-        or distance culling (@link(DistanceCulling)).
-      ) }
+      The actual rendering will be done using TCastleViewport and TShapesRenderer. }
     procedure LocalRenderOutside(
       const TestShapeVisibility: TTestShapeVisibility;
       const Params: TRenderParams);
@@ -647,12 +620,6 @@ begin
   { Make sure to free TCastleScene resources now, even though TCastleTransform.Destroy
     will also call it later -- but then we are in more "uninitialized" state. }
   GLContextClose;
-
-  // Renderer.OwnerScene must be removed
-  // { Note that this calls Renderer.RenderOptions, so use this before
-  //   deinitializing Renderer. }
-  // if Renderer <> nil then
-  //   (RenderOptions as TSceneRenderOptions).OwnerScene := nil;
 
   { Release now all connections between RootNode and Renderer.
 
