@@ -153,6 +153,7 @@ type
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Is the second TCastleRenderOptions instance on all fields
       that affect TShapeCache, that is things that affect generated geometry
@@ -763,6 +764,23 @@ begin
       BlendingSortStr
     ]);
   end;
+end;
+
+function TCastleRenderOptions.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+        'Lighting', 'ReceiveSceneLights', 'ReceiveGlobalLights', 'Textures',
+        'MinificationFilter', 'MagnificationFilter', 'PointSize', 'LineWidth',
+        'BumpMapping', 'BumpMappingParallaxHeight', 'PhongShading', 'ShadowSampling',
+        'MaxLightsPerShape', 'Blending', 'BlendingSourceFactor', 'BlendingDestinationFactor',
+        'OcclusionSort', 'WireframeEffect',
+        'SolidWireframeScale', 'SolidWireframeBias', 'SilhouetteScale',
+        'SilhouetteBias', 'OcclusionQuery', 'RobustNegativeScale',
+        'WholeSceneManifold'
+      ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 {$define read_implementation_methods}
