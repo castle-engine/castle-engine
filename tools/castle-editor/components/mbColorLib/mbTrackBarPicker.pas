@@ -412,7 +412,10 @@ var
   i: integer;
 begin
   flags := 0;
-  if (FBorderStyle = bsNone) or (FBevelWidth = 0) then Exit;
+  if (FBorderStyle = bsNone)
+    { always false, since TBevelWidth type is always > 0 }
+    {or (FBevelWidth = 0)} then
+    Exit;
   case FBevelInner of
     bvNone: flags := 0;
     bvRaised: flags := BDR_RAISEDINNER;
