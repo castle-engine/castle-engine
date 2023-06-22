@@ -193,6 +193,8 @@ procedure TBackgroundScene.Render(const RenderingCamera: TRenderingCamera;
   const CurrentProjection: TProjection;
   const ShapesCollector: TShapesCollector;
   const ShapesRenderer: TShapesRenderer);
+var
+  SavedOcclusionCulling: Boolean;
 begin
   inherited;
 
@@ -226,7 +228,15 @@ begin
   Params.Transparent := false; Scene.Render(Params);
   Params.Transparent := true ; Scene.Render(Params);
 
+  { Disable occlusion culling on background.
+    It works correctly... but the 1-frame delay is too noticeable,
+    testcase: examples/fps_game/ . }
+  SavedOcclusionCulling := ShapesRenderer.OcclusionCulling;
+  ShapesRenderer.OcclusionCulling := false;
+
   ShapesRenderer.Render(ShapesCollector, Params, bsNone);
+
+  ShapesRenderer.OcclusionCulling := SavedOcclusionCulling;
 end;
 
 procedure TBackgroundScene.FreeResources;
