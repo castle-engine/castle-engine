@@ -165,46 +165,6 @@ begin
   RenderBox.Render(pmTriangles);
 end;
 
-{ TOcclusionQuery ------------------------------------------------------------ }
-
-type
-  TOcclusionQuery = class
-  public
-    constructor Create;
-    destructor Destroy; override;
-
-  public
-    Id: TGLuint;
-
-    Node: TShapeOctreeNode;
-
-    function Available: LongBool;
-    function GetResult: TGLuint;
-  end;
-
-constructor TOcclusionQuery.Create;
-begin
-  inherited;
-  glGenQueries(1, @Id);
-end;
-
-destructor TOcclusionQuery.Destroy;
-begin
-  glDeleteQueries(1, @Id);
-  inherited;
-end;
-
-function TOcclusionQuery.Available: LongBool;
-begin
-  Assert(SizeOf(LongBool) = SizeOf(TGLuint));
-  glGetQueryObjectuiv(Id, GL_QUERY_RESULT_AVAILABLE, @Result);
-end;
-
-function TOcclusionQuery.GetResult: TGLuint;
-begin
-  glGetQueryObjectuiv(Id, GL_QUERY_RESULT, @Result);
-end;
-
 { TOcclusionCullingRenderer ---------------------------------------------- }
 
 const
@@ -230,35 +190,64 @@ end;
 
 procedure TOcclusionCullingRenderer.Render(const CollectedShape: TCollectedShape;
   const Params: TRenderParams; const RenderShape: TShapeRenderEvent);
+
+  { Read OpenGL(ES) occlusion query result, return if hit > 0 samples
+    (was visible). }
+  function OcclusionQueryHit(const OcclusionQueryId: TGLint): Boolean;
+  var
+    SampleCount: TGLuint;
+  begin
+    glGetQueryObjectuiv(OcclusionQueryId, GL_QUERY_RESULT,
+      @SampleCount);
+    Result := SampleCount > 0;
+  end;
+
+  { We cannot trust the occlusion query results if the parent scene,
+    and so also CollectedShape, occur multiple times within the Viewport
+    under a different transformation.
+    Making multiple occlusion queries and using only the last one would be wrong.
+
+    Testcase: fps_game with OcclusionCulling - see at trees. }
+  function SceneMultipleInstances: Boolean;
+  begin
+    Result :=
+      (CollectedShape.Shape.ParentScene <> nil) and
+      (CollectedShape.Shape.ParentScene.InternalWorldReferences > 1);
+  end;
+
 var
   Shape: TGLShape;
-  SampleCount: TGLuint;
+  WasVisible: Boolean;
 begin
   Shape := CollectedShape.Shape;
 
-  if Shape.OcclusionQueryId = 0 then
+  { Get occlusion query result from previous render. }
+  if Shape.OcclusionQueryAsked and
+     (Shape.OcclusionQueryId <> 0) then
   begin
-    glGenQueries(1, @Shape.OcclusionQueryId);
-    Shape.OcclusionQueryAsked := false;
-  end;
+    WasVisible := OcclusionQueryHit(Shape.OcclusionQueryId);
+  end else
+    WasVisible := true; // assume is visible
+
+  { Render shape, or shape box, possibly making new occlusion query. }
+  Shape.OcclusionQueryAsked :=
+    { Do not do occlusion query (although still use results from previous
+      query) if we're within stencil test (like in InShadow = false pass
+      of shadow volumes). This would incorrectly mark some shapes
+      as non-visible (just because they don't pass stencil test on any pixel),
+      while in fact they should be visible in the very next
+      (with InShadow = true) render pass. }
+    (Params.StencilTest = 0) and
+    (not SceneMultipleInstances);
 
   if Shape.OcclusionQueryAsked then
-    glGetQueryObjectuiv(Shape.OcclusionQueryId, GL_QUERY_RESULT,
-      @SampleCount)
-  else
-    SampleCount := 1; { if not asked, assume it's visible }
+  begin
+    if Shape.OcclusionQueryId = 0 then
+      glGenQueries(1, @Shape.OcclusionQueryId);
 
-  { Do not do occlusion query (although still use results from previous
-    query) if we're within stencil test (like in InShadow = false pass
-    of shadow volumes). This would incorrectly mark some shapes
-    as non-visible (just because they don't pass stencil test on any pixel),
-    while in fact they should be visible in the very next
-    (with InShadow = true) render pass. }
-
-  if Params.StencilTest = 0 then
     glBeginQuery(QueryTarget, Shape.OcclusionQueryId);
 
-    if SampleCount > 0 then
+    if WasVisible then
     begin
       RenderShape(CollectedShape, Params);
     end else
@@ -274,10 +263,11 @@ begin
         Inc(Params.Statistics.BoxesOcclusionQueriedCount);
     end;
 
-  if Params.StencilTest = 0 then
-  begin
     glEndQuery(QueryTarget);
-    Shape.OcclusionQueryAsked := true;
+  end else
+  begin
+    if WasVisible then
+      RenderShape(CollectedShape, Params);
   end;
 end;
 

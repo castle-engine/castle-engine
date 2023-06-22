@@ -594,6 +594,11 @@
         @exclude }
       InternalIgnoreParentScale: Boolean;
 
+    { How many times this is a child in the FWorld,
+      counting all possible paths in transformation tree.
+      @exclude }
+    property InternalWorldReferences: Cardinal read FWorldReferences;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
