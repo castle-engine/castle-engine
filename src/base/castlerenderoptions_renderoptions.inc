@@ -40,7 +40,6 @@ type
     FDepthTest: boolean;
     FPhongShading: boolean;
     FSolidColor: TCastleColorRGB;
-    FSolidColorBlendingPipeline: Boolean;
     FSeparateDiffuseTexture: boolean;
     FMaxLightsPerShape: Cardinal;
     FBlending: boolean;
@@ -219,11 +218,6 @@ type
 
     { Color used when @link(Mode) is @link(rmSolidColor). }
     property SolidColor: TCastleColorRGB read FSolidColor write FSolidColor;
-
-    { Whether to render shapes as transparent, when @link(Mode) is @link(rmSolidColor). }
-    property SolidColorBlendingPipeline: Boolean
-      read FSolidColorBlendingPipeline
-      write FSolidColorBlendingPipeline;
 
     {$ifdef FPC}
     { @deprecated @exclude Ignored now.

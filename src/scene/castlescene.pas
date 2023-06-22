@@ -131,8 +131,6 @@ type
     procedure CollectShape_AllTests(const Shape: TShape);
     { Render Shape if all tests (including TestShapeVisibility) pass, and it is opaque. }
     procedure CollectShape_AllTests_Opaque(const Shape: TShape);
-    { Render Shape if all tests (including TestShapeVisibility) pass, and it is using blending. }
-    procedure CollectShape_AllTests_Blending(const Shape: TShape);
 
     procedure ResetShapeVisible(const Shape: TShape);
 
@@ -778,21 +776,22 @@ begin
   end;
 end;
 
-procedure TCastleScene.CollectShape_AllTests_Blending(const Shape: TShape);
-begin
-  if TGLShape(Shape).UseBlending then
-    CollectShape_AllTests(Shape);
-end;
-
 procedure TCastleScene.LocalRenderInside(
   const TestShapeVisibility: TTestShapeVisibility;
   const Params: TRenderParams);
 
+  { If we're now collecting opaque shapes (Params.Transparent=false) then add:
+    - all opaque shapes
+      when IgnoreShapesWithBlending = true
+    - all shapes (opaque and the ones supposed to use blending)
+      when IgnoreShapesWithBlending = false, default.
+      This is good e.g. when RenderOptions.Blending=false,
+      so that all shapes are treated as opaque.
+  }
   procedure CollectAllAsOpaque(
-    const IgnoreShapesWithBlending: Boolean = false;
-    const BlendingPipeline: Boolean = false);
+    const IgnoreShapesWithBlending: Boolean = false);
   begin
-    if BlendingPipeline = Params.Transparent then
+    if not Params.Transparent then
     begin
       if IgnoreShapesWithBlending then
         Shapes.Traverse({$ifdef FPC}@{$endif}CollectShape_AllTests_Opaque, true, true)
@@ -893,10 +892,7 @@ begin
         (except: don't render partially transparent stuff for shadow maps). }
       CollectAllAsOpaque(true);
     rmSolidColor:
-      { SolidColorBlendingPipeline is a hack, means we pass shapes
-        supposed to be used for blending as opaque.
-        Check, rethink do we want it. }
-      CollectAllAsOpaque(false, RenderOptions.SolidColorBlendingPipeline);
+      CollectAllAsOpaque(false);
     rmFull:
       RenderModeFull;
     {$ifndef COMPILER_CASE_ANALYSIS}
