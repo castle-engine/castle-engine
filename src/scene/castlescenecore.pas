@@ -8621,7 +8621,7 @@ procedure TCastleSceneCore.FontChanged;
 begin
   if RootNode <> nil then
   begin
-    GLContextClose; // force TGLRenderer.Prepare on shapes
+    GLContextClose; // force TRenderer.Prepare on shapes
     { Free and recalculate all proxy nodes...
       TODO: this could be done much more efficiently,
       we only need to free proxies on text nodes. }

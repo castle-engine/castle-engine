@@ -53,7 +53,7 @@ type
   strict private
     FOcclusionCullingRenderer: TOcclusionCullingRenderer;
     FBlendingRenderer: TBlendingRenderer;
-    FRenderer: TGLRenderer;
+    FRenderer: TRenderer;
     FBatching: TBatchShapes;
     FDynamicBatching: Boolean;
     FOcclusionCulling: Boolean;
@@ -108,10 +108,10 @@ type
     { Shapes can use this to initialize their resources.
 
       TODO: This is hack, association shape->Renderer should not be necessary.
-      Shape should store its stuff in GLContextCache and have references to it,
+      Shape should store its stuff in RendererCache and have references to it,
       and be independent from Renderer.
       This property should not be public then. }
-    property Renderer: TGLRenderer read FRenderer;
+    property Renderer: TRenderer read FRenderer;
 
     { Render all given shapes.
 
@@ -202,7 +202,7 @@ begin
   inherited;
   FOcclusionCullingRenderer := TOcclusionCullingRenderer.Create;
   FBlendingRenderer := TBlendingRenderer.Create;
-  FRenderer := TGLRenderer.Create(nil);
+  FRenderer := TRenderer.Create(nil);
   FOcclusionSort := bsNone;
 end;
 
@@ -250,7 +250,7 @@ procedure TShapesRenderer.PrepareResources;
     DummyStatistics: TRenderStatistics;
     DummyCamera: TRenderingCamera;
     DummyRenderOptions: TCastleRenderOptions;
-    SavedRenderMode: TGLRenderer.TRenderMode;
+    SavedRenderMode: TRenderer.TRenderMode;
     Shape: TGLShape;
   begin
     // TODO: should not be required for rendering here?

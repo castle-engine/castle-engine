@@ -20,9 +20,9 @@
     VRML/X3D textures to uniform variables of GLSL shader. }
   TX3DGLSLProgram = class(TX3DShaderProgram)
   private
-    Renderer: TGLRenderer;
+    Renderer: TRenderer;
   public
-    constructor Create(ARenderer: TGLRenderer);
+    constructor Create(ARenderer: TRenderer);
     function SetupUniforms(var BoundTextureUnits: Cardinal): boolean; override;
   end;
 
@@ -32,7 +32,7 @@
 
 { TX3DGLSLProgram ----------------------------------------------------------- }
 
-constructor TX3DGLSLProgram.Create(ARenderer: TGLRenderer);
+constructor TX3DGLSLProgram.Create(ARenderer: TRenderer);
 begin
   inherited Create;
   Renderer := ARenderer;

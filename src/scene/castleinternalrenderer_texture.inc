@@ -60,7 +60,7 @@
       ANode: TAbstractTextureNode): boolean; virtual; abstract;
   public
     { ANode must be TAbstractTextureNode }
-    constructor Create(const ARenderer: TGLRenderer;
+    constructor Create(const ARenderer: TRenderer;
       const AList: TResourceRendererList;
       const ANode: TX3DNode); override;
 
@@ -164,7 +164,7 @@
     function Prepare(const State: TX3DGraphTraverseState;
       const RenderOptions: TCastleRenderOptions;
       const ANode: TAbstractTextureNode;
-      const ARenderer: TGLRenderer): TGLTextureNode;
+      const ARenderer: TRenderer): TGLTextureNode;
 
     { Only bind texture node. Calls TGLTextureNode.Enable method.
       If no texture renderer is prepared for this node,
@@ -210,7 +210,7 @@
       const RenderOptions: TCastleRenderOptions); override;
   public
     { ANode must be TMultiTextureNode }
-    constructor Create(const ARenderer: TGLRenderer;
+    constructor Create(const ARenderer: TRenderer;
       const AList: TResourceRendererList;
       const ANode: TX3DNode); override;
 
@@ -450,7 +450,7 @@ end;
 
 { TGLTextureNode ------------------------------------------------------------- }
 
-constructor TGLTextureNode.Create(const ARenderer: TGLRenderer;
+constructor TGLTextureNode.Create(const ARenderer: TRenderer;
   const AList: TResourceRendererList;
   const ANode: TX3DNode);
 begin
@@ -644,7 +644,7 @@ end;
 function TGLTextureNodes.Prepare(const State: TX3DGraphTraverseState;
   const RenderOptions: TCastleRenderOptions;
   const ANode: TAbstractTextureNode;
-  const ARenderer: TGLRenderer): TGLTextureNode;
+  const ARenderer: TRenderer): TGLTextureNode;
 var
   GLTextureNodeClass: TGLTextureNodeClass;
 begin
@@ -749,7 +749,7 @@ end;
 
 { TGLMultiTextureNode -------------------------------------------------------- }
 
-constructor TGLMultiTextureNode.Create(const ARenderer: TGLRenderer;
+constructor TGLMultiTextureNode.Create(const ARenderer: TRenderer;
   const AList: TResourceRendererList;
   const ANode: TX3DNode);
 begin

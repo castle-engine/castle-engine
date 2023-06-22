@@ -22,7 +22,7 @@
   TResourceRenderer = class
   strict private
     NodeDestructionNotificationActive: Boolean;
-    FRenderer: TGLRenderer;
+    FRenderer: TRenderer;
     FNode: TX3DNode;
     FList: TResourceRendererList;
     procedure NodeDestructionNotification(const Node: TX3DNode);
@@ -37,12 +37,12 @@
     procedure PrepareCore(const State: TX3DGraphTraverseState;
       const RenderOptions: TCastleRenderOptions); virtual; abstract;
   public
-    constructor Create(const ARenderer: TGLRenderer;
+    constructor Create(const ARenderer: TRenderer;
       const AList: TResourceRendererList;
       const ANode: TX3DNode); virtual;
     destructor Destroy; override;
 
-    property Renderer: TGLRenderer read FRenderer;
+    property Renderer: TRenderer read FRenderer;
 
     { Reference to handled X3D node.
       Never @nil. }
@@ -83,7 +83,7 @@
 
 { TResourceRenderer ---------------------------------------------------------- }
 
-constructor TResourceRenderer.Create(const ARenderer: TGLRenderer;
+constructor TResourceRenderer.Create(const ARenderer: TRenderer;
   const AList: TResourceRendererList;
   const ANode: TX3DNode);
 begin

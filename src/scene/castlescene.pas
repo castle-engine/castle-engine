@@ -619,9 +619,9 @@ begin
     are decremented. So cache used when loading these images must be
     available.
 
-    This old reason is no longer relevant: cache is now global GLContextCache,
+    This old reason is no longer relevant: cache is now global RendererCache,
     it doesn't go away when we free Renderer.
-    Annd X3D nodes should have no other links to renderer.
+    And X3D nodes should have no other links to renderer.
 
     And since TShapesRenderer took over, we don't even have Renderer
     instance here.
@@ -678,13 +678,13 @@ procedure TCastleScene.GLContextClose;
       begin
         Node := TScreenEffectNode(ScreenEffectNodes[I]);
         { The TGLSLProgram instance here will be released by
-          TGLRenderer.GLContextCloseEvent,
+          TRenderer.GLContextCloseEvent,
           that calls ScreenEffectPrograms.Clear.
 
           So below only set it to nil.
 
           TODO: This leaves shader effects resources hanging until
-          TGLRenderer.GLContextCloseEvent occurred,
+          TRenderer.GLContextCloseEvent occurred,
           so potentially for a long time now. }
         Node.Shader := nil;
         Node.ShaderLoaded := false;
@@ -905,7 +905,7 @@ procedure TCastleScene.PrepareResources(
   const Options: TPrepareResourcesOptions;
   const Params: TPrepareParams);
 var
-  Renderer: TGLRenderer;
+  Renderer: TRenderer;
 
   procedure PrepareShapesResources;
   var
@@ -1025,7 +1025,7 @@ begin
       TimeStart := Profiler.Start('Prepare Scene Resources ' + URL);
 
     Assert(Params <> nil);
-    Renderer := Params.RendererToPrepareShapes as TGLRenderer;
+    Renderer := Params.RendererToPrepareShapes as TRenderer;
     Assert(Renderer <> nil);
 
     if not PreparedShapesResources then
@@ -1752,7 +1752,7 @@ function TCastleScene.InternalScreenEffectsCount(
 var
   I: Integer;
   SE: TScreenEffectNode;
-  Renderer: TGLRenderer;
+  Renderer: TRenderer;
 begin
   Result := 0;
 
@@ -1765,7 +1765,7 @@ begin
 
   Assert(PrepareParams <> nil);
   Assert(PrepareParams.RendererToPrepareShapes <> nil);
-  Renderer := PrepareParams.RendererToPrepareShapes as TGLRenderer;
+  Renderer := PrepareParams.RendererToPrepareShapes as TRenderer;
 
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin

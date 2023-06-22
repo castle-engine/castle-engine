@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Generating TGeometryArrays for VRML/X3D shapes (TArraysGenerator). }
+{ Generating TGeometryArrays for shapes (TArraysGenerator). }
 unit CastleInternalArraysGenerator;
 
 {$I castleconf.inc}
@@ -24,10 +24,8 @@ uses CastleShapes, X3DNodes, X3DFields, CastleUtils, CastleInternalGeometryArray
   CastleVectors;
 
 type
-  { Generate TGeometryArrays for a VRML/X3D shape. This is the basis
-    of our renderer: generate a TGeometryArrays for a shape,
-    then TGLRenderer will pass TGeometryArrays to OpenGL.
-
+  { Generate TGeometryArrays for a shape. This is the basis
+    of our renderer, TRenderer will pass such arrays to OpenGL.
     Geometry must be based on coordinates when using this,
     that is TAbstractGeometryNode.Coord must return @true. }
   TArraysGenerator = class

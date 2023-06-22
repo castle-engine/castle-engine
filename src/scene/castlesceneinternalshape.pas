@@ -33,12 +33,12 @@ type
   TGLShape = class(TX3DRendererShape)
   strict private
     { TODO: having reference from shape to renderer is not optimal.
-      Shapes needs to observe Renderer - the TGLRenderer "free notification
+      Shapes needs to observe Renderer - the TRenderer "free notification
       list" is likely long.
       Ultimately shapes should not need renderer to prepare / unprepare.
       Renderer instance should only be used for rendering,
       rest (prepare) should be stored in cache independent of renderer. }
-    FRenderer: TGLRenderer;
+    FRenderer: TRenderer;
     FRendererObserver: TFreeNotificationObserver;
 
     procedure RendererFreeNotification(const Sender: TFreeNotificationObserver);
@@ -49,7 +49,7 @@ type
     { Associate with ARenderer and assign it as Renderer.
       Doesn't take care of deinitializing previous Renderer value,
       or even checking is it different than ARenderer. }
-    procedure RendererAttach(const ARenderer: TGLRenderer);
+    procedure RendererAttach(const ARenderer: TRenderer);
 
     { Request from parent TCastleScene to call our PrepareResources at next time. }
     procedure SchedulePrepareResources;
@@ -77,7 +77,7 @@ type
     destructor Destroy; override;
     procedure Changed(const InactiveOnly: boolean;
       const Changes: TX3DChanges); override;
-    procedure PrepareResources(const ARenderer: TGLRenderer);
+    procedure PrepareResources(const ARenderer: TRenderer);
     procedure GLContextClose;
 
     function UseBlending: Boolean;
@@ -86,7 +86,7 @@ type
       if non-nil.
       - PrepareResources (and internal RendererAttach) set it to non-nil,
       - GLContextClose (and internal RendererDetach) sets it to nil. }
-    property Renderer: TGLRenderer read FRenderer;
+    property Renderer: TRenderer read FRenderer;
   end;
 
   { Shape with additional information how to render it inside a world,
@@ -230,7 +230,7 @@ begin
   RendererDetach;
 end;
 
-procedure TGLShape.RendererAttach(const ARenderer: TGLRenderer);
+procedure TGLShape.RendererAttach(const ARenderer: TRenderer);
 var
   RenderOptions: TCastleRenderOptions;
 begin
@@ -253,7 +253,7 @@ begin
   Renderer.PrepareShape(Self, RenderOptions);
 end;
 
-procedure TGLShape.PrepareResources(const ARenderer: TGLRenderer);
+procedure TGLShape.PrepareResources(const ARenderer: TRenderer);
 var
   RenderOptions: TCastleRenderOptions;
 begin
@@ -289,14 +289,14 @@ procedure TGLShape.GLContextClose;
     }
     if Cache <> nil then
     begin
-      GLContextCache.Shape_DecReference(Self, Cache);
+      RendererCache.Shape_DecReference(Self, Cache);
       Assert(Cache = nil, 'At the end of GLContextClose, Cache should be nil');
     end;
 
     for Pass := Low(Pass) to High(Pass) do
     begin
       if ProgramCache[Pass] <> nil then
-        GLContextCache.Program_DecReference(ProgramCache[Pass]);
+        RendererCache.Program_DecReference(ProgramCache[Pass]);
       Assert(ProgramCache[Pass] = nil, 'At the end of GLContextClose, all ProgramCache[Pass] should be nil');
     end;
   end;

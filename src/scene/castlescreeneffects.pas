@@ -134,7 +134,7 @@ type
       FScreenEffectsTimeScale: Single;
       { World to pass dummy camera position to ScreenEffectsScene. }
       World: TCastleRootTransform;
-      FRenderer: TGLRenderer;
+      FRenderer: TRenderer;
       FPrepareParams: TPrepareParams;
 
       { OpenGL(ES) resources for screen effects. }
@@ -334,7 +334,7 @@ begin
   FScreenEffectsTimeScale := 1;
   FScreenEffectsEnable := true;
 
-  FRenderer := TGLRenderer.Create(nil);
+  FRenderer := TRenderer.Create(nil);
 
   FPrepareParams := TPrepareParams.Create;
   FPrepareParams.GlobalLights := nil;

@@ -433,7 +433,7 @@ type
     and initialize it by LinkProgram here, then enable it if you want.
     Or you can simply allow the fixed-function pipeline to work.
 
-    This is used internally by TGLRenderer. It isn't supposed to be used
+    This is used internally by TRenderer. It isn't supposed to be used
     directly by other code. }
   TShader = class
   private
@@ -546,8 +546,8 @@ type
 
       In case GLFeatures.EnableFixedFunction = true, these are also the contents
       of current OpenGL modelview matrix,
-      at TGLRenderer.RenderShapeClipPlanes and earlier.
-      At TGLRenderer.RenderShapeCreateMeshRenderer and later,
+      at TRenderer.RenderShapeClipPlanes and earlier.
+      At TRenderer.RenderShapeCreateMeshRenderer and later,
       the OpenGL modelview matrix contains also shape transformation,
       so it's different than SceneModelView. }
     SceneModelView: TMatrix4;

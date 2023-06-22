@@ -46,7 +46,7 @@ private
 
 {$ifdef read_implementation}
 
-function TGLRenderer.GLTexture2D(Node: TAbstractTextureNode;
+function TRenderer.GLTexture2D(Node: TAbstractTextureNode;
   out TextureHasAlpha: boolean): TGLTextureId;
 var
   GLNode: TGLTextureNode;
@@ -63,14 +63,14 @@ begin
   end;
 end;
 
-function TGLRenderer.GLTexture2D(Node: TAbstractTextureNode): TGLTextureId;
+function TRenderer.GLTexture2D(Node: TAbstractTextureNode): TGLTextureId;
 var
   IgnoreTextureHasAlpha: boolean;
 begin
   Result := GLTexture2D(Node, IgnoreTextureHasAlpha);
 end;
 
-class function TGLRenderer.ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+class function TRenderer.ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
   MatOne: TAbstractOneSidedMaterialNode;
@@ -128,7 +128,7 @@ begin
   end;
 end;
 
-procedure TGLRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
+procedure TRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
   const RenderOptions: TCastleRenderOptions;
   var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
@@ -206,7 +206,7 @@ begin
   end;
 end;
 
-procedure TGLRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
+procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
   var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
   procedure RequireTexCoord(const TextureCoordinatesId: Integer);

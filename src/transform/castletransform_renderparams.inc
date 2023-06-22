@@ -270,10 +270,10 @@
     { Always TShapesCollector at actual rendering. }
     Collector: TObject;
 
-    { Always TGLRenderer at actual rendering, to prepare shapes.
+    { Always TRenderer at actual rendering, to prepare shapes.
 
       TODO: Passing this around is a hack, shapes should not associate
-      with TGLRenderer, see TShapesRenderer.Renderer TODO also. }
+      with TRenderer, see TShapesRenderer.Renderer TODO also. }
     RendererToPrepareShapes: TObject;
 
     constructor Create;
@@ -307,11 +307,11 @@
     { World fog, in any, to prepare for. }
     GlobalFog: TAbstractFogNode;
 
-    { Renderer used by encompassing viewport. Always TGLRenderer.
+    { Renderer used by encompassing viewport. Always TRenderer.
       Shapes can use this to initialize their resources.
 
       TODO: Passing this around is a hack, shapes should not associate
-      with TGLRenderer, see TShapesRenderer.Renderer TODO also. }
+      with TRenderer, see TShapesRenderer.Renderer TODO also. }
     RendererToPrepareShapes: TObject;
   end;
 

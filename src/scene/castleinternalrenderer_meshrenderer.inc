@@ -14,38 +14,37 @@
   ----------------------------------------------------------------------------
 }
 
-{ X3D rendering.
-  This is internal for CastleRenderer unit.
+{ Mesh rendering.
+  This is internal for CastleInternalRenderer unit and
+  used by TRenderer.
 
-  Some ideas for implementation:
+  - This was split from TRenderer, first of all to make
+    TRenderer smaller.
+    TRenderer class is already large and complicated.
 
-  - CastleRenderer unit, and TGLRenderer class are already
-    large and complicated. The idea of this file is to take some tasks
-    from their hands. TMeshRenderer and descendants are created
-    only for the time of one RenderShape call, and are used
-    to render specific non-trivial X3D mesh nodes.
+  - TMeshRenderer and descendants are created
+    only for the time of one RenderShape call.
+    The allows to reason about them easier.
 
-  - Since all classes within this file and CastleRenderer live
-    in one Pascal unit, we could break it and access each other's
-    private fields etc. We try to not do it. We try to have a clean
-    documented interface. Experience with TGeneralIndexedRenderer
-    taught me that this has to be really flexible and designed for
-    long-term work, to encompass many nodes and features. So, while
-    this is internal for CastleInternalRenderer, it still must be implemented
-    and documented cleanly.
+  - Note: Avoid abusing the fact that this is in the same unit
+    as TRenderer, avoid accessing TRenderer private stuff.
+    The rendering classes are already complicated,
+    keeping them cleanly separated makes it easier to reason about them.
 }
 
 type
+  { Base abstract class for rendering using VBO, shaders --- the normal
+    OpenGL stuff. }
   TMeshRenderer = class
   private
-    FRenderer: TGLRenderer;
+    FRenderer: TRenderer;
     FShape: TX3DRendererShape;
     FGeometry: TAbstractGeometryNode;
     FState: TX3DGraphTraverseState;
   protected
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor. }
-    property Renderer: TGLRenderer read FRenderer;
+    property Renderer: TRenderer read FRenderer;
     property Shape: TX3DRendererShape read FShape;
     property Geometry: TAbstractGeometryNode read FGeometry;
     property State: TX3DGraphTraverseState read FState;
@@ -60,7 +59,7 @@ type
 
     RenderOptions: TCastleRenderOptions;
 
-    constructor Create(ARenderer: TGLRenderer; AShape: TX3DRendererShape);
+    constructor Create(ARenderer: TRenderer; AShape: TX3DRendererShape);
 
     { Render the whole geometry.
 
@@ -154,7 +153,7 @@ type
 
 { TMeshRenderer ---------------------------------------------------------- }
 
-constructor TMeshRenderer.Create(ARenderer: TGLRenderer;
+constructor TMeshRenderer.Create(ARenderer: TRenderer;
   AShape: TX3DRendererShape);
 begin
   inherited Create;
@@ -925,7 +924,7 @@ begin
   if Arrays.HasFogCoord and
      Arrays.FogDirectValues then
   begin
-    { We potentially override the fog already set by TGLRenderer.RenderShapeFog here. }
+    { We potentially override the fog already set by TRenderer.RenderShapeFog here. }
     Shader.ModifyFog(ftLinear, fcPassedCoordinate, 1);
   end;
 end;
@@ -953,7 +952,7 @@ begin
     { For fixed-function pipeline, GL_COLOR_MATERIAL is needed only if Lighting. }
     MaterialFromColorEnabled := GLFeatures.EnableFixedFunction and Lighting;
     if MaterialFromColorEnabled then
-      { Note: glColorMaterial is already set by TGLRenderer.ViewportRenderBegin }
+      { Note: glColorMaterial is already set by TRenderer.ViewportRenderBegin }
       glEnable(GL_COLOR_MATERIAL);
     {$endif}
   end else
