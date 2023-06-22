@@ -399,7 +399,7 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
     if EffectiveDynamicBatching then
     begin
       Batching.Commit;
-      for Shape in Batching.Collected do
+      for Shape in Batching.Batched do
       begin
         { Otherwise, shapes from batching FPool
           would never have PrepareResources called.
@@ -412,7 +412,7 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
           RenderShape_NoTests. }
         RenderShape_NoTests(Shape, Params);
       end;
-      Batching.FreeCollected;
+      Batching.FreeBatched;
     end;
   end;
 
@@ -443,7 +443,7 @@ begin
   if EffectiveDynamicBatching then
   begin
     Batching.PreserveShapeOrder := false;
-    Assert(Batching.Collected.Count = 0);
+    Assert(Batching.Batched.Count = 0);
   end;
 
   if Params.Transparent then
@@ -476,7 +476,7 @@ begin
   try
     for CollectedShape in Shapes.FCollected do
     begin
-      if not (EffectiveDynamicBatching and Batching.Collect(CollectedShape)) then
+      if not (EffectiveDynamicBatching and Batching.Batch(CollectedShape)) then
         RenderShape_OcclusionTests(CollectedShape, Params);
     end;
 

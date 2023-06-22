@@ -60,7 +60,7 @@ type
       MergePipelinesWithTexCoord = [mpFacesTexCoord, mpTrianglesTexCoord];
       MergePipelinesWithFaces = [mpFacesNoTexCoord, mpFacesTexCoord];
     var
-      FCollected: TCollectedShapeList;
+      FBatched: TCollectedShapeList;
       FPool: TMergingShapes;
       FPoolUsed: array [TMergePipeline] of Integer;
 
@@ -98,35 +98,35 @@ type
     function GetPoolShapes(const Index: Integer): TGLShape;
   public
     var
-      { Make sure that shapes on the @link(Collected) list have the same order
-        as they are passed on @link(Collect) method.
+      { Make sure that shapes on the @link(Batched) list have the same order
+        as they are passed on @link(Batch) method.
         This makes batching less aggressive (so less effective,
         less chance of merging many shapes into few),
         but it makes sure that rendering output will be the same,
         if the order was important (e.g. you were rendering
         without Z-buffer test).
 
-        Reset to @false in each @link(FreeCollected). }
+        Reset to @false in each @link(FreeBatched). }
       PreserveShapeOrder: Boolean;
 
     constructor Create;
     destructor Destroy; override;
 
-    { Merge given shape into the @link(Collected) shapes.
+    { Merge given shape into the @link(Batched) shapes.
       During this, the shape may merge with another shape into a single, larger
-      shape. Returns @true if the shape was added to @link(Collected),
+      shape. Returns @true if the shape was added to @link(Batched),
       otherwise it was not, and should be rendered by the caller immediately
       without the help of batching. }
-    function Collect(const TransformedShape: TCollectedShape): Boolean;
+    function Batch(const TransformedShape: TCollectedShape): Boolean;
 
     procedure Commit;
 
-    { Currently collected shapes by @link(Collect).
+    { Currently gathered shapes by @link(Batched).
       Call @link(Commit) before reading this. }
-    property Collected: TCollectedShapeList read FCollected;
+    property Batched: TCollectedShapeList read FBatched;
 
     { Release all shapes and clear the @link(Collected) list. }
-    procedure FreeCollected;
+    procedure FreeBatched;
 
     procedure GLContextClose;
 
@@ -216,7 +216,7 @@ constructor TBatchShapes.Create;
 
 begin
   inherited Create;
-  FCollected := TCollectedShapeList.Create(false);
+  FBatched := TCollectedShapeList.Create(false);
   FPoolGeometries := TGroupNode.Create;
   InitializePool;
 end;
@@ -230,7 +230,7 @@ begin
     make sure to remove our pool shapes from cache. }
   GLContextClose;
 
-  FreeAndNil(FCollected);
+  FreeAndNil(FBatched);
   for P := Low(TMergePipeline) to High(TMergePipeline) do
     for Slot := Low(TMergeSlot) to High(TMergeSlot) do
     begin
@@ -253,7 +253,7 @@ begin
   end;
 end;
 
-function TBatchShapes.Collect(const TransformedShape: TCollectedShape): Boolean;
+function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
 
   { Is this Shape suitable to consider for merging with @italic(anything).
     If yes, then we also determine the proper TMergePipeline. }
@@ -572,7 +572,7 @@ function TBatchShapes.Collect(const TransformedShape: TCollectedShape): Boolean;
 
   { First merge of two shapes.
     Sets FMergeTarget[P, Slot] (using FPool[P, Slot]),
-    adds it to FCollected,
+    adds it to FBatched,
     places there merge of Shape1 and Shape2.
 
     Called must first check that FPool[P, Slot] was not used for anything
@@ -586,7 +586,7 @@ function TBatchShapes.Collect(const TransformedShape: TCollectedShape): Boolean;
       WritelnWarning('Batching: merging to already used slot');
     {$endif}
     FMergeTarget[P, Slot] := FPool[P, Slot];
-    FCollected.Add(FMergeTarget[P, Slot]);
+    FBatched.Add(FMergeTarget[P, Slot]);
     ClearMerge(FMergeTarget[P, Slot], P);
     Merge(FMergeTarget[P, Slot], TransformedShape1, P, true);
     Merge(FMergeTarget[P, Slot], TransformedShape2, P, false);
@@ -618,22 +618,22 @@ function TBatchShapes.Collect(const TransformedShape: TCollectedShape): Boolean;
       We try to merge an incoming shape with the previous shape
       (taking into account that a previous shape may be already a result
       of merging, depending on FOrderPreviousShapeMerging).
-      If this is not possible, we just push previous shape to FCollected. }
+      If this is not possible, we just push previous shape to FBatched. }
 
-    { In case of DoPreserveShapeOrder, Collect must *always* return true,
+    { In case of DoPreserveShapeOrder, Batch must *always* return true,
       even for non-mergeable shapes. }
     Result := true;
 
     if not MergeableWithAnything(Shape, P) then
     begin
       { The non-mergeable shapes have to be added
-        to FCollected, to make sure they are in correct order between mergeable.
+        to FBatched, to make sure they are in correct order between mergeable.
         Testcase: merging scene with indicator (IndexedFaceSet, Text and Rectangle2D) in Unholy. }
       // finish merging previous shape
       if (FOrderPreviousShape <> nil) and
          (not FOrderPreviousShapeMerging) then
-        FCollected.Add(FOrderPreviousShape);
-      FCollected.Add(TransformedShape);
+        FBatched.Add(FOrderPreviousShape);
+      FBatched.Add(TransformedShape);
       FOrderPreviousShape := nil;
       FOrderPreviousShapeMerging := false;
       Handled := true;
@@ -665,7 +665,7 @@ function TBatchShapes.Collect(const TransformedShape: TCollectedShape): Boolean;
       // finish merging previous shape, and add new shape as FOrderPreviousShape
       if (FOrderPreviousShape <> nil) and
          (not FOrderPreviousShapeMerging) then
-        FCollected.Add(FOrderPreviousShape);
+        FBatched.Add(FOrderPreviousShape);
       FOrderPreviousShape := TransformedShape;
       FOrderPreviousShapePipeline := P;
       FOrderPreviousShapeMerging := false;
@@ -735,12 +735,12 @@ begin
     DoIgnoreShapeOrder;
 end;
 
-procedure TBatchShapes.FreeCollected;
+procedure TBatchShapes.FreeBatched;
 var
   P: TMergePipeline;
   Slot: TMergeSlot;
 begin
-  FCollected.Clear;
+  FBatched.Clear;
   for P := Low(TMergePipeline) to High(TMergePipeline) do
   begin
     for Slot := Low(TMergeSlot) to High(TMergeSlot) do
@@ -770,7 +770,7 @@ procedure TBatchShapes.Commit;
     Geometry: TAbstractGeometryNode;
   begin
     RootNode := TX3DRootNode.Create;
-    for CollectedShape in FCollected do
+    for CollectedShape in FBatched do
     begin
       Shape := CollectedShape.Shape;
       Geometry := Shape.OriginalGeometry;
@@ -786,7 +786,7 @@ procedure TBatchShapes.Commit;
     if RootNode.FdChildren.Count <> 0 then
       SaveNode(RootNode, 'cge_batching_output.x3d', ApplicationName);
 
-    for CollectedShape in FCollected do
+    for CollectedShape in FBatched do
     begin
       Shape := CollectedShape.Shape;
       Shape.Node.KeepExistingEnd;
@@ -805,7 +805,7 @@ begin
       if FUnorderedPreviousShapes[P, Slot] <> nil then
       begin
         if FMergeTarget[P, Slot] = nil then
-          FCollected.Add(FUnorderedPreviousShapes[P, Slot]);
+          FBatched.Add(FUnorderedPreviousShapes[P, Slot]);
         FUnorderedPreviousShapes[P, Slot] := nil;
       end;
       if FMergeTarget[P, Slot] <> nil then
@@ -827,7 +827,7 @@ begin
   if FOrderPreviousShape <> nil then
   begin
     if not FOrderPreviousShapeMerging then
-      FCollected.Add(FOrderPreviousShape);
+      FBatched.Add(FOrderPreviousShape);
     FOrderPreviousShape := nil;
   end;
 
