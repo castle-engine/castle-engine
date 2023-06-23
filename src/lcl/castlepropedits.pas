@@ -71,6 +71,8 @@ uses // FPC and LCL units
 {$I castlepropedits_exposetransforms.inc}
 {$I castlepropedits_tiledlayers.inc}
 {$I castlepropedits_rangeset.inc}
+{$I castlepropedits_3dcoords.inc}
+{$I castlepropedits_colorchannels.inc}
 {$I castlepropedits_component_transform.inc}
 {$I castlepropedits_component_scene.inc}
 {$I castlepropedits_component_imagetransform.inc}
@@ -190,9 +192,11 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleAbstractTwoBodiesJoint, 'Connected',
     TConnectedPropertyEditor);
 
-  { used by LockRotation, LockTranslation }
+  { sets }
   RegisterPropertyEditor(TypeInfo(T3DCoords), nil, '',
     T3DCoordsRangeSetPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TColorChannels), nil, '',
+    TColorChannelsRangeSetPropertyEditor);
 
   { animations on TCastleThirdPersonNavigation }
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationIdle',

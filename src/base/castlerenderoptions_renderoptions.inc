@@ -703,7 +703,7 @@ begin
         'WireframeEffect',
         'SolidWireframeScale', 'SolidWireframeBias', 'SilhouetteScale',
         'SilhouetteBias', 'RobustNegativeScale',
-        'WholeSceneManifold'
+        'WholeSceneManifold', 'ColorChannels'
       ]) then
     Result := [psBasic]
   else
