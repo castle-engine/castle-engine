@@ -1164,7 +1164,12 @@ type
 
     { Combine (right before rendering) multiple shapes with a similar appearance into one.
       This can drastically reduce the number of "draw calls",
-      making rendering much faster. }
+      making rendering much faster.
+
+      To debug effectiveness of this, display @link(TCastleViewport.Statistics).
+      In CGE editor (at design-time), use menu item "Edit -> Show Statistics" (F8).
+      When dynamic batching works, the number of rendered shapes
+      and the number of "Draw Calls" should be much smaller. }
     property DynamicBatching: Boolean
       read FDynamicBatching write SetDynamicBatching default false;
 
@@ -1174,6 +1179,12 @@ type
 
       See the https://castle-engine.io/occlusion_query
       for details how does this work.
+
+      To debug effectiveness of this, display @link(TCastleViewport.Statistics).
+      In CGE editor (at design-time), use menu item "Edit -> Show Statistics" (F8).
+      If you look closely at a wall that obscures many shapes behind it,
+      you should see the number of rendered shapes drop significantly
+      using occlusion culling.
 
       This is ignored if GPU doesn't support the necessary functionality
       (@link(TGLFeatures.OcclusionQuery)). }
@@ -1189,22 +1200,37 @@ type
 
       When combined with @link(OcclusionCulling), it makes occlusion culling
       even more effective.
-      See https://castle-engine.io/occlusion_culling and test the
-      @url(https://github.com/castle-engine/castle-engine/tree/master/examples/viewport_and_scenes/occlusion_culling
-      examples/viewport_and_scenes/occlusion_culling) in editor.
-      Use F8 in CGE editor to show statistics, and observe that
 
-      @unorderedList(
-        @item(OcclusionCulling=false and OcclusionSort=bsNone results in most shapes
-          being rendered (like 300).)
+      See https://castle-engine.io/occlusion_culling for more details.
 
-        @item(OcclusionCulling=true and OcclusionSort=bsNone is better, when
-          looking at a building wall obscuring most city you can easily
-          have only 30 shapes rendered.)
+      Demo:
 
-        @item(OcclusionCulling=true and OcclusionSort=bs3D is even better.
-          Looking at a building wall obscuring most city you can easily
-          have only a few shapes rendered.)
+      @orderedList(
+        @item(Open the example
+          @url(https://github.com/castle-engine/castle-engine/tree/master/examples/viewport_and_scenes/occlusion_culling
+          examples/viewport_and_scenes/occlusion_culling) in CGE editor.
+        )
+
+        @item(
+          Use menu item "Edit -> Show Statistics" (F8).
+        )
+
+        @item(
+          Observe that:
+
+          @unorderedList(
+            @item(OcclusionCulling=false and OcclusionSort=bsNone results in most shapes
+              being rendered (like 300).)
+
+            @item(OcclusionCulling=true and OcclusionSort=bsNone is better, when
+              looking at a building wall obscuring most city you can easily
+              have only 30 shapes rendered.)
+
+            @item(OcclusionCulling=true and OcclusionSort=bs3D is even better.
+              Looking at a building wall obscuring most city you can easily
+              have only a few shapes rendered.)
+          )
+        )
       )
     }
     property OcclusionSort: TBlendingSort
