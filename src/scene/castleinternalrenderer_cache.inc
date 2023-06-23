@@ -155,7 +155,7 @@
       either taking an existing instance from cache or creating and adding
       a new one. If we create a new one, we will use Shader to initialize
       program hash and to create and link actual TX3DGLSLProgram instance. }
-    function Program_IncReference(ARenderer: TRenderer;
+    function Program_IncReference(
       Shader: TShader; const ShapeNiceName: string): TShaderProgramCache;
 
     procedure Program_DecReference(var ProgramCache: TShaderProgramCache);
@@ -928,7 +928,7 @@ begin
       'TRendererCache.Shape_DecReference: no reference found');
 end;
 
-function TRendererCache.Program_IncReference(ARenderer: TRenderer;
+function TRendererCache.Program_IncReference(
   Shader: TShader; const ShapeNiceName: string): TShaderProgramCache;
 var
   I: Integer;
@@ -951,7 +951,7 @@ begin
   Result.Hash := Shader.CodeHash;
 
   try
-    Result.ShaderProgram := TX3DGLSLProgram.Create(ARenderer);
+    Result.ShaderProgram := TX3DGLSLProgram.Create;
     Shader.LinkProgram(Result.ShaderProgram, ShapeNiceName);
   except on E: EGLSLError do
     begin
@@ -967,7 +967,7 @@ begin
   if (not GLFeatures.EnableFixedFunction) and (Result.ShaderProgram = nil) then
   begin
     try
-      Result.ShaderProgram := TX3DGLSLProgram.Create(ARenderer);
+      Result.ShaderProgram := TX3DGLSLProgram.Create;
       Shader.LinkFallbackProgram(Result.ShaderProgram);
     except on E: EGLSLError do
       begin

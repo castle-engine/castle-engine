@@ -376,8 +376,7 @@ type
 
     function InternalExtraGetScreenEffects(
       const Index: Integer): TGLSLProgram; override;
-    function InternalExtraScreenEffectsCount(
-      const PrepareParams: TPrepareParams): Integer; override;
+    function InternalExtraScreenEffectsCount: Integer; override;
     function InternalExtraScreenEffectsNeedDepth: Boolean; override;
 
     { Called when PointingDevicePress was not handled by any TCastleTransform object.
@@ -2880,8 +2879,7 @@ begin
   {$warnings on}
 end;
 
-function TCastleViewport.InternalExtraScreenEffectsCount(
-  const PrepareParams: TPrepareParams): Integer;
+function TCastleViewport.InternalExtraScreenEffectsCount: Integer;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -2890,7 +2888,7 @@ begin
 
   {$warnings off} // using deprecated MainScene to keep it working
   if Items.MainScene <> nil then
-    Result := Items.MainScene.InternalScreenEffectsCount(PrepareParams)
+    Result := Items.MainScene.InternalScreenEffectsCount
   else
     Result := 0;
   {$warnings off}

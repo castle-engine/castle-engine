@@ -319,8 +319,7 @@ type
       @exclude
       @groupBegin }
     function InternalScreenEffects(Index: Integer): TGLSLProgram;
-    function InternalScreenEffectsCount(
-      const PrepareParams: TPrepareParams): Integer;
+    function InternalScreenEffectsCount: Integer;
     function InternalScreenEffectsNeedDepth: boolean;
     { @groupEnd }
 
@@ -671,24 +670,10 @@ procedure TCastleScene.GLContextClose;
   procedure ScreenEffectsGLContextClose;
   var
     I: Integer;
-    Node: TScreenEffectNode;
   begin
     if ScreenEffectNodes <> nil then
       for I := 0 to ScreenEffectNodes.Count - 1 do
-      begin
-        Node := TScreenEffectNode(ScreenEffectNodes[I]);
-        { The TGLSLProgram instance here will be released by
-          TRenderer.GLContextCloseEvent,
-          that calls ScreenEffectPrograms.Clear.
-
-          So below only set it to nil.
-
-          TODO: This leaves shader effects resources hanging until
-          TRenderer.GLContextCloseEvent occurred,
-          so potentially for a long time now. }
-        Node.Shader := nil;
-        Node.ShaderLoaded := false;
-      end;
+        TScreenEffectNode(ScreenEffectNodes[I]).InternalRendererResourceFree;
   end;
 
   { When the OpenGL(ES) context is lost, generated textures contents are lost.
@@ -1050,8 +1035,8 @@ begin
     if prScreenEffects in Options then
     begin
       for I := 0 to ScreenEffectNodes.Count - 1 do
-        Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TScreenEffectNode,
-          RenderOptions);
+        TScreenEffectResources.Prepare(RenderOptions,
+          ScreenEffectNodes[I] as TScreenEffectNode);
     end;
 
     if PossiblyTimeConsuming then
@@ -1750,32 +1735,26 @@ begin
       GeneratedTextures.L[I].Functionality.InternalUpdateNeeded := true;
 end;
 
-function TCastleScene.InternalScreenEffectsCount(
-  const PrepareParams: TPrepareParams): Integer;
+function TCastleScene.InternalScreenEffectsCount: Integer;
 var
   I: Integer;
   SE: TScreenEffectNode;
-  Renderer: TRenderer;
 begin
   Result := 0;
 
-  { This ties our scene to OpenGL (by calling Renderer.PrepareScreenEffect),
+  { This ties our scene to OpenGL,
     so we must be notified when OpenGL is closed.
     Testcase: otherwise the noise1 texture of the screen effect in
     "The Unholy Society" is not released from OpenGL, we get warning from
     TextureMemoryProfiler. }
   RegisterGLContextClose;
 
-  Assert(PrepareParams <> nil);
-  Assert(PrepareParams.RendererToPrepareShapes <> nil);
-  Renderer := PrepareParams.RendererToPrepareShapes as TRenderer;
-
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin
     SE := TScreenEffectNode(ScreenEffectNodes[I]);
-    // Note: Renderer.PrepareScreenEffect exits fast if already was done on this shape
-    Renderer.PrepareScreenEffect(SE, RenderOptions);
-    if SE.Shader <> nil then
+    // Note: TScreenEffectResources.Prepare exits fast if already was done on this shape
+    TScreenEffectResources.Prepare(RenderOptions, SE);
+    if TScreenEffectResources.Get(SE).ShaderProgram <> nil then
       Inc(Result);
   end;
 end;
@@ -1783,18 +1762,20 @@ end;
 function TCastleScene.InternalScreenEffects(Index: Integer): TGLSLProgram;
 var
   I: Integer;
-  SE: TScreenEffectNode;
+  SeNode: TScreenEffectNode;
+  SeNodeRes: TScreenEffectResource;
 begin
-  { No need for PrepareScreenEffect here, ScreenEffectsCount (that does
-    PrepareScreenEffect) is always called first, otherwise the caller
+  { No need for TScreenEffectResources.Prepare here, ScreenEffectsCount (that does
+    TScreenEffectResources.Prepare) is always called first, otherwise the caller
     would not know that this Index is valid. }
 
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin
-    SE := TScreenEffectNode(ScreenEffectNodes[I]);
-    if SE.Shader <> nil then
+    SeNode := TScreenEffectNode(ScreenEffectNodes[I]);
+    SeNodeRes := TScreenEffectResources.Get(SeNode);
+    if SeNodeRes.ShaderProgram <> nil then
       if Index = 0 then
-        Exit(TGLSLProgram(SE.Shader))
+        Exit(TGLSLProgram(SeNodeRes.ShaderProgram))
       else
         Dec(Index);
   end;
@@ -1805,15 +1786,21 @@ end;
 function TCastleScene.InternalScreenEffectsNeedDepth: boolean;
 var
   I: Integer;
+  SeNode: TScreenEffectNode;
+  SeNodeRes: TScreenEffectResource;
 begin
-  { For now: No need for PrepareScreenEffect here, ScreenEffectsCount
+  { For now: No need for TScreenEffectResources.Prepare here, ScreenEffectsCount
     is always called first. But actually for some scenarios we should do
-    here PrepareScreenEffect? }
+    here TScreenEffectResources.Prepare? }
 
   for I := 0 to ScreenEffectNodes.Count - 1 do
-    if (TScreenEffectNode(ScreenEffectNodes[I]).Shader <> nil) and
-        TScreenEffectNode(ScreenEffectNodes[I]).FdNeedsDepth.Value then
+  begin
+    SeNode := TScreenEffectNode(ScreenEffectNodes[I]);
+    SeNodeRes := TScreenEffectResources.Get(SeNode);
+    if (SeNodeRes.ShaderProgram <> nil) and
+        SeNode.NeedsDepth then
       Exit(true);
+  end;
   Exit(false);
 end;
 

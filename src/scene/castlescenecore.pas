@@ -4018,7 +4018,6 @@ begin
     HandleVisibilitySensor(Node as TVisibilitySensorNode) else
   if Node is TScreenEffectNode then
   begin
-    TScreenEffectNode(Node).StateForShaderPrepare.Assign(StateStack.Top);
     ParentScene.ScreenEffectNodes.Add(Node);
   end;
 end;
@@ -5445,15 +5444,8 @@ var
   end;
 
   procedure HandleChangeScreenEffectEnabled;
-  var
-    SE: TScreenEffectNode;
   begin
-    SE := ANode as TScreenEffectNode;
-    { Just like TCastleScene.CloseGLScreenEffect: no need to even
-      communicate with renderer, just reset ShaderLoaded and Shader.
-      At the nearest time, it will be recalculated. }
-    SE.ShaderLoaded := false;
-    SE.Shader := nil;
+    (ANode as TScreenEffectNode).InternalRendererResourceFree;
     VisibleChangeHere([vcVisibleNonGeometry]);
   end;
 

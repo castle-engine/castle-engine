@@ -20,14 +20,6 @@
 //type
   TRenderer = class(TComponent)
   private
-    { ---------------------------------------------------------
-      GLContext-specific things, so freed (or reset in some other way to default
-      uninitialized values) in GLContextCloseEvent. }
-
-    ScreenEffectPrograms: TGLSLProgramList;
-
-    { ------------------------------------------------------------------------ }
-
     { For speed, we keep a single instance of TShader,
       instead of creating / destroying an instance at each RenderShape.
       This is necessary, otherwise the constructor / destructor of TShader
@@ -85,20 +77,6 @@
     function BumpMapping(const RenderOptions: TCastleRenderOptions): TBumpMapping;
 
     {$I castleinternalrenderer_surfacetextures.inc}
-
-    { Release every OpenGL resource. That is release any knowledge
-      connecting us to the current OpenGL context and any knowledge
-      about your prepared X3D nodes, states etc.
-
-      Calling this is valid (and ignored) call if everything
-      is already released.
-
-      Destructor calls this automatically.
-
-      Note: Since TShaderRenderer uses single TRenderer to render all
-      scenes, avoid calling this unless you want to unprepare
-      *all* resources of *all* scenes. }
-    procedure GLContextCloseEvent(Sender: TObject);
   private
     { ----------------------------------------------------------------- }
 
@@ -252,17 +230,6 @@
       const CurrentViewpoint: TAbstractViewpointNode;
       const CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3);
-
-    { Load GLSL shader for the ScreenEffect node.
-      Makes sure that Node.ShaderLoaded is true.
-      When changing Node.ShaderLoaded false to true tries to initialize
-      the shader, setting Node.Shader if some GLSL program
-      was successfully loaded.
-
-      The GLSL program (TGLSLProgram) will be stored here,
-      and will be automatically freed when GL context is lost. }
-    procedure PrepareScreenEffect(const Node: TScreenEffectNode;
-      const RenderOptions: TCastleRenderOptions);
   end;
 {$endif read_interface}
 
@@ -273,21 +240,12 @@
 constructor TRenderer.Create(AOwner: TComponent);
 begin
   inherited;
-
-  ScreenEffectPrograms := TGLSLProgramList.Create(true);
   TextureTransformUnitsUsedMore := TInt32List.Create;
-
   PreparedShader := TShader.Create;
-
-  ApplicationProperties.OnGLContextCloseObject.Add(
-    {$ifdef FPC}@{$endif} GLContextCloseEvent);
 end;
 
 destructor TRenderer.Destroy;
 begin
-  ApplicationProperties.OnGLContextCloseObject.Remove(
-    {$ifdef FPC}@{$endif} GLContextCloseEvent);
-
   { Call TComponent destructor early, to call notifications that cause
     TGLShape.RendererDetach when everything related to renderer is still valid.
 
@@ -298,144 +256,8 @@ begin
     Without this fix, it will SEGFAULT. }
   inherited;
 
-  GLContextCloseEvent(nil);
-
   FreeAndNil(TextureTransformUnitsUsedMore);
-  FreeAndNil(ScreenEffectPrograms);
   FreeAndNil(PreparedShader);
-end;
-
-procedure TRenderer.PrepareScreenEffect(const Node: TScreenEffectNode;
-  const RenderOptions: TCastleRenderOptions);
-
-  procedure PrepareIDecls(const IDecls: TX3DInterfaceDeclarationList;
-    State: TX3DGraphTraverseState);
-
-    { If TextureNode <> @nil and is a texture node, prepare it. }
-    procedure PrepareTexture(TextureNode: TX3DNode);
-    begin
-      if (TextureNode <> nil) and
-         (TextureNode is TAbstractTextureNode) then
-        TTextureResources.Prepare(State, RenderOptions,
-          TAbstractTextureNode(TextureNode));
-    end;
-
-  var
-    I, J: Integer;
-    UniformField: TX3DField;
-  begin
-    if IDecls = nil then Exit; { ignore nodes without interface declararations }
-
-    for I := 0 to IDecls.Count - 1 do
-    begin
-      UniformField := IDecls.Items[I].Field;
-
-      if UniformField <> nil then
-      begin
-        if UniformField is TSFNode then
-        begin
-          PrepareTexture(TSFNode(UniformField).Value);
-        end else
-        if UniformField is TMFNode then
-        begin
-          for J := 0 to TMFNode(UniformField).Count - 1 do
-            PrepareTexture(TMFNode(UniformField)[J]);
-        end;
-      end;
-    end;
-  end;
-
-  { Prepare all textures within X3D "interface declarations" of the given Nodes. }
-  procedure PrepareIDeclsList(Nodes: TMFNode; State: TX3DGraphTraverseState);
-  var
-    I: Integer;
-  begin
-    for I := 0 to Nodes.Count - 1 do
-      PrepareIDecls(Nodes[I].InterfaceDeclarations, State);
-  end;
-
-var
-  Shader: TShader;
-  ShaderProgram: TX3DGLSLProgram;
-  ShaderNode: TComposedShaderNode;
-  DummyCamera: TRenderingCamera;
-begin
-  if not Node.ShaderLoaded then
-  begin
-    Assert(Node.Shader = nil);
-    Node.ShaderLoaded := true;
-
-    { Note: Strictly speaking, we should not need to check
-      "not GLFeatures.EnableFixedFunction" below.
-      Without this check, TX3DGLSLProgram.Create below will raise an exception
-      which will cause to abort.
-
-      But:
-      - This is a bit inefficient way to abort.
-      - It causes unknown issues: view3dscene --debug-fixed-function,
-        enable any (like "visualize depth") screen effect,
-        and you may experience crash in TCastleScene.ScreenEffectsCount
-        as if ScreenEffectNodes was nil.
-
-        Not debugged to the end:
-        situation seems impossible and in debugger mysteriously
-        doesn't occur. And logging inconclusive:
-
-          WritelnLog('TCastleScene.ScreenEffectsCount %s', [BoolToStr(ScreenEffectNodes <> nil, true)]);
-
-        sometimes shown we indeed have nil right before crash,
-        but sometimes not...
-    }
-
-    if Node.FdEnabled.Value and (not GLFeatures.EnableFixedFunction) then
-    begin
-      { make sure that textures inside shaders are prepared }
-      PrepareIDeclsList(Node.FdShaders, Node.StateForShaderPrepare);
-
-      Shader := TShader.Create;
-      try
-        DummyCamera := TRenderingCamera.Create;
-        try
-          Shader.RenderingCamera := DummyCamera;
-
-          { for ScreenEffect, we require that some ComposedShader was present.
-            Rendering with default TShader shader makes no sense. }
-          if Shader.EnableCustomShaderCode(Node.FdShaders, ShaderNode) then
-          try
-            ShaderProgram := TX3DGLSLProgram.Create(Self);
-            Shader.AddScreenEffectCode(Node.FdNeedsDepth.Value);
-            Shader.LinkProgram(ShaderProgram, Node.NiceName);
-
-            { We have to ignore invalid uniforms, as it's normal that when
-              rendering screen effect we will pass some screen_* variables
-              that you will not use. }
-            ShaderProgram.UniformMissing := umIgnore;
-
-            Node.Shader := ShaderProgram;
-            ScreenEffectPrograms.Add(ShaderProgram);
-          except on E: EGLSLError do
-            begin
-              FreeAndNil(ShaderProgram);
-              WritelnWarning('VRML/X3D', Format('Cannot use GLSL shader for ScreenEffect: %s',
-                [E.Message]));
-            end;
-          end;
-        finally FreeAndNil(DummyCamera) end;
-      finally FreeAndNil(Shader) end;
-    end;
-  end;
-end;
-
-procedure TRenderer.GLContextCloseEvent(Sender: TObject);
-begin
-  { Secure here in case various fields are nil, in case
-    - we are in the middle of TRenderer constructor
-      (possible if TCastleRenderOptions.OnCreate fires)
-    - TRenderer constructor failed, and now we're in destructor.
-    Testcase: castle-game. }
-
-  if ScreenEffectPrograms <> nil then
-    ScreenEffectPrograms.Clear; { this will free programs inside }
 end;
 
 function TRenderer.BumpMapping(const RenderOptions: TCastleRenderOptions): TBumpMapping;

@@ -162,7 +162,7 @@
       uploading texture to OpenGL if necessary.
       Accepts all texture nodes, multi texture or not-multi texture nodes.
       Accepts also (and ignores) @nil as ANode. }
-    class procedure Prepare(const State: TX3DGraphTraverseState;
+    class procedure Prepare(
       const RenderOptions: TCastleRenderOptions;
       const ANode: TAbstractTextureNode);
 
@@ -201,7 +201,7 @@
   TMultiTextureResource = class(TTextureResource)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(const State: TX3DGraphTraverseState;
+    procedure PrepareCore(
       const RenderOptions: TCastleRenderOptions); override;
     procedure UnprepareCore; override;
   public
@@ -232,7 +232,7 @@
     FGLName: TGLuint;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(const State: TX3DGraphTraverseState;
+    procedure PrepareCore(
       const RenderOptions: TCastleRenderOptions); override;
     procedure UnprepareCore; override;
   public
@@ -251,7 +251,7 @@
   TMovieTextureResource = class(T2DTextureResource)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(const State: TX3DGraphTraverseState;
+    procedure PrepareCore(
       const RenderOptions: TCastleRenderOptions); override;
     procedure UnprepareCore; override;
   public
@@ -272,7 +272,7 @@
     RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(const State: TX3DGraphTraverseState;
+    procedure PrepareCore(
       const RenderOptions: TCastleRenderOptions); override;
     procedure UnprepareCore; override;
   public
@@ -317,7 +317,7 @@
   TComposedCubeMapTextureResource = class(TCubeMapTextureResource)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(const State: TX3DGraphTraverseState;
+    procedure PrepareCore(
       const RenderOptions: TCastleRenderOptions); override;
   public
     function TextureNode: TComposedCubeMapTextureNode;
@@ -327,7 +327,7 @@
   TImageCubeMapTextureResource = class(TCubeMapTextureResource)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(const State: TX3DGraphTraverseState;
+    procedure PrepareCore(
       const RenderOptions: TCastleRenderOptions); override;
   public
     function TextureNode: TImageCubeMapTextureNode;
@@ -339,7 +339,7 @@
     RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(const State: TX3DGraphTraverseState;
+    procedure PrepareCore(
       const RenderOptions: TCastleRenderOptions); override;
     procedure UnprepareCore; override;
   public
@@ -363,7 +363,7 @@
   T3DTextureResource = class(TSingleTextureResource)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(const State: TX3DGraphTraverseState;
+    procedure PrepareCore(
       const RenderOptions: TCastleRenderOptions); override;
     procedure UnprepareCore; override;
   public
@@ -386,7 +386,7 @@
     FGLName: TGLuint;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(const State: TX3DGraphTraverseState;
+    procedure PrepareCore(
       const RenderOptions: TCastleRenderOptions); override;
     procedure UnprepareCore; override;
   public
@@ -415,7 +415,7 @@
   TShaderTextureResource = class(TSingleTextureResource)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(const State: TX3DGraphTraverseState;
+    procedure PrepareCore(
       const RenderOptions: TCastleRenderOptions); override;
     procedure UnprepareCore; override;
   public
@@ -639,7 +639,7 @@ begin
     Result := nil;
 end;
 
-class procedure TTextureResources.Prepare(const State: TX3DGraphTraverseState;
+class procedure TTextureResources.Prepare(
   const RenderOptions: TCastleRenderOptions;
   const ANode: TAbstractTextureNode);
 var
@@ -653,7 +653,7 @@ begin
     if TextureResClass <> nil { Ignore if not handled node. } then
     begin
       TextureRes := TextureResClass.Create(ANode);
-      TextureRes.Prepare(State, RenderOptions);
+      TextureRes.Prepare(RenderOptions);
       ANode.InternalRendererResource := TextureRes;
     end;
   end;
@@ -755,7 +755,7 @@ begin
   Result := TMultiTextureNode(inherited TextureNode);
 end;
 
-procedure TMultiTextureResource.PrepareCore(const State: TX3DGraphTraverseState;
+procedure TMultiTextureResource.PrepareCore(
   const RenderOptions: TCastleRenderOptions);
 var
   ChildTex: TX3DNode;
@@ -769,8 +769,7 @@ begin
       if ChildTex is TMultiTextureNode then
         WritelnWarning('VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node') else
       begin
-        TTextureResources.Prepare(State, RenderOptions,
-          TAbstractTextureNode(ChildTex));
+        TTextureResources.Prepare(RenderOptions, TAbstractTextureNode(ChildTex));
       end;
     end;
   end;
@@ -959,7 +958,7 @@ begin
   Result := TAbstractTexture2DNode(inherited TextureNode);
 end;
 
-procedure TImageTextureResource.PrepareCore(const State: TX3DGraphTraverseState;
+procedure TImageTextureResource.PrepareCore(
   const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
@@ -1047,7 +1046,7 @@ begin
   Result := TMovieTextureNode(inherited TextureNode);
 end;
 
-procedure TMovieTextureResource.PrepareCore(const State: TX3DGraphTraverseState;
+procedure TMovieTextureResource.PrepareCore(
   const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
@@ -1142,7 +1141,7 @@ begin
   Result := TRenderedTextureNode(inherited TextureNode);
 end;
 
-procedure TRenderedTextureResource.PrepareCore(const State: TX3DGraphTraverseState;
+procedure TRenderedTextureResource.PrepareCore(
   const RenderOptions: TCastleRenderOptions);
 var
   InitialImage: TCastleImage;
@@ -1686,7 +1685,7 @@ begin
   Result := TComposedCubeMapTextureNode(inherited TextureNode);
 end;
 
-procedure TComposedCubeMapTextureResource.PrepareCore(const State: TX3DGraphTraverseState;
+procedure TComposedCubeMapTextureResource.PrepareCore(
   const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
@@ -1752,7 +1751,7 @@ begin
   Result := TImageCubeMapTextureNode(inherited TextureNode);
 end;
 
-procedure TImageCubeMapTextureResource.PrepareCore(const State: TX3DGraphTraverseState;
+procedure TImageCubeMapTextureResource.PrepareCore(
   const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
@@ -1811,7 +1810,7 @@ begin
   Result := TGeneratedCubeMapTextureNode(inherited TextureNode);
 end;
 
-procedure TGeneratedCubeMapTextureResource.PrepareCore(const State: TX3DGraphTraverseState;
+procedure TGeneratedCubeMapTextureResource.PrepareCore(
   const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
@@ -1941,7 +1940,7 @@ begin
   Result := TAbstractTexture3DNode(inherited TextureNode);
 end;
 
-procedure T3DTextureResource.PrepareCore(const State: TX3DGraphTraverseState;
+procedure T3DTextureResource.PrepareCore(
   const RenderOptions: TCastleRenderOptions);
 var
   Filter: TTextureFilter;
@@ -2029,7 +2028,7 @@ begin
     GLFeatures.TextureFloat;
 end;
 
-procedure TGeneratedShadowMapResource.PrepareCore(const State: TX3DGraphTraverseState;
+procedure TGeneratedShadowMapResource.PrepareCore(
   const RenderOptions: TCastleRenderOptions);
 var
   TextureWrap: TTextureWrap2D;
@@ -2209,7 +2208,7 @@ begin
   Result := ANode is TShaderTextureNode;
 end;
 
-procedure TShaderTextureResource.PrepareCore(const State: TX3DGraphTraverseState;
+procedure TShaderTextureResource.PrepareCore(
   const RenderOptions: TCastleRenderOptions);
 begin
   { no need to do anything }

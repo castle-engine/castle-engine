@@ -1062,7 +1062,7 @@ begin
           RendererCache.Program_DecReference(Shape.ProgramCache[Renderer.Pass]);
 
         Shape.ProgramCache[Renderer.Pass] := RendererCache.Program_IncReference(
-          Renderer, Shader, Shape.NiceName);
+          Shader, Shape.NiceName);
       end;
 
       Assert(Shape.ProgramCache[Renderer.Pass] <> nil);

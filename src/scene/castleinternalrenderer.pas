@@ -190,6 +190,7 @@ type
   {$I castleinternalrenderer_pass.inc}
   {$I castleinternalrenderer_shape.inc}
   {$I castleinternalrenderer_renderer.inc}
+  {$I castleinternalrenderer_screen_effects.inc}
 
 {$I castleinternalrenderer_final_globals.inc}
 
@@ -216,6 +217,7 @@ uses Math,
 {$I castleinternalrenderer_texture.inc}
 {$I castleinternalrenderer_surfacetextures.inc}
 {$I castleinternalrenderer_glsl.inc}
+{$I castleinternalrenderer_screen_effects.inc}
 {$I castleinternalrenderer_final_globals.inc}
 
 initialization

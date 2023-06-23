@@ -55,6 +55,7 @@
     property InternalRendererResource: TInternalRendererResource
       read FInternalRendererResource write FInternalRendererResource;
 
+    { Free InternalRendererResource, if any. }
     procedure InternalRendererResourceFree;
 
     destructor Destroy; override;

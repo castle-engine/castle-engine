@@ -211,7 +211,7 @@ begin
     RenderOptions := TCastleScene(ParentScene).RenderOptions;
   Assert(RenderOptions <> nil);
 
-  TTextureResources.Prepare(State, RenderOptions, Texture);
+  TTextureResources.Prepare(RenderOptions, Texture);
 end;
 
 procedure TGLShape.PrepareResources;

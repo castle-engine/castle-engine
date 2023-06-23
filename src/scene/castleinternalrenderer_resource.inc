@@ -26,7 +26,7 @@
     It should not assume anything else, e.g. that some TRenderer
     or TCastleRenderOptions instance continues existing. }
   TRendererResource = class(TInternalRendererResource)
-  private
+  strict private
     FNode: TX3DNode;
 
     { Release stuff allocated by Prepare.
@@ -40,8 +40,7 @@
       convert them to WritelnWarning and make Unprepare to undo the preparations.
       So Prepare-Unprepare work like constructor-destructor, with Unprepare
       having to be prepared to eventually finalize even incomplete instance. }
-    procedure PrepareCore(const State: TX3DGraphTraverseState;
-      const RenderOptions: TCastleRenderOptions); virtual; abstract;
+    procedure PrepareCore(const RenderOptions: TCastleRenderOptions); virtual; abstract;
 
     { Release all resources allocated by Prepare method.
       This is exposed so that you can override it. }
@@ -56,8 +55,7 @@
 
     { Do the time-consuming preparations before using this node with renderer.
       Calls PrepareCore. }
-    procedure Prepare(const State: TX3DGraphTraverseState;
-      const RenderOptions: TCastleRenderOptions);
+    procedure Prepare(const RenderOptions: TCastleRenderOptions);
   end;
 
 {$endif read_interface}
@@ -78,11 +76,10 @@ begin
   inherited;
 end;
 
-procedure TRendererResource.Prepare(const State: TX3DGraphTraverseState;
-  const RenderOptions: TCastleRenderOptions);
+procedure TRendererResource.Prepare(const RenderOptions: TCastleRenderOptions);
 begin
   try
-    PrepareCore(State, RenderOptions);
+    PrepareCore(RenderOptions);
   except
     on E: EFramebufferError do
     begin

@@ -188,8 +188,7 @@ type
     function InternalExtraGetScreenEffects(
       const Index: Integer): TGLSLProgram; virtual;
     { @exclude }
-    function InternalExtraScreenEffectsCount(
-      const PrepareParams: TPrepareParams): Integer; virtual;
+    function InternalExtraScreenEffectsCount: Integer; virtual;
     { @exclude }
     function InternalExtraScreenEffectsNeedDepth: Boolean; virtual;
   public
@@ -407,8 +406,7 @@ begin
   Result := nil; // silence FPC warnings about undefined result
 end;
 
-function TCastleScreenEffects.InternalExtraScreenEffectsCount(
-  const PrepareParams: TPrepareParams): Integer;
+function TCastleScreenEffects.InternalExtraScreenEffectsCount: Integer;
 begin
   Result := 0;
 end;
@@ -427,8 +425,8 @@ begin
       { TCastleScene already implemented logic to only count screen effects
         that are enabled, and their GLSL code linked successfully.
         Cool, we depend on it. }
-      Result := Result + ScreenEffectsScene.InternalScreenEffectsCount(FPrepareParams);
-    Result := Result + InternalExtraScreenEffectsCount(FPrepareParams);
+      Result := Result + ScreenEffectsScene.InternalScreenEffectsCount;
+    Result := Result + InternalExtraScreenEffectsCount;
   end;
 end;
 
@@ -445,7 +443,7 @@ var
   SceneEffects: Integer;
 begin
   if ScreenEffectsScene <> nil then
-    SceneEffects := ScreenEffectsScene.InternalScreenEffectsCount(FPrepareParams)
+    SceneEffects := ScreenEffectsScene.InternalScreenEffectsCount
   else
     SceneEffects := 0;
 
