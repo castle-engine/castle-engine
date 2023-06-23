@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
+
+# TODO: debug GH action fail due to low disk
+df -h
 
 # ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
