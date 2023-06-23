@@ -25,37 +25,52 @@
 
   @orderedList(
     @item(
-      Call @link(TRenderer.PrepareShape) for all
-      the shapes (geometry and state) that you want to later render.
-      The order of calling TRenderer.PrepareShape
-      methods doesn't matter, also you are free to prepare states that you
-      will not actually use later. Of course a state, once prepared,
-      may be used in rendering as many times as you want.
+      Before rendering prepare textures using TTextureResources.Prepare
+      for all textures. Failure to do so will result in textures not being
+      used.
 
-      It's important that you have to prepare @italic(every state that
-      you plan to later render). During rendring the state
-      must have exactly the same (fields, properties) values as when
-      it was prepared. In particular, it must have the same
-      pointers to nodes Last*/Active* and their contents
-      also must be the same. TRenderer.PrepareSha[e]
-      may save some associations between objects and OpenGL resources,
-      so it's important that the same pointer must always point to the
-      same object (until it's unprepared).
+      TGLShape takes care of doing this.
 
-      TRenderer.PrepareShape requires active OpenGL context. It doesn't modify
-      OpenGL state (only allocates some resources like texture names).
-      It cannot be called inside a display list.
+      TTextureResource and descendants have to be freed when the context
+      is active. TAbstractTextureNode uses ApplicationProperties.OnGLContextClose
+      to free them automatically when last GL context is lost.
     )
 
     @item(
-      When you want to release resources, you should call
-      TRenderer.UnprepareShape on
-      shapes that you want to change or free. This should be used
-      with nodes that were passed as Last*/Active*
-      in some State for TRenderer.Prepare.
+      Shaders, VBOs and other things in TShapeCache will be prepared
+      automatically at first render.
+      You can also render with RenderMode = rmPrepare* to prepare them
+      explicitly.
 
-      Note that you cannot free the nodes before unpreparing them.
-      The node instance must remain valid while it's prepared.
+      TGLShape takes care of releasing TShapeCache.
+
+      TCastleScene takes care of rendering stuff with
+      RenderMode = rmPrepare*.
+
+      Note that TShapeCache has some links to nodes.
+      These node references must stay valid (otherwise we could get weird
+      bugs, not only SEGFAULTS, also cache mistakes if these nodes would
+      be freed and the same pointer allocated for different instance).
+      Be sure to unprepare the TShapeCache before nodes are freed.
+
+      Both TX3DRendererShape.Cache and TX3DRendererShape.ProgramCache
+      have to be freed when the context is active.
+      TGLShape in GLContextClose releases TX3DRendererShape.Cache and
+      TX3DRendererShape.ProgramCache.
+      That's why both TCastleViewport and TCastleScreenEffects take good
+      care to pass GLContextClose event to TCastleScene.GLContextClose
+      which passes it to TGLShape.GLContextClose for all shapes.
+    )
+
+    @item(
+      The resulting OpenGL resources should only live until
+      last OpenGL context is lost.
+
+      They can be shared across all OpenGL contexts.
+      CGE TCastleWindow and TCastleControl make
+      all OpenGL contexts share all resources, so RendererCache can be just
+      used freely. Use ApplicationProperties.OnGLContextClose to free
+      things when last context is closed.
     )
 
     @item(
@@ -109,9 +124,6 @@
     @item(
       Between TRenderer.RenderBegin and TRenderer.RenderEnd
       you should render the shapes by calling RenderShape.
-
-      Remember that you can render only shapes that have Shape.State
-      prepared by TRenderer.Prepare.
     )
 
     @item(
@@ -119,33 +131,13 @@
       ViewportRenderBegin, ViewportRenderEnd)
       must be done in the same OpenGL context, until you finish
       given rendering by ViewportRenderEnd.
-
-      All the commands, including rendering and preparing (like PrepareShape),
-      must be done in the OpenGL contexts that share resources.
-      CGE TCastleWindow and TCastleControl guarantee this automatically,
-      all OpenGL contexts used by CGE share resources.
-
-      When the last OpenGL context is destroyed, all resources are automatically
-      released.
-
-      For some things, like textures, you don't need to worry about OpenGL
-      context anymore: because outside of CastleInternalRenderer unit,
-      you don't reference OpenGL texture resources directly. You only have
-      TX3DNode instances, and the fact that their OpenGL counterparts have been
-      released probably doesn't bother you.
-
-      For some other things, like TX3DRendererShape.Cache and
-      TX3DRendererShape.ProgramCache, you still have to make sure you free
-      them before OpenGL context gets destroyed.
-      That is why both TCastleViewport and TCastleScreenEffects take good
-      care to pass GLContextClose event to TCastleScene.GLContextClose
-      which passes it to TGLShape.GLContextClose for all shapes.
     )
   )
 
   @bold(OpenGL state affecting X3D rendering:)
 
-  Some OpenGL state is unconditionally set by rendering (TRenderer.ViewportRenderBegin,
+  Some OpenGL state is unconditionally set by rendering
+  (TRenderer.ViewportRenderBegin,
   TRenderer.RenderBegin, or just each shape rendering).
 
   But there's also some OpenGL state that we let affect our rendering.
@@ -162,9 +154,9 @@
 
       Also RenderContext.DepthBufferUpdate.
 
-      These are used by @link(TCastleScene) to render
+      These are used by @link(TShapesRenderer) to render
       scenes with a mix of tranparent and opaque objects.
-      Only @link(TCastleScene) deals with it (not this renderer),
+      Only @link(TShapesRenderer) deals with it (not this renderer),
       as doing it correctly requires ordering the shapes.
     )
   )
