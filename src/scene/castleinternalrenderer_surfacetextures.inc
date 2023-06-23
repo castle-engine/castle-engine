@@ -49,15 +49,15 @@ private
 function TRenderer.GLTexture2D(Node: TAbstractTextureNode;
   out TextureHasAlpha: boolean): TGLTextureId;
 var
-  GLNode: TGLTextureNode;
+  TextureRes: TTextureResource;
 begin
   Result := 0;
   if Node <> nil then
   begin
-    GLNode := GLTextureNodes.TextureNode(Node);
-    if GLNode is TGL2DTextureNode then // also checks is GLNode <> nil
+    TextureRes := TTextureResources.Get(Node);
+    if TextureRes is T2DTextureResource then // also checks is TextureRes <> nil
     begin
-      Result := TGL2DTextureNode(GLNode).GLName;
+      Result := T2DTextureResource(TextureRes).GLName;
       TextureHasAlpha := Node.AlphaChannelFinal <> acNone;
     end;
   end;

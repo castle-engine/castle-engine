@@ -236,7 +236,7 @@ procedure TShapesRenderer.PrepareResources;
           instance, which is necessary to be prepared. }
         if NeedsRenderOptions then
           Batching.PoolShapes[I].OverrideRenderOptions := DummyRenderOptions;
-        Batching.PoolShapes[I].PrepareResources(FRenderer);
+        Batching.PoolShapes[I].PrepareResources;
         if NeedsRenderOptions then
           Batching.PoolShapes[I].OverrideRenderOptions := nil;
       end;
@@ -404,7 +404,7 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
         { Otherwise, shapes from batching FPool
           would never have PrepareResources called.
           Note: Unsure if this is still necessary. }
-        Shape.Shape.PrepareResources(FRenderer);
+        Shape.Shape.PrepareResources;
 
         { Should we call RenderShape_NoTests or RenderShape_OcclusionTests?
           Doesn't matter, we know that occlusion culling is not done when

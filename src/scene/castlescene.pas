@@ -914,7 +914,7 @@ var
   begin
     ShapeList := Shapes.TraverseList(false, false);
     for Shape in ShapeList do
-      TGLShape(Shape).PrepareResources(Renderer);
+      TGLShape(Shape).PrepareResources;
   end;
 
   procedure PrepareRenderShapes;
@@ -1512,10 +1512,10 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
     const RenderFunc: TRenderFromViewFunction;
     const ProjectionNear, ProjectionFar: Single);
   var
-    I: Integer;
-    Shape: TGLShape;
-    TextureNode: TAbstractTextureNode;
-    GenTexFunctionality: TGeneratedTextureFunctionality;
+    // I: Integer;
+    // Shape: TGLShape;
+    // TextureNode: TAbstractTextureNode;
+    // GenTexFunctionality: TGeneratedTextureFunctionality;
     CamPos, CamDir, CamUp: TVector3;
   begin
     if GeneratedTextures.Count = 0 then
@@ -1541,6 +1541,8 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
       CamDir := DefaultCameraDirection;
       CamUp  := DefaultCameraUp;
     end;
+
+    (*: TODO: unknown Renderer now:
 
     for I := 0 to GeneratedTextures.Count - 1 do
     begin
@@ -1584,6 +1586,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
       AvoidShapeRendering := nil;
       AvoidNonShadowCasterRendering := false;
     end;
+    *)
 
     FrameProfiler.Stop(fmUpdateGeneratedTextures);
   end;

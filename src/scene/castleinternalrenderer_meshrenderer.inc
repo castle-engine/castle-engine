@@ -687,7 +687,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
     TransformToWorldSpace := TexCoord.Generation in
       [tgWorldSpaceReflectionVector, tgWorldSpaceNormal];
 
-    Renderer.ActiveTexture(TexUnit);
+    TRenderer.ActiveTexture(TexUnit);
     case TexCoord.Generation of
       tgSphereMap:
         Shader.EnableTexGen(TexUnit, tgSphere);
@@ -1059,9 +1059,9 @@ begin
           ]);
 
         if Shape.ProgramCache[Renderer.Pass] <> nil then
-          Renderer.Cache.Program_DecReference(Shape.ProgramCache[Renderer.Pass]);
+          RendererCache.Program_DecReference(Shape.ProgramCache[Renderer.Pass]);
 
-        Shape.ProgramCache[Renderer.Pass] := Renderer.Cache.Program_IncReference(
+        Shape.ProgramCache[Renderer.Pass] := RendererCache.Program_IncReference(
           Renderer, Shader, Shape.NiceName);
       end;
 

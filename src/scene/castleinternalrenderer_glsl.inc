@@ -57,7 +57,7 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
       begin
         if BoundTextureUnits < GLFeatures.MaxTextureUnits then
         begin
-          if Renderer.GLTextureNodes.Bind(
+          if TTextureResources.Bind(
             TAbstractTextureNode(TextureNode), BoundTextureUnits) then
           begin
             Result := BoundTextureUnits;
@@ -65,7 +65,7 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
           end else
             SetupUniforms := false;
         end else
-          WritelnWarning('VRML/X3D', 'Not enough free texture units to bind all textures for this GLSL shader');
+          WritelnWarning('Renderer', 'Not enough free texture units to bind all textures for this GLSL shader');
       end;
     end;
 

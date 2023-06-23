@@ -24,7 +24,7 @@ interface
 uses Generics.Collections,
   X3DNodes, X3DFields, CastleImages, CastleVectors, CastleClassUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleGLUtils, CastleInternalRenderer, CastleRenderOptions;
+  CastleGLUtils, CastleInternalRenderer, CastleRenderOptions, CastleShapes;
 
 type
   { Shape within a scene rendered using OpenGL.
@@ -32,27 +32,11 @@ type
     Non-internal units never expose instances of this class. }
   TGLShape = class(TX3DRendererShape)
   strict private
-    { TODO: having reference from shape to renderer is not optimal.
-      Shapes needs to observe Renderer - the TRenderer "free notification
-      list" is likely long.
-      Ultimately shapes should not need renderer to prepare / unprepare.
-      Renderer instance should only be used for rendering,
-      rest (prepare) should be stored in cache independent of renderer. }
-    FRenderer: TRenderer;
-    FRendererObserver: TFreeNotificationObserver;
-
-    procedure RendererFreeNotification(const Sender: TFreeNotificationObserver);
-
-    { Unassociate with Renderer and set it to nil, if non-nil. }
-    procedure RendererDetach;
-
-    { Associate with ARenderer and assign it as Renderer.
-      Doesn't take care of deinitializing previous Renderer value,
-      or even checking is it different than ARenderer. }
-    procedure RendererAttach(const ARenderer: TRenderer);
-
+    TexturesPrepared: Boolean;
     { Request from parent TCastleScene to call our PrepareResources at next time. }
     procedure SchedulePrepareResources;
+    function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
+    function UnprepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
   public
     PassedFrustumAndDistanceCulling: Boolean;
 
@@ -77,16 +61,10 @@ type
     destructor Destroy; override;
     procedure Changed(const InactiveOnly: boolean;
       const Changes: TX3DChanges); override;
-    procedure PrepareResources(const ARenderer: TRenderer);
+    procedure PrepareResources;
     procedure GLContextClose;
 
     function UseBlending: Boolean;
-
-    { Shape resources are associated with (prepared for) this renderer,
-      if non-nil.
-      - PrepareResources (and internal RendererAttach) set it to non-nil,
-      - GLContextClose (and internal RendererDetach) sets it to nil. }
-    property Renderer: TRenderer read FRenderer;
   end;
 
   { Shape with additional information how to render it inside a world,
@@ -141,7 +119,6 @@ uses Generics.Defaults, Math, SysUtils,
 
 destructor TGLShape.Destroy;
 begin
-  FreeAndNil(FRendererObserver);
   inherited;
 end;
 
@@ -207,69 +184,43 @@ begin
        chFontStyleFontChanged
      ] <> [] then
   begin
-    if Renderer <> nil then
-    begin
-      Renderer.UnprepareTexture(State.MainTexture);
-      RendererDetach;
-    end;
+    TTextureResources.Unprepare(State.MainTexture);
     SchedulePrepareResources;
   end;
 end;
 
-procedure TGLShape.RendererDetach;
+function TGLShape.UnprepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 begin
-  if Renderer <> nil then
-  begin
-    Renderer.UnprepareShape(Self);
-    FRenderer := nil;
-  end;
+  Result := nil; // let EnumerateTextures to enumerate all textures
+  TTextureResources.Unprepare(Texture);
 end;
 
-procedure TGLShape.RendererFreeNotification(const Sender: TFreeNotificationObserver);
-begin
-  RendererDetach;
-end;
-
-procedure TGLShape.RendererAttach(const ARenderer: TRenderer);
+function TGLShape.PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 var
   RenderOptions: TCastleRenderOptions;
 begin
-  // create FRendererObserver on-demand
-  if FRendererObserver = nil then
-  begin
-    FRendererObserver := TFreeNotificationObserver.Create(nil);
-    FRendererObserver.OnFreeNotification := {$ifdef FPC}@{$endif} RendererFreeNotification;
-  end;
+  Result := nil; // let EnumerateTextures to enumerate all textures
 
-  FRenderer := ARenderer;
-  FRendererObserver.Observed := ARenderer;
+  // This method only captures textures on this shape
+  Assert(Shape = Self);
 
-  // TODO: always depend on local RenderOptions field
+  // TODO: add and always depend on local RenderOptions field, not ParentScene? or we need ParentScene anyway?
   if OverrideRenderOptions <> nil then
     RenderOptions := OverrideRenderOptions
   else
     RenderOptions := TCastleScene(ParentScene).RenderOptions;
   Assert(RenderOptions <> nil);
-  Renderer.PrepareShape(Self, RenderOptions);
+
+  TTextureResources.Prepare(State, RenderOptions, Texture);
 end;
 
-procedure TGLShape.PrepareResources(const ARenderer: TRenderer);
-var
-  RenderOptions: TCastleRenderOptions;
+procedure TGLShape.PrepareResources;
 begin
-  if Renderer <> ARenderer then
+  if not TexturesPrepared then
   begin
-    RendererDetach;
-    if ARenderer <> nil then
-      RendererAttach(ARenderer);
+    TexturesPrepared := true;
+    EnumerateTextures({$ifdef FPC}@{$endif} PrepareTexture);
   end;
-
-  // TODO: always depend on local RenderOptions field
-  if OverrideRenderOptions <> nil then
-    RenderOptions := OverrideRenderOptions
-  else
-    RenderOptions := TCastleScene(ParentScene).RenderOptions;
-  Assert(RenderOptions <> nil);
 end;
 
 procedure TGLShape.GLContextClose;
@@ -279,14 +230,6 @@ procedure TGLShape.GLContextClose;
   var
     Pass: TTotalRenderingPass;
   begin
-    { We don't put this in Renderer.UnprepareShape, even though it would make
-      sense for consistency, because
-
-      - In the long run, we want to make prepare/unprepare independent from
-        Renderer.
-      - This makes escape-universe assertion fail at exit:
-        When Renderer = nil, Cache should also be nil (castlesceneinternalshape.pas, line 246)
-    }
     if Cache <> nil then
     begin
       RendererCache.Shape_DecReference(Self, Cache);
@@ -302,7 +245,12 @@ procedure TGLShape.GLContextClose;
   end;
 
 begin
-  RendererDetach;
+  if TexturesPrepared then
+  begin
+    TexturesPrepared := false;
+    EnumerateTextures({$ifdef FPC}@{$endif} UnprepareTexture);
+  end;
+
   FreeCaches;
 
   if OcclusionQueryId <> 0 then

@@ -24,7 +24,6 @@
       GLContext-specific things, so freed (or reset in some other way to default
       uninitialized values) in GLContextCloseEvent. }
 
-    GLTextureNodes: TGLTextureNodes;
     ScreenEffectPrograms: TGLSLProgramList;
 
     { ------------------------------------------------------------------------ }
@@ -64,11 +63,6 @@
       Cleared by RenderShapeBegin, added by PushTextureUnit,
       used by RenderShapeEnd. }
     TextureTransformUnitsUsedMore: TInt32List;
-
-    PrepareTextureRenderOptions: TCastleRenderOptions;
-
-    function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
-    function UnprepareTextureCallback(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 
     {$ifndef OpenGLES}
     { Call glPushMatrix, assuming that current matrix mode is GL_TEXTURE
@@ -120,8 +114,6 @@
     FogVolumetric: boolean;
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
-
-    FCache: TRendererCache;
 
     { Lights shining on all shapes, may be @nil. Set in each RenderBegin. }
     GlobalLights: TLightInstancesList;
@@ -217,21 +209,6 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    property Cache: TRendererCache read FCache;
-
-    { Prepare given Shape for rendering with given RenderOptions.
-
-      Between preparing and unpreparing, nodes passed here,
-      and RenderOptions too, are "frozen":
-      do not change, do not free them.
-      If you need to change / free, first unprepare them. }
-    procedure PrepareShape(const Shape: TX3DRendererShape;
-      const RenderOptions: TCastleRenderOptions);
-    procedure UnprepareShape(const Shape: TX3DRendererShape);
-
-    { Release resources for this texture. }
-    procedure UnprepareTexture(Node: TAbstractTextureNode);
-
     { Surround all TRenderer usage in ViewportRenderBegin / ViewportRenderEnd calls.
 
       The idea is that outer component, like TCastleViewport,
@@ -297,7 +274,6 @@ constructor TRenderer.Create(AOwner: TComponent);
 begin
   inherited;
 
-  GLTextureNodes := TGLTextureNodes.Create([doOwnsValues]);
   ScreenEffectPrograms := TGLSLProgramList.Create(true);
   TextureTransformUnitsUsedMore := TInt32List.Create;
 
@@ -325,34 +301,8 @@ begin
   GLContextCloseEvent(nil);
 
   FreeAndNil(TextureTransformUnitsUsedMore);
-  FreeAndNil(GLTextureNodes);
   FreeAndNil(ScreenEffectPrograms);
   FreeAndNil(PreparedShader);
-end;
-
-function TRenderer.PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
-begin
-  GLTextureNodes.Prepare(Shape.State, PrepareTextureRenderOptions, Texture, Self);
-  Result := nil;
-end;
-
-procedure TRenderer.PrepareShape(const Shape: TX3DRendererShape;
-  const RenderOptions: TCastleRenderOptions);
-begin
-  PrepareTextureRenderOptions := RenderOptions;
-  Shape.EnumerateTextures({$ifdef FPC}@{$endif} PrepareTexture);
-  PrepareTextureRenderOptions := nil;
-end;
-
-function TRenderer.UnprepareTextureCallback(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
-begin
-  UnprepareTexture(Texture);
-  Result := nil;
-end;
-
-procedure TRenderer.UnprepareShape(const Shape: TX3DRendererShape);
-begin
-  Shape.EnumerateTextures({$ifdef FPC}@{$endif} UnprepareTextureCallback);
 end;
 
 procedure TRenderer.PrepareScreenEffect(const Node: TScreenEffectNode;
@@ -366,7 +316,8 @@ procedure TRenderer.PrepareScreenEffect(const Node: TScreenEffectNode;
     begin
       if (TextureNode <> nil) and
          (TextureNode is TAbstractTextureNode) then
-        GLTextureNodes.Prepare(State, RenderOptions, TAbstractTextureNode(TextureNode), Self);
+        TTextureResources.Prepare(State, RenderOptions,
+          TAbstractTextureNode(TextureNode));
     end;
 
   var
@@ -475,11 +426,6 @@ begin
   end;
 end;
 
-procedure TRenderer.UnprepareTexture(Node: TAbstractTextureNode);
-begin
-  GLTextureNodes.Remove(Node);
-end;
-
 procedure TRenderer.GLContextCloseEvent(Sender: TObject);
 begin
   { Secure here in case various fields are nil, in case
@@ -488,8 +434,6 @@ begin
     - TRenderer constructor failed, and now we're in destructor.
     Testcase: castle-game. }
 
-  if GLTextureNodes <> nil then
-    GLTextureNodes.Clear; { will free all textures, calling also Unprepare on them }
   if ScreenEffectPrograms <> nil then
     ScreenEffectPrograms.Clear; { this will free programs inside }
 end;
@@ -1509,11 +1453,11 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
   procedure EnableOneShadowMap(const Texture: TGeneratedShadowMapNode;
     var TexCoordsNeeded: Cardinal; const Shader: TShader);
   var
-    GLTexture: TGLTextureNode;
+    GLTexture: TTextureResource;
   begin
-    GLTexture := GLTextureNodes.TextureNode(Texture);
+    GLTexture := TTextureResources.Get(Texture);
     if GLTexture <> nil then
-      GLTexture.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+      GLTexture.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
   end;
 
   procedure EnableShadowMaps(const Texture: TAbstractTextureNode;
@@ -1551,11 +1495,11 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
   procedure RenderTexturesBegin;
   var
     TextureNode: TAbstractTextureNode;
-    GLTextureNode: TGLTextureNode;
+    TextureRes: TTextureResource;
     AlphaTest: Boolean;
     AlphaCutoff: Single;
     FontTextureNode: TAbstractTexture2DNode;
-    GLFontTextureNode: TGLTextureNode;
+    FontTextureRes: TTextureResource;
     MainTextureMapping: Integer;
   begin
     TexCoordsNeeded := 0;
@@ -1573,16 +1517,16 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     AlphaTest := false;
 
     TextureNode := Shape.State.MainTexture(Shape.Geometry, MainTextureMapping);
-    GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
-    { assert we never have non-nil GLTextureNode and nil TextureNode }
-    Assert((GLTextureNode = nil) or (TextureNode <> nil));
+    TextureRes := TTextureResources.Get(TextureNode);
+    { assert we never have non-nil TextureRes and nil TextureNode }
+    Assert((TextureRes = nil) or (TextureNode <> nil));
 
     Shader.MainTextureMapping := MainTextureMapping;
 
     FontTextureNode := Shape.OriginalGeometry.FontTextureNode;
-    GLFontTextureNode := GLTextureNodes.TextureNode(FontTextureNode);
-    { assert we never have non-nil GLFontTextureNode and nil FontTextureNode }
-    Assert((GLFontTextureNode = nil) or (FontTextureNode <> nil));
+    FontTextureRes := TTextureResources.Get(FontTextureNode);
+    { assert we never have non-nil FontTextureRes and nil FontTextureNode }
+    Assert((FontTextureRes = nil) or (FontTextureNode <> nil));
 
     if UsedGLSLTexCoordsNeeded > 0 then
     begin
@@ -1597,10 +1541,10 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     begin
       AlphaTest := TGLShape(Shape).AlphaChannel = acTest;
 
-      if GLFontTextureNode <> nil then
-        GLFontTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
-      if GLTextureNode <> nil then
-        GLTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+      if FontTextureRes <> nil then
+        FontTextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+      if TextureRes <> nil then
+        TextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
       BoundTextureUnits := TexCoordsNeeded;
 
       if (Shape.Node <> nil) and
@@ -1658,145 +1602,6 @@ begin
   finally RenderTexturesEnd end;
 end;
 
-{ Sometimes the updates indicated by Shape.Cache.VboToReload can be performed without
-  actually recreating the Shape.Cache.Arrays (so no need to create TArraysGenerator
-  and call TArraysGenerator.GenerateArrays).
-  Detect and perform such optimized case.
-
-  This is crucial for skinned animation, that only requires updating coords/normals/tangents
-  each frame, no need for updating other attributes. }
-function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
-
-  { If possible, update the coordinate/normal/tangent data in VBO fast.
-
-    This is carefully implemented to do a specific case of TShapeCache.LoadArraysToVbo.
-    It optimizes the case of animating coordinates/normals/tangents using CoordinateInterpolator,
-    which is very important to optimize, since that's how glTF skinned animations
-    are done.
-
-    Pass non-nil Tangents if VBO should have tangent data,
-    pass nil Tangents if VBO should not have it. }
-  function FastCoordinateNormalUpdate(const Cache: TShapeCache;
-    const Coords, Normals, Tangents: TVector3List): Boolean;
-  var
-    NewCoordinates, NewCoord: Pointer;
-    Count, Size, ItemSize: Cardinal;
-    I: Integer;
-  begin
-    Result := false;
-
-    if Cache.VboCoordinatePreserveGeometryOrder and
-       (Normals.Count = Coords.Count) and
-       ( (Tangents = nil) or
-         (Tangents.Count = Coords.Count) ) then
-    begin
-      Count := Coords.Count;
-
-      ItemSize := SizeOf(TVector3) * 2;
-      if Tangents <> nil then
-        ItemSize := ItemSize + SizeOf(TVector3);
-      Size := Count * ItemSize;
-
-      if (Cache.VboAllocatedUsage = GL_STREAM_DRAW) and
-         { Comparing the byte sizes also makes sure that previous and new coordinates
-           count stayed the same.
-           (Well, assuming we didn't change the Count, and simultaneously changed
-           the Tangent existence, which in theory could cause Size to match
-           for different structures.)
-         }
-         (Cache.VboAllocatedSize[vtCoordinate] = Size) then
-      begin
-        Result := true;
-        Cache.VboToReload := Cache.VboToReload - [vtCoordinate]; // vtCoordinate are done
-        if Count <> 0 then
-        begin
-          // calculate NewCoordinates
-          NewCoordinates := GetMem(Size);
-          try
-            NewCoord := NewCoordinates;
-
-            if Tangents <> nil then
-            begin
-              for I := 0 to Count - 1 do
-              begin
-                PVector3(NewCoord)^ := Coords.L[I];
-                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
-
-                PVector3(NewCoord)^ := Normals.L[I];
-                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
-
-                PVector3(NewCoord)^ := Tangents.L[I];
-                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
-              end;
-            end else
-            begin
-              for I := 0 to Count - 1 do
-              begin
-                PVector3(NewCoord)^ := Coords.L[I];
-                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
-
-                PVector3(NewCoord)^ := Normals.L[I];
-                PtrUInt(NewCoord) := PtrUInt(NewCoord) + SizeOf(TVector3);
-              end;
-            end;
-
-            // load NewCoordinates to GPU
-            glBindBuffer(GL_ARRAY_BUFFER, Cache.Vbo[vtCoordinate]);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, Size, NewCoordinates);
-          finally FreeMemNiling(NewCoordinates) end;
-        end;
-      end;
-    end;
-  end;
-
-var
-  Cache: TShapeCache;
-  Coords, Normals, Tangents: TVector3List;
-begin
-  Result := false;
-
-  Cache := Shape.Cache;
-
-  // this only optimizes the specific case of VboToReload = [vtCoordinate] now
-  if Cache.VboToReload <> [vtCoordinate] then
-    Exit;
-
-  { When VBO of coordinates is 0 then
-    - VBOs not supported (ancient GPU) -> we need to really update Arrays contents each time
-    - or VBO of coordinates was not initialized yet }
-  if Cache.Vbo[vtCoordinate] = 0 then
-    Exit;
-  if Cache.Arrays = nil then // not initialized yet
-    Exit;
-
-  if // Shape has coordinates expressed in simple way
-     (Shape.Geometry.CoordField <> nil) and
-     (Shape.Geometry.CoordField.Value is TCoordinateNode) then // checks also Value <> nil
-  begin
-    Coords := TCoordinateNode(Shape.Geometry.CoordField.Value).FdPoint.Items;
-
-    if // Shape has normals expressed in simple way
-       (Shape.Geometry.NormalField <> nil) and
-       (Shape.Geometry.NormalField.Value is TNormalNode) then // checks also Value <> nil
-    begin
-      Normals := TNormalNode(Shape.Geometry.NormalField.Value).FdVector.Items;
-
-      // Shape has normals expressed in tangents way, or doesn't use tangents (when no bump mapping used)
-      if ( (not Cache.Arrays.HasTangent) or
-           ( (Shape.Geometry.TangentField <> nil) and
-             (Shape.Geometry.TangentField.Value is TTangentNode) ) ) then // checks also Value <> nil
-      begin
-        if Cache.Arrays.HasTangent then
-          Tangents := TTangentNode(Shape.Geometry.TangentField.Value).FdVector.Items
-        else
-          Tangents := nil;
-
-        Result := FastCoordinateNormalUpdate(Cache, Coords, Normals, Tangents);
-      end;
-    end;
-  end;
-end;
-
 procedure TRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
   const RenderOptions: TCastleRenderOptions;
   const Shader: TShader;
@@ -1819,7 +1624,7 @@ begin
 
     { calculate Shape.Cache }
     if Shape.Cache = nil then
-      Shape.Cache := Cache.Shape_IncReference(Shape, RenderOptions);
+      Shape.Cache := RendererCache.Shape_IncReference(Shape, RenderOptions);
 
     { calculate Shape.Cache.Arrays }
     if (Shape.Cache.Arrays = nil) or
@@ -1920,7 +1725,7 @@ procedure TRenderer.UpdateGeneratedTextures(const Shape: TX3DRendererShape;
 
   procedure UpdateGeneratedCubeMap(const TexNode: TGeneratedCubeMapTextureNode);
   var
-    GLNode: TGLGeneratedCubeMapTextureNode;
+    TextureRes: TGeneratedCubeMapTextureResource;
   begin
     if TexNode.GenTexFunctionality.NeedsUpdate then
     begin
@@ -1933,10 +1738,10 @@ procedure TRenderer.UpdateGeneratedTextures(const Shape: TX3DRendererShape;
         look at how much UpdateGeneratedTextures is eating. Should be 0% if off. }
       if Shape.BoundingBox.IsEmpty then Exit;
 
-      GLNode := TGLGeneratedCubeMapTextureNode(GLTextureNodes.TextureNode(TexNode));
-      if GLNode <> nil then
+      TextureRes := TGeneratedCubeMapTextureResource(TTextureResources.Get(TexNode));
+      if TextureRes <> nil then
       begin
-        GLNode.Update(Render, ProjectionNear, ProjectionFar,
+        TextureRes.Update(Render, ProjectionNear, ProjectionFar,
           Shape.BoundingBox.Center + TexNode.FdBias.Value);
 
         TexNode.GenTexFunctionality.PostUpdate;
@@ -1949,16 +1754,16 @@ procedure TRenderer.UpdateGeneratedTextures(const Shape: TX3DRendererShape;
 
   procedure UpdateGeneratedShadowMap(TexNode: TGeneratedShadowMapNode);
   var
-    GLNode: TGLGeneratedShadowMap;
+    TextureRes: TGeneratedShadowMapResource;
   begin
     if TexNode.GenTexFunctionality.NeedsUpdate then
     begin
       if TexNode.FdLight.Value is TAbstractPunctualLightNode then
       begin
-        GLNode := TGLGeneratedShadowMap(GLTextureNodes.TextureNode(TexNode));
-        if GLNode <> nil then
+        TextureRes := TGeneratedShadowMapResource(TTextureResources.Get(TexNode));
+        if TextureRes <> nil then
         begin
-          GLNode.Update(Render, ProjectionNear, ProjectionFar,
+          TextureRes.Update(Render, ProjectionNear, ProjectionFar,
             TAbstractPunctualLightNode(TexNode.FdLight.Value));
 
           TexNode.GenTexFunctionality.PostUpdate;
@@ -1973,14 +1778,14 @@ procedure TRenderer.UpdateGeneratedTextures(const Shape: TX3DRendererShape;
 
   procedure UpdateRenderedTexture(TexNode: TRenderedTextureNode);
   var
-    GLNode: TGLRenderedTextureNode;
+    TextureRes: TRenderedTextureResource;
   begin
     if TexNode.GenTexFunctionality.NeedsUpdate then
     begin
-      GLNode := TGLRenderedTextureNode(GLTextureNodes.TextureNode(TexNode));
-      if GLNode <> nil then
+      TextureRes := TRenderedTextureResource(TTextureResources.Get(TexNode));
+      if TextureRes <> nil then
       begin
-        GLNode.Update(Render, ProjectionNear, ProjectionFar, CurrentViewpoint,
+        TextureRes.Update(Render, ProjectionNear, ProjectionFar, CurrentViewpoint,
           CameraViewKnown, CameraPosition, CameraDirection, CameraUp, Shape);
 
         TexNode.GenTexFunctionality.PostUpdate;
