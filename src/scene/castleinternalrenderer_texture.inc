@@ -670,7 +670,7 @@ class function TTextureResources.Bind(ANode: TAbstractTextureNode;
 var
   TextureRes: TTextureResource;
 begin
-  TextureRes := TextureNode(ANode);
+  TextureRes := Get(ANode);
   Result := TextureRes <> nil;
   if Result then
     Result := TextureRes.Bind(TextureUnit);
@@ -681,7 +681,7 @@ class function TTextureResources.Enable(ANode: TAbstractTextureNode;
 var
   TextureRes: TTextureResource;
 begin
-  TextureRes := TextureNode(ANode);
+  TextureRes := Get(ANode);
   Result := TextureRes <> nil;
   if Result then
     Result := TextureRes.Enable(TextureUnit, Shader, Env);
