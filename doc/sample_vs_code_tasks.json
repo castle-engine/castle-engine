@@ -81,7 +81,7 @@
                         because they only make sense when connected to previous error message, and VS Code reorders them.
                         Test: https://regex101.com/ (ECMAScript flavor)
                         */
-                        "regexp": "^([^\\(]+)\\(([\\d+,]+)\\)\\s+(Fatal|Warning|Error|Note|Hint):\\s+((?!\\(10026\\) There were)(?!There were)(?!Found declaration: ).*)$",
+                        "regexp": "^([^\\(]+)\\(([\\d+,]+)\\)\\s+(Fatal|Warning|Error|Note|Hint):\\s+((?!\\(10026\\) There were)(?!There were)(?!Found declaration: )(?!\\(5088\\)Found declaration: ).*)$",
                         "file": 1,
                         // location may be line or line+column.
                         "location": 2,
