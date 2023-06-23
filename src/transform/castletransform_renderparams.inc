@@ -270,10 +270,13 @@
     { Always TShapesCollector at actual rendering. }
     Collector: TObject;
 
-    { Always TRenderer at actual rendering, to prepare shapes.
+    { Always TRenderer, to prepare shapes.
+      This is useful to prepare shapes (rendering them with renderer
+      creates VBOs, shaders, and makes them "ready" for next fast rendering).
 
-      TODO: Passing this around is a hack, shapes should not associate
-      with TRenderer, see TShapesRenderer.Renderer TODO also. }
+      Note that shapes / scenes *should not* get associated with this TRenderer
+      instance in effect, they should be independent.
+      See CastleInternalRenderer for more comments how are things associated. }
     RendererToPrepareShapes: TObject;
 
     constructor Create;
