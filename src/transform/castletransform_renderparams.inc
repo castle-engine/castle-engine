@@ -274,8 +274,13 @@
       This is useful to prepare shapes (rendering them with renderer
       creates VBOs, shaders, and makes them "ready" for next fast rendering).
 
-      Note that shapes / scenes *should not* get associated with this TRenderer
-      instance in effect, they should be independent.
+      Note that shapes and scenes *should not* get associated with this TRenderer
+      instance when being prepared.
+      Shapes and scenes should remain independent of TRenderer instance,
+      to easily change them to a different renderer (like a differe TCastleViewport).
+      So this TRenderer instance is provided to be used, but do not keep
+      anywhere in shapes / scenes a reference to it.
+
       See CastleInternalRenderer for more comments how are things associated. }
     RendererToPrepareShapes: TObject;
 
