@@ -4,12 +4,6 @@
   "Name" : "RootGroup",
   "$Children" : [
     {
-      "$$ClassName" : "TCastleDesign",
-      "FullSize" : true,
-      "Name" : "ViewportUnderUi",
-      "URL" : "castle-data:/viewport_under_ui.castle-user-interface"
-    },
-    {
       "$$ClassName" : "TCastleImageControl",
       "Content" : {
         "$$ClassName" : "TCastleImagePersistent",

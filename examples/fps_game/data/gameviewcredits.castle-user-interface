@@ -4,17 +4,6 @@
   "Name" : "RootGroup",
   "$Children" : [
     {
-      "$$ClassName" : "TCastleDesign",
-      "FullSize" : true,
-      "Name" : "Design1",
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 4.8016110229492188E+002,
-        "Y" : 4.2215505981445312E+002
-      },
-      "URL" : "castle-data:/viewport_under_ui.castle-user-interface"
-    },
-    {
       "$$ClassName" : "TCastleRectangleControl",
       "ColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
