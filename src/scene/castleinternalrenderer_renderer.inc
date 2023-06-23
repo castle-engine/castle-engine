@@ -424,6 +424,7 @@ begin
   RenderContext.PointSize := 1;
   RenderContext.LineWidth := 1;
   RenderContext.DepthTest := false;
+  RenderContext.ColorChannels := AllColorChannels;
 
   { Restore default fixed-function state, for other rendering code outside of TRenderer.
 
@@ -560,6 +561,7 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
     RenderContext.PointSize := RenderOptions.PointSize;
     RenderContext.LineWidth := RenderOptions.LineWidth;
     RenderContext.DepthTest := RenderOptions.DepthTest;
+    RenderContext.ColorChannels := RenderOptions.ColorChannels;
 
     LightsRenderer.MaxLightsPerShape := RenderOptions.MaxLightsPerShape;
   end;

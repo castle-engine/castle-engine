@@ -53,6 +53,7 @@ type
     FSilhouetteBias: Single;
     FRobustNegativeScale: Boolean;
     FWholeSceneManifold: Boolean;
+    FColorChannels: TColorChannels;
 
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
@@ -455,6 +456,10 @@ type
     property WholeSceneManifold: Boolean
       read FWholeSceneManifold write FWholeSceneManifold default false;
 
+    { Which color buffer channels (RGBA) to write when rendering this model. }
+    property ColorChannels: TColorChannels
+      read FColorChannels write FColorChannels default AllColorChannels;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -495,6 +500,7 @@ begin
   FSilhouetteBias := DefaultSilhouetteBias;
   FWireframeEffect := weNormal;
   FWireframeColor := DefaultWireframeColor;
+  FColorChannels := AllColorChannels;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}

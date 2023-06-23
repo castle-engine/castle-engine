@@ -426,6 +426,9 @@ type
     ltDashDotDot
   );
 
+  TColorChannel = 0..3;
+  TColorChannels = set of TColorChannel;
+
 const
   ShadowSamplingNames: array [TShadowSampling] of string =
   ( 'Simple', 'PCF 4', 'PCF 4 Bilinear', 'PCF 16', 'Variance Shadow Maps (Experimental)' );
@@ -505,6 +508,8 @@ const
     This way we will open the window reliably, and in the worst case -- shadow volumes
     will not work. }
   DefaultStencilBits = 8;
+
+  AllColorChannels = [0..3];
 
 var
   { Log shadow volume information.

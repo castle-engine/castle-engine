@@ -25,7 +25,7 @@ uses
   CastleVectors, CastleSceneCore, CastleSceneInternalShape,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleGLUtils, CastleRenderContext, CastleFrustum, CastleGLShaders,
-  CastleBoxes, CastleTransform, CastleRenderPrimitives;
+  CastleBoxes, CastleTransform, CastleRenderPrimitives, CastleRenderOptions;
 
 type
   TShapeRenderEvent = procedure (const Shape: TCollectedShape;
@@ -65,7 +65,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleClassUtils, CastleInternalShapeOctree, CastleRenderOptions,
+  CastleClassUtils, CastleInternalShapeOctree,
   CastleUtils;
 
 { TOcclusionCullingUtilsRenderer ------------------------------------------------- }
