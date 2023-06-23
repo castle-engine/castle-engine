@@ -70,7 +70,7 @@ begin
   SliderVolume.OnChange := {$ifdef FPC}@{$endif} ChangeSliderVolume;
 
   ViewportUnderUi.Exists := not OverGame;
-  Fade.Exists := OverGame;
+  Fade.Exists := true; // looks bette also when from main menu
   ButtonBackGame.Exists := OverGame;
 
   if OverGame then
