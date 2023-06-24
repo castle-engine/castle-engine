@@ -230,22 +230,6 @@
       const RenderOptions: TCastleRenderOptions;
       const SceneTransform: TMatrix4;
       const DepthRange: TDepthRange);
-
-    { Update generated texture for this shape.
-
-      The given camera position, direction, up should be in world space
-      (that is, in TCastleRootTransform space,
-      not in space local to this TCastleScene).
-      These camera vectors are used to update TRenderedTextureNode, if any.
-
-      This does not change current viewport or projection matrix. }
-    procedure UpdateGeneratedTextures(const Shape: TX3DRendererShape;
-      const TextureNode: TAbstractTextureNode;
-      const Render: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single;
-      const CurrentViewpoint: TAbstractViewpointNode;
-      const CameraViewKnown: boolean;
-      const CameraPosition, CameraDirection, CameraUp: TVector3);
   end;
 {$endif read_interface}
 
@@ -1564,97 +1548,5 @@ begin
   end;
 end;
 {$endif}
-
-procedure TRenderer.UpdateGeneratedTextures(const Shape: TX3DRendererShape;
-  const TextureNode: TAbstractTextureNode;
-  const Render: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single;
-  const CurrentViewpoint: TAbstractViewpointNode;
-  const CameraViewKnown: boolean;
-  const CameraPosition, CameraDirection, CameraUp: TVector3);
-
-  procedure UpdateGeneratedCubeMap(const TexNode: TGeneratedCubeMapTextureNode);
-  var
-    TextureRes: TGeneratedCubeMapTextureResource;
-  begin
-    if TexNode.GenTexFunctionality.NeedsUpdate then
-    begin
-      { Shape.BoundingBox must be non-empty, otherwise we don't know from what
-        3D point to capture environment.
-
-        Note: check Shape.BoundingBox only after CheckUpdate passed.
-        This is more optimal, as Shape.BoundingBox may need to iterate over mesh.
-        Testcase: examples/mobile/simple_3d_demo/gameinitialize.pas with "toggle cubemap updates" = "off",
-        look at how much UpdateGeneratedTextures is eating. Should be 0% if off. }
-      if Shape.BoundingBox.IsEmpty then Exit;
-
-      TextureRes := TGeneratedCubeMapTextureResource(TTextureResources.Get(TexNode));
-      if TextureRes <> nil then
-      begin
-        TextureRes.Update(Render, ProjectionNear, ProjectionFar,
-          Shape.BoundingBox.Center + TexNode.FdBias.Value);
-
-        TexNode.GenTexFunctionality.PostUpdate;
-
-        if LogRenderer then
-          WritelnLog('CubeMap', TexNode.NiceName + ' texture regenerated');
-      end;
-    end;
-  end;
-
-  procedure UpdateGeneratedShadowMap(TexNode: TGeneratedShadowMapNode);
-  var
-    TextureRes: TGeneratedShadowMapResource;
-  begin
-    if TexNode.GenTexFunctionality.NeedsUpdate then
-    begin
-      if TexNode.FdLight.Value is TAbstractPunctualLightNode then
-      begin
-        TextureRes := TGeneratedShadowMapResource(TTextureResources.Get(TexNode));
-        if TextureRes <> nil then
-        begin
-          TextureRes.Update(Render, ProjectionNear, ProjectionFar,
-            TAbstractPunctualLightNode(TexNode.FdLight.Value));
-
-          TexNode.GenTexFunctionality.PostUpdate;
-
-          if LogRenderer then
-            WritelnLog('GeneratedShadowMap', TexNode.NiceName + ' texture regenerated');
-        end;
-      end else
-        WritelnWarning('VRML/X3D', TexNode.NiceName + ' needs updating, but light = NULL or incorrect');
-    end;
-  end;
-
-  procedure UpdateRenderedTexture(TexNode: TRenderedTextureNode);
-  var
-    TextureRes: TRenderedTextureResource;
-  begin
-    if TexNode.GenTexFunctionality.NeedsUpdate then
-    begin
-      TextureRes := TRenderedTextureResource(TTextureResources.Get(TexNode));
-      if TextureRes <> nil then
-      begin
-        TextureRes.Update(Render, ProjectionNear, ProjectionFar, CurrentViewpoint,
-          CameraViewKnown, CameraPosition, CameraDirection, CameraUp, Shape);
-
-        TexNode.GenTexFunctionality.PostUpdate;
-
-        if LogRenderer then
-          WritelnLog('RenderedTexture', TexNode.NiceName + ' texture regenerated');
-      end;
-    end;
-  end;
-
-begin
-  if TextureNode is TGeneratedCubeMapTextureNode then
-    UpdateGeneratedCubeMap(TGeneratedCubeMapTextureNode(TextureNode))
-  else
-  if TextureNode is TGeneratedShadowMapNode then
-    UpdateGeneratedShadowMap(TGeneratedShadowMapNode(TextureNode))
-  else
-  if TextureNode is TRenderedTextureNode then
-    UpdateRenderedTexture(TRenderedTextureNode(TextureNode));
-end;
 
 {$endif}
