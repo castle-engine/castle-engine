@@ -86,7 +86,7 @@
     strict private FFdShaders: TMFNode;
     { Internal wrapper for property @code(Shaders). This wrapper API may change, we advise to access simpler @code(Shaders) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShaders: TMFNode read FFdShaders;
-    { Override shaders used for rendering this shape. It is usually better to use @link(Effects) -- they are easier, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
+    { Override shaders used for rendering this shape. Instead of this, it is usually better to use @link(SetEffects) -- the effects set that way are easier, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
 
     strict private FFdTexture: TSFNode;

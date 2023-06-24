@@ -94,7 +94,7 @@ Appearance : X3DAppearanceNode {
   MFNode [in,out] shaders          []
     range: X3DShaderNode
     change: chEverything
-    doc: Override shaders used for rendering this shape. It is usually better to use @link(Effects) -- they are easier, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop.
+    doc: Override shaders used for rendering this shape. Instead of this, it is usually better to use @link(SetEffects) -- the effects set that way are easier, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop.
   SFNode [in,out] texture          NULL
     range: X3DTextureNode
     change: chEverything
