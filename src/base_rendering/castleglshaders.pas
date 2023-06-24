@@ -379,7 +379,7 @@ type
       Reports whether shaders are supported,
       names of active uniform and attribute variables etc.
 
-      @raises EOpenGLError If any OpenGL error will be detected. }
+      @raises Exception If any OpenGL error will be detected. }
     function DebugInfo: string;
 
     { This is program info log, given to you from OpenGL after the program
