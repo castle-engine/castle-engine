@@ -33,7 +33,8 @@ type
   TGLShape = class(TX3DRendererShape)
   strict private
     TexturesPrepared: Boolean;
-    { Request from parent TCastleScene to call our PrepareResources at next time. }
+    { Request from parent TCastleScene to call our PrepareResources at nearest
+      convenient time. }
     procedure SchedulePrepareResources;
     function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
     function UnprepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
@@ -186,6 +187,15 @@ begin
      ] <> [] then
   begin
     TTextureResources.Unprepare(State.MainTexture);
+    { Make next PrepareResources prepare all textures.
+      Testcase:
+      - view3dscene
+      - open demo-models/rendered_texture/rendered_texture_tweak_size.x3dv
+      - use s / S
+      - without this fix, texture would change to none, and never again
+        update RenderedTexture contents. }
+    TexturesPrepared := false;
+    { Make sure PrepareResources is actually called soon. }
     SchedulePrepareResources;
   end;
 end;
