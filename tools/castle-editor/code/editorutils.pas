@@ -157,9 +157,10 @@ function YesNoBox(const Caption, Message: String): Boolean;
 procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 
 const
-  ApiReferenceUrl = 'https://castle-engine.io/apidoc/html/';
   FpcRtlApiReferenceUrl = 'https://www.freepascal.org/docs-html/rtl/';
   LclApiReferenceUrl = 'https://lazarus-ccr.sourceforge.io/docs/lcl/';
+
+function ApiReferenceUrl: String;
 
 { Get full URL to display API reference of a given property in the given
   PropertyObject.
@@ -277,7 +278,7 @@ uses
   SysUtils, Graphics, TypInfo, Generics.Defaults, Math, DateUtils,
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils, CastleLclUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
-  CastleColors, CastleTimeUtils,
+  CastleColors, CastleTimeUtils, CastleUriUtils,
   ToolCompilerInfo, ToolCommonUtils;
 
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
@@ -819,6 +820,27 @@ procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 begin
   C.Enabled := Value;
   C.Visible := Value;
+end;
+
+function ApiReferenceUrl: String;
+// TODO: Make it possible to set from preferences, or make it just the default behavior?
+{.$define CASTLE_PREFER_OFFLINE_API_DOCS}
+
+{$ifdef CASTLE_PREFER_OFFLINE_API_DOCS}
+var
+  LocalDocsPath: String;
+{$endif}
+begin
+  {$ifdef CASTLE_PREFER_OFFLINE_API_DOCS}
+  if CastleEnginePath <> '' then
+  begin
+    LocalDocsPath := CastleEnginePath + 'doc' + PathDelim + 'reference' + PathDelim;
+    if DirectoryExists(LocalDocsPath) then
+      Exit(FilenameToURISafe(LocalDocsPath));
+  end;
+  {$endif}
+
+  Result := 'https://castle-engine.io/apidoc/html/';
 end;
 
 function ApiReference(const PropertyObject: TObject;
