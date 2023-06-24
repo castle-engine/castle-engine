@@ -102,7 +102,37 @@
     strict private FFdBlendingSort: TSFStringEnum;
     { Internal wrapper for property @link(BlendingSort). This wrapper API may change, we advise to access simpler @link(BlendingSort) instead. }
     public property FdBlendingSort: TSFStringEnum read FFdBlendingSort;
-    { Blending sort to use for this scene. It is usually simpler to adjust @link(Scene.RenderOptions.BlendingSort TCastleRenderOptions.BlendingSort). }
+    { Best blending sort for this scene. It may be honored by some model viewers, e.g. view3dscene honors this to display currently loaded scene.
+
+Note: In CGE applications, the blending sort is determined by @link(TCastleAbstractRootTransform.BlendingSort). It is up to each particular application if, and how, to honor this value on @className. In general, CGE applications may display multiple models (multiple TCastleScene) and there's not necessarily any scene that is "central" or "main", so most CGE applications will just ignore this, at least on most loaded models.
+
+If an application wants to honor this property of @className, then set @link(TCastleAbstractRootTransform.BlendingSort) based on the bound navigation info node. For example like this:
+
+@longCode(#
+function BestBlendingSort(const Scene: TCastleScene): TBlendingSort;
+begin
+if Scene.NavigationInfoStack.Top <> nil then
+begin
+case Scene.NavigationInfoStack.Top.BlendingSort of
+obsNone    : Result := bsNone;
+obs2D      : Result := bs2D;
+obs3D      : Result := bs3D;
+obs3DOrigin: Result := bs3DOrigin;
+obs3DGround: Result := bs3DGround;
+obsDefault : Result := bs3D;
+else
+begin
+Result := bs3D;
+WritelnWarning('Unhandled NavigationInfo.blendingSort');
+end;
+end;
+end;
+end;
+
+// ...
+// After loading the scene:
+MainViewport.Items.BlendingSort := BestBlendingSort(Scene);
+#) }
     property BlendingSort: TOptionalBlendingSort read GetBlendingSort write SetBlendingSort;
 
     strict private FFdTimeOriginAtLoad: TSFBool;

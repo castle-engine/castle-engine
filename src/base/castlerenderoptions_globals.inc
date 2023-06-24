@@ -359,7 +359,6 @@ type
   { Various ways to sort the objects, useful to correctly
     render partially-transparent objects.
     See https://castle-engine.io/blending .
-    @seealso TCastleRenderOptions.BlendingSort
     @seealso TCastleAbstractRootTransform.BlendingSort }
   TBlendingSort = (
     { Do not sort.

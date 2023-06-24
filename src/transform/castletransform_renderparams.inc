@@ -27,12 +27,11 @@
       TShape.Visible inside a TCastleTransform with TCastleTransform.Exists.
 
       When ShapesRendered is much smaller than ShapesVisible,
-      it means that the algorithm for removing invisible scene parts
-      works good.
-      This includes per-shape frustum culling (see @link(TCastleScene.ShapeFrustumCulling)),
+      it means that various algorithm(s) designed to reject invisible
+      scene parts do a good job.
+      This includes per-shape frustum culling (@link(TCastleScene.ShapeFrustumCulling)),
       distance culling (@link(TCastleScene.DistanceCulling)),
-      occlusion culling (see @link(
-      TCastleRenderOptions.OcclusionQuery)). }
+      occlusion culling (see @link(TCastleViewport.OcclusionCulling)). }
     ShapesRendered, ShapesVisible: Cardinal;
 
     { Subset of shapes counted in ShapesRendered that have been rendered using
@@ -40,10 +39,10 @@
     ShapesRenderedBlending: Cardinal;
 
     { The number of shapes that were not rendered,
-      but their bounding box was rendered to check with occlusion query.
-      This is always zero when not using occlusion query (see
-      TCastleRenderOptions.OcclusionQuery).
-      Basically, this measures the "invisible overhead" of occlusion query. }
+      but their bounding box was rendered to check occlusion culling.
+      This is always zero when not using occlusion culling
+      (@link(TCastleViewport.OcclusionCulling)).
+      Basically, this measures the "invisible overhead" of occlusion culling. }
     BoxesOcclusionQueriedCount: Cardinal;
 
     { TCastleScene rendered vs all visible. }

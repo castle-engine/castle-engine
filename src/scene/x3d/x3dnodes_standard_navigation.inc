@@ -168,10 +168,11 @@
   {$I auto_generated_node_helpers/x3dnodes_lod.inc}
   end;
 
-  { Blending sorting that may also be "default", which indicates to use TCastleRenderOptions.BlendingSort.
+  { Blending sorting that may also be "default", which indicates to
+    use @link(TCastleAbstractRootTransform.BlendingSort).
     See TBlendingSort for description of all values except obsDefault. }
   TOptionalBlendingSort = (
-    { Use current TCastleRenderOptions.BlendingSort value. }
+    { Use current @link(TCastleAbstractRootTransform.BlendingSort) value. }
     obsDefault,
     { Like TBlendingSort.bsNone. }
     obsNone,

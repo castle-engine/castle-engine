@@ -108,10 +108,14 @@ type
         @orderedList(
           @item(For closed convex 3D objects, use backface culling.
 
-            To do this, set on geometries "solid" field to @true,
-            like @link(TAbstractComposedGeometryNode.Solid).
-            You usually do this in 3D authoring application, like Blender,
-            and the information is exported to glTF or X3D and used by CGE.)
+            To do this, set on geometries @link(TAbstractGeometryNode.Solid)
+            to @true, this activates backface culling.
+
+            In practice you usually set this in a 3D authoring application,
+            like Blender. This is called just "Backface Culling" in Blender,
+            checkbox is in the Blender material properties.
+            This information is then exported to glTF or X3D and just used
+            by CGE.)
 
           @item(When multiple transparent shapes are possible,
             sort the transparent shapes, using
