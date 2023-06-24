@@ -169,6 +169,29 @@
       const Lighting: boolean;
       const GeneratorClass: TArraysGeneratorClass;
       const ExposedMeshRenderer: TObject);
+
+    { Pieces of RenderBegin/End that are not dependent on any RenderBegin
+      parameters, and actually could be used to include inside many sequences
+      of RenderBegin/End. Like
+
+        ClassRenderBegin
+        RenderBegin
+        RenderEnd
+        RenderBegin
+        RenderEnd
+        RenderBegin
+        RenderEnd
+        ClassRenderEnd
+
+      They are *not* used like this, though, now.
+      They are just called from RenderBegin/End now.
+
+      In the past we had ViewportRenderBegin/End, called by viewport,
+      but then TRenderer state changes (e.g. depth range)
+      could easily accidentally affect TCastleTransform custom rendering
+      (e.g. using TRenderUnlitMesh). }
+    class procedure ClassRenderBegin;
+    class procedure ClassRenderEnd;
   public
     type
       TRenderMode = (
@@ -186,14 +209,6 @@
     { Constructor. }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
-    { Surround all TRenderer usage in ViewportRenderBegin / ViewportRenderEnd calls.
-
-      The idea is that outer component, like TCastleViewport,
-      uses these only once for whole TCastleViewport.Render,
-      and then you don't need to repeat this in each TCastleScene.LocalRender. }
-    class procedure ViewportRenderBegin;
-    class procedure ViewportRenderEnd;
 
     procedure RenderBegin(const AGlobalLights: TLightInstancesList;
       const ARenderingCamera: TRenderingCamera;
@@ -322,7 +337,7 @@ begin
   end;
 end;
 
-class procedure TRenderer.ViewportRenderBegin;
+class procedure TRenderer.ClassRenderBegin;
 {$ifndef OpenGLES}
 var
   I: Integer;
@@ -364,12 +379,14 @@ begin
     { ------------------------------------------------------------------------
 
       Set fixed-function state that can be assumed by TRenderer,
-      and is constant for all shapes and for all scenes (so it doesn't even depend on RenderOptions),
+      and is constant for all shapes and for all scenes
+      (so it doesn't even depend on RenderOptions),
       and we don't care that we just changed it also
       for stuff outside of TRenderer (so we make no attempt to restore
-      it at ViewportRenderEnd or even track previous state).
+      it at ClassRenderEnd or even track previous state).
 
-      This generally sets "typical" OpenGL state, and remains constant during TCastleScene rendering. }
+      This generally sets "typical" OpenGL state, and remains constant during
+      RenderBegin/End rendering. }
 
     { About using color material (what does glColor mean for materials):
       - We always set diffuse material component from the color.
@@ -399,7 +416,7 @@ begin
   {$endif}
 end;
 
-class procedure TRenderer.ViewportRenderEnd;
+class procedure TRenderer.ClassRenderEnd;
 {$ifndef OpenGLES}
 var
   I: Integer;
@@ -408,8 +425,8 @@ begin
   { Restore defaults, for other rendering code outside of TRenderer.
 
     These RenderContext properties are always set before rendering every shape,
-    so ViewportRenderBegin doesn't care to set them to any value,
-    and we just reset them in ViewportRenderEnd. }
+    so ClassRenderBegin doesn't care to set them to any value,
+    and we just reset them in ClassRenderEnd. }
   RenderContext.CullFace := false;
   RenderContext.FrontFaceCcw := true;
   RenderContext.CurrentProgram := nil;
@@ -421,8 +438,8 @@ begin
 
     These RenderContext properties are always set in InitializeFromRenderOptions,
     so they are constant for each shape.
-    So ViewportRenderBegin doesn't care to set them to any value,
-    and we just reset them in ViewportRenderEnd. }
+    So ClassRenderBegin doesn't care to set them to any value,
+    and we just reset them in ClassRenderEnd. }
   RenderContext.PointSize := 1;
   RenderContext.LineWidth := 1;
   RenderContext.DepthTest := false;
@@ -432,7 +449,7 @@ begin
 
     These state things are adjusted by each shape,
     and shape rendering assumes that at the beginning it is undefined
-    (so we don't care to set it in ViewportRenderBegin),
+    (so we don't care to set it in ClassRenderBegin),
     and shape doesn't restore it (because next shape will adjust it anyway).
     So we reset them at the end to not affect other objects rendered outside of TRenderer.
 
@@ -499,6 +516,8 @@ procedure TRenderer.RenderBegin(
   end;
 
 begin
+  ClassRenderBegin;
+
   GlobalLights := AGlobalLights;
   RenderingCamera := ARenderingCamera;
   Statistics := AStatistics;
@@ -528,7 +547,7 @@ begin
   FogFunctionality := nil;
   FogEnabled := false;
 
-  { We need this in RenderEnd, not only in ViewportRenderEnd.
+  { We need this in RenderEnd, not only in ClassRenderEnd.
     Otherwise some operations could make the current texture unit not bound
     to any valid texture, causing the glUniform1i setting shader uniform for texture
     to raise OpenGL errors.
@@ -537,6 +556,8 @@ begin
 
   RenderingCamera := nil;
   Statistics := nil;
+
+  ClassRenderEnd;
 end;
 
 procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
@@ -559,7 +580,7 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
       must be prepared that this state may be whatever, and so it must save,
       set and restore this state.
 
-      ViewportRenderEnd resets these things, so that this state does not "leak"
+      ClassRenderEnd resets these things, so that this state does not "leak"
       for stuff rendered outside of TCastleViewport. }
     RenderContext.PointSize := RenderOptions.PointSize;
     RenderContext.LineWidth := RenderOptions.LineWidth;

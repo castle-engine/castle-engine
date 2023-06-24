@@ -74,43 +74,42 @@
     )
 
     @item(
-      Surround rendering of multiple scenes with TRenderer.ViewportRenderBegin,
-      TRenderer.ViewportRenderEnd.
+      Notes for things that render manually inside TCastleTransform.LocalRender
+      (and thus are part of TCastleViewport), but are not TCastleScene:
 
-      Notes below are for things that render manually inside TCastleTransform.LocalRender
-      (and thus are part of TCastleViewport), but are not TCastleScene.
-      This affects e.g. TMyMesh that does rendering using TCastleRenderUnlitMesh
+      ( This affects e.g. TMyMesh that does rendering using TCastleRenderUnlitMesh
       in ../../examples/research_special_rendering_methods/test_rendering_old_opengl/code/gameinitialize.pas .
+      )
 
-      1. See TRenderer.ViewportRenderEnd for the up-to-date list of state
-         (some managed using RenderContext, some using direct OpenGL(ES) calls)
-         that is reset at the end of viewport rendering,
-         because before each scene or before each shape it may change and *not*
-         be reset.
-
-         When you render manually inside TCastleTransform.LocalRender,
-         this state is undefined when you start,
-         and you can change it carelessly (since next scene or shape
-         will adjust it), though we advise you save/restore it (in case it will matter
-         in the future, e.g. the state will move to ViewportRenderBegin and shapes
-         will assume it).
-
-      2. See TRenderer.ViewportRenderBegin for the up-to-date list of state
-         (some managed using RenderContext, some using direct OpenGL(ES) calls)
-         that is initialized at the beginning of viewport rendering,
-         because each shape may assume it is such.
-
-         When you render manually inside TCastleTransform.LocalRender,
-         you can also assume the state is set to this value,
-         and if you change it -- make sure to save/restore it.
-
-      Note that custom rendering inside TCastleTransform.LocalRender
-      never happens between TRenderer.RenderBegin and TRenderer.RenderEnd calls.
+      Custom rendering inside TCastleTransform.LocalRender
+      never happens between RenderBegin and RenderEnd calls.
       It didn't happen in the past (before TShapesRenderer) because
       each scene did it's own RenderBegin+RenderEnd.
       It doesn't happen now (after TShapesRenderer) because
       the RenderBegin+RenderEnd is done at the end of viewport rendering,
       after all TCastleTransform.LocalRender calls ended.
+
+      ( There was a period when we had ViewportRenderBegin/End,
+      but not anymore. )
+
+      See ClassRenderEnd for the up-to-date list of state
+      (some managed using RenderContext, some using direct OpenGL(ES) calls)
+      that is reset at the end of viewport rendering,
+      because before each scene or before each shape it may change and *not*
+      be reset.
+
+      When you render manually inside TCastleTransform.LocalRender,
+      this state is undefined when you start,
+      and you can change it carelessly (since next shape
+      will adjust it). Though we advise you save/restore it
+      (it case it will matter to other custom rendering code in
+      TCastleTransform.LocalRender, that will (even if it shouldn't) assume that
+      the state is reasonable).
+
+      But note that, since your rendering happens outside of RenderBegin/End
+      and RenderEnd (with ClassRenderEnd) set reasonable state,
+      you will not have any "weird" state (like depth range) unless
+      some other custom renderer sets it.
     )
 
     @item(
@@ -127,18 +126,15 @@
     )
 
     @item(
-      All render commands that affect state (like RenderBegin, RenderEnd,
-      ViewportRenderBegin, ViewportRenderEnd)
-      must be done in the same OpenGL context, until you finish
-      given rendering by ViewportRenderEnd.
+      All render commands that affect state (from RenderBegin to RenderEnd)
+      must be done in the same OpenGL context.
     )
   )
 
   @bold(OpenGL state affecting X3D rendering:)
 
   Some OpenGL state is unconditionally set by rendering
-  (TRenderer.ViewportRenderBegin,
-  TRenderer.RenderBegin, or just each shape rendering).
+  (TRenderer.RenderBegin, or just each shape rendering).
 
   But there's also some OpenGL state that we let affect our rendering.
   This allows you to customize rendering by using normal OpenGL commands

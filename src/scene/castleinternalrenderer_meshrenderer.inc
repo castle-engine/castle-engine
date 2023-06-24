@@ -952,7 +952,7 @@ begin
     { For fixed-function pipeline, GL_COLOR_MATERIAL is needed only if Lighting. }
     MaterialFromColorEnabled := GLFeatures.EnableFixedFunction and Lighting;
     if MaterialFromColorEnabled then
-      { Note: glColorMaterial is already set by TRenderer.ViewportRenderBegin }
+      { Note: glColorMaterial is already set by TRenderer.ClassRenderBegin }
       glEnable(GL_COLOR_MATERIAL);
     {$endif}
   end else

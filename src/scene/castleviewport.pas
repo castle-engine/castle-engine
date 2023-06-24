@@ -2395,8 +2395,6 @@ end;
 
 procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
 begin
-  TRenderer.ViewportRenderBegin;
-
   ShapesCollector.Clear;
   Assert(Params.Collector = ShapesCollector);
 
@@ -2408,8 +2406,6 @@ begin
   Items.Render(Params);
 
   ShapesRenderer.Render(ShapesCollector, Params, Items.BlendingSort);
-
-  TRenderer.ViewportRenderEnd;
 end;
 
 procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
