@@ -32,7 +32,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdUrl: TMFString;
-    { Internal wrapper for property @link(Url). This wrapper API may change, we advise to access simpler @link(Url) instead. }
+    { Internal wrapper for property @code(Url). This wrapper API may change, we advise to access simpler @code(Url) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUrl: TMFString read FFdUrl;
     {  }
     procedure SetUrl(const Value: array of string); overload;
@@ -40,7 +40,7 @@
     procedure SetUrl(const Value: TCastleStringList); overload;
 
     strict private FFdTextureProperties: TSFNode;
-    { Internal wrapper for property @link(TextureProperties). This wrapper API may change, we advise to access simpler @link(TextureProperties) instead. }
+    { Internal wrapper for property @code(TextureProperties). This wrapper API may change, we advise to access simpler @code(TextureProperties) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;

@@ -29,7 +29,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdImage: TMFInt32;
-    { Internal wrapper for property @link(Image). This wrapper API may change, we advise to access simpler @link(Image) instead. }
+    { Internal wrapper for property @code(Image). This wrapper API may change, we advise to access simpler @code(Image) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdImage: TMFInt32 read FFdImage;
     {  }
     procedure SetImage(const Value: array of Int32); overload;

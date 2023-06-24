@@ -30,11 +30,11 @@
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdStartIndex: TSFLong;
-    { Internal wrapper for property @link(StartIndex). This wrapper API may change, we advise to access simpler @link(StartIndex) instead. }
+    { Internal wrapper for property @code(StartIndex). This wrapper API may change, we advise to access simpler @code(StartIndex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStartIndex: TSFLong read FFdStartIndex;
 
     strict private FFdNumPoints: TSFLong;
-    { Internal wrapper for property @link(NumPoints). This wrapper API may change, we advise to access simpler @link(NumPoints) instead. }
+    { Internal wrapper for property @code(NumPoints). This wrapper API may change, we advise to access simpler @code(NumPoints) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNumPoints: TSFLong read FFdNumPoints;
 
 {$endif read_interface}

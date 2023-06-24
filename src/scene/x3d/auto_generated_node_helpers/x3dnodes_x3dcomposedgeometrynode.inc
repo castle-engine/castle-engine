@@ -51,7 +51,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
-    { Internal wrapper for property @link(Attrib). This wrapper API may change, we advise to access simpler @link(Attrib) instead. }
+    { Internal wrapper for property @code(Attrib). This wrapper API may change, we advise to access simpler @code(Attrib) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAttrib: TMFNode read FFdAttrib;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -60,20 +60,20 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdColor: TSFNode;
-    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
+    { Internal wrapper for property @code(Color). This wrapper API may change, we advise to access simpler @code(Color) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColor: TSFNode read FFdColor;
     {  }
     property Color: TAbstractColorNode read GetColor write SetColor;
 
     strict private FFdCoord: TSFNode;
-    { Internal wrapper for property @link(Coord). This wrapper API may change, we advise to access simpler @link(Coord) instead. }
+    { Internal wrapper for property @code(Coord). This wrapper API may change, we advise to access simpler @code(Coord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCoord: TSFNode read FFdCoord;
     {  }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
-    { Internal wrapper for property @link(FogCoord). This wrapper API may change, we advise to access simpler @link(FogCoord) instead. }
+    { Internal wrapper for property @code(FogCoord). This wrapper API may change, we advise to access simpler @code(FogCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFogCoord: TSFNode read FFdFogCoord;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -82,48 +82,48 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdNormal: TSFNode;
-    { Internal wrapper for property @link(Normal). This wrapper API may change, we advise to access simpler @link(Normal) instead. }
+    { Internal wrapper for property @code(Normal). This wrapper API may change, we advise to access simpler @code(Normal) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNormal: TSFNode read FFdNormal;
     {  }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
 
     strict private FFdTangent: TSFNode;
-    { Internal wrapper for property @link(Tangent). This wrapper API may change, we advise to access simpler @link(Tangent) instead. }
+    { Internal wrapper for property @code(Tangent). This wrapper API may change, we advise to access simpler @code(Tangent) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTangent: TSFNode read FFdTangent;
     { Tangent vectors describe the tangent coordinate-space, used by the bump mapping algorithm. If specified, the ordering of tangents should be the same as normals, i.e. they should follow the NormalPerVertex and such properties. }
     property Tangent: TTangentNode read GetTangent write SetTangent;
 
     strict private FFdTexCoord: TSFNode;
-    { Internal wrapper for property @link(TexCoord). This wrapper API may change, we advise to access simpler @link(TexCoord) instead. }
+    { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
 
     strict private FFdCcw: TSFBool;
-    { Internal wrapper for property @link(Ccw). This wrapper API may change, we advise to access simpler @link(Ccw) instead. }
+    { Internal wrapper for property @code(Ccw). This wrapper API may change, we advise to access simpler @code(Ccw) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCcw: TSFBool read FFdCcw;
     {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdColorPerVertex: TSFBool;
-    { Internal wrapper for property @link(ColorPerVertex). This wrapper API may change, we advise to access simpler @link(ColorPerVertex) instead. }
+    { Internal wrapper for property @code(ColorPerVertex). This wrapper API may change, we advise to access simpler @code(ColorPerVertex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
     {  }
     property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
 
     strict private FFdNormalPerVertex: TSFBool;
-    { Internal wrapper for property @link(NormalPerVertex). This wrapper API may change, we advise to access simpler @link(NormalPerVertex) instead. }
+    { Internal wrapper for property @code(NormalPerVertex). This wrapper API may change, we advise to access simpler @code(NormalPerVertex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
     {  }
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
 
     strict private FFdSolid: TSFBool;
-    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
+    { Internal wrapper for property @code(Solid). This wrapper API may change, we advise to access simpler @code(Solid) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdRadianceTransfer: TMFVec3f;
-    { Internal wrapper for property @link(RadianceTransfer). This wrapper API may change, we advise to access simpler @link(RadianceTransfer) instead. }
+    { Internal wrapper for property @code(RadianceTransfer). This wrapper API may change, we advise to access simpler @code(RadianceTransfer) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}

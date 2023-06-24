@@ -34,13 +34,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdGeoCoords: TSFVec3d;
-    { Internal wrapper for property @link(GeoCoords). This wrapper API may change, we advise to access simpler @link(GeoCoords) instead. }
+    { Internal wrapper for property @code(GeoCoords). This wrapper API may change, we advise to access simpler @code(GeoCoords) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeoCoords: TSFVec3d read FFdGeoCoords;
     {  }
     property GeoCoords: TVector3Double read GetGeoCoords write SetGeoCoords;
 
     strict private FFdGeoSystem: TMFString;
-    { Internal wrapper for property @link(GeoSystem). This wrapper API may change, we advise to access simpler @link(GeoSystem) instead. }
+    { Internal wrapper for property @code(GeoSystem). This wrapper API may change, we advise to access simpler @code(GeoSystem) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     {  }
     procedure SetGeoSystem(const Value: array of string); overload;
@@ -48,7 +48,7 @@
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdRotateYUp: TSFBool;
-    { Internal wrapper for property @link(RotateYUp). This wrapper API may change, we advise to access simpler @link(RotateYUp) instead. }
+    { Internal wrapper for property @code(RotateYUp). This wrapper API may change, we advise to access simpler @code(RotateYUp) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRotateYUp: TSFBool read FFdRotateYUp;
     {  }
     property RotateYUp: Boolean read GetRotateYUp write SetRotateYUp;

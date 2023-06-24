@@ -33,7 +33,7 @@
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdScaleFactor: TSFVec3f;
-    { Internal wrapper for property @link(ScaleFactor). This wrapper API may change, we advise to access simpler @link(ScaleFactor) instead. }
+    { Internal wrapper for property @code(ScaleFactor). This wrapper API may change, we advise to access simpler @code(ScaleFactor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScaleFactor: TSFVec3f read FFdScaleFactor;
     {  }
     property ScaleFactor: TVector3 read GetScaleFactor write SetScaleFactor;

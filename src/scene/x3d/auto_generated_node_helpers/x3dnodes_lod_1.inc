@@ -30,11 +30,11 @@
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdRange: TMFFloat;
-    { Internal wrapper for property @link(Range). This wrapper API may change, we advise to access simpler @link(Range) instead. }
+    { Internal wrapper for property @code(Range). This wrapper API may change, we advise to access simpler @code(Range) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRange: TMFFloat read FFdRange;
 
     strict private FFdCenter: TSFVec3f;
-    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
+    { Internal wrapper for property @code(Center). This wrapper API may change, we advise to access simpler @code(Center) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCenter: TSFVec3f read FFdCenter;
 
 {$endif read_interface}

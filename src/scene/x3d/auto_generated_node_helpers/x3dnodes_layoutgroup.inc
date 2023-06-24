@@ -34,13 +34,13 @@
     class function ClassX3DType: string; override;
 
     strict private FFdLayout: TSFNode;
-    { Internal wrapper for property @link(Layout). This wrapper API may change, we advise to access simpler @link(Layout) instead. }
+    { Internal wrapper for property @code(Layout). This wrapper API may change, we advise to access simpler @code(Layout) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLayout: TSFNode read FFdLayout;
     {  }
     property Layout: TAbstractLayoutNode read GetLayout write SetLayout;
 
     strict private FFdViewport: TSFNode;
-    { Internal wrapper for property @link(Viewport). This wrapper API may change, we advise to access simpler @link(Viewport) instead. }
+    { Internal wrapper for property @code(Viewport). This wrapper API may change, we advise to access simpler @code(Viewport) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdViewport: TSFNode read FFdViewport;
     {  }
     property Viewport: TAbstractViewportNode read GetViewport write SetViewport;

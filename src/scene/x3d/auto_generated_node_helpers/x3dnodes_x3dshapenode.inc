@@ -42,19 +42,19 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAppearance: TSFNode;
-    { Internal wrapper for property @link(Appearance). This wrapper API may change, we advise to access simpler @link(Appearance) instead. }
+    { Internal wrapper for property @code(Appearance). This wrapper API may change, we advise to access simpler @code(Appearance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAppearance: TSFNode read FFdAppearance;
     {  }
     property Appearance: TAppearanceNode read GetAppearance write SetAppearance;
 
     strict private FFdGeometry: TSFNode;
-    { Internal wrapper for property @link(Geometry). This wrapper API may change, we advise to access simpler @link(Geometry) instead. }
+    { Internal wrapper for property @code(Geometry). This wrapper API may change, we advise to access simpler @code(Geometry) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeometry: TSFNode read FFdGeometry;
     {  }
     property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
+    { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { You can provide a manually-calculated bounding box of the shape here, for optimization purposes. Leave this field as empty (TBox3D.Empty) to let the engine calculate best bounding box automatically.
 
@@ -68,23 +68,23 @@ To read the calculated bounding box, load the nodes to TCastleScene. You can the
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
+    { Internal wrapper for property @code(BboxSize). This wrapper API may change, we advise to access simpler @code(BboxSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     strict private FFdShading: TSFStringEnum;
-    { Internal wrapper for property @link(Shading). This wrapper API may change, we advise to access simpler @link(Shading) instead. }
+    { Internal wrapper for property @code(Shading). This wrapper API may change, we advise to access simpler @code(Shading) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShading: TSFStringEnum read FFdShading;
     {  }
     property Shading: TShading read GetShading write SetShading;
 
     strict private FFdRender: TSFBool;
-    { Internal wrapper for property @link(Render). This wrapper API may change, we advise to access simpler @link(Render) instead. }
+    { Internal wrapper for property @code(Render). This wrapper API may change, we advise to access simpler @code(Render) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRender: TSFBool read FFdRender;
     { Is the shape visible. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php }
     property Render: Boolean read GetRender write SetRender;
 
     strict private FFdCollision: TSFStringEnum;
-    { Internal wrapper for property @link(Collision). This wrapper API may change, we advise to access simpler @link(Collision) instead. }
+    { Internal wrapper for property @code(Collision). This wrapper API may change, we advise to access simpler @code(Collision) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCollision: TSFStringEnum read FFdCollision;
     {  }
     property Collision: TShapeCollision read GetCollision write SetCollision;

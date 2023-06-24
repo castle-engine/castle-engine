@@ -204,7 +204,7 @@ begin
         NL +
         Field.ConditionsBegin +
         '    strict private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
-        '    { Internal wrapper for property @link(' + Field.PascalName + '). This wrapper API may change, we advise to access simpler @link(' + Field.PascalName + ') instead. }' + NL +
+        '    { Internal wrapper for property @code(' + Field.PascalName + '). This wrapper API may change, we advise to access simpler @code(' + Field.PascalName + ') instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL +
         Field.ConditionsEnd;
 

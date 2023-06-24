@@ -32,7 +32,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdDistanceFromShape: TSFFloat;
-    { Internal wrapper for property @link(DistanceFromShape). This wrapper API may change, we advise to access simpler @link(DistanceFromShape) instead. }
+    { Internal wrapper for property @code(DistanceFromShape). This wrapper API may change, we advise to access simpler @code(DistanceFromShape) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDistanceFromShape: TSFFloat read FFdDistanceFromShape;
     {  }
     property DistanceFromShape: Single read GetDistanceFromShape write SetDistanceFromShape;

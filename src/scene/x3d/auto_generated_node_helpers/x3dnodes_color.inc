@@ -29,7 +29,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdColor: TMFColor;
-    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
+    { Internal wrapper for property @code(Color). This wrapper API may change, we advise to access simpler @code(Color) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColor: TMFColor read FFdColor;
     {  }
     procedure SetColor(const Value: array of TCastleColorRGB); overload;
