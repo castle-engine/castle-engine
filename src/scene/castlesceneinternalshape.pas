@@ -73,6 +73,7 @@ type
     Shape: TGLShape;
     RenderOptions: TCastleRenderOptions;
     SceneTransform: TMatrix4;
+    DepthRange: TDepthRange;
   end;
 
   TCollectedShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TCollectedShape>)

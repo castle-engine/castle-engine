@@ -213,7 +213,8 @@
     }
     procedure RenderShape(const Shape: TX3DRendererShape;
       const RenderOptions: TCastleRenderOptions;
-      const SceneTransform: TMatrix4);
+      const SceneTransform: TMatrix4;
+      const DepthRange: TDepthRange);
 
     { Update generated texture for this shape.
 
@@ -414,11 +415,12 @@ begin
   RenderContext.CurrentProgram := nil;
   RenderContext.FixedFunctionAlphaTestDisable;
   RenderContext.FixedFunctionLighting := false;
+  RenderContext.DepthRange := drFull;
 
   { Restore defaults, for other rendering code outside of TRenderer.
 
-    These RenderContext properties are always set in RenderBegin,
-    so they are constant for scene shapes.
+    These RenderContext properties are always set in InitializeFromRenderOptions,
+    so they are constant for each shape.
     So ViewportRenderBegin doesn't care to set them to any value,
     and we just reset them in ViewportRenderEnd. }
   RenderContext.PointSize := 1;
@@ -539,7 +541,8 @@ end;
 
 procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
   const RenderOptions: TCastleRenderOptions;
-  const SceneTransform: TMatrix4);
+  const SceneTransform: TMatrix4;
+  const DepthRange: TDepthRange);
 
   procedure InitializeFromRenderOptions;
   begin
@@ -679,6 +682,8 @@ var
   Shader: TShader;
 begin
   InitializeFromRenderOptions;
+
+  RenderContext.DepthRange := DepthRange;
 
   Shader := InitializeShader;
   FixedFunctionBegin(Shader.SceneModelView);

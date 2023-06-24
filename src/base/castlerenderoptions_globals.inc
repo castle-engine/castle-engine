@@ -426,8 +426,21 @@ type
     ltDashDotDot
   );
 
+  { Possible color channel to write,
+    see @link(TCastleRenderOptions.ColorChannels). }
   TColorChannel = 0..3;
+
+  { Possible subset of color channels to write,
+    see @link(TCastleRenderOptions.ColorChannels). }
   TColorChannels = set of TColorChannel;
+
+  { Possible values of @link(TRenderContext.DepthRange) and
+    @link(TRenderParams.DepthRange).
+    User code should not use this, rather change
+    @link(TCastleTransform.RenderLayer).
+
+    @exclude }
+  TDepthRange = (drFull, drNear, drFar);
 
 const
   ShadowSamplingNames: array [TShadowSampling] of string =

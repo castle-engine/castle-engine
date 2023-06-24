@@ -730,7 +730,8 @@ begin
 
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
-  Render_Collector.Add(Shape, RenderOptions, Render_Params.Transform^);
+  Render_Collector.Add(Shape, RenderOptions,
+    Render_Params.Transform^, Render_Params.DepthRange);
   IsVisibleNow := true;
 end;
 
@@ -957,7 +958,8 @@ var
             PlaneTransform(Plane, SceneModelView) should not fail,
             so matrix should be sensible for homegeneous coordinate transformation
             (so identity is OK, zero is not OK). }
-          TMatrix4.Identity);
+          TMatrix4.Identity,
+          drFull);
       end;
 
       Renderer.RenderEnd;

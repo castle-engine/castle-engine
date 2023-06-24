@@ -50,9 +50,6 @@ type
     property Enabled: boolean read FEnabled write SetEnabled;
   end;
 
-  { Possible values of @link(TRenderContext.DepthRange). }
-  TDepthRange = (drFull, drNear, drFar);
-
   { Possible values of @link(TRenderContext.DepthFunc).
     Note: For now, the values of this enum correspond to OpenGL(ES) constants,
     but do not depend on this outside (and it may change in the future).

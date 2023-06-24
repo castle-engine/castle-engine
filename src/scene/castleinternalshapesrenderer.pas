@@ -40,7 +40,7 @@ type
 
     { Add a shape to render. }
     procedure Add(const Shape: TGLShape; const RenderOptions: TCastleRenderOptions;
-      const SceneTransform: TMatrix4);
+      const SceneTransform: TMatrix4; const DepthRange: TDepthRange);
   end;
 
   { Render collected shapes.
@@ -120,6 +120,7 @@ type
       They should be set to indicate identity.
       They are meaningless here: we have scene transformation in each collected
       shape.
+      Same for Params.DepthRange (we follow this on shape now),
 
       TODO: Make sure they are ignored, assert they are identity.
 
@@ -184,7 +185,8 @@ end;
 
 procedure TShapesCollector.Add(const Shape: TGLShape;
   const RenderOptions: TCastleRenderOptions;
-  const SceneTransform: TMatrix4);
+  const SceneTransform: TMatrix4;
+  const DepthRange: TDepthRange);
 var
   NewCollected: TCollectedShape;
 begin
@@ -192,6 +194,7 @@ begin
   NewCollected.Shape := Shape;
   NewCollected.RenderOptions := RenderOptions;
   NewCollected.SceneTransform := SceneTransform;
+  NewCollected.DepthRange := DepthRange;
   FCollected.Add(NewCollected);
 end;
 
@@ -270,7 +273,8 @@ procedure TShapesRenderer.PrepareResources;
         begin
           Shape := Batching.PoolShapes[I];
           TGLShape(Shape).Fog := nil;
-          Renderer.RenderShape(TGLShape(Shape), DummyRenderOptions, TMatrix4.Identity);
+          Renderer.RenderShape(TGLShape(Shape), DummyRenderOptions,
+            TMatrix4.Identity, drFull);
         end;
 
         Renderer.RenderEnd;
@@ -341,6 +345,7 @@ procedure TShapesRenderer.RenderShape_NoTests(
   const CollectedShape: TCollectedShape; const Params: TRenderParams);
 var
   Shape: TGLShape;
+  DepthRange: TDepthRange;
 begin
   { TODO: ignore ExcludeFromStatistics now (we could access them
     from Shape.ParaneScene...
@@ -358,9 +363,16 @@ begin
   // OcclusionBoxStateEnd will do nothing if OcclusionCulling = false
   FOcclusionCullingRenderer.Utils.OcclusionBoxStateEnd(false);
 
+  { Shadow maps require normal DepthRange,
+    don't mess with DepthRange in case when we render shadow maps. }
+  if Params.RenderingCamera.Target in [rtShadowMap, rtVarianceShadowMap] then
+    DepthRange := drFull
+  else
+    DepthRange := CollectedShape.DepthRange;
+
   FBlendingRenderer.BeforeRenderShape(Shape);
   Renderer.RenderShape(Shape,
-    CollectedShape.RenderOptions, CollectedShape.SceneTransform);
+    CollectedShape.RenderOptions, CollectedShape.SceneTransform, DepthRange);
 end;
 
 procedure TShapesRenderer.RenderShape_OcclusionTests(

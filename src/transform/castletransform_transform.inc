@@ -3268,23 +3268,17 @@ begin
     //((Parent = nil) or Parent.MeaningfulParent);
     MeaningfulParent;
 
-  HasSavedDepthRange := (RenderLayer <> rlParent) and
-    { Shadow maps require normal DepthRange,
-      don't mess with RenderContext.DepthRange in case when we render shadow maps. }
-    (not (Params.RenderingCamera.Target in [rtShadowMap, rtVarianceShadowMap]));
+  HasSavedDepthRange := RenderLayer <> rlParent;
   if HasSavedDepthRange then
   begin
     { The idea of using DepthRange for render layers is nice:
-      - you don't have to split rendering layers in passes,
-        you can render all objects in one pass,
-        just switching DepthRange as necessary.
-      - you can set DepthRange for 3D objects inside TCastleTransform,
-        like here TCastleTransform will just affect every child underneath.
-    }
-    SavedDepthRange := RenderContext.DepthRange;
+      you don't have to split rendering layers in passes,
+      you can render all objects in one pass,
+      just switching DepthRange as necessary. }
+    SavedDepthRange := Params.DepthRange;
     case RenderLayer of
-      rlFront: RenderContext.DepthRange := drNear;
-      rlBack : RenderContext.DepthRange := drFar;
+      rlFront: Params.DepthRange := drNear;
+      rlBack : Params.DepthRange := drFar;
       else ;
     end;
   end else
@@ -3348,7 +3342,7 @@ begin
   Params.InMeaningfulParent := OldInMeaningfulParent;
 
   if HasSavedDepthRange then
-    RenderContext.DepthRange := SavedDepthRange;
+    Params.DepthRange := SavedDepthRange;
 end;
 
 procedure TCastleTransform.RenderShadowVolume(const Params: TRenderParams;

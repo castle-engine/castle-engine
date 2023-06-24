@@ -284,6 +284,9 @@
       See CastleInternalRenderer for more comments how are things associated. }
     RendererToPrepareShapes: TObject;
 
+    { Depth range that should be used for rendering. }
+    DepthRange: TDepthRange;
+
     constructor Create;
 
     { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }
