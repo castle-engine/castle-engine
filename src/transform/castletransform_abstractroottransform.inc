@@ -271,12 +271,37 @@
       The @link(TCastleTransform.Pickable) is only taken into account by the routines
       of the old physics system
       (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
-      In the new system, a similar role will be filled by layers. }
+      In the new system, a similar role is filled by physics layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
       const IgnoreBody: TCastleRigidBody = nil; const CollisionLayers:
       TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
 
+    { Cast a sphere using physics engine, see what is hit.
+
+      Returns the TPhysicsRayCastResult record.
+      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
+      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      to know what was hit.
+
+      The given SphereOrigin, SphereRadius, SphereDirection, MaxDistance are in
+      the world coordinate system.
+
+      It returns TPhysicsRayCastResult, with information there
+      also in the world coordinate system.
+
+      This ignores all colliders that overlap sphere when casting but you can
+      also specify one body to always ignore in IgnoreBody parameter.
+
+      By default, the sphere cast hits all physics layers, but you can choose
+      physics layers in CollisionLayers attribute.
+
+      Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      The @link(TCastleTransform.Pickable) is only taken into account by the routines
+      of the old physics system
+      (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
+      In the new system, a similar role is filled by physics layers. }
     function PhysicsSphereCast(const SphereOrigin: TVector3; const SphereRadius:Single;
       const SphereDirection: TVector3; const MaxDistance: Single = MaxSingle;
       const IgnoreBody: TCastleRigidBody = nil; const CollisionLayers:
