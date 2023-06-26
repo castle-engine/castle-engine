@@ -934,11 +934,49 @@
       The @link(TCastleTransform.Pickable) is only taken into account by the routines
       of the old physics system
       (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
-      In the new system, a similar role will be filled by layers. }
+      In the new system, a similar role is filled by physics layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
       const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
 
+    { Cast a sphere using physics engine, see what is hit.
+
+      Returns the TPhysicsRayCastResult record.
+      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
+      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      to know what was hit.
+
+      The given SphereOrigin, SphereRadius,  SphereDirection, MaxDistance
+      are in the parent coordinate system of associated
+      TCastleTransform (@link(TCastleBehavior.Parent)). So for example query
+      like this works naturally:
+
+      @longCode(#
+        RBody := MyTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+        Hit := RBody.SphereCast(MyTransform.Translation, 2, MyTransform.Direction, MaxDistance);
+      #)
+
+      It returns TPhysicsRayCastResult, with information there
+      consistently in the same coordinate system as inputs.
+      So TPhysicsRayCastResult.Distance, TPhysicsRayCastResult.Point, TPhysicsRayCastResult.Normal
+      are in parent coordinate system of associated TCastleTransform (@link(TCastleBehavior.Parent)).
+
+      This ignores all colliders that overlap sphere when start casting but the
+      collider of this rigid body (to not accidentally collide
+      with your own collider) is alaways ignored.
+
+      Only collisions with the physics colliders (TCastleCollider and TCollider)
+      are considered.
+
+      By default, the sphere hits all physics layers, but you can choose physics
+      layers in CollisionLayers attribute.
+
+      Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      The @link(TCastleTransform.Pickable) is only taken into account by the routines
+      of the old physics system
+      (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
+      In the new system, a similar role is filled by physics layers. }
     function PhysicsSphereCast(const SphereOrigin: TVector3;
       const SphereRadius:Single; const SphereDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
