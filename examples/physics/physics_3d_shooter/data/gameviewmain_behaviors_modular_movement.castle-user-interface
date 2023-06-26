@@ -155,7 +155,11 @@
               },
               {
                 "$$ClassName" : "TFpsCrouch",
-                "Input_Crouch" : "",
+                "Input_Crouch" : {
+                  "$$ClassName" : "TInputShortcut",
+                  "DefaultKey1" : "keyC",
+                  "Key1" : "keyC"
+                },
                 "Name" : "FpsCrouch"
               },
               {
