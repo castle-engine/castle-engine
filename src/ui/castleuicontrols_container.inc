@@ -1471,7 +1471,10 @@ procedure TCastleContainer.EventUpdate;
       FMouseLookLastDelta := MouseLookDelta(Event, FMouseLookControl.RenderRect);
       FLastUpdateMousePosition := MousePosition;
     end else
+    begin
+      FLastMousePositionIsSet := false;
       FMouseLookLastDelta := TVector2.Zero;
+    end;
   end;
 
 var
