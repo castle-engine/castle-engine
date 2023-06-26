@@ -93,8 +93,16 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
     Boxes: TCastleTransform;
   begin
     Boxes := TransformLoad('castle-data:/collection_of_boxes.castle-transform', FreeAtStop);
-    Boxes.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) + Vector3(0, 3, 0) + Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction) * 20;
-    Boxes.Direction := Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction);
+    if Player <> nil then
+    begin
+      Boxes.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) + Vector3(0, 3, 0) + Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction) * 20;
+      Boxes.Direction := Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction);
+    end else
+    begin
+      Boxes.Translation := Viewport.Camera.Translation + Vector3(0, 3, 0) + Viewport.Camera.Direction * 20;
+      Boxes.Direction := Viewport.Camera.Direction;
+    end;
+
     Viewport.Items.Add(Boxes);
   end;
 
@@ -116,8 +124,7 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
       Bullet.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) - Player.Direction.Normalize * 1.5;
       Bullet.Direction := Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction);
       Bullet.Collides := false; // do not collide with player
-    end
-    else
+    end else
     begin
       Bullet.Translation := Viewport.Camera.Translation + Viewport.Camera.Direction * 1.5;
       Bullet.Direction := Viewport.Camera.Direction;
