@@ -66,12 +66,10 @@ begin
   { Rotation in player physics - rotate rigid body by keys nad mouse using angular velocity }
   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics.castle-user-interface';
 
-  DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
+  //DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
 
-  {Old tests }
-  //DesignUrl := 'castle-data:/gameviewmain_scaled_player_test.castle-user-interface';
-
-  //DesignUrl := 'castle-data:/gameviewmain_direct.castle-user-interface';
+  {Old direct walk navigation }
+  DesignUrl := 'castle-data:/gameviewmain_direct.castle-user-interface';
 end;
 
 procedure TViewMain.Start;
@@ -84,6 +82,8 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  if WalkNavigation <> nil then
+    WalkNavigation.MouseLook := buttonRight in Container.MousePressed;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -111,10 +111,19 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
     BulletOwner := TComponent.Create(FreeAtStop);
     Bullet := TransformLoad('castle-data:/bullet_with_physics.castle-transform', BulletOwner);
     { Player direction is oposite to camera direction. }
-    Bullet.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) - Player.Direction.Normalize * 1.5;
+    if Player <> nil then
+    begin
+      Bullet.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) - Player.Direction.Normalize * 1.5;
+      Bullet.Direction := Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction);
+      Bullet.Collides := false; // do not collide with player
+    end
+    else
+    begin
+      Bullet.Translation := Viewport.Camera.Translation + Viewport.Camera.Direction * 1.5;
+      Bullet.Direction := Viewport.Camera.Direction;
+      Bullet.Collides := false; // do not collide with player
+    end;
 
-    Bullet.Direction := Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction);
-    Bullet.Collides := false; // do not collide with player
     BulletRigidBody := BulletOwner.FindRequiredComponent('BulletRigidBody') as TCastleRigidBody;
     BulletRigidBody.LinearVelocity := Bullet.Direction * 25;
     { You can turn off gravity for Bullet to make it easier to shoot high objects
