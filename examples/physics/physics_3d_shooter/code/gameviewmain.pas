@@ -61,21 +61,21 @@ uses SysUtils, CastleLog;
 constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  { New modular navigation, that you can expanad by implementing
+  { New modular navigation, that you can expand by implementing
     TAbstractMovementModifier.
 
-    See TFpsWalkSupport, TFpsFlySupport, THeadBobbing for example }
-   DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
+    See TFpsWalkSupport, TFpsFlySupport, THeadBobbing, TFpsCrouch for example }
+  DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
 
   { Old direct walk navigation }
   // DesignUrl := 'castle-data:/gameviewmain_direct.castle-user-interface';
 
   { Simplest navigation - rotation only in camera no player rotation. When
-    you want something really simple to start experiment }
-   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest_inputaxis.castle-user-interface';
+    you want something really simple to start experiment. }
+  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest_inputaxis.castle-user-interface';
 
-  { Rotation in player physics - rotate rigid body using angular velocity -
-    start point for your own navigation  }
+  { Horizontal rotation in player physics - rotate rigid body using angular velocity -
+    start point for your own navigation if you don't want use modular version }
   // DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics.castle-user-interface';
 end;
 
@@ -191,7 +191,8 @@ begin
     WritelnLog('Mouse look started');
   end;
 
-  { Fly support }
+  { Fly/walk support in modular navigation - by change FpsFlySupport/FpsWalkSupport
+    existance. }
   if Assigned(FpsFlySupport) and Assigned(FpsWalkSupport) and Assigned(RotateRigidBody) then
   begin
     if Event.IsKey(keyF) then
