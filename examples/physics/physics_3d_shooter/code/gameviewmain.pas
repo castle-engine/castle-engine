@@ -32,13 +32,15 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
-    WalkNavigation: TCastleWalkNavigation;
+    LabelFlyWalk: TCastleLabel;
     Viewport: TCastleViewport;
+
+    WalkNavigation: TCastleWalkNavigation;
+
+    Player: TCastleTransform;
     FpsFlySupport: TFpsFlySupport;
     FpsWalkSupport: TFpsWalkSupport;
     RotateRigidBody: TRotateRigidBody;
-    Player: TCastleTransform;
-    LabelFlyWalk: TCastleLabel;
 
     SimplestFpsPlayerMovement: TSimplestFpsPlayerMovement;
   public
@@ -185,8 +187,6 @@ begin
   { Start mouse look }
   if Event.IsMouseButton(buttonRight) then
   begin
-    //Viewport.Cursor := mcForceNone;
-    //Container.OverrideCursor := mcForceNone;
     Container.StartMouseLook(Viewport);
     WritelnLog('Mouse look started');
   end;
@@ -223,8 +223,6 @@ begin
   { Show cursor for mouse look }
   if Event.IsMouseButton(buttonRight) then
   begin
-    //Viewport.Cursor := mcDefault;
-    //Container.OverrideCursor := mcDefault;
     Container.StopMouseLook;
     WritelnLog('Mouse look stoped.');
   end;
