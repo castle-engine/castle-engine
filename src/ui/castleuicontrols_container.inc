@@ -91,6 +91,7 @@
     FLastMousePositionIsSet: Boolean;
     FMouseLookControl: TCastleUserInterface;
     FMouseLookStarted: Boolean;
+    FMouseLookControlFreeObserver: TFreeNotificationObserver;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
@@ -121,6 +122,8 @@
     procedure SetInspectorKey(const Value: TKey);
     { Create / destroy FInspector. }
     procedure ToggleInspector;
+    { When FMouseLookControl is going to be destroyed stop mouse look }
+    procedure OnMouseLookControlFree(const Sender: TFreeNotificationObserver);
   private
     FViewStack: TCastleViewList;
     FDisableStackChange: Cardinal;
@@ -1279,6 +1282,13 @@ begin
   end;
 end;
 
+procedure TCastleContainer.OnMouseLookControlFree(
+  const Sender: TFreeNotificationObserver);
+begin
+  FMouseLookControl := nil;
+  StopMouseLook;
+end;
+
 procedure TCastleContainer.EventUpdate;
 
   procedure UpdateTooltip;
@@ -2354,6 +2364,12 @@ begin
   OverrideCursor := mcForceNone;
   FMouseLookStarted := true;
   FMouseLookControl := MouseLookControl;
+  if FMouseLookControlFreeObserver = nil then
+  begin
+    FMouseLookControlFreeObserver := TFreeNotificationObserver.Create(Self);
+    FMouseLookControlFreeObserver.OnFreeNotification := {$ifdef FPC}@{$endif}OnMouseLookControlFree;
+  end;
+  FMouseLookControlFreeObserver.Observed := FMouseLookControl;
   MouseLookPress;
 end;
 
@@ -2361,6 +2377,8 @@ procedure TCastleContainer.StopMouseLook;
 begin
   OverrideCursor := mcDefault;
   FMouseLookStarted := false;
+  FMouseLookControl := nil;
+  FMouseLookControlFreeObserver.Observed := nil;
 end;
 
 function TCastleContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
