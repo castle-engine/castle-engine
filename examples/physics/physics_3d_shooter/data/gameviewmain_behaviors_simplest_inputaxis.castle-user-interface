@@ -98,7 +98,7 @@
                   "DefaultKey1" : "keySpace",
                   "Key1" : "keySpace"
                 },
-                "Name" : "SimplestFpsPlayerMovement1",
+                "Name" : "SimplestFpsPlayerMovement",
                 "SidewayInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
                   "MouseLook" : false,

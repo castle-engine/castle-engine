@@ -39,6 +39,8 @@ type
     RotateRigidBody: TRotateRigidBody;
     Player: TCastleTransform;
     LabelFlyWalk: TCastleLabel;
+
+    SimplestFpsPlayerMovement: TSimplestFpsPlayerMovement;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -59,17 +61,22 @@ uses SysUtils, CastleLog;
 constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  { Rotation in camera only no player rotation }
-  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest_inputaxis.castle-user-interface';
-  { Rotation in player direct - rotate transform and synchronize physics - fall out level sometimes  }
-  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_direct.castle-user-interface';
-  { Rotation in player physics - rotate rigid body by keys nad mouse using angular velocity }
-  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics.castle-user-interface';
+  { New modular navigation, that you can expanad by implementing
+    TAbstractMovementModifier.
 
-  //DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
+    See TFpsWalkSupport, TFpsFlySupport, THeadBobbing for example }
+   DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
 
-  {Old direct walk navigation }
-  DesignUrl := 'castle-data:/gameviewmain_direct.castle-user-interface';
+  { Old direct walk navigation }
+  // DesignUrl := 'castle-data:/gameviewmain_direct.castle-user-interface';
+
+  { Simplest navigation - rotation only in camera no player rotation. When
+    you want something really simple to start experiment }
+   //DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest_inputaxis.castle-user-interface';
+
+  { Rotation in player physics - rotate rigid body using angular velocity -
+    start point for your own navigation  }
+  // DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics.castle-user-interface';
 end;
 
 procedure TViewMain.Start;
@@ -118,14 +125,28 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
       will find rigid body from some older bullet. }
     BulletOwner := TComponent.Create(FreeAtStop);
     Bullet := TransformLoad('castle-data:/bullet_with_physics.castle-transform', BulletOwner);
-    { Player direction is oposite to camera direction. }
+
     if Player <> nil then
     begin
-      Bullet.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) - Player.Direction.Normalize * 1.5;
-      Bullet.Direction := Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction);
-      Bullet.Collides := false; // do not collide with player
+      if SimplestFpsPlayerMovement = nil then
+      begin
+        { Code for player that can rotate }
+        { Player direction is oposite to camera direction. }
+        Bullet.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) - Player.Direction.Normalize * 1.5;
+        Bullet.Direction := Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction);
+        Bullet.Collides := false; // do not collide with player
+      end else
+      begin
+        { When you use SimplestFpsPlayerMovement player never rotates so you
+          need use camera direction }
+
+        Bullet.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) + Viewport.Camera.Direction * 1.5;
+        Bullet.Direction := Viewport.Camera.Direction;
+        Bullet.Collides := false; // do not collide with player
+      end;
     end else
     begin
+      { Code for old walk navigation. }
       Bullet.Translation := Viewport.Camera.Translation + Viewport.Camera.Direction * 1.5;
       Bullet.Direction := Viewport.Camera.Direction;
       Bullet.Collides := false; // do not collide with player
