@@ -149,7 +149,7 @@ begin
   begin
     //Viewport.Cursor := mcForceNone;
     //Container.OverrideCursor := mcForceNone;
-    Container.StartMouseLook(Viewport.RenderRect);
+    Container.StartMouseLook(Viewport);
     WritelnLog('Mouse look started');
   end;
 

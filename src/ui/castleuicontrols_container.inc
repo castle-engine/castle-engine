@@ -89,7 +89,7 @@
     FMouseLookLastDelta: TVector2;
     FLastUpdateMousePosition: TVector2;
     FLastMousePositionIsSet: Boolean;
-    FMouseLookControlRect: TFloatRectangle;
+    FMouseLookControl: TCastleUserInterface;
     FMouseLookStarted: Boolean;
 
     function GetView: TCastleView;
@@ -353,7 +353,7 @@
 
       Do not call MouseLookDelta() function directly when you
       want to use Start/StopMouseLook() }
-    procedure StartMouseLook(const ControlRect: TFloatRectangle);
+    procedure StartMouseLook(const MouseLookControl: TCastleUserInterface);
     procedure StopMouseLook;
 
     { Currently pressed mouse buttons. When this changes, you're always
@@ -1468,7 +1468,7 @@ procedure TCastleContainer.EventUpdate;
       Event.Position := MousePosition;
       Event.Pressed := MousePressed;
 
-      FMouseLookLastDelta := MouseLookDelta(Event, FMouseLookControlRect);
+      FMouseLookLastDelta := MouseLookDelta(Event, FMouseLookControl.RenderRect);
       FLastUpdateMousePosition := MousePosition;
     end else
       FMouseLookLastDelta := TVector2.Zero;
@@ -2346,11 +2346,11 @@ begin
   Result := ScaledStatusBarHeight / FUIScale;
 end;
 
-procedure TCastleContainer.StartMouseLook(const ControlRect: TFloatRectangle);
+procedure TCastleContainer.StartMouseLook(const MouseLookControl: TCastleUserInterface);
 begin
   OverrideCursor := mcForceNone;
   FMouseLookStarted := true;
-  FMouseLookControlRect := ControlRect;
+  FMouseLookControl := MouseLookControl;
   MouseLookPress;
 end;
 
