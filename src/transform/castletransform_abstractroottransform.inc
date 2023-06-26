@@ -290,7 +290,7 @@
       It returns TPhysicsRayCastResult, with information there
       also in the world coordinate system.
 
-      This ignores all colliders that overlap sphere when casting but you can
+      This ignores all colliders that overlap sphere when start casting but you can
       also specify one body to always ignore in IgnoreBody parameter.
 
       By default, the sphere cast hits all physics layers, but you can choose
