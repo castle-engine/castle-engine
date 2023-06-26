@@ -72,10 +72,10 @@ begin
 
   { Simplest navigation - rotation only in camera no player rotation. When
     you want something really simple to start experiment. }
-  //DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest_inputaxis.castle-user-interface';
+  // DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest_inputaxis.castle-user-interface';
 
   { Horizontal rotation in player physics - rotate rigid body using angular velocity -
-    start point for your own navigation if you don't want use modular version }
+    start point for your own navigation if you don't want to use modular version. }
   // DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics.castle-user-interface';
 end;
 
