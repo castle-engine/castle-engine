@@ -20,7 +20,7 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras,
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras, CastleTransform,
   CastleViewport, SimplestFpsPlayerMovement, SimpleFpsPlayerMovementWithRotation,
   DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, GameInputAxis, RotateCamera,
   ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport, FpsWalkSupport;
@@ -37,6 +37,7 @@ type
     FpsFlySupport: TFpsFlySupport;
     FpsWalkSupport: TFpsWalkSupport;
     RotateRigidBody: TRotateRigidBody;
+    Player: TCastleTransform;
     LabelFlyWalk: TCastleLabel;
   public
     constructor Create(AOwner: TComponent); override;
@@ -51,8 +52,7 @@ var
 
 implementation
 
-uses SysUtils,
-  CastleTransform, CastleLog;
+uses SysUtils, CastleLog;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -84,7 +84,6 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-  //WalkNavigation.MouseLook := buttonRight in Container.MousePressed;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -94,8 +93,8 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
     Boxes: TCastleTransform;
   begin
     Boxes := TransformLoad('castle-data:/collection_of_boxes.castle-transform', FreeAtStop);
-    Boxes.Translation := Viewport.Camera.Translation + Vector3(0, 3, 0) + Viewport.Camera.Direction * 20;
-    Boxes.Direction := Viewport.Camera.Direction;
+    Boxes.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) + Vector3(0, 3, 0) + Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction) * 20;
+    Boxes.Direction := Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction);
     Viewport.Items.Add(Boxes);
   end;
 
@@ -111,11 +110,13 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
       will find rigid body from some older bullet. }
     BulletOwner := TComponent.Create(FreeAtStop);
     Bullet := TransformLoad('castle-data:/bullet_with_physics.castle-transform', BulletOwner);
-    Bullet.Translation := Viewport.Camera.Parent.Translation + Viewport.Camera.Translation + Viewport.Camera.Direction * 1.5;
-    Bullet.Direction := Viewport.Camera.Direction;
+    { Player direction is oposite to camera direction. }
+    Bullet.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) - Player.Direction.Normalize * 1.5;
+
+    Bullet.Direction := Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction);
     Bullet.Collides := false; // do not collide with player
     BulletRigidBody := BulletOwner.FindRequiredComponent('BulletRigidBody') as TCastleRigidBody;
-    BulletRigidBody.LinearVelocity := Viewport.Camera.Direction * 100;
+    BulletRigidBody.LinearVelocity := Bullet.Direction * 25;
     { You can turn off gravity for Bullet to make it easier to shoot high objects
       even when initial LinearVelocity would be low.
       Of course this is non-realistic. }
