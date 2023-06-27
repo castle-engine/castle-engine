@@ -25,52 +25,80 @@ type
     available at every scene through @link(TCastleScene.RenderOptions). }
   TCastleRenderOptions = class(TCastleComponent)
   strict private
-    FLighting: boolean;
-    FReceiveSceneLights, FReceiveGlobalLights: boolean;
-    FTextures: boolean;
-    FMinificationFilter: TAutoMinificationFilter;
-    FMagnificationFilter: TAutoMagnificationFilter;
-    FPointSize: Single;
-    FLineWidth: Single;
-    FBumpMapping: TBumpMapping;
-    FBumpMappingParallaxHeight: Single;
-    FInternalCustomShader, FInternalCustomShaderAlphaTest: TObject;
-    FMode: TRenderingMode;
-    FShadowSampling: TShadowSampling;
-    FDepthTest: boolean;
-    FPhongShading: boolean;
-    FSolidColor: TCastleColorRGB;
-    FSeparateDiffuseTexture: boolean;
-    FMaxLightsPerShape: Cardinal;
-    FBlending: boolean;
-    FBlendingSourceFactor: TBlendingSourceFactor;
-    FBlendingDestinationFactor: TBlendingDestinationFactor;
-    FWireframeColor: TCastleColorRGB;
-    FWireframeEffect: TWireframeEffect;
-    FSolidWireframeScale: Single;
-    FSolidWireframeBias: Single;
-    FSilhouetteScale: Single;
-    FSilhouetteBias: Single;
-    FRobustNegativeScale: Boolean;
-    FWholeSceneManifold: Boolean;
-    FColorChannels: TColorChannels;
+    type
+      TRenderOptionsHash = Int32;
+    var
+      FLighting: Boolean;
+      FReceiveSceneLights, FReceiveGlobalLights: Boolean;
+      FTextures: Boolean;
+      FMinificationFilter: TAutoMinificationFilter;
+      FMagnificationFilter: TAutoMagnificationFilter;
+      FPointSize: Single;
+      FLineWidth: Single;
+      FBumpMapping: TBumpMapping;
+      FBumpMappingParallaxHeight: Single;
+      FInternalCustomShader, FInternalCustomShaderAlphaTest: TObject;
+      FMode: TRenderingMode;
+      FShadowSampling: TShadowSampling;
+      FDepthTest: Boolean;
+      FPhongShading: Boolean;
+      FSolidColor: TCastleColorRGB;
+      FMaxLightsPerShape: Cardinal;
+      FBlending: Boolean;
+      FBlendingSourceFactor: TBlendingSourceFactor;
+      FBlendingDestinationFactor: TBlendingDestinationFactor;
+      FWireframeColor: TCastleColorRGB;
+      FWireframeEffect: TWireframeEffect;
+      FSolidWireframeScale: Single;
+      FSolidWireframeBias: Single;
+      FSilhouetteScale: Single;
+      FSilhouetteBias: Single;
+      FRobustNegativeScale: Boolean;
+      FWholeSceneManifold: Boolean;
+      FColorChannels: TColorChannels;
+
+    { Hash to quickly compare 2 TCastleRenderOptions instances,
+      important for efficient batching. }
+    FHash: TRenderOptionsHash;
 
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
-    { These methods just set the value on given property,
-      eventually (some of them) calling ReleaseCachedResources.
-      @groupBegin }
-    procedure SetTextures(const Value: boolean);
+
+    // Property setters that
+    // - call UpdateHash
+    // - sometimes call ReleaseCachedResources
+    procedure SetTextures(const Value: Boolean);
     procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
     procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
     procedure SetBumpMapping(const Value: TBumpMapping);
     procedure SetMode(const Value: TRenderingMode);
     procedure SetShadowSampling(const Value: TShadowSampling);
-    procedure SetBlending(const Value: boolean);
+    procedure SetBlending(const Value: Boolean);
     procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
     procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
     procedure SetPhongShading(const Value: Boolean);
-    { @groupEnd }
+    procedure SetWireframeColor(const Value: TCastleColorRGB);
+    procedure SetWireframeEffect(const Value: TWireframeEffect);
+    procedure SetSolidWireframeScale(const Value: Single);
+    procedure SetSolidWireframeBias(const Value: Single);
+    procedure SetSilhouetteScale(const Value: Single);
+    procedure SetSilhouetteBias(const Value: Single);
+    procedure SetRobustNegativeScale(const Value: Boolean);
+    procedure SetWholeSceneManifold(const Value: Boolean);
+    procedure SetColorChannels(const Value: TColorChannels);
+    procedure SetMaxLightsPerShape(const Value: Cardinal);
+    procedure SetInternalCustomShader(const Value: TObject);
+    procedure SetInternalCustomShaderAlphaTest(const Value: TObject);
+    procedure SetDepthTest(const Value: Boolean);
+    procedure SetReceiveSceneLights(const Value: Boolean);
+    procedure SetReceiveGlobalLights(const Value: Boolean);
+    procedure SetSolidColor(const Value: TCastleColorRGB);
+    procedure SetPointSize(const Value: Single);
+    procedure SetLineWidth(const Value: Single);
+    procedure SetBumpMappingParallaxHeight(const Value: Single);
+    procedure SetLighting(const Value: Boolean);
+
+    procedure UpdateHash;
   protected
     { Called before changing an attribute that requires the release
       of things cached in a renderer. This includes attributes that affect:
@@ -127,6 +155,11 @@ type
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { Equal TCastleRenderOptions produce the same effect when rendering
+      and can be treated as exactly equivalent by the @link(TCastleViewport.DynamicBatching)
+      algorithm. }
+    function Equals(Obj: TObject): Boolean; override;
+
     { Is the second TCastleRenderOptions instance on all fields
       that affect TShapeCache, that is things that affect generated geometry
       arrays or vbo. This compares the subset of variables that call
@@ -151,7 +184,8 @@ type
       When this is assigned, @link(Shaders) value is ignored.
 
       @italic(Internal, do not use this.)
-      Because TX3DShaderProgramBase is an internal class, because it's cumbersome to use.
+      Because TX3DShaderProgramBase is an internal class,
+      because it's cumbersome to use.
 
       Use nodes instead, to override shaders or to enhance shaders.
       See examples/viewport_and_scenes/shader_effects/ ,
@@ -159,14 +193,15 @@ type
 
       @exclude }
     property InternalCustomShader: TObject
-      read FInternalCustomShader write FInternalCustomShader;
+      read FInternalCustomShader write SetInternalCustomShader;
 
     { Alternative custom GLSL shader used when alpha test is necessary.
       It must be a @link(TX3DShaderProgramBase) instance.
       Relevant only if CustomShader <> nil.
 
       @italic(Internal, do not use this.)
-      Because TX3DShaderProgramBase is an internal class, because it's cumbersome to use.
+      Because TX3DShaderProgramBase is an internal class,
+      because it's cumbersome to use.
 
       Use nodes instead, to override shaders or to enhance shaders.
       See examples/viewport_and_scenes/shader_effects/ ,
@@ -177,7 +212,7 @@ type
 
       @exclude }
     property InternalCustomShaderAlphaTest: TObject
-      read FInternalCustomShaderAlphaTest write FInternalCustomShaderAlphaTest;
+      read FInternalCustomShaderAlphaTest write SetInternalCustomShaderAlphaTest;
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
@@ -192,53 +227,19 @@ type
       ignoring the contents of the depth buffer. Use only if you know
       what you're doing, if you're sure that the order of rendering will
       always be good. }
-    property DepthTest: boolean read FDepthTest write FDepthTest default true;
+    property DepthTest: boolean read FDepthTest write SetDepthTest default true;
 
-    { Color used when @link(Mode) is @link(rmSolidColor). }
-    property SolidColor: TCastleColorRGB read FSolidColor write FSolidColor;
-
-    {$ifdef FPC}
-    { @deprecated @exclude Ignored now.
-
-      Set to @true to make diffuse texture affect only material diffuse color
-      when the shape is lit and shading is Phong.
-      This affects both textures from X3D Appearance.texture,
-      and textures from CommonSurfaceShader.diffuseTexture.
-      This is more correct (following X3D lighting equations),
-      and is more impressive (e.g. specular highlights may be better visible,
-      as they are not darkened by a dark diffuse texture).
-
-      For historic reasons and for Gouraud shading, by default, this is @false.
-      Which means that "diffuse texture" is actually used to multiply
-      a complete result of the lighting calculation.
-      This is not correct, but it is necessary for Gouraud shading,
-      and it is also depended upon by some applications (since the "diffuse texture"
-      effectively multiplies all factors, so it also multiplies
-      e.g. emissive factor for "pure emissive materials",
-      which may be useful sometimes). }
-    property SeparateDiffuseTexture: boolean
-      read FSeparateDiffuseTexture
-      write FSeparateDiffuseTexture default false;
-      deprecated 'rendering always behaves as if this was true now, with Phong shading';
-    {$endif FPC}
+    { Color used when @link(Mode) is @link(rmSolidColor).
+      By default BlackRGB. }
+    property SolidColor: TCastleColorRGB read FSolidColor write SetSolidColor;
 
     { Wireframe color, used with some WireframeEffect values.
       Default value is DefaultWireframeColor. }
     property WireframeColor: TCastleColorRGB
-      read FWireframeColor write FWireframeColor;
-
-    { @deprecated @exclude Old name for @link(ReceiveSceneLights). }
-    property UseSceneLights: boolean
-      read FReceiveSceneLights write FReceiveSceneLights default true;
-      {$ifdef FPC}deprecated 'use ReceiveSceneLights';{$endif}
-
-    { @deprecated @exclude Old name for @link(ReceiveSceneLights). }
-    property SceneLights: boolean
-      read FReceiveSceneLights write FReceiveSceneLights default true;
-      {$ifdef FPC}deprecated 'use ReceiveSceneLights';{$endif}
+      read FWireframeColor write SetWireframeColor;
   published
     { Enable real-time lighting when rendering. }
-    property Lighting: boolean read FLighting write FLighting default true;
+    property Lighting: boolean read FLighting write SetLighting default true;
 
     { Use lights defined in this scene (in the model loaded to this TCastleScene)
       to light the shapes in this scene.
@@ -255,7 +256,7 @@ type
       Also, if both ReceiveSceneLights and ReceiveGlobalLights are @false,
       then the scene receives no lighting at all. }
     property ReceiveSceneLights: boolean
-      read FReceiveSceneLights write FReceiveSceneLights default true;
+      read FReceiveSceneLights write SetReceiveSceneLights default true;
 
     { Use lights defined in other scenes to light the shapes in this scene.
 
@@ -267,7 +268,7 @@ type
       Also, if both ReceiveSceneLights and ReceiveGlobalLights are @false,
       then the scene receives no lighting at all. }
     property ReceiveGlobalLights: boolean
-      read FReceiveGlobalLights write FReceiveGlobalLights default true;
+      read FReceiveGlobalLights write SetReceiveGlobalLights default true;
 
     { Use textures. }
     property Textures: boolean
@@ -292,13 +293,13 @@ type
     { Size of points. This has an effect on TPointSetNode rendering.
       Must be > 0. }
     property PointSize: Single
-      read FPointSize write FPointSize {$ifdef FPC}default DefaultPointSize{$endif};
+      read FPointSize write SetPointSize {$ifdef FPC}default DefaultPointSize{$endif};
 
     { Line width. This has an effect on TLineSetNode rendering,
       and on wireframe rendering when @link(TCastleRenderOptions.WireframeEffect) indicates it.
       Must be > 0. }
     property LineWidth: Single
-      read FLineWidth write FLineWidth {$ifdef FPC}default DefaultLineWidth{$endif};
+      read FLineWidth write SetLineWidth {$ifdef FPC}default DefaultLineWidth{$endif};
 
     { Use bump mapping. The bump mapping is only done when particular shape
       defines a normal map (and a height map, if you want parallax bump mapping).
@@ -326,7 +327,7 @@ type
       and you set @link(BumpMapping) to a value bmParallax, bmSteepParallax,
       bmSteepParallaxShadowing then this property is used to interpret the height information. }
     property BumpMappingParallaxHeight: Single
-      read FBumpMappingParallaxHeight write FBumpMappingParallaxHeight
+      read FBumpMappingParallaxHeight write SetBumpMappingParallaxHeight
       {$ifdef FPC}default DefaultBumpMappingParallaxHeight{$endif};
 
     { Whether to use Phong shading by default.
@@ -364,7 +365,7 @@ type
       But on modern desktops, as well as mobile and other platforms,
       you can increase this limit freely. }
     property MaxLightsPerShape: Cardinal
-      read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
+      read FMaxLightsPerShape write SetMaxLightsPerShape default DefaultMaxLightsPerShape;
 
     { Render partially transparent objects.
 
@@ -458,17 +459,21 @@ type
       Note: How the wireframe effects work when Mode = rmDepth is undefined now.
       Don't use Mode = rmDepth with WireframeEffect <> weNormal. }
     property WireframeEffect: TWireframeEffect
-      read FWireframeEffect write FWireframeEffect default weNormal;
+      read FWireframeEffect write SetWireframeEffect default weNormal;
 
-    property SolidWireframeScale: Single read FSolidWireframeScale write FSolidWireframeScale {$ifdef FPC}default DefaultSolidWireframeScale{$endif};
-    property SolidWireframeBias: Single read FSolidWireframeBias write FSolidWireframeBias {$ifdef FPC}default DefaultSolidWireframeBias{$endif};
-    property SilhouetteScale: Single read FSilhouetteScale write FSilhouetteScale {$ifdef FPC}default DefaultSilhouetteScale{$endif};
-    property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias {$ifdef FPC}default DefaultSilhouetteBias{$endif};
+    property SolidWireframeScale: Single
+      read FSolidWireframeScale write SetSolidWireframeScale {$ifdef FPC}default DefaultSolidWireframeScale{$endif};
+    property SolidWireframeBias: Single
+      read FSolidWireframeBias write SetSolidWireframeBias {$ifdef FPC}default DefaultSolidWireframeBias{$endif};
+    property SilhouetteScale: Single
+      read FSilhouetteScale write SetSilhouetteScale {$ifdef FPC}default DefaultSilhouetteScale{$endif};
+    property SilhouetteBias: Single
+      read FSilhouetteBias write SetSilhouetteBias {$ifdef FPC}default DefaultSilhouetteBias{$endif};
 
     { Support lighting and backface culling for models using negative scale.
       This has a small performance cost, and so is disabled by default. }
     property RobustNegativeScale: Boolean
-      read FRobustNegativeScale write FRobustNegativeScale default false;
+      read FRobustNegativeScale write SetRobustNegativeScale default false;
 
     { When considering this scene to be a shadow caster for shadow volumes,
       assume it is 2-manifold when treated as whole scene (each separate
@@ -487,11 +492,11 @@ type
       really 2-manifold. If it is not, then shadow volumes may exhibit
       weird artifacts. }
     property WholeSceneManifold: Boolean
-      read FWholeSceneManifold write FWholeSceneManifold default false;
+      read FWholeSceneManifold write SetWholeSceneManifold default false;
 
     { Which color buffer channels (RGBA) to write when rendering this model. }
     property ColorChannels: TColorChannels
-      read FColorChannels write FColorChannels default AllColorChannels;
+      read FColorChannels write SetColorChannels default AllColorChannels;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
@@ -577,110 +582,84 @@ begin
     (SecondValue.Textures = Textures);
 end;
 
+function TCastleRenderOptions.Equals(Obj: TObject): Boolean;
+begin
+  Result :=
+    (Obj is TCastleRenderOptions) and
+    (FHash = TCastleRenderOptions(Obj).FHash);
+end;
+
 procedure TCastleRenderOptions.ReleaseCachedResources;
 begin
 end;
 
-procedure TCastleRenderOptions.SetTextures(const Value: boolean);
-begin
-  if Textures <> Value then
+{$I norqcheckbegin.inc}
+procedure TCastleRenderOptions.UpdateHash;
+
+  function SingleOrd(const S: Single): TRenderOptionsHash;
   begin
-    ReleaseCachedResources;
-    FTextures := Value;
+    Result := Round(S * 1000);
   end;
-end;
 
-procedure TCastleRenderOptions.SetMinificationFilter(const Value: TAutoMinificationFilter);
-begin
-  if MinificationFilter <> Value then
+  function ColorOrd(const C: TCastleColorRGB): TRenderOptionsHash;
   begin
-    ReleaseCachedResources;
-    FMinificationFilter := Value;
+    Result :=
+      Round(C.X * 1000) +
+      Round(C.Y * 1000 * 1000) +
+      Round(C.Z * 1000 * 1000 * 1000);
   end;
-end;
 
-procedure TCastleRenderOptions.SetMagnificationFilter(const Value: TAutoMagnificationFilter);
-begin
-  if MagnificationFilter <> Value then
+  function PtrOrd(const P: Pointer): TRenderOptionsHash;
   begin
-    ReleaseCachedResources;
-    FMagnificationFilter := Value;
+    { On 64-bit platforms, cut pointer to least significant 32 bits.
+      That's OK for hash. }
+    Result := TRenderOptionsHash(PtrUInt(P));
   end;
-end;
 
-procedure TCastleRenderOptions.SetBumpMapping(const Value: TBumpMapping);
-begin
-  if BumpMapping <> Value then
+  function ColorChannelsOrd(const C: TColorChannels): TRenderOptionsHash;
   begin
-    ReleaseCachedResources;
-    FBumpMapping := Value;
+    Result :=
+      179 * Ord(0 in C) +
+      181 * Ord(1 in C) +
+      191 * Ord(2 in C) +
+      193 * Ord(3 in C);
   end;
-end;
 
-procedure TCastleRenderOptions.SetMode(const Value: TRenderingMode);
 begin
-  FMode := Value;
+  // https://en.wikipedia.org/wiki/List_of_prime_numbers
+  FHash :=
+    2 * Ord(FLighting) +
+    3 * Ord(FReceiveSceneLights) +
+    5 * Ord(FReceiveGlobalLights) +
+    7 * Ord(FTextures) +
+    11 * Ord(FMinificationFilter) +
+    13 * Ord(FMagnificationFilter) +
+    17 * SingleOrd(FPointSize) +
+    19 * SingleOrd(FLineWidth) +
+    23 * Ord(FBumpMapping) +
+    29 * SingleOrd(FBumpMappingParallaxHeight) +
+    31 * PtrOrd(FInternalCustomShader) +
+    37 * PtrOrd(FInternalCustomShaderAlphaTest) +
+    41 * Ord(FMode) +
+    43 * Ord(FShadowSampling) +
+    47 * Ord(FDepthTest) +
+    53 * Ord(FPhongShading) +
+    59 * ColorOrd(FSolidColor) +
+    73 * Ord(FMaxLightsPerShape) +
+    79 * Ord(FBlending) +
+    83 * Ord(FBlendingSourceFactor) +
+    89 * Ord(FBlendingDestinationFactor) +
+    97 * ColorOrd(FWireframeColor) +
+    101 * Ord(FWireframeEffect) +
+    103 * SingleOrd(FSolidWireframeScale) +
+    107 * SingleOrd(FSolidWireframeBias) +
+    109 * SingleOrd(FSilhouetteScale) +
+    113 * SingleOrd(FSilhouetteBias) +
+    127 * Ord(FRobustNegativeScale) +
+    131 * Ord(FWholeSceneManifold) +
+    137 * ColorChannelsOrd(FColorChannels);
 end;
-
-procedure TCastleRenderOptions.SetShadowSampling(const Value: TShadowSampling);
-begin
-  if FShadowSampling <> Value then
-  begin
-    { When swithing between VSM and non-VSM sampling methods,
-      we need to ReleaseCachedResources, since shadow maps must be regenerated. }
-    if (FShadowSampling = ssVarianceShadowMaps) <>
-       (Value           = ssVarianceShadowMaps) then
-      ReleaseCachedResources;
-
-    FShadowSampling := Value;
-  end;
-end;
-
-function TCastleRenderOptions.GetShaders: TShadersRendering;
-begin
-  if PhongShading then
-    Result := srAlways
-  else
-    Result := srWhenRequired;
-end;
-
-procedure TCastleRenderOptions.SetShaders(const Value: TShadersRendering);
-begin
-  PhongShading := Value = srAlways;
-end;
-
-procedure TCastleRenderOptions.SetBlending(const Value: boolean);
-begin
-  FBlending := Value;
-end;
-
-procedure TCastleRenderOptions.SetBlendingSourceFactor(
-  const Value: TBlendingSourceFactor);
-begin
-  FBlendingSourceFactor := Value;
-end;
-
-procedure TCastleRenderOptions.SetBlendingDestinationFactor(
-  const Value: TBlendingDestinationFactor);
-begin
-  FBlendingDestinationFactor := Value;
-end;
-
-procedure TCastleRenderOptions.SetPhongShading(const Value: boolean);
-begin
-  if PhongShading <> Value then
-  begin
-    FPhongShading := Value;
-    { When switching this we want to force generating necessary
-      shaders at the next PrepareResources call. Otherwise shaders would
-      be prepared only when shapes come into view, which means that navigating
-      awfully stutters for some time after changing this property.
-
-      We could do this by OwnerScene.PreparedRender := false.
-      Or just ReleaseCachedResources. }
-    ReleaseCachedResources;
-  end;
-end;
+{$I norqcheckend.inc}
 
 procedure TCastleRenderOptions.CustomSerialization(const SerializationProcess: TSerializationProcess);
 
@@ -741,6 +720,311 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+{ trivial setters ------------------------------------------------------------- }
+
+procedure TCastleRenderOptions.SetTextures(const Value: Boolean);
+begin
+  if Textures <> Value then
+  begin
+    ReleaseCachedResources;
+    FTextures := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetMinificationFilter(const Value: TAutoMinificationFilter);
+begin
+  if MinificationFilter <> Value then
+  begin
+    ReleaseCachedResources;
+    FMinificationFilter := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetMagnificationFilter(const Value: TAutoMagnificationFilter);
+begin
+  if MagnificationFilter <> Value then
+  begin
+    ReleaseCachedResources;
+    FMagnificationFilter := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetBumpMapping(const Value: TBumpMapping);
+begin
+  if BumpMapping <> Value then
+  begin
+    ReleaseCachedResources;
+    FBumpMapping := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetMode(const Value: TRenderingMode);
+begin
+  if FMode <> Value then
+  begin
+    FMode := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetShadowSampling(const Value: TShadowSampling);
+begin
+  if FShadowSampling <> Value then
+  begin
+    { When swithing between VSM and non-VSM sampling methods,
+      we need to ReleaseCachedResources, since shadow maps must be regenerated. }
+    if (FShadowSampling = ssVarianceShadowMaps) <>
+       (Value           = ssVarianceShadowMaps) then
+      ReleaseCachedResources;
+
+    FShadowSampling := Value;
+    UpdateHash;
+  end;
+end;
+
+function TCastleRenderOptions.GetShaders: TShadersRendering;
+begin
+  if PhongShading then
+    Result := srAlways
+  else
+    Result := srWhenRequired;
+end;
+
+procedure TCastleRenderOptions.SetShaders(const Value: TShadersRendering);
+begin
+  PhongShading := Value = srAlways;
+end;
+
+procedure TCastleRenderOptions.SetBlending(const Value: Boolean);
+begin
+  if FBlending <> Value then
+  begin
+    FBlending := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetBlendingSourceFactor(
+  const Value: TBlendingSourceFactor);
+begin
+  if FBlendingSourceFactor <> Value then
+  begin
+    FBlendingSourceFactor := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetBlendingDestinationFactor(
+  const Value: TBlendingDestinationFactor);
+begin
+  if FBlendingDestinationFactor <> Value then
+  begin
+    FBlendingDestinationFactor := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetPhongShading(const Value: Boolean);
+begin
+  if PhongShading <> Value then
+  begin
+    FPhongShading := Value;
+    { When switching this we want to force generating necessary
+      shaders at the next PrepareResources call. Otherwise shaders would
+      be prepared only when shapes come into view, which means that navigating
+      awfully stutters for some time after changing this property.
+
+      We could do this by OwnerScene.PreparedRender := false.
+      Or just ReleaseCachedResources. }
+    ReleaseCachedResources;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetWireframeColor(const Value: TCastleColorRGB);
+begin
+  if not TCastleColorRGB.PerfectlyEquals(FWireframeColor, Value) then
+  begin
+    FWireframeColor := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetWireframeEffect(const Value: TWireframeEffect);
+begin
+  if FWireframeEffect <> Value then
+  begin
+    FWireframeEffect := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSolidWireframeScale(const Value: Single);
+begin
+  if FSolidWireframeScale <> Value then
+  begin
+    FSolidWireframeScale := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSolidWireframeBias(const Value: Single);
+begin
+  if FSolidWireframeBias <> Value then
+  begin
+    FSolidWireframeBias := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSilhouetteScale(const Value: Single);
+begin
+  if FSilhouetteScale <> Value then
+  begin
+    FSilhouetteScale := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSilhouetteBias(const Value: Single);
+begin
+  if FSilhouetteBias <> Value then
+  begin
+    FSilhouetteBias := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetRobustNegativeScale(const Value: Boolean);
+begin
+  if FRobustNegativeScale <> Value then
+  begin
+    FRobustNegativeScale := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetWholeSceneManifold(const Value: Boolean);
+begin
+  if FWholeSceneManifold <> Value then
+  begin
+    FWholeSceneManifold := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetColorChannels(const Value: TColorChannels);
+begin
+  if FColorChannels <> Value then
+  begin
+    FColorChannels := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetMaxLightsPerShape(const Value: Cardinal);
+begin
+  if FMaxLightsPerShape <> Value then
+  begin
+    FMaxLightsPerShape := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetInternalCustomShader(const Value: TObject);
+begin
+  if FInternalCustomShader <> Value then
+  begin
+    FInternalCustomShader := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetInternalCustomShaderAlphaTest(const Value: TObject);
+begin
+  if FInternalCustomShaderAlphaTest <> Value then
+  begin
+    FInternalCustomShaderAlphaTest := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetDepthTest(const Value: Boolean);
+begin
+  if FDepthTest <> Value then
+  begin
+    FDepthTest := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetReceiveSceneLights(const Value: Boolean);
+begin
+  if FReceiveSceneLights <> Value then
+  begin
+    FReceiveSceneLights := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetReceiveGlobalLights(const Value: Boolean);
+begin
+  if FReceiveGlobalLights <> Value then
+  begin
+    FReceiveGlobalLights := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSolidColor(const Value: TCastleColorRGB);
+begin
+  if not TCastleColorRGB.PerfectlyEquals(FSolidColor, Value) then
+  begin
+    FSolidColor := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetPointSize(const Value: Single);
+begin
+  if FPointSize <> Value then
+  begin
+    FPointSize := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetLineWidth(const Value: Single);
+begin
+  if FLineWidth <> Value then
+  begin
+    FLineWidth := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetBumpMappingParallaxHeight(const Value: Single);
+begin
+  if FBumpMappingParallaxHeight <> Value then
+  begin
+    FBumpMappingParallaxHeight := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetLighting(const Value: Boolean);
+begin
+  if FLighting <> Value then
+  begin
+    FLighting := Value;
+    UpdateHash;
+  end;
 end;
 
 {$define read_implementation_methods}

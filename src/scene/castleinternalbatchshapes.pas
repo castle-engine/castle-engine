@@ -79,14 +79,14 @@ type
       FPoolGeometries: TGroupNode;
       LogIncreaseSlotsDone: Boolean;
 
-    { Add Source into Target.
-      You can assume that Target is one of our pool shapes,
+    { Add CollectedSource into CollectedTarget.
+      You can assume that CollectedTarget is one of our pool shapes,
       with initial state and geometry calculated by InitializePool. }
-    procedure Merge(const TransformedTarget, TransformedSource: TCollectedShape;
+    procedure Merge(const CollectedTarget, CollectedSource: TCollectedShape;
       const P: TMergePipeline; const FirstMerge: Boolean);
 
     { Clear any possible leftovers from Merge, where a given shape was Target. }
-    procedure ClearMerge(const TransformedTarget: TCollectedShape;
+    procedure ClearMerge(const CollectedTarget: TCollectedShape;
       const P: TMergePipeline);
 
     { Similar to TAbstractGeometryNode.InternalCoordinates, but for tex coords. }
@@ -117,7 +117,7 @@ type
       shape. Returns @true if the shape was added to @link(Batched),
       otherwise it was not, and should be rendered by the caller immediately
       without the help of batching. }
-    function Batch(const TransformedShape: TCollectedShape): Boolean;
+    function Batch(const CollectedShape: TCollectedShape): Boolean;
 
     procedure Commit;
 
@@ -253,7 +253,7 @@ begin
   end;
 end;
 
-function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
+function TBatchShapes.Batch(const CollectedShape: TCollectedShape): Boolean;
 
   { Is this Shape suitable to consider for merging with @italic(anything).
     If yes, then we also determine the proper TMergePipeline. }
@@ -335,7 +335,7 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
   { Can two given shapes be merged.
     Assumes that both shapes already passed MergeableWithAnything test,
     and have the same TMergePipeline. }
-  function Mergeable(const Shape1, Shape2: TGLShape;
+  function Mergeable(const CollectedShape1, CollectedShape2: TCollectedShape;
     const P: TMergePipeline): Boolean;
 
     function IndexedFaceSetContentsMatch(const I1, I2: TIndexedFaceSetNode): Boolean;
@@ -529,9 +529,12 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
     end;
 
   var
+    Shape1, Shape2: TGLShape;
     Geometry1, Geometry2: TAbstractGeometryNode;
     State1, State2: TX3DGraphTraverseState;
   begin
+    Shape1 := CollectedShape1.Shape;
+    Shape2 := CollectedShape2.Shape;
     Geometry1 := Shape1.Geometry;
     Geometry2 := Shape2.Geometry;
     State1 := Shape1.State;
@@ -547,13 +550,15 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
       (Shape1.Node.Shading = Shape2.Node.Shading) and
       LightsMatch(State1.Lights, State2.Lights) and
       (State1.ClipPlanes = State2.ClipPlanes) and
-      (State1.Effects = State2.Effects);
+      (State1.Effects = State2.Effects) and
+      (CollectedShape1.RenderOptions.Equals(CollectedShape2.RenderOptions)) and
+      (CollectedShape1.DepthRange = CollectedShape2.DepthRange);
   end;
 
   { Find a slot in Shapes[P] which is non-nil and can be merged with Shape.
     Assumes that for Shape, we already determined given TMergePipeline. }
   function FindMergeable(const Shapes: TMergingShapes;
-    const P: TMergePipeline; const Shape: TGLShape;
+    const P: TMergePipeline; const CollectedShape: TCollectedShape;
     out MergeSlot: TMergeSlot): Boolean;
   var
     MS: TMergeSlot;
@@ -561,7 +566,7 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
     for MS := Low(TMergeSlot) to High(TMergeSlot) do
     begin
       if Shapes[P, MS] <> nil then
-        if Mergeable(Shape, Shapes[P, MS].Shape, P) then
+        if Mergeable(CollectedShape, Shapes[P, MS], P) then
         begin
           MergeSlot := MS;
           Exit(true);
@@ -578,7 +583,7 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
     Called must first check that FPool[P, Slot] was not used for anything
     (e.g. by checking that FMergeTarget[P, Slot] is nil). }
   procedure InitialMerge(
-    const TransformedShape1, TransformedShape2: TCollectedShape;
+    const CollectedShape1, CollectedShape2: TCollectedShape;
     const P: TMergePipeline; const Slot: TMergeSlot);
   begin
     {$ifdef CASTLE_DEBUG_BATCHING}
@@ -588,8 +593,8 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
     FMergeTarget[P, Slot] := FPool[P, Slot];
     FBatched.Add(FMergeTarget[P, Slot]);
     ClearMerge(FMergeTarget[P, Slot], P);
-    Merge(FMergeTarget[P, Slot], TransformedShape1, P, true);
-    Merge(FMergeTarget[P, Slot], TransformedShape2, P, false);
+    Merge(FMergeTarget[P, Slot], CollectedShape1, P, true);
+    Merge(FMergeTarget[P, Slot], CollectedShape2, P, false);
   end;
 
   function AllocateSlot(const P: TMergePipeline; out Slot: TMergeSlot): Boolean;
@@ -603,7 +608,7 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
   end;
 
   var
-    Shape: TGLShape; //< Shortcut for TransformedShape.Shape
+    Shape: TGLShape; //< Shortcut for CollectedShape.Shape
 
   { Algorithm specific for PreserveShapeOrder=true case. }
   procedure DoPreserveShapeOrder;
@@ -633,26 +638,23 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
       if (FOrderPreviousShape <> nil) and
          (not FOrderPreviousShapeMerging) then
         FBatched.Add(FOrderPreviousShape);
-      FBatched.Add(TransformedShape);
+      FBatched.Add(CollectedShape);
       FOrderPreviousShape := nil;
       FOrderPreviousShapeMerging := false;
       Handled := true;
     end else
     if (FOrderPreviousShape <> nil) and
        (FOrderPreviousShapePipeline = P) and
-       {TODO:TransformedShape check render options}
-       //Mergeable(FOrderPreviousShape, TransformedShape, P)
-       Mergeable(FOrderPreviousShape.Shape, Shape, P)
-       then
+       Mergeable(FOrderPreviousShape, CollectedShape, P) then
     begin
       if FOrderPreviousShapeMerging then
       begin
-        Merge(FOrderPreviousShape, TransformedShape, P, false);
+        Merge(FOrderPreviousShape, CollectedShape, P, false);
         Handled := true;
       end else
       if AllocateSlot(P, Slot) then
       begin
-        InitialMerge(FOrderPreviousShape, TransformedShape, P, Slot);
+        InitialMerge(FOrderPreviousShape, CollectedShape, P, Slot);
         FOrderPreviousShape := FMergeTarget[P, Slot];
         FOrderPreviousShapeMerging := true;
         Handled := true;
@@ -666,7 +668,7 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
       if (FOrderPreviousShape <> nil) and
          (not FOrderPreviousShapeMerging) then
         FBatched.Add(FOrderPreviousShape);
-      FOrderPreviousShape := TransformedShape;
+      FOrderPreviousShape := CollectedShape;
       FOrderPreviousShapePipeline := P;
       FOrderPreviousShapeMerging := false;
     end;
@@ -687,18 +689,18 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
       - or one of the previous shapes, not yet during merging (only on FUnorderedPreviousShapes)
       - or we place it in a new slot, waiting for possible merge in the future. }
 
-    if FindMergeable(FUnorderedPreviousShapes, P, Shape, Slot) then
+    if FindMergeable(FUnorderedPreviousShapes, P, CollectedShape, Slot) then
     begin
       if FMergeTarget[P, Slot] <> nil then
       begin
         { Slot in the middle of merging, so merge more. }
-        Merge(FMergeTarget[P, Slot], TransformedShape, P, false);
+        Merge(FMergeTarget[P, Slot], CollectedShape, P, false);
       end else
       begin
         { Slot not yet merging, so start merging.
           This will set FMergeTarget[P, Slot], so next shapes will know we are in the middle
           of merging. }
-        InitialMerge(FUnorderedPreviousShapes[P, Slot], TransformedShape, P, Slot);
+        InitialMerge(FUnorderedPreviousShapes[P, Slot], CollectedShape, P, Slot);
         Assert(FMergeTarget[P, Slot] <> nil);
         FUnorderedPreviousShapes[P, Slot] := FMergeTarget[P, Slot];
       end;
@@ -719,7 +721,7 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
         The advantage would be that we don't need so many MergeSlots
         in case of PreserveShapeOrder=false to be efficient, in some cases.
       }
-      FUnorderedPreviousShapes[P, Slot] := TransformedShape;
+      FUnorderedPreviousShapes[P, Slot] := CollectedShape;
     end else
     begin
       DoLogIncreaseSlots;
@@ -728,7 +730,7 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
   end;
 
 begin
-  Shape := TransformedShape.Shape;
+  Shape := CollectedShape.Shape;
   if PreserveShapeOrder then
     DoPreserveShapeOrder
   else
@@ -847,7 +849,7 @@ begin
 end;
 
 procedure TBatchShapes.Merge(
-  const TransformedTarget, TransformedSource: TCollectedShape;
+  const CollectedTarget, CollectedSource: TCollectedShape;
   const P: TMergePipeline; const FirstMerge: Boolean);
 var
   Target, Source: TGLShape;
@@ -858,8 +860,8 @@ var
   IndexTarget, IndexSource: TInt32List;
   OldCoordCount, I: Integer;
 begin
-  Target := TransformedTarget.Shape;
-  Source := TransformedSource.Shape;
+  Target := CollectedTarget.Shape;
+  Source := CollectedSource.Shape;
   StateTarget := Target.State;
   StateSource := Source.State;
   MeshTarget := Target.Geometry as TAbstractComposedGeometryNode;
@@ -886,19 +888,21 @@ begin
       TIndexedFaceSetNode(MeshTarget).FdCreaseAngle    .Value := TIndexedFaceSetNode(MeshSource).FdCreaseAngle    .Value;
     end;
 
-    { TODO: check before merging that RenderOptions hashes equal,
-      or targer (from pool) can be overridden. }
-    TransformedTarget.RenderOptions := TransformedSource.RenderOptions;
-    Target.OverrideRenderOptions := TransformedSource.RenderOptions;
+    CollectedTarget.DepthRange := CollectedSource.DepthRange;
+
+    { Assign RenderOptions. }
+    CollectedTarget.RenderOptions := CollectedSource.RenderOptions;
+    Target.OverrideRenderOptions := CollectedSource.RenderOptions;
   end;
+
+  { Shapes to which we merge should have SceneTransform = identity always. }
+  Assert(TMatrix4.PerfectlyEquals(CollectedTarget.SceneTransform, TMatrix4.Identity));
 
   CoordTarget := MeshTarget.InternalCoordinates(StateTarget);
   CoordSource := MeshSource.InternalCoordinates(StateSource);
   OldCoordCount := CoordTarget.Count;
-  { TODO: guarantee that target SceneTransform is identity,
-    document and check code for this. }
   CoordTarget.Items.AddRangeTransformed(CoordSource.Items,
-    TransformedSource.SceneTransform *
+    CollectedSource.SceneTransform *
     StateSource.Transformation.Transform);
 
   if P in MergePipelinesWithTexCoord then
@@ -924,7 +928,7 @@ begin
   end;
 end;
 
-procedure TBatchShapes.ClearMerge(const TransformedTarget: TCollectedShape;
+procedure TBatchShapes.ClearMerge(const CollectedTarget: TCollectedShape;
   const P: TMergePipeline);
 var
   Target: TGLShape;
@@ -934,14 +938,15 @@ var
   TexCoordTarget: TMFVec2f;
   IndexTarget: TInt32List;
 begin
-  // TODO check: not really needed, we never modify SceneTransform of merge targets?
-  TransformedTarget.SceneTransform := TMatrix4.Identity;
+  { Shapes to which we merge should have SceneTransform = identity always. }
+  Assert(TMatrix4.PerfectlyEquals(CollectedTarget.SceneTransform, TMatrix4.Identity));
 
-  Target := TransformedTarget.Shape;
+  Target := CollectedTarget.Shape;
 
-  // not really needed, Merge always overrides it
+  { Clearing this is not really needed now, Merge always overrides it.
+    But better clear it to be safe, instead of having potentially dangling pointer. }
   Target.OverrideRenderOptions := nil;
-  TransformedTarget.RenderOptions := nil;
+  CollectedTarget.RenderOptions := nil;
 
   StateTarget := Target.State;
   MeshTarget := Target.Geometry as TAbstractComposedGeometryNode;
