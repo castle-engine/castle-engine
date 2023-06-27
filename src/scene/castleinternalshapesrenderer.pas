@@ -370,7 +370,8 @@ begin
   else
     DepthRange := CollectedShape.DepthRange;
 
-  FBlendingRenderer.BeforeRenderShape(Shape);
+  FBlendingRenderer.BeforeRenderShape(Shape, CollectedShape.RenderOptions);
+
   Renderer.RenderShape(Shape,
     CollectedShape.RenderOptions, CollectedShape.SceneTransform, DepthRange);
 end;
