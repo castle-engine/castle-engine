@@ -52,7 +52,7 @@
     public property FdAutoCenterOfRotation: TSFBool read FFdAutoCenterOfRotation;
     { When @true, the center of rotation is automatically calculated looking at the middle of scene bounding box. The @link(CenterOfRotation) value is ignored then.
 
-This field is a Castle Game Engine extension of the X3D standard. The default value (@false) makes behavior compatible with X3D standard. Note that, in contrast, @link(TCastleExamineNavigation.AutoCenterOfRotation) default is @true -- because TCastleExamineNavigation doesn't have to match X3D standard, and the default @true makes it work out-of-the-box on more scenes. }
+      This field is a Castle Game Engine extension of the X3D standard. The default value (@false) makes behavior compatible with X3D standard. Note that, in contrast, @link(TCastleExamineNavigation.AutoCenterOfRotation) default is @true -- because TCastleExamineNavigation doesn't have to match X3D standard, and the default @true makes it work out-of-the-box on more scenes. }
     property AutoCenterOfRotation: Boolean read GetAutoCenterOfRotation write SetAutoCenterOfRotation;
 
     strict private FFdCenterOfRotation: TSFVec3f;

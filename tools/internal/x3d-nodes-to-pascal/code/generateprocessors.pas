@@ -946,7 +946,10 @@ var
       S := F.Readln;
       if Trim(S) = '"""' then
         Exit;
-      Result := Result + Trim(S) + NL;
+      { Note: do not Trim(S) below, to not break indent in @longCode
+        used within X3D fields docs, like BlendingSort,
+        file:///home/michalis/sources/castle-engine/castle-engine/doc/reference/X3DNodes.TNavigationInfoNode.html#BlendingSort }
+      Result := Result + S + NL;
     until false;
   end;
 
