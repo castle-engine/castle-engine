@@ -55,7 +55,7 @@ import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 public class ServiceAdMob extends ServiceAbstract
 {
     private static final String CATEGORY = "ServiceAdMob";
-    private final boolean debug = true; // set to true for debug (more logs)
+    private final boolean debug = false; // set to true for debug (more logs)
 
     private static final int NO_ERROR = -1; // no error constant
 
