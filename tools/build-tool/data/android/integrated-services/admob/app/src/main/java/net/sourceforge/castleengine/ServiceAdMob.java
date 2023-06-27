@@ -380,7 +380,20 @@ public class ServiceAdMob extends ServiceAbstract
         // Place the AdView in a PopupWindow.
         AdView adView = new AdView(getActivity());
         adView.setAdUnitId(mBannerUnitId);
-        adView.setAdSize(AdSize.SMART_BANNER);
+        AdSize size = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(getActivity(), AdSize.FULL_WIDTH);
+        if (size == AdSize.INVALID) {
+            if (debug) {
+                logInfo(CATEGORY, "getCurrentOrientationAnchoredAdaptiveBannerAdSize - failed");
+            }
+            size = AdSize.FLUID;
+
+        } else {
+            if (debug) {
+                logInfo(CATEGORY, "getCurrentOrientationAnchoredAdaptiveBannerAdSize - succeed");
+            }
+        }
+        
+        adView.setAdSize(size);
 
         adPopup = new ActivityPopup(this, gravity, adView);
 
