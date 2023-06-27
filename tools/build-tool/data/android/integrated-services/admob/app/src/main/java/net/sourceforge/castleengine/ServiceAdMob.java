@@ -1,7 +1,7 @@
 /* -*- tab-width: 4 -*- */
 
 /*
-  Copyright 2018-2020 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis, Andrzej Kilijanski.
 
   This file is part of "Castle Game Engine".
 
@@ -14,12 +14,12 @@
 
   ----------------------------------------------------------------------------
 */
-
 package net.sourceforge.castleengine;
 
 import android.util.Log;
 import android.view.View;
 
+// needed for @NotNull
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.ads.MobileAds;
@@ -39,29 +39,15 @@ import com.google.android.gms.ads.RequestConfiguration;
 // banner ads
 import com.google.android.gms.ads.AdView;
 
-// interstitialAd
+// interstitial ads
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
-
-// revarded Ad
+// rewarded ads
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardItem;
 import com.google.android.gms.ads.OnUserEarnedRewardListener;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
-
-/*
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.InterstitialAd;
-import com.google.android.gms.ads.AdListener;
-
-import com.google.android.gms.ads.reward.RewardedVideoAd;
-import com.google.android.gms.ads.reward.RewardedVideoAdListener;
-import com.google.android.gms.ads.reward.RewardItem;
-*/
-
 
 /**
  * Integration of Google Ads (AdMob) with Castle Game Engine.
@@ -69,7 +55,7 @@ import com.google.android.gms.ads.reward.RewardItem;
 public class ServiceAdMob extends ServiceAbstract
 {
     private static final String CATEGORY = "ServiceAdMob";
-    private final boolean debug = false; // set to true for debug (more logs)
+    private final boolean debug = true; // set to true for debug (more logs)
 
     private static final int NO_ERROR = -1; // no error constant
 
@@ -118,15 +104,12 @@ public class ServiceAdMob extends ServiceAbstract
         testDeviceIds = aTestDeviceIds;
 
         // MobileAds initialize - should be done before loading of any ad:
-
         MobileAds.initialize(getActivity(), new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(InitializationStatus initializationStatus) {
-                
+                // TODO: should we return initialization errors? Older admob version didn't have that
             }
         });
-
-        ///MobileAds.initialize(getActivity(), "${ANDROID.ADMOB.APP_ID}");
 
         setConfiguration();
         interstitialInitialize();
@@ -167,79 +150,58 @@ public class ServiceAdMob extends ServiceAbstract
         if (mInterstitialUnitId.equals(""))
             return;
 
-        /*
-        // Create the interstitial.
-        interstitial = new InterstitialAd(getActivity());
-        interstitial.setAdUnitId(mInterstitialUnitId);
-        // Set an AdListener.
-        interstitial.setAdListener(new AdListener() {
-            @Override
-            public void onAdLoaded() {
-                if (debug) {
-                    logInfo(CATEGORY, "onAdLoaded");
-                }
-                failedToLoadInterstitialLastTime = false;
-                interstitialIsLoading = false;
-                if (interstitialOpenWhenLoaded) {
-                    interstitialOpenWhenLoaded = false;
-                    logInfo(CATEGORY, "Show ad after waiting for ad.");
-                    interstitial.show();
-                }
-            }
-
-            @Override
-            public void onAdFailedToLoad(int errorCode)  {
-                if (debug) {
-                    logInfo(CATEGORY, "onAdFailedToLoad");
-                }
-                failedToLoadInterstitialLastTime = true;
-                interstitialLastErroCode = errorCode;
-                interstitialIsLoading = false;
-                if (interstitialOpenWhenLoaded) {
-                    // this is correct only when we waited for ad and now need return
-                    fullScreenAdClosedWithError(errorCode);
-                }
-                interstitialOpenWhenLoaded = false;
-            }
-
-            @Override
-            public void onAdClosed() {
-                if (debug) {
-                    logInfo(CATEGORY, "Ad Closed");
-                }
-                fullScreenAdClosed(TAdWatchStatus.wsWatched);
-                loadInterstitial(); // load next ad
-            }
-        });
-        */
-
         interstitialFullScreenContentCallback = new FullScreenContentCallback() {
-             @Override
-             public void onAdDismissedFullScreenContent() {
-                if (debug) {
-                    logInfo(CATEGORY, "Ad Closed");
-                }
-                interstitial = null;
-                fullScreenAdClosed(TAdWatchStatus.wsWatched);
-                loadInterstitial(); // load next ad
-             }
-         };
+        @Override
+        public void onAdClicked() {
+            // Called when a click is recorded for an ad.
+            if (debug) {
+                logInfo(CATEGORY, "interstitial - onAdClicked");
+            }
+        }
+
+        @Override
+        public void onAdDismissedFullScreenContent() {
+            if (debug) {
+                logInfo(CATEGORY, "interstitial - Ad Closed");
+            }
+            interstitial = null;
+            fullScreenAdClosed(TAdWatchStatus.wsWatched);
+            loadInterstitial(); // load next ad
+        }
+
+        @Override
+        public void onAdFailedToShowFullScreenContent(AdError adError) {
+            // Called when ad fails to show.
+            if (debug) {
+                logInfo(CATEGORY, "interstitial - onAdFailedToShowFullScreenContent");
+            }
+            interstitial = null;
+            loadInterstitial(); // load next ad
+        }
+
+        @Override
+        public void onAdImpression() {
+            // Called when an impression is recorded for an ad.
+            if (debug) {
+                logInfo(CATEGORY, "interstitial - onAdImpression");
+            }
+        }
+
+        @Override
+        public void onAdShowedFullScreenContent() {
+            // Called when ad is shown.
+            if (debug) {
+                logInfo(CATEGORY, "interstitial - onAdShowedFullScreenContent");
+            }
+        }
+
+        };
 
         // Begin loading your interstitial.
         loadInterstitial();
     }
 
     public void loadInterstitial() {
-        /*failedToLoadInterstitialLastTime = false;
-        if (!interstitial.isLoaded()) {
-            if (debug) {
-                logInfo(CATEGORY, "Started loading interstitial.");
-            }
-            interstitialIsLoading = true;
-            interstitialLastErroCode = NO_ERROR;
-            interstitial.loadAd(buildAdRequest());
-        }*/
-
         if (mInterstitialUnitId.equals(""))
             return;
 
@@ -254,7 +216,7 @@ public class ServiceAdMob extends ServiceAbstract
             @Override
             public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
                 if (debug) {
-                    logInfo(CATEGORY, "onAdLoaded");
+                    logInfo(CATEGORY, "interstitial - onAdLoaded");
                 }
                 // The interstitial reference will be null until an ad is loaded.
                 interstitial = interstitialAd;
@@ -293,90 +255,6 @@ public class ServiceAdMob extends ServiceAbstract
         if (mRewardedUnitId.equals(""))
             return;
 
-        /*
-        rewarded = MobileAds.getRewardedVideoAdInstance(getActivity());
-
-        // Set a RewardedVideoAdListener.
-        rewarded.setRewardedVideoAdListener(new RewardedVideoAdListener()
-        {
-            @Override
-            public void onRewarded(RewardItem reward) {
-                if (debug) {
-                    logInfo(CATEGORY, "onRewarded");
-                }   
-                rewardedWatched = true;
-            }
-            
-            @Override
-            public void onRewardedVideoAdClosed() {
-                if (debug) {
-                    logInfo(CATEGORY, "onRewardedVideoAdClosed");
-                }
-                loadRewarded();
-                if (rewardedWatched)
-                    fullScreenAdClosed(TAdWatchStatus.wsWatched);
-                else
-                    fullScreenAdClosed(TAdWatchStatus.wsUserAborted);
-                rewardedWatched = false;
-            }
-
-            @Override
-            public void onRewardedVideoAdFailedToLoad(int errorCode) {
-                if (debug) {
-                    logInfo(CATEGORY, "onRewardedVideoAdFailedToLoad");
-                }
-                failedToLoadRewardedLastTime = true;
-                rewardedIsLoading = false;
-                rewardedLastErroCode = errorCode;
-                if (rewardedOpenWhenLoaded) {
-                    // this is correct only when we waited for ad and now need return 
-                    fullScreenAdClosedWithError(errorCode);
-                }
-                rewardedOpenWhenLoaded = false;
-            }
-
-            @Override
-            public void onRewardedVideoAdLoaded() {
-                if (debug) {
-                    logInfo(CATEGORY, "onRewardedVideoAdLoaded");
-                }
-                rewardedIsLoading = false;
-                if (rewardedOpenWhenLoaded) {
-                    rewardedOpenWhenLoaded = false;
-                    logInfo(CATEGORY, "Show ad after waiting for ad.");
-                    rewarded.show();
-                }
-            }
-
-            @Override
-            public void onRewardedVideoAdLeftApplication() {
-                if (debug) {
-                    logInfo(CATEGORY, "onRewardedVideoAdLeftApplication");
-                }
-            }
-
-            @Override
-            public void onRewardedVideoAdOpened() {
-                if (debug) {
-                    logInfo(CATEGORY, "onRewardedVideoAdOpened");
-                }
-            }
-
-            @Override
-            public void onRewardedVideoStarted() {
-                if (debug) {
-                    logInfo(CATEGORY, "onRewardedVideoStarted");
-                }
-            }
-
-            @Override
-            public void onRewardedVideoCompleted() {
-                if (debug) {
-                    logInfo(CATEGORY, "onRewardedVideoCompleted");
-                }
-            }
-        });
-        */
         rewardedFullScreenContentCallback = new FullScreenContentCallback() {
         @Override
         public void onAdClicked() {
@@ -487,16 +365,6 @@ public class ServiceAdMob extends ServiceAbstract
                 }
             }
         });
-
-        /*failedToLoadRewardedLastTime = false;
-        if (!rewarded.isLoaded()) {
-            if (debug) {
-                logInfo(CATEGORY, "Started loading rewarded video.");
-            }
-            rewardedIsLoading = true;
-            rewardedLastErroCode = NO_ERROR;
-            rewarded.loadAd(mRewardedUnitId, buildAdRequest());
-        }*/
     }
 
     private void bannerShow(int gravity)
@@ -527,19 +395,6 @@ public class ServiceAdMob extends ServiceAbstract
         List<String> testDeviceIdsList = Arrays.asList(testDeviceIds);
         RequestConfiguration configuration = new RequestConfiguration.Builder().setTestDeviceIds(testDeviceIdsList).build();
         MobileAds.setRequestConfiguration(configuration);
-
-        /* addTestDevice calls are not strictly needed,
-           https://developers.google.com/mobile-ads-sdk/docs/admob/android/quick-start
-           if you use a "test ad id".
-           But they are useful to test ads with real ad id,
-           this way on specific devices the ads are still test. */
-        /*
-        builder = builder.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
-        for (String id : testDeviceIds) {
-            builder = builder.addTestDevice(id);
-        }
-        return builder.build();
-        */
     }
 
     private void bannerHide()
