@@ -211,6 +211,9 @@ procedure TOcclusionCullingRenderer.Render(const CollectedShape: TCollectedShape
   function SceneMultipleInstances: Boolean;
   begin
     Result :=
+      { Note that Shape.ParentScene is useless when batching (always nil
+        for batched shapes)... but luckily, occlusion culling is never used
+        together with batching. }
       (CollectedShape.Shape.ParentScene <> nil) and
       (CollectedShape.Shape.ParentScene.InternalWorldReferences > 1);
   end;

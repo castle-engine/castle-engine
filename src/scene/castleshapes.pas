@@ -161,10 +161,13 @@ type
       This is cached, so it's usually instant, in contrast to ShapesCount. }
     function MaxShapesCount: Integer;
 
-    { Parent TCastleSceneCore instance. This cannot be declared here as
-      TCastleSceneCore (this would create circular unit dependency),
-      but it always is TCastleSceneCore.
-      May be @nil (now used by shapes created for batching, that don't belong
+    { Parent TCastleScene instance.
+
+      This cannot be declared here as TCastleScene or TCastleSceneCore
+      (this would create circular unit dependency),
+      but it always is TCastleScene.
+
+      May be @nil (used by shapes created for batching, that don't belong
       to any scene). }
     property ParentScene: TX3DEventsEngine read FParentScene write FParentScene;
 
