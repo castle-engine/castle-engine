@@ -228,12 +228,12 @@ begin
   if RenderInternalModel then
   begin
     FScene.RenderOptions.Mode := rmFull;
-    FScene.RenderOptions.ColorChannels := AllColorChannels;
+    FScene.RenderOptions.InternalColorChannels := AllColorChannels;
   end else
   begin
     // render scene only to depth buffer
     FScene.RenderOptions.Mode := rmDepth;
-    FScene.RenderOptions.ColorChannels := [];
+    FScene.RenderOptions.InternalColorChannels := [];
   end;
 end;
 

@@ -566,7 +566,7 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
     RenderContext.PointSize := RenderOptions.PointSize;
     RenderContext.LineWidth := RenderOptions.LineWidth;
     RenderContext.DepthTest := RenderOptions.DepthTest;
-    RenderContext.ColorChannels := RenderOptions.ColorChannels;
+    RenderContext.ColorChannels := RenderOptions.InternalColorChannels;
 
     LightsRenderer.MaxLightsPerShape := RenderOptions.MaxLightsPerShape;
   end;

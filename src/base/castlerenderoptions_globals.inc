@@ -426,11 +426,11 @@ type
   );
 
   { Possible color channel to write,
-    see @link(TCastleRenderOptions.ColorChannels). }
+    see @link(TCastleRenderOptions.InternalColorChannels). }
   TColorChannel = 0..3;
 
   { Possible subset of color channels to write,
-    see @link(TCastleRenderOptions.ColorChannels). }
+    see @link(TCastleRenderOptions.InternalColorChannels). }
   TColorChannels = set of TColorChannel;
 
   { Possible values of @link(TRenderContext.DepthRange) and

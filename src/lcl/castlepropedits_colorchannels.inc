@@ -14,7 +14,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Editors for TColorChannels (TCastleRenderOptions.ColorChannels property). }
+{ Editors for TColorChannels (TCastleRenderOptions.InternalColorChannels property),
+  unused now (as property is no longer published). }
 
 type
   { Property editor for TColorChannels }

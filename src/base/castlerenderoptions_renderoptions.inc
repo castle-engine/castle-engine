@@ -183,6 +183,16 @@ type
       Default value is DefaultWireframeColor. }
     property WireframeColor: TCastleColorRGB
       read FWireframeColor write SetWireframeColor;
+
+    { Which color buffer channels (RGBA) to write when rendering this model.
+
+      This makes a cool effect, avoiding writing to some color channels,
+      but writing others, and writing depth buffer.
+      This property may change to be non-internal some day, please report
+      on Castle Game Engine forum / Discord / GitHub
+      ( https://castle-engine.io/talk.php ) if you find it useful. }
+    property InternalColorChannels: TColorChannels
+      read FColorChannels write SetColorChannels default AllColorChannels;
   published
     { Enable real-time lighting when rendering. }
     property Lighting: boolean read FLighting write SetLighting default true;
@@ -439,10 +449,6 @@ type
       weird artifacts. }
     property WholeSceneManifold: Boolean
       read FWholeSceneManifold write SetWholeSceneManifold default false;
-
-    { Which color buffer channels (RGBA) to write when rendering this model. }
-    property ColorChannels: TColorChannels
-      read FColorChannels write SetColorChannels default AllColorChannels;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
