@@ -94,39 +94,12 @@ type
       DefaultPhongShading = true;
       DefaultMaxLightsPerShape = 64;
 
-      { }
+      { Default value of @link(TCastleRenderOptions.BlendingSourceFactor).
+        This is the typical blending operation. }
       DefaultBlendingSourceFactor = bsSrcAlpha;
 
-      { Default value of Attributes.BlendingDestinationFactor.
-        See TCastleRenderOptions.BlendingDestinationFactor.
-
-        Using bdOneMinusSrcAlpha is the standard and follows most intuitive
-        transparency equation. However, it can show artifacts
-        when multiple transparent shapes are visible on the same screen pixel.
-        Solutions:
-
-        @orderedList(
-          @item(For closed convex 3D objects, use backface culling.
-
-            To do this, set on geometries @link(TAbstractGeometryNode.Solid)
-            to @true, this activates backface culling.
-
-            In practice you usually set this in a 3D authoring application,
-            like Blender. This is called just "Backface Culling" in Blender,
-            checkbox is in the Blender material properties.
-            This information is then exported to glTF or X3D and just used
-            by CGE.)
-
-          @item(When multiple transparent shapes are possible,
-            sort the transparent shapes, using
-            @link(TCastleAbstractRootTransform.BlendingSort).)
-        )
-
-        Another blending effect may be achieved by using bdOne.
-        This doesn't require sorting
-        and never has problems with multiple transparent shapes.
-        On the other hand, it only adds to the color,
-        often making too bright results. }
+      { Default value of @link(TCastleRenderOptions.BlendingDestinationFactor).
+        This is the typical blending operation. }
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
 
       DefaultWireframeColor: TCastleColorRGB = (X: 0; Y: 0; Z: 0);
@@ -406,12 +379,68 @@ type
       read FBlending write SetBlending default true;
 
     { Blending function parameters, used when @link(Blending).
-      Note that this is only a default, each model can override this
-      for specific shapes using @link(TBlendModeNode).
-      See https://castle-engine.io/x3d_extensions.php#section_ext_blending for details of TBlendModeNode.
 
       See https://castle-engine.io/blending
-      for details how it works.
+      for more information about blending.
+
+      For the exact meaning of BlendingSourceFactor and BlendingDestinationFactor
+      consult OpenGL specification of glBlendFunc,
+      https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml .
+      Regardless of whether we use OpenGL for rendering, these properties
+      and their values will reflect the equations there.
+
+      The typical blending setup (default) is to use
+
+      @unorderedList(
+        @item(BlendingSourceFactor =
+          DefaultBlendingSourceFactor =
+          bsSrcAlpha.)
+        @item(BlendingDestinationFactor =
+          DefaultBlendingDestinationFactor =
+          bdOneMinusSrcAlpha.
+        )
+      )
+
+      This is the standard that follows most intuitive transparency equation.
+      The major drawback of this default (and why you may want to consider
+      alternatives) is that it depends on a correct order of rendering
+      partially-transparent shapes.
+
+      CGE allows to cope with it:
+
+      @orderedList(
+        @item(When multiple transparent shapes are possible,
+          sort the transparent shapes, using
+          @link(TCastleAbstractRootTransform.BlendingSort).
+
+          Note that it cannot
+          be perfect in certain cases (like when transparent shape is one, concave,
+          mesh).
+        )
+
+        @item(For closed convex 3D objects, use backface culling.
+
+          To do this, set on geometries @link(TAbstractGeometryNode.Solid)
+          to @true, this activates backface culling.
+
+          In practice you usually set this in a 3D authoring application,
+          like Blender. This is called just "Backface Culling" in Blender,
+          checkbox is in the Blender material properties.
+          This information is then exported to glTF or X3D and just used
+          by CGE.)
+
+        @item(Finally, consider a different blending equation:
+
+          Changing BlendingDestinationFactor to bdOne means that sorting
+          isn't necessary. On the other hand, it only adds to the color,
+          often making too bright results.
+        )
+      )
+
+      Note that these properties can be overridden on each shape
+      using @link(TBlendModeNode).
+      See https://castle-engine.io/x3d_extensions.php#section_ext_blending
+      for details of TBlendModeNode.
 
       @groupBegin }
     property BlendingSourceFactor: TBlendingSourceFactor
