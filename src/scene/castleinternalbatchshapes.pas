@@ -511,7 +511,7 @@ function TBatchShapes.Batch(const TransformedShape: TCollectedShape): Boolean;
         (
           (A1 <> nil) and
           (A2 <> nil) and
-          (A1.FdTexture.Value          = A2.FdTexture         .Value) and
+          TexturesEqual(A1.FdTexture.Value, A2.FdTexture.Value) and
           (A1.FdTextureTransform.Value = A2.FdTextureTransform.Value) and
           AbstractMaterialsMatch(A1.Material, A2.Material)
         );
