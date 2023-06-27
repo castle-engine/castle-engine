@@ -59,6 +59,12 @@ type
 
     RenderOptions: TCastleRenderOptions;
 
+    { Custom shader to use, if non-nil:
+      Overrides whatever shaders have been determined
+      for the rendering (built-in CGE or from X3D file).
+      In practice, used now to set shaders when generating shadow maps. }
+    CustomShaders: TCustomShaders;
+
     constructor Create(ARenderer: TRenderer; AShape: TX3DRendererShape);
 
     { Render the whole geometry.
@@ -303,8 +309,8 @@ var
     end;
 
   begin
-    if RenderOptions.InternalCustomShader <> nil then
-      // right now CustomShader <> nil means "rendering to shadow map", so no need for any colors
+    if CustomShaders <> nil then
+      // right now CustomShaders <> nil means "rendering to shadow map", so no need for any colors
       MaterialUnlitExplicit(White)
     else
     if RenderOptions.Mode = rmSolidColor then
@@ -983,7 +989,7 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
     linking the shader). }
   procedure InitializeLightingModel;
   begin
-    if RenderOptions.InternalCustomShader <> nil then
+    if CustomShaders <> nil then
       Shader.LightingModel := lmUnlit
     else
     if RenderOptions.Mode = rmSolidColor then
@@ -1014,13 +1020,9 @@ begin
 
   InitializeLightingModel;
 
-  if RenderOptions.InternalCustomShader <> nil then
+  if CustomShaders <> nil then
   begin
-    if (RenderOptions.InternalCustomShaderAlphaTest <> nil) and
-       Shader.AlphaTest then
-      CurrentMeshShader := RenderOptions.InternalCustomShaderAlphaTest as TX3DShaderProgramBase
-    else
-      CurrentMeshShader := RenderOptions.InternalCustomShader as TX3DShaderProgramBase;
+    CurrentMeshShader := CustomShaders.Shader[Shader.AlphaTest];
   end else
   begin
     { Finalize Shader settings, before calculating Shader.CodeHash }

@@ -185,6 +185,7 @@ type
   {$I castleinternalrenderer_glsl.inc}
   {$I castleinternalrenderer_pass.inc}
   {$I castleinternalrenderer_shape.inc}
+  {$I castleinternalrenderer_custom_shaders.inc}
   {$I castleinternalrenderer_renderer.inc}
   {$I castleinternalrenderer_screen_effects.inc}
 
@@ -208,6 +209,7 @@ uses Math,
 {$I castleinternalrenderer_pass.inc}
 {$I castleinternalrenderer_shape.inc}
 {$I castleinternalrenderer_meshrenderer.inc} // must be before TRenderer
+{$I castleinternalrenderer_custom_shaders.inc}
 {$I castleinternalrenderer_renderer.inc}
 {$I castleinternalrenderer_resource.inc}
 {$I castleinternalrenderer_texture.inc}

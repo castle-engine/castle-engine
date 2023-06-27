@@ -26,6 +26,10 @@
       would be bottle-necks. }
     PreparedShader: TShader;
 
+    { Custom shaders for shadow maps.
+      Created on-demand, @nil initially. }
+    VarianceShadowMapsShaders, ShadowMapsShaders: TCustomShaders;
+
     { ------------------------------------------------------------
       Things usable only during Render. }
 
@@ -246,18 +250,11 @@ end;
 
 destructor TRenderer.Destroy;
 begin
-  { Call TComponent destructor early, to call notifications that cause
-    TGLShape.RendererDetach when everything related to renderer is still valid.
-
-    Testcase:
-    - create empty project,
-    - add 3D viewport to initial design,
-    - undo.
-    Without this fix, it will SEGFAULT. }
-  inherited;
-
   FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(PreparedShader);
+  FreeAndNil(ShadowMapsShaders);
+  FreeAndNil(VarianceShadowMapsShaders);
+  inherited;
 end;
 
 function TRenderer.BumpMapping(const RenderOptions: TCastleRenderOptions): TBumpMapping;
@@ -1442,6 +1439,33 @@ procedure TRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
   const Lighting: boolean;
   const GeneratorClass: TArraysGeneratorClass;
   const ExposedMeshRenderer: TObject);
+
+  procedure SetupShadowMapsGenerationShaders(const MeshRenderer: TMeshRenderer);
+  begin
+    case RenderingCamera.Target of
+      rtVarianceShadowMap:
+        begin
+          if VarianceShadowMapsShaders = nil then
+            VarianceShadowMapsShaders := TCustomShaders.Create(
+              '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.vs.inc},
+              '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.fs.inc});
+          MeshRenderer.CustomShaders := VarianceShadowMapsShaders;
+        end;
+      rtShadowMap:
+        begin
+          if ShadowMapsShaders = nil then
+            ShadowMapsShaders := TCustomShaders.Create(
+              {$I shadow_map_generate.vs.inc},
+              {$I shadow_map_generate.fs.inc});
+          MeshRenderer.CustomShaders := ShadowMapsShaders;
+        end;
+      else
+        begin
+          MeshRenderer.CustomShaders := nil;
+        end;
+    end;
+  end;
+
 var
   Generator: TArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;
@@ -1498,6 +1522,8 @@ begin
     CoordinateRenderer.BoundTextureUnits := BoundTextureUnits;
     CoordinateRenderer.Lighting := Lighting;
   end;
+
+  SetupShadowMapsGenerationShaders(TMeshRenderer(ExposedMeshRenderer));
 
   TMeshRenderer(ExposedMeshRenderer).PrepareRenderShape := RenderMode in [rmPrepareRenderSelf, rmPrepareRenderClones];
   TMeshRenderer(ExposedMeshRenderer).Render;

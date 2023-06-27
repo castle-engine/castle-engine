@@ -64,13 +64,6 @@ type
   TCastleScene = class(TCastleSceneCore)
   strict private
     type
-      TCustomShaders = record
-        Shader: TX3DShaderProgramBase;
-        ShaderAlphaTest: TX3DShaderProgramBase;
-        procedure Initialize(const VertexCode, FragmentCode: string);
-        procedure Finalize;
-      end;
-
       TSceneRenderOptions = class(TCastleRenderOptions)
       private
         OwnerScene: TCastleScene;
@@ -92,7 +85,6 @@ type
       { Used by UpdateGeneratedTextures, to avoid updating twice during the same render. }
       UpdateGeneratedTexturesFrameId: TFrameId;
 
-      VarianceShadowMapsProgram, ShadowMapsProgram: TCustomShaders;
       FDistanceCulling: Single;
 
       FReceiveShadowVolumes: Boolean;
@@ -505,53 +497,6 @@ uses Math,
 {$endif}
 {$undef read_implementation}
 
-{ TCastleScene.TCustomShaders ------------------------------------------------ }
-
-procedure TCastleScene.TCustomShaders.Initialize(const VertexCode, FragmentCode: string);
-
-  procedure DoInitialize(const VertexCode, FragmentCode: string);
-  begin
-    { create programs if needed }
-    if Shader = nil then
-    begin
-      Shader := TX3DShaderProgramBase.Create;
-      Shader.AttachVertexShader(VertexCode);
-      Shader.AttachFragmentShader(FragmentCode);
-      Shader.Link;
-    end;
-
-    if ShaderAlphaTest = nil then
-    begin
-      ShaderAlphaTest := TX3DShaderProgramBase.Create;
-      ShaderAlphaTest.AttachVertexShader('#define ALPHA_TEST' + NL + VertexCode);
-      ShaderAlphaTest.AttachFragmentShader('#define ALPHA_TEST' + NL + FragmentCode);
-      ShaderAlphaTest.Link;
-    end;
-  end;
-
-begin
-  try
-    DoInitialize(VertexCode, FragmentCode);
-  except
-    on E: EGLSLError do
-    begin
-      FreeAndNil(Shader);
-      FreeAndNil(ShaderAlphaTest);
-
-      WritelnWarning('Scene', 'Error compiling/linking GLSL shaders for shadow maps: %s',
-        [E.Message]);
-
-      DoInitialize({$I fallback.vs.inc}, {$I fallback.fs.inc});
-    end;
-  end;
-end;
-
-procedure TCastleScene.TCustomShaders.Finalize;
-begin
-  FreeAndNil(Shader);
-  FreeAndNil(ShaderAlphaTest);
-end;
-
 { TCastleScene.TSceneRenderOptions ------------------------------------------- }
 
 procedure TCastleScene.TSceneRenderOptions.ReleaseCachedResources;
@@ -697,9 +642,6 @@ begin
   ScreenEffectsGLContextClose;
 
   ShapesGLContextClose;
-
-  VarianceShadowMapsProgram.Finalize;
-  ShadowMapsProgram.Finalize;
 
   ScheduleUpdateGeneratedTextures;
 
@@ -1193,39 +1135,20 @@ procedure TCastleScene.LocalRenderOutside(
   procedure RenderWithShadowMaps;
   var
     SavedMode: TRenderingMode;
-    SavedShaders, NewShaders: TCustomShaders;
   begin
     { For shadow maps, speed up rendering by using only features that affect
-      depth output. Also set up specialized shaders. }
+      depth output.  }
     if Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
+      { This save/restore of RenderOptions around RenderWithWireframeEffect
+        works, because rmDepth is actually applied at "collection time"
+        (not at real rendering time, that happens in TShapesRenderer later). }
       SavedMode := RenderOptions.Mode;
       RenderOptions.Mode := rmDepth;
-
-      if Params.RenderingCamera.Target = rtVarianceShadowMap then
-      begin
-        VarianceShadowMapsProgram.Initialize(
-          '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.vs.inc},
-          '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.fs.inc});
-        NewShaders := VarianceShadowMapsProgram;
-      end else
-      begin
-        ShadowMapsProgram.Initialize(
-          {$I shadow_map_generate.vs.inc},
-          {$I shadow_map_generate.fs.inc});
-        NewShaders := ShadowMapsProgram;
-      end;
-
-      SavedShaders.Shader          := RenderOptions.InternalCustomShader as TX3DShaderProgramBase;
-      SavedShaders.ShaderAlphaTest := RenderOptions.InternalCustomShaderAlphaTest as TX3DShaderProgramBase;
-      RenderOptions.InternalCustomShader          := NewShaders.Shader;
-      RenderOptions.InternalCustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
 
       RenderWithWireframeEffect;
 
       RenderOptions.Mode := SavedMode;
-      RenderOptions.InternalCustomShader          := SavedShaders.Shader;
-      RenderOptions.InternalCustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
     end else
     begin
       RenderWithWireframeEffect;

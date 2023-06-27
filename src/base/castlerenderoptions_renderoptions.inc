@@ -37,7 +37,6 @@ type
       FLineWidth: Single;
       FBumpMapping: TBumpMapping;
       FBumpMappingParallaxHeight: Single;
-      FInternalCustomShader, FInternalCustomShaderAlphaTest: TObject;
       FMode: TRenderingMode;
       FShadowSampling: TShadowSampling;
       FDepthTest: Boolean;
@@ -60,9 +59,6 @@ type
     { Hash to quickly compare 2 TCastleRenderOptions instances,
       important for efficient batching. }
     FHash: TRenderOptionsHash;
-
-    function GetShaders: TShadersRendering;
-    procedure SetShaders(const Value: TShadersRendering);
 
     // Property setters that
     // - call UpdateHash
@@ -87,8 +83,6 @@ type
     procedure SetWholeSceneManifold(const Value: Boolean);
     procedure SetColorChannels(const Value: TColorChannels);
     procedure SetMaxLightsPerShape(const Value: Cardinal);
-    procedure SetInternalCustomShader(const Value: TObject);
-    procedure SetInternalCustomShaderAlphaTest(const Value: TObject);
     procedure SetDepthTest(const Value: Boolean);
     procedure SetReceiveSceneLights(const Value: Boolean);
     procedure SetReceiveGlobalLights(const Value: Boolean);
@@ -165,54 +159,6 @@ type
       arrays or vbo. This compares the subset of variables that call
       ReleaseCachedResources --- only the ones that affect TShapeCache. }
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
-
-    {$ifdef FPC}
-    property EnableTextures: boolean
-      read FTextures write SetTextures default true; deprecated 'use Textures';
-
-    { When GLSL shaders are used.
-      This is now a deprecated property, better use @link(PhongShading) to determine
-      the shading.
-      The engine auto-detects whether to use shaders based on OpenGL capabilities,
-      particular shape needs (phong shading, bump mapping, shadow maps, compositing shader effects),
-      and GLFeatures.EnableFixedFunction. }
-    property Shaders: TShadersRendering read GetShaders write SetShaders; deprecated 'use PhongShading';
-    {$endif}
-
-    { Custom GLSL shader to use for the whole scene.
-      It must be a @link(TX3DShaderProgramBase) instance.
-      When this is assigned, @link(Shaders) value is ignored.
-
-      @italic(Internal, do not use this.)
-      Because TX3DShaderProgramBase is an internal class,
-      because it's cumbersome to use.
-
-      Use nodes instead, to override shaders or to enhance shaders.
-      See examples/viewport_and_scenes/shader_effects/ ,
-      examples/viewport_and_scenes/shader_override/ .
-
-      @exclude }
-    property InternalCustomShader: TObject
-      read FInternalCustomShader write SetInternalCustomShader;
-
-    { Alternative custom GLSL shader used when alpha test is necessary.
-      It must be a @link(TX3DShaderProgramBase) instance.
-      Relevant only if CustomShader <> nil.
-
-      @italic(Internal, do not use this.)
-      Because TX3DShaderProgramBase is an internal class,
-      because it's cumbersome to use.
-
-      Use nodes instead, to override shaders or to enhance shaders.
-      See examples/viewport_and_scenes/shader_effects/ ,
-      examples/viewport_and_scenes/shader_override/ .
-
-      This is in practice an internal solution to enable VSM working
-      with alpha test. It's not clean, and should not be used for anything else.
-
-      @exclude }
-    property InternalCustomShaderAlphaTest: TObject
-      read FInternalCustomShaderAlphaTest write SetInternalCustomShaderAlphaTest;
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
@@ -609,12 +555,14 @@ procedure TCastleRenderOptions.UpdateHash;
       Round(C.Z * 1000 * 1000 * 1000);
   end;
 
+  (* Unused now.
   function PtrOrd(const P: Pointer): TRenderOptionsHash;
   begin
     { On 64-bit platforms, cut pointer to least significant 32 bits.
       That's OK for hash. }
     Result := TRenderOptionsHash(PtrUInt(P));
   end;
+  *)
 
   function ColorChannelsOrd(const C: TColorChannels): TRenderOptionsHash;
   begin
@@ -638,8 +586,6 @@ begin
     19 * SingleOrd(FLineWidth) +
     23 * Ord(FBumpMapping) +
     29 * SingleOrd(FBumpMappingParallaxHeight) +
-    31 * PtrOrd(FInternalCustomShader) +
-    37 * PtrOrd(FInternalCustomShaderAlphaTest) +
     41 * Ord(FMode) +
     43 * Ord(FShadowSampling) +
     47 * Ord(FDepthTest) +
@@ -788,19 +734,6 @@ begin
   end;
 end;
 
-function TCastleRenderOptions.GetShaders: TShadersRendering;
-begin
-  if PhongShading then
-    Result := srAlways
-  else
-    Result := srWhenRequired;
-end;
-
-procedure TCastleRenderOptions.SetShaders(const Value: TShadersRendering);
-begin
-  PhongShading := Value = srAlways;
-end;
-
 procedure TCastleRenderOptions.SetBlending(const Value: Boolean);
 begin
   if FBlending <> Value then
@@ -933,24 +866,6 @@ begin
   if FMaxLightsPerShape <> Value then
   begin
     FMaxLightsPerShape := Value;
-    UpdateHash;
-  end;
-end;
-
-procedure TCastleRenderOptions.SetInternalCustomShader(const Value: TObject);
-begin
-  if FInternalCustomShader <> Value then
-  begin
-    FInternalCustomShader := Value;
-    UpdateHash;
-  end;
-end;
-
-procedure TCastleRenderOptions.SetInternalCustomShaderAlphaTest(const Value: TObject);
-begin
-  if FInternalCustomShaderAlphaTest <> Value then
-  begin
-    FInternalCustomShaderAlphaTest := Value;
     UpdateHash;
   end;
 end;
