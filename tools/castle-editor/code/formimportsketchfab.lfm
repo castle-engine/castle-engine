@@ -214,6 +214,8 @@ object ImportSketchfabForm: TImportSketchfabForm
     Anchors = [akLeft, akBottom]
     BorderSpacing.Left = 8
     BorderSpacing.Bottom = 4
+    EchoMode = emPassword
+    PasswordChar = '*'
     TabOrder = 4
   end
   object Label1: TLabel
