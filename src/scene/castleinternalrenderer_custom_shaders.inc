@@ -15,8 +15,7 @@
 }
 
 {$ifdef read_interface}
-
-type
+//type
   { Custom shaders, can be set on TMeshRenderer.CustomShaders to override
     the default shaders. }
   TCustomShaders = class
