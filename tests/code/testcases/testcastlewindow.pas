@@ -50,7 +50,7 @@ uses SysUtils, Classes, Math,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleCameras, {$ifdef FPC}CastleSceneManager,{$endif} CastleVectors,
   CastleTransform, CastleScene, CastleApplicationProperties,
-  CastleViewport;
+  CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer;
 
 procedure TTestCastleWindow.Test1;
 var
@@ -281,6 +281,8 @@ end;
 procedure TTestCastleWindow.TestEventLoop;
 var
   Window: TCastleWindow;
+  Renderer: TRenderer;
+  ShapesCollector: TShapesCollector;
 
   procedure SimulateEventLoop(const T: TCastleTransform);
   var
@@ -295,6 +297,8 @@ var
           TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
         RenderParams.RenderingCamera.Target := rtScreen;
         RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
+        RenderParams.Collector := ShapesCollector;
+        RenderParams.RendererToPrepareShapes := Renderer;
         T.Render(RenderParams);
       finally FreeAndNil(RenderParams.RenderingCamera) end;
     finally FreeAndNil(RenderParams) end;
@@ -323,16 +327,23 @@ begin
         Viewport.AutoCamera := true;
         Window.Controls.InsertFront(Viewport);
 
-        Box := TCastleBox.Create(nil);
+        // in real applications, Viewport has its internal renderer
+        Renderer := TRenderer.Create(nil);
         try
-          Viewport.Items.Add(Box);
+          ShapesCollector := TShapesCollector.Create;
+          try
+            Box := TCastleBox.Create(nil);
+            try
+              Viewport.Items.Add(Box);
 
-          SimulateEventLoop(Box);
-          Box.Material := pmUnlit;
-          SimulateEventLoop(Box);
-          Box.Material := pmPhysical;
-          SimulateEventLoop(Box);
-        finally FreeAndNil(Box) end;
+              SimulateEventLoop(Box);
+              Box.Material := pmUnlit;
+              SimulateEventLoop(Box);
+              Box.Material := pmPhysical;
+              SimulateEventLoop(Box);
+            finally FreeAndNil(Box) end;
+          finally FreeAndNil(ShapesCollector) end;
+        finally FreeAndNil(Renderer) end;
       finally FreeAndNil(Viewport) end;
     finally FreeAndNil(Window) end;
   finally

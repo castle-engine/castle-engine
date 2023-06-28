@@ -76,14 +76,14 @@ begin
     AssertTrue(R1.Equals(R1)); // has to be always true, obviously
     AssertTrue(R2.Equals(R1)); // has to be always true, obviously
 
-    R1.ColorChannels := R1.ColorChannels - [3];
+    R1.InternalColorChannels := R1.InternalColorChannels - [3];
 
     AssertFalse(R1.Equals(R2));
     AssertFalse(R2.Equals(R1));
     AssertTrue(R1.Equals(R1)); // has to be always true, obviously
     AssertTrue(R2.Equals(R2)); // has to be always true, obviously
 
-    R1.ColorChannels := R1.ColorChannels + [3];
+    R1.InternalColorChannels := R1.InternalColorChannels + [3];
 
     AssertTrue(R1.Equals(R2));
     AssertTrue(R2.Equals(R2));
