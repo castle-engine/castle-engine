@@ -1015,6 +1015,7 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
 
 var
   CurrentX3DProgram: TX3DShaderProgram;
+  Pass: TTotalRenderingPass;
 begin
   inherited;
 
@@ -1048,27 +1049,29 @@ begin
 
     if not GLFeatures.EnableFixedFunction then
     begin
-      { calculate and use Shape.ProgramCache[Renderer.Pass].ShaderProgram }
-      if (Shape.ProgramCache[Renderer.Pass] = nil) or
-         (not(Shape.ProgramCache[Renderer.Pass].Hash = Shader.CodeHash)) then
+      Pass := Renderer.FPass;
+
+      { calculate and use Shape.ProgramCache[Pass].ShaderProgram }
+      if (Shape.ProgramCache[Pass] = nil) or
+         (not(Shape.ProgramCache[Pass].Hash = Shader.CodeHash)) then
       begin
         if LogRenderer then
           WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, pass: %d)', [
             Shape.NiceName,
-            BoolToStr((Shape.ProgramCache[Renderer.Pass] = nil) or
-                      (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil), true),
-            Renderer.Pass
+            BoolToStr((Shape.ProgramCache[Pass] = nil) or
+                      (Shape.ProgramCache[Pass].ShaderProgram = nil), true),
+            Pass
           ]);
 
-        if Shape.ProgramCache[Renderer.Pass] <> nil then
-          RendererCache.Program_DecReference(Shape.ProgramCache[Renderer.Pass]);
+        if Shape.ProgramCache[Pass] <> nil then
+          RendererCache.Program_DecReference(Shape.ProgramCache[Pass]);
 
-        Shape.ProgramCache[Renderer.Pass] := RendererCache.Program_IncReference(
+        Shape.ProgramCache[Pass] := RendererCache.Program_IncReference(
           Shader, Shape.NiceName);
       end;
 
-      Assert(Shape.ProgramCache[Renderer.Pass] <> nil);
-      CurrentX3DProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
+      Assert(Shape.ProgramCache[Pass] <> nil);
+      CurrentX3DProgram := Shape.ProgramCache[Pass].ShaderProgram;
       CurrentMeshShader := CurrentX3DProgram;
       if not GLFeatures.EnableFixedFunction then
         Assert(CurrentX3DProgram <> nil, 'Shader is not initialized, but it has to be (creation of fallback shaders failed?)');

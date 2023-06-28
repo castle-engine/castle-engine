@@ -104,8 +104,17 @@
     RenderingCamera: TRenderingCamera;
     Statistics: PRenderStatistics;
 
-    { Rendering pass. Set in each RenderBegin. }
-    Pass: TTotalRenderingPass;
+    { Rendering pass. Set in each RenderBegin and when changing WireframePass. }
+    FPass: TTotalRenderingPass;
+
+    FInternalPass: TInternalRenderingPass;
+    FWireframePass: TWireframeRenderingPass;
+    FUserPass: TUserRenderingPass;
+
+    procedure SetWireframePass(const Value: TWireframeRenderingPass);
+
+    { Calculate FPass based on FInternalPass, FWireframePass, FUserPass. }
+    procedure UpdatePass;
 
     { Get X3D fog parameters, based on fog node and RenderOptions. }
     class procedure GetFog(const AFogFunctionality: TFogFunctionality;
@@ -218,7 +227,7 @@
       const ARenderingCamera: TRenderingCamera;
       const LightRenderEvent: TLightRenderEvent;
       const AInternalPass: TInternalRenderingPass;
-      const AInternalScenePass: TInternalSceneRenderingPass;
+      const AWireframePass: TWireframeRenderingPass;
       const AUserPass: TUserRenderingPass;
       const AStatistics: PRenderStatistics);
     procedure RenderEnd;
@@ -234,6 +243,13 @@
       const RenderOptions: TCastleRenderOptions;
       const SceneTransform: TMatrix4;
       const DepthRange: TDepthRange);
+
+    { Wireframe pass, to avoid recreating shaders when often switching
+      between wireframe and non-wireframe rendering.
+      This can change only between RenderBegin and RenderEnd.
+      Each RenderBegin sets it (to given parameter). }
+    property WireframePass: TWireframeRenderingPass
+      read FWireframePass write SetWireframePass;
   end;
 {$endif read_interface}
 
@@ -468,34 +484,9 @@ procedure TRenderer.RenderBegin(
   const ARenderingCamera: TRenderingCamera;
   const LightRenderEvent: TLightRenderEvent;
   const AInternalPass: TInternalRenderingPass;
-  const AInternalScenePass: TInternalSceneRenderingPass;
+  const AWireframePass: TWireframeRenderingPass;
   const AUserPass: TUserRenderingPass;
   const AStatistics: PRenderStatistics);
-
-  { Combine a set of numbers (each in their own range) into one unique number.
-    This is like combining a couple of digits into a whole number,
-    but each digit is in a separate numeric system.
-
-    This is used to calculate TTotalRenderingPass from a couple of numbers.
-    The goal is that changing *any* number must also change the result,
-    so that result is a unique representation of all the numbers. }
-  function GetTotalPass(
-    const Digits: array of Cardinal;
-    const Ranges: array of Cardinal): Cardinal;
-  var
-    I: Integer;
-    Multiplier: Cardinal;
-  begin
-    Result := 0;
-    Multiplier := 1;
-    Assert(Length(Digits) = Length(Ranges));
-    for I := 0 to Length(Digits) - 1 do
-    begin
-      Result := Result + Digits[I] * Multiplier;
-      Multiplier := Multiplier * Ranges[I];
-    end;
-  end;
-
 begin
   ClassRenderBegin;
 
@@ -504,16 +495,17 @@ begin
   Statistics := AStatistics;
   Assert(RenderingCamera <> nil);
 
-  Pass := GetTotalPass(
-    [     AInternalPass,       AInternalScenePass,       AUserPass ],
-    [High(AInternalPass), High(AInternalScenePass), High(AUserPass)]);
-
   Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
   LightsRenderer := TLightsRenderer.Create;
   LightsRenderer.LightRenderEvent := LightRenderEvent;
   LightsRenderer.RenderingCamera := RenderingCamera;
+
+  FInternalPass := AInternalPass;
+  FWireframePass := AWireframePass;
+  FUserPass := AUserPass;
+  UpdatePass;
 end;
 
 procedure TRenderer.RenderEnd;
@@ -1574,5 +1566,46 @@ begin
   end;
 end;
 {$endif}
+
+procedure TRenderer.UpdatePass;
+
+  { Combine a set of numbers (each in their own range) into one unique number.
+    This is like combining a couple of digits into a whole number,
+    but each digit is in a separate numeric system.
+
+    This is used to calculate TTotalRenderingPass from a couple of numbers.
+    The goal is that changing *any* number must also change the result,
+    so that result is a unique representation of all the numbers. }
+  function GetTotalPass(
+    const Digits: array of Cardinal;
+    const Ranges: array of Cardinal): Cardinal;
+  var
+    I: Integer;
+    Multiplier: Cardinal;
+  begin
+    Result := 0;
+    Multiplier := 1;
+    Assert(Length(Digits) = Length(Ranges));
+    for I := 0 to Length(Digits) - 1 do
+    begin
+      Result := Result + Digits[I] * Multiplier;
+      Multiplier := Multiplier * Ranges[I];
+    end;
+  end;
+
+begin
+  FPass := GetTotalPass(
+    [     FInternalPass,       FWireframePass,       FUserPass ],
+    [High(FInternalPass), High(FWireframePass), High(FUserPass)]);
+end;
+
+procedure TRenderer.SetWireframePass(const Value: TWireframeRenderingPass);
+begin
+  if FWireframePass <> Value then
+  begin
+    FWireframePass := Value;
+    UpdatePass;
+  end;
+end;
 
 {$endif}

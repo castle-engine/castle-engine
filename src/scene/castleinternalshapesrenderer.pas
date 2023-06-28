@@ -162,7 +162,8 @@ type
 implementation
 
 uses SysUtils,
-  CastleScene, CastleGLUtils, CastleRenderContext;
+  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  CastleScene, CastleGLUtils, CastleRenderContext, CastleColors, CastleUtils;
 
 { TShapesCollector ----------------------------------------------------------- }
 
@@ -344,8 +345,155 @@ end;
 procedure TShapesRenderer.RenderShape_NoTests(
   const CollectedShape: TCollectedShape; const Params: TRenderParams);
 var
-  Shape: TGLShape;
-  DepthRange: TDepthRange;
+  RenderOptions: TCastleRenderOptions; //< a shortcut for CollectedShape.RenderOptions
+  Shape: TGLShape; //< a shortcut for CollectedShape.Shape
+
+  procedure RenderNormal;
+  var
+    DepthRange: TDepthRange;
+  begin
+    { Shadow maps require normal DepthRange,
+      don't mess with DepthRange in case when we render shadow maps. }
+    if Params.RenderingCamera.Target in [rtShadowMap, rtVarianceShadowMap] then
+      DepthRange := drFull
+    else
+      DepthRange := CollectedShape.DepthRange;
+
+    Renderer.RenderShape(Shape,
+      RenderOptions, CollectedShape.SceneTransform, DepthRange);
+  end;
+
+  procedure RenderWireframe(UseWireframeColor: boolean);
+  var
+    SavedMode: TRenderingMode;
+    SavedSolidColor: TCastleColorRGB;
+  begin
+    {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    {$endif}
+
+    if UseWireframeColor then
+    begin
+      SavedMode := RenderOptions.Mode;
+      SavedSolidColor := RenderOptions.SolidColor;
+      RenderOptions.Mode := rmSolidColor;
+      RenderOptions.SolidColor := RenderOptions.WireframeColor;
+
+      RenderNormal;
+
+      RenderOptions.Mode := SavedMode;
+      RenderOptions.SolidColor := SavedSolidColor;
+    end else
+    begin
+      RenderNormal;
+    end;
+
+    { We restore by just assuming that default mode is GL_FILL.
+      Nothing else in CGE changes glPolygonMode for now, so this is trivially true.
+
+      This way we avoid using glPushAttrib / glPopAttrib to save state.
+      They are
+
+      1. deprecated,
+      2. using them would break RenderContext state knowledge, causing problems later.
+
+         Testcase:
+         - in CGE editor,
+         - activate shadow volumes on 1 light,
+         - add 2nd light, not casting shadows (maybe not needed to reproduce),
+         - make plane larger 100x100 (maybe not needed to reproduce),
+         - add sphere and box,
+         - add on them sphere and box collider,
+         - activate "Physics -> Show Colliders".
+
+         Using glPushAttrib / glPopAttrib would break rendering, making some
+         objects weirdly wireframe depending on what was last hovered-over
+         with a mouse in editor.  }
+
+    {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    {$endif}
+  end;
+
+  { Render taking RenderOptions.WireframeEffect into account.
+    Also controls Renderer.WireframePass,
+    this way shaders for non-wireframe and wireframe can coexist,
+    which avoids FPS drops e.g. at weSilhouette rendering a single 3D model
+    (which would otherwise recreate all shaders in all frames). }
+  procedure RenderWithWireframeEffect;
+  var
+    WireframeEffect: TWireframeEffect;
+    SavedPolygonOffset: TPolygonOffset;
+  begin
+    WireframeEffect := RenderOptions.WireframeEffect;
+    if InternalForceWireframe <> weNormal then
+    begin
+      { Do not allow InternalForceWireframe to fill (make non-wireframe) polygons
+        that were supposed to be wireframe. This would look weird, e.g. some wireframe
+        gizmos would become filled. }
+      if not ( (WireframeEffect = weWireframeOnly) and
+               (InternalForceWireframe = weSolidWireframe) ) then
+        WireframeEffect := InternalForceWireframe;
+    end;
+    case WireframeEffect of
+      weNormal:
+        begin
+          Renderer.WireframePass := 0;
+          RenderNormal;
+        end;
+      weWireframeOnly:
+        begin
+          Renderer.WireframePass := 1;
+          RenderWireframe(RenderOptions.Mode = rmSolidColor);
+        end;
+      weSolidWireframe:
+        begin
+          Renderer.WireframePass := 0;
+          SavedPolygonOffset := RenderContext.PolygonOffset;
+          RenderContext.PolygonOffsetEnable(RenderOptions.SolidWireframeScale, RenderOptions.SolidWireframeBias);
+          RenderNormal;
+          RenderContext.PolygonOffset := SavedPolygonOffset;
+
+          Renderer.WireframePass := 1;
+          RenderWireframe(true);
+        end;
+      weSilhouette:
+        begin
+          Renderer.WireframePass := 0;
+          RenderNormal;
+
+          Renderer.WireframePass := 1;
+          SavedPolygonOffset := RenderContext.PolygonOffset;
+          RenderContext.PolygonOffsetEnable(RenderOptions.SilhouetteScale, RenderOptions.SilhouetteBias);
+
+          (* Old idea, may be resurrected one day:
+
+          { rmSolidColor still does backface culling.
+            This is very good in this case. When rmSolidColor and weSilhouette,
+            and objects are solid (so backface culling is used) we can
+            significantly improve the effect by reverting glFrontFace,
+            this way we will cull *front* faces. This will not be noticed
+            in case of rmSolidColor will single solid color, and it will
+            improve the silhouette look, since front-face edges will not be
+            rendered at all (no need to even hide them by glPolygonOffset,
+            which is somewhat sloppy).
+
+            TODO: this is probably incorrect now, that some meshes
+            may have FrontFaceCcw = false.
+            What we really would like to is to negate the FrontFaceCcw
+            interpretation inside this RenderWireframe call.
+          }
+          if RenderOptions.Mode = rmSolidColor then
+            glFrontFace(GL_CW);
+          *)
+
+          RenderWireframe(true);
+          RenderContext.PolygonOffset := SavedPolygonOffset;
+        end;
+      else raise EInternalError.Create('Render: RenderOptions.WireframeEffect ?');
+    end;
+  end;
+
 begin
   { TODO: ignore ExcludeFromStatistics now (we could access them
     from Shape.ParaneScene...
@@ -359,21 +507,14 @@ begin
   end;
 
   Shape := CollectedShape.Shape;
+  RenderOptions := CollectedShape.RenderOptions;
 
   // OcclusionBoxStateEnd will do nothing if OcclusionCulling = false
   FOcclusionCullingRenderer.Utils.OcclusionBoxStateEnd(false);
 
-  { Shadow maps require normal DepthRange,
-    don't mess with DepthRange in case when we render shadow maps. }
-  if Params.RenderingCamera.Target in [rtShadowMap, rtVarianceShadowMap] then
-    DepthRange := drFull
-  else
-    DepthRange := CollectedShape.DepthRange;
+  FBlendingRenderer.BeforeRenderShape(Shape, RenderOptions);
 
-  FBlendingRenderer.BeforeRenderShape(Shape, CollectedShape.RenderOptions);
-
-  Renderer.RenderShape(Shape,
-    CollectedShape.RenderOptions, CollectedShape.SceneTransform, DepthRange);
+  RenderWithWireframeEffect;
 end;
 
 procedure TShapesRenderer.RenderShape_OcclusionTests(
@@ -484,8 +625,8 @@ begin
 
   Renderer.RenderBegin(Params.GlobalLights as TLightInstancesList,
     Params.RenderingCamera,
-    LightRenderEvent, Params.InternalPass,
-    {InternalScenePass}{TODO}0, Params.UserPass, @Params.Statistics);
+    LightRenderEvent, Params.InternalPass, { wireframe pass } 0, Params.UserPass,
+    @Params.Statistics);
   try
     for CollectedShape in Shapes.FCollected do
     begin
