@@ -1,3 +1,4 @@
+{%MainUnit castleuicontrols.pas}
 {
   Copyright 2015-2023 Michalis Kamburelis.
 
