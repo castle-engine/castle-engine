@@ -2407,6 +2407,10 @@ end;
 
 procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
 
+  { Based on BlendingSort, determine
+    ShapesRenderer.BlendingSort, making sure that sortAuto is handled correctly.
+
+    Note: This is copy-pasted now to TestCastleViewport for testing. }
   function EffectiveBlendingSort: TShapeSortNoAuto;
   begin
     if BlendingSort = sortAuto then
@@ -2421,6 +2425,8 @@ procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
       Result := BlendingSort;
   end;
 
+  { Based on OcclusionSort, determine
+    ShapesRenderer.OcclusionSort, making sure that sortAuto is handled correctly. }
   function EffectiveOcclusionSort: TShapeSortNoAuto;
   begin
     if OcclusionSort = sortAuto then
