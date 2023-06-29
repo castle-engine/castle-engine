@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-set -euxo pipefail
-
-# TODO: debug GH action fail due to low disk
-df -h
+set -euo pipefail
 
 # ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
@@ -181,10 +178,10 @@ add_external_tool ()
   shift 2
 
   TOOL_BRANCH_NAME='master'
-  # TODO: use view3dscene from another branch, to compile with this CGE branch
-  if [ "${GITHUB_NAME}" = 'view3dscene' ]; then
-    TOOL_BRANCH_NAME='shapes-rendering-2'
-  fi
+  # Temporary, may be useful again in future: use view3dscene from another branch, to compile with this CGE branch
+  # if [ "${GITHUB_NAME}" = 'view3dscene' ]; then
+  #   TOOL_BRANCH_NAME='shapes-rendering-2'
+  # fi
 
   local TEMP_PATH_TOOL="/tmp/castle-engine-release-$$/${GITHUB_NAME}/"
   mkdir -p "${TEMP_PATH_TOOL}"
