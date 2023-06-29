@@ -43,7 +43,6 @@
     FMainCamera: TCastleCamera;
     FMainCameraObserver: TFreeNotificationObserver;
     FInternalPressReleaseListeners: TCastleTransformList;
-    FSortedList: TCastleTransformList;
     procedure SetPaused(const Value: boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
     procedure MainCameraFreeNotification(const Sender: TFreeNotificationObserver);
@@ -434,7 +433,6 @@ destructor TCastleAbstractRootTransform.Destroy;
 begin
   DestroyPhysicsEngine;
   FreeAndNil(FInternalPressReleaseListeners);
-  FreeAndNil(FSortedList);
   inherited;
 end;
 
