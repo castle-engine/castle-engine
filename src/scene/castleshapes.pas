@@ -101,8 +101,8 @@ type
     may look like this:
 
     @longCode(#
-    function MyShapeSort(const CameraWorldPosition: TVector;
-      const Shape1, Shape2: TGLShape;
+    function TMyView.MyShapeSort(const CameraWorldPosition: TVector3;
+      const Shape1, Shape2: TShape;
       const RenderOptions1, RenderOptions2: TCastleRenderOptions;
       const SceneTransform1, SceneTransform2: TMatrix4): Integer;
     var
