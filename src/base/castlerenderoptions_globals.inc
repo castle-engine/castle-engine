@@ -422,7 +422,11 @@ type
       to the camera, projected on the ground (Y=0).
 
       Similar to sort3DOrigin, but the height of the object (above Y) doesn't matter. }
-    sort3DGround
+    sort3DGround,
+
+    { Use @link(TCastleViewport.OnCustomShapeSort).
+      If this event is not assigned, this is equivalent to sortNone. }
+    sortCustom
   );
 
   { Like TShapeSort, but doesn't allow sortAuto value. }

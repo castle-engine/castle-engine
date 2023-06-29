@@ -67,6 +67,61 @@ type
 
   TShapesHash = QWord;
 
+  { Used for @link(TCastleViewport.OnCustomShapeSort).
+
+    When @link(TCastleViewport.OnCustomShapeSort) is assigned
+    and @link(TCastleViewport.BlendingSort) or
+    @link(TCastleViewport.OcclusionSort) indicate sortCustom,
+    this is used to sort shapes.
+
+    It should return value:
+
+    @unorderedList(
+      @item(< 0 if Shape1 is further from camera than Shape2)
+      @item(= 0 if Shape1 is at the same distance from camera than Shape2)
+      @item(> 0 if Shape1 is closer to camera than Shape2)
+    )
+
+    The RenderOptions1, RenderOptions2 specify the rendering options
+    for, respectively, Shape1 and Shape2.
+    Note that if @link(TCastleViewport.DynamicBatching) is used,
+    these shapes may not come from any particular scene,
+    so their @link(TShape.ParentScene) may be @nil.
+    So you cannot rely on e.g. @code(Shape1.ParentScene.RenderOptions) to get
+    the same value as @code(RenderOptions1).
+
+    SceneTransform1, SceneTransform2 specify the shapes transformations.
+    Note that a shape, just like TCastleScene, may be present multiple times
+    in the same viewport (e.g. when you add the same TCastleScene instance
+    multiple times to @link(TCastleViewport.Items), or if you use
+    @link(TCastleTransformReference)). That's why SceneTransform1, SceneTransform2
+    are useful, as they refer to given shape instance, in a particular transformation.
+
+    A sample implementation, doing actually the same thing as standard sort3DOrigin,
+    may look like this:
+
+    @longCode(#
+    function MyShapeSort(const CameraWorldPosition: TVector;
+      const Shape1, Shape2: TGLShape;
+      const RenderOptions1, RenderOptions2: TCastleRenderOptions;
+      const SceneTransform1, SceneTransform2: TMatrix4): Integer;
+    var
+      PointA, PointB: TVector3;
+    begin
+      PointA := (SceneTransform1 * Shape1.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+      PointB := (SceneTransform2 * Shape2.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+      Result := Sign(
+        PointsDistanceSqr(PointB, CameraWorldPosition) -
+        PointsDistanceSqr(PointA, CameraWorldPosition));
+    end;
+    #)
+  }
+  TShapeSortEvent = function (const CameraWorldPosition: TVector3;
+    const Shape1, Shape2: TShape;
+    const RenderOptions1, RenderOptions2: TCastleRenderOptions;
+    const SceneTransform1, SceneTransform2: TMatrix4)
+    : Integer of object;
+
   { Triangle in a 3D model.
     Helper methods. }
   TTriangleHelper = record helper for TTriangle

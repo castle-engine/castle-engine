@@ -25,7 +25,8 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, X3DNodes, CastleInternalBaseTriangleOctree, CastleScene,
   CastleSceneCore, CastleCameras, CastleRenderOptions,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
-  CastleKeysMouse, CastleBoxes, CastleInternalBackgroundRenderer, CastleUtils, CastleClassUtils,
+  CastleKeysMouse, CastleBoxes, CastleInternalBackgroundRenderer, CastleUtils,
+  CastleClassUtils, CastleShapes,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
   CastleInputs, CastleRectangles, CastleColors, CastleComponentSerialize,
   CastleProjection, CastleScreenEffects, CastleInternalShapesRenderer;
@@ -163,6 +164,7 @@ type
       FOcclusionCulling: Boolean;
       FOcclusionSort: TShapeSort;
       FBlendingSort: TShapeSort;
+      FOnCustomShapeSort: TShapeSortEvent;
 
       ShapesCollector: TShapesCollector;
       ShapesRenderer: TShapesRenderer;
@@ -1187,6 +1189,10 @@ type
     { Sort the opaque shapes when rendering, from front to back.
       This may make a speedup when big shapes in front of camera obscure
       many shapes behind.
+      This is only an optimization: regardless of the value of this,
+      rendering opaque objects will be always correct.
+      Different values of this properly may merely increase / decrease
+      rendering performance (frames per second).
 
       In general this is an independent optimization from @link(OcclusionCulling),
       albeit it makes sense in similar situations.
@@ -1234,18 +1240,26 @@ type
     property OcclusionSort: TShapeSort
       read FOcclusionSort write FOcclusionSort default sortAuto;
 
-    { When rendering using blending (partial transparency),
-      sort the children (all shapes in all scenes).
+    { Sort the blending (partially-transparent) shapes when rendering,
+      from back to front.
 
       This makes blending correct when there are multiple partially-transparent
       objects visible.
       See @url(https://castle-engine.io/blending blending manual).
+      Invalid value of this may cause rendering artifacts when rendering
+      multiple partially-transparent objects.
 
       The default value, sortAuto, automatically detects if camera
       is 2D (orthographic, looking in -Z) and if yes, it behaves like sort2D.
       Otherwise it behaves like sort3D. }
     property BlendingSort: TShapeSort
       read FBlendingSort write FBlendingSort default sortAuto;
+
+    { Used to sort shapes, if @link(TCastleViewport.BlendingSort) or
+      @link(TCastleViewport.OcclusionSort) indicate sortCustom.
+      See TShapeSortEvent for usage details and example. }
+    property OnCustomShapeSort: TShapeSortEvent
+      read FOnCustomShapeSort write FOnCustomShapeSort;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -1283,7 +1297,7 @@ implementation
 
 uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
-  CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
+  CastleSoundEngine, CastleGLVersion, CastleTextureImages,
   CastleInternalSettings, CastleXMLUtils, CastleURIUtils, CastleInternalRenderer,
   CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
 
@@ -2449,6 +2463,7 @@ begin
 
   ShapesRenderer.OcclusionSort := EffectiveOcclusionSort;
   ShapesRenderer.BlendingSort := EffectiveBlendingSort;
+  ShapesRenderer.OnCustomShapeSort := OnCustomShapeSort;
   ShapesRenderer.Render(ShapesCollector, Params);
 end;
 

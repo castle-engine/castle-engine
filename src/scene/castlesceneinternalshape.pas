@@ -89,6 +89,8 @@ type
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
     function CompareBackToFront3DGround(
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareBackToFrontCustom(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
 
     function CompareFrontToBack2D(
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
@@ -98,7 +100,12 @@ type
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
     function CompareFrontToBack3DGround(
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareFrontToBackCustom(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
   public
+    { Used when ShapeSort is sortCustom for SortBackToFront or SortFrontToBack. }
+    OnCustomShapeSort: TShapeSortEvent;
+
     { Sort shapes by distance to given Position point, farthest first.
       ShapeSort determines the sorting algorithm.
       See @link(TShapeSort) documentation. }
@@ -331,6 +338,16 @@ begin
     PointsDistanceSqr(PointA, SortPosition));
 end;
 
+function TCollectedShapeList.CompareBackToFrontCustom(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := OnCustomShapeSort(SortPosition,
+    A.Shape, B.Shape,
+    A.RenderOptions, B.RenderOptions,
+    A.SceneTransform, B.SceneTransform
+  );
+end;
+
 procedure TCollectedShapeList.SortBackToFront(const Position: TVector3;
   const ShapeSort: TShapeSortNoAuto);
 begin
@@ -340,6 +357,12 @@ begin
     sort3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DBox));
     sort3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DOrigin));
     sort3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DGround));
+    sortCustom  :
+      begin
+        // does not sort if OnCustomShapeSort unassigned
+        if Assigned(OnCustomShapeSort) then
+          Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFrontCustom));
+      end;
     else ;
   end;
 end;
@@ -368,6 +391,12 @@ begin
   Result := -CompareBackToFront3DGround(A, B);
 end;
 
+function TCollectedShapeList.CompareFrontToBackCustom(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := -CompareBackToFrontCustom(A, B);
+end;
+
 procedure TCollectedShapeList.SortFrontToBack(const Position: TVector3;
   const ShapeSort: TShapeSortNoAuto);
 begin
@@ -377,6 +406,12 @@ begin
     sort3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DBox));
     sort3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DOrigin));
     sort3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DGround));
+    sortCustom  :
+      begin
+        // does not sort if OnCustomShapeSort unassigned
+        if Assigned(OnCustomShapeSort) then
+          Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBackCustom));
+      end;
     else ;
   end;
 end;

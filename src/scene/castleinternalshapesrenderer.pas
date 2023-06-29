@@ -58,6 +58,7 @@ type
     FDynamicBatching: Boolean;
     FOcclusionCulling: Boolean;
     FOcclusionSort, FBlendingSort: TShapeSortNoAuto;
+    FOnCustomShapeSort: TShapeSortEvent;
 
     { Checks we need DynamicBatching and we don't use occlusion culling. }
     function EffectiveDynamicBatching: Boolean;
@@ -158,6 +159,12 @@ type
       @seealso TCastleViewport.BlendingSort }
     property BlendingSort: TShapeSortNoAuto
       read FBlendingSort write FBlendingSort default sortNone;
+
+    { Used to sort shapes, if @link(TCastleViewport.BlendingSort) or
+      @link(TCastleViewport.OcclusionSort) indicate sortCustom.
+      @seealso TCastleViewport.OnCustomShapeSort }
+    property OnCustomShapeSort: TShapeSortEvent
+      read FOnCustomShapeSort write FOnCustomShapeSort;
   end;
 
 implementation
@@ -615,12 +622,14 @@ begin
       we could instead reuse results from sorting in previous render call,
       if everything is still OK (nothing was added/removed from the world,
       order is still OK). }
+    Shapes.FCollected.OnCustomShapeSort := OnCustomShapeSort;
     Shapes.FCollected.SortBackToFront(Params.RenderingCamera.Position,
       BlendingSort);
 
     FBlendingRenderer.RenderBegin;
   end else
   begin
+    Shapes.FCollected.OnCustomShapeSort := OnCustomShapeSort;
     Shapes.FCollected.SortFrontToBack(Params.RenderingCamera.Position,
       OcclusionSort);
   end;
