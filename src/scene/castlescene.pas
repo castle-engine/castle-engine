@@ -796,9 +796,8 @@ begin
     then Params.Transparent = true during a single frame. }
   if (not Params.Transparent) and (Params.InternalPass = 0) then
   begin
-    if not ExcludeFromStatistics then
-      Params.Statistics.ShapesVisible := Params.Statistics.ShapesVisible +
-        ShapesActiveVisibleCount;
+    Params.Statistics.ShapesVisible := Params.Statistics.ShapesVisible +
+      ShapesActiveVisibleCount;
     { also do this only once per frame }
     UpdateVisibilitySensors;
   end;
@@ -1500,8 +1499,7 @@ begin
     FrameProfiler.Start(fmRenderScene);
 
     if (not Params.Transparent) and
-       (Params.InternalPass = 0) and
-       (not ExcludeFromStatistics) then
+       (Params.InternalPass = 0) then
       Inc(Params.Statistics.ScenesVisible);
 
     if FSceneFrustumCulling and
@@ -1525,8 +1523,7 @@ begin
     end;
 
     if (not Params.Transparent) and
-       (Params.InternalPass = 0) and
-       (not ExcludeFromStatistics) then
+       (Params.InternalPass = 0) then
       Inc(Params.Statistics.ScenesRendered);
 
     FrustumForShapeCulling := Params.Frustum;

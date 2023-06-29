@@ -1599,7 +1599,6 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebugCaptions.Collides := false;
       FDebugCaptions.Pickable := false;
       FDebugCaptions.CastShadows := false;
-      FDebugCaptions.ExcludeFromStatistics := true;
       FDebugCaptions.InternalExcludeFromParentBoundingVolume := true;
 
       Add(FDebugCaptions);

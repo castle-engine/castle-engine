@@ -90,7 +90,7 @@
       FVisible: Boolean;
       FCursor: TMouseCursor;
       FCollidesWithMoving: Boolean;
-      FExcludeFromStatistics, FInternalExcludeFromParentBoundingVolume: Boolean;
+      FInternalExcludeFromParentBoundingVolume: Boolean;
       FWorld: TCastleAbstractRootTransform;
       { How many times this is a child in the FWorld, counting all possible paths in transformation tree. }
       FWorldReferences: Cardinal;
@@ -1995,11 +1995,6 @@
       This is independent from @link(Collides) or @link(Pickable).
       @noAutoLinkHere }
     property Visible: boolean read FVisible write FVisible default true;
-
-    { Exclude from rendering statistics in
-      @link(TCastleViewport.Statistics). }
-    property ExcludeFromStatistics: boolean
-      read FExcludeFromStatistics write FExcludeFromStatistics default false;
 
     { When non-zero, we can approximate collisions with this object using a sphere
       in certain situations (@link(MoveAllowed), @link(Gravity)).

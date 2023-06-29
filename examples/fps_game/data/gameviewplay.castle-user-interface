@@ -271,7 +271,6 @@
           },
           {
             "$$ClassName" : "TCastleTransform",
-            "ExcludeFromStatistics" : true,
             "Name" : "Lights",
             "$Children" : [
               {

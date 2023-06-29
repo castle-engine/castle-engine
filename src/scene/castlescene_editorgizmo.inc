@@ -100,7 +100,6 @@ begin
   T.Pickable := false;
   T.Collides := false;
   T.CastShadows := false;
-  T.ExcludeFromStatistics := true;
 end;
 
 procedure TInternalCastleEditorGizmo.LoadVisualization(const RootNode: TX3DRootNode);

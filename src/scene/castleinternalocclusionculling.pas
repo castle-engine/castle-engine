@@ -262,7 +262,7 @@ begin
 
       Utils.SceneMatrix := CollectedShape.SceneTransform;
       Utils.DrawBox(Shape.BoundingBox);
-      if (Params.InternalPass = 0) {TODO: and not Scene.ExcludeFromStatistics} then
+      if Params.InternalPass = 0 then
         Inc(Params.Statistics.BoxesOcclusionQueriedCount);
     end;
 
