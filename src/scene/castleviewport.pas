@@ -2413,7 +2413,7 @@ procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
     begin
       if (Camera <> nil) and
         (Camera.ProjectionType = ptOrthographic) and
-        (TVector3.Equals(Camera.Direction, Vector3(0, 1, 0))) then
+        (TVector3.Equals(Camera.Direction, DefaultCameraDirection)) then
         Result := sort2D
       else
         Result := sort3D;
