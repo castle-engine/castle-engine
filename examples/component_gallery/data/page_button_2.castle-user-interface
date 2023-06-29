@@ -58,7 +58,6 @@
           "HorizontalAnchorSelf" : "hpMiddle",
           "Items" : {
             "$$ClassName" : "TCastleRootTransform",
-            "BlendingSort" : "bs2D",
             "PhysicsProperties" : {
               "$$ClassName" : "TPhysicsProperties",
               "LayerCollisions" : {

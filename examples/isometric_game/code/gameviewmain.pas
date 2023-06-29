@@ -147,7 +147,7 @@ begin
       if Random(10) = 0 then
       begin
         AddImage(RandomTree, X, Y, Vector2(0.5, 0.1),
-          // Place trees in front of the ground, bottom trees more in front\
+          // Place trees in front of the ground, bottom trees more in front
           1 + (TilesCountY - Y));
       end;
     end;
@@ -156,8 +156,6 @@ begin
   MainViewport.Camera.Translation := Vector3(
     TilePosition(TilesCountX div 2, TilesCountY div 2),
     100);
-
-  DynamicBatching := true;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -166,7 +164,7 @@ begin
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption :=
     'FPS: ' + Container.Fps.ToString + NL +
-    'DynamicBatching: ' + BoolToStr(DynamicBatching, true) + NL +
+    'DynamicBatching (toggle with B): ' + BoolToStr(MainViewport.DynamicBatching, true) + NL +
     'Stats: ' + MainViewport.Statistics.ToString;
 end;
 
@@ -177,8 +175,7 @@ begin
 
   if Event.IsKey(keyB) then
   begin
-    // TODO: enable from editor
-    DynamicBatching := not DynamicBatching;
+    MainViewport.DynamicBatching := not MainViewport.DynamicBatching;
     Exit(true); // key was handled
   end;
 end;

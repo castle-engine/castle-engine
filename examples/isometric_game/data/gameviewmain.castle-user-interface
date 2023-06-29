@@ -12,10 +12,10 @@
         "Red" : 2.5000000000000000E-001
       },
       "Camera" : "Camera1",
+      "DynamicBatching" : true,
       "FullSize" : true,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
-        "BlendingSort" : "bs2D",
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties",
           "LayerCollisions" : {
