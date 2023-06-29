@@ -2741,8 +2741,9 @@ begin
   {$warnings on}
     FRenderParams.GlobalFog := nil;
 
-  { Start with drBack, as this is the meaning of rlParent on Viewport.Items. }
-  FRenderParams.DepthRange := drFar;
+  { Start with DefaultDepthRange,
+    as this is the meaning of rlParent on Viewport.Items. }
+  FRenderParams.DepthRange := DefaultDepthRange;
 
   RenderFromView3D(FRenderParams);
 end;

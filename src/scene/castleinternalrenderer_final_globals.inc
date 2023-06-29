@@ -21,6 +21,35 @@
 const
   AllVboTypes = [Low(TVboType) .. High(TVboType)];
 
+  { This RenderContext.TDepthRange value results from
+    using rlParent on Viewport.Items.
+
+    Also this value is reset by TRenderer.RenderEnd.
+    It cannot reset to drFull, we need shadow quads to check for depth versus
+    scene objects in DefaultDepthRange.
+
+    Testcases: If RenderEnd would reset to drFull:
+    - demo-models/shadow_volumes/stonehenge_with_chopper.x3dv
+      would have weird shadows in view3dcene on chopper
+    - demo-models/shadow_volumes/shadows_worm_in_a_room.x3dv
+      would have weird shadows in view3dcene on worm
+    - examples/viewport_and_scenes/shadows
+      would have weird shadows
+    - examples/research_special_rendering_methods/test_rendering_opengl_capabilities/
+      would have weird shadows
+    - examples/deprecated_to_upgrade/fixed_camera_game/
+      would behave weirdly, have confusing shadows,
+      suggesting player isn't at the correct place (like floating above floor).
+
+    TODO: Should we set this in TRenderContext constructor, on context,
+    so that it's really default value? Right now rendering 1st frame
+    with TRenderer effectively changes drFull into drFar for everything.
+
+    TODO: Do shadow volumes work for stuff in rlFront, like weapon in FPS games?
+    Likely not, since they are in disjoint range.
+  }
+  DefaultDepthRange = drFar;
+
 var
   { Log renderer cache events. Allows to see how the cache performs.
     A @italic(lot) of log messages.

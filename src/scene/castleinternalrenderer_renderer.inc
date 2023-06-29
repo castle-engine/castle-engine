@@ -429,7 +429,7 @@ begin
   RenderContext.CurrentProgram := nil;
   RenderContext.FixedFunctionAlphaTestDisable;
   RenderContext.FixedFunctionLighting := false;
-  RenderContext.DepthRange := drFull;
+  RenderContext.DepthRange := DefaultDepthRange;
 
   { Restore defaults, for other rendering code outside of TRenderer.
 
