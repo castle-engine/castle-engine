@@ -317,11 +317,13 @@
     { World fog, in any, to prepare for. }
     GlobalFog: TAbstractFogNode;
 
-    { Renderer used by encompassing viewport. Always TRenderer.
-      Shapes can use this to initialize their resources.
+    { Always TRenderer, to prepare shapes.
+      This is useful to prepare shapes (rendering them with renderer
+      creates VBOs, shaders, and makes them "ready" for next fast rendering).
 
-      TODO: Passing this around is a hack, shapes should not associate
-      with TRenderer, see TShapesRenderer.Renderer TODO also. }
+      Note that shapes and scenes *should not* get associated with this TRenderer
+      instance when being prepared.
+      See @link(TRenderParams.RendererToPrepareShapes). }
     RendererToPrepareShapes: TObject;
   end;
 
