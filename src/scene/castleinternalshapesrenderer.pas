@@ -141,7 +141,7 @@ type
       The shapes obscured by other shapes will not be rendered.
       This makes sense when in your view, many shapes are typically obscured by others.
 
-      See the https://castle-engine.io/occlusion_query
+      See the https://castle-engine.io/occlusion_culling
       for details how does this work.
 
       This is ignored if GPU doesn't support the necessary functionality

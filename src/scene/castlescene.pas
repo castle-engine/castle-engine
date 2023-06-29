@@ -328,7 +328,7 @@ type
 
       The "was visible" means that "some shape was visible", that is:
       some shape passed frustum culling, distance culling
-      and (TODO) occlusion culling (see https://castle-engine.io/occlusion_query )
+      and (TODO) occlusion culling (see https://castle-engine.io/occlusion_culling )
       tests.
 
       For this method it doesn't matter if the scene contains some lights
