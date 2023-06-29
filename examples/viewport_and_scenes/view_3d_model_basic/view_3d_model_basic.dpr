@@ -62,9 +62,9 @@ begin
   );
 
   { Initialize spatial structures, to allow
-    - collision detection in a dynamic scene (ssDynamicCollisions)
-    - and frustum culling optimization when rendering (ssRendering). }
-  Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    - collision detection in a dynamic scene
+    - faster frustum culling optimization when rendering. }
+  Scene.PreciseCollisions := true;
 
   { X3D events will be processed.
     You seldom need to set "Scene.ProcessEvents := true" explicitly --
