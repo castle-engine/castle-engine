@@ -650,13 +650,12 @@
       The position on the children list doesn't matter in this case.
 
       When rendering with blending, we recommend to use
-      @link(TCastleAbstractRootTransform.BlendingSort) to automatically use
+      @link(TCastleViewport.BlendingSort) to automatically use
       proper order when rendering partially-transparent objects.
       This will mean that the order of children really doesn't matter.
 
       However, the position matters in case of blending,
-      if you left @link(TCastleAbstractRootTransform.BlendingSort)
-      at bsNone.
+      if you set @link(TCastleViewport.BlendingSort) to sortNone.
       See https://castle-engine.io/blending .
       For correct blending, when you have multiple partially-transparent scenes,
       the partially-transparent objects must be sorted from back to front on the list.
@@ -769,7 +768,7 @@
 
       Calling this method makes sense if you use
       @url(https://castle-engine.io/blending blending)
-      and left @link(TCastleAbstractRootTransform.BlendingSort) at bsNone,
+      and set @link(TCastleViewport.BlendingSort) to sortNone,
       and multiple partially-transparent objects may
       be visible at the same place on the screen.
       Sorting avoids artifacts when rendering.
@@ -784,8 +783,8 @@
           (like in every @link(TCastleWindow.OnUpdate)).
           Call it if you move or otherwise change the objects (changing their bounding boxes),
           or if the CameraPosition may change. Note that CameraPosition is only
-          relevant if BlendingSort is one of the bs3D* options,
-          like bs3D, bs3DOrigin, bs3DGround.
+          relevant if Sort is one of the sort3D* options,
+          like sort3D, sort3DOrigin, sort3DGround.
         )
         @item(
           In 2D, it is a bit simpler.
@@ -799,15 +798,15 @@
 
       Note that this doesn't take care of sorting the shapes
       within the scenes. For this, you should set
-      @link(TCastleAbstractRootTransform.BlendingSort).
+      @link(TCastleViewport.BlendingSort).
 
-      See the TBlendingSort documentation for the exact specification
-      of sorting algorithms. Using BlendingSort = bsNone does nothing.
+      See the TShapeSort documentation for the exact specification
+      of sorting algorithms. Using Sort = sortNone does nothing.
 
       @seealso SortBackToFront2D }
-    procedure SortBackToFront(const BlendingSort: TBlendingSort;
+    procedure SortBackToFront(const Sort: TShapeSort;
       const CameraPosition: TVector3);
-      deprecated 'use Viewport.Items.BlendingSort (TCastleAbstractRootTransform.BlendingSort) to sort objects for blending';
+      deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
 
     { Sort objects back-to-front @italic(right now)
       following the 2D blending sorting algorithm.
@@ -816,7 +815,7 @@
 
       @seealso SortBackToFront }
     procedure SortBackToFront2D;
-      deprecated 'use Viewport.Items.BlendingSort (TCastleAbstractRootTransform.BlendingSort) to sort objects for blending';
+      deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
 
     { Bounding box of this object, in the coordinate system of the parent transformation.
       This method takes into account current transformation
@@ -2583,10 +2582,12 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
-procedure TCastleTransform.SortBackToFront(const BlendingSort: TBlendingSort;
+procedure TCastleTransform.SortBackToFront(const Sort: TShapeSort;
   const CameraPosition: TVector3);
 begin
-  List.SortBackToFront(BlendingSort, CameraPosition);
+  {$warnings off} // using deprecated in deprecated
+  List.SortBackToFront(Sort, CameraPosition);
+  {$warnings on}
 end;
 
 procedure TCastleTransform.SortBackToFront2D;

@@ -195,6 +195,7 @@ procedure TBackgroundScene.Render(const RenderingCamera: TRenderingCamera;
   const ShapesRenderer: TShapesRenderer);
 var
   SavedOcclusionCulling: Boolean;
+  SavedBlendingSort, SavedOcclusionSort: TShapeSort;
 begin
   inherited;
 
@@ -234,9 +235,17 @@ begin
   SavedOcclusionCulling := ShapesRenderer.OcclusionCulling;
   ShapesRenderer.OcclusionCulling := false;
 
-  ShapesRenderer.Render(ShapesCollector, Params, bsNone);
+  SavedBlendingSort := ShapesRenderer.BlendingSort;
+  ShapesRenderer.BlendingSort := sortNone;
+
+  SavedOcclusionSort := ShapesRenderer.OcclusionSort;
+  ShapesRenderer.OcclusionSort := sortNone;
+
+  ShapesRenderer.Render(ShapesCollector, Params);
 
   ShapesRenderer.OcclusionCulling := SavedOcclusionCulling;
+  ShapesRenderer.BlendingSort := SavedBlendingSort;
+  ShapesRenderer.OcclusionSort := SavedOcclusionSort;
 end;
 
 procedure TBackgroundScene.FreeResources;

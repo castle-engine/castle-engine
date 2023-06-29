@@ -368,7 +368,7 @@ type
       @orderedList(
         @item(When multiple transparent shapes are possible,
           sort the transparent shapes, using
-          @link(TCastleAbstractRootTransform.BlendingSort).
+          @link(TCastleViewport.BlendingSort).
 
           Note that it cannot
           be perfect in certain cases (like when transparent shape is one, concave,
@@ -632,7 +632,7 @@ begin
   SerializationProcess.ReadWriteString('BlendingSort', BlendingSortStr, false);
   if BlendingSortStr <> '' then
   begin
-    WritelnWarning('%s uses "BlendingSort" = "%s", this is no longer supported on scene. Instead set Viewport.Items.BlendingSort.', [
+    WritelnWarning('%s uses "BlendingSort" = "%s", this is no longer supported on scene. Instead set TCastleViewport.BlendingSort.', [
       SceneCaption,
       BlendingSortStr
     ]);
@@ -642,7 +642,7 @@ begin
   SerializationProcess.ReadWriteBoolean('OcclusionSort', B, false);
   if B then
   begin
-    WritelnWarning('%s uses "OcclusionSort", this is no longer supported on scene. Instead set Viewport.OcclusionSort.', [
+    WritelnWarning('%s uses "OcclusionSort", this is no longer supported on scene. Instead set TCastleViewport.OcclusionSort.', [
       SceneCaption
     ]);
   end;
@@ -651,7 +651,7 @@ begin
   SerializationProcess.ReadWriteBoolean('OcclusionQuery', B, false);
   if B then
   begin
-    WritelnWarning('%s uses "OcclusionQuery", this is no longer supported on scene. Instead set Viewport.OcclusionCulling.', [
+    WritelnWarning('%s uses "OcclusionQuery", this is no longer supported on scene. Instead set TCastleViewport.OcclusionCulling.', [
       SceneCaption
     ]);
   end;

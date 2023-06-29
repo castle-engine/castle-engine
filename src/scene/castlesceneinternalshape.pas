@@ -100,16 +100,16 @@ type
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
   public
     { Sort shapes by distance to given Position point, farthest first.
-      BlendingSort determines the sorting algorithm.
-      See @link(TBlendingSort) documentation. }
+      ShapeSort determines the sorting algorithm.
+      See @link(TShapeSort) documentation. }
     procedure SortBackToFront(const Position: TVector3;
-      const BlendingSort: TBlendingSort);
+      const ShapeSort: TShapeSortNoAuto);
 
     { Sort shapes by distance to given Position point, closest first.
-      BlendingSort determines the sorting algorithm.
-      See @link(TBlendingSort) documentation. }
+      ShapeSort determines the sorting algorithm.
+      See @link(TShapeSort) documentation. }
     procedure SortFrontToBack(const Position: TVector3;
-      const BlendingSort: TBlendingSort);
+      const ShapeSort: TShapeSortNoAuto);
   end;
 
 implementation
@@ -332,14 +332,14 @@ begin
 end;
 
 procedure TCollectedShapeList.SortBackToFront(const Position: TVector3;
-  const BlendingSort: TBlendingSort);
+  const ShapeSort: TShapeSortNoAuto);
 begin
   SortPosition := Position;
-  case BlendingSort of
-    bs2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront2D));
-    bs3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DBox));
-    bs3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DOrigin));
-    bs3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DGround));
+  case ShapeSort of
+    sort2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront2D));
+    sort3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DBox));
+    sort3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DOrigin));
+    sort3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DGround));
     else ;
   end;
 end;
@@ -369,14 +369,14 @@ begin
 end;
 
 procedure TCollectedShapeList.SortFrontToBack(const Position: TVector3;
-  const BlendingSort: TBlendingSort);
+  const ShapeSort: TShapeSortNoAuto);
 begin
   SortPosition := Position;
-  case BlendingSort of
-    bs2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack2D));
-    bs3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DBox));
-    bs3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DOrigin));
-    bs3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DGround));
+  case ShapeSort of
+    sort2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack2D));
+    sort3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DBox));
+    sort3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DOrigin));
+    sort3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DGround));
     else ;
   end;
 end;

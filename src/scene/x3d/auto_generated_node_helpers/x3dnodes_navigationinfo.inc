@@ -32,8 +32,8 @@
     procedure SetTransitionTime(const Value: TFloatTime);
     function GetVisibilityLimit: Single;
     procedure SetVisibilityLimit(const Value: Single);
-    function GetBlendingSort: TOptionalBlendingSort;
-    procedure SetBlendingSort(const Value: TOptionalBlendingSort);
+    function GetBlendingSort: TShapeSort;
+    procedure SetBlendingSort(const Value: TShapeSort);
     function GetTimeOriginAtLoad: Boolean;
     procedure SetTimeOriginAtLoad(const Value: Boolean);
     function GetHeadBobbing: Single;
@@ -104,36 +104,23 @@
     public property FdBlendingSort: TSFStringEnum read FFdBlendingSort;
     { Best blending sort for this scene. It may be honored by some model viewers, e.g. view3dscene honors this to display currently loaded scene.
 
-      Note: In CGE applications, the blending sort is determined by @link(TCastleAbstractRootTransform.BlendingSort). It is up to each particular application if, and how, to honor this value on @className. In general, CGE applications may display multiple models (multiple TCastleScene) and there's not necessarily any scene that is "central" or "main", so most CGE applications will just ignore this, at least on most loaded models.
+      Note: In CGE applications, the blending sort is determined by @link(TCastleViewport.BlendingSort). It is up to each particular application if, and how, to honor this value on @className. In general, CGE applications may display multiple models (multiple TCastleScene) and there's not necessarily any scene that is "central" or "main", so most CGE applications will just ignore this, at least on most loaded models.
 
-      If an application wants to honor this property of @className, then set @link(TCastleAbstractRootTransform.BlendingSort) based on the bound navigation info node. For example like this:
+      If an application wants to honor this property of @className, then set @link(TCastleViewport.BlendingSort) based on the bound navigation info node. For example like this:
 
       @longCode(#
-      function BestBlendingSort(const Scene: TCastleScene): TBlendingSort;
-      begin
-        if Scene.NavigationInfoStack.Top <> nil then
-        begin
-          case Scene.NavigationInfoStack.Top.BlendingSort of
-            obsNone    : Result := bsNone;
-            obs2D      : Result := bs2D;
-            obs3D      : Result := bs3D;
-            obs3DOrigin: Result := bs3DOrigin;
-            obs3DGround: Result := bs3DGround;
-            obsDefault : Result := bs3D;
-            else
-              begin
-                Result := bs3D;
-                WritelnWarning('Unhandled NavigationInfo.blendingSort');
-              end;
-          end;
-        end;
-      end;
+      if (Scene.NavigationInfoStack.Top <> nil) and
+         (Scene.NavigationInfoStack.Top.BlendingSort <> sortAuto) then
+        MainViewport.Items.BlendingSort :=
+          Scene.NavigationInfoStack.Top.BlendingSort;
+      #)
 
-      // ...
-      // After loading the scene:
-      MainViewport.Items.BlendingSort := BestBlendingSort(Scene);
-      #) }
-    property BlendingSort: TOptionalBlendingSort read GetBlendingSort write SetBlendingSort;
+      The value sortAuto (specified as string "AUTO" in X3D file)
+      says to not change @link(TCastleViewport.BlendingSort).
+      The @link(TCastleViewport.BlendingSort) may be, in turn, also sortAuto,
+      which means that we will detect whether to use sort2D or sort3D depending
+      on camera. }
+    property BlendingSort: TShapeSort read GetBlendingSort write SetBlendingSort;
 
     strict private FFdTimeOriginAtLoad: TSFBool;
     { Internal wrapper for property @code(TimeOriginAtLoad). This wrapper API may change, we advise to access simpler @code(TimeOriginAtLoad) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -235,12 +222,12 @@ begin
   FdVisibilityLimit.Send(Value);
 end;
 
-function TNavigationInfoNode.GetBlendingSort: TOptionalBlendingSort;
+function TNavigationInfoNode.GetBlendingSort: TShapeSort;
 begin
-  Result := TOptionalBlendingSort(FdBlendingSort.EnumValue);
+  Result := TShapeSort(FdBlendingSort.EnumValue);
 end;
 
-procedure TNavigationInfoNode.SetBlendingSort(const Value: TOptionalBlendingSort);
+procedure TNavigationInfoNode.SetBlendingSort(const Value: TShapeSort);
 begin
   FdBlendingSort.SendEnumValue(Ord(Value));
 end;
@@ -330,7 +317,7 @@ begin
   FEventTransitionComplete := TSFBoolEvent.Create(Self, 'transitionComplete', false);
   AddEvent(FEventTransitionComplete);
 
-  FFdBlendingSort := TSFStringEnum.Create(Self, True, 'blendingSort', @BlendingSortNames, Ord(High(BlendingSortNames)) + 1, Ord(obsDefault));
+  FFdBlendingSort := TSFStringEnum.Create(Self, True, 'blendingSort', @ShapeSortNames, Ord(High(ShapeSortNames)) + 1, Ord(sortAuto));
    FdBlendingSort.ChangeAlways := chRedisplay;
   AddField(FFdBlendingSort);
 

@@ -43,7 +43,6 @@
     FMainCamera: TCastleCamera;
     FMainCameraObserver: TFreeNotificationObserver;
     FInternalPressReleaseListeners: TCastleTransformList;
-    FBlendingSort: TBlendingSort;
     FSortedList: TCastleTransformList;
     procedure SetPaused(const Value: boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
@@ -96,6 +95,7 @@
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
     { @exclude
       TCastleTransform instances that listen on press/release.
@@ -402,14 +402,6 @@
         )
       ) }
     property Paused: boolean read FPaused write SetPaused default false;
-
-    { When rendering using blending (partial transparency),
-      sort the children (all shapes in all scenes).
-
-      This makes blending correct when there are multiple partially-transparent
-      objects visible.
-      See @url(https://castle-engine.io/blending blending manual). }
-    property BlendingSort: TBlendingSort read FBlendingSort write FBlendingSort default bsNone;
   end;
 
 {$endif read_interface}
@@ -630,11 +622,37 @@ end;
 function TCastleAbstractRootTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'TimeScale', 'Paused', 'BlendingSort', 'PhysicsProperties'
+       'TimeScale', 'Paused', 'PhysicsProperties'
      ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleAbstractRootTransform.CustomSerialization(
+  const SerializationProcess: TSerializationProcess);
+
+  function ViewportCaption: String;
+  begin
+    if (Owner <> nil) and (Owner.Name <> '') then
+      Result := '"' + Owner.Name + '.Items"'
+    else
+      Result := 'TCastleViewport.Items';
+  end;
+
+var
+  BlendingSortStr: String;
+begin
+  inherited;
+  BlendingSortStr := '';
+  SerializationProcess.ReadWriteString('BlendingSort', BlendingSortStr, false);
+  if BlendingSortStr <> '' then
+  begin
+    WritelnWarning('%s uses "BlendingSort" = "%s", this is no longer supported on TCastleAbstractRootTransform (Viewport.Items). Instead set TCastleViewport.BlendingSort property.', [
+      ViewportCaption,
+      BlendingSortStr
+    ]);
+  end;
 end;
 
 {$endif read_implementation}

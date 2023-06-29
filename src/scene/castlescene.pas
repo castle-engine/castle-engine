@@ -420,10 +420,8 @@ var
 const
   { We recommend using CastleRenderOptions unit to get these types.
     But for backward compatibility, they are also available here. }
-  bsNone = CastleRenderOptions.bsNone;
-  bs2D = CastleRenderOptions.bs2D;
-  bs3D = CastleRenderOptions.bs3D;
 
+  { }
   weNormal = CastleRenderOptions.weNormal;
   weWireframeOnly = CastleRenderOptions.weWireframeOnly;
   weSolidWireframe = CastleRenderOptions.weSolidWireframe;

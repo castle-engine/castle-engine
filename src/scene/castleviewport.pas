@@ -161,7 +161,8 @@ type
       FWarningZFarInfinityDone: Boolean;
       FDynamicBatching: Boolean;
       FOcclusionCulling: Boolean;
-      FOcclusionSort: TBlendingSort;
+      FOcclusionSort: TShapeSort;
+      FBlendingSort: TShapeSort;
 
       ShapesCollector: TShapesCollector;
       ShapesRenderer: TShapesRenderer;
@@ -246,7 +247,6 @@ type
     procedure ItemsFreeNotification(const Sender: TFreeNotificationObserver);
     procedure SetDynamicBatching(const Value: Boolean);
     procedure SetOcclusionCulling(const Value: Boolean);
-    procedure SetOcclusionSort(const Value: TBlendingSort);
   private
     var
       FProjection: TProjection;
@@ -642,14 +642,8 @@ type
           or set camera Z to zero and then comfortably position things around [-1000, 1000].
         )
       )
-
-      If AdjustBlendingSort (default @true, as this is usually desired)
-      then this also sets
-      @link(TCastleAbstractRootTransform.BlendingSort)
-      to bs2D, which is a recommended value for 2D games.
-      See @url(https://castle-engine.io/blending blending).
     }
-    procedure Setup2D(const AdjustBlendingSort: Boolean = true);
+    procedure Setup2D;
 
     { Convert 2D position on the viewport into 3D "world coordinates",
       by colliding camera ray with a plane parallel to the viewport at given Depth.
@@ -1218,22 +1212,40 @@ type
           Observe that:
 
           @unorderedList(
-            @item(OcclusionCulling=false and OcclusionSort=bsNone results in most shapes
+            @item(OcclusionCulling=false and OcclusionSort=sortNone results in most shapes
               being rendered (like 300).)
 
-            @item(OcclusionCulling=true and OcclusionSort=bsNone is better, when
+            @item(OcclusionCulling=true and OcclusionSort=sortNone is better, when
               looking at a building wall obscuring most city you can easily
               have only 30 shapes rendered.)
 
-            @item(OcclusionCulling=true and OcclusionSort=bs3D is even better.
+            @item(OcclusionCulling=true and OcclusionSort=sort3D is even better.
               Looking at a building wall obscuring most city you can easily
               have only a few shapes rendered.)
           )
         )
       )
+
+      The default value, sortAuto, for now is equivalent to sortNone.
+      It may change in the future to perform sorting esp. when OcclusionCulling
+      is @true, as OcclusionCulling and sorting are a natural pair,
+      sorting make occlusion culling even more effective.
     }
-    property OcclusionSort: TBlendingSort
-      read FOcclusionSort write SetOcclusionSort default bsNone;
+    property OcclusionSort: TShapeSort
+      read FOcclusionSort write FOcclusionSort default sortAuto;
+
+    { When rendering using blending (partial transparency),
+      sort the children (all shapes in all scenes).
+
+      This makes blending correct when there are multiple partially-transparent
+      objects visible.
+      See @url(https://castle-engine.io/blending blending manual).
+
+      The default value, sortAuto, automatically detects if camera
+      is 2D (orthographic, looking in -Z) and if yes, it behaves like sort2D.
+      Otherwise it behaves like sort3D. }
+    property BlendingSort: TShapeSort
+      read FBlendingSort write FBlendingSort default sortAuto;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -2394,6 +2406,30 @@ begin
 end;
 
 procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
+
+  function EffectiveBlendingSort: TShapeSortNoAuto;
+  begin
+    if BlendingSort = sortAuto then
+    begin
+      if (Camera <> nil) and
+        (Camera.ProjectionType = ptOrthographic) and
+        (TVector3.Equals(Camera.Direction, Vector3(0, 1, 0))) then
+        Result := sort2D
+      else
+        Result := sort3D;
+    end else
+      Result := BlendingSort;
+  end;
+
+  function EffectiveOcclusionSort: TShapeSortNoAuto;
+  begin
+    if OcclusionSort = sortAuto then
+    begin
+      Result := sortNone;
+    end else
+      Result := OcclusionSort;
+  end;
+
 begin
   ShapesCollector.Clear;
   Assert(Params.Collector = ShapesCollector);
@@ -2405,7 +2441,9 @@ begin
   Params.Frustum := @Params.RenderingCamera.Frustum;
   Items.Render(Params);
 
-  ShapesRenderer.Render(ShapesCollector, Params, Items.BlendingSort);
+  ShapesRenderer.OcclusionSort := EffectiveOcclusionSort;
+  ShapesRenderer.BlendingSort := EffectiveBlendingSort;
+  ShapesRenderer.Render(ShapesCollector, Params);
 end;
 
 procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
@@ -3063,7 +3101,7 @@ begin
   Result := FRenderParams.Statistics;
 end;
 
-procedure TCastleViewport.Setup2D(const AdjustBlendingSort: Boolean);
+procedure TCastleViewport.Setup2D;
 begin
   Camera.SetWorldView(
     { pos } Vector3(0, 0, Default2DCameraZ),
@@ -3074,8 +3112,6 @@ begin
   {$warnings off} // using deprecated MainScene to keep it working
   AutoCamera := false;
   {$warnings on}
-  if AdjustBlendingSort then
-    Items.BlendingSort := bs2D;
 end;
 
 procedure TCastleViewport.PositionToPrerequisites;
@@ -3915,7 +3951,6 @@ procedure TCastleViewport.SetupChildren2D;
 var
   Plane: TCastlePlane;
 begin
-  Items.BlendingSort := bs2D;
   FullSize := true;
   SetupDesignTimeCamera;
   { Better Origin default, makes things in center }
@@ -3928,7 +3963,7 @@ begin
     e.g. to squeeze it into some TCastleButton) and keep the same fov.
     You can also change UI scaling and keep the same fov. }
   Camera.Orthographic.Height := 1000;
-  Setup2D; // BlendingSort is already bs2D anyway, this will set it again, let it
+  Setup2D;
 
   { purpose: initial 2D object,
     that you can see as a whole in initial view,
@@ -3973,7 +4008,6 @@ var
   Plane: TCastlePlane;
   NewBackground: TCastleBackground;
 begin
-  Items.BlendingSort := bs3D;
   FullSize := true;
   SetupDesignTimeCamera;
   Camera.Translation := Vector3(0.00, 2.00, 4.00);
@@ -4035,7 +4069,7 @@ begin
   if ArrayContainsString(PropertyName, [
         'Transparent', 'Camera', 'Navigation', 'Background',
         'Fog', 'BackgroundColorPersistent', 'DynamicBatching', 'Items',
-        'OcclusionSort', 'OcclusionCulling'
+        'OcclusionSort', 'OcclusionCulling', 'BlendingSort'
       ]) then
     Result := [psBasic]
   else
@@ -4146,16 +4180,6 @@ begin
     FOcclusionCulling := Value;
     if ShapesRenderer <> nil then
       ShapesRenderer.OcclusionCulling := Value;
-  end;
-end;
-
-procedure TCastleViewport.SetOcclusionSort(const Value: TBlendingSort);
-begin
-  if FOcclusionSort <> Value then
-  begin
-    FOcclusionSort := Value;
-    if ShapesRenderer <> nil then
-      ShapesRenderer.OcclusionSort := Value;
   end;
 end;
 

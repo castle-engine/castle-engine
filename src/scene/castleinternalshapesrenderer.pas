@@ -57,7 +57,7 @@ type
     FBatching: TBatchShapes;
     FDynamicBatching: Boolean;
     FOcclusionCulling: Boolean;
-    FOcclusionSort: TBlendingSort;
+    FOcclusionSort, FBlendingSort: TShapeSortNoAuto;
 
     { Checks we need DynamicBatching and we don't use occlusion culling. }
     function EffectiveDynamicBatching: Boolean;
@@ -128,7 +128,7 @@ type
       and needed at rendering collecting shapes.
       Transform / InverseTransform should be only in former. }
     procedure Render(const Shapes: TShapesCollector;
-      const Params: TRenderParams; const BlendingSort: TBlendingSort);
+      const Params: TRenderParams);
 
     { Combine (right before rendering) multiple shapes with a similar appearance into one.
       This can drastically reduce the number of "draw calls",
@@ -149,14 +149,15 @@ type
       read FOcclusionCulling write SetOcclusionCulling default false;
 
     { Sort the opaque shapes when rendering, from front to back.
-      This may make a speedup when big shapes in front of camera obscure
-      many shapes behind.
+      @seealso TCastleViewport.OcclusionSort }
+    property OcclusionSort: TShapeSortNoAuto
+      read FOcclusionSort write FOcclusionSort default sortNone;
 
-      It can be combined with @link(OcclusionCulling) to make it even faster,
-      but in general it's an independent optimization from  @link(OcclusionCulling),
-      albeit it makes sense in similar situations. }
-    property OcclusionSort: TBlendingSort
-      read FOcclusionSort write FOcclusionSort default bsNone;
+    { Sort the blending (partially-transparent) shapes when rendering,
+      from back to front.
+      @seealso TCastleViewport.BlendingSort }
+    property BlendingSort: TShapeSortNoAuto
+      read FBlendingSort write FBlendingSort default sortNone;
   end;
 
 implementation
@@ -207,7 +208,8 @@ begin
   FOcclusionCullingRenderer := TOcclusionCullingRenderer.Create;
   FBlendingRenderer := TBlendingRenderer.Create;
   FRenderer := TRenderer.Create(nil);
-  FOcclusionSort := bsNone;
+  FOcclusionSort := sortNone;
+  FBlendingSort := sortNone;
 end;
 
 destructor TShapesRenderer.Destroy;
@@ -544,7 +546,7 @@ begin
 end;
 
 procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
-  const Params: TRenderParams; const BlendingSort: TBlendingSort);
+  const Params: TRenderParams);
 
   procedure BatchingCommit;
   var
