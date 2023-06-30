@@ -44,8 +44,12 @@ Notes:
     - `castle_fmx` with FMX version of TCastleControl, that depended on `castle_base`
     - `castle_vcl` with VCL version of TCastleControl, that depended on `castle_base`
 
-    This worked when installing in Delphi IDE, however [Delphinus](https://castle-engine.io/download#delphinus) has issues installing packages that depend on other packages like this. So we decided to switch to a single Delphi package `castle_engine` that contains everything, both VCL and FMX components. There seems to be no practical disadvantages of this.
+    It is possible we'll go back to this split,
 
-    In case we'll want to use run-time packages, they will be split into separate base/fmx/vcl.
+    - When adding non-Windows platforms (Linux, Android) that will have FMX components but not VCL components.
+
+    - In case we'll want to use run-time packages, they will need to be split into separate base/FMX/VCL, as a normal application doesn't use both FMX and VCL simultaneously, so it should not depend on both.
 
 - `src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas` is implicitly imported into package -- this is normal and has to stay like this. This unit compiles only for Delphi/Win32 (not Delphi/Win64), it is also used only in case of that platform.
+
+- The packages are not useful with Delphinus at this point, due to https://github.com/Memnarch/Delphinus/issues/93 .
