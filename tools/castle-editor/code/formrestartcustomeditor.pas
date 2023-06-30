@@ -56,6 +56,9 @@ begin
     (LabelCaption.Top + LabelCaption.Height + ButtonsMargin + ButtonPanel1.Height) *
     PixelsPerInch / DesignTimePPI
   );
+
+  // focus OK on start
+  ActiveControl := ButtonPanel1.OKButton;
 end;
 
 end.
