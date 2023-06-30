@@ -50,7 +50,17 @@ Usage in short:
 
 - You can also use [Visual Studio Code](https://castle-engine.io/vscode). We feature a Pascal LSP server that can do code completion for Pascal and CGE API.
 
+<!--
+Unfortunately we cannot recommend Delphinus to users now:
+
+- It cannot download CGE: https://github.com/castle-engine/castle-engine/issues/84
+- It cannot install CGE packages: https://github.com/Memnarch/Delphinus/issues/93
+- The current use-case just means it copies entire CGE
+  ( https://github.com/castle-engine/castle-engine/issues/497 ) to enhance
+  Delphi environment paths.
+
 - Delphinus-Support : For Delphi users that want to use `TCastleControl` in VCL of FMX, you can install the package using [Delphinus](https://github.com/Memnarch/Delphinus/). See [Download: Delphinus](https://castle-engine.io/download) for more details.
+-->
 
 Documentation
 -------
