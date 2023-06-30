@@ -18,6 +18,8 @@ Advantages of this rendering technique:
 
 This technique is very nice for adventure and horror games, where the emphasis is to show a nice view of the location. It's probably not good for shooters, since the aiming is awkward when the camera is still and doesn't match your avatar orientation.
 
+![Screenshot](screenshot.png)
+
 ## This is not a finished game
 
 While I planned to make a larger game using this technique, but for now this is only a technological demo, only showing that it's (technically) possible.

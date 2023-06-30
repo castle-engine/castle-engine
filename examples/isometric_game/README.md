@@ -12,7 +12,9 @@ Simple example of arranging images in a viewport to show an isometric map layout
 
 - The design contains `TCastle2DNavigation` component so user can easily move (drag with left mouse button) and zoom the map (mouse wheel).
 
-Notes:
+![Screenshot](screenshot.png)
+
+## Notes
 
 - Cross-scene batching when drawing is very important in case of this demo. You need `DynamicBatching` = `true` to have reasonable performance for non-trivial maps.
 
@@ -20,7 +22,7 @@ Notes:
 
     Use key `b` to toggle `DynamicBatching` to test this.
 
-TODO:
+## TODO
 
 - Turn this into a real isometric game :)
 
