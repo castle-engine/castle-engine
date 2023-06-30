@@ -1,12 +1,20 @@
 # Delphi package
 
-This directory contains a design-time Delphi package `castle_engine` that registers [TCastleControl component you can drop on a form (VCL, FMX)](https://castle-engine.io/control_on_form).
+This directory contains design-time Delphi packages to use [TCastleControl component you can drop on a form (VCL, FMX)](https://castle-engine.io/control_on_form).
 
-We recommend installing this package using [Delphinus](https://castle-engine.io/download#delphinus). It will install the package and extend your Delphi settings, to make CGE units available for all applications.
+## Usage
 
-Alternatively, you can build and install this package manually in Delphi IDE.
+- Open in Delphi `AllPackages.groupproj`
 
-Notes:
+- Optional: Right-click on _"AllPackages"_ and select _"Build All"_, to make sure all packages are built
+
+- Make sure your platform is _"Windows 32-bit"_ (Delphi IDE is 32-bit right now, so installed packages must be 32-bit too)
+
+- Right-click on `castle_engine.bpl` and select _"Install"_
+
+- Right-click on `castle_engine_design.bpl` and select _"Install"_
+
+## Notes - why packages are configured like this
 
 - The package `castle_engine` _"Target platforms"_ must include all platforms supported by Castle Game Engine with Delphi.
 
@@ -20,9 +28,7 @@ Notes:
 
 - As Delphi IDE is 32-bit right now, note that you can use _"Install"_ on a package only when the platform is set to _"Windows 32-bit"_.
 
-- We put DCP output in `./output` subdirectory, this seems simplest and reliable for now.
-  Makes it easier to find and refer to packages than in directories like
-  (default) `C:\Users\Public\Documents\Embarcadero\Studio\22.0\Dcp` .
+- We put output in the default directory determined by Delphi, which will be like `C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl` .
 
 - Package settings disable some warnings.
   Disabling them this way (not in DPK, e.g. by including `castleconf.inc` or writing directives explicitly) seems like the only reliable way to hide them. The directives (and reasons for hiding) are:
@@ -53,3 +59,6 @@ Notes:
 - `src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas` is implicitly imported into package -- this is normal and has to stay like this. This unit compiles only for Delphi/Win32 (not Delphi/Win64), it is also used only in case of that platform.
 
 - The packages are not useful with Delphinus at this point, due to https://github.com/Memnarch/Delphinus/issues/93 .
+
+    Hopefully this will be fixed eventually, we'd love to recommend to use install our packages using [Delphinus](https://castle-engine.io/download#delphinus). It should install the package and extend your Delphi settings, to make CGE units available for all applications.
+
