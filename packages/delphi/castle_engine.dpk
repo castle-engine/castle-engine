@@ -26,7 +26,7 @@ package castle_engine;
 {$DEFINE DEBUG}
 {$DEFINE CASTLE_DELPHI_PACKAGE}
 {$ENDIF IMPLICITBUILDING}
-{$DESCRIPTION 'Castle Game Engine - TCastleControl on VCL and FMX forms'}
+{$DESCRIPTION 'Castle Game Engine - TCastleControl component'}
 {$IMPLICITBUILD ON}
 
 requires
@@ -325,7 +325,8 @@ contains
   castlescriptimages in '..\..\src\castlescript\castlescriptimages.pas',
   castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas',
   fmx.castlecontrol in '..\..\src\delphi\fmx.castlecontrol.pas',
-  vcl.castlecontrol in '..\..\src\delphi\vcl.castlecontrol.pas';
+  vcl.castlecontrol in '..\..\src\delphi\vcl.castlecontrol.pas',
+  castleinternalshapesrenderer in '..\..\src\scene\castleinternalshapesrenderer.pas';
 
 end.
 

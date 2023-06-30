@@ -436,6 +436,7 @@
         <DCCReference Include="..\..\src\castlescript\castlescriptvectors.pas"/>
         <DCCReference Include="..\..\src\delphi\fmx.castlecontrol.pas"/>
         <DCCReference Include="..\..\src\delphi\vcl.castlecontrol.pas"/>
+        <DCCReference Include="..\..\src\scene\castleinternalshapesrenderer.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

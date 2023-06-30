@@ -35,4 +35,7 @@ requires
   designide,
   castle_engine;
 
+contains
+  castleinternaldelphidesignutils in '..\..\src\delphi\castleinternaldelphidesignutils.pas';
+
 end.
