@@ -24,11 +24,12 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdProjector: TSFNode;
-    { Internal wrapper for property @link(Projector). This wrapper API may change, we advise to access simpler @link(Projector) instead. }
+    { Internal wrapper for property @code(Projector). This wrapper API may change, we advise to access simpler @code(Projector) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdProjector: TSFNode read FFdProjector;
 
 {$endif read_interface}

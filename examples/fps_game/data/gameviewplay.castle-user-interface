@@ -17,7 +17,13 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
@@ -265,7 +271,6 @@
           },
           {
             "$$ClassName" : "TCastleTransform",
-            "ExcludeFromStatistics" : true,
             "Name" : "Lights",
             "$Children" : [
               {
@@ -1160,7 +1165,6 @@
             "$Children" : [
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1188,7 +1192,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1216,7 +1219,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1244,7 +1246,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1272,7 +1273,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1301,7 +1301,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1330,7 +1329,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1359,7 +1357,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1388,7 +1385,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1417,7 +1413,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1446,7 +1441,6 @@
               },
               {
                 "$$ClassName" : "TCastleSphere",
-                "CollisionSphereRadius" : 1.0000000000000000E+000,
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorPersistent",
                   "Blue" : 0.0000000000000000E+000
@@ -1494,6 +1488,7 @@
         ]
       },
       "Name" : "MainViewport",
+      "OcclusionCulling" : true,
       "$NonVisualComponents" : [
         {
           "$$ClassName" : "TCastleBackground",
@@ -1552,21 +1547,20 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 5.6898063421249390E-001,
-          "X" : -8.2272899150848389E-001,
-          "Y" : -5.5350869894027710E-001,
-          "Z" : -1.2940229475498199E-001
+          "W" : 3.1800076365470886E-001,
+          "X" : 2.2620920836925507E-001,
+          "Y" : 9.7407221794128418E-001,
+          "Z" : -3.5706125199794769E-003
         },
         "ScalePersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 9.9999994039535522E-001,
-          "Y" : 1.0000001192092896E+000
+          "Y" : 9.9999994039535522E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -2.7352661132812500E+001,
-          "Y" : 5.5678066253662109E+001,
-          "Z" : 2.1660337448120117E+001
+          "X" : -8.9345989227294922E+000,
+          "Y" : 2.7462420463562012E+000,
+          "Z" : -1.5948206901550293E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {

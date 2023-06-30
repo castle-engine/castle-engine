@@ -249,7 +249,6 @@
     var
       FMaterialInfo: TMyMaterialInfo;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -306,7 +305,6 @@
     var
       FMaterialInfo: TMyPhysicalMaterialInfo;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
     function MaterialInfo: TMaterialInfo; override;
 
@@ -352,7 +350,6 @@
     var
       FMaterialInfo: TMaterialInfo;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
     function MaterialInfo: TMaterialInfo; override;
 
@@ -855,13 +852,6 @@ end;
 
 { TMaterialNode -------------------------------------------------------------- }
 
-constructor TMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
-begin
-  inherited;
-  { Changing Transparency must also update shape's Blending. }
-  FdTransparency.ChangeAlways := chAlphaChannel;
-end;
-
 destructor TMaterialNode.Destroy;
 begin
   FreeAndNil(FMaterialInfo);
@@ -1053,13 +1043,6 @@ begin
 end;
 
 { TPhysicalMaterialNode ------------------------------------------------------ }
-
-constructor TPhysicalMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
-begin
-  inherited;
-  { Changing Transparency must also update shape's Blending. }
-  FdTransparency.ChangeAlways := chAlphaChannel;
-end;
 
 destructor TPhysicalMaterialNode.Destroy;
 begin
@@ -1263,13 +1246,6 @@ end;
 
 { TTwoSidedMaterialNode ------------------------------------------------------ }
 
-constructor TTwoSidedMaterialNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
-begin
-  inherited;
-  FdBackTransparency.ChangeAlways := chAlphaChannel;
-  FdTransparency.ChangeAlways := chAlphaChannel;
-end;
-
 destructor TTwoSidedMaterialNode.Destroy;
 begin
   FreeAndNil(FMaterialInfo);
@@ -1309,9 +1285,6 @@ begin
   // default is different
   FdEmissiveColor.DefaultValue := Vector3(1, 1, 1);
   FdEmissiveColor.Value := Vector3(1, 1, 1);
-  { Changing Transparency must also update shape's Blending.
-    Testcase: data/gui/fight/spell_effect/spell_2_symbols.json in Unholy. }
-  FdTransparency.ChangeAlways := chAlphaChannel;
 end;
 
 destructor TUnlitMaterialNode.Destroy;

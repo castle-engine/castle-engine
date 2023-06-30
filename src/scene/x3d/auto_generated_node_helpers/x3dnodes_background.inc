@@ -24,11 +24,12 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdBackUrl: TMFString;
-    { Internal wrapper for property @link(BackUrl). This wrapper API may change, we advise to access simpler @link(BackUrl) instead. }
+    { Internal wrapper for property @code(BackUrl). This wrapper API may change, we advise to access simpler @code(BackUrl) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBackUrl: TMFString read FFdBackUrl;
     {  }
     procedure SetBackUrl(const Value: array of string); overload;
@@ -36,7 +37,7 @@
     procedure SetBackUrl(const Value: TCastleStringList); overload;
 
     strict private FFdBottomUrl: TMFString;
-    { Internal wrapper for property @link(BottomUrl). This wrapper API may change, we advise to access simpler @link(BottomUrl) instead. }
+    { Internal wrapper for property @code(BottomUrl). This wrapper API may change, we advise to access simpler @code(BottomUrl) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBottomUrl: TMFString read FFdBottomUrl;
     {  }
     procedure SetBottomUrl(const Value: array of string); overload;
@@ -44,7 +45,7 @@
     procedure SetBottomUrl(const Value: TCastleStringList); overload;
 
     strict private FFdFrontUrl: TMFString;
-    { Internal wrapper for property @link(FrontUrl). This wrapper API may change, we advise to access simpler @link(FrontUrl) instead. }
+    { Internal wrapper for property @code(FrontUrl). This wrapper API may change, we advise to access simpler @code(FrontUrl) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFrontUrl: TMFString read FFdFrontUrl;
     {  }
     procedure SetFrontUrl(const Value: array of string); overload;
@@ -52,7 +53,7 @@
     procedure SetFrontUrl(const Value: TCastleStringList); overload;
 
     strict private FFdLeftUrl: TMFString;
-    { Internal wrapper for property @link(LeftUrl). This wrapper API may change, we advise to access simpler @link(LeftUrl) instead. }
+    { Internal wrapper for property @code(LeftUrl). This wrapper API may change, we advise to access simpler @code(LeftUrl) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLeftUrl: TMFString read FFdLeftUrl;
     {  }
     procedure SetLeftUrl(const Value: array of string); overload;
@@ -60,7 +61,7 @@
     procedure SetLeftUrl(const Value: TCastleStringList); overload;
 
     strict private FFdRightUrl: TMFString;
-    { Internal wrapper for property @link(RightUrl). This wrapper API may change, we advise to access simpler @link(RightUrl) instead. }
+    { Internal wrapper for property @code(RightUrl). This wrapper API may change, we advise to access simpler @code(RightUrl) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRightUrl: TMFString read FFdRightUrl;
     {  }
     procedure SetRightUrl(const Value: array of string); overload;
@@ -68,7 +69,7 @@
     procedure SetRightUrl(const Value: TCastleStringList); overload;
 
     strict private FFdTopUrl: TMFString;
-    { Internal wrapper for property @link(TopUrl). This wrapper API may change, we advise to access simpler @link(TopUrl) instead. }
+    { Internal wrapper for property @code(TopUrl). This wrapper API may change, we advise to access simpler @code(TopUrl) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTopUrl: TMFString read FFdTopUrl;
     {  }
     procedure SetTopUrl(const Value: array of string); overload;

@@ -29,17 +29,18 @@
     function GetPitch: Single;
     procedure SetPitch(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdPitch: TSFFloat;
-    { Internal wrapper for property @link(Pitch). This wrapper API may change, we advise to access simpler @link(Pitch) instead. }
+    { Internal wrapper for property @code(Pitch). This wrapper API may change, we advise to access simpler @code(Pitch) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPitch: TSFFloat read FFdPitch;
     {  }
     property Pitch: Single read GetPitch write SetPitch;

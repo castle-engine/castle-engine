@@ -46,7 +46,6 @@ end;
 procedure TCastleSceneComponentEditor.ExecuteVerb(Index: Integer);
 var
   InheritedCount: Integer;
-  SavedUrl: String;
 begin
   InheritedCount := inherited GetVerbCount;
   if Index < InheritedCount then

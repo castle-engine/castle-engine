@@ -24,11 +24,12 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdTexture: TMFNode;
-    { Internal wrapper for property @link(Texture). This wrapper API may change, we advise to access simpler @link(Texture) instead. }
+    { Internal wrapper for property @code(Texture). This wrapper API may change, we advise to access simpler @code(Texture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexture: TMFNode read FFdTexture;
     {  }
     procedure SetTexture(const Value: array of TAbstractTexture2DNode);

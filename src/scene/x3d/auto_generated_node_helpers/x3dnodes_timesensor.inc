@@ -33,11 +33,12 @@
     function GetDetectAffectedFields: Boolean;
     procedure SetDetectAffectedFields(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdCycleInterval: TSFTime;
-    { Internal wrapper for property @link(CycleInterval). This wrapper API may change, we advise to access simpler @link(CycleInterval) instead. }
+    { Internal wrapper for property @code(CycleInterval). This wrapper API may change, we advise to access simpler @code(CycleInterval) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCycleInterval: TSFTime read FFdCycleInterval;
     {  }
     property CycleInterval: TFloatTime read GetCycleInterval write SetCycleInterval;
@@ -55,19 +56,19 @@
     public property EventTime: TSFTimeEvent read FEventTime;
 
     strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
+    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdFractionIncreasing: TSFBool;
-    { Internal wrapper for property @link(FractionIncreasing). This wrapper API may change, we advise to access simpler @link(FractionIncreasing) instead. }
+    { Internal wrapper for property @code(FractionIncreasing). This wrapper API may change, we advise to access simpler @code(FractionIncreasing) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFractionIncreasing: TSFBool read FFdFractionIncreasing;
     {  }
     property FractionIncreasing: Boolean read GetFractionIncreasing write SetFractionIncreasing;
 
     strict private FFdDetectAffectedFields: TSFBool;
-    { Internal wrapper for property @link(DetectAffectedFields). This wrapper API may change, we advise to access simpler @link(DetectAffectedFields) instead. }
+    { Internal wrapper for property @code(DetectAffectedFields). This wrapper API may change, we advise to access simpler @code(DetectAffectedFields) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDetectAffectedFields: TSFBool read FFdDetectAffectedFields;
     {  }
     property DetectAffectedFields: Boolean read GetDetectAffectedFields write SetDetectAffectedFields;

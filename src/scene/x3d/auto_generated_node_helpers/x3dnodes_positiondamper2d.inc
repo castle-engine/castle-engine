@@ -29,6 +29,7 @@
     function GetInitialValue: TVector2;
     procedure SetInitialValue(const Value: TVector2);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -45,13 +46,13 @@
     public property EventValue_changed: TSFVec2fEvent read FEventValue_changed;
 
     strict private FFdInitialDestination: TSFVec2f;
-    { Internal wrapper for property @link(InitialDestination). This wrapper API may change, we advise to access simpler @link(InitialDestination) instead. }
+    { Internal wrapper for property @code(InitialDestination). This wrapper API may change, we advise to access simpler @code(InitialDestination) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInitialDestination: TSFVec2f read FFdInitialDestination;
     {  }
     property InitialDestination: TVector2 read GetInitialDestination write SetInitialDestination;
 
     strict private FFdInitialValue: TSFVec2f;
-    { Internal wrapper for property @link(InitialValue). This wrapper API may change, we advise to access simpler @link(InitialValue) instead. }
+    { Internal wrapper for property @code(InitialValue). This wrapper API may change, we advise to access simpler @code(InitialValue) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInitialValue: TSFVec2f read FFdInitialValue;
     {  }
     property InitialValue: TVector2 read GetInitialValue write SetInitialValue;

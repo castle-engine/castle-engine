@@ -390,8 +390,13 @@ begin
   { Lowercase once and later use IsPrefix many times with IgnoreCase=false (faster). }
   LineLower := LowerCase(Line);
   Result := not (
+    { Occur without -vb }
     IsPrefix('generics.collections.pas(', LineLower, false) or
     IsPrefix('generics.dictionaries.inc(', LineLower, false) or
+    { Occur with -vb }
+    (Pos('generics.collections.ppu:generics.collections.pas(', LineLower) <> 0) or
+    (Pos('generics.collections.ppu:generics.dictionaries.inc(', LineLower) <> 0) or
+    { Others }
     IsSuffix('warning: section "__datacoal_nt" is deprecated', LineLower, false) or
     IsSuffix('note: change section name to "__data"', LineLower, false) or
     (Line = '.section __DATA, __datacoal_nt, coalesced') or
@@ -634,6 +639,7 @@ begin
     FpcOptions.Add('-Sh');
     FpcOptions.Add('-vm2045'); // do not show Warning: (2045) APPTYPE is not supported by the target OS
     FpcOptions.Add('-vm5024'); // do not show Hint: (5024) Parameter "..." not used
+    FpcOptions.Add('-vb'); // show full filenames, makes it easier for software (like VS Code problem matcher and CGE editor) to figure out the relevant file
 
     // do not show
     // Warning: Constructing a class "TCustomDictionaryEnumerator$4$crc6100464F" with abstract method "GetCurrent"

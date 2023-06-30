@@ -11,28 +11,35 @@
         "Red" : 1.0000000000000000E+000
       },
       "FontSize" : 2.0000000000000000E+001,
-      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
       "Text" : [
         "FPS: xxx"
       ],
-      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
     },
     {
       "$$ClassName" : "TCastleViewport",
-      "AutoCamera" : true,
       "Camera" : "Camera1",
       "FullSize" : true,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
-        "UseHeadlight" : "hlOn",
         "$Children" : [
           {
             "$$ClassName" : "TCastleScene",
@@ -40,8 +47,7 @@
             ],
             "Name" : "DisplayedScene",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "BlendingSort" : "bs2D"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "URL" : "castle-data:/textured_shapes.gltf"
           },
@@ -55,13 +61,22 @@
               "$$ClassName" : "TCastlePerspective"
             },
             "RotationPersistent" : {
-              "$$ClassName" : "TCastleVector4Persistent",
+              "$$ClassName" : "TCastleVector4RotationPersistent",
               "Z" : 1.0000000000000000E+000
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "Y" : -2.3841857910156250E-007,
               "Z" : 9.0000000000000000E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Name" : "PointLight1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 2.8852548599243164E+000,
+              "Z" : 3.9013061523437500E+000
             }
           }
         ]
@@ -83,12 +98,21 @@
           "$$ClassName" : "TCastlePerspective"
         },
         "RotationPersistent" : {
-          "$$ClassName" : "TCastleVector4Persistent",
-          "Z" : 1.0000000000000000E+000
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 5.5422121286392212E-001,
+          "X" : -3.7118554115295410E-001,
+          "Y" : -9.2291712760925293E-001,
+          "Z" : -1.0220181941986084E-001
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Y" : 9.9999994039535522E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "Z" : 9.0370664596557617E+000
+          "X" : -2.9684484004974365E+000,
+          "Y" : 2.1276190280914307E+000,
+          "Z" : 1.1548818588256836E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
@@ -108,7 +132,6 @@
     },
     {
       "$$ClassName" : "TCastleViewport",
-      "AutoCamera" : true,
       "BackgroundColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
         "Blue" : 9.4117647409439087E-001,
@@ -128,7 +151,13 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
@@ -137,8 +166,7 @@
             ],
             "Name" : "SourceScene",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "BlendingSort" : "bs2D"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "URL" : "castle-data:/raptor_1.x3d"
           },
@@ -152,7 +180,7 @@
               "$$ClassName" : "TCastlePerspective"
             },
             "RotationPersistent" : {
-              "$$ClassName" : "TCastleVector4Persistent",
+              "$$ClassName" : "TCastleVector4RotationPersistent",
               "Z" : 1.0000000000000000E+000
             },
             "TranslationPersistent" : {
@@ -175,7 +203,7 @@
           "$$ClassName" : "TCastlePerspective"
         },
         "RotationPersistent" : {
-          "$$ClassName" : "TCastleVector4Persistent",
+          "$$ClassName" : "TCastleVector4RotationPersistent",
           "Z" : 1.0000000000000000E+000
         },
         "TranslationPersistent" : {

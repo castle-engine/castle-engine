@@ -217,15 +217,14 @@
     procedure RenderEnd(const RenderBeginFollows: boolean = false);
 
     { Generate mipmaps for the texture.
-      This will use glGenerateMipmap call, which is actually
-      a part of EXT_framebuffer_object extension (or GL core together
-      with framebuffer in GL core), so it will always
-      raise EGenerateMipmapNotAvailable if framebuffer is not available.
+      Uses GPU capability to generate mipmaps fast.
 
-      You should use HasGenerateMipmap and never call this
-      if not HasGenerateMipmap, if you don't want to get this exception.
+      This will raise an exception if necessary OpenGL(ES) version/extension
+      to do is not available (but it really indicates ancient
+      OpenGL(ES) version, all moden versions support this).
 
-      @raises(EGenerateMipmapNotAvailable If glGenerateMipmap not available.) }
+      Check HasGenerateMipmap before calling this, if you want to avoid
+      getting the exception. }
     procedure GenerateMipmap;
 
     { Color buffer name. Use only when Buffer = tbNone, between GLContextOpen

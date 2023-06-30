@@ -31,17 +31,18 @@
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdTessellation: TSFInt32;
-    { Internal wrapper for property @link(Tessellation). This wrapper API may change, we advise to access simpler @link(Tessellation) instead. }
+    { Internal wrapper for property @code(Tessellation). This wrapper API may change, we advise to access simpler @code(Tessellation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTessellation: TSFInt32 read FFdTessellation;
     {  }
     property Tessellation: Integer read GetTessellation write SetTessellation;
 
     strict private FFdWeight: TMFDouble;
-    { Internal wrapper for property @link(Weight). This wrapper API may change, we advise to access simpler @link(Weight) instead. }
+    { Internal wrapper for property @code(Weight). This wrapper API may change, we advise to access simpler @code(Weight) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWeight: TMFDouble read FFdWeight;
     {  }
     procedure SetWeight(const Value: array of Double); overload;
@@ -49,13 +50,13 @@
     procedure SetWeight(const Value: TDoubleList); overload;
 
     strict private FFdClosed: TSFBool;
-    { Internal wrapper for property @link(Closed). This wrapper API may change, we advise to access simpler @link(Closed) instead. }
+    { Internal wrapper for property @code(Closed). This wrapper API may change, we advise to access simpler @code(Closed) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdClosed: TSFBool read FFdClosed;
     {  }
     property Closed: Boolean read GetClosed write SetClosed;
 
     strict private FFdKnot: TMFDouble;
-    { Internal wrapper for property @link(Knot). This wrapper API may change, we advise to access simpler @link(Knot) instead. }
+    { Internal wrapper for property @code(Knot). This wrapper API may change, we advise to access simpler @code(Knot) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdKnot: TMFDouble read FFdKnot;
     {  }
     procedure SetKnot(const Value: array of Double); overload;
@@ -63,7 +64,7 @@
     procedure SetKnot(const Value: TDoubleList); overload;
 
     strict private FFdOrder: TSFInt32;
-    { Internal wrapper for property @link(Order). This wrapper API may change, we advise to access simpler @link(Order) instead. }
+    { Internal wrapper for property @code(Order). This wrapper API may change, we advise to access simpler @code(Order) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdOrder: TSFInt32 read FFdOrder;
     {  }
     property Order: Integer read GetOrder write SetOrder;

@@ -59,101 +59,102 @@
     function GetAutoCalc: Boolean;
     procedure SetAutoCalc(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAxis1Angle: TSFFloat;
-    { Internal wrapper for property @link(Axis1Angle). This wrapper API may change, we advise to access simpler @link(Axis1Angle) instead. }
+    { Internal wrapper for property @code(Axis1Angle). This wrapper API may change, we advise to access simpler @code(Axis1Angle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis1Angle: TSFFloat read FFdAxis1Angle;
     {  }
     property Axis1Angle: Single read GetAxis1Angle write SetAxis1Angle;
 
     strict private FFdAxis1Torque: TSFFloat;
-    { Internal wrapper for property @link(Axis1Torque). This wrapper API may change, we advise to access simpler @link(Axis1Torque) instead. }
+    { Internal wrapper for property @code(Axis1Torque). This wrapper API may change, we advise to access simpler @code(Axis1Torque) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis1Torque: TSFFloat read FFdAxis1Torque;
     {  }
     property Axis1Torque: Single read GetAxis1Torque write SetAxis1Torque;
 
     strict private FFdAxis2Angle: TSFFloat;
-    { Internal wrapper for property @link(Axis2Angle). This wrapper API may change, we advise to access simpler @link(Axis2Angle) instead. }
+    { Internal wrapper for property @code(Axis2Angle). This wrapper API may change, we advise to access simpler @code(Axis2Angle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis2Angle: TSFFloat read FFdAxis2Angle;
     {  }
     property Axis2Angle: Single read GetAxis2Angle write SetAxis2Angle;
 
     strict private FFdAxis2Torque: TSFFloat;
-    { Internal wrapper for property @link(Axis2Torque). This wrapper API may change, we advise to access simpler @link(Axis2Torque) instead. }
+    { Internal wrapper for property @code(Axis2Torque). This wrapper API may change, we advise to access simpler @code(Axis2Torque) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis2Torque: TSFFloat read FFdAxis2Torque;
     {  }
     property Axis2Torque: Single read GetAxis2Torque write SetAxis2Torque;
 
     strict private FFdAxis3Angle: TSFFloat;
-    { Internal wrapper for property @link(Axis3Angle). This wrapper API may change, we advise to access simpler @link(Axis3Angle) instead. }
+    { Internal wrapper for property @code(Axis3Angle). This wrapper API may change, we advise to access simpler @code(Axis3Angle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis3Angle: TSFFloat read FFdAxis3Angle;
     {  }
     property Axis3Angle: Single read GetAxis3Angle write SetAxis3Angle;
 
     strict private FFdAxis3Torque: TSFFloat;
-    { Internal wrapper for property @link(Axis3Torque). This wrapper API may change, we advise to access simpler @link(Axis3Torque) instead. }
+    { Internal wrapper for property @code(Axis3Torque). This wrapper API may change, we advise to access simpler @code(Axis3Torque) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis3Torque: TSFFloat read FFdAxis3Torque;
     {  }
     property Axis3Torque: Single read GetAxis3Torque write SetAxis3Torque;
 
     strict private FFdEnabledAxes: TSFInt32;
-    { Internal wrapper for property @link(EnabledAxes). This wrapper API may change, we advise to access simpler @link(EnabledAxes) instead. }
+    { Internal wrapper for property @code(EnabledAxes). This wrapper API may change, we advise to access simpler @code(EnabledAxes) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnabledAxes: TSFInt32 read FFdEnabledAxes;
     {  }
     property EnabledAxes: Integer read GetEnabledAxes write SetEnabledAxes;
 
     strict private FFdMotor1Axis: TSFVec3f;
-    { Internal wrapper for property @link(Motor1Axis). This wrapper API may change, we advise to access simpler @link(Motor1Axis) instead. }
+    { Internal wrapper for property @code(Motor1Axis). This wrapper API may change, we advise to access simpler @code(Motor1Axis) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMotor1Axis: TSFVec3f read FFdMotor1Axis;
     {  }
     property Motor1Axis: TVector3 read GetMotor1Axis write SetMotor1Axis;
 
     strict private FFdMotor2Axis: TSFVec3f;
-    { Internal wrapper for property @link(Motor2Axis). This wrapper API may change, we advise to access simpler @link(Motor2Axis) instead. }
+    { Internal wrapper for property @code(Motor2Axis). This wrapper API may change, we advise to access simpler @code(Motor2Axis) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMotor2Axis: TSFVec3f read FFdMotor2Axis;
     {  }
     property Motor2Axis: TVector3 read GetMotor2Axis write SetMotor2Axis;
 
     strict private FFdMotor3Axis: TSFVec3f;
-    { Internal wrapper for property @link(Motor3Axis). This wrapper API may change, we advise to access simpler @link(Motor3Axis) instead. }
+    { Internal wrapper for property @code(Motor3Axis). This wrapper API may change, we advise to access simpler @code(Motor3Axis) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMotor3Axis: TSFVec3f read FFdMotor3Axis;
     {  }
     property Motor3Axis: TVector3 read GetMotor3Axis write SetMotor3Axis;
 
     strict private FFdStop1Bounce: TSFFloat;
-    { Internal wrapper for property @link(Stop1Bounce). This wrapper API may change, we advise to access simpler @link(Stop1Bounce) instead. }
+    { Internal wrapper for property @code(Stop1Bounce). This wrapper API may change, we advise to access simpler @code(Stop1Bounce) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStop1Bounce: TSFFloat read FFdStop1Bounce;
     {  }
     property Stop1Bounce: Single read GetStop1Bounce write SetStop1Bounce;
 
     strict private FFdStop1ErrorCorrection: TSFFloat;
-    { Internal wrapper for property @link(Stop1ErrorCorrection). This wrapper API may change, we advise to access simpler @link(Stop1ErrorCorrection) instead. }
+    { Internal wrapper for property @code(Stop1ErrorCorrection). This wrapper API may change, we advise to access simpler @code(Stop1ErrorCorrection) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStop1ErrorCorrection: TSFFloat read FFdStop1ErrorCorrection;
     {  }
     property Stop1ErrorCorrection: Single read GetStop1ErrorCorrection write SetStop1ErrorCorrection;
 
     strict private FFdStop2Bounce: TSFFloat;
-    { Internal wrapper for property @link(Stop2Bounce). This wrapper API may change, we advise to access simpler @link(Stop2Bounce) instead. }
+    { Internal wrapper for property @code(Stop2Bounce). This wrapper API may change, we advise to access simpler @code(Stop2Bounce) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStop2Bounce: TSFFloat read FFdStop2Bounce;
     {  }
     property Stop2Bounce: Single read GetStop2Bounce write SetStop2Bounce;
 
     strict private FFdStop2ErrorCorrection: TSFFloat;
-    { Internal wrapper for property @link(Stop2ErrorCorrection). This wrapper API may change, we advise to access simpler @link(Stop2ErrorCorrection) instead. }
+    { Internal wrapper for property @code(Stop2ErrorCorrection). This wrapper API may change, we advise to access simpler @code(Stop2ErrorCorrection) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStop2ErrorCorrection: TSFFloat read FFdStop2ErrorCorrection;
     {  }
     property Stop2ErrorCorrection: Single read GetStop2ErrorCorrection write SetStop2ErrorCorrection;
 
     strict private FFdStop3Bounce: TSFFloat;
-    { Internal wrapper for property @link(Stop3Bounce). This wrapper API may change, we advise to access simpler @link(Stop3Bounce) instead. }
+    { Internal wrapper for property @code(Stop3Bounce). This wrapper API may change, we advise to access simpler @code(Stop3Bounce) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStop3Bounce: TSFFloat read FFdStop3Bounce;
     {  }
     property Stop3Bounce: Single read GetStop3Bounce write SetStop3Bounce;
 
     strict private FFdStop3ErrorCorrection: TSFFloat;
-    { Internal wrapper for property @link(Stop3ErrorCorrection). This wrapper API may change, we advise to access simpler @link(Stop3ErrorCorrection) instead. }
+    { Internal wrapper for property @code(Stop3ErrorCorrection). This wrapper API may change, we advise to access simpler @code(Stop3ErrorCorrection) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStop3ErrorCorrection: TSFFloat read FFdStop3ErrorCorrection;
     {  }
     property Stop3ErrorCorrection: Single read GetStop3ErrorCorrection write SetStop3ErrorCorrection;
@@ -183,7 +184,7 @@
     public property EventMotor3AngleRate: TSFFloatEvent read FEventMotor3AngleRate;
 
     strict private FFdAutoCalc: TSFBool;
-    { Internal wrapper for property @link(AutoCalc). This wrapper API may change, we advise to access simpler @link(AutoCalc) instead. }
+    { Internal wrapper for property @code(AutoCalc). This wrapper API may change, we advise to access simpler @code(AutoCalc) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAutoCalc: TSFBool read FFdAutoCalc;
     {  }
     property AutoCalc: Boolean read GetAutoCalc write SetAutoCalc;

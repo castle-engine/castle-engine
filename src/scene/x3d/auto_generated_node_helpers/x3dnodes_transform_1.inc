@@ -35,36 +35,37 @@
     function GetCenter: TVector3;
     procedure SetCenter(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdTranslation: TSFVec3f;
-    { Internal wrapper for property @link(Translation). This wrapper API may change, we advise to access simpler @link(Translation) instead. }
+    { Internal wrapper for property @code(Translation). This wrapper API may change, we advise to access simpler @code(Translation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTranslation: TSFVec3f read FFdTranslation;
     {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     strict private FFdRotation: TSFRotation;
-    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
+    { Internal wrapper for property @code(Rotation). This wrapper API may change, we advise to access simpler @code(Rotation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRotation: TSFRotation read FFdRotation;
     {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScaleFactor: TSFVec3f;
-    { Internal wrapper for property @link(ScaleFactor). This wrapper API may change, we advise to access simpler @link(ScaleFactor) instead. }
+    { Internal wrapper for property @code(ScaleFactor). This wrapper API may change, we advise to access simpler @code(ScaleFactor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScaleFactor: TSFVec3f read FFdScaleFactor;
     {  }
     property ScaleFactor: TVector3 read GetScaleFactor write SetScaleFactor;
 
     strict private FFdScaleOrientation: TSFRotation;
-    { Internal wrapper for property @link(ScaleOrientation). This wrapper API may change, we advise to access simpler @link(ScaleOrientation) instead. }
+    { Internal wrapper for property @code(ScaleOrientation). This wrapper API may change, we advise to access simpler @code(ScaleOrientation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     {  }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
 
     strict private FFdCenter: TSFVec3f;
-    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
+    { Internal wrapper for property @code(Center). This wrapper API may change, we advise to access simpler @code(Center) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCenter: TSFVec3f read FFdCenter;
     {  }
     property Center: TVector3 read GetCenter write SetCenter;

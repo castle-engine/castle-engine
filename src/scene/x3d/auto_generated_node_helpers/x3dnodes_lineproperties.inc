@@ -29,21 +29,22 @@
     function GetLinewidthScaleFactor: Single;
     procedure SetLinewidthScaleFactor(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdApplied: TSFBool;
-    { Internal wrapper for property @link(Applied). This wrapper API may change, we advise to access simpler @link(Applied) instead. }
+    { Internal wrapper for property @code(Applied). This wrapper API may change, we advise to access simpler @code(Applied) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdApplied: TSFBool read FFdApplied;
     {  }
     property Applied: Boolean read GetApplied write SetApplied;
 
     strict private FFdLinetype: TSFInt32;
-    { Internal wrapper for property @link(Linetype). This wrapper API may change, we advise to access simpler @link(Linetype) instead. }
+    { Internal wrapper for property @code(Linetype). This wrapper API may change, we advise to access simpler @code(Linetype) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLinetype: TSFInt32 read FFdLinetype;
 
     strict private FFdLinewidthScaleFactor: TSFFloat;
-    { Internal wrapper for property @link(LinewidthScaleFactor). This wrapper API may change, we advise to access simpler @link(LinewidthScaleFactor) instead. }
+    { Internal wrapper for property @code(LinewidthScaleFactor). This wrapper API may change, we advise to access simpler @code(LinewidthScaleFactor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLinewidthScaleFactor: TSFFloat read FFdLinewidthScaleFactor;
     {  }
     property LinewidthScaleFactor: Single read GetLinewidthScaleFactor write SetLinewidthScaleFactor;

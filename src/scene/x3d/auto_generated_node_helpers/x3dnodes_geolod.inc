@@ -33,6 +33,7 @@
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -45,13 +46,13 @@
     public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
 
     strict private FFdCenter: TSFVec3d;
-    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
+    { Internal wrapper for property @code(Center). This wrapper API may change, we advise to access simpler @code(Center) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCenter: TSFVec3d read FFdCenter;
     {  }
     property Center: TVector3Double read GetCenter write SetCenter;
 
     strict private FFdChild1Url: TMFString;
-    { Internal wrapper for property @link(Child1Url). This wrapper API may change, we advise to access simpler @link(Child1Url) instead. }
+    { Internal wrapper for property @code(Child1Url). This wrapper API may change, we advise to access simpler @code(Child1Url) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdChild1Url: TMFString read FFdChild1Url;
     {  }
     procedure SetChild1Url(const Value: array of string); overload;
@@ -59,7 +60,7 @@
     procedure SetChild1Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild2Url: TMFString;
-    { Internal wrapper for property @link(Child2Url). This wrapper API may change, we advise to access simpler @link(Child2Url) instead. }
+    { Internal wrapper for property @code(Child2Url). This wrapper API may change, we advise to access simpler @code(Child2Url) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdChild2Url: TMFString read FFdChild2Url;
     {  }
     procedure SetChild2Url(const Value: array of string); overload;
@@ -67,7 +68,7 @@
     procedure SetChild2Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild3Url: TMFString;
-    { Internal wrapper for property @link(Child3Url). This wrapper API may change, we advise to access simpler @link(Child3Url) instead. }
+    { Internal wrapper for property @code(Child3Url). This wrapper API may change, we advise to access simpler @code(Child3Url) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdChild3Url: TMFString read FFdChild3Url;
     {  }
     procedure SetChild3Url(const Value: array of string); overload;
@@ -75,7 +76,7 @@
     procedure SetChild3Url(const Value: TCastleStringList); overload;
 
     strict private FFdChild4Url: TMFString;
-    { Internal wrapper for property @link(Child4Url). This wrapper API may change, we advise to access simpler @link(Child4Url) instead. }
+    { Internal wrapper for property @code(Child4Url). This wrapper API may change, we advise to access simpler @code(Child4Url) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdChild4Url: TMFString read FFdChild4Url;
     {  }
     procedure SetChild4Url(const Value: array of string); overload;
@@ -83,13 +84,13 @@
     procedure SetChild4Url(const Value: TCastleStringList); overload;
 
     strict private FFdGeoOrigin: TSFNode;
-    { Internal wrapper for property @link(GeoOrigin). This wrapper API may change, we advise to access simpler @link(GeoOrigin) instead. }
+    { Internal wrapper for property @code(GeoOrigin). This wrapper API may change, we advise to access simpler @code(GeoOrigin) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    { Internal wrapper for property @link(GeoSystem). This wrapper API may change, we advise to access simpler @link(GeoSystem) instead. }
+    { Internal wrapper for property @code(GeoSystem). This wrapper API may change, we advise to access simpler @code(GeoSystem) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     {  }
     procedure SetGeoSystem(const Value: array of string); overload;
@@ -97,13 +98,13 @@
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdRange: TSFFloat;
-    { Internal wrapper for property @link(Range). This wrapper API may change, we advise to access simpler @link(Range) instead. }
+    { Internal wrapper for property @code(Range). This wrapper API may change, we advise to access simpler @code(Range) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRange: TSFFloat read FFdRange;
     {  }
     property Range: Single read GetRange write SetRange;
 
     strict private FFdRootUrl: TMFString;
-    { Internal wrapper for property @link(RootUrl). This wrapper API may change, we advise to access simpler @link(RootUrl) instead. }
+    { Internal wrapper for property @code(RootUrl). This wrapper API may change, we advise to access simpler @code(RootUrl) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRootUrl: TMFString read FFdRootUrl;
     {  }
     procedure SetRootUrl(const Value: array of string); overload;
@@ -111,19 +112,19 @@
     procedure SetRootUrl(const Value: TCastleStringList); overload;
 
     strict private FFdRootNode: TMFNode;
-    { Internal wrapper for property @link(RootNode). This wrapper API may change, we advise to access simpler @link(RootNode) instead. }
+    { Internal wrapper for property @code(RootNode). This wrapper API may change, we advise to access simpler @code(RootNode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRootNode: TMFNode read FFdRootNode;
     {  }
     procedure SetRootNode(const Value: array of TAbstractChildNode);
 
     strict private FFdBboxCenter: TSFVec3f;
-    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
+    { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     {  }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
+    { Internal wrapper for property @code(BboxSize). This wrapper API may change, we advise to access simpler @code(BboxSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

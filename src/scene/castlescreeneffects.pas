@@ -24,7 +24,7 @@ uses SysUtils, Classes,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleGLShaders, CastleUIControls, X3DNodes, CastleGLImages,
   CastleRectangles, CastleScene, CastleTransform, CastleCameras, CastleGLUtils,
-  CastleRenderOptions;
+  CastleRenderOptions, CastleInternalRenderer;
 
 { Standard GLSL vertex shader for screen effect.
   @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
@@ -91,7 +91,11 @@ type
     procedure Link; override;
   end deprecated 'this will be internal class soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
 
-  { Control that applies shader screen effects (post-processing)
+  { Screen effects are shaders that post-process the rendered screen.
+    The effects may be defined using @url(https://castle-engine.io/x3d_extensions_screen_effects.php
+    X3D node ScreenEffect).
+
+    This control applies screen effects (post-processing)
     on the rendering done by children and (when this class is used as an ancestor)
     it's descendants.
 
@@ -130,6 +134,8 @@ type
       FScreenEffectsTimeScale: Single;
       { World to pass dummy camera position to ScreenEffectsScene. }
       World: TCastleRootTransform;
+      FRenderer: TRenderer;
+      FPrepareParams: TPrepareParams;
 
       { OpenGL(ES) resources for screen effects. }
       { If a texture for screen effects is ready, then
@@ -155,6 +161,8 @@ type
     function GetScreenEffectsCount: Cardinal;
     function GetScreenEffectsNeedDepth: Boolean;
     function GetScreenEffect(const Index: Integer): TGLSLProgram;
+
+    procedure GLContextCloseEvent(Sender: TObject);
   protected
     { Valid only between Render and RenderOverChildren calls.
       Tells whether we actually use screen effects, thus RenderWithoutScreenEffects
@@ -177,7 +185,8 @@ type
       instead of by AddScreenEffect call.
       This is internal, only to be used by TCastleViewport.
       @exclude }
-    function InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
+    function InternalExtraGetScreenEffects(
+      const Index: Integer): TGLSLProgram; virtual;
     { @exclude }
     function InternalExtraScreenEffectsCount: Integer; virtual;
     { @exclude }
@@ -266,7 +275,8 @@ type
 
 implementation
 
-uses CastleUtils, CastleLog, CastleRenderContext, CastleInternalGLUtils;
+uses CastleUtils, CastleLog, CastleRenderContext, CastleInternalGLUtils,
+  CastleApplicationProperties;
 
 function ScreenEffectVertex: string;
 begin
@@ -322,11 +332,32 @@ begin
   inherited;
   FScreenEffectsTimeScale := 1;
   FScreenEffectsEnable := true;
+
+  FRenderer := TRenderer.Create(nil);
+
+  FPrepareParams := TPrepareParams.Create;
+  FPrepareParams.GlobalLights := nil;
+  FPrepareParams.GlobalFog := nil;
+  FPrepareParams.RendererToPrepareShapes := FRenderer;
+
+  ApplicationProperties.OnGLContextCloseObject.Add(
+    {$ifdef FPC}@{$endif} GLContextCloseEvent);
 end;
 
 destructor TCastleScreenEffects.Destroy;
 begin
+  ApplicationProperties.OnGLContextCloseObject.Remove(
+    {$ifdef FPC}@{$endif} GLContextCloseEvent);
+
+  FreeAndNil(FPrepareParams);
+  FreeAndNil(FRenderer);
   inherited;
+end;
+
+procedure TCastleScreenEffects.GLContextCloseEvent(Sender: TObject);
+begin
+  if ScreenEffectsScene <> nil then
+    ScreenEffectsScene.GLContextClose;
 end;
 
 procedure TCastleScreenEffects.AddScreenEffect(const Node: TAbstractChildNode);
@@ -394,7 +425,7 @@ begin
       { TCastleScene already implemented logic to only count screen effects
         that are enabled, and their GLSL code linked successfully.
         Cool, we depend on it. }
-      Result := Result + ScreenEffectsScene.ScreenEffectsCount;
+      Result := Result + ScreenEffectsScene.InternalScreenEffectsCount;
     Result := Result + InternalExtraScreenEffectsCount;
   end;
 end;
@@ -402,7 +433,7 @@ end;
 function TCastleScreenEffects.GetScreenEffectsNeedDepth: Boolean;
 begin
   Result := ScreenEffectsEnable and (
-    ((ScreenEffectsScene <> nil) and ScreenEffectsScene.ScreenEffectsNeedDepth) or
+    ((ScreenEffectsScene <> nil) and ScreenEffectsScene.InternalScreenEffectsNeedDepth) or
     InternalExtraScreenEffectsNeedDepth
   );
 end;
@@ -412,12 +443,12 @@ var
   SceneEffects: Integer;
 begin
   if ScreenEffectsScene <> nil then
-    SceneEffects := ScreenEffectsScene.ScreenEffectsCount
+    SceneEffects := ScreenEffectsScene.InternalScreenEffectsCount
   else
     SceneEffects := 0;
 
   if Index < SceneEffects then
-    Result := ScreenEffectsScene.ScreenEffects(Index)
+    Result := ScreenEffectsScene.InternalScreenEffects(Index)
   else
     Result := InternalExtraGetScreenEffects(Index - SceneEffects);
 end;
@@ -774,10 +805,11 @@ end;
 procedure TCastleScreenEffects.PrepareResources;
 begin
   if ScreenEffectsScene <> nil then
-    { We depend here on undocumented TCastleScene.PrepareResources behavior:
-      when there is no prRenderSelf or prRenderClones,
-      then PrepareParams (3rd argument below) is unused, and may be nil. }
-    ScreenEffectsScene.PrepareResources([prScreenEffects], nil);
+  begin
+    {$warnings off} // using deprecated, this should be internal
+    ScreenEffectsScene.PrepareResources([prScreenEffects], FPrepareParams);
+    {$warnings on}
+  end;
 end;
 
 procedure TCastleScreenEffects.BeforeRender;

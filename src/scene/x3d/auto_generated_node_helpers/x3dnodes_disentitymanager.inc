@@ -33,35 +33,36 @@
     function GetSiteID: Integer;
     procedure SetSiteID(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAddress: TSFString;
-    { Internal wrapper for property @link(Address). This wrapper API may change, we advise to access simpler @link(Address) instead. }
+    { Internal wrapper for property @code(Address). This wrapper API may change, we advise to access simpler @code(Address) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAddress: TSFString read FFdAddress;
     {  }
     property Address: String read GetAddress write SetAddress;
 
     strict private FFdApplicationID: TSFInt32;
-    { Internal wrapper for property @link(ApplicationID). This wrapper API may change, we advise to access simpler @link(ApplicationID) instead. }
+    { Internal wrapper for property @code(ApplicationID). This wrapper API may change, we advise to access simpler @code(ApplicationID) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
     {  }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
 
     strict private FFdMapping: TMFNode;
-    { Internal wrapper for property @link(Mapping). This wrapper API may change, we advise to access simpler @link(Mapping) instead. }
+    { Internal wrapper for property @code(Mapping). This wrapper API may change, we advise to access simpler @code(Mapping) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMapping: TMFNode read FFdMapping;
     {  }
     procedure SetMapping(const Value: array of TDISEntityTypeMappingNode);
 
     strict private FFdPort: TSFInt32;
-    { Internal wrapper for property @link(Port). This wrapper API may change, we advise to access simpler @link(Port) instead. }
+    { Internal wrapper for property @code(Port). This wrapper API may change, we advise to access simpler @code(Port) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPort: TSFInt32 read FFdPort;
     {  }
     property Port: Integer read GetPort write SetPort;
 
     strict private FFdSiteID: TSFInt32;
-    { Internal wrapper for property @link(SiteID). This wrapper API may change, we advise to access simpler @link(SiteID) instead. }
+    { Internal wrapper for property @code(SiteID). This wrapper API may change, we advise to access simpler @code(SiteID) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSiteID: TSFInt32 read FFdSiteID;
     {  }
     property SiteID: Integer read GetSiteID write SetSiteID;

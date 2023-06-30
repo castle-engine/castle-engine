@@ -45,73 +45,74 @@
     function GetGuiTexture: Boolean;
     procedure SetGuiTexture(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAnisotropicDegree: TSFFloat;
-    { Internal wrapper for property @link(AnisotropicDegree). This wrapper API may change, we advise to access simpler @link(AnisotropicDegree) instead. }
+    { Internal wrapper for property @code(AnisotropicDegree). This wrapper API may change, we advise to access simpler @code(AnisotropicDegree) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAnisotropicDegree: TSFFloat read FFdAnisotropicDegree;
     {  }
     property AnisotropicDegree: Single read GetAnisotropicDegree write SetAnisotropicDegree;
 
     strict private FFdBorderColor: TSFColorRGBA;
-    { Internal wrapper for property @link(BorderColor). This wrapper API may change, we advise to access simpler @link(BorderColor) instead. }
+    { Internal wrapper for property @code(BorderColor). This wrapper API may change, we advise to access simpler @code(BorderColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBorderColor: TSFColorRGBA read FFdBorderColor;
     {  }
     property BorderColor: TCastleColor read GetBorderColor write SetBorderColor;
 
     strict private FFdBorderWidth: TSFInt32;
-    { Internal wrapper for property @link(BorderWidth). This wrapper API may change, we advise to access simpler @link(BorderWidth) instead. }
+    { Internal wrapper for property @code(BorderWidth). This wrapper API may change, we advise to access simpler @code(BorderWidth) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBorderWidth: TSFInt32 read FFdBorderWidth;
     {  }
     property BorderWidth: Integer read GetBorderWidth write SetBorderWidth;
 
     strict private FFdBoundaryModeS: TSFStringEnum;
-    { Internal wrapper for property @link(BoundaryModeS). This wrapper API may change, we advise to access simpler @link(BoundaryModeS) instead. }
+    { Internal wrapper for property @code(BoundaryModeS). This wrapper API may change, we advise to access simpler @code(BoundaryModeS) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBoundaryModeS: TSFStringEnum read FFdBoundaryModeS;
     {  }
     property BoundaryModeS: TBoundaryMode read GetBoundaryModeS write SetBoundaryModeS;
 
     strict private FFdBoundaryModeT: TSFStringEnum;
-    { Internal wrapper for property @link(BoundaryModeT). This wrapper API may change, we advise to access simpler @link(BoundaryModeT) instead. }
+    { Internal wrapper for property @code(BoundaryModeT). This wrapper API may change, we advise to access simpler @code(BoundaryModeT) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBoundaryModeT: TSFStringEnum read FFdBoundaryModeT;
     {  }
     property BoundaryModeT: TBoundaryMode read GetBoundaryModeT write SetBoundaryModeT;
 
     strict private FFdBoundaryModeR: TSFStringEnum;
-    { Internal wrapper for property @link(BoundaryModeR). This wrapper API may change, we advise to access simpler @link(BoundaryModeR) instead. }
+    { Internal wrapper for property @code(BoundaryModeR). This wrapper API may change, we advise to access simpler @code(BoundaryModeR) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBoundaryModeR: TSFStringEnum read FFdBoundaryModeR;
     {  }
     property BoundaryModeR: TBoundaryMode read GetBoundaryModeR write SetBoundaryModeR;
 
     strict private FFdMagnificationFilter: TSFString;
-    { Internal wrapper for property @link(MagnificationFilter). This wrapper API may change, we advise to access simpler @link(MagnificationFilter) instead. }
+    { Internal wrapper for property @code(MagnificationFilter). This wrapper API may change, we advise to access simpler @code(MagnificationFilter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMagnificationFilter: TSFString read FFdMagnificationFilter;
 
     strict private FFdMinificationFilter: TSFString;
-    { Internal wrapper for property @link(MinificationFilter). This wrapper API may change, we advise to access simpler @link(MinificationFilter) instead. }
+    { Internal wrapper for property @code(MinificationFilter). This wrapper API may change, we advise to access simpler @code(MinificationFilter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMinificationFilter: TSFString read FFdMinificationFilter;
 
     strict private FFdTextureCompression: TSFString;
-    { Internal wrapper for property @link(TextureCompression). This wrapper API may change, we advise to access simpler @link(TextureCompression) instead. }
+    { Internal wrapper for property @code(TextureCompression). This wrapper API may change, we advise to access simpler @code(TextureCompression) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTextureCompression: TSFString read FFdTextureCompression;
     {  }
     property TextureCompression: String read GetTextureCompression write SetTextureCompression;
 
     strict private FFdTexturePriority: TSFFloat;
-    { Internal wrapper for property @link(TexturePriority). This wrapper API may change, we advise to access simpler @link(TexturePriority) instead. }
+    { Internal wrapper for property @code(TexturePriority). This wrapper API may change, we advise to access simpler @code(TexturePriority) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexturePriority: TSFFloat read FFdTexturePriority;
     {  }
     property TexturePriority: Single read GetTexturePriority write SetTexturePriority;
 
     strict private FFdGenerateMipMaps: TSFBool;
-    { Internal wrapper for property @link(GenerateMipMaps). This wrapper API may change, we advise to access simpler @link(GenerateMipMaps) instead. }
+    { Internal wrapper for property @code(GenerateMipMaps). This wrapper API may change, we advise to access simpler @code(GenerateMipMaps) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGenerateMipMaps: TSFBool read FFdGenerateMipMaps;
     {  }
     property GenerateMipMaps: Boolean read GetGenerateMipMaps write SetGenerateMipMaps;
 
     strict private FFdGuiTexture: TSFBool;
-    { Internal wrapper for property @link(GuiTexture). This wrapper API may change, we advise to access simpler @link(GuiTexture) instead. }
+    { Internal wrapper for property @code(GuiTexture). This wrapper API may change, we advise to access simpler @code(GuiTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGuiTexture: TSFBool read FFdGuiTexture;
     {  }
     property GuiTexture: Boolean read GetGuiTexture write SetGuiTexture;

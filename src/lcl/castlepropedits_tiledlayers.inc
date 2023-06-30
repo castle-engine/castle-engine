@@ -53,8 +53,8 @@ begin
   try
     Map := GetComponent(0) as TCastleTiledMap;
     D.Caption := 'Edit ' + Map.Name + '.Layers';
-    if Map.Map <> nil then
-      D.AvailableLayers := Map.Map.Layers;
+    if Map.Data <> nil then
+      D.AvailableLayers := Map.Data.Layers;
     D.Layers := Map.Layers;
     D.UpdateSelectionUi;
     if D.ShowModal = mrOK then

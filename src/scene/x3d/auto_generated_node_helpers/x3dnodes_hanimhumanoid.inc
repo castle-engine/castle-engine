@@ -47,23 +47,24 @@
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
+    { Internal wrapper for property @code(Center). This wrapper API may change, we advise to access simpler @code(Center) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCenter: TSFVec3f read FFdCenter;
     {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdInfo: TMFString;
-    { Internal wrapper for property @link(Info). This wrapper API may change, we advise to access simpler @link(Info) instead. }
+    { Internal wrapper for property @code(Info). This wrapper API may change, we advise to access simpler @code(Info) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInfo: TMFString read FFdInfo;
     {  }
     procedure SetInfo(const Value: array of string); overload;
@@ -71,97 +72,97 @@
     procedure SetInfo(const Value: TCastleStringList); overload;
 
     strict private FFdJoints: TMFNode;
-    { Internal wrapper for property @link(Joints). This wrapper API may change, we advise to access simpler @link(Joints) instead. }
+    { Internal wrapper for property @code(Joints). This wrapper API may change, we advise to access simpler @code(Joints) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdJoints: TMFNode read FFdJoints;
     {  }
     procedure SetJoints(const Value: array of THAnimJointNode);
 
     strict private FFdLoa: TSFInt32;
-    { Internal wrapper for property @link(Loa). This wrapper API may change, we advise to access simpler @link(Loa) instead. }
+    { Internal wrapper for property @code(Loa). This wrapper API may change, we advise to access simpler @code(Loa) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLoa: TSFInt32 read FFdLoa;
     {  }
     property Loa: Integer read GetLoa write SetLoa;
 
     strict private FFdName: TSFString;
-    { Internal wrapper for property @link(NameField). This wrapper API may change, we advise to access simpler @link(NameField) instead. }
+    { Internal wrapper for property @code(NameField). This wrapper API may change, we advise to access simpler @code(NameField) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdName: TSFString read FFdName;
     {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdRotation: TSFRotation;
-    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
+    { Internal wrapper for property @code(Rotation). This wrapper API may change, we advise to access simpler @code(Rotation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRotation: TSFRotation read FFdRotation;
     {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
+    { Internal wrapper for property @code(Scale). This wrapper API may change, we advise to access simpler @code(Scale) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScale: TSFVec3f read FFdScale;
     {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdScaleOrientation: TSFRotation;
-    { Internal wrapper for property @link(ScaleOrientation). This wrapper API may change, we advise to access simpler @link(ScaleOrientation) instead. }
+    { Internal wrapper for property @code(ScaleOrientation). This wrapper API may change, we advise to access simpler @code(ScaleOrientation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     {  }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
 
     strict private FFdSegments: TMFNode;
-    { Internal wrapper for property @link(Segments). This wrapper API may change, we advise to access simpler @link(Segments) instead. }
+    { Internal wrapper for property @code(Segments). This wrapper API may change, we advise to access simpler @code(Segments) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSegments: TMFNode read FFdSegments;
     {  }
     procedure SetSegments(const Value: array of THAnimSegmentNode);
 
     strict private FFdSites: TMFNode;
-    { Internal wrapper for property @link(Sites). This wrapper API may change, we advise to access simpler @link(Sites) instead. }
+    { Internal wrapper for property @code(Sites). This wrapper API may change, we advise to access simpler @code(Sites) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSites: TMFNode read FFdSites;
     {  }
     procedure SetSites(const Value: array of THAnimSiteNode);
 
     strict private FFdSkeleton: TMFNode;
-    { Internal wrapper for property @link(Skeleton). This wrapper API may change, we advise to access simpler @link(Skeleton) instead. }
+    { Internal wrapper for property @code(Skeleton). This wrapper API may change, we advise to access simpler @code(Skeleton) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSkeleton: TMFNode read FFdSkeleton;
 
     strict private FFdSkin: TMFNode;
-    { Internal wrapper for property @link(Skin). This wrapper API may change, we advise to access simpler @link(Skin) instead. }
+    { Internal wrapper for property @code(Skin). This wrapper API may change, we advise to access simpler @code(Skin) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSkin: TMFNode read FFdSkin;
     {  }
     procedure SetSkin(const Value: array of TAbstractChildNode);
 
     strict private FFdSkinCoord: TSFNode;
-    { Internal wrapper for property @link(SkinCoord). This wrapper API may change, we advise to access simpler @link(SkinCoord) instead. }
+    { Internal wrapper for property @code(SkinCoord). This wrapper API may change, we advise to access simpler @code(SkinCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSkinCoord: TSFNode read FFdSkinCoord;
 
     strict private FFdSkinNormal: TSFNode;
-    { Internal wrapper for property @link(SkinNormal). This wrapper API may change, we advise to access simpler @link(SkinNormal) instead. }
+    { Internal wrapper for property @code(SkinNormal). This wrapper API may change, we advise to access simpler @code(SkinNormal) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSkinNormal: TSFNode read FFdSkinNormal;
     {  }
     property SkinNormal: TAbstractNormalNode read GetSkinNormal write SetSkinNormal;
 
     strict private FFdTranslation: TSFVec3f;
-    { Internal wrapper for property @link(Translation). This wrapper API may change, we advise to access simpler @link(Translation) instead. }
+    { Internal wrapper for property @code(Translation). This wrapper API may change, we advise to access simpler @code(Translation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTranslation: TSFVec3f read FFdTranslation;
     {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     strict private FFdVersion: TSFString;
-    { Internal wrapper for property @link(Version). This wrapper API may change, we advise to access simpler @link(Version) instead. }
+    { Internal wrapper for property @code(Version). This wrapper API may change, we advise to access simpler @code(Version) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVersion: TSFString read FFdVersion;
     {  }
     property Version: String read GetVersion write SetVersion;
 
     strict private FFdViewpoints: TMFNode;
-    { Internal wrapper for property @link(Viewpoints). This wrapper API may change, we advise to access simpler @link(Viewpoints) instead. }
+    { Internal wrapper for property @code(Viewpoints). This wrapper API may change, we advise to access simpler @code(Viewpoints) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdViewpoints: TMFNode read FFdViewpoints;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
+    { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     {  }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
+    { Internal wrapper for property @code(BboxSize). This wrapper API may change, we advise to access simpler @code(BboxSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

@@ -29,17 +29,18 @@
     function GetViewport: TAbstractViewportNode;
     procedure SetViewport(const Value: TAbstractViewportNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdIsPickable: TSFBool;
-    { Internal wrapper for property @link(IsPickable). This wrapper API may change, we advise to access simpler @link(IsPickable) instead. }
+    { Internal wrapper for property @code(IsPickable). This wrapper API may change, we advise to access simpler @code(IsPickable) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdIsPickable: TSFBool read FFdIsPickable;
     {  }
     property IsPickable: Boolean read GetIsPickable write SetIsPickable;
 
     strict private FFdViewport: TSFNode;
-    { Internal wrapper for property @link(Viewport). This wrapper API may change, we advise to access simpler @link(Viewport) instead. }
+    { Internal wrapper for property @code(Viewport). This wrapper API may change, we advise to access simpler @code(Viewport) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdViewport: TSFNode read FFdViewport;
     {  }
     property Viewport: TAbstractViewportNode read GetViewport write SetViewport;

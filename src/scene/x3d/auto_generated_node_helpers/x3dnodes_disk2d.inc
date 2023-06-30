@@ -29,23 +29,24 @@
     function GetOuterRadius: Single;
     procedure SetOuterRadius(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdInnerRadius: TSFFloat;
-    { Internal wrapper for property @link(InnerRadius). This wrapper API may change, we advise to access simpler @link(InnerRadius) instead. }
+    { Internal wrapper for property @code(InnerRadius). This wrapper API may change, we advise to access simpler @code(InnerRadius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInnerRadius: TSFFloat read FFdInnerRadius;
     {  }
     property InnerRadius: Single read GetInnerRadius write SetInnerRadius;
 
     strict private FFdOuterRadius: TSFFloat;
-    { Internal wrapper for property @link(OuterRadius). This wrapper API may change, we advise to access simpler @link(OuterRadius) instead. }
+    { Internal wrapper for property @code(OuterRadius). This wrapper API may change, we advise to access simpler @code(OuterRadius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdOuterRadius: TSFFloat read FFdOuterRadius;
     {  }
     property OuterRadius: Single read GetOuterRadius write SetOuterRadius;
 
     strict private FFdSolid: TSFBool;
-    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
+    { Internal wrapper for property @code(Solid). This wrapper API may change, we advise to access simpler @code(Solid) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}

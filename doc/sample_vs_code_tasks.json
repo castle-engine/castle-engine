@@ -43,13 +43,15 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            },
+            }
         },
         // Compile the CGE project of the currently open editor file.
         // This is like Ctrl + F9 in CGE editor.
         {
             "label": "(CGE) Compile",
             "type": "shell",
+            /* Compile in debug mode using CGE build tool (calls FPC under the hood).
+               We pass -vb to make filenames obvious for problem matcher. */
             "command": "castle-engine compile --mode=debug",
             "options": {
                 /* Run in the directory of currently open editor file.
@@ -65,22 +67,41 @@
                 "kind": "build"
             },
             "problemMatcher": {
-                "fileLocation": "search",
+                "fileLocation": "autoDetect",
                 //["autoDetect", "${workspaceFolder}"],
-                "pattern": {
-                    // Match lines like
-                    // xxx.pas(123,456) Fatal: some message
-                    // Test: https://regex101.com/ (ECMAScript flavor)
-                    "regexp": "^(.*)\\(([0-9,]+)\\)\\s+(Fatal|Warning|Error|Note|Hint):\\s+(.*)$",
-                    "file": 1,
-                    // location may be line or line+column.
-                    "location": 2,
-                    "severity": 3,
-                    "message": 4
-                },
+                "pattern": [
+                    {
+                        /*
+                        Match lines like
+                          xxx.pas(123,456) Fatal: some message
+                        Deliberately avoid matching summary line like
+                          xxx.pas(2201) Fatal: There were 26 errors compiling module, stopping
+                        Deliberately avoid
+                          xxx.pas(648,15) Error: Found declaration: ...
+                        because they only make sense when connected to previous error message, and VS Code reorders them.
+                        Test: https://regex101.com/ (ECMAScript flavor)
+                        */
+                        "regexp": "^([^\\(]+)\\(([\\d+,]+)\\)\\s+(Fatal|Warning|Error|Note|Hint):\\s+((?!\\(10026\\) There were)(?!There were)(?!Found declaration: )(?!\\(5088\\)Found declaration: ).*)$",
+                        "file": 1,
+                        // location may be line or line+column.
+                        "location": 2,
+                        "severity": 3,
+                        "message": 4
+                    }
+                    /* ,
+                    {
+                        // Match lines like
+                        // Compiling xxx.pas
+                        "regexp": "^(Compiling) ([^\\s]+)$",
+                        "file": 2,
+                        "message": 1,
+                        "kind": "file"
+                    }
+                    */
+                ],
                 /* We need non-empty owner to hide older problems on recompilation.
-                   See https://github.com/Microsoft/vscode/issues/50448,
-                   https://github.com/microsoft/vscode/issues/66982
+                See https://github.com/Microsoft/vscode/issues/50448,
+                https://github.com/microsoft/vscode/issues/66982
                 */
                 "owner": "cge"
             }
@@ -96,22 +117,6 @@
             },
             "group": {
                 "kind": "build"
-            },
-            "problemMatcher": {
-                "fileLocation": "search",
-                //["autoDetect", "${workspaceFolder}"],
-                "pattern": {
-                    // Match lines like
-                    // xxx.pas(123,456) Fatal: some message
-                    // Test: https://regex101.com/ (ECMAScript flavor)
-                    "regexp": "^(.*)\\(([0-9,]+)\\)\\s+(Fatal|Warning|Error|Note|Hint):\\s+(.*)$",
-                    "file": 1,
-                    // location may be line or line+column.
-                    "location": 2,
-                    "severity": 3,
-                    "message": 4
-                },
-                "owner": "cge"
             }
         },
         {
@@ -123,22 +128,6 @@
             },
             "group": {
                 "kind": "build"
-            },
-            "problemMatcher": {
-                "fileLocation": "search",
-                //["autoDetect", "${workspaceFolder}"],
-                "pattern": {
-                    // Match lines like
-                    // xxx.pas(123,456) Fatal: some message
-                    // Test: https://regex101.com/ (ECMAScript flavor)
-                    "regexp": "^(.*)\\(([0-9,]+)\\)\\s+(Fatal|Warning|Error|Note|Hint):\\s+(.*)$",
-                    "file": 1,
-                    // location may be line or line+column.
-                    "location": 2,
-                    "severity": 3,
-                    "message": 4
-                },
-                "owner": "cge"
             }
         }
     ]

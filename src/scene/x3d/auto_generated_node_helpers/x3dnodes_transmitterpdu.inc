@@ -97,215 +97,216 @@
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAddress: TSFString;
-    { Internal wrapper for property @link(Address). This wrapper API may change, we advise to access simpler @link(Address) instead. }
+    { Internal wrapper for property @code(Address). This wrapper API may change, we advise to access simpler @code(Address) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAddress: TSFString read FFdAddress;
     {  }
     property Address: String read GetAddress write SetAddress;
 
     strict private FFdAntennaLocation: TSFVec3f;
-    { Internal wrapper for property @link(AntennaLocation). This wrapper API may change, we advise to access simpler @link(AntennaLocation) instead. }
+    { Internal wrapper for property @code(AntennaLocation). This wrapper API may change, we advise to access simpler @code(AntennaLocation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAntennaLocation: TSFVec3f read FFdAntennaLocation;
     {  }
     property AntennaLocation: TVector3 read GetAntennaLocation write SetAntennaLocation;
 
     strict private FFdAntennaPatternLength: TSFInt32;
-    { Internal wrapper for property @link(AntennaPatternLength). This wrapper API may change, we advise to access simpler @link(AntennaPatternLength) instead. }
+    { Internal wrapper for property @code(AntennaPatternLength). This wrapper API may change, we advise to access simpler @code(AntennaPatternLength) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAntennaPatternLength: TSFInt32 read FFdAntennaPatternLength;
     {  }
     property AntennaPatternLength: Integer read GetAntennaPatternLength write SetAntennaPatternLength;
 
     strict private FFdAntennaPatternType: TSFInt32;
-    { Internal wrapper for property @link(AntennaPatternType). This wrapper API may change, we advise to access simpler @link(AntennaPatternType) instead. }
+    { Internal wrapper for property @code(AntennaPatternType). This wrapper API may change, we advise to access simpler @code(AntennaPatternType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAntennaPatternType: TSFInt32 read FFdAntennaPatternType;
     {  }
     property AntennaPatternType: Integer read GetAntennaPatternType write SetAntennaPatternType;
 
     strict private FFdApplicationID: TSFInt32;
-    { Internal wrapper for property @link(ApplicationID). This wrapper API may change, we advise to access simpler @link(ApplicationID) instead. }
+    { Internal wrapper for property @code(ApplicationID). This wrapper API may change, we advise to access simpler @code(ApplicationID) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
     {  }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
 
     strict private FFdCryptoKeyID: TSFInt32;
-    { Internal wrapper for property @link(CryptoKeyID). This wrapper API may change, we advise to access simpler @link(CryptoKeyID) instead. }
+    { Internal wrapper for property @code(CryptoKeyID). This wrapper API may change, we advise to access simpler @code(CryptoKeyID) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCryptoKeyID: TSFInt32 read FFdCryptoKeyID;
     {  }
     property CryptoKeyID: Integer read GetCryptoKeyID write SetCryptoKeyID;
 
     strict private FFdCryptoSystem: TSFInt32;
-    { Internal wrapper for property @link(CryptoSystem). This wrapper API may change, we advise to access simpler @link(CryptoSystem) instead. }
+    { Internal wrapper for property @code(CryptoSystem). This wrapper API may change, we advise to access simpler @code(CryptoSystem) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCryptoSystem: TSFInt32 read FFdCryptoSystem;
     {  }
     property CryptoSystem: Integer read GetCryptoSystem write SetCryptoSystem;
 
     strict private FFdEntityID: TSFInt32;
-    { Internal wrapper for property @link(EntityID). This wrapper API may change, we advise to access simpler @link(EntityID) instead. }
+    { Internal wrapper for property @code(EntityID). This wrapper API may change, we advise to access simpler @code(EntityID) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEntityID: TSFInt32 read FFdEntityID;
     {  }
     property EntityID: Integer read GetEntityID write SetEntityID;
 
     strict private FFdFrequency: TSFInt32;
-    { Internal wrapper for property @link(Frequency). This wrapper API may change, we advise to access simpler @link(Frequency) instead. }
+    { Internal wrapper for property @code(Frequency). This wrapper API may change, we advise to access simpler @code(Frequency) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFrequency: TSFInt32 read FFdFrequency;
     {  }
     property Frequency: Integer read GetFrequency write SetFrequency;
 
     strict private FFdInputSource: TSFInt32;
-    { Internal wrapper for property @link(InputSource). This wrapper API may change, we advise to access simpler @link(InputSource) instead. }
+    { Internal wrapper for property @code(InputSource). This wrapper API may change, we advise to access simpler @code(InputSource) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInputSource: TSFInt32 read FFdInputSource;
     {  }
     property InputSource: Integer read GetInputSource write SetInputSource;
 
     strict private FFdLengthOfModulationParameters: TSFInt32;
-    { Internal wrapper for property @link(LengthOfModulationParameters). This wrapper API may change, we advise to access simpler @link(LengthOfModulationParameters) instead. }
+    { Internal wrapper for property @code(LengthOfModulationParameters). This wrapper API may change, we advise to access simpler @code(LengthOfModulationParameters) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLengthOfModulationParameters: TSFInt32 read FFdLengthOfModulationParameters;
     {  }
     property LengthOfModulationParameters: Integer read GetLengthOfModulationParameters write SetLengthOfModulationParameters;
 
     strict private FFdModulationTypeDetail: TSFInt32;
-    { Internal wrapper for property @link(ModulationTypeDetail). This wrapper API may change, we advise to access simpler @link(ModulationTypeDetail) instead. }
+    { Internal wrapper for property @code(ModulationTypeDetail). This wrapper API may change, we advise to access simpler @code(ModulationTypeDetail) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdModulationTypeDetail: TSFInt32 read FFdModulationTypeDetail;
     {  }
     property ModulationTypeDetail: Integer read GetModulationTypeDetail write SetModulationTypeDetail;
 
     strict private FFdModulationTypeMajor: TSFInt32;
-    { Internal wrapper for property @link(ModulationTypeMajor). This wrapper API may change, we advise to access simpler @link(ModulationTypeMajor) instead. }
+    { Internal wrapper for property @code(ModulationTypeMajor). This wrapper API may change, we advise to access simpler @code(ModulationTypeMajor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdModulationTypeMajor: TSFInt32 read FFdModulationTypeMajor;
     {  }
     property ModulationTypeMajor: Integer read GetModulationTypeMajor write SetModulationTypeMajor;
 
     strict private FFdModulationTypeSpreadSpectrum: TSFInt32;
-    { Internal wrapper for property @link(ModulationTypeSpreadSpectrum). This wrapper API may change, we advise to access simpler @link(ModulationTypeSpreadSpectrum) instead. }
+    { Internal wrapper for property @code(ModulationTypeSpreadSpectrum). This wrapper API may change, we advise to access simpler @code(ModulationTypeSpreadSpectrum) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdModulationTypeSpreadSpectrum: TSFInt32 read FFdModulationTypeSpreadSpectrum;
     {  }
     property ModulationTypeSpreadSpectrum: Integer read GetModulationTypeSpreadSpectrum write SetModulationTypeSpreadSpectrum;
 
     strict private FFdModulationTypeSystem: TSFInt32;
-    { Internal wrapper for property @link(ModulationTypeSystem). This wrapper API may change, we advise to access simpler @link(ModulationTypeSystem) instead. }
+    { Internal wrapper for property @code(ModulationTypeSystem). This wrapper API may change, we advise to access simpler @code(ModulationTypeSystem) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdModulationTypeSystem: TSFInt32 read FFdModulationTypeSystem;
     {  }
     property ModulationTypeSystem: Integer read GetModulationTypeSystem write SetModulationTypeSystem;
 
     strict private FFdMulticastRelayHost: TSFString;
-    { Internal wrapper for property @link(MulticastRelayHost). This wrapper API may change, we advise to access simpler @link(MulticastRelayHost) instead. }
+    { Internal wrapper for property @code(MulticastRelayHost). This wrapper API may change, we advise to access simpler @code(MulticastRelayHost) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMulticastRelayHost: TSFString read FFdMulticastRelayHost;
     {  }
     property MulticastRelayHost: String read GetMulticastRelayHost write SetMulticastRelayHost;
 
     strict private FFdMulticastRelayPort: TSFInt32;
-    { Internal wrapper for property @link(MulticastRelayPort). This wrapper API may change, we advise to access simpler @link(MulticastRelayPort) instead. }
+    { Internal wrapper for property @code(MulticastRelayPort). This wrapper API may change, we advise to access simpler @code(MulticastRelayPort) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMulticastRelayPort: TSFInt32 read FFdMulticastRelayPort;
     {  }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
 
     strict private FFdNetworkMode: TSFStringEnum;
-    { Internal wrapper for property @link(NetworkMode). This wrapper API may change, we advise to access simpler @link(NetworkMode) instead. }
+    { Internal wrapper for property @code(NetworkMode). This wrapper API may change, we advise to access simpler @code(NetworkMode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNetworkMode: TSFStringEnum read FFdNetworkMode;
     {  }
     property NetworkMode: TDISNetworkMode read GetNetworkMode write SetNetworkMode;
 
     strict private FFdPort: TSFInt32;
-    { Internal wrapper for property @link(Port). This wrapper API may change, we advise to access simpler @link(Port) instead. }
+    { Internal wrapper for property @code(Port). This wrapper API may change, we advise to access simpler @code(Port) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPort: TSFInt32 read FFdPort;
     {  }
     property Port: Integer read GetPort write SetPort;
 
     strict private FFdPower: TSFFloat;
-    { Internal wrapper for property @link(Power). This wrapper API may change, we advise to access simpler @link(Power) instead. }
+    { Internal wrapper for property @code(Power). This wrapper API may change, we advise to access simpler @code(Power) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPower: TSFFloat read FFdPower;
     {  }
     property Power: Single read GetPower write SetPower;
 
     strict private FFdRadioEntityTypeCategory: TSFInt32;
-    { Internal wrapper for property @link(RadioEntityTypeCategory). This wrapper API may change, we advise to access simpler @link(RadioEntityTypeCategory) instead. }
+    { Internal wrapper for property @code(RadioEntityTypeCategory). This wrapper API may change, we advise to access simpler @code(RadioEntityTypeCategory) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadioEntityTypeCategory: TSFInt32 read FFdRadioEntityTypeCategory;
     {  }
     property RadioEntityTypeCategory: Integer read GetRadioEntityTypeCategory write SetRadioEntityTypeCategory;
 
     strict private FFdRadioEntityTypeCountry: TSFInt32;
-    { Internal wrapper for property @link(RadioEntityTypeCountry). This wrapper API may change, we advise to access simpler @link(RadioEntityTypeCountry) instead. }
+    { Internal wrapper for property @code(RadioEntityTypeCountry). This wrapper API may change, we advise to access simpler @code(RadioEntityTypeCountry) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadioEntityTypeCountry: TSFInt32 read FFdRadioEntityTypeCountry;
     {  }
     property RadioEntityTypeCountry: Integer read GetRadioEntityTypeCountry write SetRadioEntityTypeCountry;
 
     strict private FFdRadioEntityTypeDomain: TSFInt32;
-    { Internal wrapper for property @link(RadioEntityTypeDomain). This wrapper API may change, we advise to access simpler @link(RadioEntityTypeDomain) instead. }
+    { Internal wrapper for property @code(RadioEntityTypeDomain). This wrapper API may change, we advise to access simpler @code(RadioEntityTypeDomain) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadioEntityTypeDomain: TSFInt32 read FFdRadioEntityTypeDomain;
     {  }
     property RadioEntityTypeDomain: Integer read GetRadioEntityTypeDomain write SetRadioEntityTypeDomain;
 
     strict private FFdRadioEntityTypeKind: TSFInt32;
-    { Internal wrapper for property @link(RadioEntityTypeKind). This wrapper API may change, we advise to access simpler @link(RadioEntityTypeKind) instead. }
+    { Internal wrapper for property @code(RadioEntityTypeKind). This wrapper API may change, we advise to access simpler @code(RadioEntityTypeKind) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadioEntityTypeKind: TSFInt32 read FFdRadioEntityTypeKind;
     {  }
     property RadioEntityTypeKind: Integer read GetRadioEntityTypeKind write SetRadioEntityTypeKind;
 
     strict private FFdRadioEntityTypeNomenclature: TSFInt32;
-    { Internal wrapper for property @link(RadioEntityTypeNomenclature). This wrapper API may change, we advise to access simpler @link(RadioEntityTypeNomenclature) instead. }
+    { Internal wrapper for property @code(RadioEntityTypeNomenclature). This wrapper API may change, we advise to access simpler @code(RadioEntityTypeNomenclature) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadioEntityTypeNomenclature: TSFInt32 read FFdRadioEntityTypeNomenclature;
     {  }
     property RadioEntityTypeNomenclature: Integer read GetRadioEntityTypeNomenclature write SetRadioEntityTypeNomenclature;
 
     strict private FFdRadioEntityTypeNomenclatureVersion: TSFInt32;
-    { Internal wrapper for property @link(RadioEntityTypeNomenclatureVersion). This wrapper API may change, we advise to access simpler @link(RadioEntityTypeNomenclatureVersion) instead. }
+    { Internal wrapper for property @code(RadioEntityTypeNomenclatureVersion). This wrapper API may change, we advise to access simpler @code(RadioEntityTypeNomenclatureVersion) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadioEntityTypeNomenclatureVersion: TSFInt32 read FFdRadioEntityTypeNomenclatureVersion;
     {  }
     property RadioEntityTypeNomenclatureVersion: Integer read GetRadioEntityTypeNomenclatureVersion write SetRadioEntityTypeNomenclatureVersion;
 
     strict private FFdRadioID: TSFInt32;
-    { Internal wrapper for property @link(RadioID). This wrapper API may change, we advise to access simpler @link(RadioID) instead. }
+    { Internal wrapper for property @code(RadioID). This wrapper API may change, we advise to access simpler @code(RadioID) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadioID: TSFInt32 read FFdRadioID;
     {  }
     property RadioID: Integer read GetRadioID write SetRadioID;
 
     strict private FFdReadInterval: TSFFloat;
-    { Internal wrapper for property @link(ReadInterval). This wrapper API may change, we advise to access simpler @link(ReadInterval) instead. }
+    { Internal wrapper for property @code(ReadInterval). This wrapper API may change, we advise to access simpler @code(ReadInterval) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdReadInterval: TSFFloat read FFdReadInterval;
     {  }
     property ReadInterval: Single read GetReadInterval write SetReadInterval;
 
     strict private FFdRelativeAntennaLocation: TSFVec3f;
-    { Internal wrapper for property @link(RelativeAntennaLocation). This wrapper API may change, we advise to access simpler @link(RelativeAntennaLocation) instead. }
+    { Internal wrapper for property @code(RelativeAntennaLocation). This wrapper API may change, we advise to access simpler @code(RelativeAntennaLocation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRelativeAntennaLocation: TSFVec3f read FFdRelativeAntennaLocation;
     {  }
     property RelativeAntennaLocation: TVector3 read GetRelativeAntennaLocation write SetRelativeAntennaLocation;
 
     strict private FFdRtpHeaderExpected: TSFBool;
-    { Internal wrapper for property @link(RtpHeaderExpected). This wrapper API may change, we advise to access simpler @link(RtpHeaderExpected) instead. }
+    { Internal wrapper for property @code(RtpHeaderExpected). This wrapper API may change, we advise to access simpler @code(RtpHeaderExpected) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
     {  }
     property RtpHeaderExpected: Boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
 
     strict private FFdSiteID: TSFInt32;
-    { Internal wrapper for property @link(SiteID). This wrapper API may change, we advise to access simpler @link(SiteID) instead. }
+    { Internal wrapper for property @code(SiteID). This wrapper API may change, we advise to access simpler @code(SiteID) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSiteID: TSFInt32 read FFdSiteID;
     {  }
     property SiteID: Integer read GetSiteID write SetSiteID;
 
     strict private FFdTransmitFrequencyBandwidth: TSFFloat;
-    { Internal wrapper for property @link(TransmitFrequencyBandwidth). This wrapper API may change, we advise to access simpler @link(TransmitFrequencyBandwidth) instead. }
+    { Internal wrapper for property @code(TransmitFrequencyBandwidth). This wrapper API may change, we advise to access simpler @code(TransmitFrequencyBandwidth) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTransmitFrequencyBandwidth: TSFFloat read FFdTransmitFrequencyBandwidth;
     {  }
     property TransmitFrequencyBandwidth: Single read GetTransmitFrequencyBandwidth write SetTransmitFrequencyBandwidth;
 
     strict private FFdTransmitState: TSFInt32;
-    { Internal wrapper for property @link(TransmitState). This wrapper API may change, we advise to access simpler @link(TransmitState) instead. }
+    { Internal wrapper for property @code(TransmitState). This wrapper API may change, we advise to access simpler @code(TransmitState) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTransmitState: TSFInt32 read FFdTransmitState;
     {  }
     property TransmitState: Integer read GetTransmitState write SetTransmitState;
 
     strict private FFdWhichGeometry: TSFInt32;
-    { Internal wrapper for property @link(WhichGeometry). This wrapper API may change, we advise to access simpler @link(WhichGeometry) instead. }
+    { Internal wrapper for property @code(WhichGeometry). This wrapper API may change, we advise to access simpler @code(WhichGeometry) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWhichGeometry: TSFInt32 read FFdWhichGeometry;
     {  }
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
 
     strict private FFdWriteInterval: TSFFloat;
-    { Internal wrapper for property @link(WriteInterval). This wrapper API may change, we advise to access simpler @link(WriteInterval) instead. }
+    { Internal wrapper for property @code(WriteInterval). This wrapper API may change, we advise to access simpler @code(WriteInterval) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWriteInterval: TSFFloat read FFdWriteInterval;
     {  }
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
@@ -331,13 +332,13 @@
     public property EventTimestamp: TSFTimeEvent read FEventTimestamp;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
+    { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     {  }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
+    { Internal wrapper for property @code(BboxSize). This wrapper API may change, we advise to access simpler @code(BboxSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

@@ -478,7 +478,7 @@ begin
     P.Targets.AddUnit('castlescene.pas');
     P.Targets.AddUnit('castlescenecore.pas');
     P.Targets.AddUnit('castlesceneinternalblending.pas');
-    P.Targets.AddUnit('castlesceneinternalocclusion.pas');
+    P.Targets.AddUnit('castleinternalocclusionculling.pas');
     P.Targets.AddUnit('castlesceneinternalshape.pas');
     P.Targets.AddUnit('castlescreeneffects.pas');
     P.Targets.AddUnit('castleshapeinternalrendershadowvolumes.pas');

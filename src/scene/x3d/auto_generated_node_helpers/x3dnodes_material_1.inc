@@ -27,12 +27,13 @@
     function GetFogImmune: Boolean;
     procedure SetFogImmune(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdAmbientColor: TMFColor;
-    { Internal wrapper for property @link(AmbientColor). This wrapper API may change, we advise to access simpler @link(AmbientColor) instead. }
+    { Internal wrapper for property @code(AmbientColor). This wrapper API may change, we advise to access simpler @code(AmbientColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAmbientColor: TMFColor read FFdAmbientColor;
     {  }
     procedure SetAmbientColor(const Value: array of TCastleColorRGB); overload;
@@ -40,7 +41,7 @@
     procedure SetAmbientColor(const Value: TVector3List); overload;
 
     strict private FFdDiffuseColor: TMFColor;
-    { Internal wrapper for property @link(DiffuseColor). This wrapper API may change, we advise to access simpler @link(DiffuseColor) instead. }
+    { Internal wrapper for property @code(DiffuseColor). This wrapper API may change, we advise to access simpler @code(DiffuseColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDiffuseColor: TMFColor read FFdDiffuseColor;
     {  }
     procedure SetDiffuseColor(const Value: array of TCastleColorRGB); overload;
@@ -48,7 +49,7 @@
     procedure SetDiffuseColor(const Value: TVector3List); overload;
 
     strict private FFdSpecularColor: TMFColor;
-    { Internal wrapper for property @link(SpecularColor). This wrapper API may change, we advise to access simpler @link(SpecularColor) instead. }
+    { Internal wrapper for property @code(SpecularColor). This wrapper API may change, we advise to access simpler @code(SpecularColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSpecularColor: TMFColor read FFdSpecularColor;
     {  }
     procedure SetSpecularColor(const Value: array of TCastleColorRGB); overload;
@@ -56,7 +57,7 @@
     procedure SetSpecularColor(const Value: TVector3List); overload;
 
     strict private FFdEmissiveColor: TMFColor;
-    { Internal wrapper for property @link(EmissiveColor). This wrapper API may change, we advise to access simpler @link(EmissiveColor) instead. }
+    { Internal wrapper for property @code(EmissiveColor). This wrapper API may change, we advise to access simpler @code(EmissiveColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEmissiveColor: TMFColor read FFdEmissiveColor;
     {  }
     procedure SetEmissiveColor(const Value: array of TCastleColorRGB); overload;
@@ -64,7 +65,7 @@
     procedure SetEmissiveColor(const Value: TVector3List); overload;
 
     strict private FFdShininess: TMFFloat;
-    { Internal wrapper for property @link(Shininess). This wrapper API may change, we advise to access simpler @link(Shininess) instead. }
+    { Internal wrapper for property @code(Shininess). This wrapper API may change, we advise to access simpler @code(Shininess) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShininess: TMFFloat read FFdShininess;
     {  }
     procedure SetShininess(const Value: array of Single); overload;
@@ -72,7 +73,7 @@
     procedure SetShininess(const Value: TSingleList); overload;
 
     strict private FFdTransparency: TMFFloat;
-    { Internal wrapper for property @link(Transparency). This wrapper API may change, we advise to access simpler @link(Transparency) instead. }
+    { Internal wrapper for property @code(Transparency). This wrapper API may change, we advise to access simpler @code(Transparency) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTransparency: TMFFloat read FFdTransparency;
     {  }
     procedure SetTransparency(const Value: array of Single); overload;
@@ -80,7 +81,7 @@
     procedure SetTransparency(const Value: TSingleList); overload;
 
     strict private FFdMirror: TMFFloat;
-    { Internal wrapper for property @link(Mirror). This wrapper API may change, we advise to access simpler @link(Mirror) instead. }
+    { Internal wrapper for property @code(Mirror). This wrapper API may change, we advise to access simpler @code(Mirror) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMirror: TMFFloat read FFdMirror;
     {  }
     procedure SetMirror(const Value: array of Single); overload;
@@ -88,7 +89,7 @@
     procedure SetMirror(const Value: TSingleList); overload;
 
     strict private FFdReflSpecular: TMFColor;
-    { Internal wrapper for property @link(ReflSpecular). This wrapper API may change, we advise to access simpler @link(ReflSpecular) instead. }
+    { Internal wrapper for property @code(ReflSpecular). This wrapper API may change, we advise to access simpler @code(ReflSpecular) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdReflSpecular: TMFColor read FFdReflSpecular;
     {  }
     procedure SetReflSpecular(const Value: array of TCastleColorRGB); overload;
@@ -96,7 +97,7 @@
     procedure SetReflSpecular(const Value: TVector3List); overload;
 
     strict private FFdReflDiffuse: TMFColor;
-    { Internal wrapper for property @link(ReflDiffuse). This wrapper API may change, we advise to access simpler @link(ReflDiffuse) instead. }
+    { Internal wrapper for property @code(ReflDiffuse). This wrapper API may change, we advise to access simpler @code(ReflDiffuse) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdReflDiffuse: TMFColor read FFdReflDiffuse;
     {  }
     procedure SetReflDiffuse(const Value: array of TCastleColorRGB); overload;
@@ -104,7 +105,7 @@
     procedure SetReflDiffuse(const Value: TVector3List); overload;
 
     strict private FFdTransSpecular: TMFColor;
-    { Internal wrapper for property @link(TransSpecular). This wrapper API may change, we advise to access simpler @link(TransSpecular) instead. }
+    { Internal wrapper for property @code(TransSpecular). This wrapper API may change, we advise to access simpler @code(TransSpecular) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTransSpecular: TMFColor read FFdTransSpecular;
     {  }
     procedure SetTransSpecular(const Value: array of TCastleColorRGB); overload;
@@ -112,7 +113,7 @@
     procedure SetTransSpecular(const Value: TVector3List); overload;
 
     strict private FFdTransDiffuse: TMFColor;
-    { Internal wrapper for property @link(TransDiffuse). This wrapper API may change, we advise to access simpler @link(TransDiffuse) instead. }
+    { Internal wrapper for property @code(TransDiffuse). This wrapper API may change, we advise to access simpler @code(TransDiffuse) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTransDiffuse: TMFColor read FFdTransDiffuse;
     {  }
     procedure SetTransDiffuse(const Value: array of TCastleColorRGB); overload;
@@ -120,7 +121,7 @@
     procedure SetTransDiffuse(const Value: TVector3List); overload;
 
     strict private FFdReflSpecularExp: TMFFloat;
-    { Internal wrapper for property @link(ReflSpecularExp). This wrapper API may change, we advise to access simpler @link(ReflSpecularExp) instead. }
+    { Internal wrapper for property @code(ReflSpecularExp). This wrapper API may change, we advise to access simpler @code(ReflSpecularExp) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdReflSpecularExp: TMFFloat read FFdReflSpecularExp;
     {  }
     procedure SetReflSpecularExp(const Value: array of Single); overload;
@@ -128,7 +129,7 @@
     procedure SetReflSpecularExp(const Value: TSingleList); overload;
 
     strict private FFdTransSpecularExp: TMFFloat;
-    { Internal wrapper for property @link(TransSpecularExp). This wrapper API may change, we advise to access simpler @link(TransSpecularExp) instead. }
+    { Internal wrapper for property @code(TransSpecularExp). This wrapper API may change, we advise to access simpler @code(TransSpecularExp) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTransSpecularExp: TMFFloat read FFdTransSpecularExp;
     {  }
     procedure SetTransSpecularExp(const Value: array of Single); overload;
@@ -136,7 +137,7 @@
     procedure SetTransSpecularExp(const Value: TSingleList); overload;
 
     strict private FFdFogImmune: TSFBool;
-    { Internal wrapper for property @link(FogImmune). This wrapper API may change, we advise to access simpler @link(FogImmune) instead. }
+    { Internal wrapper for property @code(FogImmune). This wrapper API may change, we advise to access simpler @code(FogImmune) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFogImmune: TSFBool read FFdFogImmune;
     {  }
     property FogImmune: Boolean read GetFogImmune write SetFogImmune;
@@ -322,7 +323,7 @@ begin
   AddField(FFdShininess);
 
   FFdTransparency := TMFFloat.Create(Self, True, 'transparency', [TMaterialInfo.DefaultTransparency]);
-   FdTransparency.ChangeAlways := chAlphaChannel;
+   FdTransparency.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransparency);
 
   FFdMirror := TMFFloat.Create(Self, True, 'mirror', [0.0]);

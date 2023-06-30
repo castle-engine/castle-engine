@@ -24,11 +24,12 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdVertices: TMFVec2f;
-    { Internal wrapper for property @link(Vertices). This wrapper API may change, we advise to access simpler @link(Vertices) instead. }
+    { Internal wrapper for property @code(Vertices). This wrapper API may change, we advise to access simpler @code(Vertices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVertices: TMFVec2f read FFdVertices;
     {  }
     procedure SetVertices(const Value: array of TVector2); overload;
@@ -36,7 +37,7 @@
     procedure SetVertices(const Value: TVector2List); overload;
 
     strict private FFdSolid: TSFBool;
-    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
+    { Internal wrapper for property @code(Solid). This wrapper API may change, we advise to access simpler @code(Solid) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}

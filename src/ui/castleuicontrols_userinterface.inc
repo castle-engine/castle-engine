@@ -1482,7 +1482,9 @@ begin
   FCapturesEvents := true;
   FWidth := DefaultWidth;
   FHeight := DefaultHeight;
-  FBorder := TBorder.Create({$ifdef FPC}@{$endif}BorderChange);
+  FBorder := TBorder.Create(nil);
+  FBorder.SetSubComponent(true);
+  FBorder.OnChange := {$ifdef FPC}@{$endif} BorderChange;
   FLastSeenUIScale := 1.0;
   FEditorSelectOnHover := true;
 

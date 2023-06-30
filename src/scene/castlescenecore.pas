@@ -205,8 +205,6 @@ type
   end;
 
   TViewpointStack = class(TX3DBindableStack)
-  protected
-    procedure DoBoundChanged; override;
   public
     function Top: TAbstractViewpointNode;
     procedure PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: boolean);
@@ -1851,26 +1849,6 @@ type
     property OnHeadlightOnChanged: TNotifyEvent
       read FOnHeadlightOnChanged write FOnHeadlightOnChanged;
 
-    { Notify the scene that camera position/direction changed a lot.
-      It may be called when you make a sudden change to the camera,
-      like teleporting the player to a completely different scene part.
-
-      This may be used as a hint by some optimizations. It tells that what
-      will be visible in the next rendered frame will be probably
-      very different from what was visible in the last frame.
-
-      @italic(Current implementation notes:)
-
-      Currently, this is used by TCastleScene if you use
-      @link(TCastleRenderOptions.OcclusionQuery RenderOptions.OcclusionQuery).
-      Normally, occlusion query tries to reuse results from previous
-      frame, using the assumption that usually camera changes slowly
-      and objects appear progressively in the view. When you make
-      a sudden camera jump/change, this assumption breaks, so it's
-      better to resign from occlusion query for the very next frame.
-      This method will do exactly that. }
-    procedure ViewChangedSuddenly; virtual;
-
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const Params: TPrepareParams); override;
 
@@ -1902,9 +1880,6 @@ type
     { Global lights of this scene. Read-only.
       Useful to shine these lights on other scenes, if TCastleScene.CastGlobalLights. }
     property InternalGlobalLights: TLightInstancesList read FGlobalLights;
-    {$ifdef FPC}
-    property GlobalLights: TLightInstancesList read FGlobalLights; deprecated;
-    {$endif}
 
     { Find a named X3D node in the current node graph.
 
@@ -2341,13 +2316,12 @@ type
           Using this flag adds an additional optimization during rendering.
           It allows to use frustum culling with an octree.
           Whether the frustum culling is actually used depends
-          on @link(TCastleScene.OctreeFrustumCulling) value (by default: yes).
+          on @link(TCastleScene.ShapeFrustumCulling) value (by default: yes).
 
           Without this flag, we can still use frustum culling,
           but it's less effective as it considers each shape separately.
-          Whether the frustum culling is actually used depends
-          in this case
-          on @link(TCastleScene.FrustumCulling) value (by default: yes).
+          Whether the frustum culling is actually used also depends
+          on @link(TCastleScene.ShapeFrustumCulling) value.
 
           Using frustum culling (preferably with ssRendering flag)
           is highly adviced if your camera usually only sees
@@ -2860,18 +2834,6 @@ begin
 end;
 
 { TViewpointStack ------------------------------------------------------------ }
-
-procedure TViewpointStack.DoBoundChanged;
-begin
-  { The new viewpoint may be in some totally different place of the scene,
-    so call ViewChangedSuddenly.
-
-    This takes care of all viewpoints switching, like
-    - switching to other viewpoint through view3dscene "viewpoints" menu,
-    - just getting an event set_bind = true through vrml route. }
-  ParentScene.ViewChangedSuddenly;
-  inherited;
-end;
 
 function TViewpointStack.Top: TAbstractViewpointNode;
 begin
@@ -4056,7 +4018,6 @@ begin
     HandleVisibilitySensor(Node as TVisibilitySensorNode) else
   if Node is TScreenEffectNode then
   begin
-    TScreenEffectNode(Node).StateForShaderPrepare.Assign(StateStack.Top);
     ParentScene.ScreenEffectNodes.Add(Node);
   end;
 end;
@@ -5023,20 +4984,6 @@ var
     end;
   end;
 
-  procedure HandleChangeAlphaChannel;
-  var
-    C, I: Integer;
-  begin
-    C := TShapeTree.AssociatedShapesCount(ANode);
-    if C <> 0 then
-    begin
-      // pass Changes (with chAlphaChannel) to TGLShape.Changed
-      for I := 0 to C - 1 do
-        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, [Change]);
-      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-    end;
-  end;
-
   procedure HandleChangeLightInstanceProperty;
   var
     J: integer;
@@ -5497,15 +5444,8 @@ var
   end;
 
   procedure HandleChangeScreenEffectEnabled;
-  var
-    SE: TScreenEffectNode;
   begin
-    SE := ANode as TScreenEffectNode;
-    { Just like TCastleScene.CloseGLScreenEffect: no need to even
-      communicate with renderer, just reset ShaderLoaded and Shader.
-      At the nearest time, it will be recalculated. }
-    SE.ShaderLoaded := false;
-    SE.Shader := nil;
+    (ANode as TScreenEffectNode).InternalRendererResourceFree;
     VisibleChangeHere([vcVisibleNonGeometry]);
   end;
 
@@ -5595,7 +5535,6 @@ begin
       chCoordinate: HandleChangeCoordinate;
       chNormal, chTangent: HandleChangeNormalTangent;
       chVisibleVRML1State, chGeometryVRML1State: HandleVRML1State;
-      chAlphaChannel: HandleChangeAlphaChannel;
       chLightInstanceProperty: HandleChangeLightInstanceProperty;
       chLightForShadowVolumes: HandleChangeLightForShadowVolumes;
       chLightLocationDirection: HandleChangeLightLocationDirection;
@@ -7985,11 +7924,6 @@ begin
     HeadlightOn := DefaultNavigationInfoHeadlight;
 end;
 
-procedure TCastleSceneCore.ViewChangedSuddenly;
-begin
-  { Nothing meaningful to do in this class }
-end;
-
 procedure TCastleSceneCore.PrepareResources(const Options: TPrepareResourcesOptions;
   const Params: TPrepareParams);
 
@@ -8679,7 +8613,7 @@ procedure TCastleSceneCore.FontChanged;
 begin
   if RootNode <> nil then
   begin
-    GLContextClose; // force TGLRenderer.Prepare on shapes
+    GLContextClose; // force TRenderer.Prepare on shapes
     { Free and recalculate all proxy nodes...
       TODO: this could be done much more efficiently,
       we only need to free proxies on text nodes. }

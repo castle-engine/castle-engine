@@ -27,19 +27,22 @@
       TShape.Visible inside a TCastleTransform with TCastleTransform.Exists.
 
       When ShapesRendered is much smaller than ShapesVisible,
-      it means that the algorithm for removing invisible scene parts
-      works good.
-      This includes per-shape frustum culling (see @link(TCastleScene.FrustumCulling)),
+      it means that various algorithm(s) designed to reject invisible
+      scene parts do a good job.
+      This includes per-shape frustum culling (@link(TCastleScene.ShapeFrustumCulling)),
       distance culling (@link(TCastleScene.DistanceCulling)),
-      occlusion culling (see @link(
-      TCastleRenderOptions.OcclusionQuery)). }
+      occlusion culling (see @link(TCastleViewport.OcclusionCulling)). }
     ShapesRendered, ShapesVisible: Cardinal;
 
+    { Subset of shapes counted in ShapesRendered that have been rendered using
+      blending (partial transparency). }
+    ShapesRenderedBlending: Cardinal;
+
     { The number of shapes that were not rendered,
-      but their bounding box was rendered to check with occlusion query.
-      This is always zero when not using occlusion query (see
-      TCastleRenderOptions.OcclusionQuery).
-      Basically, this measures the "invisible overhead" of occlusion query. }
+      but their bounding box was rendered to check occlusion culling.
+      This is always zero when not using occlusion culling
+      (@link(TCastleViewport.OcclusionCulling)).
+      Basically, this measures the "invisible overhead" of occlusion culling. }
     BoxesOcclusionQueriedCount: Cardinal;
 
     { TCastleScene rendered vs all visible. }
@@ -232,12 +235,8 @@
       that determines shaders used. }
     UserPass: TUserRenderingPass;
 
-    { Transformation that should be applied to the rendered result.
-      If TransformIdentity, then Transform and InverseTransform is always identity.
-      @groupBegin }
+    { Transformation that should be applied to the rendered result. }
     Transform, InverseTransform: PMatrix4;
-    TransformIdentity: boolean;
-    { @groupEnd }
 
     { Current rendering statistics, should be updated by each
       @link(TCastleTransform.LocalRender) call. }
@@ -267,21 +266,40 @@
     ProjectionBox: TBox3DEvent;
     ProjectionViewportWidth, ProjectionViewportHeight: Single;
 
+    { Always TShapesCollector at actual rendering. }
+    Collector: TObject;
+
+    { Always TRenderer, to prepare shapes.
+      This is useful to prepare shapes (rendering them with renderer
+      creates VBOs, shaders, and makes them "ready" for next fast rendering).
+
+      Note that shapes and scenes *should not* get associated with this TRenderer
+      instance when being prepared.
+      Shapes and scenes should remain independent of TRenderer instance,
+      to easily change them to a different renderer (like a differe TCastleViewport).
+      So this TRenderer instance is provided to be used, but do not keep
+      anywhere in shapes / scenes a reference to it.
+
+      See CastleInternalRenderer for more comments how are things associated. }
+    RendererToPrepareShapes: TObject;
+
+    { Depth range that should be used for rendering. }
+    DepthRange: TDepthRange;
+
     constructor Create;
 
     { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }
     function GlobalLights: TAbstractLightInstancesList; virtual; abstract;
-
-    function RenderTransform: TMatrix4; deprecated 'use Transform';
-    function RenderTransformIdentity: boolean; deprecated 'use TransformIdentity';
   end;
 
   { Information that a TCastleTransform object needs to prepare rendering.
 
-    This is @bold(mostly an internal class). You should not need to create it,
+    This is an internal class.
+
+    You should not need to create it,
     you should not need to read anything inside or deal with this class otherwise.
 
-    The only official usage allowed is to pass an instance of this class
+    The only usage allowed, but deprecated, is to pass an instance of this class
     taken from @link(TCastleViewport.PrepareParams)
     as a parameter to @link(TCastleTransform.PrepareResources).
     You should treat this class as a "black box" in normal applications. }
@@ -293,14 +311,20 @@
       And all the lighting is dynamic, so of course you can always
       turn on / off things like a headlight during the game.
       However, passing here the appropriate lights will mean that the shaders
-      are immediately prepared for the current lighting.
+      are immediately prepared for the current lighting. }
+    GlobalLights: TAbstractLightInstancesList;
 
-      @exclude }
-    InternalGlobalLights: TAbstractLightInstancesList;
+    { World fog, in any, to prepare for. }
+    GlobalFog: TAbstractFogNode;
 
-    { World fog, in any, to prepare for.
-      @exclude }
-    InternalGlobalFog: TAbstractFogNode;
+    { Always TRenderer, to prepare shapes.
+      This is useful to prepare shapes (rendering them with renderer
+      creates VBOs, shaders, and makes them "ready" for next fast rendering).
+
+      Note that shapes and scenes *should not* get associated with this TRenderer
+      instance when being prepared.
+      See @link(TRenderParams.RendererToPrepareShapes). }
+    RendererToPrepareShapes: TObject;
   end;
 
 {$endif read_interface}
@@ -320,8 +344,9 @@ begin
   else
     OcclusionStats := '';
 
-  Result := Format('Shapes %d%s / %d, Scenes: %d / %d, Draw calls: %d', [
+  Result := Format('Shapes %d (with blending: %d)%s / %d, Scenes: %d / %d, Draw calls: %d', [
     ShapesRendered,
+    ShapesRenderedBlending,
     OcclusionStats,
     ShapesVisible,
     ScenesRendered,
@@ -429,18 +454,7 @@ begin
   inherited;
   Transform := @GlobalIdentityMatrix;
   InverseTransform := @GlobalIdentityMatrix;
-  TransformIdentity := true;
   InMeaningfulParent := true;
-end;
-
-function TRenderParams.RenderTransform: TMatrix4;
-begin
-  Result := Transform^;
-end;
-
-function TRenderParams.RenderTransformIdentity: boolean;
-begin
-  Result := TransformIdentity;
 end;
 
 {$endif read_implementation}

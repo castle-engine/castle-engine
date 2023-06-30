@@ -29,17 +29,18 @@
     function GetSlices: Integer;
     procedure SetSlices(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdRadius: TSFFloat;
-    { Internal wrapper for property @link(Radius). This wrapper API may change, we advise to access simpler @link(Radius) instead. }
+    { Internal wrapper for property @code(Radius). This wrapper API may change, we advise to access simpler @code(Radius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadius: TSFFloat read FFdRadius;
     {  }
     property Radius: Single read GetRadius write SetRadius;
 
     strict private FFdSlices: TSFInt32;
-    { Internal wrapper for property @link(Slices). This wrapper API may change, we advise to access simpler @link(Slices) instead. }
+    { Internal wrapper for property @code(Slices). This wrapper API may change, we advise to access simpler @code(Slices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSlices: TSFInt32 read FFdSlices;
     {  }
     property Slices: Integer read GetSlices write SetSlices;

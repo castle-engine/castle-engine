@@ -50,7 +50,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FAnchorPersistent := TCastleVector3Persistent.Create;
+  FAnchorPersistent := TCastleVector3Persistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FAnchorPersistent.SetSubComponent(true);
   FAnchorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAnchorForPersistent;
   FAnchorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAnchorForPersistent;
   FAnchorPersistent.InternalDefaultValue := Anchor; // current value is default
@@ -112,7 +118,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FAxisPersistent := TCastleVector3Persistent.Create;
+  FAxisPersistent := TCastleVector3Persistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FAxisPersistent.SetSubComponent(true);
   FAxisPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetAxisForPersistent;
   FAxisPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetAxisForPersistent;
   FAxisPersistent.InternalDefaultValue := Axis; // current value is default

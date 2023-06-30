@@ -29,27 +29,28 @@
     function GetManifold: Boolean;
     procedure SetManifold(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdSize: TSFVec3f;
-    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
+    { Internal wrapper for property @code(Size). This wrapper API may change, we advise to access simpler @code(Size) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSize: TSFVec3f read FFdSize;
     {  }
     property Size: TVector3 read GetSize write SetSize;
 
     strict private FFdSolid: TSFBool;
-    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
+    { Internal wrapper for property @code(Solid). This wrapper API may change, we advise to access simpler @code(Solid) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdManifold: TSFBool;
-    { Internal wrapper for property @link(Manifold). This wrapper API may change, we advise to access simpler @link(Manifold) instead. }
+    { Internal wrapper for property @code(Manifold). This wrapper API may change, we advise to access simpler @code(Manifold) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdManifold: TSFBool read FFdManifold;
     {  }
     property Manifold: Boolean read GetManifold write SetManifold;
 
     strict private FFdTexCoord: TSFNode;
-    { Internal wrapper for property @link(TexCoord). This wrapper API may change, we advise to access simpler @link(TexCoord) instead. }
+    { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
 {$endif read_interface}

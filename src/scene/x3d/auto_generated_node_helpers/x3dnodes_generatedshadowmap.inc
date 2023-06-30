@@ -37,41 +37,42 @@
     function GetCompareMode: TShadowMapCompareMode;
     procedure SetCompareMode(const Value: TShadowMapCompareMode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdUpdate: TSFStringEnum;
-    { Internal wrapper for property @link(Update). This wrapper API may change, we advise to access simpler @link(Update) instead. }
+    { Internal wrapper for property @code(Update). This wrapper API may change, we advise to access simpler @code(Update) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUpdate: TSFStringEnum read FFdUpdate;
     { When to update the texture contents. }
     property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     strict private FFdSize: TSFInt32;
-    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
+    { Internal wrapper for property @code(Size). This wrapper API may change, we advise to access simpler @code(Size) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSize: TSFInt32 read FFdSize;
     {  }
     property Size: Integer read GetSize write SetSize;
 
     strict private FFdLight: TSFNode;
-    { Internal wrapper for property @link(Light). This wrapper API may change, we advise to access simpler @link(Light) instead. }
+    { Internal wrapper for property @code(Light). This wrapper API may change, we advise to access simpler @code(Light) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLight: TSFNode read FFdLight;
     {  }
     property Light: TAbstractLightNode read GetLight write SetLight;
 
     strict private FFdScale: TSFFloat;
-    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
+    { Internal wrapper for property @code(Scale). This wrapper API may change, we advise to access simpler @code(Scale) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScale: TSFFloat read FFdScale;
     {  }
     property Scale: Single read GetScale write SetScale;
 
     strict private FFdBias: TSFFloat;
-    { Internal wrapper for property @link(Bias). This wrapper API may change, we advise to access simpler @link(Bias) instead. }
+    { Internal wrapper for property @code(Bias). This wrapper API may change, we advise to access simpler @code(Bias) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBias: TSFFloat read FFdBias;
     {  }
     property Bias: Single read GetBias write SetBias;
 
     strict private FFdCompareMode: TSFStringEnum;
-    { Internal wrapper for property @link(CompareMode). This wrapper API may change, we advise to access simpler @link(CompareMode) instead. }
+    { Internal wrapper for property @code(CompareMode). This wrapper API may change, we advise to access simpler @code(CompareMode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCompareMode: TSFStringEnum read FFdCompareMode;
     { @deprecated Deprecated mode to test depth maps with various comparison methods. This was unportable and complicated to maintain, so it is deprecated and has no effect now. }
     property CompareMode: TShadowMapCompareMode read GetCompareMode write SetCompareMode;

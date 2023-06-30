@@ -16,13 +16,12 @@
 
 {$ifdef read_interface}
 
-  { GLSL program integrated with VRML/X3D renderer. Adds ability to bind
-    VRML/X3D textures to uniform variables of GLSL shader. }
+  { GLSL program integrated with TRenderer.
+    This class adds ability to bind textures to uniform variables
+    of GLSL shader. }
   TX3DGLSLProgram = class(TX3DShaderProgram)
-  private
-    Renderer: TGLRenderer;
   public
-    constructor Create(ARenderer: TGLRenderer);
+    constructor Create;
     function SetupUniforms(var BoundTextureUnits: Cardinal): boolean; override;
   end;
 
@@ -32,10 +31,9 @@
 
 { TX3DGLSLProgram ----------------------------------------------------------- }
 
-constructor TX3DGLSLProgram.Create(ARenderer: TGLRenderer);
+constructor TX3DGLSLProgram.Create;
 begin
   inherited Create;
-  Renderer := ARenderer;
 end;
 
 function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean;
@@ -57,7 +55,7 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
       begin
         if BoundTextureUnits < GLFeatures.MaxTextureUnits then
         begin
-          if Renderer.GLTextureNodes.Bind(
+          if TTextureResources.Bind(
             TAbstractTextureNode(TextureNode), BoundTextureUnits) then
           begin
             Result := BoundTextureUnits;
@@ -65,7 +63,7 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
           end else
             SetupUniforms := false;
         end else
-          WritelnWarning('VRML/X3D', 'Not enough free texture units to bind all textures for this GLSL shader');
+          WritelnWarning('Renderer', 'Not enough free texture units to bind all textures for this GLSL shader');
       end;
     end;
 

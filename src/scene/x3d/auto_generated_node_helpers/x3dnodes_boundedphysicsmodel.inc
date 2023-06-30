@@ -27,11 +27,12 @@
     function GetGeometry: TAbstractGeometryNode;
     procedure SetGeometry(const Value: TAbstractGeometryNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdGeometry: TSFNode;
-    { Internal wrapper for property @link(Geometry). This wrapper API may change, we advise to access simpler @link(Geometry) instead. }
+    { Internal wrapper for property @code(Geometry). This wrapper API may change, we advise to access simpler @code(Geometry) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeometry: TSFNode read FFdGeometry;
     {  }
     property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;

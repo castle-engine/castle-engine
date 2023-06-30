@@ -414,7 +414,7 @@
         <DCCReference Include="..\..\src\scene\castlescene.pas"/>
         <DCCReference Include="..\..\src\scene\castlescenecore.pas"/>
         <DCCReference Include="..\..\src\scene\castlesceneinternalblending.pas"/>
-        <DCCReference Include="..\..\src\scene\castlesceneinternalocclusion.pas"/>
+        <DCCReference Include="..\..\src\scene\castleinternalocclusionculling.pas"/>
         <DCCReference Include="..\..\src\scene\castlesceneinternalshape.pas"/>
         <DCCReference Include="..\..\src\scene\castlescreeneffects.pas"/>
         <DCCReference Include="..\..\src\scene\castleshapeinternalrendershadowvolumes.pas"/>

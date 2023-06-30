@@ -23,7 +23,8 @@ unit CastleRenderOptions;
 
 interface
 
-uses Classes, CastleColors;
+uses Classes,
+  CastleColors, CastleClassUtils;
 
 {$define read_interface}
 {$I castlerenderoptions_globals.inc}
@@ -32,7 +33,8 @@ uses Classes, CastleColors;
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  CastleLog, CastleUtils;
 
 {$define read_implementation}
 {$I castlerenderoptions_globals.inc}

@@ -1,166 +1,129 @@
 {
-  "Border" : {
-    "$ClassName" : "TBorder"
-  },
-  "BorderColorPersistent" : {
-    "$ClassName" : "TCastleColorPersistent"
-  },
+  "$$ClassName" : "TCastleUserInterface",
   "FullSize" : true,
   "Name" : "Group1",
   "$Children" : [
     {
-      "Border" : {
-        "$ClassName" : "TBorder"
-      },
-      "BorderColorPersistent" : {
-        "$ClassName" : "TCastleColorPersistent"
-      },
+      "$$ClassName" : "TCastleRectangleControl",
       "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
         "Alpha" : 7.5000000000000000E-001,
         "Blue" : 0.0000000000000000E+000,
         "Green" : 0.0000000000000000E+000,
-        "Red" : 0.0000000000000000E+000,
-        "$ClassName" : "TCastleColorPersistent"
+        "Red" : 0.0000000000000000E+000
       },
       "FullSize" : true,
-      "Name" : "RectangleControl1",
-      "$Children" : [
-      ],
-      "$ClassName" : "TCastleRectangleControl"
+      "Name" : "RectangleControl1"
     },
     {
-      "Border" : {
-        "$ClassName" : "TBorder"
-      },
-      "BorderColorPersistent" : {
-        "$ClassName" : "TCastleColorPersistent"
-      },
-      "ColorPersistent" : {
-        "$ClassName" : "TCastleColorPersistent"
+      "$$ClassName" : "TCastleImageControl",
+      "Content" : {
+        "$$ClassName" : "TCastleImagePersistent",
+        "URL" : "castle-data:/images/parchment_alpha.png"
       },
       "HeightFraction" : 1.0000000000000000E+000,
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Name" : "ImageControl1",
       "ProportionalScaling" : "psFit",
-      "ProtectedSides" : {
-        "$ClassName" : "TBorder"
-      },
       "Stretch" : true,
-      "URL" : "castle-data:/images/parchment_alpha.png",
       "VerticalAnchorParent" : "vpMiddle",
       "VerticalAnchorSelf" : "vpMiddle",
       "WidthFraction" : 1.0000000000000000E+000,
       "$Children" : [
         {
-          "Border" : {
-            "$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "ColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
+          "$$ClassName" : "TCastleLabel",
           "FontSize" : 2.2000000000000000E+001,
-          "FrameColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "MaxWidth" : 1.0000000000000000E+003,
-          "Name" : "Label1",
-          "OutlineColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
+          "Name" : "LabelContent",
+          "Text" : [
+            "Strategy game demo, using Castle Game Engine and maps done in Tiled map editor.",
+            "",
+            "- Play as one human vs another.",
+            "",
+            "- Players move in turn (first \"humans\" move, then \"aliens\" move, then \"humans\" again...). In each turn a player can move as many units as (s)he wants, as the movement points of all units are reset at each turn.",
+            "",
+            "- The goal is to simply eliminate all enemy units.",
+            "",
+            "- Each unit has an attack, life (hit points), and a number of movement points it can spend per turn.",
+            "",
+            "- You cannot walk over a river (blue tiles). All other terrain types have cost 1.",
+            "",
+            "- Moving your unit onto an enemy square performs an attack. Attacking requires you to have at least one movement point, and always exhausts all you movement points. The enemy unit \"Life\" is decreased by an attacker \"Attack\" number. Enemy dies if \"Life\" drops to zero.",
+            "",
+            "Note:",
+            "",
+            "- In this demo, you can choose an orthogonal, isometric or hexagonal map. The game works in all cases, thanks to the Castle Game Engine API that handles all possible map types using a uniform API.",
+            "",
+            "- Play around with the demo source code, and see if you can implement more options! E.g. more terrain types with varying costs, different attack/defense mechanics, different unit types (flying, attacking from a distance etc.)."
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -2.0000000000000000E+001
           },
-          "Text" : "Strategy game demo, using Castle Game Engine and maps done in Tiled map editor.\n\n- Play as one human vs another.\n\n- Players move in turn (first \"humans\" move, then \"aliens\" move, then \"humans\" again...). In each turn a player can move as many units as (s)he wants, as the movement points of all units are reset at each turn.\n\n- The goal is to simply eliminate all enemy units.\n\n- Each unit has an attack, life (hit points), and a number of movement points it can spend per turn.\n\n- You cannot walk over a river (blue tiles). All other terrain types have cost 1.\n\n- Moving your unit onto an enemy square performs an attack. Attacking requires you to have at least one movement point, and always exhausts all you movement points. The enemy unit \"Life\" is decreased by an attacker \"Attack\" number. Enemy dies if \"Life\" drops to zero.\n\nNote:\n\n- In this demo, you can choose an orthogonal, isometric or hexagonal map. The game works in all cases, thanks to the Castle Game Engine API that handles all possible map types using a uniform API.\n\n- Play around with the demo source code, and see if you can implement more options! E.g. more terrain types with varying costs, different attack/defense mechanics, different unit types (flying, attacking from a distance etc.).\n",
-          "VerticalAnchorDelta" : -2.0000000000000000E+001,
           "VerticalAnchorParent" : "vpMiddle",
-          "VerticalAnchorSelf" : "vpMiddle",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleLabel"
+          "VerticalAnchorSelf" : "vpMiddle"
         },
         {
-          "Border" : {
-            "$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "ColorPersistent" : {
-            "Blue" : 0.0000000000000000E+000,
-            "Green" : 0.0000000000000000E+000,
-            "Red" : 5.0196081399917603E-001,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-          "HorizontalAnchorParent" : "hpMiddle",
-          "HorizontalAnchorSelf" : "hpMiddle",
-          "Name" : "ImageControl2",
-          "ProtectedSides" : {
-            "$ClassName" : "TBorder"
-          },
-          "URL" : "castle-data:/images/title.png",
-          "VerticalAnchorDelta" : -6.0000000000000000E+001,
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleImageControl"
-        },
-        {
-          "Border" : {
-            "$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
+          "$$ClassName" : "TCastleButton",
           "Caption" : "Close",
-          "CustomColorDisabledPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
           },
-          "CustomColorFocusedPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
           },
-          "CustomColorNormalPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
           },
-          "CustomColorPressedPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
           },
-          "CustomTextColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "CustomTextColorUse" : false,
           "FontSize" : 3.0000000000000000E+001,
-          "HorizontalAnchorDelta" : -6.0000000000000000E+001,
           "HorizontalAnchorParent" : "hpRight",
           "HorizontalAnchorSelf" : "hpRight",
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
           "Name" : "ButtonClose",
-          "OutlineColorPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -6.0000000000000000E+001,
+            "Y" : 5.0000000000000000E+001
+          }
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Red" : 5.0196081399917603E-001
           },
-          "TintDisabledPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "TintFocusedPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "TintNormalPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "TintPressedPersistent" : {
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "VerticalAnchorDelta" : 5.0000000000000000E+001,
-          "$Children" : [
+          "CustomFont" : "Font1",
+          "FontSize" : 6.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelHeader",
+          "Text" : [
+            "\"Aliens vs Humans\""
           ],
-          "$ClassName" : "TCastleButton"
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -7.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$NonVisualComponents" : [
+            {
+              "$$ClassName" : "TCastleFont",
+              "Name" : "Font1",
+              "OptimalSize" : 100,
+              "URL" : "castle-data:/fonts/DejaVuSerif-Bold.ttf"
+            }
+          ]
         }
-      ],
-      "$ClassName" : "TCastleImageControl"
+      ]
     }
-  ],
-  "$ClassName" : "TCastleUserInterface"
+  ]
 }

@@ -1206,6 +1206,11 @@ begin
     FreeAndNil(Res);
     Res := SerializeSet(GetOrdProp(AObject, Info), 30 { manually synchronized with TCastleTiledMap.TLayerIndex });
   end;
+  if (Info^.PropType^.Kind = tkSet) and (Info^.PropType^.Name = 'TColorChannels')  then
+  begin
+    FreeAndNil(Res);
+    Res := SerializeSet(GetOrdProp(AObject, Info), 3 { manually synchronized with TColorChannel });
+  end;
 end;
 
 function ComponentToString(const C: TComponent): String;

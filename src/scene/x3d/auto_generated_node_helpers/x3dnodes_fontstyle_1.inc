@@ -29,26 +29,27 @@
     function GetBlending: Boolean;
     procedure SetBlending(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdSize: TSFFloat;
-    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
+    { Internal wrapper for property @code(Size). This wrapper API may change, we advise to access simpler @code(Size) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSize: TSFFloat read FFdSize;
     {  }
     property Size: Single read GetSize write SetSize;
 
     strict private FFdFamily: TSFEnum;
-    { Internal wrapper for property @link(Family). This wrapper API may change, we advise to access simpler @link(Family) instead. }
+    { Internal wrapper for property @code(Family). This wrapper API may change, we advise to access simpler @code(Family) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFamily: TSFEnum read FFdFamily;
 
     strict private FFdStyle: TSFBitMask;
-    { Internal wrapper for property @link(Style). This wrapper API may change, we advise to access simpler @link(Style) instead. }
+    { Internal wrapper for property @code(Style). This wrapper API may change, we advise to access simpler @code(Style) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStyle: TSFBitMask read FFdStyle;
 
     strict private FFdBlending: TSFBool;
-    { Internal wrapper for property @link(Blending). This wrapper API may change, we advise to access simpler @link(Blending) instead. }
+    { Internal wrapper for property @code(Blending). This wrapper API may change, we advise to access simpler @code(Blending) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBlending: TSFBool read FFdBlending;
     {  }
     property Blending: Boolean read GetBlending write SetBlending;

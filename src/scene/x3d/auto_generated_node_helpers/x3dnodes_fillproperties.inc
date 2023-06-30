@@ -33,29 +33,30 @@
     function GetHatchStyle: Integer;
     procedure SetHatchStyle(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdFilled: TSFBool;
-    { Internal wrapper for property @link(Filled). This wrapper API may change, we advise to access simpler @link(Filled) instead. }
+    { Internal wrapper for property @code(Filled). This wrapper API may change, we advise to access simpler @code(Filled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFilled: TSFBool read FFdFilled;
     {  }
     property Filled: Boolean read GetFilled write SetFilled;
 
     strict private FFdHatchColor: TSFColor;
-    { Internal wrapper for property @link(HatchColor). This wrapper API may change, we advise to access simpler @link(HatchColor) instead. }
+    { Internal wrapper for property @code(HatchColor). This wrapper API may change, we advise to access simpler @code(HatchColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHatchColor: TSFColor read FFdHatchColor;
     {  }
     property HatchColor: TCastleColorRGB read GetHatchColor write SetHatchColor;
 
     strict private FFdHatched: TSFBool;
-    { Internal wrapper for property @link(Hatched). This wrapper API may change, we advise to access simpler @link(Hatched) instead. }
+    { Internal wrapper for property @code(Hatched). This wrapper API may change, we advise to access simpler @code(Hatched) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHatched: TSFBool read FFdHatched;
     {  }
     property Hatched: Boolean read GetHatched write SetHatched;
 
     strict private FFdHatchStyle: TSFInt32;
-    { Internal wrapper for property @link(HatchStyle). This wrapper API may change, we advise to access simpler @link(HatchStyle) instead. }
+    { Internal wrapper for property @code(HatchStyle). This wrapper API may change, we advise to access simpler @code(HatchStyle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHatchStyle: TSFInt32 read FFdHatchStyle;
     {  }
     property HatchStyle: Integer read GetHatchStyle write SetHatchStyle;

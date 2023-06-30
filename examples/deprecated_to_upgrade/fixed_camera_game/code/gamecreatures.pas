@@ -274,7 +274,16 @@ begin
     { TODO: check collisions with the scene before changing Translation }
 
     IsTargetPos := TVector3.Equals(Translation, WantsToWalkPos);
-    IsTargetDir := TVector3.Equals(Direction, WantsToWalkDir);
+
+    { When WantsToWalkDir is zero, consider IsTargetDir always true.
+      This avoids crash at
+
+        RotationAngleRadBetweenVectors(Direction, WantsToWalkDir, ...)
+
+      when WantsToWalkDir is zero. }
+    IsTargetDir :=
+      WantsToWalkDir.IsZero or
+      TVector3.Equals(Direction, WantsToWalkDir);
 
     if not IsTargetDir then
     begin

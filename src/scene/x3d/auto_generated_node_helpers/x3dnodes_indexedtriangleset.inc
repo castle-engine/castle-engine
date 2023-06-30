@@ -24,6 +24,7 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -32,7 +33,7 @@
     public property EventSet_index: TMFInt32Event read FEventSet_index;
 
     strict private FFdIndex: TMFInt32;
-    { Internal wrapper for property @link(Index). This wrapper API may change, we advise to access simpler @link(Index) instead. }
+    { Internal wrapper for property @code(Index). This wrapper API may change, we advise to access simpler @code(Index) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdIndex: TMFInt32 read FFdIndex;
     {  }
     procedure SetIndex(const Value: array of Int32); overload;

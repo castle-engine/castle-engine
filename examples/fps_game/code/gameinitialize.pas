@@ -25,7 +25,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleWindow, CastleApplicationProperties, CastleConfig,
-  CastleComponentSerialize, CastleSoundEngine
+  CastleComponentSerialize, CastleSoundEngine, GameViewportUnderUi
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewPlay
@@ -73,6 +73,8 @@ begin
   SoundEngine.Volume := UserConfig.GetFloat('sound_volume', 1);
 
   InitializeMusicSound;
+
+  LoadViewportUnderUi;
 
   Window.Container.View := ViewMenu;
 end;

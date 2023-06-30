@@ -29,17 +29,18 @@
     function GetPlane: TVector4;
     procedure SetPlane(const Value: TVector4);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
+    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdPlane: TSFVec4f;
-    { Internal wrapper for property @link(Plane). This wrapper API may change, we advise to access simpler @link(Plane) instead. }
+    { Internal wrapper for property @code(Plane). This wrapper API may change, we advise to access simpler @code(Plane) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPlane: TSFVec4f read FFdPlane;
     {  }
     property Plane: TVector4 read GetPlane write SetPlane;

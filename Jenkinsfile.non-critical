@@ -1,0 +1,303 @@
+/* -*- mode: groovy -*-
+  Configure how to run our job in Jenkins.
+  See https://castle-engine.io/jenkins .
+
+  This does the non-critical, and slow, part of Jenkins check.
+  This is the job omitted by main Jenkinsfile when jenkins_fast=true.
+*/
+
+pipeline {
+  options {
+    disableConcurrentBuilds()
+    disableResume()
+    parallelsAlwaysFailFast()
+  }
+  agent none
+  stages {
+    stage('Run parallel builds') {
+      parallel {
+        stage('Docker (Linux)') {
+          agent {
+            docker {
+              image 'kambi/castle-engine-cloud-builds-tools:cge-none'
+            }
+          }
+          environment {
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+          }
+          stages {
+            stage('(Docker) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(Docker) Build Tools (Default FPC)') {
+              steps {
+                sh 'make clean tools'
+              }
+            }
+            stage('(Docker) Build Examples (Default FPC)') {
+              steps {
+                /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+                sh 'make clean examples'
+              }
+            }
+            stage('(Docker) Build Examples Using Lazarus (Default FPC/Lazarus)') {
+              steps {
+                sh 'make clean examples-laz'
+              }
+            }
+            stage('(Docker) Build Examples (FPC 3.2.0)') {
+              steps {
+                /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples'
+              }
+            }
+            stage('(Docker) Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
+              steps {
+                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz'
+              }
+            }
+            stage('(Docker) Build Examples (FPC trunk)') {
+              steps {
+                /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
+              }
+            }
+            stage('(Docker) Build Examples Using Lazarus (FPC trunk/Lazarus)') {
+              steps {
+                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
+              }
+            }
+          }
+        }
+        stage('Raspberry Pi') {
+          when { branch "master" }
+          agent {
+            label 'raspberry-pi-cge-builder'
+          }
+          environment {
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+            PATH = "${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/"
+          }
+          stages {
+            stage('(RPi) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(RPi) Build Tools') {
+              steps {
+                sh 'rm -Rf installed/'
+                sh 'mkdir -p installed/'
+                sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+              }
+            }
+            stage('(RPi) Build Examples') {
+              steps {
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(RPi) Build And Run Auto-Tests') {
+              steps {
+                sh 'make tests'
+              }
+            }
+            stage('(RPi) Build Using FpMake') {
+              steps {
+                sh 'make clean test-fpmake'
+              }
+            }
+          }
+        }
+        stage('macOS') {
+          agent {
+            label 'mac-cge-builder'
+          }
+          environment {
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+            CGE_INSTALL_PREFIX = "${CASTLE_ENGINE_PATH}/jenkins-installed/"
+            PATH = "${PATH}:${CGE_INSTALL_PREFIX}/bin/:${WORKSPACE}/pasdoc/bin/"
+          }
+          stages {
+            stage('(macOS) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(macOS) Build Tools') {
+              steps {
+                sh 'rm -Rf ${CGE_INSTALL_PREFIX}'
+                sh 'mkdir -p ${CGE_INSTALL_PREFIX}'
+                sh 'make clean tools install PREFIX=${CGE_INSTALL_PREFIX}'
+              }
+            }
+            stage('(macOS) Build Examples') {
+              steps {
+                sh 'make clean examples'
+              }
+            }
+          }
+        }
+        stage('Windows (FPC)') {
+          agent {
+            label 'windows-cge-builder'
+          }
+          environment {
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+            PATH = "${PATH};${CASTLE_ENGINE_PATH}/installed/bin/;${WORKSPACE}/pasdoc/bin/" // Note: on Windows, PATH is separated by ;
+          }
+          stages {
+            stage('(Windows) Info') {
+              steps {
+                // check versions (and availability) of our requirements early
+                sh 'fpc -iV'
+                sh 'lazbuild --version'
+                sh 'make --version'
+              }
+            }
+            stage('(Windows) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(Windows) Build Tools') {
+              steps {
+                sh 'rm -Rf installed/'
+                sh 'mkdir -p installed/'
+                /* TODO: do not use "make install" command, as somewhere the Windows path gets
+                   messed up and in the end we have created files like this:
+
+                   "tools/build-tool/data/E\357\200\272jworkspacecastle_game_engine_delphi_master/installed/share/castle-engine/android/integrated-services/google_play_games/app/src/main/java/net/sourceforge/castleengine/ServiceGooglePlayGames.java"
+                */
+                // sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+                sh 'make clean tools'
+                sh 'mkdir -p ${CASTLE_ENGINE_PATH}/installed/bin/'
+                sh 'cp tools/build-tool/castle-engine.exe ${CASTLE_ENGINE_PATH}/installed/bin/'
+              }
+            }
+            stage('(Windows) Build Examples') {
+              steps {
+                sh 'make clean examples'
+              }
+            }
+            stage('(Windows) Build And Run Auto-Tests') {
+              steps {
+                sh 'make tests'
+              }
+            }
+            stage('(Windows) Build Using FpMake') {
+              steps {
+                sh 'make clean test-fpmake'
+              }
+            }
+          }
+        }
+        stage('Delphi on Windows') {
+          agent {
+            label 'windows-cge-builder'
+          }
+          environment {
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+            PATH = "${PATH};${CASTLE_ENGINE_PATH}/installed/bin/" // Note: on Windows, PATH is separated by ;
+          }
+          stages {
+            stage('(Delphi) Info') {
+              steps {
+                /* Check versions (and availability) of our requirements early.
+                  Note that we need FPC for Delphi test too, since our internal tools are compiled with FPC. */
+                sh 'fpc -iV'
+                sh 'lazbuild --version'
+                // We want GNU make, not Embarcadero make
+                sh 'make --version'
+              }
+            }
+            stage('(Delphi) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(Delphi) Build Tools') {
+              steps {
+                sh 'rm -Rf installed/'
+                sh 'mkdir -p installed/'
+                /* TODO: do not use "make install" command, as somewhere the Windows path gets
+                  messed up and in the end we have created files like this:
+
+                  "tools/build-tool/data/E\357\200\272jworkspacecastle_game_engine_delphi_master/installed/share/castle-engine/android/integrated-services/google_play_games/app/src/main/java/net/sourceforge/castleengine/ServiceGooglePlayGames.java"
+                */
+                // sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+                sh 'make clean tools'
+                sh 'mkdir -p ${CASTLE_ENGINE_PATH}/installed/bin/'
+                sh 'cp tools/build-tool/castle-engine.exe ${CASTLE_ENGINE_PATH}/installed/bin/'
+              }
+            }
+            stage('(Delphi) Build Examples (Win64)') {
+              steps {
+                sh 'make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win64 --cpu=x86_64"'
+              }
+            }
+            stage('(Delphi) Build Examples (Win32)') {
+              steps {
+                sh 'make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386"'
+              }
+            }
+          }
+        }
+        stage('Check Dependencies') {
+          agent {
+            docker {
+              image 'kambi/castle-engine-cloud-builds-tools:cge-none'
+            }
+          }
+          environment {
+            /* Used by CGE build tool ("castle-engine").
+              Define env based on another env variable.
+              According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+              this should be supported. */
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+          }
+          stages {
+            stage('(Check Dependencies) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(Check Dependencies) Build Tools') {
+              steps {
+                sh 'rm -Rf installed/'
+                sh 'mkdir -p installed/'
+                sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+              }
+            }
+            stage('(Check Dependencies) Check Dependencies') {
+              steps {
+                dir ('tools/internal/check_units_dependencies/') {
+                  sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" && make'
+                }
+                archiveArtifacts artifacts: 'test-cge-units-dependencies_all_units.txt,cge_check_units_dependencies.log'
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  post {
+    regression {
+      mail to: 'michalis@castle-engine.io',
+        subject: "[jenkins] Build started failing: ${currentBuild.fullDisplayName}",
+        body: "See the build details on ${env.BUILD_URL}"
+    }
+    failure {
+      mail to: 'michalis@castle-engine.io',
+        subject: "[jenkins] Build failed: ${currentBuild.fullDisplayName}",
+        body: "See the build details on ${env.BUILD_URL}"
+    }
+    fixed {
+      mail to: 'michalis@castle-engine.io',
+        subject: "[jenkins] Build is again successful: ${currentBuild.fullDisplayName}",
+        body: "See the build details on ${env.BUILD_URL}"
+    }
+  }
+}

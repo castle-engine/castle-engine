@@ -23,12 +23,13 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, X3DNodes, CastleInternalBaseTriangleOctree, CastleScene,
-  CastleSceneCore, CastleCameras,
+  CastleSceneCore, CastleCameras, CastleRenderOptions,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
-  CastleKeysMouse, CastleBoxes, CastleInternalBackgroundRenderer, CastleUtils, CastleClassUtils,
+  CastleKeysMouse, CastleBoxes, CastleInternalBackgroundRenderer, CastleUtils,
+  CastleClassUtils, CastleShapes,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
   CastleInputs, CastleRectangles, CastleColors, CastleComponentSerialize,
-  CastleProjection, CastleScreenEffects;
+  CastleProjection, CastleScreenEffects, CastleInternalShapesRenderer;
 
 type
   TCastleViewport = class;
@@ -159,6 +160,14 @@ type
       FInternalGridAxis: Boolean;
       FGizmoGridAxis: TInternalCastleEditorGizmo;
       FWarningZFarInfinityDone: Boolean;
+      FDynamicBatching: Boolean;
+      FOcclusionCulling: Boolean;
+      FOcclusionSort: TShapeSort;
+      FBlendingSort: TShapeSort;
+      FOnCustomShapeSort: TShapeSortEvent;
+
+      ShapesCollector: TShapesCollector;
+      ShapesRenderer: TShapesRenderer;
 
     procedure CommonCreate(const AOwner: TComponent; const ADesignManipulation: Boolean);
     function FillsWholeContainer: boolean;
@@ -238,6 +247,8 @@ type
     procedure SetCamera(const Value: TCastleCamera);
     procedure CameraFreeNotification(const Sender: TFreeNotificationObserver);
     procedure ItemsFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SetDynamicBatching(const Value: Boolean);
+    procedure SetOcclusionCulling(const Value: Boolean);
   private
     var
       FProjection: TProjection;
@@ -365,9 +376,8 @@ type
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
-    function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
-
-    function InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram; override;
+    function InternalExtraGetScreenEffects(
+      const Index: Integer): TGLSLProgram; override;
     function InternalExtraScreenEffectsCount: Integer; override;
     function InternalExtraScreenEffectsNeedDepth: Boolean; override;
 
@@ -512,24 +522,6 @@ type
       You can also use it explicitly. }
     procedure AssignDefaultCamera; virtual;
 
-    { Screen effects are shaders that post-process the rendered screen.
-      If any screen effects are active, we will automatically render
-      screen to a temporary texture, processing it with
-      each shader.
-
-      By default, screen effects come from MainScene.ScreenEffects,
-      so the effects may be defined by VRML/X3D author using ScreenEffect
-      nodes (see docs: [https://castle-engine.io/x3d_extensions_screen_effects.php]).
-      Descendants may override GetScreenEffects, ScreenEffectsCount,
-      and ScreenEffectsNeedDepth to add screen effects by code.
-      Each viewport may have it's own, different screen effects.
-
-      @groupBegin }
-    property ScreenEffects [const Index: Integer]: TGLSLProgram read GetScreenEffects;
-    function ScreenEffectsCount: Integer; virtual;
-    function ScreenEffectsNeedDepth: boolean; virtual;
-    { @groupEnd }
-
     { Does the graphic card support our ScreenSpaceAmbientOcclusion shader.
       This does @italic(not) depend on the current state of
       ScreenSpaceAmbientOcclusion property.
@@ -553,7 +545,7 @@ type
       and this method,
       it's usually easier to call @link(TCastleViewport.PrepareResources).
       Then the appropriate TPrepareParams will be passed automatically. }
-    function PrepareParams: TPrepareParams;
+    function PrepareParams: TPrepareParams; deprecated 'use TCastleViewport.PrepareResources to prepare transforms';
 
     function BaseLights: TLightInstancesList; deprecated 'this is internal info, you should not need this; use PrepareParams to get opaque information to pass to TCastleTransform.PrepareResources';
 
@@ -1165,6 +1157,110 @@ type
     property PreventInfiniteFallingDown: Boolean
       read FPreventInfiniteFallingDown write FPreventInfiniteFallingDown default false;
 
+    { Combine (right before rendering) multiple shapes with a similar appearance into one.
+      This can drastically reduce the number of "draw calls",
+      making rendering much faster.
+
+      To debug effectiveness of this, display @link(TCastleViewport.Statistics).
+      In CGE editor (at design-time), use menu item "Edit -> Show Statistics" (F8).
+      When dynamic batching works, the number of rendered shapes
+      and the number of "Draw Calls" should be much smaller. }
+    property DynamicBatching: Boolean
+      read FDynamicBatching write SetDynamicBatching default false;
+
+    { Use the occlusion culling to optimize the rendering.
+      The shapes obscured by other shapes will not be rendered.
+      This makes sense when in your view, many shapes are typically obscured by others.
+
+      See the https://castle-engine.io/occlusion_culling
+      for details how does this work.
+
+      To debug effectiveness of this, display @link(TCastleViewport.Statistics).
+      In CGE editor (at design-time), use menu item "Edit -> Show Statistics" (F8).
+      If you look closely at a wall that obscures many shapes behind it,
+      you should see the number of rendered shapes drop significantly
+      using occlusion culling.
+
+      This is ignored if GPU doesn't support the necessary functionality
+      (@link(TGLFeatures.OcclusionQuery)). }
+    property OcclusionCulling: boolean
+      read FOcclusionCulling write SetOcclusionCulling default false;
+
+    { Sort the opaque shapes when rendering, from front to back.
+      This may make a speedup when big shapes in front of camera obscure
+      many shapes behind.
+      This is only an optimization: regardless of the value of this,
+      rendering opaque objects will be always correct.
+      Different values of this properly may merely increase / decrease
+      rendering performance (frames per second).
+
+      In general this is an independent optimization from @link(OcclusionCulling),
+      albeit it makes sense in similar situations.
+
+      When combined with @link(OcclusionCulling), it makes occlusion culling
+      even more effective.
+
+      See https://castle-engine.io/occlusion_culling for more details.
+
+      Demo:
+
+      @orderedList(
+        @item(Open the example
+          @url(https://github.com/castle-engine/castle-engine/tree/master/examples/viewport_and_scenes/occlusion_culling
+          examples/viewport_and_scenes/occlusion_culling) in CGE editor.
+        )
+
+        @item(
+          Use menu item "Edit -> Show Statistics" (F8).
+        )
+
+        @item(
+          Observe that:
+
+          @unorderedList(
+            @item(OcclusionCulling=false and OcclusionSort=sortNone results in most shapes
+              being rendered (like 300).)
+
+            @item(OcclusionCulling=true and OcclusionSort=sortNone is better, when
+              looking at a building wall obscuring most city you can easily
+              have only 30 shapes rendered.)
+
+            @item(OcclusionCulling=true and OcclusionSort=sort3D is even better.
+              Looking at a building wall obscuring most city you can easily
+              have only a few shapes rendered.)
+          )
+        )
+      )
+
+      The default value, sortAuto, for now is equivalent to sortNone.
+      It may change in the future to perform sorting esp. when OcclusionCulling
+      is @true, as OcclusionCulling and sorting are a natural pair,
+      sorting make occlusion culling even more effective.
+    }
+    property OcclusionSort: TShapeSort
+      read FOcclusionSort write FOcclusionSort default sortAuto;
+
+    { Sort the blending (partially-transparent) shapes when rendering,
+      from back to front.
+
+      This makes blending correct when there are multiple partially-transparent
+      objects visible.
+      See @url(https://castle-engine.io/blending blending manual).
+      Invalid value of this may cause rendering artifacts when rendering
+      multiple partially-transparent objects.
+
+      The default value, sortAuto, automatically detects if camera
+      is 2D (orthographic, looking in -Z) and if yes, it behaves like sort2D.
+      Otherwise it behaves like sort3D. }
+    property BlendingSort: TShapeSort
+      read FBlendingSort write FBlendingSort default sortAuto;
+
+    { Used to sort shapes, if @link(TCastleViewport.BlendingSort) or
+      @link(TCastleViewport.OcclusionSort) indicate sortCustom.
+      See TShapeSortEvent for usage details and example. }
+    property OnCustomShapeSort: TShapeSortEvent
+      read FOnCustomShapeSort write FOnCustomShapeSort;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -1201,7 +1297,7 @@ implementation
 
 uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
-  CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
+  CastleSoundEngine, CastleGLVersion, CastleTextureImages,
   CastleInternalSettings, CastleXMLUtils, CastleURIUtils, CastleInternalRenderer,
   CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
 
@@ -1300,6 +1396,8 @@ begin
   FClearDepth := true;
   InternalDistortFieldOfViewY := 1;
   InternalDistortViewAspect := 1;
+  ShapesCollector := TShapesCollector.Create;
+  ShapesRenderer := TShapesRenderer.Create;
 
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
@@ -1478,7 +1576,7 @@ begin
   Assert(Owner <> nil); // Use SetupDesignTimeCamera only on viewports with owner
 
   NewCamera := TCastleCamera.Create(Owner);
-  NewCamera.Name := InternalProposeName(TCastleCamera, Owner);
+  NewCamera.Name := ProposeComponentName(TCastleCamera, Owner);
   Camera := NewCamera;
   Assert(Camera = NewCamera);
 
@@ -1510,6 +1608,8 @@ begin
   FreeAndNil(FRenderParams);
   FreeAndNil(FPrepareParams);
   FreeAndNil(FRenderWithoutScreenEffectsRenderingCamera);
+  FreeAndNil(ShapesCollector);
+  FreeAndNil(ShapesRenderer);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -1661,7 +1761,7 @@ begin
 
     if InternalDesignManipulation and (Camera.Name = 'Camera') and (Owner <> nil) then
     begin
-      Camera.Name := InternalProposeName(TCastleCamera, Owner);
+      Camera.Name := ProposeComponentName(TCastleCamera, Owner);
       WritelnLog('Camera in viewport "%s" renamed to "%s" to not conflict with other components', [
         Name,
         Camera.Name
@@ -2320,8 +2420,39 @@ begin
 end;
 
 procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
+
+  { Based on BlendingSort, determine
+    ShapesRenderer.BlendingSort, making sure that sortAuto is handled correctly.
+
+    Note: This is copy-pasted now to TestCastleViewport for testing. }
+  function EffectiveBlendingSort: TShapeSortNoAuto;
+  begin
+    if BlendingSort = sortAuto then
+    begin
+      if (Camera <> nil) and
+        (Camera.ProjectionType = ptOrthographic) and
+        (TVector3.Equals(Camera.Direction, DefaultCameraDirection)) then
+        Result := sort2D
+      else
+        Result := sort3D;
+    end else
+      Result := BlendingSort;
+  end;
+
+  { Based on OcclusionSort, determine
+    ShapesRenderer.OcclusionSort, making sure that sortAuto is handled correctly. }
+  function EffectiveOcclusionSort: TShapeSortNoAuto;
+  begin
+    if OcclusionSort = sortAuto then
+    begin
+      Result := sortNone;
+    end else
+      Result := OcclusionSort;
+  end;
+
 begin
-  TGLRenderer.ViewportRenderBegin;
+  ShapesCollector.Clear;
+  Assert(Params.Collector = ShapesCollector);
 
   {$warnings off} // keep deprecated working
   Render3D(Params);
@@ -2330,7 +2461,10 @@ begin
   Params.Frustum := @Params.RenderingCamera.Frustum;
   Items.Render(Params);
 
-  TGLRenderer.ViewportRenderEnd;
+  ShapesRenderer.OcclusionSort := EffectiveOcclusionSort;
+  ShapesRenderer.BlendingSort := EffectiveBlendingSort;
+  ShapesRenderer.OnCustomShapeSort := OnCustomShapeSort;
+  ShapesRenderer.Render(ShapesCollector, Params);
 end;
 
 procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
@@ -2422,35 +2556,39 @@ end;
 function TCastleViewport.PrepareParams: TPrepareParams;
 { Note: you cannot refer to PrepareParams inside
   the TCastleTransform.PrepareResources or TCastleTransform.Render implementation,
-  as they may change the referenced PrepareParams.InternalGlobalLights value.
+  as they may change the referenced PrepareParams.GlobalLights value.
 }
 begin
   { We just reuse FRenderParams.FGlobalLights below as a temporary
     TLightInstancesList that we already have created. }
 
-  { initialize FPrepareParams.InternalGlobalLights }
+  { initialize FPrepareParams.GlobalLights }
   FRenderParams.FGlobalLights.Clear;
   InitializeGlobalLights(FRenderParams.FGlobalLights);
-  FPrepareParams.InternalGlobalLights := FRenderParams.FGlobalLights;
+  FPrepareParams.GlobalLights := FRenderParams.FGlobalLights;
 
-  { initialize FPrepareParams.InternalGlobalFog }
+  { initialize FPrepareParams.GlobalFog }
   if Fog <> nil then
-    FPrepareParams.InternalGlobalFog := Fog.InternalFogNode
+    FPrepareParams.GlobalFog := Fog.InternalFogNode
   else
   {$warnings off} // using deprecated MainScene to keep it working
   if UseGlobalFog and
      (Items.MainScene <> nil) then
-    FPrepareParams.InternalGlobalFog := Items.MainScene.FogStack.Top
+    FPrepareParams.GlobalFog := Items.MainScene.FogStack.Top
   {$warnings on}
   else
-    FPrepareParams.InternalGlobalFog := nil;
+    FPrepareParams.GlobalFog := nil;
+
+  FPrepareParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
 
   Result := FPrepareParams;
 end;
 
 function TCastleViewport.BaseLights: TLightInstancesList;
 begin
-  Result := PrepareParams.InternalGlobalLights as TLightInstancesList;
+  {$warnings off} // using deprecated in deprecated, to keep it working
+  Result := PrepareParams.GlobalLights as TLightInstancesList;
+  {$warnings on}
 end;
 
 procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
@@ -2579,7 +2717,10 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
         {$endif}
       end;
       RenderingCamera.RotationOnly := true;
-      BackgroundRenderer.Render(RenderingCamera, BackgroundWireframe, RenderRect, FProjection);
+      { TODO: BackgroundRenderer should have its own ShapesRenderer,
+        ShapesCollector. }
+      BackgroundRenderer.Render(RenderingCamera, BackgroundWireframe,
+        RenderRect, FProjection, ShapesCollector, ShapesRenderer);
       RenderingCamera.RotationOnly := false;
     end;
   end;
@@ -2624,6 +2765,8 @@ begin
   { various FRenderParams initialization }
   FRenderParams.UserPass := CustomRenderingPass;
   FRenderParams.RenderingCamera := RenderingCamera;
+  FRenderParams.Collector := ShapesCollector;
+  FRenderParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
 
   { calculate FRenderParams.Projection*, simplified from just like CalculateProjection does }
   FRenderParams.ProjectionBox := {$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox;
@@ -2657,13 +2800,9 @@ begin
   {$warnings on}
     FRenderParams.GlobalFog := nil;
 
-  if RenderingCamera.Target in [rtShadowMap, rtVarianceShadowMap] then
-    { When rendering shadows maps, we don't modify RenderContext.DepthRange
-      during rendering, it stays drFull. }
-    RenderContext.DepthRange := drFull
-  else
-    { In normal rendering, start with drBack, as this is the meaning of rlParent on Viewport.Items. }
-    RenderContext.DepthRange := drFar;
+  { Start with DefaultDepthRange,
+    as this is the meaning of rlParent on Viewport.Items. }
+  FRenderParams.DepthRange := DefaultDepthRange;
 
   RenderFromView3D(FRenderParams);
 end;
@@ -2753,21 +2892,6 @@ end;
 
 function TCastleViewport.InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
-  Result := GetScreenEffects(Index);
-end;
-
-function TCastleViewport.InternalExtraScreenEffectsCount: Integer;
-begin
-  Result := ScreenEffectsCount;
-end;
-
-function TCastleViewport.InternalExtraScreenEffectsNeedDepth: Boolean;
-begin
-  Result := ScreenEffectsNeedDepth;
-end;
-
-function TCastleViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
-begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
   if ScreenSpaceReflections then
@@ -2782,31 +2906,31 @@ begin
     if Index = 1 then
       Result := SSRShader
     else
-      Result := Items.MainScene.ScreenEffects(Index - 2);
+      Result := Items.MainScene.InternalScreenEffects(Index - 2);
   end else
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
   begin
     if Index = 0 then
       Result := SSAOShader
     else
-      Result := Items.MainScene.ScreenEffects(Index - 1);
+      Result := Items.MainScene.InternalScreenEffects(Index - 1);
   end else
   if ScreenSpaceReflections and (SSRShader <> nil) then
   begin
     if Index = 0 then
       Result := SSRShader
     else
-      Result := Items.MainScene.ScreenEffects(Index - 1);
+      Result := Items.MainScene.InternalScreenEffects(Index - 1);
   end else
   if Items.MainScene <> nil then
-    Result := Items.MainScene.ScreenEffects(Index)
+    Result := Items.MainScene.InternalScreenEffects(Index)
   else
     { no Index is valid, since ScreenEffectsCount = 0 in this class }
     Result := nil;
   {$warnings on}
 end;
 
-function TCastleViewport.ScreenEffectsCount: Integer;
+function TCastleViewport.InternalExtraScreenEffectsCount: Integer;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -2815,7 +2939,7 @@ begin
 
   {$warnings off} // using deprecated MainScene to keep it working
   if Items.MainScene <> nil then
-    Result := Items.MainScene.ScreenEffectsCount
+    Result := Items.MainScene.InternalScreenEffectsCount
   else
     Result := 0;
   {$warnings off}
@@ -2826,7 +2950,7 @@ begin
     Inc(Result);
 end;
 
-function TCastleViewport.ScreenEffectsNeedDepth: boolean;
+function TCastleViewport.InternalExtraScreenEffectsNeedDepth: Boolean;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -2839,7 +2963,7 @@ begin
     Exit(true);
   {$warnings off} // using deprecated MainScene to keep it working
   if Items.MainScene <> nil then
-    Result := Items.MainScene.ScreenEffectsNeedDepth
+    Result := Items.MainScene.InternalScreenEffectsNeedDepth
   else
   {$warnings on}
     Result := false;
@@ -2915,6 +3039,9 @@ begin
 
   FreeAndNil(SSAOShader);
   SSAOShaderInitialized := false;
+
+  if ShapesRenderer <> nil then
+    ShapesRenderer.GLContextClose;
 
   inherited;
 end;
@@ -3380,7 +3507,11 @@ begin
     ApplyProjection;
   end;
 
+  {$warnings off} // using deprecated, this should be internal
   Item.PrepareResources(Options, PrepareParams);
+  {$warnings on}
+
+  ShapesRenderer.PrepareResources;
 end;
 
 procedure TCastleViewport.PrepareResources(
@@ -3859,7 +3990,7 @@ begin
     that you can see as a whole in initial view,
     allows to see screen corner - also has distance from edge. }
   Plane := TCastlePlane.Create(Owner);
-  Plane.Name := InternalProposeName(TCastlePlane, Owner);
+  Plane.Name := ProposeComponentName(TCastlePlane, Owner);
   Plane.Axis := 2;
   Plane.Size := Vector2(200, 200);
   Plane.Material := pmUnlit;
@@ -3906,7 +4037,7 @@ begin
     bright to make PBR colors visible (e.g. yellow sphere should visibly be really yellow),
     low above ground to see the attenuation on floor.  }
   Light := TCastlePointLight.Create(Owner);
-  Light.Name := InternalProposeName(TCastlePointLight, Owner);
+  Light.Name := ProposeComponentName(TCastlePointLight, Owner);
   Light.Translation := Vector3(4.00, 1.00, 1.00);
   Light.Intensity := 10;
   Items.Add(Light);
@@ -3915,7 +4046,7 @@ begin
     that you can see as a whole in initial view,
     serves as floor to place new 3D stuff }
   Plane := TCastlePlane.Create(Owner);
-  Plane.Name := InternalProposeName(TCastlePlane, Owner);
+  Plane.Name := ProposeComponentName(TCastlePlane, Owner);
   Plane.Size := Vector2(10, 10);
   Items.Add(Plane);
 
@@ -3933,7 +4064,7 @@ begin
   end;
 
   NewBackground := TCastleBackground.Create(Owner);
-  NewBackground.Name := InternalProposeName(TCastleBackground, Owner);
+  NewBackground.Name := ProposeComponentName(TCastleBackground, Owner);
   AddNonVisualComponent(NewBackground);
   Background := NewBackground;
 end;
@@ -3956,12 +4087,11 @@ end;
 
 function TCastleViewport.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Transparent') or
-     (PropertyName = 'Camera') or
-     (PropertyName = 'Navigation') or
-     (PropertyName = 'Background') or
-     (PropertyName = 'Fog') or
-     (PropertyName = 'BackgroundColorPersistent') then
+  if ArrayContainsString(PropertyName, [
+        'Transparent', 'Camera', 'Navigation', 'Background',
+        'Fog', 'BackgroundColorPersistent', 'DynamicBatching', 'Items',
+        'OcclusionSort', 'OcclusionCulling', 'BlendingSort'
+      ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -4051,6 +4181,26 @@ begin
     WritelnWarning('Viewport named "%s" uses AutoNavigation, this is no longer supported. Instead: 1. (Advised) Add explicit navigation instance to viewport. 2. (Eventually, a temporary solution) Use TCastleAutoNavigationViewport.', [
       Name
     ]);
+  end;
+end;
+
+procedure TCastleViewport.SetDynamicBatching(const Value: Boolean);
+begin
+  if FDynamicBatching <> Value then
+  begin
+    FDynamicBatching := Value;
+    if ShapesRenderer <> nil then
+      ShapesRenderer.DynamicBatching := Value;
+  end;
+end;
+
+procedure TCastleViewport.SetOcclusionCulling(const Value: Boolean);
+begin
+  if FOcclusionCulling <> Value then
+  begin
+    FOcclusionCulling := Value;
+    if ShapesRenderer <> nil then
+      ShapesRenderer.OcclusionCulling := Value;
   end;
 end;
 

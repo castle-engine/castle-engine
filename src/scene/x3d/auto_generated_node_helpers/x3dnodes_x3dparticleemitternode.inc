@@ -33,29 +33,30 @@
     function GetSurfaceArea: Single;
     procedure SetSurfaceArea(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdSpeed: TSFFloat;
-    { Internal wrapper for property @link(Speed). This wrapper API may change, we advise to access simpler @link(Speed) instead. }
+    { Internal wrapper for property @code(Speed). This wrapper API may change, we advise to access simpler @code(Speed) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSpeed: TSFFloat read FFdSpeed;
     {  }
     property Speed: Single read GetSpeed write SetSpeed;
 
     strict private FFdVariation: TSFFloat;
-    { Internal wrapper for property @link(Variation). This wrapper API may change, we advise to access simpler @link(Variation) instead. }
+    { Internal wrapper for property @code(Variation). This wrapper API may change, we advise to access simpler @code(Variation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVariation: TSFFloat read FFdVariation;
     {  }
     property Variation: Single read GetVariation write SetVariation;
 
     strict private FFdMass: TSFFloat;
-    { Internal wrapper for property @link(Mass). This wrapper API may change, we advise to access simpler @link(Mass) instead. }
+    { Internal wrapper for property @code(Mass). This wrapper API may change, we advise to access simpler @code(Mass) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMass: TSFFloat read FFdMass;
     {  }
     property Mass: Single read GetMass write SetMass;
 
     strict private FFdSurfaceArea: TSFFloat;
-    { Internal wrapper for property @link(SurfaceArea). This wrapper API may change, we advise to access simpler @link(SurfaceArea) instead. }
+    { Internal wrapper for property @code(SurfaceArea). This wrapper API may change, we advise to access simpler @code(SurfaceArea) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSurfaceArea: TSFFloat read FFdSurfaceArea;
     {  }
     property SurfaceArea: Single read GetSurfaceArea write SetSurfaceArea;

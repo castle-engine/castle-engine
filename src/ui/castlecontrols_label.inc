@@ -16,7 +16,9 @@
 
 {$ifdef read_interface}
 
-  { Label with possibly multiline text, in an optional box. }
+  { Label with possibly multiline text.
+    See @url(https://castle-engine.io/manual_text.php
+    manual about displaying text and fonts). }
   TCastleLabel = class(TCastleUserInterfaceFont)
   strict private
     FText: TStrings;

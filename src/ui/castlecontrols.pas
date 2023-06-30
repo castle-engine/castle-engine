@@ -45,7 +45,6 @@ type
   {$I castlecontrols_scrollview.inc}
   {$I castlecontrols_switchcontrol.inc}
   {$I castlecontrols_checkbox.inc}
-  {$I castlecontrols_tableview.inc}
   {$I castlecontrols_timer.inc}
   {$I castlecontrols_edit.inc}
   {$I castlecontrols_groups.inc}
@@ -64,7 +63,7 @@ uses Math, CastleTextureFont_DjvSans_20,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleTextureFont_DejaVuSans_10, CastleTextureImages,
   CastleApplicationProperties, CastleMessaging, CastleComponentSerialize,
-  CastleUnicode;
+  CastleUnicode, CastleRenderOptions;
 
 {$define read_implementation}
 {$I castlecontrols_uifont.inc} //< Keep this on top, to allow castlecontrols_userinterfacefont.inc to access internals
@@ -82,7 +81,6 @@ uses Math, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_scrollview.inc}
 {$I castlecontrols_switchcontrol.inc}
 {$I castlecontrols_checkbox.inc}
-{$I castlecontrols_tableview.inc}
 {$I castlecontrols_timer.inc}
 {$I castlecontrols_edit.inc}
 {$I castlecontrols_groups.inc}

@@ -55,7 +55,7 @@ uses Math, SysUtils,
 procedure TViewPlay.Resize;
 begin
   inherited;
-  CurrentLocation.Scene.ViewportRect := Viewport.RenderRect.Round;
+  CurrentLocation.ImageTransform.ViewportRect := Viewport.RenderRect.Round;
 end;
 
 procedure TViewPlay.Start;
@@ -92,6 +92,7 @@ begin
     CreatureKind.Load(Viewport.PrepareParams);
   end;
 
+  Viewport.Items.Add(CurrentLocation.ImageTransform);
   Viewport.Items.Add(CurrentLocation.Scene);
   { set as MainScene, to allow location VRML / X3D file to determine
     headlight, viewpoint, shadow volumes light... }
@@ -144,8 +145,8 @@ begin
       { Debug keys }
       case Event.Key of
         keyF2:
-          CurrentLocation.Scene.RenderInternalModel :=
-            not CurrentLocation.Scene.RenderInternalModel;
+          CurrentLocation.RenderInternalModel :=
+            not CurrentLocation.RenderInternalModel;
         keyF5:
           begin
             URL := Container.SaveScreenToDefaultFile;

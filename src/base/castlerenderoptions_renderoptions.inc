@@ -23,61 +23,76 @@ type
 
   { Options that control rendering,
     available at every scene through @link(TCastleScene.RenderOptions). }
-  TCastleRenderOptions = class(TComponent)
+  TCastleRenderOptions = class(TCastleComponent)
   strict private
-    FLighting: boolean;
-    FReceiveSceneLights, FReceiveGlobalLights: boolean;
-    FTextures: boolean;
-    FMinificationFilter: TAutoMinificationFilter;
-    FMagnificationFilter: TAutoMagnificationFilter;
-    FPointSize: Single;
-    FLineWidth: Single;
-    FBumpMapping: TBumpMapping;
-    FBumpMappingParallaxHeight: Single;
-    FInternalCustomShader, FInternalCustomShaderAlphaTest: TObject;
-    FMode: TRenderingMode;
-    FShadowSampling: TShadowSampling;
-    FDepthTest: boolean;
-    FPhongShading: boolean;
-    FSolidColor: TCastleColorRGB;
-    FSolidColorBlendingPipeline: Boolean;
-    FSeparateDiffuseTexture: boolean;
-    FMaxLightsPerShape: Cardinal;
-    FBlending: boolean;
-    FBlendingSourceFactor: TBlendingSourceFactor;
-    FBlendingDestinationFactor: TBlendingDestinationFactor;
-    FBlendingSort: TBlendingSort;
-    FOcclusionSort: boolean;
-    FWireframeColor: TCastleColorRGB;
-    FWireframeEffect: TWireframeEffect;
-    FOcclusionQuery: boolean;
-    FHierarchicalOcclusionQuery: boolean;
-    FDebugHierOcclusionQueryResults: boolean;
-    FSolidWireframeScale: Single;
-    FSolidWireframeBias: Single;
-    FSilhouetteScale: Single;
-    FSilhouetteBias: Single;
-    FRobustNegativeScale: Boolean;
-    FWholeSceneManifold: Boolean;
+    type
+      TRenderOptionsHash = Int32;
+    var
+      FLighting: Boolean;
+      FReceiveSceneLights, FReceiveGlobalLights: Boolean;
+      FTextures: Boolean;
+      FMinificationFilter: TAutoMinificationFilter;
+      FMagnificationFilter: TAutoMagnificationFilter;
+      FPointSize: Single;
+      FLineWidth: Single;
+      FBumpMapping: TBumpMapping;
+      FBumpMappingParallaxHeight: Single;
+      FMode: TRenderingMode;
+      FShadowSampling: TShadowSampling;
+      FDepthTest: Boolean;
+      FPhongShading: Boolean;
+      FSolidColor: TCastleColorRGB;
+      FMaxLightsPerShape: Cardinal;
+      FBlending: Boolean;
+      FBlendingSourceFactor: TBlendingSourceFactor;
+      FBlendingDestinationFactor: TBlendingDestinationFactor;
+      FWireframeColor: TCastleColorRGB;
+      FWireframeEffect: TWireframeEffect;
+      FSolidWireframeScale: Single;
+      FSolidWireframeBias: Single;
+      FSilhouetteScale: Single;
+      FSilhouetteBias: Single;
+      FRobustNegativeScale: Boolean;
+      FWholeSceneManifold: Boolean;
+      FColorChannels: TColorChannels;
 
-    function GetShaders: TShadersRendering;
-    procedure SetShaders(const Value: TShadersRendering);
-    { These methods just set the value on given property,
-      eventually (some of them) calling ReleaseCachedResources.
-      @groupBegin }
-    procedure SetTextures(const Value: boolean);
+    { Hash to quickly compare 2 TCastleRenderOptions instances,
+      important for efficient batching. }
+    FHash: TRenderOptionsHash;
+
+    // Property setters that
+    // - call UpdateHash
+    // - sometimes call ReleaseCachedResources
+    procedure SetTextures(const Value: Boolean);
     procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
     procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
     procedure SetBumpMapping(const Value: TBumpMapping);
     procedure SetMode(const Value: TRenderingMode);
     procedure SetShadowSampling(const Value: TShadowSampling);
-    procedure SetBlending(const Value: boolean);
+    procedure SetBlending(const Value: Boolean);
     procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
     procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
-    procedure SetBlendingSort(const Value: TBlendingSort);
-    procedure SetOcclusionQuery(const Value: boolean);
-    procedure SetPhongShading(const Value: boolean);
-    { @groupEnd }
+    procedure SetPhongShading(const Value: Boolean);
+    procedure SetWireframeColor(const Value: TCastleColorRGB);
+    procedure SetWireframeEffect(const Value: TWireframeEffect);
+    procedure SetSolidWireframeScale(const Value: Single);
+    procedure SetSolidWireframeBias(const Value: Single);
+    procedure SetSilhouetteScale(const Value: Single);
+    procedure SetSilhouetteBias(const Value: Single);
+    procedure SetRobustNegativeScale(const Value: Boolean);
+    procedure SetWholeSceneManifold(const Value: Boolean);
+    procedure SetColorChannels(const Value: TColorChannels);
+    procedure SetMaxLightsPerShape(const Value: Cardinal);
+    procedure SetDepthTest(const Value: Boolean);
+    procedure SetReceiveSceneLights(const Value: Boolean);
+    procedure SetReceiveGlobalLights(const Value: Boolean);
+    procedure SetSolidColor(const Value: TCastleColorRGB);
+    procedure SetPointSize(const Value: Single);
+    procedure SetLineWidth(const Value: Single);
+    procedure SetBumpMappingParallaxHeight(const Value: Single);
+    procedure SetLighting(const Value: Boolean);
+
+    procedure UpdateHash;
   protected
     { Called before changing an attribute that requires the release
       of things cached in a renderer. This includes attributes that affect:
@@ -101,34 +116,13 @@ type
       DefaultPhongShading = true;
       DefaultMaxLightsPerShape = 64;
 
-      { }
+      { Default value of @link(TCastleRenderOptions.BlendingSourceFactor).
+        This is the typical blending operation. }
       DefaultBlendingSourceFactor = bsSrcAlpha;
 
-      { Default value of Attributes.BlendingDestinationFactor.
-        See TCastleRenderOptions.BlendingDestinationFactor.
-
-        Using bdOneMinusSrcAlpha is the standard value for 3D graphic stuff,
-        often producing best results. However, it causes troubles when
-        multiple transparent shapes are visible on the same screen pixel.
-        For closed convex 3D objects, using backface culling
-        (solid = TRUE for geometry) helps. For multiple transparent shapes,
-        sorting the transparent shapes helps,
-        see @link(TCastleRenderOptions.BlendingSort).
-        Sometimes, no solution works for all camera angles.
-
-        Another disadvantage of bdOneMinusSrcAlpha may be that
-        the color of opaque shapes disappears too quickly from
-        resulting image (since bdOneMinusSrcAlpha scales it down).
-        So the image may be darker than you like.
-
-        You can instead consider using bdOne, that doesn't require sorting
-        and never has problems with multiple transparent shapes.
-        On the other hand, it only adds to the color,
-        often making too bright results. }
+      { Default value of @link(TCastleRenderOptions.BlendingDestinationFactor).
+        This is the typical blending operation. }
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
-
-      { Default value of @link(TCastleRenderOptions.BlendingSort). }
-      DefaultBlendingSort = bs3D;
 
       DefaultWireframeColor: TCastleColorRGB = (X: 0; Y: 0; Z: 0);
 
@@ -152,58 +146,19 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { Equal TCastleRenderOptions produce the same effect when rendering
+      and can be treated as exactly equivalent by the @link(TCastleViewport.DynamicBatching)
+      algorithm. }
+    function Equals(Obj: TObject): Boolean; override;
 
     { Is the second TCastleRenderOptions instance on all fields
       that affect TShapeCache, that is things that affect generated geometry
       arrays or vbo. This compares the subset of variables that call
       ReleaseCachedResources --- only the ones that affect TShapeCache. }
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
-
-    {$ifdef FPC}
-    property EnableTextures: boolean
-      read FTextures write SetTextures default true; deprecated 'use Textures';
-
-    { When GLSL shaders are used.
-      This is now a deprecated property, better use @link(PhongShading) to determine
-      the shading.
-      The engine auto-detects whether to use shaders based on OpenGL capabilities,
-      particular shape needs (phong shading, bump mapping, shadow maps, compositing shader effects),
-      and GLFeatures.EnableFixedFunction. }
-    property Shaders: TShadersRendering read GetShaders write SetShaders; deprecated 'use PhongShading';
-    {$endif}
-
-    { Custom GLSL shader to use for the whole scene.
-      It must be a @link(TX3DShaderProgramBase) instance.
-      When this is assigned, @link(Shaders) value is ignored.
-
-      @italic(Internal, do not use this.)
-      Because TX3DShaderProgramBase is an internal class, because it's cumbersome to use.
-
-      Use nodes instead, to override shaders or to enhance shaders.
-      See examples/viewport_and_scenes/shader_effects/ ,
-      examples/viewport_and_scenes/shader_override/ .
-
-      @exclude }
-    property InternalCustomShader: TObject
-      read FInternalCustomShader write FInternalCustomShader;
-
-    { Alternative custom GLSL shader used when alpha test is necessary.
-      It must be a @link(TX3DShaderProgramBase) instance.
-      Relevant only if CustomShader <> nil.
-
-      @italic(Internal, do not use this.)
-      Because TX3DShaderProgramBase is an internal class, because it's cumbersome to use.
-
-      Use nodes instead, to override shaders or to enhance shaders.
-      See examples/viewport_and_scenes/shader_effects/ ,
-      examples/viewport_and_scenes/shader_override/ .
-
-      This is in practice an internal solution to enable VSM working
-      with alpha test. It's not clean, and should not be used for anything else.
-
-      @exclude }
-    property InternalCustomShaderAlphaTest: TObject
-      read FInternalCustomShaderAlphaTest write FInternalCustomShaderAlphaTest;
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
@@ -218,111 +173,29 @@ type
       ignoring the contents of the depth buffer. Use only if you know
       what you're doing, if you're sure that the order of rendering will
       always be good. }
-    property DepthTest: boolean read FDepthTest write FDepthTest default true;
+    property DepthTest: boolean read FDepthTest write SetDepthTest default true;
 
-    { Color used when @link(Mode) is @link(rmSolidColor). }
-    property SolidColor: TCastleColorRGB read FSolidColor write FSolidColor;
-
-    { Whether to render shapes as transparent, when @link(Mode) is @link(rmSolidColor). }
-    property SolidColorBlendingPipeline: Boolean
-      read FSolidColorBlendingPipeline
-      write FSolidColorBlendingPipeline;
-
-    {$ifdef FPC}
-    { @deprecated @exclude Ignored now.
-
-      Set to @true to make diffuse texture affect only material diffuse color
-      when the shape is lit and shading is Phong.
-      This affects both textures from X3D Appearance.texture,
-      and textures from CommonSurfaceShader.diffuseTexture.
-      This is more correct (following X3D lighting equations),
-      and is more impressive (e.g. specular highlights may be better visible,
-      as they are not darkened by a dark diffuse texture).
-
-      For historic reasons and for Gouraud shading, by default, this is @false.
-      Which means that "diffuse texture" is actually used to multiply
-      a complete result of the lighting calculation.
-      This is not correct, but it is necessary for Gouraud shading,
-      and it is also depended upon by some applications (since the "diffuse texture"
-      effectively multiplies all factors, so it also multiplies
-      e.g. emissive factor for "pure emissive materials",
-      which may be useful sometimes). }
-    property SeparateDiffuseTexture: boolean
-      read FSeparateDiffuseTexture
-      write FSeparateDiffuseTexture default false;
-      deprecated 'rendering always behaves as if this was true now, with Phong shading';
-    {$endif FPC}
+    { Color used when @link(Mode) is @link(rmSolidColor).
+      By default BlackRGB. }
+    property SolidColor: TCastleColorRGB read FSolidColor write SetSolidColor;
 
     { Wireframe color, used with some WireframeEffect values.
       Default value is DefaultWireframeColor. }
     property WireframeColor: TCastleColorRGB
-      read FWireframeColor write FWireframeColor;
+      read FWireframeColor write SetWireframeColor;
 
-    { Use the advanced version of the occlusion query:
-      "Coherent Hierarchical Culling", to optimize the rendered shapes.
-      The shapes obscured by other shapes will not be rendered.
+    { Which color buffer channels (RGBA) to write when rendering this model.
 
-      This is ignored if GPU doesn't support the necessary functionality
-      (TGLFeatures.OcclusionQuery).
-
-      We don't advise this approach to occlusion query now.
-      While this avoids the problem of "lag of one frame" (compared to @link(OcclusionQuery))
-      when the object should appear...
-      But the resulting algorithm (at least in our current implementation)
-      is slow and it does not treat transparent shapes correctly.
-
-      This requires the usage of ssRendering in TCastleSceneCore.Spatial.
-      Also, it always does frustum culling (like fcBox for now),
-      regardless of TCastleScene.OctreeFrustumCulling setting.
-
-      The algorithm used underneath is "Coherent Hierarchical Culling",
-      described in detail in "GPU Gems 2",
-      Chapter 6: "Hardware Occlusion Queries Made Useful",
-      by Michael Wimmer and Jiri Bittner. Online on
-      [http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter06.html].
-
-      @exclude
-      @bold(Experimental):
-      Using the "Hierarchical Occlusion Query" is not adviced in the current implementation,
-      it is slow and it does not treat transparent shapes correctly.
-    }
-    property HierarchicalOcclusionQuery: boolean
-      read FHierarchicalOcclusionQuery
-      write FHierarchicalOcclusionQuery default false;
-      {$ifdef FPC}experimental;{$endif FPC}
-
-    { View only the shapes that were detected as visible by occlusion query
-      in last Render.
-
-      Use this only after render with HierarchicalOcclusionQuery.
-      TODO: for OcclusionQuery I would also like to make it work,
-      for now not done as frustum information is gone.
-      This will disable actual occlusion query,
-      instead reusing results from last occlusion
-      query done when this debug flag was @false.
-
-      Useful to quickly visualize the benefits of occlusion query. }
-    property DebugHierOcclusionQueryResults: boolean
-      read FDebugHierOcclusionQueryResults
-      write FDebugHierOcclusionQueryResults default false;
-
-    { @deprecated @exclude Old name for @link(ReceiveSceneLights). }
-    property UseSceneLights: boolean
-      read FReceiveSceneLights write FReceiveSceneLights default true;
-      {$ifdef FPC}deprecated 'use ReceiveSceneLights';{$endif}
-
-    { @deprecated @exclude Old name for @link(ReceiveSceneLights). }
-    property SceneLights: boolean
-      read FReceiveSceneLights write FReceiveSceneLights default true;
-      {$ifdef FPC}deprecated 'use ReceiveSceneLights';{$endif}
-
-    { @deprecated @exclude Old name for @link(OcclusionQuery). }
-    property UseOcclusionQuery: boolean
-      read FOcclusionQuery write SetOcclusionQuery default false;
-      {$ifdef FPC}deprecated 'use OcclusionQuery';{$endif}
+      This makes a cool effect, avoiding writing to some color channels,
+      but writing others, and writing depth buffer.
+      This property may change to be non-internal some day, please report
+      on Castle Game Engine forum / Discord / GitHub
+      ( https://castle-engine.io/talk.php ) if you find it useful. }
+    property InternalColorChannels: TColorChannels
+      read FColorChannels write SetColorChannels default AllColorChannels;
   published
     { Enable real-time lighting when rendering. }
-    property Lighting: boolean read FLighting write FLighting default true;
+    property Lighting: boolean read FLighting write SetLighting default true;
 
     { Use lights defined in this scene (in the model loaded to this TCastleScene)
       to light the shapes in this scene.
@@ -339,7 +212,7 @@ type
       Also, if both ReceiveSceneLights and ReceiveGlobalLights are @false,
       then the scene receives no lighting at all. }
     property ReceiveSceneLights: boolean
-      read FReceiveSceneLights write FReceiveSceneLights default true;
+      read FReceiveSceneLights write SetReceiveSceneLights default true;
 
     { Use lights defined in other scenes to light the shapes in this scene.
 
@@ -351,7 +224,7 @@ type
       Also, if both ReceiveSceneLights and ReceiveGlobalLights are @false,
       then the scene receives no lighting at all. }
     property ReceiveGlobalLights: boolean
-      read FReceiveGlobalLights write FReceiveGlobalLights default true;
+      read FReceiveGlobalLights write SetReceiveGlobalLights default true;
 
     { Use textures. }
     property Textures: boolean
@@ -376,13 +249,13 @@ type
     { Size of points. This has an effect on TPointSetNode rendering.
       Must be > 0. }
     property PointSize: Single
-      read FPointSize write FPointSize {$ifdef FPC}default DefaultPointSize{$endif};
+      read FPointSize write SetPointSize {$ifdef FPC}default DefaultPointSize{$endif};
 
     { Line width. This has an effect on TLineSetNode rendering,
       and on wireframe rendering when @link(TCastleRenderOptions.WireframeEffect) indicates it.
       Must be > 0. }
     property LineWidth: Single
-      read FLineWidth write FLineWidth {$ifdef FPC}default DefaultLineWidth{$endif};
+      read FLineWidth write SetLineWidth {$ifdef FPC}default DefaultLineWidth{$endif};
 
     { Use bump mapping. The bump mapping is only done when particular shape
       defines a normal map (and a height map, if you want parallax bump mapping).
@@ -410,7 +283,7 @@ type
       and you set @link(BumpMapping) to a value bmParallax, bmSteepParallax,
       bmSteepParallaxShadowing then this property is used to interpret the height information. }
     property BumpMappingParallaxHeight: Single
-      read FBumpMappingParallaxHeight write FBumpMappingParallaxHeight
+      read FBumpMappingParallaxHeight write SetBumpMappingParallaxHeight
       {$ifdef FPC}default DefaultBumpMappingParallaxHeight{$endif};
 
     { Whether to use Phong shading by default.
@@ -448,7 +321,7 @@ type
       But on modern desktops, as well as mobile and other platforms,
       you can increase this limit freely. }
     property MaxLightsPerShape: Cardinal
-      read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
+      read FMaxLightsPerShape write SetMaxLightsPerShape default DefaultMaxLightsPerShape;
 
     { Render partially transparent objects.
 
@@ -463,12 +336,68 @@ type
       read FBlending write SetBlending default true;
 
     { Blending function parameters, used when @link(Blending).
-      Note that this is only a default, each model can override this
-      for specific shapes using @link(TBlendModeNode).
-      See https://castle-engine.io/x3d_extensions.php#section_ext_blending for details of TBlendModeNode.
 
       See https://castle-engine.io/blending
-      for details how it works.
+      for more information about blending.
+
+      For the exact meaning of BlendingSourceFactor and BlendingDestinationFactor
+      consult OpenGL specification of glBlendFunc,
+      https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml .
+      Regardless of whether we use OpenGL for rendering, these properties
+      and their values will reflect the equations there.
+
+      The typical blending setup (default) is to use
+
+      @unorderedList(
+        @item(BlendingSourceFactor =
+          DefaultBlendingSourceFactor =
+          bsSrcAlpha.)
+        @item(BlendingDestinationFactor =
+          DefaultBlendingDestinationFactor =
+          bdOneMinusSrcAlpha.
+        )
+      )
+
+      This is the standard that follows most intuitive transparency equation.
+      The major drawback of this default (and why you may want to consider
+      alternatives) is that it depends on a correct order of rendering
+      partially-transparent shapes.
+
+      CGE allows to cope with it:
+
+      @orderedList(
+        @item(When multiple transparent shapes are possible,
+          sort the transparent shapes, using
+          @link(TCastleViewport.BlendingSort).
+
+          Note that it cannot
+          be perfect in certain cases (like when transparent shape is one, concave,
+          mesh).
+        )
+
+        @item(For closed convex 3D objects, use backface culling.
+
+          To do this, set on geometries @link(TAbstractGeometryNode.Solid)
+          to @true, this activates backface culling.
+
+          In practice you usually set this in a 3D authoring application,
+          like Blender. This is called just "Backface Culling" in Blender,
+          checkbox is in the Blender material properties.
+          This information is then exported to glTF or X3D and just used
+          by CGE.)
+
+        @item(Finally, consider a different blending equation:
+
+          Changing BlendingDestinationFactor to bdOne means that sorting
+          isn't necessary. On the other hand, it only adds to the color,
+          often making too bright results.
+        )
+      )
+
+      Note that these properties can be overridden on each shape
+      using @link(TBlendModeNode).
+      See https://castle-engine.io/x3d_extensions.php#section_ext_blending
+      for details of TBlendModeNode.
 
       @groupBegin }
     property BlendingSourceFactor: TBlendingSourceFactor
@@ -479,20 +408,6 @@ type
       default DefaultBlendingDestinationFactor;
     { @groupEnd }
 
-    { How to sort the rendered objects using blending (partial transparency).
-      See the @link(TBlendingSort) documentation for possible values.
-
-      This may be overridden in a specific 3D models
-      by using NavigationInfo node with blendingSort field,
-      see TNavigationInfoNode.BlendingSort. }
-    property BlendingSort: TBlendingSort
-      read FBlendingSort write SetBlendingSort
-      default DefaultBlendingSort;
-
-    { Sort the opaque objects when rendering.
-      This may generate speedup on some scenes. }
-    property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort default false;
-
     { Activate various effects related to wireframe rendering.
       When this is weNormal (default), we simply render polygons as polygons.
       See description of TWireframeEffect for what other modes do.
@@ -500,38 +415,28 @@ type
       Note: How the wireframe effects work when Mode = rmDepth is undefined now.
       Don't use Mode = rmDepth with WireframeEffect <> weNormal. }
     property WireframeEffect: TWireframeEffect
-      read FWireframeEffect write FWireframeEffect default weNormal;
+      read FWireframeEffect write SetWireframeEffect default weNormal;
 
-    property SolidWireframeScale: Single read FSolidWireframeScale write FSolidWireframeScale {$ifdef FPC}default DefaultSolidWireframeScale{$endif};
-    property SolidWireframeBias: Single read FSolidWireframeBias write FSolidWireframeBias {$ifdef FPC}default DefaultSolidWireframeBias{$endif};
-    property SilhouetteScale: Single read FSilhouetteScale write FSilhouetteScale {$ifdef FPC}default DefaultSilhouetteScale{$endif};
-    property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias {$ifdef FPC}default DefaultSilhouetteBias{$endif};
-
-    { Use the occlusion query to optimize the rendering.
-      The shapes obscured by other shapes will not be rendered.
-      This makes sense when in your view, many shapes are typically obscured by others.
-
-      See the https://castle-engine.io/occlusion_query
-      for details how does this work.
-
-      This is ignored if HierarchicalOcclusionQuery.
-
-      This is ignored if GPU doesn't support the necessary functionality
-      (@link(TGLFeatures.OcclusionQuery)). }
-    property OcclusionQuery: boolean
-      read FOcclusionQuery write SetOcclusionQuery default false;
+    property SolidWireframeScale: Single
+      read FSolidWireframeScale write SetSolidWireframeScale {$ifdef FPC}default DefaultSolidWireframeScale{$endif};
+    property SolidWireframeBias: Single
+      read FSolidWireframeBias write SetSolidWireframeBias {$ifdef FPC}default DefaultSolidWireframeBias{$endif};
+    property SilhouetteScale: Single
+      read FSilhouetteScale write SetSilhouetteScale {$ifdef FPC}default DefaultSilhouetteScale{$endif};
+    property SilhouetteBias: Single
+      read FSilhouetteBias write SetSilhouetteBias {$ifdef FPC}default DefaultSilhouetteBias{$endif};
 
     { Support lighting and backface culling for models using negative scale.
       This has a small performance cost, and so is disabled by default. }
     property RobustNegativeScale: Boolean
-      read FRobustNegativeScale write FRobustNegativeScale default false;
+      read FRobustNegativeScale write SetRobustNegativeScale default false;
 
     { When considering this scene to be a shadow caster for shadow volumes,
       assume it is 2-manifold when treated as whole scene (each separate
       shape may be not 2-manifold). This means that you guarantee that
       all border edges of all shapes match with each other, closing the skin
       of the model perfectly.
-      See https://castle-engine.io/x3d_extensions_shadow_volumes.php
+      See https://castle-engine.io/shadow_volumes
       about using shadow volumes and the requirement to be 2-manifold.
 
       If this is @true then, even if some shapes are not 2-manifold,
@@ -543,7 +448,7 @@ type
       really 2-manifold. If it is not, then shadow volumes may exhibit
       weird artifacts. }
     property WholeSceneManifold: Boolean
-      read FWholeSceneManifold write FWholeSceneManifold default false;
+      read FWholeSceneManifold write SetWholeSceneManifold default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
@@ -579,14 +484,13 @@ begin
   FBlending := true;
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
-  FBlendingSort := DefaultBlendingSort;
-  FOcclusionSort := false;
   FSolidWireframeScale := DefaultSolidWireframeScale;
   FSolidWireframeBias := DefaultSolidWireframeBias;
   FSilhouetteScale := DefaultSilhouetteScale;
   FSilhouetteBias := DefaultSilhouetteBias;
   FWireframeEffect := weNormal;
   FWireframeColor := DefaultWireframeColor;
+  FColorChannels := AllColorChannels;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
@@ -619,12 +523,6 @@ begin
     Blending := TCastleRenderOptions(Source).Blending;
     BlendingSourceFactor := TCastleRenderOptions(Source).BlendingSourceFactor;
     BlendingDestinationFactor := TCastleRenderOptions(Source).BlendingDestinationFactor;
-    BlendingSort := TCastleRenderOptions(Source).BlendingSort;
-    OcclusionSort := TCastleRenderOptions(Source).OcclusionSort;
-    OcclusionQuery := TCastleRenderOptions(Source).OcclusionQuery;
-    {$warnings off}
-    HierarchicalOcclusionQuery := TCastleRenderOptions(Source).HierarchicalOcclusionQuery;
-    {$warnings on}
   end else
     inherited;
 end;
@@ -636,16 +534,155 @@ begin
     (SecondValue.Textures = Textures);
 end;
 
+function TCastleRenderOptions.Equals(Obj: TObject): Boolean;
+begin
+  Result :=
+    (Obj is TCastleRenderOptions) and
+    (FHash = TCastleRenderOptions(Obj).FHash);
+end;
+
 procedure TCastleRenderOptions.ReleaseCachedResources;
 begin
 end;
 
-procedure TCastleRenderOptions.SetTextures(const Value: boolean);
+{$I norqcheckbegin.inc}
+procedure TCastleRenderOptions.UpdateHash;
+
+  function SingleOrd(const S: Single): TRenderOptionsHash;
+  begin
+    Result := Round(S * 1000);
+  end;
+
+  function ColorOrd(const C: TCastleColorRGB): TRenderOptionsHash;
+  begin
+    Result :=
+      Round(C.X * 1000) +
+      Round(C.Y * 1000 * 1000) +
+      Round(C.Z * 1000 * 1000 * 1000);
+  end;
+
+  (* Unused now.
+  function PtrOrd(const P: Pointer): TRenderOptionsHash;
+  begin
+    { On 64-bit platforms, cut pointer to least significant 32 bits.
+      That's OK for hash. }
+    Result := TRenderOptionsHash(PtrUInt(P));
+  end;
+  *)
+
+  function ColorChannelsOrd(const C: TColorChannels): TRenderOptionsHash;
+  begin
+    Result :=
+      179 * Ord(0 in C) +
+      181 * Ord(1 in C) +
+      191 * Ord(2 in C) +
+      193 * Ord(3 in C);
+  end;
+
+begin
+  // https://en.wikipedia.org/wiki/List_of_prime_numbers
+  FHash :=
+    2 * Ord(FLighting) +
+    3 * Ord(FReceiveSceneLights) +
+    5 * Ord(FReceiveGlobalLights) +
+    7 * Ord(FTextures) +
+    11 * Ord(FMinificationFilter) +
+    13 * Ord(FMagnificationFilter) +
+    17 * SingleOrd(FPointSize) +
+    19 * SingleOrd(FLineWidth) +
+    23 * Ord(FBumpMapping) +
+    29 * SingleOrd(FBumpMappingParallaxHeight) +
+    41 * Ord(FMode) +
+    43 * Ord(FShadowSampling) +
+    47 * Ord(FDepthTest) +
+    53 * Ord(FPhongShading) +
+    59 * ColorOrd(FSolidColor) +
+    73 * Ord(FMaxLightsPerShape) +
+    79 * Ord(FBlending) +
+    83 * Ord(FBlendingSourceFactor) +
+    89 * Ord(FBlendingDestinationFactor) +
+    97 * ColorOrd(FWireframeColor) +
+    101 * Ord(FWireframeEffect) +
+    103 * SingleOrd(FSolidWireframeScale) +
+    107 * SingleOrd(FSolidWireframeBias) +
+    109 * SingleOrd(FSilhouetteScale) +
+    113 * SingleOrd(FSilhouetteBias) +
+    127 * Ord(FRobustNegativeScale) +
+    131 * Ord(FWholeSceneManifold) +
+    137 * ColorChannelsOrd(FColorChannels);
+end;
+{$I norqcheckend.inc}
+
+procedure TCastleRenderOptions.CustomSerialization(const SerializationProcess: TSerializationProcess);
+
+  function SceneCaption: String;
+  begin
+    if Owner <> nil then
+      Result := 'Scene "' + Owner.Name + '"'
+    else
+      Result := 'RenderOptions (in unnamed scene)';
+  end;
+
+var
+  BlendingSortStr: String;
+  B: Boolean;
+begin
+  inherited;
+  BlendingSortStr := '';
+  SerializationProcess.ReadWriteString('BlendingSort', BlendingSortStr, false);
+  if BlendingSortStr <> '' then
+  begin
+    WritelnWarning('%s uses "BlendingSort" = "%s", this is no longer supported on scene. Instead set TCastleViewport.BlendingSort.', [
+      SceneCaption,
+      BlendingSortStr
+    ]);
+  end;
+
+  B := false;
+  SerializationProcess.ReadWriteBoolean('OcclusionSort', B, false);
+  if B then
+  begin
+    WritelnWarning('%s uses "OcclusionSort", this is no longer supported on scene. Instead set TCastleViewport.OcclusionSort.', [
+      SceneCaption
+    ]);
+  end;
+
+  B := false;
+  SerializationProcess.ReadWriteBoolean('OcclusionQuery', B, false);
+  if B then
+  begin
+    WritelnWarning('%s uses "OcclusionQuery", this is no longer supported on scene. Instead set TCastleViewport.OcclusionCulling.', [
+      SceneCaption
+    ]);
+  end;
+end;
+
+function TCastleRenderOptions.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+        'Lighting', 'ReceiveSceneLights', 'ReceiveGlobalLights', 'Textures',
+        'MinificationFilter', 'MagnificationFilter', 'PointSize', 'LineWidth',
+        'BumpMapping', 'BumpMappingParallaxHeight', 'PhongShading', 'ShadowSampling',
+        'MaxLightsPerShape', 'Blending', 'BlendingSourceFactor', 'BlendingDestinationFactor',
+        'WireframeEffect',
+        'SolidWireframeScale', 'SolidWireframeBias', 'SilhouetteScale',
+        'SilhouetteBias', 'RobustNegativeScale',
+        'WholeSceneManifold', 'ColorChannels'
+      ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
+{ trivial setters ------------------------------------------------------------- }
+
+procedure TCastleRenderOptions.SetTextures(const Value: Boolean);
 begin
   if Textures <> Value then
   begin
     ReleaseCachedResources;
     FTextures := Value;
+    UpdateHash;
   end;
 end;
 
@@ -655,6 +692,7 @@ begin
   begin
     ReleaseCachedResources;
     FMinificationFilter := Value;
+    UpdateHash;
   end;
 end;
 
@@ -664,6 +702,7 @@ begin
   begin
     ReleaseCachedResources;
     FMagnificationFilter := Value;
+    UpdateHash;
   end;
 end;
 
@@ -673,12 +712,17 @@ begin
   begin
     ReleaseCachedResources;
     FBumpMapping := Value;
+    UpdateHash;
   end;
 end;
 
 procedure TCastleRenderOptions.SetMode(const Value: TRenderingMode);
 begin
-  FMode := Value;
+  if FMode <> Value then
+  begin
+    FMode := Value;
+    UpdateHash;
+  end;
 end;
 
 procedure TCastleRenderOptions.SetShadowSampling(const Value: TShadowSampling);
@@ -692,60 +736,40 @@ begin
       ReleaseCachedResources;
 
     FShadowSampling := Value;
+    UpdateHash;
   end;
 end;
 
-function TCastleRenderOptions.GetShaders: TShadersRendering;
+procedure TCastleRenderOptions.SetBlending(const Value: Boolean);
 begin
-  if PhongShading then
-    Result := srAlways
-  else
-    Result := srWhenRequired;
-end;
-
-procedure TCastleRenderOptions.SetShaders(const Value: TShadersRendering);
-begin
-  PhongShading := Value = srAlways;
-end;
-
-procedure TCastleRenderOptions.SetBlending(const Value: boolean);
-begin
-  FBlending := Value;
+  if FBlending <> Value then
+  begin
+    FBlending := Value;
+    UpdateHash;
+  end;
 end;
 
 procedure TCastleRenderOptions.SetBlendingSourceFactor(
   const Value: TBlendingSourceFactor);
 begin
-  FBlendingSourceFactor := Value;
+  if FBlendingSourceFactor <> Value then
+  begin
+    FBlendingSourceFactor := Value;
+    UpdateHash;
+  end;
 end;
 
 procedure TCastleRenderOptions.SetBlendingDestinationFactor(
   const Value: TBlendingDestinationFactor);
 begin
-  FBlendingDestinationFactor := Value;
-end;
-
-procedure TCastleRenderOptions.SetBlendingSort(const Value: TBlendingSort);
-begin
-  FBlendingSort := Value;
-end;
-
-procedure TCastleRenderOptions.SetOcclusionQuery(const Value: boolean);
-begin
-  if OcclusionQuery <> Value then
+  if FBlendingDestinationFactor <> Value then
   begin
-    FOcclusionQuery := Value;
-
-    if OcclusionQuery then
-    begin
-      { Make PrepareShapesResources again, to cause TGLShape.PrepareResources
-        that initializes OcclusionQueryId for each shape }
-      ReleaseCachedResources;
-    end;
+    FBlendingDestinationFactor := Value;
+    UpdateHash;
   end;
 end;
 
-procedure TCastleRenderOptions.SetPhongShading(const Value: boolean);
+procedure TCastleRenderOptions.SetPhongShading(const Value: Boolean);
 begin
   if PhongShading <> Value then
   begin
@@ -758,6 +782,169 @@ begin
       We could do this by OwnerScene.PreparedRender := false.
       Or just ReleaseCachedResources. }
     ReleaseCachedResources;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetWireframeColor(const Value: TCastleColorRGB);
+begin
+  if not TCastleColorRGB.PerfectlyEquals(FWireframeColor, Value) then
+  begin
+    FWireframeColor := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetWireframeEffect(const Value: TWireframeEffect);
+begin
+  if FWireframeEffect <> Value then
+  begin
+    FWireframeEffect := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSolidWireframeScale(const Value: Single);
+begin
+  if FSolidWireframeScale <> Value then
+  begin
+    FSolidWireframeScale := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSolidWireframeBias(const Value: Single);
+begin
+  if FSolidWireframeBias <> Value then
+  begin
+    FSolidWireframeBias := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSilhouetteScale(const Value: Single);
+begin
+  if FSilhouetteScale <> Value then
+  begin
+    FSilhouetteScale := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSilhouetteBias(const Value: Single);
+begin
+  if FSilhouetteBias <> Value then
+  begin
+    FSilhouetteBias := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetRobustNegativeScale(const Value: Boolean);
+begin
+  if FRobustNegativeScale <> Value then
+  begin
+    FRobustNegativeScale := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetWholeSceneManifold(const Value: Boolean);
+begin
+  if FWholeSceneManifold <> Value then
+  begin
+    FWholeSceneManifold := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetColorChannels(const Value: TColorChannels);
+begin
+  if FColorChannels <> Value then
+  begin
+    FColorChannels := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetMaxLightsPerShape(const Value: Cardinal);
+begin
+  if FMaxLightsPerShape <> Value then
+  begin
+    FMaxLightsPerShape := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetDepthTest(const Value: Boolean);
+begin
+  if FDepthTest <> Value then
+  begin
+    FDepthTest := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetReceiveSceneLights(const Value: Boolean);
+begin
+  if FReceiveSceneLights <> Value then
+  begin
+    FReceiveSceneLights := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetReceiveGlobalLights(const Value: Boolean);
+begin
+  if FReceiveGlobalLights <> Value then
+  begin
+    FReceiveGlobalLights := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetSolidColor(const Value: TCastleColorRGB);
+begin
+  if not TCastleColorRGB.PerfectlyEquals(FSolidColor, Value) then
+  begin
+    FSolidColor := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetPointSize(const Value: Single);
+begin
+  if FPointSize <> Value then
+  begin
+    FPointSize := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetLineWidth(const Value: Single);
+begin
+  if FLineWidth <> Value then
+  begin
+    FLineWidth := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetBumpMappingParallaxHeight(const Value: Single);
+begin
+  if FBumpMappingParallaxHeight <> Value then
+  begin
+    FBumpMappingParallaxHeight := Value;
+    UpdateHash;
+  end;
+end;
+
+procedure TCastleRenderOptions.SetLighting(const Value: Boolean);
+begin
+  if FLighting <> Value then
+  begin
+    FLighting := Value;
+    UpdateHash;
   end;
 end;
 

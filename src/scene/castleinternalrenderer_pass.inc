@@ -17,17 +17,17 @@
 {$ifdef read_interface}
 
   { @exclude Internal.
-    Rendering pass for TCastleScene.Render. }
-  TInternalSceneRenderingPass = 0..1;
+    Rendering pass for TShapesRendering, non-wireframe vs wireframe. }
+  TWireframeRenderingPass = 0..1;
 
   { @exclude Internal.
     Rendering pass combining
     TInternalRenderingPass,
-    TInternalSceneRenderingPass and
+    TWireframeRenderingPass and
     TUserRenderingPass. }
   TTotalRenderingPass = 0..
     (High(TInternalRenderingPass) + 1) *
-    (High(TInternalSceneRenderingPass) + 1) *
+    (High(TWireframeRenderingPass) + 1) *
     (High(TUserRenderingPass) + 1)
     - 1;
 

@@ -177,12 +177,18 @@ add_external_tool ()
   local OUTPUT_BIN="$3"
   shift 2
 
+  TOOL_BRANCH_NAME='master'
+  # Temporary, may be useful again in future: use view3dscene from another branch, to compile with this CGE branch
+  # if [ "${GITHUB_NAME}" = 'view3dscene' ]; then
+  #   TOOL_BRANCH_NAME='shapes-rendering-2'
+  # fi
+
   local TEMP_PATH_TOOL="/tmp/castle-engine-release-$$/${GITHUB_NAME}/"
   mkdir -p "${TEMP_PATH_TOOL}"
   cd "${TEMP_PATH_TOOL}"
-  download https://codeload.github.com/castle-engine/"${GITHUB_NAME}"/zip/master "${GITHUB_NAME}".zip
+  download "https://codeload.github.com/castle-engine/${GITHUB_NAME}/zip/${TOOL_BRANCH_NAME}" "${GITHUB_NAME}".zip
   unzip "${GITHUB_NAME}".zip
-  cd "${GITHUB_NAME}"-master
+  cd "${GITHUB_NAME}-${TOOL_BRANCH_NAME}"
 
   # special exceptional addition for pascal-language-server, that has jsonstream as a submodule
   if [ "${GITHUB_NAME}" = 'pascal-language-server' ]; then

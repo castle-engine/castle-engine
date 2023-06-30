@@ -51,83 +51,84 @@
     function GetTransparency: Single;
     procedure SetTransparency(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
-    { Internal wrapper for property @link(AmbientIntensity). This wrapper API may change, we advise to access simpler @link(AmbientIntensity) instead. }
+    { Internal wrapper for property @code(AmbientIntensity). This wrapper API may change, we advise to access simpler @code(AmbientIntensity) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
     {  }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
 
     strict private FFdBackAmbientIntensity: TSFFloat;
-    { Internal wrapper for property @link(BackAmbientIntensity). This wrapper API may change, we advise to access simpler @link(BackAmbientIntensity) instead. }
+    { Internal wrapper for property @code(BackAmbientIntensity). This wrapper API may change, we advise to access simpler @code(BackAmbientIntensity) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBackAmbientIntensity: TSFFloat read FFdBackAmbientIntensity;
     {  }
     property BackAmbientIntensity: Single read GetBackAmbientIntensity write SetBackAmbientIntensity;
 
     strict private FFdBackDiffuseColor: TSFColor;
-    { Internal wrapper for property @link(BackDiffuseColor). This wrapper API may change, we advise to access simpler @link(BackDiffuseColor) instead. }
+    { Internal wrapper for property @code(BackDiffuseColor). This wrapper API may change, we advise to access simpler @code(BackDiffuseColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBackDiffuseColor: TSFColor read FFdBackDiffuseColor;
     {  }
     property BackDiffuseColor: TCastleColorRGB read GetBackDiffuseColor write SetBackDiffuseColor;
 
     strict private FFdBackEmissiveColor: TSFColor;
-    { Internal wrapper for property @link(BackEmissiveColor). This wrapper API may change, we advise to access simpler @link(BackEmissiveColor) instead. }
+    { Internal wrapper for property @code(BackEmissiveColor). This wrapper API may change, we advise to access simpler @code(BackEmissiveColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBackEmissiveColor: TSFColor read FFdBackEmissiveColor;
     {  }
     property BackEmissiveColor: TCastleColorRGB read GetBackEmissiveColor write SetBackEmissiveColor;
 
     strict private FFdBackShininess: TSFFloat;
-    { Internal wrapper for property @link(BackShininess). This wrapper API may change, we advise to access simpler @link(BackShininess) instead. }
+    { Internal wrapper for property @code(BackShininess). This wrapper API may change, we advise to access simpler @code(BackShininess) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBackShininess: TSFFloat read FFdBackShininess;
     {  }
     property BackShininess: Single read GetBackShininess write SetBackShininess;
 
     strict private FFdBackSpecularColor: TSFColor;
-    { Internal wrapper for property @link(BackSpecularColor). This wrapper API may change, we advise to access simpler @link(BackSpecularColor) instead. }
+    { Internal wrapper for property @code(BackSpecularColor). This wrapper API may change, we advise to access simpler @code(BackSpecularColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBackSpecularColor: TSFColor read FFdBackSpecularColor;
     {  }
     property BackSpecularColor: TCastleColorRGB read GetBackSpecularColor write SetBackSpecularColor;
 
     strict private FFdBackTransparency: TSFFloat;
-    { Internal wrapper for property @link(BackTransparency). This wrapper API may change, we advise to access simpler @link(BackTransparency) instead. }
+    { Internal wrapper for property @code(BackTransparency). This wrapper API may change, we advise to access simpler @code(BackTransparency) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBackTransparency: TSFFloat read FFdBackTransparency;
     {  }
     property BackTransparency: Single read GetBackTransparency write SetBackTransparency;
 
     strict private FFdDiffuseColor: TSFColor;
-    { Internal wrapper for property @link(DiffuseColor). This wrapper API may change, we advise to access simpler @link(DiffuseColor) instead. }
+    { Internal wrapper for property @code(DiffuseColor). This wrapper API may change, we advise to access simpler @code(DiffuseColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
     {  }
     property DiffuseColor: TCastleColorRGB read GetDiffuseColor write SetDiffuseColor;
 
     strict private FFdEmissiveColor: TSFColor;
-    { Internal wrapper for property @link(EmissiveColor). This wrapper API may change, we advise to access simpler @link(EmissiveColor) instead. }
+    { Internal wrapper for property @code(EmissiveColor). This wrapper API may change, we advise to access simpler @code(EmissiveColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
     {  }
     property EmissiveColor: TCastleColorRGB read GetEmissiveColor write SetEmissiveColor;
 
     strict private FFdShininess: TSFFloat;
-    { Internal wrapper for property @link(Shininess). This wrapper API may change, we advise to access simpler @link(Shininess) instead. }
+    { Internal wrapper for property @code(Shininess). This wrapper API may change, we advise to access simpler @code(Shininess) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShininess: TSFFloat read FFdShininess;
     {  }
     property Shininess: Single read GetShininess write SetShininess;
 
     strict private FFdSeparateBackColor: TSFBool;
-    { Internal wrapper for property @link(SeparateBackColor). This wrapper API may change, we advise to access simpler @link(SeparateBackColor) instead. }
+    { Internal wrapper for property @code(SeparateBackColor). This wrapper API may change, we advise to access simpler @code(SeparateBackColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSeparateBackColor: TSFBool read FFdSeparateBackColor;
     {  }
     property SeparateBackColor: Boolean read GetSeparateBackColor write SetSeparateBackColor;
 
     strict private FFdSpecularColor: TSFColor;
-    { Internal wrapper for property @link(SpecularColor). This wrapper API may change, we advise to access simpler @link(SpecularColor) instead. }
+    { Internal wrapper for property @code(SpecularColor). This wrapper API may change, we advise to access simpler @code(SpecularColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSpecularColor: TSFColor read FFdSpecularColor;
     {  }
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
 
     strict private FFdTransparency: TSFFloat;
-    { Internal wrapper for property @link(Transparency). This wrapper API may change, we advise to access simpler @link(Transparency) instead. }
+    { Internal wrapper for property @code(Transparency). This wrapper API may change, we advise to access simpler @code(Transparency) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTransparency: TSFFloat read FFdTransparency;
     {  }
     property Transparency: Single read GetTransparency write SetTransparency;

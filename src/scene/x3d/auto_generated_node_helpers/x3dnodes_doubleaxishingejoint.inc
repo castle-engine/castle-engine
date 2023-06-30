@@ -53,89 +53,90 @@
     function GetSuspensionForce: Single;
     procedure SetSuspensionForce(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
-    { Internal wrapper for property @link(AnchorPoint). This wrapper API may change, we advise to access simpler @link(AnchorPoint) instead. }
+    { Internal wrapper for property @code(AnchorPoint). This wrapper API may change, we advise to access simpler @code(AnchorPoint) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
     {  }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
 
     strict private FFdAxis1: TSFVec3f;
-    { Internal wrapper for property @link(Axis1). This wrapper API may change, we advise to access simpler @link(Axis1) instead. }
+    { Internal wrapper for property @code(Axis1). This wrapper API may change, we advise to access simpler @code(Axis1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis1: TSFVec3f read FFdAxis1;
     {  }
     property Axis1: TVector3 read GetAxis1 write SetAxis1;
 
     strict private FFdAxis2: TSFVec3f;
-    { Internal wrapper for property @link(Axis2). This wrapper API may change, we advise to access simpler @link(Axis2) instead. }
+    { Internal wrapper for property @code(Axis2). This wrapper API may change, we advise to access simpler @code(Axis2) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis2: TSFVec3f read FFdAxis2;
     {  }
     property Axis2: TVector3 read GetAxis2 write SetAxis2;
 
     strict private FFdDesiredAngularVelocity1: TSFFloat;
-    { Internal wrapper for property @link(DesiredAngularVelocity1). This wrapper API may change, we advise to access simpler @link(DesiredAngularVelocity1) instead. }
+    { Internal wrapper for property @code(DesiredAngularVelocity1). This wrapper API may change, we advise to access simpler @code(DesiredAngularVelocity1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDesiredAngularVelocity1: TSFFloat read FFdDesiredAngularVelocity1;
     {  }
     property DesiredAngularVelocity1: Single read GetDesiredAngularVelocity1 write SetDesiredAngularVelocity1;
 
     strict private FFdDesiredAngularVelocity2: TSFFloat;
-    { Internal wrapper for property @link(DesiredAngularVelocity2). This wrapper API may change, we advise to access simpler @link(DesiredAngularVelocity2) instead. }
+    { Internal wrapper for property @code(DesiredAngularVelocity2). This wrapper API may change, we advise to access simpler @code(DesiredAngularVelocity2) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDesiredAngularVelocity2: TSFFloat read FFdDesiredAngularVelocity2;
     {  }
     property DesiredAngularVelocity2: Single read GetDesiredAngularVelocity2 write SetDesiredAngularVelocity2;
 
     strict private FFdMaxAngle1: TSFFloat;
-    { Internal wrapper for property @link(MaxAngle1). This wrapper API may change, we advise to access simpler @link(MaxAngle1) instead. }
+    { Internal wrapper for property @code(MaxAngle1). This wrapper API may change, we advise to access simpler @code(MaxAngle1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMaxAngle1: TSFFloat read FFdMaxAngle1;
     {  }
     property MaxAngle1: Single read GetMaxAngle1 write SetMaxAngle1;
 
     strict private FFdMaxTorque1: TSFFloat;
-    { Internal wrapper for property @link(MaxTorque1). This wrapper API may change, we advise to access simpler @link(MaxTorque1) instead. }
+    { Internal wrapper for property @code(MaxTorque1). This wrapper API may change, we advise to access simpler @code(MaxTorque1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMaxTorque1: TSFFloat read FFdMaxTorque1;
     {  }
     property MaxTorque1: Single read GetMaxTorque1 write SetMaxTorque1;
 
     strict private FFdMaxTorque2: TSFFloat;
-    { Internal wrapper for property @link(MaxTorque2). This wrapper API may change, we advise to access simpler @link(MaxTorque2) instead. }
+    { Internal wrapper for property @code(MaxTorque2). This wrapper API may change, we advise to access simpler @code(MaxTorque2) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMaxTorque2: TSFFloat read FFdMaxTorque2;
     {  }
     property MaxTorque2: Single read GetMaxTorque2 write SetMaxTorque2;
 
     strict private FFdMinAngle1: TSFFloat;
-    { Internal wrapper for property @link(MinAngle1). This wrapper API may change, we advise to access simpler @link(MinAngle1) instead. }
+    { Internal wrapper for property @code(MinAngle1). This wrapper API may change, we advise to access simpler @code(MinAngle1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMinAngle1: TSFFloat read FFdMinAngle1;
     {  }
     property MinAngle1: Single read GetMinAngle1 write SetMinAngle1;
 
     strict private FFdStopBounce1: TSFFloat;
-    { Internal wrapper for property @link(StopBounce1). This wrapper API may change, we advise to access simpler @link(StopBounce1) instead. }
+    { Internal wrapper for property @code(StopBounce1). This wrapper API may change, we advise to access simpler @code(StopBounce1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStopBounce1: TSFFloat read FFdStopBounce1;
     {  }
     property StopBounce1: Single read GetStopBounce1 write SetStopBounce1;
 
     strict private FFdStopConstantForceMix1: TSFFloat;
-    { Internal wrapper for property @link(StopConstantForceMix1). This wrapper API may change, we advise to access simpler @link(StopConstantForceMix1) instead. }
+    { Internal wrapper for property @code(StopConstantForceMix1). This wrapper API may change, we advise to access simpler @code(StopConstantForceMix1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStopConstantForceMix1: TSFFloat read FFdStopConstantForceMix1;
     {  }
     property StopConstantForceMix1: Single read GetStopConstantForceMix1 write SetStopConstantForceMix1;
 
     strict private FFdStopErrorCorrection1: TSFFloat;
-    { Internal wrapper for property @link(StopErrorCorrection1). This wrapper API may change, we advise to access simpler @link(StopErrorCorrection1) instead. }
+    { Internal wrapper for property @code(StopErrorCorrection1). This wrapper API may change, we advise to access simpler @code(StopErrorCorrection1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStopErrorCorrection1: TSFFloat read FFdStopErrorCorrection1;
     {  }
     property StopErrorCorrection1: Single read GetStopErrorCorrection1 write SetStopErrorCorrection1;
 
     strict private FFdSuspensionErrorCorrection: TSFFloat;
-    { Internal wrapper for property @link(SuspensionErrorCorrection). This wrapper API may change, we advise to access simpler @link(SuspensionErrorCorrection) instead. }
+    { Internal wrapper for property @code(SuspensionErrorCorrection). This wrapper API may change, we advise to access simpler @code(SuspensionErrorCorrection) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSuspensionErrorCorrection: TSFFloat read FFdSuspensionErrorCorrection;
     {  }
     property SuspensionErrorCorrection: Single read GetSuspensionErrorCorrection write SetSuspensionErrorCorrection;
 
     strict private FFdSuspensionForce: TSFFloat;
-    { Internal wrapper for property @link(SuspensionForce). This wrapper API may change, we advise to access simpler @link(SuspensionForce) instead. }
+    { Internal wrapper for property @code(SuspensionForce). This wrapper API may change, we advise to access simpler @code(SuspensionForce) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSuspensionForce: TSFFloat read FFdSuspensionForce;
     {  }
     property SuspensionForce: Single read GetSuspensionForce write SetSuspensionForce;

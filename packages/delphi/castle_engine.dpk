@@ -304,7 +304,7 @@ contains
   castlescene in '..\..\src\scene\castlescene.pas',
   castlescenecore in '..\..\src\scene\castlescenecore.pas',
   castlesceneinternalblending in '..\..\src\scene\castlesceneinternalblending.pas',
-  castlesceneinternalocclusion in '..\..\src\scene\castlesceneinternalocclusion.pas',
+  castleinternalocclusionculling in '..\..\src\scene\castleinternalocclusionculling.pas',
   castlesceneinternalshape in '..\..\src\scene\castlesceneinternalshape.pas',
   castlescreeneffects in '..\..\src\scene\castlescreeneffects.pas',
   castleshapeinternalrendershadowvolumes in '..\..\src\scene\castleshapeinternalrendershadowvolumes.pas',

@@ -24,6 +24,7 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -32,15 +33,15 @@
     public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
 
     strict private FFdCenter: TSFVec3f;
-    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
+    { Internal wrapper for property @code(Center). This wrapper API may change, we advise to access simpler @code(Center) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCenter: TSFVec3f read FFdCenter;
 
     strict private FFdForceTransitions: TSFBool;
-    { Internal wrapper for property @link(ForceTransitions). This wrapper API may change, we advise to access simpler @link(ForceTransitions) instead. }
+    { Internal wrapper for property @code(ForceTransitions). This wrapper API may change, we advise to access simpler @code(ForceTransitions) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdForceTransitions: TSFBool read FFdForceTransitions;
 
     strict private FFdRange: TMFFloat;
-    { Internal wrapper for property @link(Range). This wrapper API may change, we advise to access simpler @link(Range) instead. }
+    { Internal wrapper for property @code(Range). This wrapper API may change, we advise to access simpler @code(Range) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRange: TMFFloat read FFdRange;
 
 {$endif read_interface}

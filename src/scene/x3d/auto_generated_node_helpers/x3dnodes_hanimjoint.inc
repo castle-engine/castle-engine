@@ -41,35 +41,36 @@
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
+    { Internal wrapper for property @code(Center). This wrapper API may change, we advise to access simpler @code(Center) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCenter: TSFVec3f read FFdCenter;
     {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdDisplacers: TMFNode;
-    { Internal wrapper for property @link(Displacers). This wrapper API may change, we advise to access simpler @link(Displacers) instead. }
+    { Internal wrapper for property @code(Displacers). This wrapper API may change, we advise to access simpler @code(Displacers) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDisplacers: TMFNode read FFdDisplacers;
     {  }
     procedure SetDisplacers(const Value: array of THAnimDisplacerNode);
 
     strict private FFdLimitOrientation: TSFRotation;
-    { Internal wrapper for property @link(LimitOrientation). This wrapper API may change, we advise to access simpler @link(LimitOrientation) instead. }
+    { Internal wrapper for property @code(LimitOrientation). This wrapper API may change, we advise to access simpler @code(LimitOrientation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLimitOrientation: TSFRotation read FFdLimitOrientation;
     {  }
     property LimitOrientation: TVector4 read GetLimitOrientation write SetLimitOrientation;
 
     strict private FFdLlimit: TMFFloat;
-    { Internal wrapper for property @link(Llimit). This wrapper API may change, we advise to access simpler @link(Llimit) instead. }
+    { Internal wrapper for property @code(Llimit). This wrapper API may change, we advise to access simpler @code(Llimit) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLlimit: TMFFloat read FFdLlimit;
     {  }
     procedure SetLlimit(const Value: array of Single); overload;
@@ -77,31 +78,31 @@
     procedure SetLlimit(const Value: TSingleList); overload;
 
     strict private FFdName: TSFString;
-    { Internal wrapper for property @link(NameField). This wrapper API may change, we advise to access simpler @link(NameField) instead. }
+    { Internal wrapper for property @code(NameField). This wrapper API may change, we advise to access simpler @code(NameField) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdName: TSFString read FFdName;
     {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdRotation: TSFRotation;
-    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
+    { Internal wrapper for property @code(Rotation). This wrapper API may change, we advise to access simpler @code(Rotation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRotation: TSFRotation read FFdRotation;
     {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
+    { Internal wrapper for property @code(Scale). This wrapper API may change, we advise to access simpler @code(Scale) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScale: TSFVec3f read FFdScale;
     {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdScaleOrientation: TSFRotation;
-    { Internal wrapper for property @link(ScaleOrientation). This wrapper API may change, we advise to access simpler @link(ScaleOrientation) instead. }
+    { Internal wrapper for property @code(ScaleOrientation). This wrapper API may change, we advise to access simpler @code(ScaleOrientation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     {  }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
 
     strict private FFdSkinCoordIndex: TMFInt32;
-    { Internal wrapper for property @link(SkinCoordIndex). This wrapper API may change, we advise to access simpler @link(SkinCoordIndex) instead. }
+    { Internal wrapper for property @code(SkinCoordIndex). This wrapper API may change, we advise to access simpler @code(SkinCoordIndex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSkinCoordIndex: TMFInt32 read FFdSkinCoordIndex;
     {  }
     procedure SetSkinCoordIndex(const Value: array of Int32); overload;
@@ -109,7 +110,7 @@
     procedure SetSkinCoordIndex(const Value: TInt32List); overload;
 
     strict private FFdSkinCoordWeight: TMFFloat;
-    { Internal wrapper for property @link(SkinCoordWeight). This wrapper API may change, we advise to access simpler @link(SkinCoordWeight) instead. }
+    { Internal wrapper for property @code(SkinCoordWeight). This wrapper API may change, we advise to access simpler @code(SkinCoordWeight) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSkinCoordWeight: TMFFloat read FFdSkinCoordWeight;
     {  }
     procedure SetSkinCoordWeight(const Value: array of Single); overload;
@@ -117,7 +118,7 @@
     procedure SetSkinCoordWeight(const Value: TSingleList); overload;
 
     strict private FFdStiffness: TMFFloat;
-    { Internal wrapper for property @link(Stiffness). This wrapper API may change, we advise to access simpler @link(Stiffness) instead. }
+    { Internal wrapper for property @code(Stiffness). This wrapper API may change, we advise to access simpler @code(Stiffness) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStiffness: TMFFloat read FFdStiffness;
     {  }
     procedure SetStiffness(const Value: array of Single); overload;
@@ -125,13 +126,13 @@
     procedure SetStiffness(const Value: TSingleList); overload;
 
     strict private FFdTranslation: TSFVec3f;
-    { Internal wrapper for property @link(Translation). This wrapper API may change, we advise to access simpler @link(Translation) instead. }
+    { Internal wrapper for property @code(Translation). This wrapper API may change, we advise to access simpler @code(Translation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTranslation: TSFVec3f read FFdTranslation;
     {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     strict private FFdUlimit: TMFFloat;
-    { Internal wrapper for property @link(Ulimit). This wrapper API may change, we advise to access simpler @link(Ulimit) instead. }
+    { Internal wrapper for property @code(Ulimit). This wrapper API may change, we advise to access simpler @code(Ulimit) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUlimit: TMFFloat read FFdUlimit;
     {  }
     procedure SetUlimit(const Value: array of Single); overload;

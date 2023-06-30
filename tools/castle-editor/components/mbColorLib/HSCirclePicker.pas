@@ -258,10 +258,12 @@ begin
     if TolerateOutsideCircle then
       r := Radius
     else
+    {$warnings off} // silence FPC warning "unreachable code"
     begin
       SetSelectedColor(clNone);
       exit;
     end;
+    {$warnings on}
   end;
 
   //FSelectedColor := clWhite;         // ????

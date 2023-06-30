@@ -33,29 +33,30 @@
     function GetTurbulence: Single;
     procedure SetTurbulence(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdDirection: TSFVec3f;
-    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
+    { Internal wrapper for property @code(Direction). This wrapper API may change, we advise to access simpler @code(Direction) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDirection: TSFVec3f read FFdDirection;
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdGustiness: TSFFloat;
-    { Internal wrapper for property @link(Gustiness). This wrapper API may change, we advise to access simpler @link(Gustiness) instead. }
+    { Internal wrapper for property @code(Gustiness). This wrapper API may change, we advise to access simpler @code(Gustiness) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGustiness: TSFFloat read FFdGustiness;
     {  }
     property Gustiness: Single read GetGustiness write SetGustiness;
 
     strict private FFdSpeed: TSFFloat;
-    { Internal wrapper for property @link(Speed). This wrapper API may change, we advise to access simpler @link(Speed) instead. }
+    { Internal wrapper for property @code(Speed). This wrapper API may change, we advise to access simpler @code(Speed) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSpeed: TSFFloat read FFdSpeed;
     {  }
     property Speed: Single read GetSpeed write SetSpeed;
 
     strict private FFdTurbulence: TSFFloat;
-    { Internal wrapper for property @link(Turbulence). This wrapper API may change, we advise to access simpler @link(Turbulence) instead. }
+    { Internal wrapper for property @code(Turbulence). This wrapper API may change, we advise to access simpler @code(Turbulence) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTurbulence: TSFFloat read FFdTurbulence;
     {  }
     property Turbulence: Single read GetTurbulence write SetTurbulence;

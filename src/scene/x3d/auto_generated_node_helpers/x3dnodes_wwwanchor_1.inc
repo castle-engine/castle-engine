@@ -29,24 +29,25 @@
     function GetDescription: String;
     procedure SetDescription(const Value: String);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdName: TSFString;
-    { Internal wrapper for property @link(NameField). This wrapper API may change, we advise to access simpler @link(NameField) instead. }
+    { Internal wrapper for property @code(NameField). This wrapper API may change, we advise to access simpler @code(NameField) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdName: TSFString read FFdName;
     {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdMap: TSFEnum;
-    { Internal wrapper for property @link(Map). This wrapper API may change, we advise to access simpler @link(Map) instead. }
+    { Internal wrapper for property @code(Map). This wrapper API may change, we advise to access simpler @code(Map) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMap: TSFEnum read FFdMap;
 
 {$endif read_interface}

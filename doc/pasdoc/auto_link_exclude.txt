@@ -72,6 +72,7 @@ contents
 contribution
 controls
 convex
+corners
 coordinates
 count
 create
@@ -310,6 +311,7 @@ rects
 red
 reference
 references
+region
 register
 registered
 release

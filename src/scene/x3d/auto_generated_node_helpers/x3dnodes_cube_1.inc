@@ -31,24 +31,25 @@
     function GetDepth: Single;
     procedure SetDepth(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdWidth: TSFFloat;
-    { Internal wrapper for property @link(Width). This wrapper API may change, we advise to access simpler @link(Width) instead. }
+    { Internal wrapper for property @code(Width). This wrapper API may change, we advise to access simpler @code(Width) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWidth: TSFFloat read FFdWidth;
     {  }
     property Width: Single read GetWidth write SetWidth;
 
     strict private FFdHeight: TSFFloat;
-    { Internal wrapper for property @link(Height). This wrapper API may change, we advise to access simpler @link(Height) instead. }
+    { Internal wrapper for property @code(Height). This wrapper API may change, we advise to access simpler @code(Height) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHeight: TSFFloat read FFdHeight;
     {  }
     property Height: Single read GetHeight write SetHeight;
 
     strict private FFdDepth: TSFFloat;
-    { Internal wrapper for property @link(Depth). This wrapper API may change, we advise to access simpler @link(Depth) instead. }
+    { Internal wrapper for property @code(Depth). This wrapper API may change, we advise to access simpler @code(Depth) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDepth: TSFFloat read FFdDepth;
     {  }
     property Depth: Single read GetDepth write SetDepth;

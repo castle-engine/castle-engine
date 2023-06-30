@@ -39,11 +39,12 @@
     function GetSubcategory: Integer;
     procedure SetSubcategory(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdUrl: TMFString;
-    { Internal wrapper for property @link(Url). This wrapper API may change, we advise to access simpler @link(Url) instead. }
+    { Internal wrapper for property @code(Url). This wrapper API may change, we advise to access simpler @code(Url) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUrl: TMFString read FFdUrl;
     {  }
     procedure SetUrl(const Value: array of string); overload;
@@ -51,43 +52,43 @@
     procedure SetUrl(const Value: TCastleStringList); overload;
 
     strict private FFdCategory: TSFInt32;
-    { Internal wrapper for property @link(Category). This wrapper API may change, we advise to access simpler @link(Category) instead. }
+    { Internal wrapper for property @code(Category). This wrapper API may change, we advise to access simpler @code(Category) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCategory: TSFInt32 read FFdCategory;
     {  }
     property Category: Integer read GetCategory write SetCategory;
 
     strict private FFdCountry: TSFInt32;
-    { Internal wrapper for property @link(Country). This wrapper API may change, we advise to access simpler @link(Country) instead. }
+    { Internal wrapper for property @code(Country). This wrapper API may change, we advise to access simpler @code(Country) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCountry: TSFInt32 read FFdCountry;
     {  }
     property Country: Integer read GetCountry write SetCountry;
 
     strict private FFdDomain: TSFInt32;
-    { Internal wrapper for property @link(Domain). This wrapper API may change, we advise to access simpler @link(Domain) instead. }
+    { Internal wrapper for property @code(Domain). This wrapper API may change, we advise to access simpler @code(Domain) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDomain: TSFInt32 read FFdDomain;
     {  }
     property Domain: Integer read GetDomain write SetDomain;
 
     strict private FFdExtra: TSFInt32;
-    { Internal wrapper for property @link(Extra). This wrapper API may change, we advise to access simpler @link(Extra) instead. }
+    { Internal wrapper for property @code(Extra). This wrapper API may change, we advise to access simpler @code(Extra) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdExtra: TSFInt32 read FFdExtra;
     {  }
     property Extra: Integer read GetExtra write SetExtra;
 
     strict private FFdKind: TSFInt32;
-    { Internal wrapper for property @link(Kind). This wrapper API may change, we advise to access simpler @link(Kind) instead. }
+    { Internal wrapper for property @code(Kind). This wrapper API may change, we advise to access simpler @code(Kind) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdKind: TSFInt32 read FFdKind;
     {  }
     property Kind: Integer read GetKind write SetKind;
 
     strict private FFdSpecific: TSFInt32;
-    { Internal wrapper for property @link(Specific). This wrapper API may change, we advise to access simpler @link(Specific) instead. }
+    { Internal wrapper for property @code(Specific). This wrapper API may change, we advise to access simpler @code(Specific) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSpecific: TSFInt32 read FFdSpecific;
     {  }
     property Specific: Integer read GetSpecific write SetSpecific;
 
     strict private FFdSubcategory: TSFInt32;
-    { Internal wrapper for property @link(Subcategory). This wrapper API may change, we advise to access simpler @link(Subcategory) instead. }
+    { Internal wrapper for property @code(Subcategory). This wrapper API may change, we advise to access simpler @code(Subcategory) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSubcategory: TSFInt32 read FFdSubcategory;
     {  }
     property Subcategory: Integer read GetSubcategory write SetSubcategory;

@@ -606,8 +606,10 @@ begin
   end;
   if DoProgress then Progress.Step;
 
+  {$warnings off} // using deprecated in deprecated
   if Scene <> nil then
     Scene.PrepareResources(ScenePrepareResources, PrepareParams);
+  {$warnings on}
   if DoProgress then Progress.Step;
 end;
 
@@ -936,7 +938,9 @@ function T3DResource.CreateSceneForPool(const Params: TPrepareParams): TCastleSc
 begin
   Result := ModelState.Scene.Clone(nil);
   Result.DefaultAnimationTransition := DefaultAnimationTransition;
+  {$warnings off} // using deprecated in deprecated
   Result.PrepareResources(ScenePrepareResources, Params);
+  {$warnings on}
 end;
 
 procedure T3DResource.PrepareCore(const Params: TPrepareParams;

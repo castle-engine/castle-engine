@@ -27,6 +27,7 @@
     function GetInterpolation: TInterpolation;
     procedure SetInterpolation(const Value: TInterpolation);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -35,7 +36,7 @@
     public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     strict private FFdKey: TMFFloat;
-    { Internal wrapper for property @link(Key). This wrapper API may change, we advise to access simpler @link(Key) instead. }
+    { Internal wrapper for property @code(Key). This wrapper API may change, we advise to access simpler @code(Key) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdKey: TMFFloat read FFdKey;
     {  }
     procedure SetKey(const Value: array of Single); overload;
@@ -43,7 +44,7 @@
     procedure SetKey(const Value: TSingleList); overload;
 
     strict private FFdInterpolation: TSFStringEnum;
-    { Internal wrapper for property @link(Interpolation). This wrapper API may change, we advise to access simpler @link(Interpolation) instead. }
+    { Internal wrapper for property @code(Interpolation). This wrapper API may change, we advise to access simpler @code(Interpolation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInterpolation: TSFStringEnum read FFdInterpolation;
     {  }
     property Interpolation: TInterpolation read GetInterpolation write SetInterpolation;
