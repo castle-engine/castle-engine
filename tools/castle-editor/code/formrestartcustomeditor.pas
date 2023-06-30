@@ -10,8 +10,8 @@ uses
 
 type
   TRestartCustomEditorForm = class(TForm)
-    ButtonRunLastEditor: TBitBtn;
     ButtonPanel1: TButtonPanel;
+    ButtonRunLastEditor: TButton;
     LabelCaption: TLabel;
   private
 
