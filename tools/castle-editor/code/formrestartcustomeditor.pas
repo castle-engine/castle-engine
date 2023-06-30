@@ -11,6 +11,8 @@ uses
 type
   TRestartCustomEditorForm = class(TForm)
     ButtonPanel1: TButtonPanel;
+    { Note: Keep this TButton, not TBitBtn.
+      On GTK2, TBitBtn is not painted correctly, is underneath TButtonPanel. }
     ButtonRunLastEditor: TButton;
     LabelCaption: TLabel;
   private
