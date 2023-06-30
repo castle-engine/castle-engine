@@ -1198,39 +1198,10 @@ type
       albeit it makes sense in similar situations.
 
       When combined with @link(OcclusionCulling), it makes occlusion culling
-      even more effective.
+      even more effective. Occlusion culling can reject more shapes,
+      because the things that obscure them are rendered earlier to the depth buffer.
 
-      See https://castle-engine.io/occlusion_culling for more details.
-
-      Demo:
-
-      @orderedList(
-        @item(Open the example
-          @url(https://github.com/castle-engine/castle-engine/tree/master/examples/viewport_and_scenes/occlusion_culling
-          examples/viewport_and_scenes/occlusion_culling) in CGE editor.
-        )
-
-        @item(
-          Use menu item "Edit -> Show Statistics" (F8).
-        )
-
-        @item(
-          Observe that:
-
-          @unorderedList(
-            @item(OcclusionCulling=false and OcclusionSort=sortNone results in most shapes
-              being rendered (like 300).)
-
-            @item(OcclusionCulling=true and OcclusionSort=sortNone is better, when
-              looking at a building wall obscuring most city you can easily
-              have only 30 shapes rendered.)
-
-            @item(OcclusionCulling=true and OcclusionSort=sort3D is even better.
-              Looking at a building wall obscuring most city you can easily
-              have only a few shapes rendered.)
-          )
-        )
-      )
+      See https://castle-engine.io/occlusion_culling#occlusion_sort for more details.
 
       The default value, sortAuto, for now is equivalent to sortNone.
       It may change in the future to perform sorting esp. when OcclusionCulling
