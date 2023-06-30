@@ -86,7 +86,7 @@ type
     for, respectively, Shape1 and Shape2.
     Note that if @link(TCastleViewport.DynamicBatching) is used,
     these shapes may not come from any particular scene,
-    so their @link(TShape.ParentScene) may be @nil.
+    so their @link(TShapeTree.ParentScene) may be @nil.
     So you cannot rely on e.g. @code(Shape1.ParentScene.RenderOptions) to get
     the same value as @code(RenderOptions1).
 
