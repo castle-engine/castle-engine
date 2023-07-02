@@ -27,6 +27,7 @@ object RestartCustomEditorForm: TRestartCustomEditorForm
     OKButton.Name = 'OKButton'
     OKButton.Hint = 'Build editor with custom components and run it'
     OKButton.Caption = '&Yes'
+    OKButton.ShowHint = True
     HelpButton.Name = 'HelpButton'
     HelpButton.Caption = 'Run Last Build Editor'
     CloseButton.Name = 'CloseButton'
@@ -34,6 +35,7 @@ object RestartCustomEditorForm: TRestartCustomEditorForm
     CancelButton.Name = 'CancelButton'
     CancelButton.Hint = 'Open the project with editor *without* custom components support; opening some designs may fail'
     CancelButton.Caption = 'No'
+    CancelButton.ShowHint = True
     TabOrder = 0
     ShowButtons = [pbOK, pbCancel]
   end
