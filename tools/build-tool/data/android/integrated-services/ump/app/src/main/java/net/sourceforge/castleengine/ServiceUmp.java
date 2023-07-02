@@ -22,6 +22,12 @@ import android.view.View;
 // needed for @NotNull
 import androidx.annotation.NonNull;
 
+import com.google.android.ump.ConsentForm;
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.FormError;
+import com.google.android.ump.UserMessagingPlatform;
+
 
 /**
  * Integration of Google User Messaging Platform with Castle Game Engine.
@@ -55,14 +61,22 @@ public class ServiceUmp extends ServiceAbstract
         logInfo(CATEGORY, "Ump initialized");
     }
 
+    private void checkConsent()
+    {
+        logInfo(CATEGORY, "Ump checkConsent() - START");
+
+
+        logInfo(CATEGORY, "Ump checkConsent() - STOP");
+    }
+
 
     @Override
     public boolean messageReceived(String[] parts)
     {
-        /*if (parts.length == 5 && parts[0].equals("ads-admob-initialize")) {
-            initialize(parts[1], parts[2], parts[3], parts[4].split(","));
+        if (parts.length == 1 && parts[0].equals("ump-check-consent")) {
+            checkConsent();
             return true;
-        } else
+        } else /*
         if (parts.length == 2 && parts[0].equals("ads-admob-banner-show")) {
             int gravity = Integer.parseInt(parts[1]);
             bannerShow(gravity);
