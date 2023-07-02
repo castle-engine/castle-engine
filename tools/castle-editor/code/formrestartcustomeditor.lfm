@@ -25,13 +25,15 @@ object RestartCustomEditorForm: TRestartCustomEditorForm
     Width = 666
     BorderSpacing.Around = 8
     OKButton.Name = 'OKButton'
-    OKButton.DefaultCaption = True
+    OKButton.Hint = 'Build editor with custom components and run it'
+    OKButton.Caption = '&Yes'
     HelpButton.Name = 'HelpButton'
     HelpButton.Caption = 'Run Last Build Editor'
     CloseButton.Name = 'CloseButton'
     CloseButton.DefaultCaption = True
     CancelButton.Name = 'CancelButton'
-    CancelButton.DefaultCaption = True
+    CancelButton.Hint = 'Open the project with editor *without* custom components support; opening some designs may fail'
+    CancelButton.Caption = 'No'
     TabOrder = 0
     ShowButtons = [pbOK, pbCancel]
   end
