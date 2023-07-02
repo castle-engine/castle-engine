@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <dependencies>
+    <!-- See https://developers.google.com/admob/android/privacy -->
+    <dependency>implementation 'com.google.android.ump:user-messaging-platform:2.0.0'</dependency>
+  </dependencies>
+</build_gradle_merge>
