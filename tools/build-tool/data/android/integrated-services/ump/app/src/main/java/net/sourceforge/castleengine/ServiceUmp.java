@@ -21,6 +21,8 @@ import android.view.View;
 
 // needed for @NotNull
 import androidx.annotation.NonNull;
+// needed for @Nullable
+import androidx.annotation.Nullable;
 
 import com.google.android.ump.ConsentForm;
 import com.google.android.ump.ConsentInformation;
@@ -40,6 +42,9 @@ public class ServiceUmp extends ServiceAbstract
     private static final int NO_ERROR = -1; // no error constant
 
     private boolean initialized;
+
+    private ConsentInformation consentInformation;
+    private ConsentForm consentForm;
 
     public ServiceUmp(MainActivity activity)
     {
@@ -61,13 +66,72 @@ public class ServiceUmp extends ServiceAbstract
         logInfo(CATEGORY, "Ump initialized");
     }
 
+    /* https://developers.google.com/interactive-media-ads/ump/android/quick-start?hl=pl */
     private void checkConsent()
     {
         logInfo(CATEGORY, "Ump checkConsent() - START");
+        // Set tag for underage of consent. Here false means users are not underage.
+        ConsentRequestParameters params = new ConsentRequestParameters
+            .Builder()
+            .setTagForUnderAgeOfConsent(false)
+            .build();
 
+        consentInformation = UserMessagingPlatform.getConsentInformation(getActivity());
+        consentInformation.requestConsentInfoUpdate(
+            getActivity(),
+            params,
+            new ConsentInformation.OnConsentInfoUpdateSuccessListener() {
+                @Override
+                public void onConsentInfoUpdateSuccess() {
+                    // The consent information state was updated.
+                    // You are now ready to check if a form is available.
+                    logInfo(CATEGORY, "Success");
+                    if (consentInformation.isConsentFormAvailable()) {
+                        loadForm();
+                    }
+                }
+            },
+            new ConsentInformation.OnConsentInfoUpdateFailureListener() {
+                @Override
+                public void onConsentInfoUpdateFailure(FormError formError) {
+                    // Handle the error.
+                    logInfo(CATEGORY, "Error");
+                }
+        });
 
         logInfo(CATEGORY, "Ump checkConsent() - STOP");
     }
+
+    private void loadForm() {
+        UserMessagingPlatform.loadConsentForm(
+            getActivity(), new UserMessagingPlatform.OnConsentFormLoadSuccessListener() {
+              @Override
+              public void onConsentFormLoadSuccess(ConsentForm consForm) {
+                consentForm = consForm;
+                logInfo(CATEGORY, "Consent form load success");
+                //if (consentInformation.getConsentStatus() == ConsentInformation.ConsentStatus.REQUIRED) {
+                    consentForm.show(
+                        getActivity(),
+                        new ConsentForm.OnConsentFormDismissedListener() {
+                            @Override
+                            public void onConsentFormDismissed(@Nullable FormError formError) {
+                                // Handle dismissal by reloading form.
+                                //loadForm();
+                            }
+                        }
+                    );
+                //}
+              }
+            },
+            new UserMessagingPlatform.OnConsentFormLoadFailureListener() {
+              @Override
+              public void onConsentFormLoadFailure(FormError formError) {
+                // Handle the error.
+              }
+            }
+        );
+    }
+      
 
 
     @Override
@@ -76,32 +140,7 @@ public class ServiceUmp extends ServiceAbstract
         if (parts.length == 1 && parts[0].equals("ump-check-consent")) {
             checkConsent();
             return true;
-        } else /*
-        if (parts.length == 2 && parts[0].equals("ads-admob-banner-show")) {
-            int gravity = Integer.parseInt(parts[1]);
-            bannerShow(gravity);
-            return true;
-        } else
-        if (parts.length == 1 && parts[0].equals("ads-admob-banner-hide")) {
-            bannerHide();
-            return true;
-        } else
-        if (parts.length == 2 && parts[0].equals("ads-admob-show-interstitial") && parts[1].equals("wait-until-loaded")) {
-            interstitialDisplay(true);
-            return true;
-        } else
-        if (parts.length == 2 && parts[0].equals("ads-admob-show-interstitial") && parts[1].equals("no-wait")) {
-            interstitialDisplay(false);
-            return true;
-        } else 
-        if (parts.length == 2 && parts[0].equals("ads-admob-show-reward") && parts[1].equals("wait-until-loaded")) {
-            rewardedDisplay(true);
-            return true;
-        } else
-        if (parts.length == 2 && parts[0].equals("ads-admob-show-reward") && parts[1].equals("no-wait")) {
-            rewardedDisplay(false);
-            return true;
-        } else */{
+        } else {
             return false;
         }
         
