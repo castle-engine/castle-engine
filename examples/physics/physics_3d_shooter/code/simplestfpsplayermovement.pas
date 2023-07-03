@@ -10,8 +10,8 @@ uses
 type
 
   { The simplest FPS (First Person Shooter) physics movement using dynamic
-    rigid body.
-
+    rigid body. Start point for your own FPS navigation when you do not want
+    player rotation (only camera rotation).
 
     - Only move right/left/forward/back
     - Constant speed
