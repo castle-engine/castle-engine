@@ -321,7 +321,9 @@ begin
   ButtonChangeTransformationAuto.Pressed := ThirdPersonNavigation.ChangeTransformation = ctAuto;
   ButtonChangeTransformationDirect.Pressed := ThirdPersonNavigation.ChangeTransformation =  ctDirect;
   ButtonChangeTransformationVelocity.Pressed := ThirdPersonNavigation.ChangeTransformation =  ctVelocity;
+  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   ButtonChangeTransformationForce.Pressed := ThirdPersonNavigation.ChangeTransformation = ctForce;
+  {$endif}
 
   { ctDirect requires to set up gravity without physics engine,
     using deprecated TCastleTransform.Gravity.
@@ -356,7 +358,9 @@ end;
 
 procedure TViewPlay.ClickChangeTransformationForce(Sender: TObject);
 begin
+  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   ThirdPersonNavigation.ChangeTransformation := ctForce;
+  {$endif}
   UpdateAfterChangeTransformation;
 end;
 
