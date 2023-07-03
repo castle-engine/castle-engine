@@ -19,8 +19,8 @@ type
     - Rotation (direction.XZ) from camera what is player child (no rotation when no camera in player)
     - No control in air
     - Uses parent.up(), never camera up to deremine direction of the velocity vector
+    - Set collider Friction to 0 - then you can use stairs
   }
-
   TSimplestFpsPlayerMovement = class(TCastleBehavior)
   strict private
     FWasJumpInput: Boolean;
@@ -51,16 +51,20 @@ type
     constructor Create(AOwner: TComponent); override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
-
   published
+    { Initial vertical jump speed }
     property JumpSpeed: Single read FJumpSpeed write FJumpSpeed
       {$ifdef FPC}default DefaultJumpSpeed{$endif};
 
+    { Horizontal moving speed }
     property HorizontalSpeed: Single read FHorizontalSpeed write FHorizontalSpeed
       {$ifdef FPC}default DefaultHorizontalSpeed{$endif};
 
+    { Move forward/backward input axis }
     property ForwardInputAxis: TCastleInputAxis read FForwardInputAxis;
+    { Move right/left input axis }
     property SidewayInputAxis: TCastleInputAxis read FSidewayInputAxis;
+    { Input shortcut for jump }
     property InputJump: TInputShortcut read FInputJump;
   end;
 
@@ -79,6 +83,7 @@ begin
     if Parent.Items[I] is TCastleCamera then
       Exit(Parent.Items[I] as TCastleCamera);
   end;
+  Result := nil;
 end;
 
 function TSimplestFpsPlayerMovement.GetForwardDirection: TVector3;
@@ -285,7 +290,7 @@ function TSimplestFpsPlayerMovement.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-     'HorizontalSpeed', 'JumpSpeed'
+     'HorizontalSpeed', 'JumpSpeed', 'ForwardInputAxis', 'SidewayInputAxis', 'InputJump'
      ]) then
     Result := [psBasic]
   else
