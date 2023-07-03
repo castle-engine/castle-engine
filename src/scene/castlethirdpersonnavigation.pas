@@ -1105,14 +1105,14 @@ var
       { We assume that the player is on the ground a little faster to allow
        smoother control }
       IsOnGroundBool := DistanceToGround < ColliderHeight * 0.1;
-      if IsOnGroundBool then
+      {if IsOnGroundBool then
         WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
       else
-        WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');
+        WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')'); }
     end else
     begin
       IsOnGroundBool := false;
-      WritelnLog('not on ground');
+      {WritelnLog('not on ground');}
       DistanceToGround := -1; // For animation checking
     end;
 
