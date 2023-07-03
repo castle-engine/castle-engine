@@ -4,16 +4,15 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleViewport, CastleUIControls,
-  CastleVectors,  CastleInputs, GameInputAxis;
-
-{ Rotate horizontal rigid body using angular velocity by mouse }
+  CastleVectors,  CastleInputs, GameInputAxis, CastleClassUtils;
 
 type
+
+  { Rotate horizontal rigid body using angular velocity. Should be added to
+    transform with rigid body to control. }
   TRotateRigidBody = class(TCastleBehavior)
   strict private
     RBody: TCastleRigidBody;
-    SpeedScale: Single; // Ctrl support
-
     FAllowSlowerRotations: Boolean;
 
     FRotationHorizontalSpeed: Single;
@@ -25,18 +24,18 @@ type
      procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
      constructor Create(AOwner: TComponent); override;
+
+     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
+    { Left/right rotation input }
     property HorizontalRotationInput: TCastleInputAxis read FHorizontalRotationInput;
 
-    { Rotation keys speed, in radians per second.
-      @groupBegin }
+    { Rotation speed }
     property RotationHorizontalSpeed: Single
       read FRotationHorizontalSpeed write FRotationHorizontalSpeed
       {$ifdef FPC}default DefaultRotationHorizontalSpeed{$endif};
 
-    { If @true then all rotation keys
-      (Input_RightRotate, Input_LeftRotate, Input_UpRotate, Input_DownRotate)
-      will work 10x slower when Ctrl modified is pressed. }
+    { If @true then will work 10x slower when Ctrl modified is pressed. }
     property AllowSlowerRotations: boolean
       read FAllowSlowerRotations write FAllowSlowerRotations
       default true;
@@ -52,7 +51,7 @@ procedure TRotateRigidBody.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 var
   HorizontalAxisValue: Single;
-  VerticalAxisValue: Single;
+  SpeedScale: Single; // Ctrl support
 begin
   if CastleApplicationMode = appDesign then
     Exit;
@@ -71,8 +70,8 @@ begin
   begin
     if AllowSlowerRotations then
       SpeedScale := 0.1 {* RotationControlFactor(IsOnGroundBool)};
-  end
-  else
+
+  end else
     SpeedScale := 1.0 {* RotationControlFactor(IsOnGroundBool)};
 
   HorizontalAxisValue := HorizontalRotationInput.Value(FocusedContainer);
@@ -98,6 +97,17 @@ begin
   FHorizontalRotationInput.MouseLookAxis := mlaHorizontal;
   FHorizontalRotationInput.MouseLookMultiplier := DefaultMouseLookHorizontalSensitivity;
   FHorizontalRotationInput.Multiplier := DefaultRotationHorizontalSpeed;
+end;
+
+function TRotateRigidBody.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'HorizontalRotationInput', 'RotationHorizontalSpeed', 'AllowSlowerRotations'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 initialization

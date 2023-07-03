@@ -4,11 +4,11 @@ interface
 
 uses
   Classes, SysUtils, ModularMovement, GameInputAxis, CastleTransform, CastleBehaviors,
-  CastleVectors, CastleInputs;
+  CastleVectors, CastleInputs, CastleClassUtils;
 
 type
 
-  { Fps Walk support }
+  { Classic walk support for TFpsModularMovement. }
   TFpsWalkSupport = class(TAbstractMovementModifier)
   strict private
     FWasJumpInput: Boolean;
@@ -21,6 +21,8 @@ type
       DefaultHorizontalSpeed = 5.0;
 
     constructor Create(AOwner: TComponent); override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
   published
@@ -107,6 +109,17 @@ begin
   FWasJumpInput := false;
   FJumpSpeed := DefaultJumpSpeed;
   FHorizontalSpeed := DefaultHorizontalSpeed;
+end;
+
+function TFpsWalkSupport.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'JumpSpeed', 'HorizontalSpeed'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 initialization

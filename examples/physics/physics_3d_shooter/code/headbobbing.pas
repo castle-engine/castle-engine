@@ -3,9 +3,11 @@ unit HeadBobbing;
 interface
 
 uses
-  Classes, SysUtils, ModularMovement, CastleTransform, CastleVectors, CastleClassUtils;
+  Classes, SysUtils, ModularMovement, CastleTransform, CastleVectors,
+  CastleClassUtils;
 
 type
+  { Head bobbing for TFpsModularMovement. }
   THeadBobbing = class(TAbstractMovementModifier)
   strict private
     HeadBobbingPosition: Single;

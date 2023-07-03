@@ -4,16 +4,20 @@ interface
 
 uses
   Classes, SysUtils, ModularMovement, CastleTransform, CastleBehaviors,
-  CastleVectors, CastleInputs;
+  CastleVectors, CastleInputs, CastleClassUtils;
 
 type
 
-  { Crouch support by change collider height and player translation.
+  { Crouch support for TFpsModularMovement.
+
+    It change collider height and player translation.
     It supports only capsule collider because of edge cases that are
     difficult to meet for all types of colliders.
 
     This functionality assumes that the size of the collider is fixed and is
-    not changed by any other mechanism.  }
+    not changed by any other mechanism.
+
+    Add to player transform. }
   TFpsCrouch = class(TAbstractMovementModifier)
   strict private
     FInput_Crouch: TInputShortcut;
@@ -37,6 +41,8 @@ type
       MinCapsuleHeight = 0.02;
 
     constructor Create(AOwner: TComponent); override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
 
@@ -66,6 +72,17 @@ begin
   Input_Crouch.Name := 'InputCrouch';
 
   FWasColliderTypeWarning := false;
+end;
+
+function TFpsCrouch.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'Input_Crouch', 'CrouchSpeed'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TFpsCrouch.UpdateMovement(const MovementState: TModularMovementState);

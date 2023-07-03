@@ -4,15 +4,41 @@ interface
 
 uses
   Classes, SysUtils, ModularMovement, GameInputAxis, CastleTransform, CastleBehaviors,
-  CastleVectors, CastleInputs;
+  CastleVectors, CastleInputs, CastleClassUtils;
 
 type
+  { Fly support for TFpsModularMovement.
 
-  { Fly support
+    To start flying add this behavior. Fly start/stop should be controled from
+    your game by change Exists property e.g.:
 
-    Press
+    @longCode(#
+    if Assigned(FpsFlySupport) and Assigned(FpsWalkSupport) and Assigned(RotateRigidBody) then
+    begin
+      if Event.IsKey(keyF) then
+      begin
+        if FpsFlySupport.Exists then
+        begin
+          FpsFlySupport.Exists := false;
+          FpsWalkSupport.Exists := true;
+          LabelFlyWalk.Caption := 'Walking';
+          RotateRigidBody.HorizontalRotationInput.PositiveKey := keyArrowRight;
+          RotateRigidBody.HorizontalRotationInput.NegativeKey := keyArrowLeft;
+          RotateRigidBody.RotationHorizontalSpeed := 1.5;
+        end else
+        begin
+          FpsFlySupport.Exists := true;
+          FpsWalkSupport.Exists := false;
+          LabelFlyWalk.Caption := 'Flying';
+          RotateRigidBody.HorizontalRotationInput.PositiveKey := keyD;
+          RotateRigidBody.HorizontalRotationInput.NegativeKey := keyA;
+          RotateRigidBody.RotationHorizontalSpeed := 0.4;
+        end;
+      end;
+    end;
+    #)
 
-  }
+    When TFpsFlySupport.Exists = true TFpsWalkSupport.Exists should be false. }
   TFpsFlySupport = class(TAbstractMovementModifier)
   strict private
     FFlyUpDownInputAxis: TCastleInputAxis;
@@ -28,9 +54,13 @@ type
 
     constructor Create(AOwner: TComponent); override;
 
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
   published
+    { Move up/down input axis. }
     property FlyUpDownInputAxis: TCastleInputAxis read FFlyUpDownInputAxis;
+    { Move forward/backward input axis }
     property FlyForwardInputAxis: TCastleInputAxis read FFlyForwardInputAxis;
   end;
 
@@ -91,6 +121,17 @@ begin
   FFlyUpDownInputAxis.SetSubComponent(true);
   FFlyUpDownInputAxis.PositiveKey := keyQ;
   FFlyUpDownInputAxis.NegativeKey := keyE;
+end;
+
+function TFpsFlySupport.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'FlyUpDownInputAxis', 'FlyForwardInputAxis'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 initialization

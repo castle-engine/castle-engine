@@ -4,9 +4,10 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleViewport, CastleUIControls,
-  CastleVectors,  CastleRenderOptions, GameInputAxis;
+  CastleVectors,  CastleRenderOptions, GameInputAxis, CastleClassUtils;
 
 type
+  { Behavior for rotating camera by keys or mouse look. Should be added to Camera. }
   TRotateCamera = class(TCastleBehavior)
   private
     MinAngleFromGravityUp: Single;
@@ -22,16 +23,23 @@ type
 
     function Camera: TCastleCamera;
 
+    { By default we rotate around gravity up. }
     procedure RotateAroundGravityUp(const Angle: Single);
+    { Not used currently but maybe usefull for someone. }
     procedure RotateAroundUp(const Angle: Single);
+    { Rotate horizontal by using RotateAroundGravityUp() }
     procedure RotateHorizontal(const Angle: Single);
     procedure RotateVertical(AngleRad: Single);
   protected
      procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
      constructor Create(AOwner: TComponent); override;
+
+     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
+    { Left/right input axis }
     property HorizontalRotationInput: TCastleInputAxis read FHorizontalRotationInput;
+    { Up/down input axis }
     property VerticalRotationInput: TCastleInputAxis read FVerticalRotationInput;
   end;
 
@@ -187,6 +195,17 @@ begin
   FVerticalRotationInput.MouseLookAxis := mlaVertical;
   FVerticalRotationInput.MouseLookMultiplier := DefaultMouseLookVerticalSensitivity;
   FVerticalRotationInput.Multiplier := DefaultRotationVerticalSpeed;
+end;
+
+function TRotateCamera.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'HorizontalRotationInput', 'VerticalRotationInput'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 initialization

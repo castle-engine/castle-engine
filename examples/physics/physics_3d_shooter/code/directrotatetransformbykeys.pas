@@ -1,17 +1,14 @@
 unit DirectRotateTransformByKeys;
 
-{ Rotates transform direct by keys }
-
 interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleViewport, CastleUIControls,
-  CastleVectors, CastleInputs;
-
-{ Not working good with physics objects:
-  Press left key - after some time player falls out of level. }
+  CastleVectors, CastleInputs, CastleClassUtils;
 
 type
+  { Rotates transform direct by keys. Do not use with physics
+    objects/navigation. MAy be usefull in other scenarios so I leave it here. }
   TDirectRotateTransformByKeys = class(TCastleBehavior)
   strict private
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
@@ -36,6 +33,8 @@ type
      procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
      constructor Create(AOwner: TComponent); override;
+
+     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     property Input_LeftRotate: TInputShortcut read FInput_LeftRotate;
     property Input_RightRotate: TInputShortcut read FInput_RightRotate;
@@ -208,13 +207,35 @@ begin
   FRotationVerticalSpeed := DefaultRotationVerticalSpeed;
   FAllowSlowerRotations := true;
 
-  FInput_LeftRotate              := TInputShortcut.Create(Self);
-  FInput_RightRotate             := TInputShortcut.Create(Self);
-  FInput_UpRotate                := TInputShortcut.Create(Self);
-  FInput_DownRotate              := TInputShortcut.Create(Self);
+  FInput_LeftRotate := TInputShortcut.Create(Self);
+  FInput_LeftRotate.SetSubComponent(true);
+  FInput_LeftRotate.Assign(keyArrowLeft);
+  FInput_LeftRotate.Name := 'InputLeftRotate';
 
-  Input_LeftRotate              .Assign(keyArrowLeft);
-  Input_RightRotate             .Assign(keyArrowRight);
+  FInput_RightRotate := TInputShortcut.Create(Self);
+  FInput_RightRotate.SetSubComponent(true);
+  FInput_RightRotate.Assign(keyArrowRight);
+  FInput_RightRotate.Name := 'InputRightRotate';
+
+  FInput_UpRotate := TInputShortcut.Create(Self);
+  FInput_UpRotate.SetSubComponent(true);
+  FInput_UpRotate.Name := 'InputUpRotate';
+
+  FInput_DownRotate := TInputShortcut.Create(Self);
+  FInput_DownRotate.SetSubComponent(true);
+  FInput_DownRotate.Name := 'InputDownRotate';
+end;
+
+function TDirectRotateTransformByKeys.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'AllowSlowerRotations', 'RotationVerticalSpeed', 'RotationHorizontalSpeed',
+     'Input_LeftRotate', 'Input_RightRotate', 'Input_UpRotate', 'Input_DownRotate'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 initialization
