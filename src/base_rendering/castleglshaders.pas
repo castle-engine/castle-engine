@@ -275,6 +275,9 @@ type
     FUniformLocations, FAttributeLocations: TLocationCache;
     FUniformReportedMissing: TStringList;
 
+    // Given stage was attached and compiled by @link(AttachShader).
+    HasStage: array [TShaderType] of Boolean;
+
     {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
     FSource: array [TShaderType] of TStringList;
     {$endif CASTLE_COLLECT_SHADER_SOURCE}
@@ -297,6 +300,21 @@ type
   public
     { Shader name is used in log messages. Any String is OK. }
     Name: String;
+
+    { Is fragment shader required to link successfully.
+
+      By default this is @false (for now) and you can attempt to link
+      a shader with only vertex shader, without fragment shader.
+      This makes sense on OpenGL
+      ( https://www.khronos.org/opengl/wiki/Fragment_Shader#Optional ).
+      Only OpenGLES, or OpenGL on macOS with Core profile,
+      strictly requires fragment shader to be present.
+
+      Setting this to @true is useful when you know shader really requires
+      fragment shader and you want to get more clear error message.
+      CGE then knows to abort linking early, with clear error message,
+      when fragment shader is missing. }
+    FragmentShaderRequired: Boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -1562,6 +1580,7 @@ begin
   {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   FSource[ShaderType].Add(S);
   {$endif CASTLE_COLLECT_SHADER_SOURCE}
+  HasStage[ShaderType] := true;
 end;
 
 procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType;
@@ -1646,10 +1665,13 @@ begin
 
   ShaderIds.Count := 0;
 
-  {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   for ShaderType := Low(TShaderType) to High(TShaderType) do
+  begin
+    {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
     FSource[ShaderType].Clear;
-  {$endif CASTLE_COLLECT_SHADER_SOURCE}
+    {$endif CASTLE_COLLECT_SHADER_SOURCE}
+    HasStage[ShaderType] := false;
+  end;
 end;
 
 procedure TGLSLProgram.Link;
@@ -1692,6 +1714,13 @@ var
 begin
   if GLFeatures.Shaders then
   begin
+    { Produce clear error messages, without waiting for OpenGL errors,
+      if required shaders are not attached. }
+    if not HasStage[stVertex] then
+      raise EGLSLProgramLinkError.Create('Vertex shader not attached');
+    if FragmentShaderRequired and (not HasStage[stFragment]) then
+      raise EGLSLProgramLinkError.Create('Fragment shader not attached');
+
     glLinkProgram(ProgramId);
     glGetProgramiv(ProgramId, GL_LINK_STATUS, @Linked);
 
