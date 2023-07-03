@@ -3757,14 +3757,28 @@ begin
   VS := ScreenEffectVertex;
   FS := ScreenEffectFragment(Depth);
 
+  { Fragment shader code is required, as FS doesn't define main().
+    Raising exception here prevents getting later a less clear exception
+    message from OpenGL(ES),
+    see https://github.com/castle-engine/castle-engine/issues/509 .
+
+    Note that EGLSLError will be captured and turned into warning
+    by TScreenEffectResource.PrepareCore .
+    This is desirable for view3dscene, as it should display only a warning
+    for invalid X3D models. }
+
+  if Source[stFragment].Count = 0 then
+    raise EGLSLError.Create('No fragment shader code provided for a screen effect');
+
   Source[stVertex].Insert(0, VS);
+
   { For OpenGLES, ScreenEffectLibrary must be 1st shader,
     and it will be glued with the user shader code.
     So we glue it also on desktop OpenGL, for consistency
     (so e.g. you should never repeat "uniform screen_width...").  }
-  if Source[stFragment].Count <> 0 then
-    Source[stFragment][0] := FS + Source[stFragment][0] else
-    Source[stFragment].Insert(0, FS);
+
+  Assert(Source[stFragment].Count <> 0); // make check it above
+  Source[stFragment][0] := FS + Source[stFragment][0];
 end;
 
 function TShader.NeedsNormals: Boolean;

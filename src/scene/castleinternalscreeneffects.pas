@@ -123,7 +123,7 @@ var
   VS, FS: String;
 begin
   if FScreenEffectShader = '' then
-    raise Exception.Create('TGLSLScreenEffect shader not assigned by AttachScreenEffectShader method');
+    raise EGLSLError.Create('TGLSLScreenEffect shader not assigned by AttachScreenEffectShader method');
   VS := ScreenEffectVertex;
   FS := ScreenEffectFragment(NeedsDepth) + FScreenEffectShader;
   AttachVertexShader(VS);
