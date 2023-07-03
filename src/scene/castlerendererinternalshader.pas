@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Setting up OpenGL shaders (TShader).Internal for CastleRenderer. @exclude }
+{ Setting up OpenGL shaders (TShader). Internal for CastleRenderer. @exclude }
 unit CastleRendererInternalShader;
 
 {$I castleconf.inc}
@@ -728,7 +728,7 @@ implementation
 
 uses SysUtils, StrUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleGLUtils, CastleLog, CastleGLVersion,
+  CastleGLUtils, CastleLog, CastleGLVersion, CastleInternalScreenEffects,
   CastleScreenEffects, CastleInternalX3DLexer, CastleInternalGLUtils;
 
 {$ifndef OpenGLES}
@@ -3754,10 +3754,8 @@ procedure TShader.AddScreenEffectCode(const Depth: boolean);
 var
   VS, FS: string;
 begin
-  {$warnings off} // using deprecated below, which should be internal
   VS := ScreenEffectVertex;
   FS := ScreenEffectFragment(Depth);
-  {$warnings on}
 
   Source[stVertex].Insert(0, VS);
   { For OpenGLES, ScreenEffectLibrary must be 1st shader,
