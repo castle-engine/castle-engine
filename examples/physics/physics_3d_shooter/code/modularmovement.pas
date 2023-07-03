@@ -72,6 +72,7 @@ type
     How to use it:
     - Player rigid body can rotate only in Y axis (horizontal), other axes
       should be blocked in rigid body
+    - Y is always up
     - Friction in player collider should be 0 - with other friction values
       using stairs needs extra code like TStairsSupportByColliderCapsuleRadius,
       and can have other undesirable problems during contact, e.g. with walls
@@ -81,6 +82,9 @@ type
       every frame) You can use TRotateRigidBody behavior for that purpose.
     - Do not rotate player vertical - rotate camera you can use TRotateCamera
       behavior for that
+    - Do not change player translation every frame - use rigid body velocities/forces
+    - Collider should have friction 0 so modifiers/modules should always control
+      player velocity
     - After adding TFpsModularMovement add some movement modules e.g. TFpsWalkSupport
     - Do not afraid to change/add your own movement modules - this class is
       designed for that :)
