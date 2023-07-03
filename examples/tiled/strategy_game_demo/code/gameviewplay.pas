@@ -19,7 +19,7 @@ unit GameViewPlay;
 interface
 
 uses Classes,
-  CastleControls, CastleTiledMap, CastleUIControls,
+  CastleControls, CastleTiledMap, CastleUIControls, CastleTransform,
   CastleVectors, CastleKeysMouse, CastleScene, CastleViewport,
   GameUnit;
 
@@ -30,12 +30,13 @@ type
       These fields will be automatically initialized at Start. }
     Map: TCastleTiledMap;
     ButtonQuit: TCastleButton;
-    ButtonInstructions: TCastleButton;
+    ButtonInstructions, ButtonInstructions2: TCastleButton;
     ButtonEndTurn: TCastleButton;
     LabelStatus, LabelTurnStatus: TCastleLabel;
     ViewportMap: TCastleViewport;
   strict private
     TileUnderMouseImage: TCastleImageTransform;
+    SelectedUnitVisualization: TCastleTransform;
     TileUnderMouseExists: Boolean;
     TileUnderMouse: TVector2Integer;
     UnitsOnMap: TUnitsOnMap;
@@ -43,6 +44,7 @@ type
     SelectedUnit: TUnit;
     procedure ClickQuit(Sender: TObject);
     procedure ClickInstructions(Sender: TObject);
+    procedure ClickInstructions2(Sender: TObject);
     procedure ClickEndTurn(Sender: TObject);
     procedure UpdateTurnStatus;
   public
@@ -62,8 +64,9 @@ var
 implementation
 
 uses SysUtils,
-  CastleComponentSerialize, CastleUtils, CastleRectangles,
-  GameViewMainMenu, GameViewInstructions, GameViewWin;
+  CastleComponentSerialize, CastleUtils, CastleRectangles, CastleColors,
+  GameViewMainMenu, GameViewInstructions, GameViewInstructions2,
+  GameViewWin;
 
 constructor TViewPlay.Create(AOwner: TComponent);
 begin
@@ -127,6 +130,7 @@ begin
   Map.URL := 'castle-data:/maps/' + MapName + '.tmx';
   ButtonQuit.OnClick := {$ifdef FPC}@{$endif}ClickQuit;
   ButtonInstructions.OnClick := {$ifdef FPC}@{$endif}ClickInstructions;
+  ButtonInstructions2.OnClick := {$ifdef FPC}@{$endif}ClickInstructions2;
   ButtonEndTurn.OnClick := {$ifdef FPC}@{$endif}ClickEndTurn;
 
   UnitsOnMap := TUnitsOnMap.Create(FreeAtStop, Map);
@@ -142,6 +146,11 @@ begin
   TileUnderMouseImage.Exists := false;
   Map.Add(TileUnderMouseImage);
 
+  SelectedUnitVisualization := TransformLoad(
+    'castle-data:/unit_selected.castle-transform', FreeAtStop);
+  SelectedUnitVisualization.Exists := false;
+  Map.Add(SelectedUnitVisualization);
+
   HumanTurn := true;
   UpdateTurnStatus;
 end;
@@ -151,8 +160,10 @@ begin
   { Make sure to clear fields, otherwise stopping + starting this view again
     (when you exit the game and start a new game) could have non-nil but
     invalid SelectedUnit reference. }
-  TileUnderMouseExists := false;
   SelectedUnit := nil;
+  TileUnderMouseExists := false;
+  // set to nil, as it will be freed by FreeAtStop
+  SelectedUnitVisualization := nil;
   inherited;
 end;
 
@@ -164,6 +175,11 @@ end;
 procedure TViewPlay.ClickInstructions(Sender: TObject);
 begin
   Container.PushView(ViewInstructions);
+end;
+
+procedure TViewPlay.ClickInstructions2(Sender: TObject);
+begin
+  Container.PushView(ViewInstructions2);
 end;
 
 procedure TViewPlay.ClickEndTurn(Sender: TObject);
@@ -179,6 +195,7 @@ procedure TViewPlay.ClickEndTurn(Sender: TObject);
 begin
   HumanTurn := not HumanTurn;
   SelectedUnit := nil;
+  SelectedUnitVisualization.Exists := false;
   ResetMovement;
   UpdateTurnStatus;
 end;
@@ -205,6 +222,12 @@ function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
     end;
   end;
 
+  procedure ShowSelectedUnit;
+  begin
+    SelectedUnitVisualization.Exists := true;
+    SelectedUnitVisualization.Parent := SelectedUnit.Transform;
+  end;
+
 var
   UnitUnderMouse: TUnit;
 begin
@@ -218,7 +241,8 @@ begin
     begin
       // select new unit
       SelectedUnit := UnitUnderMouse;
-      UpdateTurnStatus;
+      ShowSelectedUnit;
+      UpdateTurnStatus; // SelectedUnit changed
       Exit(true); // event handled
     end else
     if (SelectedUnit <> nil) and
@@ -233,12 +257,14 @@ begin
         // so UnitUnderMouse pointer afterwards is no longer valid.
         UnitUnderMouse := nil;
         SelectedUnit.Movement := 0;
+        UpdateTurnStatus; // SelectedUnit stats changed
         CheckWin;
       end else
       begin
         // move
         SelectedUnit.TilePosition := TileUnderMouse;
         SelectedUnit.Movement := SelectedUnit.Movement - 1;
+        UpdateTurnStatus; // SelectedUnit stats changed
       end;
       Exit(true); // event handled
     end;
@@ -276,6 +302,14 @@ end;
 
 procedure TViewPlay.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
+const
+  HoverAlpha = 0.75;
+  { When choosing colors, be sure to choose something clearly visible on our
+    tiles background. Light green, or yellow. or light blue -> not good,
+    as would mix with some map tiles. }
+  ColorNotAllowed: TCastleColor = (X: 1; Y: 0; Z: 0; W: HoverAlpha); // red
+  ColorAllowed: TCastleColor = (X: 0; Y: 1; Z: 0; W: HoverAlpha); // green
+  ColorMoveAllowed: TCastleColor = (X: 1; Y: 1; Z: 1; W: HoverAlpha); // white
 var
   TileStr: String;
   TileRect: TFloatRectangle;
@@ -319,20 +353,18 @@ begin
     UnitUnderMouse := nil;
 
   { update TileUnderMouseImage.Color }
-  if SelectedUnit = nil then
-    TileUnderMouseImage.Color := Vector4(1, 1, 1, 0.75)
-  else
-  if SelectedUnit.CanMove(TileUnderMouse) then
+  if (SelectedUnit <> nil) and
+     SelectedUnit.CanMove(TileUnderMouse) then
     // can move by clicking here
-    TileUnderMouseImage.Color := Vector4(0, 1, 0, 0.75)
+    TileUnderMouseImage.Color := ColorMoveAllowed
   else
   if (UnitUnderMouse <> nil) and
      (UnitUnderMouse.Human = HumanTurn) then
     // can select by clicking here
-    TileUnderMouseImage.Color := Vector4(1, 1, 1, 0.75)
+    TileUnderMouseImage.Color := ColorAllowed
   else
     // cannot do anything by clicking here
-    TileUnderMouseImage.Color := Vector4(1, 0, 0, 0.75);
+    TileUnderMouseImage.Color := ColorNotAllowed;
 
   { update LabelStatus }
   if TileUnderMouseExists then

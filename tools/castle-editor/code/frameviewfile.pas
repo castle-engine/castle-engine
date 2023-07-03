@@ -185,13 +185,19 @@ begin
   Viewport := TCastleAutoNavigationViewport.InternalCreateNonDesign(Self);
   {$warnings on}
   Viewport.FullSize := true;
+  // using deprecated AutoCamera, for now this is OK to get initial camera.
+  // TODO: Should use AssignDefaultCamera instead.
+  {$warnings off}
   Viewport.AutoCamera := true;
+  {$warnings on}
   Viewport.AutoNavigation := true;
   PreviewLayer.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Self);
   Viewport.Items.Add(Scene);
+  {$warnings off} // using deprecated MainScene, for now this is OK to get AutoCamera working
   Viewport.Items.MainScene := Scene;
+  {$warnings on}
 
   try
     Scene.URL := AURL;

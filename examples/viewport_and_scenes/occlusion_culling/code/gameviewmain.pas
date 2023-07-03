@@ -32,13 +32,9 @@ type
     LabelFps: TCastleLabel;
     MainWalkNavigation: TCastleWalkNavigation;
     MainViewport: TCastleViewport;
-    CheckboxOcclusionQuery: TCastleCheckbox;
-    Buildings, Creatures: TCastleTransform;
+    CheckboxOcclusionCulling: TCastleCheckbox;
   private
-    UseOcclusionQuery: Boolean;
-    { Set RenderOptions.OcclusionQuery to our UseOcclusionQuery for all scenes of buildings and creatures. }
-    procedure UpdateOcclusionQuery;
-    procedure ChangeOcclusionQuery(Sender: TObject);
+    procedure ChangeOcclusionCulling(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -66,12 +62,10 @@ procedure TViewMain.Start;
 begin
   inherited;
 
-  CheckboxOcclusionQuery.OnChange := {$ifdef FPC}@{$endif} ChangeOcclusionQuery;
+  CheckboxOcclusionCulling.OnChange := {$ifdef FPC}@{$endif} ChangeOcclusionCulling;
 
-  { initialize state of everything to use occlusion query }
-  UseOcclusionQuery := true;
-  CheckboxOcclusionQuery.Checked := UseOcclusionQuery;
-  UpdateOcclusionQuery;
+  { initialize UI }
+  CheckboxOcclusionCulling.Checked := MainViewport.OcclusionCulling;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -83,22 +77,9 @@ begin
     'Rendered: ' + MainViewport.Statistics.ToString;
 end;
 
-procedure TViewMain.UpdateOcclusionQuery;
-var
-  T: TCastleTransform;
+procedure TViewMain.ChangeOcclusionCulling(Sender: TObject);
 begin
-  for T in Buildings do
-    if T is TCastleScene then
-      TCastleScene(T).RenderOptions.OcclusionQuery := UseOcclusionQuery;
-  for T in Creatures do
-    if T is TCastleScene then
-      TCastleScene(T).RenderOptions.OcclusionQuery := UseOcclusionQuery;
-end;
-
-procedure TViewMain.ChangeOcclusionQuery(Sender: TObject);
-begin
-  UseOcclusionQuery := CheckboxOcclusionQuery.Checked;
-  UpdateOcclusionQuery;
+  MainViewport.OcclusionCulling := CheckboxOcclusionCulling.Checked;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -108,9 +89,8 @@ begin
 
   if Event.IsKey(CtrlO) then
   begin
-    UseOcclusionQuery := not UseOcclusionQuery;
-    CheckboxOcclusionQuery.Checked := UseOcclusionQuery;
-    UpdateOcclusionQuery;
+    MainViewport.OcclusionCulling := not MainViewport.OcclusionCulling;
+    CheckboxOcclusionCulling.Checked := MainViewport.OcclusionCulling;
     Exit(true);
   end;
 

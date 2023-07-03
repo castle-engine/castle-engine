@@ -33,29 +33,30 @@
     function GetBias: TVector3;
     procedure SetBias(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdUpdate: TSFStringEnum;
-    { Internal wrapper for property @link(Update). This wrapper API may change, we advise to access simpler @link(Update) instead. }
+    { Internal wrapper for property @code(Update). This wrapper API may change, we advise to access simpler @code(Update) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUpdate: TSFStringEnum read FFdUpdate;
     { When to update the texture contents. }
     property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     strict private FFdSize: TSFInt32;
-    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
+    { Internal wrapper for property @code(Size). This wrapper API may change, we advise to access simpler @code(Size) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSize: TSFInt32 read FFdSize;
     {  }
     property Size: Integer read GetSize write SetSize;
 
     strict private FFdTextureProperties: TSFNode;
-    { Internal wrapper for property @link(TextureProperties). This wrapper API may change, we advise to access simpler @link(TextureProperties) instead. }
+    { Internal wrapper for property @code(TextureProperties). This wrapper API may change, we advise to access simpler @code(TextureProperties) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
     strict private FFdBias: TSFVec3f;
-    { Internal wrapper for property @link(Bias). This wrapper API may change, we advise to access simpler @link(Bias) instead. }
+    { Internal wrapper for property @code(Bias). This wrapper API may change, we advise to access simpler @code(Bias) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBias: TSFVec3f read FFdBias;
     { Bias from shape center to the point from which we generate a cubemap texture. TODO: for now in world space, should be in shape space. }
     property Bias: TVector3 read GetBias write SetBias;

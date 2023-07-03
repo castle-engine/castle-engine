@@ -27,6 +27,7 @@
     function GetForceContinuousValue_changed: Boolean;
     procedure SetForceContinuousValue_changed(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -43,7 +44,7 @@
     public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     strict private FFdKey: TMFFloat;
-    { Internal wrapper for property @link(Key). This wrapper API may change, we advise to access simpler @link(Key) instead. }
+    { Internal wrapper for property @code(Key). This wrapper API may change, we advise to access simpler @code(Key) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdKey: TMFFloat read FFdKey;
     {  }
     procedure SetKey(const Value: array of Single); overload;
@@ -51,7 +52,7 @@
     procedure SetKey(const Value: TSingleList); overload;
 
     strict private FFdForceContinuousValue_changed: TSFBool;
-    { Internal wrapper for property @link(ForceContinuousValue_changed). This wrapper API may change, we advise to access simpler @link(ForceContinuousValue_changed) instead. }
+    { Internal wrapper for property @code(ForceContinuousValue_changed). This wrapper API may change, we advise to access simpler @code(ForceContinuousValue_changed) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdForceContinuousValue_changed: TSFBool read FFdForceContinuousValue_changed;
     { Send value_changed event on any input, even you receive set_fraction that does not change previous key range. This means that sequencer node generates output event (value_changed) more often, even if internal node knowledge says that "no change occurred". See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php }
     property ForceContinuousValue_changed: Boolean read GetForceContinuousValue_changed write SetForceContinuousValue_changed;

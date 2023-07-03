@@ -96,6 +96,10 @@ type
       const AKind: TUnitKind); overload;
     function ToString: String; override;
     function Human: Boolean;
+
+    { Can this unit move to given new position.
+      Returns @true if the tile is empty and possible to walk into (not water),
+      or occupied by the enemy (in which case we do attack).}
     function CanMove(const NewTilePosition: TVector2Integer): Boolean;
 
     property Kind: TUnitKind read FKind;

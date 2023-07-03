@@ -45,41 +45,42 @@
     function GetTexCoordRamp: TTextureCoordinateNode;
     procedure SetTexCoordRamp(const Value: TTextureCoordinateNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdCreateParticles: TSFBool;
-    { Internal wrapper for property @link(CreateParticles). This wrapper API may change, we advise to access simpler @link(CreateParticles) instead. }
+    { Internal wrapper for property @code(CreateParticles). This wrapper API may change, we advise to access simpler @code(CreateParticles) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCreateParticles: TSFBool read FFdCreateParticles;
     {  }
     property CreateParticles: Boolean read GetCreateParticles write SetCreateParticles;
 
     strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
+    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdLifetimeVariation: TSFFloat;
-    { Internal wrapper for property @link(LifetimeVariation). This wrapper API may change, we advise to access simpler @link(LifetimeVariation) instead. }
+    { Internal wrapper for property @code(LifetimeVariation). This wrapper API may change, we advise to access simpler @code(LifetimeVariation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLifetimeVariation: TSFFloat read FFdLifetimeVariation;
     {  }
     property LifetimeVariation: Single read GetLifetimeVariation write SetLifetimeVariation;
 
     strict private FFdMaxParticles: TSFInt32;
-    { Internal wrapper for property @link(MaxParticles). This wrapper API may change, we advise to access simpler @link(MaxParticles) instead. }
+    { Internal wrapper for property @code(MaxParticles). This wrapper API may change, we advise to access simpler @code(MaxParticles) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMaxParticles: TSFInt32 read FFdMaxParticles;
     {  }
     property MaxParticles: Integer read GetMaxParticles write SetMaxParticles;
 
     strict private FFdParticleLifetime: TSFFloat;
-    { Internal wrapper for property @link(ParticleLifetime). This wrapper API may change, we advise to access simpler @link(ParticleLifetime) instead. }
+    { Internal wrapper for property @code(ParticleLifetime). This wrapper API may change, we advise to access simpler @code(ParticleLifetime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdParticleLifetime: TSFFloat read FFdParticleLifetime;
     {  }
     property ParticleLifetime: Single read GetParticleLifetime write SetParticleLifetime;
 
     strict private FFdParticleSize: TSFVec2f;
-    { Internal wrapper for property @link(ParticleSize). This wrapper API may change, we advise to access simpler @link(ParticleSize) instead. }
+    { Internal wrapper for property @code(ParticleSize). This wrapper API may change, we advise to access simpler @code(ParticleSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdParticleSize: TSFVec2f read FFdParticleSize;
     {  }
     property ParticleSize: TVector2 read GetParticleSize write SetParticleSize;
@@ -89,13 +90,13 @@
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     strict private FFdColorRamp: TSFNode;
-    { Internal wrapper for property @link(ColorRamp). This wrapper API may change, we advise to access simpler @link(ColorRamp) instead. }
+    { Internal wrapper for property @code(ColorRamp). This wrapper API may change, we advise to access simpler @code(ColorRamp) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColorRamp: TSFNode read FFdColorRamp;
     {  }
     property ColorRamp: TAbstractColorNode read GetColorRamp write SetColorRamp;
 
     strict private FFdColorKey: TMFFloat;
-    { Internal wrapper for property @link(ColorKey). This wrapper API may change, we advise to access simpler @link(ColorKey) instead. }
+    { Internal wrapper for property @code(ColorKey). This wrapper API may change, we advise to access simpler @code(ColorKey) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColorKey: TMFFloat read FFdColorKey;
     {  }
     procedure SetColorKey(const Value: array of Single); overload;
@@ -103,31 +104,31 @@
     procedure SetColorKey(const Value: TSingleList); overload;
 
     strict private FFdEmitter: TSFNode;
-    { Internal wrapper for property @link(Emitter). This wrapper API may change, we advise to access simpler @link(Emitter) instead. }
+    { Internal wrapper for property @code(Emitter). This wrapper API may change, we advise to access simpler @code(Emitter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEmitter: TSFNode read FFdEmitter;
     {  }
     property Emitter: TAbstractParticleEmitterNode read GetEmitter write SetEmitter;
 
     strict private FFdGeometryType: TSFStringEnum;
-    { Internal wrapper for property @link(GeometryType). This wrapper API may change, we advise to access simpler @link(GeometryType) instead. }
+    { Internal wrapper for property @code(GeometryType). This wrapper API may change, we advise to access simpler @code(GeometryType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeometryType: TSFStringEnum read FFdGeometryType;
     {  }
     property GeometryType: TParticlesGeometry read GetGeometryType write SetGeometryType;
 
     strict private FFdPhysics: TMFNode;
-    { Internal wrapper for property @link(Physics). This wrapper API may change, we advise to access simpler @link(Physics) instead. }
+    { Internal wrapper for property @code(Physics). This wrapper API may change, we advise to access simpler @code(Physics) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPhysics: TMFNode read FFdPhysics;
     {  }
     procedure SetPhysics(const Value: array of TAbstractParticlePhysicsModelNode);
 
     strict private FFdTexCoordRamp: TSFNode;
-    { Internal wrapper for property @link(TexCoordRamp). This wrapper API may change, we advise to access simpler @link(TexCoordRamp) instead. }
+    { Internal wrapper for property @code(TexCoordRamp). This wrapper API may change, we advise to access simpler @code(TexCoordRamp) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoordRamp: TSFNode read FFdTexCoordRamp;
     {  }
     property TexCoordRamp: TTextureCoordinateNode read GetTexCoordRamp write SetTexCoordRamp;
 
     strict private FFdTexCoordKey: TMFFloat;
-    { Internal wrapper for property @link(TexCoordKey). This wrapper API may change, we advise to access simpler @link(TexCoordKey) instead. }
+    { Internal wrapper for property @code(TexCoordKey). This wrapper API may change, we advise to access simpler @code(TexCoordKey) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoordKey: TMFFloat read FFdTexCoordKey;
     {  }
     procedure SetTexCoordKey(const Value: array of Single); overload;

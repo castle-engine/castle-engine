@@ -87,16 +87,20 @@
       This allows to adjust controls to:
 
       @unorderedList(
-        @item(The physical size
-          (@link(TCastleContainer.Dpi) on iOS and Android really reflects physical size).)
-        @item(Or at least to follow user preferred UI scaling
-          (@link(TCastleContainer.Dpi) desktop is often more like "configurable
-          way to scale UI" than derived from actual monitor physical size).)
+        @item(The physical size.
+          @link(TCastleContainer.Dpi) on iOS and Android really
+          reflects physical size.
+        )
+        @item(Or at least to follow user preferred UI scaling.
+          @link(TCastleContainer.Dpi) on desktops is often more like "configurable
+          way to scale UI" than derived from actual monitor physical size.
+        )
       )
 
       This is the same scaling done by normal desktop applications,
       e.g. using Lazarus LCL. Using this scaling is best if your user interface
-      using CGE should match (the size of) the user interface done by Lazarus LCL.
+      using CGE should match (the size of) the user interface done by
+      Lazarus LCL or native applications.
     }
     usDpiScale
   );

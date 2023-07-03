@@ -27,17 +27,18 @@
     function GetDescription: String;
     procedure SetDescription(const Value: String);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdParameter: TMFString;
-    { Internal wrapper for property @link(Parameter). This wrapper API may change, we advise to access simpler @link(Parameter) instead. }
+    { Internal wrapper for property @code(Parameter). This wrapper API may change, we advise to access simpler @code(Parameter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdParameter: TMFString read FFdParameter;
     {  }
     procedure SetParameter(const Value: array of string); overload;
@@ -45,7 +46,7 @@
     procedure SetParameter(const Value: TCastleStringList); overload;
 
     strict private FFdUrl: TMFString;
-    { Internal wrapper for property @link(Url). This wrapper API may change, we advise to access simpler @link(Url) instead. }
+    { Internal wrapper for property @code(Url). This wrapper API may change, we advise to access simpler @code(Url) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUrl: TMFString read FFdUrl;
     {  }
     procedure SetUrl(const Value: array of string); overload;

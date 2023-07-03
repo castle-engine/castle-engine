@@ -1214,6 +1214,7 @@ object DesignFrame: TDesignFrame
           ParentFont = False
           TabOrder = 0
           Value = 10
+          MaxValue = 128
         end
       end
       object ButtonPlayStop: TSpeedButton

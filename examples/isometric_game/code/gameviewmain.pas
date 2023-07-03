@@ -132,8 +132,8 @@ const
   end;
 
 const
-  TilesCountX = 10;
-  TilesCountY = 20;
+  TilesCountX = 20;
+  TilesCountY = 40;
 var
   X, Y: Integer;
 begin
@@ -145,14 +145,12 @@ begin
     begin
       AddImage(RandomGround, X, Y, Vector2(0.5, 0.5), 0);
       if Random(10) = 0 then
-        AddImage(RandomTree, X, Y, Vector2(0.5, 0.1), 1);
+      begin
+        AddImage(RandomTree, X, Y, Vector2(0.5, 0.1),
+          // Place trees in front of the ground, bottom trees more in front
+          1 + (TilesCountY - Y));
+      end;
     end;
-
-  { This call is only necessary if you use some transformations with blending.
-    Our AddImage doesn't add such transformations (it always sets acTest),
-    still we do this call in case you add other things to the viewport.
-    See https://castle-engine.io/blending for explanation why is this necessary (for now). }
-  MainViewport.Items.SortBackToFront2D;
 
   { Place camera such that it looks at the center tile initially }
   MainViewport.Camera.Translation := Vector3(
@@ -164,7 +162,10 @@ procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean
 begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
-  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  LabelFps.Caption :=
+    'FPS: ' + Container.Fps.ToString + NL +
+    'DynamicBatching (toggle with B): ' + BoolToStr(MainViewport.DynamicBatching, true) + NL +
+    'Stats: ' + MainViewport.Statistics.ToString;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -172,24 +173,11 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TViewMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
-
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
+  if Event.IsKey(keyB) then
   begin
-    // DoSomething;
+    MainViewport.DynamicBatching := not MainViewport.DynamicBatching;
     Exit(true); // key was handled
   end;
-  }
 end;
 
 end.

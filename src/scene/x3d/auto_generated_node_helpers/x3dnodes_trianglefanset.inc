@@ -24,11 +24,12 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdFanCount: TMFInt32;
-    { Internal wrapper for property @link(FanCount). This wrapper API may change, we advise to access simpler @link(FanCount) instead. }
+    { Internal wrapper for property @code(FanCount). This wrapper API may change, we advise to access simpler @code(FanCount) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFanCount: TMFInt32 read FFdFanCount;
     {  }
     procedure SetFanCount(const Value: array of Int32); overload;

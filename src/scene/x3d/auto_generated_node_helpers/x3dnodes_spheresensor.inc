@@ -27,11 +27,12 @@
     function GetOffset: TVector4;
     procedure SetOffset(const Value: TVector4);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdOffset: TSFRotation;
-    { Internal wrapper for property @link(Offset). This wrapper API may change, we advise to access simpler @link(Offset) instead. }
+    { Internal wrapper for property @code(Offset). This wrapper API may change, we advise to access simpler @code(Offset) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdOffset: TSFRotation read FFdOffset;
     {  }
     property Offset: TVector4 read GetOffset write SetOffset;

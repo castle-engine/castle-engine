@@ -136,7 +136,6 @@ Material : X3DChildNode {
   MFFloat [in,out] shininess [TPhongMaterialInfo.DefaultShininess]
     change: chVisibleNonGeometry
   MFFloat [in,out] transparency [TMaterialInfo.DefaultTransparency]
-    change: chAlphaChannel
   MFFloat [in,out] mirror [0.0]
     change: chVisibleNonGeometry
   MFColor [in,out] reflSpecular []

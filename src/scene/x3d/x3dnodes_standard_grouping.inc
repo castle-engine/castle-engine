@@ -671,7 +671,7 @@ end;
   that are relevant for ROUTEs unique).
 
   Disabled by default now, as it seemed too spammy, e.g. in case of glTF models in
-  examples/viewport_and_scenes/occlusion_query/ .
+  examples/viewport_and_scenes/occlusion_culling/ .
   And it's also not that critical for usual case,
   it only matters if someone wants to access renamed nodes using FindNode.
 }

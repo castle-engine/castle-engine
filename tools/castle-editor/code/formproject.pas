@@ -32,7 +32,7 @@ uses
   AnchorDocking, XMLPropStorage, ImgList,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
-  DataModuleIcons,
+  DataModuleIcons, CastleClassUtils,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
   ToolPackageFormat;
 
@@ -81,7 +81,6 @@ type
     ActionComponentCopy: TAction;
     ActionViewportToggleProjection: TAction;
     ActionViewportSetup2D: TAction;
-    ActionViewportSort2D: TAction;
     ActionViewportAlignCameraToView: TAction;
     ActionViewportTop: TAction;
     ActionNavigationToggle2D: TAction;
@@ -168,7 +167,6 @@ type
     MenuItem20: TMenuItem;
     Separator4: TMenuItem;
     MenuItem18: TMenuItem;
-    MenuItem19: TMenuItem;
     MenuItem2: TMenuItem;
     Separator2: TMenuItem;
     MenuItem13: TMenuItem;
@@ -395,7 +393,6 @@ type
     procedure ActionViewportLeftExecute(Sender: TObject);
     procedure ActionViewportRightExecute(Sender: TObject);
     procedure ActionViewportSetup2DExecute(Sender: TObject);
-    procedure ActionViewportSort2DExecute(Sender: TObject);
     procedure ActionViewportTopExecute(Sender: TObject);
     procedure ActionViewportViewAllExecute(Sender: TObject);
     procedure ActionViewportViewSelectedExecute(Sender: TObject);
@@ -494,6 +491,7 @@ type
       OutputList: TOutputList;
       RunningProcess: TAsynchronousProcessQueue;
       Design: TDesignFrame;
+      DesignObserver: TFreeNotificationObserver;
       ShellListView1: TCastleShellListView;
       ShellTreeView1: TCastleShellTreeView;
       ViewFileFrame: TViewFileFrame;
@@ -585,6 +583,7 @@ type
     { Question about saving during physics simulation. }
     function SaveDuringPhysicsSimulation: Boolean;
     function IsCreatingNewDesignAvailable: Boolean;
+    procedure DesignObserverFreeNotification(const Sender: TFreeNotificationObserver);
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -610,11 +609,22 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  CastleClassUtils, CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
+  CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
   ToolFpcVersion;
+
+{$ifdef LCLGTK2}
+  { TODO:
+    LCL on GTK2 has random crashes at TProjectForm freeing
+    (from Application.ReleaseComponents).
+    The current workaround is rather brutal but effective,
+    we let old TProjectForm instances leak (but we free Design with
+    really heavy resources),
+    and we close with Halt. }
+  {$define CASTLE_CLOSE_HACK}
+{$endif}
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -625,7 +635,13 @@ begin
   end;
 
   if ProposeSaveDesign then
+  begin
+    {$ifdef CASTLE_CLOSE_HACK}
+    Halt;
+    {$else}
     Application.Terminate;
+    {$endif}
+  end;
 end;
 
 procedure TProjectForm.MenuItemReferenceClick(Sender: TObject);
@@ -803,6 +819,11 @@ end;
 procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   SaveDockLayout;
+  {$ifdef CASTLE_CLOSE_HACK}
+  // TODO: Hack to avoid LCL crashes. Memory will leak
+  // (trying to manually free ProjectForm from ChooseProjectForm would also crash).
+  CloseAction := caHide;
+  {$endif}
 end;
 
 procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
@@ -1291,12 +1312,6 @@ begin
     Design.ViewportSetup2D;
 end;
 
-procedure TProjectForm.ActionViewportSort2DExecute(Sender: TObject);
-begin
-  if Design <> nil then
-    Design.ViewportSort(bs2D);
-end;
-
 procedure TProjectForm.ActionViewportTopExecute(Sender: TObject);
 begin
   if Design <> nil then
@@ -1715,6 +1730,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 var
   EnableDocking: Boolean;
 begin
+  DesignObserver := TFreeNotificationObserver.Create(Self);
+  DesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif} DesignObserverFreeNotification;
   EnableDocking := URIFileExists(ApplicationConfig('enable-docking.txt'));
   MenuItemWindow.SetEnabledVisible(EnableDocking);
   Docking := EnableDocking and UserConfig.GetValue('ProjectForm_Docking', false);
@@ -1826,6 +1843,12 @@ begin
   FreeAndNil(DesignWarningsForm);
   FreeAndNil(PlatformsInfo);
   FreeAndNil(ListOpenExistingViewStr);
+end;
+
+procedure TProjectForm.DesignObserverFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  // set property to nil when the referenced component is freed
+  Design := nil;
 end;
 
 procedure TProjectForm.FormHide(Sender: TObject);
@@ -2377,6 +2400,19 @@ begin
 
   if Design = nil then
     ListOpenExistingViewRefresh;
+
+  { Synchronize action state with new design.
+    Testcase:
+    - open project
+    - open design
+    - toggle "Show Colliders" to true by clicking in menu
+    - close design
+    - open design again
+    - -> desired effect: "Show Colliders" is synchronized with Design.ShowColliders,
+      which means it is reset to false now.
+  }
+  if Design <> nil then
+    ActionShowColliders.Checked := Design.ShowColliders;
 end;
 
 procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
@@ -2396,6 +2432,7 @@ begin
   if Design = nil then
   begin
     Design := TDesignFrame.Create(Self);
+    DesignObserver.Observed := Design;
     Design.Parent := PanelAboveTabs;
     Design.Align := alClient;
     Design.OnUpdateFormCaption := @UpdateFormCaption;
@@ -2585,8 +2622,11 @@ procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
       if not Form.CloseQuery then
         Exit(false);
       Form.Close; // not needed on GTK2, maybe add ifdef?
+      // Calling Release seems safer than FreeAndNil(Form) below,
+      // though tests didn't actually show any difference now.
+      Form.Release;
     end;
-    FreeAndNil(Form);
+    //FreeAndNil(Form);
   end;
 
 begin
@@ -2607,7 +2647,22 @@ begin
     if not HandleNonModalAssociatedForm(TForm(ImportSketchfabForm)) then
       Exit;
 
+    {$ifdef CASTLE_CLOSE_HACK}
+    if Design <> nil then
+    begin
+      FreeAndNil(Design);
+      DesignExistenceChanged;
+    end;
+
+    { Call Close, not Release.
+     Avoids crashes on closing sometimes.
+     Testcase: open escape-universe, open loading design, "Close and SWitch Project". }
+    OnCloseQuery := nil;
+    Close;
+    {$else}
     Release; // do not call MenuItemDesignClose, to avoid OnCloseQuery
+    {$endif}
+
     ChooseProjectForm.Show;
   end;
 end;

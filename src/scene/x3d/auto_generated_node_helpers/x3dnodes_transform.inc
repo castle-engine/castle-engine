@@ -35,35 +35,36 @@
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
+    { Internal wrapper for property @code(Center). This wrapper API may change, we advise to access simpler @code(Center) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCenter: TSFVec3f read FFdCenter;
     { Center point around which the @link(Rotation) and @link(Scale) is performed. }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdRotation: TSFRotation;
-    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
+    { Internal wrapper for property @code(Rotation). This wrapper API may change, we advise to access simpler @code(Rotation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRotation: TSFRotation read FFdRotation;
     { Rotate children in 3D, around a specified axis. Rotation is expressed as a 4D vector, in which the first 3 components specify the rotation axis (does not need to be normalized, but must be non-zero) and the last component is the rotation angle @italic(in radians). Rotation is done around @link(Center). }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
+    { Internal wrapper for property @code(Scale). This wrapper API may change, we advise to access simpler @code(Scale) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScale: TSFVec3f read FFdScale;
     { Scale in 3D. Scaling is done around @link(Center) and with orientation given by @link(ScaleOrientation). Note about negative scale: We do the best we can to work with @italic(any) scale value, even negative or zero. But usually, it's best to keep the scale positive. See the @link(TCastleTransform.Scale) documentation for some good guidelines about the scale. }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdScaleOrientation: TSFRotation;
-    { Internal wrapper for property @link(ScaleOrientation). This wrapper API may change, we advise to access simpler @link(ScaleOrientation) instead. }
+    { Internal wrapper for property @code(ScaleOrientation). This wrapper API may change, we advise to access simpler @code(ScaleOrientation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     { Orientation in which 3D @link(Scale) is performed. }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
 
     strict private FFdTranslation: TSFVec3f;
-    { Internal wrapper for property @link(Translation). This wrapper API may change, we advise to access simpler @link(Translation) instead. }
+    { Internal wrapper for property @code(Translation). This wrapper API may change, we advise to access simpler @code(Translation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTranslation: TSFVec3f read FFdTranslation;
     { Translation (move) the children nodes. }
     property Translation: TVector3 read GetTranslation write SetTranslation;

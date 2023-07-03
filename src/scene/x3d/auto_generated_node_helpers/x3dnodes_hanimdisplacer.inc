@@ -31,11 +31,12 @@
     function GetWeight: Single;
     procedure SetWeight(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdCoordIndex: TMFInt32;
-    { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
+    { Internal wrapper for property @code(CoordIndex). This wrapper API may change, we advise to access simpler @code(CoordIndex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     {  }
     procedure SetCoordIndex(const Value: array of Int32); overload;
@@ -43,13 +44,13 @@
     procedure SetCoordIndex(const Value: TInt32List); overload;
 
     strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdDisplacements: TMFVec3f;
-    { Internal wrapper for property @link(Displacements). This wrapper API may change, we advise to access simpler @link(Displacements) instead. }
+    { Internal wrapper for property @code(Displacements). This wrapper API may change, we advise to access simpler @code(Displacements) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDisplacements: TMFVec3f read FFdDisplacements;
     {  }
     procedure SetDisplacements(const Value: array of TVector3); overload;
@@ -57,13 +58,13 @@
     procedure SetDisplacements(const Value: TVector3List); overload;
 
     strict private FFdName: TSFString;
-    { Internal wrapper for property @link(NameField). This wrapper API may change, we advise to access simpler @link(NameField) instead. }
+    { Internal wrapper for property @code(NameField). This wrapper API may change, we advise to access simpler @code(NameField) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdName: TSFString read FFdName;
     {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdWeight: TSFFloat;
-    { Internal wrapper for property @link(Weight). This wrapper API may change, we advise to access simpler @link(Weight) instead. }
+    { Internal wrapper for property @code(Weight). This wrapper API may change, we advise to access simpler @code(Weight) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWeight: TSFFloat read FFdWeight;
     {  }
     property Weight: Single read GetWeight write SetWeight;

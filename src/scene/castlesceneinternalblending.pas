@@ -25,14 +25,23 @@ uses CastleSceneCore, CastleGLUtils, CastleShapes, CastleSceneInternalShape,
   CastleRenderOptions;
 
 type
+  { Render shapes with blending.
+
+    OpenGL state of glDepthMask (RenderContext.DepthBufferUpdate),
+    and blending (RenderContext.BlendingEnable, RenderContext.BlendingDisable)
+    are controlled by this function. This function will unconditionally
+    change (and restore later to original value) this state,
+    to perform correct blending (transparency rendering).
+
+    To make a correct rendering, always
+    render transparent shapes at the end (after all opaque). }
   TBlendingRenderer = class
   private
-    SceneCore: TCastleSceneCore;
     Active: Boolean; //< between RenderBegin and RenderEnd
     function DefaultSourceFactor: TBlendingSourceFactor;
     function DefaultDestinationFactor: TBlendingDestinationFactor;
   public
-    constructor Create(const AScene: TCastleSceneCore);
+    constructor Create;
 
     { Start rendering shapes with blending. }
     procedure RenderBegin;
@@ -45,7 +54,8 @@ type
       and this Shape uses blending,
       then determine what blending source/destination factors
       to use for rendering Shape, and set OpenGL state like glBlendFunc. }
-    procedure BeforeRenderShape(const Shape: TGLShape);
+    procedure BeforeRenderShape(const Shape: TGLShape;
+      const RenderOptions: TCastleRenderOptions);
   end;
 
 { Fill a TShapeList with only opaque (UseBlending = @false) or
@@ -60,24 +70,24 @@ implementation
 
 uses SysUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleLog, X3DNodes, CastleScene, CastleTimeUtils, CastleRenderContext;
+  CastleLog, X3DNodes, CastleScene, CastleTimeUtils, CastleRenderContext,
+  CastleColors, CastleVectors;
 
 { TBlendingRenderer ---------------------------------------------------------- }
 
-constructor TBlendingRenderer.Create(const AScene: TCastleSceneCore);
+constructor TBlendingRenderer.Create;
 begin
   inherited Create;
-  SceneCore := AScene;
 end;
 
 function TBlendingRenderer.DefaultSourceFactor: TBlendingSourceFactor;
 begin
-  Result := TCastleScene(SceneCore).RenderOptions.BlendingSourceFactor;
+  Result := TCastleRenderOptions.DefaultBlendingSourceFactor;
 end;
 
 function TBlendingRenderer.DefaultDestinationFactor: TBlendingDestinationFactor;
 begin
-  Result := TCastleScene(SceneCore).RenderOptions.BlendingDestinationFactor;
+  Result := TCastleRenderOptions.DefaultBlendingDestinationFactor;
 end;
 
 procedure TBlendingRenderer.RenderBegin;
@@ -99,7 +109,8 @@ begin
   RenderContext.BlendingDisable;
 end;
 
-procedure TBlendingRenderer.BeforeRenderShape(const Shape: TGLShape);
+procedure TBlendingRenderer.BeforeRenderShape(const Shape: TGLShape;
+  const RenderOptions: TCastleRenderOptions);
 
 { Looks at Scene.RenderOptions.BlendingXxx and Appearance.BlendMode of X3D node.
   If different than currently set, then changes blending mode. }
@@ -113,9 +124,9 @@ var
   B: TBlendModeNode;
   NewSrc: TBlendingSourceFactor;
   NewDest: TBlendingDestinationFactor;
-  NeedsConstColor, NeedsConstAlpha: Boolean;
+  NewConstColor: TCastleColor;
 begin
-  if not (Active and Shape.UseBlending) then
+  if not Active then
     Exit;
 
   B := Shape.State.BlendMode;
@@ -123,36 +134,23 @@ begin
   begin
     NewSrc := B.SrcFactor;
     NewDest := B.DestFactor;
-    NeedsConstColor := (NewSrc in SrcConstColor) or (NewDest in DestConstColor);
-    NeedsConstAlpha := (NewSrc in SrcConstAlpha) or (NewDest in DestConstAlpha);
+    NewConstColor := Vector4(B.FdColor.Value, 1 - B.FdColorTransparency.Value);
   end else
   begin
-    NewSrc := DefaultSourceFactor;
-    NewDest := DefaultDestinationFactor;
-    NeedsConstColor := false;
-    NeedsConstAlpha := false;
+    NewSrc := RenderOptions.BlendingSourceFactor;
+    NewDest := RenderOptions.BlendingDestinationFactor;
+    NewConstColor := White;
   end;
 
   RenderContext.BlendingEnable(NewSrc, NewDest);
 
   { We track last source/dest factor, but we don't track last constant color/alpha.
     So just set them always, if needed. }
-  if GLFeatures.BlendConstant then
+  if ( (NewSrc in SrcConstColor) or (NewDest in DestConstColor) or
+       (NewSrc in SrcConstAlpha) or (NewDest in DestConstAlpha) ) and
+     GLFeatures.BlendConstant then
   begin
-    if NeedsConstColor then
-    begin
-      Assert(B <> nil);
-      glBlendColor(
-        B.FdColor.Value[0],
-        B.FdColor.Value[1],
-        B.FdColor.Value[2],
-        1 - B.FdColorTransparency.Value);
-    end else
-    if NeedsConstAlpha then
-    begin
-      Assert(B <> nil);
-      glBlendColor(0, 0, 0, 1 - B.FdColorTransparency.Value);
-    end;
+    glBlendColor(NewConstColor.X, NewConstColor.Y, NewConstColor.Z, NewConstColor.W);
   end;
 end;
 

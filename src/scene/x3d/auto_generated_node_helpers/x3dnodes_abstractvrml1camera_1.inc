@@ -33,30 +33,31 @@
     function GetFarDistance: Single;
     procedure SetFarDistance(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdPosition: TSFVec3f;
-    { Internal wrapper for property @link(Position). This wrapper API may change, we advise to access simpler @link(Position) instead. }
+    { Internal wrapper for property @code(Position). This wrapper API may change, we advise to access simpler @code(Position) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPosition: TSFVec3f read FFdPosition;
     {  }
     property Position: TVector3 read GetPosition write SetPosition;
 
     strict private FFdFocalDistance: TSFFloat;
-    { Internal wrapper for property @link(FocalDistance). This wrapper API may change, we advise to access simpler @link(FocalDistance) instead. }
+    { Internal wrapper for property @code(FocalDistance). This wrapper API may change, we advise to access simpler @code(FocalDistance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFocalDistance: TSFFloat read FFdFocalDistance;
     {  }
     property FocalDistance: Single read GetFocalDistance write SetFocalDistance;
 
     strict private FFdNearDistance: TSFFloat;
-    { Internal wrapper for property @link(NearDistance). This wrapper API may change, we advise to access simpler @link(NearDistance) instead. }
+    { Internal wrapper for property @code(NearDistance). This wrapper API may change, we advise to access simpler @code(NearDistance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNearDistance: TSFFloat read FFdNearDistance;
     { Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ . }
     property NearDistance: Single read GetNearDistance write SetNearDistance;
 
     strict private FFdFarDistance: TSFFloat;
-    { Internal wrapper for property @link(FarDistance). This wrapper API may change, we advise to access simpler @link(FarDistance) instead. }
+    { Internal wrapper for property @code(FarDistance). This wrapper API may change, we advise to access simpler @code(FarDistance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFarDistance: TSFFloat read FFdFarDistance;
     { Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ . }
     property FarDistance: Single read GetFarDistance write SetFarDistance;

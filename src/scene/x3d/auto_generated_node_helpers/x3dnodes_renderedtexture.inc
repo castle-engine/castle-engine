@@ -45,37 +45,38 @@
     function GetTriggerName: String;
     procedure SetTriggerName(const Value: String);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdBackground: TSFNode;
-    { Internal wrapper for property @link(Background). This wrapper API may change, we advise to access simpler @link(Background) instead. }
+    { Internal wrapper for property @code(Background). This wrapper API may change, we advise to access simpler @code(Background) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBackground: TSFNode read FFdBackground;
     {  }
     property Background: TAbstractBackgroundNode read GetBackground write SetBackground;
 
     strict private FFdFog: TSFNode;
-    { Internal wrapper for property @link(Fog). This wrapper API may change, we advise to access simpler @link(Fog) instead. }
+    { Internal wrapper for property @code(Fog). This wrapper API may change, we advise to access simpler @code(Fog) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFog: TSFNode read FFdFog;
     {  }
     property Fog: TFogNode read GetFog write SetFog;
 
     strict private FFdEnvironment: TSFNode;
-    { Internal wrapper for property @link(Environment). This wrapper API may change, we advise to access simpler @link(Environment) instead. }
+    { Internal wrapper for property @code(Environment). This wrapper API may change, we advise to access simpler @code(Environment) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnvironment: TSFNode read FFdEnvironment;
 
     strict private FFdScene: TSFNode;
-    { Internal wrapper for property @link(Scene). This wrapper API may change, we advise to access simpler @link(Scene) instead. }
+    { Internal wrapper for property @code(Scene). This wrapper API may change, we advise to access simpler @code(Scene) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScene: TSFNode read FFdScene;
     {  }
     property Scene: TAbstractNode read GetScene write SetScene;
 
     strict private FFdForeground: TSFNode;
-    { Internal wrapper for property @link(Foreground). This wrapper API may change, we advise to access simpler @link(Foreground) instead. }
+    { Internal wrapper for property @code(Foreground). This wrapper API may change, we advise to access simpler @code(Foreground) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdForeground: TSFNode read FFdForeground;
 
     strict private FFdDimensions: TMFInt32;
-    { Internal wrapper for property @link(Dimensions). This wrapper API may change, we advise to access simpler @link(Dimensions) instead. }
+    { Internal wrapper for property @code(Dimensions). This wrapper API may change, we advise to access simpler @code(Dimensions) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDimensions: TMFInt32 read FFdDimensions;
     {  }
     procedure SetDimensions(const Value: array of Int32); overload;
@@ -83,41 +84,41 @@
     procedure SetDimensions(const Value: TInt32List); overload;
 
     strict private FFdUpdate: TSFStringEnum;
-    { Internal wrapper for property @link(Update). This wrapper API may change, we advise to access simpler @link(Update) instead. }
+    { Internal wrapper for property @code(Update). This wrapper API may change, we advise to access simpler @code(Update) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUpdate: TSFStringEnum read FFdUpdate;
     { When to update the texture contents. }
     property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     strict private FFdViewpoint: TSFNode;
-    { Internal wrapper for property @link(Viewpoint). This wrapper API may change, we advise to access simpler @link(Viewpoint) instead. }
+    { Internal wrapper for property @code(Viewpoint). This wrapper API may change, we advise to access simpler @code(Viewpoint) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdViewpoint: TSFNode read FFdViewpoint;
 
     strict private FFdTextureProperties: TSFNode;
-    { Internal wrapper for property @link(TextureProperties). This wrapper API may change, we advise to access simpler @link(TextureProperties) instead. }
+    { Internal wrapper for property @code(TextureProperties). This wrapper API may change, we advise to access simpler @code(TextureProperties) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
     strict private FFdRepeatS: TSFBool;
-    { Internal wrapper for property @link(RepeatS). This wrapper API may change, we advise to access simpler @link(RepeatS) instead. }
+    { Internal wrapper for property @code(RepeatS). This wrapper API may change, we advise to access simpler @code(RepeatS) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRepeatS: TSFBool read FFdRepeatS;
     {  }
     property RepeatS: Boolean read GetRepeatS write SetRepeatS;
 
     strict private FFdRepeatT: TSFBool;
-    { Internal wrapper for property @link(RepeatT). This wrapper API may change, we advise to access simpler @link(RepeatT) instead. }
+    { Internal wrapper for property @code(RepeatT). This wrapper API may change, we advise to access simpler @code(RepeatT) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRepeatT: TSFBool read FFdRepeatT;
     {  }
     property RepeatT: Boolean read GetRepeatT write SetRepeatT;
 
     strict private FFdRepeatR: TSFBool;
-    { Internal wrapper for property @link(RepeatR). This wrapper API may change, we advise to access simpler @link(RepeatR) instead. }
+    { Internal wrapper for property @code(RepeatR). This wrapper API may change, we advise to access simpler @code(RepeatR) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRepeatR: TSFBool read FFdRepeatR;
     {  }
     property RepeatR: Boolean read GetRepeatR write SetRepeatR;
 
     strict private FFdDepthMap: TMFBool;
-    { Internal wrapper for property @link(DepthMap). This wrapper API may change, we advise to access simpler @link(DepthMap) instead. }
+    { Internal wrapper for property @code(DepthMap). This wrapper API may change, we advise to access simpler @code(DepthMap) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDepthMap: TMFBool read FFdDepthMap;
     {  }
     procedure SetDepthMap(const Value: array of boolean); overload;
@@ -125,7 +126,7 @@
     procedure SetDepthMap(const Value: TBooleanList); overload;
 
     strict private FFdZOffset: TMFInt32;
-    { Internal wrapper for property @link(ZOffset). This wrapper API may change, we advise to access simpler @link(ZOffset) instead. }
+    { Internal wrapper for property @code(ZOffset). This wrapper API may change, we advise to access simpler @code(ZOffset) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdZOffset: TMFInt32 read FFdZOffset;
     {  }
     procedure SetZOffset(const Value: array of Int32); overload;
@@ -133,7 +134,7 @@
     procedure SetZOffset(const Value: TInt32List); overload;
 
     strict private FFdTargets: TMFNode;
-    { Internal wrapper for property @link(Targets). This wrapper API may change, we advise to access simpler @link(Targets) instead. }
+    { Internal wrapper for property @code(Targets). This wrapper API may change, we advise to access simpler @code(Targets) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTargets: TMFNode read FFdTargets;
     {  }
     procedure SetTargets(const Value: array of TAbstractTextureNode);
@@ -147,17 +148,17 @@
     public property EventProjection: TSFMatrix4fEvent read FEventProjection;
 
     strict private FFdFrameBufferMode: TSFString;
-    { Internal wrapper for property @link(FrameBufferMode). This wrapper API may change, we advise to access simpler @link(FrameBufferMode) instead. }
+    { Internal wrapper for property @code(FrameBufferMode). This wrapper API may change, we advise to access simpler @code(FrameBufferMode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFrameBufferMode: TSFString read FFdFrameBufferMode;
     {  }
     property FrameBufferMode: String read GetFrameBufferMode write SetFrameBufferMode;
 
     strict private FFdExcludeNodes: TMFNode;
-    { Internal wrapper for property @link(ExcludeNodes). This wrapper API may change, we advise to access simpler @link(ExcludeNodes) instead. }
+    { Internal wrapper for property @code(ExcludeNodes). This wrapper API may change, we advise to access simpler @code(ExcludeNodes) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdExcludeNodes: TMFNode read FFdExcludeNodes;
 
     strict private FFdTriggerName: TSFString;
-    { Internal wrapper for property @link(TriggerName). This wrapper API may change, we advise to access simpler @link(TriggerName) instead. }
+    { Internal wrapper for property @code(TriggerName). This wrapper API may change, we advise to access simpler @code(TriggerName) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTriggerName: TSFString read FFdTriggerName;
     {  }
     property TriggerName: String read GetTriggerName write SetTriggerName;

@@ -27,11 +27,12 @@
     function GetMatrix: TMatrix4;
     procedure SetMatrix(const Value: TMatrix4);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdMatrix: TSFMatrix4f;
-    { Internal wrapper for property @link(Matrix). This wrapper API may change, we advise to access simpler @link(Matrix) instead. }
+    { Internal wrapper for property @code(Matrix). This wrapper API may change, we advise to access simpler @code(Matrix) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
     {  }
     property Matrix: TMatrix4 read GetMatrix write SetMatrix;

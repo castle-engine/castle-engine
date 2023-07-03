@@ -24,11 +24,12 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdPoint: TMFVec3f;
-    { Internal wrapper for property @link(Point). This wrapper API may change, we advise to access simpler @link(Point) instead. }
+    { Internal wrapper for property @code(Point). This wrapper API may change, we advise to access simpler @code(Point) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPoint: TMFVec3f read FFdPoint;
     {  }
     procedure SetPoint(const Value: array of TVector3); overload;

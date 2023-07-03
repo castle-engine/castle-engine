@@ -24,11 +24,12 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdReplaceNames: TMFString;
-    { Internal wrapper for property @link(ReplaceNames). This wrapper API may change, we advise to access simpler @link(ReplaceNames) instead. }
+    { Internal wrapper for property @code(ReplaceNames). This wrapper API may change, we advise to access simpler @code(ReplaceNames) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdReplaceNames: TMFString read FFdReplaceNames;
     {  }
     procedure SetReplaceNames(const Value: array of string); overload;
@@ -36,7 +37,7 @@
     procedure SetReplaceNames(const Value: TCastleStringList); overload;
 
     strict private FFdReplaceNodes: TMFNode;
-    { Internal wrapper for property @link(ReplaceNodes). This wrapper API may change, we advise to access simpler @link(ReplaceNodes) instead. }
+    { Internal wrapper for property @code(ReplaceNodes). This wrapper API may change, we advise to access simpler @code(ReplaceNodes) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdReplaceNodes: TMFNode read FFdReplaceNodes;
     {  }
     procedure SetReplaceNodes(const Value: array of TAbstractNode);

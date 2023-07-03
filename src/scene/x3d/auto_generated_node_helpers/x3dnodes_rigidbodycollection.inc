@@ -51,6 +51,7 @@
     function GetCollider: TCollisionCollectionNode;
     procedure SetCollider(const Value: TCollisionCollectionNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -59,91 +60,91 @@
     public property EventSet_contacts: TMFNodeEvent read FEventSet_contacts;
 
     strict private FFdAutoDisable: TSFBool;
-    { Internal wrapper for property @link(AutoDisable). This wrapper API may change, we advise to access simpler @link(AutoDisable) instead. }
+    { Internal wrapper for property @code(AutoDisable). This wrapper API may change, we advise to access simpler @code(AutoDisable) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAutoDisable: TSFBool read FFdAutoDisable;
     {  }
     property AutoDisable: Boolean read GetAutoDisable write SetAutoDisable;
 
     strict private FFdBodies: TMFNode;
-    { Internal wrapper for property @link(Bodies). This wrapper API may change, we advise to access simpler @link(Bodies) instead. }
+    { Internal wrapper for property @code(Bodies). This wrapper API may change, we advise to access simpler @code(Bodies) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBodies: TMFNode read FFdBodies;
     {  }
     procedure SetBodies(const Value: array of TRigidBodyNode);
 
     strict private FFdConstantForceMix: TSFFloat;
-    { Internal wrapper for property @link(ConstantForceMix). This wrapper API may change, we advise to access simpler @link(ConstantForceMix) instead. }
+    { Internal wrapper for property @code(ConstantForceMix). This wrapper API may change, we advise to access simpler @code(ConstantForceMix) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdConstantForceMix: TSFFloat read FFdConstantForceMix;
     {  }
     property ConstantForceMix: Single read GetConstantForceMix write SetConstantForceMix;
 
     strict private FFdContactSurfaceThickness: TSFFloat;
-    { Internal wrapper for property @link(ContactSurfaceThickness). This wrapper API may change, we advise to access simpler @link(ContactSurfaceThickness) instead. }
+    { Internal wrapper for property @code(ContactSurfaceThickness). This wrapper API may change, we advise to access simpler @code(ContactSurfaceThickness) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdContactSurfaceThickness: TSFFloat read FFdContactSurfaceThickness;
     {  }
     property ContactSurfaceThickness: Single read GetContactSurfaceThickness write SetContactSurfaceThickness;
 
     strict private FFdDisableAngularSpeed: TSFFloat;
-    { Internal wrapper for property @link(DisableAngularSpeed). This wrapper API may change, we advise to access simpler @link(DisableAngularSpeed) instead. }
+    { Internal wrapper for property @code(DisableAngularSpeed). This wrapper API may change, we advise to access simpler @code(DisableAngularSpeed) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDisableAngularSpeed: TSFFloat read FFdDisableAngularSpeed;
     {  }
     property DisableAngularSpeed: Single read GetDisableAngularSpeed write SetDisableAngularSpeed;
 
     strict private FFdDisableLinearSpeed: TSFFloat;
-    { Internal wrapper for property @link(DisableLinearSpeed). This wrapper API may change, we advise to access simpler @link(DisableLinearSpeed) instead. }
+    { Internal wrapper for property @code(DisableLinearSpeed). This wrapper API may change, we advise to access simpler @code(DisableLinearSpeed) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDisableLinearSpeed: TSFFloat read FFdDisableLinearSpeed;
     {  }
     property DisableLinearSpeed: Single read GetDisableLinearSpeed write SetDisableLinearSpeed;
 
     strict private FFdDisableTime: TSFFloat;
-    { Internal wrapper for property @link(DisableTime). This wrapper API may change, we advise to access simpler @link(DisableTime) instead. }
+    { Internal wrapper for property @code(DisableTime). This wrapper API may change, we advise to access simpler @code(DisableTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDisableTime: TSFFloat read FFdDisableTime;
     {  }
     property DisableTime: Single read GetDisableTime write SetDisableTime;
 
     strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
+    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdErrorCorrection: TSFFloat;
-    { Internal wrapper for property @link(ErrorCorrection). This wrapper API may change, we advise to access simpler @link(ErrorCorrection) instead. }
+    { Internal wrapper for property @code(ErrorCorrection). This wrapper API may change, we advise to access simpler @code(ErrorCorrection) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdErrorCorrection: TSFFloat read FFdErrorCorrection;
     {  }
     property ErrorCorrection: Single read GetErrorCorrection write SetErrorCorrection;
 
     strict private FFdGravity: TSFVec3f;
-    { Internal wrapper for property @link(Gravity). This wrapper API may change, we advise to access simpler @link(Gravity) instead. }
+    { Internal wrapper for property @code(Gravity). This wrapper API may change, we advise to access simpler @code(Gravity) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGravity: TSFVec3f read FFdGravity;
     {  }
     property Gravity: TVector3 read GetGravity write SetGravity;
 
     strict private FFdIterations: TSFInt32;
-    { Internal wrapper for property @link(Iterations). This wrapper API may change, we advise to access simpler @link(Iterations) instead. }
+    { Internal wrapper for property @code(Iterations). This wrapper API may change, we advise to access simpler @code(Iterations) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdIterations: TSFInt32 read FFdIterations;
     {  }
     property Iterations: Integer read GetIterations write SetIterations;
 
     strict private FFdJoints: TMFNode;
-    { Internal wrapper for property @link(Joints). This wrapper API may change, we advise to access simpler @link(Joints) instead. }
+    { Internal wrapper for property @code(Joints). This wrapper API may change, we advise to access simpler @code(Joints) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdJoints: TMFNode read FFdJoints;
     {  }
     procedure SetJoints(const Value: array of TAbstractRigidJointNode);
 
     strict private FFdMaxCorrectionSpeed: TSFFloat;
-    { Internal wrapper for property @link(MaxCorrectionSpeed). This wrapper API may change, we advise to access simpler @link(MaxCorrectionSpeed) instead. }
+    { Internal wrapper for property @code(MaxCorrectionSpeed). This wrapper API may change, we advise to access simpler @code(MaxCorrectionSpeed) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMaxCorrectionSpeed: TSFFloat read FFdMaxCorrectionSpeed;
     {  }
     property MaxCorrectionSpeed: Single read GetMaxCorrectionSpeed write SetMaxCorrectionSpeed;
 
     strict private FFdPreferAccuracy: TSFBool;
-    { Internal wrapper for property @link(PreferAccuracy). This wrapper API may change, we advise to access simpler @link(PreferAccuracy) instead. }
+    { Internal wrapper for property @code(PreferAccuracy). This wrapper API may change, we advise to access simpler @code(PreferAccuracy) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPreferAccuracy: TSFBool read FFdPreferAccuracy;
     {  }
     property PreferAccuracy: Boolean read GetPreferAccuracy write SetPreferAccuracy;
 
     strict private FFdCollider: TSFNode;
-    { Internal wrapper for property @link(Collider). This wrapper API may change, we advise to access simpler @link(Collider) instead. }
+    { Internal wrapper for property @code(Collider). This wrapper API may change, we advise to access simpler @code(Collider) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCollider: TSFNode read FFdCollider;
     {  }
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;

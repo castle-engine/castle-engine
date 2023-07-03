@@ -29,12 +29,13 @@
     procedure SetMetadata(const Value: TAbstractMetadataNode);
 {$endif not CASTLE_SLIM_NODES}
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdMetadata: TSFNode;
-    { Internal wrapper for property @link(Metadata). This wrapper API may change, we advise to access simpler @link(Metadata) instead. }
+    { Internal wrapper for property @code(Metadata). This wrapper API may change, we advise to access simpler @code(Metadata) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMetadata: TSFNode read FFdMetadata;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}

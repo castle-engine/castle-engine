@@ -39,47 +39,48 @@
     function GetVolumetricVisibilityStart: Single;
     procedure SetVolumetricVisibilityStart(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdColor: TSFColor;
-    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
+    { Internal wrapper for property @code(Color). This wrapper API may change, we advise to access simpler @code(Color) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColor: TSFColor read FFdColor;
     {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
 
     strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
+    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdFogType: TSFStringEnum;
-    { Internal wrapper for property @link(FogType). This wrapper API may change, we advise to access simpler @link(FogType) instead. }
+    { Internal wrapper for property @code(FogType). This wrapper API may change, we advise to access simpler @code(FogType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFogType: TSFStringEnum read FFdFogType;
     {  }
     property FogType: TFogType read GetFogType write SetFogType;
 
     strict private FFdVisibilityRange: TSFFloat;
-    { Internal wrapper for property @link(VisibilityRange). This wrapper API may change, we advise to access simpler @link(VisibilityRange) instead. }
+    { Internal wrapper for property @code(VisibilityRange). This wrapper API may change, we advise to access simpler @code(VisibilityRange) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVisibilityRange: TSFFloat read FFdVisibilityRange;
     {  }
     property VisibilityRange: Single read GetVisibilityRange write SetVisibilityRange;
 
     strict private FFdVolumetric: TSFBool;
-    { Internal wrapper for property @link(Volumetric). This wrapper API may change, we advise to access simpler @link(Volumetric) instead. }
+    { Internal wrapper for property @code(Volumetric). This wrapper API may change, we advise to access simpler @code(Volumetric) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVolumetric: TSFBool read FFdVolumetric;
     { Activate volumetric fog, see https://castle-engine.io/x3d_extensions.php }
     property Volumetric: Boolean read GetVolumetric write SetVolumetric;
 
     strict private FFdVolumetricDirection: TSFVec3f;
-    { Internal wrapper for property @link(VolumetricDirection). This wrapper API may change, we advise to access simpler @link(VolumetricDirection) instead. }
+    { Internal wrapper for property @code(VolumetricDirection). This wrapper API may change, we advise to access simpler @code(VolumetricDirection) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVolumetricDirection: TSFVec3f read FFdVolumetricDirection;
     {  }
     property VolumetricDirection: TVector3 read GetVolumetricDirection write SetVolumetricDirection;
 
     strict private FFdVolumetricVisibilityStart: TSFFloat;
-    { Internal wrapper for property @link(VolumetricVisibilityStart). This wrapper API may change, we advise to access simpler @link(VolumetricVisibilityStart) instead. }
+    { Internal wrapper for property @code(VolumetricVisibilityStart). This wrapper API may change, we advise to access simpler @code(VolumetricVisibilityStart) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVolumetricVisibilityStart: TSFFloat read FFdVolumetricVisibilityStart;
     {  }
     property VolumetricVisibilityStart: Single read GetVolumetricVisibilityStart write SetVolumetricVisibilityStart;

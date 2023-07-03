@@ -31,23 +31,24 @@
     function GetProjectionLocation: TVector3;
     procedure SetProjectionLocation(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdDirection: TSFVec3f;
-    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
+    { Internal wrapper for property @code(Direction). This wrapper API may change, we advise to access simpler @code(Direction) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDirection: TSFVec3f read FFdDirection;
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdProjectionRectangle: TSFVec4f;
-    { Internal wrapper for property @link(ProjectionRectangle). This wrapper API may change, we advise to access simpler @link(ProjectionRectangle) instead. }
+    { Internal wrapper for property @code(ProjectionRectangle). This wrapper API may change, we advise to access simpler @code(ProjectionRectangle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdProjectionRectangle: TSFVec4f read FFdProjectionRectangle;
     {  }
     property ProjectionRectangle: TVector4 read GetProjectionRectangle write SetProjectionRectangle;
 
     strict private FFdProjectionLocation: TSFVec3f;
-    { Internal wrapper for property @link(ProjectionLocation). This wrapper API may change, we advise to access simpler @link(ProjectionLocation) instead. }
+    { Internal wrapper for property @code(ProjectionLocation). This wrapper API may change, we advise to access simpler @code(ProjectionLocation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdProjectionLocation: TSFVec3f read FFdProjectionLocation;
     {  }
     property ProjectionLocation: TVector3 read GetProjectionLocation write SetProjectionLocation;

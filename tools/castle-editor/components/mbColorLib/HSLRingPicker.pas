@@ -18,7 +18,7 @@ type
     FSLPicker: TSLColorPicker;
     FSelectedColor: TColor;
 //    FRValue, FGValue, FBValue: integer;
-    FRingHint, FSLHint: string;
+    FRingHint{, FSLHint}: string;
     FSLMenu, FRingMenu: TPopupMenu;
     FSLCursor, FRingCursor: TCursor;
     PBack: TBitmap;

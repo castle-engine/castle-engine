@@ -13,12 +13,25 @@
             "recursive": true,
             "filter": "*;*.*"
         }
-    ],
+    ]
+
+    /* Delphinus no longer installs CGE packages,
+       because Delphinus cannot cope with more than one design-time package.
+
+       See https://github.com/Memnarch/Delphinus/issues/93 .
+
+       And we really need more than 1 design-time package,
+       see https://github.com/castle-engine/castle-engine/issues/498 .
+       We need base package for both Win32 and Win64,
+       and design-time-only package for Win32.
+    */
+
+    /* ,
     "projects":
     [
         {
-            "project": "packages\\delphi\\castle_engine.dproj"
+            "project": "packages\\delphi\\AllPackages.groupproj"
         }
-    ]
+    ] */
 }
 

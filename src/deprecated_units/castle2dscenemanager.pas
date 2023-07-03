@@ -140,9 +140,8 @@ type
     property Transparent default true;
   end deprecated 'use TCastleViewport. To have the same initial behavior call Setup2D method, and set FullSize:=true, and set Transparent:=true';
 
-  { Scene best suited for 2D models. Sets BlendingSort := bs2D,
-    good when your transparent objects have proper order along the Z axis
-    (useful e.g. for Spine animations). }
+  { Scene best suited for 2D models.
+    Does nothing now (used to control blending sort in this scene). }
   TCastle2DScene = class(TCastleScene)
   public
     constructor Create(AOwner: TComponent); override;
@@ -279,7 +278,6 @@ end;
 constructor TCastle2DScene.Create(AOwner: TComponent);
 begin
   inherited;
-  Setup2D;
 end;
 
 function TCastle2DScene.Clone(const AOwner: TComponent): TCastle2DScene;

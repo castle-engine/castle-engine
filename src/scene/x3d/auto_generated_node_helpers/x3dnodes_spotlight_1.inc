@@ -31,24 +31,25 @@
     function GetCutOffAngle: Single;
     procedure SetCutOffAngle(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdDirection: TSFVec3f;
-    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
+    { Internal wrapper for property @code(Direction). This wrapper API may change, we advise to access simpler @code(Direction) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDirection: TSFVec3f read FFdDirection;
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdDropOffRate: TSFFloat;
-    { Internal wrapper for property @link(DropOffRate). This wrapper API may change, we advise to access simpler @link(DropOffRate) instead. }
+    { Internal wrapper for property @code(DropOffRate). This wrapper API may change, we advise to access simpler @code(DropOffRate) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDropOffRate: TSFFloat read FFdDropOffRate;
     {  }
     property DropOffRate: Single read GetDropOffRate write SetDropOffRate;
 
     strict private FFdCutOffAngle: TSFFloat;
-    { Internal wrapper for property @link(CutOffAngle). This wrapper API may change, we advise to access simpler @link(CutOffAngle) instead. }
+    { Internal wrapper for property @code(CutOffAngle). This wrapper API may change, we advise to access simpler @code(CutOffAngle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
     {  }
     property CutOffAngle: Single read GetCutOffAngle write SetCutOffAngle;

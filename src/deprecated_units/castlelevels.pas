@@ -774,7 +774,9 @@ end;
 
 function TLevel.PrepareParams: TPrepareParams;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := Viewport.PrepareParams;
+  {$warnings on}
 end;
 
 function TLevel.Placeholder(Shape: TShape; PlaceholderName: string): boolean;
@@ -1040,7 +1042,9 @@ begin
     be after loading Items.MainScene (because initial camera looks at Items.MainScene
     contents).
     It will show it's own progress bar. }
+  {$warnings off} // using deprecated in deprecated
   Info.LevelResources.Prepare(Viewport.PrepareParams);
+  {$warnings on}
   LevelResourcesPrepared := true;
   PreviousResources.Release;
   FreeAndNil(PreviousResources);
@@ -1506,7 +1510,9 @@ begin
   if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
     Include(Options, prShadowVolume);
 
+  {$warnings off} // using deprecated in deprecated
   Result.PrepareResources(Options, FLevel.PrepareParams);
+  {$warnings on}
 
   if PrepareForCollisions then
     Result.PreciseCollisions := true;

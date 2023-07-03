@@ -24,17 +24,18 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdShaders: TMFNode;
-    { Internal wrapper for property @link(Shaders). This wrapper API may change, we advise to access simpler @link(Shaders) instead. }
+    { Internal wrapper for property @code(Shaders). This wrapper API may change, we advise to access simpler @code(Shaders) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShaders: TMFNode read FFdShaders;
     { Shaders used to render background geometry. }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
 
     strict private FFdEffects: TMFNode;
-    { Internal wrapper for property @link(Effects). This wrapper API may change, we advise to access simpler @link(Effects) instead. }
+    { Internal wrapper for property @code(Effects). This wrapper API may change, we advise to access simpler @code(Effects) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEffects: TMFNode read FFdEffects;
     { Shader effects (see https://castle-engine.io/compositing_shaders.php) used to render background geometry. }
     procedure SetEffects(const Value: array of TEffectNode);

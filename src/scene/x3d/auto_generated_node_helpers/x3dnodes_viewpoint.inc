@@ -29,21 +29,22 @@
     function GetFieldOfViewForceVertical: Boolean;
     procedure SetFieldOfViewForceVertical(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdFieldOfView: TSFFloat;
-    { Internal wrapper for property @link(FieldOfView). This wrapper API may change, we advise to access simpler @link(FieldOfView) instead. }
+    { Internal wrapper for property @code(FieldOfView). This wrapper API may change, we advise to access simpler @code(FieldOfView) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
     {  }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
 
     strict private FFdPosition: TSFVec3f;
-    { Internal wrapper for property @link(Position). This wrapper API may change, we advise to access simpler @link(Position) instead. }
+    { Internal wrapper for property @code(Position). This wrapper API may change, we advise to access simpler @code(Position) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPosition: TSFVec3f read FFdPosition;
 
     strict private FFdFieldOfViewForceVertical: TSFBool;
-    { Internal wrapper for property @link(FieldOfViewForceVertical). This wrapper API may change, we advise to access simpler @link(FieldOfViewForceVertical) instead. }
+    { Internal wrapper for property @code(FieldOfViewForceVertical). This wrapper API may change, we advise to access simpler @code(FieldOfViewForceVertical) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFieldOfViewForceVertical: TSFBool read FFdFieldOfViewForceVertical;
     {  }
     property FieldOfViewForceVertical: Boolean read GetFieldOfViewForceVertical write SetFieldOfViewForceVertical;

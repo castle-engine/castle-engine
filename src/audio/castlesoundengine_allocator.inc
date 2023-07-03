@@ -87,44 +87,6 @@
     constructor Create;
     destructor Destroy; override;
 
-    procedure Refresh; deprecated 'this does not do anything now; refreshing is done automatically if you use CastleWindow unit (with TCastleApplication, TCastleWindow) or TCastleControl; in other cases, you shoud call ApplicationProperties._Update yourself';
-
-    { Load and save into the config file sound engine properties.
-      For example use with @link(UserConfig) to store sound preferences
-      along with other user preferences.
-      Everything is loaded / saved under the path "sound/" inside Config.
-
-      TSoundAllocator saves MinAllocatedSources, MaxAllocatedSources.
-      Descendant TSoundEngine additionally saves current Device, Enable
-      (unless Enable was set by @--no-sound command-line option).
-      Descendant TRepoSoundEngine additionally saves sound and music volume.
-
-      @deprecated This is deprecated, as in actual applications it is more
-      obvious to just load/save the necessary sound properties explicitly.
-      E.g. do this to load volume:
-
-      @longCode(#
-        Volume := UserConfig.GetFloat('sound/volume', 1.0);
-      #)
-
-      Do this to save volume:
-
-      @longCode(#
-        UserConfig.SetDeleteFloat('sound/volume', Volume, 1.0);
-      #)
-
-      This way you control which properties are saved.
-      E.g. in most cases you don't need to save MinAllocatedSources, MaxAllocatedSources
-      as most applications don't modify it.
-      And it is your choice how to save music volume
-      (in simplest case you can  just load/save @code(LoopingChannel[0].Volume),
-      if you use @code(LoopingChannel[0]) for the music track).
-
-      @groupBegin }
-    procedure LoadFromConfig(const Config: TCastleConfig); virtual; deprecated 'load sound properties explicitly from UserConfig';
-    procedure SaveToConfig(const Config: TCastleConfig); virtual; deprecated 'save sound properties explicitly to UserConfig';
-    { @groupEnd }
-
     { Minimum / maximum number of allocated sources.
       Always keep MinAllocatedSources <= MaxAllocatedSources.
 
@@ -171,20 +133,10 @@ begin
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
 
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} UseOpenALSoundBackend; {$endif}
-
-  // automatic loading/saving is more troublesome than it's worth
-  // Config.AddLoadListener(@LoadFromConfig);
-  // Config.AddSaveListener(@SaveToConfig);
 end;
 
 destructor TSoundAllocator.Destroy;
 begin
-  // automatic loading/saving is more troublesome than it's worth
-  // if Config <> nil then
-  // begin
-  //   Config.RemoveLoadListener(@LoadFromConfig);
-  //   Config.RemoveSaveListener(@SaveToConfig);
-  // end;
   FreeAndNil(Backend);
   inherited;
 end;
@@ -355,10 +307,6 @@ begin
   end;
 end;
 
-procedure TSoundAllocator.Refresh;
-begin
-end;
-
 procedure TSoundAllocator.Update(Sender: TObject);
 
   { Call Update on all sources, and detect unused sound sources. }
@@ -403,22 +351,6 @@ begin
     for I := 0 to FAllocatedSources.Count - 1 do
       if FAllocatedSources[I].Used then
         FAllocatedSources[I].Release;
-end;
-
-procedure TSoundAllocator.LoadFromConfig(const Config: TCastleConfig);
-begin
-  MinAllocatedSources := Config.GetValue(
-    'sound/allocated_sources/min', DefaultMinAllocatedSources);
-  MaxAllocatedSources := Config.GetValue(
-    'sound/allocated_sources/max', DefaultMaxAllocatedSources);
-end;
-
-procedure TSoundAllocator.SaveToConfig(const Config: TCastleConfig);
-begin
-  Config.SetDeleteValue('sound/allocated_sources/min',
-    MinAllocatedSources, DefaultMinAllocatedSources);
-  Config.SetDeleteValue('sound/allocated_sources/max',
-    MaxAllocatedSources, DefaultMaxAllocatedSources);
 end;
 
 {$endif read_implementation}

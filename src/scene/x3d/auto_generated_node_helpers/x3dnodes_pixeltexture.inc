@@ -24,11 +24,12 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdImage: TSFImage;
-    { Internal wrapper for property @link(Image). This wrapper API may change, we advise to access simpler @link(Image) instead. }
+    { Internal wrapper for property @code(Image). This wrapper API may change, we advise to access simpler @code(Image) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdImage: TSFImage read FFdImage;
 
 {$endif read_interface}

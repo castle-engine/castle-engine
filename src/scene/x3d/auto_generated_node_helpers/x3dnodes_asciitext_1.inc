@@ -27,12 +27,13 @@
     function GetSpacing: Single;
     procedure SetSpacing(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdString: TMFString;
-    { Internal wrapper for property @link(Text). This wrapper API may change, we advise to access simpler @link(Text) instead. }
+    { Internal wrapper for property @code(Text). This wrapper API may change, we advise to access simpler @code(Text) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdString: TMFString read FFdString;
     {  }
     procedure SetText(const Value: array of string); overload;
@@ -40,17 +41,17 @@
     procedure SetText(const Value: TCastleStringList); overload;
 
     strict private FFdSpacing: TSFFloat;
-    { Internal wrapper for property @link(Spacing). This wrapper API may change, we advise to access simpler @link(Spacing) instead. }
+    { Internal wrapper for property @code(Spacing). This wrapper API may change, we advise to access simpler @code(Spacing) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSpacing: TSFFloat read FFdSpacing;
     {  }
     property Spacing: Single read GetSpacing write SetSpacing;
 
     strict private FFdJustification: TSFEnum;
-    { Internal wrapper for property @link(Justification). This wrapper API may change, we advise to access simpler @link(Justification) instead. }
+    { Internal wrapper for property @code(Justification). This wrapper API may change, we advise to access simpler @code(Justification) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdJustification: TSFEnum read FFdJustification;
 
     strict private FFdWidth: TMFFloat;
-    { Internal wrapper for property @link(Width). This wrapper API may change, we advise to access simpler @link(Width) instead. }
+    { Internal wrapper for property @code(Width). This wrapper API may change, we advise to access simpler @code(Width) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWidth: TMFFloat read FFdWidth;
     {  }
     procedure SetWidth(const Value: array of Single); overload;

@@ -33,29 +33,30 @@
     function GetProjectionAngle: Single;
     procedure SetProjectionAngle(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdBeamWidth: TSFFloat;
-    { Internal wrapper for property @link(BeamWidth). This wrapper API may change, we advise to access simpler @link(BeamWidth) instead. }
+    { Internal wrapper for property @code(BeamWidth). This wrapper API may change, we advise to access simpler @code(BeamWidth) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBeamWidth: TSFFloat read FFdBeamWidth;
     {  }
     property BeamWidth: Single read GetBeamWidth write SetBeamWidth;
 
     strict private FFdCutOffAngle: TSFFloat;
-    { Internal wrapper for property @link(CutOffAngle). This wrapper API may change, we advise to access simpler @link(CutOffAngle) instead. }
+    { Internal wrapper for property @code(CutOffAngle). This wrapper API may change, we advise to access simpler @code(CutOffAngle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
     {  }
     property CutOffAngle: Single read GetCutOffAngle write SetCutOffAngle;
 
     strict private FFdDirection: TSFVec3f;
-    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
+    { Internal wrapper for property @code(Direction). This wrapper API may change, we advise to access simpler @code(Direction) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDirection: TSFVec3f read FFdDirection;
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdProjectionAngle: TSFFloat;
-    { Internal wrapper for property @link(ProjectionAngle). This wrapper API may change, we advise to access simpler @link(ProjectionAngle) instead. }
+    { Internal wrapper for property @code(ProjectionAngle). This wrapper API may change, we advise to access simpler @code(ProjectionAngle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
     {  }
     property ProjectionAngle: Single read GetProjectionAngle write SetProjectionAngle;

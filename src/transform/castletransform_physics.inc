@@ -1323,7 +1323,6 @@ begin
   Transform.Collides := false;
   Transform.Pickable := false;
   Transform.CastShadows := false;
-  Transform.ExcludeFromStatistics := true;
   Transform.InternalExcludeFromParentBoundingVolume := true;;
 end;
 
@@ -1621,7 +1620,12 @@ procedure TCastleCollider.UpdateVisualization;
 begin
   if FVisualizationParent <> nil then
   begin
-    FVisualizationParent.Translation := Translation;
+    { We need to multiply Translation * TotalScale,
+      testcases:
+      - "Show Colliders" on examples/physics/physics_test_scale_colliders/
+      - "Show Colliders" on TCastleBoxCollider with Size = (0.05 0.05 0.02)
+        and Translation = (0.00 0.02 0.00) }
+    FVisualizationParent.Translation := Translation * TotalScale;
     FVisualizationParent.Rotation := Rotation;
   end;
 end;
@@ -2018,7 +2022,7 @@ function TCastleCollider.PropertySections(
 begin
   if ArrayContainsString(PropertyName, [
      'Density', 'Friction', 'Mass', 'Restitution', 'SizeScale', 'LayerCollisions',
-     'LayerNames'
+     'LayerNames', 'RotationPersistent', 'TranslationPersistent'
      ]) then
     Result := [psBasic]
   else

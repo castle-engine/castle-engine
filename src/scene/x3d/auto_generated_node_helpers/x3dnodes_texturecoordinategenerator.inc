@@ -27,17 +27,18 @@
     function GetMode: String;
     procedure SetMode(const Value: String);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdMode: TSFString;
-    { Internal wrapper for property @link(Mode). This wrapper API may change, we advise to access simpler @link(Mode) instead. }
+    { Internal wrapper for property @code(Mode). This wrapper API may change, we advise to access simpler @code(Mode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMode: TSFString read FFdMode;
     {  }
     property Mode: String read GetMode write SetMode;
 
     strict private FFdParameter: TMFFloat;
-    { Internal wrapper for property @link(Parameter). This wrapper API may change, we advise to access simpler @link(Parameter) instead. }
+    { Internal wrapper for property @code(Parameter). This wrapper API may change, we advise to access simpler @code(Parameter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdParameter: TMFFloat read FFdParameter;
     {  }
     procedure SetParameter(const Value: array of Single); overload;
@@ -45,7 +46,7 @@
     procedure SetParameter(const Value: TSingleList); overload;
 
     strict private FFdProjectedLight: TSFNode;
-    { Internal wrapper for property @link(ProjectedLight). This wrapper API may change, we advise to access simpler @link(ProjectedLight) instead. }
+    { Internal wrapper for property @code(ProjectedLight). This wrapper API may change, we advise to access simpler @code(ProjectedLight) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdProjectedLight: TSFNode read FFdProjectedLight;
 
 {$endif read_interface}

@@ -95,26 +95,29 @@
     See https://castle-engine.io/x3d_extensions_screen_effects.php . }
   TScreenEffectNode = class(TAbstractChildNode)
   strict private
-    FShader: TObject;
-    FShaderLoaded: boolean;
-    FStateForShaderPrepare: TX3DGraphTraverseState;
+    FInternalRendererResource: TInternalRendererResource;
+    FContextCloseEventSetup: Boolean;
+    procedure SetInternalRendererResource(const Value: TInternalRendererResource);
+    procedure GLContextCloseEvent(Sender: TObject);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
-    destructor Destroy; override;
+    { Internal data stored here and used by the renderer.
+      Specific to this TX3DNode.
 
-    { Shader and ShaderLoaded properties are internally managed by the renderer.
-      Right now, this means TCastleScene.
-      Always when ShaderLoaded = @false then Shader is @nil.
-      When ShaderLoaded = @true, the Shader may be non-nil (if was enabled
-      and loaded successfully) or not.
-      @groupBegin }
-    property Shader: TObject read FShader write FShader;
-    property ShaderLoaded: boolean read FShaderLoaded write FShaderLoaded;
-    property StateForShaderPrepare: TX3DGraphTraverseState
-      read FStateForShaderPrepare;
-    { @groupEnd }
+      This holds a reference count to OpenGL resource in RendererCache,
+      freeing this InternalRendererResource decreases the reference count,
+      and it is done when destroying this node or when last GL context
+      is lost.
+
+      @exclude }
+    property InternalRendererResource: TInternalRendererResource
+      read FInternalRendererResource write FInternalRendererResource;
+
+    { Free InternalRendererResource, if any. }
+    procedure InternalRendererResourceFree;
+
+    destructor Destroy; override;
 
   {$I auto_generated_node_helpers/x3dnodes_screeneffect.inc}
   end;
@@ -289,18 +292,6 @@ end;
 
 { TScreenEffectNode ---------------------------------------------------------- }
 
-constructor TScreenEffectNode.Create(const AX3DName, ABaseUrl: String);
-begin
-  inherited;
-  FStateForShaderPrepare := TX3DGraphTraverseState.Create;
-end;
-
-destructor TScreenEffectNode.Destroy;
-begin
-  FreeAndNil(FStateForShaderPrepare);
-  inherited;
-end;
-
 function TScreenEffectNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := inherited;
@@ -308,6 +299,48 @@ begin
 
   Result := FFdShaders.Enumerate(Func);
   if Result <> nil then Exit;
+end;
+
+{ TODO: TScreenEffectNode stuff related to InternalRendererResource
+  is copy-pasted from TAbstractTextureNode.
+
+  There doesn't seem much opportunity to gain by sharing their code,
+  and we don't want to move this mechanism to TX3DNode for now to not
+  complicate API of all nodes.
+
+  This duplication seems OK for now. }
+
+procedure TScreenEffectNode.SetInternalRendererResource(const Value: TInternalRendererResource);
+begin
+  if FInternalRendererResource <> Value then
+  begin
+    FInternalRendererResource := Value;
+    if not FContextCloseEventSetup then
+    begin
+      FContextCloseEventSetup := true;
+      ApplicationProperties.OnGLContextCloseObject.Add(
+        {$ifdef FPC}@{$endif} GLContextCloseEvent);
+    end;
+  end;
+end;
+
+procedure TScreenEffectNode.GLContextCloseEvent(Sender: TObject);
+begin
+  InternalRendererResourceFree;
+end;
+
+procedure TScreenEffectNode.InternalRendererResourceFree;
+begin
+  FreeAndNil(FInternalRendererResource);
+end;
+
+destructor TScreenEffectNode.Destroy;
+begin
+  GLContextCloseEvent(nil);
+  if FContextCloseEventSetup then
+    ApplicationProperties.OnGLContextCloseObject.Remove(
+      {$ifdef FPC}@{$endif} GLContextCloseEvent);
+  inherited;
 end;
 
 { TEffectNode ---------------------------------------------------------------- }

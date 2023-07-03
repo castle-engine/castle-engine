@@ -24,11 +24,12 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdLineSegments: TMFVec2f;
-    { Internal wrapper for property @link(LineSegments). This wrapper API may change, we advise to access simpler @link(LineSegments) instead. }
+    { Internal wrapper for property @code(LineSegments). This wrapper API may change, we advise to access simpler @code(LineSegments) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLineSegments: TMFVec2f read FFdLineSegments;
     {  }
     procedure SetLineSegments(const Value: array of TVector2); overload;

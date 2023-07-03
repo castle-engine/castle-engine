@@ -27,11 +27,12 @@
     function GetCollidable: TAbstractNBodyCollidableNode;
     procedure SetCollidable(const Value: TAbstractNBodyCollidableNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdCollidable: TSFNode;
-    { Internal wrapper for property @link(Collidable). This wrapper API may change, we advise to access simpler @link(Collidable) instead. }
+    { Internal wrapper for property @code(Collidable). This wrapper API may change, we advise to access simpler @code(Collidable) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCollidable: TSFNode read FFdCollidable;
     {  }
     property Collidable: TAbstractNBodyCollidableNode read GetCollidable write SetCollidable;

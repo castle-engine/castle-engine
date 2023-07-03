@@ -24,6 +24,7 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -32,7 +33,7 @@
     public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     strict private FFdEaseInEaseOut: TMFVec2f;
-    { Internal wrapper for property @link(EaseInEaseOut). This wrapper API may change, we advise to access simpler @link(EaseInEaseOut) instead. }
+    { Internal wrapper for property @code(EaseInEaseOut). This wrapper API may change, we advise to access simpler @code(EaseInEaseOut) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEaseInEaseOut: TMFVec2f read FFdEaseInEaseOut;
     {  }
     procedure SetEaseInEaseOut(const Value: array of TVector2); overload;
@@ -40,7 +41,7 @@
     procedure SetEaseInEaseOut(const Value: TVector2List); overload;
 
     strict private FFdKey: TMFFloat;
-    { Internal wrapper for property @link(Key). This wrapper API may change, we advise to access simpler @link(Key) instead. }
+    { Internal wrapper for property @code(Key). This wrapper API may change, we advise to access simpler @code(Key) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdKey: TMFFloat read FFdKey;
     {  }
     procedure SetKey(const Value: array of Single); overload;

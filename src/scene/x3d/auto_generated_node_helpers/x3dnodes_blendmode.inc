@@ -33,29 +33,30 @@
     function GetColorTransparency: Single;
     procedure SetColorTransparency(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdSrcFactor: TSFStringEnum;
-    { Internal wrapper for property @link(SrcFactor). This wrapper API may change, we advise to access simpler @link(SrcFactor) instead. }
+    { Internal wrapper for property @code(SrcFactor). This wrapper API may change, we advise to access simpler @code(SrcFactor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSrcFactor: TSFStringEnum read FFdSrcFactor;
     {  }
     property SrcFactor: TBlendingSourceFactor read GetSrcFactor write SetSrcFactor;
 
     strict private FFdDestFactor: TSFStringEnum;
-    { Internal wrapper for property @link(DestFactor). This wrapper API may change, we advise to access simpler @link(DestFactor) instead. }
+    { Internal wrapper for property @code(DestFactor). This wrapper API may change, we advise to access simpler @code(DestFactor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDestFactor: TSFStringEnum read FFdDestFactor;
     {  }
     property DestFactor: TBlendingDestinationFactor read GetDestFactor write SetDestFactor;
 
     strict private FFdColor: TSFColor;
-    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
+    { Internal wrapper for property @code(Color). This wrapper API may change, we advise to access simpler @code(Color) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColor: TSFColor read FFdColor;
     {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
 
     strict private FFdColorTransparency: TSFFloat;
-    { Internal wrapper for property @link(ColorTransparency). This wrapper API may change, we advise to access simpler @link(ColorTransparency) instead. }
+    { Internal wrapper for property @code(ColorTransparency). This wrapper API may change, we advise to access simpler @code(ColorTransparency) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColorTransparency: TSFFloat read FFdColorTransparency;
     {  }
     property ColorTransparency: Single read GetColorTransparency write SetColorTransparency;

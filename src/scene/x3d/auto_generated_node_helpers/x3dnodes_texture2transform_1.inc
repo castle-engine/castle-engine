@@ -33,30 +33,31 @@
     function GetCenter: TVector2;
     procedure SetCenter(const Value: TVector2);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdTranslation: TSFVec2f;
-    { Internal wrapper for property @link(Translation). This wrapper API may change, we advise to access simpler @link(Translation) instead. }
+    { Internal wrapper for property @code(Translation). This wrapper API may change, we advise to access simpler @code(Translation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTranslation: TSFVec2f read FFdTranslation;
     {  }
     property Translation: TVector2 read GetTranslation write SetTranslation;
 
     strict private FFdRotation: TSFFloat;
-    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
+    { Internal wrapper for property @code(Rotation). This wrapper API may change, we advise to access simpler @code(Rotation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRotation: TSFFloat read FFdRotation;
     {  }
     property Rotation: Single read GetRotation write SetRotation;
 
     strict private FFdScaleFactor: TSFVec2f;
-    { Internal wrapper for property @link(ScaleFactor). This wrapper API may change, we advise to access simpler @link(ScaleFactor) instead. }
+    { Internal wrapper for property @code(ScaleFactor). This wrapper API may change, we advise to access simpler @code(ScaleFactor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScaleFactor: TSFVec2f read FFdScaleFactor;
     {  }
     property ScaleFactor: TVector2 read GetScaleFactor write SetScaleFactor;
 
     strict private FFdCenter: TSFVec2f;
-    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
+    { Internal wrapper for property @code(Center). This wrapper API may change, we advise to access simpler @code(Center) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCenter: TSFVec2f read FFdCenter;
     {  }
     property Center: TVector2 read GetCenter write SetCenter;

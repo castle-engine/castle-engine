@@ -37,47 +37,48 @@
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdGeoCenter: TSFVec3d;
-    { Internal wrapper for property @link(GeoCenter). This wrapper API may change, we advise to access simpler @link(GeoCenter) instead. }
+    { Internal wrapper for property @code(GeoCenter). This wrapper API may change, we advise to access simpler @code(GeoCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
     {  }
     property GeoCenter: TVector3Double read GetGeoCenter write SetGeoCenter;
 
     strict private FFdRotation: TSFRotation;
-    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
+    { Internal wrapper for property @code(Rotation). This wrapper API may change, we advise to access simpler @code(Rotation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRotation: TSFRotation read FFdRotation;
     {  }
     property Rotation: TVector4 read GetRotation write SetRotation;
 
     strict private FFdScale: TSFVec3f;
-    { Internal wrapper for property @link(Scale). This wrapper API may change, we advise to access simpler @link(Scale) instead. }
+    { Internal wrapper for property @code(Scale). This wrapper API may change, we advise to access simpler @code(Scale) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScale: TSFVec3f read FFdScale;
     {  }
     property Scale: TVector3 read GetScale write SetScale;
 
     strict private FFdScaleOrientation: TSFRotation;
-    { Internal wrapper for property @link(ScaleOrientation). This wrapper API may change, we advise to access simpler @link(ScaleOrientation) instead. }
+    { Internal wrapper for property @code(ScaleOrientation). This wrapper API may change, we advise to access simpler @code(ScaleOrientation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
     {  }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
 
     strict private FFdTranslation: TSFVec3f;
-    { Internal wrapper for property @link(Translation). This wrapper API may change, we advise to access simpler @link(Translation) instead. }
+    { Internal wrapper for property @code(Translation). This wrapper API may change, we advise to access simpler @code(Translation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTranslation: TSFVec3f read FFdTranslation;
     {  }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     strict private FFdGeoOrigin: TSFNode;
-    { Internal wrapper for property @link(GeoOrigin). This wrapper API may change, we advise to access simpler @link(GeoOrigin) instead. }
+    { Internal wrapper for property @code(GeoOrigin). This wrapper API may change, we advise to access simpler @code(GeoOrigin) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    { Internal wrapper for property @link(GeoSystem). This wrapper API may change, we advise to access simpler @link(GeoSystem) instead. }
+    { Internal wrapper for property @code(GeoSystem). This wrapper API may change, we advise to access simpler @code(GeoSystem) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     {  }
     procedure SetGeoSystem(const Value: array of string); overload;

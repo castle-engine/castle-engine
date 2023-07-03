@@ -31,23 +31,24 @@
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdTau: TSFTime;
-    { Internal wrapper for property @link(Tau). This wrapper API may change, we advise to access simpler @link(Tau) instead. }
+    { Internal wrapper for property @code(Tau). This wrapper API may change, we advise to access simpler @code(Tau) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTau: TSFTime read FFdTau;
     {  }
     property Tau: TFloatTime read GetTau write SetTau;
 
     strict private FFdTolerance: TSFFloat;
-    { Internal wrapper for property @link(Tolerance). This wrapper API may change, we advise to access simpler @link(Tolerance) instead. }
+    { Internal wrapper for property @code(Tolerance). This wrapper API may change, we advise to access simpler @code(Tolerance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTolerance: TSFFloat read FFdTolerance;
     {  }
     property Tolerance: Single read GetTolerance write SetTolerance;
 
     strict private FFdOrder: TSFInt32;
-    { Internal wrapper for property @link(Order). This wrapper API may change, we advise to access simpler @link(Order) instead. }
+    { Internal wrapper for property @code(Order). This wrapper API may change, we advise to access simpler @code(Order) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdOrder: TSFInt32 read FFdOrder;
     {  }
     property Order: Integer read GetOrder write SetOrder;

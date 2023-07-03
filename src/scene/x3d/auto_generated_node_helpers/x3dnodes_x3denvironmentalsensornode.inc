@@ -29,17 +29,18 @@
     function GetSize: TVector3;
     procedure SetSize(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdCenter: TSFVec3f;
-    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
+    { Internal wrapper for property @code(Center). This wrapper API may change, we advise to access simpler @code(Center) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCenter: TSFVec3f read FFdCenter;
     {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdSize: TSFVec3f;
-    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
+    { Internal wrapper for property @code(Size). This wrapper API may change, we advise to access simpler @code(Size) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSize: TSFVec3f read FFdSize;
     {  }
     property Size: TVector3 read GetSize write SetSize;

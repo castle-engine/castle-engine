@@ -10,7 +10,13 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
@@ -176,8 +182,7 @@
             },
             "Name" : "Box2",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "OcclusionQuery" : true
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -307,7 +312,6 @@
           },
           {
             "$$ClassName" : "TCastleSphere",
-            "CollisionSphereRadius" : 1.0000000000000000E+000,
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorPersistent",
               "Blue" : 0.0000000000000000E+000
@@ -414,16 +418,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 3.8140370845794678E+000,
-          "X" : 7.5488999485969543E-002,
-          "Y" : 9.7482639551162720E-001,
-          "Z" : 2.0979794859886169E-001
+          "W" : 3.6588747501373291E+000,
+          "X" : 4.1945748962461948E-003,
+          "Y" : 9.9988204240798950E-001,
+          "Z" : 1.4775472693145275E-002
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -7.9006538391113281E+000,
-          "Y" : 3.6141939163208008E+000,
-          "Z" : -1.0921525001525879E+001
+          "X" : -6.3668384552001953E+000,
+          "Y" : 2.5002036094665527E+000,
+          "Z" : -1.3319720268249512E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {

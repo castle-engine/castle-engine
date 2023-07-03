@@ -40,7 +40,7 @@ implementation
 uses Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
   CastleVectors, CastleCurves, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors, X3DLoadInternalUtils,
-  CastleTriangles,
+  CastleTriangles, CastleRenderOptions,
   X3DFields;
 
 type

@@ -42,8 +42,11 @@ type
     ButtonViewSketchfab: TButton;
     ButtonClose: TButton;
     CheckBoxAnimated: TCheckBox;
-    EditApiToken: TLabeledEdit;
-    EditQuery: TLabeledEdit;
+    EditApiToken: TEdit;
+    EditQuery: TEdit;
+    Label1: TLabel;
+    LabelDocs: TLabel;
+    LabelQuery: TLabel;
     ListModels: TListView;
     Timer1: TTimer;
     ImageListModelThumbnails: TImageList;
@@ -63,6 +66,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure LabelDocsClick(Sender: TObject);
     procedure ListModelsSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure Timer1Timer(Sender: TObject);
@@ -155,6 +159,18 @@ begin
   Timer1.Enabled := true;
   EditApiToken.Text := UserConfig.GetValue('sketchfab/api_token', '');
   UpdateEnabled;
+
+  { Make ListModels fill as much as it can.
+    Otherwise bottom things (EditApiToken and lower) are anchored to form bottom,
+    rest is anchored to form top, and the gap between
+    ListModels and "bottom things" can get larger on different font scaling values
+    on user's desktop. }
+  ListModels.Height := EditApiToken.Top - 8 - ListModels.Top;
+end;
+
+procedure TImportSketchfabForm.LabelDocsClick(Sender: TObject);
+begin
+  OpenUrl('https://castle-engine.io/sketchfab');
 end;
 
 procedure TImportSketchfabForm.FormHide(Sender: TObject);
@@ -365,7 +381,19 @@ end;
 
 procedure TImportSketchfabForm.ButtonListClick(Sender: TObject);
 begin
-  ListModels.ViewStyle := vsReport;
+  //try
+    ListModels.ViewStyle := vsReport;
+  (*
+  // On LCL GTK2, switching between list/grid repeatedly unfortunately may crash.
+  // Debugging, it is in GTK2 code.
+  // We tried workarounding it as below, but this is not effective,
+  // there will be more crashes.
+
+  except
+    on EAccessViolation do
+      WritelnWarning('Hiding crash as ListModels.ViewStyle switch, possible with LCL on GTK2 if you switch between grid/list repeatedly');
+  end;
+  *)
   ButtonList.Down := true; // ButtonGrid.Down will be set to false automatically
 end;
 

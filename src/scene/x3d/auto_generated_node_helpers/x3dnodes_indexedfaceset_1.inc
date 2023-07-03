@@ -24,12 +24,13 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdRadianceTransfer: TMFVec3f;
-    { Internal wrapper for property @link(RadianceTransfer). This wrapper API may change, we advise to access simpler @link(RadianceTransfer) instead. }
+    { Internal wrapper for property @code(RadianceTransfer). This wrapper API may change, we advise to access simpler @code(RadianceTransfer) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
     {  }
     procedure SetRadianceTransfer(const Value: array of TVector3); overload;

@@ -31,29 +31,30 @@
     function GetUniformMissing: TUniformMissing;
     procedure SetUniformMissing(const Value: TUniformMissing);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdLanguage: TSFStringEnum;
-    { Internal wrapper for property @link(Language). This wrapper API may change, we advise to access simpler @link(Language) instead. }
+    { Internal wrapper for property @code(Language). This wrapper API may change, we advise to access simpler @code(Language) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLanguage: TSFStringEnum read FFdLanguage;
     { Shading language. Only the GLSL (OpenGL Shading Language) is actually supported. The default value, empty string, is equivalent to GLSL. }
     property Language: TShaderLanguage read GetLanguage write SetLanguage;
 
     strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
+    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdParts: TMFNode;
-    { Internal wrapper for property @link(Parts). This wrapper API may change, we advise to access simpler @link(Parts) instead. }
+    { Internal wrapper for property @code(Parts). This wrapper API may change, we advise to access simpler @code(Parts) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdParts: TMFNode read FFdParts;
     {  }
     procedure SetParts(const Value: array of TEffectPartNode);
 
     strict private FFdUniformMissing: TSFStringEnum;
-    { Internal wrapper for property @link(UniformMissing). This wrapper API may change, we advise to access simpler @link(UniformMissing) instead. }
+    { Internal wrapper for property @code(UniformMissing). This wrapper API may change, we advise to access simpler @code(UniformMissing) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUniformMissing: TSFStringEnum read FFdUniformMissing;
     { Should we report a missing uniform value. Setting this to umWarning (default) is useful to spot simple mistakes in naming uniforms. On the other hand, OpenGL aggressively removes unused uniforms from code, and it may cause spurious messages that some uniform is missing -- even though the shader is correct, is just doesn't use some uniform value e.g. because no lights are present on the current scene. }
     property UniformMissing: TUniformMissing read GetUniformMissing write SetUniformMissing;

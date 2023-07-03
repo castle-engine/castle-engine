@@ -39,6 +39,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+    procedure Stop; override;
   end;
 
 var
@@ -47,7 +48,7 @@ var
 implementation
 
 uses CastleApplicationProperties, CastleWindow,
-  GameViewOptions, GameViewPlay, GameViewCredits;
+  GameViewOptions, GameViewPlay, GameViewCredits, GameViewportUnderUi;
 
 constructor TViewMenu.Create(AOwner: TComponent);
 begin
@@ -67,6 +68,14 @@ begin
 
   // Hide "Quit" button on mobile/console platforms, where users don't expect such button
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
+
+  InsertBack(ViewportUnderUi);
+end;
+
+procedure TViewMenu.Stop;
+begin
+  RemoveControl(ViewportUnderUi);
+  inherited;
 end;
 
 procedure TViewMenu.ClickCredits(Sender: TObject);

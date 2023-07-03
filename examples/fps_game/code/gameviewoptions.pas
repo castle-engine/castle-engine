@@ -28,7 +28,6 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     ButtonBackMenu, ButtonBackGame: TCastleButton;
-    ViewportUnderUi: TCastleViewport;
     Fade: TCastleRectangleControl;
     SliderVolume: TCastleIntegerSlider;
   private
@@ -41,6 +40,7 @@ type
     OverGame: Boolean;
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+    procedure Stop; override;
     function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
@@ -51,7 +51,7 @@ implementation
 
 uses SysUtils,
   CastleLog, CastleConfig,
-  GameViewMenu;
+  GameViewMenu, GameViewportUnderUi;
 
 constructor TViewOptions.Create(AOwner: TComponent);
 begin
@@ -69,14 +69,22 @@ begin
   SliderVolume.Value := Round(SoundEngine.Volume * SliderVolume.Max);
   SliderVolume.OnChange := {$ifdef FPC}@{$endif} ChangeSliderVolume;
 
-  ViewportUnderUi.Exists := not OverGame;
-  Fade.Exists := OverGame;
+  if not OverGame then
+    InsertBack(ViewportUnderUi);
+
+  Fade.Exists := true; // looks bette also when from main menu
   ButtonBackGame.Exists := OverGame;
 
   if OverGame then
     ButtonBackMenu.Caption := 'BACK TO MENU (ABORT THE GAME)'
   else
     ButtonBackMenu.Caption := 'BACK TO MENU';
+end;
+
+procedure TViewOptions.Stop;
+begin
+  RemoveControl(ViewportUnderUi);
+  inherited;
 end;
 
 procedure TViewOptions.ClickBackMenu(Sender: TObject);

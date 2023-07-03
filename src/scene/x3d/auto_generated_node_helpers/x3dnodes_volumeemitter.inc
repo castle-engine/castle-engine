@@ -31,6 +31,7 @@
     function GetInternal: Boolean;
     procedure SetInternal(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -39,19 +40,19 @@
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
     strict private FFdCoord: TSFNode;
-    { Internal wrapper for property @link(Coord). This wrapper API may change, we advise to access simpler @link(Coord) instead. }
+    { Internal wrapper for property @code(Coord). This wrapper API may change, we advise to access simpler @code(Coord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCoord: TSFNode read FFdCoord;
     {  }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
 
     strict private FFdDirection: TSFVec3f;
-    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
+    { Internal wrapper for property @code(Direction). This wrapper API may change, we advise to access simpler @code(Direction) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDirection: TSFVec3f read FFdDirection;
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdCoordIndex: TMFInt32;
-    { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
+    { Internal wrapper for property @code(CoordIndex). This wrapper API may change, we advise to access simpler @code(CoordIndex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     {  }
     procedure SetCoordIndex(const Value: array of Int32); overload;
@@ -59,7 +60,7 @@
     procedure SetCoordIndex(const Value: TInt32List); overload;
 
     strict private FFdInternal: TSFBool;
-    { Internal wrapper for property @link(Internal). This wrapper API may change, we advise to access simpler @link(Internal) instead. }
+    { Internal wrapper for property @code(Internal). This wrapper API may change, we advise to access simpler @code(Internal) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInternal: TSFBool read FFdInternal;
     {  }
     property Internal: Boolean read GetInternal write SetInternal;

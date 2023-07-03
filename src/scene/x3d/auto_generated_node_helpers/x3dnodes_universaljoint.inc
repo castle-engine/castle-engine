@@ -39,47 +39,48 @@
     function GetStop2ErrorCorrection: Single;
     procedure SetStop2ErrorCorrection(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
-    { Internal wrapper for property @link(AnchorPoint). This wrapper API may change, we advise to access simpler @link(AnchorPoint) instead. }
+    { Internal wrapper for property @code(AnchorPoint). This wrapper API may change, we advise to access simpler @code(AnchorPoint) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
     {  }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
 
     strict private FFdAxis1: TSFVec3f;
-    { Internal wrapper for property @link(Axis1). This wrapper API may change, we advise to access simpler @link(Axis1) instead. }
+    { Internal wrapper for property @code(Axis1). This wrapper API may change, we advise to access simpler @code(Axis1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis1: TSFVec3f read FFdAxis1;
     {  }
     property Axis1: TVector3 read GetAxis1 write SetAxis1;
 
     strict private FFdAxis2: TSFVec3f;
-    { Internal wrapper for property @link(Axis2). This wrapper API may change, we advise to access simpler @link(Axis2) instead. }
+    { Internal wrapper for property @code(Axis2). This wrapper API may change, we advise to access simpler @code(Axis2) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis2: TSFVec3f read FFdAxis2;
     {  }
     property Axis2: TVector3 read GetAxis2 write SetAxis2;
 
     strict private FFdStopBounce1: TSFFloat;
-    { Internal wrapper for property @link(StopBounce1). This wrapper API may change, we advise to access simpler @link(StopBounce1) instead. }
+    { Internal wrapper for property @code(StopBounce1). This wrapper API may change, we advise to access simpler @code(StopBounce1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStopBounce1: TSFFloat read FFdStopBounce1;
     {  }
     property StopBounce1: Single read GetStopBounce1 write SetStopBounce1;
 
     strict private FFdStop1ErrorCorrection: TSFFloat;
-    { Internal wrapper for property @link(Stop1ErrorCorrection). This wrapper API may change, we advise to access simpler @link(Stop1ErrorCorrection) instead. }
+    { Internal wrapper for property @code(Stop1ErrorCorrection). This wrapper API may change, we advise to access simpler @code(Stop1ErrorCorrection) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStop1ErrorCorrection: TSFFloat read FFdStop1ErrorCorrection;
     {  }
     property Stop1ErrorCorrection: Single read GetStop1ErrorCorrection write SetStop1ErrorCorrection;
 
     strict private FFdStop2Bounce: TSFFloat;
-    { Internal wrapper for property @link(Stop2Bounce). This wrapper API may change, we advise to access simpler @link(Stop2Bounce) instead. }
+    { Internal wrapper for property @code(Stop2Bounce). This wrapper API may change, we advise to access simpler @code(Stop2Bounce) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStop2Bounce: TSFFloat read FFdStop2Bounce;
     {  }
     property Stop2Bounce: Single read GetStop2Bounce write SetStop2Bounce;
 
     strict private FFdStop2ErrorCorrection: TSFFloat;
-    { Internal wrapper for property @link(Stop2ErrorCorrection). This wrapper API may change, we advise to access simpler @link(Stop2ErrorCorrection) instead. }
+    { Internal wrapper for property @code(Stop2ErrorCorrection). This wrapper API may change, we advise to access simpler @code(Stop2ErrorCorrection) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStop2ErrorCorrection: TSFFloat read FFdStop2ErrorCorrection;
     {  }
     property Stop2ErrorCorrection: Single read GetStop2ErrorCorrection write SetStop2ErrorCorrection;

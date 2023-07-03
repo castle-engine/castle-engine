@@ -24,12 +24,13 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdMatrix: TSFMatrix;
-    { Internal wrapper for property @link(Matrix). This wrapper API may change, we advise to access simpler @link(Matrix) instead. }
+    { Internal wrapper for property @code(Matrix). This wrapper API may change, we advise to access simpler @code(Matrix) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMatrix: TSFMatrix read FFdMatrix;
 
 {$endif read_interface}

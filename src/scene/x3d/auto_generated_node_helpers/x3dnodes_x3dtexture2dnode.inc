@@ -31,23 +31,24 @@
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdRepeatS: TSFBool;
-    { Internal wrapper for property @link(RepeatS). This wrapper API may change, we advise to access simpler @link(RepeatS) instead. }
+    { Internal wrapper for property @code(RepeatS). This wrapper API may change, we advise to access simpler @code(RepeatS) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRepeatS: TSFBool read FFdRepeatS;
     {  }
     property RepeatS: Boolean read GetRepeatS write SetRepeatS;
 
     strict private FFdRepeatT: TSFBool;
-    { Internal wrapper for property @link(RepeatT). This wrapper API may change, we advise to access simpler @link(RepeatT) instead. }
+    { Internal wrapper for property @code(RepeatT). This wrapper API may change, we advise to access simpler @code(RepeatT) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRepeatT: TSFBool read FFdRepeatT;
     {  }
     property RepeatT: Boolean read GetRepeatT write SetRepeatT;
 
     strict private FFdTextureProperties: TSFNode;
-    { Internal wrapper for property @link(TextureProperties). This wrapper API may change, we advise to access simpler @link(TextureProperties) instead. }
+    { Internal wrapper for property @code(TextureProperties). This wrapper API may change, we advise to access simpler @code(TextureProperties) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     {  }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;

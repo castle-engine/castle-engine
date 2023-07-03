@@ -33,8 +33,9 @@
     { Sort objects back-to-front @italic(right now)
       following one of the blending sorting algorithms.
       See @link(TCastleTransform.SortBackToFront) for description. }
-    procedure SortBackToFront(const BlendingSort: TBlendingSort;
+    procedure SortBackToFront(const ShapeSort: TShapeSort;
       const CameraPosition: TVector3);
+      deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
   public
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
     property Items[const I: Integer]: TCastleTransform read GetItem write SetItem; default;
@@ -134,22 +135,22 @@ begin
   Result := (inherited Last) as TCastleTransform;
 end;
 
-procedure TCastleTransformList.SortBackToFront(const BlendingSort: TBlendingSort;
+procedure TCastleTransformList.SortBackToFront(const ShapeSort: TShapeSort;
   const CameraPosition: TVector3);
 begin
-  case BlendingSort of
-    bs2D: Sort(@CompareBackToFront2D);
-    bs3D:
+  case ShapeSort of
+    sort2D: Sort(@CompareBackToFront2D);
+    sort3D:
       begin
         SortCameraPosition := CameraPosition;
         Sort(@CompareBackToFront3DBox);
       end;
-    bs3DOrigin:
+    sort3DOrigin:
       begin
         SortCameraPosition := CameraPosition;
         Sort(@CompareBackToFront3DOrigin);
       end;
-    bs3DGround:
+    sort3DGround:
       begin
         SortCameraPosition := CameraPosition;
         Sort(@CompareBackToFront3DGround);

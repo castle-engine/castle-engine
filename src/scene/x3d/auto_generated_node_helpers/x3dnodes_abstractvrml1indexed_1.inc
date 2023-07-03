@@ -24,24 +24,25 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdCoordIndex: TMFLong;
-    { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
+    { Internal wrapper for property @code(CoordIndex). This wrapper API may change, we advise to access simpler @code(CoordIndex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCoordIndex: TMFLong read FFdCoordIndex;
 
     strict private FFdMaterialIndex: TMFLong;
-    { Internal wrapper for property @link(MaterialIndex). This wrapper API may change, we advise to access simpler @link(MaterialIndex) instead. }
+    { Internal wrapper for property @code(MaterialIndex). This wrapper API may change, we advise to access simpler @code(MaterialIndex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMaterialIndex: TMFLong read FFdMaterialIndex;
 
     strict private FFdNormalIndex: TMFLong;
-    { Internal wrapper for property @link(NormalIndex). This wrapper API may change, we advise to access simpler @link(NormalIndex) instead. }
+    { Internal wrapper for property @code(NormalIndex). This wrapper API may change, we advise to access simpler @code(NormalIndex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNormalIndex: TMFLong read FFdNormalIndex;
 
     strict private FFdTextureCoordIndex: TMFLong;
-    { Internal wrapper for property @link(TextureCoordIndex). This wrapper API may change, we advise to access simpler @link(TextureCoordIndex) instead. }
+    { Internal wrapper for property @code(TextureCoordIndex). This wrapper API may change, we advise to access simpler @code(TextureCoordIndex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTextureCoordIndex: TMFLong read FFdTextureCoordIndex;
 
 {$endif read_interface}

@@ -27,6 +27,7 @@
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -47,13 +48,13 @@
     public property EventHitGeoCoord_changed: TSFVec3dEvent read FEventHitGeoCoord_changed;
 
     strict private FFdGeoOrigin: TSFNode;
-    { Internal wrapper for property @link(GeoOrigin). This wrapper API may change, we advise to access simpler @link(GeoOrigin) instead. }
+    { Internal wrapper for property @code(GeoOrigin). This wrapper API may change, we advise to access simpler @code(GeoOrigin) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    { Internal wrapper for property @link(GeoSystem). This wrapper API may change, we advise to access simpler @link(GeoSystem) instead. }
+    { Internal wrapper for property @code(GeoSystem). This wrapper API may change, we advise to access simpler @code(GeoSystem) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     {  }
     procedure SetGeoSystem(const Value: array of string); overload;

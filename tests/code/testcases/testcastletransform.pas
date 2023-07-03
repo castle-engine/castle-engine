@@ -1361,7 +1361,7 @@ procedure TTestCastleTransform.TestPass;
 var
   A: TInternalRenderingPass;
   B: TUserRenderingPass;
-  C: TInternalSceneRenderingPass;
+  C: TWireframeRenderingPass;
   P: TTotalRenderingPass;
 begin
   A := High(A);

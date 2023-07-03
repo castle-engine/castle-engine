@@ -31,17 +31,18 @@
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdStatus: TSFBool;
-    { Internal wrapper for property @link(Status). This wrapper API may change, we advise to access simpler @link(Status) instead. }
+    { Internal wrapper for property @code(Status). This wrapper API may change, we advise to access simpler @code(Status) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStatus: TSFBool read FFdStatus;
     { Stored Boolean value. }
     property Status: Boolean read GetStatus write SetStatus;
 
     strict private FFdNotStatus: TSFBool;
-    { Internal wrapper for property @link(NotStatus). This wrapper API may change, we advise to access simpler @link(NotStatus) instead. }
+    { Internal wrapper for property @code(NotStatus). This wrapper API may change, we advise to access simpler @code(NotStatus) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNotStatus: TSFBool read FFdNotStatus;
     { Always the negated value of @link(Status). You can set either @link(Status) or @link(NotStatus), changing one changes also the other to keep them being negated values of each other. Also events (like @link(EventToggle)) change both properties. }
     property NotStatus: Boolean read GetNotStatus write SetNotStatus;
@@ -71,7 +72,7 @@
     public property EventOff: TSFBoolEvent read FEventOff;
 
     strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
+    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnabled: TSFBool read FFdEnabled;
     { When the node is disabled, input events are ignored (this includes @link(EventToggle), @link(EventSet), @link(EventReset) but also sending new values to @link(Status) and @link(NotStatus)) and output events (@link(EventOn), @link(EventOff), @link(EventChanged)) are never generated. }
     property Enabled: Boolean read GetEnabled write SetEnabled;

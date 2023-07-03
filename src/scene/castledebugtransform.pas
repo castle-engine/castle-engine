@@ -531,7 +531,6 @@ begin
   FScene.Collides := false;
   FScene.Pickable := false;
   FScene.CastShadows := false;
-  FScene.ExcludeFromStatistics := true;
   FScene.InternalExcludeFromParentBoundingVolume := true;
   FScene.InternalExistsOnlyInMeaningfulParents := true;
   FScene.Exists := FExists;
