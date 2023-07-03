@@ -7,6 +7,14 @@ uses
     CastleClassUtils;
 
 type
+  { It describes the current input state and player movement state when using
+    TFpsModularMovement.
+
+    TFpsModularMovement do not implement any movement only checks some things
+    like input or is player on ground. And make these things available for modules
+    that implements different aspects of player move like TFpsWalkSupport, TFpsFlySupport,
+    THeadBobbing etc. Thanks for that we do not have one big class that is
+    very hard to change.}
   TModularMovementState = class
     SecondsPassed: Single;
 
@@ -23,15 +31,20 @@ type
 
     InputDirection: TVector3;
     ForwardDirection: TVector3; // Forward direction with Y = 0;
-    FullForwardDirection: TVector3;
+    FullForwardDirection: TVector3; // Forward direction where Y can be <> 0
     RightDirection: TVector3;
     UpDirection: TVector3;
   end;
 
+  { Abstract modular movement not used right now. }
   TAbstractModularMovement = class(TCastleBehavior)
 
   end;
 
+  { Base class for all modular movement modules like TFpsWalkSupport, TFpsFlySupport,
+    THeadBobbing etc.
+
+    TODO: Maybe change name to TAbstractMovementModule? }
   TAbstractMovementModifier = class(TCastleBehavior)
   strict private
     FExists: Boolean;
@@ -40,37 +53,69 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
+    { Each module needs to implement that function }
     procedure UpdateMovement(const MovementState: TModularMovementState); virtual; abstract;
   published
+    { When set to false it is not called at all }
     property Exists: Boolean read FExists write SetExists default true;
   end;
 
+  { The FPS (First Person Shooter) physics movement using dynamic
+    rigid body with modular architecture.
+
+    TFpsModularMovement do not implement any movement only checks some things
+    like input or is player on ground. And make these things available for modules
+    that implements different aspects of player move like TFpsWalkSupport, TFpsFlySupport,
+    THeadBobbing etc. Thanks for that we do not have one big class that is
+    very hard to change.
+
+    How to use it:
+    - Player rigid body can rotate only in Y axis (horizontal), other axes
+      should be blocked in rigid body
+    - Friction in player collider should be 0 - with other friction values
+      using stairs needs extra code like TStairsSupportByColliderCapsuleRadius,
+      and can have other undesirable problems during contact, e.g. with walls
+    - Rotate player horizontal using angular velocity (do not change transform
+      Rotation directly (that leads to physics objects synchronization and
+      can make your player can fall off the level - especially when it's done
+      every frame) You can use TRotateRigidBody behavior for that purpose.
+    - Do not rotate player vertical - rotate camera you can use TRotateCamera
+      behavior for that
+    - After adding TFpsModularMovement add some movement modules e.g. TFpsWalkSupport
+    - Do not afraid to change/add your own movement modules - this class is
+      designed for that :)
+    }
   TFpsModularMovement = class(TAbstractModularMovement)
   strict private
     FForwardInputAxis: TCastleInputAxis;
     FSidewayInputAxis: TCastleInputAxis;
     FInputJump: TInputShortcut;
   protected
+    { Gets transform direction with Y component. }
     function GetFullForwardDirection: TVector3; virtual;
+    { Gets transform direction and sets Y component to zero. }
     function GetForwardDirection: TVector3; virtual;
 
+    { Gets direction from input, Y means jump }
     function GetDirectionFromInput: TVector3; virtual;
 
+    { Checks player is on ground called in Update() }
     function IsPlayerOnGround(const PlayerRigidBody: TCastleRigidBody;
       const PlayerCollider: TCastleCollider): Boolean; virtual;
 
+    { Checks input, is player on ground, creates TModularMovementState and calls
+     UpdateMovement() on all movement modules }
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
-    const
-      DefaultJumpSpeed = 7.0;
-      DefaultHorizontalSpeed = 5.0;
-
     constructor Create(AOwner: TComponent); override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
+    { Move forward/backward input axis }
     property ForwardInputAxis: TCastleInputAxis read FForwardInputAxis;
+    { Move right/left input axis }
     property SidewayInputAxis: TCastleInputAxis read FSidewayInputAxis;
+    { Input shortcut for jump }
     property InputJump: TInputShortcut read FInputJump;
   end;
 
@@ -167,8 +212,8 @@ begin
   ColliderRadius := (ColliderBoundingBox.SizeX + ColliderBoundingBox.SizeZ) / 2;
   SphereCastOrigin := PlayerCollider.Middle;
 
-  { When casting sphere is equal or bigger than ColliderHeight / 2 we need
-    move it up or reduce sphere size }
+  { Another approach: When casting sphere is equal or bigger than ColliderHeight / 2
+    we need move it up or reduce sphere size }
   {if not (ColliderRadius < ColliderHeight / 2 * 0.9) then
      ColliderRadius := ColliderHeight / 2 * 0.9;}
 
@@ -291,7 +336,7 @@ function TFpsModularMovement.PropertySections(const PropertyName: String
 begin
   if ArrayContainsString(PropertyName, [
      'ForwardInputAxis', 'SidewayInputAxis',
-     'InputJump', 'HorizontalSpeed', 'JumpSpeed'
+     'InputJump'
      ]) then
     Result := [psBasic]
   else
