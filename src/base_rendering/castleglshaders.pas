@@ -1649,9 +1649,7 @@ end;
 procedure TGLSLProgram.DetachAllShaders;
 var
   I: Integer;
-  {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   ShaderType: TShaderType;
-  {$endif CASTLE_COLLECT_SHADER_SOURCE}
 begin
   for I := 0 to ShaderIds.Count - 1 do
   begin
