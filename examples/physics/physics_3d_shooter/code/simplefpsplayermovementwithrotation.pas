@@ -9,8 +9,9 @@ uses
 type
 
   { The simple FPS (First Person Shooter) physics movement using dynamic
-    rigid body with rotation and direction from player.
-
+    rigid body with rotation and direction from player. This is very simple
+    start point for your own FPS navigation when you do not want use modular
+    navigation.
 
     - Move right/left/forward/back
     - Constant speed
@@ -19,7 +20,6 @@ type
     - No control in air
     - Uses parent.up(), never camera up to deremine direction of the velocity vector
   }
-
   TSimpleFpsPlayerMovementWithRotation = class(TCastleBehavior)
   strict private
     FWasJumpInput: Boolean;
@@ -49,14 +49,19 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
   published
+    { Initial vertical jump speed }
     property JumpSpeed: Single read FJumpSpeed write FJumpSpeed
       {$ifdef FPC}default DefaultJumpSpeed{$endif};
 
+    { Horizontal moving speed }
     property HorizontalSpeed: Single read FHorizontalSpeed write FHorizontalSpeed
       {$ifdef FPC}default DefaultHorizontalSpeed{$endif};
 
+    { Move forward/backward input axis }
     property ForwardInputAxis: TCastleInputAxis read FForwardInputAxis;
+    { Move right/left input axis }
     property SidewayInputAxis: TCastleInputAxis read FSidewayInputAxis;
+    { Input shortcut for jump }
     property InputJump: TInputShortcut read FInputJump;
   end;
 
@@ -153,14 +158,14 @@ begin
     { We assume that the player is on the ground a little faster to allow
      smoother control }
     Result := DistanceToGround < ColliderHeight * 0.1;
-    if Result then
+    {if Result then
       WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
     else
-      WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');
+      WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');}
   end else
   begin
     Result := false;
-    WritelnLog('not on ground');
+    {WritelnLog('not on ground');}
   end;
 end;
 
@@ -260,14 +265,14 @@ begin
   FInputJump := TInputShortcut.Create(Self);
   InputJump.Assign(keySpace);
   InputJump.SetSubComponent(true);
-  InputJump.Name := 'Input_Jump';
+  InputJump.Name := 'InputJump';
 end;
 
 function TSimpleFpsPlayerMovementWithRotation.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-     'HorizontalSpeed', 'JumpSpeed'
+     'HorizontalSpeed', 'JumpSpeed', 'ForwardInputAxis', 'SidewayInputAxis'
      ]) then
     Result := [psBasic]
   else
