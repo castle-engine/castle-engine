@@ -1871,10 +1871,17 @@
       @seealso BehaviorsEnumerate }
     procedure AddBehavior(const Behavior: TCastleBehavior);
 
-    { Insert behavior at specified index. }
+    { Insert a TCastleBehavior to this TCastleTransform at specified index
+      In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
+      will be automatically called.
+      Also the @link(TCastleBehavior.Parent) gets assigned.
+      If the TCastleBehavior was part of another TCastleTransform, it is removed from it.
+
+      @seealso FindBehavior
+      @seealso BehaviorsEnumerate }
     procedure InsertBehavior(const Index: Integer; const Behavior: TCastleBehavior);
 
-    { Returns behavior index on internal list, -1 means not found }
+    { Returns behavior index on internal list, -1 means not found. }
     function BehaviorIndex(const Behavior: TCastleBehavior): Integer;
 
     { Remove TCastleBehavior from this TCastleTransform.
@@ -4090,6 +4097,9 @@ procedure TCastleTransform.InsertBehavior(const Index: Integer;
 var
   ReasonWhyCannot: String;
 begin
+  // TODO: A lot of code copied form AddBehavior()
+  // TODO: What to do when Behavior.FParent = Self only move on list or? remove and insert?
+  // TODO:  maybe should be Internal
   if Behavior.FParent <> Self then
   begin
     if not Behavior.CanAttachToParent(Self, ReasonWhyCannot) then
