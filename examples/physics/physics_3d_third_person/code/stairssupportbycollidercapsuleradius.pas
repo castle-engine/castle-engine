@@ -1,0 +1,128 @@
+unit StairsSupportByColliderCapsuleRadius;
+
+interface
+
+uses
+  Classes, SysUtils, ModularMovement, CastleTransform,
+  CastleVectors, CastleClassUtils;
+
+type
+  TStairsSupportByColliderCapsuleRadius = class(TAbstractMovementModifier)
+  strict private
+    FWasWarning: Boolean;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    procedure UpdateMovement(const MovementState: TModularMovementState); override;
+
+    function CanBePlayerMovedUp(const MovementState: TModularMovementState;
+      const CapsuleHeight, CapsuleRadius, StepHeight: Single):Boolean;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+  end;
+
+
+implementation
+
+uses CastleUtils, CastleComponentSerialize, CastleLog;
+
+{ TStairsSupportByColliderCapsuleRadius -------------------------------------- }
+
+constructor TStairsSupportByColliderCapsuleRadius.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+end;
+
+procedure TStairsSupportByColliderCapsuleRadius.UpdateMovement(
+  const MovementState: TModularMovementState);
+var
+  CapsuleCollider: TCastleCapsuleCollider;
+  CapsuleRadius: Single;
+  CapsuleHeight: Single;
+
+  RayDirection: TVector3;
+  RayOrigin: TVector3;
+  StepHit: TPhysicsRayCastResult;
+  StepHeight: Single;
+begin
+  { Works only when player on ground and moving }
+  if MovementState.IsJumping or (MovementState.IsPlayerOnGround = false) or
+     (MovementState.IsMoving = false) then
+    Exit;
+
+  { Works only when collider is TCastleCapsuleCollider }
+  if not (MovementState.Collider is TCastleCapsuleCollider) then
+  begin
+    if not FWasWarning then
+    begin
+      FWasWarning := true;
+      WritelnWarning('TStairsSupportByColliderCapsuleRadius works only with TCastleCapsuleCollider.');
+    end;
+    Exit;
+  end;
+
+  CapsuleCollider := MovementState.Collider as TCastleCapsuleCollider;
+
+  CapsuleRadius := CapsuleCollider.CalculateScaledRadius;
+  CapsuleHeight := CapsuleCollider.CalculateScaledHeight;
+
+  { Full collider height is CapsuleRadius * 2 + CapsuleHeight }
+
+  RayDirection := Vector3(0, -1, 0);
+  RayOrigin := CapsuleCollider.Middle() - Vector3(0, 0, CapsuleRadius * 0.95);
+
+  StepHit := MovementState.RigidBody.PhysicsRayCast(RayOrigin, RayDirection,
+  CapsuleHeight / 2  + CapsuleRadius * 0.95);
+
+  if StepHit.Hit then
+  begin
+    //WritelnLog('Found step, step normal ' + StepHit.Normal.ToString);
+
+    { Calculate step height }
+    StepHeight := CapsuleRadius + CapsuleHeight / 2 - StepHit.Distance;
+    //WritelnLog('Step height: ' + FloatToStr(StepHeight));
+
+    { check we can teleport player a little up }
+
+    if CanBePlayerMovedUp(MovementState, CapsuleHeight, CapsuleRadius, StepHeight) then
+      Parent.Translation := Parent.Translation + Vector3(0, StepHeight * 0.90, 0);
+  end;
+end;
+
+function TStairsSupportByColliderCapsuleRadius.CanBePlayerMovedUp(
+  const MovementState: TModularMovementState; const CapsuleHeight,
+  CapsuleRadius, StepHeight: Single): Boolean;
+var
+  Collider: TCastleCollider;
+  RBody: TCastleRigidBody;
+
+  CastDirection: TVector3;
+  CastOrigin: TVector3;
+
+  CastResult: TPhysicsRayCastResult;
+begin
+  Collider := MovementState.Collider;
+  RBody := MovementState.RigidBody;
+
+  CastDirection := Vector3(0, 1, 0);
+  CastOrigin := Collider.Middle;
+
+  CastResult := RBody.PhysicsSphereCast(CastOrigin, CapsuleRadius, CastDirection,
+  CapsuleHeight / 2 + StepHeight); // no CapsuleRadius here because we add it and remove in one step
+
+  Result := not CastResult.Hit;
+  //WritelnLog(Iff(Result, 'can be moved up', 'no space to move up'));
+end;
+
+function TStairsSupportByColliderCapsuleRadius.PropertySections(
+  const PropertyName: String): TPropertySections;
+begin
+  Result := inherited PropertySections(PropertyName);
+end;
+
+
+initialization
+  RegisterSerializableComponent(TStairsSupportByColliderCapsuleRadius, ['Navigation', 'Modules', 'Stairs Support By Collider Capsule Radius']);
+
+end.
+
