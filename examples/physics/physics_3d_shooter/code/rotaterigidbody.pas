@@ -66,13 +66,9 @@ begin
   { Do not allow the body to rotate by default }
   RBody.AngularVelocity := Vector3(0,0,0);
 
-  if ModifiersDown(FocusedContainer.Pressed) = [mkCtrl] then
-  begin
-    if AllowSlowerRotations then
-      SpeedScale := 0.1 {* RotationControlFactor(IsOnGroundBool)}
-    else
-      SpeedScale := 1.0 {* RotationControlFactor(IsOnGroundBool)};
-  end else
+  if AllowSlowerRotations and (ModifiersDown(FocusedContainer.Pressed) = [mkCtrl]) then
+    SpeedScale := 0.1 {* RotationControlFactor(IsOnGroundBool)}
+  else
     SpeedScale := 1.0 {* RotationControlFactor(IsOnGroundBool)};
 
   HorizontalAxisValue := HorizontalRotationInput.Value(FocusedContainer);
