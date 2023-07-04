@@ -69,8 +69,9 @@ begin
   if ModifiersDown(FocusedContainer.Pressed) = [mkCtrl] then
   begin
     if AllowSlowerRotations then
-      SpeedScale := 0.1 {* RotationControlFactor(IsOnGroundBool)};
-
+      SpeedScale := 0.1 {* RotationControlFactor(IsOnGroundBool)}
+    else
+      SpeedScale := 1.0 {* RotationControlFactor(IsOnGroundBool)};
   end else
     SpeedScale := 1.0 {* RotationControlFactor(IsOnGroundBool)};
 
