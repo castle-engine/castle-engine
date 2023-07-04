@@ -1871,6 +1871,12 @@
       @seealso BehaviorsEnumerate }
     procedure AddBehavior(const Behavior: TCastleBehavior);
 
+    { Insert behavior at specified index. }
+    procedure InsertBehavior(const Index: Integer; const Behavior: TCastleBehavior);
+
+    { Returns behavior index on internal list, -1 means not found }
+    function BehaviorIndex(const Behavior: TCastleBehavior): Integer;
+
     { Remove TCastleBehavior from this TCastleTransform.
       In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
       will no longer be automatically called.
@@ -4077,6 +4083,54 @@ begin
     end;
     NotifyBehaviorAdded(Behavior);
   end;
+end;
+
+procedure TCastleTransform.InsertBehavior(const Index: Integer;
+  const Behavior: TCastleBehavior);
+var
+  ReasonWhyCannot: String;
+begin
+  if Behavior.FParent <> Self then
+  begin
+    if not Behavior.CanAttachToParent(Self, ReasonWhyCannot) then
+      raise Exception.CreateFmt('Cannot add behavior %s (%s) to %s (%s) because: %s', [
+        Behavior.Name,
+        Behavior.ClassName,
+        Name,
+        ClassName,
+        ReasonWhyCannot
+      ]);
+
+    { As a first action (after the check CanAttachToParent has passed) remove
+      from previous parent. This will also cause necessary virtual method calls,
+      like ParentBeforeDetach, WorldBeforeDetach. }
+    if Behavior.FParent <> nil then
+      Behavior.FParent.RemoveBehavior(Behavior);
+    Assert(Behavior.FParent = nil);
+
+    { Inseert to new parent }
+    FBehaviors.Insert(Index, Behavior);
+    Behavior.FParent := Self;
+    Behavior.ParentAfterAttach;
+    {$warnings off}
+    Behavior.ParentChanged; // call at end, when state is consistent
+    {$warnings on}
+
+    { Call WorldAfterAttach }
+    if Behavior.ListenWorldChange then
+    begin
+      AddWorldChangeNotification(Behavior);
+      if FWorld <> nil then
+        Behavior.WorldAfterAttach;
+    end;
+    NotifyBehaviorAdded(Behavior);
+  end;
+end;
+
+function TCastleTransform.BehaviorIndex(const Behavior: TCastleBehavior
+  ): Integer;
+begin
+  Result := FBehaviors.IndexOf(Behavior);
 end;
 
 procedure TCastleTransform.RemoveBehaviorIndex(const BehaviorIndex: Integer);

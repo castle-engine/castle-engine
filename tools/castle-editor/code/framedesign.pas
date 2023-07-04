@@ -5091,6 +5091,29 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     end;
   end;
 
+  procedure MoveBehaviorBeforeAfterAnotherBehavior(const Src, Dst: TCastleBehavior);
+  var
+    BehIndex: Integer;
+  begin
+    case ControlsTreeNodeUnderMouseSide of
+      tnsBottom:
+        begin
+          Src.Parent.RemoveBehavior(Src);
+          BehIndex := Dst.Parent.BehaviorIndex(Dst);
+          Dst.Parent.InsertBehavior(BehIndex + 1, Src);
+          MoveOnlyTreeNodes;
+        end;
+      tnsTop:
+        begin
+          Src.Parent.RemoveBehavior(Src);
+          BehIndex := Dst.Parent.BehaviorIndex(Dst);
+          Dst.Parent.InsertBehavior(BehIndex, Src);
+          MoveOnlyTreeNodes;
+        end;
+      else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+    end;
+  end;
+
   procedure MoveNonVisual(const SrcParentComponent: TCastleComponent;
     const Src: TComponent;
     const Dst: TCastleComponent);
@@ -5153,12 +5176,18 @@ var
       tnsBottom:
         begin
           Src.MoveTo(Dst, naInsertBehind);
-          DestinationName := TComponent(Dst.Parent.Data).Name;
+          if DstComponent is TCastleBehavior then
+            DestinationName := TComponent(Dst.Parent.Parent.Data).Name
+          else
+            DestinationName := TComponent(Dst.Parent.Data).Name;
         end;
       tnsTop:
         begin
           Src.MoveTo(Dst, naInsert);
-          DestinationName := TComponent(Dst.Parent.Data).Name;
+          if DstComponent is TCastleBehavior then
+            DestinationName := TComponent(Dst.Parent.Parent.Data).Name
+          else
+            DestinationName := TComponent(Dst.Parent.Data).Name;
         end;
     end;
     ModifiedOutsideObjectInspector('Drag''n''drop ' + SrcComponent.Name + ' into ' +
@@ -5212,6 +5241,16 @@ begin
         MoveBehavior(
           TCastleBehavior(SrcComponent),
           TCastleTransform(DstComponent));
+        // as for now we just refresh tree view, so set SelectedComponent and don't do ValidateHierarchy
+        SelectedComponent := SrcComponent;
+        Exit;
+      end else
+      if (SrcComponent is TCastleBehavior) and
+         (DstComponent is TCastleBehavior) then
+      begin
+        MoveBehaviorBeforeAfterAnotherBehavior(
+          TCastleBehavior(SrcComponent),
+          TCastleBehavior(DstComponent));
         // as for now we just refresh tree view, so set SelectedComponent and don't do ValidateHierarchy
         SelectedComponent := SrcComponent;
         Exit;
