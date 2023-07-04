@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{2D9E7FA8-9AEF-470D-B5EA-1B55EF2EAA23}</ProjectGuid>
+        <ProjectGuid>{02D4F3AA-5247-4650-BC4A-4DED42D0137A}</ProjectGuid>
         <MainSource>physics_3d_third_person.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

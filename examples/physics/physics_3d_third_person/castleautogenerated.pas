@@ -1,4 +1,4 @@
-﻿{ Auto-generated unit with information about the project.
+{ Auto-generated unit with information about the project.
   The information set here reflects the CastleEngineManifest.xml properties.
 
   You should not modify this file manually.
@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'physics_3d_third_person';
-  ApplicationProperties.Caption := 'Physics 3D third Person';
+  ApplicationProperties.Caption := 'Physics 3D Third Person';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
