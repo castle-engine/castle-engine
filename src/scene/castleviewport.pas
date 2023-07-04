@@ -29,7 +29,8 @@ uses SysUtils, Classes, Generics.Collections,
   CastleClassUtils, CastleShapes,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
   CastleInputs, CastleRectangles, CastleColors, CastleComponentSerialize,
-  CastleProjection, CastleScreenEffects, CastleInternalShapesRenderer;
+  CastleProjection, CastleScreenEffects, CastleInternalShapesRenderer,
+  CastleInternalScreenEffects;
 
 type
   TCastleViewport = class;

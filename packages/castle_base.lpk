@@ -4453,6 +4453,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/scene/castleinternalrenderer_custom_shaders.inc"/>
         <Type Value="Include"/>
       </Item1085>
+  	  <Item1086>
+        <Filename Value="../src/scene/castleinternalscreeneffects.pas"/>
+        <UnitName Value="CastleInternalScreenEffects"/>
+      </Item1086>
       <Item1086>
         <Filename Value="../src/transform/castletransform_physics_layers.inc"/>
         <Type Value="Include"/>
