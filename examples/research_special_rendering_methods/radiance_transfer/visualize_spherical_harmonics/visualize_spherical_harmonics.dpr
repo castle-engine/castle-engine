@@ -37,7 +37,7 @@ var
   M: Integer;
 begin
   LMDecode(LM, L, M);
-  UIFont.Print(10, 10, Yellow,
+  FallbackFont.Print(10, 10, Yellow,
     Format('Spherical harmonic number %d. (L, M) = (%d, %d). Results in range (%f, %f)',
     [LM, L, M, MinSHValue, MaxSHValue]));
 end;
@@ -90,7 +90,7 @@ begin
     { before every rendering clear Min/MaxSHValue, so that VertexColor can set them }
     MinSHValue :=  MaxFloat;
     MaxSHValue := -MaxFloat;
-    SetSceneColors(Self, @VertexColor);
+    SetSceneColors(Self, {$ifdef FPC}@{$endif}VertexColor);
   end;
 
   inherited;
