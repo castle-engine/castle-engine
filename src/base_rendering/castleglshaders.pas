@@ -357,7 +357,8 @@ type
 
     { Specify values to record in transform feedback buffers.
       This must be called before @link(Link) method. }
-    procedure SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean = True);
+    procedure SetTransformFeedbackVaryings(const Varyings: array of PAnsiChar;
+      const IsSingleBufferMode: Boolean = True);
 
     { Link the program, this should be done after attaching all shaders
       and before actually using the program.
@@ -1618,7 +1619,8 @@ begin
   AttachShader(stGeometry, S);
 end;
 
-procedure TGLSLProgram.SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean);
+procedure TGLSLProgram.SetTransformFeedbackVaryings(
+  const Varyings: array of PAnsiChar; const IsSingleBufferMode: Boolean);
 var
   TransformFeedbackBufferMode, ErrorCode: TGLuint;
   VaryingLength: Cardinal;
