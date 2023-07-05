@@ -151,9 +151,9 @@ begin
     Result := TVector3.Zero;
     for I := 0 to Min(RadianceTransferVertexSize, LightSHBasisCount) - 1 do
     begin
-      Result.X += RadianceTransferPtr[I].X * LightSHBasis[I];
-      Result.Y += RadianceTransferPtr[I].Y * LightSHBasis[I];
-      Result.Z += RadianceTransferPtr[I].Z * LightSHBasis[I];
+      Result.X := Result.X + RadianceTransferPtr[I].X * LightSHBasis[I];
+      Result.Y := Result.Y + RadianceTransferPtr[I].Y * LightSHBasis[I];
+      Result.Z := Result.Z + RadianceTransferPtr[I].Z * LightSHBasis[I];
     end;
   end;
 end;
@@ -174,7 +174,7 @@ begin
       (this will be used then by Scene.Render, during DoRadianceTransfer). }
 
     SHVectorGLCapture(LightSHBasis, Scene.BoundingBox.Center,
-      @DrawLight, 100, 100, LightIntensityScale);
+      {$ifdef FPC}@{$endif} DrawLight, 100, 100, LightIntensityScale);
 
     { no need to reset RenderContext.Viewport
       inheried TCastleViewport.Render calls
@@ -191,7 +191,7 @@ begin
     if ViewMode = vmNormal then
       RemoveSceneColors(Scene)
     else
-      SetSceneColors(Scene, @VertexColor);
+      SetSceneColors(Scene, {$ifdef FPC}@{$endif} VertexColor);
   end;
   inherited;
 end;
@@ -226,13 +226,14 @@ procedure Update(Container: TCastleContainer);
 
   procedure ChangeLightRadius(Change: Float);
   begin
-    LightRadius *= Power(Change, Window.Fps.SecondsPassed);
+    LightRadius := LightRadius * Power(Change, Window.Fps.SecondsPassed);
     Window.Invalidate;
   end;
 
   procedure ChangeLightIntensityScale(Change: Float);
   begin
-    LightIntensityScale *= Power(Change, Window.Fps.SecondsPassed);
+    LightIntensityScale :=
+      LightIntensityScale * Power(Change, Window.Fps.SecondsPassed);
     Window.Invalidate;
   end;
 
@@ -310,13 +311,15 @@ end;
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
-  URL: string = 'castle-data:/chinchilla_with_prt.wrl.gz';
+  URL: string;
   Background: TCastleRectangleControl;
   Navigation: TCastleExamineNavigation;
 begin
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
-    URL := Parameters[1];
+    URL := Parameters[1]
+  else
+    URL := 'castle-data:/chinchilla_with_prt.wrl.gz';
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);
@@ -337,9 +340,10 @@ begin
   begin
     LightRadius := Scene.BoundingBox.AverageSize;
     LightPos := Scene.BoundingBox.Center;
-    LightPos.X +=
-      Scene.BoundingBox.Data[1].X -
-      Scene.BoundingBox.Data[0].X + LightRadius;
+    LightPos.X :=
+      LightPos.X +
+      ( Scene.BoundingBox.Data[1].X -
+        Scene.BoundingBox.Data[0].X + LightRadius );
   end;
 
   Background := TCastleRectangleControl.Create(Application);
