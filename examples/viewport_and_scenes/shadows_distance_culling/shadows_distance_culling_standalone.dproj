@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{D14175D3-6734-43E7-93D1-7562D663661A}</ProjectGuid>
+        <ProjectGuid>{B2A3E57E-F134-F2C7-9A2D-74074EE128BB}</ProjectGuid>
         <MainSource>shadows_distance_culling_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

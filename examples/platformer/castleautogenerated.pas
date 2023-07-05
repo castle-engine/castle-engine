@@ -23,7 +23,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 initialization
   ApplicationProperties.ApplicationName := 'platformer';
   ApplicationProperties.Caption := 'Platformer';
-  ApplicationProperties.Version := '1.2.0';
+  ApplicationProperties.Version := '1.3.0';
 
   if not IsLibrary then
     Application.ParseStandardParameters;
