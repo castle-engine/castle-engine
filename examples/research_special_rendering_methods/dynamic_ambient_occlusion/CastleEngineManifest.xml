@@ -12,7 +12,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   <compiler_options>
     <search_paths>
       <path value="code/" />
-      <path value="../common_code/" />
     </search_paths>
   </compiler_options>
 </project>
