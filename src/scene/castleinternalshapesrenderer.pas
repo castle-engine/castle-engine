@@ -106,12 +106,8 @@ type
     procedure PrepareResources;
     procedure GLContextClose;
 
-    { Shapes can use this to initialize their resources.
-
-      TODO: This is hack, association shape->Renderer should not be necessary.
-      Shape should store its stuff in RendererCache and have references to it,
-      and be independent from Renderer.
-      This property should not be public then. }
+    { Shapes can use this to make a "dummy render" to prepare
+      for future rendering. }
     property Renderer: TRenderer read FRenderer;
 
     { Render all given shapes.

@@ -170,7 +170,7 @@ uses Classes, SysUtils, Generics.Collections,
   CastleUtils, CastleVectors, X3DFields, X3DNodes, CastleColors,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
-  CastleShapes, CastleInternalGLCubeMaps, CastleClassUtils, CastleInternalCompositeImage,
+  CastleShapes, CastleClassUtils, CastleInternalCompositeImage,
   CastleInternalGeometryArrays, CastleInternalArraysGenerator, CastleRendererInternalShader,
   CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform, CastleRenderOptions;
 
@@ -196,7 +196,7 @@ type
 implementation
 
 uses Math,
-  CastleStringUtils, CastleGLVersion, CastleLog,
+  CastleStringUtils, CastleGLVersion, CastleLog, CastleInternalGLCubeMaps,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
   CastleCameras, CastleSceneInternalShape, CastleApplicationProperties,
   CastleRenderContext, CastleInternalGLUtils;
