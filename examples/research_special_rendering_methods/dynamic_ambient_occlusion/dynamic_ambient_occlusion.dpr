@@ -30,6 +30,8 @@ program dynamic_ambient_occlusion;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
+{$ifndef FPC} {$pointermath on} {$endif}
+
 uses SysUtils, Classes, Math,
   {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleWindow, CastleTriangles, CastleTransform,
@@ -79,7 +81,7 @@ type
   PShapeInfo = ^TShapeInfo;
 
 var
-  Shapes: array of TShapeInfo;
+  AoShapes: array of TShapeInfo;
 
 type
   TElementsCalculator = class
@@ -153,7 +155,7 @@ procedure CalculateElements;
     ShapeElements: PAOElement;
     I: Integer;
   begin
-    Shapes[ShapeIndex].Shape := Shape;
+    AoShapes[ShapeIndex].Shape := Shape;
 
     if Shape.Geometry.InternalCoord(Shape.State, Coord) and (Coord <> nil) then
     begin
@@ -162,7 +164,7 @@ procedure CalculateElements;
       Elements.Count := Elements.Count + Coord.Count;
       ShapeElements := PAOElement(Elements.Ptr(ShapeElementIndex));
 
-      SetLength(Shapes[ShapeIndex].CoordToElement, Coord.Count);
+      SetLength(AoShapes[ShapeIndex].CoordToElement, Coord.Count);
 
       { This does a modified and tweaked version of normal calculation
         from CreateSmoothNormalsCoordinateNode from CastleInternalNormals.
@@ -187,7 +189,8 @@ procedure CalculateElements;
           Calculator.CoordIndex := Shape.Geometry.CoordIndexField.Items else
           Calculator.CoordIndex := nil;
         Calculator.ShapeElements := ShapeElements;
-        Shape.Geometry.InternalCoordPolygons(Shape.State, @Calculator.Polygon);
+        Shape.Geometry.InternalCoordPolygons(Shape.State,
+          {$ifdef FPC}@{$endif} Calculator.Polygon);
       finally FreeAndNil(Calculator) end;
 
       { Normalize all new normals }
@@ -195,7 +198,7 @@ procedure CalculateElements;
         ShapeElements[I].Normal := ShapeElements[I].Normal.Normalize;
     end else
     begin
-      SetLength(Shapes[ShapeIndex].CoordToElement, 0);
+      SetLength(AoShapes[ShapeIndex].CoordToElement, 0);
     end;
   end;
 
@@ -205,7 +208,7 @@ var
 begin
   Elements.Count := 0;
 
-  SetLength(Shapes, Scene.Shapes.ShapesCount(true, true, false));
+  SetLength(AoShapes, Scene.Shapes.ShapesCount(true, true, false));
 
   ShapeList := Scene.Shapes.TraverseList(true, true, false);
   for ShapeIndex := 0 to ShapeList.Count - 1 do
@@ -224,7 +227,7 @@ begin
     unused vertexes) --- so unused vertexes would fail to be "squeezed"
     inside texture component correctly.
 
-    By the way, you also have to initialize Shapes[].CoordToElement.
+    By the way, you also have to initialize AoShapes[].CoordToElement.
     This provides a mapping from original (per-shape, and before this removal)
     coords back to elements. }
 
@@ -233,8 +236,8 @@ begin
   { increase ShapeIndex, ShapeCoord to next coord }
   ShapeIndex := 0;
   ShapeCoord := 0;
-  while (ShapeIndex < Length(Shapes)) and
-        (Length(Shapes[ShapeIndex].CoordToElement) = 0) do
+  while (ShapeIndex < Length(AoShapes)) and
+        (Length(AoShapes[ShapeIndex].CoordToElement) = 0) do
     Inc(ShapeIndex);
 
   for I := 0 to Elements.Count - 1 do
@@ -244,26 +247,26 @@ begin
       { Then Element I should be on position GoodElementsCount. }
       if GoodElementsCount <> I then
         Elements.L[GoodElementsCount] := Elements.L[I];
-      Shapes[ShapeIndex].CoordToElement[ShapeCoord] := GoodElementsCount;
+      AoShapes[ShapeIndex].CoordToElement[ShapeCoord] := GoodElementsCount;
       Inc(GoodElementsCount);
     end else
     begin
-      Shapes[ShapeIndex].CoordToElement[ShapeCoord] := -1;
+      AoShapes[ShapeIndex].CoordToElement[ShapeCoord] := -1;
     end;
 
     { increase ShapeIndex, ShapeCoord to next coord }
     Inc(ShapeCoord);
-    if ShapeCoord >= Length(Shapes[ShapeIndex].CoordToElement) then
+    if ShapeCoord >= Length(AoShapes[ShapeIndex].CoordToElement) then
     begin
       Inc(ShapeIndex);
       ShapeCoord := 0;
-      while (ShapeIndex < Length(Shapes)) and
-            (Length(Shapes[ShapeIndex].CoordToElement) = 0) do
+      while (ShapeIndex < Length(AoShapes)) and
+            (Length(AoShapes[ShapeIndex].CoordToElement) = 0) do
         Inc(ShapeIndex);
     end;
   end;
 
-  Assert(ShapeIndex = Length(Shapes));
+  Assert(ShapeIndex = Length(AoShapes));
 
   WritelnLog('Bad elements (vertexes with no neighbors) removed: %d, remaining good elements: %d', [
     Elements.Count - GoodElementsCount,
@@ -379,7 +382,7 @@ begin
   { fill textures }
   PositionArea := ElementsPositionAreaTex.Pixels;
   Normal := ElementsNormalTex.Pixels;
-  Element := PAOElement(Elements.List);
+  Element := PAOElement(Elements.L);
   for I := 0 to Elements.Count - 1 do
   begin
     PositionArea^.X := ClampedCheck(Element^.Position.X / PositionScale.X - PositionShift.X);
@@ -449,18 +452,19 @@ var
   FullRenderIntensityTex: TGrayscaleImage;
 
 type
-  THelper = class
-    class function VertexColor(
+  // TODO: turn this into TCastleView descendant
+  TMyEvents = class(TComponent)
+  public
+    function VertexColor(
       const Shape: TShape;
       const VertexPosition: TVector3;
       const VertexIndex: Integer): TCastleColorRGB;
-
-    class procedure SceneGeometryChanged(Scene: TCastleSceneCore;
+    procedure SceneGeometryChanged(Scene: TCastleSceneCore;
       const SomeLocalGeometryChanged: boolean;
       OnlyShapeChanged: TShape);
   end;
 
-class function THelper.VertexColor(
+function TMyEvents.VertexColor(
   const Shape: TShape;
   const VertexPosition: TVector3;
   const VertexIndex: Integer): TCastleColorRGB;
@@ -472,10 +476,10 @@ begin
   begin
     FullRenderShape := Shape;
     FullRenderShapeInfo := nil;
-    for I := 0 to Length(Shapes) - 1 do
-      if Shapes[I].Shape = Shape then
+    for I := 0 to Length(AoShapes) - 1 do
+      if AoShapes[I].Shape = Shape then
       begin
-        FullRenderShapeInfo := @Shapes[I];
+        FullRenderShapeInfo := @AoShapes[I];
         Break;
       end;
     Assert(FullRenderShapeInfo <> nil, 'Shape info not found');
@@ -492,7 +496,7 @@ begin
   end;
 end;
 
-class procedure THelper.SceneGeometryChanged(Scene: TCastleSceneCore;
+procedure TMyEvents.SceneGeometryChanged(Scene: TCastleSceneCore;
   const SomeLocalGeometryChanged: boolean;
   OnlyShapeChanged: TShape);
 var
@@ -510,6 +514,9 @@ begin
     WritelnWarning('TODO: animation changed elements count / texture size. Shaders need to reinitialiazed.');
   end;
 end;
+
+var
+  MyEvents: TMyEvents;
 
 { ---------------------------------------------------------------------------- }
 
@@ -651,7 +658,7 @@ begin
     RenderAORect;
     FullRenderIntensityTex := CaptureAORect(false);
     FullRenderShape := nil;
-    SetSceneColors(Scene, @THelper(nil).VertexColor);
+    SetSceneColors(Scene, {$ifdef FPC}@{$endif} MyEvents.VertexColor);
   end;
   inherited;
 end;
@@ -668,7 +675,7 @@ procedure Open(Container: TCastleContainer);
   end;
 
 var
-  FragmentShader, VertexShader: string;
+  FragmentShader, VertexShader: String;
 begin
   if not GLFeatures.Shaders then
   begin
@@ -888,6 +895,8 @@ begin
   ApplicationProperties.ApplicationName := 'dynamic_ambient_occlusion';
   InitializeLog;
 
+  MyEvents := TMyEvents.Create(Application);
+
   Window := TCastleWindow.Create(Application);
 
   Elements := TAOElementList.Create;
@@ -907,7 +916,7 @@ begin
     Scene := TCastleScene.Create(Application);
     Scene.Load(ModelURL);
     Scene.PreciseCollisions := true;
-    Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
+    Scene.OnGeometryChanged := MyEvents.SceneGeometryChanged;
     Scene.ProcessEvents := true; { allow Scene animation }
     CalculateElements;
     Viewport.Items.Add(Scene);
