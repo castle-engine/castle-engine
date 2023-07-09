@@ -347,7 +347,7 @@ type
 implementation
 
 uses SysUtils, Math,
-  CastleInputs;
+  CastleInputs, CastleUtils;
 
 class function TCasScriptAdd.Name: string;
 begin
