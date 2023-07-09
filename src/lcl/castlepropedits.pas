@@ -40,7 +40,7 @@ procedure Register;
 implementation
 
 uses // FPC and LCL units
-  SysUtils, Classes, TypInfo, Forms,
+  SysUtils, Classes, TypInfo, Forms, Math,
   LResources, Dialogs, Controls, LCLVersion, OpenGLContext, Graphics, ObjInspStrConsts,
   // Lazarus design-time (IDE) units
   ComponentEditors,
@@ -179,6 +179,8 @@ begin
     TCastleVector3PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
     TCastleVector4PropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector4RotationPersistent), nil, '',
+    TCastleVectorRotationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore, 'AutoAnimation',
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
