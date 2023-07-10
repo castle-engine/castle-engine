@@ -23,7 +23,7 @@ uses Classes,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras, CastleTransform,
   CastleViewport, SimplestFpsPlayerMovement, SimpleFpsPlayerMovementWithRotation,
   DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, GameInputAxis, RotateCamera,
-  ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport, FpsWalkSupport;
+  ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport, FpsWalkSupport, AnimationTrigger;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -120,6 +120,7 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
     BulletOwner: TComponent;
     Bullet: TCastleTransform;
     BulletRigidBody: TCastleRigidBody;
+    PlayerCollider: TCastleCollider;
   begin
     { Bullet's owner is BulletOwner, not directly FreeAtStop.
       This way we know that names are local within BulletOwner,
@@ -130,45 +131,22 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
 
     if Player <> nil then
     begin
-      if SimplestFpsPlayerMovement = nil then
-      begin
-        { Code for player that can rotate }
-        { Player direction is oposite to camera direction. }
-        Bullet.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) - Player.Direction.Normalize * 1.5;
-        Bullet.Direction := Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction);
-        Bullet.Collides := false; // do not collide with player
-      end else
-      begin
-        { When you use SimplestFpsPlayerMovement player never rotates so you
-          need use camera direction }
+      PlayerCollider := Player.FindBehavior(TCastleCollider) as TCastleCollider;
+      { Code for player that can rotate }
+      Bullet.Translation := PlayerCollider.Middle + Player.Direction.Normalize * 1.5;
 
-        Bullet.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) + Viewport.Camera.Direction * 1.5;
-        Bullet.Direction := Viewport.Camera.Direction;
-        Bullet.Collides := false; // do not collide with player
-      end;
-    end else
-    begin
-      { Code for old walk navigation. }
-      Bullet.Translation := Viewport.Camera.Translation + Viewport.Camera.Direction * 1.5;
-      Bullet.Direction := Viewport.Camera.Direction;
+      { Camera shows things in oposite to its direction }
+      Bullet.Direction := Player.Direction;
       Bullet.Collides := false; // do not collide with player
     end;
 
     BulletRigidBody := BulletOwner.FindRequiredComponent('BulletRigidBody') as TCastleRigidBody;
-    BulletRigidBody.LinearVelocity := Bullet.Direction * 25;
+    BulletRigidBody.LinearVelocity := Bullet.Direction * 25 + Vector3(0, 2, 0);
     { You can turn off gravity for Bullet to make it easier to shoot high objects
       even when initial LinearVelocity would be low.
       Of course this is non-realistic. }
     //BulletRigidBody.Gravity := false;
     Viewport.Items.Add(Bullet);
-
-    { Instead of setting BulletRigidBody.LinearVelocity directly (see line above)
-      you can also add force to push the bullet.
-      Both ApplyImpulse and AddForce can be used.
-      Try it out -- comment out above "BulletRigidBody.LinearVelocity := ..."
-      and uncomment one of the lines below. }
-    //BulletRigidBody.ApplyImpulse(Viewport.Camera.Direction * 50, Viewport.Camera.Translation);
-    //BulletRigidBody.AddForce(Viewport.Camera.Direction * 5000, false);
   end;
 
 begin
