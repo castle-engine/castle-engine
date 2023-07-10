@@ -68,17 +68,6 @@ begin
 
     See TFpsWalkSupport, TFpsFlySupport, THeadBobbing, TFpsCrouch for example }
   DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
-
-  { Old direct walk navigation }
-  // DesignUrl := 'castle-data:/gameviewmain_direct.castle-user-interface';
-
-  { Simplest navigation - rotation only in camera no player rotation. When
-    you want something really simple to start experiment. }
-  // DesignUrl := 'castle-data:/gameviewmain_behaviors_simplest_inputaxis.castle-user-interface';
-
-  { Horizontal rotation in player physics - rotate rigid body using angular velocity -
-    start point for your own navigation if you don't want to use modular version. }
-  // DesignUrl := 'castle-data:/gameviewmain_behaviors_simple_with_rotation_physics.castle-user-interface';
 end;
 
 procedure TViewMain.Start;
