@@ -182,8 +182,8 @@ begin
   if FocusedContainer = nil then
     Exit;
 
-  Result := Result + Vector3(-SidewayInputAxis.Value(FocusedContainer), 0,
-  -FForwardInputAxis.Value(FocusedContainer));
+  Result := Result + Vector3(SidewayInputAxis.Value(FocusedContainer), 0,
+  FForwardInputAxis.Value(FocusedContainer));
 
   if InputJump.IsPressed(FocusedContainer) then
     Result := Result + Vector3(0, 1, 0);

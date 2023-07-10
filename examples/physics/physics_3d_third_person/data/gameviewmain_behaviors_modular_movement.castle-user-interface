@@ -72,6 +72,7 @@
             "ExposeTransforms" : [
             ],
             "Name" : "Player",
+            "ProcessEvents" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
@@ -117,8 +118,8 @@
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 2.5000000000000000E-001,
                   "Multiplier" : 1.5000000000000000E+000,
-                  "NegativeKey" : "keyArrowLeft",
-                  "PositiveKey" : "keyArrowRight"
+                  "NegativeKey" : "keyA",
+                  "PositiveKey" : "keyD"
                 },
                 "Name" : "RotateRigidBody"
               },
@@ -145,13 +146,19 @@
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 1.0000000000000000E+000,
                   "Multiplier" : 1.0000000000000000E+000,
-                  "NegativeKey" : "keyA",
-                  "PositiveKey" : "keyD"
+                  "NegativeKey" : "keyNone",
+                  "PositiveKey" : "keyNone"
                 }
               },
               {
                 "$$ClassName" : "TFpsWalkSupport",
                 "Name" : "FpsWalkSupport"
+              },
+              {
+                "$$ClassName" : "TAnimationTrigger",
+                "FallAnimation" : "bored",
+                "FlyAnimation" : "bored",
+                "Name" : "AnimationTrigger1"
               }
             ]
           },
