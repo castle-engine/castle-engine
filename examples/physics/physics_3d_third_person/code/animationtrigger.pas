@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, ModularMovement, CastleTransform, CastleBehaviors,
-  CastleVectors, CastleClassUtils;
+  CastleVectors, CastleClassUtils, CastleScene;
 
 type
 
@@ -18,18 +18,32 @@ type
     FJumpAnimation: String;
     FFallAnimation: String;
 
+    procedure SetAnimation(const PlayerScene: TCastleScene; const AnimationName: String);
+
+    function IdleAnimationStored: Boolean;
+    function WalkAnimationStored: Boolean;
+    function FlyAnimationStored: Boolean;
+    function JumpAnimationStored: Boolean;
+    function FallAnimationStored: Boolean;
   public
+    const
+      DefaultIdleAnimation = 'idle';
+      DefaultWalkAnimation = 'walk';
+      DefaultFlyAnimation = 'fly';
+      DefaultJumpAnimation = 'jump';
+      DefaultFallAnimation = 'fall';
+
     constructor Create(AOwner: TComponent); override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
   published
-    property IdleAnimation: String read FIdleAnimation write FIdleAnimation;
-    property WalkAnimation: String read FWalkAnimation write FWalkAnimation;
-    property FlyAnimation: String read FFlyAnimation write FFlyAnimation;
-    property JumpAnimation: String read FJumpAnimation write FJumpAnimation;
-    property FallAnimation: String read FFallAnimation write FFallAnimation;
+    property IdleAnimation: String read FIdleAnimation write FIdleAnimation stored IdleAnimationStored nodefault;
+    property WalkAnimation: String read FWalkAnimation write FWalkAnimation stored WalkAnimationStored nodefault;
+    property FlyAnimation: String read FFlyAnimation write FFlyAnimation stored FlyAnimationStored nodefault;
+    property JumpAnimation: String read FJumpAnimation write FJumpAnimation stored JumpAnimationStored nodefault;
+    property FallAnimation: String read FFallAnimation write FFallAnimation stored FallAnimationStored nodefault;
   end;
 
 implementation
@@ -38,14 +52,114 @@ uses Math, CastleUtils, CastleComponentSerialize, CastleKeysMouse, CastleLog;
 
 { TAnimationTrigger ------------------------------------------------------------ }
 
-procedure TAnimationTrigger.UpdateMovement(const MovementState: TModularMovementState);
-begin
-
-end;
-
 constructor TAnimationTrigger.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
+  FIdleAnimation := DefaultIdleAnimation;
+  FWalkAnimation := DefaultWalkAnimation;
+  FFlyAnimation := DefaultFlyAnimation;
+  FJumpAnimation := DefaultJumpAnimation;
+  FFallAnimation := DefaultFallAnimation;
+end;
+
+
+procedure TAnimationTrigger.UpdateMovement(const MovementState: TModularMovementState);
+var
+  RBody: TCastleRigidBody;
+  ParentScene: TCastleScene;
+begin
+  if not (Parent is TCastleScene) then
+    Exit;
+
+  ParentScene := TCastleScene(Parent);
+  RBody := MovementState.RigidBody;
+
+  { When we have gravity, no input direction and velocities are zero play idle
+    animation }
+  if TVector3.PerfectlyEquals(MovementState.InputDirection, TVector3.Zero) and
+    TVector3.PerfectlyEquals(RBody.LinearVelocity, TVector3.Zero) and
+    TVector3.PerfectlyEquals(RBody.AngularVelocity, TVector3.Zero) and
+    RBody.Gravity
+  then
+  begin
+    SetAnimation(ParentScene, FIdleAnimation);
+    Exit;
+  end;
+
+  { When no gravity play fly animation }
+  if not RBody.Gravity then
+  begin
+    SetAnimation(ParentScene, FFlyAnimation);
+    Exit;
+  end;
+
+  { When not on goround and y velocity > 0 play jump animation }
+  if (not MovementState.IsPlayerOnGround) and
+    (RBody.LinearVelocity.Y > 0.02)
+  then
+  begin
+    SetAnimation(ParentScene, FJumpAnimation);
+    Exit;
+  end;
+
+  { When not on goround and y velocity < 0 play fall animation }
+  if (not MovementState.IsPlayerOnGround) and
+    (RBody.LinearVelocity.Y < -0.02)
+  then
+  begin
+    SetAnimation(ParentScene, FFallAnimation);
+    Exit;
+  end;
+
+  if MovementState.IsPlayerOnGround and
+    MovementState.IsMoving
+  then
+  begin
+    SetAnimation(ParentScene, FWalkAnimation);
+    Exit;
+  end;
+end;
+
+procedure TAnimationTrigger.SetAnimation(const PlayerScene: TCastleScene;
+  const AnimationName: String);
+begin
+  if CastleDesignMode then
+    Exit;
+
+  if CastleDesignMode then
+    Exit;
+
+  if not PlayerScene.HasAnimation(AnimationName) then
+    Exit;
+
+  if PlayerScene.AutoAnimation <> AnimationName then
+    PlayerScene.AutoAnimation := AnimationName;
+end;
+
+function TAnimationTrigger.IdleAnimationStored: Boolean;
+begin
+  Result := FIdleAnimation <> DefaultIdleAnimation;
+end;
+
+function TAnimationTrigger.WalkAnimationStored: Boolean;
+begin
+  Result := FWalkAnimation <> DefaultWalkAnimation;
+end;
+
+function TAnimationTrigger.FlyAnimationStored: Boolean;
+begin
+  Result := FFlyAnimation <> DefaultFlyAnimation;
+end;
+
+function TAnimationTrigger.JumpAnimationStored: Boolean;
+begin
+  Result := FJumpAnimation <> DefaultJumpAnimation;
+end;
+
+function TAnimationTrigger.FallAnimationStored: Boolean;
+begin
+  Result := FFallAnimation <> DefaultFallAnimation;
 end;
 
 function TAnimationTrigger.PropertySections(const PropertyName: String
