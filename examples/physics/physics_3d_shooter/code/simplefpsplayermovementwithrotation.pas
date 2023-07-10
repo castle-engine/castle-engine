@@ -19,6 +19,7 @@ type
     - Rotation (direction.XZ) from player, camera should be player child (should rotate only in horizontal)
     - No control in air
     - Uses parent.up(), never camera up to deremine direction of the velocity vector
+    - camera should be rotated by pi in y axis
   }
   TSimpleFpsPlayerMovementWithRotation = class(TCastleBehavior)
   strict private
@@ -84,8 +85,8 @@ begin
   if FocusedContainer = nil then
     Exit;
 
-  Result := Result + Vector3(-SidewayInputAxis.Value(FocusedContainer), 0,
-  -FForwardInputAxis.Value(FocusedContainer));
+  Result := Result + Vector3(SidewayInputAxis.Value(FocusedContainer), 0,
+  FForwardInputAxis.Value(FocusedContainer));
 
   if InputJump.IsPressed(FocusedContainer) then
     Result := Result + Vector3(0, 1, 0);

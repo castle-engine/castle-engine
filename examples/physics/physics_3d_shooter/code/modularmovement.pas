@@ -88,6 +88,7 @@ type
     - After adding TFpsModularMovement add some movement modules e.g. TFpsWalkSupport
     - Do not afraid to change/add your own movement modules - this class is
       designed for that :)
+    - Camera should be rotated by pi in y axis for FPS movement
     }
   TFpsModularMovement = class(TAbstractModularMovement)
   strict private
@@ -182,8 +183,8 @@ begin
   if FocusedContainer = nil then
     Exit;
 
-  Result := Result + Vector3(-SidewayInputAxis.Value(FocusedContainer), 0,
-  -FForwardInputAxis.Value(FocusedContainer));
+  Result := Result + Vector3(SidewayInputAxis.Value(FocusedContainer), 0,
+  FForwardInputAxis.Value(FocusedContainer));
 
   if InputJump.IsPressed(FocusedContainer) then
     Result := Result + Vector3(0, 1, 0);

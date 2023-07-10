@@ -120,6 +120,7 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
     BulletOwner: TComponent;
     Bullet: TCastleTransform;
     BulletRigidBody: TCastleRigidBody;
+    CameraDirectionForBullet: TVector3;
   begin
     { Bullet's owner is BulletOwner, not directly FreeAtStop.
       This way we know that names are local within BulletOwner,
@@ -133,9 +134,13 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
       if SimplestFpsPlayerMovement = nil then
       begin
         { Code for player that can rotate }
-        { Player direction is oposite to camera direction. }
-        Bullet.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) - Player.Direction.Normalize * 1.5;
-        Bullet.Direction := Viewport.Camera.LocalToWorldDirection(Viewport.Camera.Direction);
+        Bullet.Translation := Viewport.Camera.LocalToWorld(Viewport.Camera.Translation) + Player.Direction.Normalize * 1.5;
+
+        { Camera shows things in oposite to its direction }
+        CameraDirectionForBullet := -Viewport.Camera.Direction;
+        CameraDirectionForBullet.Y := -CameraDirectionForBullet.Y;
+
+        Bullet.Direction := Viewport.Camera.LocalToWorldDirection(CameraDirectionForBullet);
         Bullet.Collides := false; // do not collide with player
       end else
       begin

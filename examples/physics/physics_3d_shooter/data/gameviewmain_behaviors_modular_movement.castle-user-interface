@@ -38,6 +38,11 @@
                 "Perspective" : {
                   "$$ClassName" : "TCastlePerspective"
                 },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 3.1415927410125732E+000,
+                  "Y" : 1.0000000000000000E+000
+                },
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TRotateCamera",
