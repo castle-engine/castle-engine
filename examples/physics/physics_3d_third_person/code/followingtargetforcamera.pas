@@ -23,6 +23,7 @@ type
     FRadius: Single;
     FImmediatelyFixBlockedCamera: Boolean;
     FInitialised: Boolean;
+    FMouseLookSensitivity: Single;
 
     function CameraPositionInitial(out TargetWorldPos: TVector3): TVector3;
 
@@ -64,6 +65,7 @@ type
       { Default value for TCastleNavigation.Radius.
         Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
       DefaultRadius = 0.25;
+      DefaultMouseLookSensitivity = 0.01;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -138,6 +140,9 @@ type
     property ImmediatelyFixBlockedCamera: Boolean read FImmediatelyFixBlockedCamera write FImmediatelyFixBlockedCamera
       default false;
 
+    property MouseLookSensitivity: Single read FMouseLookSensitivity write FMouseLookSensitivity
+      {$ifdef FPC}default DefaultMouseLookSensitivity{$endif};
+
   end;
 
 implementation
@@ -158,6 +163,7 @@ begin
   FCameraSpeed := DefaultCameraSpeed;
   FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
   FRadius :=DefaultRadius;
+  FMouseLookSensitivity := DefaultMouseLookSensitivity;
 end;
 
 procedure TFollowingTargetForCamera.Init;
@@ -314,12 +320,12 @@ var
       if DeltaY < -MaxChange then
         DeltaY := -MaxChange;
     end;
-    ToCamera := RotatePointAroundAxisRad(DeltaY * 0.01, ToCamera, Side);
+    ToCamera := RotatePointAroundAxisRad(DeltaY * MouseLookSensitivity, ToCamera, Side);
   end;
 
   procedure ProcessHorizontal(const DeltaX: Single);
   begin
-    ToCamera := RotatePointAroundAxisRad(-DeltaX * 0.01, ToCamera, GravUp);
+    ToCamera := RotatePointAroundAxisRad(-DeltaX * MouseLookSensitivity, ToCamera, GravUp);
   end;
 
 var
