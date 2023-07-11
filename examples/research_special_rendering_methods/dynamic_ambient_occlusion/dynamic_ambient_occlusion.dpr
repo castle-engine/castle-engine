@@ -916,7 +916,7 @@ begin
     Scene := TCastleScene.Create(Application);
     Scene.Load(ModelURL);
     Scene.PreciseCollisions := true;
-    Scene.OnGeometryChanged := MyEvents.SceneGeometryChanged;
+    Scene.OnGeometryChanged := {$ifdef FPC}@{$endif} MyEvents.SceneGeometryChanged;
     Scene.ProcessEvents := true; { allow Scene animation }
     CalculateElements;
     Viewport.Items.Add(Scene);
