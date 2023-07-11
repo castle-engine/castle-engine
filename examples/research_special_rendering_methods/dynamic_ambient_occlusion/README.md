@@ -1,3 +1,27 @@
+# Dynamic Ambient Occlusion
+
+Sample implementation of "Dynamic ambient occlusion". See below for algorithm descriptions and links.
+
+By default we open the "peach" model from `data/` subdirectory. You can pass on command-line URL of a different model to open, like `castle-data:/chinchilla_awakens.x3dv`.
+
+Navigate by mouse/keys like in view3dscene (see https://castle-engine.io/view3dscene.php).
+
+Use keys s / S scale shadow more / less (for more/less dramatic effect; the default scale is anyway 2 times larger than what math suggests, to be more dramatic).
+
+Using [Castle Game Engine](https://castle-engine.io/).
+
+## Building
+
+Compile by:
+
+- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+
+- Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
+
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `dynamic_ambient_occlusion_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
+
+## Algorithm
+
 Dynamic ambient occlusion, based on GPU Gems 2 chapter 14, online on
 http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter14.html
 (PDF version on
@@ -8,7 +32,7 @@ Idea:
 - Crude assumption: model is actually a number of elements, each element
   corresponding to a vertex of orig model, with normal and area correctly
   calculated.
-  See menu "Program -> Show Elements".
+  See menu _"Program -> Show Elements"_.
 
 - Encode elements info into the texture.
 
@@ -76,22 +100,28 @@ Practice:
   "color -= ..." line.
   Math eq on page 3 is equivalent to
 
+    ```
     color -= sqrt(sqr_distance) * cos_emitter_angle *
       max(1.0, 4.0 * cos_current_angle) /
       sqrt(element_area / pi + sqr_distance);
+    ```
 
   Code on page 4 is (possibly --- not sure, as they put "1 - " part
   already there, so I don't see a reasonable way to use it?) equivalent to
 
+    ```
     color -= inversesqrt((element_area/pi)/sqr_distance + 1) *
       cos_emitter_angle *
       min(1.0, 4.0 * cos_current_angle);
+    ```
 
   If you grok reasoning behind their equations, and/or if there's an
   error in my implementations above, mail me. My implementation follows
   normal approximation for solid angle:
 
+    ```
     element_area * cos_emitter_angle / sqr_distance
+    ```
 
   We also multiply by cos_current_angle
   (as light coming from an angle is scaled down, so blocker for
@@ -102,18 +132,26 @@ Advantages:
 - Since all work is done on the fly, the scene may be absolutely dynamic.
   (Although on change, list of elements must be updated, this causes CPU work.)
   For example, see:
-  data/chinchilla_awakens (timesensor animation) and
-  data/dynamic_world_ifs (interactive world changing, press left mouse down, use keys werxdf, uiojkl)
+
+    - data/chinchilla_awakens (timesensor animation) and
+    - data/dynamic_world_ifs (interactive world changing, press left mouse down, use keys werxdf, uiojkl)
+
 - Can make bent normals, indirect lighting almost for free.
+
 - Although the work is done on shaders, resulting colors can be grabbed to CPU.
-  While this is not efficient, it allowed us to make simple implementation, and to easily debug it too.
+
+    While this is not efficient, it allowed us to make simple implementation, and to easily debug it too.
+
 - Can work with practically any 3d model.
-  For example, check out castle/data/levels/fountain/fountain_final.wrl
+
+    For example, check out castle/data/levels/fountain/fountain_final.wrl
 
 Disadvantages:
 
 - Like PRT and shadow fields, this requires a large number of vertexes (elements) to look good, and still number vertexes is also the key thing that determines speed. (On the up side, it's not difficult to make lower LOD versions of elements, since they are so simple? Hierarchy idea will also help a lot.)
-  On dynamic models, when too few vertexes are available, it can be seen as moving shadows are "sticky" to vertexes.
+
+    On dynamic models, when too few vertexes are available, it can be seen as moving shadows are "sticky" to vertexes.
+
 - Requires a good GPU. Fragment shader must do a *lot* of work, a lot of texture lookups. Simply not possible on older GPUs.
 
 TODO: our current method of generating elements works only for nodes
