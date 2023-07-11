@@ -342,7 +342,6 @@ examples:
 .PHONY: examples-delphi
 examples-delphi:
 	"$(FIND)" ./examples/ \
-	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./examples/castlescript/image_make_by_script -prune ')' -o \
 	  '(' -path ./examples/localization -prune ')' -o \
 	  '(' -path ./examples/audio/audio_player -prune ')' -o \
