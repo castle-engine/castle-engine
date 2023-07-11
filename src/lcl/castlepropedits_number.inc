@@ -49,6 +49,7 @@ type
     function FormatValueVirt(const AValue: Extended): String; override;
   public
     function GetName: ShortString; override;
+    procedure SetValue(const NewValue: String); override;
   end;
 
 { TCastleFloatPropertyEditor ------------------------------------------------- }
@@ -117,6 +118,21 @@ begin
     CastleScript also accepts Deg(...) as input. }
   Result := inherited FormatValueVirt(RadToDeg(AValue));
   Result := 'deg(' + Result + ')';
+end;
+
+procedure TCastleFloatRotationPropertyEditor.SetValue(const NewValue: String);
+begin
+  if IsPrefix('deg', Trim(NewValue), true) then
+  begin
+    { If user explicitly left "deg(" marker, that's OK, leave it. }
+    inherited SetValue(NewValue);
+  end else
+  begin
+    { If user deleted "deg(" marker, interpret result as degrees
+      *anyway*. This is more user-friendly, Blender and Godot also do
+      it like this. }
+    inherited SetValue('deg(' + NewValue + ')');
+  end;
 end;
 
 { TCastleTagPropertyEditor ------------------------------------------------- }
