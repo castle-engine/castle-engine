@@ -96,10 +96,9 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TFollowingTargetForCamera",
-                "CameraSpeed" : 4.0000000000000000E+000,
-                "DistanceToTarget" : 2.0000000000000000E+000,
-                "MaxDistanceToTarget" : 2.2999999523162842E+000,
-                "MinDistanceToTarget" : 1.5000000000000000E+000,
+                "DistanceToTarget" : 3.0000000000000000E+000,
+                "MaxDistanceToTarget" : 5.0000000000000000E+000,
+                "MinDistanceToTarget" : 2.0000000000000000E+000,
                 "Name" : "FollowingTargetForCamera2",
                 "Target" : "Player"
               }
@@ -152,7 +151,7 @@
                 "$$ClassName" : "TRotateRigidBody",
                 "HorizontalRotationInput" : {
                   "$$ClassName" : "TCastleInputAxis",
-                  "MouseLook" : true,
+                  "MouseLook" : false,
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 2.5000000000000000E-001,
                   "Multiplier" : 1.5000000000000000E+000,
