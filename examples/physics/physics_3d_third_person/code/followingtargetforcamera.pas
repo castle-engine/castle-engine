@@ -376,11 +376,8 @@ procedure TFollowingTargetForCamera.Update(const SecondsPassed: Single;
     MaxDistance: Single;
   begin
     TargetWorldPos := Target.WorldTransform.MultPoint(TargetPoint);
-    WritelnLog('TargetWorldPos ' + TargetWorldPos.ToString);
 
     Camera.GetView(CameraPos, CameraDir, CameraUp);
-
-    WritelnLog('Old Camera position ' + CameraPos.ToString);
 
     { We use CameraDirToTarget, not CameraDir, because (since we update with delay)
       camera may look at a slightly shifted point.
@@ -392,14 +389,11 @@ procedure TFollowingTargetForCamera.Update(const SecondsPassed: Single;
       to calculate mostly the same.
       So we use one call to CameraMaxDistanceToTarget. }
     MaxDistance := CameraMaxDistanceToTarget(TargetWorldPos, CameraDirToTarget);
-    WritelnLog('MAxDistance ' + FloatToStr(MaxDistance));
 
     { No need to use CameraDir.AdjustToLength(xxx) as we know CameraDir is normalized.
       Note that this is not entirely correct: we use distance we obtained with CameraDirToTarget,
       but our desired camera direction is CameraDir (i.e. unchanged from current camera direction). }
     CameraPosTarget := TargetWorldPos - CameraDir * Min(MaxDistance, DistanceToTarget);
-
-    WritelnLog('CameraPosTarget ' + CameraPosTarget.ToString);
 
     CameraPos := SmoothTowards(CameraPos, CameraPosTarget, SecondsPassed, CameraSpeed);
     if ImmediatelyFixBlockedCamera then
@@ -409,9 +403,7 @@ procedure TFollowingTargetForCamera.Update(const SecondsPassed: Single;
     end;
 
     Camera.SetView(CameraPos, CameraDir, CameraUp);
-    WritelnLog('New Camera position ' + CameraPos.ToString);
   end;
-
 begin
   if (Target = nil) or (CastleApplicationMode <> appRunning) then
     Exit;
