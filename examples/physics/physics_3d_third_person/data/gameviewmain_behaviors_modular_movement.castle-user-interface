@@ -22,6 +22,57 @@
         "$Children" : [
           {
             "$$ClassName" : "TCastleCamera",
+            "Exists" : false,
+            "Name" : "Camera2",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "Z" : 1.0000000000000000E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 2.1058173179626465E+000,
+              "Z" : 7.1090316772460938E+000
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleBox",
+                "Name" : "Box17",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 3.0000001192092896E-001,
+                  "Y" : 3.0000001192092896E-001,
+                  "Z" : 3.0000001192092896E-001
+                }
+              }
+            ],
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TFollowingTargetForCamera",
+                "CameraSpeed" : 1.0000000000000000E+000,
+                "DistanceToTarget" : 1.0000000000000000E+000,
+                "MaxDistanceToTarget" : 1.2999999523162842E+000,
+                "MinDistanceToTarget" : 1.0000000000000000E+000,
+                "Name" : "FollowingTargetForCamera1",
+                "Radius" : 0.0000000000000000E+000,
+                "Target" : "Player"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleCamera",
             "Name" : "Camera1",
             "Orthographic" : {
               "$$ClassName" : "TCastleOrthographic"
@@ -44,26 +95,13 @@
             },
             "$Behaviors" : [
               {
-                "$$ClassName" : "TRotateCamera",
-                "HorizontalRotationInput" : {
-                  "$$ClassName" : "TCastleInputAxis",
-                  "MouseLook" : false,
-                  "MouseLookAxis" : "mlaHorizontal",
-                  "MouseLookMultiplier" : 2.5000000000000000E-001,
-                  "Multiplier" : 1.5000000000000000E+000,
-                  "NegativeKey" : "keyNone",
-                  "PositiveKey" : "keyNone"
-                },
-                "Name" : "RotateCamera1",
-                "VerticalRotationInput" : {
-                  "$$ClassName" : "TCastleInputAxis",
-                  "MouseLook" : true,
-                  "MouseLookAxis" : "mlaVertical",
-                  "MouseLookMultiplier" : 2.5000000000000000E-001,
-                  "Multiplier" : 1.5000000000000000E+000,
-                  "NegativeKey" : "keyNone",
-                  "PositiveKey" : "keyNone"
-                }
+                "$$ClassName" : "TFollowingTargetForCamera",
+                "CameraSpeed" : 4.0000000000000000E+000,
+                "DistanceToTarget" : 2.0000000000000000E+000,
+                "MaxDistanceToTarget" : 2.2999999523162842E+000,
+                "MinDistanceToTarget" : 1.5000000000000000E+000,
+                "Name" : "FollowingTargetForCamera2",
+                "Target" : "Player"
               }
             ]
           },

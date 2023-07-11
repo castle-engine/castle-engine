@@ -30,7 +30,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="18">
       <Unit0>
         <Filename Value="physics_3d_third_person.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -73,6 +73,7 @@
       <Unit9>
         <Filename Value="code/rotatecamera.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="RotateCamera"/>
       </Unit9>
       <Unit10>
         <Filename Value="code/gameinputaxis.pas"/>
@@ -103,6 +104,11 @@
         <Filename Value="code/stairssupportbycollidercapsuleradius.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit16>
+      <Unit17>
+        <Filename Value="code/followingtargetforcamera.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="FollowingTargetForCamera"/>
+      </Unit17>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

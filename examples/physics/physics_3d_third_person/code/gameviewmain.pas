@@ -23,7 +23,8 @@ uses Classes,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras, CastleTransform,
   CastleViewport, SimplestFpsPlayerMovement, SimpleFpsPlayerMovementWithRotation,
   DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, GameInputAxis, RotateCamera,
-  ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport, FpsWalkSupport, AnimationTrigger;
+  ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport, FpsWalkSupport,
+  AnimationTrigger, FollowingTargetForCamera;
 
 type
   { Main view, where most of the application logic takes place. }
