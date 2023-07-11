@@ -26,22 +26,22 @@ uses
 
 type
   TServer = class
-    protected
-      FServer: TCastleTCPServer;
-      procedure OnConnected(AClient: TClientConnection);
-      procedure OnDisconnected(AClient: TClientConnection);
-      procedure OnMessageReceived(const AMessage: String; AClient: TClientConnection);
-    public
-      constructor Create(const APort: Word);
-      destructor Destroy; override;
-      procedure Send(const AMessage: String);
-    published
+  protected
+    FServer: TCastleTCPServer;
+    procedure OnConnected(AClient: TClientConnection);
+    procedure OnDisconnected(AClient: TClientConnection);
+    procedure OnMessageReceived(const AMessage: String; AClient: TClientConnection);
+  public
+    constructor Create(const APort: Word);
+    destructor Destroy; override;
+    procedure Send(const AMessage: String);
   end;
 
 type
-  TClickHandler = class
-    class procedure CreateClick(Sender: TObject);
-    class procedure SendClick(Sender: TObject);
+  { TODO: migrate to use TCastleView }
+  TEventsHandler = class(TComponent)
+    procedure CreateClick(Sender: TObject);
+    procedure SendClick(Sender: TObject);
   end;
 
 var
@@ -50,6 +50,7 @@ var
   ResponseLabel: TCastleLabel;
   Server: TServer;
   Connection: TClientConnection;
+  EventsHandler: TEventsHandler;
 
 implementation
 
@@ -61,6 +62,8 @@ var
   MyButton: TCastleButton;
   MyLabel: TCastleLabel;
 begin
+  EventsHandler := TEventsHandler.Create(Application);
+
   MyLabel := TCastleLabel.Create(Application);
   MyLabel.Caption := 'Port:';
   MyLabel.Anchor(hpMiddle);
@@ -78,7 +81,7 @@ begin
   MyButton.Caption := 'Create server';
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -110);
-  MyButton.OnClick := @TClickHandler(nil).CreateClick;
+  MyButton.OnClick := {$ifdef FPC}@{$endif} EventsHandler.CreateClick;
   Window.Controls.InsertFront(MyButton);
 
   SendEdit := TCastleEdit.Create(Application);
@@ -90,7 +93,7 @@ begin
   MyButton.Caption := 'Send';
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -260);
-  MyButton.OnClick := @TClickHandler(nil).SendClick;
+  MyButton.OnClick := {$ifdef FPC}@{$endif} EventsHandler.SendClick;
   Window.Controls.InsertFront(MyButton);
 
   MyLabel := TCastleLabel.Create(Application);
@@ -112,9 +115,9 @@ begin
   FServer := TCastleTCPServer.Create;
   FServer.Port := APort;
 
-  FServer.OnConnected := @OnConnected;
-  FServer.OnDisconnected := @OnDisconnected;
-  FServer.OnMessageReceived := @OnMessageReceived;
+  FServer.OnConnected := {$ifdef FPC}@{$endif} OnConnected;
+  FServer.OnDisconnected := {$ifdef FPC}@{$endif} OnDisconnected;
+  FServer.OnMessageReceived := {$ifdef FPC}@{$endif} OnMessageReceived;
 
   FServer.Start;
 end;
@@ -146,12 +149,12 @@ begin
   FServer.SendToAll(SendEdit.Text);
 end;
 
-class procedure TClickHandler.CreateClick(Sender: TObject);
+procedure TEventsHandler.CreateClick(Sender: TObject);
 begin
   Server := TServer.Create(StrToInt(PortEdit.Text));
 end;
 
-class procedure TClickHandler.SendClick(Sender: TObject);
+procedure TEventsHandler.SendClick(Sender: TObject);
 begin
   if Assigned(Server) then
     Server.Send(SendEdit.Text);

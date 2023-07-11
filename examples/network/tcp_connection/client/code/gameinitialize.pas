@@ -26,22 +26,21 @@ uses
 
 type
   TClient = class
-    protected
-      FClient: TCastleTCPClient;
-      procedure OnConnected;
-      procedure OnDisconnected;
-      procedure OnMessageReceived (const AMessage: String);
-    public
-      constructor Create (const AHost: String; const APort: Word);
-      destructor Destroy; override;
-      procedure Send (const AMessage: String);
-    published
+  protected
+    FClient: TCastleTCPClient;
+    procedure OnConnected;
+    procedure OnDisconnected;
+    procedure OnMessageReceived (const AMessage: String);
+  public
+    constructor Create (const AHost: String; const APort: Word);
+    destructor Destroy; override;
+    procedure Send (const AMessage: String);
   end;
 
 type
-  TClickHandler = class
-    class procedure CreateClick(Sender: TObject);
-    class procedure SendClick(Sender: TObject);
+  TEventsHandler = class(TComponent)
+    procedure CreateClick(Sender: TObject);
+    procedure SendClick(Sender: TObject);
   end;
 
 var
@@ -50,6 +49,7 @@ var
   ResponseLabel: TCastleLabel;
   Client: TClient;
   Connection: TClientConnection;
+  EventsHandler: TEventsHandler;
 
 implementation
 
@@ -61,6 +61,8 @@ var
   MyButton: TCastleButton;
   MyLabel: TCastleLabel;
 begin
+  EventsHandler := TEventsHandler.Create(Application);
+
   MyLabel := TCastleLabel.Create(Application);
   MyLabel.Caption := 'Hostname:';
   MyLabel.Anchor(hpMiddle);
@@ -91,7 +93,7 @@ begin
   MyButton.Caption := 'Create client';
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -210);
-  MyButton.OnClick := {$ifdef FPC}@{$endif} TClickHandler {$ifdef FPC}(nil){$endif}.CreateClick;
+  MyButton.OnClick := {$ifdef FPC}@{$endif} EventsHandler.CreateClick;
   Window.Controls.InsertFront(MyButton);
 
   SendEdit := TCastleEdit.Create(Application);
@@ -103,7 +105,7 @@ begin
   MyButton.Caption := 'Send';
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -360);
-  MyButton.OnClick := {$ifdef FPC}@{$endif} TClickHandler {$ifdef FPC}(nil){$endif}.SendClick;
+  MyButton.OnClick := {$ifdef FPC}@{$endif} EventsHandler.SendClick;
   Window.Controls.InsertFront(MyButton);
 
   MyLabel := TCastleLabel.Create(Application);
@@ -160,12 +162,12 @@ begin
   FClient.Send(SendEdit.Text);
 end;
 
-class procedure TClickHandler.CreateClick(Sender: TObject);
+procedure TEventsHandler.CreateClick(Sender: TObject);
 begin
   Client := TClient.Create(HostEdit.Text, StrToInt(PortEdit.Text));
 end;
 
-class procedure TClickHandler.SendClick(Sender: TObject);
+procedure TEventsHandler.SendClick(Sender: TObject);
 begin
   if Assigned(Client) then
     Client.Send(SendEdit.Text);
