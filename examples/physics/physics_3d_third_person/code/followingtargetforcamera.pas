@@ -49,6 +49,8 @@ type
     procedure SetInitialHeightAboveTarget(const AValue: Single);
 
     function Camera: TCastleCamera;
+
+    procedure ProcessMouseLookDelta(const Delta: TVector2);
   protected
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
@@ -283,6 +285,76 @@ begin
     Result := nil;
 end;
 
+procedure TFollowingTargetForCamera.ProcessMouseLookDelta(const Delta: TVector2);
+var
+  ToCamera, GravUp: TVector3;
+
+  { Change ToCamera by applying DeltaY from mouse look. }
+  procedure ProcessVertical(DeltaY: Single);
+  const
+    { Do not allow to look exactly up or exactly down,
+      as then further vertical moves would be undefined,
+      so you would not be able to "get out" of such rotation. }
+    MinAngleFromZenith = 0.1;
+  var
+    Side: TVector3;
+    AngleToUp, AngleToDown, MaxChange: Single;
+  begin
+    Side := -TVector3.CrossProduct(ToCamera, GravUp);
+    if DeltaY > 0 then
+    begin
+      AngleToDown := AngleRadBetweenVectors(ToCamera, -GravUp);
+      MaxChange := Max(0, AngleToDown - MinAngleFromZenith);
+      if DeltaY > MaxChange then
+        DeltaY := MaxChange;
+    end else
+    begin
+      AngleToUp := AngleRadBetweenVectors(ToCamera, GravUp);
+      MaxChange := Max(0, AngleToUp - MinAngleFromZenith);
+      if DeltaY < -MaxChange then
+        DeltaY := -MaxChange;
+    end;
+    ToCamera := RotatePointAroundAxisRad(DeltaY * 0.01, ToCamera, Side);
+  end;
+
+  procedure ProcessHorizontal(const DeltaX: Single);
+  begin
+    ToCamera := RotatePointAroundAxisRad(-DeltaX * 0.01, ToCamera, GravUp);
+  end;
+
+var
+  CameraPos, CameraDir, CameraUp, TargetWorldPos, LookPos: TVector3;
+begin
+  inherited;
+
+  if (Target <> nil) then
+  begin
+    Camera.GetWorldView(CameraPos, CameraDir, CameraUp);
+    GravUp := Camera.GravityUp;
+
+    TargetWorldPos := Target.WorldTransform.MultPoint(TargetPoint);
+    // Since camera may update with some delay, we may not look exactly at TargetWorldPos if avatar moved
+    LookPos := PointOnLineClosestToPoint(CameraPos, CameraDir, TargetWorldPos);
+
+    ToCamera := CameraPos - LookPos;
+    if ToCamera.IsZero then
+    begin
+      WritelnWarning('TFollowingTargetForCamera camera position at look target, increase DistanceToAvatarTarget');
+      Exit;
+    end;
+
+    ProcessVertical(Delta[1]);
+    ProcessHorizontal(Delta[0]);
+
+    CameraPos := LookPos + ToCamera;
+    CameraDir := LookPos - CameraPos;
+    CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetWorldView
+    if ImmediatelyFixBlockedCamera then
+      FixCameraForCollisions(CameraPos, CameraDir);
+    Camera.SetWorldView(CameraPos, CameraDir, CameraUp);
+  end;
+end;
+
 procedure TFollowingTargetForCamera.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 
@@ -348,7 +420,12 @@ begin
   begin
     Init;
     FInitialised := true;
-  end;w
+  end;
+
+  if not FocusedContainer.MouseLookLastDelta.IsPerfectlyZero then
+  begin
+    ProcessMouseLookDelta(FocusedContainer.MouseLookLastDelta);
+  end;
 
   UpdateCamera;
   inherited Update(SecondsPassed, RemoveMe);
