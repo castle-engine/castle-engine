@@ -149,7 +149,13 @@ constructor TFollowingTargetForCamera.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   TargetPoint := Vector3(0, 2, 0);
-  //FImmediatelyFixBlockedCamera :=
+
+  FMaxDistanceToTarget := DefaultMaxDistanceToTarget;
+  FMinDistanceToTarget := DefaultMinDistanceToTarget;
+  FDistanceToTarget := DefaultDistanceToTarget;
+  FCameraSpeed := DefaultCameraSpeed;
+  FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
+  FRadius :=DefaultRadius;
 end;
 
 procedure TFollowingTargetForCamera.Init;
