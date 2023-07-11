@@ -345,8 +345,6 @@ examples-delphi:
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./examples/castlescript/image_make_by_script -prune ')' -o \
 	  '(' -path ./examples/localization -prune ')' -o \
-	  '(' -path ./examples/network/custom_url_handler -prune ')' -o \
-	  '(' -path ./examples/visualize_triangulation -prune ')' -o \
 	  '(' -path ./examples/audio/audio_player -prune ')' -o \
 	  '(' -path ./examples/audio/test_sound_source_allocator -prune ')' -o \
 	  '(' -path ./examples/deprecated_random_generator -prune ')' -o \
