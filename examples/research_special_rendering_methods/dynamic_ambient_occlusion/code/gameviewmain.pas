@@ -131,7 +131,7 @@ type
       const Shape: TShape;
       const VertexPosition: TVector3;
       const VertexIndex: Integer): TCastleColorRGB;
-    procedure SceneGeometryChanged(Scene: TCastleSceneCore;
+    procedure SceneGeometryChanged(AScene: TCastleSceneCore;
       const SomeLocalGeometryChanged: boolean;
       OnlyShapeChanged: TShape);
 
@@ -850,7 +850,7 @@ begin
   end;
 end;
 
-procedure TViewMain.SceneGeometryChanged(Scene: TCastleSceneCore;
+procedure TViewMain.SceneGeometryChanged(AScene: TCastleSceneCore;
   const SomeLocalGeometryChanged: boolean;
   OnlyShapeChanged: TShape);
 var
