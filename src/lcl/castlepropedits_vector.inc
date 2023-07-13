@@ -323,7 +323,8 @@ procedure TCastleVector4PropertyEditor.SetValue(const NewValue: String);
     Result.X := ParseConstantFloatExpression(NextToken(S, SPosition));
     Result.Y := ParseConstantFloatExpression(NextToken(S, SPosition));
     Result.Z := ParseConstantFloatExpression(NextToken(S, SPosition));
-    Result.W := ParseConstantFloatExpression(NextToken(S, SPosition));
+    // interpret 4th component in degrees
+    Result.W := ParseConstantFloatExpression(WrapDegIfNeeded(NextToken(S, SPosition)));
     if NextToken(S, SPosition) <> '' then
       raise EConvertError.Create('Expected end of data when reading vector from string');
   end;
