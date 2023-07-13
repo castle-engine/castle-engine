@@ -13,8 +13,7 @@ implementation
 
 uses SysUtils,
   CastleWindow, CastleLog, CastleUIControls
-  {$region 'Castle Initialization Uses'}
-  // The content here may be automatically updated by CGE editor.
+  {$region 'Castle Initialization Uses'} // Automatically updated by CGE editor.
   , GameView${MAIN_VIEW}
   {$endregion 'Castle Initialization Uses'};
 
@@ -28,8 +27,7 @@ begin
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   { Create views (see https://castle-engine.io/views ). }
-  {$region 'Castle View Creation'}
-  // The content here may be automatically updated by CGE editor.
+  {$region 'Castle View Creation'} // Automatically updated by CGE editor.
   View${MAIN_VIEW} := TView${MAIN_VIEW}.Create(Application);
   {$endregion 'Castle View Creation'}
 

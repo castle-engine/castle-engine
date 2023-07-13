@@ -7,9 +7,12 @@ unit GameView${MAIN_VIEW};
 
 interface
 
-uses Classes,
+uses
+  {$region 'Interface Uses'} // Automatically updated by CGE editor.
+  Classes,
   CastleVectors, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse;
+  CastleUIControls, CastleControls, CastleKeysMouse
+  {$endregion 'Interface Uses'};
 
 type
   { Main view, where most of the application logic takes place. }
@@ -17,7 +20,9 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
+    {$region 'Published Components'} // Automatically updated by CGE editor.
     LabelFps: TCastleLabel;
+    {$endregion 'Published Components'}
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
