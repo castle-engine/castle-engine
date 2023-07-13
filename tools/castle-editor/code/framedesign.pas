@@ -2684,19 +2684,28 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
       ActiveRow := Inspector[InspectorType].GetActiveRow;
       PropertyInstance := ActiveRow.Editor.GetComponent(0);
 
-      { Note that "GetActiveRow.Name" may not be the actual property name.
-        The actual property name is in "GetActiveRow.Editor.GetPropInfo^.Name",
-        and "GetActiveRow.Name" may be overrided by the property editor for presentation.
-        E.g. our TVector3Persistent, TCastleColorPersistent modify the name
-        to remove "Persistent" suffix.
-        That said, we actually want to link to the version without "Persistent"
-        suffix (but we need to use the version with "Persistent" for GetPropInfo
-        as only "XxxPersistent" is published).
-
-        So we need to pass on this complication to ApiReference.
-      }
       PropertyName := ActiveRow.Editor.GetPropInfo^.Name;
-      PropertyNameForLink := ActiveRow.Name;
+
+      { Why do we need PropertyNameForLink, sometimes different than PropertyName?
+
+        Our TVectorXxxPersistent, TCastleColorPersistent property editors
+        modify the GetName (returned by "ActiveRow.Name" here)
+        to remove "Persistent" suffix.
+        And in their case, we want to link to the version without "Persistent"
+        suffix.
+
+        But we need to use the version with "Persistent" for GetPropInfo
+        as only "XxxPersistent" is published and actually available using RTTI,
+        so we also return real PropertyName.
+
+        For other properties (without "persistent" suffix)
+        the PropertyNameForLink is equal to PropertyName.
+        This way we avoid using weird names set by property editors, like "Angle W",
+        for links. }
+      if IsSuffix('persistent', PropertyName, true) then
+        PropertyNameForLink := ActiveRow.Name
+      else
+        PropertyNameForLink := PropertyName;
       Result := true;
     end else
       Result := false;
