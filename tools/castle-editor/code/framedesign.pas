@@ -3791,9 +3791,24 @@ begin
 end;
 
 procedure TDesignFrame.PropertyEditorModified(Sender: TObject);
+
+  { Call Invalidate on all Object Inspectors.
+    This way editing a single property (like X to 10 of TCastleTransform.Translation)
+    and pressing Enter immediately updates the vector value of it too
+    (so it shows e.g. "0 0 10"). }
+  procedure InvalidateInspectors;
+  var
+    It: TInspectorType;
+  begin
+    for It in TInspectorType do
+      Inspector[It].Invalidate;
+  end;
+
 var
   Sel: TPersistent;
 begin
+  InvalidateInspectors;
+
   if Sender is TPropertyEditor then
   begin
     if TPropertyEditor(Sender).PropCount = 1 then
