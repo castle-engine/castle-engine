@@ -412,7 +412,13 @@ end;
 
 function FloatToStrDisplay(const AValue: Extended): String;
 begin
-  Result := FloatToStrFDot(AValue, ffFixed, 0, 2);
+  Result := FloatToStrFDot(AValue, ffFixed,
+    { With FPC, Precision = 0 is also OK, but with Delphi it's not,
+      it will use scientific notation then early, e.g. for 123.0.
+      See TTestCastleUtils.TestFloatToStrDisplay testcase. }
+    20,
+    2);
+
   { We just remove trailing digits after decimal separator, we don't need them.
     A less hacky way (that doens't involve string fixing) would be nicer,
     but it doesn't seem possible based on FloatToStrF possibilities,
