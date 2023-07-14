@@ -36,11 +36,14 @@ type
     procedure TestRelativeToCastleDataURL;
     procedure TestExtractURI;
     procedure TestDotfile;
+    procedure TestDecodeBase64;
+    procedure TestEncodeBase64;
   end;
 
 implementation
 
-uses CastleURIUtils, URIParser, CastleUtils;
+uses Base64, URIParser,
+  CastleURIUtils, CastleUtils, CastleClassUtils;
 
 procedure TTestURIUtils.TestURIProtocol;
 var
@@ -314,6 +317,72 @@ begin
   AssertEquals('castle-data:/.hidden', DeleteURIExt('castle-data:/.hidden.x3d'));
   AssertEquals('https://blah/.hidden.x3d', DeleteURIExt('https://blah/.hidden.x3d.gz'));
   AssertEquals('castle-data:/.hidden.x3d', DeleteURIExt('castle-data:/.hidden.x3d.gz'));
+end;
+
+procedure TTestURIUtils.TestDecodeBase64;
+
+  { Like ReadGrowingStreamToString, but read GrowingStream contents
+    assuming they contain String, which means UTF-16 with Delphi.
+    This makes sense with TBase64DecodingStream that on Delphi converts
+    String->String, so output is UTF-16. }
+  function ReadGrowingStreamToDefaultString(const GrowingStream: TStream): String;
+  {$ifdef FPC}
+  begin
+    Result := ReadGrowingStreamToString(GrowingStream);
+  {$else}
+  var
+    Str8: AnsiString;
+  begin
+    Str8 := ReadGrowingStreamToString(GrowingStream);
+    Assert(Length(Str8) mod 2 = 0);
+    SetLength(Result, Length(Str8) div 2);
+    Move(Str8[1], Result[1], Length(Str8));
+  {$endif}
+  end;
+
+var
+  Source: TStream;
+  Decode: TBase64DecodingStream;
+  DecodeStr: String;
+begin
+  // sample from https://en.wikipedia.org/wiki/Base64
+
+  { TODO: Why both versions with TStringStream fail on Delphi?
+    TStringStream (esp 2nd variant) should encode in UTF-16, which should
+    be what our TBase64DecodingStream expects (as shown by the fact that
+    MemoryStreamLoadFromDefaultString is OK). }
+  //Source := TStringStream.Create('TWFueSBoYW5kcyBtYWtlIGxpZ2h0IHdvcmsu');
+  //Source := TStringStream.Create('TWFueSBoYW5kcyBtYWtlIGxpZ2h0IHdvcmsu', TEncoding.Unicode, false);
+
+  Source := MemoryStreamLoadFromDefaultString('TWFueSBoYW5kcyBtYWtlIGxpZ2h0IHdvcmsu');
+  try
+    Decode := TBase64DecodingStream.Create(Source, bdmMIME);
+    try
+      DecodeStr :=
+        ReadGrowingStreamToDefaultString
+        //ReadGrowingStreamToString
+        (Decode);
+      AssertEquals('Many hands make light work.', DecodeStr);
+    finally FreeAndNil(Decode) end;
+  finally FreeAndNil(Source) end;
+end;
+
+procedure TTestURIUtils.TestEncodeBase64;
+var
+  S: TStringStream;
+  Encode: TBase64EncodingStream;
+  EncodeStr: String;
+begin
+  // sample from https://en.wikipedia.org/wiki/Base64
+  S := TStringStream.Create;
+  try
+    Encode := TBase64EncodingStream.Create(S);
+    try
+      WriteStr(Encode, 'Many hands make light work.');
+    finally FreeAndNil(Encode) end;
+    EncodeStr := S.DataString;
+    AssertEquals('TWFueSBoYW5kcyBtYWtlIGxpZ2h0IHdvcmsu', EncodeStr);
+  finally FreeAndNil(S) end;
 end;
 
 initialization

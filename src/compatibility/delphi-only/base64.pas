@@ -27,6 +27,9 @@ type
     Underneath, in Delphi, the whole decoding (so, reading Source)
     is done immediately at constructor.
 
+    Converts String->String, so (in Delphi) both input and output
+    are UTF-16 strings.
+
     Note: in Delphi, AMode is ignored. }
   TBase64DecodingStream = class(TMemoryStream)
   strict private
@@ -40,16 +43,19 @@ type
   end;
 
   { Encode base64 stream.
-    Underneath, in Delphi, the whole encoding (so, reading Source)
-    is done immediately at constructor. }
+    Underneath, in Delphi, the whole encoding (so, writing to Destination)
+    is done at destructor.
+
+    Converts String->String, so (in Delphi) both input and output
+    are UTF-16 strings. }
   TBase64EncodingStream = class(TMemoryStream)
   strict private
-    FSource: TStream;
-    FSourceOwner: Boolean;
+    FDestination: TStream;
+    FDestinationOwner: Boolean;
   public
-    constructor Create(const ASource: TStream);
+    constructor Create(const ADestination: TStream);
     destructor Destroy; override;
-    property SourceOwner: Boolean read FSourceOwner write FSourceOwner default false;
+    property DestinationOwner: Boolean read FDestinationOwner write FDestinationOwner default false;
   end;
 
 implementation
@@ -79,18 +85,22 @@ end;
 
 { TBase64EncodingStream ------------------------------------------------------ }
 
-constructor TBase64EncodingStream.Create(const ASource: TStream);
+constructor TBase64EncodingStream.Create(const ADestination: TStream);
 begin
   inherited Create;
-  FSource := ASource;
-  while TNetEncoding.Base64.Encode(FSource, Self) <> 0 do ;
-  Position := 0;
+  FDestination := ADestination;
 end;
 
 destructor TBase64EncodingStream.Destroy;
 begin
-  if SourceOwner then
-    FreeAndNil(FSource);
+  if FDestination <> nil then
+  begin
+    Position := 0;
+    while TNetEncoding.Base64.Encode(Self, FDestination) <> 0 do ;
+  end;
+
+  if DestinationOwner then
+    FreeAndNil(FDestination);
   inherited;
 end;
 

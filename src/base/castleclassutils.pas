@@ -192,8 +192,12 @@ function StreamReadString(const Stream: TStream): AnsiString;
 { @groupEnd }
 
 { Convert whole Stream to a string.
+
   Changes Stream.Position to 0 and then reads Stream.Size bytes,
   so be sure that Stream.Size is usable.
+  Use @link(ReadGrowingStreamToString) if you want to read a stream where
+  setting Position / reading Size are not reliable.
+
   Works on 8-bit strings, i.e. AnsiStrings. }
 function StreamToString(const Stream: TStream): AnsiString;
 
