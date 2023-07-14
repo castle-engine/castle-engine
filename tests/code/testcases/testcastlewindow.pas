@@ -256,20 +256,20 @@ begin
     AddUserInterfaceDesigned;
     AddUserInterfaceFromCode;
 
-    MoveMouse(FloatRectangle(Window.Rect).Middle);
+    MoveMouse(FloatRectangle(Window.Rect).Center);
     AssertEquals(3, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
 
-    MoveMouse(ManualButton.RenderRect.Middle);
+    MoveMouse(ManualButton.RenderRect.Center);
     AssertEquals(4, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
     AssertTrue(Window.Container.Focus[3] = ManualButton);
 
-    MoveMouse(Button2.RenderRect.Middle);
+    MoveMouse(Button2.RenderRect.Center);
     AssertEquals(4, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
