@@ -1342,9 +1342,11 @@ var
   Memory: TMemoryStream;
 begin
   Memory := ReadGrowingStreamToMemory(GrowingStream);
-  SetLength(Result, Memory.Size);
-  if Memory.Size <> 0 then
-    Move(Memory.Memory^, Result[1], Memory.Size);
+  try
+    SetLength(Result, Memory.Size);
+    if Memory.Size <> 0 then
+      Move(Memory.Memory^, Result[1], Memory.Size);
+  finally FreeAndNil(Memory) end;
 end;
 
 function ReadGrowingStreamToDefaultString(const GrowingStream: TStream): String;
@@ -1352,14 +1354,19 @@ var
   Memory: TMemoryStream;
 begin
   Memory := ReadGrowingStreamToMemory(GrowingStream);
-  if (Memory.Size mod SizeOf(Char)) <> 0 then
-    raise Exception.CreateFmt('ReadGrowingStreamToDefaultString: stream size %d is not a multiple of SizeOf(Char) = %d', [
-      Memory.Size,
-      SizeOf(Char)
-    ]);
-  SetLength(Result, Memory.Size div SizeOf(Char));
-  if Memory.Size <> 0 then
-    Move(Memory.Memory^, Result[1], Memory.Size);
+  try
+    {$warnings off} // this makes FPS warning "unreachable code" but it makes sense on Delphi, we want to keep compiling it
+    if (Memory.Size mod SizeOf(Char)) <> 0 then
+      raise Exception.CreateFmt('ReadGrowingStreamToDefaultString: stream size %d is not a multiple of SizeOf(Char) = %d', [
+        Memory.Size,
+        SizeOf(Char)
+      ]);
+    {$warnings on}
+
+    SetLength(Result, Memory.Size div SizeOf(Char));
+    if Memory.Size <> 0 then
+      Move(Memory.Memory^, Result[1], Memory.Size);
+  finally FreeAndNil(Memory) end;
 end;
 
 procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
