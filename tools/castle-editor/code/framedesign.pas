@@ -3515,6 +3515,20 @@ begin
   else
   if TFileFilterList.Matches(LoadTransformDesign_FileFilters, AddUrl) then
     Result := AddTransformDesign(AddUrl);
+
+  { Warn if URL file, which can happen if you drag-and-drop from
+    e.g. project top-level instead of "data".
+    This is likely a mistake, and want to communicate to user why. }
+  if (Result <> nil) and
+     (URIProtocol(AddUrl) = 'file') then
+    WarningBox(Format('Added component has URL pointing to a local filename: "%s".' + NL +
+      NL +
+      'This will likely not work when you open the project on another computer.' + NL +
+      NL +
+      'We advise to instead place all data files in "data" subdirectory and reference them using "castle-data:/" URLs.', [
+      AddUrl
+      ]
+    ));
 end;
 
 function TDesignFrame.AddImported(const AddUrl: String): TComponent;
