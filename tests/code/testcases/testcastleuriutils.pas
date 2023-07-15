@@ -320,26 +320,6 @@ begin
 end;
 
 procedure TTestURIUtils.TestDecodeBase64;
-
-  { Like ReadGrowingStreamToString, but read GrowingStream contents
-    assuming they contain String, which means UTF-16 with Delphi.
-    This makes sense with TBase64DecodingStream that on Delphi converts
-    String->String, so output is UTF-16. }
-  function ReadGrowingStreamToDefaultString(const GrowingStream: TStream): String;
-  {$ifdef FPC}
-  begin
-    Result := ReadGrowingStreamToString(GrowingStream);
-  {$else}
-  var
-    Str8: AnsiString;
-  begin
-    Str8 := ReadGrowingStreamToString(GrowingStream);
-    Assert(Length(Str8) mod 2 = 0);
-    SetLength(Result, Length(Str8) div 2);
-    Move(Str8[1], Result[1], Length(Str8));
-  {$endif}
-  end;
-
 var
   Source: TStream;
   Decode: TBase64DecodingStream;
@@ -356,11 +336,16 @@ begin
 
   Source := MemoryStreamLoadFromDefaultString('TWFueSBoYW5kcyBtYWtlIGxpZ2h0IHdvcmsu');
   try
+    Assert(Source.Size = SizeOf(Char) * Length('TWFueSBoYW5kcyBtYWtlIGxpZ2h0IHdvcmsu'));
     Decode := TBase64DecodingStream.Create(Source, bdmMIME);
     try
+      { The input from https://en.wikipedia.org/wiki/Base64 contains 8-bit
+        (ASCII) string encoded, which is why ReadGrowingStreamToString (AnsiString)
+        makes sense.
+        See TBase64DecodingStream about encodings. }
       DecodeStr :=
-        ReadGrowingStreamToDefaultString
-        //ReadGrowingStreamToString
+        //ReadGrowingStreamToDefaultString
+        ReadGrowingStreamToString
         (Decode);
       AssertEquals('Many hands make light work.', DecodeStr);
     finally FreeAndNil(Decode) end;
@@ -378,6 +363,11 @@ begin
   try
     Encode := TBase64EncodingStream.Create(S);
     try
+      { The sample from https://en.wikipedia.org/wiki/Base64 contains 8-bit
+        (ASCII) string encoded, which is why feeding here using WriteStr
+        (this always converts chars to 8-bit, i.e. AnsiString)
+        makes sense.
+        See TBase64EncodingStream about encodings. }
       WriteStr(Encode, 'Many hands make light work.');
     finally FreeAndNil(Encode) end;
     EncodeStr := S.DataString;

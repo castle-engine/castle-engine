@@ -24,13 +24,17 @@ type
   TBase64DecodingMode = (bdmStrict, bdmMIME);
 
   { Decode base64 stream.
-    Underneath, in Delphi, the whole decoding (so, reading Source)
+
+    Note: Underneath, in Delphi, the whole decoding (so, reading Source)
     is done immediately at constructor.
 
-    Converts String->String, so (in Delphi) both input and output
-    are UTF-16 strings.
+    Note: in Delphi, AMode is ignored.
 
-    Note: in Delphi, AMode is ignored. }
+    The base64 string of characters (input) is assumed to be String,
+    i.e. Delphi UTF-16 string.
+
+    The output is just binary data, what it is depends on what was
+    encoded. It may be UTF-8 characters in AnsiString. }
   TBase64DecodingStream = class(TMemoryStream)
   strict private
     FSource: TStream;
@@ -43,11 +47,16 @@ type
   end;
 
   { Encode base64 stream.
-    Underneath, in Delphi, the whole encoding (so, writing to Destination)
+
+    Note: Underneath, in Delphi, the whole encoding (so, writing to Destination)
     is done at destructor.
 
-    Converts String->String, so (in Delphi) both input and output
-    are UTF-16 strings. }
+    The base64 string of characters (output) is assumed to be String,
+    i.e. Delphi UTF-16 string.
+
+    The input is just binary data, whatever you want to encode.
+    encoded. It may be UTF-8 characters in AnsiString, e.g. you can write
+    them using CastleClassUtils.WriteStr. }
   TBase64EncodingStream = class(TMemoryStream)
   strict private
     FDestination: TStream;
