@@ -602,6 +602,8 @@ implementation
 
 {$R *.lfm}
 
+{$warnings off} // using deprecated Castle2DSceneManager to keep it registered
+
 uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
@@ -614,6 +616,8 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
   ToolFpcVersion;
+
+{$warnings on}
 
 {$ifdef LCLGTK2}
   { TODO:
