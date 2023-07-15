@@ -387,14 +387,6 @@ type
     constructor Create;
   end;
 
-  { Possible values for @link(TCastleSceneCore.PrimitiveGeometry). }
-  TPrimitiveGeometry = (
-    pgNone,
-    pgRectangle2D,
-    pgSphere,
-    pgBox
-  );
-
   { Possible options for @link(TCastleSceneCore.Load). }
   TSceneLoadOption = (
     slDisableResetTime
@@ -597,8 +589,6 @@ type
       tree. }
     ShapeLODs: TObjectList;
 
-    FPrimitiveGeometry: TPrimitiveGeometry;
-
     { Increased when something changed that could affect the results
       of Shapes tree traversal, i.e. different TShape instances returned
       by Shapes.Traverse.
@@ -659,8 +649,6 @@ type
     { Always assigned to PlayingAnimationNode.EventIsActive. }
     procedure PlayingAnimationIsActive(
       const Event: TX3DEvent; const Value: TX3DField; const ATime: TX3DTime);
-
-    procedure SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
 
     { If we have NewPlayingAnimationUse, apply it
       (actually start playing it using X3D nodes, calling UpdateNewPlayingAnimation).
@@ -2501,14 +2489,6 @@ type
     property AnimateSkipTicks: Cardinal read FAnimateSkipTicks write SetAnimateSkipTicks
       default 0;
 
-    {$ifdef FPC}
-    { Easily turn the scene into a simple primitive, like sphere or box or plane.
-      Changing this to something else than pgNone
-      reloads the scene (calls @link(Load) with a new X3D graph). }
-    property PrimitiveGeometry: TPrimitiveGeometry
-      read FPrimitiveGeometry write SetPrimitiveGeometry default pgNone;
-      deprecated 'use TCastleBox, TCastleSphere, TCastlePlane for these primitives';
-    {$endif}
 
     { If AutoAnimation is set, this animation will be automatically played.
       It is useful to determine the initial animation, played once the model
@@ -3488,11 +3468,6 @@ begin
 
     LoadCore(NewRoot, NewRootCacheOrigin, true, AOptions);
 
-    { When loading from URL, reset FPrimitiveGeometry.
-      Otherwise deserialization would be undefined -- do we load contents
-      from URL or PrimitiveGeometry? }
-    FPrimitiveGeometry := pgNone;
-
     { After loading a new model we need to
       - update sizes calculated by AutoSize for simple colliders
       - update triangles used by TCastleMeshCollider (note that this code
@@ -3527,14 +3502,6 @@ end;
 procedure TCastleSceneCore.Loaded;
 begin
   inherited;
-
-  {$ifdef FPC} // with non-FPC, we don't define PrimitiveGeometry at all
-  {$warnings off} // using deprecated to warn about it
-  if PrimitiveGeometry <> pgNone then
-    WritelnWarning('PrimitiveGeometry is deprecated. Instead: use specialized components like TCastleBox, TCastleSphere');
-  {$warnings on}
-  {$endif}
-
   if FPendingSetUrl <> '' then
   begin
     Url := FPendingSetUrl;
@@ -8685,46 +8652,6 @@ procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 begin
   inherited;
   RenderingCameraChanged(Params.RenderingCamera);
-end;
-
-procedure TCastleSceneCore.SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
-const
-  Classes: array [TPrimitiveGeometry] of TAbstractGeometryNodeClass =
-  ( nil,
-    TRectangle2DNode,
-    TSphereNode,
-    TBoxNode
-  );
-var
-  Shape: TShapeNode;
-  Appearance: TAppearanceNode;
-  Material: TMaterialNode;
-  TransformNode: TTransformNode;
-  NewRootNode: TX3DRootNode;
-begin
-  if FPrimitiveGeometry <> AValue then
-  begin
-    FPrimitiveGeometry := AValue;
-    if Classes[FPrimitiveGeometry] <> nil then
-    begin
-      { Reset FURL if the scene contents are determined by PrimitiveGeometry,
-        otherwise deserialization would be undefined -- do we load contents
-        from URL or PrimitiveGeometry? }
-      FURL := '';
-
-      NewRootNode := TX3DRootNode.Create;
-      Classes[FPrimitiveGeometry].CreateWithTransform(Shape, TransformNode);
-
-      // default Material, to be lit
-      Material := TMaterialNode.Create;
-      Appearance := TAppearanceNode.Create;
-      Appearance.Material := Material;
-      Shape.Appearance := Appearance;
-
-      NewRootNode.AddChildren(TransformNode);
-      Load(NewRootNode, true);
-    end;
-  end;
 end;
 
 procedure TCastleSceneCore.InternalIncShapesHash;
