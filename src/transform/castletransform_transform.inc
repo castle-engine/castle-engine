@@ -3714,7 +3714,9 @@ begin
     Result := [psLayout]
   else
   if ArrayContainsString(PropertyName, [
-       'RotationPersistent', 'ScalePersistent', 'TranslationPersistent'
+       'RotationPersistent', 'ScalePersistent', 'TranslationPersistent',
+       // Direction and Up expose also Rotation but in alternative way
+       'DirectionPersistent', 'UpPersistent'
      ]) then
     Result := [psBasic, psLayout]
   else
