@@ -8,9 +8,13 @@ Both glTF and X3D allow (optionally) to assing string names to various things in
 
     And across types, names are definitely not unique. E.g. Blender exporter can easily just set equal name for glTF node, mesh, material, image... Causing name clashes.
 
-- In case of X3D, node names are global. And they are not guranteed to be unique (even if it's advised).
+- In case of X3D and VRML:
 
-- Moreover, in CGE, we merge some X3D namespaces. That is, our `TCastleScene.Node`, `TX3DNode.FindNode` methods do not take namespaces (like Inline and prototypes) into account (because in many cases it would be extra complication that is not necessary) and they just search the whole X3D node graph.
+    In X3D, spec says that node names should be unique in their namespace.
+
+    In VRML 97, it was explicitly allowed to have non-unique names. The last one wins.
+
+- Moreover, in CGE, we merge some X3D namespaces. That is, our `TCastleScene.Node`, `TX3DNode.FindNode` methods do not take some X3D namespaces (like `Inline` and prototypes) into account (because in many cases it would be extra complication that is not necessary) and they just search the whole X3D node graph.
 
 ## So node name clashes can and certainly will happen. What to do?
 
