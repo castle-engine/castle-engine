@@ -99,12 +99,20 @@ type
   public
     var
       { Make sure that shapes on the @link(Batched) list have the same order
-        as they are passed on @link(Batch) method.
+        in which they have been passed to the @link(Batch) method.
+
         This makes batching less aggressive (so less effective,
-        less chance of merging many shapes into few),
+        less chance of merging),
         but it makes sure that rendering output will be the same,
         if the order was important (e.g. you were rendering
         without Z-buffer test).
+
+        This matters when using blending, in practice.
+        When blending, then TShapesRenderer sorts (using BlendingSort) shapes
+        (original, not batched, shapes) and then passes these shapes in correct
+        order to this class.
+        Batching cannot break this order (as it would make blending
+        incorrect).
 
         Reset to @false in each @link(FreeBatched). }
       PreserveShapeOrder: Boolean;
