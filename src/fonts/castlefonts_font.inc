@@ -346,7 +346,7 @@ procedure TCastleFont.PrepareResources;
     FreeAndNil(DistanceFieldShader);
     DistanceFieldShader := TGLSLProgram.Create;
     DistanceFieldShader.Name := 'TDistanceFieldCut';
-    DistanceFieldShader.AttachVertexShader(VS); // Memory leak tracks here
+    DistanceFieldShader.AttachVertexShader(VS);
     DistanceFieldShader.AttachFragmentShader(FS);
     DistanceFieldShader.Link;
     DrawableImage.CustomShader := DistanceFieldShader;
