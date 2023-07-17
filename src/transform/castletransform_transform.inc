@@ -695,7 +695,11 @@
       if it is freed. You only need to be careful in case you add the same TCastleTransform
       instance multiple times to the same parent
       (see https://castle-engine.io/viewport_and_scenes_from_code#_multiple_instances_of_the_same_scene )
-      as then each removal removes one instance (not all) of the child from parent. }
+      as then each removal removes one instance (not all) of the child from parent.
+
+      Note: When you want to free the Item (that is, FreeItem parameter is @true)
+      then it actually doesn't matter on what parent will you call this.
+      Freeing the Item will always remove it from all parents. }
     procedure RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
 
     { Remove a child, by index on the @link(Items) list. }
@@ -4189,6 +4193,11 @@ end;
 
 procedure TCastleTransform.RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
 begin
+  { Avoid crash in certain cases,
+    see https://forum.castle-engine.io/t/sigsegv-when-i-try-to-remove/859/8 }
+  if Item = Self then
+    raise Exception.Create('Cannot remove the object from itself using RemoveDelayed');
+
   if FreeItem then
   begin
     if FPendingToRemoveAndFree = nil then
