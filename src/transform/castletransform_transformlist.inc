@@ -46,7 +46,9 @@
 
 function CompareBackToFront2D(A, B: Pointer): Integer;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := TBox3D.CompareBackToFront2D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox);
+  {$warnings on}
 end;
 
 { TCastleTransformList ------------------------------------------------------------ }

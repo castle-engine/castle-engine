@@ -300,20 +300,71 @@ function TCollectedShapeList.CompareBackToFront2D(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} ShapeA, ShapeB: TCollectedShape): Integer;
 var
   A, B: TBox3D;
+
+  { Representative point of ShapeA in world coordinates.
+    Call only if ShapeA bbox is not empty. }
+  function APoint: TVector3;
+  begin
+    Result := ShapeA.SceneTransform.MultPoint(A.Data[0]);
+  end;
+
+  { Representative point of ShapeA in world coordinates.
+    Call only if ShapeB bbox is not empty. }
+  function BPoint: TVector3;
+  begin
+    Result := ShapeB.SceneTransform.MultPoint(B.Data[0]);
+  end;
+
 begin
-  A := ShapeA.Shape.BoundingBox.Transform(ShapeA.SceneTransform);
-  B := ShapeB.Shape.BoundingBox.Transform(ShapeB.SceneTransform);
-  Result := TBox3D.CompareBackToFront2D(A, B);
+  A := ShapeA.Shape.BoundingBox;
+  B := ShapeB.Shape.BoundingBox;
+
+  { Note that we ignore camera position/direction for 2D comparison.
+    We merely look at Z coordinates.
+    This way looking at 2D Spine scene from the other side is also Ok.
+
+    For speed, we don't look at bounding box .Center, only at .Data[0].
+    The assumption here is that shape is thin 2D, and it doesn't really
+    matter if we look at min,max or center point if we only compare Z.
+
+      BoundingBox.Data[0].Z ~=
+      BoundingBox.Data[1].Z ~=
+      BoundingBox.Center.Z .
+  }
+
+  if (not A.IsEmpty) and
+    ( B.IsEmpty or
+      ( APoint.Z < BPoint.Z )) then
+    Result := -1
+  else
+  if (not B.IsEmpty) and
+    ( A.IsEmpty or
+      ( BPoint.Z < APoint.Z )) then
+    Result :=  1
+  else
+    Result :=  0;
 end;
 
 function TCollectedShapeList.CompareBackToFront3DBox(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} ShapeA, ShapeB: TCollectedShape): Integer;
 var
   A, B: TBox3D;
-begin
-  A := ShapeA.Shape.BoundingBox.Transform(ShapeA.SceneTransform);
-  B := ShapeB.Shape.BoundingBox.Transform(ShapeB.SceneTransform);
 
+  { Center of ShapeA in world coordinates.
+    Call only if ShapeA bbox is not empty. }
+  function ACenter: TVector3;
+  begin
+    Result := ShapeA.SceneTransform.MultPoint(A.Center);
+  end;
+
+  { Center of ShapeB in world coordinates.
+    Call only if ShapeB bbox is not empty. }
+  function BCenter: TVector3;
+  begin
+    Result := ShapeB.SceneTransform.MultPoint(B.Center);
+  end;
+
+begin
   { We always treat empty box as closer than non-empty.
     And two empty boxes are always equal.
 
@@ -332,16 +383,19 @@ begin
     in 3D, with any camera direction.
   }
 
+  A := ShapeA.Shape.BoundingBox;
+  B := ShapeB.Shape.BoundingBox;
+
   if (not A.IsEmpty) and
     ( B.IsEmpty or
-      ( TVector3.DotProduct(A.Center, Camera.Direction) >
-        TVector3.DotProduct(B.Center, Camera.Direction))) then
+      ( TVector3.DotProduct(ACenter, Camera.Direction) >
+        TVector3.DotProduct(BCenter, Camera.Direction))) then
     Result := -1
   else
   if (not B.IsEmpty) and
     ( A.IsEmpty or
-      ( TVector3.DotProduct(B.Center, Camera.Direction) >
-        TVector3.DotProduct(A.Center, Camera.Direction))) then
+      ( TVector3.DotProduct(BCenter, Camera.Direction) >
+        TVector3.DotProduct(ACenter, Camera.Direction))) then
     Result :=  1
   else
     Result :=  0;

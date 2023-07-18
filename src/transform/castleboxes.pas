@@ -545,6 +545,7 @@ type
       box will be first. }
     class function CompareBackToFront2D(
       const A, B: TBox3D): Integer; static;
+      deprecated 'rely on TCastleViewport.BlendingSort to sort shapes';
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const Box1, Box2: TBox3D): TBox3D;
     class operator {$ifdef FPC}+{$else}Add{$endif} (const B: TBox3D; const V: TVector3): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
