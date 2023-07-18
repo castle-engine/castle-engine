@@ -239,8 +239,19 @@ var
   DestinationContents: string;
   Doc: TXMLDocument;
 
+  function MakeIndent(const Indent: Integer): String;
+  var
+    I: Integer;
+  begin
+    Result := '';
+    for I:= 0 to Indent - 1 do
+    begin
+      Result := Result + '    ';
+    end;
+  end;
+
   { Modify DestinationContents to add information specified in source XML file. }
-  procedure MergeItems(const ListElement, ChildElement, Marker: string);
+  procedure MergeItems(const ListElement, ChildElement, Marker: string; const Indent: Integer);
   var
     I: TXMLElementIterator;
     E: TDOMElement;
@@ -259,7 +270,8 @@ var
       try
         while I.GetNext do
         begin
-          Insert(NL + '    ' + I.Current.TextData, DestinationContents, MarkerPos);
+
+          Insert(NL + MakeIndent(Indent) + I.Current.TextData, DestinationContents, MarkerPos);
         end;
       finally FreeAndNil(I) end;
     end;
@@ -278,9 +290,11 @@ begin
       ReadXMLFile(Doc, SStream); // ReadXMLFile within "try" clause, as it initializes Doc always
       if Doc.DocumentElement.TagName <> 'build_gradle_merge' then
         raise ECannotMergeBuildGradle.Create('The source file from which to merge build.gradle must be XML with root <build_gradle_merge>');
-      MergeItems('dependencies', 'dependency', '// MERGE-DEPENDENCIES');
-      MergeItems('plugins', 'plugin', '// MERGE-PLUGINS');
-      MergeItems('repositories', 'repository', '// MERGE-REPOSITORIES');
+      MergeItems('dependencies', 'dependency', '// MERGE-DEPENDENCIES', 1);
+      MergeItems('plugins', 'plugin', '// MERGE-PLUGINS', 1);
+      MergeItems('repositories', 'repository', '// MERGE-REPOSITORIES', 1);
+      MergeItems('cmake-default-config', 'cmake', '// MERGE-CMAKE-DEFAULT-CONFIG', 3);
+      MergeItems('cmake-native-build', 'cmake', '// MERGE-CMAKE-NATIVE-BUILD', 2);
     finally FreeAndNil(Doc) end;
   finally FreeAndNil(SStream) end;
 

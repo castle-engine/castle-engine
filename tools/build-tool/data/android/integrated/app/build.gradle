@@ -20,10 +20,8 @@ android {
         }
 
         externalNativeBuild {
-            cmake {
-                arguments '-DANDROID_STL=c++_shared', '-DCMAKE_BUILD_TYPE=Release', '-DALSOFT_NO_CONFIG_UTIL=ON', '-DALSOFT_EXAMPLES=OFF', '-DALSOFT_UTILS=OFF', '-DALSOFT_TESTS=OFF', '-DOBOE_SOURCE=../oboe', '-ALSOFT_REQUIRE_OBOE=ON', '-DALSOFT_BACKEND_OPENSL=ON', '-DALSOFT_EMBED_HRTF_DATA=YES'
-
-            }
+            // Do not change the line below, it is necessary for build.gradle merging to work.
+            // MERGE-CMAKE-DEFAULT-CONFIG
         }
     }
 
@@ -37,9 +35,8 @@ android {
 
     /* Why two externalNativeBuild/cmake sections? See: https://stackoverflow.com/questions/64829357/specify-targets-in-externalnativebuild-of-the-build-gradle-file-no-signature-o */
     externalNativeBuild {
-        cmake {
-            path 'src/main/cpp/sound/openal-soft/CMakeLists.txt'
-        }
+        // Do not change the line below, it is necessary for build.gradle merging to work.
+        // MERGE-CMAKE-NATIVE-BUILD
     }
 
     /* Necessary, otherwise using androidx.core makes errors:
