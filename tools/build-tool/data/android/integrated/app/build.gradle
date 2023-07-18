@@ -10,18 +10,35 @@ android {
         versionCode ${VERSION_CODE}
         versionName "${VERSION}"
 
+        ndkVersion "22.1.7171670"
+
         ndk {
             // For detailed abiFilter descriptions, refer to "Supported ABIs"
             // at https://developer.android.com/ndk/guides/abis.html#s
             // See also https://code.google.com/p/android/issues/detail?id=220615
             abiFilters ${ANDROID_ABI_LIST}
         }
+
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared', '-DCMAKE_BUILD_TYPE=Release', '-DALSOFT_NO_CONFIG_UTIL=ON', '-DALSOFT_EXAMPLES=OFF', '-DALSOFT_UTILS=OFF', '-DALSOFT_TESTS=OFF', '-DOBOE_SOURCE=../oboe', '-ALSOFT_REQUIRE_OBOE=ON', '-DALSOFT_BACKEND_OPENSL=ON', '-DALSOFT_EMBED_HRTF_DATA=YES'
+
+            }
+        }
     }
+
     buildTypes {
         release {
             minifyEnabled = false
             // Not using proguard now
             // proguardFiles.add(file('proguard-rules.txt'))
+        }
+    }
+
+    /* Why two externalNativeBuild/cmake sections? See: https://stackoverflow.com/questions/64829357/specify-targets-in-externalnativebuild-of-the-build-gradle-file-no-signature-o */
+    externalNativeBuild {
+        cmake {
+            path 'src/main/cpp/sound/openal-soft/CMakeLists.txt'
         }
     }
 
