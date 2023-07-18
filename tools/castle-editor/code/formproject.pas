@@ -2009,21 +2009,22 @@ begin
 
   R := TRegExpr.Create;
   try
-    R.Expression := '^([^() ]+)\(([\d]+),([\d]+)\) (Error|Fatal|Warning|Note):';
+    R.Expression := '^([^()]+)\(([\d]+),([\d]+)\) (Error|Fatal|Warning|Note):';
+
     if R.Exec(Line) then
     begin
       OpenPascal(FilenameFromOutput(R.Match[1]), StrToInt(R.Match[2]), StrToInt(R.Match[3]));
       Exit;
     end;
 
-    R.Expression := '^([^() ]+)\(([\d]+)\) (Error|Fatal|Warning|Note):';
+    R.Expression := '^([^()]+)\(([\d]+)\) (Error|Fatal|Warning|Note):';
     if R.Exec(Line) then
     begin
       OpenPascal(FilenameFromOutput(R.Match[1]), StrToInt(R.Match[2]));
       Exit;
     end;
 
-    R.Expression := '^Compiling ([^() ]+)';
+    R.Expression := '^Compiling ([^()]+)';
     if R.Exec(Line) then
     begin
       OpenPascal(FilenameFromOutput(R.Match[1]));
