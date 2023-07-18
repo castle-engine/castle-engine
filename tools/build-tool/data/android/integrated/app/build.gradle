@@ -10,8 +10,6 @@ android {
         versionCode ${VERSION_CODE}
         versionName "${VERSION}"
 
-        ndkVersion "22.1.7171670"
-
         ndk {
             // For detailed abiFilter descriptions, refer to "Supported ABIs"
             // at https://developer.android.com/ndk/guides/abis.html#s
