@@ -39,7 +39,7 @@ procedure MergeBuildGradle(const Source, Destination: string;
 
 implementation
 
-uses Classes, XMLRead, XMLWrite,
+uses Classes, StrUtils, XMLRead, XMLWrite,
   CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
 
 { globals -------------------------------------------------------------------- }
@@ -239,17 +239,6 @@ var
   DestinationContents: string;
   Doc: TXMLDocument;
 
-  function MakeIndent(const Indent: Integer): String;
-  var
-    I: Integer;
-  begin
-    Result := '';
-    for I:= 0 to Indent - 1 do
-    begin
-      Result := Result + '    ';
-    end;
-  end;
-
   { Modify DestinationContents to add information specified in source XML file. }
   procedure MergeItems(const ListElement, ChildElement, Marker: string; const Indent: Integer);
   var
@@ -270,8 +259,7 @@ var
       try
         while I.GetNext do
         begin
-
-          Insert(NL + MakeIndent(Indent) + I.Current.TextData, DestinationContents, MarkerPos);
+          Insert(NL + DupeString('    ', Indent) + I.Current.TextData, DestinationContents, MarkerPos);
         end;
       finally FreeAndNil(I) end;
     end;
