@@ -79,7 +79,8 @@ implementation
 uses Math, Contnrs,
   CastleVectors, CastleTransform, CastleViewport, CastleClassUtils, CastleUIControls,
   CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
-  CastleProjection, CastleStringUtils, CastleApplicationProperties, CastleUtils;
+  CastleProjection, CastleStringUtils, CastleApplicationProperties, CastleUtils,
+  X3DCameraUtils;
 
 { TMy3D ---------------------------------------------------------------------- }
 

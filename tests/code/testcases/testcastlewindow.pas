@@ -49,7 +49,7 @@ uses SysUtils, Classes, Math,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleCameras, {$ifdef FPC}CastleSceneManager,{$endif} CastleVectors,
-  CastleTransform, CastleScene, CastleApplicationProperties,
+  CastleTransform, CastleScene, CastleApplicationProperties, X3DCameraUtils,
   CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer;
 
 procedure TTestCastleWindow.Test1;
