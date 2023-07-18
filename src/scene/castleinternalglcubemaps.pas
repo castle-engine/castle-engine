@@ -142,10 +142,8 @@ var
       { TBasicRenderParams will automatically have good defaults (inclusive) for InShadow and ShadowVolumesReceivers. }
       RenderParams.RenderingCamera := TRenderingCamera.Create;
       try
-        RenderParams.RenderingCamera.FromMatrix(
-          CapturePoint,
-          LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-          FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+        RenderParams.RenderingCamera.FromViewVectors(
+          CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up,
           RenderContext.ProjectionMatrix
         );
         RenderParams.RenderingCamera.Target := rtCubeMapEnvironment;
@@ -218,10 +216,8 @@ procedure SetRenderingCamera(const RenderingCamera: TRenderingCamera;
   const CapturePoint: TVector3;
   const Side: TCubeMapSide);
 begin
-  RenderingCamera.FromMatrix(
-    CapturePoint,
-    LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-    FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+  RenderingCamera.FromViewVectors(
+    CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up,
     RenderContext.ProjectionMatrix);
 end;
 

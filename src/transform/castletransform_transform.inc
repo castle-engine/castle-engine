@@ -180,6 +180,8 @@
     procedure UpdateExistsInRoot;
     { Never call ChangedTransform directly, always call this. }
     procedure ChangedTransformCore(const UpdatePhysicsTransform: Boolean = true);
+    function GetWorldViewRec: TViewVectors;
+    procedure SetWorldViewRec(const Value: TViewVectors);
   private
     { "Meaningful" parent is a parent that competes to be a value of Parent.
       This allows to avoid TCastleTransformReference from being considered
@@ -766,9 +768,8 @@
     {$ifdef FPC}property UniqueParent: TCastleTransform read FParent; deprecated 'use Parent';{$endif}
 
     { Sort objects back-to-front @italic(right now)
-      following one of the blending sorting algorithms.
-      Only the immediate list items are reordered,
-      looking at their bounding boxes (the sorting is not recursive).
+      following the blending 2D sorting algorithm.
+      Only the immediate list items are reordered.
 
       Calling this method makes sense if you use
       @url(https://castle-engine.io/blending blending)
@@ -783,16 +784,7 @@
           of objects (with respect to the current camera) changes.
         )
         @item(
-          In 3D, it may make sense to call this method even every frame
-          (like in every @link(TCastleWindow.OnUpdate)).
-          Call it if you move or otherwise change the objects (changing their bounding boxes),
-          or if the CameraPosition may change. Note that CameraPosition is only
-          relevant if Sort is one of the sort3D* options,
-          like sort3D, sort3DOrigin, sort3DGround.
-        )
-        @item(
-          In 2D, it is a bit simpler.
-          You typically need to call this only when some objects' Z value changed
+          In 2D, you typically need to call this only when some objects' Z value changed
           (making this object move behind / in front of some other object),
           or when new object is added.
           You don't need to call this method when camera changes or when object's XY position
@@ -802,22 +794,7 @@
 
       Note that this doesn't take care of sorting the shapes
       within the scenes. For this, you should set
-      @link(TCastleViewport.BlendingSort).
-
-      See the TShapeSort documentation for the exact specification
-      of sorting algorithms. Using Sort = sortNone does nothing.
-
-      @seealso SortBackToFront2D }
-    procedure SortBackToFront(const Sort: TShapeSort;
-      const CameraPosition: TVector3);
-      deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
-
-    { Sort objects back-to-front @italic(right now)
-      following the 2D blending sorting algorithm.
-      See @link(SortBackToFront) for documentation, this method
-      is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)).
-
-      @seealso SortBackToFront }
+      @link(TCastleViewport.BlendingSort). }
     procedure SortBackToFront2D;
       deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
 
@@ -1779,6 +1756,20 @@
       Returned ADir and AUp are always normalized. }
     procedure GetWorldView(out APos, ADir, AUp: TVector3);
 
+    { Position, direction and up in world coordinates.
+
+      Returned TViewVectors.Direction and TViewVectors.Up are always orthogonal.
+      Returned TViewVectors.Dir and TViewVectors.Up are always normalized.
+
+      When setting, TViewVectors.Direction and TViewVectors.Up
+      do not need to be normalized. We will internally normalize them if necessary.
+
+      When setting, we will also automatically fix
+      TViewVectors.Direction and TViewVectors.Up to be orthogonal, if necessary:
+      we will adjust the up vector (preserving the given direction value). }
+    property WorldView: TViewVectors
+      read GetWorldViewRec write SetWorldViewRec;
+
     { Get position in world coordinates.
 
       The returned position is the same as by @link(GetWorldView).
@@ -2581,18 +2572,10 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
-procedure TCastleTransform.SortBackToFront(const Sort: TShapeSort;
-  const CameraPosition: TVector3);
-begin
-  {$warnings off} // using deprecated in deprecated
-  List.SortBackToFront(Sort, CameraPosition);
-  {$warnings on}
-end;
-
 procedure TCastleTransform.SortBackToFront2D;
 begin
   {$warnings off} // using deprecated in deprecated
-  SortBackToFront(bs2D, TVector3.Zero);
+  List.SortBackToFront2D;
   {$warnings on}
 end;
 
@@ -3045,7 +3028,7 @@ begin
     This matters, e.g. we activate FScene.ProcessEvents:=true
     in TCastleAbstractLight.Create, at which point FScene has a parent
     but the parent (TCastleAbstractLight instance) is not yet part of world.
-    SetProcessEvents calls GetCameraVectors that checks HasWorldTransform,
+    SetProcessEvents calls GetCameraLocal that checks HasWorldTransform,
     assuming that HasWorldTransform => implies World <> nil.
 
     TODO: maybe just "FWorld <> nil" should be enough? }
@@ -3896,6 +3879,16 @@ begin
   APos := T;
   ADir := RotationToDirection(R);
   AUp := RotationToUp(R);
+end;
+
+function TCastleTransform.GetWorldViewRec: TViewVectors;
+begin
+  GetWorldView(Result.Translation, Result.Direction, Result.Up);
+end;
+
+procedure TCastleTransform.SetWorldViewRec(const Value: TViewVectors);
+begin
+  SetWorldView(Value.Translation, Value.Direction, Value.Up);
 end;
 
 function TCastleTransform.WorldTranslation: TVector3;

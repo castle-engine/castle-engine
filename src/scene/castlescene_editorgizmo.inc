@@ -173,7 +173,7 @@ var
 begin
   DistanceToCameraSqr := PointsDistanceSqr(
     Params.Transform^.MultPoint(TVector3.Zero),
-    Params.RenderingCamera.Position
+    Params.RenderingCamera.View.Translation
   );
   GizmoShouldExist := DistanceToCameraSqr > Sqr(DistanceToExistGizmo);
   if not GizmoShouldExist then

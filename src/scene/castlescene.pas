@@ -467,7 +467,7 @@ uses Math,
   CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
   CastleShapeInternalRenderShadowVolumes, CastleURIUtils,
   CastleComponentSerialize, CastleRenderContext, CastleFilesUtils,
-  CastleInternalGLUtils, CastleInternalRenderer;
+  CastleInternalGLUtils, CastleInternalRenderer, X3DCameraUtils;
 
 {$define read_implementation}
 {$I castlescene_roottransform.inc}
@@ -872,15 +872,14 @@ var
       to render with lights. }
     DummyCamera := TRenderingCamera.Create;
     try
-      { Set matrix to be anything sensible.
-        Otherwise opening a scene with shadow maps makes a warning
+      { Set camera vectors to be anything sensible.
+        Otherwise (if we pass zero matrix) opening a scene with shadow maps makes a warning
         that camera matrix is all 0,
         and cannot be inverted, since
         TTextureCoordinateRenderer.RenderCoordinateBegin does
         RenderingCamera.InverseMatrixNeeded.
         Testcase: silhouette. }
-      DummyCamera.FromMatrix(TVector3.Zero,
-        TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+      DummyCamera.FromViewVectors(DefaultX3DCameraView, TMatrix4.Identity);
 
       Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0,
         @DummyStatistics);
@@ -1118,7 +1117,8 @@ begin
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
     // DistanceCullingCheck* uses this value, and it may be called here
-    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
+    RenderCameraPosition := Params.InverseTransform^.MultPoint(
+      Params.RenderingCamera.View.Translation);
 
     { calculate and check SceneBox }
     SceneBox := LocalBoundingBox.Transform(Params.Transform^);
@@ -1291,7 +1291,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
     const ProjectionNear, ProjectionFar: Single;
     const CurrentViewpoint: TAbstractViewpointNode;
     const CameraViewKnown: boolean;
-    const CameraPosition, CameraDirection, CameraUp: TVector3);
+    const CameraView: TViewVectors);
 
     procedure UpdateGeneratedCubeMap(const TexNode: TGeneratedCubeMapTextureNode);
     var
@@ -1356,7 +1356,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
         if TextureRes <> nil then
         begin
           TextureRes.Update(Render, ProjectionNear, ProjectionFar, CurrentViewpoint,
-            CameraViewKnown, CameraPosition, CameraDirection, CameraUp, Shape);
+            CameraViewKnown, CameraView, Shape);
 
           TexNode.GenTexFunctionality.PostUpdate;
 
@@ -1386,7 +1386,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
     Shape: TGLShape;
     TextureNode: TAbstractTextureNode;
     GenTexFunctionality: TGeneratedTextureFunctionality;
-    CamPos, CamDir, CamUp: TVector3;
+    CamView: TViewVectors;
   begin
     if GeneratedTextures.Count = 0 then
       Exit; // optimize away common case
@@ -1404,12 +1404,10 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
     if World.MainCamera <> nil then
     begin
-      World.MainCamera.GetWorldView(CamPos, CamDir, CamUp);
+      CamView := World.MainCamera.WorldView;
     end else
     begin
-      CamPos := TVector3.Zero;
-      CamDir := DefaultCameraDirection;
-      CamUp  := DefaultCameraUp;
+      CamView := DefaultX3DCameraView;
     end;
 
     for I := 0 to GeneratedTextures.Count - 1 do
@@ -1446,7 +1444,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
       UpdateOneGeneratedTexture(Shape, TextureNode,
         RenderFunc, ProjectionNear, ProjectionFar,
         ViewpointStack.Top,
-        World.MainCamera <> nil, CamPos, CamDir, CamUp);
+        World.MainCamera <> nil, CamView);
 
       AvoidShapeRendering := nil;
       AvoidNonShadowCasterRendering := false;
@@ -1511,7 +1509,8 @@ begin
     end;
 
     // RenderCameraPosition is used by DistanceCullingCheck* below
-    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
+    RenderCameraPosition := Params.InverseTransform^.MultPoint(
+      Params.RenderingCamera.View.Translation);
 
     { Do distance culling for whole scene.
       When WholeSceneManifold=true, this is the only place where

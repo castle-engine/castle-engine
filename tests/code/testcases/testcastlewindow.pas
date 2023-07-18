@@ -293,8 +293,8 @@ var
     try
       RenderParams.RenderingCamera := TRenderingCamera.Create;
       try
-        RenderParams.RenderingCamera.FromMatrix(TVector3.Zero,
-          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+        RenderParams.RenderingCamera.FromViewVectors(
+          DefaultX3DCameraView, TMatrix4.Identity);
         RenderParams.RenderingCamera.Target := rtScreen;
         RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
         RenderParams.Collector := ShapesCollector;

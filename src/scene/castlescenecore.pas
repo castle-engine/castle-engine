@@ -774,7 +774,7 @@ type
       it's transformation) or when camera position changed (by user actions
       or animating the Viewpoint). }
     procedure ProximitySensorUpdate(const PSI: TProximitySensorInstance;
-      const CameraVectors: TCameraVectors);
+      const CameraVectors: TViewVectors);
   private
     FCompiledScriptHandlers: TCompiledScriptHandlerInfoList;
 
@@ -895,7 +895,7 @@ type
       This is calculated every time now (in the future it may be optimized
       to recalculate only when WorldTransform changed, e.g. using
       FWorldTransformAndInverseId). }
-    function GetCameraLocal(out CameraVectors: TCameraVectors): boolean; overload;
+    function GetCameraLocal(out CameraVectors: TViewVectors): boolean; overload;
     function GetCameraLocal(out CameraLocalPosition: TVector3): boolean; overload;
 
     function PointingDevicePressRelease(const DoPress: boolean;
@@ -4565,7 +4565,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
   procedure HandleProximitySensor(Node: TProximitySensorNode);
   var
     Instance: TProximitySensorInstance;
-    CameraVectors: TCameraVectors;
+    CameraVectors: TViewVectors;
   begin
     Check(Shapes^.Index < Shapes^.Group.Children.Count,
       'Missing shape in Shapes tree');
@@ -5149,7 +5149,7 @@ var
     I: Integer;
     VSInstances: TVisibilitySensorInstanceList;
     VS: TVisibilitySensorNode;
-    CameraVectors: TCameraVectors;
+    CameraVectors: TViewVectors;
   begin
     if ANode is TProximitySensorNode then
     begin
@@ -7060,14 +7060,14 @@ procedure TCastleSceneCore.InternalCameraChanged;
 
   { Update things depending on camera information and X3D events.
     Call it only when ProcessEvents. }
-  procedure CameraProcessing(const CameraVectors: TCameraVectors);
+  procedure CameraProcessing(const CameraVectors: TViewVectors);
   var
     I: Integer;
   begin
     Assert(ProcessEvents);
 
     for I := 0 to ShapeLODs.Count - 1 do
-      UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]), CameraVectors.Position);
+      UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]), CameraVectors.Translation);
 
     for I := 0 to ProximitySensors.Count - 1 do
       ProximitySensorUpdate(ProximitySensors[I], CameraVectors);
@@ -7095,7 +7095,7 @@ procedure TCastleSceneCore.InternalCameraChanged;
   end;
 
 var
-  CameraVectors: TCameraVectors;
+  CameraVectors: TViewVectors;
 begin
   if World <> nil then // may be called from SetProcessEvents when World may be nil
     LastCameraStateId := World.InternalMainCameraStateId;
@@ -7307,7 +7307,7 @@ end;
 { proximity sensor ----------------------------------------------------------- }
 
 procedure TCastleSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInstance;
-  const CameraVectors: TCameraVectors);
+  const CameraVectors: TViewVectors);
 var
   APosition, ADirection, AUp: TVector3;
   ProxNode: TProximitySensorNode;
@@ -7338,7 +7338,7 @@ begin
           it's InverseTransform and call ProximitySensorUpdate.
       }
 
-      APosition := PSI.InverseTransform.MultPoint(CameraVectors.Position);
+      APosition := PSI.InverseTransform.MultPoint(CameraVectors.Translation);
 
       NewIsActive :=
         (APosition.X >= ProxNode.FdCenter.Value.X - ProxNode.FdSize.Value.X / 2) and
@@ -7390,19 +7390,19 @@ end;
 { camera --------------------------------------------------------------------- }
 
 function TCastleSceneCore.GetCameraLocal(
-  out CameraVectors: TCameraVectors): boolean;
+  out CameraVectors: TViewVectors): boolean;
 begin
   // note that HasWorldTransform implies also World <> nil
   Result := HasWorldTransform and (World.MainCamera <> nil);
   if Result then
   begin
     World.MainCamera.GetWorldView(
-      CameraVectors.Position,
+      CameraVectors.Translation,
       CameraVectors.Direction,
       CameraVectors.Up);
-    CameraVectors.Position  := WorldInverseTransform.MultPoint    (CameraVectors.Position);
-    CameraVectors.Direction := WorldInverseTransform.MultDirection(CameraVectors.Direction);
-    CameraVectors.Up        := WorldInverseTransform.MultDirection(CameraVectors.Up);
+    CameraVectors.Translation := WorldInverseTransform.MultPoint    (CameraVectors.Translation);
+    CameraVectors.Direction   := WorldInverseTransform.MultDirection(CameraVectors.Direction);
+    CameraVectors.Up          := WorldInverseTransform.MultDirection(CameraVectors.Up);
   end;
 end;
 

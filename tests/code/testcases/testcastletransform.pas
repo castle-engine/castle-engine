@@ -1533,8 +1533,7 @@ end;
     try
       Params.RenderingCamera := TRenderingCamera.Create;
       try
-        Params.RenderingCamera.FromMatrix(TVector3.Zero,
-          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+        Params.RenderingCamera.FromViewVectors(DefaultX3DCameraView, TMatrix4.Identity);
         Params.RenderingCamera.Target := rtScreen;
         Params.Frustum := @Params.RenderingCamera.Frustum;
         T.Render(Params);
