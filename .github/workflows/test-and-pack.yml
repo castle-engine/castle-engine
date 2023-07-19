@@ -152,7 +152,7 @@ jobs:
       - name: Disk Space Test 1
         run: df -h
       - name: Disk Space Test 2
-        run: sudo apt-get --no-install-recommends -y install tree
+        run: apt-get update && apt-get --no-install-recommends -y install tree
       - name: Disk Space Test 3
         run: tree --sort=size --du -h
       - name: Build Examples (FPC Latest Unstable)
