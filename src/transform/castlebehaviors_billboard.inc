@@ -32,6 +32,7 @@ type
   TCastleBillboard = class(TCastleBehavior)
   strict private
     FAxisOfRotation: TVector3;
+    FMatchCameraDirection: Boolean;
   protected
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; override;
@@ -58,6 +59,53 @@ type
       to look at camera as much as possible, though it cannot change rotation on Y). }
     property AxisOfRotation: TVector3 read FAxisOfRotation write FAxisOfRotation;
 
+  published
+    { Whether the billboard direction should match the camera direction
+      (@true, default) or direction from camera to the billboard origin (@false).
+
+      The difference between these 2 settings is subtle.
+
+      @unorderedList(
+        @item(
+          When @true, all billboards in the scene have the same orientation
+          (if they have the same @link(AxisOfRotation)).
+          They just follow camera orientation.
+          Billboard orientation is unrelated to billboard position,
+          and unrelated to camera position.
+
+          Strafing (moving camera) left/right doesn't change the billboard orientation.
+          Moving billboard left/right doesn't change the billboard orientation.
+
+          This may look better or worse -- really depends on what you want to achieve.
+
+          The major advantage of this approach (and the reason why it is the default)
+          is that blending sorting along camera direction (as done by @link(sort3D)
+          and friends, see @link(TCastleViewport.BlendingSort))
+          is then perfectly correct for layers in billboards.
+          E.g. if you use TCastleBillboard on TCastleScene with a Spine model
+          it will look perfectly even in a 3D world.
+
+          This advantage (correct blending sorting) holds when
+          @link(AxisOfRotation) is zero or when it matches current camera "up"
+          vector in world space. In other words, the billboard has to be really
+          parallel to the screen.
+        )
+
+        @item(
+          When @false, billboard orientation adjusts to the direction
+          from camera to the origin of the billboard transformation.
+          This means that the billboard position affects the billboard orientation,
+          e.g. billboards on the edge of the field of view
+          will have a different orientation than in the middle of the view.
+
+          This is consistent with X3D Billboard,
+          https://www.web3d.org/documents/specifications/19775-1/V4.0/Part01/components/navigation.html#Billboard .
+        )
+      )
+    }
+    property MatchCameraDirection: Boolean
+      read FMatchCameraDirection write FMatchCameraDirection default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlebillboard_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -75,6 +123,7 @@ constructor TCastleBillboard.Create(AOwner: TComponent);
 begin
   inherited;
 
+  FMatchCameraDirection := true;
   FAxisOfRotation := Vector3(0, 1, 0);
 
   {$define read_implementation_constructor}
@@ -92,7 +141,9 @@ end;
 
 function TCastleBillboard.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'AxisOfRotationPersistent') then
+  if ArrayContainsString(PropertyName, [
+       'AxisOfRotationPersistent', 'MatchCameraDirection'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -101,7 +152,7 @@ end;
 procedure TCastleBillboard.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   Camera: TCastleCamera;
-  DirectionToCamera: TVector3;
+  DirectionToCamera, CamPos, CamDir, CamUp: TVector3;
 begin
   inherited;
 
@@ -115,22 +166,28 @@ begin
      (Parent.World.MainCamera <> nil) then
   begin
     Camera := Parent.World.MainCamera;
+    Camera.GetWorldView(CamPos, CamDir, CamUp);
 
-    { The transformation which interests us is the whole Parent.Parent transformation,
-      and the Parent.Translation.
-      We will modify the rotation.
+    if MatchCameraDirection then
+      DirectionToCamera := -Parent.Parent.WorldToLocalDirection(CamDir)
+    else
+    begin
+      { The transformation which interests us is the whole Parent.Parent transformation,
+        and the Parent.Translation.
+        We will modify the rotation.
 
-    WorldInverseTransform := TranslationMatrix(-Parent.Translation) *
-      Parent.Parent.WorldInverseTransform;
+      WorldInverseTransform := TranslationMatrix(-Parent.Translation) *
+        Parent.Parent.WorldInverseTransform;
 
-    // calculate vector from (0, 0, 0) to camera Position, in local coords
-    DirectionToCamera := WorldInverseTransform.MultPoint(Camera.Position);
+      // calculate vector from (0, 0, 0) to camera Position, in local coords
+      DirectionToCamera := WorldInverseTransform.MultPoint(CamPos);
 
-    More optimized version (just revert translation directly,
-    instead of as a matrix): }
+      More optimized version (just revert translation directly,
+      instead of as a matrix): }
 
-    DirectionToCamera := Parent.Parent.WorldToLocal(Camera.WorldTranslation)
-      - Parent.Translation;
+      DirectionToCamera := Parent.Parent.WorldToLocal(CamPos)
+        - Parent.Translation;
+    end;
 
     Parent.Center := TVector3.Zero; // no other value makes sense for billboard implementation
 
@@ -140,7 +197,7 @@ begin
         DirectionToCamera,
         { Note that here we don't care about Parent.Translation,
           because we only transform direction. }
-        Parent.Parent.WorldToLocalDirection(Camera.Up)
+        Parent.Parent.WorldToLocalDirection(CamUp)
       );
     end else
     begin
