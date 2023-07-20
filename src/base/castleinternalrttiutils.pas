@@ -94,7 +94,7 @@ resourcestring
 var
   InternalComponent: TCastleComponent;
 
-{ C is TCastleComponent and it overridden TCastleComponent.ValueIsStreamed.
+{ C is TCastleComponent and it overriddes TCastleComponent.ValueIsStreamed.
 
   Note: In general checking for such "is this method overridden" is dirty,
   as not expected by developers. But in this case it's used only for internal
