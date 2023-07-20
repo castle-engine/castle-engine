@@ -288,9 +288,11 @@ end;
 
 procedure TCastleFont.SetDistanceField(AValue: Boolean);
 begin
-  if FDistanceField = AValue then Exit;
-  FDistanceField := AValue;
-  Reload;
+  if FDistanceField <> AValue then
+  begin
+    FDistanceField := AValue;
+    Reload;
+  end;
 end;
 
 procedure TCastleFont.SetScale(const AValue: Single);
