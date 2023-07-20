@@ -51,6 +51,48 @@
         Initially it's rtNone when this method is called.) }
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); virtual;
 
+    { Event called right before rendering the parent TCastleTransform.
+
+      Override this is you have to adjust the parent transformation strictly
+      before the rendering, e.g. to implement billboard, because user must never
+      see artifacts caused by billboard being not perfectly aligned with the camera.
+
+      Overriding this also allows to adjust transformation before rendering
+      each occurrence of TCastleTransform in the viewport tree.
+      This matters if given TCastleTransform may occur multiple times
+      in the viewport tree, directly or through @link(TCastleTransformReference).
+
+      @param(
+        ParentParentWorldTransform World transform of the parent of the parent
+        of this behavior.
+        The name is kind of convoluted, but consistent:
+        When the parent of this behavior has exactly one parent TCastleTransform
+        (not zero, not more) then ParentParentWorldTransform
+        is equivalent to Parent.Parent.WorldTransform.
+      )
+
+      @param(
+        ParentParentWorldInverseTransform
+        Inverse world transform of the parent of the parent
+        of this behavior.
+      )
+
+      @param(
+        ParentWorldTransform
+        World transform of the parent of this behavior.
+        Equal to Parent.WorldTransform, if the Parent exists exactly
+        once in the viewport.
+      )
+
+      @param(
+        ParentWorldInverseTransform
+        Inverse world transform of the parent of this behavior.
+      )
+    }
+    procedure BeforeRender(
+      const ParentParentWorldTransform, ParentParentWorldInverseTransform,
+            ParentWorldTransform, ParentWorldInverseTransform: TMatrix4); virtual;
+
     { Called after @link(Parent) changed, at the end of @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior). }
     procedure ParentChanged; virtual;
@@ -185,6 +227,12 @@ begin
 end;
 
 procedure TCastleBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+begin
+end;
+
+procedure TCastleBehavior.BeforeRender(
+  const ParentParentWorldTransform, ParentParentWorldInverseTransform,
+        ParentWorldTransform, ParentWorldInverseTransform: TMatrix4);
 begin
 end;
 

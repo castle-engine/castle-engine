@@ -199,6 +199,9 @@
       is not created that means no behaviors need those notifications. }
     FBehaviorsWorldChangeNotificationList: TCastleBehaviorList;
 
+    { Does any behavior on FBehaviors possibly override BeforeRender. }
+    FBehaviorsNeedBeforeRender: Boolean;
+
     { Update FWorld, FWorldReferences.
       This is recursively called on all children as well.
       Value must not be @nil. }
@@ -271,6 +274,7 @@
     procedure UpdateCollidersWorldScale;
 
     procedure SetParent(const Value: TCastleTransform);
+    procedure UpdateBehaviorsNeedBeforeRender;
   protected
     { Returns list of TCastleTransform to render. By default, it just returns @link(List). }
     function GetRenderList(const Params: TRenderParams): TCastleTransformList; virtual;
@@ -3233,6 +3237,22 @@ begin
 end;
 
 procedure TCastleTransform.Render(const Params: TRenderParams);
+
+  procedure BehaviorsBeforeRender(
+    const ParentWorldTransform, ParentWorldInverseTransform,
+          WorldTransform, WorldInverseTransform: TMatrix4);
+  var
+    I: Integer;
+    Beh: TCastleBehavior;
+  begin
+    for I := 0 to FBehaviors.Count - 1 do
+    begin
+      Beh := FBehaviors[I] as TCastleBehavior;
+      Beh.BeforeRender(ParentWorldTransform, ParentWorldInverseTransform,
+                       WorldTransform, WorldInverseTransform);
+    end;
+  end;
+
 var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
@@ -3272,6 +3292,10 @@ begin
     T := Translation;
     if FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
     begin
+      if FBehaviorsNeedBeforeRender then
+        BehaviorsBeforeRender(
+          Params.Transform^, Params.InverseTransform^,
+          Params.Transform^, Params.InverseTransform^);
       LocalRender(Params);
     end else
     begin
@@ -3310,6 +3334,10 @@ begin
       end;
 
       //FrameProfiler.Stop(fmRenderTransform);
+      if FBehaviorsNeedBeforeRender then
+        BehaviorsBeforeRender(
+          OldParamsTransform^, OldParamsInverseTransform^,
+          Params.Transform^, Params.InverseTransform^);
       LocalRender(Params);
       //FrameProfiler.Start(fmRenderTransform);
 
@@ -4075,6 +4103,8 @@ begin
         Behavior.WorldAfterAttach;
     end;
     NotifyBehaviorAdded(Behavior);
+
+    UpdateBehaviorsNeedBeforeRender;
   end;
 end;
 
@@ -4098,6 +4128,8 @@ begin
   Beh.ParentChanged; // call at end, when state is consistent
   {$warnings on}
   RemoveWorldChangeNotification(Beh);
+
+  UpdateBehaviorsNeedBeforeRender;
 end;
 
 procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
@@ -4155,6 +4187,48 @@ begin
   begin
     Result := BehaviorClass.Create(Self);
     AddBehavior(Result);
+  end;
+end;
+
+var
+  { Must be an instance of exactly TCastleBehavior, not any descedant.
+    Used by CustomizedBeforeRender. }
+  InternalBehavior: TCastleBehavior;
+
+procedure TCastleTransform.UpdateBehaviorsNeedBeforeRender;
+
+  { Beh overriddes TCastleBehavior.BeforeRender.
+
+    Note: In general checking for such "is this method overridden" is dirty,
+    as not expected by developers. But in this case it's used only for optimization,
+    no functional change occurs: when FBehaviorsNeedBeforeRender is false
+    (which is often), we can avoid calling BehaviorBeforeRender at all. }
+  function CustomizedBeforeRender(const Beh: TCastleBehavior): Boolean;
+  type
+    TBeforeRenderEvent = procedure (
+        const ParentWorldTransform, ParentWorldInverseTransform,
+              WorldTransform, WorldInverseTransform: TMatrix4) of object;
+  var
+    CurMethod, NotOverriddedMethod: TBeforeRenderEvent;
+  begin
+    CurMethod := {$ifdef FPC}@{$endif} Beh.BeforeRender;
+    NotOverriddedMethod := {$ifdef FPC}@{$endif} InternalBehavior.BeforeRender;
+    Result := TMethod(CurMethod).Code <> TMethod(NotOverriddedMethod).Code;
+  end;
+
+var
+  I: Integer;
+  Beh: TCastleBehavior;
+begin
+  FBehaviorsNeedBeforeRender := false;
+  for I := 0 to FBehaviors.Count - 1 do
+  begin
+    Beh := FBehaviors[I] as TCastleBehavior;
+    if CustomizedBeforeRender(Beh) then
+    begin
+      FBehaviorsNeedBeforeRender := true;
+      Exit; // no point in checking the rest
+    end;
   end;
 end;
 

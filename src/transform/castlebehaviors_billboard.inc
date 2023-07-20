@@ -39,7 +39,9 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    procedure BeforeRender(
+      const ParentParentWorldTransform, ParentParentWorldInverseTransform,
+            ParentWorldTransform, ParentWorldInverseTransform: TMatrix4); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Axis around which the billboard rotates to face the camera.
@@ -149,27 +151,38 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TCastleBillboard.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TCastleBillboard.BeforeRender(
+  const ParentParentWorldTransform, ParentParentWorldInverseTransform,
+        ParentWorldTransform, ParentWorldInverseTransform: TMatrix4);
+
+  { Like Parent.Parent.WorldToLocalDirection, but uses current
+    transformation knowledge. }
+  function ParentParentWorldToLocalDirection(const D: TVector3): TVector3;
+  begin
+    Result := ParentParentWorldInverseTransform.MultDirection(D);
+  end;
+
+  { Like Parent.Parent.WorldToLocal, but uses current
+    transformation knowledge. }
+  function ParentParentWorldToLocal(const P: TVector3): TVector3;
+  begin
+    Result := ParentParentWorldInverseTransform.MultPoint(P);
+  end;
+
 var
   Camera: TCastleCamera;
   DirectionToCamera, CamPos, CamDir, CamUp: TVector3;
 begin
   inherited;
 
-  // TODO: do it before Render, knowing camera from particular view?
-
-  if Parent.HasWorldTransform and
-     { this condition is not obvious from HasWorldTransform,
-       as TCastleAbstractRootTransform also has world transform }
-     (Parent.Parent <> nil) and
-     (Parent.World <> nil) and
+  if (Parent.World <> nil) and
      (Parent.World.MainCamera <> nil) then
   begin
     Camera := Parent.World.MainCamera;
     Camera.GetWorldView(CamPos, CamDir, CamUp);
 
     if MatchCameraDirection then
-      DirectionToCamera := -Parent.Parent.WorldToLocalDirection(CamDir)
+      DirectionToCamera := -ParentParentWorldToLocalDirection(CamDir)
     else
     begin
       { The transformation which interests us is the whole Parent.Parent transformation,
@@ -185,7 +198,7 @@ begin
       More optimized version (just revert translation directly,
       instead of as a matrix): }
 
-      DirectionToCamera := Parent.Parent.WorldToLocal(CamPos)
+      DirectionToCamera := ParentParentWorldToLocal(CamPos)
         - Parent.Translation;
     end;
 
@@ -197,7 +210,7 @@ begin
         DirectionToCamera,
         { Note that here we don't care about Parent.Translation,
           because we only transform direction. }
-        Parent.Parent.WorldToLocalDirection(CamUp)
+        ParentParentWorldToLocalDirection(CamUp)
       );
     end else
     begin
