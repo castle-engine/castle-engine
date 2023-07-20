@@ -19,8 +19,9 @@ android {
 
         externalNativeBuild {
             // Do not change the line below, it is necessary for build.gradle merging to work.
-            // MERGE-CMAKE-DEFAULT-CONFIG
+            cmake { arguments '-DANDROID_STL=c++_shared', '-DCMAKE_BUILD_TYPE=Release'}
         }
+
     }
 
     buildTypes {
@@ -35,6 +36,7 @@ android {
     externalNativeBuild {
         // Do not change the line below, it is necessary for build.gradle merging to work.
         // MERGE-CMAKE-NATIVE-BUILD
+        cmake { path 'src/main/CMakeLists.txt' }
     }
 
     /* Necessary, otherwise using androidx.core makes errors:
