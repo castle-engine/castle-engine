@@ -18,8 +18,9 @@ android {
         }
 
         externalNativeBuild {
-            // Do not change the line below, it is necessary for build.gradle merging to work.
-            cmake { arguments '-DANDROID_STL=c++_shared', '-DCMAKE_BUILD_TYPE=Release'}
+            cmake { 
+                arguments '-DANDROID_STL=c++_shared', '-DCMAKE_BUILD_TYPE=Release'
+            }
         }
 
     }
@@ -34,9 +35,9 @@ android {
 
     /* Why two externalNativeBuild/cmake sections? See: https://stackoverflow.com/questions/64829357/specify-targets-in-externalnativebuild-of-the-build-gradle-file-no-signature-o */
     externalNativeBuild {
-        // Do not change the line below, it is necessary for build.gradle merging to work.
-        // MERGE-CMAKE-NATIVE-BUILD
-        cmake { path 'src/main/CMakeLists.txt' }
+        cmake { 
+            path 'src/main/CMakeLists.txt' 
+        }
     }
 
     /* Necessary, otherwise using androidx.core makes errors:
