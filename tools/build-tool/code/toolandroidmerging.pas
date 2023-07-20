@@ -281,8 +281,6 @@ begin
       MergeItems('dependencies', 'dependency', '// MERGE-DEPENDENCIES', 1);
       MergeItems('plugins', 'plugin', '// MERGE-PLUGINS', 1);
       MergeItems('repositories', 'repository', '// MERGE-REPOSITORIES', 1);
-      MergeItems('cmake-default-config', 'cmake', '// MERGE-CMAKE-DEFAULT-CONFIG', 3);
-      MergeItems('cmake-native-build', 'cmake', '// MERGE-CMAKE-NATIVE-BUILD', 2);
     finally FreeAndNil(Doc) end;
   finally FreeAndNil(SStream) end;
 
