@@ -32,6 +32,7 @@ type
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
+    SceneWolf1: TCastleScene;
   private
     Enemies: TCastleTransformList;
     PlayerAlive: TCastleAliveBehavior;
@@ -61,10 +62,25 @@ begin
 end;
 
 procedure TViewPlay.Start;
-var
-  SoldierScene: TCastleScene;
-  I: Integer;
+
+  procedure AddEnemy(const EnemyScene: TCastleScene);
   // TODO MoveAttackBehavior: TCastleMoveAttack;
+  begin
+    Enemies.Add(EnemyScene);
+
+    // TODO: TCastleMoveAttack should take care of this
+    EnemyScene.PlayAnimation('walk', true);
+
+    EnemyScene.AddBehavior(TCastleAliveBehavior.Create(FreeAtStop));
+
+    // TODO
+    // MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
+    // MoveAttackBehavior.Enemy := PlayerAlive;
+    // EnemyScene.AddBehavior(MoveAttackBehavior);
+  end;
+
+var
+  I: Integer;
 begin
   inherited;
 
@@ -73,21 +89,9 @@ begin
 
   { Initialize Enemies }
   Enemies := TCastleTransformList.Create(false);
-  for I := 1 to 5 do
-  begin
-    SoldierScene := DesignedComponent('SceneSoldier' + IntToStr(I)) as TCastleScene;
-    Enemies.Add(SoldierScene);
-
-    // TODO: TCastleMoveAttack should take care of this
-    SoldierScene.PlayAnimation('walk', true);
-
-    SoldierScene.AddBehavior(TCastleAliveBehavior.Create(FreeAtStop));
-
-    // TODO
-    // MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
-    // MoveAttackBehavior.Enemy := PlayerAlive;
-    // SoldierScene.AddBehavior(MoveAttackBehavior);
-  end;
+  for I := 1 to 4 do
+    AddEnemy(DesignedComponent('SceneSoldier' + IntToStr(I)) as TCastleScene);
+  AddEnemy(SceneWolf1);
 end;
 
 procedure TViewPlay.Stop;

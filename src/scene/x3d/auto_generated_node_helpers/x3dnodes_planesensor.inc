@@ -33,29 +33,30 @@
     function GetOffset: TVector3;
     procedure SetOffset(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAxisRotation: TSFRotation;
-    { Internal wrapper for property @link(AxisRotation). This wrapper API may change, we advise to access simpler @link(AxisRotation) instead. }
+    { Internal wrapper for property @code(AxisRotation). This wrapper API may change, we advise to access simpler @code(AxisRotation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
     {  }
     property AxisRotation: TVector4 read GetAxisRotation write SetAxisRotation;
 
     strict private FFdMaxPosition: TSFVec2f;
-    { Internal wrapper for property @link(MaxPosition). This wrapper API may change, we advise to access simpler @link(MaxPosition) instead. }
+    { Internal wrapper for property @code(MaxPosition). This wrapper API may change, we advise to access simpler @code(MaxPosition) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMaxPosition: TSFVec2f read FFdMaxPosition;
     {  }
     property MaxPosition: TVector2 read GetMaxPosition write SetMaxPosition;
 
     strict private FFdMinPosition: TSFVec2f;
-    { Internal wrapper for property @link(MinPosition). This wrapper API may change, we advise to access simpler @link(MinPosition) instead. }
+    { Internal wrapper for property @code(MinPosition). This wrapper API may change, we advise to access simpler @code(MinPosition) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMinPosition: TSFVec2f read FFdMinPosition;
     {  }
     property MinPosition: TVector2 read GetMinPosition write SetMinPosition;
 
     strict private FFdOffset: TSFVec3f;
-    { Internal wrapper for property @link(Offset). This wrapper API may change, we advise to access simpler @link(Offset) instead. }
+    { Internal wrapper for property @code(Offset). This wrapper API may change, we advise to access simpler @code(Offset) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdOffset: TSFVec3f read FFdOffset;
     {  }
     property Offset: TVector3 read GetOffset write SetOffset;

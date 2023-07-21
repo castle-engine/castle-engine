@@ -10,8 +10,10 @@ uses
 
 type
   TRestartCustomEditorForm = class(TForm)
-    ButtonRunLastEditor: TBitBtn;
     ButtonPanel1: TButtonPanel;
+    { Note: Keep this TButton, not TBitBtn.
+      On GTK2, TBitBtn is not painted correctly, is underneath TButtonPanel. }
+    ButtonRunLastEditor: TButton;
     LabelCaption: TLabel;
   private
 
@@ -56,6 +58,9 @@ begin
     (LabelCaption.Top + LabelCaption.Height + ButtonsMargin + ButtonPanel1.Height) *
     PixelsPerInch / DesignTimePPI
   );
+
+  // focus OK on start
+  ActiveControl := ButtonPanel1.OKButton;
 end;
 
 end.

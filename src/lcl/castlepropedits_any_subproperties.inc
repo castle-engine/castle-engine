@@ -31,7 +31,20 @@ type
 
 function TSubPropertiesEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paMultiSelect, paSubProperties, paReadOnly];
+  Result := [
+    paMultiSelect,
+    paSubProperties,
+    paReadOnly,
+
+    { This way changing vector value, like editing TCastleTransform.Translation
+      as a whole vector to "1 2 3", is more natural: when you press enter to
+      change the vector, the expanded component value (like X: 1) also automatically
+      updates.
+
+      Without this flag, the expanded component value (like X: 1) is changed
+      only when focus shifts to a different property in OI. }
+    paVolatileSubProperties
+  ];
 end;
 
 {$endif read_implementation}

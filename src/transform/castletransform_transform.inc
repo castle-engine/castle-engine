@@ -90,7 +90,7 @@
       FVisible: Boolean;
       FCursor: TMouseCursor;
       FCollidesWithMoving: Boolean;
-      FExcludeFromStatistics, FInternalExcludeFromParentBoundingVolume: Boolean;
+      FInternalExcludeFromParentBoundingVolume: Boolean;
       FWorld: TCastleAbstractRootTransform;
       { How many times this is a child in the FWorld, counting all possible paths in transformation tree. }
       FWorldReferences: Cardinal;
@@ -594,6 +594,11 @@
         @exclude }
       InternalIgnoreParentScale: Boolean;
 
+    { How many times this is a child in the FWorld,
+      counting all possible paths in transformation tree.
+      @exclude }
+    property InternalWorldReferences: Cardinal read FWorldReferences;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -635,14 +640,22 @@
 
     { Insert a child at a specific position on the children list.
 
-      Usually the order of children doesn't matter, so there's not much point
-      in using this method. You can as well use @link(Add).
-      In particular, for rendering opaque (3D or 2D objects) the front/back is decided by
-      the actual translation of the object in 3D, i.e. what is closer to the camera.
+      Note: Usually the order of children doesn't matter, so you can as well
+      add children at the end, using @link(Add).
+
+      In particular, when rendering opaque (3D or 2D) objects, the front/back
+      is decided by the actual translation of the object,
+      i.e. what is closer to the camera.
       (In a typical 2D setup, larger Z values mean "closer to the camera".)
       The position on the children list doesn't matter in this case.
 
-      However, the position matters in case of blending.
+      When rendering with blending, we recommend to use
+      @link(TCastleViewport.BlendingSort) to automatically use
+      proper order when rendering partially-transparent objects.
+      This will mean that the order of children really doesn't matter.
+
+      However, the position matters in case of blending,
+      if you set @link(TCastleViewport.BlendingSort) to sortNone.
       See https://castle-engine.io/blending .
       For correct blending, when you have multiple partially-transparent scenes,
       the partially-transparent objects must be sorted from back to front on the list.
@@ -682,7 +695,11 @@
       if it is freed. You only need to be careful in case you add the same TCastleTransform
       instance multiple times to the same parent
       (see https://castle-engine.io/viewport_and_scenes_from_code#_multiple_instances_of_the_same_scene )
-      as then each removal removes one instance (not all) of the child from parent. }
+      as then each removal removes one instance (not all) of the child from parent.
+
+      Note: When you want to free the Item (that is, FreeItem parameter is @true)
+      then it actually doesn't matter on what parent will you call this.
+      Freeing the Item will always remove it from all parents. }
     procedure RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
 
     { Remove a child, by index on the @link(Items) list. }
@@ -755,6 +772,7 @@
 
       Calling this method makes sense if you use
       @url(https://castle-engine.io/blending blending)
+      and set @link(TCastleViewport.BlendingSort) to sortNone,
       and multiple partially-transparent objects may
       be visible at the same place on the screen.
       Sorting avoids artifacts when rendering.
@@ -769,8 +787,8 @@
           (like in every @link(TCastleWindow.OnUpdate)).
           Call it if you move or otherwise change the objects (changing their bounding boxes),
           or if the CameraPosition may change. Note that CameraPosition is only
-          relevant if BlendingSort is one of the bs3D* options,
-          like bs3D, bs3DOrigin, bs3DGround.
+          relevant if Sort is one of the sort3D* options,
+          like sort3D, sort3DOrigin, sort3DGround.
         )
         @item(
           In 2D, it is a bit simpler.
@@ -784,17 +802,15 @@
 
       Note that this doesn't take care of sorting the shapes
       within the scenes. For this, you should set
-      @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
-      to a value like bs3D or bs3DOrigin or bs3DGround, to keep it sorted.
-      The bs3D is the default now (see @link(TCastleRenderOptions.DefaultBlendingSort)),
-      so you typically don't need to worry about it.
+      @link(TCastleViewport.BlendingSort).
 
-      See the TBlendingSort documentation for the exact specification
-      of sorting algorithms. Using BlendingSort = bsNone does nothing.
+      See the TShapeSort documentation for the exact specification
+      of sorting algorithms. Using Sort = sortNone does nothing.
 
       @seealso SortBackToFront2D }
-    procedure SortBackToFront(const BlendingSort: TBlendingSort;
+    procedure SortBackToFront(const Sort: TShapeSort;
       const CameraPosition: TVector3);
+      deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
 
     { Sort objects back-to-front @italic(right now)
       following the 2D blending sorting algorithm.
@@ -803,6 +819,7 @@
 
       @seealso SortBackToFront }
     procedure SortBackToFront2D;
+      deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
 
     { Bounding box of this object, in the coordinate system of the parent transformation.
       This method takes into account current transformation
@@ -861,7 +878,7 @@
       It does shadow volumes culling inside (so ShadowVolumeRenderer should
       have FrustumCullingInit already initialized).
 
-      Params.Transform,InverseTransform,TransformIdentity describe the transformation,
+      Params.Transform/InverseTransform describe the transformation,
       just like for @link(Render). }
     procedure RenderShadowVolume(const Params: TRenderParams;
       const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
@@ -1983,11 +2000,6 @@
       @noAutoLinkHere }
     property Visible: boolean read FVisible write FVisible default true;
 
-    { Exclude from rendering statistics in
-      @link(TCastleViewport.Statistics). }
-    property ExcludeFromStatistics: boolean
-      read FExcludeFromStatistics write FExcludeFromStatistics default false;
-
     { When non-zero, we can approximate collisions with this object using a sphere
       in certain situations (@link(MoveAllowed), @link(Gravity)).
       This usually makes dynamic objects, like player and creatures, collide better. }
@@ -2569,15 +2581,19 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
-procedure TCastleTransform.SortBackToFront(const BlendingSort: TBlendingSort;
+procedure TCastleTransform.SortBackToFront(const Sort: TShapeSort;
   const CameraPosition: TVector3);
 begin
-  List.SortBackToFront(BlendingSort, CameraPosition);
+  {$warnings off} // using deprecated in deprecated
+  List.SortBackToFront(Sort, CameraPosition);
+  {$warnings on}
 end;
 
 procedure TCastleTransform.SortBackToFront2D;
 begin
+  {$warnings off} // using deprecated in deprecated
   SortBackToFront(bs2D, TVector3.Zero);
+  {$warnings on}
 end;
 
 function TCastleTransform.LocalBoundingBox: TBox3D;
@@ -3238,7 +3254,7 @@ var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
   NewParamsTransformation: TTransformation;
-  OldParamsTransformIdentity, OldInMeaningfulParent: Boolean;
+  OldInMeaningfulParent: Boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
   HasSavedDepthRange: Boolean;
@@ -3252,23 +3268,17 @@ begin
     //((Parent = nil) or Parent.MeaningfulParent);
     MeaningfulParent;
 
-  HasSavedDepthRange := (RenderLayer <> rlParent) and
-    { Shadow maps require normal DepthRange,
-      don't mess with RenderContext.DepthRange in case when we render shadow maps. }
-    (not (Params.RenderingCamera.Target in [rtShadowMap, rtVarianceShadowMap]));
+  HasSavedDepthRange := RenderLayer <> rlParent;
   if HasSavedDepthRange then
   begin
     { The idea of using DepthRange for render layers is nice:
-      - you don't have to split rendering layers in passes,
-        you can render all objects in one pass,
-        just switching DepthRange as necessary.
-      - you can set DepthRange for 3D objects inside TCastleTransform,
-        like here TCastleTransform will just affect every child underneath.
-    }
-    SavedDepthRange := RenderContext.DepthRange;
+      you don't have to split rendering layers in passes,
+      you can render all objects in one pass,
+      just switching DepthRange as necessary. }
+    SavedDepthRange := Params.DepthRange;
     case RenderLayer of
-      rlFront: RenderContext.DepthRange := drNear;
-      rlBack : RenderContext.DepthRange := drFar;
+      rlFront: Params.DepthRange := drNear;
+      rlBack : Params.DepthRange := drFar;
       else ;
     end;
   end else
@@ -3284,7 +3294,6 @@ begin
     begin
       //FrameProfiler.Start(fmRenderTransform);
 
-      OldParamsTransformIdentity := Params.TransformIdentity;
       OldParamsTransform         := Params.Transform;
       OldParamsInverseTransform  := Params.InverseTransform;
       OldFrustum                 := Params.Frustum;
@@ -3294,7 +3303,6 @@ begin
       NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
       NewFrustumValue                          := OldFrustum^;
 
-      Params.TransformIdentity := false;
       Params.Transform        := @NewParamsTransformation.Transform;
       Params.InverseTransform := @NewParamsTransformation.InverseTransform;
       Params.Frustum          := @NewFrustumValue;
@@ -3324,7 +3332,6 @@ begin
 
       { Restore OldXxx values.
         They can be restored fast, thanks to using pointers to matrix/frustum. }
-      Params.TransformIdentity := OldParamsTransformIdentity;
       Params.Transform         := OldParamsTransform;
       Params.InverseTransform  := OldParamsInverseTransform;
       Params.Frustum           := OldFrustum;
@@ -3335,7 +3342,7 @@ begin
   Params.InMeaningfulParent := OldInMeaningfulParent;
 
   if HasSavedDepthRange then
-    RenderContext.DepthRange := SavedDepthRange;
+    Params.DepthRange := SavedDepthRange;
 end;
 
 procedure TCastleTransform.RenderShadowVolume(const Params: TRenderParams;
@@ -3344,7 +3351,6 @@ var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
   NewParamsTransformation: TTransformation;
-  OldParamsTransformIdentity: Boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
 begin
@@ -3356,7 +3362,6 @@ begin
   begin
     { TODO: This is a copy-paste of transformation algorithm from TCastleTransform.Render. }
 
-    OldParamsTransformIdentity := Params.TransformIdentity;
     OldParamsTransform         := Params.Transform;
     OldParamsInverseTransform  := Params.InverseTransform;
     OldFrustum                 := Params.Frustum;
@@ -3366,7 +3371,6 @@ begin
     NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
     NewFrustumValue                          := OldFrustum^;
 
-    Params.TransformIdentity := false;
     Params.Transform        := @NewParamsTransformation.Transform;
     Params.InverseTransform := @NewParamsTransformation.InverseTransform;
     Params.Frustum          := @NewFrustumValue;
@@ -3391,7 +3395,6 @@ begin
 
     { Restore OldXxx values.
       They can be restored fast, thanks to using pointers to matrix/frustum. }
-    Params.TransformIdentity := OldParamsTransformIdentity;
     Params.Transform         := OldParamsTransform;
     Params.InverseTransform  := OldParamsInverseTransform;
     Params.Frustum           := OldFrustum;
@@ -3715,7 +3718,9 @@ begin
     Result := [psLayout]
   else
   if ArrayContainsString(PropertyName, [
-       'RotationPersistent', 'ScalePersistent', 'TranslationPersistent'
+       'RotationPersistent', 'ScalePersistent', 'TranslationPersistent',
+       // Direction and Up expose also Rotation but in alternative way
+       'DirectionPersistent', 'UpPersistent'
      ]) then
     Result := [psBasic, psLayout]
   else
@@ -4188,6 +4193,11 @@ end;
 
 procedure TCastleTransform.RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
 begin
+  { Avoid crash in certain cases,
+    see https://forum.castle-engine.io/t/sigsegv-when-i-try-to-remove/859/8 }
+  if Item = Self then
+    raise Exception.Create('Cannot remove the object from itself using RemoveDelayed');
+
   if FreeItem then
   begin
     if FPendingToRemoveAndFree = nil then

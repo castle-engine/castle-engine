@@ -44,7 +44,13 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
@@ -55,8 +61,7 @@
             "Name" : "Scene1",
             "ProcessEvents" : true,
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-              "BlendingSort" : "bs2D"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
             "URL" : "castle-data:/dragon/dragon.json"
           },

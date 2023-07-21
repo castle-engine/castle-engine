@@ -27,11 +27,12 @@
     function GetCollider: TCollisionCollectionNode;
     procedure SetCollider(const Value: TCollisionCollectionNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdCollider: TSFNode;
-    { Internal wrapper for property @link(Collider). This wrapper API may change, we advise to access simpler @link(Collider) instead. }
+    { Internal wrapper for property @code(Collider). This wrapper API may change, we advise to access simpler @code(Collider) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCollider: TSFNode read FFdCollider;
     {  }
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;

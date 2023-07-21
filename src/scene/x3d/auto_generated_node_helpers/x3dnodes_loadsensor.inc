@@ -27,17 +27,18 @@
     function GetTimeOut: TFloatTime;
     procedure SetTimeOut(const Value: TFloatTime);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdTimeOut: TSFTime;
-    { Internal wrapper for property @link(TimeOut). This wrapper API may change, we advise to access simpler @link(TimeOut) instead. }
+    { Internal wrapper for property @code(TimeOut). This wrapper API may change, we advise to access simpler @code(TimeOut) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTimeOut: TSFTime read FFdTimeOut;
     {  }
     property TimeOut: TFloatTime read GetTimeOut write SetTimeOut;
 
     strict private FFdWatchList: TMFNode;
-    { Internal wrapper for property @link(WatchList). This wrapper API may change, we advise to access simpler @link(WatchList) instead. }
+    { Internal wrapper for property @code(WatchList). This wrapper API may change, we advise to access simpler @code(WatchList) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWatchList: TMFNode read FFdWatchList;
 
     strict private FEventIsLoaded: TSFBoolEvent;

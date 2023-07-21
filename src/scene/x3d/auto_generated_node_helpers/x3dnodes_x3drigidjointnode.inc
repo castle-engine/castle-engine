@@ -29,23 +29,24 @@
     function GetBody2: TRigidBodyNode;
     procedure SetBody2(const Value: TRigidBodyNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdBody1: TSFNode;
-    { Internal wrapper for property @link(Body1). This wrapper API may change, we advise to access simpler @link(Body1) instead. }
+    { Internal wrapper for property @code(Body1). This wrapper API may change, we advise to access simpler @code(Body1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBody1: TSFNode read FFdBody1;
     {  }
     property Body1: TRigidBodyNode read GetBody1 write SetBody1;
 
     strict private FFdBody2: TSFNode;
-    { Internal wrapper for property @link(Body2). This wrapper API may change, we advise to access simpler @link(Body2) instead. }
+    { Internal wrapper for property @code(Body2). This wrapper API may change, we advise to access simpler @code(Body2) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBody2: TSFNode read FFdBody2;
     {  }
     property Body2: TRigidBodyNode read GetBody2 write SetBody2;
 
     strict private FFdForceOutput: TMFString;
-    { Internal wrapper for property @link(ForceOutput). This wrapper API may change, we advise to access simpler @link(ForceOutput) instead. }
+    { Internal wrapper for property @code(ForceOutput). This wrapper API may change, we advise to access simpler @code(ForceOutput) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdForceOutput: TMFString read FFdForceOutput;
     {  }
     procedure SetForceOutput(const Value: array of string); overload;

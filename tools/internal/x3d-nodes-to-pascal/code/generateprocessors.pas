@@ -130,9 +130,11 @@ type
   end;
 
 var
-  Verbose: boolean;
+  Verbose: Boolean;
 
-  OutputPath: String;
+  { When will the .inc files be generated.
+    May but doesn't have to end with PathDelim. }
+  OutputPath: String = '../../../src/scene/x3d/auto_generated_node_helpers/';
 
 implementation
 
@@ -202,7 +204,7 @@ begin
         NL +
         Field.ConditionsBegin +
         '    strict private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
-        '    { Internal wrapper for property @link(' + Field.PascalName + '). This wrapper API may change, we advise to access simpler @link(' + Field.PascalName + ') instead. }' + NL +
+        '    { Internal wrapper for property @code(' + Field.PascalName + '). This wrapper API may change, we advise to access simpler @code(' + Field.PascalName + ') instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL +
         Field.ConditionsEnd;
 
@@ -944,7 +946,10 @@ var
       S := F.Readln;
       if Trim(S) = '"""' then
         Exit;
-      Result := Result + Trim(S) + NL;
+      { Note: do not Trim(S) below, to not break indent in @longCode
+        used within X3D fields docs, like BlendingSort,
+        file:///home/michalis/sources/castle-engine/castle-engine/doc/reference/X3DNodes.TNavigationInfoNode.html#BlendingSort }
+      Result := Result + S + NL;
     until false;
   end;
 
@@ -1135,6 +1140,10 @@ end;
 procedure THelperProcessor.NodeBegin(const Node: TX3DNodeInformation);
 begin
   OutputPublicInterface +=
+    { CreateNode needs some doc, to avoid using template
+      "Automatically generated node properties."
+      as accidental documentation comment. }
+    '    { Create node fields and events. }' + NL +
     '    procedure CreateNode; override;' + NL +
     '    class function ClassX3DType: string; override;' + NL;
 
@@ -1392,7 +1401,8 @@ procedure THelperProcessor.NodeEnd(const Node: TX3DNodeInformation);
   var
     OutputFileName: string;
   begin
-    OutputFileName := OutputPath + 'x3dnodes_' + LowerCase(Node.X3DType) +
+    OutputFileName := InclPathDelim(OutputPath) +
+      'x3dnodes_' + LowerCase(Node.X3DType) +
       Iff(Node.Vrml1, '_1', '') + '.inc';
 
     StringToFile(OutputFileName,

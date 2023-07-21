@@ -27,16 +27,17 @@
     function GetAngle: Single;
     procedure SetAngle(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdAxis: TSFEnum;
-    { Internal wrapper for property @link(Axis). This wrapper API may change, we advise to access simpler @link(Axis) instead. }
+    { Internal wrapper for property @code(Axis). This wrapper API may change, we advise to access simpler @code(Axis) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis: TSFEnum read FFdAxis;
 
     strict private FFdAngle: TSFFloat;
-    { Internal wrapper for property @link(Angle). This wrapper API may change, we advise to access simpler @link(Angle) instead. }
+    { Internal wrapper for property @code(Angle). This wrapper API may change, we advise to access simpler @code(Angle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAngle: TSFFloat read FFdAngle;
     {  }
     property Angle: Single read GetAngle write SetAngle;

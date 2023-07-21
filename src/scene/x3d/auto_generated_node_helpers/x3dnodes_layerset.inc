@@ -27,23 +27,24 @@
     function GetActiveLayer: Integer;
     procedure SetActiveLayer(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdActiveLayer: TSFInt32;
-    { Internal wrapper for property @link(ActiveLayer). This wrapper API may change, we advise to access simpler @link(ActiveLayer) instead. }
+    { Internal wrapper for property @code(ActiveLayer). This wrapper API may change, we advise to access simpler @code(ActiveLayer) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdActiveLayer: TSFInt32 read FFdActiveLayer;
     {  }
     property ActiveLayer: Integer read GetActiveLayer write SetActiveLayer;
 
     strict private FFdLayers: TMFNode;
-    { Internal wrapper for property @link(Layers). This wrapper API may change, we advise to access simpler @link(Layers) instead. }
+    { Internal wrapper for property @code(Layers). This wrapper API may change, we advise to access simpler @code(Layers) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLayers: TMFNode read FFdLayers;
     {  }
     procedure SetLayers(const Value: array of TAbstractLayerNode);
 
     strict private FFdOrder: TMFInt32;
-    { Internal wrapper for property @link(Order). This wrapper API may change, we advise to access simpler @link(Order) instead. }
+    { Internal wrapper for property @code(Order). This wrapper API may change, we advise to access simpler @code(Order) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdOrder: TMFInt32 read FFdOrder;
     {  }
     procedure SetOrder(const Value: array of Int32); overload;

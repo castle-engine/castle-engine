@@ -27,12 +27,13 @@
     function GetHeight: Single;
     procedure SetHeight(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdHeight: TSFFloat;
-    { Internal wrapper for property @link(Height). This wrapper API may change, we advise to access simpler @link(Height) instead. }
+    { Internal wrapper for property @code(Height). This wrapper API may change, we advise to access simpler @code(Height) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHeight: TSFFloat read FFdHeight;
     {  }
     property Height: Single read GetHeight write SetHeight;

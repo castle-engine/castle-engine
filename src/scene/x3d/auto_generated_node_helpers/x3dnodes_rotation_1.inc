@@ -27,12 +27,13 @@
     function GetRotation: TVector4;
     procedure SetRotation(const Value: TVector4);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdRotation: TSFRotation;
-    { Internal wrapper for property @link(Rotation). This wrapper API may change, we advise to access simpler @link(Rotation) instead. }
+    { Internal wrapper for property @code(Rotation). This wrapper API may change, we advise to access simpler @code(Rotation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRotation: TSFRotation read FFdRotation;
     {  }
     property Rotation: TVector4 read GetRotation write SetRotation;

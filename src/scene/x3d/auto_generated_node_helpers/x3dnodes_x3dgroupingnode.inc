@@ -35,6 +35,7 @@
     procedure SetBboxDisplay(const Value: Boolean);
 {$endif not CASTLE_SLIM_NODES}
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -47,22 +48,22 @@
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
     strict private FFdChildren: TMFNode;
-    { Internal wrapper for property @link(Children). This wrapper API may change, we advise to access simpler @link(Children) instead. }
+    { Internal wrapper for property @code(Children). This wrapper API may change, we advise to access simpler @code(Children) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdChildren: TMFNode read FFdChildren;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
+    { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { You can provide a manually-calculated bounding box of the group here, for optimization purposes. @italic(Ignored for now.) Leave this field as empty (TBox3D.Empty) to let the engine calculate best bounding box automatically. @seealso TAbstractShapeNode.BBox }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
+    { Internal wrapper for property @code(BboxSize). This wrapper API may change, we advise to access simpler @code(BboxSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdVisible: TSFBool;
-    { Internal wrapper for property @link(Visible). This wrapper API may change, we advise to access simpler @link(Visible) instead. }
+    { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVisible: TSFBool read FFdVisible;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -72,7 +73,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdBboxDisplay: TSFBool;
-    { Internal wrapper for property @link(BboxDisplay). This wrapper API may change, we advise to access simpler @link(BboxDisplay) instead. }
+    { Internal wrapper for property @code(BboxDisplay). This wrapper API may change, we advise to access simpler @code(BboxDisplay) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxDisplay: TSFBool read FFdBboxDisplay;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}

@@ -21,26 +21,27 @@ unit CastleSceneInternalShape;
 
 interface
 
-uses X3DNodes, X3DFields, CastleImages,
+uses Generics.Collections,
+  X3DNodes, X3DFields, CastleImages, CastleVectors, CastleClassUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleGLUtils, CastleInternalRenderer, CastleRenderOptions;
+  CastleGLUtils, CastleInternalRenderer, CastleRenderOptions, CastleShapes;
 
 type
   { Shape within a scene rendered using OpenGL.
     This is TShape extended with some information needed by TCastleScene.
     Non-internal units never expose instances of this class. }
-  TGLShape = class abstract(TX3DRendererShape)
+  TGLShape = class(TX3DRendererShape)
+  strict private
+    TexturesPrepared: Boolean;
+    { Request from parent TCastleScene to call our PrepareResources at nearest
+      convenient time. }
+    procedure SchedulePrepareResources;
+    function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
+    function UnprepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
   public
-    { Keeps track if this shape was passed to Renderer.Prepare. }
-    PreparedForRenderer: boolean;
-
-    UseAlphaChannel: TAlphaChannel;
-    { Is UseAlphaChannel calculated and current. }
-    PreparedUseAlphaChannel: boolean;
-
     PassedFrustumAndDistanceCulling: Boolean;
 
-    { Used only when RenderOptions.ReallyOcclusionQuery.
+    { Used only when TCastleViewport.OcclusionCulling.
       OcclusionQueryId is 0 if not initialized yet.
       When it's 0, value of OcclusionQueryAsked doesn't matter,
       OcclusionQueryAsked is always reset to @false when initializing
@@ -56,47 +57,79 @@ type
       Never change it after initial render. }
     DisableSharedCache: Boolean;
 
+    OverrideRenderOptions: TCastleRenderOptions;
+
+    destructor Destroy; override;
     procedure Changed(const InactiveOnly: boolean;
       const Changes: TX3DChanges); override;
     procedure PrepareResources;
     procedure GLContextClose;
 
-    { Access the Renderer of parent TCastleScene. }
-    function Renderer: TGLRenderer; virtual; abstract;
-
-    { Request from parent TCastleScene to call our PrepareResources at next time. }
-    procedure SchedulePrepareResources; virtual; abstract;
-
     function UseBlending: Boolean;
   end;
 
-{ Checks that any occlusion query algorithm should be used,
-  equivalent to
-  "ReallyOcclusionQuery(RenderOptions) or ReallyHierarchicalOcclusionQuery(RenderOptions)". }
-function ReallyAnyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+  { Shape with additional information how to render it inside a world,
+    that allows to render it independently of the containing TCastleScene. }
+  TCollectedShape = class
+    Shape: TGLShape;
+    RenderOptions: TCastleRenderOptions;
+    SceneTransform: TMatrix4;
+    DepthRange: TDepthRange;
+  end;
 
-{ Checks OcclusionQuery, existence of GLFeatures.OcclusionQuery,
-  and GLFeatures.OcclusionQueryCounterBits > 0. If @false,
-  occlusion query cannot be used.
+  TCollectedShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TCollectedShape>)
+  strict private
+    SortPosition: TVector3;
 
-  Also, returns @false when HierarchicalOcclusionQuery is @true
-  --- because then HierarchicalOcclusionQuery should take precedence.
+    function CompareBackToFront2D(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareBackToFront3DBox(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareBackToFront3DOrigin(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareBackToFront3DGround(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareBackToFrontCustom(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
 
-  @exclude Internal. }
-function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+    function CompareFrontToBack2D(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareFrontToBack3DBox(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareFrontToBack3DOrigin(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareFrontToBack3DGround(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+    function CompareFrontToBackCustom(
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+  public
+    { Used when ShapeSort is sortCustom for SortBackToFront or SortFrontToBack. }
+    OnCustomShapeSort: TShapeSortEvent;
 
-{ Checks HierarchicalOcclusionQuery, existence of GLFeatures.OcclusionQuery,
-  and GLFeatures.OcclusionQueryCounterBits > 0. If @false,
-  occlusion query cannot be used.
+    { Sort shapes by distance to given Position point, farthest first.
+      ShapeSort determines the sorting algorithm.
+      See @link(TShapeSort) documentation. }
+    procedure SortBackToFront(const Position: TVector3;
+      const ShapeSort: TShapeSortNoAuto);
 
-  @exclude Internal. }
-function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+    { Sort shapes by distance to given Position point, closest first.
+      ShapeSort determines the sorting algorithm.
+      See @link(TShapeSort) documentation. }
+    procedure SortFrontToBack(const Position: TVector3;
+      const ShapeSort: TShapeSortNoAuto);
+  end;
 
 implementation
 
-uses CastleScene, CastleVectors;
+uses Generics.Defaults, Math, SysUtils,
+  CastleScene, CastleBoxes;
 
 { TGLShape --------------------------------------------------------------- }
+
+destructor TGLShape.Destroy;
+begin
+  inherited;
+end;
 
 procedure TGLShape.Changed(const InactiveOnly: boolean;
   const Changes: TX3DChanges);
@@ -160,111 +193,227 @@ begin
        chFontStyleFontChanged
      ] <> [] then
   begin
-    Renderer.UnprepareTexture(State.MainTexture);
-    PreparedForRenderer := false;
-    PreparedUseAlphaChannel := false;
+    TTextureResources.Unprepare(State.MainTexture);
+    { Make next PrepareResources prepare all textures.
+      Testcase:
+      - view3dscene
+      - open demo-models/rendered_texture/rendered_texture_tweak_size.x3dv
+      - use s / S
+      - without this fix, texture would change to none, and never again
+        update RenderedTexture contents. }
+    TexturesPrepared := false;
+    { Make sure PrepareResources is actually called soon. }
     SchedulePrepareResources;
   end;
+end;
 
-  { When Material.transparency changes, recalculate UseAlphaChannel. }
-  if chAlphaChannel in Changes then
-  begin
-    PreparedUseAlphaChannel := false;
-    SchedulePrepareResources;
-  end;
+function TGLShape.UnprepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
+begin
+  Result := nil; // let EnumerateTextures to enumerate all textures
+  TTextureResources.Unprepare(Texture);
+end;
+
+function TGLShape.PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
+var
+  RenderOptions: TCastleRenderOptions;
+begin
+  Result := nil; // let EnumerateTextures to enumerate all textures
+
+  // This method only captures textures on this shape
+  Assert(Shape = Self);
+
+  // TODO: add and always depend on local RenderOptions field, not ParentScene? or we need ParentScene anyway?
+  if OverrideRenderOptions <> nil then
+    RenderOptions := OverrideRenderOptions
+  else
+    RenderOptions := TCastleScene(ParentScene).RenderOptions;
+  Assert(RenderOptions <> nil);
+
+  TTextureResources.Prepare(RenderOptions, Texture);
 end;
 
 procedure TGLShape.PrepareResources;
 begin
-  if not PreparedForRenderer then
+  if not TexturesPrepared then
   begin
-    Renderer.Prepare(Self);
-    PreparedForRenderer := true;
-  end;
-
-  if not PreparedUseAlphaChannel then
-  begin
-    { UseAlphaChannel is used by RenderScene to decide is Blending used for given
-      shape. }
-    UseAlphaChannel := AlphaChannel;
-    PreparedUseAlphaChannel := true;
-  end;
-
-  if ReallyOcclusionQuery(TCastleScene(ParentScene).RenderOptions) and
-     (OcclusionQueryId = 0) then
-  begin
-    glGenQueries(1, @OcclusionQueryId);
-    OcclusionQueryAsked := false;
+    TexturesPrepared := true;
+    EnumerateTextures({$ifdef FPC}@{$endif} PrepareTexture);
   end;
 end;
 
 procedure TGLShape.GLContextClose;
-var
-  Pass: TTotalRenderingPass;
+
+  { Free Arrays and Vbo of all shapes. }
+  procedure FreeCaches;
+  var
+    Pass: TTotalRenderingPass;
+  begin
+    if Cache <> nil then
+    begin
+      RendererCache.Shape_DecReference(Self, Cache);
+      Assert(Cache = nil, 'At the end of GLContextClose, Cache should be nil');
+    end;
+
+    for Pass := Low(Pass) to High(Pass) do
+    begin
+      if ProgramCache[Pass] <> nil then
+        RendererCache.Program_DecReference(ProgramCache[Pass]);
+      Assert(ProgramCache[Pass] = nil, 'At the end of GLContextClose, all ProgramCache[Pass] should be nil');
+    end;
+  end;
+
 begin
-  PreparedForRenderer := false;
-  PreparedUseAlphaChannel := false;
+  if TexturesPrepared then
+  begin
+    TexturesPrepared := false;
+    EnumerateTextures({$ifdef FPC}@{$endif} UnprepareTexture);
+  end;
+
+  FreeCaches;
 
   if OcclusionQueryId <> 0 then
   begin
     glDeleteQueries(1, @OcclusionQueryId);
     OcclusionQueryId := 0;
   end;
-
-  { Free Arrays and Vbo of all shapes. }
-  if Cache <> nil then
-    Renderer.Cache.Shape_DecReference(Self, Cache);
-  for Pass := Low(Pass) to High(Pass) do
-    if ProgramCache[Pass] <> nil then
-      Renderer.Cache.Program_DecReference(ProgramCache[Pass]);
 end;
 
 function TGLShape.UseBlending: Boolean;
 begin
-  Result := UseAlphaChannel = acBlending;
+  Result := AlphaChannel = acBlending;
 end;
 
-{ global routines ------------------------------------------------------------ }
-
-function ReallyAnyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+procedure TGLShape.SchedulePrepareResources;
 begin
-  {$warnings off}
-  Result :=
-    (RenderOptions.OcclusionQuery or RenderOptions.HierarchicalOcclusionQuery) and
-    (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
-    GLFeatures.OcclusionQuery and
-    GLFeatures.VertexBufferObject and
-    (GLFeatures.OcclusionQueryCounterBits > 0);
-  {$warnings on}
-
-  // unoptimal version
-  Assert(Result = (
-    ReallyOcclusionQuery(RenderOptions) or
-    ReallyHierarchicalOcclusionQuery(RenderOptions)
-  ));
+  if ParentScene <> nil then
+    TCastleScene(ParentScene).InternalSchedulePrepareResources;
 end;
 
-function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+{ TCollectedShape ---------------------------------------------------------- }
+
+type
+  TCollectedShapeComparer = {$ifdef FPC}specialize{$endif} TComparer<TCollectedShape>;
+
+function TCollectedShapeList.CompareBackToFront2D(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
 begin
-  {$warnings off}
-  Result := RenderOptions.OcclusionQuery and
-    (not RenderOptions.HierarchicalOcclusionQuery) and
-    (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
-    GLFeatures.OcclusionQuery and
-    GLFeatures.VertexBufferObject and
-    (GLFeatures.OcclusionQueryCounterBits > 0);
-  {$warnings on}
+  Result := TBox3D.CompareBackToFront2D(
+    A.Shape.BoundingBox.Transform(A.SceneTransform),
+    B.Shape.BoundingBox.Transform(B.SceneTransform));
 end;
 
-function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+function TCollectedShapeList.CompareBackToFront3DBox(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
 begin
-  {$warnings off}
-  Result := RenderOptions.HierarchicalOcclusionQuery and
-    (GLFeatures <> nil) and // this can be called when GL context not initialized, like from TCastleScene.ViewChangedSuddenly
-    GLFeatures.OcclusionQuery and
-    GLFeatures.VertexBufferObject and
-    (GLFeatures.OcclusionQueryCounterBits > 0);
-  {$warnings on}
+  Result := TBox3D.CompareBackToFront3D(
+    A.Shape.BoundingBox.Transform(A.SceneTransform),
+    B.Shape.BoundingBox.Transform(B.SceneTransform),
+    SortPosition);
+end;
+
+function TCollectedShapeList.CompareBackToFront3DOrigin(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+var
+  PointA, PointB: TVector3;
+begin
+  PointA := (A.SceneTransform * A.Shape.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+  PointB := (B.SceneTransform * B.Shape.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+  Result := Sign(
+    PointsDistanceSqr(PointB, SortPosition) -
+    PointsDistanceSqr(PointA, SortPosition));
+end;
+
+function TCollectedShapeList.CompareBackToFront3DGround(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+var
+  PointA, PointB: TVector3;
+begin
+  { TODO: what's more efficient - MultTransform 2x, or multiply matrix + MultTransform? }
+  PointA := (A.SceneTransform * A.Shape.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+  PointB := (B.SceneTransform * B.Shape.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+  PointA.Y := 0;
+  PointB.Y := 0;
+  Result := Sign(
+    PointsDistanceSqr(PointB, SortPosition) -
+    PointsDistanceSqr(PointA, SortPosition));
+end;
+
+function TCollectedShapeList.CompareBackToFrontCustom(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := OnCustomShapeSort(SortPosition,
+    A.Shape, B.Shape,
+    A.RenderOptions, B.RenderOptions,
+    A.SceneTransform, B.SceneTransform
+  );
+end;
+
+procedure TCollectedShapeList.SortBackToFront(const Position: TVector3;
+  const ShapeSort: TShapeSortNoAuto);
+begin
+  SortPosition := Position;
+  case ShapeSort of
+    sort2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront2D));
+    sort3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DBox));
+    sort3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DOrigin));
+    sort3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DGround));
+    sortCustom  :
+      begin
+        // does not sort if OnCustomShapeSort unassigned
+        if Assigned(OnCustomShapeSort) then
+          Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFrontCustom));
+      end;
+    else ;
+  end;
+end;
+
+function TCollectedShapeList.CompareFrontToBack2D(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := -CompareBackToFront2D(A, B);
+end;
+
+function TCollectedShapeList.CompareFrontToBack3DBox(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := -CompareBackToFront3DBox(A, B);
+end;
+
+function TCollectedShapeList.CompareFrontToBack3DOrigin(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := -CompareBackToFront3DOrigin(A, B);
+end;
+
+function TCollectedShapeList.CompareFrontToBack3DGround(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := -CompareBackToFront3DGround(A, B);
+end;
+
+function TCollectedShapeList.CompareFrontToBackCustom(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+begin
+  Result := -CompareBackToFrontCustom(A, B);
+end;
+
+procedure TCollectedShapeList.SortFrontToBack(const Position: TVector3;
+  const ShapeSort: TShapeSortNoAuto);
+begin
+  SortPosition := Position;
+  case ShapeSort of
+    sort2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack2D));
+    sort3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DBox));
+    sort3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DOrigin));
+    sort3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DGround));
+    sortCustom  :
+      begin
+        // does not sort if OnCustomShapeSort unassigned
+        if Assigned(OnCustomShapeSort) then
+          Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBackCustom));
+      end;
+    else ;
+  end;
 end;
 
 end.

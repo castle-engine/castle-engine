@@ -13,9 +13,10 @@
   ----------------------------------------------------------------------------
 */
 
-/* Needed for % operator */
+/* Needed for % operator.
+   Not done anymore, CGE will add defined to use latest GLSL version. */
 //#extension GL_EXT_gpu_shader4 : enable
-#version 130
+//#version 130
 
 /*$defines*/
 

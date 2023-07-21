@@ -24,11 +24,12 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAlign: TMFString;
-    { Internal wrapper for property @link(Align). This wrapper API may change, we advise to access simpler @link(Align) instead. }
+    { Internal wrapper for property @code(Align). This wrapper API may change, we advise to access simpler @code(Align) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAlign: TMFString read FFdAlign;
     {  }
     procedure SetAlign(const Value: array of string); overload;
@@ -36,7 +37,7 @@
     procedure SetAlign(const Value: TCastleStringList); overload;
 
     strict private FFdOffset: TMFFloat;
-    { Internal wrapper for property @link(Offset). This wrapper API may change, we advise to access simpler @link(Offset) instead. }
+    { Internal wrapper for property @code(Offset). This wrapper API may change, we advise to access simpler @code(Offset) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdOffset: TMFFloat read FFdOffset;
     {  }
     procedure SetOffset(const Value: array of Single); overload;
@@ -44,7 +45,7 @@
     procedure SetOffset(const Value: TSingleList); overload;
 
     strict private FFdOffsetUnits: TMFString;
-    { Internal wrapper for property @link(OffsetUnits). This wrapper API may change, we advise to access simpler @link(OffsetUnits) instead. }
+    { Internal wrapper for property @code(OffsetUnits). This wrapper API may change, we advise to access simpler @code(OffsetUnits) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdOffsetUnits: TMFString read FFdOffsetUnits;
     {  }
     procedure SetOffsetUnits(const Value: array of string); overload;
@@ -52,7 +53,7 @@
     procedure SetOffsetUnits(const Value: TCastleStringList); overload;
 
     strict private FFdScaleMode: TMFString;
-    { Internal wrapper for property @link(ScaleMode). This wrapper API may change, we advise to access simpler @link(ScaleMode) instead. }
+    { Internal wrapper for property @code(ScaleMode). This wrapper API may change, we advise to access simpler @code(ScaleMode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScaleMode: TMFString read FFdScaleMode;
     {  }
     procedure SetScaleMode(const Value: array of string); overload;
@@ -60,7 +61,7 @@
     procedure SetScaleMode(const Value: TCastleStringList); overload;
 
     strict private FFdSize: TMFFloat;
-    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
+    { Internal wrapper for property @code(Size). This wrapper API may change, we advise to access simpler @code(Size) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSize: TMFFloat read FFdSize;
     {  }
     procedure SetSize(const Value: array of Single); overload;
@@ -68,7 +69,7 @@
     procedure SetSize(const Value: TSingleList); overload;
 
     strict private FFdSizeUnits: TMFString;
-    { Internal wrapper for property @link(SizeUnits). This wrapper API may change, we advise to access simpler @link(SizeUnits) instead. }
+    { Internal wrapper for property @code(SizeUnits). This wrapper API may change, we advise to access simpler @code(SizeUnits) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSizeUnits: TMFString read FFdSizeUnits;
     {  }
     procedure SetSizeUnits(const Value: array of string); overload;

@@ -39,55 +39,56 @@
     function GetTopToBottom: Boolean;
     procedure SetTopToBottom(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdFamily: TMFString;
-    { Internal wrapper for property @link(Family). This wrapper API may change, we advise to access simpler @link(Family) instead. }
+    { Internal wrapper for property @code(Family). This wrapper API may change, we advise to access simpler @code(Family) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFamily: TMFString read FFdFamily;
 
     strict private FFdHorizontal: TSFBool;
-    { Internal wrapper for property @link(Horizontal). This wrapper API may change, we advise to access simpler @link(Horizontal) instead. }
+    { Internal wrapper for property @code(Horizontal). This wrapper API may change, we advise to access simpler @code(Horizontal) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHorizontal: TSFBool read FFdHorizontal;
     {  }
     property Horizontal: Boolean read GetHorizontal write SetHorizontal;
 
     strict private FFdJustify: TMFString;
-    { Internal wrapper for property @link(Justify). This wrapper API may change, we advise to access simpler @link(Justify) instead. }
+    { Internal wrapper for property @code(Justify). This wrapper API may change, we advise to access simpler @code(Justify) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdJustify: TMFString read FFdJustify;
 
     strict private FFdLanguage: TSFString;
-    { Internal wrapper for property @link(Language). This wrapper API may change, we advise to access simpler @link(Language) instead. }
+    { Internal wrapper for property @code(Language). This wrapper API may change, we advise to access simpler @code(Language) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLanguage: TSFString read FFdLanguage;
     {  }
     property Language: String read GetLanguage write SetLanguage;
 
     strict private FFdLeftToRight: TSFBool;
-    { Internal wrapper for property @link(LeftToRight). This wrapper API may change, we advise to access simpler @link(LeftToRight) instead. }
+    { Internal wrapper for property @code(LeftToRight). This wrapper API may change, we advise to access simpler @code(LeftToRight) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLeftToRight: TSFBool read FFdLeftToRight;
     {  }
     property LeftToRight: Boolean read GetLeftToRight write SetLeftToRight;
 
     strict private FFdPointSize: TSFFloat;
-    { Internal wrapper for property @link(PointSize). This wrapper API may change, we advise to access simpler @link(PointSize) instead. }
+    { Internal wrapper for property @code(PointSize). This wrapper API may change, we advise to access simpler @code(PointSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPointSize: TSFFloat read FFdPointSize;
     {  }
     property PointSize: Single read GetPointSize write SetPointSize;
 
     strict private FFdSpacing: TSFFloat;
-    { Internal wrapper for property @link(Spacing). This wrapper API may change, we advise to access simpler @link(Spacing) instead. }
+    { Internal wrapper for property @code(Spacing). This wrapper API may change, we advise to access simpler @code(Spacing) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSpacing: TSFFloat read FFdSpacing;
     {  }
     property Spacing: Single read GetSpacing write SetSpacing;
 
     strict private FFdStyle: TSFStringEnum;
-    { Internal wrapper for property @link(Style). This wrapper API may change, we advise to access simpler @link(Style) instead. }
+    { Internal wrapper for property @code(Style). This wrapper API may change, we advise to access simpler @code(Style) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStyle: TSFStringEnum read FFdStyle;
     {  }
     property Style: TX3DFontStyle read GetStyle write SetStyle;
 
     strict private FFdTopToBottom: TSFBool;
-    { Internal wrapper for property @link(TopToBottom). This wrapper API may change, we advise to access simpler @link(TopToBottom) instead. }
+    { Internal wrapper for property @code(TopToBottom). This wrapper API may change, we advise to access simpler @code(TopToBottom) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
     {  }
     property TopToBottom: Boolean read GetTopToBottom write SetTopToBottom;

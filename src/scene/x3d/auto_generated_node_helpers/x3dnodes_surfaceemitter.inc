@@ -27,6 +27,7 @@
     function GetSurface: TAbstractGeometryNode;
     procedure SetSurface(const Value: TAbstractGeometryNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -35,7 +36,7 @@
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
     strict private FFdCoordIndex: TMFInt32;
-    { Internal wrapper for property @link(CoordIndex). This wrapper API may change, we advise to access simpler @link(CoordIndex) instead. }
+    { Internal wrapper for property @code(CoordIndex). This wrapper API may change, we advise to access simpler @code(CoordIndex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
     {  }
     procedure SetCoordIndex(const Value: array of Int32); overload;
@@ -43,7 +44,7 @@
     procedure SetCoordIndex(const Value: TInt32List); overload;
 
     strict private FFdSurface: TSFNode;
-    { Internal wrapper for property @link(Surface). This wrapper API may change, we advise to access simpler @link(Surface) instead. }
+    { Internal wrapper for property @code(Surface). This wrapper API may change, we advise to access simpler @code(Surface) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSurface: TSFNode read FFdSurface;
     {  }
     property Surface: TAbstractGeometryNode read GetSurface write SetSurface;

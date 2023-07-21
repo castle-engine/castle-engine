@@ -27,11 +27,12 @@
     function GetMapping: String;
     procedure SetMapping(const Value: String);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdMapping: TSFString;
-    { Internal wrapper for property @link(Mapping). This wrapper API may change, we advise to access simpler @link(Mapping) instead. }
+    { Internal wrapper for property @code(Mapping). This wrapper API may change, we advise to access simpler @code(Mapping) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMapping: TSFString read FFdMapping;
     {  }
     property Mapping: String read GetMapping write SetMapping;

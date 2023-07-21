@@ -27,11 +27,12 @@
     function GetShape: TShapeNode;
     procedure SetShape(const Value: TShapeNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdShape: TSFNode;
-    { Internal wrapper for property @link(Shape). This wrapper API may change, we advise to access simpler @link(Shape) instead. }
+    { Internal wrapper for property @code(Shape). This wrapper API may change, we advise to access simpler @code(Shape) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShape: TSFNode read FFdShape;
     {  }
     property Shape: TShapeNode read GetShape write SetShape;

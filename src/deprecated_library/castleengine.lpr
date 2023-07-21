@@ -604,9 +604,9 @@ begin
               Viewport.Items.MainScene.HeadlightOn := (nValue > 0);
          end;
 
-      9: begin    // ecgevarOcclusionQuery
-           if Viewport.Items.MainScene <> nil then
-              Viewport.Items.MainScene.RenderOptions.OcclusionQuery := (nValue > 0);
+      9: begin    // ecgevarOcclusionCulling
+           if Viewport <> nil then
+              Viewport.OcclusionCulling := (nValue > 0);
          end;
 
       10: begin    // ecgevarPhongShading
@@ -696,8 +696,8 @@ begin
              Result := 0;
          end;
 
-      9: begin    // ecgevarOcclusionQuery
-           if (Viewport.Items.MainScene <> nil) and Viewport.Items.MainScene.RenderOptions.OcclusionQuery then
+      9: begin    // ecgevarOcclusionCulling
+           if (Viewport <> nil) and Viewport.OcclusionCulling then
              Result := 1
            else
              Result := 0;

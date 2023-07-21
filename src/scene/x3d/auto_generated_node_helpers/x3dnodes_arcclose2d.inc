@@ -33,33 +33,34 @@
     function GetStartAngle: Single;
     procedure SetStartAngle(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdClosureType: TSFStringEnum;
-    { Internal wrapper for property @link(ClosureType). This wrapper API may change, we advise to access simpler @link(ClosureType) instead. }
+    { Internal wrapper for property @code(ClosureType). This wrapper API may change, we advise to access simpler @code(ClosureType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdClosureType: TSFStringEnum read FFdClosureType;
     {  }
     property ClosureType: TArcClosureType read GetClosureType write SetClosureType;
 
     strict private FFdEndAngle: TSFFloat;
-    { Internal wrapper for property @link(EndAngle). This wrapper API may change, we advise to access simpler @link(EndAngle) instead. }
+    { Internal wrapper for property @code(EndAngle). This wrapper API may change, we advise to access simpler @code(EndAngle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEndAngle: TSFFloat read FFdEndAngle;
     {  }
     property EndAngle: Single read GetEndAngle write SetEndAngle;
 
     strict private FFdRadius: TSFFloat;
-    { Internal wrapper for property @link(Radius). This wrapper API may change, we advise to access simpler @link(Radius) instead. }
+    { Internal wrapper for property @code(Radius). This wrapper API may change, we advise to access simpler @code(Radius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadius: TSFFloat read FFdRadius;
     {  }
     property Radius: Single read GetRadius write SetRadius;
 
     strict private FFdSolid: TSFBool;
-    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
+    { Internal wrapper for property @code(Solid). This wrapper API may change, we advise to access simpler @code(Solid) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdStartAngle: TSFFloat;
-    { Internal wrapper for property @link(StartAngle). This wrapper API may change, we advise to access simpler @link(StartAngle) instead. }
+    { Internal wrapper for property @code(StartAngle). This wrapper API may change, we advise to access simpler @code(StartAngle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStartAngle: TSFFloat read FFdStartAngle;
     {  }
     property StartAngle: Single read GetStartAngle write SetStartAngle;

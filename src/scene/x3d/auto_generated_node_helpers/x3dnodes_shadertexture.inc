@@ -27,11 +27,12 @@
     function GetDefaultTexCoord: String;
     procedure SetDefaultTexCoord(const Value: String);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdDefaultTexCoord: TSFString;
-    { Internal wrapper for property @link(DefaultTexCoord). This wrapper API may change, we advise to access simpler @link(DefaultTexCoord) instead. }
+    { Internal wrapper for property @code(DefaultTexCoord). This wrapper API may change, we advise to access simpler @code(DefaultTexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDefaultTexCoord: TSFString read FFdDefaultTexCoord;
     {  }
     property DefaultTexCoord: String read GetDefaultTexCoord write SetDefaultTexCoord;

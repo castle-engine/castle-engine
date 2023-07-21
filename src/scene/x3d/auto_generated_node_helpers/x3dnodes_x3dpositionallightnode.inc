@@ -31,23 +31,24 @@
     function GetRadius: Single;
     procedure SetRadius(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAttenuation: TSFVec3f;
-    { Internal wrapper for property @link(Attenuation). This wrapper API may change, we advise to access simpler @link(Attenuation) instead. }
+    { Internal wrapper for property @code(Attenuation). This wrapper API may change, we advise to access simpler @code(Attenuation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAttenuation: TSFVec3f read FFdAttenuation;
     {  }
     property Attenuation: TVector3 read GetAttenuation write SetAttenuation;
 
     strict private FFdLocation: TSFVec3f;
-    { Internal wrapper for property @link(Location). This wrapper API may change, we advise to access simpler @link(Location) instead. }
+    { Internal wrapper for property @code(Location). This wrapper API may change, we advise to access simpler @code(Location) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLocation: TSFVec3f read FFdLocation;
     {  }
     property Location: TVector3 read GetLocation write SetLocation;
 
     strict private FFdRadius: TSFFloat;
-    { Internal wrapper for property @link(Radius). This wrapper API may change, we advise to access simpler @link(Radius) instead. }
+    { Internal wrapper for property @code(Radius). This wrapper API may change, we advise to access simpler @code(Radius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadius: TSFFloat read FFdRadius;
     {  }
     property Radius: Single read GetRadius write SetRadius;

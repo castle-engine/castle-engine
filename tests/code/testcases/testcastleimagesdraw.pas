@@ -30,7 +30,7 @@ type
     Gray, Gray2: TGrayscaleImage;
     GrayAlpha, GrayAlpha2: TGrayscaleAlphaImage;
     function BlendBytes(const Dest, Source, Opacity: Byte): Byte;
-    function AddBytes(const Dest, Source, Opacity: Byte): Byte;
+    //function AddBytes(const Dest, Source, Opacity: Byte): Byte;
     function AddBytesPremultiplied(const Dest, Source: Byte): Byte;
     procedure ResetImages;
     procedure FreeImages;
@@ -59,6 +59,7 @@ begin
   Result := W;
 end;
 
+(*
 function TTestImagesDraw.AddBytes(const Dest, Source, Opacity: Byte): Byte; {$ifdef FPC}{$ifdef SUPPORTS_INLINE} inline; {$endif}{$endif}
 var
   W: Word;
@@ -67,6 +68,7 @@ begin
   if W > 255 then W := 255;
   Result := W;
 end;
+*)
 
 function TTestImagesDraw.AddBytesPremultiplied(const Dest, Source: Byte): Byte; {$ifdef FPC}{$ifdef SUPPORTS_INLINE} inline; {$endif}{$endif}
 var

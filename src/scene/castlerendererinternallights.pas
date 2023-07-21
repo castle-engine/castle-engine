@@ -21,21 +21,21 @@ unit CastleRendererInternalLights;
 interface
 
 uses CastleVectors, CastleGLUtils, X3DNodes, CastleRendererInternalShader,
-  CastleTransform;
+  CastleTransform, CastleShapes;
 
 type
   { Callback type for @link(TLightsRenderer.LightRenderEvent).
     Modify whether the light is "on" right before it's rendered.
     By default, LightOn is the value of Light.LightNode.FdOn field.
     This is useful to filter lights. }
-  TLightRenderEvent = procedure (const Light: TLightInstance;
+  TLightRenderEvent = procedure (const Shape: TShape;
+    const Light: TLightInstance;
     const IsGlobalLight: Boolean; var LightOn: boolean) of object;
 
   { Render lights. }
   TLightsRenderer = class
   private
     FLightRenderEvent: TLightRenderEvent;
-    LightsKnown: boolean;
     LightsDone: array of PLightInstance;
     FMaxLightsPerShape: Cardinal;
     { This avoids configuring the same light many times in case of fixed-function.
@@ -47,6 +47,8 @@ type
       Assumes that nothing changes OpenGL light properties during our
       lifetime. }
     function NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
+
+    procedure SetMaxLightsPerShape(const Value: Cardinal);
   public
     { Statistics of how many OpenGL light setups were done
       (Statistics[true]) vs how many were avoided (Statistics[false]).
@@ -56,8 +58,14 @@ type
 
     RenderingCamera: TRenderingCamera;
 
-    constructor Create(const ALightRenderEvent: TLightRenderEvent;
-      const AMaxLightsPerShape: Cardinal);
+    constructor Create;
+
+    { Maximum lights per shape.
+
+      Only when ancient fixed-function rendering is used: value passed here is
+      clamped by OpenGL implementation to GL_MAX_LIGHTS. }
+    property MaxLightsPerShape: Cardinal read FMaxLightsPerShape
+      write SetMaxLightsPerShape;
 
     { Set lights properties.
 
@@ -76,18 +84,21 @@ type
       this renderer considers lights on both lists the same.
       But TLightRenderEvent can apply different filtering on them.
     }
-    procedure Render(const GlobalLights, SceneLights: TLightInstancesList;
+    procedure Render(const Shape: TShape;
+      const GlobalLights, SceneLights: TLightInstancesList;
       const Shader: TShader);
 
     { Modify whether light is "on" right before rendering the light.
 
       This event, if assigned, must be deterministic,
-      based purely on light properties. For example, it's Ok to
+      based purely on light properties (and other TLightRenderEvent params).
+      For example, it's Ok to
       make LightRenderEvent that turns off lights that have shadowVolumes = TRUE.
       It is @italic(not Ok) to make LightRenderEvent that sets LightOn to
       a random boolean value. That because caching here assumes that
       for the same Light values, LightRenderEvent will set LightOn the same. }
-    property LightRenderEvent: TLightRenderEvent read FLightRenderEvent;
+    property LightRenderEvent: TLightRenderEvent
+      read FLightRenderEvent write FLightRenderEvent;
   end;
 
 implementation
@@ -229,22 +240,29 @@ end;
 
 { TLightsRenderer ----------------------------------------------- }
 
-constructor TLightsRenderer.Create(
-  const ALightRenderEvent: TLightRenderEvent; const AMaxLightsPerShape: Cardinal);
+constructor TLightsRenderer.Create;
 begin
   inherited Create;
-  FLightRenderEvent := ALightRenderEvent;
-  LightsKnown := false;
-  FMaxLightsPerShape := AMaxLightsPerShape;
-  if GLFeatures.EnableFixedFunction then
-    MinVar(FMaxLightsPerShape, GLFeatures.MaxLights);
-  SetLength(LightsDone, FMaxLightsPerShape);
+end;
+
+procedure TLightsRenderer.SetMaxLightsPerShape(const Value: Cardinal);
+begin
+  if FMaxLightsPerShape <> Value then
+  begin
+    FMaxLightsPerShape := Value;
+    if GLFeatures.EnableFixedFunction then
+      MinVar(FMaxLightsPerShape, GLFeatures.MaxLights);
+    { Length(LightsDone) is always = FMaxLightsPerShape.
+      Note that enlarging / initializing this array initializes
+      new items with @nil, which is what we want, so that NeedsRenderLight
+      treats it OK. }
+    SetLength(LightsDone, FMaxLightsPerShape);
+  end;
 end;
 
 function TLightsRenderer.NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
 begin
   Result := not (
-    LightsKnown and
     ( { Light Index is currently disabled, and we want it disabled: Ok. }
       ( (LightsDone[Index] = nil) and
         (Light = nil) )
@@ -265,7 +283,7 @@ begin
   Inc(Statistics[Result]);
 end;
 
-procedure TLightsRenderer.Render(
+procedure TLightsRenderer.Render(const Shape: TShape;
   const GlobalLights, SceneLights: TLightInstancesList;
   const Shader: TShader);
 var
@@ -321,7 +339,7 @@ var
 
       LightOn := Light^.Node.FdOn.Value;
       if Assigned(LightRenderEvent) then
-        LightRenderEvent(Light^, IsGlobalLight, LightOn);
+        LightRenderEvent(Shape, Light^, IsGlobalLight, LightOn);
 
       if LightOn and InsideLightRadius(Light^) then
       begin
@@ -365,8 +383,6 @@ begin
         glDisable(GL_LIGHT0 + I);
     {$endif}
   end;
-
-  LightsKnown := true;
 end;
 
 end.

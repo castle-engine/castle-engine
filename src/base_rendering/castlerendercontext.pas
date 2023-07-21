@@ -50,9 +50,6 @@ type
     property Enabled: boolean read FEnabled write SetEnabled;
   end;
 
-  { Possible values of @link(TRenderContext.DepthRange). }
-  TDepthRange = (drFull, drNear, drFar);
-
   { Possible values of @link(TRenderContext.DepthFunc).
     Note: For now, the values of this enum correspond to OpenGL(ES) constants,
     but do not depend on this outside (and it may change in the future).
@@ -67,9 +64,6 @@ type
     dfGreaterEqual = $0206,
     dfAlways = $0207
   );
-
-  TColorChannel = 0..3;
-  TColorChannels = set of TColorChannel;
 
   TPolygonOffset = record
     Enabled: Boolean;
@@ -263,7 +257,7 @@ type
       )
     }
     property ColorChannels: TColorChannels
-      read FColorChannels write SetColorChannels default [0..3];
+      read FColorChannels write SetColorChannels default AllColorChannels;
 
     { Is depth buffer updated by rendering.
       This affects all rendering that enables depth testing
@@ -368,7 +362,7 @@ begin
   FDepthRange := drFull;
   FCullFace := false;
   FFrontFaceCcw := true;
-  FColorChannels := [0..3];
+  FColorChannels := AllColorChannels;
   FDepthBufferUpdate := true;
   FDepthTest := false;
   FDepthFunc := dfLess;
@@ -604,7 +598,7 @@ end;
 procedure TRenderContext.SetColorMask(const Value: boolean);
 begin
   if Value then
-    ColorChannels := [0..3]
+    ColorChannels := AllColorChannels
   else
     ColorChannels := [];
 end;

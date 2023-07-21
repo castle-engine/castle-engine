@@ -180,8 +180,16 @@ procedure ReadGrowingStream(const GrowingStream, DestStream: TStream;
 { Read a growing stream, and returns it's contents as a string.
   A "growing stream" is a stream that we can only read
   sequentially, no seeks allowed, and size is unknown until we hit the end.
+
   Works on 8-bit strings, i.e. AnsiStrings. }
 function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
+
+{ Read a growing stream, and returns it's contents as a string.
+  A "growing stream" is a stream that we can only read
+  sequentially, no seeks allowed, and size is unknown until we hit the end.
+
+  Works with String, i.e. UTF-16 with Delphi, UTF-8 with FPC. }
+function ReadGrowingStreamToDefaultString(const GrowingStream: TStream): String;
 
 { Encode / decode a string in a binary stream. Records string length (4 bytes),
   then the string contents (Length(S) bytes).
@@ -192,8 +200,12 @@ function StreamReadString(const Stream: TStream): AnsiString;
 { @groupEnd }
 
 { Convert whole Stream to a string.
+
   Changes Stream.Position to 0 and then reads Stream.Size bytes,
   so be sure that Stream.Size is usable.
+  Use @link(ReadGrowingStreamToString) if you want to read a stream where
+  setting Position / reading Size are not reliable.
+
   Works on 8-bit strings, i.e. AnsiStrings. }
 function StreamToString(const Stream: TStream): AnsiString;
 
@@ -1303,20 +1315,58 @@ begin
   if ResetDestStreamPosition then DestStream.Position := 0;
 end;
 
-function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
+function ReadGrowingStreamToMemory(const GrowingStream: TStream): TMemoryStream;
 const
-  BufferSize = 10000;
+  BufferSize = 1000 * 1000;
 var
   ReadCount: Integer;
-  Buffer: string;
+  TotalReadCount: Int64;
+  MemoryStart: Pointer;
 begin
-  SetLength(Buffer, BufferSize);
-  Result := '';
-  repeat
-    ReadCount := GrowingStream.Read(Buffer[1], Length(Buffer));
-    if ReadCount = 0 then Break;
-    Result := Result + Copy(Buffer, 1, ReadCount);
-  until false;
+  Result := TMemoryStream.Create;
+  try
+    TotalReadCount := 0;
+    repeat
+      Result.Size := TotalReadCount + BufferSize;
+      MemoryStart := Pointer(PtrUInt(Result.Memory) + TotalReadCount);
+      ReadCount := GrowingStream.Read(MemoryStart^, BufferSize);
+      if ReadCount = 0 then Break;
+      TotalReadCount := TotalReadCount + ReadCount;
+    until false;
+    Result.Size := TotalReadCount;
+  except FreeAndNil(Result); raise end;
+end;
+
+function ReadGrowingStreamToString(const GrowingStream: TStream): AnsiString;
+var
+  Memory: TMemoryStream;
+begin
+  Memory := ReadGrowingStreamToMemory(GrowingStream);
+  try
+    SetLength(Result, Memory.Size);
+    if Memory.Size <> 0 then
+      Move(Memory.Memory^, Result[1], Memory.Size);
+  finally FreeAndNil(Memory) end;
+end;
+
+function ReadGrowingStreamToDefaultString(const GrowingStream: TStream): String;
+var
+  Memory: TMemoryStream;
+begin
+  Memory := ReadGrowingStreamToMemory(GrowingStream);
+  try
+    {$warnings off} // this makes FPS warning "unreachable code" but it makes sense on Delphi, we want to keep compiling it
+    if (Memory.Size mod SizeOf(Char)) <> 0 then
+      raise Exception.CreateFmt('ReadGrowingStreamToDefaultString: stream size %d is not a multiple of SizeOf(Char) = %d', [
+        Memory.Size,
+        SizeOf(Char)
+      ]);
+    {$warnings on}
+
+    SetLength(Result, Memory.Size div SizeOf(Char));
+    if Memory.Size <> 0 then
+      Move(Memory.Memory^, Result[1], Memory.Size);
+  finally FreeAndNil(Memory) end;
 end;
 
 procedure StreamWriteString(const Stream: TStream; const S: AnsiString);
@@ -1380,7 +1430,7 @@ function MemoryStreamLoadFromDefaultString(const S: String; const Rewind: boolea
 begin
   Result := TMemoryStream.Create;
   try
-    MemoryStreamLoadFromString(Result, S, Rewind);
+    MemoryStreamLoadFromDefaultString(Result, S, Rewind);
   except FreeAndNil(Result); raise end;
 end;
 

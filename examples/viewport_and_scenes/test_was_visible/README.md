@@ -1,6 +1,6 @@
 # Test WasVisible method
 
-This is a demo of `TCastleScene.WasVisible` and `TAbstractShapeNode.WasVisible` methods, that determine whether scene / shape were (potentially, at least partially) visible in the last rendering event. This allows to use the results of frustum culling and occlusion culling (if you activate occlusion culling, see https://castle-engine.io/occlusion_query ) for any custom need, e.g. to load some content dynamically.
+This is a demo of `TCastleScene.WasVisible` and `TAbstractShapeNode.WasVisible` methods, that determine whether scene / shape were (potentially, at least partially) visible in the last rendering event. This allows to use the results of frustum culling and occlusion culling (if you activate occlusion culling, see https://castle-engine.io/occlusion_culling ) for any custom need, e.g. to load some content dynamically.
 
 Note: This is a rare example in 3D in which the order of transforms on `Viewport.Items` matters. Keep the `SceneTestBlocks` *after* the `Plane1`. Only then the shapes in `SceneTestBlocks` can be eliminated by occlusion query when `Plane1` obscures them. Usually, this is resolved within a single scene using `OcclusionSort`, but in this case (when one scene occludes another) for now you have to manually order them right. If you change the order, and render `SceneTestBlocks`, then occlusion query will never eliminate any shapes.
 

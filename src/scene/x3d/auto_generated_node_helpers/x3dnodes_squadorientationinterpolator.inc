@@ -27,11 +27,12 @@
     function GetNormalizeVelocity: Boolean;
     procedure SetNormalizeVelocity(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdKeyValue: TMFRotation;
-    { Internal wrapper for property @link(KeyValue). This wrapper API may change, we advise to access simpler @link(KeyValue) instead. }
+    { Internal wrapper for property @code(KeyValue). This wrapper API may change, we advise to access simpler @code(KeyValue) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdKeyValue: TMFRotation read FFdKeyValue;
     {  }
     procedure SetKeyValue(const Value: array of TVector4); overload;
@@ -39,7 +40,7 @@
     procedure SetKeyValue(const Value: TVector4List); overload;
 
     strict private FFdNormalizeVelocity: TSFBool;
-    { Internal wrapper for property @link(NormalizeVelocity). This wrapper API may change, we advise to access simpler @link(NormalizeVelocity) instead. }
+    { Internal wrapper for property @code(NormalizeVelocity). This wrapper API may change, we advise to access simpler @code(NormalizeVelocity) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
     {  }
     property NormalizeVelocity: Boolean read GetNormalizeVelocity write SetNormalizeVelocity;

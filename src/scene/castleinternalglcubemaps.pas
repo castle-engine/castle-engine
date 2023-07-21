@@ -114,7 +114,7 @@ procedure GLCaptureCubeMapTexture(
 implementation
 
 uses SysUtils, CastleInternalSphericalHarmonics, CastleRectangles, CastleRenderContext,
-  CastleProjection, CastleScene;
+  CastleProjection, CastleScene, CastleInternalShapesRenderer;
 
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
@@ -122,6 +122,9 @@ procedure SHVectorGLCapture(
   const Render: TCubeMapRenderEvent;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single);
+var
+  ShapesCollector: TShapesCollector;
+  ShapesRenderer: TShapesRenderer;
 
   procedure DrawMap(Side: TCubeMapSide);
   var
@@ -147,8 +150,11 @@ procedure SHVectorGLCapture(
         );
         RenderParams.RenderingCamera.Target := rtCubeMapEnvironment;
         RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
+        RenderParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
+        RenderParams.Collector := ShapesCollector;
         RenderParams.Transparent := false; Render(RenderParams);
         RenderParams.Transparent := true ; Render(RenderParams);
+        ShapesRenderer.Render(ShapesCollector, RenderParams);
       finally FreeAndNil(RenderParams.RenderingCamera) end;
     finally FreeAndNil(RenderParams) end;
 
@@ -175,6 +181,9 @@ var
 begin
   InitializeSHBasisMap;
 
+  ShapesCollector := TShapesCollector.Create;
+  ShapesRenderer := TShapesRenderer.Create;
+
   { Call all DrawMap. This wil draw maps, get them,
     and calculate SHVector describing them. }
 
@@ -200,6 +209,9 @@ begin
       pixel). }
     SHVector[SHBasis] := SHVector[SHBasis] / (4 * Pi);
   end;
+
+  FreeAndNil(ShapesCollector);
+  FreeAndNil(ShapesRenderer);
 end;
 
 procedure SetRenderingCamera(const RenderingCamera: TRenderingCamera;

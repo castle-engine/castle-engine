@@ -344,8 +344,12 @@ begin
   if not WarningDoneInvalidIndex then
   begin
     WarningDoneInvalidIndex := true;
-    WritelnWarning('X3D', Format('Invalid index for field %s (%s)',
-      [NiceName, X3DType]));
+    WritelnWarning('X3D', Format('Invalid index %d (should be less than count %d) for field %s (type: %s)', [
+      Index,
+      ACount,
+      NiceName,
+      X3DType
+    ]));
   end;
 end;
 

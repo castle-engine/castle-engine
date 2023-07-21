@@ -692,7 +692,7 @@ begin
     FNames.Clear;
     if a.HasNames then
       for i := 0 to Length(a.Names) - 1 do
-        FNames.Add(a.Names[i]);
+        FNames.Add(AnsiString(a.Names[i]));
   end
   else if SameText(ExtractFileExt(FileName), '.act') then
   begin

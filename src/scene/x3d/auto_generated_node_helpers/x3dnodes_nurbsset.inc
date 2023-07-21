@@ -29,6 +29,7 @@
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -41,25 +42,25 @@
     public property EventRemoveGeometry: TMFNodeEvent read FEventRemoveGeometry;
 
     strict private FFdGeometry: TMFNode;
-    { Internal wrapper for property @link(Geometry). This wrapper API may change, we advise to access simpler @link(Geometry) instead. }
+    { Internal wrapper for property @code(Geometry). This wrapper API may change, we advise to access simpler @code(Geometry) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeometry: TMFNode read FFdGeometry;
     {  }
     procedure SetGeometry(const Value: array of TAbstractNurbsSurfaceGeometryNode);
 
     strict private FFdTessellationScale: TSFFloat;
-    { Internal wrapper for property @link(TessellationScale). This wrapper API may change, we advise to access simpler @link(TessellationScale) instead. }
+    { Internal wrapper for property @code(TessellationScale). This wrapper API may change, we advise to access simpler @code(TessellationScale) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTessellationScale: TSFFloat read FFdTessellationScale;
     {  }
     property TessellationScale: Single read GetTessellationScale write SetTessellationScale;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
+    { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     {  }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
+    { Internal wrapper for property @code(BboxSize). This wrapper API may change, we advise to access simpler @code(BboxSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
 {$endif read_interface}

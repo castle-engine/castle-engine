@@ -185,7 +185,8 @@ type
 
     { Does an image have an alpha channel.
 
-      You may also be interested in the AlphaChannel.
+      You may also be interested in the @link(AlphaChannel) that can
+      make a distinction between alpha channel for blending and for alpha test.
       AlphaChannel answers always atNone if HasAlpha = false,
       and always acTest or acBlending if HasAlpha = true.
       But AlphaChannel may perform longer analysis of pixels
@@ -198,25 +199,28 @@ type
       alpha channel. }
     function HasAlpha: boolean; virtual;
 
-    { @abstract(Check does an image have an alpha channel,
-      and if yes analyze alpha channel: is it a single yes-no (only full
-      or none values), or does it have alpha values in between?)
+    { Analyze image contents to determine if, and what kind, of alpha channel
+      it has.
 
-      This is quite useful for automatic detection how alpha textures
-      should be displayed: for simple yes/no alpha, OpenGL alpha_test
-      is a simple solution. For full range alpha, OpenGL blending should
-      be used. Blending is a little problematic, since it requires
-      special rendering order, since it doesn't cooperate nicely with
-      Z-buffer. That's why we try to detect simple yes/no alpha textures,
-      so that we're able to use simpler alpha test for them.
+      This may be a time-consuming operation. When the image has alpha channel
+      and we need
+      to decide whether it's suitable for "alpha test" (only fully opaque
+      or fully transparent pixels) or "alpha blending" (any alpha value makes sense)
+      then this method needs to iterate over image pixels.
 
-      We return "simple yes/no alpha channel" is all the alpha values
+      For this reason, the result of this operation is cached at various
+      levels, e.g. TImageTextureNode and TDrawableImage cache it internally.
+
+      We determine "alpha test - simple yes/no alpha channel" if all the alpha values
       (for every pixel) are 0, or 255, or (when AlphaTolerance <> 0)
       are close to them by AlphaTolerance. So, to be precise,
       alpha value must be <= AlphaTolerance, or >= 255 - AlphaTolerance.
       If any alpha value is between [AlphaTolerance + 1, 255 - AlphaTolerance - 1]
-      then we return "full range alpha channel".
-      Note that for AlphaTolerance >= 128, all images are treated as
+      then we return "alpha blending - full range alpha channel".
+
+      Note that big values of AlphaTolerance make it easier to quality image
+      as "alpha test - simple yes/no alpha channel".
+      When AlphaTolerance >= 128, all images are treated as
       "simple yes/no alpha". Usually, you want to keep AlphaTolerance small.
 
       @italic(Descendants implementors notes:) in this class, this simply

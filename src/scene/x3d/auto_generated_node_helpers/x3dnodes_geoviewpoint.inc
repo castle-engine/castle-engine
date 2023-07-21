@@ -33,6 +33,7 @@
     function GetSpeedFactor: Single;
     procedure SetSpeedFactor(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -45,19 +46,19 @@
     public property EventSet_position: TSFVec3dEvent read FEventSet_position;
 
     strict private FFdFieldOfView: TSFFloat;
-    { Internal wrapper for property @link(FieldOfView). This wrapper API may change, we advise to access simpler @link(FieldOfView) instead. }
+    { Internal wrapper for property @code(FieldOfView). This wrapper API may change, we advise to access simpler @code(FieldOfView) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
     {  }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
 
     strict private FFdHeadlight: TSFBool;
-    { Internal wrapper for property @link(Headlight). This wrapper API may change, we advise to access simpler @link(Headlight) instead. }
+    { Internal wrapper for property @code(Headlight). This wrapper API may change, we advise to access simpler @code(Headlight) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHeadlight: TSFBool read FFdHeadlight;
     {  }
     property Headlight: Boolean read GetHeadlight write SetHeadlight;
 
     strict private FFdNavType: TMFString;
-    { Internal wrapper for property @link(NavType). This wrapper API may change, we advise to access simpler @link(NavType) instead. }
+    { Internal wrapper for property @code(NavType). This wrapper API may change, we advise to access simpler @code(NavType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNavType: TMFString read FFdNavType;
     {  }
     procedure SetNavType(const Value: array of string); overload;
@@ -65,13 +66,13 @@
     procedure SetNavType(const Value: TCastleStringList); overload;
 
     strict private FFdGeoOrigin: TSFNode;
-    { Internal wrapper for property @link(GeoOrigin). This wrapper API may change, we advise to access simpler @link(GeoOrigin) instead. }
+    { Internal wrapper for property @code(GeoOrigin). This wrapper API may change, we advise to access simpler @code(GeoOrigin) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
     {  }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
     strict private FFdGeoSystem: TMFString;
-    { Internal wrapper for property @link(GeoSystem). This wrapper API may change, we advise to access simpler @link(GeoSystem) instead. }
+    { Internal wrapper for property @code(GeoSystem). This wrapper API may change, we advise to access simpler @code(GeoSystem) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeoSystem: TMFString read FFdGeoSystem;
     {  }
     procedure SetGeoSystem(const Value: array of string); overload;
@@ -79,11 +80,11 @@
     procedure SetGeoSystem(const Value: TCastleStringList); overload;
 
     strict private FFdPosition: TSFVec3d;
-    { Internal wrapper for property @link(Position). This wrapper API may change, we advise to access simpler @link(Position) instead. }
+    { Internal wrapper for property @code(Position). This wrapper API may change, we advise to access simpler @code(Position) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPosition: TSFVec3d read FFdPosition;
 
     strict private FFdSpeedFactor: TSFFloat;
-    { Internal wrapper for property @link(SpeedFactor). This wrapper API may change, we advise to access simpler @link(SpeedFactor) instead. }
+    { Internal wrapper for property @code(SpeedFactor). This wrapper API may change, we advise to access simpler @code(SpeedFactor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSpeedFactor: TSFFloat read FFdSpeedFactor;
     {  }
     property SpeedFactor: Single read GetSpeedFactor write SetSpeedFactor;

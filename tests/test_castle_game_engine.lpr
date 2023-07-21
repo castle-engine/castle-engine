@@ -46,6 +46,7 @@ uses
   TestCastleTriangles,
   TestCastleColors,
   TestCastleQuaternions,
+  TestCastleRenderOptions,
   TestCastleKeysMouse,
   TestCastleImages,
   TestCastleImagesDraw,

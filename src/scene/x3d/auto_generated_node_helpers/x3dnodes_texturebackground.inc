@@ -37,41 +37,42 @@
     function GetTopTexture: TAbstractTextureNode;
     procedure SetTopTexture(const Value: TAbstractTextureNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdBackTexture: TSFNode;
-    { Internal wrapper for property @link(BackTexture). This wrapper API may change, we advise to access simpler @link(BackTexture) instead. }
+    { Internal wrapper for property @code(BackTexture). This wrapper API may change, we advise to access simpler @code(BackTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBackTexture: TSFNode read FFdBackTexture;
     {  }
     property BackTexture: TAbstractTextureNode read GetBackTexture write SetBackTexture;
 
     strict private FFdBottomTexture: TSFNode;
-    { Internal wrapper for property @link(BottomTexture). This wrapper API may change, we advise to access simpler @link(BottomTexture) instead. }
+    { Internal wrapper for property @code(BottomTexture). This wrapper API may change, we advise to access simpler @code(BottomTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBottomTexture: TSFNode read FFdBottomTexture;
     {  }
     property BottomTexture: TAbstractTextureNode read GetBottomTexture write SetBottomTexture;
 
     strict private FFdFrontTexture: TSFNode;
-    { Internal wrapper for property @link(FrontTexture). This wrapper API may change, we advise to access simpler @link(FrontTexture) instead. }
+    { Internal wrapper for property @code(FrontTexture). This wrapper API may change, we advise to access simpler @code(FrontTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFrontTexture: TSFNode read FFdFrontTexture;
     {  }
     property FrontTexture: TAbstractTextureNode read GetFrontTexture write SetFrontTexture;
 
     strict private FFdLeftTexture: TSFNode;
-    { Internal wrapper for property @link(LeftTexture). This wrapper API may change, we advise to access simpler @link(LeftTexture) instead. }
+    { Internal wrapper for property @code(LeftTexture). This wrapper API may change, we advise to access simpler @code(LeftTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLeftTexture: TSFNode read FFdLeftTexture;
     {  }
     property LeftTexture: TAbstractTextureNode read GetLeftTexture write SetLeftTexture;
 
     strict private FFdRightTexture: TSFNode;
-    { Internal wrapper for property @link(RightTexture). This wrapper API may change, we advise to access simpler @link(RightTexture) instead. }
+    { Internal wrapper for property @code(RightTexture). This wrapper API may change, we advise to access simpler @code(RightTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRightTexture: TSFNode read FFdRightTexture;
     {  }
     property RightTexture: TAbstractTextureNode read GetRightTexture write SetRightTexture;
 
     strict private FFdTopTexture: TSFNode;
-    { Internal wrapper for property @link(TopTexture). This wrapper API may change, we advise to access simpler @link(TopTexture) instead. }
+    { Internal wrapper for property @code(TopTexture). This wrapper API may change, we advise to access simpler @code(TopTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTopTexture: TSFNode read FFdTopTexture;
     {  }
     property TopTexture: TAbstractTextureNode read GetTopTexture write SetTopTexture;

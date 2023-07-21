@@ -33,24 +33,25 @@
     function GetAlphaChannel: TAutoAlphaChannel;
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdEffects: TMFNode;
-    { Internal wrapper for property @link(Effects). This wrapper API may change, we advise to access simpler @link(Effects) instead. }
+    { Internal wrapper for property @code(Effects). This wrapper API may change, we advise to access simpler @code(Effects) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEffects: TMFNode read FFdEffects;
     {  }
     procedure SetEffects(const Value: array of TEffectNode);
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdCrossOrigin: TSFString;
-    { Internal wrapper for property @link(CrossOrigin). This wrapper API may change, we advise to access simpler @link(CrossOrigin) instead. }
+    { Internal wrapper for property @code(CrossOrigin). This wrapper API may change, we advise to access simpler @code(CrossOrigin) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCrossOrigin: TSFString read FFdCrossOrigin;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -59,7 +60,7 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdAlphaChannel: TSFStringEnum;
-    { Internal wrapper for property @link(AlphaChannel). This wrapper API may change, we advise to access simpler @link(AlphaChannel) instead. }
+    { Internal wrapper for property @code(AlphaChannel). This wrapper API may change, we advise to access simpler @code(AlphaChannel) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
     {  }
     property AlphaChannel: TAutoAlphaChannel read GetAlphaChannel write SetAlphaChannel;

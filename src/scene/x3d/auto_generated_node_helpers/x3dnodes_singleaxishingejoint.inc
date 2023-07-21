@@ -37,41 +37,42 @@
     function GetStopErrorCorrection: Single;
     procedure SetStopErrorCorrection(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
-    { Internal wrapper for property @link(AnchorPoint). This wrapper API may change, we advise to access simpler @link(AnchorPoint) instead. }
+    { Internal wrapper for property @code(AnchorPoint). This wrapper API may change, we advise to access simpler @code(AnchorPoint) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
     {  }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
 
     strict private FFdAxis: TSFVec3f;
-    { Internal wrapper for property @link(Axis). This wrapper API may change, we advise to access simpler @link(Axis) instead. }
+    { Internal wrapper for property @code(Axis). This wrapper API may change, we advise to access simpler @code(Axis) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis: TSFVec3f read FFdAxis;
     {  }
     property Axis: TVector3 read GetAxis write SetAxis;
 
     strict private FFdMaxAngle: TSFFloat;
-    { Internal wrapper for property @link(MaxAngle). This wrapper API may change, we advise to access simpler @link(MaxAngle) instead. }
+    { Internal wrapper for property @code(MaxAngle). This wrapper API may change, we advise to access simpler @code(MaxAngle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMaxAngle: TSFFloat read FFdMaxAngle;
     {  }
     property MaxAngle: Single read GetMaxAngle write SetMaxAngle;
 
     strict private FFdMinAngle: TSFFloat;
-    { Internal wrapper for property @link(MinAngle). This wrapper API may change, we advise to access simpler @link(MinAngle) instead. }
+    { Internal wrapper for property @code(MinAngle). This wrapper API may change, we advise to access simpler @code(MinAngle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMinAngle: TSFFloat read FFdMinAngle;
     {  }
     property MinAngle: Single read GetMinAngle write SetMinAngle;
 
     strict private FFdStopBounce: TSFFloat;
-    { Internal wrapper for property @link(StopBounce). This wrapper API may change, we advise to access simpler @link(StopBounce) instead. }
+    { Internal wrapper for property @code(StopBounce). This wrapper API may change, we advise to access simpler @code(StopBounce) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStopBounce: TSFFloat read FFdStopBounce;
     {  }
     property StopBounce: Single read GetStopBounce write SetStopBounce;
 
     strict private FFdStopErrorCorrection: TSFFloat;
-    { Internal wrapper for property @link(StopErrorCorrection). This wrapper API may change, we advise to access simpler @link(StopErrorCorrection) instead. }
+    { Internal wrapper for property @code(StopErrorCorrection). This wrapper API may change, we advise to access simpler @code(StopErrorCorrection) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStopErrorCorrection: TSFFloat read FFdStopErrorCorrection;
     {  }
     property StopErrorCorrection: Single read GetStopErrorCorrection write SetStopErrorCorrection;

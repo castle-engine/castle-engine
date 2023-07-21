@@ -1,4 +1,4 @@
-// -*- compile-command: "castle-engine compile --mode=release && castle-engine run -- ../../../" -*-
+// -*- compile-command: "castle-engine compile --mode=release && castle-engine run" -*-
 {
   Copyright 2021-2023 Michalis Kamburelis.
 
@@ -21,7 +21,7 @@ uses SysUtils, DOM,
   CastleLog, CastleApplicationProperties;
 
 var
-  CgePath: String;
+  CgePath: String = '../../../';
   CgePathExpanded: String;
   HasWarnings: Boolean = false;
 
@@ -259,11 +259,13 @@ begin
   ApplicationProperties.Version := CastleEngineVersion;
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
-  Parameters.CheckHigh(1);
-  CgePath := Parameters[1];
+  Parameters.CheckHighAtMost(1);
+  if Parameters.High = 1 then
+    CgePath := Parameters[1];
 
   CgePathExpanded := InclPathDelim(ExpandFileName(CgePath));
   CgePathExpanded := SReplaceChars(CgePathExpanded, PathDelim, '/'); // replace backslashes with slashes on Windows
+  Writeln('Checking CGE in directory: ', CgePathExpanded);
 
   Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_base.lpk');
   try
@@ -343,5 +345,6 @@ begin
   begin
     Writeln('Some package problems reported above, exiting with status 1');
     Halt(1);
-  end;
+  end else
+    Writeln('All packages OK');
 end.

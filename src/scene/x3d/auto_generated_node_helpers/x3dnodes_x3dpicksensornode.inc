@@ -31,11 +31,12 @@
     function GetSortOrder: TPickSensorRange;
     procedure SetSortOrder(const Value: TPickSensorRange);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdObjectType: TMFString;
-    { Internal wrapper for property @link(ObjectType). This wrapper API may change, we advise to access simpler @link(ObjectType) instead. }
+    { Internal wrapper for property @code(ObjectType). This wrapper API may change, we advise to access simpler @code(ObjectType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdObjectType: TMFString read FFdObjectType;
     {  }
     procedure SetObjectType(const Value: array of string); overload;
@@ -43,13 +44,13 @@
     procedure SetObjectType(const Value: TCastleStringList); overload;
 
     strict private FFdPickingGeometry: TSFNode;
-    { Internal wrapper for property @link(PickingGeometry). This wrapper API may change, we advise to access simpler @link(PickingGeometry) instead. }
+    { Internal wrapper for property @code(PickingGeometry). This wrapper API may change, we advise to access simpler @code(PickingGeometry) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPickingGeometry: TSFNode read FFdPickingGeometry;
     {  }
     property PickingGeometry: TAbstractGeometryNode read GetPickingGeometry write SetPickingGeometry;
 
     strict private FFdPickTarget: TMFNode;
-    { Internal wrapper for property @link(PickTarget). This wrapper API may change, we advise to access simpler @link(PickTarget) instead. }
+    { Internal wrapper for property @code(PickTarget). This wrapper API may change, we advise to access simpler @code(PickTarget) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPickTarget: TMFNode read FFdPickTarget;
 
     strict private FEventPickedGeometry: TMFNodeEvent;
@@ -57,13 +58,13 @@
     public property EventPickedGeometry: TMFNodeEvent read FEventPickedGeometry;
 
     strict private FFdIntersectionType: TSFStringEnum;
-    { Internal wrapper for property @link(IntersectionType). This wrapper API may change, we advise to access simpler @link(IntersectionType) instead. }
+    { Internal wrapper for property @code(IntersectionType). This wrapper API may change, we advise to access simpler @code(IntersectionType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdIntersectionType: TSFStringEnum read FFdIntersectionType;
     {  }
     property IntersectionType: TPickSensorIntersectionType read GetIntersectionType write SetIntersectionType;
 
     strict private FFdSortOrder: TSFStringEnum;
-    { Internal wrapper for property @link(SortOrder). This wrapper API may change, we advise to access simpler @link(SortOrder) instead. }
+    { Internal wrapper for property @code(SortOrder). This wrapper API may change, we advise to access simpler @code(SortOrder) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSortOrder: TSFStringEnum read FFdSortOrder;
     {  }
     property SortOrder: TPickSensorRange read GetSortOrder write SetSortOrder;

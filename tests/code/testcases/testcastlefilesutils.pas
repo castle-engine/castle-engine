@@ -82,11 +82,9 @@ end;
 procedure TTestCastleFilesUtils.TestExeName;
 begin
   try
-    {$ifdef FPC}{$push} // knowingly using deprecated below, for test
-    {$warnings off}{$endif}
-//    Writeln('ExeName: '+ ExeName);
+    {$warnings off} // knowingly using deprecated below, for test
     ExeName;
-    {$ifdef FPC}{$pop}{$endif}
+    {$warnings on}
   except
     on E: EExeNameNotAvailable do
     begin

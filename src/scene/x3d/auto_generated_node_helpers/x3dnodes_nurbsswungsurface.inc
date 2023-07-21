@@ -31,29 +31,30 @@
     function GetCcw: Boolean;
     procedure SetCcw(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdProfileCurve: TSFNode;
-    { Internal wrapper for property @link(ProfileCurve). This wrapper API may change, we advise to access simpler @link(ProfileCurve) instead. }
+    { Internal wrapper for property @code(ProfileCurve). This wrapper API may change, we advise to access simpler @code(ProfileCurve) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdProfileCurve: TSFNode read FFdProfileCurve;
     {  }
     property ProfileCurve: TAbstractNurbsControlCurveNode read GetProfileCurve write SetProfileCurve;
 
     strict private FFdTrajectoryCurve: TSFNode;
-    { Internal wrapper for property @link(TrajectoryCurve). This wrapper API may change, we advise to access simpler @link(TrajectoryCurve) instead. }
+    { Internal wrapper for property @code(TrajectoryCurve). This wrapper API may change, we advise to access simpler @code(TrajectoryCurve) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTrajectoryCurve: TSFNode read FFdTrajectoryCurve;
     {  }
     property TrajectoryCurve: TAbstractNurbsControlCurveNode read GetTrajectoryCurve write SetTrajectoryCurve;
 
     strict private FFdCcw: TSFBool;
-    { Internal wrapper for property @link(Ccw). This wrapper API may change, we advise to access simpler @link(Ccw) instead. }
+    { Internal wrapper for property @code(Ccw). This wrapper API may change, we advise to access simpler @code(Ccw) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCcw: TSFBool read FFdCcw;
     {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdSolid: TSFBool;
-    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
+    { Internal wrapper for property @code(Solid). This wrapper API may change, we advise to access simpler @code(Solid) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}

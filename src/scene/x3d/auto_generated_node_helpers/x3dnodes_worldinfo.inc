@@ -27,11 +27,12 @@
     function GetTitle: String;
     procedure SetTitle(const Value: String);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdInfo: TMFString;
-    { Internal wrapper for property @link(Info). This wrapper API may change, we advise to access simpler @link(Info) instead. }
+    { Internal wrapper for property @code(Info). This wrapper API may change, we advise to access simpler @code(Info) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInfo: TMFString read FFdInfo;
     {  }
     procedure SetInfo(const Value: array of string); overload;
@@ -39,7 +40,7 @@
     procedure SetInfo(const Value: TCastleStringList); overload;
 
     strict private FFdTitle: TSFString;
-    { Internal wrapper for property @link(Title). This wrapper API may change, we advise to access simpler @link(Title) instead. }
+    { Internal wrapper for property @code(Title). This wrapper API may change, we advise to access simpler @code(Title) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTitle: TSFString read FFdTitle;
     {  }
     property Title: String read GetTitle write SetTitle;

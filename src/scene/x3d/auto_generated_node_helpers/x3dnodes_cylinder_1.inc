@@ -29,22 +29,23 @@
     function GetHeight: Single;
     procedure SetHeight(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdParts: TSFBitMask;
-    { Internal wrapper for property @link(Parts). This wrapper API may change, we advise to access simpler @link(Parts) instead. }
+    { Internal wrapper for property @code(Parts). This wrapper API may change, we advise to access simpler @code(Parts) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdParts: TSFBitMask read FFdParts;
 
     strict private FFdRadius: TSFFloat;
-    { Internal wrapper for property @link(Radius). This wrapper API may change, we advise to access simpler @link(Radius) instead. }
+    { Internal wrapper for property @code(Radius). This wrapper API may change, we advise to access simpler @code(Radius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadius: TSFFloat read FFdRadius;
     {  }
     property Radius: Single read GetRadius write SetRadius;
 
     strict private FFdHeight: TSFFloat;
-    { Internal wrapper for property @link(Height). This wrapper API may change, we advise to access simpler @link(Height) instead. }
+    { Internal wrapper for property @code(Height). This wrapper API may change, we advise to access simpler @code(Height) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHeight: TSFFloat read FFdHeight;
     {  }
     property Height: Single read GetHeight write SetHeight;

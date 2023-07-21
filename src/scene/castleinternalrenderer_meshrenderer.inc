@@ -14,49 +14,58 @@
   ----------------------------------------------------------------------------
 }
 
-{ X3D rendering.
-  This is internal for CastleRenderer unit.
+{ Mesh rendering.
+  This is internal for CastleInternalRenderer unit and
+  used by TRenderer.
 
-  Some ideas for implementation:
+  - This was split from TRenderer, first of all to make
+    TRenderer smaller.
+    TRenderer class is already large and complicated.
 
-  - CastleRenderer unit, and TGLRenderer class are already
-    large and complicated. The idea of this file is to take some tasks
-    from their hands. TMeshRenderer and descendants are created
-    only for the time of one RenderShape call, and are used
-    to render specific non-trivial X3D mesh nodes.
+  - TMeshRenderer and descendants are created
+    only for the time of one RenderShape call.
+    The allows to reason about them easier.
 
-  - Since all classes within this file and CastleRenderer live
-    in one Pascal unit, we could break it and access each other's
-    private fields etc. We try to not do it. We try to have a clean
-    documented interface. Experience with TGeneralIndexedRenderer
-    taught me that this has to be really flexible and designed for
-    long-term work, to encompass many nodes and features. So, while
-    this is internal for CastleInternalRenderer, it still must be implemented
-    and documented cleanly.
+  - Note: Avoid abusing the fact that this is in the same unit
+    as TRenderer, avoid accessing TRenderer private stuff.
+    The rendering classes are already complicated,
+    keeping them cleanly separated makes it easier to reason about them.
 }
 
 type
+  { Base abstract class for rendering using VBO, shaders --- the normal
+    OpenGL stuff. }
   TMeshRenderer = class
   private
-    FRenderer: TGLRenderer;
+    FRenderer: TRenderer;
     FShape: TX3DRendererShape;
     FGeometry: TAbstractGeometryNode;
     FState: TX3DGraphTraverseState;
-    FRenderOptions: TCastleRenderOptions;
   protected
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor. }
-    property Renderer: TGLRenderer read FRenderer;
+    property Renderer: TRenderer read FRenderer;
     property Shape: TX3DRendererShape read FShape;
     property Geometry: TAbstractGeometryNode read FGeometry;
     property State: TX3DGraphTraverseState read FState;
-    property RenderOptions: TCastleRenderOptions read FRenderOptions;
   public
     PrepareRenderShape: Boolean;
 
     CurrentMeshShader: TX3DShaderProgramBase;
 
-    constructor Create(ARenderer: TGLRenderer; AShape: TX3DRendererShape);
+    { Complete transformation from shape local coordinates to camera shape:
+      Camera transformation * scene transformation * shape transformation. }
+    ShapeModelView: TMatrix4;
+
+    RenderOptions: TCastleRenderOptions;
+
+    { Custom shader to use, if non-nil:
+      Overrides whatever shaders have been determined
+      for the rendering (built-in CGE or from X3D file).
+      In practice, used now to set shaders when generating shadow maps. }
+    CustomShaders: TCustomShaders;
+
+    constructor Create(ARenderer: TRenderer; AShape: TX3DRendererShape);
 
     { Render the whole geometry.
 
@@ -150,7 +159,7 @@ type
 
 { TMeshRenderer ---------------------------------------------------------- }
 
-constructor TMeshRenderer.Create(ARenderer: TGLRenderer;
+constructor TMeshRenderer.Create(ARenderer: TRenderer;
   AShape: TX3DRendererShape);
 begin
   inherited Create;
@@ -159,7 +168,6 @@ begin
   FShape := AShape;
   FGeometry := AShape.Geometry;
   FState := AShape.State;
-  FRenderOptions := Renderer.RenderOptions;
 end;
 
 { TBaseCoordinateRenderer ------------------------------------------------ }
@@ -301,8 +309,8 @@ var
     end;
 
   begin
-    if RenderOptions.InternalCustomShader <> nil then
-      // right now CustomShader <> nil means "rendering to shadow map", so no need for any colors
+    if CustomShaders <> nil then
+      // right now CustomShaders <> nil means "rendering to shadow map", so no need for any colors
       MaterialUnlitExplicit(White)
     else
     if RenderOptions.Mode = rmSolidColor then
@@ -370,10 +378,10 @@ begin
 
       if CurrentMeshShader <> nil then
       begin
-        CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ShapeModelView);
+        CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(ShapeModelView);
         CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(RenderContext.ProjectionMatrix);
         if Shader.NeedsNormals then
-          CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ShapeModelView));
+          CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(ShapeModelView));
 
         FinalizeLightingModel;
 
@@ -559,7 +567,7 @@ begin
     scale is used.
     See https://github.com/castle-engine/castle-engine/issues/336 . }
   if RenderOptions.RobustNegativeScale and
-     (Shape.ShapeModelView.Determinant < 0) then
+     (ShapeModelView.Determinant < 0) then
     RenderContext.FrontFaceCcw := not Arrays.FrontFaceCcw
   else
     RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;
@@ -685,7 +693,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
     TransformToWorldSpace := TexCoord.Generation in
       [tgWorldSpaceReflectionVector, tgWorldSpaceNormal];
 
-    Renderer.ActiveTexture(TexUnit);
+    TRenderer.ActiveTexture(TexUnit);
     case TexCoord.Generation of
       tgSphereMap:
         Shader.EnableTexGen(TexUnit, tgSphere);
@@ -922,7 +930,7 @@ begin
   if Arrays.HasFogCoord and
      Arrays.FogDirectValues then
   begin
-    { We potentially override the fog already set by TGLRenderer.RenderShapeFog here. }
+    { We potentially override the fog already set by TRenderer.RenderShapeFog here. }
     Shader.ModifyFog(ftLinear, fcPassedCoordinate, 1);
   end;
 end;
@@ -950,7 +958,7 @@ begin
     { For fixed-function pipeline, GL_COLOR_MATERIAL is needed only if Lighting. }
     MaterialFromColorEnabled := GLFeatures.EnableFixedFunction and Lighting;
     if MaterialFromColorEnabled then
-      { Note: glColorMaterial is already set by TGLRenderer.ViewportRenderBegin }
+      { Note: glColorMaterial is already set by TRenderer.ClassRenderBegin }
       glEnable(GL_COLOR_MATERIAL);
     {$endif}
   end else
@@ -981,7 +989,7 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
     linking the shader). }
   procedure InitializeLightingModel;
   begin
-    if RenderOptions.InternalCustomShader <> nil then
+    if CustomShaders <> nil then
       Shader.LightingModel := lmUnlit
     else
     if RenderOptions.Mode = rmSolidColor then
@@ -1007,18 +1015,15 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
 
 var
   CurrentX3DProgram: TX3DShaderProgram;
+  Pass: TTotalRenderingPass;
 begin
   inherited;
 
   InitializeLightingModel;
 
-  if RenderOptions.InternalCustomShader <> nil then
+  if CustomShaders <> nil then
   begin
-    if (RenderOptions.InternalCustomShaderAlphaTest <> nil) and
-       Shader.AlphaTest then
-      CurrentMeshShader := RenderOptions.InternalCustomShaderAlphaTest as TX3DShaderProgramBase
-    else
-      CurrentMeshShader := RenderOptions.InternalCustomShader as TX3DShaderProgramBase;
+    CurrentMeshShader := CustomShaders.Shader[Shader.AlphaTest];
   end else
   begin
     { Finalize Shader settings, before calculating Shader.CodeHash }
@@ -1044,27 +1049,29 @@ begin
 
     if not GLFeatures.EnableFixedFunction then
     begin
-      { calculate and use Shape.ProgramCache[Renderer.Pass].ShaderProgram }
-      if (Shape.ProgramCache[Renderer.Pass] = nil) or
-         (not(Shape.ProgramCache[Renderer.Pass].Hash = Shader.CodeHash)) then
+      Pass := Renderer.FPass;
+
+      { calculate and use Shape.ProgramCache[Pass].ShaderProgram }
+      if (Shape.ProgramCache[Pass] = nil) or
+         (not(Shape.ProgramCache[Pass].Hash = Shader.CodeHash)) then
       begin
         if LogRenderer then
           WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, pass: %d)', [
             Shape.NiceName,
-            BoolToStr((Shape.ProgramCache[Renderer.Pass] = nil) or
-                      (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil), true),
-            Renderer.Pass
+            BoolToStr((Shape.ProgramCache[Pass] = nil) or
+                      (Shape.ProgramCache[Pass].ShaderProgram = nil), true),
+            Pass
           ]);
 
-        if Shape.ProgramCache[Renderer.Pass] <> nil then
-          Renderer.Cache.Program_DecReference(Shape.ProgramCache[Renderer.Pass]);
+        if Shape.ProgramCache[Pass] <> nil then
+          RendererCache.Program_DecReference(Shape.ProgramCache[Pass]);
 
-        Shape.ProgramCache[Renderer.Pass] := Renderer.Cache.Program_IncReference(
-          Renderer, Shader, Shape.NiceName);
+        Shape.ProgramCache[Pass] := RendererCache.Program_IncReference(
+          Shader, Shape.NiceName);
       end;
 
-      Assert(Shape.ProgramCache[Renderer.Pass] <> nil);
-      CurrentX3DProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
+      Assert(Shape.ProgramCache[Pass] <> nil);
+      CurrentX3DProgram := Shape.ProgramCache[Pass].ShaderProgram;
       CurrentMeshShader := CurrentX3DProgram;
       if not GLFeatures.EnableFixedFunction then
         Assert(CurrentX3DProgram <> nil, 'Shader is not initialized, but it has to be (creation of fallback shaders failed?)');

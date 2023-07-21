@@ -22,7 +22,7 @@ type
     function LumFromArrowPos(p: integer): Double;
     function ValFromArrowPos(p: Integer): Double;
     function GetHint(AMode: TBrightnessMode): String;
-    procedure SetHint(AMode: TBrightnessMode; AText: String);
+    procedure SetMyHint(AMode: TBrightnessMode; AText: String);
   protected
     procedure Execute(tbaAction: integer); override;
     function GetArrowPos: integer; override;
@@ -42,8 +42,8 @@ type
     property Luminance default 255;
     property Value default 255;
     property SelectedColor default clWhite;
-    property LHintFormat: String index bmLuminance read GetHint write SetHint;
-    property VHintFormat: String index bmValue read GetHint write SetHint;
+    property LHintFormat: String index bmLuminance read GetHint write SetMyHint;
+    property VHintFormat: String index bmValue read GetHint write SetMyHint;
   end;
 
 implementation
@@ -238,7 +238,7 @@ begin
   HintFormat := FHint[AMode];
 end;
 
-procedure TLVColorPicker.SetHint(AMode: TBrightnessMode; AText: String);
+procedure TLVColorPicker.SetMyHint(AMode: TBrightnessMode; AText: String);
 begin
   FHint[AMode] := AText;
 end;

@@ -1,3 +1,4 @@
+{%MainUnit castleuicontrols.pas}
 {
   Copyright 2015-2023 Michalis Kamburelis.
 
@@ -137,7 +138,7 @@
     function PredictedContainer: TCastleContainer;
   protected
     { The container size is always known: we assume that view will be part
-      of GetMainContainer, if the view not yet started.
+      of PredictedContainer, if the view not yet started.
 
       So the view knows container size, regardless if we are between Start / Stop,
       regardless if the TCastleView is already added to some TCastleContainer.Children.
@@ -148,7 +149,7 @@
     function ContainerRect: TRectangle; override;
     function ContainerSizeKnown: boolean; override;
 
-    function StateContainer: TCastleContainer; deprecated 'use Container to get the container in which we are already started, use GetMainContainer to get global central container';
+    function StateContainer: TCastleContainer; deprecated 'use Container to get the container in which we are already started, use PredictedContainer if the state is not yet started';
 
     { The container in which the view works.
 

@@ -1,5 +1,11 @@
 unit HTMLColors;
 
+{ Compiling this causes a number of unavoidable FPC notes,
+
+  Note: (6058) Call to subroutine "operator =(const op1:Variant;const op2:Variant):Boolean;" marked as inline is not inlined
+  .... }
+{$notes off}
+
 interface
 
 uses

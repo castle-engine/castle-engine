@@ -24,17 +24,18 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdData: TMFNode;
-    { Internal wrapper for property @link(Data). This wrapper API may change, we advise to access simpler @link(Data) instead. }
+    { Internal wrapper for property @code(Data). This wrapper API may change, we advise to access simpler @code(Data) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdData: TMFNode read FFdData;
     {  }
     procedure SetData(const Value: array of TAbstractNode);
 
     strict private FFdSummary: TMFString;
-    { Internal wrapper for property @link(Summary). This wrapper API may change, we advise to access simpler @link(Summary) instead. }
+    { Internal wrapper for property @code(Summary). This wrapper API may change, we advise to access simpler @code(Summary) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSummary: TMFString read FFdSummary;
     {  }
     procedure SetSummary(const Value: array of string); overload;
@@ -42,7 +43,7 @@
     procedure SetSummary(const Value: TCastleStringList); overload;
 
     strict private FFdUrl: TMFString;
-    { Internal wrapper for property @link(Url). This wrapper API may change, we advise to access simpler @link(Url) instead. }
+    { Internal wrapper for property @code(Url). This wrapper API may change, we advise to access simpler @code(Url) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUrl: TMFString read FFdUrl;
     {  }
     procedure SetUrl(const Value: array of string); overload;

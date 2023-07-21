@@ -176,7 +176,21 @@ begin
   begin
     I := IndexOfName(BindToName);
     if I <> -1 then
-      P := PX3DNodeNameRec(Ptr(I)) else
+    begin
+      P := PX3DNodeNameRec(Ptr(I));
+      { Warn about duplicate node names.
+        Avoid warning for TX3DPrototypeNode, as right now we knowingly
+        override names when instantiating node.
+        Testcase: demo-models/x3d/anchor_test.x3dv }
+      if (P^.Node <> Node) and
+         (not (P^.Node is TX3DPrototypeNode)) and
+         (not (Node is TX3DPrototypeNode)) then
+      begin
+        WritelnWarning('Node name "%s" used multiple times for different nodes. This is not allowed in X3D. (It is allowed in VRML, but we advise to upgrade all VRML models to X3D.)', [
+          BindToName
+        ]);
+      end;
+    end else
       P := PX3DNodeNameRec(Add);
     P^.Node := Node;
     P^.Name := BindToName;

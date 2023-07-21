@@ -37,47 +37,48 @@
     function GetShadowVolumes: Boolean;
     procedure SetShadowVolumes(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
-    { Internal wrapper for property @link(AmbientIntensity). This wrapper API may change, we advise to access simpler @link(AmbientIntensity) instead. }
+    { Internal wrapper for property @code(AmbientIntensity). This wrapper API may change, we advise to access simpler @code(AmbientIntensity) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
     {  }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
 
     strict private FFdColor: TSFColor;
-    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
+    { Internal wrapper for property @code(Color). This wrapper API may change, we advise to access simpler @code(Color) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColor: TSFColor read FFdColor;
     {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
 
     strict private FFdGlobal: TSFBool;
-    { Internal wrapper for property @link(Global). This wrapper API may change, we advise to access simpler @link(Global) instead. }
+    { Internal wrapper for property @code(Global). This wrapper API may change, we advise to access simpler @code(Global) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGlobal: TSFBool read FFdGlobal;
     {  }
     property Global: Boolean read GetGlobal write SetGlobal;
 
     strict private FFdIntensity: TSFFloat;
-    { Internal wrapper for property @link(Intensity). This wrapper API may change, we advise to access simpler @link(Intensity) instead. }
+    { Internal wrapper for property @code(Intensity). This wrapper API may change, we advise to access simpler @code(Intensity) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdIntensity: TSFFloat read FFdIntensity;
     {  }
     property Intensity: Single read GetIntensity write SetIntensity;
 
     strict private FFdOn: TSFBool;
-    { Internal wrapper for property @link(IsOn). This wrapper API may change, we advise to access simpler @link(IsOn) instead. }
+    { Internal wrapper for property @code(IsOn). This wrapper API may change, we advise to access simpler @code(IsOn) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdOn: TSFBool read FFdOn;
     {  }
     property IsOn: Boolean read GetIsOn write SetIsOn;
 
     strict private FFdEffects: TMFNode;
-    { Internal wrapper for property @link(Effects). This wrapper API may change, we advise to access simpler @link(Effects) instead. }
+    { Internal wrapper for property @code(Effects). This wrapper API may change, we advise to access simpler @code(Effects) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEffects: TMFNode read FFdEffects;
     {  }
     procedure SetEffects(const Value: array of TEffectNode);
 
     strict private FFdShadowVolumes: TSFBool;
-    { Internal wrapper for property @link(ShadowVolumes). This wrapper API may change, we advise to access simpler @link(ShadowVolumes) instead. }
+    { Internal wrapper for property @code(ShadowVolumes). This wrapper API may change, we advise to access simpler @code(ShadowVolumes) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShadowVolumes: TSFBool read FFdShadowVolumes;
     {  }
     property ShadowVolumes: Boolean read GetShadowVolumes write SetShadowVolumes;

@@ -27,14 +27,12 @@ package castle_engine;
 {$DEFINE CASTLE_DELPHI_PACKAGE}
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'Castle Game Engine - TCastleControl component'}
-{$DESIGNONLY}
 {$IMPLICITBUILD ON}
 
 requires
   rtl,
   vcl,
   xmlrtl,
-  designide,
   fmx;
 
 contains
@@ -82,7 +80,6 @@ contains
   castlexmlutils in '..\..\src\files\castlexmlutils.pas',
   x3dfields in '..\..\src\scene\x3d\x3dfields.pas',
   x3dnodes in '..\..\src\scene\x3d\x3dnodes.pas',
-  castleinternaldelphidesignutils in '..\..\src\delphi\castleinternaldelphidesignutils.pas',
   castlecurves in '..\..\src\castlescript\castlecurves.pas',
   castlescript in '..\..\src\castlescript\castlescript.pas',
   castlescriptcorefunctions in '..\..\src\castlescript\castlescriptcorefunctions.pas',
@@ -307,7 +304,7 @@ contains
   castlescene in '..\..\src\scene\castlescene.pas',
   castlescenecore in '..\..\src\scene\castlescenecore.pas',
   castlesceneinternalblending in '..\..\src\scene\castlesceneinternalblending.pas',
-  castlesceneinternalocclusion in '..\..\src\scene\castlesceneinternalocclusion.pas',
+  castleinternalocclusionculling in '..\..\src\scene\castleinternalocclusionculling.pas',
   castlesceneinternalshape in '..\..\src\scene\castlesceneinternalshape.pas',
   castlescreeneffects in '..\..\src\scene\castlescreeneffects.pas',
   castleshapeinternalrendershadowvolumes in '..\..\src\scene\castleshapeinternalrendershadowvolumes.pas',
@@ -328,9 +325,11 @@ contains
   castlescriptimages in '..\..\src\castlescript\castlescriptimages.pas',
   castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas',
   fmx.castlecontrol in '..\..\src\delphi\fmx.castlecontrol.pas',
-  vcl.castlecontrol in '..\..\src\delphi\vcl.castlecontrol.pas';
+  vcl.castlecontrol in '..\..\src\delphi\vcl.castlecontrol.pas',
+  castleinternalshapesrenderer in '..\..\src\scene\castleinternalshapesrenderer.pas';
 
 end.
+
 
 
 

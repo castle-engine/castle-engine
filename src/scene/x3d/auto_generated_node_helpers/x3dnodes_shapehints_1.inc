@@ -27,24 +27,25 @@
     function GetCreaseAngle: Single;
     procedure SetCreaseAngle(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdVertexOrdering: TSFEnum;
-    { Internal wrapper for property @link(VertexOrdering). This wrapper API may change, we advise to access simpler @link(VertexOrdering) instead. }
+    { Internal wrapper for property @code(VertexOrdering). This wrapper API may change, we advise to access simpler @code(VertexOrdering) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVertexOrdering: TSFEnum read FFdVertexOrdering;
 
     strict private FFdShapeType: TSFEnum;
-    { Internal wrapper for property @link(ShapeType). This wrapper API may change, we advise to access simpler @link(ShapeType) instead. }
+    { Internal wrapper for property @code(ShapeType). This wrapper API may change, we advise to access simpler @code(ShapeType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShapeType: TSFEnum read FFdShapeType;
 
     strict private FFdFaceType: TSFEnum;
-    { Internal wrapper for property @link(FaceType). This wrapper API may change, we advise to access simpler @link(FaceType) instead. }
+    { Internal wrapper for property @code(FaceType). This wrapper API may change, we advise to access simpler @code(FaceType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFaceType: TSFEnum read FFdFaceType;
 
     strict private FFdCreaseAngle: TSFFloat;
-    { Internal wrapper for property @link(CreaseAngle). This wrapper API may change, we advise to access simpler @link(CreaseAngle) instead. }
+    { Internal wrapper for property @code(CreaseAngle). This wrapper API may change, we advise to access simpler @code(CreaseAngle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
     {  }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;

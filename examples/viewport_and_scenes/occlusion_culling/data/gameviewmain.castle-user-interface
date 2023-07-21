@@ -11,7 +11,13 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
@@ -69,8 +75,7 @@
                 ],
                 "Name" : "Scene6",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -92,8 +97,7 @@
                 ],
                 "Name" : "Scene65",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -115,8 +119,7 @@
                 ],
                 "Name" : "Scene5",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -138,8 +141,7 @@
                 ],
                 "Name" : "Scene66",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -161,8 +163,7 @@
                 ],
                 "Name" : "Scene67",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -184,8 +185,7 @@
                 ],
                 "Name" : "Scene11",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -207,8 +207,7 @@
                 ],
                 "Name" : "Scene4",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -230,8 +229,7 @@
                 ],
                 "Name" : "Scene68",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -253,8 +251,7 @@
                 ],
                 "Name" : "Scene69",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -276,8 +273,7 @@
                 ],
                 "Name" : "Scene70",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -299,8 +295,7 @@
                 ],
                 "Name" : "Scene71",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -322,8 +317,7 @@
                 ],
                 "Name" : "Scene72",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -345,8 +339,7 @@
                 ],
                 "Name" : "Scene73",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -368,8 +361,7 @@
                 ],
                 "Name" : "Scene3",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -391,8 +383,7 @@
                 ],
                 "Name" : "Scene2",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -414,8 +405,7 @@
                 ],
                 "Name" : "Scene1",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1460,8 +1450,7 @@
                 "Name" : "Scene7",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1483,8 +1472,7 @@
                 "Name" : "Scene13",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1507,8 +1495,7 @@
                 "Name" : "Scene77",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1531,8 +1518,7 @@
                 "Name" : "Scene78",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1555,8 +1541,7 @@
                 "Name" : "Scene16",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1579,8 +1564,7 @@
                 "Name" : "Scene17",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1603,8 +1587,7 @@
                 "Name" : "Scene18",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1627,8 +1610,7 @@
                 "Name" : "Scene8",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1651,8 +1633,7 @@
                 "Name" : "Scene19",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1675,8 +1656,7 @@
                 "Name" : "Scene20",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1699,8 +1679,7 @@
                 "Name" : "Scene76",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1723,8 +1702,7 @@
                 "Name" : "Scene9",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1747,8 +1725,7 @@
                 "Name" : "Scene80",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1771,8 +1748,7 @@
                 "Name" : "Scene15",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1795,8 +1771,7 @@
                 "Name" : "Scene79",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1819,8 +1794,7 @@
                 "Name" : "Scene14",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1843,8 +1817,7 @@
                 "Name" : "Scene10",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1867,8 +1840,7 @@
                 "Name" : "Scene21",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1891,8 +1863,7 @@
                 "Name" : "Scene22",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1915,8 +1886,7 @@
                 "Name" : "Scene75",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1939,8 +1909,7 @@
                 "Name" : "Scene12",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1963,8 +1932,7 @@
                 "Name" : "Scene23",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -1987,8 +1955,7 @@
                 "Name" : "Scene24",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -2011,8 +1978,7 @@
                 "Name" : "Scene74",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "OcclusionQuery" : true
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -2063,6 +2029,8 @@
         ]
       },
       "Name" : "MainViewport",
+      "OcclusionCulling" : true,
+      "OcclusionSort" : "sort3D",
       "$NonVisualComponents" : [
         {
           "$$ClassName" : "TCastleBackground",
@@ -2095,21 +2063,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 1.7093200683593750E+000,
-          "X" : -8.7530396878719330E-002,
-          "Y" : 9.9156808853149414E-001,
-          "Z" : 9.5556743443012238E-002
-        },
-        "ScalePersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "Y" : 1.0000002384185791E+000,
-          "Z" : 1.0000001192092896E+000
+          "W" : 1.5674769878387451E+000,
+          "X" : -1.8324595689773560E-001,
+          "Y" : 9.6857804059982300E-001,
+          "Z" : 1.6815887391567230E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 3.9069099426269531E+001,
-          "Y" : 4.5187702178955078E+000,
-          "Z" : -1.3639647960662842E+000
+          "X" : 1.0087266540527344E+002,
+          "Y" : 3.0082740783691406E+001,
+          "Z" : 3.3314290046691895E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {
@@ -2197,7 +2160,7 @@
             },
             {
               "$$ClassName" : "TCastleCheckbox",
-              "Caption" : "Occlusion Query (Ctrl+O to toggle)",
+              "Caption" : "Occlusion Culling (Ctrl+O to toggle)",
               "CheckboxColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Blue" : 8.2352943718433380E-002,
@@ -2205,7 +2168,7 @@
                 "Red" : 3.1764706969261169E-001
               },
               "Checked" : true,
-              "Name" : "CheckboxOcclusionQuery",
+              "Name" : "CheckboxOcclusionCulling",
               "TextColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Blue" : 8.2352943718433380E-002,
@@ -2215,7 +2178,7 @@
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 1.0000000000000000E+001,
-                "Y" : -1.2700000000000000E+002
+                "Y" : -1.2700000762939453E+002
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"

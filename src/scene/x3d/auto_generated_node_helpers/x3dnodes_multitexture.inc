@@ -29,23 +29,24 @@
     function GetColor: TCastleColorRGB;
     procedure SetColor(const Value: TCastleColorRGB);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAlpha: TSFFloat;
-    { Internal wrapper for property @link(Alpha). This wrapper API may change, we advise to access simpler @link(Alpha) instead. }
+    { Internal wrapper for property @code(Alpha). This wrapper API may change, we advise to access simpler @code(Alpha) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAlpha: TSFFloat read FFdAlpha;
     {  }
     property Alpha: Single read GetAlpha write SetAlpha;
 
     strict private FFdColor: TSFColor;
-    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
+    { Internal wrapper for property @code(Color). This wrapper API may change, we advise to access simpler @code(Color) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColor: TSFColor read FFdColor;
     {  }
     property Color: TCastleColorRGB read GetColor write SetColor;
 
     strict private FFdFunction: TMFString;
-    { Internal wrapper for property @link(Function). This wrapper API may change, we advise to access simpler @link(Function) instead. }
+    { Internal wrapper for property @code(Function). This wrapper API may change, we advise to access simpler @code(Function) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFunction: TMFString read FFdFunction;
     {  }
     procedure SetFunction(const Value: array of string); overload;
@@ -53,7 +54,7 @@
     procedure SetFunction(const Value: TCastleStringList); overload;
 
     strict private FFdMode: TMFString;
-    { Internal wrapper for property @link(Mode). This wrapper API may change, we advise to access simpler @link(Mode) instead. }
+    { Internal wrapper for property @code(Mode). This wrapper API may change, we advise to access simpler @code(Mode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMode: TMFString read FFdMode;
     {  }
     procedure SetMode(const Value: array of string); overload;
@@ -61,7 +62,7 @@
     procedure SetMode(const Value: TCastleStringList); overload;
 
     strict private FFdSource: TMFString;
-    { Internal wrapper for property @link(Source). This wrapper API may change, we advise to access simpler @link(Source) instead. }
+    { Internal wrapper for property @code(Source). This wrapper API may change, we advise to access simpler @code(Source) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSource: TMFString read FFdSource;
     {  }
     procedure SetSource(const Value: array of string); overload;
@@ -69,7 +70,7 @@
     procedure SetSource(const Value: TCastleStringList); overload;
 
     strict private FFdTexture: TMFNode;
-    { Internal wrapper for property @link(Texture). This wrapper API may change, we advise to access simpler @link(Texture) instead. }
+    { Internal wrapper for property @code(Texture). This wrapper API may change, we advise to access simpler @code(Texture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexture: TMFNode read FFdTexture;
     {  }
     procedure SetTexture(const Value: array of TAbstractSingleTextureNode);

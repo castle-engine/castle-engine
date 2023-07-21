@@ -27,11 +27,12 @@
     function GetAxisOfRotation: TVector3;
     procedure SetAxisOfRotation(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdAxisOfRotation: TSFVec3f;
-    { Internal wrapper for property @link(AxisOfRotation). This wrapper API may change, we advise to access simpler @link(AxisOfRotation) instead. }
+    { Internal wrapper for property @code(AxisOfRotation). This wrapper API may change, we advise to access simpler @code(AxisOfRotation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
     { Axis around which the billboard rotates to face the camera. Can be zero to rotate freely. }
     property AxisOfRotation: TVector3 read GetAxisOfRotation write SetAxisOfRotation;

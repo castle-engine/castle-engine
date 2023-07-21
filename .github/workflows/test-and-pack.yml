@@ -220,15 +220,19 @@ jobs:
       - name: Build Examples Using Lazarus
         run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
-  pack:
-    name: Pack to zip
-    runs-on: ubuntu-latest
-    container: kambi/castle-engine-cloud-builds-tools:cge-none
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set environment
-        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-      - name: Remove previous artifacts
-        run: rm -f castle-engine*.zip
-      - name: Pack
-        run: ./tools/internal/pack_release/pack_release.sh
+# TODO: This runs out of disk space on GH Actions now.
+# Ignore for now (we don't really rely on it, Jenkins actually does
+# pack_release.sh to make the real release).
+
+  # pack:
+  #   name: Pack to zip
+  #   runs-on: ubuntu-latest
+  #   container: kambi/castle-engine-cloud-builds-tools:cge-none
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Set environment
+  #       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+  #     - name: Remove previous artifacts
+  #       run: rm -f castle-engine*.zip
+  #     - name: Pack
+  #       run: ./tools/internal/pack_release/pack_release.sh

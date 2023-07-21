@@ -420,6 +420,11 @@ function BEtoN(const Value: Single): Single; overload;
 function BEtoN(const Value: Double): Double; overload;
 { @groupEnd }
 
+{ Convert degrees to radians, consistent with CastleScript deg()
+  function and display of rotations in CGE editor.
+  In CGE, all functions take rotations in radians. }
+function Deg(const Degrees: Float): Float;
+
 type
   EVectorInvalidOp = class(Exception);
   ETransformedResultInvalid = class(EVectorInvalidOp);
@@ -1405,6 +1410,11 @@ begin
 {$else ENDIAN_BIG}
   Result := SwapEndian(Value);
 {$endif ENDIAN_BIG}
+end;
+
+function Deg(const Degrees: Float): Float;
+begin
+  Result := DegToRad(Degrees);
 end;
 
 {$endif read_implementation}

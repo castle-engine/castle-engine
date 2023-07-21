@@ -201,17 +201,17 @@ object ProjectForm: TProjectForm
           AutoSortIndicator = True
           AutoWidthLastColumn = True
           BorderSpacing.Around = 10
-          Columns = <          
+          Columns = <
             item
               AutoSize = True
               Caption = 'Name'
               MinWidth = 209
               Width = 209
-            end          
+            end
             item
               Caption = 'File'
               Width = 626
-            end          
+            end
             item
               Caption = 'Last Modified'
               Width = 378
@@ -313,7 +313,7 @@ object ProjectForm: TProjectForm
       end
     end
     object MenuItemEdit: TMenuItem
-      Caption = 'Edit'
+      Caption = '&Edit'
       object MenuItemDesignAddUserInterface: TMenuItem
         Caption = 'Add User Interface'
       end
@@ -398,7 +398,7 @@ object ProjectForm: TProjectForm
       end
     end
     object MenuItemViewport: TMenuItem
-      Caption = 'Viewport'
+      Caption = '&Viewport'
       object MenuItemViewportViewAll: TMenuItem
         Action = ActionViewportViewAll
       end
@@ -498,9 +498,6 @@ object ProjectForm: TProjectForm
       object MenuItem18: TMenuItem
         Action = ActionViewportSetup2D
       end
-      object MenuItem19: TMenuItem
-        Action = ActionViewportSort2D
-      end
     end
     object MenuItemPhysics: TMenuItem
       Caption = 'Physics'
@@ -530,7 +527,7 @@ object ProjectForm: TProjectForm
       end
     end
     object MenuItemCode: TMenuItem
-      Caption = 'Code'
+      Caption = '&Code'
       object MenuItemOpenProjectCode: TMenuItem
         Action = ActionOpenProjectCode
       end
@@ -1135,12 +1132,6 @@ object ProjectForm: TProjectForm
       Category = 'Viewport'
       Caption = '2D Camera And Projection At Runtime'
       OnExecute = ActionViewportSetup2DExecute
-      OnUpdate = ActionViewportUpdate
-    end
-    object ActionViewportSort2D: TAction
-      Category = 'Viewport'
-      Caption = 'Sort Items For Correct 2D Blending'
-      OnExecute = ActionViewportSort2DExecute
       OnUpdate = ActionViewportUpdate
     end
     object ActionViewportToggleProjection: TAction

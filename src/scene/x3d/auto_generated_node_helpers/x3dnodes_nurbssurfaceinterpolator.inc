@@ -35,6 +35,7 @@
     function GetVOrder: Integer;
     procedure SetVOrder(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -43,13 +44,13 @@
     public property EventSet_fraction: TSFVec2fEvent read FEventSet_fraction;
 
     strict private FFdControlPoint: TSFNode;
-    { Internal wrapper for property @link(ControlPoint). This wrapper API may change, we advise to access simpler @link(ControlPoint) instead. }
+    { Internal wrapper for property @code(ControlPoint). This wrapper API may change, we advise to access simpler @code(ControlPoint) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdControlPoint: TSFNode read FFdControlPoint;
     {  }
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
 
     strict private FFdWeight: TMFDouble;
-    { Internal wrapper for property @link(Weight). This wrapper API may change, we advise to access simpler @link(Weight) instead. }
+    { Internal wrapper for property @code(Weight). This wrapper API may change, we advise to access simpler @code(Weight) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWeight: TMFDouble read FFdWeight;
     {  }
     procedure SetWeight(const Value: array of Double); overload;
@@ -65,13 +66,13 @@
     public property EventNormal_changed: TSFVec3fEvent read FEventNormal_changed;
 
     strict private FFdUDimension: TSFInt32;
-    { Internal wrapper for property @link(UDimension). This wrapper API may change, we advise to access simpler @link(UDimension) instead. }
+    { Internal wrapper for property @code(UDimension). This wrapper API may change, we advise to access simpler @code(UDimension) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUDimension: TSFInt32 read FFdUDimension;
     {  }
     property UDimension: Integer read GetUDimension write SetUDimension;
 
     strict private FFdUKnot: TMFDouble;
-    { Internal wrapper for property @link(UKnot). This wrapper API may change, we advise to access simpler @link(UKnot) instead. }
+    { Internal wrapper for property @code(UKnot). This wrapper API may change, we advise to access simpler @code(UKnot) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUKnot: TMFDouble read FFdUKnot;
     {  }
     procedure SetUKnot(const Value: array of Double); overload;
@@ -79,19 +80,19 @@
     procedure SetUKnot(const Value: TDoubleList); overload;
 
     strict private FFdUOrder: TSFInt32;
-    { Internal wrapper for property @link(UOrder). This wrapper API may change, we advise to access simpler @link(UOrder) instead. }
+    { Internal wrapper for property @code(UOrder). This wrapper API may change, we advise to access simpler @code(UOrder) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUOrder: TSFInt32 read FFdUOrder;
     {  }
     property UOrder: Integer read GetUOrder write SetUOrder;
 
     strict private FFdVDimension: TSFInt32;
-    { Internal wrapper for property @link(VDimension). This wrapper API may change, we advise to access simpler @link(VDimension) instead. }
+    { Internal wrapper for property @code(VDimension). This wrapper API may change, we advise to access simpler @code(VDimension) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVDimension: TSFInt32 read FFdVDimension;
     {  }
     property VDimension: Integer read GetVDimension write SetVDimension;
 
     strict private FFdVKnot: TMFDouble;
-    { Internal wrapper for property @link(VKnot). This wrapper API may change, we advise to access simpler @link(VKnot) instead. }
+    { Internal wrapper for property @code(VKnot). This wrapper API may change, we advise to access simpler @code(VKnot) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVKnot: TMFDouble read FFdVKnot;
     {  }
     procedure SetVKnot(const Value: array of Double); overload;
@@ -99,7 +100,7 @@
     procedure SetVKnot(const Value: TDoubleList); overload;
 
     strict private FFdVOrder: TSFInt32;
-    { Internal wrapper for property @link(VOrder). This wrapper API may change, we advise to access simpler @link(VOrder) instead. }
+    { Internal wrapper for property @code(VOrder). This wrapper API may change, we advise to access simpler @code(VOrder) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVOrder: TSFInt32 read FFdVOrder;
     {  }
     property VOrder: Integer read GetVOrder write SetVOrder;

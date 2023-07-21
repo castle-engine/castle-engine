@@ -1214,7 +1214,6 @@ begin
   Transform.Collides := false;
   Transform.Pickable := false;
   Transform.CastShadows := false;
-  Transform.ExcludeFromStatistics := true;
   Transform.InternalExcludeFromParentBoundingVolume := true;;
 end;
 

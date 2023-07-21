@@ -27,11 +27,12 @@
     function GetAxis: TVector3;
     procedure SetAxis(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdKeyValue: TMFFloat;
-    { Internal wrapper for property @link(KeyValue). This wrapper API may change, we advise to access simpler @link(KeyValue) instead. }
+    { Internal wrapper for property @code(KeyValue). This wrapper API may change, we advise to access simpler @code(KeyValue) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdKeyValue: TMFFloat read FFdKeyValue;
     {  }
     procedure SetKeyValue(const Value: array of Single); overload;
@@ -39,7 +40,7 @@
     procedure SetKeyValue(const Value: TSingleList); overload;
 
     strict private FFdAxis: TSFVec3f;
-    { Internal wrapper for property @link(Axis). This wrapper API may change, we advise to access simpler @link(Axis) instead. }
+    { Internal wrapper for property @code(Axis). This wrapper API may change, we advise to access simpler @code(Axis) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAxis: TSFVec3f read FFdAxis;
     {  }
     property Axis: TVector3 read GetAxis write SetAxis;

@@ -27,11 +27,12 @@
     function GetWhichChoice: Integer;
     procedure SetWhichChoice(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdWhichChoice: TSFInt32;
-    { Internal wrapper for property @link(WhichChoice). This wrapper API may change, we advise to access simpler @link(WhichChoice) instead. }
+    { Internal wrapper for property @code(WhichChoice). This wrapper API may change, we advise to access simpler @code(WhichChoice) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
     {  }
     property WhichChoice: Integer read GetWhichChoice write SetWhichChoice;

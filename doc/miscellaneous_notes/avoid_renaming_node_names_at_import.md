@@ -8,9 +8,13 @@ Both glTF and X3D allow (optionally) to assing string names to various things in
 
     And across types, names are definitely not unique. E.g. Blender exporter can easily just set equal name for glTF node, mesh, material, image... Causing name clashes.
 
-- In case of X3D, node names are global. And they are not guranteed to be unique (even if it's advised).
+- In case of X3D and VRML:
 
-- Moreover, in CGE, we merge some X3D namespaces. That is, our `TCastleScene.Node`, `TX3DNode.FindNode` methods do not take namespaces (like Inline and prototypes) into account (because in many cases it would be extra complication that is not necessary) and they just search the whole X3D node graph.
+    In X3D, spec says that node names should be unique in their namespace.
+
+    In VRML 97, it was explicitly allowed to have non-unique names. The last one wins.
+
+- Moreover, in CGE, we merge some X3D namespaces. That is, our `TCastleScene.Node`, `TX3DNode.FindNode` methods do not take some X3D namespaces (like `Inline` and prototypes) into account (because in many cases it would be extra complication that is not necessary) and they just search the whole X3D node graph.
 
 ## So node name clashes can and certainly will happen. What to do?
 
@@ -32,7 +36,7 @@ Both glTF and X3D allow (optionally) to assing string names to various things in
 
     - Definitely not in glTF importer, because the problem is independent of glTF. Right now we do it in `TX3DRootNode.InternalFixNodeNames`.
 
-    - Should we do it *at all*? Maybe we should not do unique renames in `TX3DRootNode.InternalFixNodeNames`, and just let names clash. Just like X3D and glTF in the end allow.
+    - Should we do it *at all*? Maybe we should not do unique renames in `TX3DRootNode.InternalFixNodeNames`, and just let names clash. Just like VRML and glTF (and X3D, as implemented in CGE) in the end allow.
 
       Moreover `TX3DRootNode.InternalFixNodeNames` is not 100% reliable. If you add nodes manually, they are not automatically renamed.
 
@@ -44,10 +48,24 @@ Both glTF and X3D allow (optionally) to assing string names to various things in
 
       Decision: Don't do this. Unreliable suffixes `_2`, `_3` are not that helpful.
 
-Decision:
+## Decision
 
 - Do not rename at all. Do not add prefixes like `Mesh_`, `Material_` . Do not add suffixes like `_2`, `_3`.
 
-- `TX3DRootNode.InternalFixNodeNames` no longer renames nodes (it only fixes nodes references in ROUTEs now).
+- `TX3DRootNode.InternalFixNodeNames` no longer renames nodes (it only fixes nodes referenced in ROUTEs now, since having non-unique names referred by ROUTEs would be just impossible to later correctly read).
 
 **User should guarantee node name is unique (if user wants to later find it), or use node-searching criteria that make it unique, like Pascal API `Scene.Node(TAbstractMaterialNode, 'Foo')` that limit search to specific type.**
+
+## Known issue
+
+- This decision implies we have a known issue when converting other formats (like glTF) to X3D:
+
+    Namely, when the input (like glTF) has non-unique names then output X3D will also have non-unique names.
+
+    And remember that non-unique names are OK in glTF. They are also OK in Blender (e.g. you can have in Blender mesh called `Plane`, and Blender object called `Plane` etc.). glTF and Blender don't use these names as "references".
+
+    This means that converting (using CGE) valid glTF to X3D, can result in invalid X3D. CGE accepts this invalid X3D, only makes a warning, but not all X3D browsers have to be as forgiving.
+
+    In light of the above argumentation, for now we just "live with this problem". It's more important to have a good Pascal API to access stuff, that allows to use in CGE the same names as you set in Blender (and if you make non-unique names, you can deal with them by searching for name+type, or of course by correcting the input model to have unique names).
+
+    Adding prefixes/suffixes wasn't a satisfactory solution, since users didn't know about these prefixes/suffixes (and for users, the order in which we added `_2`, `_3`... was also unclear). Even adding them only at saving was problematic -- because then "load glTF" resulted in different in-memory graph than "load glTF, save to X3D, load X3D".

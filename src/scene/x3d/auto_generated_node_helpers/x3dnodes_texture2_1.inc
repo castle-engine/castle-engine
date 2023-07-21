@@ -29,34 +29,35 @@
     function GetBlendColor: TVector3;
     procedure SetBlendColor(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdFilename: TSFString;
-    { Internal wrapper for property @link(Filename). This wrapper API may change, we advise to access simpler @link(Filename) instead. }
+    { Internal wrapper for property @code(Filename). This wrapper API may change, we advise to access simpler @code(Filename) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFilename: TSFString read FFdFilename;
     {  }
     property Filename: String read GetFilename write SetFilename;
 
     strict private FFdImage: TSFImage;
-    { Internal wrapper for property @link(Image). This wrapper API may change, we advise to access simpler @link(Image) instead. }
+    { Internal wrapper for property @code(Image). This wrapper API may change, we advise to access simpler @code(Image) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdImage: TSFImage read FFdImage;
 
     strict private FFdWrapS: TSFEnum;
-    { Internal wrapper for property @link(WrapS). This wrapper API may change, we advise to access simpler @link(WrapS) instead. }
+    { Internal wrapper for property @code(WrapS). This wrapper API may change, we advise to access simpler @code(WrapS) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWrapS: TSFEnum read FFdWrapS;
 
     strict private FFdWrapT: TSFEnum;
-    { Internal wrapper for property @link(WrapT). This wrapper API may change, we advise to access simpler @link(WrapT) instead. }
+    { Internal wrapper for property @code(WrapT). This wrapper API may change, we advise to access simpler @code(WrapT) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWrapT: TSFEnum read FFdWrapT;
 
     strict private FFdModel: TSFEnum;
-    { Internal wrapper for property @link(Model). This wrapper API may change, we advise to access simpler @link(Model) instead. }
+    { Internal wrapper for property @code(Model). This wrapper API may change, we advise to access simpler @code(Model) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdModel: TSFEnum read FFdModel;
 
     strict private FFdBlendColor: TSFVec3f;
-    { Internal wrapper for property @link(BlendColor). This wrapper API may change, we advise to access simpler @link(BlendColor) instead. }
+    { Internal wrapper for property @code(BlendColor). This wrapper API may change, we advise to access simpler @code(BlendColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBlendColor: TSFVec3f read FFdBlendColor;
     { Ignored. Unknown extension to VRML 1.0 spec, found on models in http://www-vrl.umich.edu/sel_prj/EECS498/ . }
     property BlendColor: TVector3 read GetBlendColor write SetBlendColor;

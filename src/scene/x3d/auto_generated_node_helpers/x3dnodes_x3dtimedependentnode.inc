@@ -35,35 +35,36 @@
     function GetStopTime: TFloatTime;
     procedure SetStopTime(const Value: TFloatTime);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     strict private FFdLoop: TSFBool;
-    { Internal wrapper for property @link(Loop). This wrapper API may change, we advise to access simpler @link(Loop) instead. }
+    { Internal wrapper for property @code(Loop). This wrapper API may change, we advise to access simpler @code(Loop) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLoop: TSFBool read FFdLoop;
     {  }
     property Loop: Boolean read GetLoop write SetLoop;
 
     strict private FFdPauseTime: TSFTime;
-    { Internal wrapper for property @link(PauseTime). This wrapper API may change, we advise to access simpler @link(PauseTime) instead. }
+    { Internal wrapper for property @code(PauseTime). This wrapper API may change, we advise to access simpler @code(PauseTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPauseTime: TSFTime read FFdPauseTime;
     {  }
     property PauseTime: TFloatTime read GetPauseTime write SetPauseTime;
 
     strict private FFdResumeTime: TSFTime;
-    { Internal wrapper for property @link(ResumeTime). This wrapper API may change, we advise to access simpler @link(ResumeTime) instead. }
+    { Internal wrapper for property @code(ResumeTime). This wrapper API may change, we advise to access simpler @code(ResumeTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdResumeTime: TSFTime read FFdResumeTime;
     {  }
     property ResumeTime: TFloatTime read GetResumeTime write SetResumeTime;
 
     strict private FFdStartTime: TSFTime;
-    { Internal wrapper for property @link(StartTime). This wrapper API may change, we advise to access simpler @link(StartTime) instead. }
+    { Internal wrapper for property @code(StartTime). This wrapper API may change, we advise to access simpler @code(StartTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStartTime: TSFTime read FFdStartTime;
     {  }
     property StartTime: TFloatTime read GetStartTime write SetStartTime;
 
     strict private FFdStopTime: TSFTime;
-    { Internal wrapper for property @link(StopTime). This wrapper API may change, we advise to access simpler @link(StopTime) instead. }
+    { Internal wrapper for property @code(StopTime). This wrapper API may change, we advise to access simpler @code(StopTime) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStopTime: TSFTime read FFdStopTime;
     {  }
     property StopTime: TFloatTime read GetStopTime write SetStopTime;

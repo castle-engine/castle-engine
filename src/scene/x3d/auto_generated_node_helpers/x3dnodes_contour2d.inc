@@ -24,6 +24,7 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -36,7 +37,7 @@
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
     strict private FFdChildren: TMFNode;
-    { Internal wrapper for property @link(Children). This wrapper API may change, we advise to access simpler @link(Children) instead. }
+    { Internal wrapper for property @code(Children). This wrapper API may change, we advise to access simpler @code(Children) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdChildren: TMFNode read FFdChildren;
 
 {$endif read_interface}
