@@ -192,6 +192,7 @@ castle-game-engine-*.fpm
 /examples/user_interface/zombie_fighter/zombie_fighter
 /examples/user_interface/zombie_fighter_alternative_short_lived_views/zombie_fighter
 /examples/viewport_and_scenes/anisotropic_filtering/anisotropic_filtering
+/examples/viewport_and_scenes/billboards_blending_in_3d/billboards_blending_in_3d
 /examples/viewport_and_scenes/build_3d_object_by_code/build_3d_object_by_code
 /examples/viewport_and_scenes/build_3d_object_by_code_2_tunnel/build_3d_object_by_code_2_tunnel
 /examples/viewport_and_scenes/cars_demo/cars_demo

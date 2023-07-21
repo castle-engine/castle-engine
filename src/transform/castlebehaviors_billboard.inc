@@ -40,6 +40,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure BeforeRender(
+      const CameraView: TViewVectors;
       const ParentParentWorldTransform, ParentParentWorldInverseTransform,
             ParentWorldTransform, ParentWorldInverseTransform: TMatrix4); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -152,6 +153,7 @@ begin
 end;
 
 procedure TCastleBillboard.BeforeRender(
+  const CameraView: TViewVectors;
   const ParentParentWorldTransform, ParentParentWorldInverseTransform,
         ParentWorldTransform, ParentWorldInverseTransform: TMatrix4);
 
@@ -170,56 +172,48 @@ procedure TCastleBillboard.BeforeRender(
   end;
 
 var
-  Camera: TCastleCamera;
-  DirectionToCamera, CamPos, CamDir, CamUp: TVector3;
+  DirectionToCamera: TVector3;
 begin
   inherited;
 
-  if (Parent.World <> nil) and
-     (Parent.World.MainCamera <> nil) then
+  if MatchCameraDirection then
+    DirectionToCamera := -ParentParentWorldToLocalDirection(CameraView.Direction)
+  else
   begin
-    Camera := Parent.World.MainCamera;
-    Camera.GetWorldView(CamPos, CamDir, CamUp);
+    { The transformation which interests us is the whole Parent.Parent transformation,
+      and the Parent.Translation.
+      We will modify the rotation.
 
-    if MatchCameraDirection then
-      DirectionToCamera := -ParentParentWorldToLocalDirection(CamDir)
-    else
-    begin
-      { The transformation which interests us is the whole Parent.Parent transformation,
-        and the Parent.Translation.
-        We will modify the rotation.
+    WorldInverseTransform := TranslationMatrix(-Parent.Translation) *
+      Parent.Parent.WorldInverseTransform;
 
-      WorldInverseTransform := TranslationMatrix(-Parent.Translation) *
-        Parent.Parent.WorldInverseTransform;
+    // calculate vector from (0, 0, 0) to camera Position, in local coords
+    DirectionToCamera := WorldInverseTransform.MultPoint(CameraView.Translation);
 
-      // calculate vector from (0, 0, 0) to camera Position, in local coords
-      DirectionToCamera := WorldInverseTransform.MultPoint(CamPos);
+    More optimized version (just revert translation directly,
+    instead of as a matrix): }
 
-      More optimized version (just revert translation directly,
-      instead of as a matrix): }
+    DirectionToCamera := ParentParentWorldToLocal(CameraView.Translation)
+      - Parent.Translation;
+  end;
 
-      DirectionToCamera := ParentParentWorldToLocal(CamPos)
-        - Parent.Translation;
-    end;
+  Parent.Center := TVector3.Zero; // no other value makes sense for billboard implementation
 
-    Parent.Center := TVector3.Zero; // no other value makes sense for billboard implementation
-
-    if AxisOfRotation.IsPerfectlyZero then
-    begin
-      Parent.SetView(
-        DirectionToCamera,
-        { Note that here we don't care about Parent.Translation,
-          because we only transform direction. }
-        ParentParentWorldToLocalDirection(CamUp)
-      );
-    end else
-    begin
-      Parent.SetView(
-        DirectionToCamera,
-        AxisOfRotation,
-        { adjust direction, keep up constant } false
-      );
-    end;
+  if AxisOfRotation.IsPerfectlyZero then
+  begin
+    Parent.SetView(
+      DirectionToCamera,
+      { Note that here we don't care about Parent.Translation,
+        because we only transform direction. }
+      ParentParentWorldToLocalDirection(CameraView.Up)
+    );
+  end else
+  begin
+    Parent.SetView(
+      DirectionToCamera,
+      AxisOfRotation,
+      { adjust direction, keep up constant } false
+    );
   end;
 end;
 

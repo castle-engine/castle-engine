@@ -54,13 +54,19 @@
     { Event called right before rendering the parent TCastleTransform.
 
       Override this is you have to adjust the parent transformation strictly
-      before the rendering, e.g. to implement billboard, because user must never
-      see artifacts caused by billboard being not perfectly aligned with the camera.
+      before the rendering, and doing it in @link(Update) is not enough.
+
+      E.g. this makes sense to implement billboard, because user must never
+      see artifacts caused by billboard not perfectly aligned with
+      the camera (blending sort along camera direction in sort3D is not perfect
+      if billboard doesn't exactly match camera direction).
 
       Overriding this also allows to adjust transformation before rendering
       each occurrence of TCastleTransform in the viewport tree.
       This matters if given TCastleTransform may occur multiple times
       in the viewport tree, directly or through @link(TCastleTransformReference).
+      This also matters if given TCastleTransform may be present in multiple
+      viewports (see https://castle-engine.io/multiple_viewports_to_display_one_world).
 
       @param(
         ParentParentWorldTransform World transform of the parent of the parent
@@ -88,8 +94,13 @@
         ParentWorldInverseTransform
         Inverse world transform of the parent of this behavior.
       )
+
+      @param(CameraView
+        Current camera vectors, in world coordinates, used to render the scene
+        now.)
     }
     procedure BeforeRender(
+      const CameraView: TViewVectors;
       const ParentParentWorldTransform, ParentParentWorldInverseTransform,
             ParentWorldTransform, ParentWorldInverseTransform: TMatrix4); virtual;
 
@@ -231,6 +242,7 @@ begin
 end;
 
 procedure TCastleBehavior.BeforeRender(
+  const CameraView: TViewVectors;
   const ParentParentWorldTransform, ParentParentWorldInverseTransform,
         ParentWorldTransform, ParentWorldInverseTransform: TMatrix4);
 begin

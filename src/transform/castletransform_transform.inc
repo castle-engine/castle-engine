@@ -3239,6 +3239,7 @@ end;
 procedure TCastleTransform.Render(const Params: TRenderParams);
 
   procedure BehaviorsBeforeRender(
+    const CameraView: TViewVectors;
     const ParentWorldTransform, ParentWorldInverseTransform,
           WorldTransform, WorldInverseTransform: TMatrix4);
   var
@@ -3248,8 +3249,9 @@ procedure TCastleTransform.Render(const Params: TRenderParams);
     for I := 0 to FBehaviors.Count - 1 do
     begin
       Beh := FBehaviors[I] as TCastleBehavior;
-      Beh.BeforeRender(ParentWorldTransform, ParentWorldInverseTransform,
-                       WorldTransform, WorldInverseTransform);
+      Beh.BeforeRender(CameraView,
+        ParentWorldTransform, ParentWorldInverseTransform,
+        WorldTransform, WorldInverseTransform);
     end;
   end;
 
@@ -3294,6 +3296,7 @@ begin
     begin
       if FBehaviorsNeedBeforeRender then
         BehaviorsBeforeRender(
+          Params.RenderingCamera.View,
           Params.Transform^, Params.InverseTransform^,
           Params.Transform^, Params.InverseTransform^);
       LocalRender(Params);
@@ -3336,6 +3339,7 @@ begin
       //FrameProfiler.Stop(fmRenderTransform);
       if FBehaviorsNeedBeforeRender then
         BehaviorsBeforeRender(
+          Params.RenderingCamera.View,
           OldParamsTransform^, OldParamsInverseTransform^,
           Params.Transform^, Params.InverseTransform^);
       LocalRender(Params);
@@ -4206,8 +4210,9 @@ procedure TCastleTransform.UpdateBehaviorsNeedBeforeRender;
   function CustomizedBeforeRender(const Beh: TCastleBehavior): Boolean;
   type
     TBeforeRenderEvent = procedure (
-        const ParentWorldTransform, ParentWorldInverseTransform,
-              WorldTransform, WorldInverseTransform: TMatrix4) of object;
+      const CameraView: TViewVectors;
+      const ParentWorldTransform, ParentWorldInverseTransform,
+            WorldTransform, WorldInverseTransform: TMatrix4) of object;
   var
     CurMethod, NotOverriddedMethod: TBeforeRenderEvent;
   begin

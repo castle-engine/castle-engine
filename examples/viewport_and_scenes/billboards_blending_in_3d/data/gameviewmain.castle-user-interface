@@ -1,0 +1,923 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Background" : "Background1",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "Right" : 5.0000000000000000E+000
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 1.0000000000000000E+000,
+        "Green" : 5.8431375026702881E-001,
+        "Red" : 8.6666667461395264E-001
+      },
+      "Camera" : "CameraRegular",
+      "HeightFraction" : 1.0000000000000000E+000,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "CameraRegular",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 1.8766813278198242E+000,
+              "X" : -9.8521299660205841E-002,
+              "Y" : -9.8647725582122803E-001,
+              "Z" : -1.3098207116127014E-001
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 9.9999994039535522E-001,
+              "Z" : 9.9999994039535522E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.1560698699951172E+002,
+              "Y" : 5.2839221954345703E+001,
+              "Z" : -6.8047508239746094E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "CameraTop",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 1.5360486507415771E+000,
+              "X" : -9.6887087821960449E-001,
+              "Y" : -1.8076272308826447E-001,
+              "Z" : -1.6915729641914368E-001
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.0000001192092896E+000,
+              "Y" : 1.0000001192092896E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -2.0891233444213867E+001,
+              "Y" : 2.3594538879394531E+002,
+              "Z" : 7.9493989944458008E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "SharedInBothViewports",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "DragonsNonZeroAxisRotation",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 3.1928277015686035E+000,
+                  "Z" : -5.7829982757568359E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon6",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8359498977661133E+000,
+                      "X" : -2.4414062500000000E-004,
+                      "Y" : -9.9999994039535522E-001,
+                      "Z" : 1.8668596749193966E-004
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 2.3606698989868164E+001,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -3.0108705520629883E+001
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "Name" : "Billboard6"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon5",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8359498977661133E+000,
+                      "X" : -2.4414062500000000E-004,
+                      "Y" : -9.9999994039535522E-001,
+                      "Z" : 1.8668596749193966E-004
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 2.6908073425292969E+001,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -8.7822446823120117E+000
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "Name" : "Billboard5"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon4",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8359498977661133E+000,
+                      "X" : -2.4414062500000000E-004,
+                      "Y" : -9.9999994039535522E-001,
+                      "Z" : 1.8668596749193966E-004
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0677175521850586E+001,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -6.2696719169616699E+000
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "Name" : "Billboard4"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon3",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8359498977661133E+000,
+                      "X" : -2.4414062500000000E-004,
+                      "Y" : -9.9999994039535522E-001,
+                      "Z" : 1.8668596749193966E-004
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 7.0799727439880371E+000,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -2.9507144927978516E+001
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "Name" : "Billboard3"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon2",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8359498977661133E+000,
+                      "X" : -2.4414062500000000E-004,
+                      "Y" : -9.9999994039535522E-001,
+                      "Z" : 1.8668596749193966E-004
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -8.5058212280273438E+000,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -2.7094438552856445E+001
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "Name" : "Billboard2"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon1",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8359498977661133E+000,
+                      "X" : -2.4414062500000000E-004,
+                      "Y" : -9.9999994039535522E-001,
+                      "Z" : 1.8668596749193966E-004
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -5.0587348937988281E+000,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -4.8267135620117188E+000
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "Name" : "Billboard1"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleText",
+                    "ColorPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Green" : 7.8431375324726105E-002,
+                      "Red" : 0.0000000000000000E+000
+                    },
+                    "Name" : "Text1",
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8359498977661133E+000,
+                      "X" : -2.4414062500000000E-004,
+                      "Y" : -9.9999994039535522E-001,
+                      "Z" : 1.8668596749193966E-004
+                    },
+                    "Size" : 3.0000000000000000E+000,
+                    "Text" : [
+                      "Dragons",
+                      "( AxisOfRotation = +Y )"
+                    ],
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "Y" : 2.8324632644653320E+001,
+                      "Z" : -1.6979953765869141E+001
+                    },
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "Name" : "Billboard7"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "DragonsZeroAxisRotation",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 3.1928277015686035E+000,
+                  "Z" : 2.3791229248046875E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon7",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8501864671707153E+000,
+                      "X" : -1.0529639571905136E-001,
+                      "Y" : -9.8509442806243896E-001,
+                      "Z" : -1.3602137565612793E-001
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 2.3606698989868164E+001,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -3.0108705520629883E+001
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "AxisOfRotationPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "Y" : 0.0000000000000000E+000
+                        },
+                        "Name" : "Billboard8"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon8",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8501864671707153E+000,
+                      "X" : -1.0529639571905136E-001,
+                      "Y" : -9.8509442806243896E-001,
+                      "Z" : -1.3602137565612793E-001
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 2.6908073425292969E+001,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -8.7822446823120117E+000
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "AxisOfRotationPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "Y" : 0.0000000000000000E+000
+                        },
+                        "Name" : "Billboard9"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon9",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8501864671707153E+000,
+                      "X" : -1.0529639571905136E-001,
+                      "Y" : -9.8509442806243896E-001,
+                      "Z" : -1.3602137565612793E-001
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.0677175521850586E+001,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -6.2696719169616699E+000
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "AxisOfRotationPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "Y" : 0.0000000000000000E+000
+                        },
+                        "Name" : "Billboard10"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon10",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8501864671707153E+000,
+                      "X" : -1.0529639571905136E-001,
+                      "Y" : -9.8509442806243896E-001,
+                      "Z" : -1.3602137565612793E-001
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 7.0799727439880371E+000,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -2.9507144927978516E+001
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "AxisOfRotationPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "Y" : 0.0000000000000000E+000
+                        },
+                        "Name" : "Billboard11"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon11",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8501864671707153E+000,
+                      "X" : -1.0529639571905136E-001,
+                      "Y" : -9.8509442806243896E-001,
+                      "Z" : -1.3602137565612793E-001
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -8.5058212280273438E+000,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -2.7094438552856445E+001
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "AxisOfRotationPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "Y" : 0.0000000000000000E+000
+                        },
+                        "Name" : "Billboard12"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "flying",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneDragon12",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8501864671707153E+000,
+                      "X" : -1.0529639571905136E-001,
+                      "Y" : -9.8509442806243896E-001,
+                      "Z" : -1.3602137565612793E-001
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 9.9999997764825821E-003,
+                      "Y" : 9.9999997764825821E-003,
+                      "Z" : 9.9999997764825821E-003
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -5.0587348937988281E+000,
+                      "Y" : 2.7104146480560303E+000,
+                      "Z" : -4.8267135620117188E+000
+                    },
+                    "URL" : "castle-data:/dragon/dragon.json",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "AxisOfRotationPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "Y" : 0.0000000000000000E+000
+                        },
+                        "Name" : "Billboard13"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleText",
+                    "ColorPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Blue" : 3.1372550874948502E-002,
+                      "Red" : 0.0000000000000000E+000
+                    },
+                    "Name" : "Text2",
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "W" : 1.8501864671707153E+000,
+                      "X" : -1.0529639571905136E-001,
+                      "Y" : -9.8509442806243896E-001,
+                      "Z" : -1.3602137565612793E-001
+                    },
+                    "Size" : 3.0000000000000000E+000,
+                    "Text" : [
+                      "Dragons",
+                      "( AxisOfRotation = zero )"
+                    ],
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "Y" : 2.8324632644653320E+001,
+                      "Z" : -1.6979953765869141E+001
+                    },
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleBillboard",
+                        "AxisOfRotationPersistent" : {
+                          "$$ClassName" : "TCastleVector3Persistent",
+                          "Y" : 0.0000000000000000E+000
+                        },
+                        "Name" : "Billboard14"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastlePlane",
+                "Name" : "Plane1",
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "SizePersistent" : {
+                  "$$ClassName" : "TCastleVector2Persistent",
+                  "X" : 5.0000000000000000E+002,
+                  "Y" : 5.0000000000000000E+002
+                }
+              },
+              {
+                "$$ClassName" : "TCastlePointLight",
+                "Intensity" : 1.0000000000000000E+002,
+                "Name" : "PointLight1",
+                "Radius" : 1.0000000000000000E+003,
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.0000000000000000E+000,
+                  "Y" : 1.0000000000000000E+000,
+                  "Z" : 1.0000000000000000E+000
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "Name" : "ViewportRegular",
+      "WidthFraction" : 6.9999998807907104E-001,
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        }
+      ],
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleExamineNavigation",
+          "Name" : "ExamineNavigation1"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Name" : "Label1",
+          "Text" : [
+            "Regular View"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 9.0000000000000000E+000,
+            "Y" : -9.0000000000000000E+000
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 1.8501864671707153E+000,
+          "X" : -1.0529651492834091E-001,
+          "Y" : -9.8509448766708374E-001,
+          "Z" : -1.3602130115032196E-001
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Y" : 1.0000001192092896E+000
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -1.1616919708251953E+002,
+          "Y" : 5.2839221954345703E+001,
+          "Z" : -6.8200172424316406E+001
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "MoveSpeed" : 5.4116954803466797E+001,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.7647059261798859E-001,
+        "Green" : 6.1176472902297974E-001,
+        "Red" : 9.8823529481887817E-001
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Background" : "Background2",
+      "Camera" : "Camera2",
+      "HeightFraction" : 1.0000000000000000E+000,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera2",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 8.6496734619140625E-001,
+              "X" : -2.9199475049972534E-001,
+              "Y" : 9.4821619987487793E-001,
+              "Z" : 1.2500090897083282E-001
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 9.9999994039535522E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 7.7023463249206543E+000,
+              "Y" : 3.3161113262176514E+000,
+              "Z" : 8.0032939910888672E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "TransformReference1"
+          }
+        ]
+      },
+      "Name" : "ViewportTop",
+      "WidthFraction" : 3.0000001192092896E-001,
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background2"
+        }
+      ],
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "Alignment" : "hpRight",
+          "HorizontalAnchorParent" : "hpRight",
+          "HorizontalAnchorSelf" : "hpRight",
+          "Name" : "Label2",
+          "Text" : [
+            "Top View",
+            "(Run the project to see it.)"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -9.0000000000000000E+000,
+            "Y" : -9.0000000000000000E+000
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleExamineNavigation",
+          "Name" : "ExamineNavigation2"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 3.3024387359619141E+000,
+          "X" : 8.5882954299449921E-003,
+          "Y" : 9.9281299114227295E-001,
+          "Z" : 1.1936788260936737E-001
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Y" : 1.0000002384185791E+000,
+          "Z" : 1.0000001192092896E+000
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 7.7023463249206543E+000,
+          "Y" : 2.0268609523773193E+000,
+          "Z" : 8.0032939910888672E+000
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    }
+  ]
+}
