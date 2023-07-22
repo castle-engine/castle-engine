@@ -20,10 +20,12 @@ Demo that you can use
 
 See [API reference](https://castle-engine.io/apidoc/html/) of
 
-- `TCastleBillboard.AxisORotation`
-- `TCastleBillboard.MatchCameraDirection` (note: `MatchCameraDirection = true` is necessary for blending sorting to work OK)
-- `sort3D`
-- `sort3DVerticalBillboards`
+- [TCastleBillboard.AxisOfRotation](https://castle-engine.io/apidoc/html/CastleBehaviors.TCastleBillboard.html#AxisOfRotation)
+- [TCastleBillboard.MatchCameraDirection](https://castle-engine.io/apidoc/html/CastleBehaviors.TCastleBillboard.html#MatchCameraDirection) (note: `MatchCameraDirection = true` is necessary for blending sorting to work OK)
+- [sort3D](https://castle-engine.io/apidoc/html/CastleRenderOptions.html#sort3D)
+- [sort3DVerticalBillboards](https://castle-engine.io/apidoc/html/CastleRenderOptions.html#sort3DVerticalBillboards)
+
+![Screenshot](screenshot.png)
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
