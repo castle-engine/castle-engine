@@ -167,7 +167,8 @@ implementation
 
 uses SysUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleScene, CastleGLUtils, CastleRenderContext, CastleColors, CastleUtils;
+  CastleScene, CastleGLUtils, CastleRenderContext, CastleColors, CastleUtils,
+  X3DCameraUtils;
 
 { TShapesCollector ----------------------------------------------------------- }
 
@@ -270,8 +271,7 @@ procedure TShapesRenderer.PrepareResources;
 
       DummyCamera := TRenderingCamera.Create;
       try
-        DummyCamera.FromMatrix(TVector3.Zero,
-          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+        DummyCamera.FromViewVectors(DefaultX3DCameraView, TMatrix4.Identity);
 
         Renderer.RenderBegin(nil, DummyCamera, nil, 0, 0, 0, @DummyStatistics);
 
@@ -615,14 +615,16 @@ begin
       if everything is still OK (nothing was added/removed from the world,
       order is still OK). }
     Shapes.FCollected.OnCustomShapeSort := OnCustomShapeSort;
-    Shapes.FCollected.SortBackToFront(Params.RenderingCamera.Position,
+    Shapes.FCollected.SortBackToFront(
+      Params.RenderingCamera.View,
       BlendingSort);
 
     FBlendingRenderer.RenderBegin;
   end else
   begin
     Shapes.FCollected.OnCustomShapeSort := OnCustomShapeSort;
-    Shapes.FCollected.SortFrontToBack(Params.RenderingCamera.Position,
+    Shapes.FCollected.SortFrontToBack(
+      Params.RenderingCamera.View,
       OcclusionSort);
   end;
 

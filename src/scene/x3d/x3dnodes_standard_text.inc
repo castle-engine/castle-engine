@@ -810,14 +810,22 @@ end;
 destructor TTextNode.Destroy;
 begin
   if X3DCache <> nil then
+  begin
     X3DCache.FreeFontTexture(FFontTextureNode);
+    // X3DCache.FreeFontTexture must be set it to nil
+    Assert(FFontTextureNode = nil);
+  end;
   inherited;
 end;
 
 procedure TTextNode.FontChanged;
 begin
   if X3DCache <> nil then
+  begin
     X3DCache.FreeFontTexture(FFontTextureNode);
+    // X3DCache.FreeFontTexture must be set it to nil
+    Assert(FFontTextureNode = nil);
+  end;
 end;
 
 function TTextNode.TexCoordField: TSFNode;

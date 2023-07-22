@@ -49,7 +49,7 @@ uses SysUtils, Classes, Math,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleCameras, {$ifdef FPC}CastleSceneManager,{$endif} CastleVectors,
-  CastleTransform, CastleScene, CastleApplicationProperties,
+  CastleTransform, CastleScene, CastleApplicationProperties, X3DCameraUtils,
   CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer;
 
 procedure TTestCastleWindow.Test1;
@@ -293,8 +293,8 @@ var
     try
       RenderParams.RenderingCamera := TRenderingCamera.Create;
       try
-        RenderParams.RenderingCamera.FromMatrix(TVector3.Zero,
-          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+        RenderParams.RenderingCamera.FromViewVectors(
+          DefaultX3DCameraView, TMatrix4.Identity);
         RenderParams.RenderingCamera.Target := rtScreen;
         RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
         RenderParams.Collector := ShapesCollector;

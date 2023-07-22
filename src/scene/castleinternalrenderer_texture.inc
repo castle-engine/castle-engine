@@ -292,7 +292,7 @@
       const ProjectionNear, ProjectionFar: Single;
       const CurrentViewpoint: TAbstractViewpointNode;
       const CameraViewKnown: boolean;
-      const CameraPosition, CameraDirection, CameraUp: TVector3;
+      const CameraView: TViewVectors;
       const ShapeForViewpointMirror: TX3DRendererShape);
   end;
 
@@ -1273,7 +1273,7 @@ procedure TRenderedTextureResource.Update(
   const ProjectionNear, ProjectionFar: Single;
   const CurrentViewpoint: TAbstractViewpointNode;
   const CameraViewKnown: boolean;
-  const CameraPosition, CameraDirection, CameraUp: TVector3;
+  const CameraView: TViewVectors;
   const ShapeForViewpointMirror: TX3DRendererShape);
 
   function GetProjectionMatrix(const Viewpoint: TAbstractViewpointNode): TMatrix4;
@@ -1375,27 +1375,21 @@ procedure TRenderedTextureResource.Update(
   end;
 
   procedure GetRenderedTextureCamera(const Viewpoint: TAbstractViewpointNode;
-    out Pos, Dir, Up: TVector3);
-  var
-    { It's returned by Viewpoint.GetView, but we'll ignore it. }
-    GravityUp: TVector3;
+    out CameraRender: TViewVectors);
 
     procedure GetFromCurrent;
     begin
       if CameraViewKnown then
       begin
-        Pos := CameraPosition;
-        Dir := CameraDirection;
-        Up  := CameraUp;
+        CameraRender := CameraView;
       end else
       if CurrentViewpoint <> nil then
-        CurrentViewpoint.GetView(Pos, Dir, Up, GravityUp) else
+        CurrentViewpoint.GetView(CameraRender)
+      else
       begin
         { If all else fails (no viewpoint node bound, not known current
           camera settings) then use defaults. }
-        Pos := DefaultX3DCameraPosition[cvVrml2_X3d];
-        Dir := DefaultX3DCameraDirection;
-        Up  := DefaultX3DCameraUp;
+        CameraRender := DefaultX3DCameraView;
       end;
     end;
 
@@ -1406,7 +1400,7 @@ procedure TRenderedTextureResource.Update(
       { Viewpoint gets assigned something different than CurrentViewpoint
         only when it's non-nil. }
       Assert(Viewpoint <> nil);
-      Viewpoint.GetView(Pos, Dir, Up, GravityUp);
+      Viewpoint.GetView(CameraRender);
     end;
   end;
 
@@ -1460,24 +1454,18 @@ procedure TRenderedTextureResource.Update(
   end;
 
   procedure GetMatricesForViewpoint(const Viewpoint: TAbstractViewpointNode;
-    out CameraRenderPosition: TVector3;
-    out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
-  var
-    Pos, Dir, Up: TVector3;
+    out CameraRender: TViewVectors;
+    out ProjectionMatrix: TMatrix4);
   begin
     ProjectionMatrix := GetProjectionMatrix(Viewpoint);
-
-    GetRenderedTextureCamera(Viewpoint, Pos, Dir, Up);
-    CameraRenderPosition := Pos;
-    CameraMatrix := LookDirMatrix(Pos, Dir, Up);
-    CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Up);
+    GetRenderedTextureCamera(Viewpoint, CameraRender);
   end;
 
   procedure GetMatricesForViewpointMirror(const ViewpointMirror: TViewpointMirrorNode;
-    out CameraRenderPosition: TVector3;
-    out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
+    out CameraRender: TViewVectors;
+    out ProjectionMatrix: TMatrix4);
   var
-    Pos, Dir, Up, PosOnPlane, Side, Coord, PlaneCoord: TVector3;
+    PosOnPlane, Side, Coord, PlaneCoord: TVector3;
     PlaneCoordProjected: TVector2;
     Plane: TVector4;
     ZNear: Single;
@@ -1491,20 +1479,18 @@ procedure TRenderedTextureResource.Update(
        (not ShapeForViewpointMirror.ParentScene.HasWorldTransform) then
     begin
       WritelnWarning('ViewpointMirror can only work in TCastleScene that is part of viewport exactly once (without TCastleTransformReference)');
-      GetMatricesForViewpoint(
-        CurrentViewpoint, CameraRenderPosition, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+      GetMatricesForViewpoint(CurrentViewpoint, CameraRender, ProjectionMatrix);
       Exit;
     end;
 
-    { calculate camera Pos, Dir, Up (in world space) }
+    { calculate camera CameraRender (in world space) }
     if not CameraViewKnown then
     begin
       WritelnWarning('ViewpointMirror will not work correctly until camera vectors are known');
-      GetMatricesForViewpoint(
-        CurrentViewpoint, CameraRenderPosition, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+      GetMatricesForViewpoint(CurrentViewpoint, CameraRender, ProjectionMatrix);
       Exit;
     end;
-    GetRenderedTextureCamera(CurrentViewpoint, Pos, Dir, Up);
+    GetRenderedTextureCamera(CurrentViewpoint, CameraRender);
 
     { calculate GeometryCoords }
     GeometryCoords := nil;
@@ -1514,8 +1500,7 @@ procedure TRenderedTextureResource.Update(
     if GeometryCoords = nil then
     begin
       WritelnWarning('ViewpointMirror can only be used on node with coordinates');
-      GetMatricesForViewpoint(
-        CurrentViewpoint, CameraRenderPosition, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+      GetMatricesForViewpoint(CurrentViewpoint, CameraRender, ProjectionMatrix);
       Exit;
     end;
 
@@ -1523,8 +1508,7 @@ procedure TRenderedTextureResource.Update(
     if not PointsPlane(GeometryCoords, Plane) then
     begin
       WritelnWarning('ViewpointMirror plane cannot be determined, the shape does not define a plane');
-      GetMatricesForViewpoint(
-        CurrentViewpoint, CameraRenderPosition, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+      GetMatricesForViewpoint(CurrentViewpoint, CameraRender, ProjectionMatrix);
       Exit;
     end;
 
@@ -1534,20 +1518,18 @@ procedure TRenderedTextureResource.Update(
       ShapeForViewpointMirror.State.Transformation.Transform);
 
     { reflect Pos, Dir, Up for mirror view }
-    PosOnPlane := PointOnPlaneClosestToPoint(Plane, Pos);
-    Pos := 2 * PosOnPlane - Pos; // mirror Pos versus Plane
-    Dir := PosOnPlane - Pos;
-    //Up := keep current Up
+    PosOnPlane := PointOnPlaneClosestToPoint(Plane, CameraRender.Translation);
+    CameraRender.Translation := 2 * PosOnPlane - CameraRender.Translation; // mirror Pos versus Plane
+    CameraRender.Direction := PosOnPlane - CameraRender.Translation;
+    //CameraRender.Up := no need to change
 
     { calculate Side, and make Dir, Up normalized and orthogonal }
-    Dir := Dir.Normalize;
-    //Up := Up.Normalize; // no need to
-    MakeVectorsOrthoOnTheirPlane(Up, Dir);
-    Side := TVector3.CrossProduct(Dir, Up);
+    CameraRender.Direction := CameraRender.Direction.Normalize;
+    //CameraRender.Up := CameraRender.Up.Normalize; // no need to
+    MakeVectorsOrthoOnTheirPlane(CameraRender.Up, CameraRender.Direction);
+    Side := TVector3.CrossProduct(CameraRender.Direction, CameraRender.Up);
 
-    CameraRenderPosition := Pos;
-    CameraMatrix := LookDirMatrix(Pos, Dir, Side, Up);
-    CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Side, Up);
+    { At this point CameraRender is ready. }
 
     { calculate FrustumDimensions,
       to include ShapeForViewpointMirror bounding box projected on the Plane. }
@@ -1560,12 +1542,13 @@ procedure TRenderedTextureResource.Update(
       PlaneCoord := PointOnPlaneClosestToPoint(Plane, Coord) - PosOnPlane;
       PlaneCoordProjected := Vector2(
         TVector3.DotProduct(PlaneCoord, Side),
-        TVector3.DotProduct(PlaneCoord, Up)
+        TVector3.DotProduct(PlaneCoord, CameraRender.Up)
       );
       FrustumDimensions := FrustumDimensions.Include(PlaneCoordProjected);
     end;
 
-    ZNear := PointsDistance(Pos, PosOnPlane) + ViewpointMirror.DistanceFromShape;
+    ZNear := PointsDistance(CameraRender.Translation, PosOnPlane) +
+      ViewpointMirror.DistanceFromShape;
     ProjectionMatrix := FrustumProjectionMatrix(FrustumDimensions,
       ZNear, ProjectionFar);
 
@@ -1574,13 +1557,13 @@ procedure TRenderedTextureResource.Update(
     ShapeForViewpointMirror.MirrorPlaneUniforms.NormalizedPlane := Plane;
     ShapeForViewpointMirror.MirrorPlaneUniforms.CameraPositionOnPlane := PosOnPlane;
     ShapeForViewpointMirror.MirrorPlaneUniforms.CameraSide := Side;
-    ShapeForViewpointMirror.MirrorPlaneUniforms.CameraUp := Up;
+    ShapeForViewpointMirror.MirrorPlaneUniforms.CameraUp := CameraRender.Up;
     ShapeForViewpointMirror.MirrorPlaneUniforms.FrustumDimensions := FrustumDimensions;
   end;
 
 var
-  CameraRenderPosition: TVector3;
-  CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4;
+  CameraRender: TViewVectors;
+  SavedProjectionMatrix, NewProjectionMatrix: TMatrix4;
   Camera: TRenderingCamera;
   SavedViewport: TRectangle;
 begin
@@ -1591,25 +1574,25 @@ begin
   if TextureNode.FdViewpoint.Value is TViewpointMirrorNode then
     GetMatricesForViewpointMirror(
       TViewpointMirrorNode(TextureNode.FdViewpoint.Value),
-      CameraRenderPosition, CameraMatrix, CameraRotationMatrix, NewProjectionMatrix)
+      CameraRender, NewProjectionMatrix)
   else
   if TextureNode.FdViewpoint.Value is TAbstractViewpointNode then
     GetMatricesForViewpoint(
       TAbstractViewpointNode(TextureNode.FdViewpoint.Value),
-      CameraRenderPosition, CameraMatrix, CameraRotationMatrix, NewProjectionMatrix)
+      CameraRender, NewProjectionMatrix)
   else
     GetMatricesForViewpoint(
       CurrentViewpoint,
-      CameraRenderPosition, CameraMatrix, CameraRotationMatrix, NewProjectionMatrix);
+      CameraRender, NewProjectionMatrix);
 
   TextureNode.EventProjection.Send(NewProjectionMatrix);
-  TextureNode.EventViewing.Send(CameraMatrix);
+  TextureNode.EventViewing.Send(CameraRender.Matrix);
   TextureNode.EventRendering.Send(true);
 
   Camera := TRenderingCamera.Create;
   try
     Camera.Target := rfRenderedTexture;
-    Camera.FromMatrix(CameraRenderPosition, CameraMatrix, CameraRotationMatrix, NewProjectionMatrix);
+    Camera.FromViewVectors(CameraRender, NewProjectionMatrix);
 
     RenderToTexture.RenderBegin;
 
@@ -2145,6 +2128,7 @@ var
   SavedViewport: TRectangle;
   Camera: TRenderingCamera;
   SavedPolygonOffset: TPolygonOffset;
+  CameraRender: TViewVectors;
 begin
   if FGLName = 0 then Exit;
 
@@ -2158,11 +2142,8 @@ begin
     else
       Camera.Target := rtShadowMap;
 
-    Camera.FromMatrix(
-      Light.ProjectionWorldLocation,
-      Light.ModelviewMatrix,
-      Light.ModelviewRotationMatrix,
-      NewProjectionMatrix);
+    Light.GetView(CameraRender);
+    Camera.FromViewVectors(CameraRender, NewProjectionMatrix);
 
     RenderToTexture.RenderBegin;
 

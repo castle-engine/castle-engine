@@ -64,8 +64,17 @@
     property Mass: Single read FMass write FMass
       {$ifdef FPC}default DefaultMass{$endif};
 
+    { How elastic are collisions with this body,
+      that is how much collider "bounces off" this body.
+
+      It generally ranges from 0 (perfectly non-elastic) to 1
+      (perfectly elastic). It is almost always less than 1,
+      since the initial kinetic energy gets lost at collision.
+      See https://en.wikipedia.org/wiki/Coefficient_of_restitution
+      for more discussion. }
     property Restitution: Single read FRestitution write FRestitution
       {$ifdef FPC}default DefaultRestitution{$endif};
+
     property Friction: Single read FFriction write FFriction
       {$ifdef FPC}default DefaultFriction{$endif};
   end deprecated 'use TCastleCollider';

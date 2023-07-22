@@ -59,7 +59,8 @@
       TODO: This may need transform to world space, not just scene space,
       just like TAbstractLightNode.GetView does.
       Test how it behaves in TCastleScene that has some transformation. }
-    procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3);
+    procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3); overload;
+    procedure GetView(out CamView: TViewVectors); overload;
 
     { Description generated smart (trying to use FdDescription field,
       falling back on other information to help user identify the node). }
@@ -82,10 +83,6 @@
 
   TX3DViewpointClassNode = class of TAbstractViewpointNode;
 
-  TCameraVectors = record
-    Position, Direction, Up: TVector3;
-  end;
-
   { Grouping node that transforms the coordinate system of its children
     so that they always turn towards the viewer.
     The local Z axis of the children faces the camera,
@@ -104,7 +101,7 @@
       end;
     var
       FTransformFunctionality: TBillboardNodeTransformFunctionality;
-      FCameraVectors: TCameraVectors;
+      FCameraVectors: TViewVectors;
       FCameraVectorsKnown: boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -113,7 +110,7 @@
     function TransformationChange: TNodeTransformationChange; override;
 
     { Change transformation to reflect current camera. @exclude }
-    procedure InternalCameraChanged(const ACameraVectors: TCameraVectors);
+    procedure InternalCameraChanged(const ACameraVectors: TViewVectors);
 
   {$I auto_generated_node_helpers/x3dnodes_billboard.inc}
   end;
@@ -277,7 +274,7 @@
 
 const
   ShapeSortNames: array [TShapeSort] of string =
-  ('AUTO', 'NONE', '2D', '3D', '3D_ORIGIN', '3D_GROUND', 'CUSTOM');
+  ('AUTO', 'NONE', '2D', '3D', '3D_VERTICAL_BILLBOARDS', '3D_ORIGIN', '3D_GROUND', 'CUSTOM');
 
 { TAbstractViewpointNode -------------------------------------------------- }
 
@@ -289,6 +286,14 @@ begin
   FdDirection.ChangeAlways := chViewpointVectors;
   FdUp.ChangeAlways := chViewpointVectors;
   FdGravityUp.ChangeAlways := chViewpointVectors;
+end;
+
+procedure TAbstractViewpointNode.GetView(
+  out CamView: TViewVectors);
+var
+  IgnoredGravityUp: TVector3;
+begin
+  GetView(CamView.Translation, CamView.Direction, CamView.Up, IgnoredGravityUp);
 end;
 
 procedure TAbstractViewpointNode.GetView(
@@ -378,10 +383,10 @@ end;
 
 function TAbstractViewpointNode.ModelviewMatrix: TMatrix4;
 var
-  CamPos, CamDir, CamUp, CamGravityUp: TVector3;
+  CamView: TViewVectors;
 begin
-  GetView(CamPos, CamDir, CamUp, CamGravityUp);
-  Result := LookDirMatrix(CamPos, CamDir, CamUp);
+  GetView(CamView);
+  Result := CamView.Matrix;
 end;
 
 function TAbstractViewpointNode.GetProjectorMatrix: TMatrix4;
@@ -429,7 +434,8 @@ begin
     end else
     begin
       { vector from node origin to FCameraVectors.Position, in local coords }
-      BillboardToViewer := Transformation.InverseTransform.MultPoint(Parent.FCameraVectors.Position);
+      BillboardToViewer := Transformation.InverseTransform.MultPoint(
+        Parent.FCameraVectors.Translation);
 
       { plane of axisOfRotation }
       PlaneAxisDir := Parent.FdAxisOfRotation.Value;
@@ -489,7 +495,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-procedure TBillboardNode.InternalCameraChanged(const ACameraVectors: TCameraVectors);
+procedure TBillboardNode.InternalCameraChanged(const ACameraVectors: TViewVectors);
 begin
   FCameraVectorsKnown := true;
   FCameraVectors := ACameraVectors;
