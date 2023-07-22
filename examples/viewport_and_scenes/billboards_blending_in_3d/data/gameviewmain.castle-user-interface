@@ -116,6 +116,7 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AnimateSkipTicks" : 1,
             "AutoAnimation" : "flying",
             "ExposeTransforms" : [
             ],
@@ -157,6 +158,7 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AnimateSkipTicks" : 1,
             "AutoAnimation" : "flying",
             "ExposeTransforms" : [
             ],
@@ -198,6 +200,7 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AnimateSkipTicks" : 1,
             "AutoAnimation" : "flying",
             "ExposeTransforms" : [
             ],
@@ -239,6 +242,7 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AnimateSkipTicks" : 1,
             "AutoAnimation" : "flying",
             "ExposeTransforms" : [
             ],
@@ -280,6 +284,7 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AnimateSkipTicks" : 1,
             "AutoAnimation" : "flying",
             "ExposeTransforms" : [
             ],
@@ -321,6 +326,7 @@
           },
           {
             "$$ClassName" : "TCastleScene",
+            "AnimateSkipTicks" : 1,
             "AutoAnimation" : "flying",
             "ExposeTransforms" : [
             ],
