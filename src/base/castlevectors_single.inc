@@ -633,6 +633,15 @@ procedure TransformCoordsMatrices(const NewX, NewY, NewZ: TVector3;
 function TransformToCoords(const V, NewX, NewY, NewZ: TVector3): TVector3;
 { @groupEnd }
 
+type
+  { Express a 3D transformation as position, direction and up 3D vectors.
+    Useful especially for cameras. }
+  TViewVectors = record
+    Translation, Direction, Up: TVector3;
+    function Matrix: TMatrix4;
+    function RotationMatrix: TMatrix4;
+  end;
+
 { Camera matrix to look at the specified point (or along the specified direction).
   Work according to right-handed coordinate system.
 
@@ -2443,6 +2452,22 @@ procedure TransformCoordsMatrices(const NewX, NewY, NewZ: TVector3;
 begin
   ToCoords := TransformToCoordsMatrix(NewX, NewY, NewZ);
   FromCoords := TransformFromCoordsMatrix(NewX, NewY, NewZ);
+end;
+
+function TViewVectors.Matrix: TMatrix4;
+begin
+  Result := LookDirMatrix(Translation, Direction, Up);
+end;
+
+function TViewVectors.RotationMatrix: TMatrix4;
+begin
+  { TODO: We don't use FastLookDirMatrix for now,
+    because we aren't sure are Direction / Up normalized
+    and orthogonal in all cases.
+    We could check / fix it in the future (make Direction / Up normalized
+    and orthogonal) and then use faster FastLookDirMatrix. }
+
+  Result := LookDirMatrix(TVector3.Zero, Direction, Up);
 end;
 
 function LookAtMatrix(const Eye, Center, Up: TVector3): TMatrix4;

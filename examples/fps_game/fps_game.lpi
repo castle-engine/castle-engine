@@ -21,7 +21,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="10">
+    <Units Count="11">
       <Unit0>
         <Filename Value="fps_game.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -42,35 +42,40 @@
         <UnitName Value="gameenemy"/>
       </Unit3>
       <Unit4>
+        <Filename Value="code/gameviewportunderui.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameviewportunderui"/>
+      </Unit4>
+      <Unit5>
         <Filename Value="code/gameviewwin.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewwin"/>
-      </Unit4>
-      <Unit5>
+      </Unit5>
+      <Unit6>
         <Filename Value="code/gameviewdeath.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewdeath"/>
-      </Unit5>
-      <Unit6>
+      </Unit6>
+      <Unit7>
         <Filename Value="code/gameinitialize.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameinitialize"/>
-      </Unit6>
-      <Unit7>
+      </Unit7>
+      <Unit8>
         <Filename Value="code/gameviewcredits.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewcredits"/>
-      </Unit7>
-      <Unit8>
+      </Unit8>
+      <Unit9>
         <Filename Value="code/gameviewplay.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewplay"/>
-      </Unit8>
-      <Unit9>
+      </Unit9>
+      <Unit10>
         <Filename Value="code/gameviewoptions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewoptions"/>
-      </Unit9>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

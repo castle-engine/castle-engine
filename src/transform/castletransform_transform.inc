@@ -180,6 +180,8 @@
     procedure UpdateExistsInRoot;
     { Never call ChangedTransform directly, always call this. }
     procedure ChangedTransformCore(const UpdatePhysicsTransform: Boolean = true);
+    function GetWorldViewRec: TViewVectors;
+    procedure SetWorldViewRec(const Value: TViewVectors);
   private
     { "Meaningful" parent is a parent that competes to be a value of Parent.
       This allows to avoid TCastleTransformReference from being considered
@@ -196,6 +198,9 @@
       when it changes. They can register to those notifications. When list
       is not created that means no behaviors need those notifications. }
     FBehaviorsWorldChangeNotificationList: TCastleBehaviorList;
+
+    { Does any behavior on FBehaviors possibly override BeforeRender. }
+    FBehaviorsNeedBeforeRender: Boolean;
 
     { Update FWorld, FWorldReferences.
       This is recursively called on all children as well.
@@ -269,6 +274,7 @@
     procedure UpdateCollidersWorldScale;
 
     procedure SetParent(const Value: TCastleTransform);
+    procedure UpdateBehaviorsNeedBeforeRender;
   protected
     { Returns list of TCastleTransform to render. By default, it just returns @link(List). }
     function GetRenderList(const Params: TRenderParams): TCastleTransformList; virtual;
@@ -695,7 +701,11 @@
       if it is freed. You only need to be careful in case you add the same TCastleTransform
       instance multiple times to the same parent
       (see https://castle-engine.io/viewport_and_scenes_from_code#_multiple_instances_of_the_same_scene )
-      as then each removal removes one instance (not all) of the child from parent. }
+      as then each removal removes one instance (not all) of the child from parent.
+
+      Note: When you want to free the Item (that is, FreeItem parameter is @true)
+      then it actually doesn't matter on what parent will you call this.
+      Freeing the Item will always remove it from all parents. }
     procedure RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
 
     { Remove a child, by index on the @link(Items) list. }
@@ -762,9 +772,8 @@
     {$ifdef FPC}property UniqueParent: TCastleTransform read FParent; deprecated 'use Parent';{$endif}
 
     { Sort objects back-to-front @italic(right now)
-      following one of the blending sorting algorithms.
-      Only the immediate list items are reordered,
-      looking at their bounding boxes (the sorting is not recursive).
+      following the blending 2D sorting algorithm.
+      Only the immediate list items are reordered.
 
       Calling this method makes sense if you use
       @url(https://castle-engine.io/blending blending)
@@ -779,16 +788,7 @@
           of objects (with respect to the current camera) changes.
         )
         @item(
-          In 3D, it may make sense to call this method even every frame
-          (like in every @link(TCastleWindow.OnUpdate)).
-          Call it if you move or otherwise change the objects (changing their bounding boxes),
-          or if the CameraPosition may change. Note that CameraPosition is only
-          relevant if Sort is one of the sort3D* options,
-          like sort3D, sort3DOrigin, sort3DGround.
-        )
-        @item(
-          In 2D, it is a bit simpler.
-          You typically need to call this only when some objects' Z value changed
+          In 2D, you typically need to call this only when some objects' Z value changed
           (making this object move behind / in front of some other object),
           or when new object is added.
           You don't need to call this method when camera changes or when object's XY position
@@ -798,22 +798,7 @@
 
       Note that this doesn't take care of sorting the shapes
       within the scenes. For this, you should set
-      @link(TCastleViewport.BlendingSort).
-
-      See the TShapeSort documentation for the exact specification
-      of sorting algorithms. Using Sort = sortNone does nothing.
-
-      @seealso SortBackToFront2D }
-    procedure SortBackToFront(const Sort: TShapeSort;
-      const CameraPosition: TVector3);
-      deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
-
-    { Sort objects back-to-front @italic(right now)
-      following the 2D blending sorting algorithm.
-      See @link(SortBackToFront) for documentation, this method
-      is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)).
-
-      @seealso SortBackToFront }
+      @link(TCastleViewport.BlendingSort). }
     procedure SortBackToFront2D;
       deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
 
@@ -1775,6 +1760,20 @@
       Returned ADir and AUp are always normalized. }
     procedure GetWorldView(out APos, ADir, AUp: TVector3);
 
+    { Position, direction and up in world coordinates.
+
+      Returned TViewVectors.Direction and TViewVectors.Up are always orthogonal.
+      Returned TViewVectors.Dir and TViewVectors.Up are always normalized.
+
+      When setting, TViewVectors.Direction and TViewVectors.Up
+      do not need to be normalized. We will internally normalize them if necessary.
+
+      When setting, we will also automatically fix
+      TViewVectors.Direction and TViewVectors.Up to be orthogonal, if necessary:
+      we will adjust the up vector (preserving the given direction value). }
+    property WorldView: TViewVectors
+      read GetWorldViewRec write SetWorldViewRec;
+
     { Get position in world coordinates.
 
       The returned position is the same as by @link(GetWorldView).
@@ -2590,18 +2589,10 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
-procedure TCastleTransform.SortBackToFront(const Sort: TShapeSort;
-  const CameraPosition: TVector3);
-begin
-  {$warnings off} // using deprecated in deprecated
-  List.SortBackToFront(Sort, CameraPosition);
-  {$warnings on}
-end;
-
 procedure TCastleTransform.SortBackToFront2D;
 begin
   {$warnings off} // using deprecated in deprecated
-  SortBackToFront(bs2D, TVector3.Zero);
+  List.SortBackToFront2D;
   {$warnings on}
 end;
 
@@ -3054,7 +3045,7 @@ begin
     This matters, e.g. we activate FScene.ProcessEvents:=true
     in TCastleAbstractLight.Create, at which point FScene has a parent
     but the parent (TCastleAbstractLight instance) is not yet part of world.
-    SetProcessEvents calls GetCameraVectors that checks HasWorldTransform,
+    SetProcessEvents calls GetCameraLocal that checks HasWorldTransform,
     assuming that HasWorldTransform => implies World <> nil.
 
     TODO: maybe just "FWorld <> nil" should be enough? }
@@ -3259,6 +3250,24 @@ begin
 end;
 
 procedure TCastleTransform.Render(const Params: TRenderParams);
+
+  procedure BehaviorsBeforeRender(
+    const CameraView: TViewVectors;
+    const ParentWorldTransform, ParentWorldInverseTransform,
+          WorldTransform, WorldInverseTransform: TMatrix4);
+  var
+    I: Integer;
+    Beh: TCastleBehavior;
+  begin
+    for I := 0 to FBehaviors.Count - 1 do
+    begin
+      Beh := FBehaviors[I] as TCastleBehavior;
+      Beh.BeforeRender(CameraView,
+        ParentWorldTransform, ParentWorldInverseTransform,
+        WorldTransform, WorldInverseTransform);
+    end;
+  end;
+
 var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
@@ -3298,6 +3307,11 @@ begin
     T := Translation;
     if FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
     begin
+      if FBehaviorsNeedBeforeRender then
+        BehaviorsBeforeRender(
+          Params.RenderingCamera.View,
+          Params.Transform^, Params.InverseTransform^,
+          Params.Transform^, Params.InverseTransform^);
       LocalRender(Params);
     end else
     begin
@@ -3336,6 +3350,11 @@ begin
       end;
 
       //FrameProfiler.Stop(fmRenderTransform);
+      if FBehaviorsNeedBeforeRender then
+        BehaviorsBeforeRender(
+          Params.RenderingCamera.View,
+          OldParamsTransform^, OldParamsInverseTransform^,
+          Params.Transform^, Params.InverseTransform^);
       LocalRender(Params);
       //FrameProfiler.Start(fmRenderTransform);
 
@@ -3727,7 +3746,9 @@ begin
     Result := [psLayout]
   else
   if ArrayContainsString(PropertyName, [
-       'RotationPersistent', 'ScalePersistent', 'TranslationPersistent'
+       'RotationPersistent', 'ScalePersistent', 'TranslationPersistent',
+       // Direction and Up expose also Rotation but in alternative way
+       'DirectionPersistent', 'UpPersistent'
      ]) then
     Result := [psBasic, psLayout]
   else
@@ -3903,6 +3924,16 @@ begin
   APos := T;
   ADir := RotationToDirection(R);
   AUp := RotationToUp(R);
+end;
+
+function TCastleTransform.GetWorldViewRec: TViewVectors;
+begin
+  GetWorldView(Result.Translation, Result.Direction, Result.Up);
+end;
+
+procedure TCastleTransform.SetWorldViewRec(const Value: TViewVectors);
+begin
+  SetWorldView(Value.Translation, Value.Direction, Value.Up);
 end;
 
 function TCastleTransform.WorldTranslation: TVector3;
@@ -4089,6 +4120,8 @@ begin
         Behavior.WorldAfterAttach;
     end;
     NotifyBehaviorAdded(Behavior);
+
+    UpdateBehaviorsNeedBeforeRender;
   end;
 end;
 
@@ -4163,6 +4196,8 @@ begin
   Beh.ParentChanged; // call at end, when state is consistent
   {$warnings on}
   RemoveWorldChangeNotification(Beh);
+
+  UpdateBehaviorsNeedBeforeRender;
 end;
 
 procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
@@ -4223,6 +4258,49 @@ begin
   end;
 end;
 
+var
+  { Must be an instance of exactly TCastleBehavior, not any descedant.
+    Used by CustomizedBeforeRender. }
+  InternalBehavior: TCastleBehavior;
+
+procedure TCastleTransform.UpdateBehaviorsNeedBeforeRender;
+
+  { Beh overriddes TCastleBehavior.BeforeRender.
+
+    Note: In general checking for such "is this method overridden" is dirty,
+    as not expected by developers. But in this case it's used only for optimization,
+    no functional change occurs: when FBehaviorsNeedBeforeRender is false
+    (which is often), we can avoid calling BehaviorBeforeRender at all. }
+  function CustomizedBeforeRender(const Beh: TCastleBehavior): Boolean;
+  type
+    TBeforeRenderEvent = procedure (
+      const CameraView: TViewVectors;
+      const ParentWorldTransform, ParentWorldInverseTransform,
+            WorldTransform, WorldInverseTransform: TMatrix4) of object;
+  var
+    CurMethod, NotOverriddedMethod: TBeforeRenderEvent;
+  begin
+    CurMethod := {$ifdef FPC}@{$endif} Beh.BeforeRender;
+    NotOverriddedMethod := {$ifdef FPC}@{$endif} InternalBehavior.BeforeRender;
+    Result := TMethod(CurMethod).Code <> TMethod(NotOverriddedMethod).Code;
+  end;
+
+var
+  I: Integer;
+  Beh: TCastleBehavior;
+begin
+  FBehaviorsNeedBeforeRender := false;
+  for I := 0 to FBehaviors.Count - 1 do
+  begin
+    Beh := FBehaviors[I] as TCastleBehavior;
+    if CustomizedBeforeRender(Beh) then
+    begin
+      FBehaviorsNeedBeforeRender := true;
+      Exit; // no point in checking the rest
+    end;
+  end;
+end;
+
 procedure TCastleTransform.PendingRemovals;
 var
   I: Integer;
@@ -4251,6 +4329,11 @@ end;
 
 procedure TCastleTransform.RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
 begin
+  { Avoid crash in certain cases,
+    see https://forum.castle-engine.io/t/sigsegv-when-i-try-to-remove/859/8 }
+  if Item = Self then
+    raise Exception.Create('Cannot remove the object from itself using RemoveDelayed');
+
   if FreeItem then
   begin
     if FPendingToRemoveAndFree = nil then

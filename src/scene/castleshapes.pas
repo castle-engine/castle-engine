@@ -101,7 +101,8 @@ type
     may look like this:
 
     @longCode(#
-    function TMyView.MyShapeSort(const CameraWorldPosition: TVector3;
+    function TMyView.MyShapeSort(
+      const Camera: TViewVectors;
       const Shape1, Shape2: TShape;
       const RenderOptions1, RenderOptions2: TCastleRenderOptions;
       const SceneTransform1, SceneTransform2: TMatrix4): Integer;
@@ -111,12 +112,17 @@ type
       PointA := (SceneTransform1 * Shape1.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
       PointB := (SceneTransform2 * Shape2.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
       Result := Sign(
-        PointsDistanceSqr(PointB, CameraWorldPosition) -
-        PointsDistanceSqr(PointA, CameraWorldPosition));
+        TVector3.DotProduct(PointB, Camera.Direction) -
+        TVector3.DotProduct(PointA, Camera.Direction));
+      // Other approach:
+      // Result := Sign(
+      //   PointsDistanceSqr(PointB, Camera.Translation) -
+      //   PointsDistanceSqr(PointA, Camera.Translation));
     end;
     #)
   }
-  TShapeSortEvent = function (const CameraWorldPosition: TVector3;
+  TShapeSortEvent = function (
+    const Camera: TViewVectors;
     const Shape1, Shape2: TShape;
     const RenderOptions1, RenderOptions2: TCastleRenderOptions;
     const SceneTransform1, SceneTransform2: TMatrix4)

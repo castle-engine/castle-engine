@@ -104,6 +104,13 @@ procedure FillByte(var X; Count: SizeInt; Value: Byte);
 procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
 function StrToDWord(const S: String): DWord;
 
+{ Silence warnings, we know it is platform specific and most code shouldn't use Extended,
+  it's also said in our coding convs: https://castle-engine.io/coding_conventions }
+{$warnings off}
+const
+  MaxFloat = MaxExtended;
+{$warnings on}
+
 {$endif read_interface}
 {$ifdef read_implementation}
 

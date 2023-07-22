@@ -201,17 +201,17 @@ object ProjectForm: TProjectForm
           AutoSortIndicator = True
           AutoWidthLastColumn = True
           BorderSpacing.Around = 10
-          Columns = <          
+          Columns = <
             item
               AutoSize = True
               Caption = 'Name'
               MinWidth = 209
               Width = 209
-            end          
+            end
             item
               Caption = 'File'
               Width = 626
-            end          
+            end
             item
               Caption = 'Last Modified'
               Width = 378
@@ -313,7 +313,7 @@ object ProjectForm: TProjectForm
       end
     end
     object MenuItemEdit: TMenuItem
-      Caption = 'Edit'
+      Caption = '&Edit'
       object MenuItemDesignAddUserInterface: TMenuItem
         Caption = 'Add User Interface'
       end
@@ -398,7 +398,7 @@ object ProjectForm: TProjectForm
       end
     end
     object MenuItemViewport: TMenuItem
-      Caption = 'Viewport'
+      Caption = '&Viewport'
       object MenuItemViewportViewAll: TMenuItem
         Action = ActionViewportViewAll
       end
@@ -527,7 +527,7 @@ object ProjectForm: TProjectForm
       end
     end
     object MenuItemCode: TMenuItem
-      Caption = 'Code'
+      Caption = '&Code'
       object MenuItemOpenProjectCode: TMenuItem
         Action = ActionOpenProjectCode
       end

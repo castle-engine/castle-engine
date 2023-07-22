@@ -780,7 +780,9 @@ end;
 
 function TGenericVector2.ToString: string;
 begin
-  Result := FormatDot('%f %f', [X, Y]);
+  Result :=
+    FloatToStrDisplay(X) + ' ' +
+    FloatToStrDisplay(Y);
 end;
 
 function TGenericVector2.ToRawString: string;
@@ -992,7 +994,10 @@ end;
 
 function TGenericVector3.ToString: string;
 begin
-  Result := FormatDot('%f %f %f', [X, Y, Z]);
+  Result :=
+    FloatToStrDisplay(X) + ' ' +
+    FloatToStrDisplay(Y) + ' ' +
+    FloatToStrDisplay(Z);
 end;
 
 function TGenericVector3.ToRawString: string;
@@ -1247,7 +1252,11 @@ end;
 
 function TGenericVector4.ToString: string;
 begin
-  Result := FormatDot('%f %f %f %f', [X, Y, Z, W]);
+  Result :=
+    FloatToStrDisplay(X) + ' ' +
+    FloatToStrDisplay(Y) + ' ' +
+    FloatToStrDisplay(Z) + ' ' +
+    FloatToStrDisplay(W);
 end;
 
 function TGenericVector4.ToRawString: string;
@@ -1466,10 +1475,10 @@ end;
 
 function TGenericMatrix2.ToString(const LineIndent: string): string;
 begin
-  Result := FormatDot('%s%f %f' + NL +
-                      '%s%f %f',
-   [LineIndent, Data[0, 0], Data[1, 0],
-    LineIndent, Data[0, 1], Data[1, 1] ]);
+  Result := FormatDot('%s%s %s' + NL +
+                      '%s%s %s',
+   [LineIndent, FloatToStrDisplay(Data[0, 0]), FloatToStrDisplay(Data[1, 0]),
+    LineIndent, FloatToStrDisplay(Data[0, 1]), FloatToStrDisplay(Data[1, 1]) ]);
 end;
 
 function TGenericMatrix2.ToRawString(const LineIndent: string): string;
@@ -1718,12 +1727,12 @@ end;
 
 function TGenericMatrix3.ToString(const LineIndent: string): string;
 begin
-  Result := FormatDot('%s%f %f %f' + NL +
-                      '%s%f %f %f' + NL +
-                      '%s%f %f %f',
-   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0],
-    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1],
-    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2] ]);
+  Result := FormatDot('%s%s %s %s' + NL +
+                      '%s%s %s %s' + NL +
+                      '%s%s %s %s',
+   [LineIndent, FloatToStrDisplay(Data[0, 0]), FloatToStrDisplay(Data[1, 0]), FloatToStrDisplay(Data[2, 0]),
+    LineIndent, FloatToStrDisplay(Data[0, 1]), FloatToStrDisplay(Data[1, 1]), FloatToStrDisplay(Data[2, 1]),
+    LineIndent, FloatToStrDisplay(Data[0, 2]), FloatToStrDisplay(Data[1, 2]), FloatToStrDisplay(Data[2, 2]) ]);
 end;
 
 function TGenericMatrix3.ToRawString(const LineIndent: string): string;
@@ -2081,14 +2090,14 @@ end;
 
 function TGenericMatrix4.ToString(const LineIndent: string): string;
 begin
-  Result := FormatDot('%s%f %f %f %f' + NL +
-                      '%s%f %f %f %f' + NL +
-                      '%s%f %f %f %f' + NL +
-                      '%s%f %f %f %f',
-   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0], Data[3, 0],
-    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1], Data[3, 1],
-    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2], Data[3, 2],
-    LineIndent, Data[0, 3], Data[1, 3], Data[2, 3], Data[3, 3] ]);
+  Result := FormatDot('%s%s %s %s %s' + NL +
+                      '%s%s %s %s %s' + NL +
+                      '%s%s %s %s %s' + NL +
+                      '%s%s %s %s %s',
+   [LineIndent, FloatToStrDisplay(Data[0, 0]), FloatToStrDisplay(Data[1, 0]), FloatToStrDisplay(Data[2, 0]), FloatToStrDisplay(Data[3, 0]),
+    LineIndent, FloatToStrDisplay(Data[0, 1]), FloatToStrDisplay(Data[1, 1]), FloatToStrDisplay(Data[2, 1]), FloatToStrDisplay(Data[3, 1]),
+    LineIndent, FloatToStrDisplay(Data[0, 2]), FloatToStrDisplay(Data[1, 2]), FloatToStrDisplay(Data[2, 2]), FloatToStrDisplay(Data[3, 2]),
+    LineIndent, FloatToStrDisplay(Data[0, 3]), FloatToStrDisplay(Data[1, 3]), FloatToStrDisplay(Data[2, 3]), FloatToStrDisplay(Data[3, 3]) ]);
 end;
 
 function TGenericMatrix4.ToRawString(const LineIndent: string): string;

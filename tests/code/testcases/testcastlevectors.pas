@@ -61,6 +61,7 @@ type
     procedure TestInit;
     procedure TestRotationZeroAxis;
     procedure TestVectorsList;
+    procedure TestToString;
   end;
 
 function RandomVector: TVector3;
@@ -1251,6 +1252,52 @@ begin
     AssertEquals(33, List[0].X);
     AssertEquals(44, List[0].Y);
   finally FreeAndNil(List) end;
+end;
+
+procedure TTestCastleVectors.TestToString;
+var
+  V2: TVector2;
+  V3: TVector3;
+  V4: TVector4;
+  M2: TMatrix2;
+  M3: TMatrix3;
+  M4: TMatrix4;
+begin
+  V2 := Vector2(0, 123.456);
+  AssertEquals('0 123.46', V2.ToString);
+
+  V3 := Vector3(0, 123.456, 78.9);
+  AssertEquals('0 123.46 78.9', V3.ToString);
+
+  V4 := Vector4(0, 123.456, 78.9, 99.99);
+  AssertEquals('0 123.46 78.9 99.99', V4.ToString);
+
+  M2.Rows[0] := Vector2(1, 2);
+  M2.Rows[1] := Vector2(3, 4);
+  AssertEquals(
+    '1 2' + LineEnding +
+    '3 4',
+    M2.ToString);
+
+  M3.Rows[0] := Vector3(1, 2, 3);
+  M3.Rows[1] := Vector3(4, 5, 6);
+  M3.Rows[2] := Vector3(7, 8, 9);
+  AssertEquals(
+    '1 2 3' + LineEnding +
+    '4 5 6' + LineEnding +
+    '7 8 9',
+    M3.ToString);
+
+  M4.Rows[0] := Vector4(1, 2, 3, 4);
+  M4.Rows[1] := Vector4(5, 6, 7, 8);
+  M4.Rows[2] := Vector4(9, 10, 11, 12);
+  M4.Rows[3] := Vector4(13, 14, 15, 16);
+  AssertEquals(
+    '1 2 3 4' + LineEnding +
+    '5 6 7 8' + LineEnding +
+    '9 10 11 12' + LineEnding +
+    '13 14 15 16',
+    M4.ToString);
 end;
 
 initialization

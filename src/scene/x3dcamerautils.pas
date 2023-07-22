@@ -41,6 +41,13 @@ const
   DefaultX3DGravityUp      : TVector3 = (X: 0; Y: 1; Z: 0);
   { @groupEnd }
 
+  { Default camera position, direction, view in X3D. }
+  DefaultX3DCameraView: TViewVectors = (
+    Translation: (X: 0; Y: 0; Z: 10);
+    Direction:   (X: 0; Y: 0; Z: -1);
+    Up:          (X: 0; Y: 1; Z: 0)
+  );
+
 type
   { Utility class to set various viewpoint properties,
     and then generate given viewpoint node. }

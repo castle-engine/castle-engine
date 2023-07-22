@@ -387,14 +387,6 @@ type
     constructor Create;
   end;
 
-  { Possible values for @link(TCastleSceneCore.PrimitiveGeometry). }
-  TPrimitiveGeometry = (
-    pgNone,
-    pgRectangle2D,
-    pgSphere,
-    pgBox
-  );
-
   { Possible options for @link(TCastleSceneCore.Load). }
   TSceneLoadOption = (
     slDisableResetTime
@@ -597,8 +589,6 @@ type
       tree. }
     ShapeLODs: TObjectList;
 
-    FPrimitiveGeometry: TPrimitiveGeometry;
-
     { Increased when something changed that could affect the results
       of Shapes tree traversal, i.e. different TShape instances returned
       by Shapes.Traverse.
@@ -659,8 +649,6 @@ type
     { Always assigned to PlayingAnimationNode.EventIsActive. }
     procedure PlayingAnimationIsActive(
       const Event: TX3DEvent; const Value: TX3DField; const ATime: TX3DTime);
-
-    procedure SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
 
     { If we have NewPlayingAnimationUse, apply it
       (actually start playing it using X3D nodes, calling UpdateNewPlayingAnimation).
@@ -786,7 +774,7 @@ type
       it's transformation) or when camera position changed (by user actions
       or animating the Viewpoint). }
     procedure ProximitySensorUpdate(const PSI: TProximitySensorInstance;
-      const CameraVectors: TCameraVectors);
+      const CameraVectors: TViewVectors);
   private
     FCompiledScriptHandlers: TCompiledScriptHandlerInfoList;
 
@@ -907,7 +895,7 @@ type
       This is calculated every time now (in the future it may be optimized
       to recalculate only when WorldTransform changed, e.g. using
       FWorldTransformAndInverseId). }
-    function GetCameraLocal(out CameraVectors: TCameraVectors): boolean; overload;
+    function GetCameraLocal(out CameraVectors: TViewVectors): boolean; overload;
     function GetCameraLocal(out CameraLocalPosition: TVector3): boolean; overload;
 
     function PointingDevicePressRelease(const DoPress: boolean;
@@ -2501,14 +2489,6 @@ type
     property AnimateSkipTicks: Cardinal read FAnimateSkipTicks write SetAnimateSkipTicks
       default 0;
 
-    {$ifdef FPC}
-    { Easily turn the scene into a simple primitive, like sphere or box or plane.
-      Changing this to something else than pgNone
-      reloads the scene (calls @link(Load) with a new X3D graph). }
-    property PrimitiveGeometry: TPrimitiveGeometry
-      read FPrimitiveGeometry write SetPrimitiveGeometry default pgNone;
-      deprecated 'use TCastleBox, TCastleSphere, TCastlePlane for these primitives';
-    {$endif}
 
     { If AutoAnimation is set, this animation will be automatically played.
       It is useful to determine the initial animation, played once the model
@@ -3488,11 +3468,6 @@ begin
 
     LoadCore(NewRoot, NewRootCacheOrigin, true, AOptions);
 
-    { When loading from URL, reset FPrimitiveGeometry.
-      Otherwise deserialization would be undefined -- do we load contents
-      from URL or PrimitiveGeometry? }
-    FPrimitiveGeometry := pgNone;
-
     { After loading a new model we need to
       - update sizes calculated by AutoSize for simple colliders
       - update triangles used by TCastleMeshCollider (note that this code
@@ -3527,14 +3502,6 @@ end;
 procedure TCastleSceneCore.Loaded;
 begin
   inherited;
-
-  {$ifdef FPC} // with non-FPC, we don't define PrimitiveGeometry at all
-  {$warnings off} // using deprecated to warn about it
-  if PrimitiveGeometry <> pgNone then
-    WritelnWarning('PrimitiveGeometry is deprecated. Instead: use specialized components like TCastleBox, TCastleSphere');
-  {$warnings on}
-  {$endif}
-
   if FPendingSetUrl <> '' then
   begin
     Url := FPendingSetUrl;
@@ -4598,7 +4565,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
   procedure HandleProximitySensor(Node: TProximitySensorNode);
   var
     Instance: TProximitySensorInstance;
-    CameraVectors: TCameraVectors;
+    CameraVectors: TViewVectors;
   begin
     Check(Shapes^.Index < Shapes^.Group.Children.Count,
       'Missing shape in Shapes tree');
@@ -5182,7 +5149,7 @@ var
     I: Integer;
     VSInstances: TVisibilitySensorInstanceList;
     VS: TVisibilitySensorNode;
-    CameraVectors: TCameraVectors;
+    CameraVectors: TViewVectors;
   begin
     if ANode is TProximitySensorNode then
     begin
@@ -7093,14 +7060,14 @@ procedure TCastleSceneCore.InternalCameraChanged;
 
   { Update things depending on camera information and X3D events.
     Call it only when ProcessEvents. }
-  procedure CameraProcessing(const CameraVectors: TCameraVectors);
+  procedure CameraProcessing(const CameraVectors: TViewVectors);
   var
     I: Integer;
   begin
     Assert(ProcessEvents);
 
     for I := 0 to ShapeLODs.Count - 1 do
-      UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]), CameraVectors.Position);
+      UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]), CameraVectors.Translation);
 
     for I := 0 to ProximitySensors.Count - 1 do
       ProximitySensorUpdate(ProximitySensors[I], CameraVectors);
@@ -7128,7 +7095,7 @@ procedure TCastleSceneCore.InternalCameraChanged;
   end;
 
 var
-  CameraVectors: TCameraVectors;
+  CameraVectors: TViewVectors;
 begin
   if World <> nil then // may be called from SetProcessEvents when World may be nil
     LastCameraStateId := World.InternalMainCameraStateId;
@@ -7340,7 +7307,7 @@ end;
 { proximity sensor ----------------------------------------------------------- }
 
 procedure TCastleSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInstance;
-  const CameraVectors: TCameraVectors);
+  const CameraVectors: TViewVectors);
 var
   APosition, ADirection, AUp: TVector3;
   ProxNode: TProximitySensorNode;
@@ -7371,7 +7338,7 @@ begin
           it's InverseTransform and call ProximitySensorUpdate.
       }
 
-      APosition := PSI.InverseTransform.MultPoint(CameraVectors.Position);
+      APosition := PSI.InverseTransform.MultPoint(CameraVectors.Translation);
 
       NewIsActive :=
         (APosition.X >= ProxNode.FdCenter.Value.X - ProxNode.FdSize.Value.X / 2) and
@@ -7423,19 +7390,19 @@ end;
 { camera --------------------------------------------------------------------- }
 
 function TCastleSceneCore.GetCameraLocal(
-  out CameraVectors: TCameraVectors): boolean;
+  out CameraVectors: TViewVectors): boolean;
 begin
   // note that HasWorldTransform implies also World <> nil
   Result := HasWorldTransform and (World.MainCamera <> nil);
   if Result then
   begin
     World.MainCamera.GetWorldView(
-      CameraVectors.Position,
+      CameraVectors.Translation,
       CameraVectors.Direction,
       CameraVectors.Up);
-    CameraVectors.Position  := WorldInverseTransform.MultPoint    (CameraVectors.Position);
-    CameraVectors.Direction := WorldInverseTransform.MultDirection(CameraVectors.Direction);
-    CameraVectors.Up        := WorldInverseTransform.MultDirection(CameraVectors.Up);
+    CameraVectors.Translation := WorldInverseTransform.MultPoint    (CameraVectors.Translation);
+    CameraVectors.Direction   := WorldInverseTransform.MultDirection(CameraVectors.Direction);
+    CameraVectors.Up          := WorldInverseTransform.MultDirection(CameraVectors.Up);
   end;
 end;
 
@@ -8685,46 +8652,6 @@ procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 begin
   inherited;
   RenderingCameraChanged(Params.RenderingCamera);
-end;
-
-procedure TCastleSceneCore.SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
-const
-  Classes: array [TPrimitiveGeometry] of TAbstractGeometryNodeClass =
-  ( nil,
-    TRectangle2DNode,
-    TSphereNode,
-    TBoxNode
-  );
-var
-  Shape: TShapeNode;
-  Appearance: TAppearanceNode;
-  Material: TMaterialNode;
-  TransformNode: TTransformNode;
-  NewRootNode: TX3DRootNode;
-begin
-  if FPrimitiveGeometry <> AValue then
-  begin
-    FPrimitiveGeometry := AValue;
-    if Classes[FPrimitiveGeometry] <> nil then
-    begin
-      { Reset FURL if the scene contents are determined by PrimitiveGeometry,
-        otherwise deserialization would be undefined -- do we load contents
-        from URL or PrimitiveGeometry? }
-      FURL := '';
-
-      NewRootNode := TX3DRootNode.Create;
-      Classes[FPrimitiveGeometry].CreateWithTransform(Shape, TransformNode);
-
-      // default Material, to be lit
-      Material := TMaterialNode.Create;
-      Appearance := TAppearanceNode.Create;
-      Appearance.Material := Material;
-      Shape.Appearance := Appearance;
-
-      NewRootNode.AddChildren(TransformNode);
-      Load(NewRootNode, true);
-    end;
-  end;
 end;
 
 procedure TCastleSceneCore.InternalIncShapesHash;

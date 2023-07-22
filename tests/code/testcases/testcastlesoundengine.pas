@@ -38,38 +38,51 @@ uses CastleFilesUtils, CastleSoundEngine, CastleApplicationProperties, CastleDow
   CastleLog;
 
 procedure TTestCastleSoundEngine.TestLoadBufferException;
+var
+  Sound: TCastleSound;
 begin
+  // we want "Sound.Url := " on invalid file to cause exception, not warning
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
-    SoundEngine.LoadBuffer('castle-data:/sound/non-existing.wav');
-    if not SoundEngine.IsContextOpenSuccess then
-      Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
-    else
-      Fail('Should have raised ESoundFileError 1');
-  except on EDownloadError{ESoundFileError} do ; end;
+    Sound := TCastleSound.Create(nil);
+    try
+      try
+        Sound.Url := 'castle-data:/sound/non-existing.wav';
+        if not SoundEngine.IsContextOpenSuccess then
+          Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
+        else
+          Fail('Should have raised ESoundFileError 1');
+      except on Exception do ; end;
 
-  try
-    SoundEngine.LoadBuffer('castle-data:/sound/non-existing.ogg');
-    if not SoundEngine.IsContextOpenSuccess then
-      Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
-    else
-      Fail('Should have raised ESoundFileError 2');
-  except on EDownloadError{ESoundFileError} do ; end;
+      try
+        Sound.Url := 'castle-data:/sound/non-existing.ogg';
+        if not SoundEngine.IsContextOpenSuccess then
+          Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
+        else
+          Fail('Should have raised ESoundFileError 2');
+      except on Exception do ; end;
 
-  try
-    SoundEngine.LoadBuffer('castle-data:/sound/invalid.wav');
-    if not SoundEngine.IsContextOpenSuccess then
-      Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
-    else
-      Fail('Should have raised ESoundFileError 3');
-  except on ESoundFileError do ; end;
+      try
+        Sound.Url := 'castle-data:/sound/invalid.wav';
+        if not SoundEngine.IsContextOpenSuccess then
+          Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
+        else
+          Fail('Should have raised ESoundFileError 3');
+      except on Exception do ; end;
 
-  try
-    SoundEngine.LoadBuffer('castle-data:/sound/invalid.ogg');
-    if not SoundEngine.IsContextOpenSuccess then
-      Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
-    else
-      Fail('Should have raised ESoundFileError 4');
-  except on ESoundFileError do ; end;
+      try
+        Sound.Url := 'castle-data:/sound/invalid.ogg';
+        if not SoundEngine.IsContextOpenSuccess then
+          Writeln('Sound backend cannot be initialized, TestLoadBufferException doesn''t really do anything')
+        else
+          Fail('Should have raised ESoundFileError 4');
+      except on Exception do ; end;
+    finally
+      FreeAndNil(Sound);
+    end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
 end;
 
 procedure TTestCastleSoundEngine.TestNotPcmEncodingWarning;

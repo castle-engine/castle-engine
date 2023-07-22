@@ -79,12 +79,12 @@ type
 
   TCollectedShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TCollectedShape>)
   strict private
-    SortPosition: TVector3;
+    Camera: TViewVectors;
 
     function CompareBackToFront2D(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} ShapeA, ShapeB: TCollectedShape): Integer;
     function CompareBackToFront3DBox(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} ShapeA, ShapeB: TCollectedShape): Integer;
     function CompareBackToFront3DOrigin(
       {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
     function CompareBackToFront3DGround(
@@ -106,16 +106,18 @@ type
     { Used when ShapeSort is sortCustom for SortBackToFront or SortFrontToBack. }
     OnCustomShapeSort: TShapeSortEvent;
 
-    { Sort shapes by distance to given Position point, farthest first.
+    { Sort shapes by distance to camera, farthest first.
       ShapeSort determines the sorting algorithm.
       See @link(TShapeSort) documentation. }
-    procedure SortBackToFront(const Position: TVector3;
+    procedure SortBackToFront(
+      const ACamera: TViewVectors;
       const ShapeSort: TShapeSortNoAuto);
 
-    { Sort shapes by distance to given Position point, closest first.
+    { Sort shapes by distance to camera, closest first.
       ShapeSort determines the sorting algorithm.
       See @link(TShapeSort) documentation. }
-    procedure SortFrontToBack(const Position: TVector3;
+    procedure SortFrontToBack(
+      const ACamera: TViewVectors;
       const ShapeSort: TShapeSortNoAuto);
   end;
 
@@ -295,20 +297,108 @@ type
   TCollectedShapeComparer = {$ifdef FPC}specialize{$endif} TComparer<TCollectedShape>;
 
 function TCollectedShapeList.CompareBackToFront2D(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} ShapeA, ShapeB: TCollectedShape): Integer;
+var
+  A, B: TBox3D;
+
+  { Representative point of ShapeA in world coordinates.
+    Call only if ShapeA bbox is not empty. }
+  function APoint: TVector3;
+  begin
+    Result := ShapeA.SceneTransform.MultPoint(A.Data[0]);
+  end;
+
+  { Representative point of ShapeA in world coordinates.
+    Call only if ShapeB bbox is not empty. }
+  function BPoint: TVector3;
+  begin
+    Result := ShapeB.SceneTransform.MultPoint(B.Data[0]);
+  end;
+
 begin
-  Result := TBox3D.CompareBackToFront2D(
-    A.Shape.BoundingBox.Transform(A.SceneTransform),
-    B.Shape.BoundingBox.Transform(B.SceneTransform));
+  A := ShapeA.Shape.BoundingBox;
+  B := ShapeB.Shape.BoundingBox;
+
+  { Note that we ignore camera position/direction for 2D comparison.
+    We merely look at Z coordinates.
+    This way looking at 2D Spine scene from the other side is also Ok.
+
+    For speed, we don't look at bounding box .Center, only at .Data[0].
+    The assumption here is that shape is thin 2D, and it doesn't really
+    matter if we look at min,max or center point if we only compare Z.
+
+      BoundingBox.Data[0].Z ~=
+      BoundingBox.Data[1].Z ~=
+      BoundingBox.Center.Z .
+  }
+
+  if (not A.IsEmpty) and
+    ( B.IsEmpty or
+      ( APoint.Z < BPoint.Z )) then
+    Result := -1
+  else
+  if (not B.IsEmpty) and
+    ( A.IsEmpty or
+      ( BPoint.Z < APoint.Z )) then
+    Result :=  1
+  else
+    Result :=  0;
 end;
 
 function TCollectedShapeList.CompareBackToFront3DBox(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} ShapeA, ShapeB: TCollectedShape): Integer;
+var
+  A, B: TBox3D;
+
+  { Center of ShapeA in world coordinates.
+    Call only if ShapeA bbox is not empty. }
+  function ACenter: TVector3;
+  begin
+    Result := ShapeA.SceneTransform.MultPoint(A.Center);
+  end;
+
+  { Center of ShapeB in world coordinates.
+    Call only if ShapeB bbox is not empty. }
+  function BCenter: TVector3;
+  begin
+    Result := ShapeB.SceneTransform.MultPoint(B.Center);
+  end;
+
 begin
-  Result := TBox3D.CompareBackToFront3D(
-    A.Shape.BoundingBox.Transform(A.SceneTransform),
-    B.Shape.BoundingBox.Transform(B.SceneTransform),
-    SortPosition);
+  { We always treat empty box as closer than non-empty.
+    And two empty boxes are always equal.
+
+    Remember that code below must make sure that Result = 0
+    for equal elements (Sort may depend on this). So A > B only when:
+    - A empty, and B non-empty
+    - both non-empty, and A closer
+
+    We compare distances using
+      TVector3.DotProduct(..., Camera.Direction)
+    instead of
+      PointsDistance(...., Camera.Translation)
+
+    This way algorithm works reliably also for completely flat models
+    (like Spine animations or images) aligned to camera as billboards,
+    in 3D, with any camera direction.
+  }
+
+  A := ShapeA.Shape.BoundingBox;
+  B := ShapeB.Shape.BoundingBox;
+
+  if (not A.IsEmpty) and
+    ( B.IsEmpty or
+      ( TVector3.DotProduct(ACenter, Camera.Direction) >
+        TVector3.DotProduct(BCenter, Camera.Direction))) then
+    Result := -1
+  else
+  if (not B.IsEmpty) and
+    ( A.IsEmpty or
+      ( TVector3.DotProduct(BCenter, Camera.Direction) >
+        TVector3.DotProduct(ACenter, Camera.Direction))) then
+    Result :=  1
+  else
+    Result :=  0;
 end;
 
 function TCollectedShapeList.CompareBackToFront3DOrigin(
@@ -319,8 +409,8 @@ begin
   PointA := (A.SceneTransform * A.Shape.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
   PointB := (B.SceneTransform * B.Shape.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
   Result := Sign(
-    PointsDistanceSqr(PointB, SortPosition) -
-    PointsDistanceSqr(PointA, SortPosition));
+    TVector3.DotProduct(PointB, Camera.Direction) -
+    TVector3.DotProduct(PointA, Camera.Direction));
 end;
 
 function TCollectedShapeList.CompareBackToFront3DGround(
@@ -334,26 +424,34 @@ begin
   PointA.Y := 0;
   PointB.Y := 0;
   Result := Sign(
-    PointsDistanceSqr(PointB, SortPosition) -
-    PointsDistanceSqr(PointA, SortPosition));
+    TVector3.DotProduct(PointB, Camera.Direction) -
+    TVector3.DotProduct(PointA, Camera.Direction));
 end;
 
 function TCollectedShapeList.CompareBackToFrontCustom(
   {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TCollectedShape): Integer;
 begin
-  Result := OnCustomShapeSort(SortPosition,
+  Result := OnCustomShapeSort(Camera,
     A.Shape, B.Shape,
     A.RenderOptions, B.RenderOptions,
     A.SceneTransform, B.SceneTransform
   );
 end;
 
-procedure TCollectedShapeList.SortBackToFront(const Position: TVector3;
+procedure TCollectedShapeList.SortBackToFront(
+  const ACamera: TViewVectors;
   const ShapeSort: TShapeSortNoAuto);
 begin
-  SortPosition := Position;
+  Camera := ACamera;
+
+  { sort3DVerticalBillboards is just like sort3D,
+    but project camera direction on Y=0 plane. }
+  if ShapeSort = sort3DVerticalBillboards then
+    Camera.Direction.Y := 0;
+
   case ShapeSort of
     sort2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront2D));
+    sort3DVerticalBillboards,
     sort3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DBox));
     sort3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DOrigin));
     sort3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DGround));
@@ -397,12 +495,20 @@ begin
   Result := -CompareBackToFrontCustom(A, B);
 end;
 
-procedure TCollectedShapeList.SortFrontToBack(const Position: TVector3;
+procedure TCollectedShapeList.SortFrontToBack(
+  const ACamera: TViewVectors;
   const ShapeSort: TShapeSortNoAuto);
 begin
-  SortPosition := Position;
+  Camera := ACamera;
+
+  { sort3DVerticalBillboards is just like sort3D,
+    but project camera direction on Y=0 plane. }
+  if ShapeSort = sort3DVerticalBillboards then
+    Camera.Direction.Y := 0;
+
   case ShapeSort of
     sort2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack2D));
+    sort3DVerticalBillboards,
     sort3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DBox));
     sort3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DOrigin));
     sort3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DGround));

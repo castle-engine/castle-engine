@@ -37,14 +37,14 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
+        <Filename Value="code/gamesubanimations.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gamesubanimations"/>
+      </Unit3>
+      <Unit4>
         <Filename Value="code/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmain"/>
-      </Unit3>
-      <Unit4>
-        <Filename Value="code/gamescenesubanimations.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="gamescenesubanimations"/>
       </Unit4>
     </Units>
   </ProjectOptions>

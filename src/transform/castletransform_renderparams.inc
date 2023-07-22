@@ -116,10 +116,9 @@
   public
     Camera: TCastleCamera;
 
-    { Current camera position.
-      In world coordinates, i.e. this is equal TCastleCamera.WorldTranslation,
-      and in coordinates of whole TCastleViewport.Items. }
-    Position: TVector3;
+    { Current camera position, direction and up.
+      In the world coordinates (coordinates of whole TCastleViewport.Items). }
+    View: TViewVectors;
 
     { Current camera matrix. Transforms from world space (normal 3D space)
       to camera space (camera space is the space where you're always
@@ -171,17 +170,21 @@
     function RotationMatrix3: TMatrix3;
     function RotationInverseMatrix3: TMatrix3;
 
-    { Set all properties (except Target) from TCastleCamera instance in ACamera.
+    { Set all properties (except Target)
+      from TCastleCamera instance in ACamera.
       See @link(FromMatrix) for comments about @link(Target) property. }
     procedure FromCameraObject(const ACamera: TCastleCamera);
 
-    { Set all properties (except Target) from explict matrices (and explicit position,
-      makes it faster than extracting position from matrix).
+    { Set all properties (except Target) to reflect given
+      camera translation (position), direction, up.
       ProjectionMatrix is needed to calculate frustum.
       Sets @link(Camera) to @nil. }
-    procedure FromMatrix(
-      const APosition: TVector3;
-      const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4);
+    procedure FromViewVectors(
+      const ATranslation, ADirection, AUp: TVector3;
+      const ProjectionMatrix: TMatrix4); overload;
+    procedure FromViewVectors(
+      const AViewVectors: TViewVectors;
+      const ProjectionMatrix: TMatrix4); overload;
 
     property Target: TRenderTarget read FTarget write FTarget;
 
@@ -402,7 +405,7 @@ end;
 procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleCamera);
 begin
   Camera := ACamera;
-  Position := ACamera.WorldTranslation;
+  View := ACamera.WorldView;
   Matrix := ACamera.Matrix;
   InverseMatrixDone := false;
   RotationMatrix := ACamera.RotationMatrix;
@@ -410,17 +413,29 @@ begin
   Frustum := ACamera.Frustum;
 end;
 
-procedure TRenderingCamera.FromMatrix(
-  const APosition: TVector3;
-  const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4);
+procedure TRenderingCamera.FromViewVectors(
+  const ATranslation, ADirection, AUp: TVector3;
+  const ProjectionMatrix: TMatrix4);
+var
+  V: TViewVectors;
+begin
+  V.Translation := ATranslation;
+  V.Direction := ADirection;
+  V.Up := AUp;
+  FromViewVectors(V, ProjectionMatrix);
+end;
+
+procedure TRenderingCamera.FromViewVectors(
+  const AViewVectors: TViewVectors;
+  const ProjectionMatrix: TMatrix4);
 begin
   Camera := nil;
-  Position := APosition;
-  Matrix := AMatrix;
+  View := AViewVectors;
+  Matrix := View.Matrix;
   InverseMatrixDone := false;
-  RotationMatrix := ARotationMatrix;
+  RotationMatrix := View.RotationMatrix;
   RotationInverseMatrixDone := false;
-  Frustum.Init(ProjectionMatrix, AMatrix);
+  Frustum.Init(ProjectionMatrix, Matrix);
 end;
 
 procedure TRenderingCamera.Assign(const Source: TRenderingCamera);

@@ -486,8 +486,8 @@ type
     FShapeCoord: TCoordinateNode;
     FShapeTexCoord: TTextureCoordinateNode;
 
-    FCoordArray: array of TVector3;
-    FTexCoordArray: array of TVector2;
+    FCoordArray: array [0..3] of TVector3;
+    FTexCoordArray: array [0..3] of TVector2;
 
     TimeSensor: TTimeSensorNode;
     CoordInterp: TCoordinateInterpolatorNode;
@@ -534,7 +534,7 @@ var
   Shape: TShapeNode;
   Material: TUnlitMaterialNode;
   Appearance: TAppearanceNode;
-  Tri: TTriangleSetNode;
+  Tri: TIndexedTriangleSetNode;
   Tex: TAbstractTextureNode;
   TexProperties: TTexturePropertiesNode;
   FdUrl: String;
@@ -586,26 +586,26 @@ begin
   end;
   Appearance.Texture := Tex;
 
-  Tri := TTriangleSetNode.Create;
+  //Tri := TTriangleSetNode.Create;
+  Tri := TIndexedTriangleSetNode.Create;
+  Tri.SetIndex([0, 1, 2, 0, 2, 3]);
   Tri.Solid := false;
 
-  FShapeCoord := TCoordinateNode.Create('coord');
+  FShapeCoord := TCoordinateNode.Create;
   FShapeCoord.SetPoint([
-      FCoordArray[0],
-      FCoordArray[1],
-      FCoordArray[2],
-      FCoordArray[3],
-      FCoordArray[4],
-      FCoordArray[5]]);
+    FCoordArray[0],
+    FCoordArray[1],
+    FCoordArray[2],
+    FCoordArray[3]
+  ]);
 
-  FShapeTexCoord := TTextureCoordinateNode.Create('texcoord');
+  FShapeTexCoord := TTextureCoordinateNode.Create;
   FShapeTexCoord.SetPoint([
-       FTexCoordArray[0],
-       FTexCoordArray[1],
-       FTexCoordArray[2],
-       FTexCoordArray[3],
-       FTexCoordArray[4],
-       FTexCoordArray[5]]);
+    FTexCoordArray[0],
+    FTexCoordArray[1],
+    FTexCoordArray[2],
+    FTexCoordArray[3]
+  ]);
 
   Tri.Coord := FShapeCoord;
   Tri.TexCoord := FShapeTexCoord;
@@ -665,9 +665,7 @@ procedure TCastleSpriteSheetX3DExporter.CalculateFrameCoords(
     FCoordArray[0] := Vector3(X1, Y1, 0);
     FCoordArray[1] := Vector3(X2, Y1, 0);
     FCoordArray[2] := Vector3(X2, Y2, 0);
-    FCoordArray[3] := Vector3(X1, Y1, 0);
-    FCoordArray[4] := Vector3(X2, Y2, 0);
-    FCoordArray[5] := Vector3(X1, Y2, 0);
+    FCoordArray[3] := Vector3(X1, Y2, 0);
   end;
 
   procedure AddTexCords(
@@ -687,9 +685,7 @@ procedure TCastleSpriteSheetX3DExporter.CalculateFrameCoords(
     FTexCoordArray[0] := Vector2(X1, Y1);
     FTexCoordArray[1] := Vector2(X2, Y1);
     FTexCoordArray[2] := Vector2(X2, Y2);
-    FTexCoordArray[3] := Vector2(X1, Y1);
-    FTexCoordArray[4] := Vector2(X2, Y2);
-    FTexCoordArray[5] := Vector2(X1, Y2);
+    FTexCoordArray[3] := Vector2(X1, Y2);
   end;
 
 begin
@@ -715,7 +711,7 @@ var
     every frame. In this case it can be simplified. }
   procedure OptimizeCoordInterp;
   const
-    PerFrameValues = 6;
+    PerFrameValues = 4;
   var
     Values: TVector3List;
     I: Integer;
@@ -787,8 +783,6 @@ constructor TCastleSpriteSheetX3DExporter.Create(
 begin
   inherited Create;
   FSpriteSheet := SpriteSheet;
-  SetLength(FCoordArray, 6);
-  SetLength(FTexCoordArray, 6);
 end;
 
 function TCastleSpriteSheetX3DExporter.ExportToX3D: TX3DRootNode;

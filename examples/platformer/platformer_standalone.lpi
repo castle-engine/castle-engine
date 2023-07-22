@@ -21,7 +21,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="14">
+    <Units Count="15">
       <Unit0>
         <Filename Value="platformer_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -42,55 +42,60 @@
         <UnitName Value="gameenemy"/>
       </Unit3>
       <Unit4>
+        <Filename Value="code/gamesound.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gamesound"/>
+      </Unit4>
+      <Unit5>
         <Filename Value="code/gameviewgameover.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewgameover"/>
-      </Unit4>
-      <Unit5>
+      </Unit5>
+      <Unit6>
         <Filename Value="code/gameviewlevelcomplete.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewlevelcomplete"/>
-      </Unit5>
-      <Unit6>
+      </Unit6>
+      <Unit7>
         <Filename Value="code/gameinitialize.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameinitialize"/>
-      </Unit6>
-      <Unit7>
+      </Unit7>
+      <Unit8>
         <Filename Value="code/gamedeadlyobstacle.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gamedeadlyobstacle"/>
-      </Unit7>
-      <Unit8>
+      </Unit8>
+      <Unit9>
         <Filename Value="code/gamemovingplatform.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gamemovingplatform"/>
-      </Unit8>
-      <Unit9>
+      </Unit9>
+      <Unit10>
         <Filename Value="code/gameviewcredits.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewcredits"/>
-      </Unit9>
-      <Unit10>
+      </Unit10>
+      <Unit11>
         <Filename Value="code/gameviewpause.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewpause"/>
-      </Unit10>
-      <Unit11>
+      </Unit11>
+      <Unit12>
         <Filename Value="code/gamefallingobstacle.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gamefallingobstacle"/>
-      </Unit11>
-      <Unit12>
+      </Unit12>
+      <Unit13>
         <Filename Value="code/gameviewplay.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewplay"/>
-      </Unit12>
-      <Unit13>
+      </Unit13>
+      <Unit14>
         <Filename Value="code/gameviewoptions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewoptions"/>
-      </Unit13>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -49,7 +49,7 @@ uses SysUtils, Classes, Math,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleCameras, {$ifdef FPC}CastleSceneManager,{$endif} CastleVectors,
-  CastleTransform, CastleScene, CastleApplicationProperties,
+  CastleTransform, CastleScene, CastleApplicationProperties, X3DCameraUtils,
   CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer;
 
 procedure TTestCastleWindow.Test1;
@@ -256,20 +256,20 @@ begin
     AddUserInterfaceDesigned;
     AddUserInterfaceFromCode;
 
-    MoveMouse(FloatRectangle(Window.Rect).Middle);
+    MoveMouse(FloatRectangle(Window.Rect).Center);
     AssertEquals(3, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
 
-    MoveMouse(ManualButton.RenderRect.Middle);
+    MoveMouse(ManualButton.RenderRect.Center);
     AssertEquals(4, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
     AssertTrue(Window.Container.Focus[3] = ManualButton);
 
-    MoveMouse(Button2.RenderRect.Middle);
+    MoveMouse(Button2.RenderRect.Center);
     AssertEquals(4, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
@@ -293,8 +293,8 @@ var
     try
       RenderParams.RenderingCamera := TRenderingCamera.Create;
       try
-        RenderParams.RenderingCamera.FromMatrix(TVector3.Zero,
-          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+        RenderParams.RenderingCamera.FromViewVectors(
+          DefaultX3DCameraView, TMatrix4.Identity);
         RenderParams.RenderingCamera.Target := rtScreen;
         RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
         RenderParams.Collector := ShapesCollector;

@@ -15,7 +15,7 @@
 { Do not specify program name below.
   It is not used anyway, and this way allows developer
   to change standalone_source in CastleEngineManifest.xml easier. }
-// program my_new_project_projector_standalone;
+// program projector_standalone;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
