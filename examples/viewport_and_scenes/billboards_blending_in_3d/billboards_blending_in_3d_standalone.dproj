@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{971F3893-2D96-4388-BF05-15286C5B1901}</ProjectGuid>
+        <ProjectGuid>{E60D643E-A274-A407-5AED-34C70EA1E87B}</ProjectGuid>
         <MainSource>billboards_blending_in_3d_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
