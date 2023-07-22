@@ -274,7 +274,7 @@
 
 const
   ShapeSortNames: array [TShapeSort] of string =
-  ('AUTO', 'NONE', '2D', '3D', '3D_ORIGIN', '3D_GROUND', 'CUSTOM');
+  ('AUTO', 'NONE', '2D', '3D', '3D_VERTICAL_BILLBOARDS', '3D_ORIGIN', '3D_GROUND', 'CUSTOM');
 
 { TAbstractViewpointNode -------------------------------------------------- }
 

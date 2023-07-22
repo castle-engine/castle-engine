@@ -59,7 +59,10 @@ type
       and it is a child of TCastleTransform instance Y,
       then you can rotate Y and it effectively rotates also the billboard's
       axis of rotation. The billboard still works correctly (it will rotate the X
-      to look at camera as much as possible, though it cannot change rotation on Y). }
+      to look at camera as much as possible, though it cannot change rotation on Y).
+
+      See @link(MatchCameraDirection) for details how this axis affects
+      object transformation. }
     property AxisOfRotation: TVector3 read FAxisOfRotation write FAxisOfRotation;
 
   published
@@ -82,16 +85,36 @@ type
           This may look better or worse -- really depends on what you want to achieve.
 
           The major advantage of this approach (and the reason why it is the default)
-          is that blending sorting along camera direction (as done by @link(sort3D)
-          and friends, see @link(TCastleViewport.BlendingSort))
-          is then perfectly correct for layers in billboards.
-          E.g. if you use TCastleBillboard on TCastleScene with a Spine model
-          it will look perfectly even in a 3D world.
+          is that blending sorting for objects with thin layers, like on Spine models,
+          can be made perfectly reliable, even in 3D.
 
-          This advantage (correct blending sorting) holds when
-          @link(AxisOfRotation) is zero or when it matches current camera "up"
-          vector in world space. In other words, the billboard has to be really
-          parallel to the screen.
+          @unorderedList(
+            @item(
+              When @link(AxisOfRotation) is zero (on all billboards) then
+              @link(TCastleViewport.BlendingSort) set to @link(sort3D)
+              will be perfect. It will work even
+              if camera can make free rotations (downward and upward) in 3D.
+
+              @link(sort3D) is also a good choice if @link(AxisOfRotation) is non-zero,
+              but your camera "up" is locked (you don't let player to rotate downward or upward)
+              to the same direction.
+            )
+
+            @item(
+              When @link(AxisOfRotation) is +Y (0,1,0) (on all billboards) then
+              @link(TCastleViewport.BlendingSort) set to @link(sort3DVerticalBillboards)
+              will be perfect. It will work even
+              if camera can make free rotations (downward and upward) in 3D.
+            )
+
+            @item(
+              Many other possibilities can be accounted for using @link(sortCustom)
+              and @link(TCastleViewport.OnCustomShapeSort) event.
+              If only your @link(AxisOfRotation) is consistent for all billboards,
+              you can implement something similar to @link(sort3DVerticalBillboards)
+              to account for given up vector.
+            )
+          )
         )
 
         @item(

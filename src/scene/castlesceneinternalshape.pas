@@ -443,8 +443,15 @@ procedure TCollectedShapeList.SortBackToFront(
   const ShapeSort: TShapeSortNoAuto);
 begin
   Camera := ACamera;
+
+  { sort3DVerticalBillboards is just like sort3D,
+    but project camera direction on Y=0 plane. }
+  if ShapeSort = sort3DVerticalBillboards then
+    Camera.Direction.Y := 0;
+
   case ShapeSort of
     sort2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront2D));
+    sort3DVerticalBillboards,
     sort3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DBox));
     sort3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DOrigin));
     sort3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareBackToFront3DGround));
@@ -493,8 +500,15 @@ procedure TCollectedShapeList.SortFrontToBack(
   const ShapeSort: TShapeSortNoAuto);
 begin
   Camera := ACamera;
+
+  { sort3DVerticalBillboards is just like sort3D,
+    but project camera direction on Y=0 plane. }
+  if ShapeSort = sort3DVerticalBillboards then
+    Camera.Direction.Y := 0;
+
   case ShapeSort of
     sort2D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack2D));
+    sort3DVerticalBillboards,
     sort3D      : Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DBox));
     sort3DOrigin: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DOrigin));
     sort3DGround: Sort(TCollectedShapeComparer.Construct({$ifdef FPC}@{$endif} CompareFrontToBack3DGround));

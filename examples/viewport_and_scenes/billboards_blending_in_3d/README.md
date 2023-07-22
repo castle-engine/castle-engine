@@ -6,17 +6,22 @@ Demo that you can use
 
 - in 3D, with `TCastleBillboard`
 
-- and they will be correctly sorted.
+- and they will be correctly sorted for blending, i.e. their layers will look OK.
 
     When `TCastleBillboard` have `TCastleBillboard.AxisORotation` equal zero, then `BlendingSort = sort3D` is good.
 
     When `TCastleBillboard` have `TCastleBillboard.AxisORotation` all equal +Y, then `BlendingSort = sort3DVerticalBillboards` is good.
 
-- they will also be correctly displayed even when viewed from multiple viewports.
+- They will also be correctly displayed even when viewed from multiple viewports.
+
+- They will also be correctly displayed using `TCastleTransformReference`.
+
+- They will also be correctly displayed when `TCastleViewport.DynamicBatching` is in effect.
 
 See [API reference](https://castle-engine.io/apidoc/html/) of
+
 - `TCastleBillboard.AxisORotation`
-- `TCastleBillboard.MatchCameraDirection`
+- `TCastleBillboard.MatchCameraDirection` (note: `MatchCameraDirection = true` is necessary for blending sorting to work OK)
 - `sort3D`
 - `sort3DVerticalBillboards`
 
