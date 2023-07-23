@@ -28,6 +28,8 @@
     procedure SetInnerRadius(const Value: Single);
     function GetOuterRadius: Single;
     procedure SetOuterRadius(const Value: Single);
+    function GetSlices: Integer;
+    procedure SetSlices(const Value: Integer);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -48,6 +50,12 @@
     strict private FFdSolid: TSFBool;
     { Internal wrapper for property @code(Solid). This wrapper API may change, we advise to access simpler @code(Solid) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSolid: TSFBool read FFdSolid;
+
+    strict private FFdSlices: TSFInt32;
+    { Internal wrapper for property @code(Slices). This wrapper API may change, we advise to access simpler @code(Slices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSlices: TSFInt32 read FFdSlices;
+    { How much to subdivide the circles (both inner and outer circles of the disk). Larger values result in a polygon that looks smoother, but also mean that we need to render more triangles. The default value, -1 means to use the global @link(DefaultTriangulationSlices) parameter. }
+    property Slices: Integer read GetSlices write SetSlices;
 
 {$endif read_interface}
 
@@ -75,6 +83,16 @@ begin
   FdOuterRadius.Send(Value);
 end;
 
+function TDisk2DNode.GetSlices: Integer;
+begin
+  Result := FdSlices.Value;
+end;
+
+procedure TDisk2DNode.SetSlices(const Value: Integer);
+begin
+  FdSlices.Send(Value);
+end;
+
 class function TDisk2DNode.ClassX3DType: String;
 begin
   Result := 'Disk2D';
@@ -97,6 +115,10 @@ begin
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
    FdSolid.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSolid);
+
+  FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);
+   FdSlices.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSlices);
 end;
 
 {$endif read_implementation}

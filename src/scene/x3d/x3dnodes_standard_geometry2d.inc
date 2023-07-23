@@ -254,7 +254,11 @@ end;
 
 function TDisk2DNode.CalculateSlices: Cardinal;
 begin
-  Result := DefaultTriangulationSlices;
+  // use default in case of -1 or invalid value
+  if FdSlices.Value < MinTriangulationSlices then
+    Result := DefaultTriangulationSlices
+  else
+    Result := FdSlices.Value;
 end;
 
 function TDisk2DNode.SolidField: TSFBool;
@@ -264,7 +268,7 @@ end;
 
 function TDisk2DNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
-  Slices: Integer;
+  SlicesNow: Integer;
 
   { Make a disc from triangles, no inner radius (no hole inside). }
   procedure ProxyTriangles;
@@ -277,11 +281,11 @@ var
     Triangles := TTriangleFanSetNode.Create(X3DName, BaseUrl);
     try
       C := TCoordinateNode.Create('', BaseUrl);
-      C.FdPoint.Items.Count := Slices + 2;
+      C.FdPoint.Items.Count := SlicesNow + 2;
       C.FdPoint.Items.L[0] := Vector3(0, 0, 0);
-      for I := 0 to Slices do
+      for I := 0 to SlicesNow do
       begin
-        SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
+        SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
         C.FdPoint.Items.L[I + 1] := Vector3(
           AngleCos * OuterRadius,
           AngleSin * OuterRadius,
@@ -290,7 +294,7 @@ var
       end;
 
       Triangles.Coord := C;
-      Triangles.SetFanCount([Slices + 2]);
+      Triangles.SetFanCount([SlicesNow + 2]);
       Triangles.Solid := Solid;
     except FreeAndNil(Result); raise end;
   end;
@@ -307,16 +311,16 @@ var
     Quads := TIndexedQuadSetNode.Create(X3DName, BaseUrl);
     try
       C := TCoordinateNode.Create('', BaseUrl);
-      C.FdPoint.Items.Count := Slices * 2;
-      for I := 0 to Slices - 1 do
+      C.FdPoint.Items.Count := SlicesNow * 2;
+      for I := 0 to SlicesNow - 1 do
       begin
-        SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
+        SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
         C.FdPoint.Items.L[I] := Vector3(
           AngleCos * OuterRadius,
           AngleSin * OuterRadius,
           0
         );
-        C.FdPoint.Items.L[I + Slices] := Vector3(
+        C.FdPoint.Items.L[I + SlicesNow] := Vector3(
           AngleCos * InnerRadius,
           AngleSin * InnerRadius,
           0
@@ -325,13 +329,13 @@ var
 
       Indexes := TInt32List.Create;
       try
-        Indexes.Count := Slices * 4;
-        for I := 0 to Slices - 1 do
+        Indexes.Count := SlicesNow * 4;
+        for I := 0 to SlicesNow - 1 do
         begin
           Indexes.L[I * 4    ] := I;
-          Indexes.L[I * 4 + 1] := (I + 1) mod Slices;
-          Indexes.L[I * 4 + 2] := (I + 1) mod Slices + Slices;
-          Indexes.L[I * 4 + 3] := I + Slices;
+          Indexes.L[I * 4 + 1] := (I + 1) mod SlicesNow;
+          Indexes.L[I * 4 + 2] := (I + 1) mod SlicesNow + SlicesNow;
+          Indexes.L[I * 4 + 3] := I + SlicesNow;
         end;
 
         Quads.Coord := C;
@@ -342,7 +346,7 @@ var
   end;
 
 begin
-  Slices := CalculateSlices;
+  SlicesNow := CalculateSlices;
 
   if InnerRadius <= 0 then
     ProxyTriangles
