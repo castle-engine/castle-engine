@@ -146,17 +146,11 @@ var
   { Triangulation settings.
 
     "Slices" divide the circumference of the circle, like the slices of a pizza.
+
     "Stacks" divide the height of the object, like the stacks of a cake or tower.
-    These are used for quadrics - cylinder, cone, sphere and disk.
 
-    "Divisions" divide the cube side.
-    This is beneficial for better Gouraud shading.
-
-    You can change these variables only @italic(before using anything)
-    from this module. If you want to change them inside VRML/X3D
-    file (for example, to affect only part of the scene), use the
-    Triangulation node, see
-    https://castle-engine.io/x3d_implementation_geometry3d_extensions.php#section_triangulation
+    See
+    https://castle-engine.io/x3d_implementation_geometry3d_extensions.php#section_triangulation .
 
     These variables @italic(must) always honour
     @link(MinTriangulationSlices),
