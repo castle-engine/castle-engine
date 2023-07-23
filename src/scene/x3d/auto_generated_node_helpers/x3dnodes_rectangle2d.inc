@@ -67,11 +67,11 @@ begin
   inherited;
 
   FFdSize := TSFVec2f.Create(Self, False, 'size', Vector2(2, 2));
-   FdSize.ChangeAlways := chVisibleNonGeometry;
+   FdSize.ChangeAlways := chGeometry;
   AddField(FFdSize);
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
-   FdSolid.ChangeAlways := chVisibleNonGeometry;
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 end;
 

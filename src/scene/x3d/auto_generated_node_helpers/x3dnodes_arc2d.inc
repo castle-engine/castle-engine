@@ -99,16 +99,18 @@ begin
   inherited;
 
   FFdEndAngle := TSFFloat.Create(Self, False, 'endAngle', Pi/2);
-   FdEndAngle.ChangeAlways := chVisibleNonGeometry;
+   FdEndAngle.ChangeAlways := chGeometry;
+   FdEndAngle.Angle := true;
   AddField(FFdEndAngle);
 
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
-   FdRadius.ChangeAlways := chVisibleNonGeometry;
+   FdRadius.ChangeAlways := chGeometry;
    FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
 
   FFdStartAngle := TSFFloat.Create(Self, False, 'startAngle', 0);
-   FdStartAngle.ChangeAlways := chVisibleNonGeometry;
+   FdStartAngle.ChangeAlways := chGeometry;
+   FdStartAngle.Angle := true;
   AddField(FFdStartAngle);
 end;
 

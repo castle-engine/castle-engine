@@ -103,21 +103,21 @@ begin
   inherited;
 
   FFdInnerRadius := TSFFloat.Create(Self, False, 'innerRadius', 0);
-   FdInnerRadius.ChangeAlways := chVisibleNonGeometry;
+   FdInnerRadius.ChangeAlways := chGeometry;
    FdInnerRadius.MustBeNonnegative := true;
   AddField(FFdInnerRadius);
 
   FFdOuterRadius := TSFFloat.Create(Self, False, 'outerRadius', 1);
-   FdOuterRadius.ChangeAlways := chVisibleNonGeometry;
+   FdOuterRadius.ChangeAlways := chGeometry;
    FdOuterRadius.MustBeNonnegative := true;
   AddField(FFdOuterRadius);
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
-   FdSolid.ChangeAlways := chVisibleNonGeometry;
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 
   FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);
-   FdSlices.ChangeAlways := chVisibleNonGeometry;
+   FdSlices.ChangeAlways := chGeometry;
   AddField(FFdSlices);
 end;
 

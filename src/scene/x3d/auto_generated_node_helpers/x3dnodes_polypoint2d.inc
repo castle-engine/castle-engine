@@ -62,7 +62,7 @@ begin
   inherited;
 
   FFdPoint := TMFVec2f.Create(Self, True, 'point', []);
-   FdPoint.ChangeAlways := chVisibleNonGeometry;
+   FdPoint.ChangeAlways := chGeometry;
   AddField(FFdPoint);
 end;
 

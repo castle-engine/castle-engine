@@ -121,24 +121,26 @@ begin
   inherited;
 
   FFdClosureType := TSFStringEnum.Create(Self, False, 'closureType', @ArcClosureTypeNames, Ord(High(ArcClosureTypeNames)) + 1, Ord(acPie));
-   FdClosureType.ChangeAlways := chVisibleNonGeometry;
+   FdClosureType.ChangeAlways := chGeometry;
   AddField(FFdClosureType);
 
   FFdEndAngle := TSFFloat.Create(Self, False, 'endAngle', Pi/2);
-   FdEndAngle.ChangeAlways := chVisibleNonGeometry;
+   FdEndAngle.ChangeAlways := chGeometry;
+   FdEndAngle.Angle := true;
   AddField(FFdEndAngle);
 
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
-   FdRadius.ChangeAlways := chVisibleNonGeometry;
+   FdRadius.ChangeAlways := chGeometry;
    FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
-   FdSolid.ChangeAlways := chVisibleNonGeometry;
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 
   FFdStartAngle := TSFFloat.Create(Self, False, 'startAngle', 0);
-   FdStartAngle.ChangeAlways := chVisibleNonGeometry;
+   FdStartAngle.ChangeAlways := chGeometry;
+   FdStartAngle.Angle := true;
   AddField(FFdStartAngle);
 end;
 

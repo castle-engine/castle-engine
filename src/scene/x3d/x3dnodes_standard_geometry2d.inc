@@ -19,7 +19,6 @@
     @bold(Rendering of this node is not implemented yet.) }
   TArc2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState;
@@ -39,7 +38,6 @@
     @bold(Rendering of this node is not implemented yet.) }
   TArcClose2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState;
@@ -56,7 +54,6 @@
   strict private
     function CalculateSlices: Cardinal;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_circle2d.inc}
@@ -67,7 +64,6 @@
   strict private
     function CalculateSlices: Cardinal;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function SolidField: TSFBool; override;
 
@@ -86,7 +82,6 @@
   { Set of vertices in 2D. }
   TPolypoint2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_polypoint2d.inc}
@@ -95,7 +90,6 @@
   { Rectangle in 2D. }
   TRectangle2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function SolidField: TSFBool; override;
 
@@ -105,7 +99,6 @@
   { Set of triangles in 2D. }
   TTriangleSet2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function SolidField: TSFBool; override;
 
@@ -121,16 +114,6 @@ const
   ('PIE', 'CHORD');
 
 { TArc2DNode ----------------------------------------------------------------- }
-
-constructor TArc2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdEndAngle.Angle := true;
-  FdEndAngle.ChangeAlways := chGeometry;
-  FdRadius.ChangeAlways := chGeometry;
-  FdStartAngle.Angle := true;
-  FdStartAngle.ChangeAlways := chGeometry;
-end;
 
 function TArc2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -154,18 +137,6 @@ begin
 end;
 
 { TArcClose2DNode ----------------------------------------------------------------- }
-
-constructor TArcClose2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdClosureType.ChangeAlways := chGeometry;
-  FdEndAngle.Angle := true;
-  FdEndAngle.ChangeAlways := chGeometry;
-  FdRadius.ChangeAlways := chGeometry;
-  FdSolid.ChangeAlways := chGeometry;
-  FdStartAngle.Angle := true;
-  FdStartAngle.ChangeAlways := chGeometry;
-end;
 
 function TArcClose2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -194,13 +165,6 @@ begin
 end;
 
 { TCircle2DNode -------------------------------------------------------------- }
-
-constructor TCircle2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdRadius.ChangeAlways := chGeometry;
-  FdSlices.ChangeAlways := chGeometry;
-end;
 
 function TCircle2DNode.CalculateSlices: Cardinal;
 begin
@@ -243,14 +207,6 @@ begin
 end;
 
 { TDisk2DNode ---------------------------------------------------------------- }
-
-constructor TDisk2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdInnerRadius.ChangeAlways := chGeometry;
-  FdOuterRadius.ChangeAlways := chGeometry;
-  FdSolid.ChangeAlways := chGeometry;
-end;
 
 function TDisk2DNode.CalculateSlices: Cardinal;
 begin
@@ -359,7 +315,6 @@ end;
 constructor TPolyline2DNode.Create(const AX3DName, ABaseUrl: string);
 begin
   inherited;
-  FdLineSegments.ChangeAlways := chGeometry;
   FdLineSegments.AddAlternativeName('point', 2);
 end;
 
@@ -391,12 +346,6 @@ end;
 
 { TPolypoint2DNode ----------------------------------------------------------- }
 
-constructor TPolypoint2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdPoint.ChangeAlways := chGeometry;
-end;
-
 function TPolypoint2DNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   C: TCoordinateNode;
@@ -423,13 +372,6 @@ begin
 end;
 
 { TRectangle2DNode ----------------------------------------------------------- }
-
-constructor TRectangle2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdSize.ChangeAlways := chGeometry;
-  FdSolid.ChangeAlways := chGeometry;
-end;
 
 function TRectangle2DNode.SolidField: TSFBool;
 begin
@@ -477,13 +419,6 @@ begin
 end;
 
 { TTriangleSet2DNode --------------------------------------------------------- }
-
-constructor TTriangleSet2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdVertices.ChangeAlways := chGeometry;
-  FdSolid.ChangeAlways := chGeometry;
-end;
 
 function TTriangleSet2DNode.SolidField: TSFBool;
 begin

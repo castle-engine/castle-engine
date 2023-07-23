@@ -81,12 +81,12 @@ begin
   inherited;
 
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
-   FdRadius.ChangeAlways := chVisibleNonGeometry;
+   FdRadius.ChangeAlways := chGeometry;
    FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
 
   FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);
-   FdSlices.ChangeAlways := chVisibleNonGeometry;
+   FdSlices.ChangeAlways := chGeometry;
   AddField(FFdSlices);
 end;
 
