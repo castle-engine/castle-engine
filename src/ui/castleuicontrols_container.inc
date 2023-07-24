@@ -86,6 +86,7 @@
     FBackgroundColor: TCastleColor;
     FInputInspector: TInputInspector;
     FInspector: TCastleUserInterface; //< always TCastleInspector
+    FMouseLookLastPreviousDelta: TVector2;
     FMouseLookLastDelta: TVector2;
     FLastUpdateMousePosition: TVector2;
     FLastMousePositionIsSet: Boolean;
@@ -1477,13 +1478,15 @@ procedure TCastleContainer.EventUpdate;
       Event.OldPosition := FLastUpdateMousePosition;
       Event.Position := MousePosition;
       Event.Pressed := MousePressed;
-
+      FMouseLookLastPreviousDelta := FMouseLookLastDelta;
       FMouseLookLastDelta := MouseLookDelta(Event, FMouseLookControl.RenderRect);
+      FMouseLookLastDelta := (FMouseLookLastDelta + FMouseLookLastPreviousDelta) * 0.5;
       FLastUpdateMousePosition := MousePosition;
     end else
     begin
       FLastMousePositionIsSet := false;
       FMouseLookLastDelta := TVector2.Zero;
+      FMouseLookLastPreviousDelta := TVector2.Zero;
     end;
   end;
 
@@ -2364,6 +2367,7 @@ begin
   OverrideCursor := mcForceNone;
   FMouseLookStarted := true;
   FMouseLookControl := MouseLookControl;
+  ///FMouseLookControl.OnMotion := {$ifdef FPC}@{$endif}MotionForMouseLook;
   if FMouseLookControlFreeObserver = nil then
   begin
     FMouseLookControlFreeObserver := TFreeNotificationObserver.Create(Self);
@@ -2377,9 +2381,18 @@ procedure TCastleContainer.StopMouseLook;
 begin
   OverrideCursor := mcDefault;
   FMouseLookStarted := false;
+  ///FMouseLookControl.OnMotion := nil;
   FMouseLookControl := nil;
   FMouseLookControlFreeObserver.Observed := nil;
 end;
+
+{procedure TCastleContainer.MotionForMouseLook(const Sender: TCastleUserInterface;
+    const Event: TInputMotion; var Handled: Boolean);
+begin
+  FMouseLookLastDelta := MouseLookDelta(Event, FMouseLookControl.RenderRect);
+  FMouseLookLastDelta := FMouseLookLastDelta;
+  WritelnLog('aha ' + FMouseLookLastDelta.ToString);
+end;}
 
 function TCastleContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
