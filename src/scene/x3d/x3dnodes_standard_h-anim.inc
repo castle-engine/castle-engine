@@ -52,7 +52,6 @@
     var
       FTransformFunctionality: THAnimHumanoidNodeTransformFunctionality;
       VertexJoints: TVertexJointsList;
-      WarningCountSkinCoordReferences: Cardinal;
     procedure AddJoint(Node: TX3DNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -96,6 +95,8 @@
       AnimateSkinTransform: TMatrix4;
       RestCenter: TVector3;
   private
+    WarningSkinCoordReferences: Boolean;
+
     { Animate point, based on it's rest position.
 
       We used, at one point, to apply here a relative change since last position.
@@ -335,8 +336,6 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
   end;
 
   procedure CalculateVertexJoints;
-  const
-    MaxWarningCountSkinCoordReferences = 10;
   var
     SkinCoord: TVector3List;
     I, J: Integer;
@@ -370,13 +369,14 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
             if (CoordIndex < 0) or
                (CoordIndex >= SkinCoord.Count) then
             begin
-              if WarningCountSkinCoordReferences < MaxWarningCountSkinCoordReferences then
+              if not Joint.WarningSkinCoordReferences then
               begin
-                WritelnWarning('X3D', Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
-                  [CoordIndex, SkinCoord.Count]));
-                Inc(WarningCountSkinCoordReferences);
-                if WarningCountSkinCoordReferences = MaxWarningCountSkinCoordReferences then
-                  WritelnWarning('X3D', 'Further warnings about this HAnimJoint.skinCoord will not be reported, to avoid spamming the log');
+                WritelnWarning('X3D', Format('"%s": skinCoord refers to not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)', [
+                  Joint.NiceName,
+                  CoordIndex,
+                  SkinCoord.Count
+                ]));
+                Joint.WarningSkinCoordReferences := true;
               end;
               Continue;
             end;
