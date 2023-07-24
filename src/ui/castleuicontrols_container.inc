@@ -1478,6 +1478,16 @@ procedure TCastleContainer.EventUpdate;
       Event.OldPosition := FLastUpdateMousePosition;
       Event.Position := MousePosition;
       Event.Pressed := MousePressed;
+      { When you set big mouse sensitivity, greater than 0,001 for example 0.25
+        mouse movement may seems jerky. That's because the values 0 and 1 give
+        too much change. Especially when there is a 1px shift in one frame and
+        no shift in the next frame. The screen seems to shake in this case.
+
+        To reduce the importance of such delicate movements, I take the average of
+        the last two frames. Thanks to this, the movement is always smooth,
+        regardless of the sensitivity of the mouse. The problem was also in the
+        old algorithm in the CastleCamera module, but it was masked by a very
+        low sensitivity below 0.001. }
       FMouseLookLastPreviousDelta := FMouseLookLastDelta;
       FMouseLookLastDelta := MouseLookDelta(Event, FMouseLookControl.RenderRect);
       FMouseLookLastDelta := (FMouseLookLastDelta + FMouseLookLastPreviousDelta) * 0.5;
