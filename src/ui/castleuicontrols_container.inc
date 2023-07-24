@@ -2367,7 +2367,6 @@ begin
   OverrideCursor := mcForceNone;
   FMouseLookStarted := true;
   FMouseLookControl := MouseLookControl;
-  ///FMouseLookControl.OnMotion := {$ifdef FPC}@{$endif}MotionForMouseLook;
   if FMouseLookControlFreeObserver = nil then
   begin
     FMouseLookControlFreeObserver := TFreeNotificationObserver.Create(Self);
@@ -2381,18 +2380,9 @@ procedure TCastleContainer.StopMouseLook;
 begin
   OverrideCursor := mcDefault;
   FMouseLookStarted := false;
-  ///FMouseLookControl.OnMotion := nil;
   FMouseLookControl := nil;
   FMouseLookControlFreeObserver.Observed := nil;
 end;
-
-{procedure TCastleContainer.MotionForMouseLook(const Sender: TCastleUserInterface;
-    const Event: TInputMotion; var Handled: Boolean);
-begin
-  FMouseLookLastDelta := MouseLookDelta(Event, FMouseLookControl.RenderRect);
-  FMouseLookLastDelta := FMouseLookLastDelta;
-  WritelnLog('aha ' + FMouseLookLastDelta.ToString);
-end;}
 
 function TCastleContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
