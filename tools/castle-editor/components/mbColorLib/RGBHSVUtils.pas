@@ -2,6 +2,10 @@ unit RGBHSVUtils;
 
 {$IFDEF FPC}
   {$MODE DELPHI}
+  (* Hide unactionable FPC message
+     (6058) Call to subroutine "function MaxValue(const data:{Open} Array Of Double):Double;" marked as inline is not inlined
+  *)
+  {$notes off}
 {$ENDIF}
 
 interface

@@ -680,7 +680,7 @@ begin
     the rendering camera (happens when moving/rotating/scaling the camera that is aligned to view). }
   DistanceToCameraSqr := PointsDistanceSqr(
     Params.Transform^.MultPoint(TVector3.Zero),
-    Params.RenderingCamera.Position
+    Params.RenderingCamera.View.Translation
   );
   GizmoShouldExist := DistanceToCameraSqr > Sqr(DistanceToExistGizmo);
   if not GizmoShouldExist then
@@ -729,7 +729,6 @@ constructor TVisualizeTransformSelected.Create(AOwner: TComponent);
     Result.Collides := false;
     Result.Pickable := FPickable;
     Result.CastShadows := false;
-    Result.ExcludeFromStatistics := true;
     Result.InternalExcludeFromParentBoundingVolume := true;
     {$warnings off} // TODO: Change this to Result.PreciseCollisions := true, once tested it equally performs
     Result.Spatial := [ssDynamicCollisions];

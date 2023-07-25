@@ -21,7 +21,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="9">
       <Unit0>
         <Filename Value="strategy_game_demo_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -61,6 +61,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewinstructions"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="code/gameviewinstructions2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameviewinstructions2"/>
+      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

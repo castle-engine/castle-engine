@@ -44,51 +44,51 @@
     class function ClassX3DType: string; override;
 
     strict private FFdBottom: TSFBool;
-    { Internal wrapper for property @link(Bottom). This wrapper API may change, we advise to access simpler @link(Bottom) instead. }
+    { Internal wrapper for property @code(Bottom). This wrapper API may change, we advise to access simpler @code(Bottom) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBottom: TSFBool read FFdBottom;
     {  }
     property Bottom: Boolean read GetBottom write SetBottom;
 
     strict private FFdHeight: TSFFloat;
-    { Internal wrapper for property @link(Height). This wrapper API may change, we advise to access simpler @link(Height) instead. }
+    { Internal wrapper for property @code(Height). This wrapper API may change, we advise to access simpler @code(Height) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHeight: TSFFloat read FFdHeight;
     {  }
     property Height: Single read GetHeight write SetHeight;
 
     strict private FFdRadius: TSFFloat;
-    { Internal wrapper for property @link(Radius). This wrapper API may change, we advise to access simpler @link(Radius) instead. }
+    { Internal wrapper for property @code(Radius). This wrapper API may change, we advise to access simpler @code(Radius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadius: TSFFloat read FFdRadius;
     {  }
     property Radius: Single read GetRadius write SetRadius;
 
     strict private FFdSide: TSFBool;
-    { Internal wrapper for property @link(Side). This wrapper API may change, we advise to access simpler @link(Side) instead. }
+    { Internal wrapper for property @code(Side). This wrapper API may change, we advise to access simpler @code(Side) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSide: TSFBool read FFdSide;
     {  }
     property Side: Boolean read GetSide write SetSide;
 
     strict private FFdSolid: TSFBool;
-    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
+    { Internal wrapper for property @code(Solid). This wrapper API may change, we advise to access simpler @code(Solid) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdTop: TSFBool;
-    { Internal wrapper for property @link(Top). This wrapper API may change, we advise to access simpler @link(Top) instead. }
+    { Internal wrapper for property @code(Top). This wrapper API may change, we advise to access simpler @code(Top) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTop: TSFBool read FFdTop;
     {  }
     property Top: Boolean read GetTop write SetTop;
 
     strict private FFdTexCoord: TSFNode;
-    { Internal wrapper for property @link(TexCoord). This wrapper API may change, we advise to access simpler @link(TexCoord) instead. }
+    { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
     strict private FFdSlices: TSFInt32;
-    { Internal wrapper for property @link(Slices). This wrapper API may change, we advise to access simpler @link(Slices) instead. }
+    { Internal wrapper for property @code(Slices). This wrapper API may change, we advise to access simpler @code(Slices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSlices: TSFInt32 read FFdSlices;
     {  }
     property Slices: Integer read GetSlices write SetSlices;
 
     strict private FFdStacks: TSFInt32;
-    { Internal wrapper for property @link(Stacks). This wrapper API may change, we advise to access simpler @link(Stacks) instead. }
+    { Internal wrapper for property @code(Stacks). This wrapper API may change, we advise to access simpler @code(Stacks) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStacks: TSFInt32 read FFdStacks;
     {  }
     property Stacks: Integer read GetStacks write SetStacks;

@@ -144,7 +144,8 @@
       read  GetProjectionWorldDirection
       write SetProjectionWorldDirection;
 
-    procedure GetView(out Pos, Dir, Side, Up: TVector3);
+    procedure GetView(out Pos, Dir, Side, Up: TVector3); overload;
+    procedure GetView(out View: TViewVectors); overload;
     { @groupEnd }
 
     { Calculate distances between the given Box and this light source.
@@ -530,6 +531,13 @@ end;
 procedure TAbstractPunctualLightNode.SetProjectionWorldDirection(const Value: TVector3);
 begin
   ProjectionDirectionLocal := InverseTransform.MultDirection(Value);
+end;
+
+procedure TAbstractPunctualLightNode.GetView(out View: TViewVectors);
+var
+  IgnoredSide: TVector3;
+begin
+  GetView(View.Translation, View.Direction, IgnoredSide, View.Up);
 end;
 
 procedure TAbstractPunctualLightNode.GetView(out Pos, Dir, Side, Up: TVector3);

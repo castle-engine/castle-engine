@@ -21,7 +21,8 @@ unit CastleInternalBackgroundRenderer;
 interface
 
 uses CastleVectors, SysUtils, CastleUtils, CastleImages, X3DNodes,
-  CastleColors, CastleGLUtils, CastleTransform, CastleRectangles, CastleProjection;
+  CastleColors, CastleGLUtils, CastleTransform, CastleRectangles, CastleProjection,
+  CastleInternalShapesRenderer, CastleInternalRenderer;
 
 type
   { Background under X3D scene.
@@ -58,7 +59,9 @@ type
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle;
-      const CurrentProjection: TProjection); virtual;
+      const CurrentProjection: TProjection;
+      const ShapesCollector: TShapesCollector;
+      const ShapesRenderer: TShapesRenderer); virtual;
     { Change rotation.
       Initially rotation is taken from TBackgroundNode.TransformRotation
       (corresponds to the rotation of Background in the X3D file transformation). }
@@ -119,7 +122,9 @@ end;
 procedure TBackgroundRenderer.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean;
   const RenderRect: TFloatRectangle;
-  const CurrentProjection: TProjection);
+  const CurrentProjection: TProjection;
+  const ShapesCollector: TShapesCollector;
+  const ShapesRenderer: TShapesRenderer);
 begin
 end;
 
@@ -150,7 +155,9 @@ type
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle;
-      const CurrentProjection: TProjection); override;
+      const CurrentProjection: TProjection;
+      const ShapesCollector: TShapesCollector;
+      const ShapesRenderer: TShapesRenderer); override;
     procedure FreeResources; override;
   end;
 
@@ -171,7 +178,6 @@ begin
     "You cannot use the same X3D node in multiple instances of TCastleScene".
     Testcase: demo-models/background/ with ImageBackground or TextureBackground }
   Scene.InternalNodeSharing := true;
-
   Params := TBasicRenderParams.Create;
 end;
 
@@ -184,13 +190,20 @@ end;
 
 procedure TBackgroundScene.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean; const RenderRect: TFloatRectangle;
-  const CurrentProjection: TProjection);
+  const CurrentProjection: TProjection;
+  const ShapesCollector: TShapesCollector;
+  const ShapesRenderer: TShapesRenderer);
+var
+  SavedOcclusionCulling: Boolean;
+  SavedBlendingSort, SavedOcclusionSort: TShapeSort;
 begin
   inherited;
 
   Params.InShadow := false;
   Params.ShadowVolumesReceivers := [false, true];
   Params.RenderingCamera := RenderingCamera;
+  Params.Collector := ShapesCollector;
+  Params.RendererToPrepareShapes := ShapesRenderer.Renderer;
 
   if Wireframe then
     Scene.RenderOptions.WireframeEffect := weWireframeOnly
@@ -207,12 +220,32 @@ begin
   //Params.Frustum := nil; // this is actually the default, we never set Params.Frustum
   Assert(Params.Frustum = nil);
 
+  ShapesCollector.Clear;
+
   { Scene.Render in this case should call Scene.LocalRender straight away,
     as Scene has no transformation.
     And that's good, the TCastleTransform.Render could not handle any transformation
     as Params.Frustum is nil.  }
   Params.Transparent := false; Scene.Render(Params);
   Params.Transparent := true ; Scene.Render(Params);
+
+  { Disable occlusion culling on background.
+    It works correctly... but the 1-frame delay is too noticeable,
+    testcase: examples/fps_game/ . }
+  SavedOcclusionCulling := ShapesRenderer.OcclusionCulling;
+  ShapesRenderer.OcclusionCulling := false;
+
+  SavedBlendingSort := ShapesRenderer.BlendingSort;
+  ShapesRenderer.BlendingSort := sortNone;
+
+  SavedOcclusionSort := ShapesRenderer.OcclusionSort;
+  ShapesRenderer.OcclusionSort := sortNone;
+
+  ShapesRenderer.Render(ShapesCollector, Params);
+
+  ShapesRenderer.OcclusionCulling := SavedOcclusionCulling;
+  ShapesRenderer.BlendingSort := SavedBlendingSort;
+  ShapesRenderer.OcclusionSort := SavedOcclusionSort;
 end;
 
 procedure TBackgroundScene.FreeResources;
@@ -233,7 +266,9 @@ type
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle;
-      const CurrentProjection: TProjection); override;
+      const CurrentProjection: TProjection;
+      const ShapesCollector: TShapesCollector;
+      const ShapesRenderer: TShapesRenderer); override;
   end;
 
 constructor TBackground3D.Create(
@@ -631,7 +666,9 @@ end;
 procedure TBackground3D.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean;
   const RenderRect: TFloatRectangle;
-  const CurrentProjection: TProjection);
+  const CurrentProjection: TProjection;
+  const ShapesCollector: TShapesCollector;
+  const ShapesRenderer: TShapesRenderer);
 var
   SavedProjectionMatrix: TMatrix4;
   AspectRatio: Single;
@@ -686,7 +723,9 @@ type
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle;
-      const CurrentProjection: TProjection); override;
+      const CurrentProjection: TProjection;
+      const ShapesCollector: TShapesCollector;
+      const ShapesRenderer: TShapesRenderer); override;
   end;
 
 constructor TBackground2D.Create(const ANode: TImageBackgroundNode);
@@ -742,7 +781,9 @@ end;
 procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean;
   const RenderRect: TFloatRectangle;
-  const CurrentProjection: TProjection);
+  const CurrentProjection: TProjection;
+  const ShapesCollector: TShapesCollector;
+  const ShapesRenderer: TShapesRenderer);
 
   { Apply various Node properties at the beginning of each Render,
     this way we can animate them.

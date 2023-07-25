@@ -134,36 +134,25 @@ begin
   AnchorX := 0.5;
   AnchorY := 0.5;
 
+  X1 := -FWidth * AnchorX;
+  X2 := FWidth * (1 - AnchorX);
+  Y1 := -FHeight * AnchorY;
+  Y2 := FHeight * (1 - AnchorY);
+
+  FCoordArray[0] := Vector3(X1, Y1, 0);
+  FCoordArray[1] := Vector3(X2, Y1, 0);
+  FCoordArray[2] := Vector3(X2, Y2, 0);
+  FCoordArray[3] := Vector3(X1, Y2, 0);
+
   X1 := 1 / FImage.Width * FLeft;
-  Y1 := 1 / FImage.Height * (FBottom + FHeight);
-
   X2 := 1 / FImage.Width * (FLeft + FWidth);
-  Y2 := 1 / FImage.Height * (FBottom);
-
-  FCoordArray[0] := Vector3(-FWidth * AnchorX,
-      FHeight * AnchorY, 0);
-
-  FCoordArray[1] := Vector3(FWidth * (1 - AnchorX),
-      FHeight * AnchorY, 0);
-
-  FCoordArray[2] := Vector3(FWidth * (1 - AnchorX),
-      -FHeight * (1 - AnchorY), 0);
-
-  FCoordArray[3] := Vector3(-FWidth * AnchorX,
-      FHeight * AnchorY, 0);
-
-  FCoordArray[4] := Vector3(FWidth * (1 - AnchorX),
-      -FHeight * (1 - AnchorY), 0);
-
-  FCoordArray[5] := Vector3(-FWidth * AnchorX,
-      -FHeight * (1 - AnchorY), 0);
+  Y1 := 1 / FImage.Height * FBottom;
+  Y2 := 1 / FImage.Height * (FBottom + FHeight);
 
   FTexCoordArray[0] := Vector2(X1, Y1);
   FTexCoordArray[1] := Vector2(X2, Y1);
   FTexCoordArray[2] := Vector2(X2, Y2);
-  FTexCoordArray[3] := Vector2(X1, Y1);
-  FTexCoordArray[4] := Vector2(X2, Y2);
-  FTexCoordArray[5] := Vector2(X1, Y2);
+  FTexCoordArray[3] := Vector2(X1, Y2);
 end;
 
 procedure TImageAsX3DModelLoader.PrepareShape(
@@ -172,7 +161,7 @@ var
   Material: TUnlitMaterialNode;
   Appearance: TAppearanceNode;
   Shape: TShapeNode;
-  Tri: TTriangleSetNode;
+  Tri: TIndexedTriangleSetNode;
   Tex: TImageTextureNode;
   TexProperties: TTexturePropertiesNode;
 begin
@@ -203,26 +192,25 @@ begin
   TexProperties.GuiTexture := true;
   Tex.TextureProperties := TexProperties;
 
-  Tri := TTriangleSetNode.Create;
+  Tri := TIndexedTriangleSetNode.Create;
+  Tri.SetIndex([0, 1, 2, 0, 2, 3]);
   Tri.Solid := false;
 
   FShapeCoord := TCoordinateNode.Create('coord');
   FShapeCoord.SetPoint([
-      CoordArray[0],
-      CoordArray[1],
-      CoordArray[2],
-      CoordArray[3],
-      CoordArray[4],
-      CoordArray[5]]);
+    CoordArray[0],
+    CoordArray[1],
+    CoordArray[2],
+    CoordArray[3]
+  ]);
 
   FShapeTexCoord := TTextureCoordinateNode.Create('texcoord');
   FShapeTexCoord.SetPoint([
-       TexCoordArray[0],
-       TexCoordArray[1],
-       TexCoordArray[2],
-       TexCoordArray[3],
-       TexCoordArray[4],
-       TexCoordArray[5]]);
+    TexCoordArray[0],
+    TexCoordArray[1],
+    TexCoordArray[2],
+    TexCoordArray[3]
+  ]);
 
   Tri.Coord := FShapeCoord;
   Tri.TexCoord := FShapeTexCoord;
@@ -239,8 +227,8 @@ begin
   FBaseUrl := BaseUrl;
   FDisplayUrl := URIDisplay(FBaseUrl);
 
-  SetLength(FCoordArray, 6);
-  SetLength(FTexCoordArray, 6);
+  SetLength(FCoordArray, 4);
+  SetLength(FTexCoordArray, 4);
 end;
 
 function TImageAsX3DModelLoader.Load: TX3DRootNode;

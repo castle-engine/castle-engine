@@ -152,7 +152,7 @@ begin
     Result := ColorToString(c);
 end;
 
-//taken from TBXUtils, TBX Package © Alex Denisov (www.g32.org)
+//taken from TBXUtils, TBX Package ï¿½ Alex Denisov (www.g32.org)
 function Blend(C1, C2: TColor; W1: Integer): TColor;
 var
   W2, A1, A2, D, F, G: Integer;
@@ -690,6 +690,8 @@ var
   v2Length: Word;
   v2Name: WideString;
 begin
+  Initialize(Result);
+
   if not FileExists(PalFile) then
   begin
     SetLength(Result.Colors, 0);
@@ -744,7 +746,7 @@ begin
            SetLength(v0Name, v0Length);
            if v0Length > 0 then
              BlockRead(f, PChar(v0Name)^, v0Length);
-           Result.Names[i] := v0Name;
+           Result.Names[i] := WideString(v0Name);
          end;
       2: begin
            BlockRead(f, dummy, sizeof(dummy));

@@ -58,55 +58,55 @@
     public property EventSet_height: TMFFloatEvent read FEventSet_height;
 
     strict private FFdAttrib: TMFNode;
-    { Internal wrapper for property @link(Attrib). This wrapper API may change, we advise to access simpler @link(Attrib) instead. }
+    { Internal wrapper for property @code(Attrib). This wrapper API may change, we advise to access simpler @code(Attrib) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAttrib: TMFNode read FFdAttrib;
     {  }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
 
     strict private FFdColor: TSFNode;
-    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
+    { Internal wrapper for property @code(Color). This wrapper API may change, we advise to access simpler @code(Color) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColor: TSFNode read FFdColor;
     {  }
     property Color: TAbstractColorNode read GetColor write SetColor;
 
     strict private FFdFogCoord: TSFNode;
-    { Internal wrapper for property @link(FogCoord). This wrapper API may change, we advise to access simpler @link(FogCoord) instead. }
+    { Internal wrapper for property @code(FogCoord). This wrapper API may change, we advise to access simpler @code(FogCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFogCoord: TSFNode read FFdFogCoord;
     {  }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 
     strict private FFdNormal: TSFNode;
-    { Internal wrapper for property @link(Normal). This wrapper API may change, we advise to access simpler @link(Normal) instead. }
+    { Internal wrapper for property @code(Normal). This wrapper API may change, we advise to access simpler @code(Normal) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNormal: TSFNode read FFdNormal;
     {  }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
 
     strict private FFdTexCoord: TSFNode;
-    { Internal wrapper for property @link(TexCoord). This wrapper API may change, we advise to access simpler @link(TexCoord) instead. }
+    { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
 
     strict private FFdCcw: TSFBool;
-    { Internal wrapper for property @link(Ccw). This wrapper API may change, we advise to access simpler @link(Ccw) instead. }
+    { Internal wrapper for property @code(Ccw). This wrapper API may change, we advise to access simpler @code(Ccw) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCcw: TSFBool read FFdCcw;
     {  }
     property Ccw: Boolean read GetCcw write SetCcw;
 
     strict private FFdColorPerVertex: TSFBool;
-    { Internal wrapper for property @link(ColorPerVertex). This wrapper API may change, we advise to access simpler @link(ColorPerVertex) instead. }
+    { Internal wrapper for property @code(ColorPerVertex). This wrapper API may change, we advise to access simpler @code(ColorPerVertex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
     {  }
     property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
 
     strict private FFdCreaseAngle: TSFFloat;
-    { Internal wrapper for property @link(CreaseAngle). This wrapper API may change, we advise to access simpler @link(CreaseAngle) instead. }
+    { Internal wrapper for property @code(CreaseAngle). This wrapper API may change, we advise to access simpler @code(CreaseAngle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
     {  }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
 
     strict private FFdHeight: TMFFloat;
-    { Internal wrapper for property @link(Height). This wrapper API may change, we advise to access simpler @link(Height) instead. }
+    { Internal wrapper for property @code(Height). This wrapper API may change, we advise to access simpler @code(Height) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHeight: TMFFloat read FFdHeight;
     {  }
     procedure SetHeight(const Value: array of Single); overload;
@@ -114,35 +114,35 @@
     procedure SetHeight(const Value: TSingleList); overload;
 
     strict private FFdNormalPerVertex: TSFBool;
-    { Internal wrapper for property @link(NormalPerVertex). This wrapper API may change, we advise to access simpler @link(NormalPerVertex) instead. }
+    { Internal wrapper for property @code(NormalPerVertex). This wrapper API may change, we advise to access simpler @code(NormalPerVertex) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
     {  }
     property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
 
     strict private FFdSolid: TSFBool;
-    { Internal wrapper for property @link(Solid). This wrapper API may change, we advise to access simpler @link(Solid) instead. }
+    { Internal wrapper for property @code(Solid). This wrapper API may change, we advise to access simpler @code(Solid) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSolid: TSFBool read FFdSolid;
 
     strict private FFdXDimension: TSFInt32;
-    { Internal wrapper for property @link(XDimension). This wrapper API may change, we advise to access simpler @link(XDimension) instead. }
+    { Internal wrapper for property @code(XDimension). This wrapper API may change, we advise to access simpler @code(XDimension) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdXDimension: TSFInt32 read FFdXDimension;
     {  }
     property XDimension: Integer read GetXDimension write SetXDimension;
 
     strict private FFdXSpacing: TSFFloat;
-    { Internal wrapper for property @link(XSpacing). This wrapper API may change, we advise to access simpler @link(XSpacing) instead. }
+    { Internal wrapper for property @code(XSpacing). This wrapper API may change, we advise to access simpler @code(XSpacing) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdXSpacing: TSFFloat read FFdXSpacing;
     {  }
     property XSpacing: Single read GetXSpacing write SetXSpacing;
 
     strict private FFdZDimension: TSFInt32;
-    { Internal wrapper for property @link(ZDimension). This wrapper API may change, we advise to access simpler @link(ZDimension) instead. }
+    { Internal wrapper for property @code(ZDimension). This wrapper API may change, we advise to access simpler @code(ZDimension) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdZDimension: TSFInt32 read FFdZDimension;
     {  }
     property ZDimension: Integer read GetZDimension write SetZDimension;
 
     strict private FFdZSpacing: TSFFloat;
-    { Internal wrapper for property @link(ZSpacing). This wrapper API may change, we advise to access simpler @link(ZSpacing) instead. }
+    { Internal wrapper for property @code(ZSpacing). This wrapper API may change, we advise to access simpler @code(ZSpacing) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdZSpacing: TSFFloat read FFdZSpacing;
     {  }
     property ZSpacing: Single read GetZSpacing write SetZSpacing;

@@ -20,11 +20,12 @@ interface
 
 implementation
 
-uses SysUtils, Classes, Zipper, URIParser,
+uses SysUtils, Classes, URIParser,
   CastleWindow, CastleScene, CastleControls, CastleLog, CastleUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleDownload, CastleStringUtils,
-  CastleURIUtils, CastleViewport, CastleCameras;
+  CastleURIUtils, CastleViewport, CastleCameras,
+  GameUnzip;
 
 var
   Window: TCastleWindow;
@@ -39,7 +40,6 @@ type
   TPackedDataReader = class
   public
     SourceZipFileName: String;
-    TempDirectory: String;
     function ReadUrl(const Url: string; out MimeType: string): TStream;
     destructor Destroy; override;
   end;
@@ -51,33 +51,18 @@ function TPackedDataReader.ReadUrl(const Url: string; out MimeType: string): TSt
 var
   U: TURI;
   FileInZip: String;
-  Unzip: TUnZipper;
-  FilesInZipList: TStringlist;
 begin
   U := ParseURI(Url);
   FileInZip := PrefixRemove('/', U.Path + U.Document, false);
+  Result := UnzipFile(SourceZipFileName, FileInZip);
 
-  { Unpack file to a temporary directory.
-    TODO: TPackedDataReader.ReadUrl should be implemented
-    without storing the temp file on disk. }
-  Unzip := TUnZipper.Create;
-  try
-    Unzip.FileName := SourceZipFileName;
-    Unzip.OutputPath := TempDirectory;
-    FilesInZipList := TStringlist.Create;
-    try
-      FilesInZipList.Add(FileInZip);
-      Unzip.UnZipFiles(FilesInZipList);
-    finally FreeAndNil(FilesInZipList) end;
-  finally FreeAndNil(Unzip) end;
-
-  { Use Download with file:/ protocol to load filename to TStream }
-  Result := Download(FilenameToURISafe(CombinePaths(TempDirectory, FileInZip)), [], MimeType);
+  { Determine mime type from Url, which practically means:
+    determine content type from filename extension. }
+  MimeType := URIMimeType(Url);
 end;
 
 destructor TPackedDataReader.Destroy;
 begin
-  RemoveNonEmptyDir(TempDirectory, true);
   inherited;
 end;
 
@@ -100,10 +85,8 @@ begin
   { initialize PackedDataReader to read ZIP when we access my-packed-data:/ }
   PackedDataReader := TPackedDataReader.Create;
   PackedDataReader.SourceZipFileName := URIToFilenameSafe('castle-data:/packed_game_data.zip');
-  PackedDataReader.TempDirectory := InclPathDelim(GetTempDir) + 'unpacked_data';
-  ForceDirectories(PackedDataReader.TempDirectory);
-  WritelnLog('Using temporary directory "%s"', [PackedDataReader.TempDirectory]);
-  RegisterUrlProtocol('my-packed-data', @PackedDataReader.ReadUrl, nil);
+  RegisterUrlProtocol('my-packed-data',
+    {$ifdef FPC}@{$endif} PackedDataReader.ReadUrl, nil);
 
   { make following calls to castle-data:/ also load data from ZIP }
   ApplicationDataOverride := 'my-packed-data:/';

@@ -95,6 +95,8 @@
       AnimateSkinTransform: TMatrix4;
       RestCenter: TVector3;
   private
+    WarningSkinCoordReferences: Boolean;
+
     { Animate point, based on it's rest position.
 
       We used, at one point, to apply here a relative change since last position.
@@ -367,8 +369,15 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
             if (CoordIndex < 0) or
                (CoordIndex >= SkinCoord.Count) then
             begin
-              WritelnWarning('X3D', Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
-                [CoordIndex, SkinCoord.Count]));
+              if not Joint.WarningSkinCoordReferences then
+              begin
+                WritelnWarning('X3D', Format('"%s": skinCoord refers to not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)', [
+                  Joint.NiceName,
+                  CoordIndex,
+                  SkinCoord.Count
+                ]));
+                Joint.WarningSkinCoordReferences := true;
+              end;
               Continue;
             end;
 

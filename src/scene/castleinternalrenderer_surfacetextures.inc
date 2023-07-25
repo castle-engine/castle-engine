@@ -31,6 +31,7 @@ private
 
   { If this Shape uses a normal map, use it for bump mapping. }
   procedure BumpMappingEnable(const Shape: TX3DRendererShape;
+    const RenderOptions: TCastleRenderOptions;
     var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
   { If this Shape uses other surface texture, use it. }
@@ -45,31 +46,31 @@ private
 
 {$ifdef read_implementation}
 
-function TGLRenderer.GLTexture2D(Node: TAbstractTextureNode;
+function TRenderer.GLTexture2D(Node: TAbstractTextureNode;
   out TextureHasAlpha: boolean): TGLTextureId;
 var
-  GLNode: TGLTextureNode;
+  TextureRes: TTextureResource;
 begin
   Result := 0;
   if Node <> nil then
   begin
-    GLNode := GLTextureNodes.TextureNode(Node);
-    if GLNode is TGL2DTextureNode then // also checks is GLNode <> nil
+    TextureRes := TTextureResources.Get(Node);
+    if TextureRes is T2DTextureResource then // also checks is TextureRes <> nil
     begin
-      Result := TGL2DTextureNode(GLNode).GLName;
+      Result := T2DTextureResource(TextureRes).GLName;
       TextureHasAlpha := Node.AlphaChannelFinal <> acNone;
     end;
   end;
 end;
 
-function TGLRenderer.GLTexture2D(Node: TAbstractTextureNode): TGLTextureId;
+function TRenderer.GLTexture2D(Node: TAbstractTextureNode): TGLTextureId;
 var
   IgnoreTextureHasAlpha: boolean;
 begin
   Result := GLTexture2D(Node, IgnoreTextureHasAlpha);
 end;
 
-class function TGLRenderer.ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+class function TRenderer.ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
   MatOne: TAbstractOneSidedMaterialNode;
@@ -127,7 +128,8 @@ begin
   end;
 end;
 
-procedure TGLRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
+procedure TRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
+  const RenderOptions: TCastleRenderOptions;
   var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
   procedure Enable(const NormalTexture: TAbstractTextureNode;
@@ -139,7 +141,7 @@ procedure TGLRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
     HasAlpha: boolean;
   begin
     if Shape.BumpMappingAllowed and
-       (BumpMapping <> bmNone) and
+       (BumpMapping(RenderOptions) <> bmNone) and
        (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
     begin
       GLNormalTexture := GLTexture2D(NormalTexture, HasAlpha);
@@ -153,7 +155,7 @@ procedure TGLRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
 
         ActiveTexture(ABoundTextureUnits);
         glBindTexture(GL_TEXTURE_2D, GLNormalTexture);
-        Shader.EnableBumpMapping(BumpMapping, ABoundTextureUnits,
+        Shader.EnableBumpMapping(BumpMapping(RenderOptions), ABoundTextureUnits,
           NormalTextureCoordinatesId, NormalMapScale, HasAlpha, ParallaxHeight);
         Inc(ABoundTextureUnits);
 
@@ -204,7 +206,7 @@ begin
   end;
 end;
 
-procedure TGLRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
+procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
   var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
   procedure RequireTexCoord(const TextureCoordinatesId: Integer);

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Setting up OpenGL shaders (TShader).Internal for CastleRenderer. @exclude }
+{ Setting up OpenGL shaders (TShader). Internal for CastleRenderer. @exclude }
 unit CastleRendererInternalShader;
 
 {$I castleconf.inc}
@@ -433,7 +433,7 @@ type
     and initialize it by LinkProgram here, then enable it if you want.
     Or you can simply allow the fixed-function pipeline to work.
 
-    This is used internally by TGLRenderer. It isn't supposed to be used
+    This is used internally by TRenderer. It isn't supposed to be used
     directly by other code. }
   TShader = class
   private
@@ -546,8 +546,8 @@ type
 
       In case GLFeatures.EnableFixedFunction = true, these are also the contents
       of current OpenGL modelview matrix,
-      at TGLRenderer.RenderShapeClipPlanes and earlier.
-      At TGLRenderer.RenderShapeCreateMeshRenderer and later,
+      at TRenderer.RenderShapeClipPlanes and earlier.
+      At TRenderer.RenderShapeCreateMeshRenderer and later,
       the OpenGL modelview matrix contains also shape transformation,
       so it's different than SceneModelView. }
     SceneModelView: TMatrix4;
@@ -728,7 +728,7 @@ implementation
 
 uses SysUtils, StrUtils,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleGLUtils, CastleLog, CastleGLVersion,
+  CastleGLUtils, CastleLog, CastleGLVersion, CastleInternalScreenEffects,
   CastleScreenEffects, CastleInternalX3DLexer, CastleInternalGLUtils;
 
 {$ifndef OpenGLES}
@@ -3754,19 +3754,31 @@ procedure TShader.AddScreenEffectCode(const Depth: boolean);
 var
   VS, FS: string;
 begin
-  {$warnings off} // using deprecated below, which should be internal
   VS := ScreenEffectVertex;
   FS := ScreenEffectFragment(Depth);
-  {$warnings on}
+
+  { Fragment shader code is required, as FS doesn't define main().
+    Raising exception here prevents getting later a less clear exception
+    message from OpenGL(ES),
+    see https://github.com/castle-engine/castle-engine/issues/509 .
+
+    Note that EGLSLError will be captured and turned into warning
+    by TScreenEffectResource.PrepareCore .
+    This is desirable for view3dscene, as it should display only a warning
+    for invalid X3D models. }
+
+  if Source[stFragment].Count = 0 then
+    raise EGLSLError.Create('No fragment shader code provided for a screen effect');
 
   Source[stVertex].Insert(0, VS);
+
   { For OpenGLES, ScreenEffectLibrary must be 1st shader,
     and it will be glued with the user shader code.
     So we glue it also on desktop OpenGL, for consistency
     (so e.g. you should never repeat "uniform screen_width...").  }
-  if Source[stFragment].Count <> 0 then
-    Source[stFragment][0] := FS + Source[stFragment][0] else
-    Source[stFragment].Insert(0, FS);
+
+  Assert(Source[stFragment].Count <> 0); // make check it above
+  Source[stFragment][0] := FS + Source[stFragment][0];
 end;
 
 function TShader.NeedsNormals: Boolean;

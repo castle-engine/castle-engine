@@ -96,17 +96,42 @@ procedure OnScreenNotification(const Message: string);
 
 implementation
 
-{ Copied and adapted from Lazarus LCL unit LCLIntf. The core of our engine
-  cannot depend on LCL. Fortunately, Lazarus
+uses
+  {$if not(defined(ANDROID) or defined(CASTLE_IOS))}
+    {$ifdef UNIX} BaseUnix, {$endif}
+    {$ifdef MSWINDOWS} Windows, {$endif}
+    {$ifdef DARWIN} MacOSAll, {$endif}
+  {$endif}
+  SysUtils, Classes, {$ifdef FPC} Process, {$else} ShellApi, {$endif}
+  CastleUriUtils, CastleUtils, CastleFilesUtils, CastleLog, CastleMessaging;
+
+{ Has URL any anchor at the end, like "index.html#chapter1".
+  For such URLs, converting them to local filename may be possible
+  but is lossy: anchor would be lost.
+
+  Testcase: API docs to
+  file:///..../doc/reference/CastleSoundEngine.TCastleSound.html#DefaultReferenceDistance
+  would effectively open
+  /..../doc/reference/CastleSoundEngine.TCastleSound.html
+  (anchor lost). }
+function UrlHasAnchor(const Url: String): Boolean;
+var
+  U, Anchor: String;
+begin
+  U := Url;
+  URIExtractAnchor(U, Anchor, true);
+  Result := Anchor <> '';
+end;
+
+{ Portions of OpenURL below copied and adapted from Lazarus LCL unit LCLIntf.
+  The core of our engine cannot depend on LCL. Fortunately, Lazarus
   has the same license as our engine, so copying code is fine.
 
-  We did some changes to the code here:
+  We did a lot of changes to the code here:
   - Removed references to UTF8 classes and functions.
-    With time, hopefully FPC RTL will have nice solution for UTF8
-    (it does now: codepage-aware strings).
-    Also, with time, hopefully these functions could be availabe in FPC FCL too?
-  - Using TProcess.Executable, TProcess.Parameters instead of
-    TProcess.CommandLine. This avoids the need for many paranoid quoting
+    CGE uses FPC codepage-aware strings.
+  - Use TProcess.Executable, TProcess.Parameters instead of
+    deprecated TProcess.CommandLine. This avoids the need for many paranoid quoting
     previously present here.
   - Some bits adjusted to use our CastleUtils, CastleFilesUtils functions.
   - On Android, we use CastleMessaging to integrate with Android activities
@@ -125,16 +150,8 @@ implementation
     LCL implementation was cross-platform but was used only on
     Unix (except Darwin) (for these OpenXxx routines).
   - SearchFileInPath => PathFileSearch (it's only used by Unix) or FindExe
+  - ... and more.
 }
-
-uses
-  {$if not(defined(ANDROID) or defined(CASTLE_IOS))}
-    {$ifdef UNIX} BaseUnix, {$endif}
-    {$ifdef MSWINDOWS} Windows, {$endif}
-    {$ifdef DARWIN} MacOSAll, {$endif}
-  {$endif}
-  SysUtils, Classes, {$ifdef FPC} Process, {$else} ShellApi, {$endif}
-  CastleURIUtils, CastleUtils, CastleFilesUtils, CastleLog, CastleMessaging;
 
 { lcl/lclstrconsts.pas ------------------------------------------------------- }
 
@@ -275,9 +292,12 @@ begin
     Exit(False);
 
   { If this is a local filename, open it using OpenDocument. }
-  FileName := URIToFilenameSafe(AURL);
-  if FileName <> '' then
-    Exit(OpenDocument(FileName));
+  if not UrlHasAnchor(AURL) then
+  begin
+    FileName := URIToFilenameSafe(AURL);
+    if FileName <> '' then
+      Exit(OpenDocument(FileName));
+  end;
 
   cf := CFStringCreateWithCString(kCFAllocatorDefault, @AURL[1], kCFStringEncodingUTF8);
   if not Assigned(cf) then
@@ -331,9 +351,12 @@ var
   ABrowser, FileName: String;
 begin
   { If this is a local filename, open it using OpenDocument. }
-  FileName := URIToFilenameSafe(AURL);
-  if FileName <> '' then
-    Exit(OpenDocument(FileName));
+  if not UrlHasAnchor(AURL) then
+  begin
+    FileName := URIToFilenameSafe(AURL);
+    if FileName <> '' then
+      Exit(OpenDocument(FileName));
+  end;
 
   Result := FindDefaultBrowser(ABrowser) and FileExists(ABrowser) and FileIsExecutable(ABrowser);
   if not Result then

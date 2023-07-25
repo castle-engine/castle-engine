@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{0E8D482C-FA3E-FBD1-3CCF-62F5F08316A9}</ProjectGuid>
+        <ProjectGuid>{B44DF862-F9A0-FB33-8619-60F3D265AC3F}</ProjectGuid>
         <MainSource>split_long_animation_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

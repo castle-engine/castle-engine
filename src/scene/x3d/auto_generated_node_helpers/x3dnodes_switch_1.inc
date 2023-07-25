@@ -30,7 +30,7 @@
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdWhichChild: TSFLong;
-    { Internal wrapper for property @link(WhichChild). This wrapper API may change, we advise to access simpler @link(WhichChild) instead. }
+    { Internal wrapper for property @code(WhichChild). This wrapper API may change, we advise to access simpler @code(WhichChild) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWhichChild: TSFLong read FFdWhichChild;
 
 {$endif read_interface}

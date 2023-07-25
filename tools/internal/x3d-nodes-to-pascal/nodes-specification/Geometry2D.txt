@@ -1,60 +1,90 @@
 Arc2D : X3DGeometryNode {
   SFFloat []       endAngle   Pi/2
     range: [-2Pi,2Pi]
+    change: chGeometry
+    angle
   SFFloat []       radius     1
     range: (0,Inf)
+    change: chGeometry
   SFFloat []       startAngle 0
     range: [-2Pi,2Pi]
+    change: chGeometry
+    angle
 }
 
 ArcClose2D : X3DGeometryNode {
   SFString []       closureType "PIE"
     range: ["PIE"|"CHORD"]
     enumerated-type: TArcClosureType ArcClosureTypeNames acPie
+    change: chGeometry
   SFFloat  []       endAngle    Pi/2
     range: [-2Pi,2Pi]
+    change: chGeometry
+    angle
   SFFloat  []       radius      1
     range: (0,Inf)
+    change: chGeometry
   SFBool   []       solid       FALSE
+    change: chGeometry
   SFFloat  []       startAngle  0
     range: [-2Pi,2Pi]
+    change: chGeometry
+    angle
 }
 
 Circle2D : X3DGeometryNode {
   SFFloat []       radius   1
     range: (0,Inf)
+    change: chGeometry
 
   # CASTLE GAME ENGINE EXTENSIONS:
   SFInt32    [in,out]      slices      -1
     range: {-1} + [3, infinity)
+    change: chGeometry
+    doc: How much to subdivide the circle. Larger values result in polygon that looks smoother (more like a correct circle), but also mean that we need to render more triangles. The default value, -1 means to use the global @link(DefaultTriangulationSlices) parameter.
 }
 
 Disk2D : X3DGeometryNode {
   SFFloat []       innerRadius 0
     range: [0,Inf)
+    change: chGeometry
   SFFloat []       outerRadius 1
     range: (0,Inf)
+    change: chGeometry
   SFBool  []       solid       FALSE
+    change: chGeometry
+
+  # CASTLE GAME ENGINE EXTENSIONS:
+  SFInt32    [in,out]      slices      -1
+    change: chGeometry
+    range: {-1} + [3, infinity)
+    doc: How much to subdivide the circles (both inner and outer circles of the disk). Larger values result in a polygon that looks smoother, but also mean that we need to render more triangles. The default value, -1 means to use the global @link(DefaultTriangulationSlices) parameter.
 }
 
 Polyline2D : X3DGeometryNode {
   MFVec2f []       lineSegments []
     range: (-Inf,Inf)
+    change: chGeometry
 }
 
 Polypoint2D : X3DGeometryNode {
   MFVec2f [in,out] point    []
     range: (-Inf,Inf)
+    change: chGeometry
 }
 
 Rectangle2D : X3DGeometryNode {
   SFVec2f []       size     2 2
     range: (0,Inf)
+    change: chGeometry
   SFBool  []       solid    FALSE
+    change: chGeometry
 }
 
 TriangleSet2D : X3DGeometryNode {
   MFVec2f [in,out] vertices []
     range: (-Inf,Inf)
+    change: chGeometry
   SFBool  []       solid    FALSE
+    change: chGeometry
 }

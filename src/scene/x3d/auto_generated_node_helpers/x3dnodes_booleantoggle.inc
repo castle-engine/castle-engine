@@ -36,7 +36,7 @@
     public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
     strict private FFdToggle: TSFBool;
-    { Internal wrapper for property @link(Toggle). This wrapper API may change, we advise to access simpler @link(Toggle) instead. }
+    { Internal wrapper for property @code(Toggle). This wrapper API may change, we advise to access simpler @code(Toggle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdToggle: TSFBool read FFdToggle;
     {  }
     property Toggle: Boolean read GetToggle write SetToggle;

@@ -290,7 +290,7 @@ begin
      (GetMainContainer.DefaultFont.FontLoaded) then
     Result := GetMainContainer.DefaultFont
   else
-    Result := GetUIFont;
+    Result := InternalGetUIFont;
 
   { if needed, wrap Result in TCastleFontFamily instance }
   if (FontSize <> 0) or

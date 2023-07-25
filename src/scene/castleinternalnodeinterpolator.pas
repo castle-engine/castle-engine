@@ -382,7 +382,7 @@ end;
      even across different nodes right now (the only need is to have
      equal URLs).
 
-  4. And later the Shape cache of TGLRenderer can speed
+  4. And later the Shape cache in TRendererCache can speed
      up loading time and conserve memory use, if it sees the same
      reference to given GeometryNode twice. }
 function NodesMerge(Model1, Model2: TX3DNode;

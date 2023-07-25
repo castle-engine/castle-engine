@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1076">
+    <Files Count="1086">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -1416,8 +1416,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleSceneInternalBlending"/>
       </Item332>
       <Item333>
-        <Filename Value="../src/scene/castlesceneinternalocclusion.pas"/>
-        <UnitName Value="CastleSceneInternalOcclusion"/>
+        <Filename Value="../src/scene/castleinternalocclusionculling.pas"/>
+        <UnitName Value="CastleInternalOcclusionCulling"/>
       </Item333>
       <Item334>
         <Filename Value="../src/scene/castlesceneinternalshape.pas"/>
@@ -4409,6 +4409,46 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/files/castleinternalurlutils.pas"/>
         <UnitName Value="CastleInternalUrlUtils"/>
       </Item982>
+  	  <Item1077>
+        <Filename Value="../src/scene/castleinternalshapesrenderer.pas"/>
+        <UnitName Value="CastleInternalShapesRenderer"/>
+      </Item1077>
+  	  <Item1078>
+        <Filename Value="../src/scene/castleinternalrenderer_initial_types.inc"/>
+        <Type Value="Include"/>
+      </Item1078>
+  	  <Item1079>
+        <Filename Value="../src/scene/castleinternalrenderer_cache.inc"/>
+        <Type Value="Include"/>
+      </Item1079>
+  	  <Item1080>
+        <Filename Value="../src/scene/castleinternalrenderer_cache_types.inc"/>
+        <Type Value="Include"/>
+      </Item1080>
+  	  <Item1081>
+        <Filename Value="../src/scene/castleinternalrenderer_renderer.inc"/>
+        <Type Value="Include"/>
+      </Item1081>
+  	  <Item1082>
+        <Filename Value="../src/scene/castleinternalrenderer_shape.inc"/>
+        <Type Value="Include"/>
+      </Item1082>
+  	  <Item1083>
+        <Filename Value="../src/scene/castleinternalrenderer_final_globals.inc"/>
+        <Type Value="Include"/>
+      </Item1083>
+  	  <Item1084>
+        <Filename Value="../src/scene/castleinternalrenderer_screen_effects.inc"/>
+        <Type Value="Include"/>
+      </Item1084>
+  	  <Item1085>
+        <Filename Value="../src/scene/castleinternalrenderer_custom_shaders.inc"/>
+        <Type Value="Include"/>
+      </Item1085>
+  	  <Item1086>
+        <Filename Value="../src/scene/castleinternalscreeneffects.pas"/>
+        <UnitName Value="CastleInternalScreenEffects"/>
+      </Item1086>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">

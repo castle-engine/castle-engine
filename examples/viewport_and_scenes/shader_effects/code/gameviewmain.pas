@@ -216,7 +216,7 @@ begin
     The GLContextClose should not be necessary, the reload should happen automatically,
     TCastleSceneCore should realize that shapes using EffectTextureField
     (and textures used by these shapes) need to be prepared again,
-    i.e. passed to TGLRenderer.Prepare. }
+    i.e. passed to PrepareShape. }
   SceneForTextureEffect.GLContextClose;
 end;
 

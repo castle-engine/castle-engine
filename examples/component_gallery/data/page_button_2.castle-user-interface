@@ -1,34 +1,39 @@
 {
+  "$$ClassName" : "TCastleUserInterface",
   "FullSize" : true,
   "Name" : "Group1",
   "$Children" : [
     {
+      "$$ClassName" : "TCastleButton",
       "AutoSize" : false,
       "CustomBackgroundDisabled" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "CustomBackgroundFocused" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "CustomBackgroundNormal" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "CustomBackgroundPressed" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "Height" : 3.1000000000000000E+002,
-      "HorizontalAnchorDelta" : 5.1000000000000000E+002,
       "Image" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "Name" : "ButtonWithViewport",
-      "VerticalAnchorDelta" : -4.3559875488281250E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 5.1000000000000000E+002,
+        "Y" : -4.3559875488281250E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "Width" : 5.0000000000000000E+002,
       "$Children" : [
         {
-          "HorizontalAnchorDelta" : -1.0000000000000000E+001,
+          "$$ClassName" : "TCastleLabel",
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Label2",
@@ -37,180 +42,215 @@
             "with animated TCastleScene inside,",
             "inside a button."
           ],
-          "VerticalAnchorDelta" : -1.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -1.0000000000000000E+001,
+            "Y" : -1.0000000000000000E+001
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleLabel"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
-          "Camera" : {
-            "InitialPositionPersistent" : {
-              "Z" : 5.0000000000000000E+002,
-              "$ClassName" : "TCastleVector3Persistent"
-            },
-            "InitialUpPersistent" : {
-              "Z" : 4.3711388286737929E-008,
-              "$ClassName" : "TCastleVector3Persistent"
-            },
-            "Name" : "Camera",
-            "Orthographic" : {
-              "Name" : "Orthographic",
-              "OriginPersistent" : {
-                "X" : 5.0000000000000000E-001,
-                "Y" : 5.0000000000000000E-001,
-                "$ClassName" : "TCastleVector2Persistent"
-              },
-              "Width" : 3.0000000000000000E+003,
-              "$Children" : [
-              ],
-              "$ClassName" : "TCastleOrthographic"
-            },
-            "Perspective" : {
-              "Name" : "Perspective",
-              "$Children" : [
-              ],
-              "$ClassName" : "TCastlePerspective"
-            },
-            "ProjectionType" : "ptOrthographic",
-            "$Children" : [
-            ],
-            "$ClassName" : "TCastleCamera"
-          },
+          "$$ClassName" : "TCastleViewport",
+          "Camera" : "Camera1",
           "Height" : 2.1000000000000000E+002,
-          "HorizontalAnchorDelta" : -1.0000000000000000E+001,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Items" : {
-            "Name" : "Items",
+            "$$ClassName" : "TCastleRootTransform",
             "PhysicsProperties" : {
-              "Name" : "PhysicsProperties",
-              "$Children" : [
-              ],
-              "$ClassName" : "TPhysicsProperties"
+              "$$ClassName" : "TPhysicsProperties",
+              "LayerCollisions" : {
+                "$$ClassName" : "TCastleLayerCollisions"
+              },
+              "LayerNames" : {
+                "$$ClassName" : "TCastleLayerNames"
+              }
             },
             "$Children" : [
               {
+                "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "flying",
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene1",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "BlendingSort" : "bs2D",
-                  "Name" : "RenderOptions",
-                  "$Children" : [
-                  ],
-                  "$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
                 "TranslationPersistent" : {
-                  "Y" : -6.1194458007812500E+002,
-                  "$ClassName" : "TCastleVector3Persistent"
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : -6.1194458007812500E+002
                 },
-                "URL" : "castle-data:/dragon/dragon.json",
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleScene"
+                "URL" : "castle-data:/dragon/dragon.json"
+              },
+              {
+                "$$ClassName" : "TCastleCamera",
+                "Name" : "Camera1",
+                "Orthographic" : {
+                  "$$ClassName" : "TCastleOrthographic",
+                  "OriginPersistent" : {
+                    "$$ClassName" : "TCastleVector2Persistent",
+                    "X" : 5.0000000000000000E-001,
+                    "Y" : 5.0000000000000000E-001
+                  },
+                  "Width" : 3.0000000000000000E+003
+                },
+                "Perspective" : {
+                  "$$ClassName" : "TCastlePerspective"
+                },
+                "ProjectionType" : "ptOrthographic",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Z" : 5.0000000000000000E+002
+                }
               }
-            ],
-            "$ClassName" : "TCastleRootTransform"
+            ]
           },
           "Name" : "Viewport1",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -1.0000000000000000E+001,
+            "Y" : -8.0000000000000000E+001
+          },
           "Transparent" : true,
-          "VerticalAnchorDelta" : -8.0000000000000000E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "Width" : 2.2000000000000000E+002,
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleViewport"
+          "InternalDesignCamera" : {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic",
+              "OriginPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 5.0000000000000000E-001,
+                "Y" : 5.0000000000000000E-001
+              },
+              "Width" : 3.0000000000000000E+003
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "ProjectionType" : "ptOrthographic",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "Z" : 1.0000000000000000E+000
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 6.0000000000000000E+002
+            }
+          },
+          "InternalDesignNavigationType" : 2,
+          "InternalDesignNavigations[dnFly]" : {
+            "$$ClassName" : "TCastleWalkNavigationDesign",
+            "Exists" : false,
+            "Name" : ""
+          },
+          "InternalDesignNavigations[dnExamine]" : {
+            "$$ClassName" : "TCastleExamineNavigationDesign",
+            "Exists" : false,
+            "Name" : ""
+          },
+          "InternalDesignNavigations[dn2D]" : {
+            "$$ClassName" : "TCastle2DNavigationDesign",
+            "Name" : ""
+          }
         }
-      ],
-      "$ClassName" : "TCastleButton"
+      ]
     },
     {
+      "$$ClassName" : "TCastleButton",
       "AutoSize" : false,
       "Caption" : "Toggle",
       "CustomBackgroundDisabled" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "CustomBackgroundFocused" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "CustomBackgroundNormal" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "CustomBackgroundPressed" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
-      "HorizontalAnchorDelta" : 5.0000000000000000E+001,
       "Image" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "Name" : "ButtonToggle",
       "Toggle" : true,
-      "VerticalAnchorDelta" : 2.8000000000000000E+002,
-      "$Children" : [
-      ],
-      "$ClassName" : "TCastleButton"
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 5.0000000000000000E+001,
+        "Y" : 2.8000000000000000E+002
+      }
     },
     {
+      "$$ClassName" : "TCastleButton",
       "AutoSize" : false,
       "CustomBackground" : true,
       "CustomBackgroundDisabled" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "CustomBackgroundFocused" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "CustomBackgroundNormal" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "CustomBackgroundPressed" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "CustomColorDisabledPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
         "Alpha" : 1.0000000000000000E+000,
         "Green" : 5.0196081399917603E-001,
-        "Red" : 5.0196081399917603E-001,
-        "$ClassName" : "TCastleColorPersistent"
+        "Red" : 5.0196081399917603E-001
       },
       "CustomColorFocusedPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
         "Alpha" : 1.0000000000000000E+000,
         "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000,
-        "$ClassName" : "TCastleColorPersistent"
+        "Red" : 1.0000000000000000E+000
       },
       "CustomColorNormalPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
         "Alpha" : 1.0000000000000000E+000,
         "Green" : 9.5294117927551270E-001,
-        "Red" : 9.5294117927551270E-001,
-        "$ClassName" : "TCastleColorPersistent"
+        "Red" : 9.5294117927551270E-001
       },
       "CustomColorPressedPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
         "Alpha" : 1.0000000000000000E+000,
         "Green" : 9.0196079015731812E-001,
-        "Red" : 9.0196079015731812E-001,
-        "$ClassName" : "TCastleColorPersistent"
+        "Red" : 9.0196079015731812E-001
       },
       "Height" : 3.1000000000000000E+002,
-      "HorizontalAnchorDelta" : 4.0000000000000000E+001,
       "Image" : {
-        "$ClassName" : "TCastleImagePersistent"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "Name" : "ButtonWithChildren",
-      "VerticalAnchorDelta" : -4.6000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 4.0000000000000000E+001,
+        "Y" : -4.6000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "Width" : 4.5000000000000000E+002,
       "$Children" : [
         {
+          "$$ClassName" : "TCastleLabel",
           "ColorPersistent" : {
-            "Blue" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000
           },
-          "HorizontalAnchorDelta" : -5.0000381469726563E-001,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Label1",
@@ -222,99 +262,103 @@
             "or image control inside,",
             "and configure them however you like."
           ],
-          "VerticalAnchorDelta" : -2.3000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -5.0000381469726563E-001,
+            "Y" : -2.3000000000000000E+001
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleLabel"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleImageControl",
           "Content" : {
-            "URL" : "castle-data:/small_castle_game_engine_icon.png",
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/small_castle_game_engine_icon.png"
           },
-          "HorizontalAnchorDelta" : -1.5800000000000000E+002,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "ImageControl1",
-          "VerticalAnchorDelta" : -2.0600000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -1.5800000000000000E+002,
+            "Y" : -2.0600000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleImageControl"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleImageControl",
           "Content" : {
-            "URL" : "castle-data:/small_castle_game_engine_icon.png",
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/small_castle_game_engine_icon.png"
           },
-          "HorizontalAnchorDelta" : -6.8000000000000000E+001,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "ImageControl2",
-          "VerticalAnchorDelta" : -2.0600000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -6.8000000000000000E+001,
+            "Y" : -2.0600000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleImageControl"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleImageControl",
           "Content" : {
-            "URL" : "castle-data:/small_castle_game_engine_icon.png",
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/small_castle_game_engine_icon.png"
           },
-          "HorizontalAnchorDelta" : 3.2000000000000000E+001,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "ImageControl3",
-          "VerticalAnchorDelta" : -2.0600000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 3.2000000000000000E+001,
+            "Y" : -2.0600000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleImageControl"
+          "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleImageControl",
           "Content" : {
-            "URL" : "castle-data:/small_castle_game_engine_icon.png",
-            "$ClassName" : "TCastleImagePersistent"
+            "$$ClassName" : "TCastleImagePersistent",
+            "URL" : "castle-data:/small_castle_game_engine_icon.png"
           },
-          "HorizontalAnchorDelta" : 1.3200000000000000E+002,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "ImageControl4",
-          "VerticalAnchorDelta" : -2.0600000000000000E+002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.3200000000000000E+002,
+            "Y" : -2.0600000000000000E+002
+          },
           "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleImageControl"
+          "VerticalAnchorSelf" : "vpTop"
         }
-      ],
-      "$ClassName" : "TCastleButton"
+      ]
     },
     {
+      "$$ClassName" : "TCastleLabel",
       "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
         "Blue" : 1.0000000000000000E+000,
         "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000,
-        "$ClassName" : "TCastleColorPersistent"
+        "Red" : 1.0000000000000000E+000
       },
-      "HorizontalAnchorDelta" : 5.0000000000000000E+001,
       "Name" : "Label3",
       "Text" : [
         "Button with Toggle=true shows the Pressed state.",
         "This way, a button allows to change some Boolean state,",
         "performing a similar function to typical TCastleCheckbox."
       ],
-      "VerticalAnchorDelta" : 4.0000000000000000E+002,
-      "$Children" : [
-      ],
-      "$ClassName" : "TCastleLabel"
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 5.0000000000000000E+001,
+        "Y" : 4.0000000000000000E+002
+      }
     }
-  ],
-  "$ClassName" : "TCastleUserInterface"
+  ]
 }

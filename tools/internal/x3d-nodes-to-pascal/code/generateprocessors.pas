@@ -204,7 +204,7 @@ begin
         NL +
         Field.ConditionsBegin +
         '    strict private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
-        '    { Internal wrapper for property @link(' + Field.PascalName + '). This wrapper API may change, we advise to access simpler @link(' + Field.PascalName + ') instead. }' + NL +
+        '    { Internal wrapper for property @code(' + Field.PascalName + '). This wrapper API may change, we advise to access simpler @code(' + Field.PascalName + ') instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL +
         Field.ConditionsEnd;
 
@@ -946,7 +946,10 @@ var
       S := F.Readln;
       if Trim(S) = '"""' then
         Exit;
-      Result := Result + Trim(S) + NL;
+      { Note: do not Trim(S) below, to not break indent in @longCode
+        used within X3D fields docs, like BlendingSort,
+        file:///home/michalis/sources/castle-engine/castle-engine/doc/reference/X3DNodes.TNavigationInfoNode.html#BlendingSort }
+      Result := Result + S + NL;
     until false;
   end;
 

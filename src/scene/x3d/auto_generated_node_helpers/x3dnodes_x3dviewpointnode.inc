@@ -48,39 +48,39 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAutoCenterOfRotation: TSFBool;
-    { Internal wrapper for property @link(AutoCenterOfRotation). This wrapper API may change, we advise to access simpler @link(AutoCenterOfRotation) instead. }
+    { Internal wrapper for property @code(AutoCenterOfRotation). This wrapper API may change, we advise to access simpler @code(AutoCenterOfRotation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAutoCenterOfRotation: TSFBool read FFdAutoCenterOfRotation;
     { When @true, the center of rotation is automatically calculated looking at the middle of scene bounding box. The @link(CenterOfRotation) value is ignored then.
 
-This field is a Castle Game Engine extension of the X3D standard. The default value (@false) makes behavior compatible with X3D standard. Note that, in contrast, @link(TCastleExamineNavigation.AutoCenterOfRotation) default is @true -- because TCastleExamineNavigation doesn't have to match X3D standard, and the default @true makes it work out-of-the-box on more scenes. }
+      This field is a Castle Game Engine extension of the X3D standard. The default value (@false) makes behavior compatible with X3D standard. Note that, in contrast, @link(TCastleExamineNavigation.AutoCenterOfRotation) default is @true -- because TCastleExamineNavigation doesn't have to match X3D standard, and the default @true makes it work out-of-the-box on more scenes. }
     property AutoCenterOfRotation: Boolean read GetAutoCenterOfRotation write SetAutoCenterOfRotation;
 
     strict private FFdCenterOfRotation: TSFVec3f;
-    { Internal wrapper for property @link(CenterOfRotation). This wrapper API may change, we advise to access simpler @link(CenterOfRotation) instead. }
+    { Internal wrapper for property @code(CenterOfRotation). This wrapper API may change, we advise to access simpler @code(CenterOfRotation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCenterOfRotation: TSFVec3f read FFdCenterOfRotation;
     {  }
     property CenterOfRotation: TVector3 read GetCenterOfRotation write SetCenterOfRotation;
 
     strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdJump: TSFBool;
-    { Internal wrapper for property @link(Jump). This wrapper API may change, we advise to access simpler @link(Jump) instead. }
+    { Internal wrapper for property @code(Jump). This wrapper API may change, we advise to access simpler @code(Jump) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdJump: TSFBool read FFdJump;
     {  }
     property Jump: Boolean read GetJump write SetJump;
 
     strict private FFdOrientation: TSFRotation;
-    { Internal wrapper for property @link(Orientation). This wrapper API may change, we advise to access simpler @link(Orientation) instead. }
+    { Internal wrapper for property @code(Orientation). This wrapper API may change, we advise to access simpler @code(Orientation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdOrientation: TSFRotation read FFdOrientation;
     { Orientation of the viewpoint, expressed as rotation to transform default direction and up (DefaultX3DCameraDirection, DefaultX3DCameraUp). }
     property Orientation: TVector4 read GetOrientation write SetOrientation;
 
     strict private FFdRetainUserOffsets: TSFBool;
-    { Internal wrapper for property @link(RetainUserOffsets). This wrapper API may change, we advise to access simpler @link(RetainUserOffsets) instead. }
+    { Internal wrapper for property @code(RetainUserOffsets). This wrapper API may change, we advise to access simpler @code(RetainUserOffsets) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
     {  }
     property RetainUserOffsets: Boolean read GetRetainUserOffsets write SetRetainUserOffsets;
@@ -102,27 +102,27 @@ This field is a Castle Game Engine extension of the X3D standard. The default va
     public property EventCameraRotationInverseMatrix: TSFMatrix3fEvent read FEventCameraRotationInverseMatrix;
 
     strict private FFdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
-    { Internal wrapper for property @link(CameraMatrixSendAlsoOnOffscreenRendering). This wrapper API may change, we advise to access simpler @link(CameraMatrixSendAlsoOnOffscreenRendering) instead. }
+    { Internal wrapper for property @code(CameraMatrixSendAlsoOnOffscreenRendering). This wrapper API may change, we advise to access simpler @code(CameraMatrixSendAlsoOnOffscreenRendering) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdCameraMatrixSendAlsoOnOffscreenRendering;
     {  }
     property CameraMatrixSendAlsoOnOffscreenRendering: Boolean read GetCameraMatrixSendAlsoOnOffscreenRendering write SetCameraMatrixSendAlsoOnOffscreenRendering;
 
     strict private FFdDirection: TMFVec3f;
-    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
+    { Internal wrapper for property @code(Direction). This wrapper API may change, we advise to access simpler @code(Direction) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDirection: TMFVec3f read FFdDirection;
 
     strict private FFdUp: TMFVec3f;
-    { Internal wrapper for property @link(Up). This wrapper API may change, we advise to access simpler @link(Up) instead. }
+    { Internal wrapper for property @code(Up). This wrapper API may change, we advise to access simpler @code(Up) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUp: TMFVec3f read FFdUp;
 
     strict private FFdGravityUp: TSFVec3f;
-    { Internal wrapper for property @link(GravityUp). This wrapper API may change, we advise to access simpler @link(GravityUp) instead. }
+    { Internal wrapper for property @code(GravityUp). This wrapper API may change, we advise to access simpler @code(GravityUp) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGravityUp: TSFVec3f read FFdGravityUp;
     { Specify the gravity vector explicitly. See https://castle-engine.io/x3d_implementation_navigation_extensions.php . @deprecated }
     property GravityUp: TVector3 read GetGravityUp write SetGravityUp;
 
     strict private FFdGravityTransform: TSFBool;
-    { Internal wrapper for property @link(GravityTransform). This wrapper API may change, we advise to access simpler @link(GravityTransform) instead. }
+    { Internal wrapper for property @code(GravityTransform). This wrapper API may change, we advise to access simpler @code(GravityTransform) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGravityTransform: TSFBool read FFdGravityTransform;
     { Should the gravity vector be affected by the viewpoint transformation, that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode. }
     property GravityTransform: Boolean read GetGravityTransform write SetGravityTransform;

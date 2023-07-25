@@ -100,7 +100,6 @@ begin
   T.Pickable := false;
   T.Collides := false;
   T.CastShadows := false;
-  T.ExcludeFromStatistics := true;
 end;
 
 procedure TInternalCastleEditorGizmo.LoadVisualization(const RootNode: TX3DRootNode);
@@ -174,7 +173,7 @@ var
 begin
   DistanceToCameraSqr := PointsDistanceSqr(
     Params.Transform^.MultPoint(TVector3.Zero),
-    Params.RenderingCamera.Position
+    Params.RenderingCamera.View.Translation
   );
   GizmoShouldExist := DistanceToCameraSqr > Sqr(DistanceToExistGizmo);
   if not GizmoShouldExist then

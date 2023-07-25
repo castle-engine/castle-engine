@@ -42,49 +42,49 @@
     class function ClassX3DType: string; override;
 
     strict private FFdAppearance: TSFNode;
-    { Internal wrapper for property @link(Appearance). This wrapper API may change, we advise to access simpler @link(Appearance) instead. }
+    { Internal wrapper for property @code(Appearance). This wrapper API may change, we advise to access simpler @code(Appearance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAppearance: TSFNode read FFdAppearance;
     {  }
     property Appearance: TAppearanceNode read GetAppearance write SetAppearance;
 
     strict private FFdGeometry: TSFNode;
-    { Internal wrapper for property @link(Geometry). This wrapper API may change, we advise to access simpler @link(Geometry) instead. }
+    { Internal wrapper for property @code(Geometry). This wrapper API may change, we advise to access simpler @code(Geometry) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdGeometry: TSFNode read FFdGeometry;
     {  }
     property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;
 
     strict private FFdBboxCenter: TSFVec3f;
-    { Internal wrapper for property @link(BboxCenter). This wrapper API may change, we advise to access simpler @link(BboxCenter) instead. }
+    { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { You can provide a manually-calculated bounding box of the shape here, for optimization purposes. Leave this field as empty (TBox3D.Empty) to let the engine calculate best bounding box automatically.
 
-Manually providing the bounding box makes sense if you can do it more efficiently than the engine. E.g. if the shape vertexes are animated, then the engine would have to recalcualate the perfect bounding box every frame. It is more efficient to calculate a bounding box of all possible animation frames, and store it here.
+      Manually providing the bounding box makes sense if you can do it more efficiently than the engine. E.g. if the shape vertexes are animated, then the engine would have to recalcualate the perfect bounding box every frame. It is more efficient to calculate a bounding box of all possible animation frames, and store it here.
 
-The glTF skinned animation automatically fills this field for the affected shapes.
+      The glTF skinned animation automatically fills this field for the affected shapes.
 
-@italic(Note: This property is not useful if you want to know the bounding box of a shape, calculated by the engine). This property only allows to override the automatic engine calculation.
+      @italic(Note: This property is not useful if you want to know the bounding box of a shape, calculated by the engine). This property only allows to override the automatic engine calculation.
 
-To read the calculated bounding box, load the nodes to TCastleScene. You can then use @link(TCastleTransform.BoundingBox Scene.BoundingBox), @link(TCastleTransform.LocalBoundingBox Scene.LocalBoundingBox), @link(TCastleTransform.WorldBoundingBox Scene.WorldBoundingBox) to know bounding box of the scene. To get bounding box of a particular shape, enumerate @link(TCastleSceneCore.Shapes) to find the correct shape (using any criteria you want -- note that the same TShapeNode may be reused multiple times), and then read @link(TShape.BoundingBox), @link(TShape.LocalBoundingBox). }
+      To read the calculated bounding box, load the nodes to TCastleScene. You can then use @link(TCastleTransform.BoundingBox Scene.BoundingBox), @link(TCastleTransform.LocalBoundingBox Scene.LocalBoundingBox), @link(TCastleTransform.WorldBoundingBox Scene.WorldBoundingBox) to know bounding box of the scene. To get bounding box of a particular shape, enumerate @link(TCastleSceneCore.Shapes) to find the correct shape (using any criteria you want -- note that the same TShapeNode may be reused multiple times), and then read @link(TShape.BoundingBox), @link(TShape.LocalBoundingBox). }
     property BBox: TBox3D read GetBBox write SetBBox;
 
     strict private FFdBboxSize: TSFVec3f;
-    { Internal wrapper for property @link(BboxSize). This wrapper API may change, we advise to access simpler @link(BboxSize) instead. }
+    { Internal wrapper for property @code(BboxSize). This wrapper API may change, we advise to access simpler @code(BboxSize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     strict private FFdShading: TSFStringEnum;
-    { Internal wrapper for property @link(Shading). This wrapper API may change, we advise to access simpler @link(Shading) instead. }
+    { Internal wrapper for property @code(Shading). This wrapper API may change, we advise to access simpler @code(Shading) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShading: TSFStringEnum read FFdShading;
     {  }
     property Shading: TShading read GetShading write SetShading;
 
     strict private FFdRender: TSFBool;
-    { Internal wrapper for property @link(Render). This wrapper API may change, we advise to access simpler @link(Render) instead. }
+    { Internal wrapper for property @code(Render). This wrapper API may change, we advise to access simpler @code(Render) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRender: TSFBool read FFdRender;
     { Is the shape visible. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php }
     property Render: Boolean read GetRender write SetRender;
 
     strict private FFdCollision: TSFStringEnum;
-    { Internal wrapper for property @link(Collision). This wrapper API may change, we advise to access simpler @link(Collision) instead. }
+    { Internal wrapper for property @code(Collision). This wrapper API may change, we advise to access simpler @code(Collision) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCollision: TSFStringEnum read FFdCollision;
     {  }
     property Collision: TShapeCollision read GetCollision write SetCollision;

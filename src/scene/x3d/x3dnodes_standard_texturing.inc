@@ -25,8 +25,16 @@
   {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturecoordinatenode.inc}
   end;
 
+  TInternalRendererResource = class
+  end;
+
   { Base for all nodes which specify a texture, possibly multi-texture. }
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
+  strict private
+    FInternalRendererResource: TInternalRendererResource;
+    FContextCloseEventSetup: Boolean;
+    procedure SetInternalRendererResource(const Value: TInternalRendererResource);
+    procedure GLContextCloseEvent(Sender: TObject);
   strict protected
     { Alpha channel detected from image contents (or children nodes),
       ignoring our FdAlphaChannel field.
@@ -35,6 +43,23 @@
       descendant). }
     function AlphaChannelData: TAlphaChannel; virtual;
   public
+    { Internal data stored here and used by the renderer.
+      Specific to this TX3DNode.
+
+      This holds a reference count to OpenGL resource in RendererCache,
+      freeing this InternalRendererResource decreases the reference count,
+      and it is done when destroying this node or when last GL context
+      is lost.
+
+      @exclude }
+    property InternalRendererResource: TInternalRendererResource
+      read FInternalRendererResource write FInternalRendererResource;
+
+    { Free InternalRendererResource, if any. }
+    procedure InternalRendererResourceFree;
+
+    destructor Destroy; override;
+
     { Short description how texture is defined, is it inline or loaded
       from URL, is it video of simple image texture.
       "none" if it's not defined at all.
@@ -418,6 +443,39 @@
 {$ifdef read_implementation}
 
 { TAbstractTextureNode ------------------------------------------------------- }
+
+procedure TAbstractTextureNode.SetInternalRendererResource(const Value: TInternalRendererResource);
+begin
+  if FInternalRendererResource <> Value then
+  begin
+    FInternalRendererResource := Value;
+    if not FContextCloseEventSetup then
+    begin
+      FContextCloseEventSetup := true;
+      ApplicationProperties.OnGLContextCloseObject.Add(
+        {$ifdef FPC}@{$endif} GLContextCloseEvent);
+    end;
+  end;
+end;
+
+procedure TAbstractTextureNode.GLContextCloseEvent(Sender: TObject);
+begin
+  InternalRendererResourceFree;
+end;
+
+procedure TAbstractTextureNode.InternalRendererResourceFree;
+begin
+  FreeAndNil(FInternalRendererResource);
+end;
+
+destructor TAbstractTextureNode.Destroy;
+begin
+  GLContextCloseEvent(nil);
+  if FContextCloseEventSetup then
+    ApplicationProperties.OnGLContextCloseObject.Remove(
+      {$ifdef FPC}@{$endif} GLContextCloseEvent);
+  inherited;
+end;
 
 function TAbstractTextureNode.AlphaChannelData: TAlphaChannel;
 begin

@@ -51,6 +51,8 @@ type
     procedure TestRestOf3DCoords;
     procedure TestRestOf3DCoordsCycle;
     procedure TestDecimalSeparator;
+    procedure TestFloatToStrDisplay;
+    procedure TestDeg;
   end;
 
 implementation
@@ -691,6 +693,29 @@ begin
   AssertEquals('123' + {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator + '45', FloatToStr(123.45));
   AssertSameValue(123.45, StrToFloat('123' + {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator + '45'));
   {$endif}
+end;
+
+procedure TTestCastleUtils.TestFloatToStrDisplay;
+begin
+  AssertEquals('123', FloatToStrDisplay(123.000));
+  AssertEquals('123.4', FloatToStrDisplay(123.400));
+  AssertEquals('123.45', FloatToStrDisplay(123.450));
+  AssertEquals('123.46', FloatToStrDisplay(123.456));
+
+  AssertEquals('0', FloatToStrDisplay(0.000));
+  AssertEquals('0.4', FloatToStrDisplay(0.400));
+  AssertEquals('0.45', FloatToStrDisplay(0.450));
+  AssertEquals('0.46', FloatToStrDisplay(0.456));
+
+  AssertEquals('99.99', FloatToStrDisplay(99.99));
+  AssertEquals('100', FloatToStrDisplay(99.999));
+end;
+
+procedure TTestCastleUtils.TestDeg;
+begin
+  AssertSameValue(0, Deg(0));
+  AssertSameValue(pi/2, Deg(90));
+  AssertSameValue(-pi/2, Deg(-90));
 end;
 
 initialization

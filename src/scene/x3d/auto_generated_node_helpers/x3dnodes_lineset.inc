@@ -41,7 +41,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
-    { Internal wrapper for property @link(Attrib). This wrapper API may change, we advise to access simpler @link(Attrib) instead. }
+    { Internal wrapper for property @code(Attrib). This wrapper API may change, we advise to access simpler @code(Attrib) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAttrib: TMFNode read FFdAttrib;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -50,20 +50,20 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdColor: TSFNode;
-    { Internal wrapper for property @link(Color). This wrapper API may change, we advise to access simpler @link(Color) instead. }
+    { Internal wrapper for property @code(Color). This wrapper API may change, we advise to access simpler @code(Color) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdColor: TSFNode read FFdColor;
     {  }
     property Color: TAbstractColorNode read GetColor write SetColor;
 
     strict private FFdCoord: TSFNode;
-    { Internal wrapper for property @link(Coord). This wrapper API may change, we advise to access simpler @link(Coord) instead. }
+    { Internal wrapper for property @code(Coord). This wrapper API may change, we advise to access simpler @code(Coord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCoord: TSFNode read FFdCoord;
     {  }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
-    { Internal wrapper for property @link(FogCoord). This wrapper API may change, we advise to access simpler @link(FogCoord) instead. }
+    { Internal wrapper for property @code(FogCoord). This wrapper API may change, we advise to access simpler @code(FogCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFogCoord: TSFNode read FFdFogCoord;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -72,59 +72,59 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdVertexCount: TMFInt32;
-    { Internal wrapper for property @link(VertexCount). This wrapper API may change, we advise to access simpler @link(VertexCount) instead. }
+    { Internal wrapper for property @code(VertexCount). This wrapper API may change, we advise to access simpler @code(VertexCount) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdVertexCount: TMFInt32 read FFdVertexCount;
     { Array of counts that split the line vertexes. Exact interpretation depends on the @link(Mode) value:
 
-@definitionList(
-@itemLabel lmStrip
-@item(Render a number of line strips.
-Each count on this array is the count of vertexes in a line strip.
-Each line strip is a polyline, i.e. a sequence of lines from the first vertex
-(in given line strip) to the last vertex (again, in given line strip).)
+    @definitionList(
+      @itemLabel lmStrip
+      @item(Render a number of line strips.
+        Each count on this array is the count of vertexes in a line strip.
+        Each line strip is a polyline, i.e. a sequence of lines from the first vertex
+        (in given line strip) to the last vertex (again, in given line strip).)
 
-@itemLabel lmLoop
-@item(Render a number of line loops.
-Each count on this array is the number of vertexes in a line loop.
-Each line loop is a closed polyline, i.e. a sequence of lines from the first vertex
-(in given line loop)
-to the last vertex (again, in given line loop).
-Moreover, within each line loop, there's a closing line from last vertex
-to the first.)
+      @itemLabel lmLoop
+      @item(Render a number of line loops.
+        Each count on this array is the number of vertexes in a line loop.
+        Each line loop is a closed polyline, i.e. a sequence of lines from the first vertex
+        (in given line loop)
+        to the last vertex (again, in given line loop).
+        Moreover, within each line loop, there's a closing line from last vertex
+        to the first.)
 
-@itemLabel lmPair
-@item(Render a number of line segments.
-Counts of this array are ignored, so there's not much point in calling SetVertexCount.
-In this mode, every 2 vertexes define a line segment.)
-) }
+      @itemLabel lmPair
+      @item(Render a number of line segments.
+        Counts of this array are ignored, so there's not much point in calling SetVertexCount.
+        In this mode, every 2 vertexes define a line segment.)
+    ) }
     procedure SetVertexCount(const Value: array of Int32); overload;
     { Array of counts that split the line vertexes. Exact interpretation depends on the @link(Mode) value:
 
-@definitionList(
-@itemLabel lmStrip
-@item(Render a number of line strips.
-Each count on this array is the count of vertexes in a line strip.
-Each line strip is a polyline, i.e. a sequence of lines from the first vertex
-(in given line strip) to the last vertex (again, in given line strip).)
+    @definitionList(
+      @itemLabel lmStrip
+      @item(Render a number of line strips.
+        Each count on this array is the count of vertexes in a line strip.
+        Each line strip is a polyline, i.e. a sequence of lines from the first vertex
+        (in given line strip) to the last vertex (again, in given line strip).)
 
-@itemLabel lmLoop
-@item(Render a number of line loops.
-Each count on this array is the number of vertexes in a line loop.
-Each line loop is a closed polyline, i.e. a sequence of lines from the first vertex
-(in given line loop)
-to the last vertex (again, in given line loop).
-Moreover, within each line loop, there's a closing line from last vertex
-to the first.)
+      @itemLabel lmLoop
+      @item(Render a number of line loops.
+        Each count on this array is the number of vertexes in a line loop.
+        Each line loop is a closed polyline, i.e. a sequence of lines from the first vertex
+        (in given line loop)
+        to the last vertex (again, in given line loop).
+        Moreover, within each line loop, there's a closing line from last vertex
+        to the first.)
 
-@itemLabel lmPair
-@item(Render a number of line segments.
-Counts of this array are ignored, so there's not much point in calling SetVertexCount.
-In this mode, every 2 vertexes define a line segment.)
-) }
+      @itemLabel lmPair
+      @item(Render a number of line segments.
+        Counts of this array are ignored, so there's not much point in calling SetVertexCount.
+        In this mode, every 2 vertexes define a line segment.)
+    ) }
     procedure SetVertexCount(const Value: TInt32List); overload;
 
     strict private FFdMode: TSFStringEnum;
-    { Internal wrapper for property @link(Mode). This wrapper API may change, we advise to access simpler @link(Mode) instead. }
+    { Internal wrapper for property @code(Mode). This wrapper API may change, we advise to access simpler @code(Mode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMode: TSFStringEnum read FFdMode;
     { How to interpret the vertexes: as a set of strips, loops, or just pairs of vertexes. See possible @link(TLineMode) values for details. }
     property Mode: TLineMode read GetMode write SetMode;

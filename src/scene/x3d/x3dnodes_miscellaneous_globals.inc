@@ -143,29 +143,23 @@ const
   ftExp = ftExponential deprecated 'use ftExponential';
 
 var
-  { Triangulation settings.
+  { How much to subdivide various objects (like sphere, cylinder) into triangles.
 
     "Slices" divide the circumference of the circle, like the slices of a pizza.
-    "Stacks" divide the height of the object, like the stacks of a cake or tower.
-    These are used for quadrics - cylinder, cone, sphere and disk.
+    Must be always >= @link(MinTriangulationSlices).
 
-    "Divisions" divide the cube side.
-    This is beneficial for better Gouraud shading.
-
-    You can change these variables only @italic(before using anything)
-    from this module. If you want to change them inside VRML/X3D
-    file (for example, to affect only part of the scene), use the
-    Triangulation node, see
-    https://castle-engine.io/x3d_implementation_geometry3d_extensions.php#section_triangulation
-
-    These variables @italic(must) always honour
-    @link(MinTriangulationSlices),
-    @link(MinTriangulationStacks) limits.
-
-    @groupBegin }
+    See @url(https://castle-engine.io/x3d_implementation_geometry3d_extensions.php#section_triangulation
+    more about triangulation). }
   DefaultTriangulationSlices: Cardinal = 30;
+
+  { How much to subdivide various objects (like sphere, cylinder) into triangles.
+
+    "Stacks" divide the height of the object, like the stacks of a cake or tower.
+    Must be always >= @link(MinTriangulationStacks).
+
+    See @url(https://castle-engine.io/x3d_implementation_geometry3d_extensions.php#section_triangulation
+    more about triangulation). }
   DefaultTriangulationStacks: Cardinal = 20;
-  { @groupEnd }
 
 const
   { Standard prefix name for a time sensor to be recognized as a "named animation"

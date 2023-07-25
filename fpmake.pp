@@ -478,7 +478,7 @@ begin
     P.Targets.AddUnit('castlescene.pas');
     P.Targets.AddUnit('castlescenecore.pas');
     P.Targets.AddUnit('castlesceneinternalblending.pas');
-    P.Targets.AddUnit('castlesceneinternalocclusion.pas');
+    P.Targets.AddUnit('castleinternalocclusionculling.pas');
     P.Targets.AddUnit('castlesceneinternalshape.pas');
     P.Targets.AddUnit('castlescreeneffects.pas');
     P.Targets.AddUnit('castleshapeinternalrendershadowvolumes.pas');
@@ -490,6 +490,7 @@ begin
     P.Targets.AddUnit('castleviewport.pas');
     P.Targets.AddUnit('x3dcamerautils.pas');
     P.Targets.AddUnit('x3dtime.pas');
+    P.Targets.AddUnit('castleinternalscreeneffects.pas');
 
     P.SourcePath.Add('src/scene/x3d');
     P.Targets.AddUnit('x3dnodes.pas');

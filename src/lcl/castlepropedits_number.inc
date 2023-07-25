@@ -14,25 +14,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ Require 2.0.8.
-
-  With older LCL (1.6.4, at the time of FPC 3.0.2) we get
-    src/lcl/castlepropedits_float.inc(37,10) Error: (5000) Identifier not found "HasDefaultValue"
-    src/lcl/castlepropedits_float.inc(46,13) Error: (5000) Identifier not found "FormatValue"
-  It doesn't seem useful to support older LCL anyway now.
-}
-{$if LCL_FULLVERSION >= 02000800}
-  {$define LCL_HAS_DEFAULT_VALUE}
-{$endif}
-
 { TCastleFloatPropertyEditor ------------------------------------------------- }
 
 type
   { Improved property editor for floats.
     This is used e.g. for TCastleSpotLight.CutOffAngle editing. }
   TCastleFloatPropertyEditor = class(TFloatPropertyEditor)
+  protected
+    { Used to display value.
+      Virtual (unlike ancestor FormatValue) to can be overridden. }
+    function FormatValueVirt(const AValue: Extended): String; virtual;
   public
-    {$ifdef LCL_HAS_DEFAULT_VALUE}
+    function GetValue: String; override;
+
     { Determines whether the object inspector shows
       the current property state as default or not (bold).
 
@@ -41,7 +35,6 @@ type
 
       TODO: Submit to fix in LCL. }
     function GetDefaultValue: String; override;
-    {$endif}
 
     { In addition to ancestor features (interprets float, with dot or current locale DecimalSeparator)
       this also interprets floats from CastleScript expressions,
@@ -49,13 +42,60 @@ type
     procedure SetValue(const NewValue: String); override;
   end;
 
-
   { Property editor for floats in rotation vectors, improves
     standard TCastleFloatPropertyEditor. }
   TCastleFloatRotationPropertyEditor = class(TCastleFloatPropertyEditor)
+  protected
+    function FormatValueVirt(const AValue: Extended): String; override;
   public
     function GetName: ShortString; override;
+    procedure SetValue(const NewValue: String); override;
   end;
+
+{ TCastleFloatPropertyEditor ------------------------------------------------- }
+
+function TCastleFloatPropertyEditor.FormatValueVirt(const AValue: Extended): String;
+begin
+  { Using FloatToStrDisplay for consistency, so that e.g. expanding
+    TCastleTransform.Rotation will show same precision for each row (X, Y...)
+    as in 4D vector display. }
+  Result := FloatToStrDisplay(AValue);
+  //inherited FormatValue(AValue);
+end;
+
+function TCastleFloatPropertyEditor.GetValue: String;
+begin
+  { Like ancestor, but use virtual FormatValueVirt. }
+  Result := FormatValueVirt(GetFloatValue);
+end;
+
+function TCastleFloatPropertyEditor.GetDefaultValue: String;
+var
+  PropInfo: PPropInfo;
+  DefFloatValue: Extended;
+begin
+  if not HasDefaultValue then
+    raise EPropertyError.Create('No property default available');
+
+  PropInfo := GetPropInfo;
+  { Hard-cast Default to Single,
+    this is how default value for Single property is stored,
+    consistent with PropertyHasDefaultValue in CastleInternalRttiUtils
+    which is consistent with other FPC/Lazarus code. }
+  DefFloatValue := PSingle(@PropInfo^.Default)^;
+  Result := FormatValueVirt(DefFloatValue);
+end;
+
+procedure TCastleFloatPropertyEditor.SetValue(const NewValue: String);
+begin
+  try
+    inherited SetValue(NewValue);
+  except
+    // if ancestor could not interpret NewValue, try to interpret it as CastleScript expression
+    on EConvertError do
+      SetFloatValue(ParseConstantFloatExpression(NewValue));
+  end;
+end;
 
 { TCastleFloatRotationPropertyEditor ----------------------------------------- }
 
@@ -72,34 +112,17 @@ begin
     Result := 'Angle (W)';
 end;
 
-{$ifdef LCL_HAS_DEFAULT_VALUE}
-function TCastleFloatPropertyEditor.GetDefaultValue: String;
-var
-  PropInfo: PPropInfo;
-  DefFloatValue: Extended;
+function TCastleFloatRotationPropertyEditor.FormatValueVirt(const AValue: Extended): String;
 begin
-  if not HasDefaultValue then
-    raise EPropertyError.Create('No property default available');
-
-  PropInfo := GetPropInfo;
-  { Hard-cast Default to Single,
-    this is how default value for Single property is stored,
-    consistent with PropertyHasDefaultValue in CastleInternalRttiUtils
-    which is consistent with other FPC/Lazarus code. }
-  DefFloatValue := PSingle(@PropInfo^.Default)^;
-  Result := FormatValue(DefFloatValue);
+  { Display value as Deg(...).
+    CastleScript also accepts Deg(...) as input. }
+  Result := inherited FormatValueVirt(RadToDeg(AValue));
+  Result := 'deg(' + Result + ')';
 end;
-{$endif}
 
-procedure TCastleFloatPropertyEditor.SetValue(const NewValue: String);
+procedure TCastleFloatRotationPropertyEditor.SetValue(const NewValue: String);
 begin
-  try
-    inherited SetValue(NewValue);
-  except
-    // if ancestor could not interpret NewValue, try to interpret it as CastleScript expression
-    on EConvertError do
-      SetFloatValue(ParseConstantFloatExpression(NewValue));
-  end;
+  inherited SetValue(WrapDegIfNeeded(NewValue));
 end;
 
 { TCastleTagPropertyEditor ------------------------------------------------- }

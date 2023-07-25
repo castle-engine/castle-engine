@@ -63,7 +63,7 @@
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFillProperties: TSFNode;
-    { Internal wrapper for property @link(FillProperties). This wrapper API may change, we advise to access simpler @link(FillProperties) instead. }
+    { Internal wrapper for property @code(FillProperties). This wrapper API may change, we advise to access simpler @code(FillProperties) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFillProperties: TSFNode read FFdFillProperties;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -72,74 +72,74 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdLineProperties: TSFNode;
-    { Internal wrapper for property @link(LineProperties). This wrapper API may change, we advise to access simpler @link(LineProperties) instead. }
+    { Internal wrapper for property @code(LineProperties). This wrapper API may change, we advise to access simpler @code(LineProperties) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLineProperties: TSFNode read FFdLineProperties;
     { Properties how to display line geometry (line width and such). }
     property LineProperties: TLinePropertiesNode read GetLineProperties write SetLineProperties;
 
     strict private FFdMaterial: TSFNode;
-    { Internal wrapper for property @link(Material). This wrapper API may change, we advise to access simpler @link(Material) instead. }
+    { Internal wrapper for property @code(Material). This wrapper API may change, we advise to access simpler @code(Material) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMaterial: TSFNode read FFdMaterial;
     { Material determines how the shape looks, and how it interacts with lighting. }
     property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
 
     strict private FFdShaders: TMFNode;
-    { Internal wrapper for property @link(Shaders). This wrapper API may change, we advise to access simpler @link(Shaders) instead. }
+    { Internal wrapper for property @code(Shaders). This wrapper API may change, we advise to access simpler @code(Shaders) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShaders: TMFNode read FFdShaders;
-    { Override shaders used for rendering this shape. It is usually better to use @link(Effects) -- they are easier, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
+    { Override shaders used for rendering this shape. Instead of this, it is usually better to use @link(SetEffects) -- the effects set that way are easier, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
 
     strict private FFdTexture: TSFNode;
-    { Internal wrapper for property @link(Texture). This wrapper API may change, we advise to access simpler @link(Texture) instead. }
+    { Internal wrapper for property @code(Texture). This wrapper API may change, we advise to access simpler @code(Texture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexture: TSFNode read FFdTexture;
     { Main texture used by this appearance (diffuse texture for Phong lighting model, base texture for physical lighting model, emissive texture for the unlit lighting model). @deprecated It is more flexible to set the relevant texture inside material node, like @link(TMaterialNode.DiffuseTexture), @link(TPhysicalMaterialNode.BaseTexture), @link(TAbstractOneSidedMaterialNode.EmissiveTexture TUnlitMaterialNode.EmissiveTexture). }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
 
     strict private FFdTextureTransform: TSFNode;
-    { Internal wrapper for property @link(TextureTransform). This wrapper API may change, we advise to access simpler @link(TextureTransform) instead. }
+    { Internal wrapper for property @code(TextureTransform). This wrapper API may change, we advise to access simpler @code(TextureTransform) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTextureTransform: TSFNode read FFdTextureTransform;
     { Texture transformation. }
     property TextureTransform: TAbstractTextureTransformNode read GetTextureTransform write SetTextureTransform;
 
     strict private FFdBackMaterial: TSFNode;
-    { Internal wrapper for property @link(BackMaterial). This wrapper API may change, we advise to access simpler @link(BackMaterial) instead. }
+    { Internal wrapper for property @code(BackMaterial). This wrapper API may change, we advise to access simpler @code(BackMaterial) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBackMaterial: TSFNode read FFdBackMaterial;
     { Alternative material to use for back faces (@italic(not implemented)). }
     property BackMaterial: TAbstractOneSidedMaterialNode read GetBackMaterial write SetBackMaterial;
 
     strict private FFdAlphaMode: TSFStringEnum;
-    { Internal wrapper for property @link(AlphaMode). This wrapper API may change, we advise to access simpler @link(AlphaMode) instead. }
+    { Internal wrapper for property @code(AlphaMode). This wrapper API may change, we advise to access simpler @code(AlphaMode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAlphaMode: TSFStringEnum read FFdAlphaMode;
     {  }
     property AlphaMode: TAlphaMode read GetAlphaMode write SetAlphaMode;
 
     strict private FFdAlphaCutoff: TSFFloat;
-    { Internal wrapper for property @link(AlphaCutoff). This wrapper API may change, we advise to access simpler @link(AlphaCutoff) instead. }
+    { Internal wrapper for property @code(AlphaCutoff). This wrapper API may change, we advise to access simpler @code(AlphaCutoff) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAlphaCutoff: TSFFloat read FFdAlphaCutoff;
     {  }
     property AlphaCutoff: Single read GetAlphaCutoff write SetAlphaCutoff;
 
     strict private FFdReceiveShadows: TMFNode;
-    { Internal wrapper for property @link(ReceiveShadows). This wrapper API may change, we advise to access simpler @link(ReceiveShadows) instead. }
+    { Internal wrapper for property @code(ReceiveShadows). This wrapper API may change, we advise to access simpler @code(ReceiveShadows) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdReceiveShadows: TMFNode read FFdReceiveShadows;
     {  }
     procedure SetReceiveShadows(const Value: array of TAbstractPunctualLightNode);
 
     strict private FFdShadowCaster: TSFBool;
-    { Internal wrapper for property @link(ShadowCaster). This wrapper API may change, we advise to access simpler @link(ShadowCaster) instead. }
+    { Internal wrapper for property @code(ShadowCaster). This wrapper API may change, we advise to access simpler @code(ShadowCaster) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShadowCaster: TSFBool read FFdShadowCaster;
     {  }
     property ShadowCaster: Boolean read GetShadowCaster write SetShadowCaster;
 
     strict private FFdNormalMap: TSFNode;
-    { Internal wrapper for property @link(NormalMap). This wrapper API may change, we advise to access simpler @link(NormalMap) instead. }
+    { Internal wrapper for property @code(NormalMap). This wrapper API may change, we advise to access simpler @code(NormalMap) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNormalMap: TSFNode read FFdNormalMap;
     { Normal map of this appearance. See https://castle-engine.io/x3d_implementation_texturing_extensions.php }
     property NormalMap: TAbstractTexture2DNode read GetNormalMap write SetNormalMap;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FFdHeightMap: TSFNode;
-    { Internal wrapper for property @link(HeightMap). This wrapper API may change, we advise to access simpler @link(HeightMap) instead. }
+    { Internal wrapper for property @code(HeightMap). This wrapper API may change, we advise to access simpler @code(HeightMap) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHeightMap: TSFNode read FFdHeightMap;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
@@ -148,25 +148,25 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdHeightMapScale: TSFFloat;
-    { Internal wrapper for property @link(HeightMapScale). This wrapper API may change, we advise to access simpler @link(HeightMapScale) instead. }
+    { Internal wrapper for property @code(HeightMapScale). This wrapper API may change, we advise to access simpler @code(HeightMapScale) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdHeightMapScale: TSFFloat read FFdHeightMapScale;
     {  }
     property HeightMapScale: Single read GetHeightMapScale write SetHeightMapScale;
 
     strict private FFdBlendMode: TSFNode;
-    { Internal wrapper for property @link(BlendMode). This wrapper API may change, we advise to access simpler @link(BlendMode) instead. }
+    { Internal wrapper for property @code(BlendMode). This wrapper API may change, we advise to access simpler @code(BlendMode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBlendMode: TSFNode read FFdBlendMode;
     { Determines the exact blending equation used, in case @link(AlphaMode) indicates blending. See https://castle-engine.io/x3d_extensions.php }
     property BlendMode: TBlendModeNode read GetBlendMode write SetBlendMode;
 
     strict private FFdEffects: TMFNode;
-    { Internal wrapper for property @link(Effects). This wrapper API may change, we advise to access simpler @link(Effects) instead. }
+    { Internal wrapper for property @code(Effects). This wrapper API may change, we advise to access simpler @code(Effects) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEffects: TMFNode read FFdEffects;
     { Additional shader code for rendering this shape. See https://castle-engine.io/compositing_shaders.php . The shader effects they are easy to use, cooperate with CGE built-in rendering features, and one code is more portable to both mobile and desktop. }
     procedure SetEffects(const Value: array of TEffectNode);
 
     strict private FFdAlphaChannel: TSFStringEnum;
-    { Internal wrapper for property @link(AlphaChannel). This wrapper API may change, we advise to access simpler @link(AlphaChannel) instead. }
+    { Internal wrapper for property @code(AlphaChannel). This wrapper API may change, we advise to access simpler @code(AlphaChannel) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
     {  }
     property AlphaChannel: TAutoAlphaChannel read GetAlphaChannel write SetAlphaChannel;

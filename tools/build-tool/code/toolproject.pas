@@ -413,10 +413,10 @@ constructor TCastleProject.Create(const APath: string);
         Exit;
 
       if FindFirstFile(GetCurrentDir, '*.lpr', false, [], FileInfo) then
-        Exit(DeleteFileExt(FileInfo.Name));
+        Exit(FileInfo.Name);
 
       if FindFirstFile(GetCurrentDir, '*.dpr', false, [], FileInfo) then
-        Exit(DeleteFileExt(FileInfo.Name));
+        Exit(FileInfo.Name);
 
       raise ECannotGuessManifest.Create('Cannot find any *.lpr or *.dpr file in this directory, cannot guess which file to compile.' + NL +
         'Please create a CastleEngineManifest.xml to instruct Castle Game Engine build tool how to build your project.');

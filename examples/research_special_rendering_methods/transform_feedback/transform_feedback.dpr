@@ -21,7 +21,7 @@ uses
   {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleApplicationProperties,
-  CastleViewport, CastleTimeUtils, CastleGLShaders;
+  CastleViewport, CastleTimeUtils, CastleGLShaders, CastleGLUtils;
 
 const
   VertexArray: packed array[0..2] of TVector2 = (

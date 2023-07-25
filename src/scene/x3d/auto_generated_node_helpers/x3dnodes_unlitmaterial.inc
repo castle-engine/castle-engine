@@ -32,7 +32,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdTransparency: TSFFloat;
-    { Internal wrapper for property @link(Transparency). This wrapper API may change, we advise to access simpler @link(Transparency) instead. }
+    { Internal wrapper for property @code(Transparency). This wrapper API may change, we advise to access simpler @code(Transparency) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTransparency: TSFFloat read FFdTransparency;
     { Setting @name to value > 0 makes the object partially-transparent. Setting it to 1.0 makes it even invisible (but still collidable). If you want to render the object using blending (which is usually the case for partially-transparent) it is recommended to specify it explicitly using @link(TAppearanceNode.AlphaMode). }
     property Transparency: Single read GetTransparency write SetTransparency;

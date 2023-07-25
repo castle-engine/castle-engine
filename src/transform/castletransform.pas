@@ -146,4 +146,8 @@ initialization
   RegisterSerializableComponent(TCastleWorldPlaneDistanceJoint, ['Physics', 'Joint', 'World Plane Distance']);
   RegisterSerializableComponent(TCastleSliderJoint, ['Physics', 'Joint', 'Slider']);
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
+
+  InternalBehavior := TCastleBehavior.Create(nil);
+finalization
+  FreeAndNil(InternalBehavior);
 end.

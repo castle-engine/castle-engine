@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{01B3CFCB-7678-4686-ACA6-0567AD6AE916}</ProjectGuid>
+        <ProjectGuid>{2762EA22-D5E0-D773-46D9-20B392256CFF}</ProjectGuid>
         <MainSource>projector_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

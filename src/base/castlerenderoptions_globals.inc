@@ -356,21 +356,37 @@ type
     bdOneMinusConstantAlpha
   );
 
-  { Various ways to sort the objects, useful to correctly
-    render partially-transparent objects.
-    See https://castle-engine.io/blending .
-    @seealso TCastleRenderOptions.BlendingSort
-    @seealso TCastleAbstractRootTransform.BlendingSort }
-  TBlendingSort = (
-    { Do not sort.
-      This is of course fastest, but will cause artifacts if multiple
-      partially-transparent objects may be visible on top of each other. }
-    bsNone,
+  { Various ways to sort the shapes.
 
-    { Sort objects by their Z coordinate.
-      Good for 2D worlds, with flat 2D objects
+    Used to define blending sort @link(TCastleViewport.BlendingSort)
+    to correctly render partially-transparent objects.
+    See https://castle-engine.io/blending .
+
+    Used to suggest blending sort from X3D too,
+    @link(TNavigationInfoNode.BlendingSort).
+
+    Used to define occlusion sort @link(TCastleViewport.OcclusionSort)
+    to optimize rendering. }
+  TShapeSort = (
+    { Automatically determine the best sorting method.
+      See the documentation of each usage (
+      @link(TCastleViewport.BlendingSort) ,
+      @link(TNavigationInfoNode.BlendingSort) ,
+      @link(TCastleViewport.OcclusionSort) ) about what this exactly means.
+    }
+    sortAuto,
+
+    { Do not sort.
+      If used for blending sort, this will cause artifacts if multiple
+      partially-transparent objects may be visible on top of each other.
+      Unless you manually change the order of shapes / scenes in Viewport.Items. }
+    sortNone,
+
+    { Sort objects by their Z coordinate (independent from camera).
+
+      This is good and fast for 2D worlds, with flat 2D objects
       that have zero (or near-zero) size in the Z axis,
-      and they are moved in the Z axis to specify which is on top for another.
+      and they are moved in the Z axis to specify which is in front of another.
 
       More precisely, we take the minimum bounding box Z coordinate
       of two objects. (We don't bother calculating the middle Z coordinate,
@@ -381,34 +397,76 @@ type
       Note that the camera position doesn't matter for this sorting.
       So the 2D object will look OK, @italic(even if viewed from an angle,
       even if viewed from the other side). }
-    bs2D,
+    sort2D,
 
     { Sort objects by the (3D) distance of their bounding box to the camera.
       This is the best universal sorting method for 3D
       scenes with many partially-transparent objects.
 
       The distance is measured from the middle
-      of the bounding box to the camera posotion. }
-    bs3D,
+      of the bounding box, projected along the camera direction.
+      Note that we do not measure strictly @italic(distance to the camera position),
+      we measure @italic(distance to the point projected on camera direction).
+      The difference is subtle, and it means that sorting makes sense even
+      for models like Spine (with multiple thin layers that have various 3D coordinates)
+      as long as they are billboards oriented towards the camera
+      with @link(TCastleBillboard.MatchCameraDirection) = @true
+      and @link(TCastleBillboard.AxisOfRotation) = zero. }
+    sort3D,
 
-    { Sort objects by the (3D) distance of their origin point (point (0,0,0) in local coordinates)
+    { Sort objects by the (3D) distance of their bounding box to the camera,
+      looking at camera direction projected on Y=0 plane.
+
+      This is a good sorting method for 3D when the camera looking more upward
+      or downward should not change the order.
+      In particular, this sorting makes sense
+      for models like Spine (with multiple thin layers that have various 3D coordinates)
+      as long as they are billboards oriented towards the camera
+      with @link(TCastleBillboard.MatchCameraDirection) = @true
+      and @link(TCastleBillboard.AxisOfRotation) = +Y (0, 1, 0). }
+    sort3DVerticalBillboards,
+
+    { Sort objects by the (3D) distance of their origin point
+      (point (0,0,0) in local coordinates)
       to the camera.
       This is a useful sorting method for 3D
       scenes with many partially-transparent objects.
 
-      This is an alternative to bs3D, it is more under your control
+      This is an alternative to sort3D, it is more under your control
       (because the origin doesn't change e.g. because of animations
       or using TCastleBillboard, contrary to bounding box,
       see https://github.com/castle-engine/castle-engine/issues/427#issuecomment-1365862663 ).
-      The downside is that you need to be more aware where is your object origin. }
-    bs3DOrigin,
+      The downside is that you need to be more aware where is your object origin.
 
-    { Sort objects by the (3D) distance of their origin point (point (0,0,0) in local coordinates)
+      Just like sort3D, this is measured by projecting the point on the camera
+      direction, instead of measuring the distance to the camera position.
+
+      @deprecated Deprecated, in most pratical applications now
+      sort3D or sort3DVerticalBillboards will be good. }
+    sort3DOrigin,
+
+    { Sort objects by the (3D) distance of their origin point
+      (point (0,0,0) in local coordinates)
       to the camera, projected on the ground (Y=0).
 
-      Similar to bs3DOrigin, but the height of the object (above Y) doesn't matter. }
-    bs3DGround
+      Similar to sort3DOrigin, but the height of the object (above Y) doesn't matter.
+
+      Just like sort3D, this is measured by projecting the point on the camera
+      direction, instead of measuring the distance to the camera position.
+
+      @deprecated Deprecated, in most pratical applications now
+      sort3DVerticalBillboards or sort3D will be good. }
+    sort3DGround,
+
+    { Use @link(TCastleViewport.OnCustomShapeSort).
+      If this event is not assigned, this is equivalent to sortNone. }
+    sortCustom
   );
+
+  { Like TShapeSort, but doesn't allow sortAuto value. }
+  TShapeSortNoAuto = sortNone .. High(TShapeSort);
+
+  TBlendingSort = TShapeSort deprecated 'use TShapeSort';
 
   T3DCoord = 0..2;
   T3DCoords = set of T3DCoord;
@@ -425,6 +483,22 @@ type
     ltDashedDotted,
     ltDashDotDot
   );
+
+  { Possible color channel to write,
+    see @link(TCastleRenderOptions.InternalColorChannels). }
+  TColorChannel = 0..3;
+
+  { Possible subset of color channels to write,
+    see @link(TCastleRenderOptions.InternalColorChannels). }
+  TColorChannels = set of TColorChannel;
+
+  { Possible values of @link(TRenderContext.DepthRange) and
+    @link(TRenderParams.DepthRange).
+    User code should not use this, rather change
+    @link(TCastleTransform.RenderLayer).
+
+    @exclude }
+  TDepthRange = (drFull, drNear, drFar);
 
 const
   ShadowSamplingNames: array [TShadowSampling] of string =
@@ -505,6 +579,14 @@ const
     This way we will open the window reliably, and in the worst case -- shadow volumes
     will not work. }
   DefaultStencilBits = 8;
+
+  AllColorChannels = [0..3];
+
+  bsNone = sortNone deprecated 'use sortNone';
+  bs3D = sort3D deprecated 'use sort3D';
+  bs2D = sort2D deprecated 'use sort2D';
+  bs3DOrigin = sort3DOrigin deprecated 'use sort3DOrigin';
+  bs3DGround = sort3DGround deprecated 'use sort3DGround';
 
 var
   { Log shadow volume information.

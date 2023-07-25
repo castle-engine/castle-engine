@@ -477,7 +477,7 @@ begin
   begin
     DistanceToCameraSqr := PointsDistanceSqr(
       Params.Transform^.MultPoint(TVector3.Zero),
-      Params.RenderingCamera.Position
+      Params.RenderingCamera.View.Translation
     );
     GizmoVisible := DistanceToCameraSqr > Sqr(DistanceToHide);
     if not GizmoVisible then
@@ -531,7 +531,6 @@ begin
   FScene.Collides := false;
   FScene.Pickable := false;
   FScene.CastShadows := false;
-  FScene.ExcludeFromStatistics := true;
   FScene.InternalExcludeFromParentBoundingVolume := true;
   FScene.InternalExistsOnlyInMeaningfulParents := true;
   FScene.Exists := FExists;

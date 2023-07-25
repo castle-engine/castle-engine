@@ -79,7 +79,8 @@ implementation
 uses Math, Contnrs,
   CastleVectors, CastleTransform, CastleViewport, CastleClassUtils, CastleUIControls,
   CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
-  CastleProjection, CastleStringUtils, CastleApplicationProperties, CastleUtils;
+  CastleProjection, CastleStringUtils, CastleApplicationProperties, CastleUtils,
+  X3DCameraUtils;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -1361,7 +1362,7 @@ procedure TTestCastleTransform.TestPass;
 var
   A: TInternalRenderingPass;
   B: TUserRenderingPass;
-  C: TInternalSceneRenderingPass;
+  C: TWireframeRenderingPass;
   P: TTotalRenderingPass;
 begin
   A := High(A);
@@ -1533,8 +1534,7 @@ end;
     try
       Params.RenderingCamera := TRenderingCamera.Create;
       try
-        Params.RenderingCamera.FromMatrix(TVector3.Zero,
-          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+        Params.RenderingCamera.FromViewVectors(DefaultX3DCameraView, TMatrix4.Identity);
         Params.RenderingCamera.Target := rtScreen;
         Params.Frustum := @Params.RenderingCamera.Frustum;
         T.Render(Params);

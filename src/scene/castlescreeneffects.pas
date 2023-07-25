@@ -24,74 +24,14 @@ uses SysUtils, Classes,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
   CastleVectors, CastleGLShaders, CastleUIControls, X3DNodes, CastleGLImages,
   CastleRectangles, CastleScene, CastleTransform, CastleCameras, CastleGLUtils,
-  CastleRenderOptions;
-
-{ Standard GLSL vertex shader for screen effect.
-  @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
-  and then this function is not necessary). }
-function ScreenEffectVertex: string; deprecated 'this will be internal function soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
-
-(*Library of GLSL fragment shader functions useful for screen effects.
-  This looks at current OpenGL context multi-sampling capabilities
-  to return the correct shader code.
-
-  @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
-  and then this function is not necessary).
-
-  Note that to work with OpenGLES, we have to glue all fragment shaders,
-  and ScreenEffectFragment must be before the actual shader code.
-  The string returned by this function is guaranteed to end with a newline,
-  to make it easy.
-
-  So you usually want to create screen effect shaders like this:
-
-  @longCode(#
-    Shader := TGLSLProgram.Create;
-    Shader.AttachVertexShader(ScreenEffectVertex);
-    Shader.AttachFragmentShader(
-      ScreenEffectFragment(false { or true if you use depth }) +
-      '... my custom screen effect GLSL code ...');
-    Shader.Link;
-    { umIgnore is a good idea here, in case some uniform variable
-      from ScreenEffectFragment code may be left unused. }
-    Shader.UniformMissing := umIgnore;
-  #)
-
-*)
-function ScreenEffectFragment(const Depth: boolean): string; deprecated 'this will be internal function soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
+  CastleRenderOptions, CastleInternalRenderer;
 
 type
-  { GLSL shader program specialized for rendering screen effects.
-    See https://castle-engine.io/x3d_extensions_screen_effects.php
-    about screen effects.
+  { Screen effects are shaders that post-process the rendered screen.
+    The effects may be defined using @url(https://castle-engine.io/x3d_extensions_screen_effects.php
+    X3D node ScreenEffect).
 
-    Do not use the ancestor AttachVertexShader and AttachFragmentShader
-    methods, instead set the @link(ScreenEffectShader).
-    This way, the standard GLSL functionality of screen effects
-    will be attached to the vertex and fragment shader code automatically.
-    At link time, this looks at current OpenGL context multi-sampling capabilities,
-    and the @link(NeedsDepth) value, to link the correct shader code. }
-  TGLSLScreenEffect = class(TGLSLProgram)
-  private
-    FScreenEffectShader: string;
-    FNeedsDepth: boolean;
-  public
-    constructor Create;
-
-    property NeedsDepth: boolean read FNeedsDepth write FNeedsDepth default false;
-
-    { In this class, UniformMissing is by default umIgnore, since it's
-      normal that screen effect doesn't use some of it's uniform variables. }
-    property UniformMissing default umIgnore;
-
-    { Attach GLSL code for the screen effect (executed as part of fragment shader).
-      See https://castle-engine.io/x3d_extensions_screen_effects.php . }
-    property ScreenEffectShader: string read FScreenEffectShader write FScreenEffectShader;
-
-    procedure Link; override;
-  end deprecated 'this will be internal class soon, instead use TCastleScreenEffects or TCastleViewport and add screen effects there';
-
-  { Control that applies shader screen effects (post-processing)
+    This control applies screen effects (post-processing)
     on the rendering done by children and (when this class is used as an ancestor)
     it's descendants.
 
@@ -130,6 +70,8 @@ type
       FScreenEffectsTimeScale: Single;
       { World to pass dummy camera position to ScreenEffectsScene. }
       World: TCastleRootTransform;
+      FRenderer: TRenderer;
+      FPrepareParams: TPrepareParams;
 
       { OpenGL(ES) resources for screen effects. }
       { If a texture for screen effects is ready, then
@@ -155,6 +97,8 @@ type
     function GetScreenEffectsCount: Cardinal;
     function GetScreenEffectsNeedDepth: Boolean;
     function GetScreenEffect(const Index: Integer): TGLSLProgram;
+
+    procedure GLContextCloseEvent(Sender: TObject);
   protected
     { Valid only between Render and RenderOverChildren calls.
       Tells whether we actually use screen effects, thus RenderWithoutScreenEffects
@@ -177,7 +121,8 @@ type
       instead of by AddScreenEffect call.
       This is internal, only to be used by TCastleViewport.
       @exclude }
-    function InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
+    function InternalExtraGetScreenEffects(
+      const Index: Integer): TGLSLProgram; virtual;
     { @exclude }
     function InternalExtraScreenEffectsCount: Integer; virtual;
     { @exclude }
@@ -266,54 +211,8 @@ type
 
 implementation
 
-uses CastleUtils, CastleLog, CastleRenderContext, CastleInternalGLUtils;
-
-function ScreenEffectVertex: string;
-begin
-  Result := {$I screen_effect.vs.inc};
-end;
-
-function ScreenEffectFragment(const Depth: boolean): string;
-begin
-  Result := '';
-  if Depth then
-    Result := Result + ('#define DEPTH' +NL);
-  if GLFeatures.FBOMultiSampling then
-  begin
-    if GLFeatures.CurrentMultiSampling > 1 then
-      Result := Result +
-        '#define MULTI_SAMPLING' +NL +
-        '#define MULTI_SAMPLING_' + IntToStr(GLFeatures.CurrentMultiSampling) +NL;
-    if not (GLFeatures.CurrentMultiSampling in [1, 2, 4, 8, 16]) then
-      WritelnWarning('Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. ' + 'This may indicate that your GPU is very new or very weird. Please submit this as a bug (see https://castle-engine.io/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
-        [GLFeatures.CurrentMultiSampling]));
-  end;
-  Result := Result + ({$I screen_effect_library.glsl.inc} + NL);
-end;
-
-{ TGLSLScreenEffect ---------------------------------------------------------- }
-
-constructor TGLSLScreenEffect.Create;
-begin
-  inherited;
-  UniformMissing := umIgnore;
-  Name := 'TGLSLScreenEffect';
-end;
-
-procedure TGLSLScreenEffect.Link;
-var
-  VS, FS: String;
-begin
-  if FScreenEffectShader = '' then
-    raise Exception.Create('TGLSLScreenEffect shader not assigned by AttachScreenEffectShader method');
-  {$warnings off} // using deprecated below, which should be internal
-  VS := ScreenEffectVertex;
-  FS := ScreenEffectFragment(NeedsDepth) + FScreenEffectShader;
-  {$warnings on}
-  AttachVertexShader(VS);
-  AttachFragmentShader(FS);
-  inherited;
-end;
+uses CastleUtils, CastleLog, CastleRenderContext, CastleInternalGLUtils,
+  CastleApplicationProperties, CastleInternalScreenEffects;
 
 { TCastleScreenEffects ------------------------------------------------------- }
 
@@ -322,11 +221,32 @@ begin
   inherited;
   FScreenEffectsTimeScale := 1;
   FScreenEffectsEnable := true;
+
+  FRenderer := TRenderer.Create(nil);
+
+  FPrepareParams := TPrepareParams.Create;
+  FPrepareParams.GlobalLights := nil;
+  FPrepareParams.GlobalFog := nil;
+  FPrepareParams.RendererToPrepareShapes := FRenderer;
+
+  ApplicationProperties.OnGLContextCloseObject.Add(
+    {$ifdef FPC}@{$endif} GLContextCloseEvent);
 end;
 
 destructor TCastleScreenEffects.Destroy;
 begin
+  ApplicationProperties.OnGLContextCloseObject.Remove(
+    {$ifdef FPC}@{$endif} GLContextCloseEvent);
+
+  FreeAndNil(FPrepareParams);
+  FreeAndNil(FRenderer);
   inherited;
+end;
+
+procedure TCastleScreenEffects.GLContextCloseEvent(Sender: TObject);
+begin
+  if ScreenEffectsScene <> nil then
+    ScreenEffectsScene.GLContextClose;
 end;
 
 procedure TCastleScreenEffects.AddScreenEffect(const Node: TAbstractChildNode);
@@ -394,7 +314,7 @@ begin
       { TCastleScene already implemented logic to only count screen effects
         that are enabled, and their GLSL code linked successfully.
         Cool, we depend on it. }
-      Result := Result + ScreenEffectsScene.ScreenEffectsCount;
+      Result := Result + ScreenEffectsScene.InternalScreenEffectsCount;
     Result := Result + InternalExtraScreenEffectsCount;
   end;
 end;
@@ -402,7 +322,7 @@ end;
 function TCastleScreenEffects.GetScreenEffectsNeedDepth: Boolean;
 begin
   Result := ScreenEffectsEnable and (
-    ((ScreenEffectsScene <> nil) and ScreenEffectsScene.ScreenEffectsNeedDepth) or
+    ((ScreenEffectsScene <> nil) and ScreenEffectsScene.InternalScreenEffectsNeedDepth) or
     InternalExtraScreenEffectsNeedDepth
   );
 end;
@@ -412,12 +332,12 @@ var
   SceneEffects: Integer;
 begin
   if ScreenEffectsScene <> nil then
-    SceneEffects := ScreenEffectsScene.ScreenEffectsCount
+    SceneEffects := ScreenEffectsScene.InternalScreenEffectsCount
   else
     SceneEffects := 0;
 
   if Index < SceneEffects then
-    Result := ScreenEffectsScene.ScreenEffects(Index)
+    Result := ScreenEffectsScene.InternalScreenEffects(Index)
   else
     Result := InternalExtraGetScreenEffects(Index - SceneEffects);
 end;
@@ -774,10 +694,11 @@ end;
 procedure TCastleScreenEffects.PrepareResources;
 begin
   if ScreenEffectsScene <> nil then
-    { We depend here on undocumented TCastleScene.PrepareResources behavior:
-      when there is no prRenderSelf or prRenderClones,
-      then PrepareParams (3rd argument below) is unused, and may be nil. }
-    ScreenEffectsScene.PrepareResources([prScreenEffects], nil);
+  begin
+    {$warnings off} // using deprecated, this should be internal
+    ScreenEffectsScene.PrepareResources([prScreenEffects], FPrepareParams);
+    {$warnings on}
+  end;
 end;
 
 procedure TCastleScreenEffects.BeforeRender;

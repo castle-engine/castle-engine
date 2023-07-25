@@ -32,7 +32,7 @@
     class function ClassX3DType: string; override;
 
     strict private FFdObjectType: TMFString;
-    { Internal wrapper for property @link(ObjectType). This wrapper API may change, we advise to access simpler @link(ObjectType) instead. }
+    { Internal wrapper for property @code(ObjectType). This wrapper API may change, we advise to access simpler @code(ObjectType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdObjectType: TMFString read FFdObjectType;
     {  }
     procedure SetObjectType(const Value: array of string); overload;
@@ -40,7 +40,7 @@
     procedure SetObjectType(const Value: TCastleStringList); overload;
 
     strict private FFdPickable: TSFBool;
-    { Internal wrapper for property @link(Pickable). This wrapper API may change, we advise to access simpler @link(Pickable) instead. }
+    { Internal wrapper for property @code(Pickable). This wrapper API may change, we advise to access simpler @code(Pickable) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPickable: TSFBool read FFdPickable;
     {  }
     property Pickable: Boolean read GetPickable write SetPickable;
