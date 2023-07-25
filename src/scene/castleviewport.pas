@@ -3102,7 +3102,7 @@ begin
     { up } Vector3(0, 1, 0));
   Camera.GravityUp := Vector3(0, 1, 0);
   Camera.ProjectionType := ptOrthographic;
-  {$warnings off} // using deprecated MainScene to keep it working
+  {$warnings off} // using deprecated AutoCamera for backward compat, so that TCastleSceneManager.Setup2D does what it did
   AutoCamera := false;
   {$warnings on}
 end;
