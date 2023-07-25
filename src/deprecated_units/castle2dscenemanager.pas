@@ -151,7 +151,7 @@ type
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
       in @link(RenderOptions). }
     function Clone(const AOwner: TComponent): TCastle2DScene;
-  end deprecated 'use TCastleScene, and call Setup2D right after creating';
+  end deprecated 'use TCastleScene, it is equivalent now';
 
   {$warnings off} // refering to deprecated from deprecated
   T2DScene = TCastle2DScene deprecated 'use TCastleScene, and call Setup2D right after creating';
