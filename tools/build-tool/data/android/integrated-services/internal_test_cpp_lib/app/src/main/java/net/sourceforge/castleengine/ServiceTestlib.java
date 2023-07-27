@@ -17,9 +17,6 @@
 
 package net.sourceforge.castleengine;
 
-/**
- * Integration of OpenAL with Castle Game Engine on Android.
- */
 public class ServiceTestlib extends ServiceAbstract
 {
     private static final String CATEGORY = "ServiceTestlib";
@@ -31,6 +28,6 @@ public class ServiceTestlib extends ServiceAbstract
 
     public String getName()
     {
-        return "testlib";
+        return "internal_test_cpp_lib";
     }
 }
