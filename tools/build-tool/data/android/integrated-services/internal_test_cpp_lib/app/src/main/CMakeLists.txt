@@ -1,1 +1,1 @@
-add_subdirectory("cpp/testlib/")
+add_subdirectory("cpp/internal_test_cpp_lib/")
