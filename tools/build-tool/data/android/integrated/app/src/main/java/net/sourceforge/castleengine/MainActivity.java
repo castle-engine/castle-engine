@@ -110,20 +110,6 @@ public class MainActivity extends NativeActivity
         }
     }
 
-    @Override
-    public void onBackPressed()
-    {
-        ServiceAbstract.logInfo(CATEGORY, "onBackPressed");
-        for (ServiceAbstract service : services) {
-            if (service.onBackPressed()) {
-                return;
-            }
-        }
-        // No service says that it's processed?
-        // Let default activity handler.
-        super.onBackPressed();
-    }
-
     /**
      * Send a message to native code.
      * Services (except ServiceMessaging) may call this
