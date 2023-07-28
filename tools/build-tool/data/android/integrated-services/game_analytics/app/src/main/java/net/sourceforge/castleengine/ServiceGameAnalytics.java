@@ -19,9 +19,6 @@ package net.sourceforge.castleengine;
 
 import android.app.Activity;
 import android.util.Log;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.pm.PackageInfo;
 import android.os.Build;
 
 import com.gameanalytics.sdk.*;
@@ -56,16 +53,7 @@ public class ServiceGameAnalytics extends ServiceAbstract
      */
     private void initialize(String gameKey, String secretKey)
     {
-        // Set build version
-        PackageManager manager = getActivity().getPackageManager();
-        String version;
-        try {
-            PackageInfo info = manager.getPackageInfo(getActivity().getPackageName(), 0);
-            version = info.versionName;
-        } catch (NameNotFoundException e) {
-            version = "unknown (NameNotFoundException)";
-        }
-        version = "android " + version;
+        String version = "android ${VERSION}";
         GameAnalytics.configureBuild(version);
 
         // Enable log
