@@ -92,9 +92,9 @@ type
       DefautVersionDisplayValue = '0.1';
       DefaultAndroidCompileSdkVersion = 33;
       DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
-      { See https://castle-engine.io/android-FAQ#what-android-devices-are-supported
+      { See https://castle-engine.io/android_faq
         for reasons behind this minimal version. }
-      ReallyMinSdkVersion = 19;
+      ReallyMinSdkVersion = 21;
       DefaultAndroidMinSdkVersion = ReallyMinSdkVersion;
       DefaultUsesNonExemptEncryption = true;
       DefaultDataExists = true;
