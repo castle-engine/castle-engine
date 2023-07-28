@@ -39,7 +39,7 @@ procedure MergeBuildGradle(const Source, Destination: string;
 
 implementation
 
-uses Classes, XMLRead, XMLWrite,
+uses Classes, StrUtils, XMLRead, XMLWrite,
   CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
 
 { globals -------------------------------------------------------------------- }
@@ -240,7 +240,7 @@ var
   Doc: TXMLDocument;
 
   { Modify DestinationContents to add information specified in source XML file. }
-  procedure MergeItems(const ListElement, ChildElement, Marker: string);
+  procedure MergeItems(const ListElement, ChildElement, Marker: string; const Indent: Integer);
   var
     I: TXMLElementIterator;
     E: TDOMElement;
@@ -259,7 +259,7 @@ var
       try
         while I.GetNext do
         begin
-          Insert(NL + '    ' + I.Current.TextData, DestinationContents, MarkerPos);
+          Insert(NL + DupeString('    ', Indent) + I.Current.TextData, DestinationContents, MarkerPos);
         end;
       finally FreeAndNil(I) end;
     end;
@@ -278,9 +278,9 @@ begin
       ReadXMLFile(Doc, SStream); // ReadXMLFile within "try" clause, as it initializes Doc always
       if Doc.DocumentElement.TagName <> 'build_gradle_merge' then
         raise ECannotMergeBuildGradle.Create('The source file from which to merge build.gradle must be XML with root <build_gradle_merge>');
-      MergeItems('dependencies', 'dependency', '// MERGE-DEPENDENCIES');
-      MergeItems('plugins', 'plugin', '// MERGE-PLUGINS');
-      MergeItems('repositories', 'repository', '// MERGE-REPOSITORIES');
+      MergeItems('dependencies', 'dependency', '// MERGE-DEPENDENCIES', 1);
+      MergeItems('plugins', 'plugin', '// MERGE-PLUGINS', 1);
+      MergeItems('repositories', 'repository', '// MERGE-REPOSITORIES', 1);
     finally FreeAndNil(Doc) end;
   finally FreeAndNil(SStream) end;
 

@@ -48,7 +48,7 @@ const
   TestAdMobRewardedUnitId = 'ca-app-pub-3940256099942544/5224354917';
 
 type
-  TAdNetwork = (anAdMob, anChartboost, anStartApp, anHeyzap);
+  TAdNetwork = (anAdMob, anChartboost, anStartApp);
 
   TFullScreenAdType = (atInterstitialStatic, atInterstitialVideo, atReward);
 
@@ -76,7 +76,7 @@ type
 
       @item(To include the necessary integration code in your Android project,
         declare your Android project type as "integrated" with
-        the appropriate services (admob, chartboost, startapp, heyzap...)
+        the appropriate services (admob, chartboost, startapp...)
         inside CastleEngineManifest.xml .
         See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine .)
     )
@@ -104,7 +104,6 @@ type
         procedure HideBanner; virtual;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
           const WaitUntilLoaded: boolean); virtual;
-        procedure StartTestActivity; virtual;
       end;
 
       TAdMobHandler = class(TAdNetworkHandler)
@@ -149,26 +148,10 @@ type
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
           const WaitUntilLoaded: boolean); override;
       end;
-
-      THeyzapHandler = class(TAdNetworkHandler)
-      strict private
-        FPublisherId: string;
-      strict protected
-        procedure ReinitializeJavaActivity(Sender: TObject); override;
-      public
-        constructor Create(const AParent: TAds;
-          const APublisherId: string);
-        class function Name: string; override;
-        procedure ShowBanner(const Gravity: Integer); override;
-        procedure HideBanner; override;
-        procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
-          const WaitUntilLoaded: boolean); override;
-        procedure StartTestActivity; override;
-      end;
     var
-    FBannerSize: TRectangle;
-    FNetworks: array [TAdNetwork] of TAdNetworkHandler;
-    FOnFullScreenAdClosed: TAdClosedEvent;
+      FBannerSize: TRectangle;
+      FNetworks: array [TAdNetwork] of TAdNetworkHandler;
+      FOnFullScreenAdClosed: TAdClosedEvent;
   protected
     procedure FullScreenAdClosed(const WatchedStatus: TAdWatchStatus); virtual;
   public
@@ -205,12 +188,6 @@ type
       Usually called from @link(TCastleApplication.OnInitialize). }
     procedure InitializeChartboost(const AppId, AppSignature: string);
 
-    { Initialize Heyzap ads.
-      You need to register your game on https://www.heyzap.com/ to get publisher id.
-
-      Usually called from @link(TCastleApplication.OnInitialize). }
-    procedure InitializeHeyzap(const PublisherId: string);
-
     { Show full-screen ad, interstitial (in-between) or reward ad.
 
       Not all ad networks support (or differentiate between) all full-screen
@@ -230,20 +207,16 @@ type
       const WaitUntilLoaded: boolean);
 
     { Show banner ad.
-      Banners are not supported by all ad networks (only AdMob and Heyzap now),
+      Banners are not supported by all ad networks (only AdMob now),
       in case they are unsupported this call is silently ignored. }
     procedure ShowBanner(const AdNetwork: TAdNetwork;
       const HorizontalGravity: THorizontalPosition;
       const VerticalGravity: TVerticalPosition);
 
     { Hide banner ad.
-      Banners are not supported by all ad networks (only AdMob and Heyzap now),
+      Banners are not supported by all ad networks (only AdMob now),
       in case they are unsupported this call is silently ignored. }
     procedure HideBanner(const AdNetwork: TAdNetwork);
-
-    { Show Heyzap activity to test various ad networks integrations.
-      This is for now supported only by anHeyzap. }
-    procedure StartTestActivity(const AdNetwork: TAdNetwork);
 
     property OnFullScreenAdClosed: TAdClosedEvent
       read FOnFullScreenAdClosed write FOnFullScreenAdClosed;
@@ -338,10 +311,6 @@ begin
   { if the network doesn't support showing full-screen ads, pretend it's shown,
     in case user code waits for OnFullScreenAdClosed. }
   FullScreenAdClosed(wsAdTypeUnsupported);
-end;
-
-procedure TAds.TAdNetworkHandler.StartTestActivity;
-begin
 end;
 
 procedure TAds.TAdNetworkHandler.ReinitializeJavaActivity(Sender: TObject);
@@ -469,56 +438,6 @@ begin
   Messaging.Send(['ads-' + Name + '-show-interstitial']);
 end;
 
-{ THeyzapHandler --------------------------------------------------------- }
-
-constructor TAds.THeyzapHandler.Create(const AParent: TAds;
-  const APublisherId: string);
-begin
-  inherited Create(AParent);
-  FPublisherId := APublisherId;
-  ReinitializeJavaActivity(nil);
-end;
-
-procedure TAds.THeyzapHandler.ReinitializeJavaActivity(Sender: TObject);
-begin
-  Messaging.Send(['ads-' + Name + '-initialize', FPublisherId]);
-  inherited;
-end;
-
-class function TAds.THeyzapHandler.Name: string;
-begin
-  Result := 'heyzap';
-end;
-
-procedure TAds.THeyzapHandler.ShowBanner(const Gravity: Integer);
-begin
-  inherited;
-  Messaging.Send(['ads-' + Name + '-banner-show', IntToStr(Gravity)]);
-end;
-
-procedure TAds.THeyzapHandler.HideBanner;
-begin
-  Messaging.Send(['ads-' + Name + '-banner-hide']);
-  inherited;
-end;
-
-procedure TAds.THeyzapHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
-  const WaitUntilLoaded: boolean);
-begin
-  FFullScreenAdVisible := true;
-  case AdType of
-    atInterstitialStatic: Messaging.Send(['ads-' + Name + '-show-full-screen', 'interstitial-static']);
-    atInterstitialVideo : Messaging.Send(['ads-' + Name + '-show-full-screen', 'interstitial-video']);
-    else { atReward     :}Messaging.Send(['ads-' + Name + '-show-full-screen', 'reward']);
-  end;
-end;
-
-procedure TAds.THeyzapHandler.StartTestActivity;
-begin
-  inherited;
-  Messaging.Send(['ads-' + Name + '-start-test-activity']);
-end;
-
 { TAds ----------------------------------------------------------------------- }
 
 constructor TAds.Create(AOwner: TComponent);
@@ -563,13 +482,6 @@ begin
   if FNetworks[anChartboost] <> nil then
     FreeAndNil(FNetworks[anChartboost]);
   FNetworks[anChartboost] := TChartboostHandler.Create(Self, AppId, AppSignature);
-end;
-
-procedure TAds.InitializeHeyzap(const PublisherId: string);
-begin
-  if FNetworks[anHeyzap] <> nil then
-    FreeAndNil(FNetworks[anHeyzap]);
-  FNetworks[anHeyzap] := THeyzapHandler.Create(Self, PublisherId);
 end;
 
 procedure TAds.FullScreenAdClosed(const WatchedStatus: TAdWatchStatus);
@@ -645,12 +557,6 @@ procedure TAds.HideBanner(const AdNetwork: TAdNetwork);
 begin
   if FNetworks[AdNetwork] <> nil then
     FNetworks[AdNetwork].HideBanner;
-end;
-
-procedure TAds.StartTestActivity(const AdNetwork: TAdNetwork);
-begin
-  if FNetworks[AdNetwork] <> nil then
-    FNetworks[AdNetwork].StartTestActivity;
 end;
 
 end.

@@ -151,10 +151,10 @@ type
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
       in @link(RenderOptions). }
     function Clone(const AOwner: TComponent): TCastle2DScene;
-  end deprecated 'use TCastleScene, and call Setup2D right after creating';
+  end deprecated 'use TCastleScene, it is equivalent to TCastle2DScene now';
 
   {$warnings off} // refering to deprecated from deprecated
-  T2DScene = TCastle2DScene deprecated 'use TCastleScene, and call Setup2D right after creating';
+  T2DScene = TCastle2DScene deprecated 'use TCastleScene, it is equivalent to T2DScene now';
   {$warnings on}
 
 implementation
@@ -171,7 +171,7 @@ begin
   { When not deserializing, do Setup2D now.
     When deserializing, the camera should already be saved with 2D configuration. }
   if Camera <> nil then
-    Setup2D;
+    Setup2D; // sets AutoCamera := false
   AutoNavigation := false;
 end;
 
