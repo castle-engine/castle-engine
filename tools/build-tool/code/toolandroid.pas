@@ -238,14 +238,10 @@ var
   var
     TemplatePath: string;
   begin
-    { add Android project core directory }
-    case Project.AndroidProjectType of
-      apBase      : TemplatePath := 'android/base/';
-      apIntegrated: TemplatePath := 'android/integrated/';
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('GenerateFromTemplates:Project.AndroidProjectType unhandled');
-      {$endif}
-    end;
+    { Add Android project core directory.
+      We used to have a choice here (base or integrated),
+      but now it's always integrated. }
+    TemplatePath := 'android/integrated/';
     Project.ExtractTemplate(TemplatePath, AndroidProjectPath);
   end;
 
@@ -582,12 +578,9 @@ begin
   CalculateSigningProperties(PackageMode);
 
   GenerateFromTemplates;
-  if Project.AndroidProjectType = apIntegrated then
-  begin
-    GenerateServicesFromTemplates;
-    PackageServices(Project, Project.AndroidServices,
-      'castle-data:/android/integrated-services/', AndroidProjectPath);
-  end;
+  GenerateServicesFromTemplates;
+  PackageServices(Project, Project.AndroidServices,
+    'castle-data:/android/integrated-services/', AndroidProjectPath);
   GenerateIcons;
   GenerateAssets;
   GenerateLocalization;
@@ -648,10 +641,7 @@ procedure RunAndroid(const Project: TCastleProject);
 var
   ActivityName, LogTag: string;
 begin
-  if Project.AndroidProjectType = apBase then
-    ActivityName := 'android.app.NativeActivity'
-  else
-    ActivityName := 'net.sourceforge.castleengine.MainActivity';
+  ActivityName := 'net.sourceforge.castleengine.MainActivity';
   RunCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);
