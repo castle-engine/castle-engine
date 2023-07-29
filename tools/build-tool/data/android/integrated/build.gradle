@@ -48,9 +48,13 @@ allprojects {
 
         // To be able to compile aar in libs/ , following
         // http://stackoverflow.com/questions/16682847/how-to-manually-include-external-aar-package-using-new-gradle-android-build-syst
+        // Commented out: we no longer need aar support for anything,
+        // and Android Gradle 7.4.2 warns that flatDir is deprecated.
+        /*
         flatDir {
             dirs 'libs'
         }
+        */
 
         // Do not change the line below, it is necessary for build.gradle merging to work.
         // MERGE-REPOSITORIES
