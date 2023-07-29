@@ -3,6 +3,6 @@
   <!-- See https://developers.google.com/analytics/devguides/collection/android/v4/ -->
   <dependencies>
     <!-- See https://developers.google.com/android/guides/setup#split -->
-    <dependency>classpath 'com.google.gms:google-services:3.0.0'</dependency>
+    <dependency>classpath 'com.google.gms:google-services:4.0.1'</dependency>
   </dependencies>
 </build_gradle_merge>

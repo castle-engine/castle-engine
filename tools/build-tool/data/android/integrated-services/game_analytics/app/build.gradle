@@ -17,6 +17,5 @@
     <!--dependency>implementation 'com.gameanalytics.sdk:gameanalytics-android:6.4.1+'</dependency-->
     <dependency>implementation 'com.gameanalytics.sdk:gameanalytics-android:6.2.6+'</dependency>
     <dependency>implementation 'com.google.android.gms:play-services-base:10.2.1'</dependency>
-    <dependency>implementation 'com.android.support:appcompat-v7:24.2.0'</dependency>
   </dependencies>
 </build_gradle_merge>

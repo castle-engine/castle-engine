@@ -1,6 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "${QUALIFIED_NAME}"
+
     compileSdkVersion ${ANDROID_COMPILE_SDK_VERSION}
 
     defaultConfig {
