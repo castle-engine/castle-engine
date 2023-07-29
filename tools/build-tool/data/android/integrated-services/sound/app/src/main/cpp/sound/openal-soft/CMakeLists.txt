@@ -1,6 +1,6 @@
 # CMake build file list for OpenAL
 
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.13)
 
 if(APPLE)
     # The workaround for try_compile failing with code signing
@@ -1384,8 +1384,8 @@ else()
     if(NOT WIN32 AND NOT APPLE)
         # FIXME: This doesn't put a dependency on the version script. Changing
         # the version script will not cause a relink as it should.
-        set_property(TARGET ${IMPL_TARGET} APPEND_STRING PROPERTY
-            LINK_FLAGS " -Wl,--version-script=${OpenAL_SOURCE_DIR}/libopenal.version")
+        target_link_options(${IMPL_TARGET} PRIVATE
+            "-Wl,--version-script=${OpenAL_SOURCE_DIR}/libopenal.version")
     endif()
 
     if(APPLE AND ALSOFT_OSX_FRAMEWORK)
@@ -1462,8 +1462,7 @@ if(WIN32 AND MINGW AND ALSOFT_BUILD_IMPORT_LIB AND NOT LIBTYPE STREQUAL "STATIC"
             message(STATUS "WARNING: Cannot find dlltool, disabling .def/.lib generation")
         endif()
     else()
-        set_property(TARGET OpenAL APPEND_STRING PROPERTY
-            LINK_FLAGS " -Wl,--output-def,OpenAL32.def")
+        target_link_options(OpenAL PRIVATE "-Wl,--output-def,OpenAL32.def")
         add_custom_command(TARGET OpenAL POST_BUILD
             COMMAND "${SED_EXECUTABLE}" -i -e "s/ @[^ ]*//" OpenAL32.def
             COMMAND "${CMAKE_DLLTOOL}" -d OpenAL32.def -l OpenAL32.lib -D OpenAL32.dll
