@@ -247,6 +247,11 @@ begin
             OSOptionHelp + NL +
             CPUOptionHelp + NL +
             NL+
+            'Defaults:' + NL +
+            '  android.compile_sdk_version = ' + IntToStr(TCastleManifest.DefaultAndroidCompileSdkVersion) + NL +
+            '  android.min_sdk_version = ' + IntToStr(TCastleManifest.DefaultAndroidMinSdkVersion) + NL +
+            '  android.target_sdk_version = ' + IntToStr(TCastleManifest.DefaultAndroidTargetSdkVersion) + NL +
+            NL+
             'Full documentation on' + NL +
             'https://castle-engine.io/build_tool' + NL +
             NL+

@@ -88,12 +88,6 @@ type
       DefautVersionCode = 1;
       { iOS requires version display to be <> '' }
       DefautVersionDisplayValue = '0.1';
-      DefaultAndroidCompileSdkVersion = 33;
-      DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
-      { See https://castle-engine.io/android_faq
-        for reasons behind this minimal version. }
-      ReallyMinSdkVersion = 21;
-      DefaultAndroidMinSdkVersion = ReallyMinSdkVersion;
       DefaultUsesNonExemptEncryption = true;
       DefaultDataExists = true;
       DefaultFullscreenImmersive = true;
@@ -168,6 +162,15 @@ type
     procedure AddDependencyFromFoundDataFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   public
     const
+      { Android SDK versions.
+        See https://castle-engine.io/project_manifest#_android_information . }
+      DefaultAndroidCompileSdkVersion = 33;
+      DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
+      { See https://castle-engine.io/android_faq
+        for reasons behind this minimal version. }
+      ReallyMinSdkVersion = 21;
+      DefaultAndroidMinSdkVersion = ReallyMinSdkVersion;
+
       DataName = 'data';
 
     { Load defaults.
