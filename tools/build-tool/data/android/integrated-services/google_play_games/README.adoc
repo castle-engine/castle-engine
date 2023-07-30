@@ -1,10 +1,17 @@
 ## google_play_games
 
-Enable the https://developers.google.com/games/services/[Google Play Games Services]. Use the https://castle-engine.io/apidoc/html/CastleGameService.TGameService.html[TGameService] class from the https://castle-engine.io/apidoc/html/CastleGameService.html[CastleGameService] unit in Pascal to initialize and use it, for example to sign-in, _send scores and achievements, view achievements and leaderboards, load and save savegames in the cloud_.
+Enable the https://developers.google.com/games/services/[Google Play Games Services]. Use the https://castle-engine.io/apidoc/html/CastleGameService.TGameService.html[TGameService] class from the https://castle-engine.io/apidoc/html/CastleGameService.html[CastleGameService] unit in Pascal to initialize and use it to
+
+- sign-in,
+- send scores (to leaderboards),
+- send achievements,
+- view achievements and leaderboards,
+- load and save savegames in the cloud.
 
 Requires:
 
 * Using this service requires using also `google_play_services`
+
 * You must create a project in _"Game Services"_ section of the _"Google Developer Console"_. This will give you a special "app_id" for your project. In order for the integration to work, you need to specify this app_id in our link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml], like this:
 +
 [,xml]
@@ -20,3 +27,7 @@ Requires:
 ----
 +
 After this, you need to call from Pascal code `GameService.Initialize` to connect to _Google Play Games_ when you want (usually, at the beginning of your game: from `TCastleApplication.OnInitialize`).
+
+You should read and follow the instructions from https://developers.google.com/games/services/v1/android/quickstart[Google Play Games Services Quickstart] to set up your project correctly. While CGE provides the integration code for you, you still need to configure your application and all the metadata (achievements, leaderboards, etc.) on the Google websites.
+
+NOTE: In particular, following Google docs, note that calls to _Play Games SDK_ for an unpublished game (by using an account that's not listed as a test account) will fail. Google Play games services will behave as if the game did not exist.
