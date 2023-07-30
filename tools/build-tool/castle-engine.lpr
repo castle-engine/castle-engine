@@ -243,10 +243,12 @@ begin
               'Use with "generate-program" command. Will generate stable GUID (in Delphi DPROJ) from project''s qualified name.') +NL+
             OptionDescription('--windows-robust-pipes',
               'Only on Windows (ignored on other systems): Force using less performant, but more robust, way to run child processes with "passthrough", like for "castle-engine run". Useful to run "castle-engine run" from PowerShell, outside of CGE editor.') + NL +
-            TargetOptionHelp + NL +
-            OSOptionHelp + NL +
-            CPUOptionHelp + NL +
-            NL+
+            TargetOptionHelp +
+            NL +
+            OSOptionHelp +
+            NL +
+            CPUOptionHelp +
+            NL +
             'Defaults:' + NL +
             '  android.compile_sdk_version = ' + IntToStr(TCastleManifest.DefaultAndroidCompileSdkVersion) + NL +
             '  android.min_sdk_version = ' + IntToStr(TCastleManifest.DefaultAndroidMinSdkVersion) + NL +
