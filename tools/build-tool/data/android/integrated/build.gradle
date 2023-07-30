@@ -2,7 +2,7 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         // This declares the "Android Gradle plugin" version
@@ -44,7 +44,7 @@ allprojects {
 
     repositories {
         google()
-        jcenter()
+        mavenCentral()
 
         // To be able to compile aar in libs/ , following
         // http://stackoverflow.com/questions/16682847/how-to-manually-include-external-aar-package-using-new-gradle-android-build-syst
