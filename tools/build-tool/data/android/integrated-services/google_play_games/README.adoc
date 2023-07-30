@@ -9,7 +9,7 @@ Requires:
 +
 [,xml]
 ----
-<android project_type="integrated">
+<android>
   <services>
     <service name="google_play_services" />
     <service name="google_play_games">
