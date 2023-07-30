@@ -4,7 +4,7 @@ Enable the sound service on Android.
 
 _There is no need to include this service explicitly_, it is automatically added if:
 
-* You have any sound file (`*.wav`, `*.ogg`) in your `data` directory.
+* You have any sound file (`\*.wav`, `*.ogg`) in your `data` directory.
 
 * Or you have `<dependency name="Sound" />` in https://castle-engine.io/project_manifest[CastleEngineManifest.xml].
 
