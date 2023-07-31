@@ -42,9 +42,9 @@
         <UnitName Value="gameinitialize"/>
       </Unit3>
       <Unit4>
-        <Filename Value="code/gameachievements.pas"/>
+        <Filename Value="code/gameids.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="gameachievements"/>
+        <UnitName Value="gameids"/>
       </Unit4>
       <Unit5>
         <Filename Value="code/gameviewplay.pas"/>

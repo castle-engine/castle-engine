@@ -10,7 +10,13 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
@@ -147,7 +153,7 @@
             },
             "ProjectionType" : "ptOrthographic",
             "RotationPersistent" : {
-              "$$ClassName" : "TCastleVector4Persistent",
+              "$$ClassName" : "TCastleVector4RotationPersistent",
               "Z" : 1.0000000000000000E+000
             },
             "TranslationPersistent" : {
@@ -164,7 +170,7 @@
         "Name" : "",
         "Orthographic" : {
           "$$ClassName" : "TCastleOrthographic",
-          "Height" : 5.3994350585937500E+003,
+          "Height" : 4.0000000000000000E+003,
           "OriginPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 5.0000000000000000E-001,
@@ -176,7 +182,7 @@
         },
         "ProjectionType" : "ptOrthographic",
         "RotationPersistent" : {
-          "$$ClassName" : "TCastleVector4Persistent",
+          "$$ClassName" : "TCastleVector4RotationPersistent",
           "Z" : 1.0000000000000000E+000
         },
         "TranslationPersistent" : {
@@ -205,58 +211,354 @@
       "$$ClassName" : "TCastleLabel",
       "ColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
-        "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 9.8039215803146362E-001,
+        "Red" : 2.8627452254295349E-001
       },
       "FontSize" : 2.0000000000000000E+001,
-      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
-      "HorizontalAnchorParent" : "hpRight",
-      "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
       "Text" : [
         "FPS: xxx"
       ],
-      "VerticalAnchorDelta" : -2.0000000000000000E+001,
-      "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop"
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 1.0000000000000000E+001,
+        "Y" : 1.0000000000000000E+001
+      }
     },
     {
-      "$$ClassName" : "TCastleCheckbox",
-      "Caption" : "Camera Follows Dragon",
-      "CheckboxSize" : 5.0000000000000000E+001,
-      "FontSize" : 4.0000000000000000E+001,
-      "HorizontalAnchorDelta" : 4.0000000000000000E+001,
-      "Name" : "CheckboxCameraFollow",
-      "VerticalAnchorDelta" : -5.0000000000000000E+001,
+      "$$ClassName" : "TCastleVerticalGroup",
+      "Alignment" : "hpRight",
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "VerticalGroupTopRight",
+      "Padding" : 2.0000000000000000E+001,
+      "Spacing" : 2.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -1.0000000000000000E+001
+      },
       "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop"
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleHorizontalGroup",
+          "HorizontalAnchorParent" : "hpRight",
+          "HorizontalAnchorSelf" : "hpRight",
+          "Name" : "HorizontalGroupScoresRandom",
+          "Spacing" : 1.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -2.0000000000000000E+001,
+            "Y" : -2.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 3.4509804844856262E-001,
+                "Red" : 9.2156863212585449E-001
+              },
+              "Name" : "Label1",
+              "Text" : [
+                "Leaderboard 1 (Random Scores)"
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Show",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonShowLeaderboardRandomScores",
+              "PaddingHorizontal" : 1.5000000000000000E+001,
+              "PaddingVertical" : 1.5000000000000000E+001,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 3.3200000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Send (Random)",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonSendLeaderboardRandomScores",
+              "PaddingHorizontal" : 1.5000000000000000E+001,
+              "PaddingVertical" : 1.5000000000000000E+001,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 4.2600000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Get Personal Best",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonGetPlayerBestRandomScore",
+              "PaddingHorizontal" : 1.5000000000000000E+001,
+              "PaddingVertical" : 1.5000000000000000E+001,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 6.2200000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleHorizontalGroup",
+          "HorizontalAnchorParent" : "hpRight",
+          "HorizontalAnchorSelf" : "hpRight",
+          "Name" : "HorizontalGroupScoresTime",
+          "Spacing" : 1.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : -2.0000000000000000E+001,
+            "Y" : -8.9000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 3.4509804844856262E-001,
+                "Red" : 9.2156863212585449E-001
+              },
+              "Name" : "Label2",
+              "Text" : [
+                "Leaderboard 2 (Play Time)"
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Show",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonShowLeaderboardTimes",
+              "PaddingHorizontal" : 1.5000000000000000E+001,
+              "PaddingVertical" : 1.5000000000000000E+001,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 2.7400000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Send (Play Time)",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonSendLeaderboardTimes",
+              "PaddingHorizontal" : 1.5000000000000000E+001,
+              "PaddingVertical" : 1.5000000000000000E+001,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 3.6800000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Get Personal Best",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonGetPlayerBestTime",
+              "PaddingHorizontal" : 1.5000000000000000E+001,
+              "PaddingVertical" : 1.5000000000000000E+001,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 5.7800000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            }
+          ]
+        }
+      ]
     },
     {
-      "$$ClassName" : "TCastleButton",
-      "Caption" : "Show Achievements",
-      "CustomBackgroundDisabled" : {
-        "$$ClassName" : "TCastleImagePersistent"
-      },
-      "CustomBackgroundFocused" : {
-        "$$ClassName" : "TCastleImagePersistent"
-      },
-      "CustomBackgroundNormal" : {
-        "$$ClassName" : "TCastleImagePersistent"
-      },
-      "CustomBackgroundPressed" : {
-        "$$ClassName" : "TCastleImagePersistent"
-      },
-      "FontSize" : 4.0000000000000000E+001,
-      "HorizontalAnchorDelta" : 3.0000000000000000E+001,
-      "Image" : {
-        "$$ClassName" : "TCastleImagePersistent"
-      },
-      "Name" : "ButtonShowAchievements",
-      "PaddingHorizontal" : 2.0000000000000000E+001,
-      "PaddingVertical" : 2.0000000000000000E+001,
-      "VerticalAnchorDelta" : -1.2728100585937500E+002,
+      "$$ClassName" : "TCastleVerticalGroup",
+      "Name" : "VerticalGroupTopLeft",
+      "Padding" : 2.0000000000000000E+001,
+      "Spacing" : 2.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop"
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleCheckbox",
+          "Caption" : "Camera Follows Dragon",
+          "CheckboxSize" : 3.0000000000000000E+001,
+          "Name" : "CheckboxCameraFollow",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 2.0000000000000000E+001,
+            "Y" : -2.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleButton",
+          "Caption" : "Show Achievements",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonShowAchievements",
+          "PaddingHorizontal" : 1.5000000000000000E+001,
+          "PaddingVertical" : 1.5000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 2.0000000000000000E+001,
+            "Y" : -7.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "AutoSizeToChildren" : true,
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 1.0000000000000000E+001
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 4.4705882668495178E-001
+      },
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 4.4705882668495178E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
+      },
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "RectangleControl1",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleNotifications",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 0.0000000000000000E+000
+          },
+          "Fade" : 2.0000000000000000E+000,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "MaxMessages" : 10,
+          "Name" : "GameNotifications",
+          "Wrap" : false
+        }
+      ]
     }
   ]
 }

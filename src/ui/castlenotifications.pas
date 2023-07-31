@@ -65,6 +65,7 @@ type
     FTextAlignment: THorizontalPosition;
     FDesignTestMessagesInterval: Single;
     FDesignTestMessagesTimeout: TFloatTime;
+    FWrap: Boolean;
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
@@ -139,6 +140,13 @@ type
       read FDesignTestMessagesInterval write FDesignTestMessagesInterval
       {$ifdef FPC}default 1{$endif};
 
+    { Wrap messages to fit in parent width.
+      This is usually nice for display, but it may cause problems
+      when parent size depends on child (e.g. because parent uses
+      @link(TCastleUserInterface.AutoSizeToChildren)), because then child
+      size also depends on parent, and parent would never grow. }
+    property Wrap: Boolean read FWrap write FWrap default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -175,6 +183,7 @@ begin
   FColor := White;
   FDesignTestMessagesInterval := 1;
   FDesignTestMessagesTimeout := FDesignTestMessagesInterval;
+  FWrap := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
@@ -220,7 +229,7 @@ begin
 
   { before Notifications are part of some Controls list,
     we don't know about Parent or Container size. }
-  if ContainerSizeKnown then
+  if Wrap and ContainerSizeKnown then
   begin
     Broken := TStringList.Create;
     try
@@ -328,13 +337,10 @@ end;
 function TCastleNotifications.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'MaxMessages') or
-     (PropertyName = 'Timeout') or
-     (PropertyName = 'Fade') or
-     (PropertyName = 'CollectHistory') or
-     (PropertyName = 'TextAlignment') or
-     (PropertyName = 'DesignTestMessagesInterval') or
-     (PropertyName = 'ColorPersistent') then
+  if ArrayContainsString(PropertyName, [
+      'MaxMessages', 'Timeout', 'Fade', 'CollectHistory', 'TextAlignment',
+      'DesignTestMessagesInterval', 'ColorPersistent', 'Wrap'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

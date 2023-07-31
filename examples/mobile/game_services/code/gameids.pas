@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2021 Michalis Kamburelis.
+  Copyright 2014-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Manage game achievements. }
-unit GameAchievements;
+{ Unique identifiers for achievements and leaderboards. }
+unit GameIds;
 
 interface
 
@@ -28,6 +28,11 @@ const
   AchievementClickFollow = {$ifdef ANDROID} 'CgkIvIv-jrANEAIQAg' {$else} 'click_follow' {$endif};
   AchievementSeeLeft     = {$ifdef ANDROID} 'CgkIvIv-jrANEAIQBQ' {$else} 'see_left'     {$endif};
   AchievementSeeRight    = {$ifdef ANDROID} 'CgkIvIv-jrANEAIQBw' {$else} 'see_right'    {$endif};
+
+  { Leaderboard ids.
+    TODO document. }
+  LeaderboardRandomScores = {$ifdef ANDROID} 'TODO' {$else} 'random_scores' {$endif};
+  LeaderboardTimes = {$ifdef ANDROID} 'TODO' {$else} 'times' {$endif};
 
 var
   GameService: TGameService;
