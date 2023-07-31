@@ -21,9 +21,9 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'dragon_spine_demo';
-  ApplicationProperties.Caption := 'Dragon Spine Demo';
-  ApplicationProperties.Version := '1.1';
+  ApplicationProperties.ApplicationName := 'game_services_demo';
+  ApplicationProperties.Caption := 'Game Services Demo';
+  ApplicationProperties.Version := '2.0';
 
   if not IsLibrary then
     Application.ParseStandardParameters;

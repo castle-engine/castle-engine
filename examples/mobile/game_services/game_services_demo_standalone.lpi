@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="dragon_spine_demo"/>
+      <Title Value="game_services_demo"/>
     </General>
     <RequiredPackages Count="2">
       <Item1>
@@ -23,7 +23,7 @@
     </RequiredPackages>
     <Units Count="6">
       <Unit0>
-        <Filename Value="dragon_spine_demo_standalone.dpr"/>
+        <Filename Value="game_services_demo_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -56,7 +56,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="dragon_spine_demo"/>
+      <Filename Value="game_services_demo"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="code/"/>

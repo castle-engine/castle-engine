@@ -5,15 +5,15 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="dragon_spine_demo"
-  caption="Dragon Spine Demo"
-  qualified_name="io.castleengine.mobile.achievements"
-  standalone_source="dragon_spine_demo_standalone.dpr"
+<project name="game_services_demo"
+  caption="Game Services Demo"
+  qualified_name="io.castleengine.mobile.game.services"
+  standalone_source="game_services_demo_standalone.dpr"
   game_units="GameInitialize"
   author="Castle Game Engine Developers"
   screen_orientation="landscape"
 >
-  <version value="1.1" code="12" />
+  <version value="2.0" code="13" />
   <compiler_options>
     <search_paths>
       <path value="code/" />
@@ -29,7 +29,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
     <services>
       <service name="google_play_services" />
       <service name="google_play_games">
-        <parameter key="app_id" value="459592926652" />
+        <parameter key="app_id" value="TODO" />
       </service>
     </services>
   </android>
