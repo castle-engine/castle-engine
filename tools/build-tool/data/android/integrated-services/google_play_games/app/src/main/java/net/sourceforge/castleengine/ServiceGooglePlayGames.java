@@ -42,6 +42,8 @@ import com.google.android.gms.games.EventsClient;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.LeaderboardsClient;
+import com.google.android.gms.games.leaderboard.LeaderboardScore;
+import com.google.android.gms.games.leaderboard.LeaderboardVariant;
 import com.google.android.gms.games.Player;
 import com.google.android.gms.games.PlayersClient;
 import com.google.android.gms.games.event.Event;
@@ -154,7 +156,8 @@ public class ServiceGooglePlayGames extends ServiceAbstract
             signInOptions = GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN;
         }
 
-        GoogleSignInAccount lastAccount = GoogleSignIn.getLastSignedInAccount(getActivity());
+        final Activity a = getActivity();
+        GoogleSignInAccount lastAccount = GoogleSignIn.getLastSignedInAccount(a);
         if (GoogleSignIn.hasPermissions(account, signInOptions.getScopeArray())) {
             // Already signed in.
             // The signed in account is stored in the 'account' variable.
@@ -162,11 +165,10 @@ public class ServiceGooglePlayGames extends ServiceAbstract
             successfullSignIn();
         } else {
             // Haven't been signed-in before. Try the silent sign-in first.
-            final GoogleSignInClient signInClient = GoogleSignIn.getClient(getActivity(), signInOptions);
+            final GoogleSignInClient signInClient = GoogleSignIn.getClient(a, signInOptions);
             signInClient
                 .silentSignIn()
-                .addOnCompleteListener(
-                    getActivity(),
+                .addOnCompleteListener(a,
                     new OnCompleteListener<GoogleSignInAccount>() {
                         @Override
                         public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
@@ -177,7 +179,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract
                             } else {
                                 // Player will need to sign-in explicitly using via UI.
                                 Intent intent = signInClient.getSignInIntent();
-                                getActivity().startActivityForResult(intent, REQUEST_SIGN_IN);
+                                a.startActivityForResult(intent, REQUEST_SIGN_IN);
                             }
                         }
                     });
@@ -221,11 +223,6 @@ public class ServiceGooglePlayGames extends ServiceAbstract
         }
     }
 
-    // Score to send to a leaderboard, once we're connected.
-    // Use only if > 0.
-    private long mScoreToSendWhenConnected;
-    private String mScoreToSendWhenConnectedLeaderboard;
-
     private abstract class OnConnectedFinish {
         public abstract void run();
     }
@@ -243,21 +240,6 @@ public class ServiceGooglePlayGames extends ServiceAbstract
 
         GamesClient gamesClient = Games.getGamesClient(getActivity(), account);
         gamesClient.setViewForPopups(getActivity().findViewById(android.R.id.content));
-
-        if (mScoreToSendWhenConnected > 0) {
-            if (checkGamesConnection()) {
-                /* TODO:
-
-                Games.Leaderboards.submitScore(mGoogleApiClient,
-                    mScoreToSendWhenConnectedLeaderboard, mScoreToSendWhenConnected);
-                logInfo(CATEGORY, "Submitting scheduled score " + mScoreToSendWhenConnected);
-                mScoreToSendWhenConnected = 0;
-                mScoreToSendWhenConnectedLeaderboard = null;
-                */
-            } else {
-                logError(CATEGORY, "Cannot submit scheduled score, we are not connected inside onConnected - weird, unless the connection broke immediately");
-            }
-        }
 
         if (mOnConnectedFinish != null) {
             mOnConnectedFinish.run();
@@ -358,14 +340,15 @@ public class ServiceGooglePlayGames extends ServiceAbstract
     private void showAchievements()
     {
         if (checkGamesConnection()) {
-            Games.getAchievementsClient(getActivity(), GoogleSignIn.getLastSignedInAccount(getActivity()))
-                  .getAchievementsIntent()
-                  .addOnSuccessListener(new OnSuccessListener<Intent>() {
+            final Activity a = getActivity();
+            Games.getAchievementsClient(a, GoogleSignIn.getLastSignedInAccount(a))
+                .getAchievementsIntent()
+                .addOnSuccessListener(new OnSuccessListener<Intent>() {
                     @Override
                     public void onSuccess(Intent intent) {
-                        getActivity().startActivityForResult(intent, REQUEST_ACHIEVEMENTS);
+                        a.startActivityForResult(intent, REQUEST_ACHIEVEMENTS);
                     }
-                  });
+                });
         } else {
             logInfo(CATEGORY, "Not connected to Google Games -> connecting, in response to showAchievements");
             signInClicked(new OnConnectedFinish () {
@@ -381,7 +364,8 @@ public class ServiceGooglePlayGames extends ServiceAbstract
     private void achievement(String achievementId)
     {
         if (checkGamesConnection()) {
-            Games.getAchievementsClient(getActivity(), GoogleSignIn.getLastSignedInAccount(getActivity()))
+            Activity a = getActivity();
+            Games.getAchievementsClient(a, GoogleSignIn.getLastSignedInAccount(a))
                 .unlock(achievementId);
         } else {
             logWarning(CATEGORY, "Achievement unlocked, but not connected to Google Games, ignoring");
@@ -573,67 +557,69 @@ public class ServiceGooglePlayGames extends ServiceAbstract
 
     private void showLeaderboard(final String leaderboardId)
     {
-        /* TODO:
-
         if (checkGamesConnection()) {
-            getActivity().startActivityForResult(Games.Leaderboards.getLeaderboardIntent(
-                mGoogleApiClient, leaderboardId), REQUEST_LEADERBOARD);
+            final Activity a = getActivity();
+            Games.getLeaderboardsClient(a, GoogleSignIn.getLastSignedInAccount(a))
+                .getLeaderboardIntent(leaderboardId)
+                .addOnSuccessListener(new OnSuccessListener<Intent>() {
+                    @Override
+                    public void onSuccess(Intent intent) {
+                        a.startActivityForResult(intent, REQUEST_LEADERBOARD);
+                    }
+                });
         } else {
             logInfo(CATEGORY, "Not connected to Google Games -> connecting, in response to showLeaderboard");
             signInClicked(new OnConnectedFinish () {
                 public void run() { showLeaderboard(leaderboardId); }
             });
         }
-
-        */
     }
 
+    /* Send score to given leaderboard.
+     *
+     * If not connected to Google Play Games, just emit a warning and do nothing.
+     * In the past we had here logic to store the score and send it later
+     * (when connection will happen) but it was quite incomplete (only last score,
+     * only for 1 leaderboard) and inconsistent with achievements
+     * (for which no equivalent "send later" logic existed).
+     * So now we just emit a warning and do nothing. Higher-level game code
+     * should handle this situation, e.g. by resending the score on connection.
+     */
     private void submitScore(String leaderboardId, long score)
     {
-        /* TODO:
-
         if (checkGamesConnection()) {
-            Games.Leaderboards.submitScore(mGoogleApiClient, leaderboardId, score);
+            Activity a = getActivity();
+            LeaderboardsClient leaderboardsClient =
+                Games.getLeaderboardsClient(a, GoogleSignIn.getLastSignedInAccount(a));
+            leaderboardsClient.submitScore(leaderboardId, score);
         } else {
-            if (mScoreToSendWhenConnected < score ||
-                !mScoreToSendWhenConnectedLeaderboard.equals(leaderboardId)) {
-                mScoreToSendWhenConnected = score;
-                mScoreToSendWhenConnectedLeaderboard = leaderboardId;
-            }
-            logWarning(CATEGORY, "Not connected to Google Games, scheduling leaderboard score submission for later");
+            logWarning(CATEGORY, "Not connected to Google Games, not sending score");
         }
-
-        */
     }
 
     private void requestPlayerBestScore(String leaderboardId)
     {
-        /* TODO:
-
         if (checkGamesConnection()) {
+            Activity a = getActivity();
+            LeaderboardsClient leaderboardsClient =
+                Games.getLeaderboardsClient(a, GoogleSignIn.getLastSignedInAccount(a));
             final String saveLeaderboardId = leaderboardId;
-            Games.Leaderboards.loadCurrentPlayerLeaderboardScore(mGoogleApiClient,
-                leaderboardId,
+            leaderboardsClient.loadCurrentPlayerLeaderboardScore(leaderboardId,
                 LeaderboardVariant.TIME_SPAN_ALL_TIME,
                 LeaderboardVariant.COLLECTION_PUBLIC).
-                setResultCallback(new ResultCallback<LoadPlayerScoreResult>() {
-                    public void onResult(LoadPlayerScoreResult result)
-                    {
-                        if (!result.getStatus().isSuccess()) {
-                            logWarning(CATEGORY, "Failed to get own leaderboard score.");
-                            return;
-                        }
+                addOnSuccessListener(new OnSuccessListener<AnnotatedData<LeaderboardScore>>() {
+                    @Override
+                    public void onSuccess(AnnotatedData<LeaderboardScore> leaderboardScoreAnnotatedData) {
+                        LeaderboardScore leaderboardScore = leaderboardScoreAnnotatedData.get();
                         long myScore =
-                            result.getScore() != null ?
-                            result.getScore().getRawScore() : 0;
+                            leaderboardScore != null ?
+                            leaderboardScore.getRawScore() : 0;
                         messageSend(new String[]{"best-score", saveLeaderboardId, Long.toString(myScore)});
                     }
                 });
         } else {
             logWarning(CATEGORY, "Not connected to Google Games, cannot get leaderboard position");
         }
-
-        */
     }
 
     @Override
