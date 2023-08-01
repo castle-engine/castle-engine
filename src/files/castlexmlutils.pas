@@ -653,7 +653,7 @@ procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhr
 implementation
 
 uses Classes, XMLRead, XMLWrite, {$ifdef FPC} BlowFish, {$endif}
-  CastleURIUtils, CastleClassUtils;
+  CastleURIUtils, CastleClassUtils, CastleInternalFileMonitor;
 
 { TDOMNodeHelper ------------------------------------------------------------- }
 
@@ -1454,6 +1454,10 @@ begin
   try
     WriteXMLFile(Doc, Stream);
   finally FreeAndNil(Stream) end;
+
+  { Caused e.g. by saving sprite sheet file using CGE editor,
+    calling FileMonitor to refresh scenes using it. }
+  FileMonitor.Changed(URL);
 end;
 
 end.
