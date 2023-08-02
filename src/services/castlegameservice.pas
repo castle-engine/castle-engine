@@ -66,24 +66,26 @@ type
     @orderedList(
       @item(Include the necessary integration code in your Android / iOS project.
 
-        For Android, declare your project type as "integrated" and add
-        the "google_play_games" service inside CastleEngineManifest.xml.
-        See https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine .
+        For Android, add the "google_play_games" service inside CastleEngineManifest.xml.
+        See @url(https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/android/integrated-services/google_play_games/README.adoc
+        Android "google_play_games" service docs).
 
         For iOS, add the "apple_game_center" service inside CastleEngineManifest.xml.
-        See https://castle-engine.io/ios-Project-Services-Integrated-with-Castle-Game-Engine .
+        See @url(https://github.com/castle-engine/castle-engine/blob/master/tools/build-tool/data/ios/services/apple_game_center/README.adoc
+        iOS "apple_game_center" service docs).)
 
-        Build your project with the Castle Game Engine build tool:
-        https://castle-engine.io/build_tool .)
-
-      @item(Create an instance of this class. Only a single instance of this class is allowed.)
+      @item(Create an instance of this class.
+        Only a single instance of this class makes sense right now,
+        both Android and iOS only allow using a single game service connection
+        from a given game.)
 
       @item(Call @link(TGameService.Initialize).
         You usually do it from @link(TCastleApplication.OnInitialize).
         The @link(TGameService.Initialize) must be called before calling any other method
         of this class.)
 
-      @item(Use this to manage achievements, leaderboards and so on.)
+      @item(Call other methods of this class as you see fit --
+        to manage achievements, leaderboards and so on.)
 
       @item(The user must be "signed in" to the game service.
 
@@ -100,6 +102,10 @@ type
         or call the @link(RequestSignedIn RequestSignedIn(true)).
         And then wait for the @link(Status) property to change to gsSignedIn
         (you can register @link(OnStatusChanged) to be notified about changes).
+
+        Note that some platforms (like new Google Play Games v2) may automatically
+        sign-in the user always. Try not to rely on it, if you want to work
+        in all cases (and with all supported platforms).
       )
     )
   }
@@ -261,6 +267,7 @@ type
     }
     procedure ShowSaveGames(const Title: string; const AllowAddButton, AllowDelete: boolean;
       const MaxNumberOfSaveGamesToShow: Integer);
+      deprecated 'avoid this, as this is unlikely to be implemented on other platforms than Android';
 
     { Save a savegame identified by the given name.
       See the SaveGameLoad documentation about the conflict resolution
@@ -320,12 +327,16 @@ type
       (which may happen if you used AutoStartSignInFlow with @link(Initialize),
       or if user was signed-in in this application previously). }
     property OnStatusChanged: TNotifyEvent read FOnStatusChanged write FOnStatusChanged;
+
     property OnSignedInChanged: TNotifyEvent read FOnStatusChanged write FOnStatusChanged stored false;
       {$ifdef FPC}deprecated 'use OnStatusChanged';{$endif}
+
     { Event received in response to @link(RequestPlayerBestScore). }
     property OnPlayerBestScoreReceived: TPlayerBestScoreEvent read FOnPlayerBestScoreReceived write FOnPlayerBestScoreReceived;
+
     { Event received in response to @link(ShowSaveGames). }
     property OnSaveGameChosen: TSaveGameChosenEvent read FOnSaveGameChosen write FOnSaveGameChosen;
+
     { Event received in response to @link(SaveGameLoad).
       See TSaveGameLoadedEvent for documentation of parameters. }
     property OnSaveGameLoaded: TSaveGameLoadedEvent read FOnSaveGameLoaded write FOnSaveGameLoaded;
