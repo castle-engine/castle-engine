@@ -546,8 +546,8 @@ const
   Names: array [TGameServiceStatus] of string =
   (
     'Signed Out',
-    'Signed In',
     'Signing In...',
+    'Signed In',
     'Signing Out..'
   );
 begin
