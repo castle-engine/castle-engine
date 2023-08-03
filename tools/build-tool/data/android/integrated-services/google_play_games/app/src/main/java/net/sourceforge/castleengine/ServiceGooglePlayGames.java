@@ -34,20 +34,19 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
-import com.google.android.gms.auth.api.signin.GoogleSignInApi;
-import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.drive.Drive;
 import com.google.android.gms.games.AchievementsClient;
+import com.google.android.gms.games.SnapshotsClient;
+import com.google.android.gms.games.snapshot.Snapshot;
+import com.google.android.gms.games.snapshot.SnapshotMetadata;
+import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
 import com.google.android.gms.games.AnnotatedData;
-import com.google.android.gms.games.EventsClient;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.leaderboard.LeaderboardScore;
 import com.google.android.gms.games.leaderboard.LeaderboardVariant;
-import com.google.android.gms.games.Player;
-import com.google.android.gms.games.PlayersClient;
-import com.google.android.gms.games.event.Event;
-import com.google.android.gms.games.event.EventBuffer;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -148,7 +147,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract
         if (mSaveGames) {
             signInOptions =
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-                    .requestScopes(Games.SCOPE_GAMES_SNAPSHOTS)
+                    .requestScopes(Drive.SCOPE_APPFOLDER)
                     .build();
         } else {
             signInOptions = GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN;
@@ -282,20 +281,18 @@ public class ServiceGooglePlayGames extends ServiceAbstract
             }
         }
 
-        /* TODO:
-
         if (requestCode == REQUEST_SAVED_GAMES) {
-            /* adapted from https://developers.google.com/games/services/android/savedgames * /
+            /* https://developers.google.com/games/services/v1/android/savedgames */
             if (resultCode == Activity.RESULT_OK) {
                 if (intent != null) {
-                    if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_METADATA)) {
+                    if (intent.hasExtra(SnapshotsClient.EXTRA_SNAPSHOT_METADATA)) {
                         // Load a snapshot.
                         SnapshotMetadata snapshotMetadata = (SnapshotMetadata)
-                                intent.getParcelableExtra(Snapshots.EXTRA_SNAPSHOT_METADATA);
+                            intent.getParcelableExtra(SnapshotsClient.EXTRA_SNAPSHOT_METADATA);
                         String currentSaveName = snapshotMetadata.getUniqueName();
                         messageSend(new String[]{"chosen-save-game", currentSaveName});
                     } else
-                    if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_NEW)) {
+                    if (intent.hasExtra(SnapshotsClient.EXTRA_SNAPSHOT_NEW)) {
                         messageSend(new String[]{"chosen-save-game-new"});
                     } else {
                         logWarning(CATEGORY, "Received REQUEST_SAVED_GAMES, with RESULT_OK, but intent has no extra");
@@ -309,8 +306,6 @@ public class ServiceGooglePlayGames extends ServiceAbstract
                 messageSend(new String[]{"chosen-save-game-cancel"});
             }
         }
-
-        */
     }
 
     private void signInClicked(OnConnectedFinish onConnectedFinish)
@@ -387,40 +382,46 @@ public class ServiceGooglePlayGames extends ServiceAbstract
 
     private void showSaveGames(final String title, final boolean allowAddButton, final boolean allowDelete, final int maxNumberOfSaveGamesToShow)
     {
-        /* TODO:
-
-        if (checkGamesConnection()) {
+        GoogleSignInAccount account = checkGamesConnection();
+        if (account != null) {
             int realMaxNumberOfSaveGamesToShow;
             if (maxNumberOfSaveGamesToShow < 0) {
-                /* For some reason (bug?), Google Play Games dialog to choose
+                /* TODO: recheck now.
+                   For some reason (bug?), Google Play Games dialog to choose
                    the saved game @italic(does not) show "new save game" buton
-                   when this is Snapshots.DISPLAY_LIMIT_NONE.
+                   when this is DISPLAY_LIMIT_NONE (-1).
                    It behaves then like AllowAddButton is always @false.
                    So instead, we use some ridiculously large number for
-                   MaxNumberOfSaveGamesToShow. * /
+                   MaxNumberOfSaveGamesToShow. */
                 realMaxNumberOfSaveGamesToShow = 1000;
             } else {
                 realMaxNumberOfSaveGamesToShow = maxNumberOfSaveGamesToShow;
             }
-            Intent savedGamesIntent = Games.Snapshots.getSelectSnapshotIntent(mGoogleApiClient,
+            final Activity a = getActivity();
+            SnapshotsClient snapshotsClient = Games.getSnapshotsClient(a, account);
+            Task<Intent> intentTask = snapshotsClient.getSelectSnapshotIntent(
                 title, allowAddButton, allowDelete, realMaxNumberOfSaveGamesToShow);
-            getActivity().startActivityForResult(savedGamesIntent, REQUEST_SAVED_GAMES);
+            intentTask.addOnSuccessListener(new OnSuccessListener<Intent>() {
+                @Override
+                public void onSuccess(Intent intent) {
+                    a.startActivityForResult(intent, REQUEST_SAVED_GAMES);
+                }
+            });
         } else {
             logInfo(CATEGORY, "Not connected to Google Games -> connecting, in response to showSaveGames");
             signInClicked(new OnConnectedFinish () {
                 public void run() { showSaveGames(title, allowAddButton, allowDelete, maxNumberOfSaveGamesToShow); }
             });
         }
-
-        */
     }
 
     // Not configurable from Pascal *for now*.
-//    private static final int conflictResolution = Snapshots.RESOLUTION_POLICY_LONGEST_PLAYTIME;
+    private static final int conflictResolution = SnapshotsClient.RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED;
 
     // The savegame contents is converted from/to a string using this encoding.
     // Not configurable from Pascal *for now*.
-//    private static final String saveGameEncoding = "UTF-8";
+    // TODO: Ideally, savegame contents should be treated as binary, not modified by any string processing.
+    private static final String saveGameEncoding = "UTF-8";
 
     /* Make a log, and messageSend, that loading savegame failed. */
     private final void saveGameLoadingError(String errorStr)
@@ -431,34 +432,25 @@ public class ServiceGooglePlayGames extends ServiceAbstract
 
     private void saveGameLoad(final String saveGameName)
     {
-        /* TODO:
-
-        if (checkGamesConnection()) {
-            AsyncTask<Void, Void, Snapshots.OpenSnapshotResult> task =
-                new AsyncTask<Void, Void, Snapshots.OpenSnapshotResult> ()
-            {
-                @Override
-                protected Snapshots.OpenSnapshotResult doInBackground(Void... params) {
-                    boolean createIfNotFound = true; // not configurable from Pascal for now
-                    // Open the saved game using its name.
-                    try {
-                        return Games.Snapshots.open(mGoogleApiClient,
-                            saveGameName, createIfNotFound, conflictResolution).await();
-                    } catch (IllegalStateException e) {
-                        /* Snapshots.open() can always fail with
-                           "GoogleApiClient is not connected yet." * /
-                        return null;
+        GoogleSignInAccount account = checkGamesConnection();
+        if (account != null) {
+            Activity a = getActivity();
+            SnapshotsClient snapshotsClient = Games.getSnapshotsClient(a, account);
+            snapshotsClient.open(saveGameName, /*createIfNotFound*/ true, conflictResolution)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        saveGameLoadingError("Error while opening Snapshot for loading: " + e.getMessage());
                     }
-                }
-
-                @Override
-                protected void onPostExecute(Snapshots.OpenSnapshotResult result) {
-                    if (result != null) {
-                        // Check the result of the open operation
-                        if (result.getStatus().isSuccess()) {
-                            Snapshot snapshot = result.getSnapshot();
-                            // Read the byte content of the saved game.
+                })
+                .addOnSuccessListener(new OnSuccessListener<SnapshotsClient.DataOrConflict<Snapshot>>() {
+                    @Override
+                    public void onSuccess(SnapshotsClient.DataOrConflict<Snapshot> dataOrConflict) {
+                        Snapshot snapshot = dataOrConflict.getData();
+                        if (snapshot != null) {
+                            // Opening the snapshot was a success and any conflicts have been resolved.
                             try {
+                                // Extract the raw data from the snapshot.
                                 byte[] saveGameBytes;
                                 saveGameBytes = snapshot.getSnapshotContents().readFully();
                                 String saveGameStr = new String(saveGameBytes, saveGameEncoding);
@@ -467,105 +459,52 @@ public class ServiceGooglePlayGames extends ServiceAbstract
                                 saveGameLoadingError("Google Play Games error when reading snapshot: " + e.getMessage());
                             }
                         } else {
-                            saveGameLoadingError("Google Play Games error when loading save game (" +
-                              result.getStatus().getStatusCode() + "): " +
-                              result.getStatus().getStatusMessage());
+                            // There was a conflict and the user must select a resolution strategy.
+                            SnapshotsClient.SnapshotConflict conflict = dataOrConflict.getConflict();
+                            logInfo(CATEGORY, "Conflict when loading savegame: " + conflict.toString());
                         }
-                    } else {
-                        saveGameLoadingError("Google Play Games disconneted while trying to load savegame");
                     }
-                }
-            };
-
-            task.execute();
+                });
         } else {
             saveGameLoadingError("Not connected to Google Play Games");
         }
-
-        */
     }
 
-    private void saveGameSave(final String saveGameName, final String saveGameContents, final String description, final long playedTimeMillis)
+    private void saveGameSave(final String saveGameName,
+        final String saveGameContents, final String description,
+        final long playedTimeMillis)
     {
-        /* TODO:
-
-        if (checkGamesConnection()) {
-            AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void> ()
-            {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    boolean createIfNotFound = true;
-
-                    // Open the saved game using its name.
-                    // This is the *1st* operation that takes time, and should therefore be in a thread!!
-                    Snapshots.OpenSnapshotResult result;
-                    try {
-                        result = Games.Snapshots.open(mGoogleApiClient,
-                            saveGameName, createIfNotFound, conflictResolution).await();
-                    } catch (IllegalStateException e) {
-                        /* Snapshots.open() can always fail with
-                           "GoogleApiClient is not connected yet." * /
-                        result = null;
+        GoogleSignInAccount account = checkGamesConnection();
+        if (account != null) {
+            Activity a = getActivity();
+            SnapshotsClient snapshotsClient = Games.getSnapshotsClient(a, account);
+            snapshotsClient.open(saveGameName, /*createIfNotFound*/ true, conflictResolution)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                      logError(CATEGORY, "Error while opening Snapshot for saving: " + e.getMessage());
                     }
-
-                    // Check the result of the open operation
-                    if (result != null) {
-                        if (result.getStatus().isSuccess()) {
-                            Snapshot snapshot = result.getSnapshot();
-                            try {
-                                snapshot.getSnapshotContents().writeBytes(saveGameContents.getBytes(saveGameEncoding));
-                            } catch (UnsupportedEncodingException e) {
-                                logError(CATEGORY, "Error while saving a save game, encoding " + saveGameEncoding + " unsupported: " + e.getMessage());
-                            }
-
-                            // Create the change operation
-                            SnapshotMetadataChange metadataChange = new SnapshotMetadataChange.Builder()
-                                    .setDescription(description)
-                                    .setPlayedTimeMillis(playedTimeMillis)
-                                    .build();
-
-                            // Commit the operation
-                            commitAndCloseWatchingResult(snapshot, metadataChange);
-                        } else {
-                            logError(CATEGORY, "Error while opening a save game for writing (" +
-                              result.getStatus().getStatusCode() + "): " +
-                              result.getStatus().getStatusMessage());
+                })
+                .addOnSuccessListener(new OnSuccessListener<SnapshotsClient.DataOrConflict<Snapshot>>() {
+                    @Override
+                    public void onSuccess(SnapshotsClient.DataOrConflict<Snapshot> result) {
+                        Snapshot snapshot = result.getData();
+                        try {
+                            snapshot.getSnapshotContents().writeBytes(saveGameContents.getBytes(saveGameEncoding));
+                        } catch (UnsupportedEncodingException e) {
+                            logError(CATEGORY, "Error while saving a save game, encoding " + saveGameEncoding + " unsupported: " + e.getMessage());
                         }
-                    } else {
-                        logError(CATEGORY, "Google Play Games disconneted while trying to save savegame");
+                        SnapshotMetadataChange metadataChange =
+                            new SnapshotMetadataChange.Builder()
+                                .setDescription(description)
+                                .setPlayedTimeMillis(playedTimeMillis)
+                                .build();
+                        snapshotsClient.commitAndClose(snapshot, metadataChange);
                     }
-
-                    return null;
-                }
-
-                private void commitAndCloseWatchingResult(Snapshot snapshot, SnapshotMetadataChange metadataChange)
-                {
-                    PendingResult<Snapshots.CommitSnapshotResult> pending =
-                      Games.Snapshots.commitAndClose(mGoogleApiClient, snapshot, metadataChange);
-
-                    // This is the *2nd* operation that takes time, and should therefore be in a thread!!
-                    Snapshots.CommitSnapshotResult result = pending.await();
-
-                    if (!result.getStatus().isSuccess()) {
-                        logError(CATEGORY, "Google Play Games error when saving the game (" +
-                            result.getStatus().getStatusCode() + "): " +
-                            result.getStatus().getStatusMessage());
-                    }
-                }
-
-                @Override
-                protected void onPostExecute(Void result) {
-                    // Nothing. Right now, we don't communicate to main thread
-                    // (or native code) whether save succeeded or not.
-                }
-            };
-
-            task.execute();
+                });
         } else {
             logError(CATEGORY, "Not connected to Google Play Games, cannot save savegame.");
         }
-
-        */
     }
 
     private void showLeaderboard(final String leaderboardId)
