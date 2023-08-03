@@ -21,7 +21,7 @@ interface
 uses Classes,
   CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors,
-  CastleNotifications, CastleTimeUtils;
+  CastleNotifications, CastleTimeUtils, CastleGameService;
 
 type
   { Main "playing game" view, where most of the game logic takes place. }
@@ -40,13 +40,19 @@ type
     ButtonSendLeaderboardRandomScores: TCastleButton;
     ButtonSendLeaderboardTimes: TCastleButton;
     ButtonGetPlayerBestTime: TCastleButton;
+    ButtonSaveGame: TCastleButton;
+    ButtonLoadGame: TCastleButton;
+    ButtonChooseSaveGame: TCastleButton;
     GameNotifications: TCastleNotifications;
+    LabelGameServiceStatus: TCastleLabel;
   private
     { DragonFlying and DragonFlyingTarget manage currect dragon (SceneDragon)
       animation and it's movement. }
     DragonFlying: Boolean;
     DragonFlyingTarget: TVector2;
     PlayTime: TFloatTime;
+
+    // UI callbacks
     procedure ChangeCheckboxCameraFollow(Sender: TObject);
     procedure ClickShowAchievements(Sender: TObject);
     procedure ClickShowLeaderboardRandomScores(Sender: TObject);
@@ -55,7 +61,15 @@ type
     procedure ClickSendLeaderboardTimes(Sender: TObject);
     procedure ClickGetPlayerBestRandomScore(Sender: TObject);
     procedure ClickGetPlayerBestTime(Sender: TObject);
+    procedure ClickSaveGame(Sender: TObject);
+    procedure ClickLoadGame(Sender: TObject);
+    procedure ClickChooseSaveGame(Sender: TObject);
+
+    // Game service callbacks
+    procedure GameServiceStatusChanged(Sender: TObject);
     procedure PlayerBestScoreReceived(Sender: TObject; const LeaderboardId: string; const Score: Int64);
+    procedure GameServiceSaveGameLoaded(Sender: TObject; const Success: boolean; const Content: string);
+    procedure GameServiceSaveGameChosen(Sender: TObject; const Choice: TSaveGameChoice; const SaveGameName: string);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -70,6 +84,7 @@ var
 implementation
 
 uses SysUtils, Math,
+  CastleConfig, CastleUtils,
   GameViewMenu, GameIds;
 
 { TViewPlay ----------------------------------------------------------------- }
@@ -83,6 +98,10 @@ end;
 procedure TViewPlay.Start;
 begin
   inherited;
+
+  LabelGameServiceStatus.Caption := 'Status: ' + GameServiceStatusToStr(GameService.Status);
+
+  // UI callbacks
   CheckboxCameraFollow.OnChange := {$ifdef FPC}@{$endif} ChangeCheckboxCameraFollow;
   ButtonShowAchievements.OnClick := {$ifdef FPC}@{$endif} ClickShowAchievements;
   ButtonShowLeaderboardRandomScores.OnClick := {$ifdef FPC}@{$endif} ClickShowLeaderboardRandomScores;
@@ -91,16 +110,27 @@ begin
   ButtonSendLeaderboardTimes.OnClick := {$ifdef FPC}@{$endif} ClickSendLeaderboardTimes;
   ButtonGetPlayerBestRandomScore.OnClick := {$ifdef FPC}@{$endif} ClickGetPlayerBestRandomScore;
   ButtonGetPlayerBestTime.OnClick := {$ifdef FPC}@{$endif} ClickGetPlayerBestTime;
+  ButtonSaveGame.OnClick := {$ifdef FPC}@{$endif} ClickSaveGame;
+  ButtonLoadGame.OnClick := {$ifdef FPC}@{$endif} ClickLoadGame;
+  ButtonChooseSaveGame.OnClick := {$ifdef FPC}@{$endif} ClickChooseSaveGame;
+
+  // game service callbacks
+  GameService.OnStatusChanged := {$ifdef FPC}@{$endif} GameServiceStatusChanged;
   GameService.OnPlayerBestScoreReceived := {$ifdef FPC}@{$endif} PlayerBestScoreReceived;
+  GameService.OnSaveGameLoaded := {$ifdef FPC}@{$endif} GameServiceSaveGameLoaded;
+  GameService.OnSaveGameChosen := {$ifdef FPC}@{$endif} GameServiceSaveGameChosen;
 end;
 
 procedure TViewPlay.Stop;
 begin
   { GameService instance will exist throughout this application lifetime,
     even after this view is stopped.
-    So unregisted our callback from it, to not let PlayerBestScoreReceived
+    So unregisted our callbacks from it, to not let e.g. PlayerBestScoreReceived
     be called when view is stopped and UI is destroyed. }
+  GameService.OnStatusChanged := nil;
   GameService.OnPlayerBestScoreReceived := nil;
+  GameService.OnSaveGameLoaded := nil;
+  GameService.OnSaveGameChosen := nil;
   inherited;
 end;
 
@@ -267,6 +297,89 @@ end;
 procedure TViewPlay.PlayerBestScoreReceived(Sender: TObject; const LeaderboardId: string; const Score: Int64);
 begin
   GameNotifications.Show('Your best score on ' + LeaderboardId + ' is ' + IntToStr(Score));
+end;
+
+procedure TViewPlay.GameServiceStatusChanged(Sender: TObject);
+begin
+  LabelGameServiceStatus.Caption := 'Status: ' + GameServiceStatusToStr(GameService.Status);
+end;
+
+procedure TViewPlay.ClickSaveGame(Sender: TObject);
+var
+  StringStream: TStringStream;
+  UserConfigAsString: String;
+begin
+  { We could just save a String straight using GameService.SaveGameSave.
+    But to make it a more realistic demo, we do 3 steps:
+    - Save state to UserConfig
+    - Then convert UserConfig into a String
+    - And save that.
+  }
+  UserConfig.SetVector3('dragon/translation', SceneDragon.Translation);
+  UserConfig.SetVector3('dragon/scale', SceneDragon.Scale);
+  UserConfig.SetValue('camera_follows', CheckboxCameraFollow.Checked);
+
+  StringStream := TStringStream.Create('');
+  try
+    UserConfig.SaveToStream(StringStream);
+    UserConfigAsString := StringStream.DataString;
+  finally FreeAndNil(StringStream) end;
+
+  GameService.SaveGameSave('default-save', UserConfigAsString, 'Default savegame.', Trunc(PlayTime));
+  GameNotifications.Show('Starting saving game online.');
+end;
+
+procedure TViewPlay.ClickLoadGame(Sender: TObject);
+begin
+  GameService.SaveGameLoad('default-save');
+  GameNotifications.Show('Starting loading game online.');
+end;
+
+procedure TViewPlay.GameServiceSaveGameLoaded(Sender: TObject;
+  const Success: boolean; const Content: string);
+var
+  StringStream: TStringStream;
+begin
+  { Corresponding to TViewPlay.ClickSaveGame, we unpack received Content
+    (String) into UserConfig, and then use UserConfig to restore the state. }
+  if Success then
+  begin
+    StringStream := TStringStream.Create(Content);
+    try
+      UserConfig.LoadFromStream(StringStream,
+        { PretendURL; we choose to just not modify it } UserConfig.URL);
+    finally FreeAndNil(StringStream) end;
+
+    SceneDragon.Translation := UserConfig.GetVector3('dragon/translation');
+    SceneDragon.Scale := UserConfig.GetVector3('dragon/scale');
+    CheckboxCameraFollow.Checked := UserConfig.GetValue('camera_follows', true);
+    // loading game stops dragon flying
+    DragonFlying := false;
+    SceneDragon.PlayAnimation('idle', true);
+
+    GameNotifications.Show('Successfully loaded online game.');
+  end else
+    GameNotifications.Show('Failed to load game online: ' + Content);
+end;
+
+procedure TViewPlay.ClickChooseSaveGame(Sender: TObject);
+begin
+  GameService.ShowSaveGames('Choose save game', true, true, -1);
+  GameNotifications.Show('Starting choosing savegame online.');
+end;
+
+procedure TViewPlay.GameServiceSaveGameChosen(Sender: TObject; const Choice: TSaveGameChoice; const SaveGameName: string);
+begin
+  { We just display the user choice, without acting on it now.
+    In a real game, you would probably want to do something
+    depending on the user choice -- follow the ClickSaveGame or ClickLoadGame
+    code to see how to save/load the game. }
+  case Choice of
+    sgCancel: GameNotifications.Show('Savegame choice cancelled.');
+    sgNew: GameNotifications.Show('Savegame choice: new savegame.');
+    sgExisting: GameNotifications.Show('Savegame choice: existing savegame.' + SaveGameName);
+    else raise EInternalError.Create('GameServiceSaveGameChosen:Choice?');
+  end;
 end;
 
 end.

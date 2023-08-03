@@ -282,7 +282,7 @@ type
       PlayedTime may also be used for conflict resolution (if the savegame
       on the server was modified in the meantime, without loading it in this game).
 
-      No callback is called in response, the game is saved in the background.
+      No callback is called in response now, the game is saved in the background.
 
       This does not connect player to game service, if it's not connected
       already. An error when saving is not reported back to Pascal, for now.
@@ -298,10 +298,8 @@ type
       If the savegame does not exist, it will be automatically created.
 
       If the server requires conflict resolution,
-      the savegame with longest playtime is used (internally: we use
-      RESOLUTION_POLICY_LONGEST_PLAYTIME flag with Google Play Games).
-      For this to work, you must provide a proper PlayedTime parameter
-      when saving all your savegames through @link(SaveGameSave).
+      the most recently modified savegame is used with Google Play Games,
+      see RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED docs.
 
       Valid savegame names are defined by Google Play Games:
       Must be between 1 and 100 non-URL-reserved characters (a-z, A-Z, 0-9,
@@ -341,6 +339,8 @@ type
       See TSaveGameLoadedEvent for documentation of parameters. }
     property OnSaveGameLoaded: TSaveGameLoadedEvent read FOnSaveGameLoaded write FOnSaveGameLoaded;
   end;
+
+function GameServiceStatusToStr(const Status: TGameServiceStatus): String;
 
 implementation
 
@@ -537,6 +537,21 @@ procedure TGameService.SaveGameSave(const SaveGameName, Contents, Description: s
   const PlayedTime: TFloatTime);
 begin
   Messaging.Send(['save-game-save', SaveGameName, Contents, Description, TMessaging.TimeToStr(PlayedTime)]);
+end;
+
+{ routines ------------------------------------------------------------------- }
+
+function GameServiceStatusToStr(const Status: TGameServiceStatus): String;
+const
+  Names: array [TGameServiceStatus] of string =
+  (
+    'Signed Out',
+    'Signed In',
+    'Signing In...',
+    'Signing Out..'
+  );
+begin
+  Result := Names[Status];
 end;
 
 end.
