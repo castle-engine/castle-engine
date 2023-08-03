@@ -271,13 +271,28 @@ public class ServiceGooglePlayGames extends ServiceAbstract
             if (result.isSuccess()) {
                 successfullSignIn();
             } else {
+                setStatus(STATUS_SIGNED_OUT);
+
                 String message = result.getStatus().getStatusMessage();
                 if (message == null || message.isEmpty()) {
                     message = "Cannot sign-in to Google Play Games";
                 }
-                // TODO: should this be AlertDialog? Not logError? Should end-user see this?
+
+                // Do not show, better to let Pascal application show UI about this.
+                /*
                 new AlertDialog.Builder(getActivity()).setMessage(message)
-                    .setNeutralButton("OK", null).show();
+                    .setNeutralButton("OK", null)
+                    .show();
+                */
+
+                logError(CATEGORY, "Cannot sign-in to Google Play Games (extra message: " + message + ")");
+
+                /* Setting wantsSignIn, to avoid a loop caused by onResume
+                   (which seems to always happen when this occurs)
+                   trying to sign-in again and again.
+                   Testcase: just try application without valid Google Play Games
+                   app_id, so that it always fails. */
+                wantsSignIn = false;
             }
         }
 
