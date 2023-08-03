@@ -86,8 +86,6 @@ public class ServiceGooglePlayGames extends ServiceAbstract
     // was initialize() last called with saveGames
     boolean mSaveGames;
 
-    private GoogleSignInAccount account;
-
     public ServiceGooglePlayGames(MainActivity activity)
     {
         super(activity);
@@ -158,10 +156,8 @@ public class ServiceGooglePlayGames extends ServiceAbstract
 
         final Activity a = getActivity();
         GoogleSignInAccount lastAccount = GoogleSignIn.getLastSignedInAccount(a);
-        if (GoogleSignIn.hasPermissions(account, signInOptions.getScopeArray())) {
-            // Already signed in.
-            // The signed in account is stored in the 'account' variable.
-            GoogleSignInAccount account = lastAccount;
+        if (lastAccount != null &&
+            GoogleSignIn.hasPermissions(lastAccount, signInOptions.getScopeArray())) {
             successfullSignIn();
         } else {
             // Haven't been signed-in before. Try the silent sign-in first.
@@ -173,8 +169,6 @@ public class ServiceGooglePlayGames extends ServiceAbstract
                         @Override
                         public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
                             if (task.isSuccessful()) {
-                                // The signed in account is stored in the task's result.
-                                account = task.getResult();
                                 successfullSignIn();
                             } else {
                                 // Player will need to sign-in explicitly using via UI.
@@ -200,15 +194,28 @@ public class ServiceGooglePlayGames extends ServiceAbstract
     }
 
     /**
-     * Return if we are initialized and mStatus is STATUS_SIGNED_IN.
-     * Also does some basic checks. */
-    private boolean checkGamesConnection()
+     * Return non-null if we are initialized, mStatus is STATUS_SIGNED_IN,
+     * and we have a valid account.
+     * Does all checks required by all Google functions that we're connected.
+     * The returned account is ready to be passed where you would usually pass
+     * "GoogleSignIn.getLastSignedInAccount" result.
+     */
+    private GoogleSignInAccount checkGamesConnection()
     {
         if (mStatus != STATUS_SIGNED_OUT && !initialized) {
             logWarning(CATEGORY, "Weird state: when status is not STATUS_SIGNED_OUT, initialized should be true");
         }
 
-        return initialized && mStatus == STATUS_SIGNED_IN;
+        if (initialized && mStatus == STATUS_SIGNED_IN) {
+            /* This method calls and checks GoogleSignIn.getLastSignedInAccount,
+             * as it can return null despite other checks,
+             * and then methods like getAchievementsClient would raise
+             * NullPointerException.
+             */
+            return GoogleSignIn.getLastSignedInAccount(getActivity());
+        } else {
+            return null;
+        }
     }
 
     // Are we signed in (use STATUS_xxx constants).
@@ -238,6 +245,12 @@ public class ServiceGooglePlayGames extends ServiceAbstract
         // We can now hide the sign-in button.
         setStatus(STATUS_SIGNED_IN);
 
+        GoogleSignInAccount account = checkGamesConnection();
+        if (account == null) {
+            logError(CATEGORY, "Weird state: Right when successfullSignIn is called, checkGamesConnection should return non-null");
+            return;
+        }
+
         GamesClient gamesClient = Games.getGamesClient(getActivity(), account);
         gamesClient.setViewForPopups(getActivity().findViewById(android.R.id.content));
 
@@ -257,8 +270,6 @@ public class ServiceGooglePlayGames extends ServiceAbstract
         if (requestCode == REQUEST_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(intent);
             if (result.isSuccess()) {
-                // The signed in account is stored in the result.
-                account = result.getSignInAccount();
                 successfullSignIn();
             } else {
                 String message = result.getStatus().getStatusMessage();
@@ -339,9 +350,10 @@ public class ServiceGooglePlayGames extends ServiceAbstract
 
     private void showAchievements()
     {
-        if (checkGamesConnection()) {
+        GoogleSignInAccount account = checkGamesConnection();
+        if (account != null) {
             final Activity a = getActivity();
-            Games.getAchievementsClient(a, GoogleSignIn.getLastSignedInAccount(a))
+            Games.getAchievementsClient(a, account)
                 .getAchievementsIntent()
                 .addOnSuccessListener(new OnSuccessListener<Intent>() {
                     @Override
@@ -363,9 +375,10 @@ public class ServiceGooglePlayGames extends ServiceAbstract
      */
     private void achievement(String achievementId)
     {
-        if (checkGamesConnection()) {
+        GoogleSignInAccount account = checkGamesConnection();
+        if (account != null) {
             Activity a = getActivity();
-            Games.getAchievementsClient(a, GoogleSignIn.getLastSignedInAccount(a))
+            Games.getAchievementsClient(a, account)
                 .unlock(achievementId);
         } else {
             logWarning(CATEGORY, "Achievement unlocked, but not connected to Google Games, ignoring");
@@ -557,9 +570,10 @@ public class ServiceGooglePlayGames extends ServiceAbstract
 
     private void showLeaderboard(final String leaderboardId)
     {
-        if (checkGamesConnection()) {
+        GoogleSignInAccount account = checkGamesConnection();
+        if (account != null) {
             final Activity a = getActivity();
-            Games.getLeaderboardsClient(a, GoogleSignIn.getLastSignedInAccount(a))
+            Games.getLeaderboardsClient(a, account)
                 .getLeaderboardIntent(leaderboardId)
                 .addOnSuccessListener(new OnSuccessListener<Intent>() {
                     @Override
@@ -587,10 +601,10 @@ public class ServiceGooglePlayGames extends ServiceAbstract
      */
     private void submitScore(String leaderboardId, long score)
     {
-        if (checkGamesConnection()) {
+        GoogleSignInAccount account = checkGamesConnection();
+        if (account != null) {
             Activity a = getActivity();
-            LeaderboardsClient leaderboardsClient =
-                Games.getLeaderboardsClient(a, GoogleSignIn.getLastSignedInAccount(a));
+            LeaderboardsClient leaderboardsClient = Games.getLeaderboardsClient(a, account);
             leaderboardsClient.submitScore(leaderboardId, score);
         } else {
             logWarning(CATEGORY, "Not connected to Google Games, not sending score");
@@ -599,10 +613,10 @@ public class ServiceGooglePlayGames extends ServiceAbstract
 
     private void requestPlayerBestScore(String leaderboardId)
     {
-        if (checkGamesConnection()) {
+        GoogleSignInAccount account = checkGamesConnection();
+        if (account != null) {
             Activity a = getActivity();
-            LeaderboardsClient leaderboardsClient =
-                Games.getLeaderboardsClient(a, GoogleSignIn.getLastSignedInAccount(a));
+            LeaderboardsClient leaderboardsClient = Games.getLeaderboardsClient(a, account);
             final String saveLeaderboardId = leaderboardId;
             leaderboardsClient.loadCurrentPlayerLeaderboardScore(leaderboardId,
                 LeaderboardVariant.TIME_SPAN_ALL_TIME,
