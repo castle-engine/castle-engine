@@ -19,23 +19,21 @@ package net.sourceforge.castleengine;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.IllegalStateException;
 
 import androidx.annotation.NonNull;
+
 import android.content.Intent;
-import android.content.IntentSender;
-import android.util.Log;
 import android.app.Activity;
 import android.app.AlertDialog;
 
+import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.drive.Drive;
 import com.google.android.gms.games.AchievementsClient;
 import com.google.android.gms.games.SnapshotsClient;
 import com.google.android.gms.games.snapshot.Snapshot;
@@ -51,8 +49,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-
-import ${QUALIFIED_NAME}.R;
 
 /**
  * Integration of Google Games (achievements, leaderboards and more) with
@@ -102,7 +98,10 @@ public class ServiceGooglePlayGames extends ServiceAbstract
             return;
         }
 
-        String appId = getActivity().getResources().getString(R.string.app_id);
+        String appId =
+            //getActivity().getResources().getString(R.string.app_id);
+            // Simpler to just get the value by CGE services macro expansion
+            "${ANDROID.GOOGLE_PLAY_GAMES.APP_ID}";
         if (appId.equals("")) {
             logError(CATEGORY, "You must define Google Play Games id of your game in CastleEngineManifest.xml, like <google_play_services app_id=\"xxxx\" />. You get this id after creating Google Game Services for your game in Google Developer Console. Without this, GooglePlayGames integration cannot be initialized.");
             return;
@@ -147,7 +146,11 @@ public class ServiceGooglePlayGames extends ServiceAbstract
         if (mSaveGames) {
             signInOptions =
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-                    .requestScopes(Drive.SCOPE_APPFOLDER)
+                    .requestScopes(
+                        //Drive.SCOPE_APPFOLDER
+                        // Non-deprecated version, following https://stackoverflow.com/questions/60543379/google-play-games-saved-games-deprecated/62321726#62321726
+                        new Scope(Scopes.DRIVE_APPFOLDER)
+                    )
                     .build();
         } else {
             signInOptions = GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN;
@@ -302,8 +305,27 @@ public class ServiceGooglePlayGames extends ServiceAbstract
                 if (intent != null) {
                     if (intent.hasExtra(SnapshotsClient.EXTRA_SNAPSHOT_METADATA)) {
                         // Load a snapshot.
+
+                        /* Google deprecated getParcelableExtra in favor of safer
+                           https://developer.android.com/reference/android/content/Intent#getParcelableExtra(java.lang.String,%20java.lang.Class%3CT%3E)
+                           But the new API is only available on new devices,
+                           so in reality one just has to either
+
+                           - use old API
+                           - or use both old and new APIs, switching at runtime.
+
+                           See
+                           - https://stackoverflow.com/questions/73019160/the-getparcelableextra-method-is-deprecated
+                           - https://issuetracker.google.com/issues/242048899?pli=1
+                           - https://issuetracker.google.com/issues/242048899#comment15
+
+                           We'll switch to new API once it will be more convenient,
+                           e.g. by AndroidX wrapper.
+                         */
+                        @SuppressWarnings("deprecation")
                         SnapshotMetadata snapshotMetadata = (SnapshotMetadata)
                             intent.getParcelableExtra(SnapshotsClient.EXTRA_SNAPSHOT_METADATA);
+
                         String currentSaveName = snapshotMetadata.getUniqueName();
                         messageSend(new String[]{"chosen-save-game", currentSaveName});
                     } else
