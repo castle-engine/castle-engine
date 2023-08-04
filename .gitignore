@@ -43,6 +43,7 @@ xcuserdata
 /tools/castle-editor/Castle Game Engine.app/
 # used by https://marketplace.visualstudio.com/items?itemName=alefragnani.jenkins-status
 /.jenkins
+AndroidSigningProperties.txt
 
 # cge build tool stuff
 castle-engine-output

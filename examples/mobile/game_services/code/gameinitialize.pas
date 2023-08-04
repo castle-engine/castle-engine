@@ -53,7 +53,7 @@ begin
   Window.Container.View := ViewMenu;
 
   GameService := TGameService.Create(Application);
-  GameService.Initialize;
+  GameService.Initialize(true, true);
 end;
 
 initialization
