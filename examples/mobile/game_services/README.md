@@ -1,4 +1,4 @@
-# Game services (achievements, leaderboards...) with Google Play Games and Apple Game Center
+# Game services (achievements, leaderboards, save games...) with Google Play Games and Apple Game Center
 
 Records and shows achievements and leaderboard scores using `CastleGameService`. This uses:
 
@@ -8,7 +8,9 @@ Records and shows achievements and leaderboard scores using `CastleGameService`.
 
 - On other platforms achievements are ignored now. In the future we may integrate e.g. with Steam achievements, if a Steam service is activated in the project.
 
-The game itself is a simple 2D game with models animated in Spine. It is very similar to the _"New Project -> 2D Game"_ template from the CGE editor, extended only to demonstrate achievements.
+The game itself is a simple 2D game with models animated in Spine. It is very similar to the _"New Project -> 2D Game"_ template from the CGE editor, extended only to demonstrate achievements, leaderboards and savegames.
+
+![Screenshot](screenshot.jpg)
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
