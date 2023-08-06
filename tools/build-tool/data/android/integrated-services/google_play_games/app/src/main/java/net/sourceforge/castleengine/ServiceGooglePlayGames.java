@@ -473,7 +473,11 @@ public class ServiceGooglePlayGames extends ServiceAbstract
         if (account != null) {
             Activity a = getActivity();
             SnapshotsClient snapshotsClient = Games.getSnapshotsClient(a, account);
-            snapshotsClient.open(saveGameName, /*createIfNotFound*/ true, conflictResolution)
+            /* createIfNotFound is false here, this way trying to load from saveGameName
+               that was never saved -- will fail, instead of returning
+               empty contents (which the caller would find unexpected,
+               e.g. it's not valid XML or JSON if caller expects that). */
+            snapshotsClient.open(saveGameName, /*createIfNotFound*/ false, conflictResolution)
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
