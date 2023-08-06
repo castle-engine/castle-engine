@@ -419,6 +419,7 @@ clean: cleanexamples
 			   -iname '*.lps' -or \
 			   -iname '*.libimp*.a' -or \
 			   -iname '*.apk' -or \
+			   -iname '*.aab' -or \
 			   -iname '*.dbg' -or \
 	                   -iname '*.dcu' -or \
 			   -iname '*.dpu' -or \
