@@ -167,6 +167,7 @@ begin
     Result := FinishExeSearch(ExeName, BundleName, EnvVarName1, Required);
 end;
 
+{ Filename (without any leading path) of the Android output (APK, AAB) file. }
 function AndroidPackageFile(const Project: TCastleProject;
   const Mode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault;
@@ -623,7 +624,8 @@ procedure InstallAndroid(const Project: TCastleProject;
 var
   PackageName: string;
 begin
-  PackageName := AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
+  PackageName := Project.OutputPath +
+    AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
   if not RegularFileExists(PackageName) then
     raise Exception.CreateFmt('No Android package found: "%s"', [PackageName]);
 
