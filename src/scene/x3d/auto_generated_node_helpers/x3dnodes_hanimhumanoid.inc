@@ -38,6 +38,12 @@
     procedure SetScale(const Value: TVector3);
     function GetScaleOrientation: TVector4;
     procedure SetScaleOrientation(const Value: TVector4);
+    function GetSkeletalConfiguration: String;
+    procedure SetSkeletalConfiguration(const Value: String);
+    function GetSkinBindingCoord: TAbstractCoordinateNode;
+    procedure SetSkinBindingCoord(const Value: TAbstractCoordinateNode);
+    function GetSkinBindingNormal: TAbstractNormalNode;
+    procedure SetSkinBindingNormal(const Value: TAbstractNormalNode);
     function GetSkinNormal: TAbstractNormalNode;
     procedure SetSkinNormal(const Value: TAbstractNormalNode);
     function GetTranslation: TVector3;
@@ -77,11 +83,49 @@
     {  }
     procedure SetJoints(const Value: array of THAnimJointNode);
 
+    strict private FFdJointBindingPositions: TMFVec3f;
+    { Internal wrapper for property @code(JointBindingPositions). This wrapper API may change, we advise to access simpler @code(JointBindingPositions) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdJointBindingPositions: TMFVec3f read FFdJointBindingPositions;
+    {  }
+    procedure SetJointBindingPositions(const Value: array of TVector3); overload;
+    {  }
+    procedure SetJointBindingPositions(const Value: TVector3List); overload;
+
+    strict private FFdJointBindingRotations: TMFRotation;
+    { Internal wrapper for property @code(JointBindingRotations). This wrapper API may change, we advise to access simpler @code(JointBindingRotations) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdJointBindingRotations: TMFRotation read FFdJointBindingRotations;
+    {  }
+    procedure SetJointBindingRotations(const Value: array of TVector4); overload;
+    {  }
+    procedure SetJointBindingRotations(const Value: TVector4List); overload;
+
+    strict private FFdJointBindingScales: TMFVec3f;
+    { Internal wrapper for property @code(JointBindingScales). This wrapper API may change, we advise to access simpler @code(JointBindingScales) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdJointBindingScales: TMFVec3f read FFdJointBindingScales;
+    {  }
+    procedure SetJointBindingScales(const Value: array of TVector3); overload;
+    {  }
+    procedure SetJointBindingScales(const Value: TVector3List); overload;
+
     strict private FFdLoa: TSFInt32;
     { Internal wrapper for property @code(Loa). This wrapper API may change, we advise to access simpler @code(Loa) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLoa: TSFInt32 read FFdLoa;
     {  }
     property Loa: Integer read GetLoa write SetLoa;
+
+    strict private FFdMotions: TMFNode;
+    { Internal wrapper for property @code(Motions). This wrapper API may change, we advise to access simpler @code(Motions) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdMotions: TMFNode read FFdMotions;
+    {  }
+    procedure SetMotions(const Value: array of THAnimMotionNode);
+
+    strict private FFdMotionsEnabled: TMFBool;
+    { Internal wrapper for property @code(MotionsEnabled). This wrapper API may change, we advise to access simpler @code(MotionsEnabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdMotionsEnabled: TMFBool read FFdMotionsEnabled;
+    {  }
+    procedure SetMotionsEnabled(const Value: array of boolean); overload;
+    {  }
+    procedure SetMotionsEnabled(const Value: TBooleanList); overload;
 
     strict private FFdName: TSFString;
     { Internal wrapper for property @code(NameField). This wrapper API may change, we advise to access simpler @code(NameField) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -119,6 +163,12 @@
     {  }
     procedure SetSites(const Value: array of THAnimSiteNode);
 
+    strict private FFdSkeletalConfiguration: TSFString;
+    { Internal wrapper for property @code(SkeletalConfiguration). This wrapper API may change, we advise to access simpler @code(SkeletalConfiguration) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSkeletalConfiguration: TSFString read FFdSkeletalConfiguration;
+    {  }
+    property SkeletalConfiguration: String read GetSkeletalConfiguration write SetSkeletalConfiguration;
+
     strict private FFdSkeleton: TMFNode;
     { Internal wrapper for property @code(Skeleton). This wrapper API may change, we advise to access simpler @code(Skeleton) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSkeleton: TMFNode read FFdSkeleton;
@@ -128,6 +178,18 @@
     public property FdSkin: TMFNode read FFdSkin;
     {  }
     procedure SetSkin(const Value: array of TAbstractChildNode);
+
+    strict private FFdSkinBindingCoord: TSFNode;
+    { Internal wrapper for property @code(SkinBindingCoord). This wrapper API may change, we advise to access simpler @code(SkinBindingCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSkinBindingCoord: TSFNode read FFdSkinBindingCoord;
+    {  }
+    property SkinBindingCoord: TAbstractCoordinateNode read GetSkinBindingCoord write SetSkinBindingCoord;
+
+    strict private FFdSkinBindingNormal: TSFNode;
+    { Internal wrapper for property @code(SkinBindingNormal). This wrapper API may change, we advise to access simpler @code(SkinBindingNormal) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSkinBindingNormal: TSFNode read FFdSkinBindingNormal;
+    {  }
+    property SkinBindingNormal: TAbstractNormalNode read GetSkinBindingNormal write SetSkinBindingNormal;
 
     strict private FFdSkinCoord: TSFNode;
     { Internal wrapper for property @code(SkinCoord). This wrapper API may change, we advise to access simpler @code(SkinCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -213,6 +275,36 @@ begin
   FdJoints.Send(A);
 end;
 
+procedure THAnimHumanoidNode.SetJointBindingPositions(const Value: array of TVector3);
+begin
+  FdJointBindingPositions.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetJointBindingPositions(const Value: TVector3List);
+begin
+  FdJointBindingPositions.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetJointBindingRotations(const Value: array of TVector4);
+begin
+  FdJointBindingRotations.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetJointBindingRotations(const Value: TVector4List);
+begin
+  FdJointBindingRotations.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetJointBindingScales(const Value: array of TVector3);
+begin
+  FdJointBindingScales.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetJointBindingScales(const Value: TVector3List);
+begin
+  FdJointBindingScales.Send(Value);
+end;
+
 function THAnimHumanoidNode.GetLoa: Integer;
 begin
   Result := FdLoa.Value;
@@ -221,6 +313,28 @@ end;
 procedure THAnimHumanoidNode.SetLoa(const Value: Integer);
 begin
   FdLoa.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetMotions(const Value: array of THAnimMotionNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(THAnimMotionNode));
+  FdMotions.Send(A);
+end;
+
+procedure THAnimHumanoidNode.SetMotionsEnabled(const Value: array of boolean);
+begin
+  FdMotionsEnabled.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetMotionsEnabled(const Value: TBooleanList);
+begin
+  FdMotionsEnabled.Send(Value);
 end;
 
 function THAnimHumanoidNode.GetNameField: String;
@@ -287,6 +401,16 @@ begin
   FdSites.Send(A);
 end;
 
+function THAnimHumanoidNode.GetSkeletalConfiguration: String;
+begin
+  Result := FdSkeletalConfiguration.Value;
+end;
+
+procedure THAnimHumanoidNode.SetSkeletalConfiguration(const Value: String);
+begin
+  FdSkeletalConfiguration.Send(Value);
+end;
+
 procedure THAnimHumanoidNode.SetSkin(const Value: array of TAbstractChildNode);
 var
   L: Integer;
@@ -297,6 +421,32 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TAbstractChildNode));
   FdSkin.Send(A);
+end;
+
+function THAnimHumanoidNode.GetSkinBindingCoord: TAbstractCoordinateNode;
+begin
+  if FdSkinBindingCoord.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdSkinBindingCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure THAnimHumanoidNode.SetSkinBindingCoord(const Value: TAbstractCoordinateNode);
+begin
+  FdSkinBindingCoord.Send(Value);
+end;
+
+function THAnimHumanoidNode.GetSkinBindingNormal: TAbstractNormalNode;
+begin
+  if FdSkinBindingNormal.Value is TAbstractNormalNode then
+    Result := TAbstractNormalNode(FdSkinBindingNormal.Value)
+  else
+    Result := nil;
+end;
+
+procedure THAnimHumanoidNode.SetSkinBindingNormal(const Value: TAbstractNormalNode);
+begin
+  FdSkinBindingNormal.Send(Value);
 end;
 
 function THAnimHumanoidNode.GetSkinNormal: TAbstractNormalNode;
@@ -371,9 +521,29 @@ begin
    FdJoints.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdJoints);
 
+  FFdJointBindingPositions := TMFVec3f.Create(Self, True, 'jointBindingPositions', []);
+   FdJointBindingPositions.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdJointBindingPositions);
+
+  FFdJointBindingRotations := TMFRotation.Create(Self, True, 'jointBindingRotations', []);
+   FdJointBindingRotations.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdJointBindingRotations);
+
+  FFdJointBindingScales := TMFVec3f.Create(Self, True, 'jointBindingScales', []);
+   FdJointBindingScales.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdJointBindingScales);
+
   FFdLoa := TSFInt32.Create(Self, True, 'loa', -1);
    FdLoa.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdLoa);
+
+  FFdMotions := TMFNode.Create(Self, True, 'motions', [THAnimMotionNode]);
+   FdMotions.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMotions);
+
+  FFdMotionsEnabled := TMFBool.Create(Self, True, 'motionsEnabled', []);
+   FdMotionsEnabled.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMotionsEnabled);
 
   FFdName := TSFString.Create(Self, True, 'name', '');
    FdName.ChangeAlways := chVisibleNonGeometry;
@@ -399,6 +569,10 @@ begin
    FdSites.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSites);
 
+  FFdSkeletalConfiguration := TSFString.Create(Self, True, 'skeletalConfiguration', 'BASIC');
+   FdSkeletalConfiguration.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSkeletalConfiguration);
+
   FFdSkeleton := TMFNode.Create(Self, True, 'skeleton', [THAnimJointNode, THAnimSiteNode]);
    FdSkeleton.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSkeleton);
@@ -406,6 +580,14 @@ begin
   FFdSkin := TMFNode.Create(Self, True, 'skin', [TAbstractChildNode]);
    FdSkin.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSkin);
+
+  FFdSkinBindingCoord := TSFNode.Create(Self, True, 'skinBindingCoord', [TAbstractCoordinateNode]);
+   FdSkinBindingCoord.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSkinBindingCoord);
+
+  FFdSkinBindingNormal := TSFNode.Create(Self, True, 'skinBindingNormal', [TAbstractNormalNode]);
+   FdSkinBindingNormal.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSkinBindingNormal);
 
   FFdSkinCoord := TSFNode.Create(Self, True, 'skinCoord', [TAbstractCoordinateNode]);
    FdSkinCoord.ChangeAlways := chVisibleNonGeometry;

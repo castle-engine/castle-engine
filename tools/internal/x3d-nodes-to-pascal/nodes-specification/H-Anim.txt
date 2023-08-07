@@ -20,7 +20,13 @@ HAnimHumanoid : X3DChildNode, X3DBoundedObject {
   MFString   [in,out] info             []
   MFNode     [in,out] joints           []
     range: HAnimJoint
+  MFVec3f    [in,out] jointBindingPositions []
+  MFRotation [in,out] jointBindingRotations []
+  MFVec3f    [in,out] jointBindingScales    []
   SFInt32    [in,out] loa              -1
+  MFNode     [in,out] motions               []
+    range: HAnimMotion
+  MFBool     [in,out] motionsEnabled        []
   SFString   [in,out] name             ""
   SFRotation [in,out] rotation         0 0 1 0
     range: (-Inf,Inf)|[-1,1]
@@ -35,10 +41,15 @@ HAnimHumanoid : X3DChildNode, X3DBoundedObject {
     range: HAnimSegment
   MFNode     [in,out] sites            []
     range: HAnimSite
+  SFString   [in,out] skeletalConfiguration "BASIC"
   MFNode     [in,out] skeleton         []
     range: HAnimJoint, HAnimSite
   MFNode     [in,out] skin             []
     range: X3DChildNode
+  SFNode     [in,out] skinBindingCoord      NULL
+    range: X3DCoordinateNode
+  SFNode     [in,out] skinBindingNormal     NULL
+    range: X3DNormalNode
   SFNode     [in,out] skinCoord        NULL
     range: X3DCoordinateNode
   SFNode     [in,out] skinNormal       NULL
@@ -91,6 +102,36 @@ HAnimJoint : X3DGroupingNode {
     change: chTransform
   MFFloat    [in,out] ulimit           []
     range: (-Inf,Inf)
+}
+
+HAnimMotion : X3DChildNode {
+  SFBool   [in]     next
+  SFBool   [in]     previous
+  SFString [in,out] channels         ""
+  MFBool   [in,out] channelsEnabled  []
+  SFString [in,out] description      ""
+  SFBool   [in,out] enabled          TRUE
+  SFInt32  [in,out] endFrame         0
+    range: [0,Inf)
+  SFTime   [in,out] frameDuration    0.1
+    range: (0,Inf)
+  SFInt32  [in,out] frameIncrement   1
+    range: (-Inf,Inf)
+  SFInt32  [in,out] frameIndex       0
+    range: [0,Inf)
+  SFString [in,out] joints           ""
+  SFInt32  [in,out] loa              -1
+    range: [-1,4]
+  SFBool   [in,out] loop             false
+  SFInt32  [in,out] startFrame       0
+    range: [0,Inf)
+  MFFloat  [in,out] values           []
+    range: (-Inf,Inf)
+  SFTime   [out]    cycleTime
+  SFTime   [out]    elapsedTime
+    range: (0,Inf)
+  SFInt32  [out]    frameCount
+    range: [0,Inf)
 }
 
 HAnimSegment : X3DGroupingNode {

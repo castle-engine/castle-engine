@@ -472,6 +472,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_hanimdisplacer.inc}
 {$I auto_generated_node_helpers/x3dnodes_hanimhumanoid.inc}
 {$I auto_generated_node_helpers/x3dnodes_hanimjoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_hanimmotion.inc}
 {$I auto_generated_node_helpers/x3dnodes_hanimsegment.inc}
 {$I auto_generated_node_helpers/x3dnodes_hanimsite.inc}
 {$I auto_generated_node_helpers/x3dnodes_imagebackground.inc}
