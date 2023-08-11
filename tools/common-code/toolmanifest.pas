@@ -168,8 +168,7 @@ type
       DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
       { See https://castle-engine.io/android_faq
         for reasons behind this minimal version. }
-      ReallyMinSdkVersion = 21;
-      DefaultAndroidMinSdkVersion = ReallyMinSdkVersion;
+      DefaultAndroidMinSdkVersion = 21;
 
       DataName = 'data';
 
@@ -1001,10 +1000,6 @@ procedure TCastleManifest.CreateFinish;
     if AndroidMinSdkVersion > AndroidTargetSdkVersion then
       raise Exception.CreateFmt('Android min_sdk_version %d is larger than target_sdk_version %d, this is incorrect',
         [AndroidMinSdkVersion, AndroidTargetSdkVersion]);
-
-    if AndroidMinSdkVersion < ReallyMinSdkVersion then
-      raise Exception.CreateFmt('Android min_sdk_version %d is too small. It must be >= %d for Castle Game Engine applications',
-        [AndroidMinSdkVersion, ReallyMinSdkVersion]);
   end;
 
 begin
