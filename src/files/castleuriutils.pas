@@ -391,13 +391,14 @@ function InternalUriEscape(const S: String): String;
 function InternalUriUnescape(const S: String): String;
 
 var
-  { On systems where filesystems are usually case-sensitive (Unix),
-    accept also 'castle-data:/xxx` URLs that have different case than the actual files.
+  { On systems where filesystems are usually case-sensitive
+    (Unix; like Linux, FreeBSD, macOS),
+    accept any @code('castle-data:/xxx') URLs, even when they have different case
+    than the actual files.
 
-    @bold(This is not advised to be used in production applications.)
-    It is slow (searching for case-insensitive match at each subdirectory and filename).
-    But it is a quick way to run applications prepared for case-insensitive
-    systems (like Windows) on Unix. }
+    This is a quick way to run applications prepared / tested on case-insensitive
+    systems (like Windows) on Unix. It causes a small additional work when we open
+    data files, but in many cases it is acceptable. }
   CastleDataIgnoreCase: Boolean = false;
 
 implementation
