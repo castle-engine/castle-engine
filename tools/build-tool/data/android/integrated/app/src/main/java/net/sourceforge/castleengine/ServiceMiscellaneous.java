@@ -82,16 +82,6 @@ public class ServiceMiscellaneous extends ServiceAbstract
         getActivity().startActivity(intent);
     }
 
-    private InputMethodManager im = (InputMethodManager) getActivity().getSystemService(Service.INPUT_METHOD_SERVICE);
-
-    private void changeKeyboardState(Boolean keyboardState)
-    {
-        if (keyboardState)
-            im.showSoftInput(getActivity().getWindow().getDecorView(), InputMethodManager.SHOW_FORCED);
-        else
-            im.hideSoftInputFromWindow(getActivity().getWindow().getDecorView().getWindowToken(), 0);
-    }
-
     @Override
     public boolean messageReceived(String[] parts)
     {
@@ -105,10 +95,6 @@ public class ServiceMiscellaneous extends ServiceAbstract
         } else
         if (parts.length == 2 && parts[0].equals("on-screen-notification")) {
             Toast.makeText(getActivity().getApplicationContext(), parts[1], Toast.LENGTH_SHORT).show();
-            return true;
-        } else
-        if (parts.length == 2 && parts[0].equals("change-keyboard-state")) {
-            changeKeyboardState(stringToBoolean(parts[1]));
             return true;
         } else
         {

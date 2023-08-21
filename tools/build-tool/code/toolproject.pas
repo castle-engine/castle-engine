@@ -156,7 +156,6 @@ type
     function AndroidCompileSdkVersion: Cardinal;
     function AndroidMinSdkVersion: Cardinal;
     function AndroidTargetSdkVersion: Cardinal;
-    function AndroidProjectType: TAndroidProjectType;
     function Icons: TImageFileNames;
     function LaunchImages: TImageFileNames;
     function AndroidServices: TServiceList;
@@ -1124,10 +1123,7 @@ begin
     AbsoluteResult := Path + RelativeResult;
   end else
   begin
-    if AndroidProjectType = apIntegrated then
-      TemplateRelativeURL := 'android/library_template_integrated.lpr'
-    else
-      TemplateRelativeURL := 'android/library_template_base.lpr';
+    TemplateRelativeURL := 'android/library_template_integrated.lpr';
     GeneratedSourceFile(TemplateRelativeURL,
       'android' + PathDelim + NamePascal + '_android.lpr',
       ErrorMessageMissingGameUnits,
@@ -1147,8 +1143,7 @@ begin
     AndroidSourceContents := FileToString(AbsoluteResult);
     if Pos('ANativeActivity_onCreate', AndroidSourceContents) = 0 then
       InvalidAndroidSource(AbsoluteResult);
-    if (AndroidProjectType = apIntegrated) and
-       (Pos('Java_net_sourceforge_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0) then
+    if Pos('Java_net_sourceforge_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0 then
       InvalidAndroidSource(AbsoluteResult);
   end;
 
@@ -2132,6 +2127,9 @@ begin
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/AndroidManifest.xml') then
       MergeAndroidManifest(SourceFileName, DestinationFileName, @ReplaceMacros)
     else
+    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/CMakeLists.txt') then
+      MergeAppend(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/res/values/strings.xml') then
       MergeStringsXml(SourceFileName, DestinationFileName, @ReplaceMacros)
     else
@@ -2334,11 +2332,6 @@ end;
 function TCastleProject.AndroidTargetSdkVersion: Cardinal;
 begin
   Result := Manifest.AndroidTargetSdkVersion;
-end;
-
-function TCastleProject.AndroidProjectType: TAndroidProjectType;
-begin
-  Result := Manifest.AndroidProjectType;
 end;
 
 function TCastleProject.Icons: TImageFileNames;

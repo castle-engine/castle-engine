@@ -33,8 +33,6 @@ type
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
-  TAndroidProjectType = (apBase, apIntegrated);
-
   TLocalizedAppName = class
     Language: String;
     AppName: String;
@@ -90,12 +88,6 @@ type
       DefautVersionCode = 1;
       { iOS requires version display to be <> '' }
       DefautVersionDisplayValue = '0.1';
-      DefaultAndroidCompileSdkVersion = 31;
-      DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
-      { See https://castle-engine.io/android-FAQ#what-android-devices-are-supported
-        for reasons behind this minimal version. }
-      ReallyMinSdkVersion = 16;
-      DefaultAndroidMinSdkVersion = ReallyMinSdkVersion;
       DefaultUsesNonExemptEncryption = true;
       DefaultDataExists = true;
       DefaultFullscreenImmersive = true;
@@ -141,7 +133,6 @@ type
       FFullscreenImmersive: boolean;
       FScreenOrientation: TScreenOrientation;
       FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
-      FAndroidProjectType: TAndroidProjectType;
       FAndroidServices, FIOSServices: TServiceList;
       FAssociateDocumentTypes: TAssociatedDocTypeList;
       FLocalizedAppNames: TLocalizedAppNameList;
@@ -171,6 +162,14 @@ type
     procedure AddDependencyFromFoundDataFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   public
     const
+      { Android SDK versions.
+        See https://castle-engine.io/project_manifest#_android_information . }
+      DefaultAndroidCompileSdkVersion = 33;
+      DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
+      { See https://castle-engine.io/android_faq
+        for reasons behind this minimal version. }
+      DefaultAndroidMinSdkVersion = 21;
+
       DataName = 'data';
 
     { Load defaults.
@@ -245,7 +244,6 @@ type
     property AndroidCompileSdkVersion: Cardinal read FAndroidCompileSdkVersion;
     property AndroidMinSdkVersion: Cardinal read FAndroidMinSdkVersion;
     property AndroidTargetSdkVersion: Cardinal read FAndroidTargetSdkVersion;
-    property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
     property AndroidServices: TServiceList read FAndroidServices;
 
     { Standalone source specified in CastleEngineManifest.xml.
@@ -436,7 +434,6 @@ begin
   FLaunchImageStoryboard := TLaunchImageStoryboard.Create;
   FSearchPaths := TStringList.Create;
   FLibraryPaths := TStringList.Create;
-  FAndroidProjectType := apIntegrated;
   FAndroidServices := TServiceList.Create(true);
   FIOSServices := TServiceList.Create(true);
   FAssociateDocumentTypes := TAssociatedDocTypeList.Create;
@@ -478,6 +475,28 @@ begin
 end;
 
 constructor TCastleManifest.CreateFromUrl(const APath, ManifestUrl: String);
+
+  { Get XML element attribute as Cardinal,
+    using DefaultAndMinimum as default (if not exists in XML).
+
+    Moreover, if value in XML exists but is smaller than DefaultAndMinimum,
+    then we make a warning and use DefaultAndMinimum anyway. }
+  function GetAttributeCardinalWithMinimum(const Element: TDOMElement;
+    const AttributeName: String; const DefaultAndMinimum: Cardinal): Cardinal;
+  begin
+    Result := Element.AttributeCardinalDef(AttributeName, DefaultAndMinimum);
+    if Result < DefaultAndMinimum then
+    begin
+      WritelnWarning('Manifest', Format('Value "%d" of attribute "%s.%s" in "CastleEngineManifest.xml" is smaller than default "%d", using default instead', [
+        Result,
+        Element.TagName,
+        AttributeName,
+        DefaultAndMinimum
+      ]));
+      Result := DefaultAndMinimum;
+    end;
+  end;
+
 var
   Doc: TXMLDocument;
   AndroidProjectTypeStr: string;
@@ -630,19 +649,16 @@ begin
     FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
     FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
     Element := Doc.DocumentElement.ChildElement('android', false);
+
     if Element <> nil then
     begin
-      FAndroidCompileSdkVersion := Element.AttributeCardinalDef('compile_sdk_version', DefaultAndroidCompileSdkVersion);
-      FAndroidMinSdkVersion := Element.AttributeCardinalDef('min_sdk_version', DefaultAndroidMinSdkVersion);
-      FAndroidTargetSdkVersion := Element.AttributeCardinalDef('target_sdk_version', DefaultAndroidTargetSdkVersion);
+      FAndroidCompileSdkVersion := GetAttributeCardinalWithMinimum(Element, 'compile_sdk_version', DefaultAndroidCompileSdkVersion);
+      FAndroidMinSdkVersion := GetAttributeCardinalWithMinimum(Element, 'min_sdk_version', DefaultAndroidMinSdkVersion);
+      FAndroidTargetSdkVersion := GetAttributeCardinalWithMinimum(Element, 'target_sdk_version', DefaultAndroidTargetSdkVersion);
 
       if Element.AttributeString('project_type', AndroidProjectTypeStr) then
       begin
-        if AndroidProjectTypeStr = 'base' then
-          FAndroidProjectType := apBase else
-        if AndroidProjectTypeStr = 'integrated' then
-          FAndroidProjectType := apIntegrated else
-          raise Exception.CreateFmt('Invalid android project_type "%s"', [AndroidProjectTypeStr]);
+        WritelnWarning('Specifying android project_type in CastleEngineManifest.xml is deprecated, all projects are "integrated" always. Remove the project_type="..." attribute from <android ...> element in CastleEngineManifest.xml.');
       end;
 
       ChildElement := Element.ChildElement('components', false);
@@ -984,10 +1000,6 @@ procedure TCastleManifest.CreateFinish;
     if AndroidMinSdkVersion > AndroidTargetSdkVersion then
       raise Exception.CreateFmt('Android min_sdk_version %d is larger than target_sdk_version %d, this is incorrect',
         [AndroidMinSdkVersion, AndroidTargetSdkVersion]);
-
-    if AndroidMinSdkVersion < ReallyMinSdkVersion then
-      raise Exception.CreateFmt('Android min_sdk_version %d is too small. It must be >= %d for Castle Game Engine applications',
-        [AndroidMinSdkVersion, ReallyMinSdkVersion]);
   end;
 
 begin

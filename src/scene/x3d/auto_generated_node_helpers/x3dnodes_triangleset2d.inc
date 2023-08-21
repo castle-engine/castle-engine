@@ -66,11 +66,11 @@ begin
   inherited;
 
   FFdVertices := TMFVec2f.Create(Self, True, 'vertices', []);
-   FdVertices.ChangeAlways := chVisibleNonGeometry;
+   FdVertices.ChangeAlways := chGeometry;
   AddField(FFdVertices);
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
-   FdSolid.ChangeAlways := chVisibleNonGeometry;
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 end;
 

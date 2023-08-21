@@ -42,7 +42,7 @@
     strict private FFdSlices: TSFInt32;
     { Internal wrapper for property @code(Slices). This wrapper API may change, we advise to access simpler @code(Slices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSlices: TSFInt32 read FFdSlices;
-    {  }
+    { How much to subdivide the circle. Larger values result in polygon that looks smoother (more like a correct circle), but also mean that we need to render more triangles. The default value, -1 means to use the global @link(DefaultTriangulationSlices) parameter. }
     property Slices: Integer read GetSlices write SetSlices;
 
 {$endif read_interface}
@@ -81,12 +81,12 @@ begin
   inherited;
 
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
-   FdRadius.ChangeAlways := chVisibleNonGeometry;
+   FdRadius.ChangeAlways := chGeometry;
    FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
 
   FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);
-   FdSlices.ChangeAlways := chVisibleNonGeometry;
+   FdSlices.ChangeAlways := chGeometry;
   AddField(FFdSlices);
 end;
 

@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <build_gradle_merge>
-  <!-- Following https://gameanalytics.com/docs/s/article/Android-SDK-Setup -->
+  <!-- Following https://docs.gameanalytics.com/integrations/sdk/android -->
   <dependencies>
+    <!-- TODO: Updating GamaAnalytics SDK to 6.4.1+ causes build errors
+         at GooglePlayGames,
+
+        ..../ServiceGooglePlayGames.java:172: error: cannot find symbol
+              Games.setViewForPopups(mGoogleApiClient, getActivity().findViewById(android.R.id.content));
+                  ^
+        symbol:   method setViewForPopups(GoogleApiClient,View)
+        location: class Games
+
+        Does new GA include Google Play Games somehow, and forces to upgrade
+        GooglePlayGames?
+    -->
+    <!--dependency>implementation 'com.gameanalytics.sdk:gameanalytics-android:6.4.1+'</dependency-->
     <dependency>implementation 'com.gameanalytics.sdk:gameanalytics-android:6.2.6+'</dependency>
     <dependency>implementation 'com.google.android.gms:play-services-base:10.2.1'</dependency>
-    <dependency>implementation 'com.android.support:appcompat-v7:24.2.0'</dependency>
   </dependencies>
 </build_gradle_merge>

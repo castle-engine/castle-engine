@@ -12,7 +12,7 @@ import android.util.Log;
 
 /**
  * Helper to implement popups, for example to contain ad banners
- * (from any ad SDK --- admob, heyzap...).
+ * (from any ad SDK --- admob...).
  * Allows to display a popup on top of a NativeActivity
  * (that has a fixed UI layout defined by NativeActivity implementation,
  * and so one cannot just add another View inside it easily).
@@ -46,7 +46,7 @@ public class ActivityPopup implements View.OnLayoutChangeListener
         */
 
         // For better-paying ads, you want to give more space.
-        // AdMob docs, and Heyzap, suggest using SMART_BANNER.
+        // AdMob docs suggest using SMART_BANNER.
         // And SMART_BANNER docs say:
         //
         //   Note: The smart banner view in your layout must consume the full width of the device. If it doesn't, you'll get a warning with the message "Not enough space to show ad", and the banner will not be displayed.

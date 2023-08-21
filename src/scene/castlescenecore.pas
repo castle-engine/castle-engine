@@ -516,7 +516,10 @@ type
     FOnPointingDeviceSensorsChange: TNotifyEvent;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
+    { Change only using SetAndWatchUrl. }
     FURL: string;
+    { Is FURL watched by FileMonitor. }
+    FUrlWatched: Boolean;
     FStatic: boolean;
     FShadowMaps: boolean;
     FShadowMapsDefaultSize: Cardinal;
@@ -682,6 +685,9 @@ type
     procedure SetExposeTransforms(const Value: TStrings);
     procedure ExposeTransformsChange(Sender: TObject);
     procedure SetExposeTransformsPrefix(const Value: String);
+    { Set FUrl and make it watched using FileMonitor. }
+    procedure SetAndWatchUrl(const NewUrl: String);
+    procedure UrlChanged(Sender: TObject);
   private
     FGlobalLights: TLightInstancesList;
 
@@ -2595,7 +2601,7 @@ var
 implementation
 
 uses Math, DateUtils,
-  X3DCameraUtils, CastleStringUtils, CastleLog,
+  X3DCameraUtils, CastleStringUtils, CastleLog, CastleInternalFileMonitor,
   X3DLoad, CastleURIUtils, CastleQuaternions;
 
 {$define read_implementation}
@@ -3262,6 +3268,10 @@ begin
   { This also deinitializes script nodes. }
   ProcessEvents := false;
 
+  { Unregisted self from FileMonitor. }
+  if FUrlWatched then
+    FileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
+
   FreeAndNil(FExposeTransforms);
   FreeAndNil(FExposedTransforms);
   FreeAndNil(ScheduledHumanoidAnimateSkin);
@@ -3464,7 +3474,7 @@ begin
     { Set FURL before calling Load below.
       This way eventual warning from Load (like "animation not found",
       in case AutoAnimation is used) will mention the new URL, not the old one. }
-    FURL := AURL;
+    SetAndWatchUrl(AURL);
 
     LoadCore(NewRoot, NewRootCacheOrigin, true, AOptions);
 
@@ -3543,7 +3553,7 @@ procedure TCastleSceneCore.Save(const AURL: string);
 begin
   if RootNode <> nil then
     SaveNode(RootNode, AURL, ApplicationName);
-  FURL := AURL;
+  SetAndWatchUrl(AURL);
 end;
 
 procedure TCastleSceneCore.SetURL(const AValue: string);
@@ -8595,9 +8605,26 @@ end;
 function TCastleSceneCore.Clone(const AOwner: TComponent): TCastleSceneCore;
 begin
   Result := TComponentClass(ClassType).Create(AOwner) as TCastleSceneCore;
-  Result.FURL := FURL + '[Clone]';
+  Result.SetAndWatchUrl(FURL);
   if RootNode <> nil then
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
+end;
+
+procedure TCastleSceneCore.SetAndWatchUrl(const NewUrl: String);
+begin
+  if FUrl <> NewUrl then
+  begin
+    if FUrlWatched then
+      FileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
+    FUrl := NewUrl;
+    FUrlWatched := FileMonitor.Watch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
+  end;
+end;
+
+procedure TCastleSceneCore.UrlChanged(Sender: TObject);
+begin
+  Assert(CastleDesignMode);
+  ReloadUrl;
 end;
 
 function TCastleSceneCore.PropertySections(

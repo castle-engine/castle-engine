@@ -400,6 +400,7 @@ begin
     P.Targets.AddUnit('castlefilesutils.pas');
     P.Targets.AddUnit('castlefindfiles.pas');
     P.Targets.AddUnit('castleinternaldirectoryinformation.pas');
+    P.Targets.AddUnit('castleinternalfilemonitor.pas');
     P.Targets.AddUnit('castlelocalizationgettext.pas');
     P.Targets.AddUnit('castlerecentfiles.pas');
     P.Targets.AddUnit('castleuriutils.pas');

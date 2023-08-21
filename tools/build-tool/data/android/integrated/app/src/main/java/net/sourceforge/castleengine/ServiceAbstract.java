@@ -172,6 +172,5 @@ public abstract class ServiceAbstract
     public void onResume() { }
     public void onPause() { }
     public void onNewIntent(Intent intent) { }
-    public boolean onBackPressed() { return false; }
     public void onPurchase(AvailableProduct product, String originalJson, String signature) { }
 }

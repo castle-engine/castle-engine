@@ -21,7 +21,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
       <path value="your/path/to/Indy10/System" />
     </search_paths>
   </compiler_options>
-  <android project_type="integrated">
+  <android>
     <services>
       <service name="client_server" />
     </services>

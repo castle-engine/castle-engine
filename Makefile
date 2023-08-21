@@ -419,6 +419,7 @@ clean: cleanexamples
 			   -iname '*.lps' -or \
 			   -iname '*.libimp*.a' -or \
 			   -iname '*.apk' -or \
+			   -iname '*.aab' -or \
 			   -iname '*.dbg' -or \
 	                   -iname '*.dcu' -or \
 			   -iname '*.dpu' -or \
@@ -480,8 +481,6 @@ cleanmore: clean
 			')' -exec rm -Rf '{}' ';' -prune
 	$(MAKE) -C doc/pasdoc/ clean
 	rm -Rf tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.aar \
 	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar \
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h \
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a

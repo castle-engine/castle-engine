@@ -2,16 +2,19 @@
 <build_gradle_merge>
   <!-- https://docs.tenjin.com/en/send-events/android.html -->
   <dependencies>
-    <!--dependency>implementation project(":tenjin")</dependency-->
-    <!-- This works better in CGE -->
-    <dependency>implementation(name:'tenjin', ext:'aar')</dependency>
+    <!--
+      Version: latest from https://github.com/tenjin/tenjin-android-sdk/releases
+      at the time of this writing.
+    -->
+    <dependency>implementation 'com.tenjin:android-sdk:1.12.22'</dependency>
 
-    <!-- Tenjin docs say to use any version: https://docs.tenjin.com/en/send-events/android.html
-         We use version matching our google_analytics service.
-         See also https://developers.google.com/android/guides/setup -->
-    <dependency>implementation 'com.google.android.gms:play-services-analytics:17.0.0'</dependency>
-    <!-- Tenjin docs say to use any version.
-         See https://developer.android.com/google/play/installreferrer/library -->
+    <!--
+      Docs say to use these libraries:
+      https://github.com/tenjin/tenjin-android-sdk#android-advertising-id-aaid-and-install-referrer
+      SDK examples show these versions:
+      https://github.com/tenjin/tenjin-android-sdk-demo/blob/master/app/build.gradle
+    -->
     <dependency>implementation 'com.android.installreferrer:installreferrer:2.2'</dependency>
+    <dependency>implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'</dependency>
   </dependencies>
 </build_gradle_merge>

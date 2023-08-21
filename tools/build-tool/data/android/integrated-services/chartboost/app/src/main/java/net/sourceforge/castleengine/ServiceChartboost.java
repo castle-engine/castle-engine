@@ -183,6 +183,13 @@ public class ServiceChartboost extends ServiceAbstract
         Chartboost.onStop(getActivity());
     }
 
+    /* TODO: Upgrade to latest Chartboost SDK, that doesn't have
+       Chartboost.onBackPressed() looking at
+       https://developers.chartboost.com/docs/monetization-android-get-started
+
+       onBackPressed was deprecated in Android for Activity,
+       we removed it from ServiceAbstract.
+
     @Override
     public boolean onBackPressed()
     {
@@ -193,6 +200,7 @@ public class ServiceChartboost extends ServiceAbstract
         // If an interstitial is on screen, close it.
         return Chartboost.onBackPressed();
     }
+    */
 
     private void showInterstitial()
     {

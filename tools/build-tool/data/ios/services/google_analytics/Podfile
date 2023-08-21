@@ -1,4 +1,0 @@
-# This declaration will be inserted into the middle of the project Podfile
-# by the Castle Game Engine build tool.
-
-pod 'GoogleAnalytics'

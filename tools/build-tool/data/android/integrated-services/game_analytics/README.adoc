@@ -28,3 +28,13 @@ Minimal sample manifest that uses this service:
   </android>
 </project>
 ----
+
+## TODO: Does GameAnalytics use Android's Advertising ID?
+
+Article from 2021 ( https://gameanalytics.com/blog/googles-identifier-policy-change/ ) talks about changes in GA version 7+, but it's 2023 and latest version is 6.4.1 ( https://github.com/GameAnalytics/GA-SDK-ANDROID/ ).
+
+- Does this version use Android's Advertising ID?
+
+- If yes, does it already declare permission `com.google.android.gms.permission.AD_ID` that you need to declare (otherwise you'll get id filled with zeroes)?
+
+They don't say in https://docs.gameanalytics.com/integrations/sdk/android to add `com.google.android.gms.permission.AD_ID` . Which may imply they don't use AAID anymore. Or that they didn't update docs about it.

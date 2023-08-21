@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<build_gradle_merge>
-  <!-- https://developers.facebook.com/docs/android/componentsdks -->
-  <repositories>
-    <repository>mavenCentral()</repository>
-  </repositories>
-</build_gradle_merge>

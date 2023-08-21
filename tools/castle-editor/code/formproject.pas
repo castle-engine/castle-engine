@@ -612,6 +612,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
+  CastleInternalFileMonitor,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
@@ -1149,6 +1150,7 @@ begin
   { Refresh contents of selected dir, and tree of subdirectories,
     in case user created some files/directories in other applications. }
   RefreshFiles(rfEverything);
+  FileMonitor.CheckChanges;
 end;
 
 procedure TProjectForm.ApplicationProperties1Deactivate(Sender: TObject);

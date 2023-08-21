@@ -62,7 +62,7 @@ begin
   inherited;
 
   FFdLineSegments := TMFVec2f.Create(Self, False, 'lineSegments', []);
-   FdLineSegments.ChangeAlways := chVisibleNonGeometry;
+   FdLineSegments.ChangeAlways := chGeometry;
   AddField(FFdLineSegments);
 end;
 

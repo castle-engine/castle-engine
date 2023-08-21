@@ -32,6 +32,7 @@ backup
 
 # Other unwanted
 *.apk
+*.aab
 *.log
 *.exe
 *.dll
@@ -43,6 +44,7 @@ xcuserdata
 /tools/castle-editor/Castle Game Engine.app/
 # used by https://marketplace.visualstudio.com/items?itemName=alefragnani.jenkins-status
 /.jenkins
+AndroidSigningProperties.txt
 
 # cge build tool stuff
 castle-engine-output
@@ -127,7 +129,7 @@ castle-game-engine-*.fpm
 /examples/localization/deprecated_custom/castle_localization
 /examples/localization/gettext/localization_test
 /examples/localization/gettext/po_files/generator/po_generator
-/examples/mobile/achievements/dragon_spine_demo
+/examples/mobile/game_services/game_services_demo
 /examples/mobile/activity_recognition/activity_recognition
 /examples/mobile/drawing_toy/drawing_toy
 /examples/mobile/on_screen_keyboard/on_screen_keyboard
@@ -244,10 +246,6 @@ castle-game-engine-*.fpm
 /tools/build-tool/castle-engine
 /tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
 /tools/build-tool/data/android/integrated-services/game_analytics/app/libs/*.jar
-/tools/build-tool/data/android/integrated-services/giftiz/app/libs/
-/tools/build-tool/data/android/integrated-services/giftiz/app/src/main/res/
-/tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.aar
-/tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar
 /tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
 /tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a

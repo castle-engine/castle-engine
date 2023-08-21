@@ -111,7 +111,7 @@
       @longCode(#
       if (Scene.NavigationInfoStack.Top <> nil) and
          (Scene.NavigationInfoStack.Top.BlendingSort <> sortAuto) then
-        MainViewport.Items.BlendingSort :=
+        MainViewport.BlendingSort :=
           Scene.NavigationInfoStack.Top.BlendingSort;
       #)
 
