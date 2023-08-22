@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleViewport, CastleUIControls,
-  CastleVectors,  CastleRenderOptions, GameInputAxis, CastleClassUtils;
+  CastleVectors,  CastleRenderOptions, CastleInputAxis, CastleClassUtils;
 
 type
   { Behavior for rotating camera by keys or mouse look. Should be added to Camera. }

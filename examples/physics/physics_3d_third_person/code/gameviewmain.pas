@@ -22,8 +22,8 @@ uses Classes,
   CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras, CastleTransform,
   CastleViewport, SimplestFpsPlayerMovement, SimpleFpsPlayerMovementWithRotation,
-  DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, GameInputAxis, RotateCamera,
-  ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport, FpsWalkSupport,
+  DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, CastleInputAxis, RotateCamera,
+  ModularMovement, StairsSupport, FpsFlySupport, FpsWalkSupport,
   AnimationTrigger, FollowingTargetForCamera;
 
 type
@@ -123,7 +123,7 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
     begin
       PlayerCollider := Player.FindBehavior(TCastleCollider) as TCastleCollider;
       { Code for player that can rotate }
-      Bullet.Translation := PlayerCollider.Middle + Player.Direction.Normalize * 1.5;
+      Bullet.Translation := PlayerCollider.Middle + Vector3(0, 0.75, 0) + Player.Direction.Normalize * 1.5;
 
       { Camera shows things in oposite to its direction }
       Bullet.Direction := Player.Direction;

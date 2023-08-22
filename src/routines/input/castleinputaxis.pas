@@ -1,4 +1,4 @@
-unit GameInputAxis;
+unit CastleInputAxis;
 
 interface
 

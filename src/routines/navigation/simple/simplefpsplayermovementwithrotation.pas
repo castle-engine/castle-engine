@@ -1,27 +1,27 @@
-unit SimplestFpsPlayerMovement;
+unit SimpleFpsPlayerMovementWithRotation;
 
 interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleInputs,
-  CastleVectors, CastleUIControls, CastleViewport, CastleClassUtils,
-  GameInputAxis;
+  CastleVectors, CastleUIControls, CastleViewport, CastleClassUtils, CastleInputAxis;
 
 type
 
-  { The simplest FPS (First Person Shooter) physics movement using dynamic
-    rigid body. Start point for your own FPS navigation when you do not want
-    player rotation (only camera rotation).
+  { The simple FPS (First Person Shooter) physics movement using dynamic
+    rigid body with rotation and direction from player. This is very simple
+    start point for your own FPS navigation when you do not want use modular
+    navigation.
 
-    - Only move right/left/forward/back
+    - Move right/left/forward/back
     - Constant speed
-    - Player rigid body not rotating (X, Y, Z) should be blocked in rigid body
-    - Rotation (direction.XZ) from camera what is player child (no rotation when no camera in player)
+    - Player rigid body rotating only in Y axis (horizontal) - should be blocked in rigid body
+    - Rotation (direction.XZ) from player, camera should be player child (should rotate only in horizontal)
     - No control in air
     - Uses parent.up(), never camera up to deremine direction of the velocity vector
-    - Set collider Friction to 0 - then you can use stairs
+    - camera should be rotated by pi in y axis
   }
-  TSimplestFpsPlayerMovement = class(TCastleBehavior)
+  TSimpleFpsPlayerMovementWithRotation = class(TCastleBehavior)
   strict private
     FWasJumpInput: Boolean;
 
@@ -32,9 +32,6 @@ type
     FHorizontalSpeed: Single;
     FJumpSpeed: Single;
   protected
-    { Tries to find camera in parent children and get it direction or returns
-      Parent direction }
-    function GetParentCamera: TCastleCamera; virtual;
     function GetForwardDirection: TVector3; virtual;
 
     function GetDirectionFromInput: TVector3; virtual;
@@ -51,6 +48,7 @@ type
     constructor Create(AOwner: TComponent); override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
   published
     { Initial vertical jump speed }
     property JumpSpeed: Single read FJumpSpeed write FJumpSpeed
@@ -74,48 +72,27 @@ implementation
 uses Math, CastleBoxes, CastleKeysMouse, CastleComponentSerialize, CastleLog,
   CastleUtils;
 
-function TSimplestFpsPlayerMovement.GetParentCamera: TCastleCamera;
-var
-  I: Integer;
+function TSimpleFpsPlayerMovementWithRotation.GetForwardDirection: TVector3;
 begin
-  for I := 0 to Parent.Count -1 do
-  begin
-    if Parent.Items[I] is TCastleCamera then
-      Exit(Parent.Items[I] as TCastleCamera);
-  end;
-  Result := nil;
+  Result := Parent.Direction;
+  Result.Y := 0;
 end;
 
-function TSimplestFpsPlayerMovement.GetForwardDirection: TVector3;
-var
-  CastleCamera: TCastleCamera;
-begin
-  CastleCamera := GetParentCamera;
-  if CastleCamera <> nil then
-  begin
-    Result := -CastleCamera.Direction;
-    { We don't want vertical camera rotation when moving. Only horizontal. }
-    Result.Y := 0;
-  end
-  else
-    Result := Parent.Direction;
-end;
-
-function TSimplestFpsPlayerMovement.GetDirectionFromInput: TVector3;
+function TSimpleFpsPlayerMovementWithRotation.GetDirectionFromInput: TVector3;
 begin
   Result := Vector3(0, 0, 0);
 
   if FocusedContainer = nil then
     Exit;
 
-  Result := Result + Vector3(-SidewayInputAxis.Value(FocusedContainer), 0,
-  -FForwardInputAxis.Value(FocusedContainer));
+  Result := Result + Vector3(SidewayInputAxis.Value(FocusedContainer), 0,
+  FForwardInputAxis.Value(FocusedContainer));
 
   if InputJump.IsPressed(FocusedContainer) then
     Result := Result + Vector3(0, 1, 0);
 end;
 
-function TSimplestFpsPlayerMovement.IsPlayerOnGround(
+function TSimpleFpsPlayerMovementWithRotation.IsPlayerOnGround(
   const PlayerRigidBody: TCastleRigidBody;
   const PlayerCollider: TCastleCollider): Boolean;
 var
@@ -123,6 +100,7 @@ var
   ColliderHeight: Single;
   ColliderRadius: Single;
   SphereCastOrigin: TVector3;
+
   { Needed when casted sphere is bigger or equal than ColliderHeight / 2 because kraft
     do not see any bodies that it hit while casting. This can happen when our
     player gently digs into the ground. }
@@ -138,9 +116,13 @@ begin
     under the collider. And ray will be casted under the floor. }
   ColliderBoundingBox := PlayerCollider.ScaledLocalBoundingBox;
   ColliderHeight := ColliderBoundingBox.SizeY;
-  { From testing average size is the best here, better than min or max size. }
   ColliderRadius := (ColliderBoundingBox.SizeX + ColliderBoundingBox.SizeZ) / 2;
   SphereCastOrigin := PlayerCollider.Middle;
+
+  { When casting sphere is equal or bigger than ColliderHeight / 2 we need
+    move it up or reduce sphere size }
+  {if not (ColliderRadius < ColliderHeight / 2 * 0.9) then
+     ColliderRadius := ColliderHeight / 2 * 0.9;}
 
   { Adjust sphere cast origin when radius is equal or bigger than ColliderHeight / 2 }
   if ColliderRadius - ColliderHeight / 2 > -0.1  then
@@ -177,18 +159,18 @@ begin
     { We assume that the player is on the ground a little faster to allow
      smoother control }
     Result := DistanceToGround < ColliderHeight * 0.1;
-    if Result then
+    {if Result then
       WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
     else
-      WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');
+      WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')');}
   end else
   begin
     Result := false;
-    WritelnLog('not on ground');
+    {WritelnLog('not on ground');}
   end;
 end;
 
-procedure TSimplestFpsPlayerMovement.Update(const SecondsPassed: Single;
+procedure TSimpleFpsPlayerMovementWithRotation.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 var
   RBody: TCastleRigidBody;
@@ -263,7 +245,7 @@ begin
   inherited Update(SecondsPassed, RemoveMe);
 end;
 
-constructor TSimplestFpsPlayerMovement.Create(AOwner: TComponent);
+constructor TSimpleFpsPlayerMovementWithRotation.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
@@ -284,13 +266,14 @@ begin
   FInputJump := TInputShortcut.Create(Self);
   InputJump.Assign(keySpace);
   InputJump.SetSubComponent(true);
+  InputJump.Name := 'InputJump';
 end;
 
-function TSimplestFpsPlayerMovement.PropertySections(const PropertyName: String
+function TSimpleFpsPlayerMovementWithRotation.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-     'HorizontalSpeed', 'JumpSpeed', 'ForwardInputAxis', 'SidewayInputAxis', 'InputJump'
+     'HorizontalSpeed', 'JumpSpeed', 'ForwardInputAxis', 'SidewayInputAxis'
      ]) then
     Result := [psBasic]
   else
@@ -299,7 +282,7 @@ end;
 
 
 initialization
-  RegisterSerializableComponent(TSimplestFpsPlayerMovement, ['Navigation', 'Simplest FPS Player Movement']);
+  RegisterSerializableComponent(TSimpleFpsPlayerMovementWithRotation, ['Navigation', 'Simple FPS Player Movement With Player Rotation']);
 
 end.
 

@@ -3,7 +3,7 @@ unit FpsWalkSupport;
 interface
 
 uses
-  Classes, SysUtils, ModularMovement, GameInputAxis, CastleTransform, CastleBehaviors,
+  Classes, SysUtils, ModularMovement, CastleInputAxis, CastleTransform, CastleBehaviors,
   CastleVectors, CastleInputs, CastleClassUtils;
 
 type

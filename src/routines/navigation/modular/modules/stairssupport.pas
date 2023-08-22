@@ -1,4 +1,4 @@
-unit StairsSupportByColliderCapsuleRadius;
+unit StairsSupport;
 
 interface
 

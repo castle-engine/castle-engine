@@ -3,7 +3,7 @@ unit ModularMovement;
 interface
 
 uses
-  Classes, SysUtils, CastleTransform, CastleVectors, GameInputAxis, CastleInputs,
+  Classes, SysUtils, CastleTransform, CastleVectors, CastleInputAxis, CastleInputs,
     CastleClassUtils;
 
 type

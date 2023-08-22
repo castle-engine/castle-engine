@@ -4019,6 +4019,7 @@ begin
           works best I think (but may lead to a momentary loss of time in a collision).
 
         Future: Maybe give user ability to choose ContinuousMode. }
+      //FKraftEngine.ContinuousMode := kcmSpeculativeContacts;
       FKraftEngine.ContinuousMode := kcmMotionClamping;
       { We need to set this because continuous works only when:
         - one of the bodies has krbfContinuous and they are dynamic
@@ -4026,8 +4027,9 @@ begin
           FKraftEngine and one of bodies has krbfContinuousAgainstDynamics flag }
       FKraftEngine.ContinuousAgainstDynamics := true;
       { Below are useful only for kcmTimeOfImpactSubSteps mode }
-      // FKraftEngine.TimeOfImpactAlgorithm := ktoiaConservativeAdvancement;
-      // FKraftEngine.MaximalSubSteps := 16;
+       //FKraftEngine.ContinuousMode := kcmTimeOfImpactSubSteps;
+       //FKraftEngine.TimeOfImpactAlgorithm := ktoiaConservativeAdvancement;
+       //FKraftEngine.MaximalSubSteps := 32;
     end else
     begin
       FKraftEngine.ContinuousMode := kcmNone;

@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleBehaviors, CastleViewport, CastleUIControls,
-  CastleVectors,  CastleInputs, GameInputAxis, CastleClassUtils;
+  CastleVectors,  CastleInputs, CastleInputAxis, CastleClassUtils;
 
 type
 
