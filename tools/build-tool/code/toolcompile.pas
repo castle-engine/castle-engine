@@ -120,7 +120,7 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..42] of String = (
+  EnginePaths: array [0..48] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -156,6 +156,12 @@ const
     'services',
     'physics',
     'physics/kraft',
+    'routines',
+    'routines/input',
+    'routines/navigation',
+    'routines/navigation/modular',
+    'routines/navigation/modular/modules',
+    'routines/navigation/simple',
     'deprecated_units',
     { Vampyre Imaging Library }
     'vampyre_imaginglib/src/Source',
