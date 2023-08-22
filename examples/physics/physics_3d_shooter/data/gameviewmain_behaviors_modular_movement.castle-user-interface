@@ -97,7 +97,7 @@
                   "$$ClassName" : "TCastleInputAxis",
                   "MouseDrag" : true,
                   "MouseDragAxis" : "mlaHorizontal",
-                  "MouseDragMultiplier" : 1.0000000000000000E+000,
+                  "MouseDragMultiplier" : 1.0000000474974513E-003,
                   "MouseLook" : true,
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 2.5000000000000000E-001,
