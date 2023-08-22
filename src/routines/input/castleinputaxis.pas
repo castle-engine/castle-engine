@@ -32,11 +32,17 @@ type
     FMouseLook: Boolean;
     FMouseLookAxis: TMouseLookAxis;
     FMouseLookMultiplier: Single;
+
+    FMouseDrag: Boolean;
+    FMouseDragAxis: TMouseLookAxis;
+    FMouseDragMultiplier: Single;
+
     FMultiplier: Single;
   public
     const
       DefaultMultiplier = 1.0;
       DefaultMouseLookMultiplier = 1.0;
+      DefaultMouseDragMultiplier = 1.0;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -59,6 +65,16 @@ type
     { Good place for change values returned by mouse look - change mouse sensitivity }
     property MouseLookMultiplier: Single read FMouseLookMultiplier
       write FMouseLookMultiplier;
+    {Setting MouseLook to true do not turn mouse look on it means that
+    CastleInputAxis will read Container.MouseDragDelta value.
+    Use TCastleContainer.StartMouseDrag or TCastleContainer.StopMouseDrag. }
+    property MouseDrag: Boolean read FMouseDrag write FMouseDrag;
+    { Axis for mouse drag horizontal or vertical }
+    property MouseDragAxis: TMouseLookAxis read FMouseDragAxis
+      write FMouseDragAxis;
+    { Good place for change values returned by mouse drag - change mouse sensitivity }
+    property MouseDragMultiplier: Single read FMouseDragMultiplier
+      write FMouseDragMultiplier;
     { General value multiplier }
     property Multiplier: Single read FMultiplier write FMultiplier;
   end;
@@ -66,7 +82,7 @@ type
 
 implementation
 
-uses Math, CastleUtils;
+uses Math, CastleUtils, CastleLog;
 
 { TCastleInputAxis  ---------------------------------------------------------- }
 
@@ -75,6 +91,7 @@ begin
   inherited Create(AOwner);
 
   FMouseLookMultiplier := DefaultMouseLookMultiplier;
+  FMouseDragMultiplier := DefaultMouseDragMultiplier;
   FMultiplier := DefaultMultiplier;
 end;
 
@@ -109,6 +126,16 @@ begin
       mlaVertical:
         Result := Container.MouseLookLastDelta.Y * MouseLookMultiplier;
       end;
+    end else
+    if FMouseDrag then
+    begin
+      case FMouseDragAxis of
+        mlaHorizontal:
+          Result := Container.MouseDragDelta.X * MouseDragMultiplier;
+        mlaVertical:
+          Result := Container.MouseDragDelta.Y * MouseDragMultiplier;
+      end;
+      WritelnLog(Container.MouseDragDelta.ToString);
     end;
   end;
 
