@@ -88,6 +88,9 @@
     FInspector: TCastleUserInterface; //< always TCastleInspector
     FMouseLookLastPreviousDelta: TVector2;
     FMouseLookLastDelta: TVector2;
+    FMouseDragDelta: TVector2;
+    FMouseDragStartPoint: TVector2;
+    FMouseDragStarted: Boolean;
     FLastUpdateMousePosition: TVector2;
     FLastMousePositionIsSet: Boolean;
     FMouseLookControl: TCastleUserInterface;
@@ -359,6 +362,16 @@
       want to use Start/StopMouseLook() }
     procedure StartMouseLook(const MouseLookControl: TCastleUserInterface);
     procedure StopMouseLook;
+    function MouseLookStarted: Boolean;
+
+
+    { Mouse delta from point where we start mouse drag - do not use with
+      mouse look at the same time }
+    property MouseDragDelta: TVector2 read FMouseDragDelta;
+
+    procedure StartMouseDrag;
+    procedure StopMouseDrag;
+    function MouseDragStarted: Boolean;
 
     { Currently pressed mouse buttons. When this changes, you're always
       notified by @link(OnPress) or @link(OnRelease) events.
@@ -1500,6 +1513,12 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
+  procedure UpdateMouseDrag;
+  begin
+    if FMouseDragStarted then
+      FMouseDragDelta := MousePosition - FMouseDragStartPoint;
+  end;
+
 var
   I: Integer;
   HandleInput: boolean;
@@ -1533,6 +1552,7 @@ begin
   end;
 
   UpdateMouseLook;
+  UpdateMouseDrag;
 
   if Assigned(OnUpdate) then OnUpdate(Self);
 end;
@@ -2392,6 +2412,29 @@ begin
   FMouseLookStarted := false;
   FMouseLookControl := nil;
   FMouseLookControlFreeObserver.Observed := nil;
+end;
+
+function TCastleContainer.MouseLookStarted: Boolean;
+begin
+  Result := FMouseLookControl <> nil;
+end;
+
+procedure TCastleContainer.StartMouseDrag;
+begin
+  FMouseDragStartPoint := MousePosition;
+  FMouseDragStarted := true;
+end;
+
+procedure TCastleContainer.StopMouseDrag;
+begin
+  FMouseDragStarted := false;
+  FMouseDragStartPoint := TVector2.Zero;
+  FMouseDragDelta := TVector2.Zero;
+end;
+
+function TCastleContainer.MouseDragStarted: Boolean;
+begin
+  Result := FMouseDragStarted;
 end;
 
 function TCastleContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
