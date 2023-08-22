@@ -22,8 +22,8 @@ uses Classes,
   CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras, CastleTransform,
   CastleViewport, SimplestFpsPlayerMovement, SimpleFpsPlayerMovementWithRotation,
-  DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, GameInputAxis, RotateCamera,
-  ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport, FpsWalkSupport;
+  DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, CastleInputAxis, RotateCamera,
+  ModularMovement, StairsSupport, FpsFlySupport, FpsWalkSupport, CheckWall;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -127,7 +127,9 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
       and we can later look for 'BulletRigidBody' without risking that we
       will find rigid body from some older bullet. }
     BulletOwner := TComponent.Create(FreeAtStop);
-    Bullet := TransformLoad('castle-data:/bullet_with_physics.castle-transform', BulletOwner);
+    //Bullet := TransformLoad('castle-data:/bullet_with_physics.castle-transform', BulletOwner);
+     Bullet := TransformLoad('castle-data:/bullet_with_physics_sphere.castle-transform', BulletOwner);
+    //Bullet := TransformLoad('castle-data:/bullet_with_physics_capsule.castle-transform', BulletOwner);
 
     if Player <> nil then
     begin
@@ -160,7 +162,7 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
     end;
 
     BulletRigidBody := BulletOwner.FindRequiredComponent('BulletRigidBody') as TCastleRigidBody;
-    BulletRigidBody.LinearVelocity := Bullet.Direction * 25;
+    BulletRigidBody.LinearVelocity := Bullet.Direction * 125;
     { You can turn off gravity for Bullet to make it easier to shoot high objects
       even when initial LinearVelocity would be low.
       Of course this is non-realistic. }
