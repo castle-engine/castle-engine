@@ -667,7 +667,9 @@ uses
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
-  CastleBehaviors,
+  CastleBehaviors, RotateCamera, RotateRigidBody, CastleInputAxis, FollowingTargetForCamera,
+  SimpleFpsPlayerMovementWithRotation, SimplestFpsPlayerMovement, ModularMovement,
+  AnimationTrigger, FpsCrouch, FpsFlySupport, HeadBobbing, StairsSupport, FpsWalkSupport,
   { Editor units }
   FormProject, CastleComponentEditorDesigner;
 
