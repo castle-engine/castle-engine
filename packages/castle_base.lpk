@@ -4515,7 +4515,7 @@ See https://castle-engine.io/license.php for details.
       </Item1102>
       <Item1103>
         <Filename Value="../src/routines/navigation/modular/modules/stairssupport.pas"/>
-        <UnitName Value="StairsSupportByColliderCapsuleRadius"/>
+        <UnitName Value="StairsSupport"/>
       </Item1103>
     </Files>
     <CompatibilityMode Value="True"/>
