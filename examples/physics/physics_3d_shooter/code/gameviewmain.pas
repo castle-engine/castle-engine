@@ -70,7 +70,7 @@ begin
   DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
 
   { Old direct walk navigation }
-  // DesignUrl := 'castle-data:/gameviewmain_direct.castle-user-interface';
+  //DesignUrl := 'castle-data:/gameviewmain_direct.castle-user-interface';
 
   { Simplest navigation - rotation only in camera no player rotation. When
     you want something really simple to start experiment. }
@@ -184,6 +184,9 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
+    Container.StartMouseDrag;
+    WritelnLog('Mouse drag started');
+
     if mkShift in Event.ModifiersDown then
       AddCollectionOfBoxes
     else
@@ -197,6 +200,7 @@ begin
     Container.StartMouseLook(Viewport);
     WritelnLog('Mouse look started');
   end;
+
 
   { Fly/walk support in modular navigation - by change FpsFlySupport/FpsWalkSupport
     existance. }
@@ -232,6 +236,12 @@ begin
   begin
     Container.StopMouseLook;
     WritelnLog('Mouse look stoped.');
+  end;
+
+  if Event.IsMouseButton(buttonLeft) then
+  begin
+    Container.StopMouseDrag;
+    WritelnLog('Mouse drag stoped');
   end;
 
   Result := inherited Release(Event);
