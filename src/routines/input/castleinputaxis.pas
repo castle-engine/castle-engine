@@ -118,7 +118,7 @@ begin
   if IsZero(Result) then
   begin
     // check mouse look and add mouse look multiplier
-    if FMouseLook then
+    if FMouseLook and Container.MouseLookStarted then
     begin
       case MouseLookAxis of
       mlaHorizontal:
