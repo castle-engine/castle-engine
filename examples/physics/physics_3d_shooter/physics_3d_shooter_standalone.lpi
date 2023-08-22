@@ -30,7 +30,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="5">
       <Unit0>
         <Filename Value="physics_3d_shooter_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -49,65 +49,10 @@
         <UnitName Value="GameViewMain"/>
       </Unit3>
       <Unit4>
-        <Filename Value="code/simplestfpsplayermovement.pas"/>
+        <Filename Value="code/checkwall.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="SimplestFpsPlayerMovement"/>
+        <UnitName Value="CheckWall"/>
       </Unit4>
-      <Unit5>
-        <Filename Value="code/simplefpsplayermovementwithrotation.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="SimpleFpsPlayerMovementWithRotation"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="code/directrotatetransformbykeys.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="DirectRotateTransformByKeys"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="code/rotaterigidbody.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="RotateRigidBody"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="code/headbobbing.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="HeadBobbing"/>
-      </Unit8>
-      <Unit9>
-        <Filename Value="code/fpscrouch.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="FpsCrouch"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="code/gameinputaxis.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="GameInputAxis"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="code/rotatecamera.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="RotateCamera"/>
-      </Unit11>
-      <Unit12>
-        <Filename Value="code/modularmovement.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="ModularMovement"/>
-      </Unit12>
-      <Unit13>
-        <Filename Value="code/stairssupportbycollidercapsuleradius.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="StairsSupportByColliderCapsuleRadius"/>
-      </Unit13>
-      <Unit14>
-        <Filename Value="code/fpsflysupport.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="FpsFlySupport"/>
-      </Unit14>
-      <Unit15>
-        <Filename Value="code/fpswalksupport.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="FpsWalkSupport"/>
-      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
