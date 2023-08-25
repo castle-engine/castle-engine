@@ -156,6 +156,18 @@
 
     { Index of node with given ItemClass, -1 if none. }
     function IndexOfItem(const ItemClass: TCastleTransformClass): Integer; overload;
+
+    { TCastleTransform that was hit by given ray.
+
+      To be precise, this returns the inner-most TCastleTransform
+      in the TCastleTransform tree,
+      except it doesn't return internal TCastleTransform (that has csTransient
+      flag is ComponentState).
+      This way it doesn't return internal components, like internal TCastleScene
+      inside TCastleBox.
+
+      Returns @nil if nothing was hit (Count is zero). }
+    function Transform: TCastleTransform;
   end;
 
   { Detailed information about collision with a single 3D object. }
@@ -276,6 +288,21 @@ begin
   for Result := 0 to Count - 1 do
     if L[Result].Item is ItemClass then Exit;
   Result := -1;
+end;
+
+function TRayCollision.Transform: TCastleTransform;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    Result := L[I].Item;
+    if not (csTransient in Result.ComponentStyle) then
+      Exit;
+  end;
+
+  // Return nil if all items on MouseRayHit list are csTransient
+  Result := nil;
 end;
 
 { TCollisionDetails ------------------------------------------------------------ }

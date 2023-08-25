@@ -840,24 +840,32 @@ type
     procedure PrepareResources(const Item: TCastleTransform;
       Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload; virtual;
 
-    { Current object (TCastleTransform hierarchy) under the mouse cursor.
-      Updated in every mouse move. May be @nil.
+    { Current components (TCastleTransform hierarchy) pointed by the mouse cursor
+      position.
 
-      The returned list (if not @nil) contains TCastleTransform instances
-      that collided with the ray (from the deepest instance in the @link(Items) tree
-      to the root), along with some additional information.
-      See TRayCollision for details. }
+      Automatically updated to always reflect the current mouse position.
+      May be @nil if nothing is hit.
+
+      The "mouse cursor position" on touch devices is just the last touch point.
+      When the navigation uses mouse look (like TCastleWalkNavigation.MouseLook),
+      we automatically use viewport center as the "mouse cursor position".
+
+      @seealso TransformUnderMouse }
     property MouseRayHit: TRayCollision read FMouseRayHit;
 
-    { Current object (TCastleTransform instance) under the mouse cursor.
+    { Current TCastleTransform pointed by the mouse cursor
+      position.
 
-      This corresponds to the first @italic(not hidden) instance on the MouseRayHit list.
-      This makes the behavior most intuitive: it returns the TCastleTransform
-      instance you have explicitly created, like TCastleScene, TCastlePlane or TCastleImageTransform.
-      It will not return hidden (with csTransient flag) scenes that are internal
-      e.g. inside TCastlePlane or TCastleImageTransform.
+      Automatically updated to always reflect the current mouse position.
+      May be @nil if nothing is hit.
 
-      Updated in every mouse move. May be @nil. }
+      The "mouse cursor position" on touch devices is just the last touch point.
+      When the navigation uses mouse look (like TCastleWalkNavigation.MouseLook),
+      we automatically use viewport center as the "mouse cursor position".
+
+      @seealso MouseRayHit
+      @seealso TRayCollision.Transform
+    }
     function TransformUnderMouse: TCastleTransform;
 
     { Do not collide with this object when moving by @link(Navigation).
@@ -2021,18 +2029,13 @@ end;
 
 function TCastleViewport.TransformUnderMouse: TCastleTransform;
 var
-  I: Integer;
+  R: TRayCollision;
 begin
-  if MouseRayHit <> nil then
-    for I := 0 to MouseRayHit.Count - 1 do
-    begin
-      Result := MouseRayHit[I].Item;
-      if not (csTransient in Result.ComponentStyle) then
-        Exit;
-    end;
-
-  // Return nil if all items on MouseRayHit list are csTransient, or MouseRayHit = nil
-  Result := nil;
+  R := MouseRayHit;
+  if R <> nil then
+    Result := R.Transform
+  else
+    Result := nil;
 end;
 
 procedure TCastleViewport.RecalculateCursor(Sender: TObject);
