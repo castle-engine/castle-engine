@@ -140,6 +140,7 @@ type
       FOnBoundViewpointChanged: TNotifyEvent;
       FOnBoundNavigationInfoChanged: TNotifyEvent;
       FMouseRayHit: TRayCollision;
+      FMouseRayHitValid: Boolean;
       MouseRayOrigin, MouseRayDirection: TVector3;
       FAvoidNavigationCollisions: TCastleTransform;
       PrepareResourcesDone: Boolean;
@@ -190,12 +191,15 @@ type
     procedure FogFreeNotification(const Sender: TFreeNotificationObserver);
     procedure SetInternalDesignNavigationType(const Value: TInternalDesignNavigationType);
     procedure SetInternalGridAxis(const Value: Boolean);
+    function GetMouseRayHit: TRayCollision;
 
     { Callbacks when MainCamera is notified that MainScene changes camera/navigation }
     procedure MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
     procedure MainSceneAndCamera_BoundViewpointVectorsChanged(Sender: TObject);
     procedure MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
 
+    { Change FMouseRayHit. Should be called only by GetMouseRayHit (when it's updated
+      on-demand) or by finalization code (only with nil parameter in this case). }
     procedure SetMouseRayHit(const Value: TRayCollision);
     function MouseRayHitContains(const Item: TCastleTransform): boolean;
     procedure SetAvoidNavigationCollisions(const Value: TCastleTransform);
@@ -316,9 +320,6 @@ type
       to TCastleTransform instances in @link(Items).
       Depends that MouseRayHit, MouseRayOrigin, MouseRayDirection are already updated. }
     function PointingDeviceMove: boolean;
-
-    { Update MouseRayHit. }
-    procedure UpdateMouseRayHit;
   protected
     { @exclude }
     function InternalOverride2DProjectionSizing: TCastleUserInterface; virtual;
@@ -851,7 +852,7 @@ type
       we automatically use viewport center as the "mouse cursor position".
 
       @seealso TransformUnderMouse }
-    property MouseRayHit: TRayCollision read FMouseRayHit;
+    property MouseRayHit: TRayCollision read GetMouseRayHit;
 
     { Current TCastleTransform pointed by the mouse cursor
       position.
@@ -1873,11 +1874,12 @@ begin
   Result := inherited;
   if Result or Items.Paused then Exit;
 
-  { Make MouseRayHit valid, as our PointingDevicePress uses it.
+  { Call UpdateMouseRayHit at nearest moment.
+    As our PointingDevicePress (called below) uses it.
     Also this makes MouseRayHit valid during TCastleTransform.PointingDevicePress calls.
     Although implementors should rather use information passed
     as TCastleTransform.PointingDevicePress argument, not look at Viewport.MouseRayHit. }
-  UpdateMouseRayHit;
+  FMouseRayHitValid := false;
 
   LastPressEvent := Event;
 
@@ -1902,8 +1904,9 @@ begin
   Result := inherited;
   if Result or Items.Paused then Exit;
 
-  { Make MouseRayHit valid, as our PointingDeviceRelease uses it. }
-  UpdateMouseRayHit;
+  { Call UpdateMouseRayHit at nearest moment.
+    As our PointingDeviceRelease (called below) uses it. }
+  FMouseRayHitValid := false;
 
   if Items.InternalPressReleaseListeners <> nil then
     // use downto, to work in case some Release will remove transform from list
@@ -1984,8 +1987,6 @@ begin
     end;
     {$warnings on}
 
-    UpdateMouseRayHit;
-
     { Note: we ignore PointingDeviceMove result.
       Maybe we should use PointingDeviceMove result as our Motion result?
       Answer unknown. Historically we do not do this, and I found no practical
@@ -2008,23 +2009,36 @@ begin
   RecalculateCursor(Self);
 end;
 
-procedure TCastleViewport.UpdateMouseRayHit;
-var
-  MousePosition: TVector2;
-begin
-  if GetMousePosition(MousePosition) and
-     // PositionToRay assumes InternalCamera <> nil
-     (InternalCamera <> nil) and
-     // do not update MouseRayHit if camera doesn't exist
-     InternalCamera.ExistsInRoot then
-  begin
-    PositionToRay(MousePosition, true, MouseRayOrigin, MouseRayDirection);
+function TCastleViewport.GetMouseRayHit: TRayCollision;
 
-    { Update MouseRayHit.
-      We know that MouseRayDirection is normalized now, which is important
-      to get correct MouseRayHit.Distance. }
-    SetMouseRayHit(CameraRayCollision(MouseRayOrigin, MouseRayDirection));
+  procedure UpdateMouseRayHit;
+  var
+    MousePosition: TVector2;
+  begin
+    if GetMousePosition(MousePosition) and
+      // PositionToRay assumes InternalCamera <> nil
+      (InternalCamera <> nil) and
+      // do not update MouseRayHit if camera doesn't exist
+      InternalCamera.ExistsInRoot then
+    begin
+      PositionToRay(MousePosition, true, MouseRayOrigin, MouseRayDirection);
+
+      { Update MouseRayHit.
+        We know that MouseRayDirection is normalized now, which is important
+        to get correct MouseRayHit.Distance. }
+      SetMouseRayHit(CameraRayCollision(MouseRayOrigin, MouseRayDirection));
+    end;
   end;
+
+begin
+  if not FMouseRayHitValid then
+  begin
+    UpdateMouseRayHit;
+    FMouseRayHitValid := true;
+  end;
+  Assert(FMouseRayHitValid);
+
+  Result := FMouseRayHit;
 end;
 
 function TCastleViewport.TransformUnderMouse: TCastleTransform;
@@ -2148,6 +2162,17 @@ var
 
 begin
   inherited;
+
+  { We invalidate FMouseRayHit in every Update.
+    This way
+    - we will recalculate it also when mouse didn't move,
+      but something else moved "in front of the mouse cursor",
+      e.g. creature walked in front of us.
+    - we will recalculate it also when mouse moved but we didn't get
+      Motion event, because navigation class marked Motion as handled.
+      Fixes https://forum.castle-engine.io/t/mouserayhit-not-updating-while-dragging/844/4
+  }
+  FMouseRayHitValid := false;
 
   if Items.Paused then
     Exit;
