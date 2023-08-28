@@ -365,6 +365,11 @@
               {
                 "$$ClassName" : "TPlatformer2DWalkSupport",
                 "Name" : "Platformer2DWalkSupport1"
+              },
+              {
+                "$$ClassName" : "TPlatformer2DAirControl",
+                "HorizontalSpeedChangeInAir" : 2.0000000000000000E+001,
+                "Name" : "Platformer2DAirControl1"
               }
             ]
           }
