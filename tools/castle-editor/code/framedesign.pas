@@ -669,7 +669,7 @@ uses
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
   CastleBehaviors, RotateCamera, RotateRigidBody, CastleInputAxis, FollowingTargetForCamera,
   SimpleFpsPlayerMovementWithRotation, SimplestFpsPlayerMovement, ModularMovement,
-  AnimationTrigger, FpsCrouch, FpsFlySupport, HeadBobbing, StairsSupport, FpsWalkSupport,
+  AnimationTrigger, FpsCrouch, FpsFlySupport, HeadBobbing, StairsSupport, Walk3DSupport,
   Platformer2DWalkSupport, Platformer2DAirControl, DoubleJumpSupport,
   { Editor units }
   FormProject, CastleComponentEditorDesigner;
