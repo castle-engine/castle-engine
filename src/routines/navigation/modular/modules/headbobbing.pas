@@ -7,7 +7,7 @@ uses
   CastleClassUtils;
 
 type
-  { Head bobbing for TFpsModularMovement. }
+  { Head bobbing for TModularMovement. }
   THeadBobbing = class(TAbstractMovementModifier)
   strict private
     HeadBobbingPosition: Single;

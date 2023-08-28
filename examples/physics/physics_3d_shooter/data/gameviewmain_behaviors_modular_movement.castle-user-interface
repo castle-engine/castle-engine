@@ -108,7 +108,7 @@
                 "Name" : "RotateRigidBody"
               },
               {
-                "$$ClassName" : "TFpsModularMovement",
+                "$$ClassName" : "TModularMovement",
                 "ForwardInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
                   "MouseDrag" : true,
@@ -126,7 +126,7 @@
                   "DefaultKey1" : "keySpace",
                   "Key1" : "keySpace"
                 },
-                "Name" : "FpsModularMovement",
+                "Name" : "PlayerModularMovement",
                 "SidewayInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
                   "MouseDrag" : false,

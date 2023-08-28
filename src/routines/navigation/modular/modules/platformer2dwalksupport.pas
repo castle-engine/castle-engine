@@ -8,7 +8,7 @@ uses
 
 type
 
-  { 2D platformer walk support for TFpsModularMovement. }
+  { 2D platformer walk support for TModularMovement. }
   TPlatformer2DWalkSupport = class(TAbstractMovementModifier)
   strict private
     FWasJumpInput: Boolean;

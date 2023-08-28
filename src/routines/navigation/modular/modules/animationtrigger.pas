@@ -8,7 +8,7 @@ uses
 
 type
 
-  { Animation trigger for TFpsModularMovement. Changes animation by using
+  { Animation trigger for TModularMovement. Changes animation by using
     TModularMovementState }
   TAnimationTrigger = class(TAbstractMovementModifier)
   strict private

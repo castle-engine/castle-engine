@@ -8,7 +8,7 @@ uses
 
 type
 
-  { Double jump support for TFpsModularMovement. }
+  { Double jump support for TModularMovement. }
   TDoubleJumpSupport = class(TAbstractMovementModifier)
   strict private
     FWasJumpInput: Boolean;

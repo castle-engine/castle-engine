@@ -8,7 +8,7 @@ uses
 
 type
 
-  { Crouch support for TFpsModularMovement.
+  { Crouch support for TModularMovement.
 
     It change collider height and player translation.
     It supports only capsule collider because of edge cases that are

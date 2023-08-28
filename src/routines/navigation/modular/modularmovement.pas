@@ -89,12 +89,12 @@ type
     - Do not change player translation every frame - use rigid body velocities/forces
     - Collider should have friction 0 so modifiers/modules should always control
       player velocity
-    - After adding TFpsModularMovement add some movement modules e.g. TFpsWalkSupport
+    - After adding TModularMovement add some movement modules e.g. TWalk3DSupport
     - Do not afraid to change/add your own movement modules - this class is
       designed for that :)
     - Camera should be rotated by pi in y axis for FPS movement
     }
-  TFpsModularMovement = class(TAbstractModularMovement)
+  TModularMovement = class(TAbstractModularMovement)
   strict private
     FForwardInputAxis: TCastleInputAxis;
     FSidewayInputAxis: TCastleInputAxis;
@@ -146,9 +146,9 @@ begin
   FExists := AValue;
 end;
 
-{ TFpsModularMovement -------------------------------------------------------- }
+{ TModularMovement -------------------------------------------------------- }
 
-constructor TFpsModularMovement.Create(AOwner: TComponent);
+constructor TModularMovement.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FForwardInputAxis := TCastleInputAxis.Create(Self);
@@ -167,18 +167,18 @@ begin
   InputJump.Name := 'InputJump';
 end;
 
-function TFpsModularMovement.GetFullForwardDirection: TVector3;
+function TModularMovement.GetFullForwardDirection: TVector3;
 begin
   Result := Parent.Direction;
 end;
 
-function TFpsModularMovement.GetForwardDirection: TVector3;
+function TModularMovement.GetForwardDirection: TVector3;
 begin
   Result := GetFullForwardDirection;
   Result.Y := 0;
 end;
 
-function TFpsModularMovement.GetDirectionFromInput: TVector3;
+function TModularMovement.GetDirectionFromInput: TVector3;
 begin
   Result := Vector3(0, 0, 0);
 
@@ -192,7 +192,7 @@ begin
     Result := Result + Vector3(0, 1, 0);
 end;
 
-function TFpsModularMovement.IsPlayerOnGround(
+function TModularMovement.IsPlayerOnGround(
   const PlayerRigidBody: TCastleRigidBody;
   const PlayerCollider: TCastleCollider): Boolean;
 var
@@ -270,7 +270,7 @@ begin
   end;
 end;
 
-procedure TFpsModularMovement.Update(const SecondsPassed: Single;
+procedure TModularMovement.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 var
   RBody: TCastleRigidBody;
@@ -338,7 +338,7 @@ begin
   inherited Update(SecondsPassed, RemoveMe);
 end;
 
-function TFpsModularMovement.PropertySections(const PropertyName: String
+function TModularMovement.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
@@ -351,7 +351,7 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(TFpsModularMovement, ['Navigation', 'Modular FPS Player Movement']);
+  RegisterSerializableComponent(TModularMovement, ['Navigation', 'Modular Player Movement System']);
 
 end.
 
