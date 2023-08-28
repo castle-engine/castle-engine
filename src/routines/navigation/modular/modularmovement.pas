@@ -67,13 +67,13 @@ type
     Third Person 3D Perspective and also 2D games. It all depends on the modules
     used. Some of them works in all cases some of them only in one case.
 
-    TFpsModularMovement do not implement any movement only checks some things
+    TModularMovement do not implement any movement only checks some things
     like input or is player on ground. And make these things available for modules
-    that implements different aspects of player move like TFpsWalkSupport, TFpsFlySupport,
-    THeadBobbing etc. Thanks for that we do not have one big class that is
+    that implements different aspects of player move like TWalk3DSupport, TFly3DSupport,
+    THeadBobbing, etc. Thanks for that we do not have one big class that is
     very hard to change.
 
-    How to use it:
+    FPS - How To Use it:
     - Player rigid body can rotate only in Y axis (horizontal), other axes
       should be blocked in rigid body
     - Y is always up
@@ -81,18 +81,46 @@ type
       using stairs needs extra code like TStairsSupportByColliderCapsuleRadius,
       and can have other undesirable problems during contact, e.g. with walls
     - Rotate player horizontal using angular velocity (do not change transform
-      Rotation directly (that leads to physics objects synchronization and
+      Rotation directly that leads to physics objects synchronization and
       can make your player can fall off the level - especially when it's done
       every frame) You can use TRotateRigidBody behavior for that purpose.
-    - Do not rotate player vertical - rotate camera you can use TRotateCamera
-      behavior for that
+    - Do not rotate player vertical - rotate camera. You can use TRotateCamera
+      behavior for that.
     - Do not change player translation every frame - use rigid body velocities/forces
-    - Collider should have friction 0 so modifiers/modules should always control
-      player velocity
     - After adding TModularMovement add some movement modules e.g. TWalk3DSupport
     - Do not afraid to change/add your own movement modules - this class is
       designed for that :)
     - Camera should be rotated by pi in y axis for FPS movement
+    - See /examples/physics/physics_3d_shooter
+    - For mouse look use Container.StartMouseLook(Viewport); and Container.StopMouseLook;
+
+    TPP - How To Use:
+    - Player rigid body can rotate only in Y axis (horizontal), other axes
+      should be blocked in rigid body
+    - Y is always up
+    - Friction in player collider should be 0 - with other friction values
+      using stairs needs extra code like TStairsSupportByColliderCapsuleRadius,
+      and can have other undesirable problems during contact, e.g. with walls
+    - Rotate player horizontal using angular velocity (do not change transform
+      Rotation directly that leads to physics objects synchronization and
+      can make your player can fall off the level - especially when it's done
+      every frame) You can use TRotateRigidBody behavior for that purpose.
+    - For cammera following you can use TFollowingTargetForCamera behavior (add it
+      to your camera )
+    - After adding TModularMovement add some movement modules e.g. TWalk3DSupport
+    - Do not afraid to change/add your own movement modules - this class is
+      designed for that :)
+    - For mouse look use Container.StartMouseLook(Viewport); and Container.StopMouseLook;
+    - See /examples/physics/physics_3d_third_person
+
+    2D Platformer Game - How To Use:
+    - Player rigid body rotation should be blocked in all directions
+    - Player translation in Z axis should be blocked
+    - GravityStrength should be about 1200 (9.81 is good for 3D games)
+    - After adding TModularMovement add some movement modules e.g. TPlatformer2DWalkSupport
+    - Do not afraid to change/add your own movement modules - this class is
+      designed for that :)
+    - See /examples/physics/physics_2d_movement
     }
   TModularMovement = class(TAbstractModularMovement)
   strict private
@@ -146,7 +174,7 @@ begin
   FExists := AValue;
 end;
 
-{ TModularMovement -------------------------------------------------------- }
+{ TModularMovement ----------------------------------------------------------- }
 
 constructor TModularMovement.Create(AOwner: TComponent);
 begin
