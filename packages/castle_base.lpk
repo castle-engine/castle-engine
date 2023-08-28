@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1105">
+    <Files Count="1106">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4523,8 +4523,12 @@ See https://castle-engine.io/license.php for details.
       </Item1104>
       <Item1105>
         <Filename Value="../src/routines/navigation/modular/modules/platformer2daircontrol.pas"/>
-        <UnitName Value="platformer2daircontrol"/>
+        <UnitName Value="Platformer2DAirControl"/>
       </Item1105>
+      <Item1106>
+        <Filename Value="../src/routines/navigation/modular/modules/doublejumpsupport.pas"/>
+        <UnitName Value="doublejumpsupport"/>
+      </Item1106>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">
