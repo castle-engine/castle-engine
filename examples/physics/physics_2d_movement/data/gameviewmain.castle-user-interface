@@ -315,7 +315,10 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleCapsuleCollider",
-                "Name" : "CapsuleCollider1"
+                "AutoSize" : false,
+                "Height" : 2.0000000000000000E+001,
+                "Name" : "CapsuleCollider1",
+                "Radius" : 2.5000000000000000E+001
               },
               {
                 "$$ClassName" : "TCastleRigidBody",
