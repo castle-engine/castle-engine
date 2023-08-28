@@ -330,7 +330,7 @@
                 "Name" : "RigidBody6"
               },
               {
-                "$$ClassName" : "TFpsModularMovement",
+                "$$ClassName" : "TModularMovement",
                 "ForwardInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
                   "MouseDrag" : false,
@@ -348,7 +348,7 @@
                   "DefaultKey1" : "keySpace",
                   "Key1" : "keySpace"
                 },
-                "Name" : "FpsModularMovement1",
+                "Name" : "PlayerModularMovement",
                 "SidewayInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
                   "MouseDrag" : false,
