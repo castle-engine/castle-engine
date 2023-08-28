@@ -26,6 +26,7 @@ type
 
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
   published
+  { Vertical speed of second jump }
   property JumpSpeed: Single read FJumpSpeed write FJumpSpeed
     {$ifdef FPC}default DefaultJumpSpeed{$endif};
   end;

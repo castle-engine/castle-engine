@@ -151,6 +151,9 @@
                 "$$ClassName" : "TRotateRigidBody",
                 "HorizontalRotationInput" : {
                   "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
                   "MouseLook" : false,
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 2.5000000000000000E-001,
@@ -164,6 +167,9 @@
                 "$$ClassName" : "TFpsModularMovement",
                 "ForwardInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
                   "MouseLook" : false,
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 1.0000000000000000E+000,
@@ -179,6 +185,9 @@
                 "Name" : "FpsModularMovement",
                 "SidewayInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
                   "MouseLook" : false,
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 1.0000000000000000E+000,
@@ -196,6 +205,10 @@
                 "FallAnimation" : "bored",
                 "FlyAnimation" : "bored",
                 "Name" : "AnimationTrigger1"
+              },
+              {
+                "$$ClassName" : "TDoubleJumpSupport",
+                "Name" : "DoubleJumpSupport1"
               }
             ]
           },
