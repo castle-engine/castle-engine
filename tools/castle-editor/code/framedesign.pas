@@ -670,6 +670,7 @@ uses
   CastleBehaviors, RotateCamera, RotateRigidBody, CastleInputAxis, FollowingTargetForCamera,
   SimpleFpsPlayerMovementWithRotation, SimplestFpsPlayerMovement, ModularMovement,
   AnimationTrigger, FpsCrouch, FpsFlySupport, HeadBobbing, StairsSupport, FpsWalkSupport,
+  Platformer2DWalkSupport,
   { Editor units }
   FormProject, CastleComponentEditorDesigner;
 
