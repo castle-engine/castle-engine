@@ -368,8 +368,12 @@
               },
               {
                 "$$ClassName" : "TPlatformer2DAirControl",
-                "HorizontalSpeedChangeInAir" : 2.0000000000000000E+001,
                 "Name" : "Platformer2DAirControl1"
+              },
+              {
+                "$$ClassName" : "TDoubleJumpSupport",
+                "JumpSpeed" : 6.8000000000000000E+002,
+                "Name" : "DoubleJumpSupport1"
               }
             ]
           }
