@@ -4506,8 +4506,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="FpsFlySupport"/>
       </Item1100>
       <Item1101>
-        <Filename Value="../src/routines/navigation/modular/modules/fpswalksupport.pas"/>
-        <UnitName Value="FpsWalkSupport"/>
+        <Filename Value="../src/routines/navigation/modular/modules/walk3dsupport.pas"/>
+        <UnitName Value="walk3dsupport"/>
       </Item1101>
       <Item1102>
         <Filename Value="../src/routines/navigation/modular/modules/headbobbing.pas"/>
@@ -4527,7 +4527,7 @@ See https://castle-engine.io/license.php for details.
       </Item1105>
       <Item1106>
         <Filename Value="../src/routines/navigation/modular/modules/doublejumpsupport.pas"/>
-        <UnitName Value="doublejumpsupport"/>
+        <UnitName Value="DoubleJumpSupport"/>
       </Item1106>
     </Files>
     <CompatibilityMode Value="True"/>

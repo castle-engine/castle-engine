@@ -197,8 +197,8 @@
                 }
               },
               {
-                "$$ClassName" : "TFpsWalkSupport",
-                "Name" : "FpsWalkSupport"
+                "$$ClassName" : "TWalk3DSupport",
+                "Name" : "WalkSupport"
               },
               {
                 "$$ClassName" : "TAnimationTrigger",

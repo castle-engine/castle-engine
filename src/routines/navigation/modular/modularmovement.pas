@@ -60,8 +60,12 @@ type
     property Exists: Boolean read FExists write SetExists default true;
   end;
 
-  { The FPS (First Person Shooter) physics movement using dynamic
-    rigid body with modular architecture.
+  { The Modular movement navigation system using dynamic rigid body with
+    expandable architecture.
+
+    It can be used for First Person 3D Perspective Games (FPS/FPP),
+    Third Person 3D Perspective and also 2D games. It all depends on the modules
+    used. Some of them works in all cases some of them only in one case.
 
     TFpsModularMovement do not implement any movement only checks some things
     like input or is player on ground. And make these things available for modules

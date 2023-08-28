@@ -1,4 +1,4 @@
-unit FpsWalkSupport;
+unit Walk3DSupport;
 
 interface
 
@@ -8,8 +8,10 @@ uses
 
 type
 
-  { Classic walk support for TFpsModularMovement. }
-  TFpsWalkSupport = class(TAbstractMovementModifier)
+  { Classic 3D walk on ground support for modular movement. Can be used for
+    FPS and TPP games. It support horizontal movement and single jump only
+    when player is on gorund. }
+  TWalk3DSupport = class(TAbstractMovementModifier)
   strict private
     FWasJumpInput: Boolean;
 
@@ -26,21 +28,20 @@ type
 
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
   published
-  property JumpSpeed: Single read FJumpSpeed write FJumpSpeed
-    {$ifdef FPC}default DefaultJumpSpeed{$endif};
+    property JumpSpeed: Single read FJumpSpeed write FJumpSpeed
+      {$ifdef FPC}default DefaultJumpSpeed{$endif};
 
-  property HorizontalSpeed: Single read FHorizontalSpeed write FHorizontalSpeed
-    {$ifdef FPC}default DefaultHorizontalSpeed{$endif};
-
+    property HorizontalSpeed: Single read FHorizontalSpeed write FHorizontalSpeed
+      {$ifdef FPC}default DefaultHorizontalSpeed{$endif};
   end;
 
 implementation
 
 uses Math, CastleUtils, CastleComponentSerialize, CastleKeysMouse, CastleLog;
 
-{ TFpsWalkSupport ------------------------------------------------------------ }
+{ TWalk3DSupport ------------------------------------------------------------- }
 
-procedure TFpsWalkSupport.UpdateMovement(const MovementState: TModularMovementState);
+procedure TWalk3DSupport.UpdateMovement(const MovementState: TModularMovementState);
 var
   IntegratedVelocities: TVector3;
   InputDirection: TVector3;
@@ -103,7 +104,7 @@ begin
   PlayerRigidBody.LinearVelocity := IntegratedVelocities;
 end;
 
-constructor TFpsWalkSupport.Create(AOwner: TComponent);
+constructor TWalk3DSupport.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FWasJumpInput := false;
@@ -111,7 +112,7 @@ begin
   FHorizontalSpeed := DefaultHorizontalSpeed;
 end;
 
-function TFpsWalkSupport.PropertySections(const PropertyName: String
+function TWalk3DSupport.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
@@ -123,7 +124,7 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(TFpsWalkSupport, ['Navigation', 'Modules', 'Fps Walk Support']);
+  RegisterSerializableComponent(TWalk3DSupport, ['Navigation', 'Modules', 'Fps Walk Support']);
 
 end.
 

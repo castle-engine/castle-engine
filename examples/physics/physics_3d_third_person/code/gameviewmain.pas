@@ -23,7 +23,7 @@ uses Classes,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras, CastleTransform,
   CastleViewport, SimplestFpsPlayerMovement, SimpleFpsPlayerMovementWithRotation,
   DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, CastleInputAxis, RotateCamera,
-  ModularMovement, StairsSupport, FpsFlySupport, FpsWalkSupport,
+  ModularMovement, StairsSupport, FpsFlySupport, Walk3DSupport,
   AnimationTrigger, FollowingTargetForCamera, DoubleJumpSupport;
 
 type
@@ -40,7 +40,7 @@ type
 
     Player: TCastleTransform;
     FpsFlySupport: TFpsFlySupport;
-    FpsWalkSupport: TFpsWalkSupport;
+    WalkSupport: TWalk3DSupport;
     RotateRigidBody: TRotateRigidBody;
 
     SimplestFpsPlayerMovement: TSimplestFpsPlayerMovement;
@@ -67,7 +67,7 @@ begin
   { New modular navigation, that you can expand by implementing
     TAbstractMovementModifier.
 
-    See TFpsWalkSupport, TFpsFlySupport, THeadBobbing, TFpsCrouch for example }
+    See TWalk3DSupport, TFpsFlySupport, THeadBobbing, TFpsCrouch for example }
   DesignUrl := 'castle-data:/gameviewmain_behaviors_modular_movement.castle-user-interface';
 end;
 
@@ -159,16 +159,16 @@ begin
     WritelnLog('Mouse look started');
   end;
 
-  { Fly/walk support in modular navigation - by change FpsFlySupport/FpsWalkSupport
+  { Fly/walk support in modular navigation - by change FlySupport/WalkSupport
     existance. }
-  if Assigned(FpsFlySupport) and Assigned(FpsWalkSupport) and Assigned(RotateRigidBody) then
+  if Assigned(FpsFlySupport) and Assigned(WalkSupport) and Assigned(RotateRigidBody) then
   begin
     if Event.IsKey(keyF) then
     begin
       if FpsFlySupport.Exists then
       begin
         FpsFlySupport.Exists := false;
-        FpsWalkSupport.Exists := true;
+        WalkSupport.Exists := true;
         LabelFlyWalk.Caption := 'Walking';
         RotateRigidBody.HorizontalRotationInput.PositiveKey := keyArrowRight;
         RotateRigidBody.HorizontalRotationInput.NegativeKey := keyArrowLeft;
@@ -176,7 +176,7 @@ begin
       end else
       begin
         FpsFlySupport.Exists := true;
-        FpsWalkSupport.Exists := false;
+        WalkSupport.Exists := false;
         LabelFlyWalk.Caption := 'Flying';
         RotateRigidBody.HorizontalRotationInput.PositiveKey := keyD;
         RotateRigidBody.HorizontalRotationInput.NegativeKey := keyA;
