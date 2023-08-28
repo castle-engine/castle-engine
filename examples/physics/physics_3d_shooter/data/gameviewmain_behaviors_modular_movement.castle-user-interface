@@ -141,7 +141,7 @@
                 }
               },
               {
-                "$$ClassName" : "TFpsFlySupport",
+                "$$ClassName" : "TFly3DSupport",
                 "Exists" : false,
                 "FlyForwardInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
@@ -165,7 +165,7 @@
                   "NegativeKey" : "keyE",
                   "PositiveKey" : "keyQ"
                 },
-                "Name" : "FpsFlySupport"
+                "Name" : "FlySupport"
               },
               {
                 "$$ClassName" : "TWalk3DSupport",

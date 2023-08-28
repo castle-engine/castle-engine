@@ -23,7 +23,7 @@ uses Classes,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleCameras, CastleTransform,
   CastleViewport, SimplestFpsPlayerMovement, SimpleFpsPlayerMovementWithRotation,
   DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, CastleInputAxis, RotateCamera,
-  ModularMovement, StairsSupport, FpsFlySupport, Walk3DSupport,
+  ModularMovement, StairsSupport, Fly3DSupport, Walk3DSupport,
   AnimationTrigger, FollowingTargetForCamera, DoubleJumpSupport;
 
 type
@@ -39,7 +39,7 @@ type
     WalkNavigation: TCastleWalkNavigation;
 
     Player: TCastleTransform;
-    FpsFlySupport: TFpsFlySupport;
+    FlySupport: TFly3DSupport;
     WalkSupport: TWalk3DSupport;
     RotateRigidBody: TRotateRigidBody;
 
@@ -161,21 +161,21 @@ begin
 
   { Fly/walk support in modular navigation - by change FlySupport/WalkSupport
     existance. }
-  if Assigned(FpsFlySupport) and Assigned(WalkSupport) and Assigned(RotateRigidBody) then
+  if Assigned(FlySupport) and Assigned(WalkSupport) and Assigned(RotateRigidBody) then
   begin
     if Event.IsKey(keyF) then
     begin
-      if FpsFlySupport.Exists then
+      if FlySupport.Exists then
       begin
-        FpsFlySupport.Exists := false;
+        FlySupport.Exists := false;
         WalkSupport.Exists := true;
         LabelFlyWalk.Caption := 'Walking';
-        RotateRigidBody.HorizontalRotationInput.PositiveKey := keyArrowRight;
-        RotateRigidBody.HorizontalRotationInput.NegativeKey := keyArrowLeft;
+        RotateRigidBody.HorizontalRotationInput.PositiveKey := keyD;
+        RotateRigidBody.HorizontalRotationInput.NegativeKey := keyA;
         RotateRigidBody.RotationHorizontalSpeed := 1.5;
       end else
       begin
-        FpsFlySupport.Exists := true;
+        FlySupport.Exists := true;
         WalkSupport.Exists := false;
         LabelFlyWalk.Caption := 'Flying';
         RotateRigidBody.HorizontalRotationInput.PositiveKey := keyD;

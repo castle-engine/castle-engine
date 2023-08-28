@@ -1,4 +1,4 @@
-unit FpsFlySupport;
+unit Fly3DSupport;
 
 interface
 
@@ -7,28 +7,28 @@ uses
   CastleVectors, CastleInputs, CastleClassUtils;
 
 type
-  { Fly support for TFpsModularMovement.
+  { Fly support for TModularMovement.
 
     To start flying add this behavior. Fly start/stop should be controled from
     your game by change Exists property e.g.:
 
     @longCode(#
-    if Assigned(FpsFlySupport) and Assigned(FpsWalkSupport) and Assigned(RotateRigidBody) then
+    if Assigned(FlySupport) and Assigned(WalkSupport) and Assigned(RotateRigidBody) then
     begin
       if Event.IsKey(keyF) then
       begin
-        if FpsFlySupport.Exists then
+        if FlySupport.Exists then
         begin
-          FpsFlySupport.Exists := false;
-          FpsWalkSupport.Exists := true;
+          FlySupport.Exists := false;
+          WalkSupport.Exists := true;
           LabelFlyWalk.Caption := 'Walking';
           RotateRigidBody.HorizontalRotationInput.PositiveKey := keyArrowRight;
           RotateRigidBody.HorizontalRotationInput.NegativeKey := keyArrowLeft;
           RotateRigidBody.RotationHorizontalSpeed := 1.5;
         end else
         begin
-          FpsFlySupport.Exists := true;
-          FpsWalkSupport.Exists := false;
+          FlySupport.Exists := true;
+          WalkSupport.Exists := false;
           LabelFlyWalk.Caption := 'Flying';
           RotateRigidBody.HorizontalRotationInput.PositiveKey := keyD;
           RotateRigidBody.HorizontalRotationInput.NegativeKey := keyA;
@@ -38,8 +38,8 @@ type
     end;
     #)
 
-    When TFpsFlySupport.Exists = true TFpsWalkSupport.Exists should be false. }
-  TFpsFlySupport = class(TAbstractMovementModifier)
+    When TFly3DSupport.Exists = true TWalk3DSupport.Exists should be false. }
+  TFly3DSupport = class(TAbstractMovementModifier)
   strict private
     FFlyUpDownInputAxis: TCastleInputAxis;
     FFlyForwardInputAxis: TCastleInputAxis;
@@ -68,9 +68,9 @@ implementation
 
 uses Math, CastleUtils, CastleComponentSerialize, CastleKeysMouse, CastleLog;
 
-{ TFpsFlySupport ----------------------------------------------------------------- }
+{ TFly3DSupport -------------------------------------------------------------- }
 
-procedure TFpsFlySupport.UpdateMovement(const MovementState: TModularMovementState);
+procedure TFly3DSupport.UpdateMovement(const MovementState: TModularMovementState);
 var
   FlyingDamping: Single;
   RigidBody: TCastleRigidBody;
@@ -105,7 +105,7 @@ begin
     FlyUpDownInputAxis.Value(FocusedContainer), false);
 end;
 
-constructor TFpsFlySupport.Create(AOwner: TComponent);
+constructor TFly3DSupport.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FFlyingForwardAcceleration := DefaultFlyingForwardAcceleration;
@@ -123,7 +123,7 @@ begin
   FFlyUpDownInputAxis.NegativeKey := keyE;
 end;
 
-function TFpsFlySupport.PropertySections(const PropertyName: String
+function TFly3DSupport.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
@@ -135,7 +135,7 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(TFpsFlySupport, ['Navigation', 'Modules', 'Fps Fly support']);
+  RegisterSerializableComponent(TFly3DSupport, ['Navigation', 'Modules', 'Fps Fly support']);
 
 end.
 

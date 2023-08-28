@@ -209,6 +209,35 @@
               {
                 "$$ClassName" : "TDoubleJumpSupport",
                 "Name" : "DoubleJumpSupport1"
+              },
+              {
+                "$$ClassName" : "TFly3DSupport",
+                "Exists" : false,
+                "FlyForwardInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyS",
+                  "PositiveKey" : "keyW"
+                },
+                "FlyUpDownInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyE",
+                  "PositiveKey" : "keyQ"
+                },
+                "Name" : "FlySupport"
               }
             ]
           },

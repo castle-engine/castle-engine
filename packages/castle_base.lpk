@@ -4502,12 +4502,12 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="FpsCrouch"/>
       </Item1099>
       <Item1100>
-        <Filename Value="../src/routines/navigation/modular/modules/fpsflysupport.pas"/>
-        <UnitName Value="FpsFlySupport"/>
+        <Filename Value="../src/routines/navigation/modular/modules/fly3dsupport.pas"/>
+        <UnitName Value="fly3dsupport"/>
       </Item1100>
       <Item1101>
         <Filename Value="../src/routines/navigation/modular/modules/walk3dsupport.pas"/>
-        <UnitName Value="walk3dsupport"/>
+        <UnitName Value="Walk3DSupport"/>
       </Item1101>
       <Item1102>
         <Filename Value="../src/routines/navigation/modular/modules/headbobbing.pas"/>
