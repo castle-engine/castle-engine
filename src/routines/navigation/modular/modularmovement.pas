@@ -124,8 +124,6 @@ type
     property InputJump: TInputShortcut read FInputJump;
   end;
 
-
-
 implementation
 
 uses Math, CastleBoxes, CastleUtils, CastleComponentSerialize, CastleKeysMouse,
