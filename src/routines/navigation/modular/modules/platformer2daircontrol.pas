@@ -61,7 +61,9 @@ begin
   CurrentHorizontalVelocity := PlayerRigidBody.LinearVelocity.X;
   CurrentVerticalVelocity := PlayerRigidBody.LinearVelocity.Y;
 
-  { We need multiply HorizontalSpeedChangeInAir by SecondsPassed.
+  { Why we multiply by 60?
+
+    We need multiply HorizontalSpeedChangeInAir by SecondsPassed.
     Without that when game will run 120 FPS, player will accelerated
     twice faster than on 60 FPS.
     So HorizontalSpeedChangeInAir is designed and tested on 60 FPS so we need
