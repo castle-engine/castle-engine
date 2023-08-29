@@ -1,4 +1,4 @@
-unit Platformer2DAirControl;
+unit Platformer2DInAirControl;
 
 interface
 
@@ -8,8 +8,14 @@ uses
 
 type
 
-  { 2D platformer air control for TModularMovement. }
-  TPlatformer2DAirControl = class(TAbstractMovementModule)
+  { 2D platformer player in air control for TModularMovement.
+    With that movement module you can add ability to change player position in air
+    while player is jumping.
+
+    The strength you can set by HorizontalSpeedChangeInAir.
+    Maximum horizontal velocity is clamped (-MaxHorizontalSpeed, MaxHorizontalSpeed).
+  }
+  TPlatformer2DInAirControl = class(TAbstractMovementModule)
   strict private
     FHorizontalSpeedChangeInAir: Single;
     FMaxHorizontalSpeed: Single;
@@ -24,9 +30,11 @@ type
 
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
   published
-     property HorizontalSpeedChangeInAir: Single read FHorizontalSpeedChangeInAir
+    { How much change can be made while the player is in the air. }
+    property HorizontalSpeedChangeInAir: Single read FHorizontalSpeedChangeInAir
       write FHorizontalSpeedChangeInAir {$ifdef FPC}default DefaultHorizontalSpeedChangeInAir{$endif};
 
+    { Maximum speed of the player is in the air. Can be used to make some effects }
     property MaxHorizontalSpeed: Single read FMaxHorizontalSpeed
       write FMaxHorizontalSpeed {$ifdef FPC}default DefaultMaxHorizontalSpeed{$endif};
   end;
@@ -35,9 +43,9 @@ implementation
 
 uses Math, CastleUtils, CastleComponentSerialize, CastleKeysMouse, CastleLog;
 
-{ TPlatformer2DAirControl ---------------------------------------------------- }
+{ TPlatformer2DInAirControl ---------------------------------------------------- }
 
-procedure TPlatformer2DAirControl.UpdateMovement(const MovementState: TModularMovementState);
+procedure TPlatformer2DInAirControl.UpdateMovement(const MovementState: TModularMovementState);
 var
   InputDirection: TVector3;
 
@@ -91,14 +99,14 @@ begin
   MovementState.IsMoving := not IsZero(CurrentHorizontalVelocity);
 end;
 
-constructor TPlatformer2DAirControl.Create(AOwner: TComponent);
+constructor TPlatformer2DInAirControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FMaxHorizontalSpeed := DefaultMaxHorizontalSpeed;
   FHorizontalSpeedChangeInAir := DefaultHorizontalSpeedChangeInAir;
 end;
 
-function TPlatformer2DAirControl.PropertySections(const PropertyName: String
+function TPlatformer2DInAirControl.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
@@ -110,7 +118,7 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(TPlatformer2DAirControl, ['Navigation', 'Modules', 'Platformer 2D Air Control']);
+  RegisterSerializableComponent(TPlatformer2DInAirControl, ['Navigation', 'Modules', 'Platformer 2D Air Control']);
 
 end.
 

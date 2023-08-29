@@ -10,7 +10,7 @@ interface
 uses Classes,
   CastleVectors, CastleComponentSerialize,
   CastleUIControls, CastleControls, CastleKeysMouse, Platformer2DWalkSupport,
-  Platformer2DAirControl, DoubleJumpSupport;
+  Platformer2DInAirControl, DoubleJumpSupport;
 
 type
   { Main view, where most of the application logic takes place. }

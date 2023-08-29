@@ -4522,8 +4522,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="Platformer2DWalkSupport"/>
       </Item1104>
       <Item1105>
-        <Filename Value="../src/behaviors/navigation/modular/modules/platformer2daircontrol.pas"/>
-        <UnitName Value="Platformer2DAirControl"/>
+        <Filename Value="../src/behaviors/navigation/modular/modules/platformer2dinaircontrol.pas"/>
+        <UnitName Value="Platformer2DInAirControl"/>
       </Item1105>
       <Item1106>
         <Filename Value="../src/behaviors/navigation/modular/modules/doublejumpsupport.pas"/>

@@ -370,8 +370,8 @@
                 "Name" : "Platformer2DWalkSupport1"
               },
               {
-                "$$ClassName" : "TPlatformer2DAirControl",
-                "Name" : "Platformer2DAirControl1"
+                "$$ClassName" : "TPlatformer2DInAirControl",
+                "Name" : "Platformer2DInAirControl1"
               },
               {
                 "$$ClassName" : "TDoubleJumpSupport",
