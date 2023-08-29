@@ -238,6 +238,10 @@
                   "PositiveKey" : "keyQ"
                 },
                 "Name" : "FlySupport"
+              },
+              {
+                "$$ClassName" : "TInAir3DControl",
+                "Name" : "InAir3DControl1"
               }
             ]
           },

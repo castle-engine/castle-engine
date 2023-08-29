@@ -24,7 +24,7 @@ uses Classes,
   CastleViewport, SimplestFpsPlayerMovement, SimpleFpsPlayerMovementWithRotation,
   DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, CastleInputAxis, RotateCamera,
   ModularMovement, StairsSupport, Fly3DSupport, Walk3DSupport,
-  AnimationTrigger, FollowingTargetForCamera, DoubleJumpSupport;
+  AnimationTrigger, FollowingTargetForCamera, DoubleJumpSupport, InAir3DControl;
 
 type
   { Main view, where most of the application logic takes place. }

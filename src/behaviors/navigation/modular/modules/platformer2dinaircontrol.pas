@@ -118,7 +118,7 @@ begin
 end;
 
 initialization
-  RegisterSerializableComponent(TPlatformer2DInAirControl, ['Navigation', 'Modules', 'Platformer 2D Air Control']);
+  RegisterSerializableComponent(TPlatformer2DInAirControl, ['Navigation', 'Modules', 'Platformer 2D Player In Air Control']);
 
 end.
 
