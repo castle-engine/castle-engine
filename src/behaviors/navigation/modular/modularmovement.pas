@@ -53,6 +53,8 @@ type
 
     { Each module needs to implement that function }
     procedure UpdateMovement(const MovementState: TModularMovementState); virtual; abstract;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { When set to false it is not called at all }
     property Exists: Boolean read FExists write SetExists default true;
@@ -159,12 +161,23 @@ implementation
 uses Math, CastleBoxes, CastleUtils, CastleComponentSerialize, CastleKeysMouse,
   CastleLog;
 
-{ TAbstractMovementModule -------------------------------------------------- }
+{ TAbstractMovementModule ---------------------------------------------------- }
 
 constructor TAbstractMovementModule.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FExists := true;
+end;
+
+function TAbstractMovementModule.PropertySections(const PropertyName: String
+  ): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, [
+     'Exists'
+     ]) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
 end;
 
 procedure TAbstractMovementModule.SetExists(const AValue: Boolean);
