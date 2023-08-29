@@ -22,7 +22,8 @@ uses Classes,
   CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleSceneCore, CastleVectors,
   CastleTransform, CastleSoundEngine, X3DNodes,
-  GameEnemy, GameFallingObstacle, GameDeadlyObstacle, GameMovingPlatform;
+  GameEnemy, GameFallingObstacle, GameDeadlyObstacle, GameMovingPlatform, ModularMovement,
+  Platformer2DInAirControl, Platformer2DWalkSupport, DoubleJumpSupport, AnimationTrigger;
 
 type
   TLevelBounds = class (TComponent)
@@ -62,6 +63,7 @@ type
     ImageHitPoint2: TCastleImageControl;
     ImageHitPoint1: TCastleImageControl;
     ImageKey: TCastleImageControl;
+    PlayerDoubleJumpSupport: TDoubleJumpSupport;
   strict private
     { Checks this is first Update when the InputJump occurred.
       See ../README.md for documentation about allowed keys/mouse/touch input. }
@@ -126,6 +128,9 @@ type
     { More advanced version with physics ray to check "Are we on ground?",
       double jump, shot and move acceleration frame rate independed }
     procedure UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(const SecondsPassed: Single;
+      var HandleInput: Boolean);
+
+    procedure UpdatePlayerForModularMovement(const SecondsPassed: Single;
       var HandleInput: Boolean);
 
     procedure Shot(BulletOwner: TComponent; const Origin, Direction: TVector3);
@@ -321,6 +326,7 @@ end;
 procedure TViewPlay.ConfigurePlayerAbilities(const Player: TCastleScene);
 begin
   PlayerCanDoubleJump := false;
+  PlayerDoubleJumpSupport.Exists := false;
   WasDoubleJump := false;
   PlayerCanShot := false;
   ResetHitPoints;
@@ -343,6 +349,7 @@ begin
     begin
       SoundEngine.Play(NamedSound('PowerUp'));
       PlayerCanDoubleJump := true;
+      PlayerDoubleJumpSupport.Exists := true;
       CollisionDetails.OtherTransform.Exists := false;
     end else
     if Pos('Shot', CollisionDetails.OtherTransform.Name) > 0 then
@@ -1053,6 +1060,33 @@ begin
   end;
 end;
 
+procedure TViewPlay.UpdatePlayerForModularMovement(const SecondsPassed: Single;
+      var HandleInput: Boolean);
+begin
+  { Here we use horizontal velocity to change player scene direction to moving
+    direction. }
+  if PlayerRigidBody.LinearVelocity.X < -1 then
+    ScenePlayer.Scale := Vector3(-1, 1, 1)
+  else if PlayerRigidBody.LinearVelocity.X > 1 then
+    ScenePlayer.Scale := Vector3(1, 1, 1);
+
+  if PlayerCanShot then
+  begin
+    if InputShot then
+    begin
+      if WasInputShot = false  then
+      begin
+        SoundEngine.Play(NamedSound('Shot'));
+        WasInputShot := true;
+
+        Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
+          Vector3(ScenePlayer.Scale.X, 1, 0));
+      end;
+    end else
+      WasInputShot := false;
+  end;
+end;
+
 procedure TViewPlay.Shot(BulletOwner: TComponent; const Origin,
   Direction: TVector3);
 var
@@ -1355,6 +1389,7 @@ begin
     MainViewport.Camera.Translation := CamPos;
   end;
 
+  {
   if CheckboxAdvancedPlayer.Checked then
     { uncomment to see less advanced versions }
     //UpdatePlayerByVelocityAndRay(SecondsPassed, HandleInput)
@@ -1363,6 +1398,8 @@ begin
     UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(SecondsPassed, HandleInput)
   else
     UpdatePlayerSimpleDependOnlyVelocity(SecondsPassed, HandleInput);
+  }
+  UpdatePlayerForModularMovement(SecondsPassed, HandleInput);
 end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;

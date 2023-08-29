@@ -9257,6 +9257,58 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -3.0000000000000000E+000
                 }
+              },
+              {
+                "$$ClassName" : "TModularMovement",
+                "ForwardInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyNone",
+                  "PositiveKey" : "keyNone"
+                },
+                "InputJump" : {
+                  "$$ClassName" : "TInputShortcut",
+                  "DefaultKey1" : "keySpace",
+                  "Key1" : "keyW"
+                },
+                "Name" : "PlayerModularMovement",
+                "SidewayInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyA",
+                  "PositiveKey" : "keyD"
+                }
+              },
+              {
+                "$$ClassName" : "TPlatformer2DWalkSupport",
+                "Name" : "PlayerWalkSupport"
+              },
+              {
+                "$$ClassName" : "TPlatformer2DInAirControl",
+                "HorizontalSpeedChangeInAir" : 1.5000000000000000E+001,
+                "Name" : "PlayerInAirControl"
+              },
+              {
+                "$$ClassName" : "TDoubleJumpSupport",
+                "Exists" : false,
+                "JumpSpeed" : 7.0000000000000000E+002,
+                "Name" : "PlayerDoubleJumpSupport"
+              },
+              {
+                "$$ClassName" : "TAnimationTrigger",
+                "Name" : "PlayerAnimationTrigger"
               }
             ]
           },
