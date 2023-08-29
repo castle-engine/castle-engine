@@ -13,8 +13,11 @@ type
     position in air while player is jumping.
 
     The strength you can set by HorizontalSpeedChangeInAir.
-    Maximum horizontal velocity is clamped (from -MaxHorizontalSpeed
-    to MaxHorizontalSpeed). }
+    Horizontal velocity is clamped (from -MaxHorizontalSpeed
+    to MaxHorizontalSpeed).
+
+    This module is not for flying but for making more arcade like 3d games.
+    }
   TInAir3DControl = class(TAbstractMovementModule)
   strict private
     FHorizontalSpeedChangeInAir: Single;
