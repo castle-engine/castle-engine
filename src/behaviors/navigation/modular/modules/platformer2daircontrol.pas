@@ -39,7 +39,6 @@ uses Math, CastleUtils, CastleComponentSerialize, CastleKeysMouse, CastleLog;
 
 procedure TPlatformer2DAirControl.UpdateMovement(const MovementState: TModularMovementState);
 var
-  IntegratedVelocities: TVector3;
   InputDirection: TVector3;
 
   CurrentHorizontalVelocity: Single;
