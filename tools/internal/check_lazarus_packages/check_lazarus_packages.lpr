@@ -275,6 +275,7 @@ begin
       'src/audio',
       'src/base',
       'src/base_rendering',
+      'src/behaviors',
       'src/castlescript',
       'src/files',
       'src/fonts',
