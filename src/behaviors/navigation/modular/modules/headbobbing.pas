@@ -8,7 +8,7 @@ uses
 
 type
   { Head bobbing for TModularMovement. }
-  THeadBobbing = class(TAbstractMovementModifier)
+  THeadBobbing = class(TAbstractMovementModule)
   strict private
     HeadBobbingPosition: Single;
     HeadBobbingTime: Single;

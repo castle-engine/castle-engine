@@ -10,7 +10,7 @@ type
 
   { Animation trigger for TModularMovement. Changes animation by using
     TModularMovementState }
-  TAnimationTrigger = class(TAbstractMovementModifier)
+  TAnimationTrigger = class(TAbstractMovementModule)
   strict private
     FIdleAnimation: String;
     FWalkAnimation: String;

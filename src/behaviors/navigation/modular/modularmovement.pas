@@ -41,11 +41,9 @@ type
 
   end;
 
-  { Base class for all modular movement modules like TFpsWalkSupport, TFpsFlySupport,
-    THeadBobbing etc.
-
-    TODO: Maybe change name to TAbstractMovementModule? }
-  TAbstractMovementModifier = class(TCastleBehavior)
+  { Base class for all modular movement modules like TWalk3DSupport, TFly3DSupport,
+    THeadBobbing etc. }
+  TAbstractMovementModule = class(TCastleBehavior)
   strict private
     FExists: Boolean;
   protected
@@ -161,15 +159,15 @@ implementation
 uses Math, CastleBoxes, CastleUtils, CastleComponentSerialize, CastleKeysMouse,
   CastleLog;
 
-{ TAbstractMovementModifier -------------------------------------------------- }
+{ TAbstractMovementModule -------------------------------------------------- }
 
-constructor TAbstractMovementModifier.Create(AOwner: TComponent);
+constructor TAbstractMovementModule.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FExists := true;
 end;
 
-procedure TAbstractMovementModifier.SetExists(const AValue: Boolean);
+procedure TAbstractMovementModule.SetExists(const AValue: Boolean);
 begin
   FExists := AValue;
 end;
@@ -355,9 +353,9 @@ begin
     for I := 0 to Parent.BehaviorsCount - 1 do
     begin
       Beh := Parent.Behaviors[I];
-      if (Beh is TAbstractMovementModifier) and
-         (TAbstractMovementModifier(Beh).Exists) then
-        TAbstractMovementModifier(Beh).UpdateMovement(MovementState);
+      if (Beh is TAbstractMovementModule) and
+         (TAbstractMovementModule(Beh).Exists) then
+        TAbstractMovementModule(Beh).UpdateMovement(MovementState);
     end;
   finally
     FreeAndNil(MovementState);

@@ -9,7 +9,7 @@ uses
 type
 
   { 2D platformer air control for TModularMovement. }
-  TPlatformer2DAirControl = class(TAbstractMovementModifier)
+  TPlatformer2DAirControl = class(TAbstractMovementModule)
   strict private
     FHorizontalSpeedChangeInAir: Single;
     FMaxHorizontalSpeed: Single;

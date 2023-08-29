@@ -18,7 +18,7 @@ type
     not changed by any other mechanism.
 
     Add to player transform. }
-  TFpsCrouch = class(TAbstractMovementModifier)
+  TFpsCrouch = class(TAbstractMovementModule)
   strict private
     FInput_Crouch: TInputShortcut;
     FCrouchSpeed: Single;

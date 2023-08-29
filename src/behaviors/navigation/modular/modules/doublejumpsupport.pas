@@ -9,7 +9,7 @@ uses
 type
 
   { Double jump support for TModularMovement. }
-  TDoubleJumpSupport = class(TAbstractMovementModifier)
+  TDoubleJumpSupport = class(TAbstractMovementModule)
   strict private
     FWasJumpInput: Boolean;
     FWasSecondJump: Boolean;

@@ -11,7 +11,7 @@ type
   { Classic 3D walk on ground support for modular movement. Can be used for
     FPS and TPP games. It support horizontal movement and single jump only
     when player is on gorund. }
-  TWalk3DSupport = class(TAbstractMovementModifier)
+  TWalk3DSupport = class(TAbstractMovementModule)
   strict private
     FWasJumpInput: Boolean;
 

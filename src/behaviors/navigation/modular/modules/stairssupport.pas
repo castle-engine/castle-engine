@@ -7,7 +7,7 @@ uses
   CastleVectors, CastleClassUtils;
 
 type
-  TStairsSupportByColliderCapsuleRadius = class(TAbstractMovementModifier)
+  TStairsSupportByColliderCapsuleRadius = class(TAbstractMovementModule)
   strict private
     FWasWarning: Boolean;
   public

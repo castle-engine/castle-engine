@@ -39,7 +39,7 @@ type
     #)
 
     When TFly3DSupport.Exists = true TWalk3DSupport.Exists should be false. }
-  TFly3DSupport = class(TAbstractMovementModifier)
+  TFly3DSupport = class(TAbstractMovementModule)
   strict private
     FFlyUpDownInputAxis: TCastleInputAxis;
     FFlyForwardInputAxis: TCastleInputAxis;
