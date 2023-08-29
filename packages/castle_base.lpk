@@ -9,7 +9,7 @@
       <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/fonts;../src/transform/auto_generated_persistent_vectors;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib"/>
-        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/vampyre_imaginglib/src/Extensions;../src/routines/input;../src/routines/navigation;../src/routines/navigation/simple;../src/routines/navigation/modular;../src/routines/navigation/modular/modules"/>
+        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/vampyre_imaginglib/src/Extensions;../src/behaviors/input;../src/behaviors/navigation;../src/behaviors/navigation/simple;../src/behaviors/navigation/modular;../src/behaviors/navigation/modular/modules"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
@@ -4462,71 +4462,71 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item1089>
       <Item1090>
-        <Filename Value="../src/routines/input/castleinputaxis.pas"/>
+        <Filename Value="../src/behaviors/input/castleinputaxis.pas"/>
         <UnitName Value="CastleInputAxis"/>
       </Item1090>
       <Item1091>
-        <Filename Value="../src/routines/navigation/directrotatetransformbykeys.pas"/>
+        <Filename Value="../src/behaviors/navigation/directrotatetransformbykeys.pas"/>
         <UnitName Value="DirectRotateTransformByKeys"/>
       </Item1091>
       <Item1092>
-        <Filename Value="../src/routines/navigation/followingtargetforcamera.pas"/>
+        <Filename Value="../src/behaviors/navigation/followingtargetforcamera.pas"/>
         <UnitName Value="FollowingTargetForCamera"/>
       </Item1092>
       <Item1093>
-        <Filename Value="../src/routines/navigation/rotatecamera.pas"/>
+        <Filename Value="../src/behaviors/navigation/rotatecamera.pas"/>
         <UnitName Value="RotateCamera"/>
       </Item1093>
       <Item1094>
-        <Filename Value="../src/routines/navigation/rotaterigidbody.pas"/>
+        <Filename Value="../src/behaviors/navigation/rotaterigidbody.pas"/>
         <UnitName Value="RotateRigidBody"/>
       </Item1094>
       <Item1095>
-        <Filename Value="../src/routines/navigation/simple/simplefpsplayermovementwithrotation.pas"/>
+        <Filename Value="../src/behaviors/navigation/simple/simplefpsplayermovementwithrotation.pas"/>
         <UnitName Value="SimpleFpsPlayerMovementWithRotation"/>
       </Item1095>
       <Item1096>
-        <Filename Value="../src/routines/navigation/simple/simplestfpsplayermovement.pas"/>
+        <Filename Value="../src/behaviors/navigation/simple/simplestfpsplayermovement.pas"/>
         <UnitName Value="SimplestFpsPlayerMovement"/>
       </Item1096>
       <Item1097>
-        <Filename Value="../src/routines/navigation/modular/modularmovement.pas"/>
+        <Filename Value="../src/behaviors/navigation/modular/modularmovement.pas"/>
         <UnitName Value="ModularMovement"/>
       </Item1097>
       <Item1098>
-        <Filename Value="../src/routines/navigation/modular/modules/animationtrigger.pas"/>
+        <Filename Value="../src/behaviors/navigation/modular/modules/animationtrigger.pas"/>
         <UnitName Value="AnimationTrigger"/>
       </Item1098>
       <Item1099>
-        <Filename Value="../src/routines/navigation/modular/modules/fpscrouch.pas"/>
+        <Filename Value="../src/behaviors/navigation/modular/modules/fpscrouch.pas"/>
         <UnitName Value="FpsCrouch"/>
       </Item1099>
       <Item1100>
-        <Filename Value="../src/routines/navigation/modular/modules/fly3dsupport.pas"/>
-        <UnitName Value="fly3dsupport"/>
+        <Filename Value="../src/behaviors/navigation/modular/modules/fly3dsupport.pas"/>
+        <UnitName Value="Fly3DSupport"/>
       </Item1100>
       <Item1101>
-        <Filename Value="../src/routines/navigation/modular/modules/walk3dsupport.pas"/>
+        <Filename Value="../src/behaviors/navigation/modular/modules/walk3dsupport.pas"/>
         <UnitName Value="Walk3DSupport"/>
       </Item1101>
       <Item1102>
-        <Filename Value="../src/routines/navigation/modular/modules/headbobbing.pas"/>
+        <Filename Value="../src/behaviors/navigation/modular/modules/headbobbing.pas"/>
         <UnitName Value="HeadBobbing"/>
       </Item1102>
       <Item1103>
-        <Filename Value="../src/routines/navigation/modular/modules/stairssupport.pas"/>
+        <Filename Value="../src/behaviors/navigation/modular/modules/stairssupport.pas"/>
         <UnitName Value="StairsSupport"/>
       </Item1103>
       <Item1104>
-        <Filename Value="../src/routines/navigation/modular/modules/platformer2dwalksupport.pas"/>
+        <Filename Value="../src/behaviors/navigation/modular/modules/platformer2dwalksupport.pas"/>
         <UnitName Value="Platformer2DWalkSupport"/>
       </Item1104>
       <Item1105>
-        <Filename Value="../src/routines/navigation/modular/modules/platformer2daircontrol.pas"/>
+        <Filename Value="../src/behaviors/navigation/modular/modules/platformer2daircontrol.pas"/>
         <UnitName Value="Platformer2DAirControl"/>
       </Item1105>
       <Item1106>
-        <Filename Value="../src/routines/navigation/modular/modules/doublejumpsupport.pas"/>
+        <Filename Value="../src/behaviors/navigation/modular/modules/doublejumpsupport.pas"/>
         <UnitName Value="DoubleJumpSupport"/>
       </Item1106>
     </Files>
