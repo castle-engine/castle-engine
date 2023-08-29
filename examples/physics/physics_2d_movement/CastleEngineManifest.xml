@@ -8,7 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="physics_2d_movement"
   standalone_source="physics_2d_movement_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.physics2dmovement"
+  qualified_name="io.castleengine.physics.2d.movement"
   caption="Physics 2D Movement"
 >
   <compiler_options>
