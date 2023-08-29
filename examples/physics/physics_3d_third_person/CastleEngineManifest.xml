@@ -7,8 +7,8 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 
 <project name="physics_3d_third_person"
   standalone_source="physics_3d_third_person.dpr"
-  game_units="GameInitialize, GameViewMain, SimplestFpsPlayerMovement, SimpleFpsPlayerMovementWithRotation, DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, RotateCamera, ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport, FpsWalkSupport"
-  editor_units="SimplestFpsPlayerMovement, SimpleFpsPlayerMovementWithRotation, DirectRotateTransformByKeys, RotateRigidBody, HeadBobbing, FpsCrouch, RotateCamera, ModularMovement, StairsSupportByColliderCapsuleRadius, FpsFlySupport, FpsWalkSupport, AnimationTrigger, FollowingTargetForCamera"
+  game_units="GameInitialize, GameViewMain"
+  editor_units=""
   qualified_name="io.castleengine.physics.thirdperson"
   caption="Physics 3D Third Person"
 >
