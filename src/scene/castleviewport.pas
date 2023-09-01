@@ -2015,7 +2015,13 @@ function TCastleViewport.GetMouseRayHit: TRayCollision;
   var
     MousePosition: TVector2;
   begin
-    if GetMousePosition(MousePosition) and
+    if { Check conditions required by PositionToPrerequisites and PositionToRay to work.
+        This must be robust, as it is called also from RecalculateCursor,
+        which is from TCastleTransformList.Notify. (when some transform gets removed). }
+      (EffectiveWidth <> 0) and
+      (EffectiveHeight <> 0) and
+      // calculate MousePosition
+      GetMousePosition(MousePosition) and
       // PositionToRay assumes InternalCamera <> nil
       (InternalCamera <> nil) and
       // do not update MouseRayHit if camera doesn't exist
