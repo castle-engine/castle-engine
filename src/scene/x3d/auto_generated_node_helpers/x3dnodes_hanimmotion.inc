@@ -44,6 +44,8 @@
     procedure SetLoa(const Value: Integer);
     function GetLoop: Boolean;
     procedure SetLoop(const Value: Boolean);
+    function GetNameField: String;
+    procedure SetNameField(const Value: String);
     function GetStartFrame: Integer;
     procedure SetStartFrame(const Value: Integer);
   public
@@ -126,6 +128,12 @@
     public property FdLoop: TSFBool read FFdLoop;
     {  }
     property Loop: Boolean read GetLoop write SetLoop;
+
+    strict private FFdName: TSFString;
+    { Internal wrapper for property @code(NameField). This wrapper API may change, we advise to access simpler @code(NameField) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdName: TSFString read FFdName;
+    {  }
+    property NameField: String read GetNameField write SetNameField;
 
     strict private FFdStartFrame: TSFInt32;
     { Internal wrapper for property @code(StartFrame). This wrapper API may change, we advise to access simpler @code(StartFrame) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -269,6 +277,16 @@ begin
   FdLoop.Send(Value);
 end;
 
+function THAnimMotionNode.GetNameField: String;
+begin
+  Result := FdName.Value;
+end;
+
+procedure THAnimMotionNode.SetNameField(const Value: String);
+begin
+  FdName.Send(Value);
+end;
+
 function THAnimMotionNode.GetStartFrame: Integer;
 begin
   Result := FdStartFrame.Value;
@@ -349,6 +367,10 @@ begin
   FFdLoop := TSFBool.Create(Self, True, 'loop', false);
    FdLoop.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdLoop);
+
+  FFdName := TSFString.Create(Self, True, 'name', '');
+   FdName.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdName);
 
   FFdStartFrame := TSFInt32.Create(Self, True, 'startFrame', 0);
    FdStartFrame.ChangeAlways := chVisibleNonGeometry;
