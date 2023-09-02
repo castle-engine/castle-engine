@@ -171,6 +171,18 @@ end;
 
 procedure TAudioClipNode.UpdatePlaying;
 
+  procedure UpdatePlayingSoundProperties(const SoundNode: TSoundNode);
+  begin
+    PlayingSound.Loop := Loop;
+    PlayingSound.Sound.Priority := SoundNode.Priority;
+    PlayingSound.Sound.Volume := SoundNode.Intensity * Gain;
+    PlayingSound.Sound.Pitch := SafePitch;
+    { We pass min/maxFront as ReferenceDistance/MaxDistance
+      as their meaning matches for SoundEngine.DistanceModel = dmLinear. }
+    PlayingSound.Sound.ReferenceDistance := SoundNode.FTransformScale * SoundNode.MinFront;
+    PlayingSound.Sound.MaxDistance       := SoundNode.FTransformScale * SoundNode.MaxFront;
+  end;
+
   function GetSoundNode: TSoundNode;
   begin
     if (ParentFieldsCount <> 0) and
@@ -191,20 +203,16 @@ begin
      (SoundNode <> nil) and
      SoundNode.Enabled then
   begin
-    { if not playing, try to start playing }
     if not PlayingSound.Playing then
     begin
+      { if not playing, try to start playing }
       BufferLoaded := true;
-      PlayingSound.Loop := Loop;
-      PlayingSound.Sound.Priority := SoundNode.Priority;
-      PlayingSound.Sound.Volume := SoundNode.Intensity * Gain;
-      PlayingSound.Sound.Pitch := SafePitch;
-      { We pass min/maxFront as ReferenceDistance/MaxDistance
-        as their meaning matches for SoundEngine.DistanceModel = dmLinear. }
-      PlayingSound.Sound.ReferenceDistance := SoundNode.FTransformScale * SoundNode.MinFront;
-      PlayingSound.Sound.MaxDistance       := SoundNode.FTransformScale * SoundNode.MaxFront;
+      UpdatePlayingSoundProperties(SoundNode);
       // TODO: we could set here Parameters.Offset to not always start playing from start
       SoundNode.SoundSource.Play(PlayingSound);
+    end else
+    begin
+      UpdatePlayingSoundProperties(SoundNode);
     end;
   end else
   begin
