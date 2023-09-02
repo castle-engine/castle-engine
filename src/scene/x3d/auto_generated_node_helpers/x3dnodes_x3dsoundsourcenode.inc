@@ -26,6 +26,10 @@
   strict private
     function GetDescription: String;
     procedure SetDescription(const Value: String);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
+    function GetGain: Single;
+    procedure SetGain(const Value: Single);
     function GetPitch: Single;
     procedure SetPitch(const Value: Single);
   public
@@ -38,6 +42,18 @@
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
+
+    strict private FFdEnabled: TSFBool;
+    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdEnabled: TSFBool read FFdEnabled;
+    {  }
+    property Enabled: Boolean read GetEnabled write SetEnabled;
+
+    strict private FFdGain: TSFFloat;
+    { Internal wrapper for property @code(Gain). This wrapper API may change, we advise to access simpler @code(Gain) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdGain: TSFFloat read FFdGain;
+    {  }
+    property Gain: Single read GetGain write SetGain;
 
     strict private FFdPitch: TSFFloat;
     { Internal wrapper for property @code(Pitch). This wrapper API may change, we advise to access simpler @code(Pitch) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -65,6 +81,26 @@ begin
   FdDescription.Send(Value);
 end;
 
+function TAbstractSoundSourceNode.GetEnabled: Boolean;
+begin
+  Result := FdEnabled.Value;
+end;
+
+procedure TAbstractSoundSourceNode.SetEnabled(const Value: Boolean);
+begin
+  FdEnabled.Send(Value);
+end;
+
+function TAbstractSoundSourceNode.GetGain: Single;
+begin
+  Result := FdGain.Value;
+end;
+
+procedure TAbstractSoundSourceNode.SetGain(const Value: Single);
+begin
+  FdGain.Send(Value);
+end;
+
 function TAbstractSoundSourceNode.GetPitch: Single;
 begin
   Result := FdPitch.Value;
@@ -87,6 +123,14 @@ begin
   FFdDescription := TSFString.Create(Self, True, 'description', '');
    FdDescription.ChangeAlways := chNone;
   AddField(FFdDescription);
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEnabled);
+
+  FFdGain := TSFFloat.Create(Self, True, 'gain', 1);
+   FdGain.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGain);
 
   FFdPitch := TSFFloat.Create(Self, True, 'pitch', 1.0);
    FdPitch.ChangeAlways := chVisibleNonGeometry;
