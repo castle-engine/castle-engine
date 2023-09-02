@@ -67,6 +67,7 @@ type
     procedure TestGenericNode;
     {$endif}
     procedure TestNonGenericNodeAndFindNodeOptions;
+    procedure TestGeometryNodesInShape;
   end;
 
 implementation
@@ -1155,6 +1156,16 @@ begin
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', [fnOnlyActive, fnNilOnMissing]) = nil);
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', []) <> nil);
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', [fnNilOnMissing]) <> nil);
+  finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestGeometryNodesInShape;
+var
+  Scene: TCastleSceneCore;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Url := 'castle-data:/geometry_not_in_shape.x3dv';
   finally FreeAndNil(Scene) end;
 end;
 

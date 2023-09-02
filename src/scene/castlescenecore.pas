@@ -3903,19 +3903,38 @@ begin
 
   if Node is TAbstractGeometryNode then
   begin
-    { Add shape to Shapes }
-    Shape := ParentScene.CreateShape(Node as TAbstractGeometryNode,
-      TX3DGraphTraverseState.CreateCopy(StateStack.Top), ParentInfo);
-    ShapesGroup.Children.Add(Shape);
-
-    { When Spatial contain ssDynamicCollisions, then each collidable
-      shape must have octree created. Normally, this is watched over by
-      SetSpatial. In this case, we just created new Shape, so we have
-      to set it's Spatial property correctly. }
-    if (ssDynamicCollisions in ParentScene.FSpatial) and
-      Shape.Collidable then
+    if (not (Node is TAbstractGeometryNode_1)) and
+       ( (ParentInfo = nil) or
+         (not (ParentInfo^.Node is TShapeNode) ) ) then
     begin
-      Shape.InternalSpatial := [ssTriangles];
+      { Detect and reject trying to use geometry nodes incorrectly in X3D or
+        VRML 2.0.
+
+        Testcase: tests/data/geometry_not_in_shape.x3dv
+
+        Without this safeguard, in debug mode, it would cause failure
+        at "Assert(State.ShapeNode <> nil)" in
+        src/scene/castleinternalarraysgenerator.pas .
+      }
+      WritelnWarning('Node "%s" is a geometry node, it has to be placed within a Shape node', [
+        Node.NiceName
+      ]);
+    end else
+    begin
+      { Add shape to Shapes }
+      Shape := ParentScene.CreateShape(Node as TAbstractGeometryNode,
+        TX3DGraphTraverseState.CreateCopy(StateStack.Top), ParentInfo);
+      ShapesGroup.Children.Add(Shape);
+
+      { When Spatial contain ssDynamicCollisions, then each collidable
+        shape must have octree created. Normally, this is watched over by
+        SetSpatial. In this case, we just created new Shape, so we have
+        to set it's Spatial property correctly. }
+      if (ssDynamicCollisions in ParentScene.FSpatial) and
+        Shape.Collidable then
+      begin
+        Shape.InternalSpatial := [ssTriangles];
+      end;
     end;
   end else
 
