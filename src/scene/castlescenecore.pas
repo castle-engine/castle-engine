@@ -6265,7 +6265,7 @@ begin
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
         (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).
-          KeyDown(Event.Key, Event.KeyCharacter, NextEventTime);
+          KeyDown(Event.Key, Event.KeyString, NextEventTime);
     finally EndChangesSchedule; end;
 
     { Never treat the event as handled here,
@@ -6290,7 +6290,7 @@ begin
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
         (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).
-          KeyUp(Event.Key, Event.KeyCharacter, NextEventTime);
+          KeyUp(Event.Key, Event.KeyString, NextEventTime);
     finally EndChangesSchedule; end;
 
     { Never treat the event as handled here,
