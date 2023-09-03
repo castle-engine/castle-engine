@@ -4994,8 +4994,20 @@ begin
   NewRect := UI.RenderRectWithBorder;
   if NewRect.IsEmpty or RenderRectBeforeChange.IsEmpty then
   begin
-    // don't know what to do, adjust delta to 0, to avoid leaving some crazy value
-    UI.Translation := TVector2.Zero;
+    { Empty rectangle(s) may happen e.g. if control is empty,
+      e.g. TCastleLabel.Caption = ''.
+      To implement AdjustUserInterfaceAnchorsToKeepRect perfectly for this case,
+      we'd need TCastleUserInterface method like GlobalTranslationEvenIfEmpty,
+      but it would be a burden to implement it just for this special case.
+
+      It seems that not doing anythign is just valid in this case.
+      At least, user can choose various anchors, and clicking back on original
+      anchor will (intuitively) restore the control back to where it was.
+
+      Note: Resetting "UI.Translation := TVector2.Zero"
+      wasn't intuitive, see https://github.com/castle-engine/castle-engine/issues/422 .
+      It would reset the control position when it's not expected.
+    }
   end else
   begin
     UI.Translation := UI.Translation + Vector2(
