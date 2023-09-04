@@ -64,6 +64,7 @@ type
     ImageHitPoint1: TCastleImageControl;
     ImageKey: TCastleImageControl;
     PlayerDoubleJumpSupport: TDoubleJumpSupport;
+    PlayerWalkSupport: TPlatformer2DWalkSupport;
   strict private
     { Checks this is first Update when the InputJump occurred.
       See ../README.md for documentation about allowed keys/mouse/touch input. }
@@ -134,6 +135,11 @@ type
       var HandleInput: Boolean);
 
     procedure Shot(BulletOwner: TComponent; const Origin, Direction: TVector3);
+
+    procedure PlayerJump(const Sender: TObject; const MovementState: TModularMovementState);
+    procedure PlayerFall(const Sender: TObject; const MovementState: TModularMovementState);
+    procedure PlayerMove(const Sender: TObject; const MovementState: TModularMovementState);
+    procedure PlayerIdle(const Sender: TObject; const MovementState: TModularMovementState);
 
     { Coins support }
     procedure CollectCoin;
@@ -412,8 +418,8 @@ begin
   DeltaVelocity := Vector3(0, 0, 0);
   Vel := PlayerRigidBody.LinearVelocity;
 
-  { This is not ideal you can do another jump when Player is
-    on top of the jump you can make next jump, but can be nice mechanic
+  { This is not ideal you can do another PlayerJump when Player is
+    on top of the PlayerJump you can make next PlayerJump, but can be nice mechanic
     for someone }
   PlayerOnGround := (Abs(Vel.Y) < 10);
 
@@ -456,8 +462,8 @@ begin
 
   { We get here 20 because vertical velocity calculated by physics engine when
     player is on platform have no 0 but some small values to up and down sometimes
-    It can fail when the player goes uphill (will set jump animation) or down
-    will set fall animation }
+    It can fail when the player goes uphill (will set PlayerJump animation) or down
+    will set PlayerFall animation }
   if Vel.Y > 20 then
     ScenePlayer.PlayAnimation('jump', true)
   else
@@ -571,8 +577,8 @@ begin
 
   { We get here 20 because vertical velocity calculated by physics engine when
     player is on platform have no 0 but some small values to up and down sometimes
-    It can fail when the player goes uphill (will set jump animation) or down
-    will set fall animation }
+    It can fail when the player goes uphill (will set PlayerJump animation) or down
+    will set PlayerFall animation }
   if Vel.Y > 20 then
     ScenePlayer.PlayAnimation('jump', true)
   else
@@ -660,7 +666,7 @@ begin
       begin
         WasDoubleJump := true;
         InSecondJump := true;
-        { In second jump just add diffrence betwen current Velocity and JumpVelocity }
+        { In second PlayerJump just add diffrence betwen current Velocity and JumpVelocity }
         DeltaVelocity.Y := JumpVelocity - Vel.Y;
       end else
         DeltaVelocity.Y := JumpVelocity;
@@ -674,7 +680,7 @@ begin
     if PlayerOnGround then
       DeltaVelocity.x := MaxHorizontalVelocity / 2
     else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
+      { When key is pressed when you make second PlayerJump you can increase
         horizontal speed }
       DeltaVelocity.x := MaxHorizontalVelocity / 3
     else
@@ -687,7 +693,7 @@ begin
     if PlayerOnGround then
       DeltaVelocity.x := - MaxHorizontalVelocity / 2
     else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
+      { When key is pressed when you make second PlayerJump you can increase
         horizontal speed }
       DeltaVelocity.x := - MaxHorizontalVelocity / 3
     else
@@ -713,8 +719,8 @@ begin
 
   { We get here 20 because vertical velocity calculated by physics engine when
     player is on platform have no 0 but some small values to up and down sometimes
-    It can fail when the player goes uphill (will set jump animation) or down
-    will set fall animation }
+    It can fail when the player goes uphill (will set PlayerJump animation) or down
+    will set PlayerFall animation }
   if (not PlayerOnGround) and (Vel.Y > 20) then
     ScenePlayer.PlayAnimation('jump', true)
   else
@@ -790,7 +796,7 @@ begin
       begin
         WasDoubleJump := true;
         InSecondJump := true;
-        { In second jump just add diffrence betwen current Velocity and JumpVelocity }
+        { In second PlayerJump just add diffrence betwen current Velocity and JumpVelocity }
         DeltaVelocity.Y := JumpVelocity - Vel.Y;
       end else
         DeltaVelocity.Y := JumpVelocity;
@@ -804,7 +810,7 @@ begin
     if PlayerOnGround then
       DeltaVelocity.x := MaxHorizontalVelocity / 2
     else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
+      { When key is pressed when you make second PlayerJump you can increase
         horizontal speed }
       DeltaVelocity.x := MaxHorizontalVelocity / 3
     else
@@ -817,7 +823,7 @@ begin
     if PlayerOnGround then
       DeltaVelocity.x := - MaxHorizontalVelocity / 2
     else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
+      { When key is pressed when you make second PlayerJump you can increase
         horizontal speed }
       DeltaVelocity.x := - MaxHorizontalVelocity / 3
     else
@@ -843,8 +849,8 @@ begin
 
   { We get here 20 because vertical velocity calculated by physics engine when
     player is on platform have no 0 but some small values to up and down sometimes
-    It can fail when the player goes uphill (will set jump animation) or down
-    will set fall animation }
+    It can fail when the player goes uphill (will set PlayerJump animation) or down
+    will set PlayerFall animation }
   if (not PlayerOnGround) and (Vel.Y > 20) then
     ScenePlayer.PlayAnimation('jump', true)
   else
@@ -940,13 +946,13 @@ begin
   if PlayerOnGround then
     WasDoubleJump := false;
 
-  { Flag for velocity calculation when second jump starts in this Update }
+  { Flag for velocity calculation when second PlayerJump starts in this Update }
   InSecondJump := false;
   if InputJump then
   begin
-    { Player can jump when:
+    { Player can PlayerJump when:
       - is on ground
-      - he can double jump and there was not WasDoubleJump
+      - he can double PlayerJump and there was not WasDoubleJump
       - here we also check if the key has just been pressed (when it is held,
         the player should not keep jumping) }
     if (not WasInputJump) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
@@ -956,7 +962,7 @@ begin
       begin
         WasDoubleJump := true;
         InSecondJump := true;
-        { In second jump just add diffrence between current Velocity and JumpVelocity }
+        { In second PlayerJump just add diffrence between current Velocity and JumpVelocity }
         DeltaVelocity.Y := JumpVelocity - Vel.Y;
       end else
         DeltaVelocity.Y := JumpVelocity;
@@ -970,7 +976,7 @@ begin
     if PlayerOnGround then
       DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 2
     else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
+      { When key is pressed when you make second PlayerJump you can increase
         horizontal speed }
       DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 3
     else
@@ -983,7 +989,7 @@ begin
     if PlayerOnGround then
       DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 2
     else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
+      { When key is pressed when you make second PlayerJump you can increase
         horizontal speed }
       DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 3
     else
@@ -1019,8 +1025,8 @@ begin
   begin
   { We get here 20 because vertical velocity calculated by physics engine when
     player is on platform have no 0 but some small values to up and down sometimes
-    It can fail when the player goes uphill (will set jump animation) or down
-    will set fall animation }
+    It can fail when the player goes uphill (will set PlayerJump animation) or down
+    will set PlayerFall animation }
   if (not PlayerOnGround) and (Vel.Y > 20) then
     ScenePlayer.PlayAnimation('jump', true)
   else
@@ -1063,13 +1069,6 @@ end;
 procedure TViewPlay.UpdatePlayerForModularMovement(const SecondsPassed: Single;
       var HandleInput: Boolean);
 begin
-  { Here we use horizontal velocity to change player scene direction to moving
-    direction. }
-  if PlayerRigidBody.LinearVelocity.X < -1 then
-    ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else if PlayerRigidBody.LinearVelocity.X > 1 then
-    ScenePlayer.Scale := Vector3(1, 1, 1);
-
   if PlayerCanShot then
   begin
     if InputShot then
@@ -1096,6 +1095,54 @@ begin
   Bullet.Translation := Origin;
   Bullet.RBody.LinearVelocity := Direction * Vector3(750, 20, 0);
   MainViewport.Items.Add(Bullet);
+end;
+
+procedure TViewPlay.PlayerJump(const Sender: TObject;
+  const MovementState: TModularMovementState);
+begin
+  SoundEngine.Play(NamedSound('Jump'));
+  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
+  begin
+    if ScenePlayer.CurrentAnimation.X3DName <> 'jump' then
+        ScenePlayer.PlayAnimation('jump', true)
+  end;
+end;
+
+procedure TViewPlay.PlayerFall(const Sender: TObject;
+  const MovementState: TModularMovementState);
+begin
+  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
+  begin
+    if ScenePlayer.CurrentAnimation.X3DName <> 'fall' then
+        ScenePlayer.PlayAnimation('fall', true)
+  end;
+end;
+
+procedure TViewPlay.PlayerMove(const Sender: TObject;
+  const MovementState: TModularMovementState);
+begin
+  { Here we use horizontal velocity to change player scene direction to moving
+    direction. }
+  if MovementState.RigidBody.LinearVelocity.X < -1 then
+    ScenePlayer.Scale := Vector3(-1, 1, 1)
+  else if MovementState.RigidBody.LinearVelocity.X > 1 then
+    ScenePlayer.Scale := Vector3(1, 1, 1);
+
+  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
+  begin
+    if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
+      ScenePlayer.PlayAnimation('walk', true);
+  end;
+end;
+
+procedure TViewPlay.PlayerIdle(const Sender: TObject;
+  const MovementState: TModularMovementState);
+begin
+  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
+  begin
+    if ScenePlayer.CurrentAnimation.X3DName <> 'idle' then
+      ScenePlayer.PlayAnimation('idle', true);
+  end;
 end;
 
 procedure TViewPlay.CollectCoin;
@@ -1309,6 +1356,11 @@ begin
   ConfigurePlayerPhysics(ScenePlayer);
 
   ConfigurePlayerAbilities(ScenePlayer);
+
+  PlayerWalkSupport.AddJumpListener(@PlayerJump);
+  PlayerWalkSupport.AddFallListener(@PlayerFall);
+  PlayerWalkSupport.AddMoveListener(@PlayerMove);
+  PlayerWalkSupport.AddIdleListener(@PlayerIdle);
 
   ConfigureBulletSpriteScene;
 
