@@ -19,6 +19,8 @@ Press (you can press once, or hold the key down to keep applying):
 
 The idea is that you can play this weird game with both hands. Left hand controls the arrow (force position/direction), right hand makes given force active.
 
+![Screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
