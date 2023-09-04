@@ -433,7 +433,7 @@ begin
 
     { We assume that the player is on the ground a little faster to allow
      smoother control }
-    Result := DistanceToGround < ColliderHeight * 0.1;
+    Result := DistanceToGround < ColliderHeight * 0.02;
     {if Result then
       WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
     else
