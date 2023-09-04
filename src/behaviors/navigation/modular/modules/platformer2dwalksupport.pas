@@ -187,6 +187,8 @@ begin
       FIdleEventListener.ExecuteAll(Self, MovementState);
       FWasIdleEvent := true;
     end;
+    FWasMoveEventLeft := false;
+    FWasMoveEventRight := false;
   end;
 end;
 
