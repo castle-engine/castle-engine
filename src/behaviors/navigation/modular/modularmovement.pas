@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, CastleTransform, CastleVectors, CastleInputAxis, CastleInputs,
-    CastleClassUtils;
+    CastleClassUtils, Generics.Collections;
 
 type
   { It describes the current input state and player movement state when using
@@ -34,6 +34,39 @@ type
     FullForwardDirection: TVector3; // Forward direction where Y can be <> 0
     RightDirection: TVector3;
     UpDirection: TVector3;
+  end;
+
+  { Default event that can be used in any TAbstractMovementModule to give
+    programmer the ability to react to a change caused by modular navigation
+    (e.g. change of direction, jump) in his own code without need to always
+    implement it as another TAbstractMovementModule }
+  TModularMovementEvent = procedure (const Sender: TObject;
+    const MovementState: TModularMovementState) of object;
+
+  { Because we want many elements to be able to react to an event, we mostly
+    use a callback list. When callbacks are called they can remove other callbacks
+    so we check that. This class is designed to manage that cases. }
+  TModularMovementEventList = class
+  strict private
+    FCallbackList: {$ifdef FPC}specialize{$endif} TList<TModularMovementEvent>;
+    { List of current indexes for all recursive calls of ExecuteAll() we allways
+      should be in the last ExecuteAll() when any add/remove is called }
+    FCurrentIndex: {$ifdef FPC}specialize{$endif} TList<Integer>;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    function Add(const EventCallback: TModularMovementEvent): SizeInt;
+    function Remove(const EventCallback: TModularMovementEvent): SizeInt;
+    function IndexOf(const EventCallback: TModularMovementEvent): SizeInt;
+    function Count: SizeInt;
+    function GetItem(const AIndex: SizeInt): TModularMovementEvent;
+
+    { Means that list is not empty }
+    function Used: Boolean;
+
+    { Call all (non-nil) Items, from first to last. }
+    procedure ExecuteAll(const Sender: TObject; const MovementState: TModularMovementState);
   end;
 
   { Abstract modular movement not used right now. }
@@ -160,6 +193,109 @@ implementation
 
 uses Math, CastleBoxes, CastleUtils, CastleComponentSerialize, CastleKeysMouse,
   CastleLog;
+
+{ TModularMovementEventList -------------------------------------------------- }
+
+constructor TModularMovementEventList.Create;
+begin
+  inherited Create;
+
+  FCallbackList := {$ifdef FPC}specialize{$endif} TList<TModularMovementEvent>.Create;
+  FCurrentIndex := {$ifdef FPC}specialize{$endif} TList<Integer>.Create;
+end;
+
+destructor TModularMovementEventList.Destroy;
+begin
+  FreeAndNil(FCurrentIndex);
+  FreeAndNil(FCallbackList);
+  inherited Destroy;
+end;
+
+function TModularMovementEventList.GetItem(const AIndex: SizeInt
+  ): TModularMovementEvent;
+begin
+  Result := FCallbackList[AIndex];
+end;
+
+function TModularMovementEventList.Used: Boolean;
+begin
+  Result := Count <> 0;
+end;
+
+function TModularMovementEventList.Add(
+  const EventCallback: TModularMovementEvent): SizeInt;
+begin
+  Result := FCallbackList.Add(EventCallback);
+end;
+
+function TModularMovementEventList.Remove(
+  const EventCallback: TModularMovementEvent): SizeInt;
+var
+  EventCallbackToRemoveIndex: Integer;
+  ExecuteCallCurrentIndex: Integer;
+  I: Integer;
+begin
+  if FCurrentIndex.Count > 0 then
+  begin
+    { We are during the ExecuteAll() call so we maybe need update some indexes
+      when in some loops }
+    EventCallbackToRemoveIndex := FCallbackList.IndexOf(EventCallback);
+
+    if EventCallbackToRemoveIndex = -1 then
+      Exit(-1);
+
+    for I := FCurrentIndex.Count -1 downto 0 do
+    begin
+      ExecuteCallCurrentIndex := FCurrentIndex[I];
+
+      { When removed callback index on FCallbackList is smaller than curent index
+        in execute we should decrease index not to miss a callback }
+      if ExecuteCallCurrentIndex < EventCallbackToRemoveIndex then
+      begin
+        FCurrentIndex[I] := ExecuteCallCurrentIndex - 1;
+      end;
+    end;
+  end;
+
+  Result := FCallbackList.Remove(EventCallback);
+end;
+
+function TModularMovementEventList.IndexOf(
+  const EventCallback: TModularMovementEvent): SizeInt;
+begin
+  Result := FCallbackList.IndexOf(EventCallback);
+end;
+
+function TModularMovementEventList.Count: SizeInt;
+begin
+  Result := FCallbackList.Count;
+end;
+
+procedure TModularMovementEventList.ExecuteAll(const Sender: TObject;
+  const MovementState: TModularMovementState);
+var
+  CallIndexPos: Integer; // index pos in FCurrentIndex list
+  Callback: TModularMovementEvent;
+begin
+  CallIndexPos := -1;
+  try
+    CallIndexPos := FCurrentIndex.Add(0);
+
+    while FCurrentIndex[CallIndexPos] <  Count do
+    begin
+      Callback := FCallbackList[FCurrentIndex[CallIndexPos]];
+
+      if Assigned(Callback) then
+        Callback(Sender, MovementState);
+
+      FCurrentIndex[CallIndexPos] := FCurrentIndex[CallIndexPos] + 1;
+    end;
+
+  finally
+    if CallIndexPos <> -1 then
+      FCurrentIndex.Delete(CallIndexPos);
+  end;
+end;
 
 { TAbstractMovementModule ---------------------------------------------------- }
 
