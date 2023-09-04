@@ -147,7 +147,11 @@ procedure TPlatformer2DWalkSupport.CallMoveIdleEvent(
 var
   HorzontalVelocity: Single;
 begin
-  if MovementState.IsJumping then
+  { Is on ground functions react a little faster and when we start jumping
+    on next frame we can be near ground but still going up so we check our
+    vertical speed also }
+  if MovementState.IsJumping or
+    (MovementState.RigidBody.LinearVelocity.Y > JumpSpeed / 2) then
   begin
     FWasMoveEventLeft := false;
     FWasMoveEventRight := false;
