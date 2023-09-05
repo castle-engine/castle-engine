@@ -127,14 +127,14 @@ begin
   if CastleDesignMode then
     Exit;
 
-  if CastleDesignMode then
-    Exit;
-
   if not PlayerScene.HasAnimation(AnimationName) then
+  begin
+    WritelnWarning(Name + ' no animation with name ' + AnimationName);
     Exit;
+  end;
 
-  if PlayerScene.AutoAnimation <> AnimationName then
-    PlayerScene.AutoAnimation := AnimationName;
+  if (PlayerScene.CurrentAnimation = nil) or (PlayerScene.CurrentAnimation.X3DName <> AnimationName) then
+    PlayerScene.PlayAnimation(AnimationName, true)
 end;
 
 function TAnimationTrigger.IdleAnimationStored: Boolean;
