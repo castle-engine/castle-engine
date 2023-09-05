@@ -23,7 +23,8 @@ type
 
     IsPlayerOnGround: Boolean;
     { Means that player starts jumping in that update, notice that
-      IsPlayerOnGround can be true here }
+      IsPlayerOnGround can be true here - this is set only on first
+      frame of jump. Can be used as a flag that player pressed jump input }
     IsJumping: Boolean;
 
     { Means that player changes horizontal position (has horizontal velocity) }
@@ -160,6 +161,9 @@ type
     FForwardInputAxis: TCastleInputAxis;
     FSidewayInputAxis: TCastleInputAxis;
     FInputJump: TInputShortcut;
+
+    FBeforeMovementUpdateEventListener: TModularMovementEventList;
+    FAfterMovementUpdateEventListener: TModularMovementEventList;
   protected
     { Gets transform direction with Y component. }
     function GetFullForwardDirection: TVector3; virtual;
@@ -178,8 +182,15 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    procedure AddBeforeMovementUpdateListener(const EventCallback: TModularMovementEvent);
+    procedure RemoveBeforeMovementUpdateListener(const EventCallback: TModularMovementEvent);
+
+    procedure AddAfterMovementUpdateListener(const EventCallback: TModularMovementEvent);
+    procedure RemoveAfterMovementUpdateListener(const EventCallback: TModularMovementEvent);
   published
     { Move forward/backward input axis }
     property ForwardInputAxis: TCastleInputAxis read FForwardInputAxis;
@@ -340,6 +351,16 @@ begin
   InputJump.Assign(keySpace);
   InputJump.SetSubComponent(true);
   InputJump.Name := 'InputJump';
+
+  FBeforeMovementUpdateEventListener := TModularMovementEventList.Create;
+  FAfterMovementUpdateEventListener := TModularMovementEventList.Create;
+end;
+
+destructor TModularMovement.Destroy;
+begin
+  inherited Destroy;
+  FreeAndNil(FBeforeMovementUpdateEventListener);
+  FreeAndNil(FAfterMovementUpdateEventListener);
 end;
 
 function TModularMovement.GetFullForwardDirection: TVector3;
@@ -499,6 +520,8 @@ begin
     MovementState.UpDirection := UpDirection;
     MovementState.InputDirection := InputDirection;
 
+    FBeforeMovementUpdateEventListener.ExecuteAll(Self, MovementState);
+
     for I := 0 to Parent.BehaviorsCount - 1 do
     begin
       Beh := Parent.Behaviors[I];
@@ -506,6 +529,8 @@ begin
          (TAbstractMovementModule(Beh).Exists) then
         TAbstractMovementModule(Beh).UpdateMovement(MovementState);
     end;
+
+    FAfterMovementUpdateEventListener.ExecuteAll(Self, MovementState);
   finally
     FreeAndNil(MovementState);
   end;
@@ -523,6 +548,30 @@ begin
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TModularMovement.AddBeforeMovementUpdateListener(
+  const EventCallback: TModularMovementEvent);
+begin
+  FBeforeMovementUpdateEventListener.Add(EventCallback);
+end;
+
+procedure TModularMovement.RemoveBeforeMovementUpdateListener(
+  const EventCallback: TModularMovementEvent);
+begin
+  FBeforeMovementUpdateEventListener.Remove(EventCallback);
+end;
+
+procedure TModularMovement.AddAfterMovementUpdateListener(
+  const EventCallback: TModularMovementEvent);
+begin
+  FAfterMovementUpdateEventListener.Add(EventCallback);
+end;
+
+procedure TModularMovement.RemoveAfterMovementUpdateListener(
+  const EventCallback: TModularMovementEvent);
+begin
+  FAfterMovementUpdateEventListener.Remove(EventCallback);
 end;
 
 initialization
