@@ -65,6 +65,7 @@ type
     ImageKey: TCastleImageControl;
     PlayerDoubleJumpSupport: TDoubleJumpSupport;
     PlayerModularMovement: TModularMovement;
+    PlayerAnimationTrigger: TAnimationTrigger;
   strict private
     { Checks this is first Update when the InputJump occurred.
       See ../README.md for documentation about allowed keys/mouse/touch input. }
@@ -1111,6 +1112,9 @@ begin
     ScenePlayer.Scale := Vector3(-1, 1, 1)
   else if PlayerRigidBody.LinearVelocity.X > 1 then
     ScenePlayer.Scale := Vector3(1, 1, 1);
+
+  if PlayerAnimationTrigger.Exists then
+    Exit;
 
   { Check is there first jump frame }
   if MovementState.IsJumping then
