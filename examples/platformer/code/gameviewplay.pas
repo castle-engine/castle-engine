@@ -1134,18 +1134,24 @@ begin
       It can fail when the player goes uphill (will set PlayerJump animation) or down
       will set PlayerFall animation }
     if (not MovementState.IsPlayerOnGround) and (Velocity.Y > 20) then
-      ScenePlayer.PlayAnimation('jump', true)
-    else
+    begin
+      if ScenePlayer.CurrentAnimation.X3DName <> 'jump' then
+        ScenePlayer.PlayAnimation('jump', true)
+    end else
     if (not MovementState.IsPlayerOnGround) and (Velocity.Y < -20) then
-      ScenePlayer.PlayAnimation('fall', true)
-    else
+    begin
+      if ScenePlayer.CurrentAnimation.X3DName <> 'fall' then
+        ScenePlayer.PlayAnimation('fall', true)
+    end else
       if Abs(Velocity.X) > 1 then
       begin
         if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
           ScenePlayer.PlayAnimation('walk', true);
-      end
-      else
-        ScenePlayer.PlayAnimation('idle', true);
+      end else
+      begin
+        if ScenePlayer.CurrentAnimation.X3DName <> 'idle' then
+          ScenePlayer.PlayAnimation('idle', true);
+      end;
   end;
 end;
 
