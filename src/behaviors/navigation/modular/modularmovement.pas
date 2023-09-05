@@ -438,7 +438,7 @@ begin
     SphereCastOrigin,
     ColliderRadius,
     Vector3(0, -1, 0),
-    ColliderHeight * 3
+    ColliderHeight * 1.5
   );
 
   if GroundSphereCast.Hit then
