@@ -204,6 +204,7 @@
                 "$$ClassName" : "TAnimationTrigger",
                 "FallAnimation" : "bored",
                 "FlyAnimation" : "bored",
+                "JumpAnimation" : "idle",
                 "Name" : "AnimationTrigger1"
               },
               {
