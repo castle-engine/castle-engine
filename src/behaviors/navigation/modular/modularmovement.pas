@@ -420,10 +420,17 @@ begin
   {if not (ColliderRadius < ColliderHeight / 2 * 0.9) then
      ColliderRadius := ColliderHeight / 2 * 0.9;}
 
-  { Adjust sphere cast origin when radius is equal or bigger than ColliderHeight / 2 }
-  if ColliderRadius - ColliderHeight / 2 > -0.1  then
+  { Adjust sphere cast origin when radius is equal or bigger than ColliderHeight / 2
+    We use here ColliderHeight * 0.1 not simply 0.1 because simple value like 0.1
+    has problems on moving up platforms - when ColliderRadius size is near
+    ColliderHeight / 2. Then the casted sphere can intersect the platform on
+    casting. That make the platform is not included in spherecast tests.
+
+    Another way to fix that is raycast when rigid body moves up and sphere cast
+    hits nothing. }
+  if ColliderRadius - ColliderHeight / 2 > - ColliderHeight * 0.1  then
   begin
-    SphereCastOriginUpAdjustment := ColliderRadius - ColliderHeight / 2 + 0.1;
+    SphereCastOriginUpAdjustment := ColliderRadius - ColliderHeight / 2 + ColliderHeight * 0.1;
     SphereCastOrigin.Y := SphereCastOrigin.Y + SphereCastOriginUpAdjustment;
   end;
 
@@ -454,7 +461,7 @@ begin
 
     { We assume that the player is on the ground a little faster to allow
      smoother control }
-    Result := DistanceToGround < ColliderHeight * 0.02;
+    Result := DistanceToGround < ColliderHeight * 0.05;
     {if Result then
       WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
     else
