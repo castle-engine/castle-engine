@@ -65,6 +65,7 @@ type
     ImageKey: TCastleImageControl;
     PlayerDoubleJumpSupport: TDoubleJumpSupport;
     PlayerWalkSupport: TPlatformer2DWalkSupport;
+    PlayerModularMovement: TModularMovement;
   strict private
     { Checks this is first Update when the InputJump occurred.
       See ../README.md for documentation about allowed keys/mouse/touch input. }
@@ -140,6 +141,8 @@ type
     procedure PlayerFall(const Sender: TObject; const MovementState: TModularMovementState);
     procedure PlayerMove(const Sender: TObject; const MovementState: TModularMovementState);
     procedure PlayerIdle(const Sender: TObject; const MovementState: TModularMovementState);
+
+    procedure AfterMovementUpdate(const Sender: TObject; const MovementState: TModularMovementState);
 
     { Coins support }
     procedure CollectCoin;
@@ -1069,6 +1072,13 @@ end;
 procedure TViewPlay.UpdatePlayerForModularMovement(const SecondsPassed: Single;
       var HandleInput: Boolean);
 begin
+  { Here we use horizontal velocity to change player scene direction to moving
+    direction. }
+  if PlayerRigidBody.LinearVelocity.X < -1 then
+    ScenePlayer.Scale := Vector3(-1, 1, 1)
+  else if PlayerRigidBody.LinearVelocity.X > 1 then
+    ScenePlayer.Scale := Vector3(1, 1, 1);
+
   if PlayerCanShot then
   begin
     if InputShot then
@@ -1121,13 +1131,6 @@ end;
 procedure TViewPlay.PlayerMove(const Sender: TObject;
   const MovementState: TModularMovementState);
 begin
-  { Here we use horizontal velocity to change player scene direction to moving
-    direction. }
-  if MovementState.RigidBody.LinearVelocity.X < -1 then
-    ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else if MovementState.RigidBody.LinearVelocity.X > 1 then
-    ScenePlayer.Scale := Vector3(1, 1, 1);
-
   if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
   begin
     if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
@@ -1142,6 +1145,54 @@ begin
   begin
     if ScenePlayer.CurrentAnimation.X3DName <> 'idle' then
       ScenePlayer.PlayAnimation('idle', true);
+  end;
+end;
+
+procedure TViewPlay.AfterMovementUpdate(const Sender: TObject;
+  const MovementState: TModularMovementState);
+var
+  Velocity: TVector3;
+begin
+  { always check is player moving the same direction }
+  if PlayerRigidBody.LinearVelocity.X < -1 then
+    ScenePlayer.Scale := Vector3(-1, 1, 1)
+  else if PlayerRigidBody.LinearVelocity.X > 1 then
+    ScenePlayer.Scale := Vector3(1, 1, 1);
+
+  { Check is there first jump frame }
+  if MovementState.IsJumping then
+  begin
+    SoundEngine.Play(NamedSound('Jump'));
+    if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
+    begin
+      if ScenePlayer.CurrentAnimation.X3DName <> 'jump' then
+          ScenePlayer.PlayAnimation('jump', true)
+    end else
+      PlayerAnimationToLoop := 'jump';
+    Exit;
+  end;
+
+  { Don't change animation when player are hurt }
+  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
+  begin
+    Velocity := MovementState.RigidBody.LinearVelocity;
+    { We get here 20 because vertical velocity calculated by physics engine when
+      player is on platform have no 0 but some small values to up and down sometimes
+      It can fail when the player goes uphill (will set PlayerJump animation) or down
+      will set PlayerFall animation }
+    if (not MovementState.IsPlayerOnGround) and (Velocity.Y > 20) then
+      ScenePlayer.PlayAnimation('jump', true)
+    else
+    if (not MovementState.IsPlayerOnGround) and (Velocity.Y < -20) then
+      ScenePlayer.PlayAnimation('fall', true)
+    else
+      if Abs(Velocity.X) > 1 then
+      begin
+        if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
+          ScenePlayer.PlayAnimation('walk', true);
+      end
+      else
+        ScenePlayer.PlayAnimation('idle', true);
   end;
 end;
 
@@ -1357,10 +1408,12 @@ begin
 
   ConfigurePlayerAbilities(ScenePlayer);
 
-  PlayerWalkSupport.AddJumpListener(@PlayerJump);
+  {PlayerWalkSupport.AddJumpListener(@PlayerJump);
   PlayerWalkSupport.AddFallListener(@PlayerFall);
   PlayerWalkSupport.AddMoveListener(@PlayerMove);
-  PlayerWalkSupport.AddIdleListener(@PlayerIdle);
+  PlayerWalkSupport.AddIdleListener(@PlayerIdle);}
+
+  PlayerModularMovement.AddAfterMovementUpdateListener(@AfterMovementUpdate);
 
   ConfigureBulletSpriteScene;
 
