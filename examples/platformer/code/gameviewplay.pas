@@ -1067,6 +1067,9 @@ end;
 procedure TViewPlay.UpdatePlayerForModularMovement(const SecondsPassed: Single;
       var HandleInput: Boolean);
 begin
+  if not ScenePlayer.Exists then
+    Exit;
+
   { Here we use horizontal velocity to change player scene direction to moving
     direction. }
   if PlayerRigidBody.LinearVelocity.X < -1 then
