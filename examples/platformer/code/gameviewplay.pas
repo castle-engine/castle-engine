@@ -64,7 +64,6 @@ type
     ImageHitPoint1: TCastleImageControl;
     ImageKey: TCastleImageControl;
     PlayerDoubleJumpSupport: TDoubleJumpSupport;
-    PlayerWalkSupport: TPlatformer2DWalkSupport;
     PlayerModularMovement: TModularMovement;
   strict private
     { Checks this is first Update when the InputJump occurred.
@@ -136,11 +135,6 @@ type
       var HandleInput: Boolean);
 
     procedure Shot(BulletOwner: TComponent; const Origin, Direction: TVector3);
-
-    procedure PlayerJump(const Sender: TObject; const MovementState: TModularMovementState);
-    procedure PlayerFall(const Sender: TObject; const MovementState: TModularMovementState);
-    procedure PlayerMove(const Sender: TObject; const MovementState: TModularMovementState);
-    procedure PlayerIdle(const Sender: TObject; const MovementState: TModularMovementState);
 
     procedure AfterMovementUpdate(const Sender: TObject; const MovementState: TModularMovementState);
 
@@ -1107,47 +1101,6 @@ begin
   MainViewport.Items.Add(Bullet);
 end;
 
-procedure TViewPlay.PlayerJump(const Sender: TObject;
-  const MovementState: TModularMovementState);
-begin
-  SoundEngine.Play(NamedSound('Jump'));
-  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
-  begin
-    if ScenePlayer.CurrentAnimation.X3DName <> 'jump' then
-        ScenePlayer.PlayAnimation('jump', true)
-  end;
-end;
-
-procedure TViewPlay.PlayerFall(const Sender: TObject;
-  const MovementState: TModularMovementState);
-begin
-  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
-  begin
-    if ScenePlayer.CurrentAnimation.X3DName <> 'fall' then
-        ScenePlayer.PlayAnimation('fall', true)
-  end;
-end;
-
-procedure TViewPlay.PlayerMove(const Sender: TObject;
-  const MovementState: TModularMovementState);
-begin
-  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
-  begin
-    if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
-      ScenePlayer.PlayAnimation('walk', true);
-  end;
-end;
-
-procedure TViewPlay.PlayerIdle(const Sender: TObject;
-  const MovementState: TModularMovementState);
-begin
-  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
-  begin
-    if ScenePlayer.CurrentAnimation.X3DName <> 'idle' then
-      ScenePlayer.PlayAnimation('idle', true);
-  end;
-end;
-
 procedure TViewPlay.AfterMovementUpdate(const Sender: TObject;
   const MovementState: TModularMovementState);
 var
@@ -1407,11 +1360,6 @@ begin
   ConfigurePlayerPhysics(ScenePlayer);
 
   ConfigurePlayerAbilities(ScenePlayer);
-
-  {PlayerWalkSupport.AddJumpListener(@PlayerJump);
-  PlayerWalkSupport.AddFallListener(@PlayerFall);
-  PlayerWalkSupport.AddMoveListener(@PlayerMove);
-  PlayerWalkSupport.AddIdleListener(@PlayerIdle);}
 
   PlayerModularMovement.AddAfterMovementUpdateListener(@AfterMovementUpdate);
 
