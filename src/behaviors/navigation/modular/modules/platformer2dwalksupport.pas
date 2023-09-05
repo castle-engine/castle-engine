@@ -31,6 +31,9 @@ type
     FFallEventListener: TModularMovementEventList;
     FMoveEventListener: TModularMovementEventList;
     FIdleEventListener: TModularMovementEventList;
+
+    procedure CallFallEvent(const MovementState: TModularMovementState);
+    procedure CallMoveIdleEvent(const MovementState: TModularMovementState);
   public
     const
       DefaultJumpSpeed = 680;
@@ -43,8 +46,6 @@ type
 
     procedure UpdateMovement(const MovementState: TModularMovementState); override;
 
-    procedure CallFallEvent(const MovementState: TModularMovementState);
-    procedure CallMoveIdleEvent(const MovementState: TModularMovementState);
     procedure AddJumpListener(const EventCallback: TModularMovementEvent);
     procedure RemoveJumpListener(const EventCallback: TModularMovementEvent);
     procedure AddFallListener(const EventCallback: TModularMovementEvent);
