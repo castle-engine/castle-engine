@@ -112,7 +112,6 @@ type
 
     procedure Shot(BulletOwner: TComponent; const Origin, Direction: TVector3);
 
-    procedure AfterMovementUpdate(const Sender: TObject; const MovementState: TModularMovementState);
     procedure AfterPlayerMovementUpdate(Sender: TObject);
 
     { Coins support }
@@ -411,63 +410,6 @@ begin
   Bullet.Translation := Origin;
   Bullet.RBody.LinearVelocity := Direction * Vector3(750, 20, 0);
   MainViewport.Items.Add(Bullet);
-end;
-
-procedure TViewPlay.AfterMovementUpdate(const Sender: TObject;
-  const MovementState: TModularMovementState);
-var
-  Velocity: TVector3;
-begin
-  { always check is player moving the same direction }
-  if PlayerRigidBody.LinearVelocity.X < -1 then
-    ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else if PlayerRigidBody.LinearVelocity.X > 1 then
-    ScenePlayer.Scale := Vector3(1, 1, 1);
-
-  if PlayerAnimationTrigger.Exists then
-    Exit;
-
-  { Check is there first jump frame }
-  if MovementState.IsFirstJumpingFrame then
-  begin
-    SoundEngine.Play(NamedSound('Jump'));
-    if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
-    begin
-      if ScenePlayer.CurrentAnimation.X3DName <> 'jump' then
-          ScenePlayer.PlayAnimation('jump', true)
-    end else
-      PlayerAnimationToLoop := 'jump';
-    Exit;
-  end;
-
-  { Don't change animation when player are hurt }
-  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
-  begin
-    Velocity := MovementState.RigidBody.LinearVelocity;
-    if (not MovementState.IsPlayerOnGround) and (Velocity.Y > 0) then
-    begin
-      //WritelnLog('jump');
-      if ScenePlayer.CurrentAnimation.X3DName <> 'jump' then
-        ScenePlayer.PlayAnimation('jump', true)
-    end else
-    if (not MovementState.IsPlayerOnGround) then
-    begin
-      //WritelnLog('fall');
-      if ScenePlayer.CurrentAnimation.X3DName <> 'fall' then
-        ScenePlayer.PlayAnimation('fall', true)
-    end else
-      if Abs(Velocity.X) > 1 then
-      begin
-        //WritelnLog('walk');
-        if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
-          ScenePlayer.PlayAnimation('walk', true);
-      end else
-      begin
-        //WritelnLog('idle');
-        if ScenePlayer.CurrentAnimation.X3DName <> 'idle' then
-          ScenePlayer.PlayAnimation('idle', true);
-      end;
-  end;
 end;
 
 procedure TViewPlay.AfterPlayerMovementUpdate(Sender: TObject);
