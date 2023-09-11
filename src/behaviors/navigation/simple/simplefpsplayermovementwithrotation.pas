@@ -187,11 +187,11 @@ var
 
   IntegratedVelocities: TVector3;
 begin
-  RBody := Parent.RigidBody as TCastleRigidBody;
+  RBody := Parent.RigidBody;
   if not Assigned(RBody) then
     Exit;
 
-  Collider := Parent.Collider as TCastleCollider;
+  Collider := Parent.Collider;
   if not Assigned(Collider) then
     Exit;
 
