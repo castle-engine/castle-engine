@@ -25,7 +25,7 @@ type
     { Means that player starts jumping in that update, notice that
       IsPlayerOnGround can be true here - this is set only on first
       frame of jump. Can be used as a flag that player pressed jump input }
-    IsJumping: Boolean;
+    IsFirstJumpingFrame: Boolean;
 
     { Means that player changes horizontal position (has horizontal velocity) }
     IsMoving: Boolean;
@@ -520,7 +520,7 @@ begin
     MovementState.RigidBody := RBody;
     MovementState.Collider := Collider;
     MovementState.IsPlayerOnGround := IsOnGroundBool;
-    MovementState.IsJumping := false;
+    MovementState.IsFirstJumpingFrame := false;
     MovementState.IsMoving := not HorizontalVelocity.IsZero;
     MovementState.FullForwardDirection := GetFullForwardDirection;
     MovementState.ForwardDirection := ForwardDirection;

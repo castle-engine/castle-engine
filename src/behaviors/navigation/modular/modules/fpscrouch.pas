@@ -112,7 +112,7 @@ begin
   if not CheckColliderType(MovementState.Collider) then
     Exit;
 
-  if MovementState.IsJumping or MovementState.IsPlayerOnGround = false then
+  if MovementState.IsFirstJumpingFrame or MovementState.IsPlayerOnGround = false then
     Exit;
 
   if not FWasCrouchingInput then

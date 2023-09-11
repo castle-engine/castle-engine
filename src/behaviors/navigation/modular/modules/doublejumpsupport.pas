@@ -48,9 +48,9 @@ var
   PlayerRigidBody: TCastleRigidBody;
 begin
   { Do not make double jump in that same frame that jump is made }
-  if MovementState.IsJumping then
+  if MovementState.IsFirstJumpingFrame then
   begin
-    { MovementState.IsJumping true means that in this update we made first
+    { MovementState.IsFirstJumpingFrame true means that in this update we made first
       jump so jump input is now pressed and should be ignored }
     FWasJumpInput := true;
     Exit;
@@ -87,7 +87,7 @@ begin
     FWasSecondJump := true;
     { In second jump just add diffrence between current Velocity and JumpVelocity }
     VerticalVelocity := PlayerRigidBody.LinearVelocity.Y + (JumpSpeed - PlayerRigidBody.LinearVelocity.Y);
-    MovementState.IsJumping := true;
+    MovementState.IsFirstJumpingFrame := true;
   end else
     VerticalVelocity := PlayerRigidBody.LinearVelocity.Y;
 

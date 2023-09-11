@@ -46,7 +46,7 @@ var
   StepHeight: Single;
 begin
   { Works only when player on ground and moving }
-  if MovementState.IsJumping or (MovementState.IsPlayerOnGround = false) or
+  if MovementState.IsFirstJumpingFrame or (MovementState.IsPlayerOnGround = false) or
      (MovementState.IsMoving = false) then
     Exit;
 

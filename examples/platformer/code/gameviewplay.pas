@@ -427,7 +427,7 @@ begin
     Exit;
 
   { Check is there first jump frame }
-  if MovementState.IsJumping then
+  if MovementState.IsFirstJumpingFrame then
   begin
     SoundEngine.Play(NamedSound('Jump'));
     if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then

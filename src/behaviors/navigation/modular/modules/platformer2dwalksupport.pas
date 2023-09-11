@@ -73,7 +73,7 @@ begin
   begin
     FWasJumpInput := true;
     VerticalVelocity := JumpSpeed;
-    MovementState.IsJumping := true;
+    MovementState.IsFirstJumpingFrame := true;
   end else
     VerticalVelocity := PlayerRigidBody.LinearVelocity.Y;
 
