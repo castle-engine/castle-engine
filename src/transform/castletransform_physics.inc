@@ -3967,23 +3967,15 @@ end;
 { TCastleTransform ---------------------------------------------------------- }
 
 procedure TCastleTransform.SetRigidBody(const Value: TCastleRigidBody);
-var
-  OldRigidBody: TCastleRigidBody;
 begin
-  OldRigidBody := GetRigidBody;
-  if OldRigidBody = Value then
+  if FRigidBodyCache = Value then
      Exit;
 
-  if OldRigidBody <> nil then
-    RemoveBehavior(OldRigidBody);
+  if FRigidBodyCache <> nil then
+    RemoveBehavior(FRigidBodyCache);
 
   if Value <> nil then
     AddBehavior(Value);
-end;
-
-function TCastleTransform.GetRigidBody: TCastleRigidBody;
-begin
-  Result := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
 end;
 
 { TCastleAbstractRootTransform ------------------------------------------------------------------- }

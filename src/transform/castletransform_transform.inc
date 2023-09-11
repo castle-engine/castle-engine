@@ -153,7 +153,6 @@
     function GetTranslationXY: TVector2;
     procedure SetTranslationXY(const Value: TVector2);
     procedure SetRigidBody(const Value: TCastleRigidBody);
-    function GetRigidBody: TCastleRigidBody;
     function GetDirection: TVector3;
     function GetUp: TVector3;
     procedure SetDirection(const Value: TVector3);
