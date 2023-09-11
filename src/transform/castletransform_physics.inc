@@ -3975,10 +3975,7 @@ begin
      Exit;
 
   if OldRigidBody <> nil then
-  begin
     RemoveBehavior(OldRigidBody);
-    FreeAndNil(OldRigidBody);
-  end;
 
   if Value <> nil then
     AddBehavior(Value);
