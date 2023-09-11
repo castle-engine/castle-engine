@@ -113,6 +113,7 @@ type
     procedure Shot(BulletOwner: TComponent; const Origin, Direction: TVector3);
 
     procedure AfterMovementUpdate(const Sender: TObject; const MovementState: TModularMovementState);
+    procedure AfterPlayerMovementUpdate(Sender: TObject);
 
     { Coins support }
     procedure CollectCoin;
@@ -168,7 +169,7 @@ uses
 
 constructor TBullet.Create(AOwner: TComponent; const BulletSpriteScene: TCastleScene);
 var
-  Collider: TCastleSphereCollider;
+  Col: TCastleSphereCollider;
 begin
   inherited Create(AOwner);
 
@@ -186,14 +187,14 @@ begin
   RBody.MaxLinearVelocity := 0;
   RBody.Layer := 3;
 
-  Collider := TCastleSphereCollider.Create(Self);
+  Col := TCastleSphereCollider.Create(Self);
   { We don't set the Radius becouse we simply use Autosize }
   // Collider.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
   { Make bullet more bouncy }
-  Collider.Restitution := 0.6;
-  Collider.Mass := 1;
+  Col.Restitution := 0.6;
+  Col.Mass := 1;
 
-  AddBehavior(Collider);
+  AddBehavior(Col);
   AddBehavior(RBody);
 end;
 
@@ -469,6 +470,62 @@ begin
   end;
 end;
 
+procedure TViewPlay.AfterPlayerMovementUpdate(Sender: TObject);
+var
+  Velocity: TVector3;
+begin
+  { always check is player moving the same direction }
+  Velocity := PlayerRigidBody.LinearVelocity;
+  if Velocity.X < -1 then
+    ScenePlayer.Scale := Vector3(-1, 1, 1)
+  else if Velocity.X > 1 then
+    ScenePlayer.Scale := Vector3(1, 1, 1);
+
+  if PlayerAnimationTrigger.Exists then
+    Exit;
+
+  { Check is there first jump frame }
+  if PlayerModularMovement.IsFirstJumpingFrame then
+  begin
+    SoundEngine.Play(NamedSound('Jump'));
+    if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
+    begin
+      if ScenePlayer.CurrentAnimation.X3DName <> 'jump' then
+          ScenePlayer.PlayAnimation('jump', true)
+    end else
+      PlayerAnimationToLoop := 'jump';
+    Exit;
+  end;
+
+  { Don't change animation when player are hurt }
+  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
+  begin
+    if (not PlayerModularMovement.IsPlayerOnGround) and (Velocity.Y > 0) then
+    begin
+      //WritelnLog('jump');
+      if ScenePlayer.CurrentAnimation.X3DName <> 'jump' then
+        ScenePlayer.PlayAnimation('jump', true)
+    end else
+    if (not PlayerModularMovement.IsPlayerOnGround) then
+    begin
+      //WritelnLog('fall');
+      if ScenePlayer.CurrentAnimation.X3DName <> 'fall' then
+        ScenePlayer.PlayAnimation('fall', true)
+    end else
+      if Abs(Velocity.X) > 1 then
+      begin
+        //WritelnLog('walk');
+        if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
+          ScenePlayer.PlayAnimation('walk', true);
+      end else
+      begin
+        //WritelnLog('idle');
+        if ScenePlayer.CurrentAnimation.X3DName <> 'idle' then
+          ScenePlayer.PlayAnimation('idle', true);
+      end;
+  end;
+end;
+
 procedure TViewPlay.CollectCoin;
 begin
   SoundEngine.Play(NamedSound('Coin'));
@@ -681,7 +738,8 @@ begin
 
   ConfigurePlayerAbilities(ScenePlayer);
 
-  PlayerModularMovement.AddAfterMovementUpdateListener(@AfterMovementUpdate);
+  //PlayerModularMovement.AddAfterMovementUpdateListener(@AfterMovementUpdate);
+  ScenePlayer.AddAfterUpdateListener(@AfterPlayerMovementUpdate);
 
   ConfigureBulletSpriteScene;
 
