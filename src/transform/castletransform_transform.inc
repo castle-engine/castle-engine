@@ -133,6 +133,10 @@
       FOnAddedBehaviorNotification: TCastleComponentNotification;
       FBeforeRemoveBehaviorNotification: TCastleComponentNotification;
 
+      // physics
+      FRigidBodyCache: TCastleRigidBody;
+      FColliderCache:  TCastleCollider;
+
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
     procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -1667,9 +1671,14 @@
       Note that an object can only be present once in the @link(World)
       to be a rigid body. Breaking this rule will cause the
       @link(EMultipleReferencesInWorld) exception at an undefined time.
-    }
-    property RigidBody: TCastleRigidBody read GetRigidBody write SetRigidBody;
-      {$ifdef FPC}deprecated 'use AddBehavior (to set)/FindBehavior (to get)';{$endif}
+
+      Getting rigid body pointer by that property is faster than FindBehavior
+      because it uses cached value. }
+    property RigidBody: TCastleRigidBody read FRigidBodyCache write SetRigidBody;
+
+    { Returns collider behavior using cashed pointer. Simpler and faster way to
+      get collider than FindBehavior. }
+    property Collider: TCastleCollider read FColliderCache;
 
     { @deprecated Deprecated name for Translation. }
     property Position: TVector3 read FTranslation write SetTranslation;
@@ -3025,12 +3034,12 @@ end;
 
 procedure TCastleTransform.UpdateCollidersWorldScale;
 var
-  Collider: TCastleCollider;
+  C: TCastleCollider;
   T: TCastleTransform;
 begin
-  Collider := FindBehavior(TCastleCollider) as TCastleCollider;
-  if Collider <> nil then
-    Collider.UpdateWorldScale;
+  C := FindBehavior(TCastleCollider) as TCastleCollider;
+  if C <> nil then
+    C.UpdateWorldScale;
 
   for T in Self do
     T.UpdateCollidersWorldScale;
@@ -4107,6 +4116,10 @@ begin
 
     FBehaviors.Add(Behavior);
     Behavior.FParent := Self;
+    if Behavior is  TCastleRigidBody then
+      FRigidBodyCache := TCastleRigidBody(Behavior);
+    if Behavior is TCastleCollider then
+      FColliderCache := TCastleCollider(Behavior);
     Behavior.ParentAfterAttach;
     {$warnings off}
     Behavior.ParentChanged; // call at end, when state is consistent
@@ -4154,6 +4167,10 @@ begin
     { Inseert to new parent }
     FBehaviors.Insert(Index, Behavior);
     Behavior.FParent := Self;
+    if Behavior is  TCastleRigidBody then
+      FRigidBodyCache := TCastleRigidBody(Behavior);
+    if Behavior is TCastleCollider then
+      FColliderCache := TCastleCollider(Behavior);
     Behavior.ParentAfterAttach;
     {$warnings off}
     Behavior.ParentChanged; // call at end, when state is consistent
@@ -4189,6 +4206,11 @@ begin
     Beh.WorldBeforeDetach;
 
   Beh.ParentBeforeDetach;
+
+  if Beh is  TCastleRigidBody then
+    FRigidBodyCache := nil;
+  if Beh is TCastleCollider then
+    FColliderCache := nil;
 
   Beh.FParent := nil;
   FBehaviors.Delete(BehaviorIndex);
