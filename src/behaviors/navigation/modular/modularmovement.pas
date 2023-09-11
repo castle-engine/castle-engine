@@ -411,8 +411,9 @@ begin
     under the collider. And ray will be casted under the floor. }
   ColliderBoundingBox := PlayerCollider.ScaledLocalBoundingBox;
   ColliderHeight := ColliderBoundingBox.SizeY;
-  { From testing average size is the best here, better than min or max size. }
-  ColliderRadius := (ColliderBoundingBox.SizeX + ColliderBoundingBox.SizeZ) / 2;
+  { From testing average size is the best here, better than min or max size.
+    We multiply it by 0.999 becouse it should be a little smaller than collider }
+  ColliderRadius := ((ColliderBoundingBox.SizeX + ColliderBoundingBox.SizeZ) / 4) * 0.999;
   SphereCastOrigin := PlayerCollider.Middle;
 
   { Another approach: When casting sphere is equal or bigger than ColliderHeight / 2
