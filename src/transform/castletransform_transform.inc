@@ -132,6 +132,7 @@
 
       FOnAddedBehaviorNotification: TCastleComponentNotification;
       FBeforeRemoveBehaviorNotification: TCastleComponentNotification;
+      FAfterUpdate: TNotifyEventList;
 
       // physics
       FRigidBodyCache: TCastleRigidBody;
@@ -1005,6 +1006,11 @@
         You can also use RemoveDelayed from parent for similar effect.
       ) }
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); virtual;
+
+    { Called on update.
+      Update listeners fire after all behaviors have been processed. }
+    procedure AddAfterUpdateListener(const UpdateListener: TNotifyEvent);
+    procedure RemoveAfterUpdateListener(const UpdateListener: TNotifyEvent);
 
     { Something visible changed inside @italic(this) object.
       This is usually called by implementation of this object,
@@ -2112,6 +2118,7 @@ begin
   end;
   GLContextClose;
 
+  FreeAndNil(FAfterUpdate);
   FreeAndNil(FList);
   FreeAndNil(FBehaviors);
   FreeAndNil(FBehaviorsWorldChangeNotificationList);
@@ -2803,11 +2810,32 @@ begin
   UpdateBehaviors;
   UpdateChildren;
 
+  if FAfterUpdate <> nil then
+    FAfterUpdate.ExecuteAll(Self);
+
   { Disable physics and gravity in design mode (in the future we may add optional way to enable them) }
   if not CastleDesignMode then
   begin
     UpdateSimpleGravity(SecondsPassed);
   end;
+end;
+
+procedure TCastleTransform.AddAfterUpdateListener(
+  const UpdateListener: TNotifyEvent);
+begin
+  if FAfterUpdate = nil then
+    FAfterUpdate := TNotifyEventList.Create;
+
+  FAfterUpdate.Add(UpdateListener);
+end;
+
+procedure TCastleTransform.RemoveAfterUpdateListener(
+  const UpdateListener: TNotifyEvent);
+begin
+  if FAfterUpdate = nil then
+    Exit;
+
+  FAfterUpdate.Remove(UpdateListener);
 end;
 
 procedure TCastleTransform.GLContextClose;
