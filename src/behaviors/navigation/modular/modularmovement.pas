@@ -493,11 +493,11 @@ var
   MovementState: TModularMovementState;
   I: Integer;
 begin
-  RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  RBody := Parent.RigidBody;
   if not Assigned(RBody) then
     Exit;
 
-  Collider := Parent.FindBehavior(TCastleCollider) as TCastleCollider;
+  Collider := Parent.Collider;
   if not Assigned(Collider) then
     Exit;
 
