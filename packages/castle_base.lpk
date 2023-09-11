@@ -4531,7 +4531,7 @@ See https://castle-engine.io/license.php for details.
       </Item1106>
       <Item1107>
         <Filename Value="../src/behaviors/navigation/modular/modules/inair3dcontrol.pas"/>
-        <UnitName Value="inair3dcontrol"/>
+        <UnitName Value="InAir3DControl"/>
       </Item1107>
     </Files>
     <CompatibilityMode Value="True"/>
