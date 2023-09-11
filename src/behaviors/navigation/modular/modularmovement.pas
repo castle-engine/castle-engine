@@ -161,6 +161,8 @@ type
     FForwardInputAxis: TCastleInputAxis;
     FSidewayInputAxis: TCastleInputAxis;
     FInputJump: TInputShortcut;
+    FIsFirstJumpingFrame: Boolean;
+    FIsPlayerOnGround: Boolean;
 
     FBeforeMovementUpdateEventListener: TModularMovementEventList;
     FAfterMovementUpdateEventListener: TModularMovementEventList;
@@ -174,7 +176,7 @@ type
     function GetDirectionFromInput: TVector3; virtual;
 
     { Checks player is on ground called in Update() }
-    function IsPlayerOnGround(const PlayerRigidBody: TCastleRigidBody;
+    function CheckIsPlayerOnGround(const PlayerRigidBody: TCastleRigidBody;
       const PlayerCollider: TCastleCollider): Boolean; virtual;
 
     { Checks input, is player on ground, creates TModularMovementState and calls
@@ -191,6 +193,9 @@ type
 
     procedure AddAfterMovementUpdateListener(const EventCallback: TModularMovementEvent);
     procedure RemoveAfterMovementUpdateListener(const EventCallback: TModularMovementEvent);
+
+    property IsFirstJumpingFrame: Boolean read FIsFirstJumpingFrame;
+    property IsPlayerOnGround: Boolean read FIsPlayerOnGround;
   published
     { Move forward/backward input axis }
     property ForwardInputAxis: TCastleInputAxis read FForwardInputAxis;
@@ -388,7 +393,7 @@ begin
     Result := Result + Vector3(0, 1, 0);
 end;
 
-function TModularMovement.IsPlayerOnGround(
+function TModularMovement.CheckIsPlayerOnGround(
   const PlayerRigidBody: TCastleRigidBody;
   const PlayerCollider: TCastleCollider): Boolean;
 var
@@ -501,7 +506,7 @@ begin
   if not Assigned(Collider) then
     Exit;
 
-  IsOnGroundBool := IsPlayerOnGround(RBody, Collider);
+  IsOnGroundBool := CheckIsPlayerOnGround(RBody, Collider);
 
   { Get all directions }
   InputDirection := GetDirectionFromInput;
@@ -537,6 +542,8 @@ begin
          (TAbstractMovementModule(Beh).Exists) then
         TAbstractMovementModule(Beh).UpdateMovement(MovementState);
     end;
+
+    FIsPlayerOnGround := MovementState.IsPlayerOnGround;
 
     FAfterMovementUpdateEventListener.ExecuteAll(Self, MovementState);
   finally
