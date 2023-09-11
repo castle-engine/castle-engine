@@ -614,7 +614,7 @@ begin
         recreate joint }
       SetConnectedEvents;
 
-      FConnectedRigidBody := FConnected.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+      FConnectedRigidBody := FConnected.RigidBody;
       if FConnectedRigidBody <> nil then
       begin
         SetConnectedRigidBodyEvents;
@@ -762,7 +762,7 @@ begin
   Parent.AddNotificationBeforeBehaviorRemove(
     {$ifdef FPC}@{$endif} OnBeforeParentTransfromRemoveBehavior, TCastleRigidBody);
 
-  FParentRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  FParentRigidBody := Parent.RigidBody;
   if FParentRigidBody <> nil then
   begin
     SetParentRigidBodyEvents;

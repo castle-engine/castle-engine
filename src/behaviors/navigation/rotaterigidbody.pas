@@ -59,7 +59,7 @@ begin
   if FocusedContainer = nil then
     Exit;
 
-  RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  RBody := Parent.RigidBody;
   if RBody = nil then
     Exit;
 

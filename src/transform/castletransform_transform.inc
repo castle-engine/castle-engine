@@ -3061,12 +3061,10 @@ end;
 
 procedure TCastleTransform.UpdateCollidersWorldScale;
 var
-  C: TCastleCollider;
   T: TCastleTransform;
 begin
-  C := FindBehavior(TCastleCollider) as TCastleCollider;
-  if C <> nil then
-    C.UpdateWorldScale;
+  if Collider <> nil then
+    Collider.UpdateWorldScale;
 
   for T in Self do
     T.UpdateCollidersWorldScale;
@@ -3688,8 +3686,6 @@ begin
 end;
 
 procedure TCastleTransform.ChangedTransformCore(const UpdatePhysicsTransform: Boolean);
-var
-  RBody: TCastleRigidBody;
 begin
   FTransformationValid := false;
   FWorldTransformationValid := false;
@@ -3697,10 +3693,9 @@ begin
 
   if (FWorld <> nil) and (FWorld.EnablePhysics) and UpdatePhysicsTransform then
   begin
-    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if (RBody <> nil) and
-       (not RBody.DuringSettingTransformationFromPhysicsEngine) then
-      RBody.SetWorldTransformation(WorldTransform);
+    if (RigidBody <> nil) and
+       (not RigidBody.DuringSettingTransformationFromPhysicsEngine) then
+      RigidBody.SetWorldTransformation(WorldTransform);
   end;
 
   ChangedTransform;
@@ -4397,16 +4392,13 @@ begin
 end;
 
 procedure TCastleTransform.SetExists(const Value: Boolean);
-var
-  RBody: TCastleRigidBody;
 begin
   if FExists <> Value then
   begin
     FExists := Value;
     UpdateExistsInRoot;
 
-    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if (RBody <> nil) and RBody.Exists then
+    if (RigidBody <> nil) and RigidBody.Exists then
     begin
       if FLastExistsChangeFrameId = TFramesPerSecond.FrameId then
         WritelnWarning('%s:%s: The existence of this TCastleTransform changed multiple times in a single frame and it uses physics (has TCastleRigidBody and TCastleCollider behaviors). ' +
@@ -4445,15 +4437,12 @@ begin
 end;
 
 procedure TCastleTransform.ExistsInRootChanged;
-var
-  RBody: TCastleRigidBody;
 begin
   { Update rigid body existence when ExistsInRoot changes }
   if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) then
   begin
-    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if RBody <> nil then
-      RBody.UpdateExist;
+    if RigidBody <> nil then
+      RigidBody.UpdateExist;
   end;
 end;
 
