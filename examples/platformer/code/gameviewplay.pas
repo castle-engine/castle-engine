@@ -76,7 +76,6 @@ type
 
     { Player abilities }
     PlayerCanDoubleJump: Boolean;
-    WasDoubleJump: Boolean;
     PlayerCanShot: Boolean;
     PlayerCollectedCoins: Integer;
     PlayerHitPoints: Integer;
@@ -444,26 +443,26 @@ begin
   if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
   begin
     Velocity := MovementState.RigidBody.LinearVelocity;
-    { We get here 20 because vertical velocity calculated by physics engine when
-      player is on platform have no 0 but some small values to up and down sometimes
-      It can fail when the player goes uphill (will set PlayerJump animation) or down
-      will set PlayerFall animation }
-    if (not MovementState.IsPlayerOnGround) and (Velocity.Y > 20) then
+    if (not MovementState.IsPlayerOnGround) and (Velocity.Y > 0) then
     begin
+      //WritelnLog('jump');
       if ScenePlayer.CurrentAnimation.X3DName <> 'jump' then
         ScenePlayer.PlayAnimation('jump', true)
     end else
-    if (not MovementState.IsPlayerOnGround) and (Velocity.Y < -20) then
+    if (not MovementState.IsPlayerOnGround) then
     begin
+      //WritelnLog('fall');
       if ScenePlayer.CurrentAnimation.X3DName <> 'fall' then
         ScenePlayer.PlayAnimation('fall', true)
     end else
       if Abs(Velocity.X) > 1 then
       begin
+        //WritelnLog('walk');
         if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
           ScenePlayer.PlayAnimation('walk', true);
       end else
       begin
+        //WritelnLog('idle');
         if ScenePlayer.CurrentAnimation.X3DName <> 'idle' then
           ScenePlayer.PlayAnimation('idle', true);
       end;
