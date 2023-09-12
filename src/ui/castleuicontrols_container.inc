@@ -96,6 +96,7 @@
     FMouseLookControl: TCastleUserInterface;
     FMouseLookStarted: Boolean;
     FMouseLookControlFreeObserver: TFreeNotificationObserver;
+    FLastUpdateMouseWheelDirection: TMouseWheelDirection;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
@@ -372,6 +373,10 @@
     procedure StartMouseDrag;
     procedure StopMouseDrag;
     function MouseDragStarted: Boolean;
+
+    { Infromation about mouse wheel move direction from last update }
+    property LastUpdateMouseWheelDirection: TMouseWheelDirection
+      read FLastUpdateMouseWheelDirection;
 
     { Currently pressed mouse buttons. When this changes, you're always
       notified by @link(OnPress) or @link(OnRelease) events.
@@ -1555,6 +1560,9 @@ begin
   UpdateMouseDrag;
 
   if Assigned(OnUpdate) then OnUpdate(Self);
+
+  // reset last update mouse wheel direction
+  FLastUpdateMouseWheelDirection := mwNone;
 end;
 
 function TCastleContainer.EventPress(const Event: TInputPressRelease): boolean;
@@ -1631,6 +1639,11 @@ begin
       At least we will not crash. }
     if (I < Controls.Count) and RecursivePress(Controls[I]) then
       Exit(true);
+
+  { set last update mouse wheel direction used by behaviors to get information
+    about mouse scroll movement }
+  if Event.EventType = itMouseWheel then
+    FLastUpdateMouseWheelDirection := Event.MouseWheel;
 
   { pass to container event }
   if Assigned(OnPress) then
