@@ -31,7 +31,7 @@ type
 
     function CameraPositionInitial(out TargetWorldPos: TVector3): TVector3;
 
-    { Update camera, to avoid having something collidable between camera position and AvatarTarget.
+    { Update camera, to avoid having something collidable between camera position and Target.
       Note that CameraDir doesn't have to be normalized. }
     procedure FixCameraForCollisions(var CameraPos: TVector3; const CameraDir: TVector3);
 
