@@ -23,7 +23,8 @@ uses Classes,
   CastleKeysMouse, CastleViewport, CastleScene, CastleSceneCore, CastleVectors,
   CastleTransform, CastleSoundEngine, X3DNodes,
   GameEnemy, GameFallingObstacle, GameDeadlyObstacle, GameMovingPlatform, ModularMovement,
-  Platformer2DInAirControl, Platformer2DWalkSupport, DoubleJumpSupport, AnimationTrigger;
+  Platformer2DInAirControl, Platformer2DWalkSupport, DoubleJumpSupport, AnimationTrigger,
+  CastleInputAxis;
 
 type
   TLevelBounds = class (TComponent)
@@ -137,6 +138,8 @@ type
     function InputRight: Boolean;
     function InputJump: Boolean;
     function InputShot: Boolean;
+
+    procedure TouchScreenMove(const Sender: TCastleInputAxis; var Value: Single);
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -285,6 +288,37 @@ begin
     { Right mouse button, or 2 fingers, are held. }
     (buttonRight in Container.MousePressed) or
     (Container.TouchesCount >= 2);
+end;
+
+procedure TViewPlay.TouchScreenMove(const Sender: TCastleInputAxis;
+  var Value: Single);
+var
+  LValue, RValue: Single;
+  I: Integer;
+begin
+  { Note: if we would not need to support multi-touch (and only wanted
+    to check 1st finger) then we would use simpler "Container.MousePosition"
+    instead of "Container.TouchesCount", "Container.Touches[..].Position". }
+  LValue := 0;
+  RValue := 0;
+  if buttonLeft in Container.MousePressed then
+  begin
+    for I := 0 to Container.TouchesCount - 1 do
+    begin
+      { Check only the lower part of the screen }
+      if Container.Touches[I].Position.Y < Container.Height * 0.5 then
+      begin
+        if Container.Touches[I].Position.X < Container.Width * 0.5 then
+          LValue := -1.0
+        else
+        if Container.Touches[I].Position.X >= Container.Width * 0.5 then
+          RValue := 1.0;
+      end;
+    end;
+    { When we touch left and right part of the window at the same time there is no
+      movement }
+    Value := LValue + RValue;
+  end;
 end;
 
 procedure TViewPlay.ConfigurePlayerPhysics(
@@ -681,6 +715,7 @@ begin
   ConfigurePlayerAbilities(ScenePlayer);
 
   ScenePlayer.AddAfterUpdateListener(@AfterPlayerMovementUpdate);
+  PlayerModularMovement.SidewayInputAxis.OnUpdate := @TouchScreenMove;
 
   ConfigureBulletSpriteScene;
 
