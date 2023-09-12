@@ -680,7 +680,6 @@ begin
 
   ConfigurePlayerAbilities(ScenePlayer);
 
-  //PlayerModularMovement.AddAfterMovementUpdateListener(@AfterMovementUpdate);
   ScenePlayer.AddAfterUpdateListener(@AfterPlayerMovementUpdate);
 
   ConfigureBulletSpriteScene;
