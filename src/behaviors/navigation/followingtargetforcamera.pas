@@ -466,7 +466,7 @@ procedure TFollowingTargetForCamera.Update(const SecondsPassed: Single;
   end;
 
 begin
-  if (Target = nil) or (CastleApplicationMode <> appRunning) then
+  if (Target = nil) or (Camera = nil) or (CastleApplicationMode <> appRunning) then
     Exit;
 
   if not FInitialised then
