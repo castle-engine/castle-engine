@@ -9,7 +9,9 @@ uses
 type
 
   { Animation trigger for TModularMovement. Changes animation by using
-    TModularMovementState }
+    TModularMovementState. It's very simple class in almost all real games
+    you need implement your own animation triger or use TCastleTransform.AfterUpdateListener
+    and check some module state like in platformer example. }
   TAnimationTrigger = class(TAbstractMovementModule)
   strict private
     FIdleAnimation: String;
