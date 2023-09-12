@@ -76,6 +76,9 @@ type
   { Type of input, for TInputShortcut.Group. }
   TInputGroup = (igLocal, igBasic, igItems, igOther);
   TInputGroupNotLocal = igBasic..High(TInputGroup);
+  TInputShortcut = class;
+  TOnIsPressedCheckEvent = procedure (const Sender: TInputShortcut;
+    var IsPressed: Boolean) of object;
 
   { A keyboard and/or mouse shortcut for activating some action.
 
@@ -139,6 +142,8 @@ type
     { Index of InputsAll. For now this is useful only for sorting,
       to decide order when GroupOrder is equal between two items. }
     Index: Integer;
+
+    FOnIsPressedCheck: TOnIsPressedCheckEvent;
 
     procedure SetKey1(const Value: TKey);
     procedure SetKey2(const Value: TKey);
@@ -309,6 +314,9 @@ type
     property Character: Char read GetCharacter write SetCharacter;
       deprecated 'use KeyString';
     {$endif}
+    { Adds ability to use other things as pressed like finger touches }
+    property OnIsPressedCheck: TOnIsPressedCheckEvent read FOnIsPressedCheck write
+      FOnIsPressedCheck;
   published
     { TODO: We should implement "stored" to store one set (defaults). }
 
@@ -639,7 +647,12 @@ end;
 function TInputShortcut.IsPressed(
   const Pressed: TKeysPressed;
   const MousePressed: TCastleMouseButtons): boolean;
+var
+  PressedByCallback: Boolean;
 begin
+  PressedByCallback := false;
+  if Assigned(FOnIsPressedCheck) then
+    FOnIsPressedCheck(Self, PressedByCallback);
   Result :=
     ( (Pressed <> nil) and (Pressed.Keys[Key1] or
                             Pressed.Keys[Key2] or
@@ -651,7 +664,8 @@ begin
     ( MouseButton2Use and
       (MouseButton2 in MousePressed) and
       (ModifiersDown(Pressed) * MouseButton2CheckModifiers = MouseButton2Modifiers)
-    );
+    ) or
+    PressedByCallback;
 end;
 
 {$ifndef CASTLE_STRICT_CLI}
