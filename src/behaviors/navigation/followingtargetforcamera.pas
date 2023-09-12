@@ -482,10 +482,14 @@ begin
 
   if ZoomEnabled then
   begin
-    if FocusedContainer.LastUpdateMouseWheelDirection = mwUp then
+    if InputZoomIn.IsPressed(FocusedContainer) or
+      ((FocusedContainer.LastUpdateMouseWheelDirection <> mwNone) and (
+        InputZoomIn.IsMouseWheel(FocusedContainer.LastUpdateMouseWheelDirection))) then
       Zoom(1)
     else
-    if FocusedContainer.LastUpdateMouseWheelDirection = mwDown then
+      if InputZoomOut.IsPressed(FocusedContainer) or
+        ((FocusedContainer.LastUpdateMouseWheelDirection <> mwNone) and (
+          InputZoomOut.IsMouseWheel(FocusedContainer.LastUpdateMouseWheelDirection))) then
       Zoom(-1);
   end;
 
