@@ -108,11 +108,7 @@ type
     procedure PlayerCollisionExit(const CollisionDetails: TPhysicsCollisionDetails);
     procedure ConfigureBulletSpriteScene;
 
-    procedure UpdatePlayerForModularMovement(const SecondsPassed: Single;
-      var HandleInput: Boolean);
-
     procedure Shot(BulletOwner: TComponent; const Origin, Direction: TVector3);
-
     procedure AfterPlayerMovementUpdate(Sender: TObject);
 
     { Coins support }
@@ -127,26 +123,29 @@ type
     procedure CollectKey;
     procedure ResetCollectedKeys;
 
+    { Special animation play function to play an animation ant then loop
+      another one (specified in AnimationNameToLoop) }
     procedure PlayAnimationOnceAndLoop(Scene: TCastleScene;
       const AnimationNameToPlayOnce, AnimationNameToLoop: String);
     procedure OnAnimationStop(const Scene: TCastleSceneCore;
       const Animation: TTimeSensorNode);
 
-    { Check pressed keys and mouse/touch, to support both keyboard
+    { Check input for shot via keys and mouse/touch, to support both keyboard
       and mouse and touch (on mobile) navigation. }
-    function InputLeft: Boolean;
-    function InputRight: Boolean;
-    function InputJump: Boolean;
     function InputShot: Boolean;
-
+    { Callback for TCastleInputAxis for moving player on touch screen. }
     procedure TouchScreenMove(const Sender: TCastleInputAxis; var Value: Single);
+    { Callback for TInputShortcut for player jumping on touch screen. }
     procedure TouchScreenJump(const Sender: TInputShortcut; var IsPressed: Boolean);
-
   public
     constructor Create(AOwner: TComponent); override;
+    { Procedure called after level is loaded }
     procedure Start; override;
+    { Procedure called before level is closed }
     procedure Stop; override;
+    { Procedure called after this view becomes top one }
     procedure Resume; override;
+    { Procedure called on every frame }
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
 
@@ -228,58 +227,6 @@ constructor TViewPlay.Create(AOwner: TComponent);
 begin
   inherited;
   DesignUrl := 'castle-data:/gameviewplay.castle-user-interface';
-end;
-
-function TViewPlay.InputLeft: Boolean;
-var
-  I: Integer;
-begin
-  Result :=
-    Container.Pressed.Items[keyA] or
-    Container.Pressed.Items[keyArrowLeft];
-
-  { Mouse, or any finger, pressing in left-lower part of the screen.
-
-    Note: if we would not need to support multi-touch (and only wanted
-    to check 1st finger) then we would use simpler "Container.MousePosition"
-    instead of "Container.TouchesCount", "Container.Touches[..].Position". }
-
-  if buttonLeft in Container.MousePressed then
-    for I := 0 to Container.TouchesCount - 1 do
-      if (Container.Touches[I].Position.X < Container.Width * 0.5) and
-         (Container.Touches[I].Position.Y < Container.Height * 0.5) then
-        Exit(true);
-end;
-
-function TViewPlay.InputRight: Boolean;
-var
-  I: Integer;
-begin
-  Result :=
-    Container.Pressed.Items[keyD] or
-    Container.Pressed.Items[keyArrowRight];
-
-  { Mouse, or any finger, pressing in left-lower part of the screen. }
-  if buttonLeft in Container.MousePressed then
-    for I := 0 to Container.TouchesCount - 1 do
-      if (Container.Touches[I].Position.X >= Container.Width * 0.5) and
-         (Container.Touches[I].Position.Y < Container.Height * 0.5) then
-        Exit(true);
-end;
-
-function TViewPlay.InputJump: Boolean;
-var
-  I: Integer;
-begin
-  Result :=
-    Container.Pressed.Items[keyW] or
-    Container.Pressed.Items[keyArrowUp];
-
-  { Mouse, or any finger, pressing in upper part of the screen. }
-  if buttonLeft in Container.MousePressed then
-    for I := 0 to Container.TouchesCount - 1 do
-      if (Container.Touches[I].Position.Y >= Container.Height * 0.5) then
-        Exit(true);
 end;
 
 function TViewPlay.InputShot: Boolean;
@@ -419,36 +366,6 @@ begin
   BulletSpriteScene := TCastleScene.Create(FreeAtStop);
   BulletSpriteScene.URL := 'castle-data:/bullet/particle_darkGrey.png';
   BulletSpriteScene.Scale := Vector3(0.5, 0.5, 0.5);
-end;
-
-procedure TViewPlay.UpdatePlayerForModularMovement(const SecondsPassed: Single;
-      var HandleInput: Boolean);
-begin
-  if not ScenePlayer.Exists then
-    Exit;
-
-  { Here we use horizontal velocity to change player scene direction to moving
-    direction. }
-  if PlayerRigidBody.LinearVelocity.X < -1 then
-    ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else if PlayerRigidBody.LinearVelocity.X > 1 then
-    ScenePlayer.Scale := Vector3(1, 1, 1);
-
-  if PlayerCanShot then
-  begin
-    if InputShot then
-    begin
-      if WasInputShot = false  then
-      begin
-        SoundEngine.Play(NamedSound('Shot'));
-        WasInputShot := true;
-
-        Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
-          Vector3(ScenePlayer.Scale.X, 1, 0));
-      end;
-    end else
-      WasInputShot := false;
-  end;
 end;
 
 procedure TViewPlay.Shot(BulletOwner: TComponent; const Origin,
@@ -644,6 +561,7 @@ var
 begin
   inherited;
 
+  { Physics layers are configured in editor but you can also make it in that way. }
   {ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,1] := true; // ground collide with player
   ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,0] := true; // ground collide with ground
   ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,2] := true; // ground collide with enemies
@@ -682,6 +600,7 @@ begin
     end;
   end;
 
+  { Configure enemies }
   Enemies := TEnemyList.Create(true);
   EnemiesRoot := DesignedComponent('Enemies') as TCastleTransform;
   for I := 0 to EnemiesRoot.Count - 1 do
@@ -699,6 +618,7 @@ begin
     Enemies.Add(Enemy);
   end;
 
+  { Configure falling obstacles }
   FallingObstacles := TFallingObstaclesList.Create(true);
   FallingObstaclesRoot := DesignedComponent('FallingObstacles') as TCastleTransform;
   for I := 0 to FallingObstaclesRoot.Count - 1 do
@@ -712,6 +632,7 @@ begin
     FallingObstacles.Add(FallingObstacle);
   end;
 
+  { Configure deadly obstacles }
   DeadlyObstacles := TDeadlyObstaclesList.Create(true);
   DeadlyObstaclesRoot := DesignedComponent('DeadlyObstacles') as TCastleTransform;
   for I := 0 to DeadlyObstaclesRoot.Count - 1 do
@@ -730,10 +651,13 @@ begin
 
   ConfigurePlayerAbilities(ScenePlayer);
 
+  { Add player after update listener to set animations and sounds }
   ScenePlayer.AddAfterUpdateListener(@AfterPlayerMovementUpdate);
+  { Support for touch screen by TCastleInputAxis and TInputShortcut callbacks }
   PlayerModularMovement.SidewayInputAxis.OnUpdate := @TouchScreenMove;
   PlayerModularMovement.InputJump.OnIsPressedCheck := @TouchScreenJump;
 
+  { Preparation of bullet scene }
   ConfigureBulletSpriteScene;
 
   { Play game music }
@@ -788,6 +712,7 @@ begin
 
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
+  { Should we move camera with player }
   if CheckboxCameraFollow.Checked then
   begin
     ViewHeight := MainViewport.Camera.Orthographic.EffectiveRect.Height;
@@ -797,7 +722,7 @@ begin
     CamPos.X := ScenePlayer.Translation.X;
     CamPos.Y := ScenePlayer.Translation.Y;
 
-    { Camera always stay on level }
+    { Keep the camera inside the level }
     if CamPos.Y - ViewHeight / 2 < LevelBounds.Down then
        CamPos.Y := LevelBounds.Down + ViewHeight / 2;
 
@@ -813,7 +738,22 @@ begin
     MainViewport.Camera.Translation := CamPos;
   end;
 
-  UpdatePlayerForModularMovement(SecondsPassed, HandleInput);
+  { Check player should shot }
+  if PlayerCanShot and ScenePlayer.Exists and PlayerRigidBody.Exists then
+  begin
+    if InputShot then
+    begin
+      if WasInputShot = false  then
+      begin
+        SoundEngine.Play(NamedSound('Shot'));
+        WasInputShot := true;
+
+        Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
+          Vector3(ScenePlayer.Scale.X, 1, 0));
+      end;
+    end else
+      WasInputShot := false;
+  end;
 end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
