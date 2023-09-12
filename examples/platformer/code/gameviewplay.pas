@@ -24,7 +24,7 @@ uses Classes,
   CastleTransform, CastleSoundEngine, X3DNodes,
   GameEnemy, GameFallingObstacle, GameDeadlyObstacle, GameMovingPlatform, ModularMovement,
   Platformer2DInAirControl, Platformer2DWalkSupport, DoubleJumpSupport, AnimationTrigger,
-  CastleInputAxis;
+  CastleInputAxis, CastleInputs;
 
 type
   TLevelBounds = class (TComponent)
@@ -140,6 +140,7 @@ type
     function InputShot: Boolean;
 
     procedure TouchScreenMove(const Sender: TCastleInputAxis; var Value: Single);
+    procedure TouchScreenJump(const Sender: TInputShortcut; var IsPressed: Boolean);
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -319,6 +320,21 @@ begin
       movement }
     Value := LValue + RValue;
   end;
+end;
+
+procedure TViewPlay.TouchScreenJump(const Sender: TInputShortcut;
+  var IsPressed: Boolean);
+var
+  I: Integer;
+begin
+  { Mouse, or any finger, pressing in upper part of the screen. }
+  if buttonLeft in Container.MousePressed then
+    for I := 0 to Container.TouchesCount - 1 do
+      if (Container.Touches[I].Position.Y >= Container.Height * 0.5) then
+      begin
+        IsPressed := true;
+        Exit;
+      end;
 end;
 
 procedure TViewPlay.ConfigurePlayerPhysics(
@@ -716,6 +732,7 @@ begin
 
   ScenePlayer.AddAfterUpdateListener(@AfterPlayerMovementUpdate);
   PlayerModularMovement.SidewayInputAxis.OnUpdate := @TouchScreenMove;
+  PlayerModularMovement.InputJump.OnIsPressedCheck := @TouchScreenJump;
 
   ConfigureBulletSpriteScene;
 
