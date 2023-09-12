@@ -7,6 +7,10 @@ uses
   CastleVectors;
 
 type
+  TCastleInputAxis = class;
+  TAxisUpdateEvent = procedure (const Sender: TCastleInputAxis;
+    var Value: Single) of object;
+
   TMouseLookAxis = (
     mlaHorizontal,
     mlaVertical);
@@ -38,6 +42,8 @@ type
     FMouseDragMultiplier: Single;
 
     FMultiplier: Single;
+
+    FOnUpdate: TAxisUpdateEvent;
   public
     const
       DefaultMultiplier = 1.0;
@@ -77,6 +83,8 @@ type
       write FMouseDragMultiplier;
     { General value multiplier }
     property Multiplier: Single read FMultiplier write FMultiplier;
+    { callback to change returned value when standard keys, mouse is not used. }
+    property OnUpdate: TAxisUpdateEvent read FOnUpdate write FOnUpdate;
   end;
 
 
@@ -136,7 +144,9 @@ begin
           Result := Container.MouseDragDelta.Y * MouseDragMultiplier;
       end;
       WritelnLog(Container.MouseDragDelta.ToString);
-    end;
+    end else
+    if Assigned (FOnUpdate) then
+      FOnUpdate(Self, Result);
   end;
 
   Result := Result * Multiplier;
