@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, ModularMovement, CastleTransform, CastleBehaviors,
-  CastleVectors, CastleClassUtils, CastleScene;
+  CastleVectors, CastleClassUtils, CastleScene, CastleInputs;
 
 type
 
@@ -24,6 +24,10 @@ type
     FImmediatelyFixBlockedCamera: Boolean;
     FInitialised: Boolean;
     FMouseLookSensitivity: Single;
+    FZoomEnabled: Boolean;
+    FInputZoomIn: TInputShortcut;
+    FInputZoomOut: TInputShortcut;
+    FCameraDistanceChangeSpeed: Single;
 
     function CameraPositionInitial(out TargetWorldPos: TVector3): TVector3;
 
@@ -52,6 +56,7 @@ type
     function Camera: TCastleCamera;
 
     procedure ProcessMouseLookDelta(const Delta: TVector2);
+    function Zoom(const Factor: Single): Boolean;
   protected
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
@@ -66,6 +71,7 @@ type
         Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
       DefaultRadius = 0.25;
       DefaultMouseLookSensitivity = 0.01;
+      DefaultCameraDistanceChangeSpeed = 1;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -140,9 +146,23 @@ type
     property ImmediatelyFixBlockedCamera: Boolean read FImmediatelyFixBlockedCamera write FImmediatelyFixBlockedCamera
       default false;
 
+    { Zooming makes camera move closer/further from target. }
+    property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
+
     property MouseLookSensitivity: Single read FMouseLookSensitivity write FMouseLookSensitivity
       {$ifdef FPC}default DefaultMouseLookSensitivity{$endif};
 
+    { Bring camera closer to the model. Works only if @link(ZoomEnabled).
+      By deafult mwUp (mouse wheel up). }
+    property InputZoomIn: TInputShortcut read FInputZoomIn;
+
+    { Bring camera further from the model. Works only if @link(ZoomEnabled).
+      By deafult mwDown (mouse wheel down). }
+    property InputZoomOut: TInputShortcut read FInputZoomOut;
+
+    { Speed with which InputZoomIn, InputZoomOut can change DistanceToTarget. }
+    property CameraDistanceChangeSpeed: Single read FCameraDistanceChangeSpeed write FCameraDistanceChangeSpeed
+      {$ifdef FPC}default DefaultCameraDistanceChangeSpeed{$endif};
   end;
 
 implementation
@@ -164,6 +184,18 @@ begin
   FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
   FRadius :=DefaultRadius;
   FMouseLookSensitivity := DefaultMouseLookSensitivity;
+  FZoomEnabled := true;
+  FCameraDistanceChangeSpeed := DefaultCameraDistanceChangeSpeed;
+
+  FInputZoomIn := TInputShortcut.Create(Self);
+   InputZoomIn.Assign(keyNone, keyNone, '', false, buttonLeft, mwUp);
+   InputZoomIn.SetSubComponent(true);
+   InputZoomIn.Name := 'InputZoomIn';
+
+  FInputZoomOut := TInputShortcut.Create(Self);
+   InputZoomOut.Assign(keyNone, keyNone, '', false, buttonRight, mwDown);
+   InputZoomOut.SetSubComponent(true);
+   InputZoomOut.Name := 'InputZoomOut';
 end;
 
 procedure TFollowingTargetForCamera.Init;
@@ -361,6 +393,28 @@ begin
   end;
 end;
 
+function TFollowingTargetForCamera.Zoom(const Factor: Single): Boolean;
+
+  procedure CameraDistanceChange(DistanceChange: Single);
+  begin
+    DistanceChange := DistanceChange * CameraDistanceChangeSpeed;
+    DistanceToTarget := Clamped(DistanceToTarget + DistanceChange,
+      MinDistanceToTarget, MaxDistanceToTarget);
+
+    { The actual change in Camera.Position, caused by changing DistanceToAvatarTarget,
+      will be done smoothly in UpdateCamera. }
+  end;
+
+begin
+  Result := false;
+  //if not Valid then Exit;
+  if Target <> nil then
+  begin
+    CameraDistanceChange(-Factor);
+    Result := true;
+  end;
+end;
+
 procedure TFollowingTargetForCamera.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 
@@ -410,6 +464,7 @@ procedure TFollowingTargetForCamera.Update(const SecondsPassed: Single;
 
     Camera.SetView(CameraPos, CameraDir, CameraUp);
   end;
+
 begin
   if (Target = nil) or (CastleApplicationMode <> appRunning) then
     Exit;
@@ -423,6 +478,15 @@ begin
   if not FocusedContainer.MouseLookLastDelta.IsPerfectlyZero then
   begin
     ProcessMouseLookDelta(FocusedContainer.MouseLookLastDelta);
+  end;
+
+  if ZoomEnabled then
+  begin
+    if FocusedContainer.LastUpdateMouseWheelDirection = mwUp then
+      Zoom(1)
+    else
+    if FocusedContainer.LastUpdateMouseWheelDirection = mwDown then
+      Zoom(-1);
   end;
 
   UpdateCamera;
