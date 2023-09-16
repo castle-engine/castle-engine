@@ -106,7 +106,7 @@
     strict private FFdMode: TSFStringEnum;
     { Internal wrapper for property @code(Mode). This wrapper API may change, we advise to access simpler @code(Mode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMode: TSFStringEnum read FFdMode;
-    { How to interpret the vertexes: as a set of strips, loops, or just pairs of vertexes. See possible @link(TLineMode) values for details. }
+    { How to interpret the vertexes: as a set of strips (connected line segments), loops (connected line segments with additional segment to form a loop), or just pairs of vertexes (each pair defines a line segment). See possible @link(TLineMode) values for details. }
     property Mode: TLineMode read GetMode write SetMode;
 
 {$endif read_interface}
