@@ -502,6 +502,12 @@ type
       ControlsTree knowledge.
       Returns nil if no parent. }
     function NonVisualComponentParent(const C: TCastleComponent): TCastleComponent;
+
+    { Currently selected transformation, chosen more aggressively than just
+      SelectedTransform. Even selecting a behavior makes the parent current.
+      This way e.g. VisualizeTransformSelected also shows
+      the transformation of selected behavior. }
+    function CurrentTransform: TCastleTransform;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -4654,6 +4660,14 @@ begin
   ControlsTreeSelectionChanged(nil);
 end;
 
+function TDesignFrame.CurrentTransform: TCastleTransform;
+begin
+  if SelectedComponent is TCastleBehavior then
+    Result := TCastleBehavior(SelectedComponent).Parent
+  else
+    Result := SelectedTransform;
+end;
+
 procedure TDesignFrame.UpdateSelectedControl;
 
   procedure InitializeCollectionFormEvents(InspectorType: TInspectorType);
@@ -4757,11 +4771,7 @@ begin
     end;
 
     V := SelectedViewport;
-    if SelectedComponent is TCastleBehavior then
-      { Highlight using VisualizeTransformSelected also transformation of selected behavior }
-      T := TCastleBehavior(SelectedComponent).Parent
-    else
-      T := SelectedTransform;
+    T := CurrentTransform;
     SetEnabledVisible(PanelLayoutTransform, T <> nil);
 
     (*
@@ -5611,7 +5621,7 @@ procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);
 var
   T: TCastleTransform;
 begin
-  T := SelectedTransform;
+  T := CurrentTransform;
   if T <> nil then
   begin
     T.Identity;
