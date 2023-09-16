@@ -717,11 +717,11 @@ type
     function ValueIsStreamed: Boolean; virtual;
 
     { Override to add information that should be visible at design-time.
-      Call @code(SList.Append) for each new line of information. }
+      Call @code(SList.Add) for each new line of information. }
     procedure DesignerInfo(const SList: TStrings); virtual;
 
     { Override to add warnings that should be visible at design-time.
-      Call @code(SList.Append) for each new warning. }
+      Call @code(SList.Add) for each new warning. }
     procedure DesignerWarnings(const SList: TStrings); virtual;
   end;
 
