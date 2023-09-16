@@ -143,7 +143,7 @@ begin
      (Parent.World.Owner is TCastleViewport) then
   begin
     Viewport := Parent.World.Owner as TCastleViewport;
-    SphereWorldPos1 := FSphere.LocalToWorld(CastleVectors.Vector3(0, 0, 0));
+    SphereWorldPos1 := FSphere.LocalToWorld(TVector3.Zero);
     SphereViewportPos1 := Viewport.PositionFromWorld(SphereWorldPos1);
 
     SphereWorldPos2 := SphereWorldPos1 + CastleVectors.Vector3(0, 1, 0);
