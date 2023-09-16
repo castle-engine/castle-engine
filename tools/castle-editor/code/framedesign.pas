@@ -71,6 +71,7 @@ type
     LabelEventsInfo: TLabel;
     LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
+    MemoInfo: TMemo;
     PanelSpinEditAllowVerticalCentering: TPanel;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
@@ -125,6 +126,7 @@ type
     TabEvents: TTabSheet;
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
+    TabInfo: TTabSheet;
     UpdateObjectInspector: TTimer;
     procedure ActionApiReferenceOfCurrentExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
@@ -426,7 +428,8 @@ type
     function ValidateHierarchy: Boolean;
 
     procedure UpdateSelectedControl;
-    procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
+    { Update whether TabInfo is visible and if yes -- what it contains. }
+    procedure UpdateSelectedInfo;
     { Update anchors shown, based on UI state.
       Updates which buttons are pressed inside 2 TAnchorFrame instances.
       If AllowToHideParentAnchorsFrame, updates also checkbox
@@ -1616,6 +1619,8 @@ begin
   VisualizeTransformSelected.OnGizmoStopDrag := @GizmoStopDrag;
 
   SaveDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+
+  TabInfo.TabVisible := false;
 
   ChangeMode(moTranslate); // most expected default
 
@@ -3777,11 +3782,9 @@ procedure TDesignFrame.PropertyGridModified(Sender: TObject);
       // update also LabelControlSelected
       LabelControlSelected.Caption := 'Selected:' + NL + ComponentCaption(Sel);
 
-      // update also LabelSizeInfo
       if Sel is TCastleUserInterface then
       begin
         SelUI := Sel as TCastleUserInterface;
-        UpdateLabelSizeInfo(SelUI);
         UpdateAnchors(SelUI, true);
       end;
 
@@ -3792,6 +3795,8 @@ procedure TDesignFrame.PropertyGridModified(Sender: TObject);
       if TreeNodeMap.TryGetValue(Sel, SelNode) then
         SelNode.Text := TreeNodeCaption(Sel);
     end;
+
+    UpdateSelectedInfo;
   end;
 
   procedure DoRecordUndo;
@@ -4668,6 +4673,58 @@ begin
     Result := SelectedTransform;
 end;
 
+procedure TDesignFrame.UpdateSelectedInfo;
+var
+  C: TComponent;
+  SListInfo, SListWarnings: TStringList;
+begin
+  C := SelectedComponent;
+  if C is TCastleComponent then
+  begin
+    SListInfo := nil;
+    SListWarnings := nil;
+    try
+      SListInfo := TStringList.Create;
+      SListWarnings := TStringList.Create;
+
+      TCastleComponent(C).DesignerInfo(SListInfo);
+      TCastleComponent(C).DesignerWarnings(SListWarnings);
+
+      if (SListInfo.Count <> 0) or (SListWarnings.Count <> 0) then
+      begin
+        TabInfo.TabVisible := true;
+
+        MemoInfo.Lines.Clear;
+
+        if SListWarnings.Count <> 0 then
+        begin
+          MemoInfo.Lines.Add('Warnings (%d):', [SListWarnings.Count]);
+          MemoInfo.Lines.AddStrings(SListWarnings, false);
+          TabInfo.Caption := Format('Warnings (%d)', [SListWarnings.Count]);
+        end else
+          TabInfo.Caption := 'Info';
+
+        if SListInfo.Count <> 0 then
+        begin
+          if MemoInfo.Lines.Count <> 0 then
+            MemoInfo.Lines.Add('');
+          MemoInfo.Lines.Add('Information:');
+          MemoInfo.Lines.AddStrings(SListInfo, false);
+        end;
+      end else
+      begin
+        TabInfo.TabVisible := false;
+      end;
+    finally
+      FreeAndNil(SListInfo);
+      FreeAndNil(SListWarnings);
+    end;
+  end else
+  begin
+    TabInfo.TabVisible := false;
+  end;
+end;
+
 procedure TDesignFrame.UpdateSelectedControl;
 
   procedure InitializeCollectionFormEvents(InspectorType: TInspectorType);
@@ -4765,10 +4822,7 @@ begin
     UI := SelectedUserInterface;
     SetEnabledVisible(PanelAnchors, UI <> nil);
     if UI <> nil then
-    begin
-      UpdateLabelSizeInfo(UI);
       UpdateAnchors(UI, true);
-    end;
 
     V := SelectedViewport;
     T := CurrentTransform;
@@ -4804,6 +4858,8 @@ begin
   { if selection determines CurrentViewport, update CurrentViewport immediately
     (without waiting for OnUpdate) -- maybe this will be relevant at some point }
   UpdateCurrentViewport;
+
+  UpdateSelectedInfo;
 end;
 
 (*
@@ -6017,38 +6073,6 @@ begin
       Inspector[InspectorType].DefaultItemHeight := H;
   end;
   {$endif}
-end;
-
-procedure TDesignFrame.UpdateLabelSizeInfo(const UI: TCastleUserInterface);
-var
-  RR: TFloatRectangle;
-  S: String;
-begin
-  RR := UI.RenderRectWithBorder;
-  if RR.IsEmpty then
-    S := 'Size: Empty'
-  else
-  begin
-    S := Format(
-      'Effective size: %f x %f' + NL +
-      NL +
-      'Render rectangle (scaled and with anchors):' + NL +
-      '  Left x Bottom: %f x %f' + NL +
-      '  Size: %f x %f',
-      [ UI.EffectiveWidth,
-        UI.EffectiveHeight,
-        RR.Left,
-        RR.Bottom,
-        RR.Width,
-        RR.Height
-      ]);
-  end;
-
-  if (UI.Parent <> nil) and
-     (not UI.Parent.RenderRect.Contains(UI.RenderRectWithBorder)) then
-    S := S + NL + NL + 'WARNING: The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.';
-
-  LabelSizeInfo.Hint := S;
 end;
 
 procedure TDesignFrame.UpdateAnchors(const UI: TCastleUserInterface;

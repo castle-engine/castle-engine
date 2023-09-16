@@ -612,6 +612,7 @@
 
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure DesignerWarnings(const SList: TStrings); override;
     function GetEnumerator: TEnumerator;
 
     {$ifdef FPC}
@@ -619,7 +620,7 @@
     {$endif}
 
     { Does this transform have a collision mesh that TCastleMeshCollider can use.
-      Default implementaion returns @false. }
+      Default implementation returns @false. }
     function HasColliderMesh: Boolean; virtual;
 
     { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
@@ -4352,6 +4353,50 @@ begin
       Parent.Remove(Self);
     if Value <> nil then
       Value.Add(Self);
+  end;
+end;
+
+procedure TCastleTransform.DesignerWarnings(const SList: TStrings);
+
+  { Scale is uniform (all 3 components are ~equal) and all components are > 0. }
+  function ScalePhysicsFriendly(const S: TVector3): Boolean;
+  begin
+    Result :=
+      (S.X > 0) and
+      (S.Y > 0) and
+      (S.Z > 0) and
+      SameValue(S.X, S.Y) and
+      SameValue(S.X, S.Z);
+  end;
+
+var
+  R, C: TCastleBehavior;
+begin
+  inherited;
+  R := FindBehavior(TCastleRigidBody);
+  C := FindBehavior(TCastleCollider);
+
+  if (R <> nil) <> (C <> nil) then
+  begin
+
+    SList.Add('Both TCastleRigidBody and TCastleCollider behaviors are required for physics to affect this component.');
+  end;
+
+  if (R <> nil) and
+     (C <> nil) then
+  begin
+    { physics behaviors set up }
+    if not ScalePhysicsFriendly(Scale) then
+    begin
+      SList.Add('Physics engine only supports a uniform scale: all 3 scale components must be equal and posititive.');
+    end;
+  end else
+  begin
+    { physics behaviors not set up }
+    if FindBehavior(TCastleAbstractJoint) <> nil then
+    begin
+      SList.Add('Physics joint only works if also TCastleRigidBody and TCastleCollider behaviors are present.');
+    end;
   end;
 end;
 

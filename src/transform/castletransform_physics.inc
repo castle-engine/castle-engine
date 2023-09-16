@@ -584,6 +584,7 @@
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure DesignerWarnings(const SList: TStrings); override;
 
     procedure InternalTransformChanged(const TransformChanged: TCastleTransform); override;
 
@@ -2627,6 +2628,13 @@ begin
   inherited;
   if TransformChanged = Mesh then
     MeshChanged;
+end;
+
+procedure TCastleMeshCollider.DesignerWarnings(const SList: TStrings);
+begin
+  inherited;
+  if Mesh = nil then
+    SList.Add('Mesh is unassigned, TCastleMeshCollider effectively doesn''t work');
 end;
 
 { TCastleRigidBody ----------------------------------------------------------- }

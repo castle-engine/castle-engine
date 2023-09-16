@@ -303,6 +303,7 @@
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure DesignerInfo(const SList: TStrings); override;
     procedure LocalRender(const Params: TRenderParams); override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
@@ -1369,6 +1370,13 @@ begin
   end;
 
   inherited;
+end;
+
+procedure TCastleCamera.DesignInfo(const SList: TStrings);
+begin
+  inherited;
+  SList.Append(Format('EffectiveProjectionNear: %f', [EffectiveProjectionNear]));
+  SList.Append(Format('EffectiveProjectionFar: %f', [EffectiveProjectionFar]));
 end;
 
 {$define read_implementation_methods}

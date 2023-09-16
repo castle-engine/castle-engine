@@ -11,7 +11,6 @@ object DesignFrame: TDesignFrame
   TabOrder = 0
   DesignLeft = 403
   DesignTop = 237
-  OnResize = FrameResize
   object SplitterLeft: TSplitter
     Left = 255
     Height = 522
@@ -53,10 +52,10 @@ object DesignFrame: TDesignFrame
       Height = 470
       Top = 52
       Width = 312
-      ActivePage = TabLayout
+      ActivePage = TabInfo
       Align = alClient
       ParentFont = False
-      TabIndex = 1
+      TabIndex = 4
       TabOrder = 0
       object TabBasic: TTabSheet
         Caption = 'Basic'
@@ -102,7 +101,7 @@ object DesignFrame: TDesignFrame
               Left = 8
               Height = 25
               Top = 230
-              Width = 295
+              Width = 294
               BorderSpacing.Top = 8
               Caption = 'Anchor to the same side of Parent'
               OnChange = CheckParentSelfAnchorsEqualChange
@@ -346,6 +345,25 @@ object DesignFrame: TDesignFrame
       object TabAll: TTabSheet
         Caption = 'All'
         ParentFont = False
+      end
+      object TabInfo: TTabSheet
+        Caption = 'Info'
+        ClientHeight = 435
+        ClientWidth = 302
+        object MemoInfo: TMemo
+          Left = 8
+          Height = 419
+          Top = 8
+          Width = 286
+          Align = alClient
+          BorderSpacing.Around = 8
+          Lines.Strings = (
+            'MemoInfo'
+          )
+          ReadOnly = True
+          ScrollBars = ssAutoBoth
+          TabOrder = 0
+        end
       end
     end
     object ButtonApiReferenceForCurrent: TSpeedButton
@@ -1193,32 +1211,32 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object PanelSpinEditAllowVerticalCentering: TPanel
-        Left = 258
-        Height = 28
-        Top = 4
+        Left = 263
+        Height = 38
+        Top = 0
         Width = 63
         AutoSize = True
         BorderSpacing.CellAlignHorizontal = ccaCenter
         BorderSpacing.CellAlignVertical = ccaCenter
         BevelOuter = bvNone
-        ClientHeight = 28
+        ClientHeight = 38
         ClientWidth = 63
         TabOrder = 0
         object SpinEditSnap: TSpinEdit
           AnchorSideLeft.Side = asrBottom
           Left = 0
-          Height = 28
+          Height = 38
           Hint = 'Snap (when moving/resizing UI)'
           Top = 0
           Width = 63
+          MaxValue = 128
           ParentFont = False
           TabOrder = 0
           Value = 10
-          MaxValue = 128
         end
       end
       object ButtonPlayStop: TSpeedButton
-        Left = 353
+        Left = 356
         Height = 38
         Top = 0
         Width = 36
@@ -1236,10 +1254,10 @@ object DesignFrame: TDesignFrame
       end
       object LabelSimulation: TLabel
         AnchorSideTop.Side = asrCenter
-        Left = 419
+        Left = 422
         Height = 38
         Top = 0
-        Width = 62
+        Width = 61
         BorderSpacing.Left = 30
         BorderSpacing.Right = 10
         Caption = 'Physics:'
@@ -1248,7 +1266,7 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
       object ButtonSimulationPlayStop: TSpeedButton
-        Left = 491
+        Left = 493
         Height = 38
         Top = 0
         Width = 36
@@ -1264,7 +1282,7 @@ object DesignFrame: TDesignFrame
         ShowCaption = False
       end
       object ButtonSimulationPause: TSpeedButton
-        Left = 531
+        Left = 533
         Height = 38
         Top = 0
         Width = 36
@@ -1280,7 +1298,7 @@ object DesignFrame: TDesignFrame
         ShowCaption = False
       end
       object LabelViewport: TLabel
-        Left = 603
+        Left = 605
         Height = 38
         Top = 0
         Width = 218

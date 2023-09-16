@@ -313,6 +313,8 @@
     destructor Destroy; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure DesignerInfo(const SList: TStrings); override;
+    procedure DesignerWarnings(const SList: TStrings); override;
     function GetEnumerator: TEnumerator;
     procedure InternalSetContainer(const Value: TCastleContainer); virtual;
 
@@ -2946,6 +2948,52 @@ procedure TCastleUserInterface.InternalSetTooltipExists(const Value: Boolean);
 begin
   if TooltipControl <> nil then
     TooltipControl.Exists := Value;
+end;
+
+procedure TCastleUserInterface.DesignerInfo(const SList: TStrings);
+var
+  RR: TFloatRectangle;
+  AllowResizeWidth, AllowResizeHeight: Boolean;
+  ReasonCannotResize: String;
+begin
+  inherited;
+  RR := RenderRectWithBorder;
+  if RR.IsEmpty then
+  begin
+    SList.Add('Size: Empty');
+  end else
+  begin
+    SList.Add(Format(
+      'Effective size: %f x %f', [
+      EffectiveWidth,
+      EffectiveHeight
+    ]));
+    SList.Add(Format('Render rectangle (scaled and with anchors):' + NL +
+      '  Left x Bottom: %f x %f' + NL +
+      '  Size: %f x %f', [
+      RR.Left,
+      RR.Bottom,
+      RR.Width,
+      RR.Height
+    ]));
+
+    EditorAllowResize(
+      { out } AllowResizeWidth,
+      { out } AllowResizeHeight,
+      { out } ReasonCannotResize);
+    if not (AllowResizeWidth and AllowResizeHeight) then
+    begin
+      SList.Add('Cannot be resized at design-time because of:' + NL + ReasonCannotResize);
+    end;
+  end;
+end;
+
+procedure TCastleUserInterface.DesignerWarnings(const SList: TStrings);
+begin
+  inherited;
+  if (Parent <> nil) and
+     (not Parent.RenderRect.Contains(RenderRectWithBorder)) then
+    SList.Add('The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.');
 end;
 
 {$define read_implementation_methods}
