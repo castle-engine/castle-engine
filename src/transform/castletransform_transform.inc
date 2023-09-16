@@ -2593,18 +2593,9 @@ begin
   begin
     for I := 0 to List.Count - 1 do
       { Ignoring InternalExcludeFromParentBoundingVolume when
-        InternalGizmoBoundingBox <> 0 is a hack,
-        so that when TCastleViewport.ItemsWithGizmosBoundingBox is called,
-        then TGizmoScene box is taken into account.
-        Otherwise 2D projection in editor could cut off the TGizmoScene.
-
-        Testcase:
-        - 2d viewport
-        - add a few TCastleImageTransform with some image loaded with Z = -1000.
-        - add TCastleTransform with translation 0,0,0, select it
-        - -> the gizmo of it has to be visible, even though everything visible
-          (excluding gizmos) is at Z = -1000.
-      }
+        InternalGizmoBoundingBox <> 0 is a hack, so that when TCastleViewport.ItemsWithGizmosBoundingBox is called,
+        then all gizmos are taken into account (except camera gizmos
+        -- camera adds a hack on top of this in TCastleCamera.LocalBoundingBox). }
       if not (List[I].InternalExcludeFromParentBoundingVolume and
               (InternalGizmoBoundingBox = 0)) then
         Result.Include(List[I].BoundingBox);

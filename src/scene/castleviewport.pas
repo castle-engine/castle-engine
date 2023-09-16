@@ -284,14 +284,38 @@ type
       And TInternalCastleEditorGizmo uses InternalExcludeFromParentBoundingVolume
       on a subset of its stuff, see TInternalCastleEditorGizmo.Create
       implementation.
-      So Items.BoundingBox counts e.g. the gizmo invisible "select box",
-      but not specialized lights or cameras line visualizations.
+      So e.g. Items.BoundingBox
+      - counts the gizmo invisible "select box"
+        inside TInternalCastleEditorGizmo,
+      - does not count specialized lights or cameras line visualizations
+        inside TInternalCastleEditorGizmo.
+        (they use InternalExcludeFromParentBoundingVolume=true).
+      - does not count to "visualize transform" gizmo (used in editor
+        to translate / rotate / scale).
+        (they use InternalExcludeFromParentBoundingVolume=true).
     }
     function ItemsBoundingBox: TBox3D;
 
-    { Bounding box of everything, including design-time gizmos (because you also want to see
+    { Bounding box of everything, including design-time gizmos
+      (because you also want to see
       them accounted for in design-time ortho camera ProjectionNear/Far).
-      Similar to just usign Items.BoundingBox, but handles Items=nil case OK. }
+      Similar to just usign Items.BoundingBox, but handles Items=nil case OK.
+
+      Note: We need to use ItemsWithGizmosBoundingBox to auto-calculate
+      projection near/far, not merely ItemsBoundingBox.
+      Otherwise 2D projection in editor could cut off some gizmos.
+
+      Testcase:
+      - 2d viewport
+      - add a few TCastleImageTransform with some image loaded with Z = -1000.
+      - add TCastleTransform with translation 0,0,0, select it
+      - -> the gizmo of it has to be visible, even though everything visible
+        (excluding gizmos) is at Z = -1000.
+
+      But note: This cannot count gizmos of cameras, that reflect projection near/far.
+      Because then projection near/far of camera makes a "feedback loop"
+      (the numbers change to account for their own previous values + some safety
+      buffer) and they are updated every frame up to infinity. }
     function ItemsWithGizmosBoundingBox: TBox3D;
 
     { Set the projection parameters and matrix.

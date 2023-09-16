@@ -49,11 +49,14 @@ type
     { Show given node graph as the gizmo visualization.
       The given RootNode will become owned by this instance. }
     procedure LoadVisualization(const RootNode: TX3DRootNode);
+
     { Create a line shape, suitable for node graph in LoadVisualization.
-      The version that returns TCoordinateNode lets you initialize (and later update)
-      lines coords explicitly. }
+      Creates TLineSetNode with @link(TLineSetNode.Mode) = lmPair,
+      as this the most universal line mode to define various shapes.
+      The version that returns TCoordinateNode lets you initialize
+      (and later update) lines coords explicitly. }
     function LinesShape(const Points: array of TVector3): TShapeNode; overload;
-    function LinesShape(out Coord: TCoordinateNode; const VertexCount: array of Integer): TShapeNode; overload;
+    function LinesShape(out Coord: TCoordinateNode): TShapeNode; overload;
     { Set the image to display as icon. }
     procedure SetIconUrl(const Url: String);
     property SelectBoxTranslation: TVector3 read GetSelectBoxTranslation write SetSelectBoxTranslation;
@@ -120,32 +123,21 @@ function TInternalCastleEditorGizmo.LinesShape(const Points: array of TVector3):
 var
   Coord: TCoordinateNode;
 begin
-  Result := LinesShape(Coord, [High(Points) + 1]);
+  Result := LinesShape(Coord);
   Coord.SetPoint(Points);
 end;
 
-function TInternalCastleEditorGizmo.LinesShape(out Coord: TCoordinateNode;
-  const VertexCount: array of Integer): TShapeNode;
+function TInternalCastleEditorGizmo.LinesShape(out Coord: TCoordinateNode): TShapeNode;
 var
   LineSet: TLineSetNode;
   Material: TUnlitMaterialNode;
   Appearance: TAppearanceNode;
-  ThisVertexCount: Integer;
-  TotalVertexCount: Cardinal;
-  InitialVertexes: array of TVector3;
 begin
-  TotalVertexCount := 0;
-  for ThisVertexCount in VertexCount do
-    TotalVertexCount := TotalVertexCount + ThisVertexCount;
-
   Coord := TCoordinateNode.Create;
-  // Initialize with zero vectors, to allow to initialize VBO and avoid warnings about not enough coordinates.
-  SetLength(InitialVertexes, TotalVertexCount);
-  Coord.SetPoint(InitialVertexes);
 
   LineSet := TLineSetNode.Create;
+  LineSet.Mode := lmPair;
   LineSet.Coord := Coord;
-  LineSet.SetVertexCount(VertexCount);
 
   Material := TUnlitMaterialNode.Create;
   Material.EmissiveColor := HexToColorRGB('FC9C2D');
