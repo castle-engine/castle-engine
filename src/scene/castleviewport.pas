@@ -275,7 +275,18 @@ type
       2. ignores bbox at design-time of gizmos (lights, cameras, visualize transform).
       This is important to avoid AutoCamera at design-time to calculate something unexpected
       (move camera far away), because it would adjust to the camera and lights gizmo bbox
-      (see TTestCastleViewport.TestAutoCameraIgnoresGizmos). }
+      (see TTestCastleViewport.TestAutoCameraIgnoresGizmos).
+
+      Note: By default, what does Items.BoundingBox return wrt to gizmos?
+      When not called as ItemsBoundingBox or ItemsWithGizmosBoundingBox?
+      Answer: By default it doesn't count *some* gizmos pieces, the ones marked as
+      InternalExcludeFromParentBoundingVolume.
+      And TInternalCastleEditorGizmo uses InternalExcludeFromParentBoundingVolume
+      on a subset of its stuff, see TInternalCastleEditorGizmo.Create
+      implementation.
+      So Items.BoundingBox counts e.g. the gizmo invisible "select box",
+      but not specialized lights or cameras line visualizations.
+    }
     function ItemsBoundingBox: TBox3D;
 
     { Bounding box of everything, including design-time gizmos (because you also want to see
