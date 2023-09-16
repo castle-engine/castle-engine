@@ -208,6 +208,8 @@
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
 
+    procedure DeinitializePhysicsEngineObjects; virtual;
+
     { Notify associated TCastleRigidBody that Kraft shape needs to be recreated.
       This may in turn call TCastleCollider.InitializeKraft
       and TCastleCollider.CreateKraftShape. }
@@ -582,6 +584,7 @@
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
+    procedure DeinitializePhysicsEngineObjects; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure DesignerWarnings(const SList: TStrings); override;
@@ -1959,6 +1962,11 @@ begin
   end;
 end;
 
+procedure TCastleCollider.DeinitializePhysicsEngineObjects;
+begin
+  FreeAndNil(FKraftShape);
+end;
+
 class procedure TCastleCollider.CreateComponent2D(Sender: TObject);
 begin
   (Sender as TCastleCollider).Mode2D := true;
@@ -2579,6 +2587,17 @@ begin
   Result := TKraftShapeMesh.Create(APhysics, ARigidBody, FKraftMesh);
 end;
 
+procedure TCastleMeshCollider.DeinitializePhysicsEngineObjects;
+begin
+  inherited;
+
+  { TKraftMesh needs to be freed explicitly, Kraft collider will not do it.
+    Testcase: Memory leak reported in
+    https://forum.castle-engine.io/t/was-how-to-call-terrain-updategeometry-now-running-out-of-memory-updating-geometry-50x/849/8
+  }
+  FreeAndNil(FKraftMesh);
+end;
+
 procedure TCastleMeshCollider.SetMesh(const AValue: TCastleTransform);
 begin
   if FMesh <> AValue then
@@ -2989,7 +3008,6 @@ begin
   { Collider.FKraftShape is owned by FKraftBody, it was automatically freed already }
   if Collider <> nil then
   begin
-
     Collider.FKraftShape := nil;
     FState := stateMissingCollider;
   end else
@@ -2999,9 +3017,11 @@ begin
     begin
       Assert(FKraftBody.ShapeCount = 1, 'More than one shape in rigid body.');
       Assert(FKraftBody.ShapeFirst = FCastleCollider.FKraftShape, 'Mixed kraft shapes');
-      FreeAndNil(FCastleCollider.FKraftShape);
+    end else
+    begin
+      Assert(FCastleCollider.FKraftShape = nil, 'FKraftBody.ShapeCount = 0 but FCastleCollider.FKraftShape <> nil.');
     end;
-    Assert(FCastleCollider.FKraftShape = nil, 'Mixed kraft shapes');
+    FCastleCollider.DeinitializePhysicsEngineObjects;
     FCastleCollider := nil;
     FState := stateMissingCollider;
   end;
