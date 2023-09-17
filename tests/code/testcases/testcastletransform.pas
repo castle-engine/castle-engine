@@ -1926,11 +1926,11 @@ begin
   try
     C := V.Camera;
     C.ProjectionType := ptOrthographic;
-    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
-    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, {$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, {$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
     C.ProjectionType := ptPerspective;
-    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
-    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, {$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, {$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
   finally FreeAndNil(V) end;
 end;
 
