@@ -23,19 +23,10 @@
 
 {$ifdef read_interface}
 
-  strict private
-    function GetDescription: String;
-    procedure SetDescription(const Value: String);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-
-    strict private FFdDescription: TSFString;
-    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdDescription: TSFString read FFdDescription;
-    {  }
-    property Description: String read GetDescription write SetDescription;
 
     strict private FEventIsOver: TSFBoolEvent;
     {  }
@@ -47,16 +38,6 @@
 
 { TAbstractPointingDeviceSensorNode ----------------------------------------------- }
 
-function TAbstractPointingDeviceSensorNode.GetDescription: String;
-begin
-  Result := FdDescription.Value;
-end;
-
-procedure TAbstractPointingDeviceSensorNode.SetDescription(const Value: String);
-begin
-  FdDescription.Send(Value);
-end;
-
 class function TAbstractPointingDeviceSensorNode.ClassX3DType: String;
 begin
   Result := 'X3DPointingDeviceSensorNode';
@@ -65,10 +46,6 @@ end;
 procedure TAbstractPointingDeviceSensorNode.CreateNode;
 begin
   inherited;
-
-  FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chNone;
-  AddField(FFdDescription);
 
   FEventIsOver := TSFBoolEvent.Create(Self, 'isOver', false);
   AddEvent(FEventIsOver);
