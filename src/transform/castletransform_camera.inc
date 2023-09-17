@@ -307,7 +307,6 @@
     procedure DesignerInfo(const SList: TStrings); override;
     procedure LocalRender(const Params: TRenderParams); override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
-    function LocalBoundingBox: TBox3D; override;
 
     { "Up" direction of the world in which player moves.
       Always normalized (when setting this property, we take
@@ -422,7 +421,8 @@
       not necessary).
 
       @exclude }
-    function InternalProjection(const BoxEvent: TBox3DEvent;
+    function InternalProjection(
+      const BoxWithoutGizmosEvent, BoxWithGizmosEvent: TBox3DEvent;
       const ViewportWidth, ViewportHeight: Single;
       const DesignCamera: Boolean): TProjection; virtual;
   published
@@ -1154,7 +1154,9 @@ begin
   end;
 end;
 
-function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const ViewportWidth, ViewportHeight: Single;
+function TCastleCamera.InternalProjection(
+  const BoxWithoutGizmosEvent, BoxWithGizmosEvent: TBox3DEvent;
+  const ViewportWidth, ViewportHeight: Single;
   const DesignCamera: Boolean): TProjection;
 
   { Update Result.Dimensions and Orthographic.EffectiveXxx
@@ -1227,7 +1229,25 @@ function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const Vie
     Box: TBox3D;
     Pos, Dir, Up: TVector3;
   begin
-    Box := BoxEvent();
+    { Which callback to use to calculate bbox of whole world?
+
+      - If this camera has a gizmo (which can happen at design-time
+        for non-internal cameras) then we have to use BoxWithoutGizmosEvent.
+        Otherwise camera would account for its own gizmo when trying to
+        auto-calculate projection near/far, but the gizmo reflects
+        the new projection near/far, thus the projection near/far would grow
+        to infinity.
+
+      - If this camera does not have gizmo, it may be an internal camera
+        used for viewing TCastleViewport at design-time.
+        (It may also be any camera at run-time.)
+        We should then use BoxWithGizmosEvent, because at design-time
+        we have to show gizmo of other cameras. }
+    if FGizmoCoord <> nil then
+      Box := BoxWithoutGizmosEvent()
+    else
+      Box := BoxWithGizmosEvent();
+
     if Box.IsEmpty then
     begin
       // any values are OK, as we'll not render anyhitng
@@ -1420,8 +1440,11 @@ begin
   if FGizmoCoord <> nil then
   begin
     { Update EffectiveProjection to show latest projection values. }
-    InternalProjection(Params.ProjectionBox,
-      Params.ProjectionViewportWidth, Params.ProjectionViewportHeight,
+    InternalProjection(
+      Params.ProjectionBoxWithoutGizmos,
+      Params.ProjectionBoxWithGizmos,
+      Params.ProjectionViewportWidth,
+      Params.ProjectionViewportHeight,
       false);
     UpdateGizmoCoord;
   end;
@@ -1434,21 +1457,6 @@ begin
   inherited;
   SList.Add(Format('EffectiveProjectionNear: %f', [EffectiveProjectionNear]));
   SList.Add(Format('EffectiveProjectionFar: %f', [EffectiveProjectionFar]));
-end;
-
-function TCastleCamera.LocalBoundingBox: TBox3D;
-var
-  SavedInternalGizmoBoundingBox: Cardinal;
-begin
-  { Even when we are being called by TCastleViewport.ItemsWithGizmosBoundingBox
-    (in which case InternalGizmoBoundingBox <> 0)
-    we still ignore the gizmos of camera showing projection near/far.
-    Otherwise projection near/far auto-calculation would create a feedback loop.
-    See ItemsWithGizmosBoundingBox comments. }
-  SavedInternalGizmoBoundingBox := InternalGizmoBoundingBox;
-  InternalGizmoBoundingBox := 0;
-  Result := inherited LocalBoundingBox;
-  InternalGizmoBoundingBox := SavedInternalGizmoBoundingBox;
 end;
 
 {$define read_implementation_methods}

@@ -310,12 +310,7 @@ type
       - add a few TCastleImageTransform with some image loaded with Z = -1000.
       - add TCastleTransform with translation 0,0,0, select it
       - -> the gizmo of it has to be visible, even though everything visible
-        (excluding gizmos) is at Z = -1000.
-
-      But note: This cannot count gizmos of cameras, that reflect projection near/far.
-      Because then projection near/far of camera makes a "feedback loop"
-      (the numbers change to account for their own previous values + some safety
-      buffer) and they are updated every frame up to infinity. }
+        (excluding gizmos) is at Z = -1000. }
     function ItemsWithGizmosBoundingBox: TBox3D;
 
     { Set the projection parameters and matrix.
@@ -2395,7 +2390,9 @@ begin
     Exit;
   end;
 
-  Result := InternalCamera.InternalProjection({$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox,
+  Result := InternalCamera.InternalProjection(
+    {$ifdef FPC}@{$endif} ItemsBoundingBox,
+    {$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox,
     ViewportWidth, ViewportHeight,
     InternalCamera = InternalDesignCamera);
 end;
@@ -2810,7 +2807,8 @@ begin
   FRenderParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
 
   { calculate FRenderParams.Projection*, simplified from just like CalculateProjection does }
-  FRenderParams.ProjectionBox := {$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox;
+  FRenderParams.ProjectionBoxWithoutGizmos := {$ifdef FPC}@{$endif} ItemsBoundingBox;
+  FRenderParams.ProjectionBoxWithGizmos := {$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox;
   FRenderParams.ProjectionViewportWidth := EffectiveWidthForChildren;
   FRenderParams.ProjectionViewportHeight := EffectiveHeightForChildren;
 

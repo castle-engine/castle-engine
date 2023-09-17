@@ -90,7 +90,6 @@
       FVisible: Boolean;
       FCursor: TMouseCursor;
       FCollidesWithMoving: Boolean;
-      FInternalExcludeFromParentBoundingVolume: Boolean;
       FWorld: TCastleAbstractRootTransform;
       { How many times this is a child in the FWorld, counting all possible paths in transformation tree. }
       FWorldReferences: Cardinal;
@@ -599,6 +598,19 @@
         Also resulting rendering frustum is not correct.
         @exclude }
       InternalIgnoreParentScale: Boolean;
+
+      { Exclude this object's bounding volume
+        from parent bounding volume.
+
+        This should be always @false for non-debug scenes.
+        Changing this may cause rendering artifacts, things could
+        disappear when they should not.
+        Using this is reasonable only if you attach a debug geometry
+        to your scene, and you don't want to enlarge your bounding volume
+        (e.g. because this debug geometry visualizes something determined
+        by the bounding volume, and it would create a "feedback loop"
+        if the visualization itself would enlarge the bounding box). }
+      InternalExcludeFromParentBoundingVolume: Boolean;
 
     { How many times this is a child in the FWorld,
       counting all possible paths in transformation tree.
@@ -1284,20 +1296,6 @@
     function RayCast(const RayOrigin, RayDirection: TVector3;
       out Distance: Single): TCastleTransform; overload;
     { @groupEnd }
-
-    { Is this object's bounding volume (@link(BoundingBox))
-      included in parent bounding volume.
-      This should be always @true for non-debug scenes.
-      Violating this may cause rendering artifacts, things could
-      disappear when they should not.
-      Using this is reasonable only if you attach a debug geometry
-      to your scene, and you don't want to enlarge your bounding volume
-      (e.g. because this debug geometry visualizes something determined
-      by the bounding volume, and it would create a "feedback loop"
-      if the visualization itself would enlarge the bounding box). }
-    property InternalExcludeFromParentBoundingVolume: boolean
-      read FInternalExcludeFromParentBoundingVolume
-      write FInternalExcludeFromParentBoundingVolume;
 
     { Convert position between local and outside coordinate system.
       This is called OutsideToLocal, not WorldToLocal, because it only handles transformation
@@ -2593,9 +2591,9 @@ begin
   begin
     for I := 0 to List.Count - 1 do
       { Ignoring InternalExcludeFromParentBoundingVolume when
-        InternalGizmoBoundingBox <> 0 is a hack, so that when TCastleViewport.ItemsWithGizmosBoundingBox is called,
-        then all gizmos are taken into account (except camera gizmos
-        -- camera adds a hack on top of this in TCastleCamera.LocalBoundingBox). }
+        InternalGizmoBoundingBox <> 0 is a hack,
+        so that when TCastleViewport.ItemsWithGizmosBoundingBox is called,
+        then all gizmos are taken into account. }
       if not (List[I].InternalExcludeFromParentBoundingVolume and
               (InternalGizmoBoundingBox = 0)) then
         Result.Include(List[I].BoundingBox);
