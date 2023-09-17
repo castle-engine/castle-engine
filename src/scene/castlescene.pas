@@ -465,7 +465,7 @@ implementation
 
 uses Math,
   CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
-  CastleShapeInternalRenderShadowVolumes, CastleURIUtils,
+  CastleShapeInternalRenderShadowVolumes, CastleURIUtils, CastleProjection,
   CastleComponentSerialize, CastleRenderContext, CastleFilesUtils,
   CastleInternalGLUtils, CastleInternalRenderer, X3DCameraUtils;
 
