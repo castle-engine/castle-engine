@@ -763,6 +763,8 @@ begin
   LabelStatistics.Color := White;
   LabelStatistics.Alignment := hpRight;
   RectStatistics.InsertFront(LabelStatistics);
+
+  ForceFallbackLook(RectStatistics);
 end;
 
 function TDesignFrame.TDesignerLayer.HoverUserInterface(
