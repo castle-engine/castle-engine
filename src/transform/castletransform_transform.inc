@@ -152,7 +152,6 @@
     procedure SetTranslation(const Value: TVector3);
     function GetTranslationXY: TVector2;
     procedure SetTranslationXY(const Value: TVector2);
-    procedure SetRigidBody(const Value: TCastleRigidBody);
     function GetDirection: TVector3;
     function GetUp: TVector3;
     procedure SetDirection(const Value: TVector3);
@@ -1650,38 +1649,16 @@
       @link(Scale) to one. Also resets @link(ScaleOrientation). }
     procedure Identity;
 
-    { Participate in the physics simulation.
-      This makes this object collidable with other rigid bodies
-      and it allows to move and rotate because of gravity
-      or because of collisions with other objects
-      (if @link(TCastleRigidBody.Dynamic) is @true).
+    { Returns rigid body behavior using cached pointer. Simpler and faster way to
+      get collider than FindBehavior.
 
-      Setting this property makes this object
-      a single rigid body for the physics engine.
-      Underneath, it just adds TCastleRigidBody to behaviors.
-
-      If this property is assigned and the @link(TCastleRigidBody.Dynamic) is @true
-      (and @link(TCastleRigidBody.Dynamic) is @true by default)
-      then this object is moved and rotated using the physics engine.
-      It will move because of gravity (if @link(TCastleRigidBody.Gravity),
-      also @true by default),
-      and because of collisions with other objects.
-
-      If you use deprecated TCollider:
-      The @link(TCastleRigidBody.Collider) property must be initialized
-      @italic(before) assigning the @link(TRigidBody) instance here.
-      So you must create a @link(TCollider) descendant, specyfying the given
-      @link(TRigidBody) as a parent.
-
-      Note that an object can only be present once in the @link(World)
-      to be a rigid body. Breaking this rule will cause the
-      @link(EMultipleReferencesInWorld) exception at an undefined time.
+      To add rigid body to transfrom use AddBehavior() or add it using the editor.
 
       Getting rigid body pointer by that property is faster than FindBehavior
       because it uses cached value. }
-    property RigidBody: TCastleRigidBody read FRigidBodyCache write SetRigidBody;
+    property RigidBody: TCastleRigidBody read FRigidBodyCache;
 
-    { Returns collider behavior using cashed pointer. Simpler and faster way to
+    { Returns collider behavior using cached pointer. Simpler and faster way to
       get collider than FindBehavior. }
     property Collider: TCastleCollider read FColliderCache;
 
