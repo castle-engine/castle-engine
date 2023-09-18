@@ -3051,6 +3051,11 @@ begin
 
     Behavior.FParent := nil;
 
+    if Behavior is  TCastleRigidBody then
+      FRigidBodyCache := nil;
+    if Behavior is TCastleCollider then
+      FColliderCache := nil;
+
     { Could be called but a lot of exsiting code doesn't check Parent = nil.
       For backward compatibility of this deprecated method, don't call it. }
     // Behavior.ParentChanged;
