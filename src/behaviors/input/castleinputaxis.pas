@@ -158,9 +158,10 @@ begin
           Result := Container.MouseDragDelta.Y * MouseDragMultiplier;
       end;
     end;
-    if Assigned (FOnUpdate) then
-      FOnUpdate(Self, Result);
   end;
+
+  if Assigned (FOnUpdate) then
+    FOnUpdate(Self, Result);
 
   Result := Result * Multiplier;
 end;
