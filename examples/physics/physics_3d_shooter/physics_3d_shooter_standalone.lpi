@@ -30,7 +30,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="4">
       <Unit0>
         <Filename Value="physics_3d_shooter_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -48,11 +48,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="GameViewMain"/>
       </Unit3>
-      <Unit4>
-        <Filename Value="code/checkwall.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="CheckWall"/>
-      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

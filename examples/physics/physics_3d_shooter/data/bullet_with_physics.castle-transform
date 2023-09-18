@@ -21,10 +21,6 @@
           "$$ClassName" : "TCastleRigidBody",
           "CollisionDetection" : "cdContinuous",
           "Name" : "BulletRigidBody"
-        },
-        {
-          "$$ClassName" : "TCheckWall",
-          "Name" : "CheckWall"
         }
       ]
     }
