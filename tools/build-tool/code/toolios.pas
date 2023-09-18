@@ -122,7 +122,10 @@ begin
 
   if IosSimulatorSupport then
   begin
-    CompileLibrary(iphonesim, i386);
+    { iPhoneSimulator for i386 is not useful, since
+      - macOS on i386 is no longer supported
+      - fpcupdeluxe seems to not even allow making FPC cross-compiler for iPhoneSimulator on i386 }
+    //CompileLibrary(iphonesim, i386);
     CompileLibrary(iphonesim, x86_64);
   end;
   CompileLibrary(iOS, arm);
@@ -140,7 +143,10 @@ begin
     Options.Add(OutputFile);
     if IosSimulatorSupport then
     begin
-      Options.Add(CompilationOutputPath(Compiler, iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
+      { iPhoneSimulator for i386 is not useful, since
+        - macOS on i386 is no longer supported
+        - fpcupdeluxe seems to not even allow making FPC cross-compiler for iPhoneSimulator on i386 }
+      //Options.Add(CompilationOutputPath(Compiler, iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
       Options.Add(CompilationOutputPath(Compiler, iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName);
     end;
     Options.Add(CompilationOutputPath(Compiler, iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
