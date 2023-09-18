@@ -157,7 +157,6 @@ begin
         mlaVertical:
           Result := Container.MouseDragDelta.Y * MouseDragMultiplier;
       end;
-      WritelnLog(Container.MouseDragDelta.ToString);
     end;
     if Assigned (FOnUpdate) then
       FOnUpdate(Self, Result);
