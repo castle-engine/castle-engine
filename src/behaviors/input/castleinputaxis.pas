@@ -158,7 +158,7 @@ begin
           Result := Container.MouseDragDelta.Y * MouseDragMultiplier;
       end;
       WritelnLog(Container.MouseDragDelta.ToString);
-    end else
+    end;
     if Assigned (FOnUpdate) then
       FOnUpdate(Self, Result);
   end;
