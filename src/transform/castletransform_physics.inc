@@ -3978,7 +3978,7 @@ begin
     AddBehavior(Value);
 end;
 
-{ TCastleAbstractRootTransform ------------------------------------------------------------------- }
+{ TCastleAbstractRootTransform ----------------------------------------------- }
 
 procedure TCastleAbstractRootTransform.InitializePhysicsEngine;
 begin
