@@ -20,7 +20,7 @@ jobs:
     name: Compiler-Independent Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Shell Tests
@@ -33,7 +33,7 @@ jobs:
     # See https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # Set env CASTLE_ENGINE_PATH following
       # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
       # https://brandur.org/fragments/github-actions-env-vars-in-env-vars
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Examples (FPC Stable)
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
 
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools (FPC 3.2.0)
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Examples (FPC 3.2.0)
@@ -113,7 +113,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       # Avoids GIT errors
@@ -129,7 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools (FPC Latest Unstable)
@@ -146,7 +146,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Disk Space Test 1
@@ -163,7 +163,7 @@ jobs:
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       # Avoids GIT errors
@@ -197,7 +197,7 @@ jobs:
         lazarus-versions: [stable, 2.2.0]
     runs-on: ${{ matrix.operating-system }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install FPC+Lazarus
         uses: gcarreno/setup-lazarus@v3.2.15
         with:
@@ -235,7 +235,7 @@ jobs:
   #   runs-on: ubuntu-latest
   #   container: kambi/castle-engine-cloud-builds-tools:cge-none
   #   steps:
-  #     - uses: actions/checkout@v3
+  #     - uses: actions/checkout@v4
   #     - name: Set environment
   #       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
   #     - name: Remove previous artifacts

@@ -266,7 +266,7 @@
 
     { At design-time, cameras update their own projection, to show camera gizmo.
       These are parameters to do this. }
-    ProjectionBox: TBox3DEvent;
+    ProjectionBoxWithoutGizmos, ProjectionBoxWithGizmos: TBox3DEvent;
     ProjectionViewportWidth, ProjectionViewportHeight: Single;
 
     { Always TShapesCollector at actual rendering. }

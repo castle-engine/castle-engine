@@ -560,7 +560,7 @@
     { Lines form a strip (polyline).
 
       In case of TIndexedLineSetNode, indexes (TIndexedLineSetNode.FdIndex)
-      may to be separated by -1 to define many strips
+      may be separated by -1 to define many strips
       in an TIndexedLineSetNode.
 
       In case of TLineSetNode, count (TIndexedLineSetNode.FdVertexCount)
@@ -568,8 +568,9 @@
     lmStrip,
 
     { Lines form a loop (closed polyline).
+
       In case of TIndexedLineSetNode, indexes (TIndexedLineSetNode.FdIndex)
-      may to be separated by -1 to define many loop
+      may be separated by -1 to define many loop
       in an TIndexedLineSetNode.
 
       In case of TLineSetNode, count (TIndexedLineSetNode.FdVertexCount)
@@ -578,7 +579,9 @@
 
     { Each pair of vertexes forms a line.
       If the number of vertexes is odd, the last (unmatched) vertex is ignored.
+
       In case of TIndexedLineSetNode, all indexes must be >= 0.
+
       In case of TLineSetNode, vertexCount is ignored. }
     lmPair
   );
@@ -1517,8 +1520,19 @@ begin
       CoordCount := TCoordinateNode(FdCoord.Value).FdPoint.Count
     else
       CoordCount := 0;
-    FVertexCountForPair.Count := 1;
-    FVertexCountForPair[0] := CoordCount;
+    if CoordCount <> 0 then
+    begin
+      FVertexCountForPair.Count := 1;
+      FVertexCountForPair[0] := CoordCount;
+    end else
+    begin
+      { When no coordinates, make RangeCount an empty list,
+        to avoid warnings from TAbstractGeometryNode.InternalMakeCoordRanges
+        that LineSet doesn't have 2 coordinates when using
+        TLineSetNode.Mode = lmPair with empty coordinates.
+        Testcase: CGE editor camera gizmo visualizations, should not make warnings. }
+      FVertexCountForPair.Count := 0;
+    end;
     RangeCount := FVertexCountForPair;
   end else
     RangeCount := FdVertexCount.Items;

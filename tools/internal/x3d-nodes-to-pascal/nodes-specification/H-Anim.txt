@@ -122,7 +122,8 @@ HAnimMotion : X3DChildNode {
   SFString [in,out] joints           ""
   SFInt32  [in,out] loa              -1
     range: [-1,4]
-  SFBool   [in,out] loop             false
+  SFBool   [in,out] loop             FALSE
+  SFString [in,out] name             ""
   SFInt32  [in,out] startFrame       0
     range: [0,Inf)
   MFFloat  [in,out] values           []

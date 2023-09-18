@@ -35,7 +35,6 @@
     procedure SetBufferLoaded(const Value: boolean);
     procedure UpdatePlayingEvent(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
-    procedure UpdatePlaying;
     procedure SoundOpenClose(Sender: TObject);
 
     { Did we attempt loading Buffer. You still have to check Buffer <> 0 to know
@@ -47,6 +46,8 @@
     function GetCycleInterval: TFloatTime;
     { Pitch, corrected to always be > 0. }
     function SafePitch: Single;
+  private
+    procedure UpdatePlaying;
   protected
     procedure ParseAfter(Reader: TX3DReaderNames); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -66,6 +67,8 @@
     SoundSourceTransform: TCastleTransform;
     procedure UpdateSoundSource;
     procedure EventLocationReceive(
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+    procedure EventEnabledReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     { Location expressed in Scene coordinate-space, that is: transformed
       by X3D transformations in this X3D scene graph.
@@ -100,6 +103,8 @@ begin
 
   EventIsActive.AddNotification({$ifdef FPC}@{$endif} UpdatePlayingEvent);
   EventIsPaused.AddNotification({$ifdef FPC}@{$endif} UpdatePlayingEvent);
+  FdEnabled.AddNotification({$ifdef FPC}@{$endif} UpdatePlayingEvent);
+  FdGain.AddNotification({$ifdef FPC}@{$endif} UpdatePlayingEvent);
 
   SoundEngine.OnOpenClose.Add({$ifdef FPC}@{$endif} SoundOpenClose);
 
@@ -166,6 +171,18 @@ end;
 
 procedure TAudioClipNode.UpdatePlaying;
 
+  procedure UpdatePlayingSoundProperties(const SoundNode: TSoundNode);
+  begin
+    PlayingSound.Loop := Loop;
+    PlayingSound.Sound.Priority := SoundNode.Priority;
+    PlayingSound.Sound.Volume := SoundNode.Intensity * Gain;
+    PlayingSound.Sound.Pitch := SafePitch;
+    { We pass min/maxFront as ReferenceDistance/MaxDistance
+      as their meaning matches for SoundEngine.DistanceModel = dmLinear. }
+    PlayingSound.Sound.ReferenceDistance := SoundNode.FTransformScale * SoundNode.MinFront;
+    PlayingSound.Sound.MaxDistance       := SoundNode.FTransformScale * SoundNode.MaxFront;
+  end;
+
   function GetSoundNode: TSoundNode;
   begin
     if (ParentFieldsCount <> 0) and
@@ -179,26 +196,23 @@ procedure TAudioClipNode.UpdatePlaying;
 var
   SoundNode: TSoundNode;
 begin
-  if FTimeFunctionality.IsActive and (not FTimeFunctionality.IsPaused) then
+  SoundNode := GetSoundNode;
+  if FTimeFunctionality.IsActive and
+     (not FTimeFunctionality.IsPaused) and
+     Enabled and
+     (SoundNode <> nil) and
+     SoundNode.Enabled then
   begin
-    { if not playing, try to start playing }
     if not PlayingSound.Playing then
     begin
+      { if not playing, try to start playing }
       BufferLoaded := true;
-      SoundNode := GetSoundNode;
-      if SoundNode <> nil then
-      begin
-        PlayingSound.Loop := Loop;
-        PlayingSound.Sound.Priority := SoundNode.Priority;
-        PlayingSound.Sound.Volume := SoundNode.Intensity;
-        PlayingSound.Sound.Pitch := SafePitch;
-        { We pass min/maxFront as ReferenceDistance/MaxDistance
-          as their meaning matches for SoundEngine.DistanceModel = dmLinear. }
-        PlayingSound.Sound.ReferenceDistance := SoundNode.FTransformScale * SoundNode.MinFront;
-        PlayingSound.Sound.MaxDistance       := SoundNode.FTransformScale * SoundNode.MaxFront;
-        // TODO: we could set here Parameters.Offset to not always start playing from start
-        SoundNode.SoundSource.Play(PlayingSound);
-      end;
+      UpdatePlayingSoundProperties(SoundNode);
+      // TODO: we could set here Parameters.Offset to not always start playing from start
+      SoundNode.SoundSource.Play(PlayingSound);
+    end else
+    begin
+      UpdatePlayingSoundProperties(SoundNode);
     end;
   end else
   begin
@@ -284,6 +298,8 @@ constructor TSoundNode.Create(const AX3DName: string; const ABaseUrl: string);
 begin
   inherited;
   FdLocation.AddNotification({$ifdef FPC}@{$endif} EventLocationReceive);
+  FdEnabled.AddNotification({$ifdef FPC}@{$endif} EventEnabledReceive);
+
   FTransform := TMatrix4.Identity;
   FTransformScale := 1;
 
@@ -358,6 +374,13 @@ procedure TSoundNode.EventLocationReceive(
   const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   UpdateSoundSource;
+end;
+
+procedure TSoundNode.EventEnabledReceive(
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+begin
+  if Source is TAudioClipNode then // also checks Source <> nil
+    TAudioClipNode(Source).UpdatePlaying;
 end;
 
 procedure RegisterSoundNodes;

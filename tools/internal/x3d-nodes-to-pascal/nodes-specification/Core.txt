@@ -42,6 +42,8 @@ X3DSensorNode  : X3DChildNode {
   SFBool [in,out] enabled  TRUE
     change: chNone
   SFBool [out]    isActive
+  SFString [in,out] description   ""
+    change: chNone
 }
 
 MetadataBoolean : X3DMetadataNode {

@@ -715,6 +715,14 @@ type
       The name of this method is consistent with TPropertyEditor.ValueIsStreamed
       in LCL. }
     function ValueIsStreamed: Boolean; virtual;
+
+    { Override to add information that should be visible at design-time.
+      Call @code(SList.Add) for each new line of information. }
+    procedure DesignerInfo(const SList: TStrings); virtual;
+
+    { Override to add warnings that should be visible at design-time.
+      Call @code(SList.Add) for each new warning. }
+    procedure DesignerWarnings(const SList: TStrings); virtual;
   end;
 
 { Enumerate all properties that are possible to translate in this component
@@ -1973,6 +1981,14 @@ end;
 function TCastleComponent.ValueIsStreamed: Boolean;
 begin
   Result := true;
+end;
+
+procedure TCastleComponent.DesignerInfo(const SList: TStrings);
+begin
+end;
+
+procedure TCastleComponent.DesignerWarnings(const SList: TStrings);
+begin
 end;
 
 { TComponent routines -------------------------------------------------------- }

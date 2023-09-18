@@ -71,6 +71,7 @@ type
     LabelEventsInfo: TLabel;
     LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
+    MemoInfo: TMemo;
     PanelSpinEditAllowVerticalCentering: TPanel;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
@@ -125,6 +126,7 @@ type
     TabEvents: TTabSheet;
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
+    TabInfo: TTabSheet;
     UpdateObjectInspector: TTimer;
     procedure ActionApiReferenceOfCurrentExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
@@ -426,7 +428,8 @@ type
     function ValidateHierarchy: Boolean;
 
     procedure UpdateSelectedControl;
-    procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
+    { Update whether TabInfo is visible and if yes -- what it contains. }
+    procedure UpdateSelectedInfo;
     { Update anchors shown, based on UI state.
       Updates which buttons are pressed inside 2 TAnchorFrame instances.
       If AllowToHideParentAnchorsFrame, updates also checkbox
@@ -502,6 +505,12 @@ type
       ControlsTree knowledge.
       Returns nil if no parent. }
     function NonVisualComponentParent(const C: TCastleComponent): TCastleComponent;
+
+    { Currently selected transformation, chosen more aggressively than just
+      SelectedTransform. Even selecting a behavior makes the parent current.
+      This way e.g. VisualizeTransformSelected also shows
+      the transformation of selected behavior. }
+    function CurrentTransform: TCastleTransform;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -757,6 +766,8 @@ begin
   LabelStatistics.Color := White;
   LabelStatistics.Alignment := hpRight;
   RectStatistics.InsertFront(LabelStatistics);
+
+  ForceFallbackLook(RectStatistics);
 end;
 
 function TDesignFrame.TDesignerLayer.HoverUserInterface(
@@ -1613,6 +1624,8 @@ begin
   VisualizeTransformSelected.OnGizmoStopDrag := @GizmoStopDrag;
 
   SaveDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+
+  TabInfo.TabVisible := false;
 
   ChangeMode(moTranslate); // most expected default
 
@@ -3774,11 +3787,9 @@ procedure TDesignFrame.PropertyGridModified(Sender: TObject);
       // update also LabelControlSelected
       LabelControlSelected.Caption := 'Selected:' + NL + ComponentCaption(Sel);
 
-      // update also LabelSizeInfo
       if Sel is TCastleUserInterface then
       begin
         SelUI := Sel as TCastleUserInterface;
-        UpdateLabelSizeInfo(SelUI);
         UpdateAnchors(SelUI, true);
       end;
 
@@ -3789,6 +3800,8 @@ procedure TDesignFrame.PropertyGridModified(Sender: TObject);
       if TreeNodeMap.TryGetValue(Sel, SelNode) then
         SelNode.Text := TreeNodeCaption(Sel);
     end;
+
+    UpdateSelectedInfo;
   end;
 
   procedure DoRecordUndo;
@@ -4657,6 +4670,66 @@ begin
   ControlsTreeSelectionChanged(nil);
 end;
 
+function TDesignFrame.CurrentTransform: TCastleTransform;
+begin
+  if SelectedComponent is TCastleBehavior then
+    Result := TCastleBehavior(SelectedComponent).Parent
+  else
+    Result := SelectedTransform;
+end;
+
+procedure TDesignFrame.UpdateSelectedInfo;
+var
+  C: TComponent;
+  SListInfo, SListWarnings: TStringList;
+begin
+  C := SelectedComponent;
+  if C is TCastleComponent then
+  begin
+    SListInfo := nil;
+    SListWarnings := nil;
+    try
+      SListInfo := TStringList.Create;
+      SListWarnings := TStringList.Create;
+
+      TCastleComponent(C).DesignerInfo(SListInfo);
+      TCastleComponent(C).DesignerWarnings(SListWarnings);
+
+      if (SListInfo.Count <> 0) or (SListWarnings.Count <> 0) then
+      begin
+        TabInfo.TabVisible := true;
+
+        MemoInfo.Lines.Clear;
+
+        if SListWarnings.Count <> 0 then
+        begin
+          MemoInfo.Lines.Add('Warnings (%d):', [SListWarnings.Count]);
+          MemoInfo.Lines.AddStrings(SListWarnings, false);
+          TabInfo.Caption := Format('Warnings (%d)', [SListWarnings.Count]);
+        end else
+          TabInfo.Caption := 'Info';
+
+        if SListInfo.Count <> 0 then
+        begin
+          if MemoInfo.Lines.Count <> 0 then
+            MemoInfo.Lines.Add('');
+          MemoInfo.Lines.Add('Information:');
+          MemoInfo.Lines.AddStrings(SListInfo, false);
+        end;
+      end else
+      begin
+        TabInfo.TabVisible := false;
+      end;
+    finally
+      FreeAndNil(SListInfo);
+      FreeAndNil(SListWarnings);
+    end;
+  end else
+  begin
+    TabInfo.TabVisible := false;
+  end;
+end;
+
 procedure TDesignFrame.UpdateSelectedControl;
 
   procedure InitializeCollectionFormEvents(InspectorType: TInspectorType);
@@ -4754,17 +4827,10 @@ begin
     UI := SelectedUserInterface;
     SetEnabledVisible(PanelAnchors, UI <> nil);
     if UI <> nil then
-    begin
-      UpdateLabelSizeInfo(UI);
       UpdateAnchors(UI, true);
-    end;
 
     V := SelectedViewport;
-    if SelectedComponent is TCastleBehavior then
-      { Highlight using VisualizeTransformSelected also transformation of selected behavior }
-      T := TCastleBehavior(SelectedComponent).Parent
-    else
-      T := SelectedTransform;
+    T := CurrentTransform;
     SetEnabledVisible(PanelLayoutTransform, T <> nil);
 
     (*
@@ -4797,6 +4863,8 @@ begin
   { if selection determines CurrentViewport, update CurrentViewport immediately
     (without waiting for OnUpdate) -- maybe this will be relevant at some point }
   UpdateCurrentViewport;
+
+  UpdateSelectedInfo;
 end;
 
 (*
@@ -4997,8 +5065,20 @@ begin
   NewRect := UI.RenderRectWithBorder;
   if NewRect.IsEmpty or RenderRectBeforeChange.IsEmpty then
   begin
-    // don't know what to do, adjust delta to 0, to avoid leaving some crazy value
-    UI.Translation := TVector2.Zero;
+    { Empty rectangle(s) may happen e.g. if control is empty,
+      e.g. TCastleLabel.Caption = ''.
+      To implement AdjustUserInterfaceAnchorsToKeepRect perfectly for this case,
+      we'd need TCastleUserInterface method like GlobalTranslationEvenIfEmpty,
+      but it would be a burden to implement it just for this special case.
+
+      It seems that not doing anythign is just valid in this case.
+      At least, user can choose various anchors, and clicking back on original
+      anchor will (intuitively) restore the control back to where it was.
+
+      Note: Resetting "UI.Translation := TVector2.Zero"
+      wasn't intuitive, see https://github.com/castle-engine/castle-engine/issues/422 .
+      It would reset the control position when it's not expected.
+    }
   end else
   begin
     UI.Translation := UI.Translation + Vector2(
@@ -5641,7 +5721,7 @@ procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);
 var
   T: TCastleTransform;
 begin
-  T := SelectedTransform;
+  T := CurrentTransform;
   if T <> nil then
   begin
     T.Identity;
@@ -6037,38 +6117,6 @@ begin
       Inspector[InspectorType].DefaultItemHeight := H;
   end;
   {$endif}
-end;
-
-procedure TDesignFrame.UpdateLabelSizeInfo(const UI: TCastleUserInterface);
-var
-  RR: TFloatRectangle;
-  S: String;
-begin
-  RR := UI.RenderRectWithBorder;
-  if RR.IsEmpty then
-    S := 'Size: Empty'
-  else
-  begin
-    S := Format(
-      'Effective size: %f x %f' + NL +
-      NL +
-      'Render rectangle (scaled and with anchors):' + NL +
-      '  Left x Bottom: %f x %f' + NL +
-      '  Size: %f x %f',
-      [ UI.EffectiveWidth,
-        UI.EffectiveHeight,
-        RR.Left,
-        RR.Bottom,
-        RR.Width,
-        RR.Height
-      ]);
-  end;
-
-  if (UI.Parent <> nil) and
-     (not UI.Parent.RenderRect.Contains(UI.RenderRectWithBorder)) then
-    S := S + NL + NL + 'WARNING: The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.';
-
-  LabelSizeInfo.Hint := S;
 end;
 
 procedure TDesignFrame.UpdateAnchors(const UI: TCastleUserInterface;

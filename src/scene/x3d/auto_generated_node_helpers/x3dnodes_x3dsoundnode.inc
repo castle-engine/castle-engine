@@ -23,16 +23,53 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
+
+    strict private FFdDescription: TSFString;
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdDescription: TSFString read FFdDescription;
+    {  }
+    property Description: String read GetDescription write SetDescription;
+
+    strict private FFdEnabled: TSFBool;
+    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdEnabled: TSFBool read FFdEnabled;
+    {  }
+    property Enabled: Boolean read GetEnabled write SetEnabled;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractSoundNode ----------------------------------------------- }
+
+function TAbstractSoundNode.GetDescription: String;
+begin
+  Result := FdDescription.Value;
+end;
+
+procedure TAbstractSoundNode.SetDescription(const Value: String);
+begin
+  FdDescription.Send(Value);
+end;
+
+function TAbstractSoundNode.GetEnabled: Boolean;
+begin
+  Result := FdEnabled.Value;
+end;
+
+procedure TAbstractSoundNode.SetEnabled(const Value: Boolean);
+begin
+  FdEnabled.Send(Value);
+end;
 
 class function TAbstractSoundNode.ClassX3DType: String;
 begin
@@ -42,6 +79,14 @@ end;
 procedure TAbstractSoundNode.CreateNode;
 begin
   inherited;
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDescription);
+
+  FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
+   FdEnabled.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEnabled);
 
   DefaultContainerField := 'children';
 end;

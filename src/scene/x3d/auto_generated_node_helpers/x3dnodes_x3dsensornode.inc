@@ -26,6 +26,8 @@
   strict private
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -40,6 +42,12 @@
     strict private FEventIsActive: TSFBoolEvent;
     {  }
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
+
+    strict private FFdDescription: TSFString;
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdDescription: TSFString read FFdDescription;
+    {  }
+    property Description: String read GetDescription write SetDescription;
 
 {$endif read_interface}
 
@@ -57,6 +65,16 @@ begin
   FdEnabled.Send(Value);
 end;
 
+function TAbstractSensorNode.GetDescription: String;
+begin
+  Result := FdDescription.Value;
+end;
+
+procedure TAbstractSensorNode.SetDescription(const Value: String);
+begin
+  FdDescription.Send(Value);
+end;
+
 class function TAbstractSensorNode.ClassX3DType: String;
 begin
   Result := 'X3DSensorNode';
@@ -72,6 +90,10 @@ begin
 
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
   AddEvent(FEventIsActive);
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chNone;
+  AddField(FFdDescription);
 end;
 
 {$endif read_implementation}

@@ -212,7 +212,7 @@ constructor TCastleFixedJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
-  FAnchor := CastleVectors.Vector3(0, 0, 0);
+  FAnchor := TVector3.Zero;
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlefixedjoint_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -323,10 +323,10 @@ begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
 
-  {FWorldAnchor := CastleVectors.Vector3(0, 0, 0);
-  FWorldGroundAnchor := CastleVectors.Vector3(0, 0, 0);
-  FConnectedWorldAnchor := CastleVectors.Vector3(0, 0, 0);
-  FConnectedWorldGroundAnchor := CastleVectors.Vector3(0, 0, 0);}
+  {FWorldAnchor := TVector3.Zero;
+  FWorldGroundAnchor := TVector3.Zero;
+  FConnectedWorldAnchor := TVector3.Zero;
+  FConnectedWorldGroundAnchor := TVector3.Zero;}
 
   FWorldAnchor := CastleVectors.Vector3(-1, -1, 0);
   FWorldGroundAnchor := CastleVectors.Vector3(-1, 0, 0);
@@ -559,7 +559,7 @@ end;
 constructor TCastleWorldPlaneDistanceJoint.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FAnchor := CastleVectors.Vector3(0, 0, 0);
+  FAnchor := TVector3.Zero;
   FPlaneNormal := CastleVectors.Vector3(0, 1, 0);
   NeedWorldChangeNotification := true;
 
@@ -736,7 +736,7 @@ begin
   inherited Create(AOwner);
   NeedWorldChangeNotification := true;
   FWorldSliderAxis := CastleVectors.Vector3(0, 1, 0);
-  FWorldAnchor := CastleVectors.Vector3(0, 0, 0);
+  FWorldAnchor := TVector3.Zero;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlesliderjoint_persistent_vectors.inc}

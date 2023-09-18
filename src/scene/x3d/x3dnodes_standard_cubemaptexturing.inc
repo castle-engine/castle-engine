@@ -27,6 +27,8 @@
   strict protected
     function AlphaChannelData: TAlphaChannel; override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+
     { Make sure all 6 sides are loaded.
       Make sure that all 6 fields for each cube map side are assigned,
       are TAbstractTexture2DNode instance (X3D spec requires it),
@@ -154,6 +156,19 @@ end;
 procedure TGeneratedCubeMapTextureNode.TGenCubeMapGenTex.SetUpdate(const Value: TTextureUpdate);
 begin
   FParent.Update := Value;
+end;
+
+{ TCompositeCubeMapTextureNode ---------------------------------------------- }
+
+constructor TComposedCubeMapTextureNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FdBack.AddAlternativeName('backTexture', 4);
+  FdBottom.AddAlternativeName('bottomTexture', 4);
+  FdFront.AddAlternativeName('frontTexture', 4);
+  FdLeft.AddAlternativeName('leftTexture', 4);
+  FdRight.AddAlternativeName('rightTexture', 4);
+  FdTop.AddAlternativeName('topTexture', 4);
 end;
 
 { TGeneratedCubeMapTextureNode ----------------------------------------------- }
