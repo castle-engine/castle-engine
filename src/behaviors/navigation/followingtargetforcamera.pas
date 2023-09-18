@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, ModularMovement, CastleTransform, CastleBehaviors,
-  CastleVectors, CastleClassUtils, CastleScene, CastleInputs;
+  CastleVectors, CastleClassUtils, CastleScene, CastleInputs, CastleInputAxis;
 
 type
 
@@ -25,8 +25,7 @@ type
     FInitialised: Boolean;
     FMouseLookSensitivity: Single;
     FZoomEnabled: Boolean;
-    FInputZoomIn: TInputShortcut;
-    FInputZoomOut: TInputShortcut;
+    FZoomInputAxis: TCastleInputAxis;
     FCameraDistanceChangeSpeed: Single;
 
     function CameraPositionInitial(out TargetWorldPos: TVector3): TVector3;
@@ -152,13 +151,9 @@ type
     property MouseLookSensitivity: Single read FMouseLookSensitivity write FMouseLookSensitivity
       {$ifdef FPC}default DefaultMouseLookSensitivity{$endif};
 
-    { Bring camera closer to the model. Works only if @link(ZoomEnabled).
-      By deafult mwUp (mouse wheel up). }
-    property InputZoomIn: TInputShortcut read FInputZoomIn;
-
-    { Bring camera further from the model. Works only if @link(ZoomEnabled).
-      By deafult mwDown (mouse wheel down). }
-    property InputZoomOut: TInputShortcut read FInputZoomOut;
+    { Bring the camera closer or further from the target. Works only if
+      @link(ZoomEnabled). By deafult (mouse wheel up/down). }
+    property ZoomInputAxis: TCastleInputAxis read FZoomInputAxis;
 
     { Speed with which InputZoomIn, InputZoomOut can change DistanceToTarget. }
     property CameraDistanceChangeSpeed: Single read FCameraDistanceChangeSpeed write FCameraDistanceChangeSpeed
@@ -187,15 +182,10 @@ begin
   FZoomEnabled := true;
   FCameraDistanceChangeSpeed := DefaultCameraDistanceChangeSpeed;
 
-  FInputZoomIn := TInputShortcut.Create(Self);
-   InputZoomIn.Assign(keyNone, keyNone, '', false, buttonLeft, mwUp);
-   InputZoomIn.SetSubComponent(true);
-   InputZoomIn.Name := 'InputZoomIn';
-
-  FInputZoomOut := TInputShortcut.Create(Self);
-   InputZoomOut.Assign(keyNone, keyNone, '', false, buttonRight, mwDown);
-   InputZoomOut.SetSubComponent(true);
-   InputZoomOut.Name := 'InputZoomOut';
+  FZoomInputAxis := TCastleInputAxis.Create(Self);
+  FZoomInputAxis.PositiveWheelDirection := mwUp;
+  FZoomInputAxis.NegativeWheelDirection := mwDown;
+  FZoomInputAxis.SetSubComponent(true);
 end;
 
 procedure TFollowingTargetForCamera.Init;
@@ -481,17 +471,7 @@ begin
   end;
 
   if ZoomEnabled then
-  begin
-    if InputZoomIn.IsPressed(FocusedContainer) or
-      ((FocusedContainer.LastUpdateMouseWheelDirection <> mwNone) and (
-        InputZoomIn.IsMouseWheel(FocusedContainer.LastUpdateMouseWheelDirection))) then
-      Zoom(1)
-    else
-      if InputZoomOut.IsPressed(FocusedContainer) or
-        ((FocusedContainer.LastUpdateMouseWheelDirection <> mwNone) and (
-          InputZoomOut.IsMouseWheel(FocusedContainer.LastUpdateMouseWheelDirection))) then
-      Zoom(-1);
-  end;
+    Zoom(ZoomInputAxis.Value(FocusedContainer));
 
   UpdateCamera;
   inherited Update(SecondsPassed, RemoveMe);
