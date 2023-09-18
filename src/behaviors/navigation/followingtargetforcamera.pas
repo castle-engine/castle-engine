@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, ModularMovement, CastleTransform, CastleBehaviors,
-  CastleVectors, CastleClassUtils, CastleScene, CastleInputs, CastleInputAxis;
+  CastleVectors, CastleClassUtils, CastleScene, CastleInputAxis;
 
 type
 
@@ -177,7 +177,7 @@ begin
   FDistanceToTarget := DefaultDistanceToTarget;
   FCameraSpeed := DefaultCameraSpeed;
   FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
-  FRadius :=DefaultRadius;
+  FRadius := DefaultRadius;
   FMouseLookSensitivity := DefaultMouseLookSensitivity;
   FZoomEnabled := true;
   FCameraDistanceChangeSpeed := DefaultCameraDistanceChangeSpeed;
