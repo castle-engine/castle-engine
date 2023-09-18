@@ -33,6 +33,10 @@ type
   strict private
     FPositiveKey: TKey;
     FNegativeKey: TKey;
+
+    FPositiveWheelDirection: TMouseWheelDirection;
+    FNegativeWheelDirection: TMouseWheelDirection;
+
     FMouseLook: Boolean;
     FMouseLookAxis: TMouseLookAxis;
     FMouseLookMultiplier: Single;
@@ -61,6 +65,12 @@ type
     property PositiveKey: TKey read FPositiveKey write FPositiveKey;
     { Key for negative (-1.0) value }
     property NegativeKey: TKey read FNegativeKey write FNegativeKey;
+    { Mouse wheel (scroll) direction for positive (1.0) value }
+    property PositiveWheelDirection: TMouseWheelDirection
+      read FPositiveWheelDirection write FPositiveWheelDirection;
+    { Mouse wheel (scroll) direction for negative (-1.0) value }
+    property NegativeWheelDirection: TMouseWheelDirection
+      read FNegativeWheelDirection write FNegativeWheelDirection;
     {Setting MouseLook to true do not turn mouse look on it means that
     CastleInputAxis will read Container.MouseLookLastDelta value.
     Use TCastleContainer.StartMouseLook or TCastleContainer.StopMouseLook. }
@@ -118,9 +128,13 @@ end;
 function TCastleInputAxis.Value(const Container: TCastleContainer): Single;
 begin
   Result := 0;
-  if (PositiveKey <> keyNone) and (Container.Pressed[PositiveKey])  then
+  if ((PositiveKey <> keyNone) and (Container.Pressed[PositiveKey])) or
+   ((PositiveWheelDirection <> mwNone) and
+   (Container.LastUpdateMouseWheelDirection = PositiveWheelDirection)) then
     Result := 1;
-  if (NegativeKey <> keyNone) and (Container.Pressed[NegativeKey])  then
+  if (NegativeKey <> keyNone) and (Container.Pressed[NegativeKey]) or
+   ((NegativeWheelDirection <> mwNone) and
+   (Container.LastUpdateMouseWheelDirection = NegativeWheelDirection)) then
     Result := Result - 1;
 
   if IsZero(Result) then
