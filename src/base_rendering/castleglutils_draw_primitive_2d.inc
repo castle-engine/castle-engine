@@ -241,6 +241,10 @@ procedure GLBlendFunction(
 { DrawPrimitive2D ---------------------------------------------------------------- }
 
 const
+  {$ifdef USE_DGL}
+  GL_CONSTANT_COLOR = GL_CONSTANT_COLOR_ARB;
+  {$endif}
+
   BlendingSourceFactorToGL: array [TBlendingSourceFactor] of TGLEnum = (
     GL_SRC_ALPHA,
     GL_ONE_MINUS_SRC_ALPHA,

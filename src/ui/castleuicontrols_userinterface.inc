@@ -2176,7 +2176,7 @@ end;
 
 procedure TCastleUserInterface.ReadLeft(Reader: TReader);
 var
-  D: LongInt;
+  D: Int32;
 begin
   D := DesignInfo;
   LongRec(D).Lo:=Reader.ReadInteger;
@@ -2185,7 +2185,7 @@ end;
 
 procedure TCastleUserInterface.ReadTop(Reader: TReader);
 var
-  D: LongInt;
+  D: Int32;
 begin
   D := DesignInfo;
   LongRec(D).Hi:=Reader.ReadInteger;
@@ -2204,7 +2204,7 @@ end;
 
 procedure TCastleUserInterface.DefineProperties(Filer: TFiler);
 Var Ancestor : TComponent;
-    Temp : longint;
+    Temp : Int32;
 begin
   { Don't call inherited that defines magic left/top.
     This would make reading design-time "left" broken, it seems that our

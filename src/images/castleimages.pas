@@ -3413,7 +3413,7 @@ end;
 
 procedure TRGBAlphaImage.Clear(const Pixel: TVector4Byte);
 begin
-  FillDWord(RawPixels^, Width*Height, LongWord(Pixel));
+  FillDWord(RawPixels^, Width*Height, UInt32(Pixel));
 end;
 
 procedure TRGBAlphaImage.ClearAlpha(const Alpha: Byte);
@@ -3431,7 +3431,7 @@ end;
 
 function TRGBAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
 begin
-  Result := IsMemDWordFilled(RawPixels^, Width * Height * Depth, LongWord(Pixel));
+  Result := IsMemDWordFilled(RawPixels^, Width * Height * Depth, UInt32(Pixel));
 end;
 
 procedure TRGBAlphaImage.TransformRGB(const Matrix: TMatrix3);

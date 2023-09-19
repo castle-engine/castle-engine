@@ -232,7 +232,10 @@ end;
 
 procedure glClipPlane(plane: TGLenum; const V: TVector4Double);
 begin
-  {$ifdef FPC}GL.{$else}OpenGL.{$endif}glClipPlane(plane, @V);
+  // TODO: avoid qualifying by unit name
+  {$ifdef USE_DGL} dglOpenGL. {$else}
+    {$ifdef FPC}GL.{$else}OpenGL.{$endif}
+  {$endif} glClipPlane(plane, @V);
 end;
 
 procedure glNormalv(const v: TVector3); begin glNormal3fv(@v); end;

@@ -316,6 +316,21 @@
 {$longstrings on}
 {$openstrings on}
 
+// CGE: fix for Delphi on non-Windows, also makes sense for WebAssembly
+{$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+  {$define USE_TRIVIAL_IMPLEMENTATION}
+{$ifend}
+{$if defined(WASI)}
+  {$define USE_TRIVIAL_IMPLEMENTATION}
+{$ifend}
+
+{ CGE: Delphi on Linux doesn't define
+  - TFPUPrecisionMode, SetPrecisionMode
+  - TFPUExceptionMask, SetFPUExceptionMask }
+{$if defined(FPC) or defined(MSWINDOWS)}
+  {$define HAS_FPU_TYPES}
+{$ifend}
+
 interface
 
 uses SysUtils,Math;
@@ -407,7 +422,12 @@ type PPasDblStrUtilsInt8=^TPasDblStrUtilsInt8;
      TPasDblStrUtilsPointer=Pointer;
 
      PPasDblStrUtilsRoundingMode=^TPasDblStrUtilsRoundingMode;
-     TPasDblStrUtilsRoundingMode=type TFPURoundingMode;
+     TPasDblStrUtilsRoundingMode=
+       {$ifdef HAS_FPU_TYPES}
+         type TFPURoundingMode
+       {$else}
+         (rmNearest, rmDown, rmUp, rmTruncate)
+       {$endif};
 
      TPasDblStrUtilsOutputMode=(
       omStandard,
@@ -423,6 +443,22 @@ function ConvertStringToDouble(const StringValue:TPasDblStrUtilsString;const Rou
 function ConvertDoubleToString(const AValue:TPasDblStrUtilsDouble;const OutputMode:TPasDblStrUtilsOutputMode=omStandard;RequestedDigits:TPasDblStrUtilsInt32=-1):TPasDblStrUtilsString;
 
 implementation
+
+{$ifdef USE_TRIVIAL_IMPLEMENTATION}
+
+uses CastleUtils;
+
+function ConvertStringToDouble(const StringValue:TPasDblStrUtilsString;const RoundingMode:TPasDblStrUtilsRoundingMode=rmNearest;const OK:PPasDblStrUtilsBoolean=nil;const Base:TPasDblStrUtilsInt32=-1):TPasDblStrUtilsDouble;
+begin
+  Result := StrToFloatDot(StringValue);
+end;
+
+function ConvertDoubleToString(const AValue:TPasDblStrUtilsDouble;const OutputMode:TPasDblStrUtilsOutputMode=omStandard;RequestedDigits:TPasDblStrUtilsInt32=-1):TPasDblStrUtilsString;
+begin
+  Result := FloatToStrDot(AValue);
+end;
+
+{$else}
 
 type PDoubleHiLo=^TDoubleHiLo;
      TDoubleHiLo=packed record
@@ -3962,6 +3998,8 @@ begin
   end;
  end;
 end;
+
+{$endif}
 
 initialization
 finalization

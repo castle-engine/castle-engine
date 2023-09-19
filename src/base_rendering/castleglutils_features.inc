@@ -640,6 +640,15 @@ function TGLFeatures.HasExtension(const Extension: String): Boolean;
   end;
   {$endif}
 
+  {$ifdef USE_DGL}
+  function glext_ExtensionSupported(const extension: String;
+    { SearchIn ignored with dglOpenGL }
+    const searchIn: String): Boolean;
+  begin
+    Result := dglCheckExtension(Extension);
+  end;
+  {$endif}
+
 var
   SupportedExt: AnsiString;
   I: Integer;
@@ -756,11 +765,24 @@ begin
 end;
 
 {$ifndef OpenGLES}
+{$ifndef USE_DGL}
+{$define CASTLE_OWN_GLDEBUG}
 { Workaround GLExt in FPC missing "extdecl" for these routines,
   see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/381 }
 var
   glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam: Pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
   glDebugMessageControl :procedure (source:GLenum; _type:GLenum; severity:GLenum; count:GLsizei; ids:PGLuint; enabled:GLboolean); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+{$endif}
+{$endif}
+
+{$ifdef USE_DGL}
+type
+  GLDEBUGPROC = TGLDEBUGPROC;
+
+function Load_GL_ARB_texture_multisample: Boolean;
+begin
+  Result := dglCheckExtension('GL_ARB_texture_multisample');
+end;
 {$endif}
 
 constructor TGLFeatures.Create;
@@ -778,7 +800,7 @@ constructor TGLFeatures.Create;
   begin
     if HasExtension('GL_KHR_debug') then
     begin
-      {$ifndef OpenGLES}
+      {$ifdef CASTLE_OWN_GLDEBUG}
       { Initialize manually to:
         - Workaround that we cannot use Load_GL_Debug_output, as it uses deprecated
           glGetString(GL_EXTENSIONS). So we initialize 2 entry points manually.
@@ -860,7 +882,9 @@ begin
     end;
   end;
   {$else}
-  // TODO: Delphi OpenGLext has only InitOpenGLext
+  { Other OpenGL headers don't have Load_GL_version_xxx functionality:
+    - Delphi OpenGLext has only InitOpenGLext
+    - dglOpenGL has Read_ only for 4.x stuff }
   FVersion_1_2 := GLVersion.AtLeast(1, 2);
   FVersion_1_3 := GLVersion.AtLeast(1, 3);
   FVersion_1_4 := GLVersion.AtLeast(1, 4);
@@ -875,7 +899,12 @@ begin
     FVersion_3_3 := GLVersion.AtLeast(3, 3);
     FVersion_4_0 := GLVersion.AtLeast(4, 0);
   end;
+  {$ifdef USE_DGL}
+  ReadImplementationProperties;
+  ReadExtensions;
+  {$else}
   InitOpenGLext; // TODO: check that later
+  {$endif}
   {$endif}
   {$else}
   FVersionES_2_0 := GLVersion.AtLeast(2, 0);

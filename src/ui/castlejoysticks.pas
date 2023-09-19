@@ -203,7 +203,7 @@ implementation
 
 uses SysUtils, Math,
   CastleLog,
-  {$ifdef LINUX} CastleInternalJoysticksLinux, {$endif}
+  {$ifdef FPC} {$ifdef LINUX} CastleInternalJoysticksLinux, {$endif} {$endif}
   {$ifdef MSWINDOWS} CastleInternalJoysticksWindows, {$endif}
   CastleInternalJoysticksExplicit;
 
@@ -231,7 +231,8 @@ begin
   FList := TJoystickList.Create(true);
   {$if defined(MSWINDOWS)}
   Backend := TWindowsJoysticksBackend.Create;
-  {$elseif defined(LINUX)}
+  {$elseif defined(LINUX) and defined(FPC)}
+  // TODO: Delphi on Linux doesn't support joysticks now
   Backend := TLinuxJoysticksBackend.Create;
   {$else}
   // This way Backend is non-nil always

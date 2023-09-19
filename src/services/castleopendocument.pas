@@ -98,11 +98,16 @@ implementation
 
 uses
   {$if not(defined(ANDROID) or defined(CASTLE_IOS))}
-    {$ifdef UNIX} BaseUnix, {$endif}
+    {$if defined(UNIX) and defined(FPC)} BaseUnix, {$endif}
     {$ifdef MSWINDOWS} Windows, {$endif}
     {$ifdef DARWIN} MacOSAll, {$endif}
   {$endif}
-  SysUtils, Classes, {$ifdef FPC} Process, {$else} ShellApi, {$endif}
+  SysUtils, Classes,
+  {$ifdef FPC}
+    Process,
+  {$else}
+    {$ifdef MSWINDOWS} ShellApi, {$endif}
+  {$endif}
   CastleUriUtils, CastleUtils, CastleFilesUtils, CastleLog, CastleMessaging;
 
 { Has URL any anchor at the end, like "index.html#chapter1".
@@ -214,7 +219,11 @@ end;
 
 {$ifdef UNIX}
 
-{$if defined(ANDROID) or defined(CASTLE_IOS)}
+{$if defined(ANDROID) or defined(CASTLE_IOS) or (not defined(FPC))}
+
+// TODO: Delphi on non-Windows for now also uses this code,
+// and effectively on Delphi/Linux the OpenURL, OpenDocument do nothing.
+
 function OpenURL(AURL: String): Boolean;
 begin
   Messaging.Send(['view-url', AURL]);

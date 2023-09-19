@@ -7,6 +7,8 @@
         - (Win32, Win64) Delphi XE2
         - (Win32, Win64, Linux, MacOSX) FreePascal (1.9.3 and up)
 
+        Castle Game Engine addition: support also Delphi + Linux.
+
 ==============================================================================
 
        Copyright (C) DGL-OpenGL-Portteam
@@ -168,7 +170,7 @@ uses
   SysUtils
   {$IFDEF DGL_WIN}, Windows{$ENDIF}
   {$IFDEF DGL_64BIT} ,math {$ENDIF}
-  {$IFDEF DGL_LINUX}, X, XLib, XUtil{$ENDIF}
+  {$ifdef FPC} {$IFDEF DGL_LINUX}, X, XLib, XUtil{$ENDIF} {$endif}
   ;
 
 type
@@ -321,6 +323,12 @@ type
 
   // GLX
   {$IFDEF DGL_LINUX}
+    {$ifndef FPC}
+    TXID = Pointer;
+    PDisplay = Pointer;
+    PXVisualInfo = Pointer;
+    {$endif}
+
     GLXContext = Pointer;
     GLXContextID = TXID;
     GLXDrawable = TXID;
@@ -15141,14 +15149,17 @@ const
   RTLD_DEFAULT = Pointer(-2);
 {$ENDIF}{$ENDIF}
 
-function dglLoadLibrary(Name: PChar): Pointer;
+function dglLoadLibrary(const Name: String): Pointer;
+var
+  Name8: AnsiString;
 begin
   {$IFDEF DGL_WIN}
-  Result := Pointer(LoadLibrary(Name));
+  Result := Pointer(LoadLibrary(PChar(Name)));
   {$ENDIF}
 
   {$IFDEF DGL_LINUX}
-  Result := dlopen(Name, RTLD_LAZY);
+  Name8 := Name;
+  Result := dlopen(PAnsiChar(Name8), RTLD_LAZY);
   {$ENDIF}
 
   {$IFDEF DGL_MAC}
@@ -15186,6 +15197,8 @@ end;
 
 function dglGetProcAddress(ProcName: PAnsiChar; LibHandle: Pointer = nil {$IFDEF DGL_LINUX}; ForceDLSym: Boolean = False{$ENDIF}): Pointer;
 begin
+  Result := nil;
+
   if LibHandle = nil then
     LibHandle := GL_LibHandle;
 
@@ -15305,8 +15318,8 @@ begin
     dglFreeLibrary(GLU_LibHandle);
 
   // load library
-  GL_LibHandle := dglLoadLibrary(PChar(LibName));
-  GLU_LibHandle := dglLoadLibrary(PChar(GLULibName));
+  GL_LibHandle := dglLoadLibrary(LibName);
+  GLU_LibHandle := dglLoadLibrary(GLULibName);
 
   // load GL functions
   if (GL_LibHandle <> nil) then begin

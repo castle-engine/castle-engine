@@ -258,7 +258,7 @@ const
   TeapotCoord: array [0..0] of TVector3 = ((X: 0; Y: 0; Z: 0));
   TeapotCoordIndex: array [0..0] of LongInt = (0);
   TeapotManifoldCoord: array [0..0] of TVector3 = ((X: 0; Y: 0; Z: 0));
-  TeapotManifoldCoordIndex: array [0..0] of LongInt = (0);
+  TeapotManifoldCoordIndex: array [0..0] of Int32 = (0);
   }
   {$I auto_generated_teapot/teapot.inc}
 var

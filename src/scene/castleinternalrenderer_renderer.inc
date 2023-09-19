@@ -408,7 +408,7 @@ begin
         normalizing normals. }
     glEnable(GL_NORMALIZE);
 
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, Ord(GL_TRUE));
   end;
   {$endif}
 end;
