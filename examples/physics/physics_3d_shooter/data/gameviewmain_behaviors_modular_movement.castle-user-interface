@@ -50,24 +50,30 @@
                       "$$ClassName" : "TCastleInputAxis",
                       "MouseDrag" : false,
                       "MouseDragAxis" : "mlaHorizontal",
+                      "MouseDragMultiplier" : 1.0000000000000000E+000,
                       "MouseLook" : false,
                       "MouseLookAxis" : "mlaHorizontal",
                       "MouseLookMultiplier" : 2.5000000000000000E-001,
                       "Multiplier" : 1.5000000000000000E+000,
                       "NegativeKey" : "keyNone",
-                      "PositiveKey" : "keyNone"
+                      "NegativeWheelDirection" : "mwNone",
+                      "PositiveKey" : "keyNone",
+                      "PositiveWheelDirection" : "mwNone"
                     },
                     "Name" : "RotateCamera1",
                     "VerticalRotationInput" : {
                       "$$ClassName" : "TCastleInputAxis",
                       "MouseDrag" : false,
                       "MouseDragAxis" : "mlaHorizontal",
+                      "MouseDragMultiplier" : 1.0000000000000000E+000,
                       "MouseLook" : true,
                       "MouseLookAxis" : "mlaVertical",
                       "MouseLookMultiplier" : 2.5000000000000000E-001,
                       "Multiplier" : 1.5000000000000000E+000,
                       "NegativeKey" : "keyNone",
-                      "PositiveKey" : "keyNone"
+                      "NegativeWheelDirection" : "mwNone",
+                      "PositiveKey" : "keyNone",
+                      "PositiveWheelDirection" : "mwNone"
                     }
                   }
                 ]
@@ -103,7 +109,9 @@
                   "MouseLookMultiplier" : 2.5000000000000000E-001,
                   "Multiplier" : 1.5000000000000000E+000,
                   "NegativeKey" : "keyArrowLeft",
-                  "PositiveKey" : "keyArrowRight"
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyArrowRight",
+                  "PositiveWheelDirection" : "mwNone"
                 },
                 "Name" : "RotateRigidBody"
               },
@@ -119,7 +127,9 @@
                   "MouseLookMultiplier" : 1.0000000000000000E+000,
                   "Multiplier" : 1.0000000000000000E+000,
                   "NegativeKey" : "keyS",
-                  "PositiveKey" : "keyW"
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyW",
+                  "PositiveWheelDirection" : "mwNone"
                 },
                 "InputJump" : {
                   "$$ClassName" : "TInputShortcut",
@@ -137,7 +147,9 @@
                   "MouseLookMultiplier" : 1.0000000000000000E+000,
                   "Multiplier" : 1.0000000000000000E+000,
                   "NegativeKey" : "keyA",
-                  "PositiveKey" : "keyD"
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyD",
+                  "PositiveWheelDirection" : "mwNone"
                 }
               },
               {
@@ -147,23 +159,29 @@
                   "$$ClassName" : "TCastleInputAxis",
                   "MouseDrag" : false,
                   "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
                   "MouseLook" : false,
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 1.0000000000000000E+000,
                   "Multiplier" : 1.0000000000000000E+000,
                   "NegativeKey" : "keyS",
-                  "PositiveKey" : "keyW"
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyW",
+                  "PositiveWheelDirection" : "mwNone"
                 },
                 "FlyUpDownInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
                   "MouseDrag" : false,
                   "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
                   "MouseLook" : false,
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 1.0000000000000000E+000,
                   "Multiplier" : 1.0000000000000000E+000,
                   "NegativeKey" : "keyE",
-                  "PositiveKey" : "keyQ"
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyQ",
+                  "PositiveWheelDirection" : "mwNone"
                 },
                 "Name" : "FlySupport"
               },
@@ -177,7 +195,7 @@
               },
               {
                 "$$ClassName" : "TFpsCrouch",
-                "Input_Crouch" : {
+                "InputCrouch" : {
                   "$$ClassName" : "TInputShortcut",
                   "DefaultKey1" : "keyC",
                   "Key1" : "keyC"
