@@ -49,7 +49,7 @@ type
   end;
 
 {$ifdef FPC}
-function UTF8CharacterLength(p: PChar): integer;
+function UTF8CharacterLength(p: PChar): Integer;
 function UTF8Length(const s: string): PtrInt; overload;
 function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt; overload;
 
@@ -220,7 +220,7 @@ end;
 { global --------------------------------------------------------------------- }
 {$ifdef FPC}
 
-function UTF8CharacterLength(p: PChar): integer;
+function UTF8CharacterLength(p: PChar): Integer;
 begin
   if p<>nil then begin
     if ord(p^)<$C0 { binary 11000000 } then begin
@@ -267,12 +267,12 @@ end;
 
 function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt;
 var
-  CharLen: LongInt;
+  CharLen: Integer;
 begin
   Result:=0;
   while (ByteCount>0) do begin
     inc(Result);
-    CharLen:=UTF8CharacterLength(p);
+    CharLen := UTF8CharacterLength(p);
     inc(p,CharLen);
     dec(ByteCount,CharLen);
   end;
@@ -283,12 +283,12 @@ end;
 }
 function UTF8CharStart(UTF8Str: PChar; Len, CharIndex: PtrInt): PChar;
 var
-  CharLen: LongInt;
+  CharLen: Integer;
 begin
   Result:=UTF8Str;
   if Result<>nil then begin
     while (CharIndex>0) and (Len>0) do begin
-      CharLen:=UTF8CharacterLength(Result);
+      CharLen := UTF8CharacterLength(Result);
       dec(Len,CharLen);
       dec(CharIndex);
       inc(Result,CharLen);

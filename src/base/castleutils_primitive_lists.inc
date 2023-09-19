@@ -47,13 +47,6 @@ type
     procedure Assign(const Source: TInt32List);
   end;
 
-  { Old name for TUInt32List.
-
-    Since Embarcadero made LongWord type so weirdly defined that it's usage should be avoided
-    ( https://castle-engine.io/coding_conventions#_do_not_use_longint_longword_use_int32_uint32_int64_uint64_integer_cardinal ),
-    you should rather use TUInt32List name. }
-  TLongWordList = TUInt32List deprecated 'use TUInt32List';
-
   { List of Float values (defined in Math unit as float with maximum precision).
     This is deprecated as precision of floats is not defined cross-platform,
     see https://castle-engine.io/coding_conventions#_do_not_use_extended_use_single_double . }
@@ -158,16 +151,6 @@ type
       in case of Int32 list, that are always compared perfectly. }
     function Equals(SecondValue: TObject): boolean; override;
   end;
-
-  TLongIntArray = TInt32Array;
-  PLongIntArray = PInt32Array;
-
-  { Old name for TUInt32List.
-
-    Since Embarcadero made LongWord type so weirdly defined that it's usage should be avoided
-    ( https://castle-engine.io/coding_conventions#_do_not_use_longint_longword_use_int32_uint32_int64_uint64_integer_cardinal ),
-    you should rather use TUInt32List name. }
-  TLongIntList = TInt32List deprecated 'TInt32List';
 
   { List of Integer (signed) values.
 

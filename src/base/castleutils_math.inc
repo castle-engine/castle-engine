@@ -92,10 +92,10 @@ procedure MaxVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS
 {$ifndef FPC}
 {$ifndef MSWINDOWS}
 // TODO: why is this necessary on Linux with Delphi? What is Integer, Cardinal then?
-procedure MaxVar(var a: LongInt ; const b: LongInt ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinVar(var a: LongInt ; const b: LongInt ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MaxVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Int32 ; const b: Int32 ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Int32 ; const b: Int32 ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: UInt32; const b: UInt32); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: UInt32; const b: UInt32); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 {$endif}
 
@@ -375,7 +375,7 @@ function SmoothStep(const Edge0, Edge1, X: Single): Single;
   read from a file
 
   @groupBegin }
-function Swap32(Value: LongWord): LongWord;
+function Swap32(Value: UInt32): UInt32;
 function Swap64(Value: QWord): QWord;
 function SwapEndian(const Value: Single): Single; overload;
 function SwapEndian(const Value: Double): Double; overload;
@@ -485,10 +485,10 @@ procedure MaxVar(var a: Extended; const b: Extended); begin if B > A then A := B
 
 {$ifndef FPC}
 {$ifndef MSWINDOWS}
-procedure MaxVar(var a: LongInt ; const b: LongInt ); begin if B > A then A := B end;
-procedure MinVar(var a: LongInt ; const b: LongInt ); begin if B < A then A := B end;
-procedure MaxVar(var a: LongWord; const b: LongWord); begin if B > A then A := B end;
-procedure MinVar(var a: LongWord; const b: LongWord); begin if B < A then A := B end;
+procedure MaxVar(var a: Int32 ; const b: Int32 ); begin if B > A then A := B end;
+procedure MinVar(var a: Int32 ; const b: Int32 ); begin if B < A then A := B end;
+procedure MaxVar(var a: UInt32; const b: UInt32); begin if B > A then A := B end;
+procedure MinVar(var a: UInt32; const b: UInt32); begin if B < A then A := B end;
 {$endif}
 {$endif}
 
@@ -744,7 +744,7 @@ begin
   if Value = 0 then begin result := -1; Exit end;
 
   for result := SizeOf(Value)*8-1 downto 0 do
-   if ((LongWord(1) shl result) and Value) <> 0 then Break;
+   if ((UInt32(1) shl result) and Value) <> 0 then Break;
 
   { since Value <> 0, so the above "for" is always finished by a Break.
     Now Result is the position of the "oldest" bit = 1 in Value.
@@ -1142,7 +1142,7 @@ end;
 { Use Swap32 / Swap64 names, instead of overloading one name like Swap
   or SwapEndian, to avoid easy mistakes. }
 
-function Swap32(Value: LongWord): LongWord;
+function Swap32(Value: UInt32): UInt32;
 begin
   {$ifndef FPC}
   // see
@@ -1160,8 +1160,8 @@ begin
   // see
   // https://stackoverflow.com/questions/3065335/how-to-convert-big-endian-numbers-to-native-numbers-delphi
   // https://stackoverflow.com/questions/2882434/how-to-convert-big-endian-and-how-to-flip-the-highest-bit
-  Result := Swap32(LongWord(Value));
-  Result := (Result shl 32) or Swap32(LongWord(Value shr 32));
+  Result := Swap32(UInt32(Value));
+  Result := (Result shl 32) or Swap32(UInt32(Value shr 32));
   {$else}
   Result := SwapEndian(Value);
   {$endif}
@@ -1169,7 +1169,7 @@ end;
 
 function SwapEndian(const Value: Single): Single;
 begin
-  PLongWord(@Result)^ := Swap32(PLongWord(@Value)^);
+  PUInt32(@Result)^ := Swap32(PUInt32(@Value)^);
 end;
 
 function SwapEndian(const Value: Double): Double;

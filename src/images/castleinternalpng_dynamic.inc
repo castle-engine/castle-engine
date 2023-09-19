@@ -53,14 +53,13 @@
     @item(
       Compileable with Delphi (under Delphi use "{$ALIGN 4}" instead of
       "{$PACKRECORDS C}", "pointer" instead of "jmp_buf").
-      Also DWord is LongWord, so it doesn't require Types unit under Delphi.
-      Note: Delphi not really tested since a long time.)
+      Also DWord is Cardinal, so it doesn't require Types unit under Delphi.)
   )
 *)
 
 interface
 
-uses CastleInternalZLib;
+uses CTypes, CastleInternalZLib;
 
 { Automatically converted by H2Pas 0.99.15 from png.h }
 { The following command line parameters were used:
@@ -85,7 +84,7 @@ const
   PNG_TEXT_COMPRESSION_LAST = 3;  { Not a valid value }
 
 { Maximum positive integer used in PNG is (2^31)-1 }
-  PNG_MAX_UINT = High(LongWord);
+  PNG_MAX_UINT = High(UInt32);
 
 { These describe the color_type field in png_info. }
 { color type masks }
@@ -265,8 +264,8 @@ type
    { @noAutoLinkHere }
    voidp = pointer;
 
-   png_uint_32 = LongWord;
-   png_int_32 = longint;
+   png_uint_32 = UInt32;
+   png_int_32 = Int32;
    png_uint_16 = word;
    png_int_16 = smallint;
    png_byte = byte;

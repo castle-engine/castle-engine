@@ -51,8 +51,8 @@ type
   csshort                = cint16;             pcsshort               = ^csshort;
   cushort                = cuint16;            pcushort               = ^cushort;
 
-  cint32                 = longint;            pcint32                = ^cint32;
-  cuint32                = longword;           pcuint32               = ^cuint32;
+  cint32                 = Integer;            pcint32                = ^cint32;
+  cuint32                = Cardinal;           pcuint32               = ^cuint32;
 
   cint64                 = int64;              pcint64                = ^cint64;
   cuint64                = qword;              pcuint64               = ^cuint64;

@@ -149,7 +149,7 @@ end;
 }
 
 type
-  TTimerFrequency = LongWord;
+  TTimerFrequency = UInt32;
 const
   TimerFrequency: TTimerFrequency = 1000000;
 
@@ -181,7 +181,7 @@ end;
 }
 
 type
-  TTimerFrequency = LongWord;
+  TTimerFrequency = UInt32;
 const
   TimerFrequency: TTimerFrequency = 1000000;
 

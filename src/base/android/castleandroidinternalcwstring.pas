@@ -52,8 +52,8 @@ uses dynlibs, CastleAndroidInternalLog;
 
 type
   UErrorCode = SizeInt;
-  int32_t = longint;
-  uint32_t = longword;
+  int32_t = Integer;
+  uint32_t = Cardinal;
   PUConverter = pointer;
   PUCollator = pointer;
   UBool = LongBool;

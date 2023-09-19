@@ -63,7 +63,7 @@ type
   TEventTypes = Set of TEventType;
 
   {$ifndef MSWINDOWS}
-  DWord = LongWord;
+  DWord = UInt32;
   PDWord = ^DWord;
   {$endif}
 

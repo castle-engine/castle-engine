@@ -70,13 +70,13 @@ type
 
   @groupBegin }
 procedure TriangulateFace(
-  FaceIndices: PLongintArray; Count: Integer;
+  FaceIndices: PInt32Array; Count: Integer;
   Vertices: PVector3Array; VerticesCount: Integer;
   TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint); overload;
 
 procedure TriangulateFace(
-  FaceIndices: PLongintArray; Count: Integer;
+  FaceIndices: PInt32Array; Count: Integer;
   Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint); overload;
 { @groupEnd }
@@ -100,7 +100,7 @@ procedure TriangulateConvexFace(Count: Integer;
 
 { Calculate normal vector of possibly concave polygon. }
 function IndexedPolygonNormal(
-  Indices: PLongintArray; IndicesCount: Integer;
+  Indices: PInt32Array; IndicesCount: Integer;
   Vertices: PVector3Array; const VerticesCount: Integer;
   const ResultForIncorrectPoly: TVector3; const Convex: boolean): TVector3;
 
@@ -137,7 +137,7 @@ uses Math,
   - and then we repeat the work for the new polygon, smaller by 1 vertex. }
 
 procedure TriangulateFace(
-  FaceIndices: PLongintArray; Count: Integer;
+  FaceIndices: PInt32Array; Count: Integer;
   Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 
@@ -581,7 +581,7 @@ begin
 end;
 
 procedure TriangulateFace(
-  FaceIndices: PLongintArray; Count: Integer;
+  FaceIndices: PInt32Array; Count: Integer;
   Vertices: PVector3Array; VerticesCount: Integer;
   TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
@@ -617,7 +617,7 @@ begin
 end;
 
 function IndexedConcavePolygonNormal(
-  Indices: PLongintArray; Count: Integer;
+  Indices: PInt32Array; Count: Integer;
   Vertices: PVector3Array; const VerticesCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3;
 
@@ -720,7 +720,7 @@ begin
 end;
 
 function IndexedPolygonNormal(
-  Indices: PLongintArray; IndicesCount: Integer;
+  Indices: PInt32Array; IndicesCount: Integer;
   Vertices: PVector3Array; const VerticesCount: Integer;
   const ResultForIncorrectPoly: TVector3; const Convex: boolean): TVector3;
 begin

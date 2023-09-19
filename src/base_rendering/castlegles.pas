@@ -63,7 +63,9 @@ unit CastleGLES;
 
 interface
 
-uses SysUtils,dynlibs{$ifdef linux},x,xlib{$endif}{$ifdef windows},Windows{$endif};
+uses CTypes, SysUtils, dynlibs
+  {$ifdef linux},x,xlib{$endif}
+  {$ifdef windows},Windows{$endif};
 
 {$IFDEF FPC}
 {$PACKRECORDS C}
@@ -534,7 +536,7 @@ type
      GLushort = word;
      TGLushort = GLushort;
 
-     GLuint = longword;
+     GLuint = CUInt32;
      TGLuint = GLuint;
 
      GLfloat = single;
@@ -543,7 +545,7 @@ type
      GLclampf = single;
      TGLclampf = GLclampf;
 
-     GLfixed = longint;
+     GLfixed = CInt32;
      TGLfixed = GLfixed;
   { GL types for handling large vertex buffer objects  }
 

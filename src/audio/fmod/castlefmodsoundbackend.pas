@@ -52,7 +52,7 @@ type
   strict private
     FDuration: TFloatTime;
     FDataFormat: TSoundDataFormat;
-    FFrequency: LongWord;
+    FFrequency: Cardinal;
   private
     FSoundLoading: TSoundLoading;
     FMODSound: PFMOD_SOUND;
@@ -64,7 +64,7 @@ type
     procedure ContextClose; override;
     function Duration: TFloatTime; override;
     function DataFormat: TSoundDataFormat; override;
-    function Frequency: LongWord; override;
+    function Frequency: Cardinal; override;
   end;
 
   TFMODSoundSourceBackend = class(TSoundSourceBackend)
@@ -274,7 +274,7 @@ begin
   Result := FDataFormat;
 end;
 
-function TFMODSoundBufferBackend.Frequency: LongWord;
+function TFMODSoundBufferBackend.Frequency: Cardinal;
 begin
   Result := FFrequency;
 end;
