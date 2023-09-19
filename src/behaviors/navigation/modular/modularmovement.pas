@@ -407,7 +407,7 @@ function TModularMovement.PropertySections(const PropertyName: String
 begin
   if ArrayContainsString(PropertyName, [
      'ForwardInputAxis', 'SidewayInputAxis',
-     'InputJump'
+     'InputJump', 'GroundPhysicsLayers'
      ]) then
     Result := [psBasic]
   else
