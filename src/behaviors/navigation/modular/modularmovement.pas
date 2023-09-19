@@ -131,7 +131,6 @@ type
     FIsFirstJumpingFrame: Boolean;
     FIsPlayerOnGround: Boolean;
     FGroundPhysicsLayers: TPhysicsLayers;
-
   protected
     { Gets transform direction with Y component. }
     function GetFullForwardDirection: TVector3; virtual;
@@ -153,7 +152,12 @@ type
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { Returns true when this is the first frame of jump, good moment to change
+      animation or play jump sound. Note that IsPlayerOnGround can be true in
+      that moment }
     property IsFirstJumpingFrame: Boolean read FIsFirstJumpingFrame;
+    { Return true when player is on ground, GroundPhysicsLayers are used
+      in ground checking }
     property IsPlayerOnGround: Boolean read FIsPlayerOnGround;
   published
     { Move forward/backward input axis }
