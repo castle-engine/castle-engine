@@ -7,7 +7,8 @@ uses
   CastleClassUtils;
 
 type
-  { Head bobbing for TModularMovement. }
+  { Head bobbing for TModularMovement FPS games. Add to your player transform,
+    near TModularMovement behavior. }
   THeadBobbing = class(TAbstractMovementModule)
   strict private
     HeadBobbingPosition: Single;
