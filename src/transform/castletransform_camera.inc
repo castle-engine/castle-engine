@@ -1456,7 +1456,10 @@ procedure TCastleCamera.DesignerInfo(const SList: TStrings);
 begin
   inherited;
   SList.Add(Format('EffectiveProjectionNear: %f', [EffectiveProjectionNear]));
-  SList.Add(Format('EffectiveProjectionFar: %f', [EffectiveProjectionFar]));
+  SList.Add(Format('EffectiveProjectionFar: %f%s', [
+    EffectiveProjectionFar,
+    Iff(EffectiveProjectionFar = ZFarInfinity, ' (infinity: no far clipping plane)', '')
+  ]));
 end;
 
 {$define read_implementation_methods}
