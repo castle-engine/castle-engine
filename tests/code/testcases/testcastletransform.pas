@@ -1297,7 +1297,7 @@ begin
       // to provoke RigidBody.InitializeTransform to create all physics stuff
       Viewport.Items.Add(Scene);
 
-      Scene.RigidBody := Body;
+      Scene.AddBehavior(Body);
     finally FreeAndNil(Viewport) end;
 
     Fail('This should raise EPhysicsError, as TBoxCollider is empty');
@@ -1324,7 +1324,7 @@ begin
       // to provoke RigidBody.InitializeTransform to create all physics stuff
       Viewport.Items.Add(Scene);
 
-      Scene.RigidBody := Body;
+      Scene.AddBehavior(Body);
     finally FreeAndNil(Viewport) end;
 
     // OK, this can work without error now,
@@ -1354,7 +1354,7 @@ begin
     // to provoke RigidBody.InitializeTransform to create all physics stuff
     Viewport.Items.Add(Scene);
 
-    Scene.RigidBody := Body;
+    Scene.AddBehavior(Body);
   finally FreeAndNil(Viewport) end;
 end;
 
