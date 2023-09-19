@@ -1,4 +1,4 @@
-(****************************************************************************** 
+(******************************************************************************
  *                            KRAFT PHYSICS ENGINE                            *
  ******************************************************************************
  *                        Version 2019-08-26-10-17-0000                       *
@@ -214,7 +214,10 @@ uses {$ifdef windows}
         linux,
        {$ifend}
       {$else}
-       SDL,
+       // Use CGE cross-platform routines for time, instead of relying on SDL.
+       // SDL,
+       CastleTimeUtils,
+       {$define USE_CASTLE_TIME_UTILS}
       {$endif}
      {$endif}
      {$ifdef DebugDraw}
@@ -232,6 +235,13 @@ uses {$ifdef windows}
      PasMP,
 {$endif}
      Math;
+
+{ CGE: Delphi on Linux doesn't define
+  - TFPUPrecisionMode, SetPrecisionMode
+  - TFPUExceptionMask, SetFPUExceptionMask }
+{$if defined(FPC) or defined(MSWINDOWS)}
+  {$define HAS_FPU_TYPES}
+{$ifend}
 
 const EPSILON={$ifdef UseDouble}1e-14{$else}1e-5{$endif}; // actually {$ifdef UseDouble}1e-16{$else}1e-7{$endif}; but we are conservative here
 
@@ -265,9 +275,11 @@ const EPSILON={$ifdef UseDouble}1e-14{$else}1e-5{$endif}; // actually {$ifdef Us
 
       TimeOfImpactSphericalExpansionRadius=1e-5;
 
+      {$ifdef HAS_FPU_TYPES}
       PhysicsFPUPrecisionMode:TFPUPrecisionMode={$ifdef cpu386}pmExtended{$else}{$ifdef cpux64}pmExtended{$else}pmDouble{$endif}{$endif};
 
       PhysicsFPUExceptionMask:TFPUExceptionMask=[exInvalidOp,exDenormalized,exZeroDivide,exOverflow,exUnderflow,exPrecision];
+      {$endif}
 
       KRAFT_QUICKHULL_FACE_MARK_VISIBLE=1;
       KRAFT_QUICKHULL_FACE_MARK_NON_CONVEX=2;
@@ -10464,7 +10476,10 @@ constructor TKraftHighResolutionTimer.Create(FrameRate:longint=60);
 begin
  inherited Create;
  fFrequencyShift:=0;
-{$if defined(windows)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+ // Copied from TimerFrequency constant in CastleTimeUtils
+ fFrequency:= 1000000;
+{$elseif defined(windows)}
  if QueryPerformanceFrequency(fFrequency) then begin
   while (fFrequency and $ffffffffe0000000)<>0 do begin
    fFrequency:=fFrequency shr 1;
@@ -10499,7 +10514,9 @@ begin
 end;
 
 function TKraftHighResolutionTimer.GetTime:int64;
-{$if defined(linux) or defined(android)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+// nothing needed to be declared
+{$elseif defined(linux) or defined(android)}
 var NowTimeSpec:TimeSpec;
     ia,ib:int64;
 {$elseif defined(unix)}
@@ -10508,7 +10525,9 @@ var tv:timeval;
     ia,ib:int64;
 {$ifend}
 begin
-{$if defined(windows)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+ result:=Timer.InternalValue;
+{$elseif defined(windows)}
  if not QueryPerformanceCounter(result) then begin
   result:=timeGetTime;
  end;
@@ -10542,7 +10561,11 @@ var EndTime,NowTime{$ifdef unix},SleepTime{$endif}:int64;
 {$endif}
 begin
  if Delay>0 then begin
-{$if defined(windows)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+  { We don't have in CGE own Sleep, we found that SysUtils.Sleep
+    works OK everywhere. }
+  SysUtils.Sleep(Delay);
+{$elseif defined(windows)}
   NowTime:=GetTime;
   EndTime:=NowTime+Delay;
   while (NowTime+fTwoMillisecondsInterval)<EndTime do begin
@@ -10843,19 +10866,41 @@ end;
 {$else}
 function InterlockedDecrement(var Target:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
- result:=Windows.InterlockedDecrement(Target);
+ result:=
+   {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+   AtomicDecrement
+   {$else}
+   Windows.InterlockedDecrement
+   {$ifend}
+   (Target);
 end;
 
 function InterlockedIncrement(var Target:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
- result:=Windows.InterlockedIncrement(Target);
+ result:=
+   {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+   AtomicIncrement
+   {$else}
+   Windows.InterlockedIncrement
+   {$ifend}
+   (Target);
 end;
 
 function InterlockedExchange(var Target:longint;Source:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
- result:=Windows.InterlockedExchange(Target,Source);
+ result:=
+   {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+   AtomicExchange
+   {$else}
+   Windows.InterlockedExchange
+   {$ifend}
+   (Target,Source);
 end;
 
+{$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+// No implementation of InterlockedExchangeAdd or InterlockedCompareExchange,
+// ... but actually nothing in Kraft uses this.
+{$else}
 function InterlockedExchangeAdd(var Target:longint;Source:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=Windows.InterlockedExchangeAdd(Target,Source);
@@ -10865,6 +10910,8 @@ function InterlockedCompareExchange(var Target:longint;NewValue,Comperand:longin
 begin
  result:=Windows.InterlockedCompareExchange(Target,NewValue,Comperand);
 end;
+{$ifend}
+
 {$endif}
 {$else}
 function InterlockedDecrement(var Target:longint):longint; {$ifdef caninline}inline;{$endif}
@@ -30525,8 +30572,10 @@ end;
 procedure TKraftJobThread.Execute;
 var JobIndex:longint;
 begin
+ {$ifdef HAS_FPU_TYPES}
  SetPrecisionMode(PhysicsFPUPrecisionMode);
  SetExceptionMask(PhysicsFPUExceptionMask);
+ {$endif}
  SIMDSetOurFlags;
  InterlockedIncrement(fJobManager.fCountAliveThreads);
  while not (Terminated or fJobManager.fThreadsTerminated) do begin
@@ -30564,7 +30613,9 @@ begin
  fOnProcessJob:=nil;
  for Index:=0 to fCountThreads-1 do begin
   fThreads[Index]:=TKraftJobThread.Create(fPhysics,self,Index);
+  {$if defined(FPC) or defined(MSWINDOWS)}
   fThreads[Index].Priority:=tpHigher;
+  {$ifend}
  end;
 end;
 
@@ -32300,8 +32351,10 @@ end;
 procedure TKraft.Step(const ADeltaTime:TKraftScalar=0);
 var RigidBody:TKraftRigidBody;
     Constraint,NextConstraint:TKraftConstraint;
+    {$ifdef HAS_FPU_TYPES}
     OldFPUPrecisionMode:TFPUPrecisionMode;
     OldFPUExceptionMask:TFPUExceptionMask;
+    {$endif}
     OldSIMDFlags:longword;
     StartTime:int64;
     TimeStep:TKraftTimeStep;
@@ -32323,7 +32376,7 @@ begin
   TimeStep.InverseDeltaTime:=1.0;
  end else begin
   TimeStep.InverseDeltaTime:=1.0/TimeStep.DeltaTime;
- end;                     
+ end;
  TimeStep.DeltaTimeRatio:=fLastInverseDeltaTime*TimeStep.DeltaTime;
  TimeStep.WarmStarting:=fWarmStarting;
 
@@ -32331,6 +32384,7 @@ begin
  fContactManager.fCountDebugClipVertexLists:=0;
 {$endif}
 
+ {$ifdef HAS_FPU_TYPES}
  OldFPUPrecisionMode:=GetPrecisionMode;
  if OldFPUPrecisionMode<>PhysicsFPUPrecisionMode then begin
   SetPrecisionMode(PhysicsFPUPrecisionMode);
@@ -32340,6 +32394,7 @@ begin
  if OldFPUExceptionMask<>PhysicsFPUExceptionMask then begin
   SetExceptionMask(PhysicsFPUExceptionMask);
  end;
+ {$endif}
 
  OldSIMDFlags:=SIMDGetFlags;
 
@@ -32415,6 +32470,7 @@ begin
 
  SIMDSetFlags(OldSIMDFlags);
 
+ {$ifdef HAS_FPU_TYPES}
  if OldFPUExceptionMask<>PhysicsFPUExceptionMask then begin
   SetExceptionMask(OldFPUExceptionMask);
  end;
@@ -32422,6 +32478,7 @@ begin
  if OldFPUPrecisionMode<>PhysicsFPUPrecisionMode then begin
   SetPrecisionMode(OldFPUPrecisionMode);
  end;
+ {$endif}
 
  fTotalTime:=fHighResolutionTimer.GetTime-fTotalTime;
 
