@@ -8,7 +8,8 @@ uses
 
 type
 
-  { 2D platformer walk support for TModularMovement. }
+  { 2D platformer walk support for TModularMovement. In default settings
+    it assumes that gravity strength in physics properties is set to about 1200 }
   TPlatformer2DWalkSupport = class(TAbstractMovementModule)
   strict private
     FWasJumpInput: Boolean;
