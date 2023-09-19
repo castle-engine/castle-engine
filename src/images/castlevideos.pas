@@ -735,7 +735,7 @@ procedure TVideo.SaveToFile(const URL: string);
       {$if defined(FPC)}
       ExecuteProcess(Executable,
         ['-f', 'image2', '-i', TemporaryImagesPattern, '-y', '-qscale', '1', FileName]);
-      {$elif defined(MSWINDOWS)}
+      {$elseif defined(MSWINDOWS)}
       ShellExecute(
         0,
         'open',
@@ -1023,7 +1023,7 @@ begin
 
   {$if defined(FPC)}
     ExecuteProcess(Executable, Parameters);
-  {$elif defined(MSWINDOWS)}
+  {$elseif defined(MSWINDOWS)}
     ShellExecute(
       0,
       'open',
