@@ -20,7 +20,7 @@ type
     Add to player transform. }
   TFpsCrouch = class(TAbstractMovementModule)
   strict private
-    FInput_Crouch: TInputShortcut;
+    FInputCrouch: TInputShortcut;
     FCrouchSpeed: Single;
     FIsCrouching: Boolean; { Are player crouching? }
     FWasCrouchingInput: Boolean; { Was input pressed in previous frame }
@@ -48,7 +48,7 @@ type
 
     property IsCrouching: Boolean read FIsCrouching;
   published
-    property Input_Crouch: TInputShortcut read FInput_Crouch;
+    property InputCrouch: TInputShortcut read FInputCrouch;
 
     property CrouchSpeed: Single read FCrouchSpeed write FCrouchSpeed
       {$ifdef FPC}default DefaultCrouchSpeed{$endif};
@@ -66,10 +66,10 @@ begin
   inherited Create(AOwner);
   FCrouchSpeed := DefaultCrouchSpeed;
 
-  FInput_Crouch := TInputShortcut.Create(Self);
-  Input_Crouch.SetSubComponent(true);
-  Input_Crouch.Assign(keyC);
-  Input_Crouch.Name := 'InputCrouch';
+  FInputCrouch := TInputShortcut.Create(Self);
+  InputCrouch.SetSubComponent(true);
+  InputCrouch.Assign(keyC);
+  InputCrouch.Name := 'InputCrouch';
 
   FWasColliderTypeWarning := false;
 end;
@@ -78,7 +78,7 @@ function TFpsCrouch.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-     'Input_Crouch', 'CrouchSpeed'
+     'InputCrouch', 'CrouchSpeed'
      ]) then
     Result := [psBasic]
   else
@@ -117,7 +117,7 @@ begin
 
   if not FWasCrouchingInput then
   begin
-    if Input_Crouch.IsPressed(FocusedContainer) then
+    if InputCrouch.IsPressed(FocusedContainer) then
     begin
       FWasCrouchingInput := true;
       if not FIsCrouching then
@@ -127,7 +127,7 @@ begin
     end;
   end else
   begin
-    if not Input_Crouch.IsPressed(FocusedContainer) then
+    if not InputCrouch.IsPressed(FocusedContainer) then
       FWasCrouchingInput := false;
   end;
 
