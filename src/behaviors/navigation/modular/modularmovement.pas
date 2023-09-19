@@ -130,6 +130,7 @@ type
     FInputJump: TInputShortcut;
     FIsFirstJumpingFrame: Boolean;
     FIsPlayerOnGround: Boolean;
+    FGroundPhysicsLayers: TPhysicsLayers;
 
   protected
     { Gets transform direction with Y component. }
@@ -161,6 +162,9 @@ type
     property SidewayInputAxis: TCastleInputAxis read FSidewayInputAxis;
     { Input shortcut for jump }
     property InputJump: TInputShortcut read FInputJump;
+    { Physical layers considered as ground - used for checking player is on ground }
+    property GroundPhysicsLayers: TPhysicsLayers read FGroundPhysicsLayers
+      write FGroundPhysicsLayers default AllLayers;
   end;
 
 implementation
@@ -197,6 +201,8 @@ end;
 constructor TModularMovement.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FGroundPhysicsLayers := AllLayers;
+
   FForwardInputAxis := TCastleInputAxis.Create(Self);
   FForwardInputAxis.SetSubComponent(true);
   FForwardInputAxis.PositiveKey := keyW;
@@ -289,7 +295,8 @@ begin
     SphereCastOrigin,
     ColliderRadius,
     Vector3(0, -1, 0),
-    ColliderHeight * 1.5
+    ColliderHeight * 1.5,
+    GroundPhysicsLayers
   );
 
   if GroundSphereCast.Hit then
