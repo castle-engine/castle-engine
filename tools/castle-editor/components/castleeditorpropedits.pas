@@ -56,6 +56,8 @@ begin
     TPhysicsLayerCollisionsPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleLayerNames), nil, '',
     TPhysicsLayerNamesPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TPhysicsLayers), nil,  '',
+    TPhysicsLayersPropertyEditor);
 end;
 
 end.
