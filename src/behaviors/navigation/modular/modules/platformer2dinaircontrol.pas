@@ -10,7 +10,7 @@ type
 
   { 2D platformer player in air control for TModularMovement.
     With that movement module you can add ability to change player position in air
-    while player is jumping.
+    while player is jumping. This is desirable in most arcade games.
 
     The strength you can set by HorizontalSpeedChangeInAir.
     Maximum horizontal velocity is clamped (-MaxHorizontalSpeed, MaxHorizontalSpeed).
