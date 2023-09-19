@@ -127,7 +127,7 @@ const
     'base/windows',
     'base/unix',
     'base_rendering',
-    'base_rendering/dopengl',
+    'base_rendering/dglopengl',
     'base_rendering/glsl/generated-pascal',
     'fonts',
     'window',

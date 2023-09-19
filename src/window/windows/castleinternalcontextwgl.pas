@@ -47,7 +47,7 @@ type
 
 implementation
 
-uses {$ifdef USE_DGL} dOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
+uses {$ifdef USE_DGL} dglOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
   CastleUtils, CastleStringUtils, CastleGLUtils, CastleInternalGLUtils, CastleLog;
 
 { TGLContextWGL -------------------------------------------------------------- }
