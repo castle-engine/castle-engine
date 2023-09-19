@@ -16,6 +16,8 @@
 { Load 3D models in the STL format (@link(LoadSTL)). }
 unit X3DLoadInternalSTL;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes,

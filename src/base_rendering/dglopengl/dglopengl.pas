@@ -125,6 +125,8 @@ interface
   {$A+}
 {$ELSE}
   {$A4}
+  { CGE: Do not warn about casting String->AnsiString }
+  {$warn IMPLICIT_STRING_CAST_LOSS off}
 {$ENDIF}
 
 // 64 BIT architecture
