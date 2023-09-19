@@ -9284,8 +9284,13 @@
                   "MouseLookMultiplier" : 1.0000000000000000E+000,
                   "Multiplier" : 1.0000000000000000E+000,
                   "NegativeKey" : "keyNone",
-                  "PositiveKey" : "keyNone"
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyNone",
+                  "PositiveWheelDirection" : "mwNone"
                 },
+                "GroundPhysicsLayers" : [
+                  0
+                ],
                 "InputJump" : {
                   "$$ClassName" : "TInputShortcut",
                   "DefaultKey1" : "keySpace",
@@ -9302,7 +9307,9 @@
                   "MouseLookMultiplier" : 1.0000000000000000E+000,
                   "Multiplier" : 1.0000000000000000E+000,
                   "NegativeKey" : "keyA",
-                  "PositiveKey" : "keyD"
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyD",
+                  "PositiveWheelDirection" : "mwNone"
                 }
               },
               {
@@ -11736,8 +11743,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 6.1456976318359375E+002,
-          "Y" : 5.3624633789062500E+001,
+          "X" : -2.3239694824218750E+003,
+          "Y" : 2.6141583251953125E+002,
           "Z" : 5.0000000000000000E+002
         }
       },
