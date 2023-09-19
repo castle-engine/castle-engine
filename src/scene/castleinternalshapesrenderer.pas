@@ -166,7 +166,7 @@ type
 implementation
 
 uses SysUtils,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef USE_DGL} dOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
   CastleScene, CastleGLUtils, CastleRenderContext, CastleColors, CastleUtils,
   X3DCameraUtils;
 

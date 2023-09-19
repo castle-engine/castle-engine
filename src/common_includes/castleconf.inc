@@ -298,7 +298,7 @@
 
   CGE units that directly access OpenGL(ES) should use this line:
 
-    {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+    {$ifdef USE_DGL} dOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
 
   Applications using CGE (including CGE examples) cannot include castleconf.inc
   (it's internal what it defines) and usually should not need to access OpenGL(ES)
@@ -310,11 +310,14 @@
     {$ifdef FPC}
       {$ifdef OpenGLES} CastleGLES, {$else} GL, GLExt, {$endif}
     {$else}
-      OpenGL, OpenGLext,
+      {$ifndef MSWINDOWS} dOpenGL, {$else} OpenGL, OpenGLext, {$endif}
     {$endif}
 
   The above code supports both FPC and Delphi, and supports both OpenGL and OpenGLES.
-  You can simplify it in a particular application, if you don't support e.g. both FPC and Delphi.
+  You can simplify it in a particular application, if you don't support
+  e.g. both FPC and Delphi.
+  Please note that above recommendation may change from time to time,
+  as e.g. we enable dOpenGL usage for more platforms.
 *)
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
@@ -376,6 +379,11 @@
   {$define GLIndexesShort}
 {$else}
   {$define CastleGL := GL, GLExt}
+{$endif}
+
+// TODO: In the long run, use dOpenGL for OpenGL, on all platforms and compilers.
+{$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+  {$define USE_DGL}
 {$endif}
 
 { PNG ------------------------------------------------------------------------ }

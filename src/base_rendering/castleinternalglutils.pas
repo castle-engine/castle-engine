@@ -25,7 +25,7 @@ uses
   // needed by castleinternalglutils_delphi_wgl.inc, castleinternalglutils_wgl.inc
   {$ifdef MSWINDOWS} Windows, {$endif}
   SysUtils, Math, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef USE_DGL} dOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions, CastleGLShaders,
   CastleGLUtils;

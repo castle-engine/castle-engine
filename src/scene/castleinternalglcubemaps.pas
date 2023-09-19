@@ -20,7 +20,7 @@ unit CastleInternalGLCubeMaps;
 
 interface
 
-uses {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+uses {$ifdef USE_DGL} dOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
   CastleVectors, CastleInternalCubeMaps, CastleImages, CastleInternalCompositeImage,
   CastleGLImages, CastleTransform, CastleGLUtils;
 

@@ -323,6 +323,9 @@ begin
     P.Targets.AddUnit('castlerendercontext.pas');
     P.Targets.AddUnit('castlerenderprimitives.pas');
 
+    P.SourcePath.Add('src/base_rendering/dopengl');
+    P.Targets.AddUnit('dopengl.pas');
+
     P.SourcePath.Add('src/services');
     P.Targets.AddUnit('castleads.pas');
     P.Targets.AddUnit('castleanalytics.pas');

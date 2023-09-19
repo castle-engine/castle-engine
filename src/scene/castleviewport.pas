@@ -21,7 +21,7 @@ unit CastleViewport;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef USE_DGL} dOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
   CastleVectors, X3DNodes, CastleInternalBaseTriangleOctree, CastleScene,
   CastleSceneCore, CastleCameras, CastleRenderOptions,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,

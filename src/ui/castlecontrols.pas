@@ -60,7 +60,7 @@ type
 implementation
 
 uses Math, CastleTextureFont_DjvSans_20,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef USE_DGL} dOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
   CastleTextureFont_DejaVuSans_10, CastleTextureImages,
   CastleApplicationProperties, CastleMessaging, CastleComponentSerialize,
   CastleUnicode, CastleRenderOptions;

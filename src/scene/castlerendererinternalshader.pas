@@ -727,7 +727,7 @@ function UniformMissingFromNode(const Node: TX3DNode): TUniformMissing;
 implementation
 
 uses SysUtils, StrUtils,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef USE_DGL} dOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
   CastleGLUtils, CastleLog, CastleGLVersion, CastleInternalScreenEffects,
   CastleScreenEffects, CastleInternalX3DLexer, CastleInternalGLUtils;
 

@@ -107,7 +107,7 @@ unit CastleGLShaders;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef USE_DGL} dOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
   CastleGLUtils, CastleUtils, CastleVectors, CastleRenderOptions;
 
 type

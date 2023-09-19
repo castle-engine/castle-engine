@@ -104,7 +104,7 @@ type
 implementation
 
 uses SysUtils, Math,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef USE_DGL} dOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
   CastleUtils, CastleBoxes, CastleInternalGLUtils;
 
 { Set and enable OpenGL light properties based on X3D light.
