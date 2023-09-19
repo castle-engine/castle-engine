@@ -1304,7 +1304,7 @@ begin
       { TODO: Clip not implemented in this case yet.
         Need to transform ClipLine into screen coordinates, then do
       glEnable(GL_CLIP_PLANE0);
-      glClipPlane(GL_CLIP_PLANE0, Vector4Double(
+      CastleGlClipPlane(GL_CLIP_PLANE0, Vector4Double(
         FScreenClipLine[0], FScreenClipLine[1], 0, FScreenClipLine[2]));
       }
     end;

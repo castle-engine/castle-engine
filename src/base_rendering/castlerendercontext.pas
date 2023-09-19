@@ -422,15 +422,7 @@ begin
   for B in Buffers do
     Mask := Mask or ClearBufferMask[B];
   if Mask <> 0 then
-    // TODO: avoid qualifying by unit name
-    {$ifdef USE_DGL}
-      dglOpenGL
-    {$else}
-      {$ifndef OpenGLES}
-        {$ifdef FPC} GL {$else} OpenGL {$endif} {$else} CastleGL
-      {$endif}
-    {$endif}
-      .GLClear(Mask);
+    glClear(Mask);
 end;
 
 procedure TRenderContext.SetLineWidth(const Value: Single);
@@ -642,21 +634,11 @@ end;
 
 procedure TRenderContext.UpdateViewport;
 begin
-  // TODO: avoid qualifying by unit name
-  {$ifdef USE_DGL}
-    dglOpenGL
-  {$else}
-    {$ifndef OpenGLES}
-      {$ifdef FPC} GL {$else} OpenGL {$endif}
-    {$else}
-      CastleGL
-    {$endif}
-  {$endif}
-    .glViewport(
-      FViewport.Left   + FViewportDelta.X,
-      FViewport.Bottom + FViewportDelta.Y,
-      FViewport.Width,
-      FViewport.Height);
+  glViewport(
+    FViewport.Left   + FViewportDelta.X,
+    FViewport.Bottom + FViewportDelta.Y,
+    FViewport.Width,
+    FViewport.Height);
 end;
 
 procedure TRenderContext.WarningViewportTooLarge;

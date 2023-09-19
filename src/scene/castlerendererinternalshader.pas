@@ -3420,7 +3420,7 @@ begin
   begin
     FClipPlaneAlgorithm := cpFixedFunction;
 
-    glClipPlane(GL_CLIP_PLANE0 + ClipPlaneIndex, Vector4Double(Plane));
+    CastleGlClipPlane(GL_CLIP_PLANE0 + ClipPlaneIndex, Vector4Double(Plane));
     glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
   end else
 
