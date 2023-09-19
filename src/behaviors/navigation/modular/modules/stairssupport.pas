@@ -7,6 +7,11 @@ uses
   CastleVectors, CastleClassUtils;
 
 type
+  { In most cases you don't need this behavior, just set the friction in your
+    player collider (friction is not used in modular movement because we want
+    to have as much control over the avatar as possible). Modular movement
+    system always sets linear speed to zero when player is on ground and do
+    not walk/move. This fixes some edge cases like sliding down slopes. }
   TStairsSupportByColliderCapsuleRadius = class(TAbstractMovementModule)
   strict private
     FWasWarning: Boolean;
