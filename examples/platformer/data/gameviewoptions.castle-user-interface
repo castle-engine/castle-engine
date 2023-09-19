@@ -884,7 +884,6 @@
         },
         {
           "$$ClassName" : "TCastleLabel",
-          "Bottom" : 3.0000000000000000E+002,
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
             "Blue" : 3.0196079611778259E-001,
@@ -907,6 +906,10 @@
           "Text" : [
             "Options"
           ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : 3.0000000000000000E+002
+          },
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle",
           "Width" : 6.0000000000000000E+002
