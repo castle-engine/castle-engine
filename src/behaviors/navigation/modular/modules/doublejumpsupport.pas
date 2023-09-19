@@ -8,7 +8,9 @@ uses
 
 type
 
-  { Double jump support for TModularMovement. }
+  { Double jump support for TModularMovement. Just add and set Exists to true
+    when you want to the player have this ability. Can be used both in 2D and 3D
+    games. When used in 2D games change JumpSpeed to bigger value e.g. 680 }
   TDoubleJumpSupport = class(TAbstractMovementModule)
   strict private
     FWasJumpInput: Boolean;
