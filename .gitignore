@@ -23,6 +23,7 @@ lib/
 *.rsm
 *.local
 __recovery
+*.deployproj
 
 # Other backups
 *.blend1
