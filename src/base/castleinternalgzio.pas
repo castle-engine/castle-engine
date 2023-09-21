@@ -50,7 +50,7 @@ unit CastleInternalGzio;
 
 interface
 
-uses zbase, crc, zdeflate, zinflate, Classes;
+uses CTypes, zbase, crc, zdeflate, zinflate, Classes;
 
 type gzFile = pointer;
 type z_off_t = CInt32;
