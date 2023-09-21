@@ -41,11 +41,11 @@ uses
 // Original version of Bob Jenkins Hash
 // http://burtleburtle.net/bob/c/lookup3.c
 function HashWord(
-  AKey: PLongWord;                   //* the key, an array of uint32_t values */
+  AKey: PUInt32;                   //* the key, an array of uint32_t values */
   ALength: SizeInt;                  //* the length of the key, in uint32_ts */
   AInitVal: UInt32): UInt32;         //* the previous hash, or an arbitrary value */
 procedure HashWord2 (
-  AKey: PLongWord;                   //* the key, an array of uint32_t values */
+  AKey: PUInt32;                   //* the key, an array of uint32_t values */
   ALength: SizeInt;                  //* the length of the key, in uint32_ts */
   var APrimaryHashAndInitVal: UInt32;                  //* IN: seed OUT: primary hash value */
   var ASecondaryHashAndInitVal: UInt32);               //* IN: more seed OUT: secondary hash value */
@@ -146,7 +146,7 @@ end;
 }
 
 function HashWord(
-  AKey: PLongWord;                   //* the key, an array of uint32_t values */
+  AKey: PUInt32;                   //* the key, an array of uint32_t values */
   ALength: SizeInt;               //* the length of the key, in uint32_ts */
   AInitVal: UInt32): UInt32;         //* the previous hash, or an arbitrary value */
 var
@@ -187,7 +187,7 @@ begin
 end;
 
 procedure HashWord2 (
-AKey: PLongWord;                   //* the key, an array of uint32_t values */
+AKey: PUInt32;                   //* the key, an array of uint32_t values */
 ALength: SizeInt;               //* the length of the key, in uint32_ts */
 var APrimaryHashAndInitVal: UInt32;                      //* IN: seed OUT: primary hash value */
 var ASecondaryHashAndInitVal: UInt32);               //* IN: more seed OUT: secondary hash value */

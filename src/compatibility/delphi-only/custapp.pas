@@ -101,7 +101,7 @@ Type
     Property OptionChar : Char Read FoptionChar Write FOptionChar;
     Property CaseSensitiveOptions : Boolean Read FCaseSensitiveOptions Write FCaseSensitiveOptions;
     Property StopOnException : Boolean Read FStopOnException Write FStopOnException;
-    Property ExceptionExitCode : Longint Read FExceptionExitCode Write FExceptionExitCode;
+    Property ExceptionExitCode : Integer Read FExceptionExitCode Write FExceptionExitCode;
     Property EventLogFilter : TEventLogTypes Read FEventLogFilter Write FEventLogFilter;
     Property SingleInstance: TBaseSingleInstance read GetSingleInstance;
     Property SingleInstanceClass: TBaseSingleInstanceClass read FSingleInstanceClass write SetSingleInstanceClass;
@@ -177,7 +177,7 @@ end;
 Procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
 {var
    s : string;
-   i,l,j,count : longint;}
+   i,l,j,count : Integer;}
 begin
   raise Exception.Create('Not implemented!');
   {count:=GetEnvironmentVariableCount;

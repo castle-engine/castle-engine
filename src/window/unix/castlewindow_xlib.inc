@@ -340,7 +340,7 @@ procedure TCastleWindow.UpdateCursor;
   end;
 
 const
-  XCursorShapeFromCastle: array [mcStandard .. High(TMouseCursor)] of LongWord =
+  XCursorShapeFromCastle: array [mcStandard .. High(TMouseCursor)] of UInt32 =
   ( XC_left_ptr,             // mcStandard
     XC_watch,                // mcWait
     XC_xterm,                // mcText

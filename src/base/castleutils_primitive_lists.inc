@@ -125,7 +125,6 @@ type
     procedure SetFalse(const Index: TListSize);
     procedure SetTrue(const Index: TListSize);
     { @groupEnd }
-    function ToLongInt: TInt32List; deprecated 'use ToInt32';
     function ToInt32: TInt32List;
 
     { Does the SecondValue have equal length and content.
@@ -457,11 +456,6 @@ end;
 procedure TBooleanList.SetTrue(const Index: TListSize);
 begin
  Items[Index] := true;
-end;
-
-function TBooleanList.ToLongInt: TInt32List;
-begin
-  Result := ToInt32;
 end;
 
 function TBooleanList.ToInt32: TInt32List;

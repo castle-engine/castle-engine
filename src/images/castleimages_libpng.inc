@@ -55,9 +55,9 @@ function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): boolean; forwa
 
 function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): boolean; forward;
 
-function PngColorTypeToStr(const PngColorType: longint): string; forward;
-function PngInterlaceTypeToStr(const PngInterlaceType: longint): string; forward;
-function PngTextCompressionToStr(const PngTextCompression: longint): string; forward;
+function PngColorTypeToStr(const PngColorType: Int32): string; forward;
+function PngInterlaceTypeToStr(const PngInterlaceType: Int32): string; forward;
+function PngTextCompressionToStr(const PngTextCompression: Int32): string; forward;
 
 var
   { Call InitializePNG to set these variables }
@@ -471,7 +471,7 @@ end;
 
 { *ToStr -------------------------------------------------------------- }
 
-function PngColorTypeToStr(const PngColorType: longint): string;
+function PngColorTypeToStr(const PngColorType: Int32): string;
 begin
   case PngColorType of
     PNG_COLOR_TYPE_GRAY      : Result := 'Gray';
@@ -483,7 +483,7 @@ begin
   end;
 end;
 
-function PngInterlaceTypeToStr(const PngInterlaceType: longint): string;
+function PngInterlaceTypeToStr(const PngInterlaceType: Int32): string;
 begin
   case PngInterlaceType of
     PNG_INTERLACE_NONE : Result := 'None';
@@ -492,7 +492,7 @@ begin
   end;
 end;
 
-function PngTextCompressionToStr(const PngTextCompression: longint): string;
+function PngTextCompressionToStr(const PngTextCompression: Int32): string;
 begin
   case PngTextCompression of
     PNG_TEXT_COMPRESSION_NONE: Result := 'None';
@@ -776,12 +776,13 @@ end;
 { SavePNG_LibPng --------------------------------------------------------------------- }
 
 procedure SavePNG_LibPng(const Img: TEncodedImage; const Stream: TStream; const Interlaced: boolean = false);
-var png_ptr: png_structp;
-    info_ptr: png_infop;
-    InterlaceType: UInt32;
-    row_pointers: {$ifdef FPC}TFPList{$else}TList{$endif};
-    i: Cardinal;
-    ColorType: LongInt;
+var
+  png_ptr: png_structp;
+  info_ptr: png_infop;
+  InterlaceType: UInt32;
+  row_pointers: {$ifdef FPC}TFPList{$else}TList{$endif};
+  i: Cardinal;
+  ColorType: Int32;
 begin
   if not (Img is TCastleImage) then
     raise EImageSaveError.CreateFmt('Saving to PNG image class %s not possible', [Img.ClassName]);

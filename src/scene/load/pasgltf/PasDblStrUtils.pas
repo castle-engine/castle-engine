@@ -348,10 +348,10 @@ type PPasDblStrUtilsInt8=^TPasDblStrUtilsInt8;
      TPasDblStrUtilsUInt16={$ifdef fpc}UInt16{$else}Word{$endif};
 
      PPasDblStrUtilsInt32=^TPasDblStrUtilsInt32;
-     TPasDblStrUtilsInt32={$ifdef fpc}Int32{$else}LongInt{$endif};
+     TPasDblStrUtilsInt32={$ifdef fpc}Int32{$else}Integer{$endif};
 
      PPasDblStrUtilsUInt32=^TPasDblStrUtilsUInt32;
-     TPasDblStrUtilsUInt32={$ifdef fpc}UInt32{$else}LongWord{$endif};
+     TPasDblStrUtilsUInt32={$ifdef fpc}UInt32{$else}Cardinal{$endif};
 
      PPasDblStrUtilsInt64=^TPasDblStrUtilsInt64;
      TPasDblStrUtilsInt64=Int64;

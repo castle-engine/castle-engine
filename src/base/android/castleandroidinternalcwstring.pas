@@ -883,7 +883,7 @@ const
   TestProcName = 'ucnv_open';
 
 var
-  i: longint;
+  i: int32_t;
   s: ansistring;
 begin
   hlibICU:=LoadLibrary('libicuuc.so');

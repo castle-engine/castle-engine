@@ -504,7 +504,7 @@ end;
 
 function ColorToVector3Byte(const Color: TColor): TVector3Byte;
 var
-  Col: LongInt;
+  Col: Integer;
 begin
   Col := ColorToRGB(Color);
   RedGreenBlue(Col, Result.X, Result.Y, Result.Z);

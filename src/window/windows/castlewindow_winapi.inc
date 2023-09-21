@@ -369,7 +369,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
       it allows to specify signedness of values as you wish. }
     TWinParam = packed record
       case Integer of
-        0:(Signed: LongInt {$if defined(cpu64)}; Dummy: LongWord {$endif});
+        0:(Signed: LongInt {$if defined(cpu64)}; Dummy: UInt32 {$endif});
         1:(LoWord, HiWord: Word);
         2:(LoSmallint, HiSmallint: Smallint);
         3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);
@@ -574,13 +574,13 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
   end;
 
   function Handle_IME: Boolean;
-  
+
     function ToPoint(const V: TVector2): TPoint;
     begin
       Result.X := Floor(V.X);
       Result.Y := Floor(Container.Height - V.Y);
     end;
-    
+
     function GetCaretPos(var CaretPos: TPoint): Boolean;
     var
       CastleEdit: TCastleEdit;
@@ -639,15 +639,15 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
           finally
             ImmReleaseContext(h_Wnd, vhIMC);
           end;
-          
+
           { About return value:
-            Note that WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION must return false. 
-            Because we do not implement the IME input window by itself, we return false to let the system IME handle it by itself. 
+            Note that WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION must return false.
+            Because we do not implement the IME input window by itself, we return false to let the system IME handle it by itself.
             We only tell the system where the IME window needs to be displayed, font information, etc.
-            
+
             Why do we handle WM_IME_ENDCOMPOSITION at all (that is usually when IME window is hidden)?
-            Since the IME can be developed by any company, sometimes the IME window will appear prematurely at the last closed position. 
-            So deal with WM_IME_ENDCOMPOSITION to avoid This case. 
+            Since the IME can be developed by any company, sometimes the IME window will appear prematurely at the last closed position.
+            So deal with WM_IME_ENDCOMPOSITION to avoid This case.
           }
         end;
       WM_IME_COMPOSITION:
@@ -1700,7 +1700,7 @@ end;
 
 (*
 const
-  MessageTypeToWin: array [TWindowMessageType] of LongWord =
+  MessageTypeToWin: array [TWindowMessageType] of UInt32 =
   ( MB_ICONINFORMATION,
     MB_ICONWARNING,
     MB_ICONQUESTION,

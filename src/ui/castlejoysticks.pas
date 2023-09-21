@@ -37,7 +37,7 @@ type
       Axes    : Integer;
       Buttons : Integer;
              end;
-    Caps   : LongWord;
+    Caps   : UInt32;
   end;
 
   PJoyState = ^TJoyState;

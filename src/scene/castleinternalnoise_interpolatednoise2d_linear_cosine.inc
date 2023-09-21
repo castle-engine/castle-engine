@@ -4,7 +4,7 @@
   InterpolatedNoise2D_Linear, InterpolatedNoise2D_Cosine }
 
 var
-  X1, Y1, X2, Y2: LongInt;
+  X1, Y1, X2, Y2: Integer;
   X1f, Y1f, X2f, Y2f: Single;
 begin
   X1 := Floor(X);

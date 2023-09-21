@@ -849,7 +849,7 @@ begin
 
     Unfortunately, there's no glUniform*ub (unsigned byte) or such function.
 
-    So convert to longints. }
+    So convert to 32 ints. }
   Ints := Value.ToInt32;
   try
     Owner.Enable;

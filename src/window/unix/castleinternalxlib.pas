@@ -73,14 +73,14 @@ procedure XSetWMProperties_Pascal(Display: PDisplay; W: TWindow;
 
 { }
 function XParseGeometry(parsestring: PChar; x_return, y_return: PInteger;
-  width_return, height_return: PLongWord): integer; cdecl; external XlibDLL;
+  width_return, height_return: PUInt32): integer; cdecl; external XlibDLL;
 
 { ---------------------------------------------------------------------------- }
 { @section(Xmu/StdCmap.h (XmuDLL)) }
 
 { }
 function XmuLookupStandardColormap(dpy: PDisplay; screen: integer;
-  AVisualid: TVisualID; depth: Longword; AProperty: TAtom; replace, retain: XBool)
+  AVisualid: TVisualID; depth: UInt32; AProperty: TAtom; replace, retain: XBool)
   :TStatus; cdecl; external XmuDLL;
 
 implementation

@@ -1023,7 +1023,7 @@ Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True
   could find directory "fpc" that is under a directory on $PATH. }
 
 Var
-  I : longint;
+  I : Integer;
   Temp : String;
 
 begin
@@ -1130,7 +1130,7 @@ end;
   unless it is not possible to get then returns ''.
   Checks that directory exists.
 }
-function GetUserPath(const DirectoryId: LongInt): String;
+function GetUserPath(const DirectoryId: Integer): String;
 var
   Dir: array [0 .. MAX_PATH] of AnsiChar;
 begin

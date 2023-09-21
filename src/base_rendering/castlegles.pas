@@ -75,7 +75,7 @@ uses CTypes, SysUtils, dynlibs
 type
   PEGLConfig  = ^EGLConfig;
   PEGLint  = ^EGLint;
-     EGLint = longint;
+     EGLint = CInt32;
 
      EGLConfig = pointer;
 
@@ -524,10 +524,10 @@ type
      GLshort = smallint;
      TGLshort = GLshort;
 
-     GLint = longint;
+     GLint = CInt32;
      TGLint = GLint;
 
-     GLsizei = longint;
+     GLsizei = CInt32;
      TGLsizei = GLsizei;
 
      GLubyte = byte;
@@ -1022,7 +1022,7 @@ type
       _type:pGLenum; name:PAnsiChar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetAttachedShaders : procedure(_program:GLuint; maxcount:GLsizei; count:pGLsizei; shaders:pGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 (* Const before type ignored *)
-    glGetAttribLocation : function(_program:GLuint; name:PAnsiChar):longint;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetAttribLocation : function(_program:GLuint; name:PAnsiChar):CInt32;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetBooleanv : procedure(pname:GLenum; params:pGLboolean);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetBufferParameteriv : procedure(target:GLenum; pname:GLenum; params:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetError : function:GLenum;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -1043,7 +1043,7 @@ type
     glGetUniformfv : procedure(_program:GLuint; location:GLint; params:pGLfloat);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetUniformiv : procedure(_program:GLuint; location:GLint; params:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 (* Const before type ignored *)
-    glGetUniformLocation : function(_program:GLuint; name:PAnsiChar):longint;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetUniformLocation : function(_program:GLuint; name:PAnsiChar):CInt32;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetVertexAttribfv : procedure(index:GLuint; pname:GLenum; params:pGLfloat);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetVertexAttribiv : procedure(index:GLuint; pname:GLenum; params:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetVertexAttribPointerv : procedure(index:GLuint; pname:GLenum; pointer:Ppointer);{$ifdef windows}stdcall;{$else}cdecl;{$endif}

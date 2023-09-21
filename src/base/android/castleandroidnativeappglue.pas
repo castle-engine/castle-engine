@@ -332,15 +332,15 @@ type
   ppthread_mutexattr_t = ^pthread_mutexattr_t;
   ppthread_condattr_t = ^pthread_condattr_t;
 
-function pthread_mutex_init(__mutex:ppthread_mutex_t; __mutex_attr:ppthread_mutexattr_t):longint;cdecl;external 'libc.so';
-function pthread_mutex_destroy(__mutex:ppthread_mutex_t):longint;cdecl;external 'libc.so';
-function pthread_mutex_lock(__mutex: ppthread_mutex_t):longint;cdecl;external 'libc.so';
-function pthread_mutex_unlock(__mutex: ppthread_mutex_t):longint;cdecl;external 'libc.so';
-function pthread_cond_init(__cond:ppthread_cond_t; __cond_attr:ppthread_condattr_t):longint;cdecl;external 'libc.so';
-function pthread_cond_destroy(__cond:ppthread_cond_t):longint;cdecl;external 'libc.so';
-function pthread_cond_signal(__cond:ppthread_cond_t):longint;cdecl;external 'libc.so';
-function pthread_cond_broadcast(__cond:ppthread_cond_t):longint;cdecl;external 'libc.so';
-function pthread_cond_wait(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t):longint;cdecl;external 'libc.so';
+function pthread_mutex_init(__mutex:ppthread_mutex_t; __mutex_attr:ppthread_mutexattr_t):CInt32;cdecl;external 'libc.so';
+function pthread_mutex_destroy(__mutex:ppthread_mutex_t):CInt32;cdecl;external 'libc.so';
+function pthread_mutex_lock(__mutex: ppthread_mutex_t):CInt32;cdecl;external 'libc.so';
+function pthread_mutex_unlock(__mutex: ppthread_mutex_t):CInt32;cdecl;external 'libc.so';
+function pthread_cond_init(__cond:ppthread_cond_t; __cond_attr:ppthread_condattr_t):CInt32;cdecl;external 'libc.so';
+function pthread_cond_destroy(__cond:ppthread_cond_t):CInt32;cdecl;external 'libc.so';
+function pthread_cond_signal(__cond:ppthread_cond_t):CInt32;cdecl;external 'libc.so';
+function pthread_cond_broadcast(__cond:ppthread_cond_t):CInt32;cdecl;external 'libc.so';
+function pthread_cond_wait(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t):CInt32;cdecl;external 'libc.so';
 
 procedure FreeSavedState(android_app: Pandroid_app);
 begin

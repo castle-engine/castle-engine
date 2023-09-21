@@ -29,7 +29,7 @@ type
     { Use TOneLayerPropertyEditor to show nice names for layers when expanded in object inspector. }
     procedure GetProperties(Proc: TGetPropEditProc); override;
     { Makes value in object inspector look nice. }
-    function OrdValueToVisualValue(OrdValue: LongInt): String; override;
+    function OrdValueToVisualValue(OrdValue: Integer): String; override;
     function GetAttributes: TPropertyAttributes; override;
   end;
 
@@ -85,7 +85,7 @@ begin
       Proc(TOneLayerPropertyEditor.Create(Self, I));
 end;
 
-function TTiledLayersPropertyEditor.OrdValueToVisualValue(OrdValue: LongInt): String;
+function TTiledLayersPropertyEditor.OrdValueToVisualValue(OrdValue: Integer): String;
 var
   Layers: TCastleTiledMap.TLayers;
   LayerIndex: TCastleTiledMap.TLayerIndex;

@@ -31,7 +31,7 @@ type
 
   TTestCastleClassUtils = class(TCastleTestCase)
   private
-    BufferSize: LongWord;
+    BufferSize: UInt32;
     function SimplePeekCharFromStream(Stream: TStream): TPeekCharStream;
     function BufferedReadStreamFromStream(Stream: TStream): TPeekCharStream;
     procedure TestIndirectReadStream(StreamFromStreamFunc: TStreamFromStreamFunc);

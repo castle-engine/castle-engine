@@ -92,16 +92,16 @@ type
   TInterface = class
   public
     function QueryInterface(constref {%H-}IID: TGUID;{%H-} out Obj): HResult; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF}; virtual;
-    function _AddRef: LongInt; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF}; virtual; abstract;
-    function _Release: LongInt; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};  virtual; abstract;
+    function _AddRef: Int32; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF}; virtual; abstract;
+    function _Release: Int32; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};  virtual; abstract;
   end;
 
   { TRawInterface }
 
   TRawInterface = class(TInterface)
   public
-    function _AddRef: LongInt; override;
-    function _Release: LongInt; override;
+    function _AddRef: Int32; override;
+    function _Release: Int32; override;
   end;
 
   { TComTypeSizeInterface }
@@ -110,9 +110,9 @@ type
   TComTypeSizeInterface = class(TInterface)
   public
     // warning ! self as PSpoofInterfacedTypeSizeObject
-    function _AddRef: LongInt; override;
+    function _AddRef: Int32; override;
     // warning ! self as PSpoofInterfacedTypeSizeObject
-    function _Release: LongInt; override;
+    function _Release: Int32; override;
   end;
 
   { TSingletonImplementation }
@@ -340,7 +340,7 @@ type
     PSpoofInterfacedTypeSizeObject = ^TSpoofInterfacedTypeSizeObject;
     TSpoofInterfacedTypeSizeObject = record
       VMT: Pointer;
-      RefCount: LongInt;
+      RefCount: Int32;
       Size: SizeInt;
     end;
 
@@ -1070,26 +1070,26 @@ end;
 
 { TRawInterface }
 
-function TRawInterface._AddRef: LongInt;
+function TRawInterface._AddRef: Int32;
 begin
   Result := -1;
 end;
 
-function TRawInterface._Release: LongInt;
+function TRawInterface._Release: Int32;
 begin
   Result := -1;
 end;
 
 { TComTypeSizeInterface }
 
-function TComTypeSizeInterface._AddRef: LongInt;
+function TComTypeSizeInterface._AddRef: Int32;
 var
   _self: TComparerService.PSpoofInterfacedTypeSizeObject absolute Self;
 begin
   Result := InterLockedIncrement(_self.RefCount);
 end;
 
-function TComTypeSizeInterface._Release: LongInt;
+function TComTypeSizeInterface._Release: Int32;
 var
   _self: TComparerService.PSpoofInterfacedTypeSizeObject absolute Self;
 begin

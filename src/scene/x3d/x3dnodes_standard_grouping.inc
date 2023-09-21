@@ -128,20 +128,20 @@
   end;
   TGroupNode_2 = TGroupNode;
 
-  { Map String->LongInt. }
-  TStringLongIntMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, LongInt>)
+  { Map String->Integer. }
+  TStringIntegerMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, Integer>)
   strict private
-    function GetItems(const AKey: string): LongInt;
-    procedure SetItems(const AKey: string; const AValue: LongInt);
+    function GetItems(const AKey: string): Integer;
+    procedure SetItems(const AKey: string; const AValue: Integer);
   public
-    { Assign contents (all keys, values) of another TStringLongIntMap instance. }
-    procedure Assign(const Source: TStringLongIntMap);
+    { Assign contents (all keys, values) of another TStringIntegerMap instance. }
+    procedure Assign(const Source: TStringIntegerMap);
 
     { Access dictionary items.
       Setting this is allowed regardless if the key previously existed or not,
       in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
       that only allows setting when the key already exists. }
-    property Items [const AKey: string]: LongInt read GetItems write SetItems; default;
+    property Items [const AKey: string]: Integer read GetItems write SetItems; default;
   end;
 
   { Node functionality for all X3D transformation nodes.
@@ -192,7 +192,7 @@
       FHasForceVersion: boolean;
       FSaveAsRootNode: boolean;
       FProfile: string;
-      FComponents: TStringLongIntMap;
+      FComponents: TStringIntegerMap;
       FMeta: TStringStringMap;
       FScale: Single;
   private
@@ -249,7 +249,7 @@
 
     { Components and levels required for this X3D file.
       Relevant if this node is the root of X3D file. }
-    property Components: TStringLongIntMap read FComponents;
+    property Components: TStringIntegerMap read FComponents;
 
     { Meta keys and values of this X3D file.
       Relevant if this node is the root of X3D file. }
@@ -633,23 +633,23 @@ begin
   if Result <> nil then Exit;
 end;
 
-{ TStringLongIntMap ---------------------------------------------------------- }
+{ TStringIntegerMap ---------------------------------------------------------- }
 
-procedure TStringLongIntMap.Assign(const Source: TStringLongIntMap);
+procedure TStringIntegerMap.Assign(const Source: TStringIntegerMap);
 var
-  Pair: {$ifdef FPC}TDictionaryPair{$else}TPair<string, LongInt>{$endif};
+  Pair: {$ifdef FPC}TDictionaryPair{$else}TPair<string, Integer>{$endif};
 begin
   Clear;
   for Pair in Source do
     Items[Pair.Key] := Pair.Value;
 end;
 
-function TStringLongIntMap.GetItems(const AKey: string): LongInt;
+function TStringIntegerMap.GetItems(const AKey: string): Integer;
 begin
   Result := inherited Items[AKey];
 end;
 
-procedure TStringLongIntMap.SetItems(const AKey: string; const AValue: LongInt);
+procedure TStringIntegerMap.SetItems(const AKey: string; const AValue: Integer);
 begin
   AddOrSetValue(AKey, AValue);
 end;
@@ -908,7 +908,7 @@ end;
 constructor TX3DRootNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  FComponents := TStringLongIntMap.Create;
+  FComponents := TStringIntegerMap.Create;
   FMeta := TStringStringMap.Create;
   FSaveAsRootNode := true;
   FScale := 1;
