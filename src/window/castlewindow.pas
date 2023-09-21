@@ -190,7 +190,7 @@ unit CastleWindow;
  {$ifndef CASTLE_WINDOW_XLIB}
   {$ifndef CASTLE_WINDOW_GTK_2}
    {$ifndef CASTLE_WINDOW_TEMPLATE}
-    {$ifndef CASTLE_WINDOW_LCL}
+    {$ifndef CASTLE_WINDOW_FORM}
      {$ifndef CASTLE_WINDOW_ANDROID}
       {$ifndef CASTLE_WINDOW_LIBRARY}
 
@@ -203,7 +203,7 @@ unit CastleWindow;
            // various possible backends on Windows:
            {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
            { $define CASTLE_WINDOW_GTK_2}
-           { $define CASTLE_WINDOW_LCL}
+           { $define CASTLE_WINDOW_FORM}
            { $define CASTLE_WINDOW_LIBRARY}
            { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
          {$elseif defined(UNIX)}
@@ -215,7 +215,7 @@ unit CastleWindow;
              // various possible backends on macOS (desktop):
              {$define CASTLE_WINDOW_COCOA} // best (looks native) on macOS
              { $define CASTLE_WINDOW_XLIB} // requires Xlib to compile and to work
-             { $define CASTLE_WINDOW_LCL} // looks native (can use Cocoa through LCL), but requires LCL to compile
+             { $define CASTLE_WINDOW_FORM} // looks native, requires LCL (from Lazarus) or FMX (from Delphi) to compile
              { $define CASTLE_WINDOW_GTK_2}
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
@@ -223,7 +223,7 @@ unit CastleWindow;
              // various possible backends on traditional Unix (Linux, FreeBSD) desktop:
              {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional), supports both OpenGL and OpenGLES
              { $define CASTLE_WINDOW_XLIB} // supports both OpenGL and OpenGLES
-             { $define CASTLE_WINDOW_LCL}
+             { $define CASTLE_WINDOW_FORM}
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
            {$endif}
@@ -3480,7 +3480,7 @@ begin
   FrameProfiler.StartFrame;
   FrameProfiler.Start(fmUpdate);
 
-  {$ifdef CASTLE_WINDOW_LCL}
+  {$ifdef CASTLE_WINDOW_FORM}
   FKeyPressHandler.Flush; // finish any pending key presses
   {$endif}
 
@@ -4093,7 +4093,7 @@ begin
 end;
 
 {$ifndef CASTLE_WINDOW_LIBRARY}
-{$ifndef CASTLE_WINDOW_LCL}
+{$ifndef CASTLE_WINDOW_FORM}
 procedure TCastleWindow.Invalidate;
 begin
   if not Closed then
@@ -5022,13 +5022,13 @@ begin
   if KeyString <> '' then
   begin
     S := KeyStringToNiceStr(KeyString, Modifiers, false
-      {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif} );
+      {$ifdef CASTLE_WINDOW_FORM} {$ifdef LCLCarbon}, true {$endif} {$endif} );
     Result := true;
   end else
   if Key <> keyNone then
   begin
     S := KeyToStr(Key, Modifiers
-      {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif});
+      {$ifdef CASTLE_WINDOW_FORM} {$ifdef LCLCarbon}, true {$endif} {$endif});
     Result := true;
   end else
   Result := false;

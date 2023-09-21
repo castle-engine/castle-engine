@@ -84,7 +84,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item8>
       <Item9>
-        <Filename Value="../src/window/castlewindow_lcl.inc"/>
+        <Filename Value="../src/window/castlewindow_form.inc"/>
         <Type Value="Include"/>
       </Item9>
       <Item10>
