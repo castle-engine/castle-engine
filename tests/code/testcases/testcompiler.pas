@@ -30,13 +30,14 @@ type
   TTestCompiler = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
     procedure TestIs;
     procedure TestSinglePrecision;
+    procedure TestCTypesSizes;
     procedure TestSizes;
     procedure TestPackedOpenArray;
   end;
 
 implementation
 
-uses CastleUtils, CastleVectors;
+uses CTypes, CastleUtils, CastleVectors;
 
 type
   TFruit = class
@@ -80,6 +81,21 @@ var
 begin
   for I := -32000 to 32000 do
     AssertEquals(I, Round(Single(I)));
+end;
+
+procedure TTestCompiler.TestCTypesSizes;
+begin
+  AssertEquals(1, SizeOf(CInt8));
+  AssertEquals(1, SizeOf(CUInt8));
+
+  AssertEquals(2, SizeOf(CInt16));
+  AssertEquals(2, SizeOf(CUInt16));
+
+  AssertEquals(4, SizeOf(CInt32));
+  AssertEquals(4, SizeOf(CUInt32));
+
+  AssertEquals(8, SizeOf(CInt64));
+  AssertEquals(8, SizeOf(CUInt64));
 end;
 
 procedure TTestCompiler.TestSizes;
