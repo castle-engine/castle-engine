@@ -17,6 +17,9 @@
 { Test CastleUtils unit. }
 unit TestCastleUtils;
 
+{ Needed for UNIX symbol in Delphi. }
+{$I ../../../src/common_includes/castleconf.inc}
+
 { $define CASTLEUTILS_SPEED_TESTS}
 
 interface
@@ -59,7 +62,7 @@ implementation
 
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef UNIX} Unix, BaseUnix, {$endif}
+  {$if defined(UNIX) and defined(FPC)} Unix, BaseUnix, {$endif}
   Math, CastleUtils, CastleTimeUtils, CastleVectors, CastleLog,
   CastleTestUtils;
 
@@ -268,15 +271,18 @@ end;
 
 procedure TTestCastleUtils.TestOSError;
 begin
- try
-  OSCheck(
-    {$ifdef MSWINDOWS} Windows.MoveFile('some_not_existing_file_name', 'foo') {$endif}
-    {$ifdef UNIX} FpRename('some_not_existing_file_name', 'foo') <> -1 {$endif}
+  // TODO: add some test for Delphi + Linux
+  {$if defined(MSWINDOWS) or defined(FPC)}
+  try
+    OSCheck(
+      {$ifdef MSWINDOWS} Windows.MoveFile('some_not_existing_file_name', 'foo') {$endif}
+      {$if defined(UNIX) and defined(FPC)} FpRename('some_not_existing_file_name', 'foo') <> -1 {$endif}
     );
-  raise Exception.Create('uups ! OSCheck failed !');
- except
-  on EOSError do ;
- end;
+    raise Exception.Create('uups ! OSCheck failed !');
+  except
+    on EOSError do ;
+  end;
+  {$endif}
 end;
 
 procedure TTestCastleUtils.TestStrings;

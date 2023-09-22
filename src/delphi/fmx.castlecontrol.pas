@@ -20,11 +20,17 @@ unit Fmx.CastleControl;
 
 interface
 
-uses SysUtils, Classes, Windows,
-  FMX.Controls, FMX.Controls.Presentation, FMX.Presentation.Win, FMX.Memo,
-  FMX.Types, UITypes,
+uses // standard units
+  {$ifdef MSWINDOWS} Windows, {$endif}
+  SysUtils, Classes,
+  // fmx
+  {$ifdef MSWINDOWS} FMX.Presentation.Win, {$endif}
+  FMX.Controls, FMX.Controls.Presentation,
+  FMX.Memo, FMX.Types, UITypes,
+  // cge
+  {$ifdef MSWINDOWS} CastleInternalContextWgl, {$endif}
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
-  CastleInternalContextBase, CastleInternalContextWgl, CastleInternalContainer;
+  CastleInternalContextBase, CastleInternalContainer;
 
 type
   { Control rendering "Castle Game Engine" on FMX form. }
@@ -131,6 +137,8 @@ begin
   ]);
 end;
 
+{$ifdef MSWINDOWS}
+
 { TWinNativeGLControl -------------------------------------------------------- }
 
 type
@@ -163,6 +171,8 @@ begin
     CastleControl.DestroyHandle;
   inherited;
 end;
+
+{$endif}
 
 { TCastleControl.TContainer ---------------------------------------------------}
 
@@ -211,10 +221,12 @@ end;
 var
   Scale: Single;
 begin
+  {$ifdef MSWINDOWS}
   // this may be called at units finalization, when Handle is no longer available
   if Parent.Presentation <> nil then
     Scale := (Parent.Presentation as TWinNativeGLControl).Scale
   else
+  {$endif}
     Scale := 1;
 
   Result := Round(Parent.Width * Scale);
@@ -224,10 +236,12 @@ function TCastleControl.TContainer.Height: Integer;
 var
   Scale: Single;
 begin
+  {$ifdef MSWINDOWS}
   // this may be called at units finalization, when Handle is no longer available
   if Parent.Presentation <> nil then
     Scale := (Parent.Presentation as TWinNativeGLControl).Scale
   else
+  {$endif}
     Scale := 1;
 
   Result := Round(Parent.Height * Scale);
@@ -473,13 +487,17 @@ begin
   inherited;
   CurrentShift := Shift;
 
-  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  CastleKey := KeyToCastle(Key, Shift);
+
+  if KeyChar <> #0 then
+    CastleKeyString := KeyChar
+  else
+    CastleKeyString := '';
+
+  if (CastleKey <> keyNone) or (CastleKeyString <> '') then
   begin
     CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
-
-    if KeyChar <> #0 then
-      CastleEvent.KeyString := KeyChar;
 
     // check this before updating Container.Pressed
     CastleEvent.KeyRepeated :=
@@ -507,13 +525,17 @@ begin
   inherited;
   CurrentShift := Shift;
 
-  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  CastleKey := KeyToCastle(Key, Shift);
+
+  if KeyChar <> #0 then
+    CastleKeyString := KeyChar
+  else
+    CastleKeyString := '';
+
+  if (CastleKey <> keyNone) or (CastleKeyString <> '') then
   begin
     CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
-
-    if KeyChar <> #0 then
-      CastleEvent.KeyString := KeyChar;
 
     Container.Pressed.KeyUp(CastleEvent.Key, CastleEvent.KeyString);
     if Container.EventRelease(CastleEvent) then
@@ -524,10 +546,12 @@ begin
   end;
 end;
 
+{$ifdef MSWINDOWS}
 initialization
   { Make TWinNativeGLControl used
     for TCastleControl with ControlType = TControlType.Platform. }
   TPresentationProxyFactory.Current.Register(TCastleControl, TControlType.Platform, TWinPresentationProxy<TWinNativeGLControl>);
 finalization
   TPresentationProxyFactory.Current.Unregister(TCastleControl, TControlType.Platform, TWinPresentationProxy<TWinNativeGLControl>);
+{$endif}
 end.

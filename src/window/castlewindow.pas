@@ -207,7 +207,10 @@ unit CastleWindow;
            { $define CASTLE_WINDOW_LIBRARY}
            { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
          {$elseif defined(UNIX)}
-           {$if defined(ANDROID)}
+           {$if not defined(FPC)}
+             // Delphi on non-Windows supports now only this backend
+             {$define CASTLE_WINDOW_FORM}
+           {$elseif defined(ANDROID)}
              {$define CASTLE_WINDOW_ANDROID}
            {$elseif defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
              {$define CASTLE_WINDOW_LIBRARY}
@@ -3480,7 +3483,7 @@ begin
   FrameProfiler.StartFrame;
   FrameProfiler.Start(fmUpdate);
 
-  {$ifdef CASTLE_WINDOW_FORM}
+  {$if defined(CASTLE_WINDOW_FORM) and defined(FPC)}
   FKeyPressHandler.Flush; // finish any pending key presses
   {$endif}
 
@@ -4639,8 +4642,8 @@ begin
   s := 'Can''t change display settings to : ' + nl + VideoSettingsDescribe;
 
   {$ifndef CASTLE_WINDOW_HAS_VIDEO_CHANGE}
-    s += ' (changing Video properties not implemented when CastleWindow is '+
-      'made on top of ' +BackendName +')';
+    S := S + ' (changing Video properties not implemented when CastleWindow is '+
+      'made on top of ' + BackendName + ')';
   {$endif}
 
   if OnErrorWarnUserAndContinue then

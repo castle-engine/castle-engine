@@ -46,8 +46,9 @@ unit CastleInternalContainer;
 interface
 
 uses Classes, Generics.Collections,
+  {$ifdef MSWINDOWS} CastleInternalContextWgl, {$endif}
   CastleRectangles, CastleImages,
-  CastleUIControls, CastleInternalContextBase, CastleInternalContextWgl;
+  CastleUIControls, CastleInternalContextBase;
 
 type
   TCastleContainerEasy = class(TCastleContainer)
@@ -178,7 +179,10 @@ begin
   FRequirements.Name := 'Requirements';
   FRequirements.SetSubComponent(true);
 
-  FPlatformContext := TGLContextWGL.Create;
+  FPlatformContext :=
+    {$ifdef MSWINDOWS} TGLContextWGL.Create {$endif}
+    nil // TODO: not implemented elsewhere
+  ;
 
   FAutoRedisplay := true;
 

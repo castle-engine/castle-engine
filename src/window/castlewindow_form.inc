@@ -14,42 +14,63 @@
   ----------------------------------------------------------------------------
 }
 
-(*CastleWindow backend using Lazarus LCL underneath.
-  Should work with all LCL widgetsets, but was especially done and tested
-  to use LCL Carbon widgetset under macOS (since for other OSes
-  we already have more native CastleWindow backends).
+(*CastleWindow backend using Lazarus LCL or Delphi FMX underneath.
+
+  Should work with all platforms,
+  all LCL widgetsets,
+  all Delphi FMX platforms.
 
   TODO:
-  - Mouse look still stutters awfully on both Carbon and GTK2.
+  - LCL: Mouse look still stutters awfully on both Carbon and GTK2.
     AggressiveUpdate helps (without it, mouse look would not work at all)
     but doesn't completely fix the problem. Other CastleWindow backends
     have smooth mouse look.
 
-  - We never call Fps.InternalSleeping, so Fps.WasSleeping will be always false.
+  - LCL: We never call Fps.InternalSleeping, so Fps.WasSleeping will be always false.
     This may result in confusing Fps.ToString in case AutoRedisplay was false.
 
-  Bugs on GTK2, not on Carbon:
+  LCL: Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
 
-  Bugs on Carbon, untested elsewhere:
+  LCL: Bugs on Carbon, untested elsewhere:
   - When you switch FullScreen, at application exit there is an access violation
     in LCL. Seems harmless, so we just ignore it for now.
 *)
 
 {$ifdef read_interface_uses}
-Interfaces, Forms, Dialogs, OpenGLContext, Menus, LazUTF8,
-Controls, FileUtil, Graphics, LCLType, CastleLCLUtils, Clipbrd, CustomTimer, LCLVersion,
+  {$ifdef FPC}
+    // LCL
+    Interfaces, Forms, Dialogs, OpenGLContext, Menus,
+    Controls, FileUtil, Graphics, LCLType, CastleLCLUtils, Clipbrd, CustomTimer,
+    LCLVersion,
+  {$else}
+    UITypes, Types, Rtti,
+    // FMX
+    FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
+    FMX.StdCtrls, FMX.Menus, FMX.Platform,
+    // CGE
+    Fmx.CastleControl, CastleInternalDelphiUtils,
+  {$endif}
 {$endif}
 
 {$ifdef read_window_interface}
 private
   type
+    TFormMenuItem = {$ifndef FPC} FMX. {$endif} Menus.TMenuItem;
+
     { Descendant of LCL TMenuItem used for our menu. }
-    TGoodMenuItem = class(Menus.TMenuItem)
+    TGoodMenuItem = class(TFormMenuItem)
+    {$ifndef FPC}
+    strict private
+      function GetCaption: String;
+      procedure SetCaption(const Value: String);
+    {$endif}
     public
       Window: TCastleWindow;
       Entry: TMenuEntry;
 
+      {$ifdef FPC}
+      // only for LCL
       { Capture IntfDoSelect, which is fired on GTK2
         event 'select' on menu item, which we have to capture to call
         ReleaseAllKeysAndMouse.
@@ -63,51 +84,75 @@ private
 
         This should be also harmless on other non-GTK2 widgetsets. }
       procedure IntfDoSelect; override;
+      {$else}
+      // FMX calls this "Text", alias to "Caption" to be easier to handle - like in LCL
+      property Caption: String read GetCaption write SetCaption;
+      {$endif}
     end;
 
     { Like TOpenGLControl but sets Invalidated:=true on Window,
       so that Window knows when it's invalidated by the OS. }
-    TGoodOpenGLControl = class(TOpenGLControl)
+    TGoodOpenGLControl = class(
+      {$ifdef FPC}TOpenGLControl{$else}TCastleControl{$endif})
     public
       Window: TCastleWindow;
+      {$ifdef FPC}
       procedure Invalidate; override;
+      {$endif}
     end;
 
   var
     Form: TForm;
     OpenGLControl: TGoodOpenGLControl;
     Menu: TMainMenu;
+    { TLCLKeyPressHandler is only necessary for LCL.
+      FMX has much more comfortable KeyDown (that gets both key code and char),
+      just like CGE KeyDown, so it's more straightforward to handle. }
+    {$ifdef FPC}
     FKeyPressHandler: TLCLKeyPressHandler;
+    {$endif}
 
-  procedure MenuCastleToLCL(const MyMenu: TMenu; const AMenu: Menus.TMenuItem);
-  function MenuEntryCastleToLCL(const MyEntry: TMenuEntry): TGoodMenuItem;
+  procedure MenuConvert(const MyMenu: TMenu; const AMenu: TFormMenuItem);
+  function MenuEntryConvert(const MyEntry: TMenuEntry): TGoodMenuItem;
+  procedure MainMenuConvert(const MyMenu: TMenu; const AMenu: TMainMenu);
+  class function CheckMenu(const Entry: TMenuEntry; out GoodMenuItem: TGoodMenuItem): boolean;
 
   procedure MenuItemClick(Sender: TObject);
   procedure MenuUpdateShortcut(Entry: TMenuItem);
   procedure AggressiveUpdate;
   procedure UpdateFullScreenForm;
+  {$ifdef FPC}
   procedure KeyPressHandlerPress(Sender: TObject;
     const Event: TInputPressRelease);
+  {$endif}
 
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
   procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
 
-  procedure OpenGLControlPaint(Sender: TObject);
+  procedure OpenGLControlPaint(Sender: TObject
+    {$ifndef FPC} ; Canvas: TCanvas; const ARect: TRectF {$endif});
   procedure OpenGLControlResize(Sender: TObject);
   procedure OpenGLControlKeyDown(Sender: TObject; var Key: Word;
+    {$ifndef FPC} var KeyChar: WideChar; {$endif}
     Shift: TShiftState);
+  {$ifdef FPC}
   procedure OpenGLControlUTF8KeyPress(Sender: TObject; var UTF8Key: TUTF8Char);
+  {$endif}
   procedure OpenGLControlKeyUp(Sender: TObject; var Key: Word;
+    {$ifndef FPC} var KeyChar: WideChar; {$endif}
     Shift: TShiftState);
-  procedure OpenGLControlMouseDown(Sender: TObject; Button: Controls.TMouseButton;
-    Shift: TShiftState; X, Y: Integer);
-  procedure OpenGLControlMouseUp(Sender: TObject; Button: Controls.TMouseButton;
-    Shift: TShiftState; X, Y: Integer);
-  procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState; X,
-    Y: Integer);
+  procedure OpenGLControlMouseDown(Sender: TObject; Button: TMouseButton;
+    Shift: TShiftState;
+    X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
+  procedure OpenGLControlMouseUp(Sender: TObject; Button: TMouseButton;
+    Shift: TShiftState;
+    X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
+  procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState;
+    X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
   procedure OpenGLControlMouseWheel(Sender: TObject; Shift: TShiftState;
-    WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+    WheelDelta: Integer; {$ifdef FPC} MousePos: TPoint; {$endif}
+    var Handled: Boolean);
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -124,22 +169,46 @@ private
 const
   MaxDesiredFPS = TCastleApplicationProperties.DefaultLimitFPS;
 
+{ Return LCL or FMX Application singleton.
+  Just trivial "Application" in most code, but we need to avoid clashing with
+  CGE "Application" and take into account that LCL / FMX
+  have different units. }
+function FormApplication: TApplication;
+begin
+  Result := {$ifndef FPC} FMX. {$endif} Forms.Application;
+end;
+
 { TGoodMenuItem ---------------------------------------------------------------- }
 
+{$ifdef FPC}
 procedure TCastleWindow.TGoodMenuItem.IntfDoSelect;
 begin
   inherited;
   Window.ReleaseAllKeysAndMouse;
 end;
+{$else}
+function TCastleWindow.TGoodMenuItem.GetCaption: String;
+begin
+  Result := Text;
+end;
+
+procedure TCastleWindow.TGoodMenuItem.SetCaption(const Value: String);
+begin
+  Text := Caption;
+end;
+{$endif}
 
 { TGoodOpenGLControl --------------------------------------------------------- }
 
+{$ifdef FPC}
+// TODO: Not necessary with FMX? check
 procedure TCastleWindow.TGoodOpenGLControl.Invalidate;
 begin
   // track our own Invalidated state, although still cooperate with LCL invalidate
   Window.Invalidated := true;
   inherited;
 end;
+{$endif}
 
 { TCastleWindow ------------------------------------------------------------------ }
 
@@ -147,11 +216,11 @@ procedure TCastleWindow.CreateBackend;
 begin
 end;
 
-function TCastleWindow.MenuEntryCastleToLCL(const MyEntry: TMenuEntry): TGoodMenuItem;
+function TCastleWindow.MenuEntryConvert(const MyEntry: TMenuEntry): TGoodMenuItem;
 begin
   Result := TGoodMenuItem.Create(Form);
   Result.Window := Self;
-  Result.OnClick := @MenuItemClick;
+  Result.OnClick := {$ifdef FPC}@{$endif} MenuItemClick;
   { store connection both ways between LCL menu item <-> our menu entry }
   Result.Entry := MyEntry;
   MyEntry.Handle := Result;
@@ -164,7 +233,9 @@ begin
     MenuUpdateEnabled(TMenuEntryWithCaption(MyEntry));
     if MyEntry is TMenuItemChecked then
     begin
+      {$ifdef FPC}
       Result.ShowAlwaysCheckable := true;
+      {$endif}
       Result.RadioItem := MyEntry is TMenuItemRadio;
       MenuUpdateChecked(TMenuItemChecked(MyEntry));
     end;
@@ -174,16 +245,42 @@ begin
     Result.Caption := '-';
   { if we have submenu, do this recursively }
   if MyEntry is TMenu then
-    MenuCastleToLCL(TMenu(MyEntry), Result);
+    MenuConvert(TMenu(MyEntry), Result);
 end;
 
-procedure TCastleWindow.MenuCastleToLCL(const MyMenu: TMenu;
-  const AMenu: Menus.TMenuItem);
+procedure TCastleWindow.MenuConvert(const MyMenu: TMenu;
+  const AMenu: TFormMenuItem);
 var
   I: Integer;
+  NewMenuChild: TFormMenuItem;
 begin
   for I := 0 to MyMenu.Count - 1 do
-    AMenu.Add(MenuEntryCastleToLCL(MyMenu[I]));
+  begin
+    NewMenuChild := MenuEntryConvert(MyMenu[I]);
+    {$ifdef FPC}
+    AMenu.Add(NewMenuChild);
+    {$else}
+    NewMenuChild.Parent := AMenu;
+    {$endif}
+  end;
+end;
+
+procedure TCastleWindow.MainMenuConvert(
+  const MyMenu: TMenu; const AMenu: TMainMenu);
+{$ifdef FPC}
+begin
+  MenuConvert(MyMenu, AMenu.Items);
+{$else}
+var
+  I: Integer;
+  NewMenuChild: TFormMenuItem;
+begin
+  for I := 0 to MyMenu.Count - 1 do
+  begin
+    NewMenuChild := MenuEntryConvert(MyMenu[I]);
+    NewMenuChild.Parent := AMenu;
+  end;
+{$endif}
 end;
 
 procedure TCastleWindow.BackendMenuInitialize;
@@ -191,8 +288,10 @@ begin
   Menu := TMainMenu.Create(Form);
   { connet Menu with Form }
   Menu.Parent := Form;
+  {$ifdef FPC} // in FMX, there's no need to assign main menu to any form property
   Form.Menu := Menu;
-  MenuCastleToLCL(MainMenu, Menu.Items);
+  {$endif}
+  MainMenuConvert(MainMenu, Menu);
 end;
 
 procedure TCastleWindow.BackendMenuFinalize;
@@ -201,10 +300,11 @@ begin
   MainMenu.ClearHandles;
 end;
 
-function CheckMenu(const Entry: TMenuEntry; out EntryLCL: Menus.TMenuItem): boolean;
+class function TCastleWindow.CheckMenu(const Entry: TMenuEntry; out GoodMenuItem: TGoodMenuItem): boolean;
 begin
-  EntryLCL := Menus.TMenuItem(Entry.Handle);
-  Result := EntryLCL <> nil;
+  GoodMenuItem := TObject(Entry.Handle) as TGoodMenuItem;
+  Result := GoodMenuItem <> nil;
+
   if (not Result) and
      ((Entry.CorrectParentWindow = nil) or Entry.CorrectParentWindow.MainMenuVisible) then
     WritelnWarning('Menu', 'Menu entry has Handle = nil (this means that corresponding LCL menu item object was not created, but it should)');
@@ -214,7 +314,7 @@ procedure TCastleWindow.MenuUpdateShortcut(Entry: TMenuItem);
 var
   LazKey: Word;
   Shift: TShiftState;
-  EntryLCL: Menus.TMenuItem;
+  EntryLCL: TGoodMenuItem;
 begin
   if not CheckMenu(Entry, EntryLCL) then Exit;
 
@@ -241,8 +341,11 @@ begin
   end;
   {$endif}
 
+  // TODO: fmx
+  {$ifdef FPC}
   KeyCastleToLCL(Entry.Key, Entry.KeyString, Entry.Modifiers, LazKey, Shift);
   EntryLCL.ShortCut := KeyToShortCut(LazKey, Shift);
+  {$endif}
 end;
 
 procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
@@ -258,7 +361,7 @@ procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
   end;
 
 var
-  EntryLCL: Menus.TMenuItem;
+  EntryLCL: TGoodMenuItem;
 begin
   if not CheckMenu(Entry, EntryLCL) then Exit;
   EntryLCL.Caption := MenuCaptionCastleToLCL(Entry.Caption);
@@ -284,7 +387,7 @@ procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
   end;
 
 var
-  EntryLCL: Menus.TMenuItem;
+  EntryLCL: TGoodMenuItem;
 begin
   { To apply MainMenu.Enabled: we would prefer to map MainMenu.Enabled
     on LCL Menu.Items.Enabled, and just handle MainMenu.Enabled like
@@ -332,10 +435,12 @@ end;
 
 procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 var
-  EntryLCL: Menus.TMenuItem;
+  EntryLCL: TGoodMenuItem;
 begin
   if not CheckMenu(Entry, EntryLCL) then Exit;
+  {$ifdef FPC} // FMX: TODO
   EntryLCL.Checked := Entry.Checked;
+  {$endif}
 end;
 
 function TCastleWindow.MenuUpdateCheckedFast: boolean;
@@ -346,16 +451,18 @@ end;
 procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 var
-  ParentLCL: Menus.TMenuItem;
+  ParentLCL: TGoodMenuItem;
 begin
   if not CheckMenu(Parent, ParentLCL) then Exit;
+  {$ifdef FPC} // FMX: TODO
   ParentLCL.Insert(ParentPosition, MenuEntryCastleToLCL(Entry));
+  {$endif}
 end;
 
 procedure TCastleWindow.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 var
-  EntryLCL: Menus.TMenuItem;
+  EntryLCL: TGoodMenuItem;
 begin
   if not CheckMenu(Entry, EntryLCL) then Exit;
   Entry.ClearHandles;
@@ -401,7 +508,10 @@ end;
 
 procedure TCastleWindow.SwapBuffers;
 begin
+  {$ifdef FPC}
+  // FMX: TODO - TCastleControl does this internally
   OpenGLControl.SwapBuffers;
+  {$endif}
 end;
 
 procedure TCastleWindow.OpenBackend;
@@ -410,18 +520,23 @@ procedure TCastleWindow.OpenBackend;
   var
     InitialCursorPos: TPoint;
   begin
+    {$ifdef FPC}
+    // FMX: TODO
     InitialCursorPos := OpenGLControl.ScreenToControl(Mouse.CursorPos);
     FMousePosition := LeftTopToCastle(InitialCursorPos.X, InitialCursorPos.Y);
+    {$endif}
   end;
 
 begin
+  {$ifdef FPC}
   FKeyPressHandler := TLCLKeyPressHandler.Create;
   FKeyPressHandler.OnPress := @KeyPressHandlerPress;
+  {$endif}
 
-  { We use Forms.Application.CreateForm, not just "Form := TForm.CreateNew(nil)",
-    because we want our Form to be set as Forms.Application.MainForm.
+  { We use FormApplication.CreateForm, not just "Form := TForm.CreateNew(nil)",
+    because we want our Form to be set as FormApplication.MainForm.
 
-    And there is no other way to set Forms.Application.MainForm,
+    And there is no other way to set FormApplication.MainForm,
     we have to use mechanism that "the first form created by Application.CreateForm
     is set as main", see http://www.lazarus.freepascal.org/index.php?topic=14438.0
     and LCL sources of TApplication.UpdateMainForm.
@@ -439,8 +554,12 @@ begin
     Fortunately, the whole resource-searching is not used when we just
     have a TForm class (see TCustomForm.Create in LCL), so that's not a problem. }
 
-  Forms.Application.CreateForm(TForm, Form);
+  FormApplication.CreateForm(TForm, Form);
+
+  {$ifdef FPC}
+  // FMX: TODO
   Form.OnDropFiles := @FormDropFiles;
+  {$endif}
 
   Form.Top := Top;
   Form.Left := Left;
@@ -449,17 +568,17 @@ begin
   Form.Width := Width;
   Form.Height := Height;
   Form.Caption := GetWholeCaption; // SetCaption may also change it later
-  Form.Cursor := CursorCastleToLCL(InternalCursor); // SetCursor may also change it later
+  Form.Cursor := CursorFromCastle(InternalCursor); // SetCursor may also change it later
 
   UpdateFullScreenForm;
 
-  Form.OnCloseQuery := @FormCloseQuery;
+  Form.OnCloseQuery := {$ifdef FPC}@{$endif} FormCloseQuery;
   { Note: I tried also using OpenGLControl.OnExit for this, seems to be quivalent
     in our case. And, similarly, both methods still need manual workaround
     to call ReleaseAllKeysAndMouse manually in MessageOK and similar methods
     (otherwise: check e.g. window_events with Window.MessageOk from Update:
     entering MessageOK *must* make ReleaseAllKeysAndMouse, otherwise it hangs.) }
-  Form.OnDeactivate := @FormDeactivate;
+  Form.OnDeactivate := {$ifdef FPC}@{$endif} FormDeactivate;
 
   { Do not make it owned by Form, instead we will free it explicitly.
     This avoids problems in Invalidate, where we access OpenGLControl instance,
@@ -476,23 +595,29 @@ begin
   OpenGLControl := TGoodOpenGLControl.Create(nil);
   OpenGLControl.Window := Self;
   OpenGLControl.Parent := Form;
-  OpenGLControl.Align := alClient;
+  OpenGLControl.Align := {$ifdef FPC} alClient {$else} TAlignLayout.Client {$endif};
   OpenGLControl.Width := Width;
   OpenGLControl.Height := Height;
+  {$ifdef FPC} // TODO: FMX
   OpenGLControl.Constraints.MinWidth := MinWidth;
   OpenGLControl.Constraints.MinHeight := MinHeight;
   OpenGLControl.Constraints.MaxWidth := MaxWidth;
   OpenGLControl.Constraints.MaxHeight := MaxHeight;
+  {$endif}
   OpenGLControl.TabStop := true;
 
-  OpenGLControl.DoubleBuffered := DoubleBuffer;
-  {$if (LCL_FullVersion > 1001000)}
-  OpenGLControl.StencilBits := StencilBits;
-  OpenGLControl.DepthBits := DepthBits;
-  OpenGLControl.AlphaBits := AlphaBits;
-  OpenGLControl.MultiSampling := MultiSampling;
+  {$ifdef FPC}
+    OpenGLControl.DoubleBuffered := DoubleBuffer;
+    OpenGLControl.StencilBits := StencilBits;
+    OpenGLControl.DepthBits := DepthBits;
+    OpenGLControl.AlphaBits := AlphaBits;
+    OpenGLControl.MultiSampling := MultiSampling;
   {$else}
-  {$warning Using LCL (Lazarus library) version before 1.1. OpenGL control doesn't have features to control stencil/alpha/multi-sampling etc.}
+    OpenGLControl.Container.Requirements.DoubleBuffer := DoubleBuffer;
+    OpenGLControl.Container.Requirements.StencilBits := StencilBits;
+    OpenGLControl.Container.Requirements.DepthBits := DepthBits;
+    OpenGLControl.Container.Requirements.AlphaBits := AlphaBits;
+    OpenGLControl.Container.Requirements.MultiSampling := MultiSampling;
   {$endif}
 
   Form.ActiveControl := OpenGLControl;
@@ -513,58 +638,71 @@ begin
     menu (like macOS), and after accounting for FullScreen).
     DoResize is already implemented to handle such
     call (from OpenBackend, before EventOpen was called) correctly. }
-  DoResize(OpenGLControl.Width, OpenGLControl.Height, false);
+  DoResize(
+    Round(OpenGLControl.Width),
+    Round(OpenGLControl.Height), false);  // Round for FMX
 
   { Assign OpenGLControl.OnPaint *after* making Form visible.
     If we would assign OpenGLControl.OnPaint earlier, then
     Form.Visible := true would cause OpenGLControlPaint *before*
     OpenGL context was created. }
-  OpenGLControl.OnPaint := @OpenGLControlPaint;
-  OpenGLControl.OnResize := @OpenGLControlResize;
-  OpenGLControl.OnKeyDown := @OpenGLControlKeyDown;
-  OpenGLControl.OnUTF8KeyPress := @OpenGLControlUTF8KeyPress;
-  OpenGLControl.OnKeyUp := @OpenGLControlKeyUp;
-  OpenGLControl.OnMouseDown := @OpenGLControlMouseDown;
-  OpenGLControl.OnMouseUp := @OpenGLControlMouseUp;
-  OpenGLControl.OnMouseMove := @OpenGLControlMouseMove;
-  OpenGLControl.OnMouseWheel := @OpenGLControlMouseWheel;
+  OpenGLControl.OnPaint := {$ifdef FPC}@{$endif} OpenGLControlPaint;
+  OpenGLControl.OnResize := {$ifdef FPC}@{$endif} OpenGLControlResize;
+  OpenGLControl.OnKeyDown := {$ifdef FPC}@{$endif} OpenGLControlKeyDown;
+  {$ifdef FPC}
+  OpenGLControl.OnUTF8KeyPress := {$ifdef FPC}@{$endif} OpenGLControlUTF8KeyPress;
+  {$endif}
+  OpenGLControl.OnKeyUp := {$ifdef FPC}@{$endif} OpenGLControlKeyUp;
+  OpenGLControl.OnMouseDown := {$ifdef FPC}@{$endif} OpenGLControlMouseDown;
+  OpenGLControl.OnMouseUp := {$ifdef FPC}@{$endif} OpenGLControlMouseUp;
+  OpenGLControl.OnMouseMove := {$ifdef FPC}@{$endif} OpenGLControlMouseMove;
+  OpenGLControl.OnMouseWheel := {$ifdef FPC}@{$endif} OpenGLControlMouseWheel;
 
   { Make sure we have OpenGL context created now, and send initial Invalidate
     (it may not happen automatically, testcase: castle-view-image on Carbon).
     TCastleWindow.OpenCore will call MakeCurrent next. }
+  {$ifdef FPC}
   OpenGLControl.HandleNeeded;
   OpenGLControl.Invalidate;
+  {$endif}
 
   Application.OpenWindowsAdd(Self);
 
   GetInitialCursorPos;
 
+  {$ifdef FPC}
   Container.Dpi := Screen.PixelsPerInch;
+  {$endif}
 end;
 
 const
-  BorderNone = Controls.bsNone;
+  BorderNone = {$ifdef FPC} Controls.bsNone {$else} TFmxFormBorderStyle.None {$endif};
 
 procedure TCastleWindow.UpdateFullScreenForm;
 begin
   if FullScreen then
   begin
     Form.BorderStyle := BorderNone;
+    {$ifdef FPC} // TODO: FMX
     Form.WindowState := wsFullScreen;
+    {$endif}
   end else
   begin
     if ResizeAllowed <> raAllowed then
-      Form.BorderStyle := bsSingle else
-      Form.BorderStyle := bsSizeable;
-    Form.WindowState := wsNormal;
+      Form.BorderStyle := {$ifdef FPC} bsSingle {$else} TFmxFormBorderStyle.Single {$endif}
+    else
+      Form.BorderStyle := {$ifdef FPC} bsSizeable {$else} TFmxFormBorderStyle.Sizeable {$endif};
+    Form.WindowState := {$ifdef FPC} wsNormal {$else} TWindowState.wsNormal {$endif};
   end;
 end;
 
+{$ifdef FPC}
 procedure TCastleWindow.KeyPressHandlerPress(Sender: TObject;
   const Event: TInputPressRelease);
 begin
   DoKeyDown(Event.Key, Event.KeyString);
 end;
+{$endif}
 
 procedure TCastleWindow.UpdateFullScreenBackend;
 begin
@@ -595,7 +733,9 @@ begin
     like TCastleWindow.MenuInitialized and clear TMenuItem.Handle. }
   MenuFinalize;
 
+  {$ifdef FPC}
   FreeAndNil(FKeyPressHandler);
+  {$endif}
 end;
 
 procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
@@ -606,7 +746,9 @@ end;
 
 procedure TCastleWindow.BackendMakeCurrent;
 begin
+  {$ifdef FPC} // TODO: FMX
   OpenGLControl.MakeCurrent;
+  {$endif}
 end;
 
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
@@ -617,7 +759,7 @@ begin
     if not Closed then
       { Do not use Form.Cursor for this, e.g. hiding the cursor would not work
         then on Carbon. }
-      OpenGLControl.Cursor := CursorCastleToLCL(Value);
+      OpenGLControl.Cursor := CursorFromCastle(Value);
   end;
 end;
 
@@ -638,7 +780,10 @@ begin
     if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
 
     P := CastleToLeftTopInt(Value);
+    // TODO: FMX
+    {$ifdef FPC}
     Mouse.CursorPos := OpenGLControl.ControlToScreen(Point(P.X, P.Y));
+    {$endif}
   end;
 end;
 
@@ -670,54 +815,81 @@ begin
   ReleaseAllKeysAndMouse;
 end;
 
-procedure TCastleWindow.OpenGLControlPaint(Sender: TObject);
+procedure TCastleWindow.OpenGLControlPaint(Sender: TObject
+  {$ifndef FPC} ; Canvas: TCanvas; const ARect: TRectF {$endif});
 begin
   DoRender;
 end;
 
 procedure TCastleWindow.OpenGLControlResize(Sender: TObject);
 begin
-  DoResize(OpenGLControl.Width, OpenGLControl.Height, false);
+  DoResize(
+    Round(OpenGLControl.Width),
+    Round(OpenGLControl.Height), false);  // Round for FMX
 end;
 
 procedure TCastleWindow.OpenGLControlKeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
+  var Key: Word; {$ifndef FPC} var KeyChar: WideChar; {$endif}
+  Shift: TShiftState);
+{$ifdef FPC}
 begin
   FKeyPressHandler.KeyDown(Key, Shift);
+{$else}
+var
+  CastleKey: TKey;
+  CastleKeyString: String;
+begin
+  CastleKey := KeyToCastle(Key, Shift);
+
+  if KeyChar <> #0 then
+    CastleKeyString := KeyChar
+  else
+    CastleKeyString := '';
+
+  if (CastleKey <> keyNone) or (CastleKeyString <> '') then
+    DoKeyDown(CastleKey, CastleKeyString);
+{$endif}
 end;
 
+{$ifdef FPC}
 procedure TCastleWindow.OpenGLControlUTF8KeyPress(Sender: TObject;
   var UTF8Key: TUTF8Char);
 begin
   FKeyPressHandler.UTF8KeyPress(UTF8Key);
 end;
+{$endif}
 
 procedure TCastleWindow.OpenGLControlKeyUp(Sender: TObject; var Key: Word;
+  {$ifndef FPC} var KeyChar: WideChar; {$endif}
   Shift: TShiftState);
 var
-  MyKey: TKey;
+  CastleKey: TKey;
 begin
+  {$ifdef FPC}
   FKeyPressHandler.BeforeKeyUp(Key, Shift);
-  MyKey := KeyLCLToCastle(Key, Shift);
-  if MyKey <> keyNone then
-    DoKeyUp(MyKey);
+  {$endif}
+  CastleKey := KeyToCastle(Key, Shift);
+  if CastleKey <> keyNone then
+    DoKeyUp(CastleKey);
 end;
 
 procedure TCastleWindow.OpenGLControlMouseDown(Sender: TObject;
-  Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
+  Button: TMouseButton; Shift: TShiftState;
+  X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
 var
   MyButton: TCastleMouseButton;
 begin
-  if MouseButtonLCLToCastle(Button, MyButton) then
+  if MouseButtonToCastle(Button, MyButton) then
     DoMouseDown(LeftTopToCastle(X, Y), MyButton, 0);
 end;
 
 procedure TCastleWindow.OpenGLControlMouseUp(Sender: TObject;
-  Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
+  Button: TMouseButton; Shift: TShiftState;
+  X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
 var
   MyButton: TCastleMouseButton;
 begin
-  if MouseButtonLCLToCastle(Button, MyButton) then
+  if MouseButtonToCastle(Button, MyButton) then
     DoMouseUp(LeftTopToCastle(X, Y), MyButton, 0);
 end;
 
@@ -754,12 +926,16 @@ end;
 
 procedure TCastleWindow.Invalidate;
 begin
+  // TODO: FMX
+  {$ifdef FPC}
   if not Closed then
     OpenGLControl.Invalidate;
+  {$endif}
 end;
 
 procedure TCastleWindow.OpenGLControlMouseMove(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
+  Shift: TShiftState;
+  X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
 begin
   DoMotion(InputMotion(MousePosition, LeftTopToCastle(X, Y),
     MousePressed, 0));
@@ -767,7 +943,8 @@ begin
 end;
 
 procedure TCastleWindow.OpenGLControlMouseWheel(Sender: TObject;
-  Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
+  Shift: TShiftState; WheelDelta: Integer;
+  {$ifdef FPC} MousePos: TPoint; {$endif}
   var Handled: Boolean);
 begin
   DoMouseWheel(WheelDelta/120, true);
@@ -778,30 +955,36 @@ end;
 function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 var
-  Dialog: TFileDialog;
+  // In FMX, TSaveDialog descends from TOpenDialog
+  Dialog: {$ifdef FPC} TFileDialog {$else} TOpenDialog {$endif};
   ExpandedFileName: string;
 begin
   if OpenDialog then
-    Dialog := TOpenDialog.Create(nil) else
+    Dialog := TOpenDialog.Create(nil)
+  else
     Dialog := TSaveDialog.Create(nil);
   try
     Dialog.Title := Title;
     if FileName = '' then
-      Dialog.InitialDir := SysToUTF8(GetCurrentDir) else
+      Dialog.InitialDir := GetCurrentDir
+    else
     begin
       ExpandedFileName := ExpandFileName(FileName);
-      Dialog.InitialDir := SysToUTF8(ExtractFilePath(ExpandedFileName));
-      Dialog.FileName := SysToUTF8(ExtractFileName(ExpandedFileName));
+      Dialog.InitialDir := ExtractFilePath(ExpandedFileName);
+      Dialog.FileName := ExtractFileName(ExpandedFileName);
     end;
+    {$ifdef FPC} // TODO: FMX
     FileFiltersToDialog(FileFilters, Dialog);
+    {$endif}
     ReleaseAllKeysAndMouse; // do it manually
     Result := Dialog.Execute;
     if Result then
-      FileName := UTF8ToSys(Dialog.FileName);
+      FileName := Dialog.FileName;
   finally FreeAndNil(Dialog) end;
 end;
 
 function TCastleWindow.ColorDialog(var Color: TCastleColor): boolean;
+{$ifdef FPC}
 var
   Dialog: TColorDialog;
   ColorByte: TVector3Byte;
@@ -818,22 +1001,33 @@ begin
       Color := Vector4(Vector3(ColorByte), Color.W);
     end;
   finally FreeAndNil(Dialog) end;
+{$else}
+begin
+  WritelnWarning('TODO: ColorDialog not implemented with TCastleWindow backend on FMX');
+  Result := false;
+{$endif}
 end;
 
 procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
 const
-  MessageTypeCastleToLCL: array [TWindowMessageType] of TMsgDlgType =
-  (Dialogs.mtInformation, Dialogs.mtWarning, Dialogs.mtConfirmation, Dialogs.mtError, Dialogs.mtCustom);
+  MessageTypeCastleToLCL: array [TWindowMessageType] of TMsgDlgType = (
+    TMsgDlgType.mtInformation,
+    TMsgDlgType.mtWarning,
+    TMsgDlgType.mtConfirmation,
+    TMsgDlgType.mtError,
+    TMsgDlgType.mtCustom
+  );
 begin
   ReleaseAllKeysAndMouse; // do it manually
-  MessageDlg(S, MessageTypeCastleToLCL[MessageType], [mbOK], 0);
+  MessageDlg(S, MessageTypeCastleToLCL[MessageType], [TMsgDlgBtn.mbOK], 0);
 end;
 
 function TCastleWindow.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
   ReleaseAllKeysAndMouse; // do it manually
-  Result := MessageDlg(S, mtConfirmation, mbYesNo, 0) = mrYes;
+  Result := MessageDlg(S, TMsgDlgType.mtConfirmation,
+    [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], 0) = mrYes;
 end;
 
 procedure TCastleWindow.FormDropFiles(Sender: TObject; const FileNames: array of string);
@@ -841,37 +1035,78 @@ begin
   DoDropFiles(FileNames);
 end;
 
-{ TLCLClipboard ----------------------------------------------------------- }
+{ TFormsClipboard ----------------------------------------------------------- }
 
 type
-  TLCLClipboard = class(TCastleClipboard)
+  { Easy API for LCL or FMX clipboard. }
+  TFormsClipboard = class(TCastleClipboard)
   protected
     function GetAsText: string; override;
     procedure SetAsText(const Value: string); override;
   end;
 
-function TLCLClipboard.GetAsText: string;
+{$ifndef FPC}
+{ FMX clipboard handling thankd to
+  https://blog.dummzeuch.de/2015/02/28/accessing-the-clipboard-in-a-firemonkey-application/
+  https://blogs.embarcadero.com/multi-device-apps-and-clipboard-support/
+}
+function TryGetClipboardService(out Clp: IFMXClipboardService): Boolean;
 begin
-  Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
+  Result := TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService);
+  if Result then
+    Clp := IFMXClipboardService(TPlatformServices.Current.GetPlatformService(IFMXClipboardService));
+end;
+{$endif}
+
+function TFormsClipboard.GetAsText: string;
+{$ifdef FPC}
+begin
+  Result := Clipbrd.Clipboard.AsText;
+{$else}
+var
+  Clp: IFMXClipboardService;
+  Value: TValue;
+begin
+  if TryGetClipboardService(Clp) then
+  begin
+    Value := Clp.GetClipboard;
+    if not Value.TryAsType(Result) then
+      Result := '';
+  end;
+{$endif}
 end;
 
-procedure TLCLClipboard.SetAsText(const Value: string);
+procedure TFormsClipboard.SetAsText(const Value: string);
+{$ifdef FPC}
 begin
-  Clipbrd.Clipboard.AsText := SysToUTF8(Value);
+  Clipbrd.Clipboard.AsText := Value;
+{$else}
+var
+  Clp: IFMXClipboardService;
+begin
+  if TryGetClipboardService(Clp) then
+  begin
+    Clp.SetClipboard(Value);
+  end;
+{$endif}
 end;
 
 { TCastleApplication ---------------------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;
 begin
-  RegisterClipboard(TLCLClipboard.Create);
+  RegisterClipboard(TFormsClipboard.Create);
 
   { Do not install LCL handler for ExceptProc, we want to use our own handler
     in CastleUtils. }
-  Forms.Application.CaptureExceptions := false;
-
-  Forms.Application.Initialize;
-  Forms.Application.AddOnIdleHandler(@ApplicationIdle);
+  {$ifdef FPC}
+  FormApplication.CaptureExceptions := false;
+  {$endif}
+  FormApplication.Initialize;
+  {$ifdef FPC}
+  FormApplication.AddOnIdleHandler(@ApplicationIdle);
+  {$endif}
+  // TODO: FMX
 
   {$ifdef LCLCarbon}
   FTimer := TCustomTimer.Create(Self);
@@ -883,7 +1118,11 @@ end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  Forms.Application.RemoveOnIdleHandler(@ApplicationIdle);
+  // TODO: FMX
+  {$ifdef FPC}
+  FormApplication.RemoveOnIdleHandler(@ApplicationIdle);
+  {$endif}
+
   {$ifdef LCLCarbon}
   FreeAndNil(FTimer);
   {$endif LCLCarbon}
@@ -937,7 +1176,8 @@ function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boole
 var
   I: Integer;
 begin
-  if Forms.Application.Terminated then Exit(false);
+  if FormApplication.Terminated then
+    Exit(false);
 
   { TODO: take WaitToLimitFPS into account }
 
@@ -945,16 +1185,16 @@ begin
   begin
     { HandleMessage will call ApplicationIdle, so no need for AggressiveUpdate
       hack in this case. }
-    Forms.Application.HandleMessage;
-    Result := not Forms.Application.Terminated;
+    FormApplication.HandleMessage;
+    Result := not FormApplication.Terminated;
   end else
   begin
-    Forms.Application.ProcessMessages;
-    Result := not Forms.Application.Terminated;
+    FormApplication.ProcessMessages;
+    Result := not FormApplication.Terminated;
 
     { Without this, OnUpdate will not be called when application calls
       TCastleApplication.ProcessMessage in a loop, because LCL will not make
-      ApplicationIdle calls from Forms.Application.ProcessMessages.
+      ApplicationIdle calls from FormApplication.ProcessMessages.
 
       Bugs observed when the below workaround is not used (on both LCL-Carbon and LCL-GTK2):
       - Arrow keys up/down do not work in CastleMessages window.
@@ -976,7 +1216,7 @@ end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
 begin
-//  Result := not Forms.Application.Terminated;
+//  Result := not FormApplication.Terminated;
 //  while Result do
     Result := ProcessMessage(false, false);
 end;
@@ -991,10 +1231,10 @@ begin
     to avoid wasting CPU on "busy waiting". }
   // while ProcessMessage(true, true) do ;
 
-  { We have to call here Forms.Application.Run, not just call our
-    ProcessMessage (which makes Forms.Application.ProcessMessage) in a loop.
+  { We have to call here FormApplication.Run, not just call our
+    ProcessMessage (which makes FormApplication.ProcessMessage) in a loop.
     That is because on some LCL widgetsets, you really need to run
-    Forms.Application.Run, see e.g. Carbon that does special stuff inside
+    FormApplication.Run, see e.g. Carbon that does special stuff inside
     TCarbonWidgetSet.AppRun inside lcl/interfaces/carbon/carbonobject.inc.
     Without this, global menu on Carbon is always blocked.
 
@@ -1005,22 +1245,22 @@ begin
     TODO: this makes Application.OnUpdate/Application.OnTimer broken,
     they need our TCastleApplication.ProcessMessage to work. }
 
-  Forms.Application.Run;
+  FormApplication.Run;
 end;
 
 procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
-  Forms.Application.Terminate; // break also Forms.Application.Run
+  FormApplication.Terminate; // break also FormApplication.Run
 end;
 
 function TCastleApplication.ScreenWidth: integer;
 begin
-  Result := Screen.Width;
+  Result := Round(Screen.Width);  // Round for FMX
 end;
 
 function TCastleApplication.ScreenHeight: integer;
 begin
-  Result := Screen.Height;
+  Result := Round(Screen.Height); // Round for FMX
 end;
 
 function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;

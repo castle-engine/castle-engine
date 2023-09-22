@@ -67,7 +67,7 @@ procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
 
 { Convert Key (Lazarus key code) to Castle Game Engine TKey.
   Returns keyNone if not possible. }
-function KeyLCLToCastle(const Key: Word; const Shift: TShiftState): TKey;
+function KeyToCastle(const Key: Word; const Shift: TShiftState): TKey;
 
 { Convert TKey and/or character code into Lazarus key code (VK_xxx)
   and shift state.
@@ -84,12 +84,12 @@ procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
 
 { Convert Lazarus TMouseButton value to Castle Game Engine
   TCastleMouseButton. }
-function MouseButtonLCLToCastle(
+function MouseButtonToCastle(
   const MouseButton: TMouseButton;
   out MyMouseButton: TCastleMouseButton): boolean;
 
 { Convert CGE to LCL cursor type. }
-function CursorCastleToLCL(const Cursor: TMouseCursor): TCursor;
+function CursorFromCastle(const Cursor: TMouseCursor): TCursor;
 
 { Not necessary.
   Converts between Lazarus String encoding for filenames (which is UTF-8)
@@ -275,7 +275,7 @@ const
   { Ctrl key on most systems, Command key on macOS. }
   ssCtrlOrCommand = {$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif};
 
-function KeyLCLToCastle(const Key: Word; const Shift: TShiftState): TKey;
+function KeyToCastle(const Key: Word; const Shift: TShiftState): TKey;
 begin
   Result := keyNone;
   case Key of
@@ -444,7 +444,7 @@ begin
     Shift += [ssAlt];
 end;
 
-function MouseButtonLCLToCastle(
+function MouseButtonToCastle(
   const MouseButton: Controls.TMouseButton;
   out MyMouseButton: TCastleMouseButton): boolean;
 begin
@@ -461,7 +461,7 @@ begin
   end;
 end;
 
-function CursorCastleToLCL(const Cursor: TMouseCursor): TCursor;
+function CursorFromCastle(const Cursor: TMouseCursor): TCursor;
 const
   Map: array [TMouseCursor] of TCursor =
   ( crDefault, //< mcDefault
@@ -565,7 +565,7 @@ begin
     if ssShift in FUnfinishedKeyDownShift then Include(Modifiers, mkShift);
     if ssAlt   in FUnfinishedKeyDownShift then Include(Modifiers, mkAlt);
     if ssCtrl  in FUnfinishedKeyDownShift then Include(Modifiers, mkCtrl);
-    Key := KeyLCLToCastle(FUnfinishedKeyDownKey, FUnfinishedKeyDownShift);
+    Key := KeyToCastle(FUnfinishedKeyDownKey, FUnfinishedKeyDownShift);
   end;
 
   if FUnfinishedKeyPress then

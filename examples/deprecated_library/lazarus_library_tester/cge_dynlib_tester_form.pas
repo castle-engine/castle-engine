@@ -165,13 +165,13 @@ end;
 
 { Convert Key (Lazarus key code) to Castle Game Engine library kcge_Xxx constant.
   Returns kcge_None if not possible. }
-function KeyLCLToCastleLibrary(const Key: Word; const Shift: TShiftState): CInt32;
+function KeyToCastleLibrary(const Key: Word; const Shift: TShiftState): CInt32;
 begin
   { Note: We have almost the same conversion (LCL -> CGE TKey) already implemented
-    in KeyLCLToCastle in CastleLCLUtils.
+    in KeyToCastle in CastleLCLUtils.
     But this example application deliberately does not use any CGE units,
     it only uses CGE as a shared library through the API in castlelib_dynloader.
-    So we duplicate here logic of KeyLCLToCastle. }
+    So we duplicate here logic of KeyToCastle. }
 
   Result := kcge_None;
   case Key of
@@ -247,7 +247,7 @@ begin
     VK_3: CGE_MoveToViewpoint(2, ssShift in Shift);
   end;
 
-  KeyCge := KeyLCLToCastleLibrary(Key, Shift);
+  KeyCge := KeyToCastleLibrary(Key, Shift);
   if KeyCge <> kcge_None then
     CGE_KeyDown(KeyCge);
 end;
@@ -257,7 +257,7 @@ procedure TForm1.OpenGLControl1KeyUp(Sender: TObject; var Key: Word;
 var
   KeyCge: CInt32;
 begin
-  KeyCge := KeyLCLToCastleLibrary(Key, Shift);
+  KeyCge := KeyToCastleLibrary(Key, Shift);
   if KeyCge <> kcge_None then
     CGE_KeyUp(KeyCge);
 end;
@@ -322,12 +322,12 @@ var
 begin
   { Note about OpenDialog1 (TOpenDialog) usage:
     In a "real" Castle Game Engine application using LCL, we recommend to use
-    component TCastleOpen3DDialog (from castle_components.lpk) 
+    component TCastleOpen3DDialog (from castle_components.lpk)
     to have a dialog box to select a file to load in TCastleScene.
     However, in case of this application, it deliberately *does not* use CGE in a normal
     way (through Lazarus packages or Pascal units), it only accesses CGE as a shared library.
     That's why we decided to define OpenDialog1 as TOpenDialog, not TCastleOpen3DDialog. }
-    
+
   if OpenDialog1.Execute then
   begin
     StrPCopy(csFile, OpenDialog1.Filename);

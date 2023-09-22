@@ -827,7 +827,7 @@ procedure TCastleControlContainer.SetInternalCursor(const Value: TMouseCursor);
 var
   NewCursor: TCursor;
 begin
-  NewCursor := CursorCastleToLCL(Value);
+  NewCursor := CursorFromCastle(Value);
 
   { Check explicitly "Cursor <> NewCursor", to avoid changing LCL property Cursor
     too often. The SetInternalCursor may be called very often (in each mouse move).
@@ -1282,7 +1282,7 @@ begin
     This may call OnPress (which sets Pressed to true). }
   FKeyPressHandler.BeforeKeyUp(Key, Shift);
 
-  MyKey := KeyLCLToCastle(Key, Shift);
+  MyKey := KeyToCastle(Key, Shift);
   if MyKey <> keyNone then
     Pressed.KeyUp(MyKey, MyKeyString);
 
@@ -1313,14 +1313,14 @@ begin
 
   FMousePosition := Vector2(X, Height - 1 - Y);
 
-  if MouseButtonLCLToCastle(Button, MyButton) then
+  if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed + [MyButton];
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
   inherited MouseDown(Button, Shift, X, Y); { LCL OnMouseDown before our callbacks }
 
-  if MouseButtonLCLToCastle(Button, MyButton) then
+  if MouseButtonToCastle(Button, MyButton) then
     Container.EventPress(InputMouseButton(MousePosition, MyButton, 0,
       ModifiersDown(Container.Pressed)));
 end;
@@ -1332,14 +1332,14 @@ var
 begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
-  if MouseButtonLCLToCastle(Button, MyButton) then
+  if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed - [MyButton];
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
   inherited MouseUp(Button, Shift, X, Y); { LCL OnMouseUp before our callbacks }
 
-  if MouseButtonLCLToCastle(Button, MyButton) then
+  if MouseButtonToCastle(Button, MyButton) then
     Container.EventRelease(InputMouseButton(MousePosition, MyButton, 0));
 end;
 

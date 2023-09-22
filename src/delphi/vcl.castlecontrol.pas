@@ -356,8 +356,11 @@ begin
   inherited;
   UpdateShiftState(Shift);
 
-  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  CastleKey := KeyToCastle(Key, Shift);
+  if CastleKey <> keyNone then
   begin
+    CastleKeyString := SimpleKeyToString(CastleKey, Shift);
+
     CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
 
@@ -383,8 +386,11 @@ begin
   inherited;
   UpdateShiftState(Shift);
 
-  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  CastleKey := KeyToCastle(Key, Shift);
+  if CastleKey <> keyNone then
   begin
+    CastleKeyString := SimpleKeyToString(CastleKey, Shift);
+
     CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
 
