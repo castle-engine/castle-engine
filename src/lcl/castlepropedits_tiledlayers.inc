@@ -119,5 +119,8 @@ end;
 
 function TOneLayerPropertyEditor.GetName: ShortString;
 begin
+  { Show single-digit numbers like 1 with a leading space, ' 1',
+    so that the layers are nicely sorted 1, 2, ... 9, 10, 11, ... in the object
+    inspector. }
   Result := Format('%2d',[FElementToShow]);
 end;
