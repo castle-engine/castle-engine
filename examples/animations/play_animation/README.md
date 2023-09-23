@@ -4,7 +4,7 @@ Demo of playing animations using `TCastleSceneCore.PlayAnimation` method in Cast
 
 You can load any 2D or 3D model (sample 2D and 3D models are available), see the detected animations inside, and play them.
 
-You can test various `PlayAnimation`` features:
+You can test various `PlayAnimation` features:
 
 - play forward or backward
 - loop or not
