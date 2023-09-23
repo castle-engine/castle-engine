@@ -77,6 +77,7 @@ begin
     they match Windows VK_xxx constants, used also by VCL.
     So this routine should be good to convert both VCL and FMX keys. }
 
+  Result := keyNone;
   case Key of
     vkBack:       Result := keyBackSpace;
     vkTab:        Result := keyTab;
