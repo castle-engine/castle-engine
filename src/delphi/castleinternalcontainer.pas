@@ -180,8 +180,11 @@ begin
   FRequirements.SetSubComponent(true);
 
   FPlatformContext :=
-    {$ifdef MSWINDOWS} TGLContextWGL.Create {$endif}
-    nil // TODO: not implemented elsewhere
+    {$if defined(MSWINDOWS)} TGLContextWGL.Create
+    {$elseif defined(LINUX)} nil // TODO: FMX
+    {$else}
+      {$error Define how to create OpenGL context for this plaform.}
+    {$endif}
   ;
 
   FAutoRedisplay := true;
