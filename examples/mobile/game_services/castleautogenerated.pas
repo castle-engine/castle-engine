@@ -23,7 +23,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 initialization
   ApplicationProperties.ApplicationName := 'game_services_demo';
   ApplicationProperties.Caption := 'Game Services Demo';
-  ApplicationProperties.Version := '2.0';
+  ApplicationProperties.Version := '2.1';
 
   if not IsLibrary then
     Application.ParseStandardParameters;
