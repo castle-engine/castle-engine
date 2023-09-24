@@ -97,6 +97,12 @@ type
     destructor Destroy; override;
     procedure Paint; override;
 
+    { If Handle not allocated yet, allocate it now.
+      This makes sure we have OpenGL context created.
+      Our OpenBackend must guarantee it, we want to initialize GLVersion
+      afterwards etc. }
+    procedure InternalHandleNeeded;
+
     { This control must always have "native style", which means
       it has ControlType = Platform. See FMX docs about native controls:
       https://docwiki.embarcadero.com/RADStudio/Sydney/en/FireMonkey_Native_Windows_Controls
@@ -544,6 +550,22 @@ begin
       KeyChar := #0;
     end;
   end;
+end;
+
+procedure TCastleControl.InternalHandleNeeded;
+{$ifdef MSWINDOWS}
+var
+  H: HWND;
+begin
+  if Presentation = nil then
+    raise EInternalError.Create('TCastleControl: Cannot use InternalHandleNeeded as Presentation not created yet');
+  H := (Presentation as TWinPresentation).Handle;
+  if H = 0 { NullHWnd } then
+    raise Exception.Create('TCastleControl: InternalHandleNeeded failed to create a handle');
+{$else}
+begin
+  // TODO: other platforms
+{$endif}
 end;
 
 {$ifdef MSWINDOWS}

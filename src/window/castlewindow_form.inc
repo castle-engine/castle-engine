@@ -96,9 +96,7 @@ private
       {$ifdef FPC}TOpenGLControl{$else}TCastleControl{$endif})
     public
       Window: TCastleWindow;
-      {$ifdef FPC}
-      procedure Invalidate; override;
-      {$endif}
+      procedure Invalidate; {$ifdef FPC} override; {$endif}
     end;
 
   var
@@ -200,15 +198,15 @@ end;
 
 { TGoodOpenGLControl --------------------------------------------------------- }
 
-{$ifdef FPC}
-// TODO: Not necessary with FMX? check
+// TODO: Not necessary with FMX to override and catch message from system? check
 procedure TCastleWindow.TGoodOpenGLControl.Invalidate;
 begin
   // track our own Invalidated state, although still cooperate with LCL invalidate
   Window.Invalidated := true;
+  {$ifdef FPC}
   inherited;
+  {$endif}
 end;
-{$endif}
 
 { TCastleWindow ------------------------------------------------------------------ }
 
@@ -533,6 +531,7 @@ begin
   FKeyPressHandler.OnPress := @KeyPressHandlerPress;
   {$endif}
 
+  {$ifdef FPC}
   { We use FormApplication.CreateForm, not just "Form := TForm.CreateNew(nil)",
     because we want our Form to be set as FormApplication.MainForm.
 
@@ -555,6 +554,19 @@ begin
     have a TForm class (see TCustomForm.Create in LCL), so that's not a problem. }
 
   FormApplication.CreateForm(TForm, Form);
+  {$else}
+  { In FMX, we cannot use
+      FormApplication.CreateForm
+    as it doesn't create form immediately.
+    We'd have to follow with RealCreateForms,
+    https://docwiki.embarcadero.com/Libraries/Sydney/en/FMX.Forms.TApplication.RealCreateForms
+
+    But it is simpler to just use TForm.CreateNew.
+    We can assign MainForm later. }
+
+  Form := TForm.CreateNew(FormApplication);
+  FormApplication.MainForm := Form;
+  {$endif}
 
   {$ifdef FPC}
   // FMX: TODO
@@ -661,10 +673,8 @@ begin
   { Make sure we have OpenGL context created now, and send initial Invalidate
     (it may not happen automatically, testcase: castle-view-image on Carbon).
     TCastleWindow.OpenCore will call MakeCurrent next. }
-  {$ifdef FPC}
-  OpenGLControl.HandleNeeded;
+  OpenGLControl.{$ifdef FPC} HandleNeeded {$else} InternalHandleNeeded {$endif};
   OpenGLControl.Invalidate;
-  {$endif}
 
   Application.OpenWindowsAdd(Self);
 
