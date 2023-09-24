@@ -77,7 +77,9 @@ var
   wglGetPixelFormatAttribfvARB: function(hdc: HDC; iPixelFormat: GLint; iLayerPlane: GLint; nAttributes: GLuint; const piAttributes: PGLint; pfValues: PGLfloat): BOOL; stdcall;
   wglChoosePixelFormatARB: function(hdc: HDC; const piAttribIList: PGLint; const pfAttribFList: PGLfloat; nMaxFormats: GLuint; piFormats: PGLint; nNumFormats: PGLuint): BOOL; stdcall;
 
+{$ifndef USE_DGL} // should not be necessary with dglOpenGL
 function glext_ExtensionSupported(const extension: AnsiString; const searchIn: AnsiString): Boolean;
+{$endif}
 function Load_GL_ARB_texture_multisample(LoadAsCore: boolean = false): Boolean;
 function Load_WGL_ARB_extensions_string: Boolean;
 function Load_WGL_ARB_pixel_format: Boolean;
@@ -86,6 +88,7 @@ function Load_WGL_ARB_pixel_format: Boolean;
 
 {$ifdef read_implementation}
 
+{$ifndef USE_DGL} // should not be necessary with dglOpenGL
 function glext_ExtensionSupported(const extension: AnsiString; const searchIn: AnsiString): Boolean;
 var
   extensions: PAnsiChar;
@@ -119,6 +122,7 @@ begin
   end;
   Result := FALSE;
 end;
+{$endif}
 
 function Load_GL_ARB_texture_multisample(LoadAsCore: boolean): Boolean;
 var
