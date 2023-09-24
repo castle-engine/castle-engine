@@ -475,8 +475,8 @@ const
     (X: 2; Y: 3; Z: 0),
     (X: 2; Y: 1; Z: 0),
     (X: 6; Y: 2; Z: 0) );
-  CCWPolyIndex: array [0..6] of LongInt = (0, 1, 5, 2, 3, 4, 999);
-  CWPolyIndex: array [0..6] of LongInt = (666, 4, 105, 3, 2, 1, 0);
+  CCWPolyIndex: array [0..6] of Int32 = (0, 1, 5, 2, 3, 4, 999);
+  CWPolyIndex: array [0..6] of Int32 = (666, 4, 105, 3, 2, 1, 0);
 begin
   AssertVectorEquals(
     Vector3(0, 0, 1),
