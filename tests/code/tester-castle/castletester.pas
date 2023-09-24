@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2022-2022 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -374,9 +374,8 @@ type
 
 implementation
 
-{ TCastleTester }
-
-uses CastleLog, TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} CastleUtils;
+uses CastleLog, TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif}
+  CastleUtils, CastleStringUtils;
 
 var
   FRegisteredTestCaseList: {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>;
@@ -529,6 +528,14 @@ begin
 end;
 
 procedure TCastleTester.ScanTestCase(TestCase: TCastleTestCase);
+
+  function TestMethod(const MethodName: String): Boolean;
+  begin
+    Result := IsPrefix('test', MethodName, true) and
+      { Avoid adding internal method TestCount }
+      not SameText(MethodName, 'TestCount');
+  end;
+
 var
   {$ifdef FPC}
   MethodList: TStringList;
@@ -545,7 +552,7 @@ begin
 
     for AMethodName in MethodList do
     begin
-      if (pos('TEST', UpperCase(AMethodName)) = 1) then
+      if TestMethod(AMethodName) then
         TestCase.AddTest(AMethodName, TestCase.MethodAddress(AMethodName));
     end;
 
@@ -559,7 +566,7 @@ begin
   begin
     if (RttiMethod.MethodKind in [mkProcedure, mkFunction]) and
       (Length(RttiMethod.GetParameters) = 0) and
-      (pos('TEST', UpperCase(RttiMethod.Name)) = 1) then
+      TestMethod(RttiMethod.Name) then
     begin
       TestCase.AddTest(RttiMethod.Name, RttiMethod);
     end;
