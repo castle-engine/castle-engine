@@ -18,6 +18,13 @@ unit TestCastleInternalDelphiUtils;
 
 interface
 
+{$ifdef FPC}
+{ This tests Delphi-specific CastleInternalDelphiUtils,
+  ignore if compiled with FPC. }
+implementation
+end.
+{$else}
+
 uses
   Classes, SysUtils, CastleTester;
 
@@ -46,3 +53,4 @@ end;
 initialization
   RegisterTest(TTestCastleInternalDelphiUtils);
 end.
+{$endif}
