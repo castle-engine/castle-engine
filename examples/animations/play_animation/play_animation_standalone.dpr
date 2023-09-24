@@ -32,7 +32,7 @@ uses
 
 { Forces using a dedicated (faster) GPU on laptops with multiple GPUs.
   See https://castle-engine.io/dedicated_gpu }
-{$if (not defined(CASTLE_NO_FORCE_DEDICATED_GPU)) and (defined(cpu386) or defined(cpux64) or defined(cpuamd64)) and (defined(MSWINDOWS) or (defined(Linux) and defined(FPC)))}
+{$if (not defined(CASTLE_NO_FORCE_DEDICATED_GPU)) and (defined(cpu386) or defined(cpux64) or defined(cpuamd64)) and (defined(MSWINDOWS) or defined(Linux))}
     {$ifdef fpc}
      {$asmmode intel}
     {$endif}
