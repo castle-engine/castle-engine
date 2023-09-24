@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2022-2023 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -139,7 +139,8 @@ uses SysUtils,
   TestCastleLocalizationGetText,
   TestCastleViewport,
   TestCastleInternalRttiUtils,
-  TestCastleShapes
+  TestCastleShapes,
+  TestCastleInternalDelphiUtils
 
   {$ifndef NO_WINDOW_SYSTEM},
   TestCastleWindow,
