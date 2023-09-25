@@ -22,6 +22,7 @@
   TRenderingCamera = class;
   TRigidBody = class;
   TCastleRigidBody = class;
+  TCastleCollider = class;
   TPhysicsProperties = class;
   TCastleCamera = class;
 
@@ -269,6 +270,7 @@
       in +X. Should not be used in new models. }
     otUpZDirectionX
   );
+
 
 {$endif read_interface}
 

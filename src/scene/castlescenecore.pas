@@ -3483,9 +3483,8 @@ begin
       - update triangles used by TCastleMeshCollider (note that this code
         will only update TCastleMeshCollider that is our behavior,
         it doesn't notify TCastleMeshCollider instances elsewhere that may refer to us). }
-    C := FindBehavior(TCastleCollider) as TCastleCollider;
-    if C <> nil then
-      C.InternalTransformChanged(Self);
+    if Collider <> nil then
+      Collider.InternalTransformChanged(Self);
   finally Profiler.Stop(TimeStart) end;
 end;
 

@@ -10,7 +10,13 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
@@ -97,7 +103,7 @@
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleCapsuleCollider",
-                "Friction" : 1.0000000149011612E-001,
+                "Friction" : 0.0000000000000000E+000,
                 "Name" : "CapsuleCollider"
               },
               {
@@ -244,6 +250,8 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleThirdPersonNavigation",
+          "AirMovementControl" : 0.0000000000000000E+000,
+          "AirRotationControl" : 0.0000000000000000E+000,
           "AnimationFall" : "bored",
           "AnimationJump" : "idle",
           "Avatar" : "SceneAvatar",
@@ -268,20 +276,20 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 1.9359943866729736E+000,
-          "X" : -1.0688739269971848E-001,
-          "Y" : -9.8258543014526367E-001,
-          "Z" : -1.5198981761932373E-001
+          "W" : 1.9359945058822632E+000,
+          "X" : -1.0688749700784683E-001,
+          "Y" : -9.8258548974990845E-001,
+          "Z" : -1.5198978781700134E-001
         },
         "ScalePersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "Z" : 1.0000001192092896E+000
+          "Y" : 9.9999994039535522E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -6.1774091720581055E+000,
-          "Y" : 4.5708899497985840E+000,
-          "Z" : -1.3602972030639648E+000
+          "X" : -1.1996732711791992E+001,
+          "Y" : 5.0238628387451172E+000,
+          "Z" : -1.0192960500717163E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {
@@ -384,7 +392,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.3600000000000000E+002
+            "Y" : -3.3599996948242188E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -409,7 +417,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.7000000000000000E+002
+            "Y" : -3.6999996948242188E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -434,7 +442,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.0400000000000000E+002
+            "Y" : -4.0399996948242188E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -459,7 +467,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.3800000000000000E+002
+            "Y" : -4.3799996948242188E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -470,7 +478,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.7200000000000000E+002
+            "Y" : -4.7199996948242188E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
@@ -514,7 +522,7 @@
               "Toggle" : true,
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "Y" : -2.2000000000000000E+001
+                "Y" : -2.1999998092651367E+001
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop",
@@ -581,7 +589,7 @@
             {
               "$$ClassName" : "TCastleButton",
               "AutoSizeWidth" : false,
-              "Caption" : "Force",
+              "Caption" : "Force (TODO)",
               "CustomBackgroundDisabled" : {
                 "$$ClassName" : "TCastleImagePersistent"
               },

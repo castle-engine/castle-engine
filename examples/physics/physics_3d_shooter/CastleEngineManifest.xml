@@ -7,7 +7,8 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 
 <project name="physics_3d_shooter"
   standalone_source="physics_3d_shooter_standalone.dpr"
-  game_units="GameInitialize"
+  game_units="GameInitialize, GameViewMain"
+  editor_units=""
   qualified_name="io.castleengine.physics.shooter"
   caption="Physics 3D Shooter"
 >

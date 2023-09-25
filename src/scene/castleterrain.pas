@@ -1858,12 +1858,9 @@ procedure TCastleTerrain.UpdateGeometry;
 
   { Update associated collider, e.g. to update TCastleMeshCollider to reflect new terrain. }
   procedure UpdateCollider;
-  var
-    C: TCastleCollider;
   begin
-    C := FindBehavior(TCastleCollider) as TCastleCollider;
-    if C <> nil then
-      C.InternalTransformChanged(Self);
+    if Collider <> nil then
+      Collider.InternalTransformChanged(Self);
   end;
 
 var

@@ -86,6 +86,17 @@
     FBackgroundColor: TCastleColor;
     FInputInspector: TInputInspector;
     FInspector: TCastleUserInterface; //< always TCastleInspector
+    FMouseLookLastPreviousDelta: TVector2;
+    FMouseLookLastDelta: TVector2;
+    FMouseDragDelta: TVector2;
+    FMouseDragStartPoint: TVector2;
+    FMouseDragStarted: Boolean;
+    FLastUpdateMousePosition: TVector2;
+    FLastMousePositionIsSet: Boolean;
+    FMouseLookControl: TCastleUserInterface;
+    FMouseLookStarted: Boolean;
+    FMouseLookControlFreeObserver: TFreeNotificationObserver;
+    FLastUpdateMouseWheelDirection: TMouseWheelDirection;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
@@ -116,6 +127,8 @@
     procedure SetInspectorKey(const Value: TKey);
     { Create / destroy FInspector. }
     procedure ToggleInspector;
+    { When FMouseLookControl is going to be destroyed stop mouse look }
+    procedure OnMouseLookControlFree(const Sender: TFreeNotificationObserver);
   private
     FViewStack: TCastleViewList;
     FDisableStackChange: Cardinal;
@@ -339,6 +352,31 @@
       See @link(TTouch.Position) for a documentation how this is expressed. }
     property MousePosition: TVector2
       read GetMousePosition write SetMousePosition;
+
+    { Last delta from mouse look - updated after StartMouseLook() }
+    property MouseLookLastDelta: TVector2 read FMouseLookLastDelta;
+
+    { Hides cursor and starts updating relative mouse position change in
+      MouseLookLastDelta.
+
+      Do not call MouseLookDelta() function directly when you
+      want to use Start/StopMouseLook() }
+    procedure StartMouseLook(const MouseLookControl: TCastleUserInterface);
+    procedure StopMouseLook;
+    function MouseLookStarted: Boolean;
+
+
+    { Mouse delta from point where we start mouse drag - do not use with
+      mouse look at the same time }
+    property MouseDragDelta: TVector2 read FMouseDragDelta;
+
+    procedure StartMouseDrag;
+    procedure StopMouseDrag;
+    function MouseDragStarted: Boolean;
+
+    { Infromation about mouse wheel move direction from last update }
+    property LastUpdateMouseWheelDirection: TMouseWheelDirection
+      read FLastUpdateMouseWheelDirection;
 
     { Currently pressed mouse buttons. When this changes, you're always
       notified by @link(OnPress) or @link(OnRelease) events.
@@ -584,6 +622,8 @@
 
     function MouseLookDelta(const Event: TInputMotion): TVector2; overload;
       deprecated 'use MouseLookDelta overload with ControlRect parameter';
+
+    function InternalMouseLookIgnoreNextMotion: Boolean;
 
     { Force passing events to the given control first,
       regardless if this control is under the mouse cursor.
@@ -1261,6 +1301,13 @@ begin
   end;
 end;
 
+procedure TCastleContainer.OnMouseLookControlFree(
+  const Sender: TFreeNotificationObserver);
+begin
+  FMouseLookControl := nil;
+  StopMouseLook;
+end;
+
 procedure TCastleContainer.EventUpdate;
 
   procedure UpdateTooltip;
@@ -1434,6 +1481,49 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
+  procedure UpdateMouseLook;
+  var
+    Event: TInputMotion;
+  begin
+    if FMouseLookStarted then
+    begin
+      if not FLastMousePositionIsSet then
+      begin
+        FLastMousePositionIsSet := true;
+        FLastUpdateMousePosition := MousePosition;
+      end;
+
+      Event.OldPosition := FLastUpdateMousePosition;
+      Event.Position := MousePosition;
+      Event.Pressed := MousePressed;
+      { When you set big mouse sensitivity, greater than 0,001 for example 0.25
+        mouse movement may seems jerky. That's because the values 0 and 1 give
+        too much change. Especially when there is a 1px shift in one frame and
+        no shift in the next frame. The screen seems to shake in this case.
+
+        To reduce the importance of such delicate movements, I take the average of
+        the last two frames. Thanks to this, the movement is always smooth,
+        regardless of the sensitivity of the mouse. The problem was also in the
+        old algorithm in the CastleCamera module, but it was masked by a very
+        low sensitivity below 0.001. }
+      FMouseLookLastPreviousDelta := FMouseLookLastDelta;
+      FMouseLookLastDelta := MouseLookDelta(Event, FMouseLookControl.RenderRect);
+      FMouseLookLastDelta := (FMouseLookLastDelta + FMouseLookLastPreviousDelta) * 0.5;
+      FLastUpdateMousePosition := MousePosition;
+    end else
+    begin
+      FLastMousePositionIsSet := false;
+      FMouseLookLastDelta := TVector2.Zero;
+      FMouseLookLastPreviousDelta := TVector2.Zero;
+    end;
+  end;
+
+  procedure UpdateMouseDrag;
+  begin
+    if FMouseDragStarted then
+      FMouseDragDelta := MousePosition - FMouseDragStartPoint;
+  end;
+
 var
   I: Integer;
   HandleInput: boolean;
@@ -1466,7 +1556,13 @@ begin
     Dec(I);
   end;
 
+  UpdateMouseLook;
+  UpdateMouseDrag;
+
   if Assigned(OnUpdate) then OnUpdate(Self);
+
+  // reset last update mouse wheel direction
+  FLastUpdateMouseWheelDirection := mwNone;
 end;
 
 function TCastleContainer.EventPress(const Event: TInputPressRelease): boolean;
@@ -1543,6 +1639,11 @@ begin
       At least we will not crash. }
     if (I < Controls.Count) and RecursivePress(Controls[I]) then
       Exit(true);
+
+  { set last update mouse wheel direction used by behaviors to get information
+    about mouse scroll movement }
+  if Event.EventType = itMouseWheel then
+    FLastUpdateMouseWheelDirection := Event.MouseWheel;
 
   { pass to container event }
   if Assigned(OnPress) then
@@ -1774,6 +1875,7 @@ procedure TCastleContainer.EventMotion(const Event: TInputMotion);
 var
   I: Integer;
   Capture: TCastleUserInterface;
+  Delta: TVector2;
 begin
   UpdateFocusAndMouseCursor;
 
@@ -2030,6 +2132,11 @@ begin
   Result := MouseLookDelta(Event, FloatRectangle(Rect));
 end;
 
+function TCastleContainer.InternalMouseLookIgnoreNextMotion: Boolean;
+begin
+  Result := FMouseLookIgnoreNextMotion;
+end;
+
 function TCastleContainer.MouseLookDelta(const Event: TInputMotion;
   const ControlRect: TFloatRectangle): TVector2;
 
@@ -2126,6 +2233,7 @@ begin
 
   if FMouseLookIgnoreNextMotion then
   begin
+    WritelnLog('Ignored move');
     FMouseLookIgnoreNextMotion := false;
     FMouseLookWaitingForMiddle := false;
     FMouseLookMotionToSubtract := TVector2.Zero;
@@ -2295,6 +2403,51 @@ end;
 function TCastleContainer.StatusBarHeight: Single;
 begin
   Result := ScaledStatusBarHeight / FUIScale;
+end;
+
+procedure TCastleContainer.StartMouseLook(const MouseLookControl: TCastleUserInterface);
+begin
+  OverrideCursor := mcForceNone;
+  FMouseLookStarted := true;
+  FMouseLookControl := MouseLookControl;
+  if FMouseLookControlFreeObserver = nil then
+  begin
+    FMouseLookControlFreeObserver := TFreeNotificationObserver.Create(Self);
+    FMouseLookControlFreeObserver.OnFreeNotification := {$ifdef FPC}@{$endif}OnMouseLookControlFree;
+  end;
+  FMouseLookControlFreeObserver.Observed := FMouseLookControl;
+  MouseLookPress;
+end;
+
+procedure TCastleContainer.StopMouseLook;
+begin
+  OverrideCursor := mcDefault;
+  FMouseLookStarted := false;
+  FMouseLookControl := nil;
+  FMouseLookControlFreeObserver.Observed := nil;
+end;
+
+function TCastleContainer.MouseLookStarted: Boolean;
+begin
+  Result := FMouseLookControl <> nil;
+end;
+
+procedure TCastleContainer.StartMouseDrag;
+begin
+  FMouseDragStartPoint := MousePosition;
+  FMouseDragStarted := true;
+end;
+
+procedure TCastleContainer.StopMouseDrag;
+begin
+  FMouseDragStarted := false;
+  FMouseDragStartPoint := TVector2.Zero;
+  FMouseDragDelta := TVector2.Zero;
+end;
+
+function TCastleContainer.MouseDragStarted: Boolean;
+begin
+  Result := FMouseDragStarted;
 end;
 
 function TCastleContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;

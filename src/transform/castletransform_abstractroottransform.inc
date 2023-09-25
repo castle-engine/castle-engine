@@ -17,16 +17,6 @@
 {$ifdef read_interface}
 
 //type
-  { Result of @link(TCastleAbstractRootTransform.PhysicsRayCast) and
-    @link(TCastleRigidBody.PhysicsRayCast). }
-  TPhysicsRayCastResult = record
-    { Other fields are guaranteed to be all zero if Hit = @false. }
-    Hit: Boolean;
-    Transform: TCastleTransform;
-    { Distance from ray origin to the hit point. }
-    Distance: Single;
-    Point, Normal: TVector3;
-  end;
 
   { Root of transformations and scenes (tree of TCastleTransform and TCastleScene).
     This is the base abstract class, the non-abstract descendant is @link(TCastleRootTransform). }
@@ -89,6 +79,9 @@
     InternalVisibleGeometryStateId: TFrameId;
     { Latest frame when VisibleChangeNotification was called (with vcVisibleNonGeometry). }
     InternalVisibleNonGeometryStateId: TFrameId;
+
+    // TODO: use this
+    //InternalViewports: TComponentList;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -268,15 +261,49 @@
 
       This ignores the collider of this body IgnoreBody, if IgnoreBody is not @nil.
 
+      By default, the ray hits all physics layers, but you can choose physics layers
+      in CollisionLayers attribute.
+
       Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
       i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
       The @link(TCastleTransform.Pickable) is only taken into account by the routines
       of the old physics system
       (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
-      In the new system, a similar role will be filled by layers. }
+      In the new system, a similar role is filled by physics layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
-      const IgnoreBody: TCastleRigidBody = nil): TPhysicsRayCastResult;
+      const IgnoreBody: TCastleRigidBody = nil; const CollisionLayers:
+      TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
+
+    { Cast a sphere using physics engine, see what is hit.
+
+      Returns the TPhysicsRayCastResult record.
+      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
+      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      to know what was hit.
+
+      The given SphereOrigin, SphereRadius, SphereDirection, MaxDistance are in
+      the world coordinate system.
+
+      It returns TPhysicsRayCastResult, with information there
+      also in the world coordinate system.
+
+      This ignores all colliders that overlap sphere when start casting but you can
+      also specify one body to always ignore in IgnoreBody parameter.
+
+      By default, the sphere cast hits all physics layers, but you can choose
+      physics layers in CollisionLayers attribute.
+
+      Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      The @link(TCastleTransform.Pickable) is only taken into account by the routines
+      of the old physics system
+      (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
+      In the new system, a similar role is filled by physics layers. }
+    function PhysicsSphereCast(const SphereOrigin: TVector3; const SphereRadius:Single;
+      const SphereDirection: TVector3; const MaxDistance: Single = MaxSingle;
+      const IgnoreBody: TCastleRigidBody = nil; const CollisionLayers:
+      TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
 
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
@@ -357,6 +384,35 @@
       of this TCastleAbstractRootTransform, the TCastleCamera instances that are deeper
       (e.g. TCastleCamera inside some TCastleTransform) will still be removed. }
     procedure ClearExceptCameras;
+
+    { Viewport that contains this world and also has a focus now (should process inputs).
+
+      When only one viewport (the most common case) contains this world,
+      we just return this one viewport. So we can be "overzealous" here,
+      returning a viewport that is not focused (mouse is over different UI
+      or not even inside this window), but still contains this world.
+
+      When there are more viewports, we carefully select viewport that is focused
+      (@link(TCastleUserInterface.Focused)) and within focused container (@link(TCastleContainer.Focused)). We return @nil if no such viewport exists.
+
+      Note: If you have more than one viewport, and one of the viewports should be "default"
+      catching all inputs in case no viewport is focused, then you can implement such
+      fallback viewport on your side. }
+    function FocusedViewport: TCastleUserInterface;
+
+    { Container on which this world should check input (pressed keys, mouse buttons).
+
+      When this world is only in one container (even if more viewports)
+      then we just return this container.
+      This is definitely the most common case, as cross-platform applications
+      are limited to one container (you cannot open multiple windows on mobile).
+      This means that input reaches the behavior even when mouse is outside the window,
+      outside the viewport.
+
+      When there are more containers, we look for the container that is focused, or
+      return @nil.
+      If you want to have a "default / fallback" container, implement it on your side. }
+    function FocusedContainer: TCastleContainer;
   published
     { Adjust physics properties. }
     property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
@@ -651,6 +707,27 @@ begin
       BlendingSortStr
     ]);
   end;
+end;
+
+function TCastleAbstractRootTransform.FocusedViewport: TCastleUserInterface;
+begin
+  // TODO: make real implementation, test like multiple_windows_and_viewports
+  if Owner is TCastleUserInterface then
+    Result := TCastleUserInterface(Owner)
+  else
+    Result := nil;
+end;
+
+function TCastleAbstractRootTransform.FocusedContainer: TCastleContainer;
+var
+  V: TCastleUserInterface;
+begin
+  // TODO: make real implementation, test like multiple_windows_and_viewports
+  V := FocusedViewport;
+  if V <> nil then
+    Result := V.Container
+  else
+    Result := nil;
 end;
 
 {$endif read_implementation}

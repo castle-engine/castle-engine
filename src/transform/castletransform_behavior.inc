@@ -157,6 +157,9 @@
     }
     function CanAttachToParent(const NewParent: TCastleTransform;
       out ReasonWhyCannot: String): Boolean; virtual;
+
+    { Container on which this behavior should check input (pressed keys, mouse buttons). }
+    function FocusedContainer: TCastleContainer;
   public
     procedure BeforeDestruction; override;
 
@@ -339,6 +342,15 @@ function TCastleBehavior.World: TCastleAbstractRootTransform;
 begin
   if Parent <> nil then
     Result := Parent.World
+  else
+    Result := nil;
+end;
+
+function TCastleBehavior.FocusedContainer: TCastleContainer;
+begin
+  if (Parent <> nil) and
+     (Parent.World <> nil) then
+    Result := Parent.World.FocusedContainer
   else
     Result := nil;
 end;
