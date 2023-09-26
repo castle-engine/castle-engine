@@ -295,7 +295,8 @@ begin
     end;
     Nodes[I] := NewNode;
   end;
-  Result := Nodes[I] as TDOMNode;
+  // Temporary workaroud for Delphi 12. This will change to access using Integer anyway in delphi-linux branch.
+  Result := Nodes[Integer(I)] as TDOMNode;
 end;
 
 procedure TDOMNodeList.RemoveNode(const Child: TDOMNode);
@@ -662,7 +663,8 @@ begin
     Nodes[I] := NewNode;
     NewNode.FParentNode := FOwnerNode;
   end;
-  Result := Nodes[I] as TDOMNode;
+  // Temporary workaroud for Delphi 12. This will change to access using Integer anyway in delphi-linux branch.
+  Result := Nodes[Integer(I)] as TDOMNode;
 end;
 
 function TDOMNamedNodeMap.GetLength: LongWord;
