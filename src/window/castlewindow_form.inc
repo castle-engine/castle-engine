@@ -312,9 +312,9 @@ procedure TCastleWindow.MenuUpdateShortcut(Entry: TMenuItem);
 var
   LazKey: Word;
   Shift: TShiftState;
-  EntryLCL: TGoodMenuItem;
+  FormMenuItem: TGoodMenuItem;
 begin
-  if not CheckMenu(Entry, EntryLCL) then Exit;
+  if not CheckMenu(Entry, FormMenuItem) then Exit;
 
   {$ifdef LCLCarbon}
   { Workaround yet another bug in LCL Carbon.
@@ -332,9 +332,9 @@ begin
     - Similarly, after Command+R, press Command+O before escaping.
       It causes the raytracing dialog to appear again after escaping.
   }
-  if not EntryLCL.Enabled then
+  if not FormMenuItem.Enabled then
   begin
-    EntryLCL.ShortCut := 0;
+    FormMenuItem.ShortCut := 0;
     Exit;
   end;
   {$endif}
@@ -342,7 +342,7 @@ begin
   // TODO: fmx
   {$ifdef FPC}
   KeyCastleToLCL(Entry.Key, Entry.KeyString, Entry.Modifiers, LazKey, Shift);
-  EntryLCL.ShortCut := KeyToShortCut(LazKey, Shift);
+  FormMenuItem.ShortCut := KeyToShortCut(LazKey, Shift);
   {$endif}
 end;
 
@@ -359,10 +359,10 @@ procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
   end;
 
 var
-  EntryLCL: TGoodMenuItem;
+  FormMenuItem: TGoodMenuItem;
 begin
-  if not CheckMenu(Entry, EntryLCL) then Exit;
-  EntryLCL.Caption := MenuCaptionCastleToLCL(Entry.Caption);
+  if not CheckMenu(Entry, FormMenuItem) then Exit;
+  FormMenuItem.Caption := MenuCaptionCastleToLCL(Entry.Caption);
 end;
 
 procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
@@ -385,7 +385,7 @@ procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
   end;
 
 var
-  EntryLCL: TGoodMenuItem;
+  FormMenuItem: TGoodMenuItem;
 begin
   { To apply MainMenu.Enabled: we would prefer to map MainMenu.Enabled
     on LCL Menu.Items.Enabled, and just handle MainMenu.Enabled like
@@ -422,8 +422,8 @@ begin
     Exit;
   end;
 
-  if not CheckMenu(Entry, EntryLCL) then Exit;
-  EntryLCL.Enabled := Entry.Enabled and MainMenu.Enabled;
+  if not CheckMenu(Entry, FormMenuItem) then Exit;
+  FormMenuItem.Enabled := Entry.Enabled and MainMenu.Enabled;
 
   {$ifdef LCLCarbon}
   if Entry is TMenuItem then
@@ -433,11 +433,11 @@ end;
 
 procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 var
-  EntryLCL: TGoodMenuItem;
+  FormMenuItem: TGoodMenuItem;
 begin
-  if not CheckMenu(Entry, EntryLCL) then Exit;
+  if not CheckMenu(Entry, FormMenuItem) then Exit;
   {$ifdef FPC} // FMX: TODO
-  EntryLCL.Checked := Entry.Checked;
+  FormMenuItem.Checked := Entry.Checked;
   {$endif}
 end;
 
@@ -449,20 +449,23 @@ end;
 procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 var
-  ParentLCL: TGoodMenuItem;
+  ParentFormMenu, NewFormMenu: TGoodMenuItem;
 begin
-  if not CheckMenu(Parent, ParentLCL) then Exit;
-  {$ifdef FPC} // FMX: TODO
-  ParentLCL.Insert(ParentPosition, MenuEntryCastleToLCL(Entry));
+  if not CheckMenu(Parent, ParentFormMenu) then Exit;
+  NewFormMenu := MenuEntryConvert(Entry);
+  {$ifdef FPC}
+  ParentFormMenu.Insert(ParentPosition, NewFormMenu);
+  {$else}
+  NewFormMenu.Parent := ParentFormMenu;
   {$endif}
 end;
 
 procedure TCastleWindow.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 var
-  EntryLCL: TGoodMenuItem;
+  FormMenuItem: TGoodMenuItem;
 begin
-  if not CheckMenu(Entry, EntryLCL) then Exit;
+  if not CheckMenu(Entry, FormMenuItem) then Exit;
   Entry.ClearHandles;
 
   {$if defined(LCLCarbon) or defined(LCLCocoa)}
@@ -498,9 +501,9 @@ begin
       This at least fixes the issue when we delete menu by MenuDelete
       (as opposed to menu rebuild).
     *)
-    EntryLCL.Visible := false;
+    FormMenuItem.Visible := false;
   {$else}
-    FreeAndNil(EntryLCL);
+    FreeAndNil(FormMenuItem);
   {$endif}
 end;
 
