@@ -201,6 +201,10 @@ type
     { Change FMouseRayHit. Should be called only by GetMouseRayHit (when it's updated
       on-demand) or by finalization code (only with nil parameter in this case). }
     procedure SetMouseRayHit(const Value: TRayCollision);
+    { Whether FMouseRayHit contains given Item.
+      This doesn't update FMouseRayHit if it is invalid right now,
+      so it is safer to use even during destruction.
+      And so it should be used only on some free notification. }
     function MouseRayHitContains(const Item: TCastleTransform): boolean;
     procedure SetAvoidNavigationCollisions(const Value: TCastleTransform);
 
@@ -2045,7 +2049,13 @@ function TCastleViewport.GetMouseRayHit: TRayCollision;
   var
     MousePosition: TVector2;
   begin
-    if { Check conditions required by PositionToPrerequisites and PositionToRay to work.
+    if { This may be called from destruction, testcase
+        TTestCastleWindow.TestViewportWithoutCamera with Delphi 12.
+        It shouldn't access then EffectiveWidth which runs some
+        TCastleUserInteface code that assumes that things are ready
+        (e.g. TBorder instance in TCastleUserInteface.Border is not nil). }
+      (not (csDestroying in ComponentState)) and
+      { Check conditions required by PositionToPrerequisites and PositionToRay to work.
         This must be robust, as it is called also from RecalculateCursor,
         which is from TCastleTransformList.Notify. (when some transform gets removed). }
       (EffectiveWidth <> 0) and
@@ -3445,8 +3455,17 @@ end;
 
 function TCastleViewport.MouseRayHitContains(const Item: TCastleTransform): boolean;
 begin
-  Result := (MouseRayHit <> nil) and
-            (MouseRayHit.IndexOfItem(Item) <> -1);
+  { Do not validate FMouseRayHit using UpdateMouseRayHit.
+    Fixes TTestCastleWindow.TestViewportWithoutCamera with Delphi 12.
+    Also this is more sensible and safer: this method is used
+    to check whether FMouseRayHit contains something,
+    it isn't expected it will actually query using raycast. }
+  if not FMouseRayHitValid then
+    FMouseRayHit := nil;
+
+  Result :=
+    (FMouseRayHit <> nil) and
+    (FMouseRayHit.IndexOfItem(Item) <> -1);
 end;
 
 procedure TCastleViewport.SetMouseRayHit(const Value: TRayCollision);
