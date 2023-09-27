@@ -1489,11 +1489,12 @@ begin
   if not Valid then Exit;
 
   A := RealAvatarHierarchy;
-  RBody := A.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  Collider := A.FindBehavior(TCastleCollider) as TCastleCollider;
 
   if (A = nil) or (InternalViewport = nil) then
     Exit;
+
+  RBody := A.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  Collider := A.FindBehavior(TCastleCollider) as TCastleCollider;
 
   if Input_Run.IsPressed(Container) then
   begin
