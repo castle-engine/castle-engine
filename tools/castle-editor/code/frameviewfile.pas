@@ -16,18 +16,29 @@
 { Quick file viewer for various file types supported by CGE. }
 unit FrameViewFile;
 
-{$if defined(LCLGTK3) or defined(LCLQt) or defined(LCLQt5)}
-  {$error Do not use LCL Qt or GTK3 widgetsets to build CGE editor, as LCL TOpenGLControl doesn't support OpenGL context sharing in this case. Use LCL default widgetset instead, like GTK2.}
-  // Didn't fit in message above:
-  // For your own applications, if you only use one TCastleControl in the application, it's not a problem.
-{$endif}
-
 interface
 
 uses
   Classes, SysUtils, Forms, Controls,
+  LCLVersion,
   CastleControl, CastleControls, CastleViewport, CastleScene,
   CastleUIControls, CastleSoundEngine;
+
+{$if defined(LCLGTK3)}
+  {$error Using LCL GTK3 widgetset to build CGE editor is unsupported. The LCL GTK3 widgetset is too unstable (lots of issues on FormChooseProject and FormProject), TOpenGLControl crashes, and TOpenGLControl doesn't support OpenGL context sharing.}
+{$endif}
+
+{ CGE editor critically needs this MR for Qt5:
+  https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/95
+  It is in main, and released with 2.2.4 and 2.2.6 (and, we assume, all future):
+  https://gitlab.com/freepascal.org/lazarus/lazarus/-/blob/lazarus_2_2_4/components/opengl/glqtcontext.pas?ref_type=tags
+  Without this MR, the editor crashes if you open the same model in preview
+  and main design -- as CGE code assumes all OpenGL contexts share data like VBO. }
+{$if defined(LCLQt) or defined(LCLQt5)}
+  {$if LCL_FULLVERSION < 2020400}
+    {$error Using LCL Qt5 widgetset to build CGE editor requires Lazarus (LCL) version >= 2.2.4.}
+  {$endif}
+{$endif}
 
 type
   TViewFileFrame = class(TFrame)
