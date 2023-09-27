@@ -199,8 +199,9 @@ type
     procedure MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
 
     { Change FMouseRayHit. Should be called only by GetMouseRayHit (when it's updated
-      on-demand) or by finalization code (only with nil parameter in this case). }
+      on-demand) or by ClearMouseRayHit (only with nil parameter in this case). }
     procedure SetMouseRayHit(const Value: TRayCollision);
+    procedure ClearMouseRayHit;
     { Whether FMouseRayHit contains given Item.
       This doesn't update FMouseRayHit if it is invalid right now,
       so it is safer to use even during destruction.
@@ -262,6 +263,7 @@ type
     var
       FProjection: TProjection;
       FSceneManager: TCastleSceneManager;
+      ItemsNodesFreeOccurred: Boolean;
 
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
@@ -270,6 +272,7 @@ type
     class procedure CreateComponentWithChildren3D(Sender: TObject);
 
     procedure RecalculateCursor(Sender: TObject);
+    procedure ItemsNodesFree(Sender: TObject);
 
     { Bounding box of everything non-design.
       Similar to just using Items.BoundingBox, but
@@ -1418,6 +1421,7 @@ begin
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
   FItems.OnCursorChange := {$ifdef FPC}@{$endif} RecalculateCursor;
+  FItems.InternalOnNodesFree := {$ifdef FPC}@{$endif} ItemsNodesFree;
 
   FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
   FCapturePointingDeviceObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CapturePointingDeviceFreeNotification;
@@ -1617,7 +1621,7 @@ begin
   {$endif}
 
   { unregister free notification from these objects }
-  SetMouseRayHit(nil);
+  ClearMouseRayHit;
   AvoidNavigationCollisions := nil;
 
   FreeAndNil(FRenderParams);
@@ -1893,7 +1897,7 @@ begin
        MouseRayHitContains(TCastleTransform(AComponent)) then
     begin
       { MouseRayHit cannot be used in subsequent RecalculateCursor. }
-      SetMouseRayHit(nil);
+      ClearMouseRayHit;
     end;
 
     if AComponent = FAvoidNavigationCollisions then
@@ -2096,6 +2100,30 @@ begin
     Result := R.Transform
   else
     Result := nil;
+end;
+
+procedure TCastleViewport.ItemsNodesFree(Sender: TObject);
+begin
+  { Reloading nodes by TCastleSceneCore.Load invalidates information
+    on FMouseRayHit, the TShape references are no longer valid.
+
+    Testcase:
+    - (only reproducible on Windows for some reason, but in theory problem is cross-platform)
+    - open in view3dscene anchor_test.x3dv
+    - click on something, like "Key Sensor"
+    - without this fix, the next EventMotion causes crash as
+      TCastleSceneCore.PointingDeviceMove is run with TRayCollisionNode
+      containing invalid references.
+
+    TODO: This is not a complete solution.
+    - What if Items are shared across few TCastleViewport?
+      Our Items.OnXxx do not link to viewport then, and should not be relied upon.
+  }
+  ClearMouseRayHit;
+
+  { Signal to PointingDevicePressCore to not process further collision list.
+    TODO: why is this necessary? But anchor_test on view3dscene otherwise crashes. }
+  ItemsNodesFreeOccurred := true;
 end;
 
 procedure TCastleViewport.RecalculateCursor(Sender: TObject);
@@ -3468,6 +3496,11 @@ begin
     (FMouseRayHit.IndexOfItem(Item) <> -1);
 end;
 
+procedure TCastleViewport.ClearMouseRayHit;
+begin
+  SetMouseRayHit(nil);
+end;
+
 procedure TCastleViewport.SetMouseRayHit(const Value: TRayCollision);
 var
   I: Integer;
@@ -3672,7 +3705,10 @@ function TCastleViewport.PointingDevicePress: Boolean;
     if RayHit <> nil then
       for I := 0 to RayHit.Count - 1 do
       begin
+        ItemsNodesFreeOccurred := false;
         Result := CallPress(RayHit[I], Distance);
+        if ItemsNodesFreeOccurred then
+          Break;
         if Result then
         begin
           { This check avoids assigning to CapturePointingDevice something

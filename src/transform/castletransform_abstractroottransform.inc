@@ -66,7 +66,7 @@
     function IgnoreTransparentItem(
       const Sender: TObject; const Triangle: PTriangle): Boolean; virtual; abstract;
   public
-    OnCursorChange: TNotifyEvent;
+    OnCursorChange, InternalOnNodesFree: TNotifyEvent;
 
     { Event to render whole world.
       Used by generated textures to update their contents.

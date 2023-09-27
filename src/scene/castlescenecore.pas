@@ -4036,7 +4036,7 @@ begin
      (LODTree.Children.Count <> 0) then
   begin
     LODTree.WasLevel_ChangedSend := true;
-    LODTree.LODNode.EventLevel_Changed.Send(LongInt(NewLevel), NextEventTime);
+    LODTree.LODNode.EventLevel_Changed.Send(Integer(NewLevel), NextEventTime);
   end;
 
   if OldLevel <> NewLevel then
@@ -4059,6 +4059,12 @@ end;
 
 procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
+  // paranoid check is the World valid before accessing it
+  if (World <> nil) and
+     (not (csDestroying in World.ComponentState)) and
+     Assigned(World.InternalOnNodesFree) then
+    World.InternalOnNodesFree(Self);
+
   { Stuff that will be recalculated by ChangedAll }
   BillboardNodes.Count := 0;
   GeneratedTextures.Count := 0;
