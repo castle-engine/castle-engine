@@ -28,5 +28,7 @@ resourcestring
   SExpectedFieldType =
     'Expected field type name (like SFVec2f etc.) but found %s';
   SLoadError = 'Error %s when loading %s from URL "%s": %s';
+  SIncorrectUse = 'Incorrect USE clause: node name "%s" undefined (possibly the USE clause appears before the DEF for this node name)';
+  SNodeUseCycle = 'Cycles in VRML/X3D graph: USE clause inside node "%s" refers to the same node';
 
 {$endif read_implementation}

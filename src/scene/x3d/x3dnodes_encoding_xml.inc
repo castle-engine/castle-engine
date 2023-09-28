@@ -288,9 +288,9 @@ begin
       if (Result = nil) or (not UsedNodeFinished) then
       begin
         if Result = nil then
-          S := Format('Incorrect USE clause: node name "%s" undefined', [NodeName]) else
+          S := Format(SIncorrectUse, [NodeName]) else
         begin
-          S := Format('Cycles in VRML/X3D graph: USE clause inside node "%s" refers to the same node', [NodeName]);
+          S := Format(SNodeUseCycle, [NodeName]);
           Result := nil; { return nil in case of cycles }
         end;
         if NilIfUnresolvedUSE then
