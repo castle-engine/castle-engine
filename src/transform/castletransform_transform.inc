@@ -620,7 +620,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure BeforeDestruction;override;
+    procedure BeforeDestruction; override;
 
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -2114,7 +2114,7 @@ begin
   while FList.Count <> 0 do
   begin
     PreviousCount := FList.Count;
-    Remove(FList[0]);
+    Delete(0);
     if FList.Count >= PreviousCount then
     begin
       WritelnWarning('During TCastleTransform.BeforeDestruction, the number of children does not decrease -- this means that some TCastleTransform destructor adds new TCastleTransform instances. ' +
