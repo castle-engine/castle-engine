@@ -154,6 +154,10 @@ pipeline {
                 sh 'fpc -iV'
                 sh 'lazbuild --version'
                 sh 'make --version'
+                /* Make sure we got GNU Make, not Embarcadero make.
+                   This is important, as Delphi installer inserts Embarcadero make into PATH,
+                   earlier than Cygwin's. It has to be corrected after installation. */
+                sh 'if make -version 2>&1 | grep -i "GNU Make" -; then echo "Make from GNU"; else echo "Make not from GNU!"; exit 1; fi'
               }
             }
             stage('(Windows) Cleanup') {
