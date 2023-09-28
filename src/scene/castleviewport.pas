@@ -198,15 +198,26 @@ type
     procedure MainSceneAndCamera_BoundViewpointVectorsChanged(Sender: TObject);
     procedure MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
 
-    { Change FMouseRayHit. Should be called only by GetMouseRayHit (when it's updated
-      on-demand) or by ClearMouseRayHit (only with nil parameter in this case). }
+    { Change FMouseRayHit. Should be called only by
+
+      - GetMouseRayHit (when it's updated on-demand), with nil or non-nli,
+        that also sets FMouseRayHitValid = true
+
+      - or by ClearMouseRayHit (only with nil parameter in this case)
+        that also sets FMouseRayHitValid = false
+    }
     procedure SetMouseRayHit(const Value: TRayCollision);
+
+    { Sets FMouseRayHit to nil and FMouseRayHitValid to false.
+      Removes all free notifications for items in FMouseRayHit. }
     procedure ClearMouseRayHit;
+
     { Whether FMouseRayHit contains given Item.
       This doesn't update FMouseRayHit if it is invalid right now,
       so it is safer to use even during destruction.
       And so it should be used only on some free notification. }
     function MouseRayHitContains(const Item: TCastleTransform): boolean;
+
     procedure SetAvoidNavigationCollisions(const Value: TCastleTransform);
 
     function GetNavigation: TCastleNavigation;
@@ -1917,7 +1928,7 @@ begin
     Also this makes MouseRayHit valid during TCastleTransform.PointingDevicePress calls.
     Although implementors should rather use information passed
     as TCastleTransform.PointingDevicePress argument, not look at Viewport.MouseRayHit. }
-  FMouseRayHitValid := false;
+  ClearMouseRayHit;
 
   LastPressEvent := Event;
 
@@ -1944,7 +1955,7 @@ begin
 
   { Call UpdateMouseRayHit at nearest moment.
     As our PointingDeviceRelease (called below) uses it. }
-  FMouseRayHitValid := false;
+  ClearMouseRayHit;
 
   if Items.InternalPressReleaseListeners <> nil then
     // use downto, to work in case some Release will remove transform from list
@@ -2246,7 +2257,7 @@ begin
       Motion event, because navigation class marked Motion as handled.
       Fixes https://forum.castle-engine.io/t/mouserayhit-not-updating-while-dragging/844/4
   }
-  FMouseRayHitValid := false;
+  ClearMouseRayHit;
 
   if Items.Paused then
     Exit;
@@ -3488,8 +3499,9 @@ begin
     Also this is more sensible and safer: this method is used
     to check whether FMouseRayHit contains something,
     it isn't expected it will actually query using raycast. }
-  if not FMouseRayHitValid then
-    FMouseRayHit := nil;
+
+  { When FMouseRayHitValid=false then always FMouseRayHit=nil. }
+  Assert(FMouseRayHitValid or (FMouseRayHit = nil));
 
   Result :=
     (FMouseRayHit <> nil) and
@@ -3499,6 +3511,7 @@ end;
 procedure TCastleViewport.ClearMouseRayHit;
 begin
   SetMouseRayHit(nil);
+  FMouseRayHitValid := false;
 end;
 
 procedure TCastleViewport.SetMouseRayHit(const Value: TRayCollision);
