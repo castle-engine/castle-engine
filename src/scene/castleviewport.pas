@@ -282,7 +282,6 @@ type
     class procedure CreateComponentWithChildren2D(Sender: TObject);
     class procedure CreateComponentWithChildren3D(Sender: TObject);
 
-    procedure RecalculateCursor(Sender: TObject);
     procedure ItemsNodesFree(Sender: TObject);
 
     { Bounding box of everything non-design.
@@ -1431,7 +1430,6 @@ begin
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
-  FItems.OnCursorChange := {$ifdef FPC}@{$endif} RecalculateCursor;
   FItems.InternalOnNodesFree := {$ifdef FPC}@{$endif} ItemsNodesFree;
 
   FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
@@ -1906,10 +1904,7 @@ begin
   begin
     if (AComponent is TCastleTransform) and
        MouseRayHitContains(TCastleTransform(AComponent)) then
-    begin
-      { MouseRayHit cannot be used in subsequent RecalculateCursor. }
       ClearMouseRayHit;
-    end;
 
     if AComponent = FAvoidNavigationCollisions then
       AvoidNavigationCollisions := nil;
@@ -2042,20 +2037,6 @@ begin
       use-case when it would be useful to do this. }
     PointingDeviceMove;
   end;
-
-  { update the cursor, since TCastleTransform object under the cursor possibly changed.
-
-    Accidentally, this also workarounds the problem of TCastleViewport:
-
-    When the TCastleTransform object has its Cursor value changed,
-    Items.OnCursorChange notify only 1st TCastleViewport that owned the Items.
-    The other viewports are not notified, as SetItems doesn't set
-    FItems.OnCursorChange (as we only have 1 OnCursorChange for now).
-
-    But thanks to doing RecalculateCursor below, this isn't
-    a problem, as we'll update cursor to follow TCastleTransform anyway,
-    as long as it changes only during mouse move. }
-  RecalculateCursor(Self);
 end;
 
 function TCastleViewport.GetMouseRayHit: TRayCollision;
@@ -2071,7 +2052,8 @@ function TCastleViewport.GetMouseRayHit: TRayCollision;
         (e.g. TBorder instance in TCastleUserInteface.Border is not nil). }
       (not (csDestroying in ComponentState)) and
       { Check conditions required by PositionToPrerequisites and PositionToRay to work.
-        This must be robust, as it is called also from RecalculateCursor,
+        This must be robust, as
+        (outdated reason:) it WAS called also from RecalculateCursor,
         which is from TCastleTransformList.Notify. (when some transform gets removed). }
       (EffectiveWidth <> 0) and
       (EffectiveHeight <> 0) and
@@ -2135,44 +2117,6 @@ begin
   { Signal to PointingDevicePressCore to not process further collision list.
     TODO: why is this necessary? But anchor_test on view3dscene otherwise crashes. }
   ItemsNodesFreeOccurred := true;
-end;
-
-procedure TCastleViewport.RecalculateCursor(Sender: TObject);
-var
-  T: TCastleTransform;
-begin
-  if { Be prepared for Items=nil case, as it may happen e.g. at destruction. }
-     (Items = nil) or
-     { This may be called from
-       TCastleTransformList.Notify when removing stuff owned by other
-       stuff, in particular during our own destructor when FItems is freed
-       and we're in half-destructed state. }
-     (csDestroying in Items.ComponentState) or
-     { When Paused, then Press and Motion events are not passed to Navigation,
-       or to Items inside. So it's sensible that they also don't control the cursor
-       anymore.
-       In particular, it means cursor is no longer hidden by Navigation.MouseLook
-       when the Paused is switched to true. }
-     Items.Paused then
-  begin
-    Cursor := mcDefault;
-    Exit;
-  end;
-
-  { We show mouse cursor from top-most TCastleTransform.
-    This is sensible, if multiple TCastleTransform scenes obscure each other at the same
-    pixel --- the one "on the top" (visible by the player at that pixel)
-    determines the mouse cursor.
-
-    We ignore Cursor value of other TCastleTransform along
-    the MouseRayHit list. Maybe we should browse Cursor values along the way,
-    and choose the first non-none? }
-
-  T := TransformUnderMouse;
-  if T <> nil then
-    Cursor := T.Cursor
-  else
-    Cursor := mcDefault;
 end;
 
 function TCastleViewport.TriangleHit: PTriangle;
@@ -3440,7 +3384,6 @@ begin
     if (Value = nil) and not (csDestroying in ComponentState) then
     begin
       Value := TCastleRootTransform.Create(Self);
-      Value.OnCursorChange := {$ifdef FPC}@{$endif} RecalculateCursor;
     end;
 
     if InternalDesignManipulation then
@@ -3461,9 +3404,7 @@ begin
 
     LastVisibleStateIdForVisibleChange := 0;
 
-    { TODO: do the same thing we did when creating internal FItems:
-    FItems.OnCursorChange := @RecalculateCursor;
-
+    {
     // No need to change this, it's documented that MainCamera has to be manually managed if you reuse items
     // FItems.MainCamera := Camera;
     }
@@ -3521,8 +3462,7 @@ begin
   if FMouseRayHit <> Value then
   begin
     { Always keep FreeNotification on every 3D item inside MouseRayHit.
-      When it's destroyed, our MouseRayHit must be freed too,
-      it cannot be used in subsequent RecalculateCursor. }
+      When it's destroyed, our MouseRayHit must be freed too. }
 
     if FMouseRayHit <> nil then
     begin

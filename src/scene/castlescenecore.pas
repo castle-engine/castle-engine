@@ -6501,14 +6501,6 @@ end;
 
 procedure TCastleSceneCore.DoPointingDeviceSensorsChange;
 begin
-  { I want to keep assertion that Cursor = mcHand when
-    we're over or keeping active some pointing-device sensors. }
-  if ((PointingDeviceSensors <> nil) and
-      (PointingDeviceSensors.EnabledCount <> 0)) or
-     (PointingDeviceActiveSensors.Count <> 0) then
-    Cursor := mcHand else
-    Cursor := mcDefault;
-
   if Assigned(OnPointingDeviceSensorsChange) then
     OnPointingDeviceSensorsChange(Self);
 end;

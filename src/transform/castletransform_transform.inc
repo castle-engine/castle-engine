@@ -88,7 +88,6 @@
       FCollides: Boolean;
       FPickable: Boolean;
       FVisible: Boolean;
-      FCursor: TMouseCursor;
       FCollidesWithMoving: Boolean;
       FWorld: TCastleAbstractRootTransform;
       { How many times this is a child in the FWorld, counting all possible paths in transformation tree. }
@@ -138,7 +137,6 @@
     procedure SerializeBehaviorsAdd(const C: TComponent);
     procedure SerializeBehaviorsClear;
     procedure SerializeBehaviorsEnumerate(const Proc: TGetChildProc);
-    procedure SetCursor(const Value: TMouseCursor);
     procedure SetCenter(const Value: TVector3);
     procedure SetRotation(const Value: TVector4);
     procedure SetScale(const Value: TVector3);
@@ -1042,9 +1040,6 @@
     { Root transformation (TCastleAbstractRootTransform) containing us.
       @nil if we are not (yet) part of some hierarchy rooted in TCastleAbstractRootTransform. }
     property World: TCastleAbstractRootTransform read FWorld;
-
-    { Mouse cursor over this object. }
-    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
     { Called when rendering context is destroyed.
       This will be also automatically called from destructor.
@@ -2052,7 +2047,6 @@ begin
   FCollides := true;
   FPickable := true;
   FVisible := true;
-  FCursor := mcDefault;
   FList := TCastleTransformList.Create(false);
   FList.FOwner := Self; // get notified about add/release, assign children World, Parent
   FBehaviors := TComponentList.Create(false);
@@ -2156,16 +2150,6 @@ begin
       Inc(World.InternalVisibleGeometryStateId);
     if vcVisibleNonGeometry in Changes then
       Inc(World.InternalVisibleNonGeometryStateId);
-  end;
-end;
-
-procedure TCastleTransform.SetCursor(const Value: TMouseCursor);
-begin
-  if FCursor <> Value then
-  begin
-    FCursor := Value;
-    if (World <> nil) and Assigned(World.OnCursorChange) then
-      World.OnCursorChange(Self);
   end;
 end;
 

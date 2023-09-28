@@ -70,25 +70,6 @@ begin
       else raise EInternalError.Create('TCastleTransformList.Notify action?');
       {$endif}
     end;
-
-    { Workaround for bug:
-
-      Removing TCastleScene in CGE editor crashes.
-      Known:
-      - TCastleTransform.BeforeDestruction makes Delete(0)
-        which causes TCastleViewport.UpdateMouseRayHit
-        - deleting from list makes TCastleTransformList.Notify
-        - which causes Owner.World.OnCursorChange
-        - which looks at TransformUnderMouse to determine cursor
-        - this causes MouseRayHit to be calculated
-        - this causes LocalRayCollision on some scenes (TODO: removed? or not removed?)
-          which fails, it seems octree refers to some no-longer-existing shapes
-
-      TODO: Why it exactly occurs?
-      TODO: But do we really need TCastleTransform.Cursor?
-    }
-    //if (Owner.World <> nil) and Assigned(Owner.World.OnCursorChange) then
-    //  Owner.World.OnCursorChange(Owner);
   end;
 end;
 
