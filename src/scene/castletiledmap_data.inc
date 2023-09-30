@@ -133,12 +133,18 @@ type
       private
         procedure Load(const Element: TDOMElement; const BaseUrl: String); virtual;
       public
+        { Unique ID of the layer. Defaults to 0.}
+        Id: Cardinal;
         { The name of the layer. }
-        Name: string;
+        Name: String;
+        { The class of the layer (since 1.9, defaults to ''). }
+        &Class: String;
         { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
         Opacity: Single;
         { Whether the layer is shown or hidden. Defaults to true. }
         Visible: Boolean;
+        { Whether the layer is locked or unlocked. Defaults to false. }
+        Locked: Boolean;
         { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
         OffsetX: Single;
         { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
@@ -207,6 +213,9 @@ type
       public
         { The local tile ID within its tileset. }
         Id: Cardinal;
+        { The class of the tile. Is inherited by tile objects. (since 1.0, defaults to '',
+          was saved as class in 1.9) }
+        &Type: String;
         { Defines the terrain type of each corner of the tile, given as
           comma-separated indexes in the terrain types array in the order top-left,
           top-right, bottom-left, bottom-right. Leaving out a value means that corner
@@ -707,6 +716,8 @@ var
 begin
   if Element.AttributeString('id', TmpStr) then
     Id := StrToInt(TmpStr);
+  &Type := Element.AttributeStringDef('type', '');
+
   if Element.AttributeString('terrain', TmpStr) then
   begin
     SPosition := 1;
@@ -884,15 +895,24 @@ begin
   Visible := True;
   OffsetX := 0;
   OffsetY := 0;
+  Locked := False;
   if Element.AttributeString('color', TmpStr) then
     Color := TiledToColorRGB(TmpStr)
   else
     Color := BlackRGB; // Default layer color in Tiled editor if no color is set.
+
+  if Element.AttributeString('id', TmpStr) then
+    Id := StrToInt(TmpStr);
   Name := Element.AttributeStringDef('name', '');
+  &Class := Element.AttributeStringDef('class', '');
+
   if Element.AttributeString('opacity', TmpStr) then
     Opacity := StrToFloatDot(TmpStr);
   if Element.AttributeStringDef('visible', '1') = '0' then
     Visible := false;
+  if Element.AttributeStringDef('locked', '') = '1' then
+    Locked := True;
+
   OffsetX := Element.AttributeSingleDef('offsetx', 0);
   OffsetY := Element.AttributeSingleDef('offsety', 0);
 
