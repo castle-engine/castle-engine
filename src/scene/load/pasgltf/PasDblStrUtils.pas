@@ -449,8 +449,13 @@ implementation
 uses CastleUtils;
 
 function ConvertStringToDouble(const StringValue:TPasDblStrUtilsString;const RoundingMode:TPasDblStrUtilsRoundingMode=rmNearest;const OK:PPasDblStrUtilsBoolean=nil;const Base:TPasDblStrUtilsInt32=-1):TPasDblStrUtilsDouble;
+var
+  Success: Boolean;
 begin
-  Result := StrToFloatDot(StringValue);
+  Success := TryStrToFloatDot(StringValue, Result);
+  { Assign OK^, if OK non-nil. }
+  if OK <> nil then
+    OK^ := Success;
 end;
 
 function ConvertDoubleToString(const AValue:TPasDblStrUtilsDouble;const OutputMode:TPasDblStrUtilsOutputMode=omStandard;RequestedDigits:TPasDblStrUtilsInt32=-1):TPasDblStrUtilsString;
