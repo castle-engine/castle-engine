@@ -131,7 +131,9 @@ type
 
       TLayer = class
       private
+        FVisible: Boolean;
         procedure Load(const Element: TDOMElement; const BaseUrl: String); virtual;
+        procedure SetExists(const Value: Boolean);
       public
         { Unique ID of the layer. Defaults to 0.}
         Id: Cardinal;
@@ -141,8 +143,6 @@ type
         &Class: String;
         { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
         Opacity: Single;
-        { Whether the layer is shown or hidden. Defaults to true. }
-        Visible: Boolean;
         { Whether the layer is locked or unlocked. Defaults to false. }
         Locked: Boolean;
         { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
@@ -157,10 +157,17 @@ type
         Width: Integer;
         { The height of the object group in tiles. Meaningless. }
         Height: Integer;
+        { Used by the Exists-property to show/hide the layer. Not a part of the file format.}
+        SwitchNode: TSwitchNode;
         constructor Create;
         destructor Destroy; override;
         { OffsetX and OffsetY packed in a vector. }
         function Offset: TVector2;
+        { Hides or shows the layer. Not a part of the file format }
+        property Exists: Boolean read FVisible write SetExists;
+        { Whether the layer is shown or hidden. Defaults to true. Use the Exists-property to
+          change the visibility during runtime. }
+        property Visible: Boolean read FVisible;
       end;
 
       TObjectGroupLayer = class(TLayer)
@@ -892,7 +899,7 @@ var
   TmpStr, LowerTagName: string;
 begin
   Opacity := 1;
-  Visible := True;
+  FVisible := true;
   OffsetX := 0;
   OffsetY := 0;
   Locked := False;
@@ -909,7 +916,7 @@ begin
   if Element.AttributeString('opacity', TmpStr) then
     Opacity := StrToFloatDot(TmpStr);
   if Element.AttributeStringDef('visible', '1') = '0' then
-    Visible := false;
+    FVisible := false;
   if Element.AttributeStringDef('locked', '') = '1' then
     Locked := True;
 
@@ -937,6 +944,16 @@ end;
 function TCastleTiledMapData.TLayer.Offset: TVector2;
 begin
   Result := Vector2(OffsetX, OffsetY);
+end;
+
+procedure TCastleTiledMapData.TLayer.SetExists(const Value: Boolean);
+begin
+  if FVisible <> Value then
+  begin
+    FVisible := Value;
+    if Assigned(SwitchNode) then
+      SwitchNode.WhichChoice := Ord(Value) - 1;
+  end;
 end;
 
 { TObjectGroupLayer ---------------------------------------------------------- }

@@ -139,7 +139,7 @@ type
       Note that changing this when map is loaded reloads it,
       and automatically starts animations.
       You can stop them with @link(StopAnimations). }
-    property Layers: TLayers read FLayers write SetLayers default AllLayers;
+    property Layers: TLayers read FLayers write SetLayers default AllLayers; {$ifdef FPC} deprecated 'use Data.Layers[].Exists()'; {$endif}
   end;
 
 {$endif read_interface}

@@ -360,6 +360,7 @@ var
   Layer: TCastleTiledMapData.TLayer;
   LayerNode: TTransformNode;
   LayerZ: Single;
+  SwitchNode: TSwitchNode;
 const
   { Distance between Tiled layers in Z. Layers are rendered as 3D objects
     and need some distance to avoid Z-fighting.
@@ -398,6 +399,12 @@ begin
 
     LayerNode := TTransformNode.Create;
 
+    // Create an intermediate switch node to enable showing/hiding of the layer via the Exists-property.
+    SwitchNode := TSwitchNode.Create;
+    SwitchNode.AddChildren(LayerNode);
+    SwitchNode.WhichChoice := Ord(Layer.Visible) - 1;
+    Layer.SwitchNode := SwitchNode;
+
     if Layer is TCastleTiledMapData.TObjectGroupLayer then
       BuildObjectGroupLayerNode(LayerNode, Layer)
     else
@@ -407,7 +414,8 @@ begin
     else }
       BuildTileLayerNode(LayerNode, Layer);
 
-    MapNode.AddChildren(LayerNode);
+    MapNode.AddChildren(SwitchNode);
+
     // flip -Layer.OffsetY, as Tiled Y goes down
     LayerNode.Translation := Vector3(Layer.OffsetX, -Layer.OffsetY, LayerZ);
     LayerZ := LayerZ + LayerZDistanceIncrease;
