@@ -2011,6 +2011,77 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       Result := Result + D + ';';
   end;
 
+  { Generate proper DeployFile elements for DPROJ,
+    to deploy programs with their data using PAServer.
+
+    Sample:
+      <DeployFile LocalName="data\Dino.gltf" Configuration="Debug" Class="File">
+          <Platform Name="Linux64">
+              <RemoteDir>./data/</RemoteDir>
+              <RemoteName>Dino.gltf</RemoteName>
+              <Overwrite>true</Overwrite>
+          </Platform>
+          ... // repeat for all platforms
+      </DeployFile>
+      // repeat for release too
+  }
+  function DelphiDprojDeployFiles: String;
+  const
+    AllDelphiPlatformNames: array [0..8] of String = (
+      'Android',
+      'Android64',
+      'iOSDevice64',
+      'iOSSimARM64',
+      'Linux64',
+      'OSX64',
+      'OSXARM64',
+      'Win32',
+      'Win64'
+    );
+    AllDelphiConfigNames: array [0..1] of String = (
+      'Debug',
+      'Release'
+    );
+  var
+    ConfigName, PlatformName, FileRelativeName: String;
+    Files: TStringList;
+    ResultBuilder: TStringBuilder;
+  begin
+    ResultBuilder := TStringBuilder.Create;
+    try
+      Files := PackageFiles(true, cpDesktop);
+      try
+        for ConfigName in AllDelphiConfigNames do
+        begin
+          for FileRelativeName in Files do
+          begin
+            ResultBuilder.Append(Format(
+              '                <DeployFile LocalName="%s\%s" Configuration="%s" Class="File">' + NL, [
+                TCastleManifest.DataName,
+                FileRelativeName,
+                ConfigName
+              ]));
+            for PlatformName in AllDelphiPlatformNames do
+              ResultBuilder.Append(Format(
+                '                    <Platform Name="%s">' + NL +
+                '                        <RemoteDir>./%s/%s</RemoteDir>' + NL +
+                '                        <RemoteName>%s</RemoteName>' + NL +
+                '                        <Overwrite>true</Overwrite>' + NL +
+                '                    </Platform>' + NL, [
+                  PlatformName,
+                  TCastleManifest.DataName,
+                  ExtractFilePath(FileRelativeName),
+                  ExtractFileName(FileRelativeName)
+                ]));
+            ResultBuilder.Append(
+              '                </DeployFile>' + NL);
+          end;
+        end;
+      finally FreeAndNil(Files) end;
+      Result := ResultBuilder.ToString;
+    finally FreeAndNil(ResultBuilder) end;
+  end;
+
   { Add macros specifically useful by Delphi project files. }
   procedure AddMacrosDproj(const Macros: TStringStringMap;
     const StandaloneSource: String);
@@ -2037,10 +2108,10 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     IncludedFiles := '';
     if WelcomePageFile <> '' then
       IncludedFiles := SAppendPart(IncludedFiles, NL,
-        '<None Include="' + WelcomePageFile + '"/>');
+        '        <None Include="' + WelcomePageFile + '"/>');
     if StandaloneSource <> '' then
       IncludedFiles := SAppendPart(IncludedFiles, NL,
-        '<None Include="' + StandaloneSource + '"/>');
+        '        <None Include="' + StandaloneSource + '"/>');
     Macros.Add('DPROJ_INCLUDED_FILES', IncludedFiles);
 
     { Define welcome page by XML content like this:
@@ -2050,11 +2121,16 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     }
     if WelcomePageFile <> '' then
       WelcomePageXml := Format(
-        '<WelcomePageFile Path="%s"/>' + NL +
-        '<WelcomePageFolder/>', [WelcomePageFile])
+        '                <WelcomePageFile Path="%s"/>' + NL +
+        '                <WelcomePageFolder/>', [WelcomePageFile])
     else
       WelcomePageXml := '';
     Macros.Add('DPROJ_WELCOME_PAGE', WelcomePageXml);
+
+    { As an optimization, do not calculate DPROJ_DEPLOY_FILES
+      macro value when not needed. }
+    if Pos('${DPROJ_DEPLOY_FILES}', Source) <> 0 then
+      Macros.Add('DPROJ_DEPLOY_FILES', DelphiDprojDeployFiles);
   end;
 
 var
@@ -2083,6 +2159,14 @@ begin
     Macros.Add('CAPTION'         , Caption);
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
+    { TODO: Right now Delphi IDE compiles exe with basename matching
+      DeleteFileExt(StandaloneSource), not our ExecutableName
+      (which is sometimes different, e.g. doesn't contain "_standalone" suffix,
+      has - instead of _).
+      So we have DELPHI_EXECUTABLE_NAME.
+      In the long run, it would be ideal to only have EXECUTABLE_NAME
+      and make Delphi IDE build the same as Delphi command-line and FPCr. }
+    Macros.Add('DELPHI_EXECUTABLE_NAME', DeleteFileExt(StandaloneSource));
     Macros.Add('GAME_UNITS'      , Manifest.GameUnits);
     Macros.Add('SEARCH_PATHS'          , MakePathsStr(Manifest.SearchPaths, false));
     Macros.Add('ABSOLUTE_SEARCH_PATHS' , MakePathsStr(Manifest.SearchPaths, true));
