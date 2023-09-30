@@ -90,6 +90,7 @@ castle-game-engine-*.fpm
 /examples/creature_behaviors/creature_behaviors
 /examples/curves/deprecated_space_filling_curve/draw_space_filling_curve
 /examples/curves/use_designed_curve/use_designed_curve
+/examples/delphi/fmx/CastleFmx
 /examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
 /examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/eye_of_beholder/eye_of_beholder
