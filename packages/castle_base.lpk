@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1089">
+    <Files Count="1093">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4461,6 +4461,24 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base_rendering/dglopengl/dglopengl.pas"/>
         <UnitName Value="dglOpenGL"/>
       </Item1089>
+      <Item1090>
+        <Filename Value="../src/base_rendering/castleinternalcontextbase.pas"/>
+        <UnitName Value="CastleInternalContextBase"/>
+      </Item1090>
+      <Item1091>
+        <Filename Value="../src/base_rendering/castleinternalcontextegl.pas"/>
+        <UnitName Value="CastleInternalContextEgl"/>
+      </Item1091>
+      <Item1092>
+        <Filename Value="../src/base_rendering/castleinternalcontextglx.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleInternalContextGlx"/>
+      </Item1092>
+      <Item1093>
+        <Filename Value="../src/base_rendering/castleinternalcontextwgl.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleInternalContextWgl"/>
+      </Item1093>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">

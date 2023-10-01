@@ -319,6 +319,10 @@ begin
     P.Targets.AddUnit('castleglshaders.pas');
     P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('castleglversion.pas');
+    P.Targets.AddUnit('castleinternalcontextbase.pas');
+    P.Targets.AddUnit('castleinternalcontextegl.pas');
+    P.Targets.AddUnit('castleinternalcontextglx.pas');
+    P.Targets.AddUnit('castleinternalcontextwgl.pas');
     P.Targets.AddUnit('castleinternalglutils.pas');
     P.Targets.AddUnit('castlerendercontext.pas');
     P.Targets.AddUnit('castlerenderprimitives.pas');
@@ -446,17 +450,10 @@ begin
     P.Targets.AddUnit('castlemessages.pas');
     P.Targets.AddUnit('castlewindowrecentfiles.pas');
     P.Targets.AddUnit('castlewindow.pas');
-    P.Targets.AddUnit('castleinternalcontextegl.pas');
     if Xlib then
     begin
       P.SourcePath.Add('src/window/unix');
       P.Targets.AddUnit('castleinternalxlib.pas');
-      P.Targets.AddUnit('castleinternalcontextglx.pas');
-    end;
-    if Defaults.OS in AllWindowsOSes then
-    begin
-      P.SourcePath.Add('src/window/windows');
-      P.Targets.AddUnit('castleinternalcontextwgl.pas');
     end;
 
     P.SourcePath.Add('src/window/deprecated_units');
