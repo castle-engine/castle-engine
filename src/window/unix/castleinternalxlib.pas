@@ -22,7 +22,7 @@
   so we can gracefully finalize our program, or (in special
   cases) catch the exception etc. Default Xlib ErrorHandler
   was just printing error message and unconditionally stopping program,
-  so it wasn's very nice.
+  so it wasn't very nice.
 
   In finalization of this unit we set back previous error handler.
 }
