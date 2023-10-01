@@ -225,7 +225,7 @@ contains
   jsonparser in '..\..\src\compatibility\delphi-only\fcl-json\jsonparser.pas',
   jsonreader in '..\..\src\compatibility\delphi-only\fcl-json\jsonreader.pas',
   jsonscanner in '..\..\src\compatibility\delphi-only\fcl-json\jsonscanner.pas',
-  castleinternalcontextbase in '..\..\src\window\windows\castleinternalcontextbase.pas',
+  castleinternalcontextbase in '..\..\src\window\castleinternalcontextbase.pas',
   castleinternalcontextwgl in '..\..\src\window\windows\castleinternalcontextwgl.pas',
   PasDblStrUtils in '..\..\src\scene\load\pasgltf\PasDblStrUtils.pas',
   PasGLTF in '..\..\src\scene\load\pasgltf\PasGLTF.pas',

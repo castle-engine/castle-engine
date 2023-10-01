@@ -333,7 +333,7 @@
         <DCCReference Include="..\..\src\compatibility\delphi-only\fcl-json\jsonparser.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\fcl-json\jsonreader.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\fcl-json\jsonscanner.pas"/>
-        <DCCReference Include="..\..\src\window\windows\castleinternalcontextbase.pas"/>
+        <DCCReference Include="..\..\src\window\castleinternalcontextbase.pas"/>
         <DCCReference Include="..\..\src\window\windows\castleinternalcontextwgl.pas"/>
         <DCCReference Include="..\..\src\scene\load\pasgltf\PasDblStrUtils.pas"/>
         <DCCReference Include="..\..\src\scene\load\pasgltf\PasGLTF.pas"/>

@@ -68,8 +68,7 @@ type
       (or something equivalent) as = 0 when multisampling not supported). }
     procedure CheckRequestedBufferAttributes(const ProviderName: string;
       ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
-      ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
-      ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
+      ProvidedMultiSampling: Cardinal);
 
     { Current OpenGL buffers configuration required.
       Stuff like DoubleBuffer, AlphaBits, DepthBits, StencilBits etc.
@@ -219,7 +218,7 @@ type
     { Make the GL context current. }
     procedure MakeCurrent; virtual; abstract;
 
-    { Swap buffers (if context was created with DoubleBuffer) or glFlush. }
+    { Swap buffers (called only if context was created with DoubleBuffer). }
     procedure SwapBuffers; virtual; abstract;
   end;
 
@@ -274,9 +273,7 @@ end;
 
 procedure TGLContextRequirements.CheckRequestedBufferAttributes(
   const ProviderName: string; ProvidedStencilBits, ProvidedDepthBits,
-  ProvidedAlphaBits, ProvidedAccumRedBits, ProvidedAccumGreenBits,
-  ProvidedAccumBlueBits, ProvidedAccumAlphaBits,
-  ProvidedMultiSampling: Cardinal);
+  ProvidedAlphaBits, ProvidedMultiSampling: Cardinal);
 
   procedure CheckRequestedBits(const Name: string; RequestedBits, ProvidedBits: Cardinal);
   begin

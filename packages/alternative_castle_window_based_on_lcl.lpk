@@ -193,7 +193,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalContextWGL"/>
       </Item34>
       <Item35>
-        <Filename Value="../src/window/windows/castleinternalcontextbase.pas"/>
+        <Filename Value="../src/window/castleinternalcontextbase.pas"/>
         <UnitName Value="CastleInternalContextBase"/>
       </Item35>
     </Files>

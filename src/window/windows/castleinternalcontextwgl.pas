@@ -27,7 +27,6 @@ type
   { OpenGL context created using Windows-specific wgl library. }
   TGLContextWGL = class(TGLContext)
   private
-    HasDoubleBuffer: Boolean;
     class var
       WndClassName: UnicodeString;
     class procedure NeedsWndClassName;
@@ -101,7 +100,6 @@ var
     DescribePixelFormat(h_Dc, PixelFormat, SizeOf(pfd), pfd);
     Requirements.CheckRequestedBufferAttributes('ChoosePixelFormat',
       pfd.cStencilBits, pfd.cDepthBits, pfd.cAlphaBits,
-      pfd.cAccumRedBits, pfd.cAccumGreenBits, pfd.cAccumBlueBits, pfd.cAccumAlphaBits,
       0 { we have to assume that ChoosePixelFormat returns context
           without multisampling abiilty });
 
@@ -367,8 +365,6 @@ var
   end;
 
 begin
-  HasDoubleBuffer := Requirements.DoubleBuffer;
-
   // will be initialized once SetPixelFormat_WGLChoose has a temporary context
   Has_WGL_ARB_create_context := false;
   Has_WGL_ARB_create_context_profile := false;
@@ -417,10 +413,7 @@ begin
     Exit;
   end;
 
-  if HasDoubleBuffer then
-    Windows.SwapBuffers(h_Dc)
-  else
-    glFlush();
+  Windows.SwapBuffers(h_Dc);
 end;
 
 { Handler for events for our temporary window.

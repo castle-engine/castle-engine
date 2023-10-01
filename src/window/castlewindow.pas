@@ -317,7 +317,7 @@ uses {$define read_interface_uses}
   CastleVectors, CastleRectangles, CastleColors, CastleRenderOptions,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
-  CastleFileFilters, CastleUIControls,
+  CastleFileFilters, CastleUIControls, CastleInternalContextBase,
   CastleInternalPk3DConnexion, CastleParameters, CastleSoundEngine,
   CastleApplicationProperties;
 
@@ -523,6 +523,11 @@ type
     FCursor: TMouseCursor;
     FTouches: TTouchList;
     FNamedParameters: TCastleStringList;
+    { When Open, this says if the window actually has double-buffer. }
+    HasDoubleBuffer: Boolean;
+    { Ready TGLContextRequirements instance.
+      Call UpdateRequirements to initialize its fields correctly. }
+    FRequirements: TGLContextRequirements;
     function GetColorBits: Cardinal;
     procedure SetColorBits(const Value: Cardinal);
     procedure SetAntiAliasing(const Value: TAntiAliasing);
@@ -897,6 +902,7 @@ type
 
       Useful for constructing messages e.g. for EGLContextNotPossible exceptions. }
     function RequestedBufferAttributes: string;
+
     { Check do given OpenGL buffers configuration satisfies the
       requested configuration.
 
@@ -919,8 +925,10 @@ type
       (or something equivalent) as = 0 when multisampling not supported). }
     procedure CheckRequestedBufferAttributes(const ProviderName: string;
       ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
-      ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
-      ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
+      ProvidedMultiSampling: Cardinal);
+
+    { Update FRequirements to reflect current window properties. }
+    procedure UpdateRequirements;
   protected
     procedure DoUpdate; virtual;
   public
@@ -2795,6 +2803,7 @@ begin
   FTouches := TTouchList.Create;
   FFocused := true;
   FNamedParameters := TCastleStringList.Create;
+  FRequirements := TGLContextRequirements.Create(nil);
 
   CreateBackend;
 
@@ -2820,6 +2829,7 @@ begin
   FreeAndNil(FContainer);
   FreeAndNil(FTouches);
   FreeAndNil(FNamedParameters);
+  FreeAndNil(FRequirements);
   inherited;
 end;
 
@@ -2860,7 +2870,7 @@ procedure TCastleWindow.OpenCore;
     Theme.Draw(TextRect, tiLoading, UIScale, Theme.LoadingColor);
 
     // just like TCastleWindow.DoRender
-    if DoubleBuffer then SwapBuffers else glFlush;
+    if HasDoubleBuffer then SwapBuffers else glFlush;
 
     {$IFDEF android}
     { Workaround an ARM64 Android-specific bug which manifests on some devices
@@ -2912,6 +2922,12 @@ procedure TCastleWindow.OpenCore;
       Close the window. }
     FClosed := false;
     Invalidated := false;
+
+    UpdateRequirements; // OpenBackend may use it
+
+    // initialize HasDoubleBuffer
+    HasDoubleBuffer := DoubleBuffer;
+    Assert(HasDoubleBuffer = FRequirements.DoubleBuffer);
 
     { Call OpenBackend. Note that OpenBackend can call DoResize,
       it will still be correctly understood. }
@@ -3264,7 +3280,7 @@ begin
       RenderContext.Viewport := Rect;
 
     FrameProfiler.Start(fmRenderSwapFlush);
-    if DoubleBuffer then SwapBuffers else glFlush;
+    if HasDoubleBuffer then SwapBuffers else glFlush;
 
     { Keep this check inside fmRenderSwapFlush measurement.
 
@@ -3588,8 +3604,9 @@ end;
 
 function TCastleWindow.SaveScreenBuffer: TColorBuffer;
 begin
-  if DoubleBuffer then
-    Result := cbBack else
+  if HasDoubleBuffer then
+    Result := cbBack
+  else
     Result := cbFront;
 end;
 
@@ -3855,54 +3872,34 @@ end;
 
 { TCastleWindow miscellaneous -------------------------------------------- }
 
+procedure TCastleWindow.UpdateRequirements;
+begin
+  FRequirements.DoubleBuffer := DoubleBuffer;
+  FRequirements.ColorBits := ColorBits;
+  FRequirements.RedBits := RedBits;
+  FRequirements.GreenBits := GreenBits;
+  FRequirements.BlueBits := BlueBits;
+  FRequirements.DepthBits := DepthBits;
+  FRequirements.AlphaBits := AlphaBits;
+  FRequirements.StencilBits := StencilBits;
+  FRequirements.MultiSampling := MultiSampling;
+end;
+
 function TCastleWindow.RequestedBufferAttributes: string;
 begin
- if DoubleBuffer then
-   Result := 'double buffered' else
-   Result := 'single buffered';
- if ColorBits > 0 then
-   Result := Result + Format(', with RGB colors bits (%d, %d, %d) (total %d color bits)', [RedBits, GreenBits, BlueBits, ColorBits]);
- if DepthBits > 0 then
-   Result := Result + Format(', with %d-bits sized depth buffer', [DepthBits]);
- if StencilBits > 0 then
-   Result := Result + Format(', with %d-bits sized stencil buffer', [StencilBits]);
- if AlphaBits > 0 then
-   Result := Result + Format(', with %d-bits sized alpha channel', [AlphaBits]);
- if MultiSampling > 1 then
-   Result := Result + Format(', with multisampling (%d samples)', [MultiSampling]);
+  UpdateRequirements;
+  Result := FRequirements.RequestedBufferAttributes;
 end;
 
 procedure TCastleWindow.CheckRequestedBufferAttributes(
   const ProviderName: string;
   ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
-  ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
-  ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
-
-  procedure CheckRequestedBits(const Name: string; RequestedBits, ProvidedBits: Cardinal);
-  begin
-    if ProvidedBits < RequestedBits then
-      raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %s'
-        +' %d-bits sized but at least %d-bits sized is required',
-        [ ProviderName, Name, ProvidedBits, RequestedBits ]);
-  end;
-
- begin
-  CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
-  CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
-  CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
-
-  { If MultiSampling <= 1, this means that multisampling not required,
-    so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
-    (as most backends report no multisampling as num samples = 0), it's all Ok. }
-
-  if MultiSampling > 1 then
-  begin
-    if ProvidedMultiSampling < MultiSampling then
-     raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %d ' +
-       'samples for multisampling (<= 1 means that no multisampling was provided) ' +
-       'but at last %d samples for multisampling is required',
-       [ ProviderName, ProvidedMultiSampling, MultiSampling ]);
-  end;
+  ProvidedMultiSampling: Cardinal);
+begin
+  UpdateRequirements;
+  FRequirements.CheckRequestedBufferAttributes(ProviderName,
+    ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
+    ProvidedMultiSampling);
 end;
 
 procedure TCastleWindow.MenuUpdateBegin;

@@ -21,7 +21,6 @@
   to do the actual job. }
 
 {$ifdef read_interface_uses}
-CastleInternalContextBase,
 CastleInternalContextWgl,
 {$endif}
 
@@ -39,27 +38,14 @@ private
 {$ifdef read_implementation}
 
 procedure TCastleWindow.ContextCreateEnd(WndPtr: HWND);
-var
-  Requirements: TGLContextRequirements;
 begin
-  Requirements := TGLContextRequirements.Create(Self);
-  Requirements.DoubleBuffer := DoubleBuffer;
-  Requirements.ColorBits := ColorBits;
-  Requirements.RedBits := RedBits;
-  Requirements.GreenBits := GreenBits;
-  Requirements.BlueBits := BlueBits;
-  Requirements.DepthBits := DepthBits;
-  Requirements.AlphaBits := AlphaBits;
-  Requirements.StencilBits := StencilBits;
-  Requirements.MultiSampling := MultiSampling;
-
   Context := TGLContextWGL.Create;
   Context.WndPtr := WndPtr;
   Context.h_Dc := h_Dc;
   { All OpenGL contexts created by CGE should be shared }
   if Application.OpenWindowsCount <> 0 then
     Context.SharedContext := Application.OpenWindows[0].Context;
-  Context.ContextCreate(Requirements);
+  Context.ContextCreate(FRequirements);
 end;
 
 procedure TCastleWindow.ContextDestroy;
