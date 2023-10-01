@@ -323,6 +323,7 @@ begin
     P.Targets.AddUnit('castleinternalcontextegl.pas');
     P.Targets.AddUnit('castleinternalcontextglx.pas');
     P.Targets.AddUnit('castleinternalcontextwgl.pas');
+    P.Targets.AddUnit('castleinternalegl.pas');
     P.Targets.AddUnit('castleinternalglutils.pas');
     P.Targets.AddUnit('castlerendercontext.pas');
     P.Targets.AddUnit('castlerenderprimitives.pas');

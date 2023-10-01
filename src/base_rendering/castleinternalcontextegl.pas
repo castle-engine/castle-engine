@@ -21,7 +21,7 @@ unit CastleInternalContextEgl;
 interface
 
 uses SysUtils, Classes,
-  CastleInternalContextBase;
+  CastleInternalContextBase, CastleInternalEgl;
 
 type
   { Initializes OpenGL or OpenGLES context using cross-platform EGL. }
@@ -38,11 +38,15 @@ type
     procedure ContextDestroy; override;
     procedure MakeCurrent; override;
     procedure SwapBuffers; override;
+
+    { Query context size, returns 0 0 if cannot query for some reason. }
+    procedure QuerySize(out AWidth, AHeight: EGLint);
   end;
 
 implementation
 
-uses CastleLog;
+uses Math,
+  CastleLog, CastleUtils;
 
 { EGL references:
   - http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/eglIntro.html .
@@ -92,6 +96,9 @@ const
   ContextAttribsv3: array [0..2] of EGLint =
   ( EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE);
 begin
+  if not EglAvailable then
+    raise Exception.Create('Could not load EGL library, required to initialize context');
+
   Display := eglGetDisplay(EGL_DEFAULT_DISPLAY);
   if Display = EGL_NO_DISPLAY then
     { This does not set eglGetError, so we don't use EGLError in message below. }
@@ -102,9 +109,9 @@ begin
 
   Attribs := TInt32List.Create;
   try
-    if StencilBits > 0 then
+    if Requirements.StencilBits > 0 then
       Attribs.AddRange([EGL_STENCIL_SIZE, Requirements.StencilBits]);
-    if AlphaBits > 0 then
+    if Requirements.AlphaBits > 0 then
       Attribs.AddRange([EGL_ALPHA_SIZE, Requirements.AlphaBits]);
     Attribs.AddRange([
       EGL_DEPTH_SIZE, Requirements.DepthBits,
@@ -165,6 +172,20 @@ procedure TGLContextEgl.SwapBuffers;
 begin
   if eglSwapBuffers(Display, Surface) = EGL_FALSE then
     WritelnWarning('EGL', 'Cannot swap buffers (this is normal if app is no longer active): ' + EGLError);
+end;
+
+procedure TGLContextEgl.QuerySize(out AWidth, AHeight: EGLint);
+begin
+  if eglQuerySurface(Display, Surface, EGL_WIDTH, @AWidth) = EGL_FALSE then
+  begin
+    WritelnWarning('EGL', 'Cannot query surface width (this is normal if app is no longer active): ' + EGLError);
+    AWidth := 0; // otherwise AWidth would be left undefined
+  end;
+  if eglQuerySurface(Display, Surface, EGL_HEIGHT, @AHeight) = EGL_FALSE then
+  begin
+    WritelnWarning('EGL', 'Cannot query surface height (this is normal if app is no longer active): ' + EGLError);
+    AHeight := 0; // otherwise AHeight would be left undefined
+  end;
 end;
 
 end.

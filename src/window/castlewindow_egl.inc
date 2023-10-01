@@ -18,7 +18,7 @@
   (initialize window with OpenGL ES context). }
 
 {$ifdef read_interface_uses}
-CastleInternalContextEgl,
+CastleInternalEgl, CastleInternalContextEgl,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -68,15 +68,11 @@ end;
 
 procedure TCastleWindow.QuerySize(out AWidth, AHeight: EGLint);
 begin
-  if eglQuerySurface(Display, Surface, EGL_WIDTH, @AWidth) = EGL_FALSE then
+  if Context <> nil then
+    Context.QuerySize(AWidth, AHeight) else
   begin
-    WritelnWarning('EGL', 'Cannot query surface width (this is normal if app is no longer active): ' + EGLError);
-    AWidth := 0; // otherwise AWidth would be left undefined
-  end;
-  if eglQuerySurface(Display, Surface, EGL_HEIGHT, @AHeight) = EGL_FALSE then
-  begin
-    WritelnWarning('EGL', 'Cannot query surface height (this is normal if app is no longer active): ' + EGLError);
-    AHeight := 0; // otherwise AHeight would be left undefined
+    AWidth := 0;
+    AHeight := 0;
   end;
 end;
 
