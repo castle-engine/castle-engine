@@ -209,10 +209,12 @@ type
     // Set this before using ContextCreate
     SharedContext: TGLContext; //< leave nil to not share
 
-    { Create GL context. }
+    { Create GL context.
+      GL context creation (called after creating native window). }
     procedure ContextCreate(const Requirements: TGLContextRequirements); virtual; abstract;
 
-    { Destroy GL context. }
+    { Destroy GL context.
+      GL context creation (called before destroying native window). }
     procedure ContextDestroy; virtual; abstract;
 
     { Make the GL context current. }

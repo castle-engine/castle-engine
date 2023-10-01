@@ -870,10 +870,10 @@ begin
   gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
   gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
 
-  { Create XVisual }
-  ContextCreateBegin;
-
   {$ifndef OpenGLES}
+  { Create XVisual }
+  ContextCreateEarly;
+
   { Create GdkColormap using XVisual }
   GdkVisual := gdk_x11_screen_lookup_visual(Application.XScreenGdk, XVisual^.VisualId);
   GdkColormap := gdk_colormap_new(GdkVisual, gfalse);
@@ -888,16 +888,17 @@ begin
   gtk_widget_pop_colormap();
 
   {$ifndef OpenGLES}
-  { We should pass WindowXID to be correct.
-    But:
-    - it is not ready yet (widget is not realized, and calling WindowXID
-      would just cause warning
-      "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
-    - it is actually not used by castlewindow_glx.inc now.
+  { Note that we don't have, and also don't need, WindowXID now.
 
-    So, as a quick solution, we pass 0.
+    That's because widget is not realized, and calling WindowXID
+    would just cause warning
+    "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
+
+    Luckily, TGLContextGlx doesn't require WindowXID.
+    And TGLContextGlx is now the only supported context class when
+    we don't use OpenGLES.
   }
-  ContextCreateEnd({ WindowXID } 0);
+  ContextCreate;
   {$endif}
 
   gtk_widget_show(GTK_WIDGET(GLAreaGtk));
@@ -1037,7 +1038,7 @@ begin
     So we cannot use previous workaround, instead we wait for a good time
     to get WindowXID, when widget is realized.
     TODO: Should we just do it with glX version too? }
-  ContextCreateEnd(WindowXID);
+  ContextCreate(WindowXID);
   {$endif}
 
   { From this point I require that WindowGtk is realized (has associated
@@ -1083,6 +1084,8 @@ begin
     if Visible then
       gtk_widget_hide(GTK_WIDGET(WindowGtk));
 
+    ContextDestroy;
+
     { Doing here
         gtk_widget_unref(GTK_WIDGET(WindowGtk));
       instead of gtk_widget_destroy causes
@@ -1100,6 +1103,10 @@ begin
       toplevel windows and do some other needed by GTK+ things). }
     gtk_widget_destroy(GTK_WIDGET(WindowGtk));
     WindowGtk := nil;
+
+    {$ifndef OpenGLES}
+    ContextDestroyLate;
+    {$endif}
   end;
 end;
 

@@ -136,10 +136,10 @@ begin
 
   parentwinXID := XRootWindow(Application.XDisplay, Application.XScreen);
 
-  { Creates XVisual }
-  ContextCreateBegin;
-
   {$ifndef OpenGLES}
+  { Creates XVisual }
+  ContextCreateEarly;
+
   Colormap := XCreateColormap(Application.XDisplay, ParentWinXID,
     XVisual^.Visual, AllocNone);
   Attr.Colormap := Colormap;
@@ -266,7 +266,7 @@ procedure TCastleWindow.CloseBackend;
 var
   dummy_event: TXEvent;
 begin
-  ContextDestroyBegin;
+  ContextDestroy;
 
   if FFullScreenBackend and Visible then
   begin
@@ -298,9 +298,9 @@ begin
     XFreeColormap(Application.XDisplay, Colormap);
     Colormap := None;
   end;
-  {$endif}
 
-  ContextDestroyEnd;
+  ContextDestroyLate;
+  {$endif}
 end;
 
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);

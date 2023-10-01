@@ -442,13 +442,21 @@ begin
 
     P.SourcePath.Add('src/window');
     P.Targets.AddUnit('castleinternalwindowmodes.pas');
+    P.Targets.AddUnit('castleinternalcontextbase.pas');
     P.Targets.AddUnit('castlemessages.pas');
     P.Targets.AddUnit('castlewindowrecentfiles.pas');
     P.Targets.AddUnit('castlewindow.pas');
+    P.Targets.AddUnit('castleinternalcontextegl.pas');
     if Xlib then
     begin
       P.SourcePath.Add('src/window/unix');
       P.Targets.AddUnit('castleinternalxlib.pas');
+      P.Targets.AddUnit('castleinternalcontextglx.pas');
+    end;
+    if Defaults.OS in AllWindowsOSes then
+    begin
+      P.SourcePath.Add('src/window/windows');
+      P.Targets.AddUnit('castleinternalcontextwgl.pas');
     end;
 
     P.SourcePath.Add('src/window/deprecated_units');
