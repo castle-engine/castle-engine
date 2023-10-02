@@ -124,6 +124,13 @@ function TGLContextEgl.CallEglCreateContext(Config: EGLConfig;
 var
   ContextAttribs: TInt32List;
 begin
+  if VersionAtLeast(1, 4) then
+  begin
+    if eglBindAPI(EGL_OPENGL_API) <> EGL_TRUE then
+      raise EGLContextNotPossible.Create('EGL: Cannot bind OpenGL API. Error reported: ' + EGLError);
+  end else
+    raise Exception.Create('EGL version is too old to initialize OpenGL (not ES), we need at least 1.4');
+
   ContextAttribs := TInt32List.Create;
   try
     if TGLFeatures.RequestCapabilities = rcForceModern then
