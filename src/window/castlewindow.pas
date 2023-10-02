@@ -271,6 +271,19 @@ unit CastleWindow;
   {$endif}
 {$endif}
 
+{ By default, we define USE_EGL only when OpenGLES is defined.
+
+  With regular OpenGL (not ES), it's better to use glX / wgl instead of EGL,
+  that are practically guaranteed to be installed on Linux
+  (if it has OpenGL at all) or Windows.
+
+  But if you want, define USE_EGL to use EGL also with regular OpenGL.
+  It will work with WinAPI, Xlib, GTK backends. }
+{.$define USE_EGL}
+{$ifdef OpenGLES}
+  {$define USE_EGL}
+{$endif}
+
 { Does backend implement TryVideoChange and VideoReset methods?
   (if this will not be defined, we will use TryVideoChange that always
   returns false and VideoReset that is NOOP). }

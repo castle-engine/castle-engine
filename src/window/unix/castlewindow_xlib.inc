@@ -19,7 +19,7 @@
 
 {$I castlewindow_dialogs_by_messages.inc}
 
-{$ifdef OpenGLES}
+{$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_glx.inc}
@@ -33,7 +33,7 @@ Xlib, CastleInternalXlib, XUtil, X, KeySym, CursorFont,
 private
   windowXID: TWindow;
   parentwinXID: TWindow; { refreshed on ReparentNotify, needed for X_Configureevent }
-  {$ifndef OpenGLES}
+  {$ifndef USE_EGL}
   Colormap: TColormap;
   {$endif}
 
@@ -136,7 +136,7 @@ begin
 
   parentwinXID := XRootWindow(Application.XDisplay, Application.XScreen);
 
-  {$ifndef OpenGLES}
+  {$ifndef USE_EGL}
   { Creates XVisual }
   ContextCreateEarly;
 
@@ -164,9 +164,9 @@ begin
 
   windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
     CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight, 0,
-    {$ifndef OpenGLES} XVisual^.depth {$else} CopyFromParent {$endif},
+    {$ifndef USE_EGL} XVisual^.depth {$else} CopyFromParent {$endif},
     InputOutput,
-    {$ifndef OpenGLES} XVisual^.visual {$else} PVisual(CopyFromParent) {$endif},
+    {$ifndef USE_EGL} XVisual^.visual {$else} PVisual(CopyFromParent) {$endif},
     AttrValueMask, @Attr);
 
   if FullScreen and Visible then
@@ -292,7 +292,7 @@ begin
     windowXID := None
   end;
 
-  {$ifndef OpenGLES}
+  {$ifndef USE_EGL}
   if Colormap  <> None then
   begin
     XFreeColormap(Application.XDisplay, Colormap);
@@ -789,7 +789,7 @@ end;
 
 function TCastleApplication.BackendName: string;
 begin
-  Result := 'Xlib+' + {$ifndef OpenGLES} 'glX' {$else} 'EGL' {$endif};
+  Result := 'Xlib+' + {$ifndef USE_EGL} 'glX' {$else} 'EGL' {$endif};
 end;
 
 function TCastleApplication.HandleXEvent(Event: TXEvent): boolean;

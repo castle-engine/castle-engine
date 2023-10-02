@@ -38,7 +38,7 @@
   - Note: LCL win32 widgetset (used on 64-bit Windows too) still uses ANSI.
 }
 
-{$ifdef OpenGLES}
+{$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_wgl.inc}

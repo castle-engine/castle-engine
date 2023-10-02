@@ -26,7 +26,7 @@
     forced by user (using window manager, not F11) really cleanly.
 }
 
-{$ifdef OpenGLES}
+{$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_glx.inc}
@@ -850,7 +850,7 @@ const
     //   [NewDpi, NewDpi / DefaultDpi, DefaultDpi]);
   end;
 
-{$ifndef OpenGLES}
+{$ifndef USE_EGL}
 var
   GdkVisual: PGdkVisual;
   GdkColormap: PGdkColormap;
@@ -870,7 +870,7 @@ begin
   gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
   gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
 
-  {$ifndef OpenGLES}
+  {$ifndef USE_EGL}
   { Create XVisual }
   ContextCreateEarly;
 
@@ -887,7 +887,7 @@ begin
   // Cleanup after gtk_widget_push_colormap called above
   gtk_widget_pop_colormap();
 
-  {$ifndef OpenGLES}
+  {$ifndef USE_EGL}
   { Note that we don't have, and also don't need, WindowXID now.
 
     That's because widget is not realized, and calling WindowXID
@@ -895,8 +895,8 @@ begin
     "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
 
     Luckily, TGLContextGlx doesn't require WindowXID.
-    And TGLContextGlx is now the only supported context class when
-    we don't use OpenGLES.
+    And not defined USE_EGL -> implies we use TGLContextGlx now,
+    as GTK backend supports only glX or EGL.
   }
   ContextCreate;
   {$endif}
@@ -1033,8 +1033,8 @@ begin
     gtk_widget_realize(GTK_WIDGET(GLAreaGtk));
   end;
 
-  {$ifdef OpenGLES}
-  { In case of EGL (OpenGLES) we really need WindowXID.
+  {$ifdef USE_EGL}
+  { In case of EGL we really need WindowXID.
     So we cannot use previous workaround, instead we wait for a good time
     to get WindowXID, when widget is realized.
     TODO: Should we just do it with glX version too? }
@@ -1104,7 +1104,7 @@ begin
     gtk_widget_destroy(GTK_WIDGET(WindowGtk));
     WindowGtk := nil;
 
-    {$ifndef OpenGLES}
+    {$ifndef USE_EGL}
     ContextDestroyLate;
     {$endif}
   end;

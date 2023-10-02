@@ -261,6 +261,52 @@ const
   }
   EGL_DISPLAY_SCALING = 10000;
 
+  { Constants added in EGL 1.5 (check at runtime EGL version to make sure
+    these are safe to use!) }
+  EGL_CONTEXT_MAJOR_VERSION         = $3098;
+  EGL_CONTEXT_MINOR_VERSION         = $30FB;
+  EGL_CONTEXT_OPENGL_PROFILE_MASK   = $30FD;
+  EGL_CONTEXT_OPENGL_RESET_NOTIFICATION_STRATEGY = $31BD;
+  EGL_NO_RESET_NOTIFICATION         = $31BE;
+  EGL_LOSE_CONTEXT_ON_RESET         = $31BF;
+  EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT = $00000001;
+  EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT = $00000002;
+  EGL_CONTEXT_OPENGL_DEBUG          = $31B0;
+  EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE = $31B1;
+  EGL_CONTEXT_OPENGL_ROBUST_ACCESS  = $31B2;
+  EGL_OPENGL_ES3_BIT                = $00000040;
+  EGL_CL_EVENT_HANDLE               = $309C;
+  EGL_SYNC_CL_EVENT                 = $30FE;
+  EGL_SYNC_CL_EVENT_COMPLETE        = $30FF;
+  EGL_SYNC_PRIOR_COMMANDS_COMPLETE  = $30F0;
+  EGL_SYNC_TYPE                     = $30F7;
+  EGL_SYNC_STATUS                   = $30F1;
+  EGL_SYNC_CONDITION                = $30F8;
+  EGL_SIGNALED                      = $30F2;
+  EGL_UNSIGNALED                    = $30F3;
+  EGL_SYNC_FLUSH_COMMANDS_BIT       = $0001;
+  //EGL_FOREVER                       = $FFFFFFFFFFFFFFFFull;
+  EGL_TIMEOUT_EXPIRED               = $30F5;
+  EGL_CONDITION_SATISFIED           = $30F6;
+  //EGL_NO_SYNC                       = EGL_CAST(EGLSync,0= );
+  EGL_SYNC_FENCE                    = $30F9;
+  EGL_GL_COLORSPACE                 = $309D;
+  EGL_GL_COLORSPACE_SRGB            = $3089;
+  EGL_GL_COLORSPACE_LINEAR          = $308A;
+  EGL_GL_RENDERBUFFER               = $30B9;
+  EGL_GL_TEXTURE_2D                 = $30B1;
+  EGL_GL_TEXTURE_LEVEL              = $30BC;
+  EGL_GL_TEXTURE_3D                 = $30B2;
+  EGL_GL_TEXTURE_ZOFFSET            = $30BD;
+  EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_X = $30B3;
+  EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_X = $30B4;
+  EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_Y = $30B5;
+  EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_Y = $30B6;
+  EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_Z = $30B7;
+  EGL_GL_TEXTURE_CUBE_MAP_NEGATIVE_Z = $30B8;
+  EGL_IMAGE_PRESERVED               = $30D2;
+  //EGL_NO_IMAGE                      = EGL_CAST(EGLImage,0);
+
 { Unknown display resolution/aspect ratio  }
 { was #define dname def_expr }
 function EGL_UNKNOWN : EGLint;

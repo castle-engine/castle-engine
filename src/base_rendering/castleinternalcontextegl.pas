@@ -30,6 +30,13 @@ type
     Context: EGLContext;
     Surface: EGLSurface;
     Display: EGLDisplay;
+    EGLMajor, EGLMinor: EGLint;
+    { Call eglCreateContext, hiding some differences between
+      OpenGLES and OpenGL needs. }
+    function CallEglCreateContext(Config: EGLConfig;
+      ShareContextEgl: EGLContext): EGLContext;
+    { Check is EGL version at least as specified. }
+    function VersionAtLeast(const Major, Minor: EGLint): Boolean;
   public
     // Set this before using ContextCreate and other methods
     WndPtr: EGLNativeWindowType;
@@ -46,7 +53,7 @@ type
 implementation
 
 uses Math,
-  CastleLog, CastleUtils;
+  CastleLog, CastleUtils, CastleGLUtils;
 
 { EGL references:
   - http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/eglIntro.html .
@@ -84,17 +91,79 @@ end;
 
 { TGLContextEgl -------------------------------------------------------------- }
 
+function TGLContextEgl.VersionAtLeast(const Major, Minor: EGLint): Boolean;
+begin
+  Result := (EGLMajor > Major) or
+    ((EGLMajor = Major) and (EGLMinor >= Minor));
+end;
+
+{$ifdef OpenGLES}
+
+{ Call eglCreateContext, passing attributes to initialize OpenGL ES 3,
+  eventually fallback on OpenGL ES 2. }
+function TGLContextEgl.CallEglCreateContext(Config: EGLConfig;
+  ShareContextEgl: EGLContext): EGLContext;
+const
+  ContextAttribsEs2: array [0..2] of EGLint =
+  ( EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE);
+  ContextAttribsEs3: array [0..2] of EGLint =
+  ( EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE);
+begin
+  Result := eglCreateContext(Display, Config, ShareContextEgl, @ContextAttribsEs3);
+  if Result = EGL_NO_CONTEXT then
+    Context := eglCreateContext(Display, Config, ShareContextEgl, @ContextAttribsEs2);
+end;
+
+{$else}
+
+{ Call eglCreateContext, passing attributes to initialize OpenGL.
+  We may request "core" profile or debug context,
+  following TGLFeatures.RequestCapabilities. }
+function TGLContextEgl.CallEglCreateContext(Config: EGLConfig;
+  ShareContextEgl: EGLContext): EGLContext;
+var
+  ContextAttribs: TInt32List;
+begin
+  ContextAttribs := TInt32List.Create;
+  try
+    if TGLFeatures.RequestCapabilities = rcForceModern then
+    begin
+      if VersionAtLeast(1, 5) then
+        ContextAttribs.AddRange([
+          EGL_CONTEXT_MAJOR_VERSION, TGLFeatures.ModernVersionMajor,
+          EGL_CONTEXT_MINOR_VERSION, TGLFeatures.ModernVersionMinor,
+          EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT
+          { Not used, following https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types
+            forward-compatible really only makes sense on macOS.
+            The "core" profile is what should be just used with new OpenGLs on sane
+            (non-macOS) platforms. }
+          //EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE, EGL_TRUE,
+        ])
+      else
+        WritelnWarning('OpenGL core context could not be requested, because EGL version is too old');
+    end;
+    if TGLFeatures.Debug then
+    begin
+      if VersionAtLeast(1, 5) then
+        ContextAttribs.AddRange([
+          EGL_CONTEXT_OPENGL_DEBUG, EGL_TRUE
+        ])
+      else
+        WritelnWarning('OpenGL debug context could not be requested, because EGL version is too old');
+    end;
+    ContextAttribs.Add(EGL_NONE);
+    Result := eglCreateContext(Display, Config, ShareContextEgl, PEGLint(ContextAttribs.L));
+  finally FreeAndNil(ContextAttribs) end;
+end;
+
+{$endif}
+
 procedure TGLContextEgl.ContextCreate(const Requirements: TGLContextRequirements);
 var
   Config: EGLConfig;
   ShareContextEgl: EGLContext;
   NumConfig: EGLint;
-  Attribs: TInt32List;
-const
-  ContextAttribsv2: array [0..2] of EGLint =
-  ( EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE);
-  ContextAttribsv3: array [0..2] of EGLint =
-  ( EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE);
+  ConfigAttribs: TInt32List;
 begin
   if not EglAvailable then
     raise Exception.Create('Could not load EGL library, required to initialize context');
@@ -104,34 +173,34 @@ begin
     { This does not set eglGetError, so we don't use EGLError in message below. }
     raise EGLContextNotPossible.Create('EGL: Cannot get display');
 
-  if eglInitialize(Display, nil, nil) = EGL_FALSE then
+  if eglInitialize(Display, @EGLMajor, @EGLMinor) = EGL_FALSE then
     raise EGLContextNotPossible.Create('EGL: Cannot initialize: ' + EGLError);
+  WritelnLog('EGL initialized (version %d.%d).', [EGLMajor, EGLMinor]);
 
-  Attribs := TInt32List.Create;
+  ConfigAttribs := TInt32List.Create;
   try
     if Requirements.StencilBits > 0 then
-      Attribs.AddRange([EGL_STENCIL_SIZE, Requirements.StencilBits]);
+      ConfigAttribs.AddRange([EGL_STENCIL_SIZE, Requirements.StencilBits]);
     if Requirements.AlphaBits > 0 then
-      Attribs.AddRange([EGL_ALPHA_SIZE, Requirements.AlphaBits]);
-    Attribs.AddRange([
+      ConfigAttribs.AddRange([EGL_ALPHA_SIZE, Requirements.AlphaBits]);
+    ConfigAttribs.AddRange([
       EGL_DEPTH_SIZE, Requirements.DepthBits,
       EGL_RED_SIZE  , Max(1, Requirements.RedBits),
       EGL_GREEN_SIZE, Max(1, Requirements.GreenBits),
       EGL_BLUE_SIZE , Max(1, Requirements.BlueBits),
-      EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+      EGL_RENDERABLE_TYPE,
+        {$ifdef OpenGLES} EGL_OPENGL_ES2_BIT, {$else} EGL_OPENGL_BIT, {$endif}
       EGL_NONE
     ]);
-    if eglChooseConfig(Display, PEGLint(Attribs.L), @Config, 1, @NumConfig) = EGL_FALSE then
+    if eglChooseConfig(Display, PEGLint(ConfigAttribs.L), @Config, 1, @NumConfig) = EGL_FALSE then
       raise EGLContextNotPossible.Create('EGL: Cannot choose config: ' + EGLError);
-  finally FreeAndNil(Attribs) end;
+  finally FreeAndNil(ConfigAttribs) end;
 
   if SharedContext <> nil then
     ShareContextEgl := (SharedContext as TGLContextEgl).Context
   else
     ShareContextEgl := EGL_NO_CONTEXT;
-  Context := eglCreateContext(Display, Config, ShareContextEgl, @ContextAttribsv3);
-  if Context = EGL_NO_CONTEXT then
-    Context := eglCreateContext(Display, Config, ShareContextEgl, @ContextAttribsv2);
+  Context := CallEglCreateContext(Config, ShareContextEgl);
   if Context = EGL_NO_CONTEXT then
     raise EGLContextNotPossible.Create('EGL: Cannot create context: ' + EGLError);
 
