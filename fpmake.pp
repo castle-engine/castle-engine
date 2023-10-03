@@ -321,12 +321,14 @@ begin
     P.Targets.AddUnit('castleglversion.pas');
     P.Targets.AddUnit('castleinternalcontextbase.pas');
     P.Targets.AddUnit('castleinternalcontextegl.pas');
-    P.Targets.AddUnit('castleinternalcontextglx.pas');
-    P.Targets.AddUnit('castleinternalcontextwgl.pas');
     P.Targets.AddUnit('castleinternalegl.pas');
     P.Targets.AddUnit('castleinternalglutils.pas');
     P.Targets.AddUnit('castlerendercontext.pas');
     P.Targets.AddUnit('castlerenderprimitives.pas');
+    if Xlib then
+      P.Targets.AddUnit('castleinternalcontextglx.pas');
+    if Defaults.OS in AllWindowsOSes then
+      P.Targets.AddUnit('castleinternalcontextwgl.pas');
 
     P.SourcePath.Add('src/base_rendering/dglopengl');
     P.Targets.AddUnit('dglopengl.pas');
