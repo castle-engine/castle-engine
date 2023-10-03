@@ -607,7 +607,7 @@ begin
     Alternatively we could check "not (csDestroying in Form.ComponentState)"
     in Invalidate, but this feels cleaner. }
 
-  OpenGLControl := TGoodOpenGLControl.Create(nil);
+  OpenGLControl := TGoodOpenGLControl.Create(Form); // Owner Form, just to pass Form to hacky TCastleControl implementation
   OpenGLControl.Window := Self;
   OpenGLControl.Parent := Form;
   OpenGLControl.Align := {$ifdef FPC} alClient {$else} TAlignLayout.Client {$endif};

@@ -105,7 +105,10 @@ end;
 procedure TTestCgeControl.FormCreate(Sender: TObject);
 begin
   // Call this to have UI scaling, same as in editor
-  CastleControl.Container.LoadSettings('castle-data:/CastleSettings.xml');
+  { TODO: OpenGL context is not ready here for Delphi/Linux,
+    indeed it may not be ready -- we don't guarantee it now.
+    Should we just let LoadSettings work anyway? }
+  //CastleControl.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   CastleControl.Container.DesignUrl := 'castle-data:/test_3d.castle-user-interface';
 
