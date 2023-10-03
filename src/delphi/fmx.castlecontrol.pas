@@ -25,10 +25,12 @@ uses // standard units
   SysUtils, Classes,
   // fmx
   {$ifdef MSWINDOWS} FMX.Presentation.Win, {$endif}
+  {$ifdef LINUX} FMX.Platform.Linux, {$endif}
   FMX.Controls, FMX.Controls.Presentation,
   FMX.Memo, FMX.Types, UITypes,
   // cge
   {$ifdef MSWINDOWS} CastleInternalContextWgl, {$endif}
+  {$ifdef LINUX} CastleInternalContextEgl, {$endif}
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
   CastleInternalContextBase, CastleInternalContainer;
 
@@ -83,6 +85,10 @@ type
   private
     procedure CreateHandle;
     procedure DestroyHandle;
+    {$if defined(LINUX)}
+    { Get XWindow handle (to pass to EGL) from this control. }
+    function XWindowHandle: Pointer;
+    {$endif}
   protected
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
       X, Y: Single); override;
@@ -132,6 +138,7 @@ procedure Register;
 implementation
 
 uses FMX.Presentation.Factory, Types, FMX.Graphics,
+  FMX.Forms, // TODO should not be needed
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
   CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
   CastleLog;
@@ -188,20 +195,70 @@ begin
   Parent := AParent;
 end;
 
-procedure TCastleControl.TContainer.AdjustContext(const PlatformContext: TGLContext);
-{$ifdef MSWINDOWS}
+{$if defined(LINUX)}
+{ Following FMXLinux sample (GtkWindow) }
+function gtk_widget_get_window(widget: Pointer): Pointer; cdecl; external 'libgtk-3.so.0';
+function gdk_x11_window_get_xid(widget: Pointer): Pointer; cdecl; external 'libgdk-3.so.0';
+
+function TCastleControl.XWindowHandle: Pointer;
 var
-  WinContext: TGLContextWGL;
+  GtkWnd, GdkWnd: Pointer;
+  Form: TCustomForm;
+  LinuxHandle: TLinuxWindowHandle;
+begin
+  { TODO: This is a hack to require a form as owner,
+    to get handle from form...
+    We should be ready for other owners.
+    We should, if no better choice, require form in property? would suck in API... }
+
+  if Owner = nil then
+    raise Exception.Create('Owner of TCastleControl must be set');
+  // This actually also tests Owner <> nil, but previous check makes better error message
+  if not (Owner is TCustomForm) then
+    raise Exception.Create('Owner of TCastleControl must be form');
+  Form := Owner as TCustomForm;
+
+  LinuxHandle := TLinuxWindowHandle(Form.Handle);
+  if LinuxHandle = nil then
+    raise Exception.Create('Form of TCastleControl does not have TLinuxHandle initialized yet');
+
+  GtkWnd := LinuxHandle.NativeHandle;
+  if GtkWnd = nil then
+    raise Exception.Create('Form of TCastleControl does not have GTK handle initialized yet');
+
+  GdkWnd := gtk_widget_get_window(GtkWnd);
+  if GdkWnd = nil then
+    raise Exception.Create('Form of TCastleControl does not have GDK handle initialized yet');
+
+  Result := gdk_x11_window_get_xid(GdkWnd);
+  if Result = nil then
+    raise Exception.Create('Form of TCastleControl does not have X11 handle initialized yet');
+end;
+{$endif}
+
+procedure TCastleControl.TContainer.AdjustContext(const PlatformContext: TGLContext);
+{$if defined(MSWINDOWS)}
+var
+  WinContext: TGLContextWgl;
 begin
   inherited;
-  WinContext := PlatformContext as TGLContextWGL;
+  WinContext := PlatformContext as TGLContextWgl;
   WinContext.WndPtr :=
     (Parent.Presentation as TWinNativeGLControl).Handle;
   if WinContext.WndPtr = 0 then
     raise Exception.Create('Native handle not ready when calling TCastleControl.TContainer.AdjustContext');
   WinContext.h_Dc := GetWindowDC(WinContext.WndPtr);
-{$else}
+{$elseif defined(LINUX)}
+var
+  EglContext: TGLContextEgl;
 begin
+  inherited;
+  EglContext := PlatformContext as TGLContextEgl;
+  EglContext.WndPtr := Parent.XWindowHandle;
+  if EglContext.WndPtr = nil then
+    raise Exception.Create('Native handle not ready when calling TCastleControl.TContainer.AdjustContext');
+{$else}
+end;
 {$endif}
 end;
 
@@ -562,9 +619,17 @@ begin
   H := (Presentation as TWinPresentation).Handle;
   if H = 0 { NullHWnd } then
     raise Exception.Create('TCastleControl: InternalHandleNeeded failed to create a handle');
+{$elseif defined(LINUX)}
+begin
+  { There seems no way to create a handle for something else
+    than entire TCastleForm on FMXLinux.
+    So here we just initialize the context immediately
+    and we will work with that (TODO: well that's vague hope :) ) }
+  CreateHandle;
+  // TODO: Where to call DestroyHandle
 {$else}
 begin
-  // TODO: other platforms
+  // Make sure we have a handle, and OpenGL context, on other platforms
 {$endif}
 end;
 

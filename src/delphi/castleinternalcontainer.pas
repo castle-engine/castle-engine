@@ -47,6 +47,7 @@ interface
 
 uses Classes, Generics.Collections,
   {$ifdef MSWINDOWS} CastleInternalContextWgl, {$endif}
+  {$ifdef LINUX} CastleInternalContextEgl, {$endif}
   CastleRectangles, CastleImages,
   CastleUIControls, CastleInternalContextBase;
 
@@ -180,10 +181,10 @@ begin
   FRequirements.SetSubComponent(true);
 
   FPlatformContext :=
-    {$if defined(MSWINDOWS)} TGLContextWGL.Create
-    {$elseif defined(LINUX)} nil // TODO: FMX
+    {$if defined(MSWINDOWS)} TGLContextWgl.Create
+    {$elseif defined(LINUX)} TGLContextEgl.Create
     {$else}
-      {$error Define how to create OpenGL context for this plaform.}
+      {$message fatal 'Define how to create OpenGL context for this plaform.'}
     {$endif}
   ;
 
