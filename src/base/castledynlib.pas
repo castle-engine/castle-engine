@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,7 +25,10 @@ uses SysUtils
     { With FPC, use cross-platform DynLibs unit. }
     , DynLibs
   {$else}
-    { With Delphi, use Windows functions directly. }
+    { With Delphi, use Windows functions directly.
+      On non-Windows, Delphi SysUtils defines compatible functions
+      LoadLibrary, FreeLibrary, GetProcAddress
+      (note: using PChar, not PAnsiChar) and HMODULE type. }
     {$ifdef MSWINDOWS} , Windows {$endif}
   {$endif};
 

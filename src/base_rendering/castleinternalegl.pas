@@ -18,7 +18,8 @@
     like glX or wgl. It is separate from OpenGLES concepts.
   - Along with it, we made a few improvements in CGE:
     compatibility with FreeBSD,
-    compatibility with Delphi.
+    compatibility with Delphi,
+    usage of our cross-platform and cross-compiler TDynLib.
 
   ----------------------------------------------------------------------------
   Original headers:
@@ -52,7 +53,8 @@ unit CastleInternalEgl;
 
 {$i castleconf.inc}
 
-{$if defined(LINUX) or defined(FREEBSD)}
+{$if defined(FPC) and (defined(LINUX) or defined(FREEBSD))}
+  { Match some EGL types with X types. }
   {$define UNIX_WITH_X}
 {$endif}
 
@@ -62,7 +64,7 @@ unit CastleInternalEgl;
 
 interface
 
-uses CTypes, SysUtils, DynLibs
+uses CTypes, SysUtils
   {$ifdef UNIX_WITH_X}, X, XLib {$endif}
   {$ifdef WINDOWS}, Windows {$endif};
 
@@ -82,13 +84,13 @@ type
   EGLNativePixmapType = HBITMAP;
 {$else}
   { Cross-platform generic definition of EGL types. }
-  EGLNativeDisplayType = ptrint;
-  EGLNativeWindowType = pointer;
-  EGLNativePixmapType = pointer;
+  EGLNativeDisplayType = Pointer;
+  EGLNativeWindowType = Pointer;
+  EGLNativePixmapType = Pointer;
 {$endif}
 
-  EGLBoolean = dword;
-  EGLenum = dword;
+  EGLBoolean = CUint32;
+  EGLenum = CUint32;
   EGLContext = pointer;
   EGLDisplay = pointer;
   EGLSurface = pointer;
@@ -393,16 +395,9 @@ var
   eglSwapBuffers : function(dpy:EGLDisplay; surface:EGLSurface):EGLBoolean;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
   eglCopyBuffers : function(dpy:EGLDisplay; surface:EGLSurface; target:EGLNativePixmapType):EGLBoolean;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 
-type
-  { This is a generic function pointer type, whose name indicates it must
-    be cast to the proper type *and calling convention* before use.
-  }
-  __eglMustCastToProperFunctionPointerType = procedure (_para1:pointer);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-
-{ Now, define eglGetProcAddress using the generic function ptr. type  }
 (* Const before type ignored *)
 var
-  eglGetProcAddress : function(procname:PAnsiChar):__eglMustCastToProperFunctionPointerType;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+  eglGetProcAddress : function(procname:PAnsiChar):Pointer;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 
 const
   { Header file version number  }
@@ -518,103 +513,109 @@ function EglAvailable: Boolean;
 
 implementation
 
+uses CastleDynLib;
+
 { Load from given library or using eglGetProcAddress. }
-function glGetProcAddress(ahlib:tlibhandle;ProcName:PAnsiChar):pointer;
+function glGetProcAddress(ahlib: TDynLib;ProcName: String): pointer;
+var
+  ProcNameAnsi: AnsiString;
 begin
-  result:=dynlibs.GetProcAddress(ahlib,ProcName);
-  if assigned(eglGetProcAddress) and not assigned(result) then
-    result:=eglGetProcAddress(ProcName);
+  result := ahlib.Symbol(PChar(ProcName));
+  if Assigned(eglGetProcAddress) and not Assigned(result) then
+  begin
+    ProcNameAnsi := ProcName;
+    result := eglGetProcAddress(PAnsiChar(ProcNameAnsi));
+  end;
 end;
 
 { was #define dname def_expr }
 function EGL_DEFAULT_DISPLAY : EGLNativeDisplayType;
 begin
-  EGL_DEFAULT_DISPLAY:=EGLNativeDisplayType(0);
+  EGL_DEFAULT_DISPLAY := EGLNativeDisplayType(0);
 end;
 
 { was #define dname def_expr }
 function EGL_NO_CONTEXT : EGLContext;
 begin
-  EGL_NO_CONTEXT:=EGLContext(0);
+  EGL_NO_CONTEXT := EGLContext(0);
 end;
 
 { was #define dname def_expr }
 function EGL_NO_DISPLAY : EGLDisplay;
 begin
-  EGL_NO_DISPLAY:=EGLDisplay(0);
+  EGL_NO_DISPLAY := EGLDisplay(0);
 end;
 
 { was #define dname def_expr }
 function EGL_NO_SURFACE : EGLSurface;
 begin
-  EGL_NO_SURFACE:=EGLSurface(0);
+  EGL_NO_SURFACE := EGLSurface(0);
 end;
 
 { was #define dname def_expr }
 function EGL_DONT_CARE : EGLint;
 begin
-  EGL_DONT_CARE:=EGLint(-(1));
+  EGL_DONT_CARE := EGLint(-(1));
 end;
 
 { was #define dname def_expr }
 function EGL_UNKNOWN : EGLint;
 begin
-  EGL_UNKNOWN:=EGLint(-(1));
+  EGL_UNKNOWN := EGLint(-(1));
 end;
 
 { was #define dname def_expr }
 function EGL_NO_IMAGE_KHR : EGLImageKHR;
 begin
-  EGL_NO_IMAGE_KHR:=EGLImageKHR(0);
+  EGL_NO_IMAGE_KHR := EGLImageKHR(0);
 end;
 
 var
-  EGLLib : tlibhandle;
+  EGLLib : TDynLib;
 
 procedure FreeEGL;
 begin
-  if EGLLib<>0 then
-    FreeLibrary(EGLLib);
+  FreeAndNil(EGLLib);
 
-  eglGetError:=nil;
-  eglGetDisplay:=nil;
-  eglInitialize:=nil;
-  eglTerminate:=nil;
-  eglQueryString:=nil;
-  eglGetConfigs:=nil;
-  eglChooseConfig:=nil;
-  eglGetConfigAttrib:=nil;
-  eglCreateWindowSurface:=nil;
-  eglCreatePbufferSurface:=nil;
-  eglCreatePixmapSurface:=nil;
-  eglDestroySurface:=nil;
-  eglQuerySurface:=nil;
-  eglBindAPI:=nil;
-  eglQueryAPI:=nil;
-  eglWaitClient:=nil;
-  eglReleaseThread:=nil;
-  eglCreatePbufferFromClientBuffer:=nil;
-  eglSurfaceAttrib:=nil;
-  eglBindTexImage:=nil;
-  eglReleaseTexImage:=nil;
-  eglSwapInterval:=nil;
-  eglCreateContext:=nil;
-  eglDestroyContext:=nil;
-  eglMakeCurrent:=nil;
-  eglGetCurrentContext:=nil;
-  eglGetCurrentSurface:=nil;
-  eglGetCurrentDisplay:=nil;
-  eglQueryContext:=nil;
-  eglWaitGL:=nil;
-  eglWaitNative:=nil;
-  eglSwapBuffers:=nil;
-  eglCopyBuffers:=nil;
-  eglGetProcAddress:=nil;
+  eglGetError := nil;
+  eglGetDisplay := nil;
+  eglInitialize := nil;
+  eglTerminate := nil;
+  eglQueryString := nil;
+  eglGetConfigs := nil;
+  eglChooseConfig := nil;
+  eglGetConfigAttrib := nil;
+  eglCreateWindowSurface := nil;
+  eglCreatePbufferSurface := nil;
+  eglCreatePixmapSurface := nil;
+  eglDestroySurface := nil;
+  eglQuerySurface := nil;
+  eglBindAPI := nil;
+  eglQueryAPI := nil;
+  eglWaitClient := nil;
+  eglReleaseThread := nil;
+  eglCreatePbufferFromClientBuffer := nil;
+  eglSurfaceAttrib := nil;
+  eglBindTexImage := nil;
+  eglReleaseTexImage := nil;
+  eglSwapInterval := nil;
+  eglCreateContext := nil;
+  eglDestroyContext := nil;
+  eglMakeCurrent := nil;
+  eglGetCurrentContext := nil;
+  eglGetCurrentSurface := nil;
+  eglGetCurrentDisplay := nil;
+  eglQueryContext := nil;
+  eglWaitGL := nil;
+  eglWaitNative := nil;
+  eglSwapBuffers := nil;
+  eglCopyBuffers := nil;
+  eglGetProcAddress := nil;
 end;
 
 function EglAvailable: Boolean;
 begin
-  Result := EGLLib <> 0;
+  Result := EGLLib <> nil;
 end;
 
 procedure LoadEgl;
@@ -631,47 +632,47 @@ const
 begin
   FreeEGL;
 
-  EGLLib:=dynlibs.LoadLibrary(LibName);
-  if (EGLLib=0) and (LibName2 <> '') then
-    EGLLib:=dynlibs.LoadLibrary(LibName2);
+  EGLLib := TDynLib.Load(LibName, false);
+  if (EGLLib = nil) and (LibName2 <> '') then
+    EGLLib := TDynLib.Load(LibName2, false);
 
-  if EGLLib <> 0 then
+  if EGLLib <> nil then
   begin
-    pointer(eglGetProcAddress):=GetProcAddress(EGLLib,'glGetProcAddress');
+    Pointer({$ifndef FPC}@{$endif} eglGetProcAddress) := EGLLib.Symbol('eglGetProcAddress');
 
-    pointer(eglGetError):=glGetProcAddress(EGLLib,'eglGetError');
-    pointer(eglGetDisplay):=glGetProcAddress(EGLLib,'eglGetDisplay');
-    pointer(eglInitialize):=glGetProcAddress(EGLLib,'eglInitialize');
-    pointer(eglTerminate):=glGetProcAddress(EGLLib,'eglTerminate');
-    pointer(eglQueryString):=glGetProcAddress(EGLLib,'eglQueryString');
-    pointer(eglGetConfigs):=glGetProcAddress(EGLLib,'eglGetConfigs');
-    pointer(eglChooseConfig):=glGetProcAddress(EGLLib,'eglChooseConfig');
-    pointer(eglGetConfigAttrib):=glGetProcAddress(EGLLib,'eglGetConfigAttrib');
-    pointer(eglCreateWindowSurface):=glGetProcAddress(EGLLib,'eglCreateWindowSurface');
-    pointer(eglCreatePbufferSurface):=glGetProcAddress(EGLLib,'eglCreatePbufferSurface');
-    pointer(eglCreatePixmapSurface):=glGetProcAddress(EGLLib,'eglCreatePixmapSurface');
-    pointer(eglDestroySurface):=glGetProcAddress(EGLLib,'eglDestroySurface');
-    pointer(eglQuerySurface):=glGetProcAddress(EGLLib,'eglQuerySurface');
-    pointer(eglBindAPI):=glGetProcAddress(EGLLib,'eglBindAPI');
-    pointer(eglQueryAPI):=glGetProcAddress(EGLLib,'eglQueryAPI');
-    pointer(eglWaitClient):=glGetProcAddress(EGLLib,'eglWaitClient');
-    pointer(eglReleaseThread):=glGetProcAddress(EGLLib,'eglReleaseThread');
-    pointer(eglCreatePbufferFromClientBuffer):=glGetProcAddress(EGLLib,'eglCreatePbufferFromClientBuffer');
-    pointer(eglSurfaceAttrib):=glGetProcAddress(EGLLib,'eglSurfaceAttrib');
-    pointer(eglBindTexImage):=glGetProcAddress(EGLLib,'eglBindTexImage');
-    pointer(eglReleaseTexImage):=glGetProcAddress(EGLLib,'eglReleaseTexImage');
-    pointer(eglSwapInterval):=glGetProcAddress(EGLLib,'eglSwapInterval');
-    pointer(eglCreateContext):=glGetProcAddress(EGLLib,'eglCreateContext');
-    pointer(eglDestroyContext):=glGetProcAddress(EGLLib,'eglDestroyContext');
-    pointer(eglMakeCurrent):=glGetProcAddress(EGLLib,'eglMakeCurrent');
-    pointer(eglGetCurrentContext):=glGetProcAddress(EGLLib,'eglGetCurrentContext');
-    pointer(eglGetCurrentSurface):=glGetProcAddress(EGLLib,'eglGetCurrentSurface');
-    pointer(eglGetCurrentDisplay):=glGetProcAddress(EGLLib,'eglGetCurrentDisplay');
-    pointer(eglQueryContext):=glGetProcAddress(EGLLib,'eglQueryContext');
-    pointer(eglWaitGL):=glGetProcAddress(EGLLib,'eglWaitGL');
-    pointer(eglWaitNative):=glGetProcAddress(EGLLib,'eglWaitNative');
-    pointer(eglSwapBuffers):=glGetProcAddress(EGLLib,'eglSwapBuffers');
-    pointer(eglCopyBuffers):=glGetProcAddress(EGLLib,'eglCopyBuffers');
+    Pointer({$ifndef FPC}@{$endif} eglGetError) := glGetProcAddress(EGLLib,'eglGetError');
+    Pointer({$ifndef FPC}@{$endif} eglGetDisplay) := glGetProcAddress(EGLLib,'eglGetDisplay');
+    Pointer({$ifndef FPC}@{$endif} eglInitialize) := glGetProcAddress(EGLLib,'eglInitialize');
+    Pointer({$ifndef FPC}@{$endif} eglTerminate) := glGetProcAddress(EGLLib,'eglTerminate');
+    Pointer({$ifndef FPC}@{$endif} eglQueryString) := glGetProcAddress(EGLLib,'eglQueryString');
+    Pointer({$ifndef FPC}@{$endif} eglGetConfigs) := glGetProcAddress(EGLLib,'eglGetConfigs');
+    Pointer({$ifndef FPC}@{$endif} eglChooseConfig) := glGetProcAddress(EGLLib,'eglChooseConfig');
+    Pointer({$ifndef FPC}@{$endif} eglGetConfigAttrib) := glGetProcAddress(EGLLib,'eglGetConfigAttrib');
+    Pointer({$ifndef FPC}@{$endif} eglCreateWindowSurface) := glGetProcAddress(EGLLib,'eglCreateWindowSurface');
+    Pointer({$ifndef FPC}@{$endif} eglCreatePbufferSurface) := glGetProcAddress(EGLLib,'eglCreatePbufferSurface');
+    Pointer({$ifndef FPC}@{$endif} eglCreatePixmapSurface) := glGetProcAddress(EGLLib,'eglCreatePixmapSurface');
+    Pointer({$ifndef FPC}@{$endif} eglDestroySurface) := glGetProcAddress(EGLLib,'eglDestroySurface');
+    Pointer({$ifndef FPC}@{$endif} eglQuerySurface) := glGetProcAddress(EGLLib,'eglQuerySurface');
+    Pointer({$ifndef FPC}@{$endif} eglBindAPI) := glGetProcAddress(EGLLib,'eglBindAPI');
+    Pointer({$ifndef FPC}@{$endif} eglQueryAPI) := glGetProcAddress(EGLLib,'eglQueryAPI');
+    Pointer({$ifndef FPC}@{$endif} eglWaitClient) := glGetProcAddress(EGLLib,'eglWaitClient');
+    Pointer({$ifndef FPC}@{$endif} eglReleaseThread) := glGetProcAddress(EGLLib,'eglReleaseThread');
+    Pointer({$ifndef FPC}@{$endif} eglCreatePbufferFromClientBuffer) := glGetProcAddress(EGLLib,'eglCreatePbufferFromClientBuffer');
+    Pointer({$ifndef FPC}@{$endif} eglSurfaceAttrib) := glGetProcAddress(EGLLib,'eglSurfaceAttrib');
+    Pointer({$ifndef FPC}@{$endif} eglBindTexImage) := glGetProcAddress(EGLLib,'eglBindTexImage');
+    Pointer({$ifndef FPC}@{$endif} eglReleaseTexImage) := glGetProcAddress(EGLLib,'eglReleaseTexImage');
+    Pointer({$ifndef FPC}@{$endif} eglSwapInterval) := glGetProcAddress(EGLLib,'eglSwapInterval');
+    Pointer({$ifndef FPC}@{$endif} eglCreateContext) := glGetProcAddress(EGLLib,'eglCreateContext');
+    Pointer({$ifndef FPC}@{$endif} eglDestroyContext) := glGetProcAddress(EGLLib,'eglDestroyContext');
+    Pointer({$ifndef FPC}@{$endif} eglMakeCurrent) := glGetProcAddress(EGLLib,'eglMakeCurrent');
+    Pointer({$ifndef FPC}@{$endif} eglGetCurrentContext) := glGetProcAddress(EGLLib,'eglGetCurrentContext');
+    Pointer({$ifndef FPC}@{$endif} eglGetCurrentSurface) := glGetProcAddress(EGLLib,'eglGetCurrentSurface');
+    Pointer({$ifndef FPC}@{$endif} eglGetCurrentDisplay) := glGetProcAddress(EGLLib,'eglGetCurrentDisplay');
+    Pointer({$ifndef FPC}@{$endif} eglQueryContext) := glGetProcAddress(EGLLib,'eglQueryContext');
+    Pointer({$ifndef FPC}@{$endif} eglWaitGL) := glGetProcAddress(EGLLib,'eglWaitGL');
+    Pointer({$ifndef FPC}@{$endif} eglWaitNative) := glGetProcAddress(EGLLib,'eglWaitNative');
+    Pointer({$ifndef FPC}@{$endif} eglSwapBuffers) := glGetProcAddress(EGLLib,'eglSwapBuffers');
+    Pointer({$ifndef FPC}@{$endif} eglCopyBuffers) := glGetProcAddress(EGLLib,'eglCopyBuffers');
   end;
 end;
 
