@@ -582,6 +582,14 @@ function StrToCapabilities(const S: String): TGLRequestCapabilities;
 
 procedure GLInformationInitialize;
 begin
+  {$ifdef USE_DGL}
+  // Do it to initialize glGetString before dglOpenGL
+  if GL_LibHandle = nil then
+  	InitOpenGL;
+  ReadOpenGLCore;
+  Assert(Assigned(glGetString));
+  {$endif}
+
   FreeAndNil(GLVersion);
   GLVersion := TGLVersion.Create(
     PGLChar(glGetString(GL_VERSION)),

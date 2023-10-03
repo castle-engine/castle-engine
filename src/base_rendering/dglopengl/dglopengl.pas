@@ -183,7 +183,13 @@ type
   {$ENDIF}
 
   GLenum = Cardinal;
+  {$if (not defined(MSWINDOWS)) and (not defined(FPC))}
+  { See GL_TRUE comments for reasons behind this exception
+    for Delphi/non-Windows. }
+  GLboolean = Byte;
+  {$else}
   GLboolean = BYTEBOOL;
+  {$endif}
   GLbitfield = Cardinal;
   GLbyte = Shortint;
   GLshort = SmallInt;
@@ -1059,8 +1065,34 @@ const
   GL_STENCIL_BUFFER_BIT = $00000400;
   GL_COLOR_BUFFER_BIT = $00004000;
   { Boolean }
+  { For Delphi/Linux, definining
+
+      GL_TRUE: ByteBool = True
+
+    is not correct, because the Ord(GL_TRUE) is then -1 (so it's $FF).
+    While OpenGL says it is 1.
+    Even if we try to define it like this:
+
+      GL_TRUE: ByteBool = ByteBool(1)
+
+    ...doesn't help, it gets changed to -1 internally it seems,
+    and the Ord(GL_TRUE) is still -1.
+    This makes problems, as e.g. after
+
+      glGetShaderiv(..., GL_COMPILE_STATUS, @Compiled);
+
+    code should be able to check whether "Compiled = Ord(GL_TRUE)",
+    but it will never be true when Ord(GL_TRUE) is -1.
+    So define them differently for Delphi on non-Windows
+    (assuming, to be safe, that all non-Windows platforms treat ByteBool
+    as Delphi on Linux). }
+  {$if (not defined(MSWINDOWS)) and (not defined(FPC))}
+  GL_TRUE = 1;
+  GL_FALSE = 0;
+  {$else}
   GL_TRUE: ByteBool = True;
   GL_FALSE: ByteBool = False;
+  {$endif}
   { BeginMode }
   GL_POINTS = $0000;
   GL_LINES = $0001;

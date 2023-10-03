@@ -54,7 +54,7 @@ implementation
 
 uses
   CastleRenderOptions, CastleRectangles, CastleColors, CastleRenderContext,
-  CastleVectors;
+  CastleVectors, CastleLog;
 
 { TUiTest -------------------------------------------------------------- }
 
@@ -109,6 +109,8 @@ begin
     indeed it may not be ready -- we don't guarantee it now.
     Should we just let LoadSettings work anyway? }
   //CastleControl.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  InitializeLog;
 
   CastleControl.Container.DesignUrl := 'castle-data:/test_3d.castle-user-interface';
 

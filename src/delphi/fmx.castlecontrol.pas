@@ -435,6 +435,12 @@ begin
       true, 1.0, [], TTextAlign.Center);
   end else
   begin
+    // We must have OpenGL context at this point,
+    // and on Delphi/Linux there seems no way to register "on native handle creation".
+    // TODO: We should make sure we get handle before some other events,
+    // like update or mouse/key press.
+    InternalHandleNeeded;
+
     // inherited not needed, and possibly causes something unnecessary
     FContainer.DoRender;
   end;
