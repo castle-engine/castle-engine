@@ -592,4 +592,9 @@
   {$define CASTLE_SCRIPT_FPC}
 {$endif}
 
+{ Indicates units like X, XLib are available on this platform. }
+{$if defined(FPC) and (defined(LINUX) or defined(FREEBSD))}
+  {$define UNIX_WITH_X}
+{$endif}
+
 {$endif not CASTLE_CONF_INCLUDED}

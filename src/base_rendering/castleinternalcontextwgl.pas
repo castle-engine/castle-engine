@@ -20,6 +20,18 @@ unit CastleInternalContextWgl;
 
 interface
 
+{$ifndef MSWINDOWS}
+{ To make it easier to organize Lazarus packages
+  (to keep this unit in castle_base.lpk, since it doesn't depend on TCastleWindow,
+  but at the same time this unit cannot have "<AddToUsesPkgSection Value="False"/>"
+  in castle_base.lpk because castle_window.lpk expects to use this unit
+  without recompiling...) ->
+  this unit compiles even for platforms that don't have wgl (non-Windows),
+  the unit just doesn't define anything in this case. }
+implementation
+end.
+{$else}
+
 uses Windows, SysUtils, Classes,
   CastleVectors, CastleRenderOptions, CastleInternalContextBase;
 
@@ -447,3 +459,5 @@ begin
 end;
 
 end.
+
+{$endif}

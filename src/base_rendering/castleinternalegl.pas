@@ -53,11 +53,6 @@ unit CastleInternalEgl;
 
 {$i castleconf.inc}
 
-{$if defined(FPC) and (defined(LINUX) or defined(FREEBSD))}
-  { Match some EGL types with X types. }
-  {$define UNIX_WITH_X}
-{$endif}
-
 {$ifdef FPC}
   {$packrecords C}
 {$endif}

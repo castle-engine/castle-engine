@@ -4471,12 +4471,10 @@ See https://castle-engine.io/license.php for details.
       </Item1091>
       <Item1092>
         <Filename Value="../src/base_rendering/castleinternalcontextglx.pas"/>
-        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleInternalContextGlx"/>
       </Item1092>
       <Item1093>
         <Filename Value="../src/base_rendering/castleinternalcontextwgl.pas"/>
-        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleInternalContextWgl"/>
       </Item1093>
       <Item1094>
