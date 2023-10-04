@@ -67,7 +67,7 @@
     public property FdVisible: TSFBool read FFdVisible;
 {$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
-    { Is this group visible (@italic(not implemented yet)). While this is not implemented for an entire group, note that you can use @link(TAbstractShapeNode.Render) to toggle visibility of each shape. }
+    { Is this group visible (@italic(not implemented yet)). While this is not implemented for an entire group, note that you can use @link(TAbstractShapeNode.Visible) to toggle visibility of each shape. }
     property Visible: Boolean read GetVisible write SetVisible;
 {$endif not CASTLE_SLIM_NODES}
 

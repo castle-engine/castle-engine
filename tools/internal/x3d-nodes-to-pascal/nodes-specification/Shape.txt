@@ -67,8 +67,12 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
   SFString [in,out]     shading            "DEFAULT"
     range: ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"]
     enumerated-type: TShading ShadingNames shDefault
-  SFBool   [in,out]     render             TRUE
-    doc: Is the shape visible. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php#section_ext_shape_render .
+  SFBool   [in,out]     visible            TRUE
+    doc: """
+Is the shape visible. Shapes that are not visible are not rendered, but otherwise are still processed (for example, hidden shapes are still used for collision detection). Toggling this is guaranteed to be ultra-fast.
+
+Note: An alternative method to hide (and more) things in X3D is to wrap them in a @link(TSwitchNode), and toggle @link(TSwitchNode.WhichChoice) between -1 and 0. When @link(TSwitchNode.WhichChoice) is -1, the children are not processed (not rendered, and do not collide).
+"""
   SFString []           collision          "DEFAULT"
     range: ["DEFAULT"|"BOX"|"NONE"]
     enumerated-type: TShapeCollision ShapeCollisionNames scDefault

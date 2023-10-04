@@ -616,7 +616,7 @@ begin
 
   Shape.Appearance := Appearance;
 
-  Shape.Render := false;
+  Shape.Visible := false;
 
   ControlPoints := TCoordinateNode.Create('', BaseUrl);
   { we ignore first and last Vertices, they are only handles outside of

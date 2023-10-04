@@ -676,8 +676,8 @@ procedure TCastleScene.CollectShape_SomeTests(const Shape: TGLShape);
 begin
   if (Shape <> AvoidShapeRendering) and
      ( (not AvoidNonShadowCasterRendering) or Shape.ShadowCaster) and
-     ( { implement Shape node "render" field here, by a trivial check }
-       (Shape.Node = nil) or Shape.Node.Render
+     ( { implement TAbstractShapeNode.Visible here, by a trivial check }
+       (Shape.Node = nil) or Shape.Node.Visible
      ) then
   begin
     CollectShape_NoTests(Shape);

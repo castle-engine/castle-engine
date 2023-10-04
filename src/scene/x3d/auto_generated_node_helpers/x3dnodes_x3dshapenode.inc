@@ -32,8 +32,8 @@
     procedure SetBBox(const Value: TBox3D);
     function GetShading: TShading;
     procedure SetShading(const Value: TShading);
-    function GetRender: Boolean;
-    procedure SetRender(const Value: Boolean);
+    function GetVisible: Boolean;
+    procedure SetVisible(const Value: Boolean);
     function GetCollision: TShapeCollision;
     procedure SetCollision(const Value: TShapeCollision);
   public
@@ -77,11 +77,13 @@
     {  }
     property Shading: TShading read GetShading write SetShading;
 
-    strict private FFdRender: TSFBool;
-    { Internal wrapper for property @code(Render). This wrapper API may change, we advise to access simpler @code(Render) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdRender: TSFBool read FFdRender;
-    { Is the shape visible. Toggling this is guaranteed to be ultra-fast. See https://castle-engine.io/x3d_implementation_shape_extensions.php }
-    property Render: Boolean read GetRender write SetRender;
+    strict private FFdVisible: TSFBool;
+    { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdVisible: TSFBool read FFdVisible;
+    { Is the shape visible. Shapes that are not visible are not rendered, but otherwise are still processed (for example, hidden shapes are still used for collision detection). Toggling this is guaranteed to be ultra-fast.
+
+Note: An alternative method to hide (and more) things in X3D is to wrap them in a @link(TSwitchNode), and toggle @link(TSwitchNode.WhichChoice) between -1 and 0. When @link(TSwitchNode.WhichChoice) is -1, the children are not processed (not rendered, and do not collide). }
+    property Visible: Boolean read GetVisible write SetVisible;
 
     strict private FFdCollision: TSFStringEnum;
     { Internal wrapper for property @code(Collision). This wrapper API may change, we advise to access simpler @code(Collision) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -145,14 +147,14 @@ begin
   FdShading.SendEnumValue(Ord(Value));
 end;
 
-function TAbstractShapeNode.GetRender: Boolean;
+function TAbstractShapeNode.GetVisible: Boolean;
 begin
-  Result := FdRender.Value;
+  Result := FdVisible.Value;
 end;
 
-procedure TAbstractShapeNode.SetRender(const Value: Boolean);
+procedure TAbstractShapeNode.SetVisible(const Value: Boolean);
 begin
-  FdRender.Send(Value);
+  FdVisible.Send(Value);
 end;
 
 function TAbstractShapeNode.GetCollision: TShapeCollision;
@@ -195,9 +197,9 @@ begin
    FdShading.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShading);
 
-  FFdRender := TSFBool.Create(Self, True, 'render', true);
-   FdRender.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdRender);
+  FFdVisible := TSFBool.Create(Self, True, 'visible', true);
+   FdVisible.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVisible);
 
   FFdCollision := TSFStringEnum.Create(Self, False, 'collision', @ShapeCollisionNames, Ord(High(ShapeCollisionNames)) + 1, Ord(scDefault));
    FdCollision.ChangeAlways := chVisibleNonGeometry;
