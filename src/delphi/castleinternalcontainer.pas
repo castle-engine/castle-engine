@@ -184,7 +184,7 @@ begin
     {$if defined(MSWINDOWS)} TGLContextWgl.Create
     {$elseif defined(LINUX)} TGLContextEgl.Create
     {$else}
-      {$message fatal 'Define how to create OpenGL context for this plaform.'}
+      {$message fatal 'Define how to create OpenGL context for this platform.'}
     {$endif}
   ;
 

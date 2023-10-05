@@ -168,7 +168,7 @@ function PlatformsToStr(const Platforms: TCastlePlatforms): String;
 var
   P: TCastlePlatform;
 begin
-  { Special result when all plaforms are included.
+  { Special result when all platforms are included.
     This way when adding new platforms in the future,
     they'll automatically be part of this. }
   if Platforms = AllPlatforms then
