@@ -17,7 +17,7 @@
   on a Delphi FMX form.
   This is like TCastleControl, but stripped from all CGE container features.
   It is similar in concept to TOpenGLControl from LCL,
-  through implementation is independent -- we use special tricks
+  though implementation is independent -- we use special tricks
   to get OpenGL context on FMX form.
 
   This is only internal for TCastleWindow in CASTLE_WINDOW_FORM case.
