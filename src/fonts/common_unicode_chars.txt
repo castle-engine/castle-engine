@@ -1,4 +1,5 @@
-From https://gist.github.com/ivandrofly/0fe20773bd712b303f78 :
+From https://gist.github.com/ivandrofly/0fe20773bd712b303f78 ,
+with some additions at end for Ukrainian:
 
 Unicode table - List of most common Unicode characters *
 * This summary list contains about 2000 characters for most common ocidental/latin languages and most printable symbols but not chinese, japanese, arab, archaic and some unprintable.
@@ -2455,3 +2456,8 @@ Replacement characters
 Unicode character list created by Rodrigo Siqueira
 (there are 2034 Unicode characters in this list)
 See also: ASCII Table
+
+Ukrainian:
+Є 0404, є 0454
+І 0406, і 0456
+Ї 0407, ї 0457
