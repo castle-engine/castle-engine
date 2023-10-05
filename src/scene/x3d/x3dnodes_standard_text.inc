@@ -887,35 +887,35 @@ end;
 procedure FontsInitialization;
 begin
   {$ifdef CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
-  DefaultFontData[ffTypeWriter, true , true ] := TextureFont_DejaVuSansMonoBoldOblique_20;
-  DefaultFontData[ffTypeWriter, true , false] := TextureFont_DejaVuSansMonoBold_20;
-  DefaultFontData[ffTypeWriter, false, true ] := TextureFont_DejaVuSansMonoOblique_20;
-  DefaultFontData[ffTypeWriter, false, false] := TextureFont_DejaVuSansMono_20;
+  DefaultFontData[ffTypeWriter, true , true ] := Font_Default3d_MonoBI;
+  DefaultFontData[ffTypeWriter, true , false] := Font_Default3d_MonoB;
+  DefaultFontData[ffTypeWriter, false, true ] := Font_Default3d_MonoI;
+  DefaultFontData[ffTypeWriter, false, false] := Font_Default3d_Mono;
 
-  DefaultFontData[ffSerif, true , true ] := TextureFont_DejaVuSerifBoldItalic_20;
-  DefaultFontData[ffSerif, true , false] := TextureFont_DejaVuSerifBold_20;
-  DefaultFontData[ffSerif, false, true ] := TextureFont_DejaVuSerifItalic_20;
-  DefaultFontData[ffSerif, false, false] := TextureFont_DejaVuSerif_20;
+  DefaultFontData[ffSerif, true , true ] := Font_Default3d_SerifBI;
+  DefaultFontData[ffSerif, true , false] := Font_Default3d_SerifB;
+  DefaultFontData[ffSerif, false, true ] := Font_Default3d_SerifI;
+  DefaultFontData[ffSerif, false, false] := Font_Default3d_Serif;
 
-  DefaultFontData[ffSans, true , true ] := TextureFont_DejaVuSansBoldOblique_20;
-  DefaultFontData[ffSans, true , false] := TextureFont_DejaVuSansBold_20;
-  DefaultFontData[ffSans, false, true ] := TextureFont_DejaVuSansOblique_20;
-  DefaultFontData[ffSans, false, false] := TextureFont_DejaVuSans_20;
+  DefaultFontData[ffSans, true , true ] := Font_Default3d_SansBI;
+  DefaultFontData[ffSans, true , false] := Font_Default3d_SansB;
+  DefaultFontData[ffSans, false, true ] := Font_Default3d_SansI;
+  DefaultFontData[ffSans, false, false] := Font_Default3d_Sans;
   {$else}
-  DefaultFontData[ffTypeWriter, true , true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffTypeWriter, true , false] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffTypeWriter, false, true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffTypeWriter, false, false] := TextureFont_DejaVuSans_20;
+  DefaultFontData[ffTypeWriter, true , true ] := Font_Default3d_Sans;
+  DefaultFontData[ffTypeWriter, true , false] := Font_Default3d_Sans;
+  DefaultFontData[ffTypeWriter, false, true ] := Font_Default3d_Sans;
+  DefaultFontData[ffTypeWriter, false, false] := Font_Default3d_Sans;
 
-  DefaultFontData[ffSerif, true , true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSerif, true , false] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSerif, false, true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSerif, false, false] := TextureFont_DejaVuSans_20;
+  DefaultFontData[ffSerif, true , true ] := Font_Default3d_Sans;
+  DefaultFontData[ffSerif, true , false] := Font_Default3d_Sans;
+  DefaultFontData[ffSerif, false, true ] := Font_Default3d_Sans;
+  DefaultFontData[ffSerif, false, false] := Font_Default3d_Sans;
 
-  DefaultFontData[ffSans, true , true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSans, true , false] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSans, false, true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSans, false, false] := TextureFont_DejaVuSans_20;
+  DefaultFontData[ffSans, true , true ] := Font_Default3d_Sans;
+  DefaultFontData[ffSans, true , false] := Font_Default3d_Sans;
+  DefaultFontData[ffSans, false, true ] := Font_Default3d_Sans;
+  DefaultFontData[ffSans, false, false] := Font_Default3d_Sans;
   {$endif}
 end;
 

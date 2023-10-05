@@ -59,9 +59,9 @@ type
 
 implementation
 
-uses Math, CastleTextureFont_DjvSans_20,
+uses Math, CastleTextureFont_DefaultUi,
   {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleTextureFont_DejaVuSans_10, CastleTextureImages,
+  CastleTextureImages,
   CastleApplicationProperties, CastleMessaging, CastleComponentSerialize,
   CastleUnicode, CastleRenderOptions;
 

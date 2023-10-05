@@ -87,7 +87,7 @@ begin
   if DefaultUIFont.Normal = nil then
   begin
     DefaultUIFont.Normal := TCastleFont.Create(DefaultUIFont);
-    DefaultUIFont.Normal.Load(TextureFont_DejaVuSans_20);
+    DefaultUIFont.Normal.Load(Font_DefaultUi);
   end;
   Result := DefaultUIFont.Normal;
 end;

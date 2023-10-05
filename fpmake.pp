@@ -366,21 +366,20 @@ begin
     P.Targets.AddUnit('castleinternalfreetype.pas');
     P.Targets.AddUnit('castleinternalfreetypeh.pas');
     P.Targets.AddUnit('castleinternalrichtext.pas');
-    P.Targets.AddUnit('castletexturefont_dejavusans_10.pas');
-    P.Targets.AddUnit('castletexturefont_dejavusansmono_18.pas');
-    P.Targets.AddUnit('castletexturefont_dejavusansmonobold_15.pas');
-    P.Targets.AddUnit('castletexturefont_djvmono_20.pas');
-    P.Targets.AddUnit('castletexturefont_djvmonob_20.pas');
-    P.Targets.AddUnit('castletexturefont_djvmonobo_20.pas');
-    P.Targets.AddUnit('castletexturefont_djvmonoo_20.pas');
-    P.Targets.AddUnit('castletexturefont_djvsans_20.pas');
-    P.Targets.AddUnit('castletexturefont_djvsansb_20.pas');
-    P.Targets.AddUnit('castletexturefont_djvsansbo_20.pas');
-    P.Targets.AddUnit('castletexturefont_djvsanso_20.pas');
-    P.Targets.AddUnit('castletexturefont_djvserif_20.pas');
-    P.Targets.AddUnit('castletexturefont_djvserifb_20.pas');
-    P.Targets.AddUnit('castletexturefont_djvserifbi_20.pas');
-    P.Targets.AddUnit('castletexturefont_djvserifi_20.pas');
+    P.Targets.AddUnit('castletexturefont_defaultui.pas');
+    // 16 fonts for X3D Text node
+    P.Targets.AddUnit('castletexturefont_default3d_mono.pas');
+    P.Targets.AddUnit('castletexturefont_default3d_monob.pas');
+    P.Targets.AddUnit('castletexturefont_default3d_monobi.pas');
+    P.Targets.AddUnit('castletexturefont_default3d_monoi.pas');
+    P.Targets.AddUnit('castletexturefont_default3d_sans.pas');
+    P.Targets.AddUnit('castletexturefont_default3d_sansb.pas');
+    P.Targets.AddUnit('castletexturefont_default3d_sansbi.pas');
+    P.Targets.AddUnit('castletexturefont_default3d_sansi.pas');
+    P.Targets.AddUnit('castletexturefont_default3d_serif.pas');
+    P.Targets.AddUnit('castletexturefont_default3d_serifb.pas');
+    P.Targets.AddUnit('castletexturefont_default3d_serifbi.pas');
+    P.Targets.AddUnit('castletexturefont_default3d_serifi.pas');
     P.Targets.AddUnit('castletexturefontdata.pas');
 
     P.SourcePath.Add('src/images');

@@ -21,7 +21,7 @@
 uses Classes, SysUtils,
   CastleFont2Pascal, CastleUtils, CastleClassUtils, CastleLog,
   CastleParameters, CastleTextureFontData, CastleStringUtils,
-  CastleURIUtils, CastleUnicode,
+  CastleURIUtils, CastleUnicode, CastleFilesUtils,
   CastleImages, CastleApplicationProperties, CastleLocalizationGetText;
 
 var
@@ -33,13 +33,14 @@ var
   Characters: TUnicodeCharList;
 
 const
-  Options: array [0..11] of TOption =
+  Options: array [0..12] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
     (Short: #0; Long: 'size'; Argument: oaRequired),
     (Short: #0; Long: 'no-anti-alias'; Argument: oaNone),
     (Short: #0; Long: 'sample-text'; Argument: oaRequired),
+    (Short: #0; Long: 'sample-text-file'; Argument: oaRequired),
     (Short: #0; Long: 'sample-code'; Argument: oaRequired),
     (Short: #0; Long: 'sample-get-text-mo'; Argument: oaRequired),
     (Short: #0; Long: 'function-name'; Argument: oaRequired),
@@ -69,6 +70,8 @@ begin
            OptionDescription('--no-anti-alias', '') + NL +
            OptionDescription('--sample-text=TEXT',
              'Load (if existing in the font file) all the listed characters. You can use this parameter multiple times.') + NL +
+           OptionDescription('--sample-text-file=TEXT-FILE-NAME',
+             'Load (if existing in the font file) all the characters used in given text file. You can use this parameter multiple times.') + NL +
            OptionDescription('--sample-code=TEXT',
              'Load (if existing in the font file) the listed character code. You can use this parameter multiple times.') + NL +
            OptionDescription('--sample-get-text-mo=URL',
@@ -95,13 +98,14 @@ begin
     2: Size := StrToInt(Argument);
     3: AntiAliasing := false;
     4: Characters.Add(Argument);
-    5: Characters.Add(StrToInt(Argument));
-    6: AddTranslatedCharacters(Argument, Characters);
-    7: ParamFunctionName := Argument;
-    8: ParamUnitName := Argument;
-    9: InitializeLog;
-    10: DebugFontImage := true;
-    11: OnlySampleText := true;
+    5: Characters.Add(FileToString(Argument));
+    6: Characters.Add(StrToInt(Argument));
+    7: AddTranslatedCharacters(Argument, Characters);
+    8: ParamFunctionName := Argument;
+    9: ParamUnitName := Argument;
+    10: InitializeLog;
+    11: DebugFontImage := true;
+    12: OnlySampleText := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
