@@ -98,6 +98,7 @@ type
     procedure MouseWheel(Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean); override;
     procedure KeyDown(var Key: Word; var KeyChar: WideChar; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; var KeyChar: WideChar; Shift: TShiftState); override;
+    function DefinePresentationName: String; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -637,6 +638,32 @@ begin
 begin
   // Make sure we have a handle, and OpenGL context, on other platforms
 {$endif}
+end;
+
+function TCastleControl.DefinePresentationName: String;
+begin
+  { This method may seem not necessary in some tests: if your application
+    just instantiates exactly TCastleControl (not a descendant of it),
+    then this method is not necessary.
+    E.g. CastleFmx example doesn't need it to work properly.
+
+    But this method becomes necessary if you instantiate *descendants of
+    TCastleControl*. Like TGoodOpenGLControl created by CASTLE_WINDOW_FORM.
+    Without this method, these descendants would not
+    use TWinNativeGLControl (they would use default FMX
+    TWinStyledPresentation) and in effect critical code from CGE
+    TWinNativeGLControl would not run.
+
+    See also:
+    - FMX TMemo does it, likely for above reasons.
+    - https://stackoverflow.com/questions/37281970/a-descendant-of-tstyledpresentationproxy-has-not-been-registered-for-class
+    - See also
+      http://yaroslavbrovin.ru/new-approach-of-development-of-firemonkey-control-control-model-presentation-part-1-en/
+      https://github.com/tothpaul/Firemonkey/tree/master/GLPanel
+      for hints how to use platform-specific controls with FMX.
+  }
+
+  Result := 'CastleControl-' + GetPresentationSuffix;
 end;
 
 {$ifdef MSWINDOWS}
