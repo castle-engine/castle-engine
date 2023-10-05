@@ -180,13 +180,7 @@ begin
   FRequirements.Name := 'Requirements';
   FRequirements.SetSubComponent(true);
 
-  FPlatformContext :=
-    {$if defined(MSWINDOWS)} TGLContextWgl.Create
-    {$elseif defined(LINUX)} TGLContextEgl.Create
-    {$else}
-      {$message fatal 'Define how to create OpenGL context for this platform.'}
-    {$endif}
-  ;
+  FPlatformContext := ContextCreateBestInstance;
 
   FAutoRedisplay := true;
 

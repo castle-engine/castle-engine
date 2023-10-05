@@ -21,7 +21,7 @@ unit CastleInternalDelphiUtils;
 interface
 
 uses UITypes, Classes,
-  CastleKeysMouse;
+  CastleKeysMouse, CastleInternalContextBase;
 
 { Convert mouse button (from VCL or FMX) to CGE. }
 function MouseButtonToCastle(const MouseButton: TMouseButton;
@@ -53,9 +53,15 @@ type
 var
   OnGetDesignTimeProjectPath: TDesignTimeProjectPathEvent;
 
+{ Best TGLContext descendant for this platform. }
+function ContextCreateBestInstance: TGLContext;
+
 implementation
 
-uses CastleStringUtils;
+uses
+  {$ifdef MSWINDOWS} CastleInternalContextWgl, {$endif}
+  {$ifdef LINUX} CastleInternalContextEgl, {$endif}
+  CastleStringUtils;
 
 function MouseButtonToCastle(const MouseButton: TMouseButton;
   out CastleMouseButton: TCastleMouseButton): Boolean;
@@ -371,6 +377,17 @@ const
   );
 begin
   Result := Map[Cursor];
+end;
+
+function ContextCreateBestInstance: TGLContext;
+begin
+  Result :=
+    {$if defined(MSWINDOWS)} TGLContextWgl.Create
+    {$elseif defined(LINUX)} TGLContextEgl.Create
+    {$else}
+      {$message fatal 'Define how to create OpenGL context for this platform.'}
+    {$endif}
+  ;
 end;
 
 end.
