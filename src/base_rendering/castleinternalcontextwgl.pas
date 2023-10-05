@@ -377,6 +377,10 @@ var
   end;
 
 begin
+  // make sure caller didn't forget to set these before calling CreateContext
+  Assert(WndPtr <> 0);
+  Assert(h_Dc <> 0);
+
   // will be initialized once SetPixelFormat_WGLChoose has a temporary context
   Has_WGL_ARB_create_context := false;
   Has_WGL_ARB_create_context_profile := false;
