@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Control with OpenGL context on a Delphi FMX form. }
+{ Control rendering "Castle Game Engine" on Delphi FMX (FireMonkey) form. }
 unit Fmx.CastleControl;
 
 {$I castleconf.inc}
