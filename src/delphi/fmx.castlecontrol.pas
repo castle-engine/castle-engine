@@ -207,17 +207,15 @@ var
   Form: TCustomForm;
   LinuxHandle: TLinuxWindowHandle;
 begin
-  { TODO: This is a hack to require a form as owner,
-    to get handle from form...
-    We should be ready for other owners.
-    We should, if no better choice, require form in property? would suck in API... }
+  { TODO: This is a hack to require a form as direct Parent,
+    to get handle from form... }
 
-  if Owner = nil then
-    raise Exception.Create('Owner of TCastleControl must be set');
-  // This actually also tests Owner <> nil, but previous check makes better error message
-  if not (Owner is TCustomForm) then
-    raise Exception.Create('Owner of TCastleControl must be form');
-  Form := Owner as TCustomForm;
+  if Parent = nil then
+    raise Exception.Create('Parent of TCastleControl must be set');
+  // This actually also tests Parent <> nil, but previous check makes better error message
+  if not (Parent is TCustomForm) then
+    raise Exception.Create('Parent of TCastleControl must be form');
+  Form := Parent as TCustomForm;
 
   LinuxHandle := TLinuxWindowHandle(Form.Handle);
   if LinuxHandle = nil then

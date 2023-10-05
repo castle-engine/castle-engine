@@ -607,7 +607,8 @@ begin
     Alternatively we could check "not (csDestroying in Form.ComponentState)"
     in Invalidate, but this feels cleaner. }
 
-  OpenGLControl := TGoodOpenGLControl.Create(Form); // Owner Form, just to pass Form to hacky TCastleControl implementation
+  OpenGLControl := TGoodOpenGLControl.Create(nil);
+  //OpenGLControl.FormForHandle := Form; // TODO: pass Form to TCastleControl, should not be needed in general
   OpenGLControl.Window := Self;
   OpenGLControl.Parent := Form;
   OpenGLControl.Align := {$ifdef FPC} alClient {$else} TAlignLayout.Client {$endif};
@@ -738,7 +739,9 @@ begin
   Form := nil; // causing memory leak, but at least not crash
   {$endif}
 
-  FreeAndNil(OpenGLControl);
+  // FreeAndNil(OpenGLControl);
+  // TODO: seems freeing the form has already freed OpenGLControl, but why?
+
   { freeing the Form will automatically free other owned components }
   Menu := nil;
 
