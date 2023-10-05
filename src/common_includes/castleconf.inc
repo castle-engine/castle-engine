@@ -475,16 +475,45 @@
 
 { Embedded stuff ------------------------------------------------------------- }
 
-{ If defined, the compiled code will have embedded all the variations
-  of basic fonts for the X3D Text node
-  (see [https://castle-engine.io/x3d_implementation_text.php]).
-  This is comfortable (the FontStyle font works, with 3 * 4 font variations,
-  out of the box), but it increases your exe size --- possibly without a reason,
-  if you don't use FontStyle X3D node.
+{ If defined, the compiled code will have embedded all 16 font variations
+  to support X3D Text node fully.
 
-  Undefine this to conserve around 0.7 MB in exe size.
+  The 16 variations cover 3 font families (sans, serif, monospace)
+  * 4 font styles (normal, italic, bold, bold-italic).
+  See [https://castle-engine.io/x3d_implementation_text.php] .
+  X3D files may use them by setting FontStyle.family and FontStyle.style ,
+  see https://github.com/castle-engine/demo-models/blob/master/text/text.x3dv
+  for an example.
+  From Pascal you can also get this, using TTextNode and TFontStyleNode.
+
+  However, most CGE programs don't need all these 16 font variations.
+  And having all 16 variations
+  - Increases your exe size.
+    view3dscene build ("make"):
+      Without this defined: 24 MB.
+      With this defined: 66 MB
+  - Increases build time.
+    view3dscene + tovrmlx3d build time:
+      Without this defined: 1m8s
+      With this defined: 2m18s
+
+  These numbers became larger after extending our default fonts
+  to 2000+ common Unicode chars.
+
+  The increase isn't significant for a single program, but
+  - Increased build time becomes significant in CI (Jenkins, GitHub Actions) making
+    much longer "make examples" test, as (for safety) these builds
+    compile each example with cache disabled.
+    They suddenly take over 5 or 8 hours.
+  - The extra variants are really not useful for most all CGE applications,
+    unless you make X3D browser.
+    In CGE we recommend to use TCastleText which allows to customize the font
+    using much more flexible TCastleText.CustomFont,
+    and doesn't allow to choose 16 variants from "embedded" fonts.
+
+  So now by default we don't use them.
   All the Text X3D nodes will use standard sans non-bold, non-italic font. }
-{$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
+{.$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
 
 { Threading --------------------------------------------------------------- }
 
