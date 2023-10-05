@@ -49,7 +49,7 @@
     FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
     FMX.StdCtrls, FMX.Menus, FMX.Platform,
     // CGE
-    Fmx.CastleControl, CastleInternalDelphiUtils,
+    Fmx.CastleInternalGLControl, CastleInternalDelphiUtils,
   {$endif}
 {$endif}
 
@@ -92,11 +92,10 @@ private
 
     { Like TOpenGLControl but sets Invalidated:=true on Window,
       so that Window knows when it's invalidated by the OS. }
-    TGoodOpenGLControl = class(
-      {$ifdef FPC}TOpenGLControl{$else}TCastleControl{$endif})
+    TGoodOpenGLControl = class(TOpenGLControl)
     public
       Window: TCastleWindow;
-      procedure Invalidate; {$ifdef FPC} override; {$endif}
+      procedure Invalidate; override;
     end;
 
   var
@@ -128,8 +127,7 @@ private
   procedure FormDeactivate(Sender: TObject);
   procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
 
-  procedure OpenGLControlPaint(Sender: TObject
-    {$ifndef FPC} ; Canvas: TCanvas; const ARect: TRectF {$endif});
+  procedure OpenGLControlPaint(Sender: TObject);
   procedure OpenGLControlResize(Sender: TObject);
   procedure OpenGLControlKeyDown(Sender: TObject; var Key: Word;
     {$ifndef FPC} var KeyChar: WideChar; {$endif}
@@ -198,14 +196,18 @@ end;
 
 { TGoodOpenGLControl --------------------------------------------------------- }
 
-// TODO: Not necessary with FMX to override and catch message from system? check
 procedure TCastleWindow.TGoodOpenGLControl.Invalidate;
+
+{ Note that in FMX, this is not called by the system.
+  So this is worthless to catch system invalidate events
+  (TODO: we should somehow catch system invalidate).
+  But it is still useful as TCastleWindow.Invalidate sets
+  Window.Invalidated := true indirectly, through this. }
+
 begin
   // track our own Invalidated state, although still cooperate with LCL invalidate
   Window.Invalidated := true;
-  {$ifdef FPC}
   inherited;
-  {$endif}
 end;
 
 { TCastleWindow ------------------------------------------------------------------ }
@@ -509,10 +511,7 @@ end;
 
 procedure TCastleWindow.SwapBuffers;
 begin
-  {$ifdef FPC}
-  // FMX: TODO - TCastleControl does this internally
   OpenGLControl.SwapBuffers;
-  {$endif}
 end;
 
 procedure TCastleWindow.OpenBackend;
@@ -608,7 +607,6 @@ begin
     in Invalidate, but this feels cleaner. }
 
   OpenGLControl := TGoodOpenGLControl.Create(nil);
-  //OpenGLControl.FormForHandle := Form; // TODO: pass Form to TCastleControl, should not be needed in general
   OpenGLControl.Window := Self;
   OpenGLControl.Parent := Form;
   OpenGLControl.Align := {$ifdef FPC} alClient {$else} TAlignLayout.Client {$endif};
@@ -629,11 +627,11 @@ begin
     OpenGLControl.AlphaBits := AlphaBits;
     OpenGLControl.MultiSampling := MultiSampling;
   {$else}
-    OpenGLControl.Container.Requirements.DoubleBuffer := DoubleBuffer;
-    OpenGLControl.Container.Requirements.StencilBits := StencilBits;
-    OpenGLControl.Container.Requirements.DepthBits := DepthBits;
-    OpenGLControl.Container.Requirements.AlphaBits := AlphaBits;
-    OpenGLControl.Container.Requirements.MultiSampling := MultiSampling;
+    OpenGLControl.Requirements.DoubleBuffer := DoubleBuffer;
+    OpenGLControl.Requirements.StencilBits := StencilBits;
+    OpenGLControl.Requirements.DepthBits := DepthBits;
+    OpenGLControl.Requirements.AlphaBits := AlphaBits;
+    OpenGLControl.Requirements.MultiSampling := MultiSampling;
   {$endif}
 
   Form.ActiveControl := OpenGLControl;
@@ -677,7 +675,7 @@ begin
   { Make sure we have OpenGL context created now, and send initial Invalidate
     (it may not happen automatically, testcase: castle-view-image on Carbon).
     TCastleWindow.OpenCore will call MakeCurrent next. }
-  OpenGLControl.{$ifdef FPC} HandleNeeded {$else} InternalHandleNeeded {$endif};
+  OpenGLControl.HandleNeeded;
   OpenGLControl.Invalidate;
 
   Application.OpenWindowsAdd(Self);
@@ -762,9 +760,7 @@ end;
 
 procedure TCastleWindow.BackendMakeCurrent;
 begin
-  {$ifdef FPC} // TODO: FMX
   OpenGLControl.MakeCurrent;
-  {$endif}
 end;
 
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
@@ -831,8 +827,7 @@ begin
   ReleaseAllKeysAndMouse;
 end;
 
-procedure TCastleWindow.OpenGLControlPaint(Sender: TObject
-  {$ifndef FPC} ; Canvas: TCanvas; const ARect: TRectF {$endif});
+procedure TCastleWindow.OpenGLControlPaint(Sender: TObject);
 begin
   DoRender;
 end;
@@ -942,11 +937,8 @@ end;
 
 procedure TCastleWindow.Invalidate;
 begin
-  // TODO: FMX
-  {$ifdef FPC}
   if not Closed then
     OpenGLControl.Invalidate;
-  {$endif}
 end;
 
 procedure TCastleWindow.OpenGLControlMouseMove(Sender: TObject;
@@ -1062,7 +1054,7 @@ type
   end;
 
 {$ifndef FPC}
-{ FMX clipboard handling thankd to
+{ FMX clipboard handling thanks to
   https://blog.dummzeuch.de/2015/02/28/accessing-the-clipboard-in-a-firemonkey-application/
   https://blogs.embarcadero.com/multi-device-apps-and-clipboard-support/
 }
