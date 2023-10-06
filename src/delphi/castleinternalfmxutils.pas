@@ -71,12 +71,12 @@ begin
     - creates context for whole form
   }
 
-  if Parent = nil then
+  if Control.Parent = nil then
     raise Exception.CreateFmt('Parent of %s must be set', [Control.ClassName]);
   // This actually also tests Parent <> nil, but previous check makes better error message
-  if not (Parent is TCustomForm) then
+  if not (Control.Parent is TCustomForm) then
     raise Exception.CreateFmt('Parent of %s must be form', [Control.ClassName]);
-  Form := Parent as TCustomForm;
+  Form := Control.Parent as TCustomForm;
 
   LinuxHandle := TLinuxWindowHandle(Form.Handle);
   if LinuxHandle = nil then
@@ -113,7 +113,6 @@ end;
 var
   EglContext: TGLContextEgl;
 begin
-  inherited;
   EglContext := PlatformContext as TGLContextEgl;
   EglContext.WndPtr := XWindowHandle(Control);
   Assert(EglContext.WndPtr <> nil); // XWindowHandle already checks this and made exception if problem
