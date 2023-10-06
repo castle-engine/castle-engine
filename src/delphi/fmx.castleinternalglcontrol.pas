@@ -149,6 +149,7 @@ begin
   if FGLInitialized then
   begin
     FGLInitialized := false;
+    FPlatformContext.ContextDestroy;
   end;
   inherited;
 end;

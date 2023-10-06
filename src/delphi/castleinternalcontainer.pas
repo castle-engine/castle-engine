@@ -278,6 +278,7 @@ begin
     EventClose(ContainersOpen);
     Dec(ContainersOpen);
     FGLInitialized := false;
+    FPlatformContext.ContextDestroy;
 
     if UpdatingEnabled and (ContainersOpen = 0) then
     begin
