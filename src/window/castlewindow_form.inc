@@ -37,6 +37,30 @@
     in LCL. Seems harmless, so we just ignore it for now.
 *)
 
+{ Define to use TTimer to call Update continuously.
+
+  Reason for Delphi: It is reliable. All our Delphi FMX and VCL components
+  use TTimer like this.
+
+  Reason for LCL Carbon: Using LCL timer (that is translated to Carbon timer)
+  is the only way to receive continuous messages in some cases.
+
+    Otherwise such bugs can be observed (only on LCL-Carbon, not on LCL-GTK2):
+
+    - When trying to Walk using mouse dragging in view3dscene, it doesn't
+      work smoothly: when you simply keep some mouse button pressed,
+      but don't move the mouse anymore (which should result in constant
+      movement forward/backward if you did it after dragging up/down),
+      then we don't get any events (so no movement, no redraw...).
+
+    - Using view3dscene Navigation->Jump to viewpoint... doesn't work
+      smoothly, there is a visible delay when we don't receive messages
+      right after menu click, and so transtion is visible with some delay.
+}
+{$if defined(LCLCarbon) or not defined(FPC)}
+  {$define USE_TIMER}
+{$endif}
+
 {$ifdef read_interface_uses}
   {$ifdef FPC}
     // LCL
@@ -153,11 +177,12 @@ private
 
 {$ifdef read_application_interface}
 private
-  {$ifdef LCLCarbon}
-  FTimer: TCustomTimer;
+  {$ifdef USE_TIMER}
+  FTimer: TTimer;
   procedure ApplicationTimer(Sender: TObject);
-  {$endif LCLCarbon}
+  {$else}
   procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
+  {$endif}
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -1110,58 +1135,33 @@ begin
   {$ifdef FPC}
   FormApplication.CaptureExceptions := false;
   {$endif}
-  FormApplication.Initialize;
-  {$ifdef FPC}
-  FormApplication.AddOnIdleHandler(@ApplicationIdle);
-  {$endif}
-  // TODO: FMX
 
-  {$ifdef LCLCarbon}
-  FTimer := TCustomTimer.Create(Self);
-  FTimer.Interval := Round(1000 / MaxDesiredFPS);
-  FTimer.OnTimer := @ApplicationTimer;
+  FormApplication.Initialize;
+
+  {$ifdef USE_TIMER}
+  FTimer := TTimer.Create(Self);
+  FTimer.Interval := 1;
+  FTimer.OnTimer := {$ifdef FPC}@{$endif} ApplicationTimer;
   FTimer.Enabled := true;
-  {$endif LCLCarbon}
+  {$else}
+  FormApplication.AddOnIdleHandler(@ApplicationIdle);
+  {$endif USE_TIMER}
 end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  // TODO: FMX
-  {$ifdef FPC}
+  {$ifdef USE_TIMER}
+  FreeAndNil(FTimer);
+  {$else}
   FormApplication.RemoveOnIdleHandler(@ApplicationIdle);
   {$endif}
-
-  {$ifdef LCLCarbon}
-  FreeAndNil(FTimer);
-  {$endif LCLCarbon}
 end;
 
-{$ifdef LCLCarbon}
-{ Only for LCL Carbon: Using LCL timer (that is translated to Carbon timer)
-  is the only way to receive continuous messages in some cases.
-
-  Otherwise such bugs can be observed (only on LCL-Carbon, not on LCL-GTK2):
-
-  - When trying to Walk using mouse dragging in view3dscene, it doesn't
-    work smoothly: when you simply keep some mouse button pressed,
-    but don't move the mouse anymore (which should result in constant
-    movement forward/backward if you did it after dragging up/down),
-    then we don't get any events (so no movement, no redraw...).
-
-  - Using view3dscene Navigation->Jump to viewpoint... doesn't work
-    smoothly, there is a visible delay when we don't receive messages
-    right after menu click, and so transtion is visible with some delay.
-}
+{$ifdef USE_TIMER}
 procedure TCastleApplication.ApplicationTimer(Sender: TObject);
-var
-  I: Integer;
-begin
-  for I := 0 to OpenWindowsCount - 1 do
-    OpenWindows[I].AggressiveUpdate;
-end;
-{$endif LCLCarbon}
-
+{$else}
 procedure TCastleApplication.ApplicationIdle(Sender: TObject; var Done: Boolean);
+{$endif}
 begin
   { Call Update and Timer events of Application and all windows.
     Update events are handled by DoApplicationUpdate and OpenWindows.DoUpdate.
@@ -1171,6 +1171,7 @@ begin
   FOpenWindows.DoUpdate;
   MaybeDoTimer;
 
+  {$ifndef USE_TIMER}
   { We need Done := false, otherwise the widgetset will hang waiting
     for next message. See ../lcl/castlecontrol.pas comments.
 
@@ -1178,6 +1179,7 @@ begin
     but fortunately in this case we're the only thing interfacing with LCL,
     so that's not a problem. }
   Done := false;
+  {$endif}
 end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;

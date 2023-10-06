@@ -22,10 +22,7 @@
 
   This is only internal for TCastleWindow in CASTLE_WINDOW_FORM case.
   So we don't register it, don't care about publishing stuff,
-  don't care how it looks in Delphi IDE etc.
-
-  TODO: CASTLE_WINDOW_FORM could use reliable update mechanism
-  from easy container? }
+  don't care how it looks in Delphi IDE etc. }
 unit Fmx.CastleInternalGLControl;
 
 {$I castleconf.inc}
