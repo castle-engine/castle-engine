@@ -27,7 +27,7 @@ uses // standard units
   FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
   // cge
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
-  CastleInternalContextBase, CastleInternalContainer;
+  CastleInternalContextBase, CastleInternalContainer, CastleInternalFmxUtils;
 
 type
   { Control rendering "Castle Game Engine" on FMX form. }
@@ -59,6 +59,7 @@ type
     var
       FContainer: TContainer;
       FMousePosition: TVector2;
+      FGLUtility: TFmxOpenGLUtility;
 
     function GetCurrentShift: TShiftState;
     procedure SetCurrentShift(const Value: TShiftState);
@@ -133,7 +134,7 @@ uses FMX.Presentation.Factory, Types, FMX.Graphics,
   FMX.Forms, // TODO should not be needed
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
   CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
-  CastleLog, CastleInternalFmxUtils;
+  CastleLog;
 
 procedure Register;
 begin
@@ -189,7 +190,7 @@ end;
 
 procedure TCastleControl.TContainer.AdjustContext(const PlatformContext: TGLContext);
 begin
-  ContextAdjustEarly(Parent, PlatformContext);
+  Parent.FGLUtility.ContextAdjustEarly(PlatformContext);
 end;
 
 function TCastleControl.TContainer.GetMousePosition: TVector2;
@@ -260,6 +261,9 @@ begin
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
 
+  FGLUtility := TFmxOpenGLUtility.Create;
+  FGLUtility.Control := Self;
+
   { In FMX, this causes adding WS_TABSTOP to Params.Style
     in TWinPresentation.CreateParams. So it is more efficient to call
     before we actually create window by setting ControlType. }
@@ -313,6 +317,7 @@ end;
 
 destructor TCastleControl.Destroy;
 begin
+  FreeAndNil(FGLUtility);
   inherited;
 end;
 
@@ -547,7 +552,7 @@ end;
 
 procedure TCastleControl.InternalHandleNeeded;
 begin
-  ControlHandleNeeded(Self);
+  FGLUtility.HandleNeeded;
 
   {$if defined(LINUX)}
   { There seems to be no way to create a handle for something else
