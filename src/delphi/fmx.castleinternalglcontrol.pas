@@ -36,7 +36,7 @@ uses // standard units
   {$ifdef MSWINDOWS} FMX.Presentation.Win, {$endif}
   FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
   // cge
-  CastleInternalContextBase;
+  CastleInternalContextBase, CastleInternalFmxUtils;
 
 type
   { Control with OpenGL context (and nothing else, like CGE container)
@@ -51,6 +51,7 @@ type
       for all OpenGL(ES). }
     FPlatformContext: TGLContext;
     FGLInitialized: Boolean;
+    FGLUtility: TFmxOpenGLUtility;
     procedure CreateHandle;
     procedure DestroyHandle;
     procedure CreateContext;
@@ -61,6 +62,7 @@ type
     OnPaint: TNotifyEvent;
 
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Paint; override;
 
     procedure Invalidate; virtual;
@@ -86,7 +88,7 @@ type
 implementation
 
 uses FMX.Presentation.Factory, Types, FMX.Graphics,
-  CastleLog, CastleUtils, CastleInternalFmxUtils, CastleInternalDelphiUtils;
+  CastleLog, CastleUtils, CastleInternalDelphiUtils;
 
 {$ifdef MSWINDOWS}
 
@@ -135,7 +137,7 @@ begin
     // TODO: implement sharing of OpenGL contexts in this case
     // In CGE, all open contexts should share GL resources
     // FPlatformContext.SharedContext := AnyOtherOpenContext;
-    ContextAdjustEarly(Self, FPlatformContext);
+    FGLUtility.ContextAdjustEarly(FPlatformContext);
     FPlatformContext.ContextCreate(FRequirements);
     // Invalidate; // would be too early, CASTLE_WINDOW_FORM will do it later
   end;
@@ -161,10 +163,20 @@ begin
 
   FPlatformContext := ContextCreateBestInstance;
 
+  FGLUtility := TFmxOpenGLUtility.Create;
+  FGLUtility.Control := Self;
+
   TabStop := true;
   CanFocus := True;
   Assert(not (csDesigning in ComponentState)); // this is not ready for design-time
   ControlType := TControlType.Platform;
+end;
+
+destructor TOpenGLControl.Destroy;
+begin
+  FreeAndNil(FPlatformContext);
+  FreeAndNil(FGLUtility);
+  inherited;
 end;
 
 procedure TOpenGLControl.CreateHandle;
@@ -193,7 +205,7 @@ end;
 
 procedure TOpenGLControl.HandleNeeded;
 begin
-  ControlHandleNeeded(Self);
+  FGLUtility.HandleNeeded;
 
   {$if defined(LINUX)}
   { There seems to be no way to create a handle for something else

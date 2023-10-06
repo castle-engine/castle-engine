@@ -24,24 +24,65 @@ uses FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
   {$ifdef LINUX} FMX.Platform.Linux, {$endif}
   CastleInternalContextBase;
 
-{ Adjust TGLContext parameters before calling TGLContext.CreateContext.
+type
+  { Utility for FMX controls to help them initialize OpenGL context.
 
-  Extracts platform-specific bits from given FMX control,
-  and puts in platform-specific bits of TGLContext descendants.
-  This is used by TCastleControl and TOpenGLControl.
-  It does quite low-level and platform-specific job, dictated
-  by the necessity of how FMX works, to be able to get context.
+    This tries to abstract as much as possible the platform-specific ways
+    how to get OpenGL context (and native handle) on a given control,
+    in a way that is useful for both FMX TOpenGLControl and FMX TCastleControl.
 
-  This is synchronized with what ContextCreateBestInstance does on this platform. }
-procedure ContextAdjustEarly(const Control: TPresentedControl;
-  const PlatformContext: TGLContext);
+    The current state:
 
-{ Make sure that Control has initialized internal Handle.
+    - On Windows: make sure native Windows handle is initialized when necessary,
+      and pass it to TGLContextWgl.
+    - On Linux: we have to create our own Gtk widget (since FMXLinux only ever
+      creates native handle for the whole form, it seems).
+      And insert it into FMX form, keeping the existing FMX drawing area too.
+      And then use TGLContextEgl to connect to our own Gtk widget.
 
-  On platforms where Control may have a native handle, like Windows,
-  creating a handle should provoke ContextAdjustEarly and TGLContext.ContextCreate.
-  On other platforms, ContextHandleNeded cannot do anything. }
-procedure ControlHandleNeeded(const Control: TPresentedControl);
+    Note: We could not make TCastleControl descend from TOpenGLControl on FMX
+    (like we did on LCL), since the GL work of TCastleControl is partially
+    done by the container (to be shared, in turn,
+    with VCL and in future LCL implementations).
+    So to have enough flexibility how to organize hierarchy, this is rather
+    a separate class that is just created and used by both
+    FMX TOpenGLControl and FMX TCastleControl. }
+  TFmxOpenGLUtility = class
+  private
+    GLAreaGtk: Pointer;
+  public
+    { Set before calling HandleNeeded.
+      Cannot change during lifetime of this instance, for now. }
+    Control: TPresentedControl;
+
+    { Make sure that Control has initialized internal Handle.
+
+      - On some platforms, like Windows,
+        creating a handle should provoke ContextAdjustEarly
+        and TGLContext.ContextCreate.
+        The caller should make it happen: see
+        TPresentationProxyFactory.Current.Register and our presentation classes.
+        This works nicely when FMX platform defines
+        Presentation and classes like TWinPresentation.
+
+      - On other platforms, like Linux, we create handle ourselves.
+        Manually make sure context is created
+        after handle is obtained.
+        Needed for Delphi/Linux that doesn't define any "presentation"
+        stuff and only creates a handle for the entire form. }
+    procedure HandleNeeded;
+
+    { Adjust TGLContext parameters before calling TGLContext.CreateContext.
+
+      Extracts platform-specific bits from given FMX Control,
+      and puts in platform-specific bits of TGLContext descendants.
+      This is used by TCastleControl and TOpenGLControl.
+      It does quite low-level and platform-specific job, dictated
+      by the necessity of how FMX works, to be able to get context.
+
+      This is synchronized with what ContextCreateBestInstance does on this platform. }
+    procedure ContextAdjustEarly(const PlatformContext: TGLContext);
+  end;
 
 implementation
 
@@ -50,25 +91,111 @@ uses
   SysUtils,
   { Needed for TCustomForm used by XWindowHandle }
   FMX.Forms,
+  CTypes,
   {$ifdef MSWINDOWS} CastleInternalContextWgl, {$endif}
   {$ifdef LINUX} CastleInternalContextEgl, {$endif}
   CastleLog, CastleUtils;
 
 {$if defined(LINUX)}
-{ Following FMXLinux sample (GtkWindow) }
+type
+  GType = CULong;
+  GInt = CInt;
+  PGList = Pointer;
+
+{ Minimal GTK 3 API definition we need. }
 function gtk_widget_get_window(widget: Pointer): Pointer; cdecl; external 'libgtk-3.so.0';
+function gtk_drawing_area_new: Pointer; cdecl; external 'libgtk-3.so.0';
+procedure gtk_widget_show(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
+procedure gtk_container_add(Container: Pointer; Widget: Pointer); cdecl; external 'libgtk-3.so.0';
+procedure gtk_container_remove(Container: Pointer; Widget: Pointer); cdecl; external 'libgtk-3.so.0';
+function gtk_container_get_type: GType; cdecl; external 'libgtk-3.so.0';
+function gtk_container_get_children(Container: Pointer): PGList; cdecl; external 'libgtk-3.so.0';
+function gtk_bin_get_child(Bin: Pointer): Pointer; cdecl; external 'libgtk-3.so.0';
+procedure gtk_widget_show_all(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
+procedure gtk_widget_realize(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
+procedure gtk_widget_set_size_request(Widget: Pointer; Width, Height: GInt); cdecl; external 'libgtk-3.so.0';
+
+{ Minimal GDK 3 API definition we need. }
 function gdk_x11_window_get_xid(widget: Pointer): Pointer; cdecl; external 'libgdk-3.so.0';
 
-{ Get XWindow handle (to pass to EGL) from this control. }
-function XWindowHandle(const Control: TPresentedControl): Pointer;
+{ Minimal glib }
+function g_list_first(List: PGList): Pointer; cdecl; external 'libglib-2.0.so';
+
+{ Minimal glib-gobject }
+function g_type_check_instance_cast(instance: Pointer; iface_type: GType): Pointer; cdecl; external 'libgobject-2.0.so';
+{$endif}
+
+procedure TFmxOpenGLUtility.ContextAdjustEarly(const PlatformContext: TGLContext);
+{$if defined(MSWINDOWS)}
 var
-  GtkWnd, GdkWnd: Pointer;
+  WinContext: TGLContextWgl;
+begin
+  WinContext := PlatformContext as TGLContextWgl;
+  WinContext.WndPtr :=
+    (Control.Presentation as TWinPresentation).Handle;
+  if WinContext.WndPtr = 0 then
+    raise Exception.Create('Native handle not ready when calling ContextAdjustEarly');
+  WinContext.h_Dc := GetWindowDC(WinContext.WndPtr);
+end;
+{$elseif defined(LINUX)}
+
+  { Get XWindow handle (to pass to EGL) from GTK widget. }
+  function XHandleFromGtkWidget(const GtkWnd: Pointer): Pointer;
+  var
+    GdkWnd: Pointer;
+  begin
+    GdkWnd := gtk_widget_get_window(GtkWnd);
+    if GdkWnd = nil then
+      raise Exception.Create('Widget does not have GDK handle initialized yet');
+
+    Result := gdk_x11_window_get_xid(GdkWnd);
+    if Result = nil then
+      raise Exception.Create('Widget does not have X11 handle initialized yet');
+  end;
+
+var
+  EglContext: TGLContextEgl;
+  XHandle: Pointer;
+begin
+  if GLAreaGtk = nil then
+    raise Exception.Create('Native GTK area not ready when calling ContextAdjustEarly');
+  XHandle := XHandleFromGtkWidget(GLAreaGtk);
+  EglContext := PlatformContext as TGLContextEgl;
+  EglContext.WndPtr := XHandle;
+  Assert(EglContext.WndPtr <> nil); // XHandleFromGtkWidget already checks this and made exception if problem
+end;
+{$else}
+begin
+end;
+{$endif}
+
+{ TFmxOpenGLUtility ------------------------------------------------------------- }
+
+procedure TFmxOpenGLUtility.HandleNeeded;
+{$if defined(MSWINDOWS)}
+var
+  H: HWND;
+begin
+  if Control.Presentation = nil then
+    raise EInternalError.CreateFmt('%s: Cannot use ControlHandleNeeded as Presentation not created yet', [Control.ClassName]);
+  H := (Control.Presentation as TWinPresentation).Handle;
+  if H = 0 { NullHWnd } then
+    raise Exception.CreateFmt('%s: ControlHandleNeeded failed to create a handle', [Control.ClassName]);
+end;
+
+{$elseif defined(LINUX)}
+
+var
   Form: TCustomForm;
   LinuxHandle: TLinuxWindowHandle;
+  GtkWindow, GtkContainer, FirstChild: Pointer;
+  Children: PGList;
 begin
+  if GLAreaGtk <> nil then
+    Exit;
+
   { TODO: For TCastleControl, it is bad this:
     - assumes TCastleControl has form as direct parent
-    - creates context for whole form
   }
 
   if Control.Parent = nil then
@@ -82,60 +209,44 @@ begin
   if LinuxHandle = nil then
     raise Exception.CreateFmt('Form of %s does not have TLinuxHandle initialized yet', [Control.ClassName]);
 
-  GtkWnd := LinuxHandle.NativeHandle;
-  if GtkWnd = nil then
-    raise Exception.CreateFmt('Form of %s does not have GTK handle initialized yet', [Control.ClassName]);
+  if LinuxHandle.NativeHandle = nil then
+    raise Exception.CreateFmt('Form of %s does not have GTK NativeHandle initialized yet', [Control.ClassName]);
+  if LinuxHandle.NativeDrawingArea = nil then
+    raise Exception.CreateFmt('Form of %s does not have GTK NativeDrawingArea initialized yet', [Control.ClassName]);
 
-  GdkWnd := gtk_widget_get_window(GtkWnd);
-  if GdkWnd = nil then
-    raise Exception.CreateFmt('Form of %s does not have GDK handle initialized yet', [Control.ClassName]);
+  GLAreaGtk := LinuxHandle.NativeDrawingArea;
 
-  Result := gdk_x11_window_get_xid(GdkWnd);
-  if Result = nil then
-    raise Exception.CreateFmt('Form of %s does not have X11 handle initialized yet', [Control.ClassName]);
-end;
-{$endif}
+  (*
 
-procedure ContextAdjustEarly(const Control: TPresentedControl;
-  const PlatformContext: TGLContext);
-{$if defined(MSWINDOWS)}
-var
-  WinContext: TGLContextWgl;
-begin
-  WinContext := PlatformContext as TGLContextWgl;
-  WinContext.WndPtr :=
-    (Control.Presentation as TWinPresentation).Handle;
-  if WinContext.WndPtr = 0 then
-    raise Exception.Create('Native handle not ready when calling ContextAdjustEarly');
-  WinContext.h_Dc := GetWindowDC(WinContext.WndPtr);
+  // TODO: Should we free it somewhere?
+  GLAreaGtk := gtk_drawing_area_new;
+  //gtk_widget_set_double_buffered(GLAreaGtk, gfalse); // following Lazarus GTK OpenGL, not sure if needed
+  gtk_widget_show(GLAreaGtk);
+
+  GtkWindow := LinuxHandle.NativeHandle;
+  GtkContainer := g_type_check_instance_cast(GtkWindow, gtk_container_get_type);
+//  Children := gtk_container_get_children(GtkContainer);
+//  FirstChild := g_list_first(Children);
+//  // TODO: hack, remove existing to be able to add GLAreaGtk
+  // gtk_bin_get_child is simpler than dealing with GList, https://stackoverflow.com/questions/5401327/finding-children-of-a-gtkwidget
+
+  // TODO: removing fmx stuff is hacky and causes messages later
+  FirstChild := gtk_bin_get_child(GtkContainer);
+  gtk_container_remove(GtkContainer, FirstChild);
+//  gtk_container_remove(GtkContainer, LinuxHandle.NativeDrawingArea);
+
+  gtk_container_add(GtkContainer, GLAreaGtk);
+  gtk_widget_set_size_request(GLAreaGtk, 100, 100);
+  gtk_widget_realize(GLAreaGtk); // not needed since window will be shown anyway?
+  gtk_widget_show_all(GLAreaGtk);
+  *)
 end;
-{$elseif defined(LINUX)}
-var
-  EglContext: TGLContextEgl;
-begin
-  EglContext := PlatformContext as TGLContextEgl;
-  EglContext.WndPtr := XWindowHandle(Control);
-  Assert(EglContext.WndPtr <> nil); // XWindowHandle already checks this and made exception if problem
-end;
+
 {$else}
 begin
+  // Nothing to do on other platforms by default
 end;
-{$endif}
 
-procedure ControlHandleNeeded(const Control: TPresentedControl);
-{$ifdef MSWINDOWS}
-var
-  H: HWND;
-begin
-  if Control.Presentation = nil then
-    raise EInternalError.CreateFmt('%s: Cannot use ControlHandleNeeded as Presentation not created yet', [Control.ClassName]);
-  H := (Control.Presentation as TWinPresentation).Handle;
-  if H = 0 { NullHWnd } then
-    raise Exception.CreateFmt('%s: ControlHandleNeeded failed to create a handle', [Control.ClassName]);
-end;
-{$else}
-begin
-end;
 {$endif}
 
 end.
