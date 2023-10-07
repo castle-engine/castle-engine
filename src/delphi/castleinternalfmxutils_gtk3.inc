@@ -24,9 +24,10 @@ type
     Note: For many other types below, we've been lazy and just used "Pointer",
     instead of proper PGtkWidget etc. }
   GType = CULong;
+  GBoolean  = LongBool;
   GInt = CInt;
   PGList = Pointer;
-  Pgchar = PAnsiChar;
+  PGChar = PAnsiChar;
 
 function g_list_first(List: PGList): Pointer; cdecl; external 'libglib-2.0.so';
 
@@ -96,13 +97,27 @@ function gdk_x11_window_get_xid(widget: Pointer): Pointer; cdecl; external 'libg
 { Minimal GTK 3 API definition we need. }
 
 function gtk_widget_get_window(widget: Pointer): Pointer; cdecl; external 'libgtk-3.so.0';
-function gtk_drawing_area_new: Pointer; cdecl; external 'libgtk-3.so.0';
 procedure gtk_widget_show(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
+procedure gtk_widget_show_all(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
+procedure gtk_widget_realize(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
+procedure gtk_widget_set_size_request(Widget: Pointer; Width, Height: GInt); cdecl; external 'libgtk-3.so.0';
+function gtk_widget_get_parent(Widget: Pointer): Pointer; cdecl; external 'libgtk-3.so.0';
+ // deprecated and not necessary it seems:
+ //procedure gtk_widget_set_double_buffered(Widget: Pointer; double_buffered: gboolean); cdecl; external 'libgtk-3.so.0';
+
+function gtk_drawing_area_new: Pointer; cdecl; external 'libgtk-3.so.0';
+
 procedure gtk_container_add(Container: Pointer; Widget: Pointer); cdecl; external 'libgtk-3.so.0';
 procedure gtk_container_remove(Container: Pointer; Widget: Pointer); cdecl; external 'libgtk-3.so.0';
 function gtk_container_get_type: GType; cdecl; external 'libgtk-3.so.0';
 function gtk_container_get_children(Container: Pointer): PGList; cdecl; external 'libgtk-3.so.0';
+
+function gtk_fixed_get_type: GType; cdecl; external 'libgtk-3.so.0';
+{ Adds a widget to a GtkFixed container at the given position.
+  https://docs.gtk.org/gtk3/method.Fixed.put.html }
+procedure gtk_fixed_put(Fixed: Pointer; Widget: Pointer; x, y: GInt); cdecl; external 'libgtk-3.so.0';
+{ Moves a child of a GtkFixed container to the given position.
+  https://docs.gtk.org/gtk3/method.Fixed.move.html }
+procedure gtk_fixed_move(Fixed: Pointer; Widget: Pointer; x, y: GInt); cdecl; external 'libgtk-3.so.0';
+
 function gtk_bin_get_child(Bin: Pointer): Pointer; cdecl; external 'libgtk-3.so.0';
-procedure gtk_widget_show_all(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
-procedure gtk_widget_realize(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
-procedure gtk_widget_set_size_request(Widget: Pointer; Width, Height: GInt); cdecl; external 'libgtk-3.so.0';

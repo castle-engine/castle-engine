@@ -49,6 +49,7 @@ type
     FMX TOpenGLControl and FMX TCastleControl. }
   TFmxOpenGLUtility = class
   private
+    GLAreaInitialized: Boolean;
     GLAreaGtk: Pointer;
   public
     { Set before calling HandleNeeded.
@@ -163,16 +164,20 @@ end;
 var
   Form: TCustomForm;
   LinuxHandle: TLinuxWindowHandle;
-  GtkWindow, GtkContainer, FirstChild: Pointer;
-  Children: PGList;
+  DrawingAreaParent, DrawingAreaParentAsFixed: Pointer;
+  DrawingAreaParentClassName: AnsiString;
 begin
-  if GLAreaGtk <> nil then
+  { Use GLAreaInitialized, instead of check GLAreaGtk <> nil,
+    to avoid repeating this when some check below raises exception
+    and GLAreaGtk would always remain nil. }
+  if GLAreaInitialized then
     Exit;
+  GLAreaInitialized := true;
 
-  { TODO: For TCastleControl, it is bad this:
-    - assumes TCastleControl has form as direct parent
+  { TODO: For TCastleControl, it is bad this
+    assumes TCastleControl has form as direct parent.
+    We could extract form somehow better, check Parent recursively maybe?
   }
-
   if Control.Parent = nil then
     raise Exception.CreateFmt('Parent of %s must be set', [Control.ClassName]);
   // This actually also tests Parent <> nil, but previous check makes better error message
@@ -186,42 +191,42 @@ begin
 
   if LinuxHandle.NativeHandle = nil then
     raise Exception.CreateFmt('Form of %s does not have GTK NativeHandle initialized yet', [Control.ClassName]);
+
   if LinuxHandle.NativeDrawingArea = nil then
     raise Exception.CreateFmt('Form of %s does not have GTK NativeDrawingArea initialized yet', [Control.ClassName]);
 
-  // TODO: Should we free it somewhere?
+  { Tests show that parent of is GtkFixed,
+    this makes things easy for us to insert GLAreaGtk later. }
+  DrawingAreaParent := gtk_widget_get_parent(LinuxHandle.NativeDrawingArea);
+  if DrawingAreaParent = nil then
+    raise Exception.Create('FMX drawing area in GTK has no parent');
+
+  DrawingAreaParentClassName := G_OBJECT_TYPE_NAME(DrawingAreaParent);
+  if DrawingAreaParentClassName <> 'GtkFixed' then
+    WritelnWarning('FMX drawing area has parent with unexpected class "%s". We will try to continue it and cast it to GtkFixed', [
+      DrawingAreaParentClassName
+    ]);
+
+  DrawingAreaParentAsFixed := g_type_check_instance_cast(DrawingAreaParent, gtk_fixed_get_type);
+
+  { Initialization of variables and checks are done.
+    Now actually create GLAreaGtk, if things look sensible. }
+
   GLAreaGtk := gtk_drawing_area_new;
-  //gtk_widget_set_double_buffered(GLAreaGtk, gfalse); // following Lazarus GTK OpenGL, not sure if needed
+  // Do this using gtk_fixed_put instead:
+  //gtk_container_add(DrawingAreaParentAsFixed, GLAreaGtk);
+  gtk_fixed_put(DrawingAreaParentAsFixed, GLAreaGtk,
+    Round(Control.Position.X), Round(Control.Position.Y));
+  gtk_widget_set_size_request(GLAreaGtk,
+    Round(Control.Size.Width), Round(Control.Size.Height));
   gtk_widget_show(GLAreaGtk);
 
-  GtkWindow := LinuxHandle.NativeHandle;
-  GtkContainer := g_type_check_instance_cast(GtkWindow, gtk_container_get_type);
-//  Children := gtk_container_get_children(GtkContainer);
-//  FirstChild := g_list_first(Children);
-//  // TODO: hack, remove existing to be able to add GLAreaGtk
-  // gtk_bin_get_child is simpler than dealing with GList, https://stackoverflow.com/questions/5401327/finding-children-of-a-gtkwidget
-
-  // TODO: removing fmx stuff is hacky and causes messages later
-  FirstChild := gtk_bin_get_child(GtkContainer);
-  Writeln('FirstChild = LinuxHandle.NativeDrawingArea ', FirstChild = LinuxHandle.NativeDrawingArea);
-  // hmm, returns nil? empty string?
-  Writeln('FirstChild type ', G_OBJECT_TYPE_NAME(FirstChild));
-  Writeln('LinuxHandle.NativeHandle type ', G_OBJECT_TYPE_NAME(LinuxHandle.NativeHandle));
-  Writeln('LinuxHandle.NativeDrawingArea type ', G_OBJECT_TYPE_NAME(LinuxHandle.NativeDrawingArea));
-  Writeln('GLAreaGtk type ', G_OBJECT_TYPE_NAME(GLAreaGtk));
-
-  //gtk_container_remove(GtkContainer, FirstChild);
-//  gtk_container_remove(GtkContainer, LinuxHandle.NativeDrawingArea);
-
-(*
-  gtk_container_add(GtkContainer, GLAreaGtk);
-  gtk_widget_set_size_request(GLAreaGtk, 100, 100);
-  gtk_widget_realize(GLAreaGtk); // not needed since window will be shown anyway?
-  gtk_widget_show_all(GLAreaGtk);
-  *)
-
-  // bah, override to not crash
-  GLAreaGtk := LinuxHandle.NativeDrawingArea;
+  { Debugging what are some Gtk classes, to reverse-engineer what FMXLinux
+    is doing inside it's closed library:
+  WritelnLog('LinuxHandle.NativeHandle type ' + G_OBJECT_TYPE_NAME(LinuxHandle.NativeHandle));
+  WritelnLog('LinuxHandle.NativeDrawingArea type ' + G_OBJECT_TYPE_NAME(LinuxHandle.NativeDrawingArea));
+  WritelnLog('GLAreaGtk type ' + G_OBJECT_TYPE_NAME(GLAreaGtk));
+  }
 end;
 
 {$else}
