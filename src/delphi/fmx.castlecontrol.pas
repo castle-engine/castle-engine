@@ -263,6 +263,7 @@ begin
 
   FGLUtility := TFmxOpenGLUtility.Create;
   FGLUtility.Control := Self;
+  FGLUtility.OnHandleCreatedEvent := CreateHandle;
 
   { In FMX, this causes adding WS_TABSTOP to Params.Style
     in TWinPresentation.CreateParams. So it is more efficient to call
@@ -553,16 +554,6 @@ end;
 procedure TCastleControl.InternalHandleNeeded;
 begin
   FGLUtility.HandleNeeded;
-
-  {$if defined(LINUX)}
-  { There seems to be no way to create a handle for something else
-    than entire TCastleForm on FMXLinux.
-    So here we just initialize the context immediately (it will use
-    form's handle). }
-  CreateHandle;
-
-  // TODO: Where to call DestroyHandle
-  {$endif}
 end;
 
 function TCastleControl.DefinePresentationName: String;

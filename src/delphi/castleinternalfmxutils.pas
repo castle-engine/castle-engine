@@ -25,6 +25,8 @@ uses FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
   CastleInternalContextBase;
 
 type
+  THandleCreatedEvent = procedure of object;
+
   { Utility for FMX controls to help them initialize OpenGL context.
 
     This tries to abstract as much as possible the platform-specific ways
@@ -55,6 +57,19 @@ type
     { Set before calling HandleNeeded.
       Cannot change during lifetime of this instance, for now. }
     Control: TPresentedControl;
+
+    { Called, if assigned, but only on platforms where
+      FMX Presentation is not available.
+      This also implies it is called only on platforms
+      where our code creates the native handle we need,
+      e.g. Gtk handle on Linux.
+
+      This means this is called now only on Delphi/Linux.
+
+      On Delphi/Windows, use FMX Presentation features
+      instead of register notifications when handle is created/
+      destroyed. }
+    OnHandleCreatedEvent: THandleCreatedEvent;
 
     { Make sure that Control has initialized internal Handle.
 
@@ -227,6 +242,9 @@ begin
   WritelnLog('LinuxHandle.NativeDrawingArea type ' + G_OBJECT_TYPE_NAME(LinuxHandle.NativeDrawingArea));
   WritelnLog('GLAreaGtk type ' + G_OBJECT_TYPE_NAME(GLAreaGtk));
   }
+
+  if Assigned(OnHandleCreatedEvent) then
+    OnHandleCreatedEvent();
 end;
 
 {$else}
