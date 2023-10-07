@@ -78,6 +78,10 @@ begin
   Result := G_TYPE_FROM_INSTANCE(anObject);
 end;
 
+{ Return a name of type of given instance, like 'GtkWindow'.
+  Very useful for debugging.
+  Following GTK docs, caller is *not* resposible for freeing the returned
+  Pgchar pointer. }
 function G_OBJECT_TYPE_NAME(anObject: pointer): Pgchar;
 begin
   Result := g_type_name(G_OBJECT_TYPE(anObject));
