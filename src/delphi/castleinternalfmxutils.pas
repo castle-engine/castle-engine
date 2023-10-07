@@ -97,32 +97,7 @@ uses
   CastleLog, CastleUtils;
 
 {$if defined(LINUX)}
-type
-  GType = CULong;
-  GInt = CInt;
-  PGList = Pointer;
-
-{ Minimal GTK 3 API definition we need. }
-function gtk_widget_get_window(widget: Pointer): Pointer; cdecl; external 'libgtk-3.so.0';
-function gtk_drawing_area_new: Pointer; cdecl; external 'libgtk-3.so.0';
-procedure gtk_widget_show(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
-procedure gtk_container_add(Container: Pointer; Widget: Pointer); cdecl; external 'libgtk-3.so.0';
-procedure gtk_container_remove(Container: Pointer; Widget: Pointer); cdecl; external 'libgtk-3.so.0';
-function gtk_container_get_type: GType; cdecl; external 'libgtk-3.so.0';
-function gtk_container_get_children(Container: Pointer): PGList; cdecl; external 'libgtk-3.so.0';
-function gtk_bin_get_child(Bin: Pointer): Pointer; cdecl; external 'libgtk-3.so.0';
-procedure gtk_widget_show_all(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
-procedure gtk_widget_realize(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
-procedure gtk_widget_set_size_request(Widget: Pointer; Width, Height: GInt); cdecl; external 'libgtk-3.so.0';
-
-{ Minimal GDK 3 API definition we need. }
-function gdk_x11_window_get_xid(widget: Pointer): Pointer; cdecl; external 'libgdk-3.so.0';
-
-{ Minimal glib }
-function g_list_first(List: PGList): Pointer; cdecl; external 'libglib-2.0.so';
-
-{ Minimal glib-gobject }
-function g_type_check_instance_cast(instance: Pointer; iface_type: GType): Pointer; cdecl; external 'libgobject-2.0.so';
+  {$I castleinternalfmxutils_gtk3.inc}
 {$endif}
 
 procedure TFmxOpenGLUtility.ContextAdjustEarly(const PlatformContext: TGLContext);
@@ -214,10 +189,6 @@ begin
   if LinuxHandle.NativeDrawingArea = nil then
     raise Exception.CreateFmt('Form of %s does not have GTK NativeDrawingArea initialized yet', [Control.ClassName]);
 
-  GLAreaGtk := LinuxHandle.NativeDrawingArea;
-
-  (*
-
   // TODO: Should we free it somewhere?
   GLAreaGtk := gtk_drawing_area_new;
   //gtk_widget_set_double_buffered(GLAreaGtk, gfalse); // following Lazarus GTK OpenGL, not sure if needed
@@ -232,14 +203,25 @@ begin
 
   // TODO: removing fmx stuff is hacky and causes messages later
   FirstChild := gtk_bin_get_child(GtkContainer);
-  gtk_container_remove(GtkContainer, FirstChild);
+  Writeln('FirstChild = LinuxHandle.NativeDrawingArea ', FirstChild = LinuxHandle.NativeDrawingArea);
+  // hmm, returns nil? empty string?
+  Writeln('FirstChild type ', G_OBJECT_TYPE_NAME(FirstChild));
+  Writeln('LinuxHandle.NativeHandle type ', G_OBJECT_TYPE_NAME(LinuxHandle.NativeHandle));
+  Writeln('LinuxHandle.NativeDrawingArea type ', G_OBJECT_TYPE_NAME(LinuxHandle.NativeDrawingArea));
+  Writeln('GLAreaGtk type ', G_OBJECT_TYPE_NAME(GLAreaGtk));
+
+  //gtk_container_remove(GtkContainer, FirstChild);
 //  gtk_container_remove(GtkContainer, LinuxHandle.NativeDrawingArea);
 
+(*
   gtk_container_add(GtkContainer, GLAreaGtk);
   gtk_widget_set_size_request(GLAreaGtk, 100, 100);
   gtk_widget_realize(GLAreaGtk); // not needed since window will be shown anyway?
   gtk_widget_show_all(GLAreaGtk);
   *)
+
+  // bah, override to not crash
+  GLAreaGtk := LinuxHandle.NativeDrawingArea;
 end;
 
 {$else}
