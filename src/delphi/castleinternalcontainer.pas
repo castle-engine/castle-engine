@@ -398,7 +398,19 @@ begin
       C.DoUpdate;
   end;
   ApplicationProperties._Update;
+
+  { For unknown reason, this causes weird application freezes on FMXLinux.
+    Application update seems not to work, controls (both our OpenGL and
+    regular FMX) seem occasionally not rendered (esp. after window resize),
+    buttons react to clicks unreliably.
+
+    Note: in case of Linux, this code is only used when Delphi + Linux + FMX.
+    Because TCastleContainerEasy is only used with Delphi for FMX and VCL,
+    and on Linux only FMX is possible. }
+
+  {$ifndef LINUX}
   DoLimitFPS;
+  {$endif}
 end;
 
 procedure TCastleContainerEasy.LoadDesign;
