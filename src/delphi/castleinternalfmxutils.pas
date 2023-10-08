@@ -224,6 +224,11 @@ begin
 
   DrawingAreaParentAsFixed := g_type_check_instance_cast(DrawingAreaParent, gtk_fixed_get_type);
 
+  { Note: We tested alternative solution
+      GLAreaGtk := LinuxHandle.NativeDrawingArea;
+    which seems to make sense when GLAreaGtk should just fill the whole window,
+    like for TCastleWindow. But it causes blinking. }
+
   { Initialization of variables and checks are done.
     Now actually create GLAreaGtk, if things look sensible. }
 
