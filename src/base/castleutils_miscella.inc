@@ -386,6 +386,10 @@ end;
 
   Doing this from TCastleTransform.SetRotation every frame
   causes the screen to go black when rendering on Delphi/Linux.
+
+  Also FPC display is then never updated, and it seems
+  FRealFps or FOnlyRenderFps never changes.
+
   Compiler bug?
   Doing it in a simpler way, just initialize DefaultFormatSettings once,
   works better. }
