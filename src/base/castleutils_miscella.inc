@@ -419,8 +419,8 @@ begin
     20,
     2);
 
-  { We just remove trailing digits after decimal separator, we don't need them.
-    A less hacky way (that doens't involve string fixing) would be nicer,
+  { We remove trailing zeroes after decimal separator, we don't need them.
+    A less hacky way (that doesn't involve string fixing) would be nicer,
     but it doesn't seem possible based on FloatToStrF possibilities,
     at least with FPC. }
   if Pos('.', Result) <> 0 then
