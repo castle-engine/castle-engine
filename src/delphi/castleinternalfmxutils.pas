@@ -162,24 +162,25 @@ begin
     and then TCastleWindow (in case of CASTLE_WINDOW_FORM)
     or TCastleControl will handle the event from FMX. }
   PassSignalToOtherWidget('button_press_event', Data, Event);
-  Result := true;
+  Result := false;
 end;
 
 function signal_button_release_event(AGLAreaGtk: Pointer; Event: PGdkEventAny;
   Data: Pointer): gboolean; cdecl;
 begin
   PassSignalToOtherWidget('button_release_event', Data, Event);
-  Result := true;
+  Result := false;
 end;
 
-(*
 function signal_motion_notify_event(AGLAreaGtk: Pointer; Event: PGdkEventAny;
   Data: Pointer): gboolean; cdecl;
 begin
-  Writeln('signal_motion_notify_event');
-  Result := true;
+  { We need own motion_notify_event otherwise events do not reach
+    FMX after you clicked (when mouse events are grabbed),
+    regardless of button_press_event return value. }
+  PassSignalToOtherWidget('motion_notify_event', Data, Event);
+  Result := false;
 end;
-*)
 {$endif}
 
 { TFmxOpenGLUtility ------------------------------------------------------------- }
@@ -306,16 +307,15 @@ begin
   gtk_widget_set_events(GLAreaGtk,
     // GDK_EXPOSURE_MASK {for expose_event} or
     GDK_BUTTON_PRESS_MASK {for button_press_event} or
-    GDK_BUTTON_RELEASE_MASK {for button_release_event}
-    //or GDK_POINTER_MOTION_MASK {for motion_notify_event}
+    GDK_BUTTON_RELEASE_MASK {for button_release_event} or
+    GDK_POINTER_MOTION_MASK {for motion_notify_event}
   );
   g_signal_connect(GLAreaGtk, 'button_press_event', @signal_button_press_event,
     LinuxHandle.NativeDrawingArea);
   g_signal_connect(GLAreaGtk, 'button_release_event', @signal_button_release_event,
     LinuxHandle.NativeDrawingArea);
-  // We don't need to register on motion
-  //  g_signal_connect(GLAreaGtk, 'motion_notify_event', @signal_motion_notify_event,
-  //    LinuxHandle.NativeDrawingArea);
+  g_signal_connect(GLAreaGtk, 'motion_notify_event', @signal_motion_notify_event,
+    LinuxHandle.NativeDrawingArea);
 
   // Do this using gtk_fixed_put instead:
   //gtk_container_add(DrawingAreaParentAsFixed, GLAreaGtk);
