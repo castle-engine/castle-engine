@@ -371,10 +371,27 @@ begin
 end;
 
 {$ifndef FPC}
-function DefaultFormatSettings: TFormatSettings;
-begin
-  Result := TFormatSettings.Create;
-end;
+{ Delphi on Linux has weird bugs when one tries to use TFormatSettings.Create
+  too often, which would happen if we define
+
+    function DefaultFormatSettings: TFormatSettings;
+    begin
+      Result := TFormatSettings.Create;
+    end;
+
+  and then use e.g. FloatToStrDisplay from TVector3.ToString,
+  by printing in each update:
+
+    Writeln('Got SetRotation ', FRotation.ToString);
+
+  Doing this from TCastleTransform.SetRotation every frame
+  causes the screen to go black when rendering on Delphi/Linux.
+  Compiler bug?
+  Doing it in a simpler way, just initialize DefaultFormatSettings once,
+  works better. }
+
+var
+  DefaultFormatSettings: TFormatSettings;
 {$endif}
 
 function FormatDot(const Fmt: String; const Args: array of const): String;

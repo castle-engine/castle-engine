@@ -153,9 +153,13 @@ initialization
   SetMultiByteConversionCodePage(CP_UTF8);
   // SetMultiByteFileSystemCodePage(CP_UTF8); not needed, this is the default under Windows
 
-{$IFDEF FPC}
+  {$ifdef FPC}
   SetMultiByteRTLFileSystemCodePage(CP_UTF8);
- {$ENDIF}
+  {$endif}
+
+  {$ifndef FPC}
+  DefaultFormatSettings := TFormatSettings.Create;
+  {$endif}
 finalization
   FinalizationOSSpecific;
 end.
