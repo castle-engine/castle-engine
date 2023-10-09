@@ -114,7 +114,75 @@ uses
 
 {$if defined(LINUX)}
   {$I castleinternalfmxutils_gtk3.inc}
+
+procedure PassSignalToOtherWidget(const SignalName: AnsiString;
+  const OtherWidget: Pointer; const Event: Pointer);
+var
+  SignalEmitArgs: array[0..2] of TGValue;
+  ReturnValue: TGValue;
+  SignalInt: CUInt;
+begin
+  SignalInt := g_signal_lookup(PAnsiChar(SignalName), G_TYPE_FROM_INSTANCE(OtherWidget));
+  if SignalInt = 0 then
+    raise Exception.CreateFmt('Signal "%s" on target not found', [SignalName]);
+
+  { Initialize GValue list.
+    - 1st item must be instance to which we send signal,
+    - then params of that signal (just Event),
+    - then finish (leave uinitialized GValue,
+      "uinitialized" == filled with zeroes for glib).
+
+    Note that we have to fill initially values with zeroes, otherwise
+    it could be mistaken with initialized value with some garbage and cause
+    valid glib warnings/errors. }
+  FillChar(SignalEmitArgs, SizeOf(SignalEmitArgs), 0);
+  g_value_init(@SignalEmitArgs[0], G_TYPE_OBJECT);
+  g_value_set_instance(@SignalEmitArgs[0], OtherWidget);
+  g_value_init(@SignalEmitArgs[1], G_TYPE_POINTER);
+  g_value_set_pointer(@SignalEmitArgs[1], Event);
+
+  { Initialie ReturnValue (GValue). Despite docs,
+    g_signal_emitv cannot get nil as return value. }
+  FillChar(ReturnValue, SizeOf(ReturnValue), 0);
+  g_value_init(@ReturnValue, G_TYPE_BOOLEAN);
+  g_value_set_boolean(@ReturnValue, false);
+
+  g_signal_emitv(@SignalEmitArgs, SignalInt, 0, @ReturnValue);
+
+  g_value_unset(@SignalEmitArgs[0]);
+  g_value_unset(@SignalEmitArgs[1]);
+  g_value_unset(@ReturnValue);
+end;
+
+function signal_button_press_event(AGLAreaGtk: Pointer; Event: PGdkEventAny;
+  Data: Pointer): gboolean; cdecl;
+begin
+  { Pass the signal to FMX control,
+    which will make FMX callbacks,
+    and then TCastleWindow (in case of CASTLE_WINDOW_FORM)
+    or TCastleControl will handle the event from FMX. }
+  PassSignalToOtherWidget('button_press_event', Data, Event);
+  Result := true;
+end;
+
+function signal_button_release_event(AGLAreaGtk: Pointer; Event: PGdkEventAny;
+  Data: Pointer): gboolean; cdecl;
+begin
+  PassSignalToOtherWidget('button_release_event', Data, Event);
+  Result := true;
+end;
+
+(*
+function signal_motion_notify_event(AGLAreaGtk: Pointer; Event: PGdkEventAny;
+  Data: Pointer): gboolean; cdecl;
+begin
+  Writeln('signal_motion_notify_event');
+  Result := true;
+end;
+*)
 {$endif}
+
+{ TFmxOpenGLUtility ------------------------------------------------------------- }
 
 procedure TFmxOpenGLUtility.ContextAdjustEarly(const PlatformContext: TGLContext);
 {$if defined(MSWINDOWS)}
@@ -159,8 +227,6 @@ end;
 begin
 end;
 {$endif}
-
-{ TFmxOpenGLUtility ------------------------------------------------------------- }
 
 procedure TFmxOpenGLUtility.HandleNeeded;
 {$if defined(MSWINDOWS)}
@@ -233,6 +299,24 @@ begin
     Now actually create GLAreaGtk, if things look sensible. }
 
   GLAreaGtk := gtk_drawing_area_new;
+
+  { connect signal handlers to GLAreaGtk }
+  { What events to catch ? It must cover all signal_yyy_event functions that we
+    will connect. This must be called before X Window is created. }
+  gtk_widget_set_events(GLAreaGtk,
+    // GDK_EXPOSURE_MASK {for expose_event} or
+    GDK_BUTTON_PRESS_MASK {for button_press_event} or
+    GDK_BUTTON_RELEASE_MASK {for button_release_event}
+    //or GDK_POINTER_MOTION_MASK {for motion_notify_event}
+  );
+  g_signal_connect(GLAreaGtk, 'button_press_event', @signal_button_press_event,
+    LinuxHandle.NativeDrawingArea);
+  g_signal_connect(GLAreaGtk, 'button_release_event', @signal_button_release_event,
+    LinuxHandle.NativeDrawingArea);
+  // We don't need to register on motion
+  //  g_signal_connect(GLAreaGtk, 'motion_notify_event', @signal_motion_notify_event,
+  //    LinuxHandle.NativeDrawingArea);
+
   // Do this using gtk_fixed_put instead:
   //gtk_container_add(DrawingAreaParentAsFixed, GLAreaGtk);
   gtk_fixed_put(DrawingAreaParentAsFixed, GLAreaGtk,
