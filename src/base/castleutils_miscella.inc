@@ -390,9 +390,14 @@ end;
   Also FPC display is then never updated, and it seems
   FRealFps or FOnlyRenderFps never changes.
 
-  Compiler bug?
+  Also sprite sheets animation then hangs from time to time.
+
+  Compiler bug? The relations are completely weird.
+  And the weird stuff is only on Delphi/Linux,
+  works fine with Delphi/Windows (and FPC naturally too, but FPC
+  has simpler DefaultFormatSettings).
   Doing it in a simpler way, just initialize DefaultFormatSettings once,
-  works better. }
+  works better and makes all above weird problems disappear. }
 
 var
   DefaultFormatSettings: TFormatSettings;
