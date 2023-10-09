@@ -499,6 +499,8 @@ tests:
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ --mode=debug compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ run -- ../../../
+# Conserve disk space for GH actions
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ clean
 # Run in debug mode
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile
@@ -516,10 +518,14 @@ tests:
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=release --compiler-option=-dNO_WINDOW_SYSTEM compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+# Conserve disk space for GH actions
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 # Run tests in tools/build-tool/tests
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/build-tool/tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/build-tool/tests/ --mode=debug compile
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/build-tool/tests/ run -- --all
+# Conserve disk space for GH actions
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/build-tool/tests/ clean
 
 # fpmake ---------------------------------------------------------------------
 
