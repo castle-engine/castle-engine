@@ -30,7 +30,7 @@ uses SysUtils,
   CastleApplicationProperties,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
   ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcess,
-  ToolCache;
+  ToolCache, ToolCompilerInfo;
 
 var
   Target: TTarget;
@@ -50,7 +50,7 @@ var
   GuidFromName: Boolean = false;
 
 const
-  Options: array [0..24] of TOption =
+  Options: array [0..25] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -65,6 +65,7 @@ const
     (Short: #0 ; Long: 'fpc-version-iphone-simulator'; Argument: oaRequired),
     (Short: #0 ; Long: 'compiler-option'; Argument: oaRequired),
     (Short: #0 ; Long: 'output'; Argument: oaRequired),
+    (Short: #0 ; Long: 'output-environment'; Argument: oaRequired),
     (Short: #0 ; Long: 'project'; Argument: oaRequired),
     (Short: #0 ; Long: 'package-format'; Argument: oaRequired),
     (Short: #0 ; Long: 'package-name-no-version'; Argument: oaNone),
@@ -181,6 +182,12 @@ begin
             '    Next parameter determines the information:' + NL +
             '      version' + NL +
             '      version-code' + NL +
+            NL+
+            'output-environment' +NL+
+            '    Output some environment informations.' + NL +
+            '    Next parameter determines the information:' + NL +
+            '      fpc-exe' + NL +
+            '      ???' + NL +
             NL+
             'cache' +NL+
             '    Create cache to speed up future compilations.' + NL +
@@ -379,6 +386,11 @@ begin
   begin
     Parameters.CheckHigh(1);
     CacheClean;
+  end else
+  if Command = 'output-environment' then
+  begin
+    Parameters.CheckHigh(2);
+    DoOutputEnvironment(Parameters[2]);
   end else
   begin
     if (Command <> 'run') and (Command <> 'output') then

@@ -41,6 +41,10 @@ function FindExeLazarus(const ExeName: String): String;
   and LazarusCustomPath. }
 function PathExtendForFpcLazarus(const PathList: String): String;
 
+{ Returns compiler info to std output
+  Keys: fpc-exe - path to the compiler executable }
+procedure DoOutputEnvironment(const OutputKey: String);
+
 type
   EExecutableNotFound = class(EShortErrorMessage);
 
@@ -144,6 +148,14 @@ begin
 
   if LazarusCustomPath <> '' then
     Result := PathAppend(Result, LazarusCustomPath);
+end;
+
+procedure DoOutputEnvironment(const OutputKey: String);
+begin
+  case OutputKey of
+    'fpc-exe': Writeln(FindExeFpcCompiler(false));
+    else raise Exception.CreateFmt('Unsupported output key: "%s"', [OutputKey]);
+  end;
 end;
 
 function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean; out FpcStandardUnitsPath: String): String;
