@@ -181,6 +181,13 @@ begin
   PassSignalToOtherWidget('motion_notify_event', Data, Event);
   Result := false;
 end;
+
+function signal_scroll_event(AGLAreaGtk: Pointer; Event: PGdkEventAny;
+  Data: Pointer): gboolean; cdecl;
+begin
+  PassSignalToOtherWidget('scroll_event', Data, Event);
+  Result := false;
+end;
 {$endif}
 
 { TFmxOpenGLUtility ------------------------------------------------------------- }
@@ -315,6 +322,8 @@ begin
   g_signal_connect(GLAreaGtk, 'button_release_event', @signal_button_release_event,
     LinuxHandle.NativeDrawingArea);
   g_signal_connect(GLAreaGtk, 'motion_notify_event', @signal_motion_notify_event,
+    LinuxHandle.NativeDrawingArea);
+  g_signal_connect(GLAreaGtk, 'scroll_event', @signal_scroll_event,
     LinuxHandle.NativeDrawingArea);
 
   // Do this using gtk_fixed_put instead:
