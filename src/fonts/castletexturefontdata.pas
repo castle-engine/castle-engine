@@ -482,6 +482,11 @@ begin
   FAntiAliased := AnAntiAliased;
   FUseFallbackGlyph := true;
 
+  // WritelnLog('Creating font from %s with %d glyphs', [
+  //   AImage.URL,
+  //   AGlyphs.Count
+  // ]);
+
   { split AGlyphs into FGlyphsByte and FGlyphsExtra }
   FGlyphsExtra := TGlyphDictionary.Create;
   for GlyphPair in AGlyphs do
