@@ -1030,7 +1030,7 @@ function RotatePointAroundAxisRad(const Angle: Single; const Point: TVector3;
   const Axis: TVector3): TVector3;
 var
   X, Y, Z, L: Single;
-  SinAngle, CosAngle: Float;
+  SinAngle, CosAngle: Single;
 begin
   SinCos(Angle, SinAngle, CosAngle);
 

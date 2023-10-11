@@ -566,7 +566,7 @@ procedure DrawCircle(const Middle: TVector2;
   const ForceBlending: boolean = false);
 var
   CirclePoint: array of TVector2;
-  PreviousSin, PreviousCos, NextSin, NextCos: Float;
+  PreviousSin, PreviousCos, NextSin, NextCos: Single;
   I: Integer;
 begin
   SetLength(CirclePoint, CircleSlices * 3);
@@ -618,7 +618,7 @@ procedure DrawCircleOutline(const Middle: TVector2;
   const ForceBlending: boolean = false);
 var
   CirclePoint: array of TVector2;
-  S, C: Float;
+  S, C: Single;
   I: Integer;
 begin
   SetLength(CirclePoint, CircleSlices);

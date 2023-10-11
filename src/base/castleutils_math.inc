@@ -345,7 +345,7 @@ procedure MinMax(const x0, x1, x2: Double; out min, max: Double); overload;
 procedure MinMax(const x0, x1, x2: Single; out min, max: Single); overload;
 
 { Our version of CoTan, to workaround @url(http://www.freepascal.org/mantis/view.php?id=9944 old FPC bug). }
-function CastleCoTan(const Value: Float): Float;
+function CastleCoTan(const Value: Single): Single;
 
 { Floor from Sqrt(Value). }
 function IntSqrt(const Value: Cardinal): Cardinal;
@@ -418,6 +418,22 @@ function Deg(const Degrees: Float): Float;
 type
   EVectorInvalidOp = class(Exception);
   ETransformedResultInvalid = class(EVectorInvalidOp);
+
+{ Precalculated approximate sinus and cosinus.
+  Tests (FPC 3.2.2, release options, Win64) show that this is faster 2x than
+  Math.SinCos.
+  Moreover, this workarounds some Delphi/Linux compiler bugs
+  (testcase: play_animation with dragon.json Spine, using SinCos makes
+  rendering go black). }
+procedure CastleSinCos(const Angle: Single; out S, C: Single);
+
+{ Our CastleSinCos avoids weird Delphi/Linux bugs. }
+{$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+  {$define USE_CASTLE_SINCOS}
+{$endif}
+{$ifdef USE_CASTLE_SINCOS}
+procedure SinCos(const Angle: Single; out S, C: Single);
+{$endif}
 
 {$endif read_interface}
 
@@ -1075,9 +1091,9 @@ begin
     if x2 > max then max := x2;
 end;
 
-function CastleCoTan(const Value: Float): Float;
+function CastleCoTan(const Value: Single): Single;
 var
-  ASin, ACos: Float;
+  ASin, ACos: Single;
 begin
   SinCos(Value, ASin, ACos);
   Result := Acos / ASin;
@@ -1397,5 +1413,45 @@ function Deg(const Degrees: Float): Float;
 begin
   Result := DegToRad(Degrees);
 end;
+
+var
+  { Precalculated sinus for angle from 0 .. 2 * Pi.
+
+    Note: We could make this array even 4x smaller,
+    and PrecalculateSinus 4x faster.
+    Since we really only need 0 .. Pi / 2,
+    the rest can be derived as sinus is symmetrical and then negative.
+
+    But we wanted to keep the CastleSinCos implementation simple and fast,
+    and practically there's no need to optimize memory of this array more. }
+  CalculatedSinus: array [0..2 * 314] of Single;
+
+procedure PrecalculateSinus;
+var
+  I: Integer;
+begin
+  for I := Low(CalculatedSinus) to High(CalculatedSinus) do
+    CalculatedSinus[I] := Sin(I / 100);
+end;
+
+procedure CastleSinCos(const Angle: Single; out S, C: Single);
+var
+  AngleInt: Integer;
+begin
+  AngleInt := Clamped(Round(FloatModulo(Angle, 2 * Pi) * 100),
+    Low(CalculatedSinus), High(CalculatedSinus));
+  S := CalculatedSinus[AngleInt];
+
+  // Cos(x) = Sin(x + Pi/2). In our integer coordinates, 157 is Pi/2
+  AngleInt := (AngleInt + 157) mod (High(CalculatedSinus) + 1);
+  C := CalculatedSinus[AngleInt];
+end;
+
+{$ifdef USE_CASTLE_SINCOS}
+procedure SinCos(const Angle: Single; out S, C: Single);
+begin
+  CastleSinCos(Angle, S, C);
+end;
+{$endif}
 
 {$endif read_implementation}

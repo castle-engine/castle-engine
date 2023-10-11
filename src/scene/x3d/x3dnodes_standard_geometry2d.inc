@@ -181,7 +181,7 @@ var
   C: TCoordinateNode;
   LineSet: TLineSetNode absolute Result;
   I: Integer;
-  AngleSin, AngleCos: Float;
+  AngleSin, AngleCos: Single;
 begin
   LineSet := TLineSetNode.Create(X3DName, BaseUrl);
   try
