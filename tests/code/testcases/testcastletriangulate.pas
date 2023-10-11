@@ -48,7 +48,7 @@ const
     (X: 1; Y: -1; Z: 0),
     (X: 0; Y:  0; Z: 0)
   );
-  Indexes: array [0..3] of LongInt = (0, 1, 2, 3);
+  Indexes: array [0..3] of Int32 = (0, 1, 2, 3);
 begin
   AssertVectorEquals(
     IndexedPolygonNormal(@Indexes, High(Indexes) + 1,
