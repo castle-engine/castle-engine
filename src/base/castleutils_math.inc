@@ -422,14 +422,14 @@ type
 { Precalculated approximate sinus and cosinus.
   Tests (FPC 3.2.2, release options, Win64) show that this is faster 2x than
   Math.SinCos.
-  Moreover, this workarounds some Delphi/Linux compiler bugs
-  (testcase: play_animation with dragon.json Spine, using SinCos makes
-  rendering go black). }
+  TODO: Not practically used, for now. }
 procedure CastleSinCos(const Angle: Single; out S, C: Single);
 
-{ Our CastleSinCos avoids weird Delphi/Linux bugs. }
+{ Our CastleSinCos avoids weird Delphi/Linux bugs.
+  TODO: No, this was a false trail, it doesn't fix problems.
+  Keeping it for now, just in case it is a partial solution. }
 {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
-  {$define USE_CASTLE_SINCOS}
+  {.$define USE_CASTLE_SINCOS}
 {$endif}
 {$ifdef USE_CASTLE_SINCOS}
 procedure SinCos(const Angle: Single; out S, C: Single);
