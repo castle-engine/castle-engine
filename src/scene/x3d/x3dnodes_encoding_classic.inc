@@ -481,10 +481,7 @@ var
     begin
       NewNode := ParseNode(Lexer, Reader, false);
       NewNode.PositionInParent := PositionInParent;
-      Result.FdChildren.Add(NewNode);
-      { for prototypes, do not check NewNode class, as anything is valid. }
-      if FileTopLevel then
-        Result.TopLevelCheckChild(NewNode);
+      Result.AddRootNode(NewNode, FileTopLevel);
     end;
 
   begin
