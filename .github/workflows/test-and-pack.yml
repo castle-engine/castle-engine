@@ -10,7 +10,6 @@
 name: Test and Pack
 on: [push, pull_request]
 
-# setup.sh inside Docker requires using bash
 defaults:
   run:
     shell: bash
@@ -85,33 +84,33 @@ jobs:
   test-fpc-320:
     name: Base Tests (FPC 3.2.0)
     runs-on: ubuntu-latest
-    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    container: kambi/castle-engine-cloud-builds-tools:cge-none-fpc320
     steps:
       - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean default
+        run: make clean default
       - name: Build And Run Auto-Tests (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tests
+        run: make clean tests
       - name: Build Using FpMake (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean test-fpmake
+        run: make clean test-fpmake
 
   test-fpc-320-examples:
     name: Examples (FPC 3.2.0)
     runs-on: ubuntu-latest
-    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    container: kambi/castle-engine-cloud-builds-tools:cge-none-fpc320
     steps:
       - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Examples (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples CASTLE_CONSERVE_DISK_SPACE=true
+        run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
 
   test-fpc-320-examples-laz:
     name: Examples Using Lazarus (FPC 3.2.0)
     runs-on: ubuntu-latest
-    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    container: kambi/castle-engine-cloud-builds-tools:cge-none-fpc320
     steps:
       - uses: actions/checkout@v4
       - name: Set environment
@@ -122,29 +121,29 @@ jobs:
       - name: Avoid GIT dubious ownership errors
         run: git config --global --add safe.directory /__w/castle-engine/castle-engine
       - name: Build Examples Using Lazarus (FPC 3.2.0)
-        run: source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
+        run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
   test-fpc-latest-unstable:
     name: Base Tests (FPC Latest Unstable)
     runs-on: ubuntu-latest
-    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    container: kambi/castle-engine-cloud-builds-tools:cge-none-fpc331
     steps:
       - uses: actions/checkout@v4
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools (FPC Latest Unstable)
-        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean default
+        run: make clean default
       - name: Build And Run Auto-Tests (FPC Latest Unstable)
-        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests
+        run: make clean tests
       # fpmake compilation with FPC 3.3.1 from 2022-12-27 is broken,
       # TODO investigate and report.
       # - name: Build Using FpMake (FPC Latest Unstable)
-      #   run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake
+      #   run: make clean test-fpmake
 
   test-fpc-latest-unstable-examples:
     name: Examples (FPC Latest Unstable)
     runs-on: ubuntu-latest
-    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    container: kambi/castle-engine-cloud-builds-tools:cge-none-fpc331
     steps:
       - uses: actions/checkout@v4
       - name: Set environment
@@ -156,12 +155,12 @@ jobs:
       - name: Disk Space Test 3
         run: tree --sort=size --du -h
       - name: Build Examples (FPC Latest Unstable)
-        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples CASTLE_CONSERVE_DISK_SPACE=true
+        run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
 
   test-fpc-latest-unstable-examples-laz:
     name: Examples Using Lazarus (FPC Latest Unstable)
     runs-on: ubuntu-latest
-    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    container: kambi/castle-engine-cloud-builds-tools:cge-none-fpc331
     steps:
       - uses: actions/checkout@v4
       - name: Set environment
@@ -172,7 +171,7 @@ jobs:
       - name: Avoid GIT dubious ownership errors
         run: git config --global --add safe.directory /__w/castle-engine/castle-engine
       - name: Build Examples Using Lazarus (FPC Latest Unstable)
-        run: source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
+        run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
   test-everything:
     name: All Tests (without Docker)
@@ -226,19 +225,15 @@ jobs:
       - name: Build Examples Using Lazarus
         run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
-# TODO: This runs out of disk space on GH Actions now.
-# Ignore for now (we don't really rely on it, Jenkins actually does
-# pack_release.sh to make the real release).
-
-  # pack:
-  #   name: Pack to zip
-  #   runs-on: ubuntu-latest
-  #   container: kambi/castle-engine-cloud-builds-tools:cge-none
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Set environment
-  #       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-  #     - name: Remove previous artifacts
-  #       run: rm -f castle-engine*.zip
-  #     - name: Pack
-  #       run: ./tools/internal/pack_release/pack_release.sh
+  pack:
+    name: Pack to zip
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Remove previous artifacts
+        run: rm -f castle-engine*.zip
+      - name: Pack
+        run: ./tools/internal/pack_release/pack_release.sh
