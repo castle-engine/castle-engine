@@ -28,10 +28,14 @@
     procedure SetBackground(const Value: TAbstractBackgroundNode);
     function GetFog: TFogNode;
     procedure SetFog(const Value: TFogNode);
+    function GetEnvironment: TEnvironmentNode;
+    procedure SetEnvironment(const Value: TEnvironmentNode);
     function GetScene: TAbstractNode;
     procedure SetScene(const Value: TAbstractNode);
     function GetUpdate: TTextureUpdate;
     procedure SetUpdate(const Value: TTextureUpdate);
+    function GetViewpoint: TX3DNode;
+    procedure SetViewpoint(const Value: TX3DNode);
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
     function GetRepeatS: Boolean;
@@ -64,16 +68,14 @@
     strict private FFdEnvironment: TSFNode;
     { Internal wrapper for property @code(Environment). This wrapper API may change, we advise to access simpler @code(Environment) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnvironment: TSFNode read FFdEnvironment;
+    {  }
+    property Environment: TEnvironmentNode read GetEnvironment write SetEnvironment;
 
     strict private FFdScene: TSFNode;
     { Internal wrapper for property @code(Scene). This wrapper API may change, we advise to access simpler @code(Scene) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdScene: TSFNode read FFdScene;
     {  }
     property Scene: TAbstractNode read GetScene write SetScene;
-
-    strict private FFdForeground: TSFNode;
-    { Internal wrapper for property @code(Foreground). This wrapper API may change, we advise to access simpler @code(Foreground) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdForeground: TSFNode read FFdForeground;
 
     strict private FFdDimensions: TMFInt32;
     { Internal wrapper for property @code(Dimensions). This wrapper API may change, we advise to access simpler @code(Dimensions) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -92,6 +94,8 @@
     strict private FFdViewpoint: TSFNode;
     { Internal wrapper for property @code(Viewpoint). This wrapper API may change, we advise to access simpler @code(Viewpoint) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdViewpoint: TSFNode read FFdViewpoint;
+    {  }
+    property Viewpoint: TX3DNode read GetViewpoint write SetViewpoint;
 
     strict private FFdTextureProperties: TSFNode;
     { Internal wrapper for property @code(TextureProperties). This wrapper API may change, we advise to access simpler @code(TextureProperties) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -156,6 +160,8 @@
     strict private FFdExcludeNodes: TMFNode;
     { Internal wrapper for property @code(ExcludeNodes). This wrapper API may change, we advise to access simpler @code(ExcludeNodes) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdExcludeNodes: TMFNode read FFdExcludeNodes;
+    {  }
+    procedure SetExcludeNodes(const Value: array of TAbstractNode);
 
     strict private FFdTriggerName: TSFString;
     { Internal wrapper for property @code(TriggerName). This wrapper API may change, we advise to access simpler @code(TriggerName) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -203,6 +209,19 @@ begin
   FdFog.Send(Value);
 end;
 
+function TRenderedTextureNode.GetEnvironment: TEnvironmentNode;
+begin
+  if FdEnvironment.Value is TEnvironmentNode then
+    Result := TEnvironmentNode(FdEnvironment.Value)
+  else
+    Result := nil;
+end;
+
+procedure TRenderedTextureNode.SetEnvironment(const Value: TEnvironmentNode);
+begin
+  FdEnvironment.Send(Value);
+end;
+
 function TRenderedTextureNode.GetScene: TAbstractNode;
 begin
   if FdScene.Value is TAbstractNode then
@@ -234,6 +253,19 @@ end;
 procedure TRenderedTextureNode.SetUpdate(const Value: TTextureUpdate);
 begin
   FdUpdate.SendEnumValue(Ord(Value));
+end;
+
+function TRenderedTextureNode.GetViewpoint: TX3DNode;
+begin
+  if FdViewpoint.Value is TX3DNode then
+    Result := TX3DNode(FdViewpoint.Value)
+  else
+    Result := nil;
+end;
+
+procedure TRenderedTextureNode.SetViewpoint(const Value: TX3DNode);
+begin
+  FdViewpoint.Send(Value);
 end;
 
 function TRenderedTextureNode.GetTextureProperties: TTexturePropertiesNode;
@@ -321,6 +353,18 @@ begin
   FdFrameBufferMode.Send(Value);
 end;
 
+procedure TRenderedTextureNode.SetExcludeNodes(const Value: array of TAbstractNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractNode));
+  FdExcludeNodes.Send(A);
+end;
+
 function TRenderedTextureNode.GetTriggerName: String;
 begin
   Result := FdTriggerName.Value;
@@ -348,17 +392,13 @@ begin
    FdFog.ChangeAlways := chGeneratedTextureUpdateNeeded;
   AddField(FFdFog);
 
-  FFdEnvironment := TSFNode.Create(Self, True, 'environment', []);
+  FFdEnvironment := TSFNode.Create(Self, True, 'environment', [TEnvironmentNode]);
    FdEnvironment.ChangeAlways := chGeneratedTextureUpdateNeeded;
   AddField(FFdEnvironment);
 
   FFdScene := TSFNode.Create(Self, True, 'scene', [TAbstractNode]);
    FdScene.ChangeAlways := chGeneratedTextureUpdateNeeded;
   AddField(FFdScene);
-
-  FFdForeground := TSFNode.Create(Self, True, 'foreground', []);
-   FdForeground.ChangeAlways := chGeneratedTextureUpdateNeeded;
-  AddField(FFdForeground);
 
   FFdDimensions := TMFInt32.Create(Self, True, 'dimensions', [DefaultRenderedTextureWidth, DefaultRenderedTextureHeight, 4, 1, 1]);
    FdDimensions.ChangeAlways := chTextureRendererProperties;
@@ -410,7 +450,7 @@ begin
    FdFrameBufferMode.ChangeAlways := chTextureRendererProperties;
   AddField(FFdFrameBufferMode);
 
-  FFdExcludeNodes := TMFNode.Create(Self, False, 'excludeNodes', []);
+  FFdExcludeNodes := TMFNode.Create(Self, False, 'excludeNodes', [TAbstractNode]);
    FdExcludeNodes.ChangeAlways := chGeneratedTextureUpdateNeeded;
   AddField(FFdExcludeNodes);
 

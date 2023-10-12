@@ -444,6 +444,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_effect.inc}
 {$I auto_generated_node_helpers/x3dnodes_effectpart.inc}
 {$I auto_generated_node_helpers/x3dnodes_elevationgrid.inc}
+{$I auto_generated_node_helpers/x3dnodes_environment.inc}
 {$I auto_generated_node_helpers/x3dnodes_environmentlight.inc}
 {$I auto_generated_node_helpers/x3dnodes_espdutransform.inc}
 {$I auto_generated_node_helpers/x3dnodes_explosionemitter.inc}
