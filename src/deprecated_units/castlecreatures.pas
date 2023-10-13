@@ -1610,8 +1610,8 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
     if RenderDebug then
     begin
       BBox := BoundingBox;
-      FDebugCaptionsShape.Render := not BBox.IsEmpty;
-      if FDebugCaptionsShape.Render then
+      FDebugCaptionsShape.Visible := not BBox.IsEmpty;
+      if FDebugCaptionsShape.Visible then
       begin
         H := BBox.Data[1].Data[World.GravityCoordinate];
         FDebugCaptionsFontStyle.Size := H / 8;

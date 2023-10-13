@@ -105,6 +105,7 @@ type
     procedure TestProtoExpansion;
     procedure TestSolidField;
     procedure TestConversionDot;
+    procedure TestWarningUnquotedIdentifier;
   end;
 
 implementation
@@ -2462,6 +2463,38 @@ begin
   );
 
   RestoreLocaleDecimalSeparatorComma(SavedLocale);
+end;
+
+procedure TTestX3DNodes.TestWarningUnquotedIdentifier;
+
+{ See https://github.com/castle-engine/view3dscene/issues/76 }
+
+var
+  S: TStringStream;
+  Node: TX3DRootNode;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    S := TStringStream.Create(
+      '#X3D V4.0 utf8' + NL +
+      'PROFILE Interchange' + NL +
+      'Shape { appearance Appearance { alphaMode OPAQUE } }');
+    try
+      try
+        Node := LoadNode(S, '', 'model/x3d+vrml');
+        Fail('Should have made warning (in effect exception) about unquoted OPAQUE');
+      except
+        on E: Exception do
+        begin
+          AssertEquals('TTestX3DNodes: received a warning, and any warning here is an error: VRML/X3D: Error when reading, will skip the rest of X3D file: Error at line 3 column 49: Expected string, got identifier (unquoted in X3D file) "OPAQUE"', E.Message);
+        end;
+      end;
+      // Node is uninitialized after exception
+      // FreeAndNil(Node);
+    finally FreeAndNil(S) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
 end;
 
 initialization

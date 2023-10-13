@@ -172,6 +172,8 @@
     strict private FFdSkeleton: TMFNode;
     { Internal wrapper for property @code(Skeleton). This wrapper API may change, we advise to access simpler @code(Skeleton) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSkeleton: TMFNode read FFdSkeleton;
+    {  }
+    procedure SetSkeleton(const Value: array of TX3DNode);
 
     strict private FFdSkin: TMFNode;
     { Internal wrapper for property @code(Skin). This wrapper API may change, we advise to access simpler @code(Skin) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -216,6 +218,8 @@
     strict private FFdViewpoints: TMFNode;
     { Internal wrapper for property @code(Viewpoints). This wrapper API may change, we advise to access simpler @code(Viewpoints) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdViewpoints: TMFNode read FFdViewpoints;
+    {  }
+    procedure SetViewpoints(const Value: array of TX3DNode);
 
     strict private FFdBboxCenter: TSFVec3f;
     { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -411,6 +415,18 @@ begin
   FdSkeletalConfiguration.Send(Value);
 end;
 
+procedure THAnimHumanoidNode.SetSkeleton(const Value: array of TX3DNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TX3DNode));
+  FdSkeleton.Send(A);
+end;
+
 procedure THAnimHumanoidNode.SetSkin(const Value: array of TAbstractChildNode);
 var
   L: Integer;
@@ -480,6 +496,18 @@ end;
 procedure THAnimHumanoidNode.SetVersion(const Value: String);
 begin
   FdVersion.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetViewpoints(const Value: array of TX3DNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TX3DNode));
+  FdViewpoints.Send(A);
 end;
 
 function THAnimHumanoidNode.GetBBox: TBox3D;

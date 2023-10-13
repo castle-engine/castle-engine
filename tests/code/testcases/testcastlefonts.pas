@@ -44,7 +44,7 @@ implementation
 
 uses SysUtils, Classes,
   {$ifdef TEST_CASTLE_WINDOW} CastleWindow, {$endif}
-  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15, CastleLog,
+  CastleFonts, CastleTextureFont_Default3d_MonoB, CastleLog,
   Font_LatoRegular_300, CastleInternalFreeTypeH;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtml;
@@ -55,7 +55,7 @@ var
 begin
   F := TCastleFont.Create(nil);
   try
-    F.Load(TextureFont_DejaVuSansMonoBold_15);
+    F.Load(Font_Default3d_MonoB);
 
     SList := TStringList.Create;
     try
@@ -98,24 +98,24 @@ var
 begin
   Font := TCastleFont.Create(nil);
   try
-    Font.Load(TextureFont_DejaVuSansMonoBold_15);
+    Font.Load(Font_Default3d_MonoB);
 
-    AssertEquals(15, Font.Size);
-    AssertEquals(15, Font.EffectiveSize);
-    AssertEquals(14, Font.Height);
+    AssertEquals(25, Font.Size);
+    AssertEquals(25, Font.EffectiveSize);
+    AssertEquals(23, Font.Height);
 
     Family := TCastleFontFamily.Create(nil);
     try
       Family.Regular := Font;
 
       AssertEquals(0, Family.Size);
-      AssertEquals(15, Family.EffectiveSize);
-      AssertEquals(14, Family.Height);
+      AssertEquals(25, Family.EffectiveSize);
+      AssertEquals(23, Family.Height);
 
       Family.Size := 30;
       AssertEquals(30, Family.Size);
       AssertEquals(30, Family.EffectiveSize);
-      AssertEquals(28, Family.Height);
+      AssertEquals(27.6, Family.Height);
     finally FreeAndNil(Family) end;
 
     Customized := TCustomizedFont.Create(nil);
@@ -123,19 +123,19 @@ begin
       Customized.SourceFont := Font;
 
       AssertEquals(0, Customized.Size);
-      AssertEquals(15, Customized.EffectiveSize);
-      AssertEquals(14, Customized.Height);
+      AssertEquals(25, Customized.EffectiveSize);
+      AssertEquals(23, Customized.Height);
 
       Customized.Size := 30;
       AssertEquals(30, Customized.Size);
       AssertEquals(30, Customized.EffectiveSize);
-      AssertEquals(28, Customized.Height);
+      AssertEquals(27.6, Customized.Height);
     finally FreeAndNil(Customized) end;
 
     Font.Size := 60;
     AssertEquals(60, Font.Size);
     AssertEquals(60, Font.EffectiveSize);
-    AssertEquals(56, Font.Height);
+    AssertEquals(55.2, Font.Height);
 
     Family := TCastleFontFamily.Create(nil);
     try
@@ -143,12 +143,12 @@ begin
 
       AssertEquals(0, Family.Size);
       AssertEquals(60, Family.EffectiveSize);
-      AssertEquals(56, Family.Height);
+      AssertEquals(55.2, Family.Height);
 
       Family.Size := 30;
       AssertEquals(30, Family.Size);
       AssertEquals(30, Family.EffectiveSize);
-      AssertEquals(28, Family.Height);
+      AssertEquals(27.6, Family.Height);
     finally FreeAndNil(Family) end;
 
     Customized := TCustomizedFont.Create(nil);
@@ -157,12 +157,12 @@ begin
 
       AssertEquals(0, Customized.Size);
       AssertEquals(60, Customized.EffectiveSize);
-      AssertEquals(56, Customized.Height);
+      AssertEquals(55.2, Customized.Height);
 
       Customized.Size := 30;
       AssertEquals(30, Customized.Size);
       AssertEquals(30, Customized.EffectiveSize);
-      AssertEquals(28, Customized.Height);
+      AssertEquals(27.6, Customized.Height);
     finally FreeAndNil(Customized) end;
   finally FreeAndNil(Font) end;
 end;

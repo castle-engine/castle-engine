@@ -23,6 +23,9 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetProjector: TX3DNode;
+    procedure SetProjector(const Value: TX3DNode);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -31,12 +34,27 @@
     strict private FFdProjector: TSFNode;
     { Internal wrapper for property @code(Projector). This wrapper API may change, we advise to access simpler @code(Projector) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdProjector: TSFNode read FFdProjector;
+    { Viewpoint or light that determine how is the texture projected. }
+    property Projector: TX3DNode read GetProjector write SetProjector;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TProjectedTextureCoordinateNode ----------------------------------------------- }
+
+function TProjectedTextureCoordinateNode.GetProjector: TX3DNode;
+begin
+  if FdProjector.Value is TX3DNode then
+    Result := TX3DNode(FdProjector.Value)
+  else
+    Result := nil;
+end;
+
+procedure TProjectedTextureCoordinateNode.SetProjector(const Value: TX3DNode);
+begin
+  FdProjector.Send(Value);
+end;
 
 class function TProjectedTextureCoordinateNode.ClassX3DType: String;
 begin

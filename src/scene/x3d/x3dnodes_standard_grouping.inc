@@ -199,7 +199,13 @@
     FPrototypeNames: TX3DPrototypeNames;
     FExportedNames: TX3DExportList;
     FImportedNames: TX3DNodeNames;
-    procedure TopLevelCheckChild(const Child: TX3DNode);
+
+    { Add the node to this node.
+      It usually means adding to FdChildren, but with some additional checks.
+      FileTopLevel indicates if this TX3DRootNode is actually the root
+      of X3D file, @false means this TX3DRootNode is only a root inside
+      a prototype. }
+    procedure AddRootNode(const NewNode: TX3DNode; const FileTopLevel: Boolean);
   protected
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
 
@@ -1011,28 +1017,62 @@ begin
   Result := false;
 end;
 
-procedure TX3DRootNode.TopLevelCheckChild(const Child: TX3DNode);
+procedure TX3DRootNode.AddRootNode(const NewNode: TX3DNode; const FileTopLevel: Boolean);
+
+  procedure TopLevelCheckChild(const Child: TX3DNode);
+  begin
+    { Why not do here FdChildren.WarningIfChildNotAllowed(Child)?
+      It already checks and warns if child is not TAbstractChildNode?
+
+      - The warning message of it could be confusing.
+        It exposes an implementation detail, that we have a
+        TX3DRootNode that descends from Group node.
+
+      - Moreover, we actually allow a bit more than TAbstractChildNode.
+
+        - TAbstractGeometryNode_1 to enable VRML 1.0 geometry nodes at top-level,
+          like in demo-models/vrml_1/castle_extensions/multi_root.wrl .
+
+        - LayerSet
+        - GeoOrigin
+          See "4.3.2 Root nodes" in X3D 4 spec,
+          https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-IS.proof/Part01/concepts.html#Rootnodes .
+
+          Note that we don't allow here metadata nodes (TAbstractMetadataNode)
+          although spec allows them.
+          But we insert metadata to TX3DRootNode in a special way,
+          so that MyScene.RootNode.MetadataXxx[] API works,
+          and developers can query e.g. MyScene.RootNode.MetadataString['my_key'] .
+    }
+
+    if not (
+        (Child is TAbstractChildNode) or
+        (Child is TAbstractGeometryNode_1) or
+        (Child is TLayerSetNode) or
+        (Child is TGeoOriginNode)
+      ) then
+      WritelnWarning('VRML/X3D', Format('Node "%s" is not allowed at the top level of the X3D file',
+        [Child.X3DType]));
+  end;
+
 begin
-  { We could just do here FdChildren.WarningIfChildNotAllowed(Child),
-    but the warning message of it is a little unfriendly: it uncovers
-    to user that we have a special TX3DRootNode that descends from Group node.
-    So instead, do it by hand.
-
-    Also, add LayerSet (not allowed in Group.FdChildren).
-    This is special (see http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/concepts.html#Rootnodes),
-    "4.3.2 Root nodes" from X3D 3.2 spec.
-
-    Also add TAbstractGeometryNode_1 to enable VRML 1.0 geometry nodes at top-level,
-    like in demo-models/vrml_1/castle_extensions/multi_root.wrl .
-  }
-
-  if not (
-       (Child is TAbstractChildNode) or
-       (Child is TAbstractGeometryNode_1) or
-       (Child is TLayerSetNode)
-     ) then
-    WritelnWarning('VRML/X3D', Format('Node "%s" is not allowed at the top level of the X3D file',
-      [Child.X3DType]));
+  if FileTopLevel then
+  begin
+    if NewNode is TAbstractMetadataNode then
+      InternalInsertMetadata(TAbstractMetadataNode(NewNode))
+    else
+    begin
+      FdChildren.Add(NewNode);
+      TopLevelCheckChild(NewNode);
+    end;
+  end else
+  begin
+    { For prototypes (indicated by FileTopLevel = false),
+      do not check NewNode class, as anything is valid.
+      Also, all nodes (even metadata) are just added to FdChildren,
+      prototype expansion expects that. }
+    FdChildren.Add(NewNode);
+  end;
 end;
 
 procedure TX3DRootNode.ExportNode(const Node: TX3DNode; const ExportedAlias: string);

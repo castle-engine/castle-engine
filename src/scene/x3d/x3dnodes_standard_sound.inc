@@ -32,6 +32,7 @@
     FBufferLoaded: Boolean;
     InsideLoadBuffer: Cardinal;
     PlayingSound: TCastlePlayingSoundSource;
+    WarningDoneParentFieldsCount: Boolean;
     procedure SetBufferLoaded(const Value: boolean);
     procedure UpdatePlayingEvent(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
@@ -185,11 +186,19 @@ procedure TAudioClipNode.UpdatePlaying;
 
   function GetSoundNode: TSoundNode;
   begin
-    if (ParentFieldsCount <> 0) and
-       (ParentFields[0].ParentNode <> nil) and
-       (ParentFields[0].ParentNode is TSoundNode) then
-      Result := TSoundNode(ParentFields[0].ParentNode)
-    else
+    if ParentFieldsCount <> 0 then
+    begin
+      if ParentFieldsCount > 1 then
+      begin
+        WarningOnce(WarningDoneParentFieldsCount,
+          'Multiple parents of AudioClip node, only the first one will be used');
+      end;
+
+      if ParentFields[0].ParentNode is TSoundNode then
+        Result := TSoundNode(ParentFields[0].ParentNode)
+      else
+        Result := nil;
+    end else
       Result := nil;
   end;
 

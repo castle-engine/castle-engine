@@ -523,7 +523,9 @@ type
     OnIsRunning: TBooleanEvent;
     OnShowStatistics: TBooleanEvent;
 
-    function RenamePossible: Boolean;
+    function RenameSelectedPossible: Boolean;
+    function RenamePossible(const C: TComponent): Boolean;
+
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -3667,7 +3669,7 @@ begin
           anyway, and the name must be unique within the owner -- better
           to leave it unedited) }
       if (PropertyName = 'Name') and
-         (TComponent(Instance).Owner <> DesignOwner) then
+         (not RenamePossible(TComponent(Instance))) then
         Exit;
 
       { Hide editing transformation of TCastleAbstractRootTransform,
@@ -4797,7 +4799,7 @@ var
   V: TCastleViewport;
   T: TCastleTransform;
 begin
-  OnSelectionChanged(Self); // Calling it in ControlsTreeSelectionChanged doesn't seem to be enough as RenamePossible is true there even in case SelectedCount = 0 (does it use some obsolete value?)
+  OnSelectionChanged(Self); // Calling it in ControlsTreeSelectionChanged doesn't seem to be enough as RenameSelectedPossible is true there even in case SelectedCount = 0 (does it use some obsolete value?)
 
   GetSelected(Selected, SelectedCount);
   try
@@ -4980,16 +4982,42 @@ begin
       Exit;
     end;
 
-    UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
-    { Without this check, one could change Sel.Name to empty ('').
-      Although TComponent.SetName checks that it's a valid Pascal identifier already,
-      but it also explicitly allows to set Name = ''.
-      Object inspector has special code to secure from empty Name
-      (in TComponentNamePropertyEditor.SetValue), so we need a similar check here. }
-    if not IsValidIdent(Node.Text) then
-      raise Exception.Create(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
-    Sel.Name := Node.Text;
-    ModifiedOutsideObjectInspector(UndoComment, ucHigh); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+    { Check whether the edit actually changed anything.
+      Otherwise the code below would execute too often (and make e.g. warnings
+      about name uneditable for subcomponents) even when clicking around on "Items"
+      without changing anything. }
+    if Sel.Name <> Node.Text then
+    begin
+      if not RenamePossible(Sel) then
+      begin
+        if Sel.Owner <> nil then
+        begin
+          WritelnWarning('Renaming subcomponent (%s.%s) is not allowed. Subcomponents cannot be accessed by their names using TCastleView.DesignedComponent.', [
+            Sel.Owner.ClassName,
+            Sel.Name
+          ]);
+        end else
+        begin
+          { This never happens now, as RenamePossible for now only blocks editing
+            name of subcomponents. }
+          WritelnWarning('Renaming %s is not allowed.', [
+            Sel.Name
+          ]);
+        end;
+        Exit;
+      end;
+
+      UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+      { Without this check, one could change Sel.Name to empty ('').
+        Although TComponent.SetName checks that it's a valid Pascal identifier already,
+        but it also explicitly allows to set Name = ''.
+        Object inspector has special code to secure from empty Name
+        (in TComponentNamePropertyEditor.SetValue), so we need a similar check here. }
+      if not IsValidIdent(Node.Text) then
+        raise Exception.Create(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
+      Sel.Name := Node.Text;
+      ModifiedOutsideObjectInspector(UndoComment, ucHigh); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+    end;
   finally
     { This method must set Node.Text, to cleanup after ControlsTreeEditing + user editing.
       - If the name was correct, then "Sel.Name := " goes without exception,
@@ -5093,7 +5121,16 @@ begin
   ControlsTree.Invalidate; // force custom-drawn look redraw
 end;
 
-function TDesignFrame.RenamePossible: Boolean;
+function TDesignFrame.RenamePossible(const C: TComponent): Boolean;
+begin
+  { Do not allow renaming subcomponents.
+    It is confusing, since their names live in different namespace
+    (e.g. Items owned by TCastleViewport), and should not really be used
+    to access them. }
+  Result := C.Owner = DesignOwner;
+end;
+
+function TDesignFrame.RenameSelectedPossible: Boolean;
 begin
   { Notes:
 
@@ -5109,12 +5146,13 @@ begin
   }
   Result :=
     (ControlsTreeOneSelected <> nil) and
-    (ControlsTreeOneSelected.Data <> nil);
+    (ControlsTreeOneSelected.Data <> nil) and
+    RenamePossible(TComponent(ControlsTreeOneSelected.Data));
 end;
 
 procedure TDesignFrame.RenameSelectedItem;
 begin
-  if RenamePossible then
+  if RenameSelectedPossible then
     ControlsTreeOneSelected.EditText;
 end;
 
@@ -5858,7 +5896,7 @@ begin
   if Sel <> nil then
     AddComponentEditorVerbs(Sel);
 
-  MenuTreeViewItemRename.Enabled := RenamePossible;
+  MenuTreeViewItemRename.Enabled := RenameSelectedPossible;
   MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
   MenuTreeViewItemCut.Enabled := Sel <> nil;
   MenuTreeViewItemCopy.Enabled := Sel <> nil;

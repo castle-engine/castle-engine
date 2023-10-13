@@ -1226,12 +1226,18 @@ begin
 
   if Field.IsNode then
   begin
-    { All the conditions below may be eventually removed.
-      We're just not ready for it yet, the generated code is not ready for them. }
-    if (Field.AllowedChildrenNodes.Count = 1) and
-       (not Field.AllowedChildrenNodes[0].IsFunctionality) then
+    if Field.AllowedChildrenNodes.Count = 0 then
+      raise Exception.CreateFmt('SFNode field %s.%s has nothing allowed', [
+        Node.X3DType,
+        Field.X3DName
+      ]);
+    { TODO: Allow to get/set when IsFunctionality too?  }
+    if not Field.AllowedChildrenNodes[0].IsFunctionality then
     begin
-      AllowedPascalClass := Field.AllowedChildrenNodes[0].PascalType;
+      if Field.AllowedChildrenNodes.Count = 1 then
+        AllowedPascalClass := Field.AllowedChildrenNodes[0].PascalType
+      else
+        AllowedPascalClass := 'TX3DNode';
       if Field.X3DType = 'SFNode' then
       begin
         OutputPrivateInterface +=

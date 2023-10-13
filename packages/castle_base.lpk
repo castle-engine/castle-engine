@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1094">
+    <Files Count="1092">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -971,65 +971,53 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/fonts/castleinternalrichtext.pas"/>
         <UnitName Value="CastleInternalRichText"/>
       </Item221>
-      <Item222>
-        <Filename Value="../src/fonts/castletexturefont_dejavusans_10.pas"/>
-        <UnitName Value="CastleTextureFont_DejaVuSans_10"/>
-      </Item222>
-      <Item223>
-        <Filename Value="../src/fonts/castletexturefont_dejavusansmono_18.pas"/>
-        <UnitName Value="CastleTextureFont_DejaVuSansMono_18"/>
-      </Item223>
-      <Item224>
-        <Filename Value="../src/fonts/castletexturefont_dejavusansmonobold_15.pas"/>
-        <UnitName Value="CastleTextureFont_DejaVuSansMonoBold_15"/>
-      </Item224>
       <Item225>
-        <Filename Value="../src/fonts/castletexturefont_djvmono_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvMono_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_mono.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_Mono"/>
       </Item225>
       <Item226>
-        <Filename Value="../src/fonts/castletexturefont_djvmonob_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvMonoB_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_monob.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_MonoB"/>
       </Item226>
       <Item227>
-        <Filename Value="../src/fonts/castletexturefont_djvmonobo_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvMonoBO_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_monobi.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_MonoBI"/>
       </Item227>
       <Item228>
-        <Filename Value="../src/fonts/castletexturefont_djvmonoo_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvMonoO_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_monoi.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_MonoI"/>
       </Item228>
       <Item229>
-        <Filename Value="../src/fonts/castletexturefont_djvsans_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvSans_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_sans.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_Sans"/>
       </Item229>
       <Item230>
-        <Filename Value="../src/fonts/castletexturefont_djvsansb_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvSansB_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_sansb.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_SansB"/>
       </Item230>
       <Item231>
-        <Filename Value="../src/fonts/castletexturefont_djvsansbo_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvSansBO_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_sansbi.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_SansBI"/>
       </Item231>
       <Item232>
-        <Filename Value="../src/fonts/castletexturefont_djvsanso_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvSansO_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_sansi.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_SansI"/>
       </Item232>
       <Item233>
-        <Filename Value="../src/fonts/castletexturefont_djvserif_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvSerif_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_serif.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_Serif"/>
       </Item233>
       <Item234>
-        <Filename Value="../src/fonts/castletexturefont_djvserifb_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvSerifB_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_serifb.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_SerifB"/>
       </Item234>
       <Item235>
-        <Filename Value="../src/fonts/castletexturefont_djvserifbi_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvSerifBI_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_serifbi.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_SerifBI"/>
       </Item235>
       <Item236>
-        <Filename Value="../src/fonts/castletexturefont_djvserifi_20.pas"/>
-        <UnitName Value="CastleTextureFont_DjvSerifI_20"/>
+        <Filename Value="../src/fonts/castletexturefont_default3d_serifi.pas"/>
+        <UnitName Value="CastleTextureFont_Default3d_SerifI"/>
       </Item236>
       <Item237>
         <Filename Value="../src/fonts/castletexturefontdata.pas"/>
@@ -4445,18 +4433,18 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/scene/castleinternalrenderer_custom_shaders.inc"/>
         <Type Value="Include"/>
       </Item1085>
-  	  <Item1086>
+  	  <Item222>
         <Filename Value="../src/scene/castleinternalscreeneffects.pas"/>
         <UnitName Value="CastleInternalScreenEffects"/>
-      </Item1086>
-  	  <Item1087>
+      </Item222>
+  	  <Item223>
         <Filename Value="../src/files/castleinternalfilemonitor.pas"/>
         <UnitName Value="CastleInternalFileMonitor"/>
-      </Item1087>
-      <Item1088>
+      </Item223>
+      <Item224>
         <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_hanimmotion.inc"/>
         <Type Value="Include"/>
-      </Item1088>
+      </Item224>
       <Item1089>
         <Filename Value="../src/base_rendering/dglopengl/dglopengl.pas"/>
         <UnitName Value="dglOpenGL"/>
@@ -4473,14 +4461,18 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base_rendering/castleinternalcontextglx.pas"/>
         <UnitName Value="CastleInternalContextGlx"/>
       </Item1092>
-      <Item1093>
+      <Item1088>
         <Filename Value="../src/base_rendering/castleinternalcontextwgl.pas"/>
         <UnitName Value="CastleInternalContextWgl"/>
-      </Item1093>
-      <Item1094>
+      </Item1088>
+      <Item1087>
         <Filename Value="../src/base_rendering/castleinternalegl.pas"/>
         <UnitName Value="CastleInternalEgl"/>
-      </Item1094>
+      </Item1087>
+      <Item1086>
+        <Filename Value="../src/fonts/castletexturefont_defaultui.pas"/>
+        <UnitName Value="CastleTextureFont_DefaultUi"/>
+      </Item1086>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">

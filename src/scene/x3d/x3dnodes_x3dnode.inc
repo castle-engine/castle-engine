@@ -135,6 +135,10 @@
       instead of this, like TAbstractShapeNode.SetAppearanceBefore. }
     procedure MoveShapeAssociations(const Sender: TSFNode; const NewNode: TX3DNode);
   protected
+    { Make a specified warning, but only once for this node instance.
+      Uses WarningDone to track if warning was already done.
+      Warning will contain automatically NiceName, so X3D node name and type. }
+    procedure WarningOnce(var WarningDone: boolean; const Message: string);
 
     { Does actual DeepCopy work. You can override this to copy some
       more properties for descendants. }
@@ -3627,6 +3631,15 @@ procedure TX3DNode.MoveShapeAssociations(const Sender: TSFNode; const NewNode: T
 begin
   if Scene <> nil then
     Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
+end;
+
+procedure TX3DNode.WarningOnce(var WarningDone: boolean; const Message: string);
+begin
+  if not WarningDone then
+  begin
+    WritelnWarning(NiceName, Message);
+    WarningDone := true;
+  end;
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

@@ -40,8 +40,8 @@
     procedure SetMinFront(const Value: Single);
     function GetPriority: Single;
     procedure SetPriority(const Value: Single);
-    function GetSource: TAbstractSoundSourceNode;
-    procedure SetSource(const Value: TAbstractSoundSourceNode);
+    function GetSource: TX3DNode;
+    procedure SetSource(const Value: TX3DNode);
     function GetSpatialize: Boolean;
     procedure SetSpatialize(const Value: Boolean);
   public
@@ -101,7 +101,7 @@
     { Internal wrapper for property @code(Source). This wrapper API may change, we advise to access simpler @code(Source) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSource: TSFNode read FFdSource;
     {  }
-    property Source: TAbstractSoundSourceNode read GetSource write SetSource;
+    property Source: TX3DNode read GetSource write SetSource;
 
     strict private FFdSpatialize: TSFBool;
     { Internal wrapper for property @code(Spatialize). This wrapper API may change, we advise to access simpler @code(Spatialize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -195,15 +195,15 @@ begin
   FdPriority.Send(Value);
 end;
 
-function TSoundNode.GetSource: TAbstractSoundSourceNode;
+function TSoundNode.GetSource: TX3DNode;
 begin
-  if FdSource.Value is TAbstractSoundSourceNode then
-    Result := TAbstractSoundSourceNode(FdSource.Value)
+  if FdSource.Value is TX3DNode then
+    Result := TX3DNode(FdSource.Value)
   else
     Result := nil;
 end;
 
-procedure TSoundNode.SetSource(const Value: TAbstractSoundSourceNode);
+procedure TSoundNode.SetSource(const Value: TX3DNode);
 begin
   FdSource.Send(Value);
 end;
@@ -265,7 +265,7 @@ begin
    FdPriority.MustBeNonnegative := true;
   AddField(FFdPriority);
 
-  FFdSource := TSFNode.Create(Self, True, 'source', [TAbstractSoundSourceNode]);
+  FFdSource := TSFNode.Create(Self, True, 'source', [TAbstractSoundSourceNode, TMovieTextureNode]);
    FdSource.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSource);
 

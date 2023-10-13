@@ -28,6 +28,8 @@
     procedure SetSize(const Value: TVector3);
     function GetManifold: Boolean;
     procedure SetManifold(const Value: Boolean);
+    function GetTexCoord: TX3DNode;
+    procedure SetTexCoord(const Value: TX3DNode);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
@@ -52,6 +54,8 @@
     strict private FFdTexCoord: TSFNode;
     { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoord: TSFNode read FFdTexCoord;
+    {  }
+    property TexCoord: TX3DNode read GetTexCoord write SetTexCoord;
 
 {$endif read_interface}
 
@@ -77,6 +81,19 @@ end;
 procedure TTeapotNode.SetManifold(const Value: Boolean);
 begin
   FdManifold.Send(Value);
+end;
+
+function TTeapotNode.GetTexCoord: TX3DNode;
+begin
+  if FdTexCoord.Value is TX3DNode then
+    Result := TX3DNode(FdTexCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TTeapotNode.SetTexCoord(const Value: TX3DNode);
+begin
+  FdTexCoord.Send(Value);
 end;
 
 class function TTeapotNode.ClassX3DType: String;

@@ -188,9 +188,29 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   {$I auto_generated_node_helpers/x3dnodes_imagebackground.inc}
   end;
+
+  { Not implemented:
+    Bindable node to setup rendering and culling parameters.
+
+    Compatible with X3DOM.
+    Not implemented in Castle Game Engine yet, we merely parse it now,
+    but don't do anything with obtained information.
+
+    See https://doc.x3dom.org/author/EnvironmentalEffects/Environment.html }
+  TEnvironmentNode = class(TAbstractBindableNode)
+  {$I auto_generated_node_helpers/x3dnodes_environment.inc}
+  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+const
+  ToneMappingNames: array [TToneMapping] of String = (
+    'NONE',
+    'UNCHARTED',
+    'HEJL-RICHARD',
+    'ACES'
+  );
 
 { TMatrixTransformNode.TMatrixTransformNodeTransformFunctionality --------------------------- }
 
@@ -632,7 +652,8 @@ begin
     TPlaneNode,
     TTogglerNode,
     TCommonSurfaceShaderNode,
-    TImageBackgroundNode
+    TImageBackgroundNode,
+    TEnvironmentNode
   ]);
 end;
 {$endif read_implementation}

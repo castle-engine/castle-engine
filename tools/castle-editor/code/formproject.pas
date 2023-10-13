@@ -2142,7 +2142,7 @@ end;
 
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
 begin
-  if (Design <> nil) and Design.RenamePossible then
+  if (Design <> nil) and Design.RenameSelectedPossible then
     MenuItemRename.Enabled := true
   else
     MenuItemRename.Enabled := false;

@@ -52,6 +52,8 @@
     strict private FFdPickTarget: TMFNode;
     { Internal wrapper for property @code(PickTarget). This wrapper API may change, we advise to access simpler @code(PickTarget) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPickTarget: TMFNode read FFdPickTarget;
+    {  }
+    procedure SetPickTarget(const Value: array of TX3DNode);
 
     strict private FEventPickedGeometry: TMFNodeEvent;
     {  }
@@ -96,6 +98,18 @@ end;
 procedure TAbstractPickSensorNode.SetPickingGeometry(const Value: TAbstractGeometryNode);
 begin
   FdPickingGeometry.Send(Value);
+end;
+
+procedure TAbstractPickSensorNode.SetPickTarget(const Value: array of TX3DNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TX3DNode));
+  FdPickTarget.Send(A);
 end;
 
 function TAbstractPickSensorNode.GetIntersectionType: TPickSensorIntersectionType;

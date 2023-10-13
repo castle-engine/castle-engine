@@ -324,21 +324,52 @@ type
       like @link(ProcessEvents) or @link(Spatial) or @link(RenderOptions) contents. }
     function Clone(const AOwner: TComponent): TCastleScene;
 
-    { Whether the scene was (potentially, at least partially) visible in the last rendering event.
+    { Whether the scene was (potentially, at least partially) visible
+      in the last rendering event.
 
       The "was visible" means that "some shape was visible", that is:
       some shape passed frustum culling, distance culling
-      and (TODO) occlusion culling (see https://castle-engine.io/occlusion_culling )
+      and occlusion culling (see https://castle-engine.io/occlusion_culling )
       tests.
 
-      For this method it doesn't matter if the scene contains some lights
-      that only make some other scenes brighter. Or if the scene contains some background
-      that affects TCastleViewport skybox. Only the visibility of shapes matters.
+      The result of this method is not affected by:
+
+      @unorderedList(
+        @item(Lights.
+
+          That is, it doesn't matter whether this scene contains some lights
+          (X3D light nodes in @link(RootNode))
+          that possibly make some other scenes brighter.
+        )
+
+        @item(Background.
+
+          It doesn't matter whether the scene contains some background
+          that affects TCastleViewport skybox.)
+
+        @item(Children scenes.
+
+          It doesn't matter if you have any children scenes
+          (TCastleScene instances that are children of this)
+          and whether they are visible.
+          This follows the general rule that TCastleScene-specific features
+          do not look/affect children scenes, including children TCastleScene.
+          Only TCastleTransform features, like @link(TCastleTransform.Exists),
+          are applied recursively, i.e. they generally affect the children
+          transformations.
+        )
+      )
+
+      To summarize and emphasize: for this method,
+      @bold(only the visibility of shapes within this scene matters).
 
       If this scene instance is used multiple times within some viewport,
       or when multiple viewports render the same scene,
       then it is enough that at least one shape in one of the scene instances
-      was visible last frame.  }
+      was visible last frame.
+
+      TODO: For now, occlusion culling doesn't affect this, i.e. if the scene
+      is not visible because occlusion culling. }
     function WasVisible: Boolean;
   published
     { Improve performance of rendering by checking for each shape whether
@@ -676,8 +707,8 @@ procedure TCastleScene.CollectShape_SomeTests(const Shape: TGLShape);
 begin
   if (Shape <> AvoidShapeRendering) and
      ( (not AvoidNonShadowCasterRendering) or Shape.ShadowCaster) and
-     ( { implement Shape node "render" field here, by a trivial check }
-       (Shape.Node = nil) or Shape.Node.Render
+     ( { implement TAbstractShapeNode.Visible here, by a trivial check }
+       (Shape.Node = nil) or Shape.Node.Visible
      ) then
   begin
     CollectShape_NoTests(Shape);

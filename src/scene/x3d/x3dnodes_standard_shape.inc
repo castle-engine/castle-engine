@@ -133,6 +133,11 @@
     function WasVisible: Boolean;
 
   {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
+
+  public
+    { @deprecated Deprecated name for @link(Visible). }
+    property Render: Boolean read GetVisible write SetVisible default true;
+      {$ifdef FPC}deprecated 'use Visible';{$endif}
   end;
 
   TFillPropertiesNode = class;
@@ -445,6 +450,8 @@ begin
   FdBboxSize.ChangeAlways := chBBox;
   FdAppearance.ChangeAlways := chEverything;
   FdGeometry.ChangeAlways := chEverything;
+  // Older name for this field, specific to CGE and InstantReality
+  FdVisible.AddAlternativeName('render', 0);
 end;
 
 procedure TAbstractShapeNode.SetAppearanceBefore(const Sender: TSFNode; const NewNode: TX3DNode);

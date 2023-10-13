@@ -54,6 +54,8 @@
     procedure SetLinearVelocity(const Value: TVector3);
     function GetMass: Single;
     procedure SetMass(const Value: Single);
+    function GetMassDensityModel: TX3DNode;
+    procedure SetMassDensityModel(const Value: TX3DNode);
     function GetOrientation: TVector4;
     procedure SetOrientation(const Value: TVector4);
     function GetPosition: TVector3;
@@ -174,6 +176,8 @@
     strict private FFdMassDensityModel: TSFNode;
     { Internal wrapper for property @code(MassDensityModel). This wrapper API may change, we advise to access simpler @code(MassDensityModel) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMassDensityModel: TSFNode read FFdMassDensityModel;
+    {  }
+    property MassDensityModel: TX3DNode read GetMassDensityModel write SetMassDensityModel;
 
     strict private FFdOrientation: TSFRotation;
     { Internal wrapper for property @code(Orientation). This wrapper API may change, we advise to access simpler @code(Orientation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -383,6 +387,19 @@ end;
 procedure TRigidBodyNode.SetMass(const Value: Single);
 begin
   FdMass.Send(Value);
+end;
+
+function TRigidBodyNode.GetMassDensityModel: TX3DNode;
+begin
+  if FdMassDensityModel.Value is TX3DNode then
+    Result := TX3DNode(FdMassDensityModel.Value)
+  else
+    Result := nil;
+end;
+
+procedure TRigidBodyNode.SetMassDensityModel(const Value: TX3DNode);
+begin
+  FdMassDensityModel.Send(Value);
 end;
 
 function TRigidBodyNode.GetOrientation: TVector4;

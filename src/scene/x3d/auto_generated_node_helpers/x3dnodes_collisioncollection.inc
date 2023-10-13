@@ -62,6 +62,8 @@
     strict private FFdCollidables: TMFNode;
     { Internal wrapper for property @code(Collidables). This wrapper API may change, we advise to access simpler @code(Collidables) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCollidables: TMFNode read FFdCollidables;
+    {  }
+    procedure SetCollidables(const Value: array of TX3DNode);
 
     strict private FFdEnabled: TSFBool;
     { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -129,6 +131,18 @@ end;
 procedure TCollisionCollectionNode.SetBounce(const Value: Single);
 begin
   FdBounce.Send(Value);
+end;
+
+procedure TCollisionCollectionNode.SetCollidables(const Value: array of TX3DNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TX3DNode));
+  FdCollidables.Send(A);
 end;
 
 function TCollisionCollectionNode.GetEnabled: Boolean;
