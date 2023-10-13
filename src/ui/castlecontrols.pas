@@ -61,7 +61,7 @@ implementation
 
 uses Math, CastleTextureFont_DefaultUi,
   {$ifdef USE_DGL} dglOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
-  CastleTextureFont_DejaVuSans_10, CastleTextureImages,
+  CastleTextureImages,
   CastleApplicationProperties, CastleMessaging, CastleComponentSerialize,
   CastleUnicode, CastleRenderOptions;
 
