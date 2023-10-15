@@ -194,6 +194,10 @@ begin
   FFullScreenBackend := FFullScreenWanted;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { LibraryXxx methods --------------------------------------------------------- }
 
 procedure TCastleWindow.LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);

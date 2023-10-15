@@ -1495,6 +1495,10 @@ begin
   end;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TGTKClipboard ----------------------------------------------------------- }
 
 { TODO: Shouldn't we convert here UTF8<->system, like in LCL backend?

@@ -735,6 +735,12 @@ type
     function MenuUpdateCheckedFast: boolean;
     { @groupEnd }
 
+    { Called from DoUpdate. Backends may fill this with code to be done
+      on each update, regardless of how update is performed,
+      e.g. this will be called also if something calls FOpenWindows.DoUpdate in
+      TCastleApplication. }
+    procedure BackendInsideUpdate;
+
     procedure CreateBackend;
 
     { Simulate that all the keys and mouse buttons were released.
@@ -3512,9 +3518,7 @@ begin
   FrameProfiler.StartFrame;
   FrameProfiler.Start(fmUpdate);
 
-  {$if defined(CASTLE_WINDOW_FORM) and defined(FPC)}
-  FKeyPressHandler.Flush; // finish any pending key presses
-  {$endif}
+  BackendInsideUpdate;
 
   MakeCurrent;
   Container.EventUpdate;

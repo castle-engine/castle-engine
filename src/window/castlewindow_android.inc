@@ -699,6 +699,10 @@ begin
   FFullScreenBackend := FFullScreenWanted; // does nothing on Android
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TCastleApplication ---------------------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;

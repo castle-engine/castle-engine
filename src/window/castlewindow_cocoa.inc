@@ -1060,6 +1060,10 @@ begin
   end;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TCastleApplication ---------------------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;

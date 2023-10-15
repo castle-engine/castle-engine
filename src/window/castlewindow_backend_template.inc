@@ -170,6 +170,10 @@ begin
     Remove the above line then, and put better implementation here. }
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TCastleWindow dialogs -------------------------------------------------- }
 
 { Methods below should make native-looking dialog boxes.

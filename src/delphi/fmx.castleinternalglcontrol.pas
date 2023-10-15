@@ -78,11 +78,22 @@ type
       afterwards etc. }
     procedure HandleNeeded;
 
+    { Call this continuosly. }
+    procedure Update;
+
     { This control must always have "native style", which means
       it has ControlType = Platform. See FMX docs about native controls:
       https://docwiki.embarcadero.com/RADStudio/Sydney/en/FireMonkey_Native_Windows_Controls
       Native controls are always on top of non-native controls. }
     property ControlType default TControlType.Platform;
+
+    { Size in pixels, not scaled by anything.
+      Such size can be passed e.g. to OpenGL viewport. }
+    function PixelsWidth: Integer;
+    function PixelsHeight: Integer;
+
+    { Scaling of FMX reported mouse coordinates to pixels. }
+    function MousePosScale: Single;
   end;
 
 implementation
@@ -227,6 +238,29 @@ end;
 procedure TOpenGLControl.MakeCurrent;
 begin
   FPlatformContext.MakeCurrent;
+end;
+
+procedure TOpenGLControl.Update;
+begin
+  FGLUtility.Update;
+end;
+
+function TOpenGLControl.PixelsWidth: Integer;
+begin
+  // FMXLinux reports size that needs to be scaled, to get pixels
+  Result := Round(Width {$ifdef LINUX} * FGLUtility.Scale {$endif});
+end;
+
+function TOpenGLControl.PixelsHeight: Integer;
+begin
+  // FMXLinux reports size that needs to be scaled, to get pixels
+  Result := Round(Height {$ifdef LINUX} * FGLUtility.Scale {$endif});
+end;
+
+function TOpenGLControl.MousePosScale: Single;
+begin
+  // FMXLinux passes coordinates that need to be scaled
+  Result := 1 {$ifdef LINUX} * FGLUtility.Scale {$endif};
 end;
 
 {$ifdef MSWINDOWS}

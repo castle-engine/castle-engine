@@ -1756,6 +1756,10 @@ begin
   SimpleUpdateFullScreenBackend;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TWinApiClipboard ----------------------------------------------------------- }
 
 { Clipboard operations using WinAPI based on:

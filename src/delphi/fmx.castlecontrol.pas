@@ -204,23 +204,12 @@ begin
 end;
 
 function TCastleControl.TContainer.Width: Integer;
-{ // Using LocalToScreen doesn't help to counteract the FMX scale
-var
-  P: TPointF;
-begin
-  P := Parent.LocalToScreen(TPointF.Create(Parent.Width, 0));
-  Result := Round(P.X);
-end;
-}
 var
   Scale: Single;
 begin
-  {$ifdef MSWINDOWS}
-  // this may be called at units finalization, when Handle is no longer available
-  if Parent.Presentation <> nil then
-    Scale := (Parent.Presentation as TWinNativeGLControl).Scale
+  if Parent.FGLUtility <> nil then
+    Scale := Parent.FGLUtility.Scale
   else
-  {$endif}
     Scale := 1;
 
   Result := Round(Parent.Width * Scale);
@@ -230,12 +219,9 @@ function TCastleControl.TContainer.Height: Integer;
 var
   Scale: Single;
 begin
-  {$ifdef MSWINDOWS}
-  // this may be called at units finalization, when Handle is no longer available
-  if Parent.Presentation <> nil then
-    Scale := (Parent.Presentation as TWinNativeGLControl).Scale
+  if Parent.FGLUtility <> nil then
+    Scale := Parent.FGLUtility.Scale
   else
-  {$endif}
     Scale := 1;
 
   Result := Round(Parent.Height * Scale);
@@ -376,6 +362,12 @@ begin
     // TODO: We should make sure we get handle before some other events,
     // like update or mouse/key press.
     InternalHandleNeeded;
+
+    { TODO: Not the best place to call this.
+      This assumes we render often (like every frame)
+      and we can update our GTK control size (thus OpenGL size)
+      right before render. }
+    FGLUtility.Update;
 
     // inherited not needed, and possibly causes something unnecessary
     FContainer.DoRender;

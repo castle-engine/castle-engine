@@ -629,6 +629,10 @@ begin
   SimpleUpdateFullScreenBackend;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TCastleApplication ------------------------------------------------------- }
 
 function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindow;

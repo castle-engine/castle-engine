@@ -22,7 +22,7 @@ interface
 uses FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
   {$ifdef MSWINDOWS} FMX.Presentation.Win, {$endif}
   {$ifdef LINUX} FMX.Platform.Linux, {$endif}
-  CastleInternalContextBase;
+  CastleInternalContextBase, CastleVectors;
 
 type
   THandleCreatedEvent = procedure of object;
@@ -50,9 +50,13 @@ type
     a separate class that is just created and used by both
     FMX TOpenGLControl and FMX TCastleControl. }
   TFmxOpenGLUtility = class
+  {$ifdef LINUX}
   private
     GLAreaInitialized: Boolean;
     GLAreaGtk: Pointer;
+    GLAreaRect: TVector4Integer; //< x, y, width, height
+    DrawingAreaParent: Pointer;
+  {$endif}
   public
     { Set before calling HandleNeeded.
       Cannot change during lifetime of this instance, for now. }
@@ -98,258 +102,26 @@ type
 
       This is synchronized with what ContextCreateBestInstance does on this platform. }
     procedure ContextAdjustEarly(const PlatformContext: TGLContext);
+
+    { Call this often to perform platform-specific adjustments.
+
+      At this point, this is required on Linux: we need to synchronize
+      internal GTK control with desired position and size of FMX TCastleControl. }
+    procedure Update;
+
+    { Size reported by FMX controls needs to be multiplied by this
+      to get size in physical pixels (which we need e.g. for OpenGL context). }
+    function Scale: Single;
   end;
 
 implementation
 
-uses
-  {$ifdef MSWINDOWS} Windows, {$endif}
-  SysUtils,
-  { Needed for TCustomForm used by XWindowHandle }
-  FMX.Forms,
-  CTypes,
-  {$ifdef MSWINDOWS} CastleInternalContextWgl, {$endif}
-  {$ifdef LINUX} CastleInternalContextEgl, {$endif}
-  CastleLog, CastleUtils;
-
-{$if defined(LINUX)}
-  {$I castleinternalfmxutils_gtk3.inc}
-
-procedure PassSignalToOtherWidget(const SignalName: AnsiString;
-  const OtherWidget: Pointer; const Event: Pointer);
-var
-  SignalEmitArgs: array[0..2] of TGValue;
-  ReturnValue: TGValue;
-  SignalInt: CUInt;
-begin
-  SignalInt := g_signal_lookup(PAnsiChar(SignalName), G_TYPE_FROM_INSTANCE(OtherWidget));
-  if SignalInt = 0 then
-    raise Exception.CreateFmt('Signal "%s" on target not found', [SignalName]);
-
-  { Initialize GValue list.
-    - 1st item must be instance to which we send signal,
-    - then params of that signal (just Event),
-    - then finish (leave uinitialized GValue,
-      "uinitialized" == filled with zeroes for glib).
-
-    Note that we have to fill initially values with zeroes, otherwise
-    it could be mistaken with initialized value with some garbage and cause
-    valid glib warnings/errors. }
-  FillChar(SignalEmitArgs, SizeOf(SignalEmitArgs), 0);
-  g_value_init(@SignalEmitArgs[0], G_TYPE_OBJECT);
-  g_value_set_instance(@SignalEmitArgs[0], OtherWidget);
-  g_value_init(@SignalEmitArgs[1], G_TYPE_POINTER);
-  g_value_set_pointer(@SignalEmitArgs[1], Event);
-
-  { Initialie ReturnValue (GValue). Despite docs,
-    g_signal_emitv cannot get nil as return value. }
-  FillChar(ReturnValue, SizeOf(ReturnValue), 0);
-  g_value_init(@ReturnValue, G_TYPE_BOOLEAN);
-  g_value_set_boolean(@ReturnValue, false);
-
-  g_signal_emitv(@SignalEmitArgs, SignalInt, 0, @ReturnValue);
-
-  g_value_unset(@SignalEmitArgs[0]);
-  g_value_unset(@SignalEmitArgs[1]);
-  g_value_unset(@ReturnValue);
-end;
-
-function signal_button_press_event(AGLAreaGtk: Pointer; Event: PGdkEventAny;
-  Data: Pointer): gboolean; cdecl;
-begin
-  { Pass the signal to FMX control,
-    which will make FMX callbacks,
-    and then TCastleWindow (in case of CASTLE_WINDOW_FORM)
-    or TCastleControl will handle the event from FMX. }
-  PassSignalToOtherWidget('button_press_event', Data, Event);
-  Result := false;
-end;
-
-function signal_button_release_event(AGLAreaGtk: Pointer; Event: PGdkEventAny;
-  Data: Pointer): gboolean; cdecl;
-begin
-  PassSignalToOtherWidget('button_release_event', Data, Event);
-  Result := false;
-end;
-
-function signal_motion_notify_event(AGLAreaGtk: Pointer; Event: PGdkEventAny;
-  Data: Pointer): gboolean; cdecl;
-begin
-  { We need own motion_notify_event otherwise events do not reach
-    FMX after you clicked (when mouse events are grabbed),
-    regardless of button_press_event return value. }
-  PassSignalToOtherWidget('motion_notify_event', Data, Event);
-  Result := false;
-end;
-
-function signal_scroll_event(AGLAreaGtk: Pointer; Event: PGdkEventAny;
-  Data: Pointer): gboolean; cdecl;
-begin
-  PassSignalToOtherWidget('scroll_event', Data, Event);
-  Result := false;
-end;
-{$endif}
-
-{ TFmxOpenGLUtility ------------------------------------------------------------- }
-
-procedure TFmxOpenGLUtility.ContextAdjustEarly(const PlatformContext: TGLContext);
 {$if defined(MSWINDOWS)}
-var
-  WinContext: TGLContextWgl;
-begin
-  WinContext := PlatformContext as TGLContextWgl;
-  WinContext.WndPtr :=
-    (Control.Presentation as TWinPresentation).Handle;
-  if WinContext.WndPtr = 0 then
-    raise Exception.Create('Native handle not ready when calling ContextAdjustEarly');
-  WinContext.h_Dc := GetWindowDC(WinContext.WndPtr);
-end;
+  {$I castleinternalfmxutils_windows.inc}
 {$elseif defined(LINUX)}
-
-  { Get XWindow handle (to pass to EGL) from GTK widget. }
-  function XHandleFromGtkWidget(const GtkWnd: Pointer): Pointer;
-  var
-    GdkWnd: Pointer;
-  begin
-    GdkWnd := gtk_widget_get_window(GtkWnd);
-    if GdkWnd = nil then
-      raise Exception.Create('Widget does not have GDK handle initialized yet');
-
-    Result := gdk_x11_window_get_xid(GdkWnd);
-    if Result = nil then
-      raise Exception.Create('Widget does not have X11 handle initialized yet');
-  end;
-
-var
-  EglContext: TGLContextEgl;
-  XHandle: Pointer;
-begin
-  if GLAreaGtk = nil then
-    raise Exception.Create('Native GTK area not ready when calling ContextAdjustEarly');
-  XHandle := XHandleFromGtkWidget(GLAreaGtk);
-  EglContext := PlatformContext as TGLContextEgl;
-  EglContext.WndPtr := XHandle;
-  Assert(EglContext.WndPtr <> nil); // XHandleFromGtkWidget already checks this and made exception if problem
-end;
+  {$I castleinternalfmxutils_linux.inc}
 {$else}
-begin
-end;
-{$endif}
-
-procedure TFmxOpenGLUtility.HandleNeeded;
-{$if defined(MSWINDOWS)}
-var
-  H: HWND;
-begin
-  if Control.Presentation = nil then
-    raise EInternalError.CreateFmt('%s: Cannot use ControlHandleNeeded as Presentation not created yet', [Control.ClassName]);
-  H := (Control.Presentation as TWinPresentation).Handle;
-  if H = 0 { NullHWnd } then
-    raise Exception.CreateFmt('%s: ControlHandleNeeded failed to create a handle', [Control.ClassName]);
-end;
-
-{$elseif defined(LINUX)}
-
-var
-  Form: TCustomForm;
-  LinuxHandle: TLinuxWindowHandle;
-  DrawingAreaParent, DrawingAreaParentAsFixed: Pointer;
-  DrawingAreaParentClassName: AnsiString;
-begin
-  { Use GLAreaInitialized, instead of check GLAreaGtk <> nil,
-    to avoid repeating this when some check below raises exception
-    and GLAreaGtk would always remain nil. }
-  if GLAreaInitialized then
-    Exit;
-  GLAreaInitialized := true;
-
-  { TODO: For TCastleControl, it is bad this
-    assumes TCastleControl has form as direct parent.
-    We could extract form somehow better, check Parent recursively maybe?
-  }
-  if Control.Parent = nil then
-    raise Exception.CreateFmt('Parent of %s must be set', [Control.ClassName]);
-  // This actually also tests Parent <> nil, but previous check makes better error message
-  if not (Control.Parent is TCustomForm) then
-    raise Exception.CreateFmt('Parent of %s must be form', [Control.ClassName]);
-  Form := Control.Parent as TCustomForm;
-
-  LinuxHandle := TLinuxWindowHandle(Form.Handle);
-  if LinuxHandle = nil then
-    raise Exception.CreateFmt('Form of %s does not have TLinuxHandle initialized yet', [Control.ClassName]);
-
-  if LinuxHandle.NativeHandle = nil then
-    raise Exception.CreateFmt('Form of %s does not have GTK NativeHandle initialized yet', [Control.ClassName]);
-
-  if LinuxHandle.NativeDrawingArea = nil then
-    raise Exception.CreateFmt('Form of %s does not have GTK NativeDrawingArea initialized yet', [Control.ClassName]);
-
-  { Tests show that parent of is GtkFixed,
-    this makes things easy for us to insert GLAreaGtk later. }
-  DrawingAreaParent := gtk_widget_get_parent(LinuxHandle.NativeDrawingArea);
-  if DrawingAreaParent = nil then
-    raise Exception.Create('FMX drawing area in GTK has no parent');
-
-  DrawingAreaParentClassName := G_OBJECT_TYPE_NAME(DrawingAreaParent);
-  if DrawingAreaParentClassName <> 'GtkFixed' then
-    WritelnWarning('FMX drawing area has parent with unexpected class "%s". We will try to continue it and cast it to GtkFixed', [
-      DrawingAreaParentClassName
-    ]);
-
-  DrawingAreaParentAsFixed := g_type_check_instance_cast(DrawingAreaParent, gtk_fixed_get_type);
-
-  { Note: We tested alternative solution
-      GLAreaGtk := LinuxHandle.NativeDrawingArea;
-    which seems to make sense when GLAreaGtk should just fill the whole window,
-    like for TCastleWindow. But it causes blinking. }
-
-  { Initialization of variables and checks are done.
-    Now actually create GLAreaGtk, if things look sensible. }
-
-  GLAreaGtk := gtk_drawing_area_new;
-
-  { connect signal handlers to GLAreaGtk }
-  { What events to catch ? It must cover all signal_yyy_event functions that we
-    will connect. This must be called before X Window is created. }
-  gtk_widget_set_events(GLAreaGtk,
-    // GDK_EXPOSURE_MASK {for expose_event} or
-    GDK_BUTTON_PRESS_MASK {for button_press_event} or
-    GDK_BUTTON_RELEASE_MASK {for button_release_event} or
-    GDK_POINTER_MOTION_MASK {for motion_notify_event}
-  );
-  g_signal_connect(GLAreaGtk, 'button_press_event', @signal_button_press_event,
-    LinuxHandle.NativeDrawingArea);
-  g_signal_connect(GLAreaGtk, 'button_release_event', @signal_button_release_event,
-    LinuxHandle.NativeDrawingArea);
-  g_signal_connect(GLAreaGtk, 'motion_notify_event', @signal_motion_notify_event,
-    LinuxHandle.NativeDrawingArea);
-  g_signal_connect(GLAreaGtk, 'scroll_event', @signal_scroll_event,
-    LinuxHandle.NativeDrawingArea);
-
-  // Do this using gtk_fixed_put instead:
-  //gtk_container_add(DrawingAreaParentAsFixed, GLAreaGtk);
-  gtk_fixed_put(DrawingAreaParentAsFixed, GLAreaGtk,
-    Round(Control.Position.X), Round(Control.Position.Y));
-  gtk_widget_set_size_request(GLAreaGtk,
-    Round(Control.Size.Width), Round(Control.Size.Height));
-  gtk_widget_show(GLAreaGtk);
-
-  { Debugging what are some Gtk classes, to reverse-engineer what FMXLinux
-    is doing inside it's closed library:
-  WritelnLog('LinuxHandle.NativeHandle type ' + G_OBJECT_TYPE_NAME(LinuxHandle.NativeHandle));
-  WritelnLog('LinuxHandle.NativeDrawingArea type ' + G_OBJECT_TYPE_NAME(LinuxHandle.NativeDrawingArea));
-  WritelnLog('GLAreaGtk type ' + G_OBJECT_TYPE_NAME(GLAreaGtk));
-  }
-
-  if Assigned(OnHandleCreatedEvent) then
-    OnHandleCreatedEvent();
-end;
-
-{$else}
-begin
-  // Nothing to do on other platforms by default
-end;
-
+  {$I castleinternalfmxutils_other_os.inc}
 {$endif}
 
 end.

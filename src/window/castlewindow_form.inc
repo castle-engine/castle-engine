@@ -120,6 +120,15 @@ private
     public
       Window: TCastleWindow;
       procedure Invalidate; override;
+      {$ifdef FPC}
+      { Size in pixels, not scaled by anything.
+        This is trivial in LCL, defined just for compatibility
+        with FMX TOpenGLControl where it is not so trivial. }
+      function PixelsWidth: Integer;
+      function PixelsHeight: Integer;
+      { Scale of mouse coordinates. }
+      function MousePosScale: Single;
+      {$endif}
     end;
 
   var
@@ -173,6 +182,8 @@ private
   procedure OpenGLControlMouseWheel(Sender: TObject; Shift: TShiftState;
     WheelDelta: Integer; {$ifdef FPC} MousePos: TPoint; {$endif}
     var Handled: Boolean);
+  function MousePosToCastle(
+    const X, Y: {$ifdef FPC} Integer {$else} Single {$endif}): TVector2;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -235,6 +246,23 @@ begin
   Window.Invalidated := true;
   inherited;
 end;
+
+{$ifdef FPC}
+function TCastleWindow.TGoodOpenGLControl.PixelsWidth: Integer;
+begin
+  Result := Width;
+end;
+
+function TCastleWindow.TGoodOpenGLControl.PixelsHeight: Integer;
+begin
+  Result := Height;
+end;
+
+function TCastleWindow.TGoodOpenGLControl.MousePosScale: Single;
+begin
+  Result := 1;
+end;
+{$endif}
 
 { TCastleWindow ------------------------------------------------------------------ }
 
@@ -549,7 +577,7 @@ procedure TCastleWindow.OpenBackend;
     {$ifdef FPC}
     // FMX: TODO
     InitialCursorPos := OpenGLControl.ScreenToControl(Mouse.CursorPos);
-    FMousePosition := LeftTopToCastle(InitialCursorPos.X, InitialCursorPos.Y);
+    FMousePosition := MousePosToCastle(InitialCursorPos.X, InitialCursorPos.Y);
     {$endif}
   end;
 
@@ -679,8 +707,8 @@ begin
     DoResize is already implemented to handle such
     call (from OpenBackend, before EventOpen was called) correctly. }
   DoResize(
-    Round(OpenGLControl.Width),
-    Round(OpenGLControl.Height), false);  // Round for FMX
+    OpenGLControl.PixelsWidth,
+    OpenGLControl.PixelsHeight, false);
 
   { Assign OpenGLControl.OnPaint *after* making Form visible.
     If we would assign OpenGLControl.OnPaint earlier, then
@@ -861,8 +889,8 @@ end;
 procedure TCastleWindow.OpenGLControlResize(Sender: TObject);
 begin
   DoResize(
-    Round(OpenGLControl.Width),
-    Round(OpenGLControl.Height), false);  // Round for FMX
+    OpenGLControl.PixelsWidth,
+    OpenGLControl.PixelsHeight, false);
 end;
 
 procedure TCastleWindow.OpenGLControlKeyDown(Sender: TObject;
@@ -917,7 +945,7 @@ var
   MyButton: TCastleMouseButton;
 begin
   if MouseButtonToCastle(Button, MyButton) then
-    DoMouseDown(LeftTopToCastle(X, Y), MyButton, 0);
+    DoMouseDown(MousePosToCastle(X, Y), MyButton, 0);
 end;
 
 procedure TCastleWindow.OpenGLControlMouseUp(Sender: TObject;
@@ -927,7 +955,7 @@ var
   MyButton: TCastleMouseButton;
 begin
   if MouseButtonToCastle(Button, MyButton) then
-    DoMouseUp(LeftTopToCastle(X, Y), MyButton, 0);
+    DoMouseUp(MousePosToCastle(X, Y), MyButton, 0);
 end;
 
 { Since LCL event loop may become clogged when dragging with mouse
@@ -971,7 +999,7 @@ procedure TCastleWindow.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState;
   X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
 begin
-  DoMotion(InputMotion(MousePosition, LeftTopToCastle(X, Y),
+  DoMotion(InputMotion(MousePosition, MousePosToCastle(X, Y),
     MousePressed, 0));
   AggressiveUpdate;
 end;
@@ -1067,6 +1095,23 @@ end;
 procedure TCastleWindow.FormDropFiles(Sender: TObject; const FileNames: array of string);
 begin
   DoDropFiles(FileNames);
+end;
+
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+  {$if defined(FPC)}
+  FKeyPressHandler.Flush; // finish any pending key presses
+  {$else}
+  OpenGLControl.Update; // on FMX, we need to call TOpenGLControl.Update
+  {$endif}
+end;
+
+function TCastleWindow.MousePosToCastle(
+  const X, Y: {$ifdef FPC} Integer {$else} Single {$endif}): TVector2;
+begin
+  Result := LeftTopToCastle(
+    X * OpenGLControl.MousePosScale,
+    Y * OpenGLControl.MousePosScale);
 end;
 
 { TFormsClipboard ----------------------------------------------------------- }
