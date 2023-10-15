@@ -183,6 +183,7 @@ private
   {$else}
   procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
   {$endif}
+  procedure DoNothingOnException(Sender: TObject; E: Exception);
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -1130,10 +1131,16 @@ procedure TCastleApplication.CreateBackend;
 begin
   RegisterClipboard(TFormsClipboard.Create);
 
+  {$ifdef FPC}
   { Do not install LCL handler for ExceptProc, we want to use our own handler
     in CastleUtils. }
-  {$ifdef FPC}
   FormApplication.CaptureExceptions := false;
+  {$else}
+  { Do not capture exceptions in our ProcessMessages (catched in FMX
+    TApplication.HandleException). Let exceptions happen,
+    code in TCastleWindow (unrelated to backend) will catch them
+    and display nice window. }
+  FormApplication.OnException := DoNothingOnException;
   {$endif}
 
   FormApplication.Initialize;
@@ -1155,6 +1162,12 @@ begin
   {$else}
   FormApplication.RemoveOnIdleHandler(@ApplicationIdle);
   {$endif}
+end;
+
+procedure TCastleApplication.DoNothingOnException(Sender: TObject; E: Exception);
+begin
+  // deliberately do nothing
+  WritelnLog('Exception in TForm event, passing up to TCastleWindow: ' + ExceptMessage(E));
 end;
 
 {$ifdef USE_TIMER}
