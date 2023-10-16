@@ -1,0 +1,98 @@
+unit Unit1;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
+  FMX.StdCtrls, FMX.Controls.Presentation, Fmx.CastleControl,
+  CastleScene, CastleViewport;
+
+type
+  TForm1 = class(TForm)
+    CastleControl1: TCastleControl;
+    ButtonLoadUrl: TButton;
+    LayoutAnimations: TGridLayout;
+    Label1: TLabel;
+    OpenDialog1: TOpenDialog;
+    procedure FormCreate(Sender: TObject);
+    procedure ButtonLoadUrlClick(Sender: TObject);
+  private
+    MainScene: TCastleScene;
+    MainViewport: TCastleViewport;
+    procedure LoadScene(const Url: String);
+    procedure AnimationButtonClick(Sender: TObject);
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+uses CastleSceneCore, CastleFmxUtils, X3DLoad, CastleUriUtils;
+
+{$R *.fmx}
+
+procedure TForm1.ButtonLoadUrlClick(Sender: TObject);
+begin
+  if OpenDialog1.Execute then
+    LoadScene(FilenameToUriSafe(OpenDialog1.FileName));
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  { Initialize UI scaling in CGE.
+    Not really needed in this application, that doesn't have any CGE UI,
+    we only use CGE for TCastleScene display in viewport. }
+  CastleControl1.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  { Initialize references to components designed using CGE editor,
+    saved in data/main.castle-user-interface. }
+  MainScene := CastleControl1.Container.DesignedComponent('MainScene') as TCastleScene;
+  MainViewport := CastleControl1.Container.DesignedComponent('MainViewport') as TCastleViewport;
+
+  { Load initial scene. }
+  LoadScene('castle-data:/spine_dragon/dragon.json');
+
+  { Initialize OpenDialog1 to allow loading all supported scene formats. }
+  FileFiltersToDialog(LoadScene_FileFilters, OpenDialog1);
+end;
+
+procedure TForm1.AnimationButtonClick(Sender: TObject);
+begin
+  var AnimName := (Sender as TButton).Text;
+
+  MainScene.PlayAnimation(AnimName, true);
+
+  {
+  var Params := TPlayAnimationParameters.Create;
+  try
+    Params.Name := AnimName;
+    Params.TransitionDuration := 0.25;
+    Params.Loop := true;
+  finally
+    FreeAndNil(Params);
+  end;
+  }
+end;
+
+procedure TForm1.LoadScene(const Url: String);
+begin
+  MainScene.Load(Url);
+
+  MainViewport.AssignDefaultCamera; // adjust camera to scene size
+
+  LayoutAnimations.DeleteChildren;
+
+  for var AnimName in MainScene.AnimationsList do
+  begin
+    var NewButton := TButton.Create(Self);
+    NewButton.Text := AnimName;
+    NewButton.OnClick := AnimationButtonClick;
+    LayoutAnimations.AddObject(NewButton);
+  end;
+end;
+
+end.
