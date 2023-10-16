@@ -2413,8 +2413,19 @@ end;
 
 procedure TCastleContainer.LoadSettings(const SettingsUrl: String);
 begin
+  { TODO: Test, also with warmup cache, to make sure we don't crash.
+
+    We allow now to load CastleSettings.xml before OpenGL context is
+    initialized because:
+    - it makes sense in many cases when you don't use warmup_cache,
+      and only use CastleSettings.xml to define UI scaling or default
+      fonts.
+    - it is natural to do this from form OnCreate for LCL / FMX / VCL
+      applications.
+
   if not ApplicationProperties.IsGLContextOpen then
     raise Exception.Create('Rendering context not open when calling TCastleContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindow.OnOpen, TCastleControl.OnOpen');
+  }
   SettingsLoad(Self, SettingsUrl);
 end;
 
