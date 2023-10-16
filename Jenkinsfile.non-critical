@@ -47,26 +47,60 @@ pipeline {
                 sh 'make clean examples-laz'
               }
             }
+          }
+        }
+        stage('Docker (Linux) (FPC 3.2.0)') {
+          agent {
+            docker {
+              image 'kambi/castle-engine-cloud-builds-tools:cge-none-fpc320'
+            }
+          }
+          environment {
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+          }
+          stages {
+            stage('(Docker) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
             stage('(Docker) Build Examples (FPC 3.2.0)') {
               steps {
                 /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples'
+                sh 'make clean examples'
               }
             }
             stage('(Docker) Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
               steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz'
+                sh 'make clean examples-laz'
               }
             }
-            stage('(Docker) Build Examples (FPC trunk)') {
+          }
+        }
+        stage('Docker (Linux) (FPC 3.3.1)') {
+          agent {
+            docker {
+              image 'kambi/castle-engine-cloud-builds-tools:cge-none-fpc331'
+            }
+          }
+          environment {
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+          }
+          stages {
+            stage('(Docker) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(Docker) Build Examples (FPC 3.3.1)') {
               steps {
                 /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
+                sh 'make clean examples'
               }
             }
-            stage('(Docker) Build Examples Using Lazarus (FPC trunk/Lazarus)') {
+            stage('(Docker) Build Examples Using Lazarus (FPC 3.3.1/Lazarus)') {
               steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
+                sh 'make clean examples-laz'
               }
             }
           }
