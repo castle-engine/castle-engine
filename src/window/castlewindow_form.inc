@@ -1338,7 +1338,7 @@ end;
 
 function TCastleApplication.BackendName: string;
 begin
-  Result := 'LCL';
+  Result := 'Form';
 end;
 
 { TWindowContainer ----------------------------------------------------------- }
