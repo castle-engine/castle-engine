@@ -257,6 +257,20 @@ end;
 
 function TOpenGLControl.MousePosScale: Single;
 begin
+  { Note that FGLUtility.Scale seems always 1.0 when this is used
+    with Windows from CASTLE_WINDOW_FORM.
+    Though Windows usage through TCastleControl shows that we need to scale
+    mouse coordinates and sizes by FGLUtility.Scale.
+
+    On Linux, both usage here (from CASTLE_WINDOW_FORM)
+    and in TCastleControl may actually show non-1.0 scaling (configure scaling
+    in GNOME to make it happen) and has to be accounted.
+
+    It seems that correct and cross-platform approach is just to always
+    scale, if we want to convert FMX sizes/coordinates to pixel sizes/coordinates
+    needed by CGE.
+  }
+
   Result := FGLUtility.Scale;
 end;
 
