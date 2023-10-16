@@ -42,12 +42,16 @@ procedure FileFiltersToDialog(const FileFilters: string;
   Dialog: TFileDialog; const AllFields: boolean = true);
 procedure FileFiltersToDialog(const FileFilters: string;
   const Edit: TFileNameEdit; const AllFields: boolean = true);
-procedure FileFiltersToDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
 procedure FileFiltersToDialog(FFList: TFileFilterList;
   Dialog: TFileDialog; const AllFields: boolean = true);
+
+procedure FileFiltersToDialog(const FileFilters: string;
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
+  deprecated 'use TFileFilterList.LclFmxFiltersFromString';
+
 procedure FileFiltersToDialog(FFList: TFileFilterList;
   out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
+  deprecated 'use TFileFilterList.LclFmxFilters';
 { @groupEnd }
 
 { Make each '&' inside string '&&', this way the string will not contain
@@ -181,70 +185,29 @@ begin
   Edit.FilterIndex := LCLFilterIndex;
 end;
 
-procedure FileFiltersToDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean);
-var
-  FFList: TFileFilterList;
-begin
-  FFList := TFileFilterList.Create(true);
-  try
-    FFList.AddFiltersFromString(FileFilters);
-    FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex, AllFields);
-  finally FreeAndNil(FFList) end;
-end;
-
 procedure FileFiltersToDialog(FFList: TFileFilterList;
   Dialog: TFileDialog; const AllFields: boolean);
 var
   LCLFilter: string;
   LCLFilterIndex: Integer;
 begin
-  FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex, AllFields);
+  FFList.FileFiltersToDialog(LCLFilter, LCLFilterIndex, AllFields);
   Dialog.Filter := LCLFilter;
   Dialog.FilterIndex := LCLFilterIndex;
 end;
 
-procedure FileFiltersToDialog(FFList: TFileFilterList;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean);
-var
-  Filter: TFileFilter;
-  I, J: Integer;
+procedure FileFiltersToDialog(const FileFilters: string;
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
 begin
-  LCLFilter := '';
+  TFileFilterList.LclFmxFiltersFromString(FileFilters,
+    LCLFilter, LCLFilterIndex, AllFields);
+end;
 
-  { initialize LCLFilterIndex.
-    Will be corrected for AllFields=false case, and will be incremented
-    (because LCL FilterIndex counts from 1) later. }
-
-  LCLFilterIndex := FFList.DefaultFilter;
-
-  for I := 0 to FFList.Count - 1 do
-  begin
-    Filter := FFList[I];
-    if (not AllFields) and IsPrefix('All ', Filter.Name) then
-    begin
-      { then we don't want to add this to LCLFilter.
-        We also need to fix LCLFilterIndex, to shift it. }
-      if I = FFList.DefaultFilter then
-        LCLFilterIndex := 0 else
-      if I < FFList.DefaultFilter then
-        Dec(LCLFilterIndex);
-      Continue;
-    end;
-
-    LCLFilter += Filter.Name + '|';
-
-    for J := 0 to Filter.Patterns.Count - 1 do
-    begin
-      if J <> 0 then LCLFilter += ';';
-      LCLFilter += Filter.Patterns[J];
-    end;
-
-    LCLFilter += '|';
-  end;
-
-  { LCL FilterIndex counts from 1. }
-  Inc(LCLFilterIndex);
+procedure FileFiltersToDialog(FFList: TFileFilterList;
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
+begin
+  FFList.LclFmxFilters(
+    LCLFilter, LCLFilterIndex, AllFields);
 end;
 
 function SQuoteLCLCaption(const S: string): string;
