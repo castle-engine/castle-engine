@@ -35,7 +35,7 @@ pipeline {
        for parallel syntax. */
     stage('Run parallel builds') {
       parallel {
-        stage('Docker (Linux)') {
+        stage('Docker (Linux) (Default FPC)') {
           agent {
             docker {
               image 'kambi/castle-engine-cloud-builds-tools:cge-none'
@@ -92,76 +92,6 @@ pipeline {
               }
             }
 
-            /* Same with FPC 3.2.0.
-               We could use a script to reuse the code,
-               but then the detailed time breakdown/statistics would not be available in Jenkins. */
-
-            stage('(Docker) Build Tools (FPC 3.2.0)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tools'
-              }
-            }
-            stage('(Docker) Build Examples (FPC 3.2.0)') {
-              when { not { expression { return params.jenkins_fast } } }
-              steps {
-                /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
-              }
-            }
-            stage('(Docker) Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
-              when { not { expression { return params.jenkins_fast } } }
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true'
-              }
-            }
-            stage('(Docker) Build And Run Auto-Tests (FPC 3.2.0)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tests'
-              }
-            }
-            stage('(Docker) Build Using FpMake (FPC 3.2.0)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean test-fpmake'
-              }
-            }
-
-            /* Same with FPC trunk.
-               We could use a script to reuse the code,
-               but then the detailed time breakdown/statistics would not be available in Jenkins. */
-
-            stage('(Docker) Build Tools (FPC trunk)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools'
-              }
-            }
-            stage('(Docker) Build Examples (FPC trunk)') {
-              when { not { expression { return params.jenkins_fast } } }
-              steps {
-                /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
-              }
-            }
-            stage('(Docker) Build Examples Using Lazarus (FPC trunk/Lazarus)') {
-              when { not { expression { return params.jenkins_fast } } }
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true'
-              }
-            }
-            stage('(Docker) Build And Run Auto-Tests (FPC trunk)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests'
-              }
-            }
-            /* fpmake compilation with FPC 3.3.1 from 2022-12-27 is broken,
-               TODO investigate and report.
-
-            stage('(Docker) Build Using FpMake (FPC trunk)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake'
-              }
-            }
-            */
-
             stage('(Docker) Pack Release (for Windows and Linux)') {
               steps {
                 /* remove previous artifacts */
@@ -177,9 +107,121 @@ pipeline {
 
                 archiveArtifacts artifacts: 'castle-engine*.zip'
               }
+          }
+        }
+
+        /* Same with FPC 3.2.0.
+            We could use a script to reuse the code,
+            but then the detailed time breakdown/statistics would not be available in Jenkins. */
+        stage('Docker (Linux) (FPC 3.2.0)') {
+          agent {
+            docker {
+              image 'kambi/castle-engine-cloud-builds-tools:cge-none-fpc320'
+            }
+          }
+          environment {
+            /* Used by CGE build tool ("castle-engine").
+               Define env based on another env variable.
+               According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+               this should be supported. */
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+          }
+          stages {
+            stage('(Docker) Cleanup (FPC 3.2.0)') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+
+            stage('(Docker) Build Tools (FPC 3.2.0)') {
+              steps {
+                sh 'make clean tools'
+              }
+            }
+            stage('(Docker) Build Examples (FPC 3.2.0)') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(Docker) Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(Docker) Build And Run Auto-Tests (FPC 3.2.0)') {
+              steps {
+                sh 'make clean tests'
+              }
+            }
+            stage('(Docker) Build Using FpMake (FPC 3.2.0)') {
+              steps {
+                sh 'make clean test-fpmake'
+              }
             }
           }
         }
+
+        /* Same with FPC 3.3.1.
+            We could use a script to reuse the code,
+            but then the detailed time breakdown/statistics would not be available in Jenkins. */
+        stage('Docker (Linux) (FPC 3.3.1)') {
+          agent {
+            docker {
+              image 'kambi/castle-engine-cloud-builds-tools:cge-none-fpc331'
+            }
+          }
+          environment {
+            /* Used by CGE build tool ("castle-engine").
+               Define env based on another env variable.
+               According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+               this should be supported. */
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+          }
+          stages {
+            stage('(Docker) Cleanup (FPC 3.3.1)') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+
+            stage('(Docker) Build Tools (FPC 3.3.1)') {
+              steps {
+                sh 'make clean tools'
+              }
+            }
+            stage('(Docker) Build Examples (FPC 3.3.1)') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(Docker) Build Examples Using Lazarus (FPC 3.3.1/Lazarus)') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(Docker) Build And Run Auto-Tests (FPC 3.3.1)') {
+              steps {
+                sh 'make clean tests'
+              }
+            }
+            /* fpmake compilation with FPC 3.3.1 from 2022-12-27 is broken,
+               TODO investigate and report.
+
+            stage('(Docker) Build Using FpMake (FPC 3.3.1)') {
+              steps {
+                sh 'make clean test-fpmake'
+              }
+            }
+            */
+          }
+        }
+
         stage('Raspberry Pi') {
           /* Raspberry Pi is very slow and overloaded, rebuild for it only on master */
           when { branch "master" }
