@@ -247,20 +247,17 @@ end;
 
 function TOpenGLControl.PixelsWidth: Integer;
 begin
-  // FMXLinux reports size that needs to be scaled, to get pixels
-  Result := Round(Width {$ifdef LINUX} * FGLUtility.Scale {$endif});
+  Result := Round(Width * FGLUtility.Scale);
 end;
 
 function TOpenGLControl.PixelsHeight: Integer;
 begin
-  // FMXLinux reports size that needs to be scaled, to get pixels
-  Result := Round(Height {$ifdef LINUX} * FGLUtility.Scale {$endif});
+  Result := Round(Height * FGLUtility.Scale);
 end;
 
 function TOpenGLControl.MousePosScale: Single;
 begin
-  // FMXLinux passes coordinates that need to be scaled
-  Result := 1 {$ifdef LINUX} * FGLUtility.Scale {$endif};
+  Result := FGLUtility.Scale;
 end;
 
 {$ifdef MSWINDOWS}
