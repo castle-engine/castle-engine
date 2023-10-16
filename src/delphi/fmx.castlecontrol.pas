@@ -78,6 +78,8 @@ type
       to update Container.Pressed when needed. }
     property CurrentShift: TShiftState
       read GetCurrentShift write SetCurrentShift;
+
+    function MousePosToCastle(const X, Y: Single): TVector2;
   private
     procedure CreateHandle;
     procedure DestroyHandle;
@@ -411,6 +413,11 @@ begin
   Container.Pressed.Keys[keyCtrl ] := ssCtrl  in Value;
 end;
 
+function TCastleControl.MousePosToCastle(const X, Y: Single): TVector2;
+begin
+  Result := Vector2(X, Height - 1 - Y) * FGLUtility.Scale;
+end;
+
 procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
   Y: Single);
 var
@@ -421,7 +428,7 @@ begin
 
   inherited; { FMX OnMouseDown before our callbacks }
 
-  FMousePosition := Vector2(X, Height - 1 - Y);
+  FMousePosition := MousePosToCastle(X, Y);
 
   if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed + [MyButton];
@@ -434,14 +441,18 @@ begin
 end;
 
 procedure TCastleControl.MouseMove(Shift: TShiftState; NewX, NewY: Single);
+var
+  NewMousePos: TVector2;
 begin
   inherited;
 
+  NewMousePos := MousePosToCastle(NewX, NewY);
+
   Container.EventMotion(InputMotion(FMousePosition,
-    Vector2(NewX, Height - 1 - NewY), Container.MousePressed, 0));
+    NewMousePos, Container.MousePressed, 0));
 
   // change FMousePosition *after* EventMotion, callbacks may depend on it
-  FMousePosition := Vector2(NewX, Height - 1 - NewY);
+  FMousePosition := NewMousePos;
 
   CurrentShift := Shift;
 end;
@@ -453,7 +464,7 @@ var
 begin
   inherited; { FMX OnMouseUp before our callbacks }
 
-  FMousePosition := Vector2(X, Height - 1 - Y);
+  FMousePosition := MousePosToCastle(X, Y);
 
   if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed - [MyButton];
