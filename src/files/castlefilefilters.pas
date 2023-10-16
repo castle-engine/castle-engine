@@ -39,7 +39,7 @@ type
   private
     FDefaultFilter: Integer;
   public
-    constructor Create(AFreeObjects: boolean);
+    constructor Create(AFreeObjects: Boolean);
 
     { Add one file filter, selectable by user.
       @param(Name Is a name displayed for for user.)
@@ -87,7 +87,7 @@ type
       When AllFields is false, then filters starting with "All " in the name,
       like "All files", "All images", are not included in the output. }
     procedure LclFmxFilters(
-      out OutFilter: string; out OutFilterIndex: Integer; const AllFields: boolean);
+      out OutFilter: string; out OutFilterIndex: Integer; const AllFields: Boolean = true);
 
     { Convert file filters into LCL or FMX Dialog.Filter, Dialog.FilterIndex.
       The filters are provided here just like for AddFiltersFromString.
@@ -95,7 +95,7 @@ type
       (as for CGE AddFiltersFromString)
       into very similar encoding of filters suitable for LCL or FMX. }
     class procedure LclFmxFiltersFromString(const FileFilters: string;
-      out OutFilter: string; out OutFilterIndex: Integer; const AllFields: boolean);
+      out OutFilter: string; out OutFilterIndex: Integer; const AllFields: Boolean = true);
   end;
 
 implementation
@@ -118,7 +118,7 @@ end;
 
 { TFileFilterList ----------------------------------------------------------- }
 
-constructor TFileFilterList.Create(AFreeObjects: boolean);
+constructor TFileFilterList.Create(AFreeObjects: Boolean);
 begin
   inherited;
   FDefaultFilter := 0;
@@ -177,7 +177,7 @@ procedure TFileFilterList.AddFiltersFromString(const FiltersStr: string);
 
 var
   LastSeparator, NextSeparator: Integer;
-  NamePart: boolean;
+  NamePart: Boolean;
   Part, Name, Patterns: string;
 begin
   NamePart := true;
@@ -244,7 +244,7 @@ begin
 end;
 
 procedure TFileFilterList.LclFmxFilters(
-  out OutFilter: string; out OutFilterIndex: Integer; const AllFields: boolean);
+  out OutFilter: string; out OutFilterIndex: Integer; const AllFields: Boolean);
 var
   Filter: TFileFilter;
   I, J: Integer;
@@ -287,7 +287,7 @@ begin
 end;
 
 class procedure TFileFilterList.LclFmxFiltersFromString(const FileFilters: string;
-  out OutFilter: string; out OutFilterIndex: Integer; const AllFields: boolean);
+  out OutFilter: string; out OutFilterIndex: Integer; const AllFields: Boolean);
 var
   FFList: TFileFilterList;
 begin

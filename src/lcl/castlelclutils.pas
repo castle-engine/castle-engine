@@ -169,7 +169,7 @@ var
   LCLFilter: string;
   LCLFilterIndex: Integer;
 begin
-  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
+  TFileFilterList.LclFmxFiltersFromString(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
   Dialog.Filter := LCLFilter;
   Dialog.FilterIndex := LCLFilterIndex;
 end;
@@ -180,7 +180,7 @@ var
   LCLFilter: string;
   LCLFilterIndex: Integer;
 begin
-  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
+  TFileFilterList.LclFmxFiltersFromString(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
   Edit.Filter := LCLFilter;
   Edit.FilterIndex := LCLFilterIndex;
 end;
@@ -191,7 +191,7 @@ var
   LCLFilter: string;
   LCLFilterIndex: Integer;
 begin
-  FFList.FileFiltersToDialog(LCLFilter, LCLFilterIndex, AllFields);
+  FFList.LclFmxFilters(LCLFilter, LCLFilterIndex, AllFields);
   Dialog.Filter := LCLFilter;
   Dialog.FilterIndex := LCLFilterIndex;
 end;
@@ -225,13 +225,13 @@ end;
 procedure FileFiltersToOpenDialog(const FileFilters: string;
   out LCLFilter: string; out LCLFilterIndex: Integer);
 begin
-  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex);
+  TFileFilterList.LclFmxFiltersFromString(FileFilters, LCLFilter, LCLFilterIndex);
 end;
 
 procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
   out LCLFilter: string; out LCLFilterIndex: Integer);
 begin
-  FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex);
+  FFList.LclFmxFilters(LCLFilter, LCLFilterIndex);
 end;
 
 const
