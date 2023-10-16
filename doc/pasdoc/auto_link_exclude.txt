@@ -21,6 +21,8 @@ assign
 attenuation
 attribute
 attributes
+avatar
+avatars
 background
 behavior
 behaviors
