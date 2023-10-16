@@ -107,6 +107,7 @@ pipeline {
 
                 archiveArtifacts artifacts: 'castle-engine*.zip'
               }
+            }
           }
         }
 
