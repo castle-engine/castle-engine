@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
   FMX.StdCtrls, FMX.Controls.Presentation, Fmx.CastleControl,
-  CastleScene, CastleViewport;
+  CastleScene, CastleViewport, CastleControls, CastleUiControls;
 
 type
   TForm1 = class(TForm)
@@ -20,8 +20,11 @@ type
   private
     MainScene: TCastleScene;
     MainViewport: TCastleViewport;
+    LabelFps: TCastleLabel;
     procedure LoadScene(const Url: String);
     procedure AnimationButtonClick(Sender: TObject);
+    procedure DoUpdate(const Sender: TCastleUserInterface;
+      const SecondsPassed: Single; var HandleInput: Boolean);
   public
     { Public declarations }
   end;
@@ -52,12 +55,23 @@ begin
     saved in data/main.castle-user-interface. }
   MainScene := CastleControl1.Container.DesignedComponent('MainScene') as TCastleScene;
   MainViewport := CastleControl1.Container.DesignedComponent('MainViewport') as TCastleViewport;
+  LabelFps := CastleControl1.Container.DesignedComponent('LabelFps') as TCastleLabel;
 
   { Load initial scene. }
   LoadScene('castle-data:/spine_dragon/dragon.json');
 
   { Initialize OpenDialog1 to allow loading all supported scene formats. }
   FileFiltersToDialog(LoadScene_FileFilters, OpenDialog1);
+
+  { Assign event to some OnUpdate, to update FPS display }
+  LabelFps.OnUpdate := DoUpdate;
+end;
+
+procedure TForm1.DoUpdate(const Sender: TCastleUserInterface;
+  const SecondsPassed: Single; var HandleInput: Boolean);
+begin
+  { update LabelFps every frame }
+  LabelFps.Caption := 'FPS: ' + CastleControl1.Container.Fps.ToString;
 end;
 
 procedure TForm1.AnimationButtonClick(Sender: TObject);
