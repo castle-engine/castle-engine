@@ -22,7 +22,7 @@
 
   TODO:
   - LCL: Mouse look still stutters awfully on both Carbon and GTK2.
-    AggressiveUpdate helps (without it, mouse look would not work at all)
+    ProcessTasks helps (without it, mouse look would not work at all)
     but doesn't completely fix the problem. Other CastleWindow backends
     have smooth mouse look.
 
@@ -37,22 +37,35 @@
     in LCL. Seems harmless, so we just ignore it for now.
 *)
 
-{ How to implement calling Update continuously?
+{ How to implement calling CGE Update (and if needed Render) events continuously?
 
-  Define USE_TIMER to use TTimer.
-  Otherwise, we'll use "application OnIdle" event to call Update.
+  - When USE_TIMER defined, we will use TTimer with short Interval
+    to execute our processing regularly.
 
-  In general, using USE_TIMER is a cleaner solution, thus preferred.
-  Timer expresses "we want to run Update regularly,
-  no matter how busy application is" which is what we want.
+    This seems a cleaner solution, thus preferred if possible.
+    Timer explicitly expresses "we want to run Update regularly,
+    no matter how busy application is" which is what we want.
 
-  Using OnIdle instead of TTimer is a hack, it necessarily brings other problems:
-  idle is not executed regularly, it may not be executed at all when application
-  is busy doing something else. We counter this by using
-  TCastleApplication.ProcessMessage and TCastleApplication.ProcessMessage
-  that should never wait, so application has often a change to execute OnIdle.
-  Other solutions are possible in the future: just directly call update/render
-  from TCastleApplication.ProcessMessage.
+    And it means that all LCL/FMX functionality,
+    like Forms.Application.Run, is free to be used. Internally,
+    LCL/FMX is responsible for calling our timer event regularly, instead
+    of hanging indefinitely waiting for user input.
+
+  - When not USE_TIMER, we instead "control" the event loop more
+    carefully and manually insert our processing between LCL/FMX processing.
+
+    That is, we never let application sleep indefinitely inside
+    OS event processing (e.g. we'll never call LCL/FMX Forms.Application.Run).
+    We will always do LCL/FMX non-blocking event processing,
+    and follow it with calls to CGE Update / Render as needed.
+
+  Note: In the past we experimented with Application.OnIdle, but that's useless
+  for our purpose.
+  Idle is not executed regularly, it may not be executed at all when application
+  is busy doing something else.
+  Moreover, with Delphi FMX, there's no "add/remove
+  idle listener" API, instead we'd have to override Application.OnIdle.
+  So user cannot use Application.OnIdle for anything else.
 
   Delphi (with FMX) situation:
 
@@ -72,11 +85,11 @@
     The same problem occurs for GTK dialogs, like open dialog shown
     by play_animation.
 
-    Using OnIdle (and Application.ProcessMessages in a loop,
-    to not let it ever hang, by USE_PROCESS_MESSAGES_NEVER_WAIT)
-    works surprisingly well in this case.
-
   FPC (with LCL) situation:
+
+  (Possibly this is outdated comment!
+  FPC situation wasn't tested for quite some time now.
+  We don't really need CASTLE_WINDOW_FORM for FPC now, so we don't test it.)
 
   - Carbon (macOS): Timer is the only reliable solution.
 
@@ -192,7 +205,7 @@ private
 
   procedure MenuItemClick(Sender: TObject);
   procedure MenuUpdateShortcut(Entry: TMenuItem);
-  procedure AggressiveUpdate;
+  procedure ProcessTasks;
   procedure UpdateFullScreenForm;
   {$ifdef FPC}
   procedure KeyPressHandlerPress(Sender: TObject;
@@ -234,10 +247,9 @@ private
   {$ifdef USE_TIMER}
   FTimer: TTimer;
   procedure ApplicationTimer(Sender: TObject);
-  {$else}
-  procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
   {$endif}
   procedure DoNothingOnException(Sender: TObject; E: Exception);
+  procedure ProcessTasks;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -1001,12 +1013,7 @@ begin
     DoMouseUp(MousePosToCastle(X, Y), MyButton, 0);
 end;
 
-{ Since LCL event loop may become clogged when dragging with mouse
-  (like when using mouse look), force doing update and (if needed) redraw
-  from time to time.
-  See TCastleControl implementation for analogous AggressiveUpdate
-  procedure with detailed discussion about why this is needed. }
-procedure TCastleWindow.AggressiveUpdate;
+procedure TCastleWindow.ProcessTasks;
 var
   DesiredFPS: Single;
 begin
@@ -1044,7 +1051,14 @@ procedure TCastleWindow.OpenGLControlMouseMove(Sender: TObject;
 begin
   DoMotion(InputMotion(MousePosition, MousePosToCastle(X, Y),
     MousePressed, 0));
-  AggressiveUpdate;
+
+  { On LCL, we need to call ProcessTasks often,
+    as Forms.Application.ProcessMessages in LCL may process ~100 OS events in one call.
+    This means that LCL Forms.Application.ProcessMessages is quite blocked
+    when user moves mouse a lot (e.g. doing mouse look in games).
+    We ensure processing by manually calling ProcessTasks often. }
+
+  ProcessTasks;
 end;
 
 procedure TCastleWindow.OpenGLControlMouseWheel(Sender: TObject;
@@ -1238,12 +1252,6 @@ begin
   FTimer.Interval := 1;
   FTimer.OnTimer := {$ifdef FPC}@{$endif} ApplicationTimer;
   FTimer.Enabled := true;
-  {$else}
-    {$ifdef FPC}
-    FormApplication.AddOnIdleHandler(@ApplicationIdle);
-    {$else}
-    FormApplication.OnIdle := ApplicationIdle;
-    {$endif}
   {$endif USE_TIMER}
 end;
 
@@ -1251,12 +1259,6 @@ procedure TCastleApplication.DestroyBackend;
 begin
   {$ifdef USE_TIMER}
   FreeAndNil(FTimer);
-  {$else}
-    {$ifdef FPC}
-    FormApplication.RemoveOnIdleHandler(@ApplicationIdle);
-    {$else}
-    FormApplication.OnIdle := nil;
-    {$endif}
   {$endif}
 end;
 
@@ -1268,9 +1270,6 @@ end;
 
 {$ifdef USE_TIMER}
 procedure TCastleApplication.ApplicationTimer(Sender: TObject);
-{$else}
-procedure TCastleApplication.ApplicationIdle(Sender: TObject; var Done: Boolean);
-{$endif}
 begin
   { Call Update and Timer events of Application and all windows.
     Update events are handled by DoApplicationUpdate and OpenWindows.DoUpdate.
@@ -1279,17 +1278,8 @@ begin
   DoApplicationUpdate;
   FOpenWindows.DoUpdate;
   MaybeDoTimer;
-
-  {$ifndef USE_TIMER}
-  { We need Done := false, otherwise the widgetset will hang waiting
-    for next message. See ../lcl/castlecontrol.pas comments.
-
-    Done := false also prevents other application idle handlers,
-    but fortunately in this case we're the only thing interfacing with LCL,
-    so that's not a problem. }
-  Done := false;
-  {$endif}
 end;
+{$endif}
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 var
@@ -1308,7 +1298,7 @@ begin
 
   if WaitForMessage then
   begin
-    { HandleMessage will call ApplicationIdle, so no need for AggressiveUpdate
+    { HandleMessage will call ApplicationIdle, so no need for ProcessTasks
       hack in this case. }
     FormApplication.HandleMessage;
     Result := not FormApplication.Terminated;
@@ -1317,26 +1307,19 @@ begin
     FormApplication.ProcessMessages;
     Result := not FormApplication.Terminated;
 
-    { Without this, OnUpdate will not be called when application calls
-      TCastleApplication.ProcessMessage in a loop, because LCL will not make
-      ApplicationIdle calls from FormApplication.ProcessMessages.
-
-      Bugs observed when the below workaround is not used (on both LCL-Carbon and LCL-GTK2):
-      - Arrow keys up/down do not work in CastleMessages window.
-        E.g. view3dscene "OpenGL info".
-        That's becaue UpdateMessg is never called.
-        (Although this is now fixed anyway by above HandleMessage usage.)
-      - Progress is not rendered smoothly.
-        E.g. in fps_game, define -dTESTING_PROGRESS_DELAY, and notice that progress
-        is not smoothly updated (if you don't move the mouse, since MouseMove
-        already causes AggressiveUpdate).
-    }
+    {$ifndef USE_TIMER}
     if Result then
-    begin
-      for I := 0 to OpenWindowsCount - 1 do
-        OpenWindows[I].AggressiveUpdate;
-    end;
+      ProcessTasks;
+    {$endif}
   end;
+end;
+
+procedure TCastleApplication.ProcessTasks;
+var
+  I: Integer;
+begin
+  for I := 0 to OpenWindowsCount - 1 do
+    OpenWindows[I].ProcessTasks;
 end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
