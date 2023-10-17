@@ -2,7 +2,7 @@ program CastleFmx;
 
 uses
   System.StartUpCopy,
-  FMX.Forms,
+  FMX.Forms, Fmx.CastleControl,
   Unit1 in 'Unit1.pas' {TestCgeControl};
 
 {$R *.res}
@@ -45,5 +45,5 @@ uses
 begin
   Application.Initialize;
   Application.CreateForm(TTestCgeControl, TestCgeControl);
-  Application.Run;
+  TCastleControl.ApplicationRun;
 end.

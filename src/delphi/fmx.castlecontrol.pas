@@ -18,6 +18,36 @@ unit Fmx.CastleControl;
 
 {$I castleconf.inc}
 
+{ How to implement calling Update continuously?
+  Similar choice as castlewindow_form.inc discusses.
+
+  - USE_TIMER is preferred.
+    It "just works" from user point of view.
+    We use this on all platforms (Windows)...
+
+  - ...except Linux, when with FMXLinux we failed to make it work.
+    It means user code must execute loop in a special way.
+    In the main program code, instead of
+
+      Application.Run;
+
+    do
+
+      TCastleControl.ApplicationRun;
+
+    And if anywhere you do
+
+      Application.ProcessMessages;
+
+    enhance it with
+
+      Application.ProcessMessages;
+      TCastleControl.ProcessTasks; // additional CGE processing
+}
+{$if not defined(LINUX)}
+  {$define USE_TIMER}
+{$endif}
+
 interface
 
 uses // standard units
@@ -39,8 +69,10 @@ type
       TContainer = class(TCastleContainerEasy)
       private
         Parent: TCastleControl;
+        {$ifdef USE_TIMER}
         class var
           UpdatingTimer: TTimer;
+        {$endif}
         class procedure UpdatingTimerEvent(Sender: TObject);
       protected
         function GetMousePosition: TVector2; override;
@@ -109,6 +141,31 @@ type
       https://docwiki.embarcadero.com/RADStudio/Sydney/en/FireMonkey_Native_Windows_Controls
       Native controls are always on top of non-native controls. }
     property ControlType default TControlType.Platform;
+
+    { On some platforms (Linux now) if you call Application.ProcessMessages,
+      make sure to also call this method. E.g.
+
+      @longCode(#
+      while SomeCondition do
+      begin
+        Application.ProcessMessages;
+        TCastleControl.ProcessTasks;
+      end;
+      #)
+
+      This does nothing on some other platforms (Windows)
+      when it is not necessary and Application.ProcessMessages does all CGE job. }
+    class procedure ProcessTasks;
+
+    { On some platforms (Linux now) you cannot just call Application.Run,
+      as we need to call CGE processing regularly. So instead call
+      this method.
+      This ensures that engine updates / renders regularly.
+
+      On some other platforms (Windows)
+      this just calls Application.Run, which already makes
+      engine processing correct. }
+    class procedure ApplicationRun;
   published
     { Access Castle Game Engine container properties and events,
       not specific for FMX. }
@@ -379,20 +436,47 @@ end;
 class procedure TCastleControl.TContainer.UpdatingEnable;
 begin
   inherited;
+
+  {$ifdef USE_TIMER}
   UpdatingTimer := TTimer.Create(nil);
   UpdatingTimer.Interval := 1;
   UpdatingTimer.OnTimer := {$ifdef FPC}@{$endif} UpdatingTimerEvent;
+  {$endif}
 end;
 
 class procedure TCastleControl.TContainer.UpdatingDisable;
 begin
+  {$ifdef USE_TIMER}
   FreeAndNil(UpdatingTimer);
+  {$endif}
   inherited;
 end;
 
 class procedure TCastleControl.TContainer.UpdatingTimerEvent(Sender: TObject);
 begin
   DoUpdateEverything;
+end;
+
+class procedure TCastleControl.ProcessTasks;
+begin
+  // Does nothing when USE_TIMER, which is OK, timer does everything
+  {$ifndef USE_TIMER}
+  TContainer.UpdatingTimerEvent(nil);
+  {$endif}
+end;
+
+class procedure TCastleControl.ApplicationRun;
+begin
+  {$ifdef USE_TIMER}
+  Application.Run;
+  {$else}
+  Application.RealCreateForms;
+  while not Application.Terminated do
+  begin
+    Application.ProcessMessages;
+    ProcessTasks;
+  end;
+  {$endif}
 end;
 
 function TCastleControl.GetCurrentShift: TShiftState;
