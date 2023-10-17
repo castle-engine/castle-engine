@@ -1,6 +1,10 @@
-# Using Castle Game Engine on FMX (FireMonkey) form
+# View models and play animations on FMX (FireMonkey) form
 
-Demo of `TCastleControl` to add _Castle Game Engine_ rendering on FMX (FireMonkey) form.
+Demo of `TCastleControl` and `TCastleScene` used on FMX (FireMonkey) form to
+
+- load a designated 2D or 3D model,
+
+- list and play animations of this model.
 
 This is only useful with Delphi.
 
