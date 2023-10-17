@@ -1196,7 +1196,11 @@ begin
   FTimer.OnTimer := {$ifdef FPC}@{$endif} ApplicationTimer;
   FTimer.Enabled := true;
   {$else}
-  FormApplication.AddOnIdleHandler(@ApplicationIdle);
+    {$ifdef FPC}
+    FormApplication.AddOnIdleHandler(@ApplicationIdle);
+    {$else}
+    FormApplication.OnIdle := ApplicationIdle;
+    {$endif}
   {$endif USE_TIMER}
 end;
 
@@ -1205,7 +1209,11 @@ begin
   {$ifdef USE_TIMER}
   FreeAndNil(FTimer);
   {$else}
-  FormApplication.RemoveOnIdleHandler(@ApplicationIdle);
+    {$ifdef FPC}
+    FormApplication.RemoveOnIdleHandler(@ApplicationIdle);
+    {$else}
+    FormApplication.OnIdle := nil;
+    {$endif}
   {$endif}
 end;
 
