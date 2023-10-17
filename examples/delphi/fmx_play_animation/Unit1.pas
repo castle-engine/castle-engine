@@ -80,12 +80,15 @@ begin
 
   MainScene.PlayAnimation(AnimName, true);
 
+  { Example how to use TPlayAnimationParameters to adjust
+    TransitionDuration (animation cross-fading). }
   {
   var Params := TPlayAnimationParameters.Create;
   try
     Params.Name := AnimName;
     Params.TransitionDuration := 0.25;
     Params.Loop := true;
+    MainScene.PlayAnimation(Params);
   finally
     FreeAndNil(Params);
   end;
