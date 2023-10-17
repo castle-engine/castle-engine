@@ -37,13 +37,51 @@
     in LCL. Seems harmless, so we just ignore it for now.
 *)
 
-{ Define to use TTimer to call Update continuously.
+{ How to implement calling Update continuously?
 
-  Reason for Delphi: It is reliable. All our Delphi FMX and VCL components
-  use TTimer like this.
+  Define USE_TIMER to use TTimer.
+  Otherwise, we'll use "application OnIdle" event to call Update.
 
-  Reason for LCL Carbon: Using LCL timer (that is translated to Carbon timer)
-  is the only way to receive continuous messages in some cases.
+  In general, using USE_TIMER is a cleaner solution, thus preferred.
+  Timer expresses "we want to run Update regularly,
+  no matter how busy application is" which is what we want.
+
+  Using OnIdle instead of TTimer is a hack, it necessarily brings other problems:
+  idle is not executed regularly, it may not be executed at all when application
+  is busy doing something else. We counter this by using
+  TCastleApplication.ProcessMessage and TCastleApplication.ProcessMessage
+  that should never wait, so application has often a change to execute OnIdle.
+  Other solutions are possible in the future: just directly call update/render
+  from TCastleApplication.ProcessMessage.
+
+  Delphi (with FMX) situation:
+
+  - Timer is reliable on Windows. All our Delphi FMX and VCL components
+    use TTimer like this.
+
+  - On Linux, we *cannot* use timer.
+
+    Timer with FMXLinux fails badly when we do non-trivial work in each update,
+    like fps_game animations, or Spine dragon animations in play_animation.
+    Running "flying" in play_animation just makes the screen go black,
+    never updated. I was not able to debug it to the end -- the DoUpdate calls
+    are still executed by timer, but rendering just doesn't work,
+    even if we force doing DoRender from timer. It gets executed, but displayed
+    window is not refreshed. The same problem occurs for FMX-drawn controls
+    on form (like memo and buttons on CastleFmx).
+    The same problem occurs for GTK dialogs, like open dialog shown
+    by play_animation.
+
+    Using OnIdle (and Application.ProcessMessages in a loop,
+    to not let it ever hang, by USE_PROCESS_MESSAGES_NEVER_WAIT)
+    works surprisingly well in this case.
+
+  FPC (with LCL) situation:
+
+  - Carbon (macOS): Timer is the only reliable solution.
+
+    It is translated to Carbon timer.
+    It is the only way to receive continuous messages in some cases.
 
     Otherwise such bugs can be observed (only on LCL-Carbon, not on LCL-GTK2):
 
@@ -56,8 +94,13 @@
     - Using view3dscene Navigation->Jump to viewpoint... doesn't work
       smoothly, there is a visible delay when we don't receive messages
       right after menu click, and so transtion is visible with some delay.
+
+  - Other platforms?
+    No decision, and practically it doesn't matter:
+    with FPC, at this point we have covered all platforms with native
+    TCastleWindow implementation, not depending on LCL and CASTLR_WINDOW_FORM.
 }
-{$if defined(LCLCarbon) or not defined(FPC)}
+{$if defined(FPC) or (not defined(LINUX))}
   {$define USE_TIMER}
 {$endif}
 
@@ -1255,6 +1298,12 @@ begin
   if FormApplication.Terminated then
     Exit(false);
 
+  { When not USE_TIMER, we cannot wait for message, as it would mean we
+    can hang indefinitely. }
+  {$ifndef USE_TIMER}
+  WaitForMessage := false;
+  {$endif}
+
   { TODO: take WaitToLimitFPS into account }
 
   if WaitForMessage then
@@ -1301,27 +1350,36 @@ procedure TCastleApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
 
-  { Implementing Run by calling ProcessMessage in a loop (like below)
-    is a valid and good implementation. Make sure your ProcessMessage
-    honours WaitForMessage and WaitToLimitFPS = true,
-    to avoid wasting CPU on "busy waiting". }
-  // while ProcessMessage(true, true) do ;
+  {$ifdef USE_TIMER}
+  { LCL Cocoa really must call here FormApplication.Run.
 
-  { We have to call here FormApplication.Run, not just call our
-    ProcessMessage (which makes FormApplication.ProcessMessage) in a loop.
+    It cannot just call our ProcessMessage
+    (which makes FormApplication.ProcessMessage) in a loop.
     That is because on some LCL widgetsets, you really need to run
     FormApplication.Run, see e.g. Carbon that does special stuff inside
     TCarbonWidgetSet.AppRun inside lcl/interfaces/carbon/carbonobject.inc.
     Without this, global menu on Carbon is always blocked.
 
-    TODO: that's unfortunate, as our TCastleWindow interface
-    promises that it's not necessary to call Run, it should be always
-    equivalent to call just ProcessMessage in a loop.
+    This causes necessary Cocoa problems:
 
-    TODO: this makes Application.OnUpdate/Application.OnTimer broken,
-    they need our TCastleApplication.ProcessMessage to work. }
+    - Our TCastleWindow interface
+      promises that it's not necessary to call Run, it should be always
+      equivalent to call just ProcessMessage in a loop.
+      For Cocoa with CASTLE_WINDOW_FORM, this cannot be true.
 
+    - Application.OnUpdate/Application.OnTimer are broken,
+      they need our TCastleApplication.ProcessMessage to work.
+
+    Other platforms with USE_TIMER call FormApplication.Run here
+    as this is most straightforward.
+    It maps to AppService.Run in FMX, so specific platforms
+    may benefit from having FormApplication.Run call instead of loop
+    over ProcessMessage.
+  }
   FormApplication.Run;
+  {$else}
+  while ProcessMessage(false, false) do ;
+  {$endif}
 end;
 
 procedure TCastleApplication.QuitWhenNoOpenWindows;

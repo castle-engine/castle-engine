@@ -70,6 +70,8 @@
     FPC has this by default.
     See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Pointer_Math_(Delphi) }
   {$pointermath on}
+  // For now we support only FPC or Delphi
+  {$define DELPHI}
 {$endif}
 
 {$writeableconst off} // Note: no way to specify this by FPC command-line.
