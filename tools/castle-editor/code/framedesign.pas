@@ -462,10 +462,18 @@ type
     procedure ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
     procedure CurrentViewportFreeNotification(const Sender: TFreeNotificationObserver);
 
-    { Single selected item, e.g. for rename operation.
+    { Single selected item.
+      Only non-nil when we have selected exactly one component.
+      IOW, this is always @nil if we selected zero or more than one component.
 
-      Use this instead of ControlsTree.Selected which is not reliable to use
-      on a TTreeView with multi-selection.
+      Use this when you need to know only the single selected item,
+      because the given operation cannot handle multiple selected items.
+      E.g. for rename operation.
+
+      Note:
+      Never use built-in LCL ControlsTree.Selected, which is not reliable to use
+      on a TTreeView with multi-selection possible.
+      The LCL ControlsTree.Selected problems details:
 
       - it is not synchronized with ControlsTree.SelectionCount,
         ControlsTree.Selections after doing "ControlsTree.Selected := nil".
@@ -484,7 +492,7 @@ type
           Effect: ControlsTree.Selected = nil,
           but ControlsTree.SelectionCount > 0.
 
-      - adding / removing nodes also don't seem to always synchronized them...
+      - adding / removing nodes also don't seem to always synchronize them...
 
       Note: Also never set ControlsTree.Selected.
       Do ControlsTree.ClearSelection that makes multi-selection properly cleared.
