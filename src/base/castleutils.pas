@@ -160,8 +160,6 @@ initialization
   {$ifndef FPC}
   DefaultFormatSettings := TFormatSettings.Create;
   {$endif}
-
-  PrecalculateSinus;
 finalization
   FinalizationOSSpecific;
 end.

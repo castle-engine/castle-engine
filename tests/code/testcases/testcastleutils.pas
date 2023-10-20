@@ -56,7 +56,6 @@ type
     procedure TestDecimalSeparator;
     procedure TestFloatToStrDisplay;
     procedure TestDeg;
-    procedure TestCastleSinCos;
   end;
 
 implementation
@@ -723,40 +722,6 @@ begin
   AssertSameValue(0, Deg(0));
   AssertSameValue(pi/2, Deg(90));
   AssertSameValue(-pi/2, Deg(-90));
-end;
-
-procedure TTestCastleUtils.TestCastleSinCos;
-const
-  SinCosTestCount = 1000000;
-var
-  I: Integer;
-  Angle, S1, S2, C1, C2: Single;
-  T: TTimerResult;
-begin
-  for I := 1 to SinCosTestCount do
-  begin
-    Angle := RandomFloatRange(-100.0, 100.0);
-    CastleSinCos(Angle, S1, C1);
-    Math.SinCos(Angle, S2, C2);
-    AssertSameValue(S1, S2, 0.02); //, Format('Angle %f results in different sinuses %f %f', [Angle, S1, S2]));
-    AssertSameValue(C1, C2, 0.02); //, Format('Angle %f results in different cosinuses %f %f', [Angle, C1, C2]));
-  end;
-
-  T := Timer;
-  for I := 1 to SinCosTestCount do
-  begin
-    Angle := I / 1000;
-    Math.SinCos(Angle, S1, C1);
-  end;
-  WritelnLog('Time of Math.SinCos: %.4fs', [T.ElapsedTime]);
-
-  T := Timer;
-  for I := 1 to SinCosTestCount do
-  begin
-    Angle := I / 1000;
-    CastleSinCos(Angle, S1, C1);
-  end;
-  WritelnLog('Time of CastleSinCos: %.4fs', [T.ElapsedTime]);
 end;
 
 initialization
