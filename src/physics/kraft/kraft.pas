@@ -420,7 +420,7 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftHighResolutionTimer=class
       private
        fFrequency:int64;
-       fFrequencyShift:Integer;
+       fFrequencyShift:longint;
        fFrameInterval:int64;
        fMillisecondInterval:int64;
        fTwoMillisecondsInterval:int64;
@@ -428,9 +428,9 @@ type PKraftForceMode=^TKraftForceMode;
        fQuarterSecondInterval:int64;
        fHourInterval:int64;
       public
-       constructor Create(FrameRate:Integer=60);
+       constructor Create(FrameRate:longint=60);
        destructor Destroy; override;
-       procedure SetFrameRate(FrameRate:Integer);
+       procedure SetFrameRate(FrameRate:longint);
        function GetTime:int64;
        function GetEventTime:int64;
        procedure Sleep(Delay:int64);
@@ -446,7 +446,7 @@ type PKraftForceMode=^TKraftForceMode;
        function FromNanoseconds(Time:int64):int64;
        property SecondInterval:int64 read fFrequency;
        property Frequency:int64 read fFrequency;
-       property FrequencyShift:Integer read fFrequencyShift;
+       property FrequencyShift:longint read fFrequencyShift;
        property FrameInterval:int64 read fFrameInterval;
        property MillisecondInterval:int64 read fMillisecondInterval;
        property TwoMillisecondsInterval:int64 read fTwoMillisecondsInterval;
@@ -603,62 +603,62 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftDynamicAABBTreeNode=record
       AABB:TKraftAABB;
       UserData:pointer;
-      Children:array[0..1] of Integer;
-      Height:Integer;
+      Children:array[0..1] of longint;
+      Height:longint;
       case boolean of
        false:(
-        Parent:Integer;
+        Parent:longint;
        );
        true:(
-        Next:Integer;
+        Next:longint;
        );
      end;
 
      PKraftDynamicAABBTreeNodes=^TKraftDynamicAABBTreeNodes;
      TKraftDynamicAABBTreeNodes=array[0..0] of TKraftDynamicAABBTreeNode;
 
-     PKraftDynamicAABBTreeIntegerArray=^TKraftDynamicAABBTreeIntegerArray;
-     TKraftDynamicAABBTreeIntegerArray=array[0..65535] of Integer;
+     PKraftDynamicAABBTreeLongintArray=^TKraftDynamicAABBTreeLongintArray;
+     TKraftDynamicAABBTreeLongintArray=array[0..65535] of longint;
 
      TKraftDynamicAABBTree=class
       private
-       fRoot:Integer;
+       fRoot:longint;
        fNodes:PKraftDynamicAABBTreeNodes;
-       fNodeCount:Integer;
-       fNodeCapacity:Integer;
-       fFreeList:Integer;
-       fPath:UInt32;
-       fInsertionCount:Integer;
-       fStack:PKraftDynamicAABBTreeIntegerArray;
-       fStackCapacity:Integer;
+       fNodeCount:longint;
+       fNodeCapacity:longint;
+       fFreeList:longint;
+       fPath:longword;
+       fInsertionCount:longint;
+       fStack:PKraftDynamicAABBTreeLongintArray;
+       fStackCapacity:longint;
       public
        constructor Create;
        destructor Destroy; override;
-       function AllocateNode:Integer;
-       procedure FreeNode(NodeID:Integer);
-       function Balance(NodeAID:Integer):Integer;
-       procedure InsertLeaf(Leaf:Integer);
-       procedure RemoveLeaf(Leaf:Integer);
-       function CreateProxy(const AABB:TKraftAABB;UserData:pointer):Integer;
-       procedure DestroyProxy(NodeID:Integer);
-       function MoveProxy(NodeID:Integer;const AABB:TKraftAABB;const Displacement,BoundsExpansion:TKraftVector3):boolean;
-       procedure Rebalance(Iterations:Integer);
+       function AllocateNode:longint;
+       procedure FreeNode(NodeID:longint);
+       function Balance(NodeAID:longint):longint;
+       procedure InsertLeaf(Leaf:longint);
+       procedure RemoveLeaf(Leaf:longint);
+       function CreateProxy(const AABB:TKraftAABB;UserData:pointer):longint;
+       procedure DestroyProxy(NodeID:longint);
+       function MoveProxy(NodeID:longint;const AABB:TKraftAABB;const Displacement,BoundsExpansion:TKraftVector3):boolean;
+       procedure Rebalance(Iterations:longint);
        procedure Rebuild;
-       function ComputeHeight:Integer;
-       function GetHeight:Integer;
+       function ComputeHeight:longint;
+       function GetHeight:longint;
        function GetAreaRatio:TKraftScalar;
-       function GetMaxBalance:Integer;
+       function GetMaxBalance:longint;
        function ValidateStructure:boolean;
        function ValidateMetrics:boolean;
        function Validate:boolean;
        function GetIntersectionProxy(const AABB:TKraftAABB):pointer;
-       property Root:Integer read fRoot;
+       property Root:longint read fRoot;
        property Nodes:PKraftDynamicAABBTreeNodes read fNodes;
-       property NodeCount:Integer read fNodeCount;
-       property NodeCapacity:Integer read fNodeCapacity;
-       property FreeList:Integer read fFreeList;
-       property Path:UInt32 read fPath;
-       property InsertionCount:Integer read fInsertionCount;
+       property NodeCount:longint read fNodeCount;
+       property NodeCapacity:longint read fNodeCapacity;
+       property FreeList:longint read fFreeList;
+       property Path:longword read fPath;
+       property InsertionCount:longint read fInsertionCount;
      end;
 
      PKraftSweep=^TKraftSweep;
@@ -680,12 +680,12 @@ type PKraftForceMode=^TKraftForceMode;
      // 64-bit contact feature ID
      PKraftContactFeatureID=^TKraftContactFeatureID;
      TKraftContactFeatureID=record
-      case Integer of
+      case longint of
        0:(
         // when the last bit isn't set => continuous edge numbering at convex hulls for face<->face contacts
         // when the last bit is set    => continuous edge numbering at convex hulls for edge<->edge contacts
-        ElementA:UInt32;
-        ElementB:UInt32;
+        ElementA:longword;
+        ElementB:longword;
        );
        1:(
         // -1 => feature matching per nearest point search (like for example Bullet does it also)
@@ -704,8 +704,8 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftClipVertexList=class
       private
        fVertices:TKraftClipVertices;
-       fCapacity:Integer;
-       fCount:Integer;
+       fCapacity:longint;
+       fCount:longint;
        fColor:TKraftColor;
       public
        constructor Create;
@@ -714,8 +714,8 @@ type PKraftForceMode=^TKraftForceMode;
        procedure Add(const v:TKraftVector3;const fp:TKraftContactFeatureID); overload;
        procedure Add(const v:TKraftClipVertex); overload;
        property Vertices:TKraftClipVertices read fVertices write fVertices;
-       property Capacity:Integer read fCapacity write fCapacity;
-       property Count:Integer read fCount write fCount;
+       property Capacity:longint read fCapacity write fCapacity;
+       property Count:longint read fCount write fCount;
        property Color:TKraftColor read fColor write fColor;
      end;
 
@@ -732,37 +732,37 @@ type PKraftForceMode=^TKraftForceMode;
      EKraftQuickHull=class(Exception);
 
      PKraftQuickHullIntegerArray=^TKraftQuickHullIntegerArray;
-     TKraftQuickHullIntegerArray=array[0..(2147483647 div sizeof(Integer))-1] of Integer;
+     TKraftQuickHullIntegerArray=array[0..(2147483647 div sizeof(longint))-1] of longint;
 
      TKraftQuickHullIntegerList=class
       private
        fList:PKraftQuickHullIntegerArray;
-       fCountItems:Integer;
-       fAllocated:Integer;
+       fCountItems:longint;
+       fAllocated:longint;
        fIsSorted:boolean;
-       function GetItem(Index:Integer):Integer;
-       procedure SetItem(Index:Integer;Value:Integer);
-       function GetItemPointer(Index:Integer):pointer;
+       function GetItem(Index:longint):longint;
+       procedure SetItem(Index:longint;Value:longint);
+       function GetItemPointer(Index:longint):pointer;
       public
        constructor Create;
        destructor Destroy; override;
        procedure Clear;
-       function Add(Item:Integer):Integer;
-       procedure AddSorted(Item:Integer);
-       procedure Insert(Index:Integer;Item:Integer);
-       procedure Delete(Index:Integer);
-       function Remove(Item:Integer):Integer;
-       function Find(Item:Integer):Integer;
-       function IndexOf(Item:Integer):Integer;
-       procedure Exchange(Index1,Index2:Integer);
-       procedure SetCapacity(NewCapacity:Integer);
-       procedure SetCount(NewCount:Integer);
+       function Add(Item:longint):longint;
+       procedure AddSorted(Item:longint);
+       procedure Insert(Index:longint;Item:longint);
+       procedure Delete(Index:longint);
+       function Remove(Item:longint):longint;
+       function Find(Item:longint):longint;
+       function IndexOf(Item:longint):longint;
+       procedure Exchange(Index1,Index2:longint);
+       procedure SetCapacity(NewCapacity:longint);
+       procedure SetCount(NewCount:longint);
        procedure Sort;
-       property Count:Integer read fCountItems;
-       property Capacity:Integer read fAllocated write SetCapacity;
-       property Item[Index:Integer]:Integer read GetItem write SetItem; default;
-       property Items[Index:Integer]:Integer read GetItem write SetItem;
-       property PItems[Index:Integer]:pointer read GetItemPointer;
+       property Count:longint read fCountItems;
+       property Capacity:longint read fAllocated write SetCapacity;
+       property Item[Index:longint]:longint read GetItem write SetItem; default;
+       property Items[Index:longint]:longint read GetItem write SetItem;
+       property PItems[Index:longint]:pointer read GetItemPointer;
      end;
 
      TKraftQuickHull=class;
@@ -774,8 +774,8 @@ type PKraftForceMode=^TKraftForceMode;
        y:double;
        z:double;
        function Init(const ax:double=0.0;const ay:double=0.0;const az:double=0.0):TKraftQuickHullVector3D;
-       procedure SetValue(i:Integer;const v:double);
-       function GetValue(i:Integer):double;
+       procedure SetValue(i:longint;const v:double);
+       function GetValue(i:longint):double;
        procedure Add(const v0,v1:TKraftQuickHullVector3D); overload;
        procedure Add(const v:TKraftQuickHullVector3D); overload;
        procedure Sub(const v0,v1:TKraftQuickHullVector3D); overload;
@@ -795,7 +795,7 @@ type PKraftForceMode=^TKraftForceMode;
 
      TKraftQuickHullVector3DArray=array of TKraftQuickHullVector3D;
 
-     TKraftQuickHullOutputFace=array of Integer;
+     TKraftQuickHullOutputFace=array of longint;
 
      TKraftQuickHullOutputFaces=array of TKraftQuickHullOutputFace;
 
@@ -807,7 +807,7 @@ type PKraftForceMode=^TKraftForceMode;
       private
        fInstance:TKraftQuickHull;
        fPoint:TKraftQuickHullVector3D;
-       fIndex:Integer;
+       fIndex:longint;
        fPrevious:TKraftQuickHullVertex;
        fNext:TKraftQuickHullVertex;
        fFace:TKraftQuickHullFace;
@@ -817,7 +817,7 @@ type PKraftForceMode=^TKraftForceMode;
        destructor Destroy; override;
        property Instance:TKraftQuickHull read fInstance;
        property Point:TKraftQuickHullVector3D read fPoint write fPoint;
-       property Index:Integer read fIndex write fIndex;
+       property Index:longint read fIndex write fIndex;
        property Previous:TKraftQuickHullVertex read fPrevious write fPrevious;
        property Next:TKraftQuickHullVertex read fNext write fNext;
        property Face:TKraftQuickHullFace read fFace write fFace;
@@ -862,13 +862,13 @@ type PKraftForceMode=^TKraftForceMode;
        fArea:double;
        fCentroid:TKraftQuickHullVector3D;
        fPlaneOffset:double;
-       fIndex:Integer;
-       fCountVertices:Integer;
-       fMark:Integer;
+       fIndex:longint;
+       fCountVertices:longint;
+       fMark:longint;
        fOutside:TKraftQuickHullVertex;
       public
        constructor Create(const AInstance:TKraftQuickHull);
-       constructor CreatePolygon(const AInstance:TKraftQuickHull;const AVertices:array of TKraftQuickHullVertex;const AIndices:array of Integer);
+       constructor CreatePolygon(const AInstance:TKraftQuickHull;const AVertices:array of TKraftQuickHullVertex;const AIndices:array of longint);
        constructor CreateTriangle(const AInstance:TKraftQuickHull;const v0,v1,v2:TKraftQuickHullVertex;const AMinArea:double=0.0);
        destructor Destroy; override;
        procedure ComputeCentroid(var ACentroid:TKraftQuickHullVector3D);
@@ -876,13 +876,13 @@ type PKraftForceMode=^TKraftForceMode;
        procedure ComputeNormal(var ANormal:TKraftQuickHullVector3D;const AMinArea:double); overload;
        procedure ComputeNormalAndCentroid; overload;
        procedure ComputeNormalAndCentroid(const AMinArea:double); overload;
-       function GetEdge(i:Integer):TKraftQuickHullHalfEdge;
+       function GetEdge(i:longint):TKraftQuickHullHalfEdge;
        function GetFirstEdge:TKraftQuickHullHalfEdge;
        function FindEdge(const vt,vh:TKraftQuickHullVertex):TKraftQuickHullHalfEdge;
        function DistanceToPlane(const p:TKraftQuickHullVector3D):double;
        function ConnectHalfEdges(const hedgePrev,hedge:TKraftQuickHullHalfEdge):TKraftQuickHullFace;
        procedure CheckConsistency;
-       function MergeAdjacentFace(const hedgeAdj:TKraftQuickHullHalfEdge;const Discarded:TList):Integer;
+       function MergeAdjacentFace(const hedgeAdj:TKraftQuickHullHalfEdge;const Discarded:TList):longint;
        function AreaSquared(const hedge0,hedge1:TKraftQuickHullHalfEdge):double;
        procedure Triangulate(var NewFaces:TKraftQuickHullFaceList;const MinArea:double);
        property Instance:TKraftQuickHull read fInstance;
@@ -892,9 +892,9 @@ type PKraftForceMode=^TKraftForceMode;
        property Area:double read fArea write fArea;
        property Centroid:TKraftQuickHullVector3D read fCentroid write fCentroid;
        property PlaneOffset:double read fPlaneOffset write fPlaneOffset;
-       property Index:Integer read fIndex write fIndex;
-       property CountVertices:Integer read fCountVertices write fCountVertices;
-       property Mark:Integer read fMark write fMark;
+       property Index:longint read fIndex write fIndex;
+       property CountVertices:longint read fCountVertices write fCountVertices;
+       property Mark:longint read fMark write fMark;
        property Outside:TKraftQuickHullVertex read fOutside write fOutside;
      end;
 
@@ -929,7 +929,7 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftQuickHull=class
       private
        fGarbageCollectedClassInstances:TList;
-       fFindIndex:Integer;
+       fFindIndex:longint;
        fPointBuffer:TList;
        fVertexHashTable:TKraftQuickHullVertexHashTable;
        fVertexPointIndices:TKraftQuickHullIntegerList;
@@ -941,9 +941,9 @@ type PKraftForceMode=^TKraftForceMode;
        fNewFaces:TKraftQuickHullFaceList;
        fUnclaimed:TKraftQuickHullVertexList;
        fClaimed:TKraftQuickHullVertexList;
-       fCountVertices:Integer;
-       fCountFaces:Integer;
-       fCountPoints:Integer;
+       fCountVertices:longint;
+       fCountFaces:longint;
+       fCountPoints:longint;
        fExplicitTolerance:double;
        fTolerance:double;
        fCharLength:double;
@@ -965,17 +965,17 @@ type PKraftForceMode=^TKraftForceMode;
        function AddAdjoiningFace(const EyeVertex:TKraftQuickHullVertex;const he:TKraftQuickHullHalfEdge):TKraftQuickHullHalfEdge;
        procedure AddNewFaces(const NewFaces:TKraftQuickHullFaceList;const EyeVertex:TKraftQuickHullVertex;const Horizon:TList);
        function OppFaceDistance(he:TKraftQuickHullHalfEdge):double;
-       function DoAdjacentMerge(const Face:TKraftQuickHullFace;const MergeType:Integer):boolean;
+       function DoAdjacentMerge(const Face:TKraftQuickHullFace;const MergeType:longint):boolean;
        procedure ResolveUnclaimedPoints(NewFaces:TKraftQuickHullFaceList);
        procedure AddPointToHull(const EyeVertex:TKraftQuickHullVertex);
-       procedure MarkFaceVertices(const Face:TKraftQuickHullFace;const Mark:Integer);
+       procedure MarkFaceVertices(const Face:TKraftQuickHullFace;const Mark:longint);
        procedure ReindexFacesAndVertices;
-       procedure Build(const MaximumVertices:Integer=-1);
-       procedure GetFaceIndices(out OutputFace:TKraftQuickHullOutputFace;const Face:TKraftQuickHullFace;const Flags:Integer);
+       procedure Build(const MaximumVertices:longint=-1);
+       procedure GetFaceIndices(out OutputFace:TKraftQuickHullOutputFace;const Face:TKraftQuickHullFace;const Flags:longint);
        procedure GetVertices(out OutputVertices:TKraftQuickHullVector3DArray);
        procedure GetFaces(out OutputFaces:TKraftQuickHullOutputFaces);
        property GarbageCollectedClassInstances:TList read fGarbageCollectedClassInstances write fGarbageCollectedClassInstances;
-       property FindIndex:Integer read fFindIndex write fFindIndex;
+       property FindIndex:longint read fFindIndex write fFindIndex;
        property PointBuffer:TList read fPointBuffer write fPointBuffer;
        property VertexHashTable:TKraftQuickHullVertexHashTable read fVertexHashTable write fVertexHashTable;
        property VertexPointIndices:TKraftQuickHullIntegerList read fVertexPointIndices;
@@ -987,9 +987,9 @@ type PKraftForceMode=^TKraftForceMode;
        property NewFaces:TKraftQuickHullFaceList read fNewFaces write fNewFaces;
        property Unclaimed:TKraftQuickHullVertexList read fUnclaimed write fUnclaimed;
        property Claimed:TKraftQuickHullVertexList read fClaimed write fClaimed;
-       property CountVertices:Integer read fCountVertices write fCountVertices;
-       property CountFaces:Integer read fCountFaces write fCountFaces;
-       property CountPoints:Integer read fCountPoints write fCountPoints;
+       property CountVertices:longint read fCountVertices write fCountVertices;
+       property CountFaces:longint read fCountFaces write fCountFaces;
+       property CountPoints:longint read fCountPoints write fCountPoints;
        property ExplicitTolerance:double read fExplicitTolerance write fExplicitTolerance;
        property Tolerance:double read fTolerance write fTolerance;
        property CharLength:double read fCharLength write fCharLength;
@@ -998,8 +998,8 @@ type PKraftForceMode=^TKraftForceMode;
      PKraftConvexHullVertex=^TKraftConvexHullVertex;
      TKraftConvexHullVertex=record
       Position:TKraftVector3;
-      CountAdjacencies:Integer;
-      Adjacencies:array of Integer;
+      CountAdjacencies:longint;
+      Adjacencies:array of longint;
      end;
 
      PPKraftConvexHullVertices=^TPKraftConvexHullVertices;
@@ -1010,17 +1010,17 @@ type PKraftForceMode=^TKraftForceMode;
      PKraftConvexHullFace=^TKraftConvexHullFace;
      TKraftConvexHullFace=record
       Plane:TKraftPlane;
-      Vertices:array of Integer;
-      CountVertices:Integer;
-      EdgeVertexOffset:Integer;
+      Vertices:array of longint;
+      CountVertices:longint;
+      EdgeVertexOffset:longint;
      end;
 
      TKraftConvexHullFaces=array of TKraftConvexHullFace;
 
      PKraftConvexHullEdge=^TKraftConvexHullEdge;
      TKraftConvexHullEdge=record
-      Vertices:array[0..1] of Integer;
-      Faces:array[0..1] of Integer;
+      Vertices:array[0..1] of longint;
+      Faces:array[0..1] of longint;
      end;
 
      TKraftConvexHullEdges=array of TKraftConvexHullEdge;
@@ -1034,13 +1034,13 @@ type PKraftForceMode=^TKraftForceMode;
        fNext:TKraftConvexHull;
 
        fVertices:TKraftConvexHullVertices;
-       fCountVertices:Integer;
+       fCountVertices:longint;
 
        fFaces:TKraftConvexHullFaces;
-       fCountFaces:Integer;
+       fCountFaces:longint;
 
        fEdges:TKraftConvexHullEdges;
-       fCountEdges:Integer;
+       fCountEdges:longint;
 
        fSphere:TKraftSphere;
 
@@ -1062,9 +1062,9 @@ type PKraftForceMode=^TKraftForceMode;
        procedure LoadFromStream(const AStream:TStream);
        procedure SaveToStream(const AStream:TStream);
 
-       function AddVertex(const AVertex:TKraftVector3):Integer;
+       function AddVertex(const AVertex:TKraftVector3):longint;
 
-       procedure Load(const AVertices:PKraftVector3;const ACountVertices:Integer);
+       procedure Load(const AVertices:PKraftVector3;const ACountVertices:longint);
 
        procedure Scale(const WithFactor:TKraftScalar); overload;
        procedure Scale(const WithVector:TKraftVector3); overload;
@@ -1072,7 +1072,7 @@ type PKraftForceMode=^TKraftForceMode;
        procedure Transform(const WithMatrix:TKraftMatrix3x3); overload;
        procedure Transform(const WithMatrix:TKraftMatrix4x4); overload;
 
-       procedure Build(const AMaximumCountConvexHullPoints:Integer=-1;const AUserDefinedTolerance:double=-1.0);
+       procedure Build(const AMaximumCountConvexHullPoints:longint=-1;const AUserDefinedTolerance:double=-1.0);
 
        procedure Update;
 
@@ -1080,9 +1080,9 @@ type PKraftForceMode=^TKraftForceMode;
 
        function GetSignedDistance(const Position:TKraftVector3):TKraftScalar;
 
-       function GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3;
+       function GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3;
 
-       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer;
+       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint;
 
        function GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3;
 
@@ -1092,13 +1092,13 @@ type PKraftForceMode=^TKraftForceMode;
        property Next:TKraftConvexHull read fNext;
 
        property Vertices:TKraftConvexHullVertices read fVertices;
-       property CountVertices:Integer read fCountVertices;
+       property CountVertices:longint read fCountVertices;
 
        property Faces:TKraftConvexHullFaces read fFaces;
-       property CountFaces:Integer read fCountFaces;
+       property CountFaces:longint read fCountFaces;
 
        property Edges:TKraftConvexHullEdges read fEdges;
-       property CountEdges:Integer read fCountEdges;
+       property CountEdges:longint read fCountEdges;
 
        property Sphere:TKraftSphere read fSphere;
 
@@ -1114,9 +1114,9 @@ type PKraftForceMode=^TKraftForceMode;
 
      PKraftMeshTriangle=^TKraftMeshTriangle;
      TKraftMeshTriangle=record
-      Next:Integer;
-      Vertices:array[0..2] of Integer;
-      Normals:array[0..2] of Integer;
+      Next:longint;
+      Vertices:array[0..2] of longint;
+      Normals:array[0..2] of longint;
       Plane:TKraftPlane;
       AABB:TKraftAABB;
      end;
@@ -1125,8 +1125,8 @@ type PKraftForceMode=^TKraftForceMode;
 
      PKraftMeshNode=^TKraftMeshNode;
      TKraftMeshNode=record
-      Children:array[0..1] of Integer;
-      TriangleIndex:Integer;
+      Children:array[0..1] of longint;
+      TriangleIndex:longint;
       AABB:TKraftAABB;
      end;
 
@@ -1134,8 +1134,8 @@ type PKraftForceMode=^TKraftForceMode;
 
      PKraftMeshSkipListNode=^TKraftMeshSkipListNode;
      TKraftMeshSkipListNode=record
-      SkipToNodeIndex:Integer;
-      TriangleIndex:Integer;
+      SkipToNodeIndex:longint;
+      TriangleIndex:longint;
       AABB:TKraftAABB;
      end;
 
@@ -1150,19 +1150,19 @@ type PKraftForceMode=^TKraftForceMode;
        fNext:TKraftMesh;
 
        fVertices:TKraftVector3Array;
-       fCountVertices:Integer;
+       fCountVertices:longint;
 
        fNormals:TKraftVector3Array;
-       fCountNormals:Integer;
+       fCountNormals:longint;
 
        fTriangles:TKraftMeshTriangles;
-       fCountTriangles:Integer;
+       fCountTriangles:longint;
 
        fNodes:TKraftMeshNodes;
-       fCountNodes:Integer;
+       fCountNodes:longint;
 
        fSkipListNodes:TKraftMeshSkipListNodes;
-       fCountSkipListNodes:Integer;
+       fCountSkipListNodes:longint;
 
        fAABB:TKraftAABB;
 
@@ -1175,14 +1175,14 @@ type PKraftForceMode=^TKraftForceMode;
        constructor Create(const APhysics:TKraft);
        destructor Destroy; override;
 
-       function AddVertex(const AVertex:TKraftVector3):Integer;
+       function AddVertex(const AVertex:TKraftVector3):longint;
 
-       function AddNormal(const ANormal:TKraftVector3):Integer;
+       function AddNormal(const ANormal:TKraftVector3):longint;
 
-       function AddTriangle(const AVertexIndex0,AVertexIndex1,AVertexIndex2:Integer;const ANormalIndex0:Integer=-1;const ANormalIndex1:Integer=-1;ANormalIndex2:Integer=-1):Integer;
+       function AddTriangle(const AVertexIndex0,AVertexIndex1,AVertexIndex2:longint;const ANormalIndex0:longint=-1;const ANormalIndex1:longint=-1;ANormalIndex2:longint=-1):longint;
 
-       procedure Load(const AVertices:PKraftVector3;const ACountVertices:Integer;const ANormals:PKraftVector3;const ACountNormals:Integer;const AVertexIndices,ANormalIndices:pointer;const ACountIndices:Integer); overload;
-       procedure Load(const ASourceData:pointer;const ASourceSize:Integer); overload;
+       procedure Load(const AVertices:PKraftVector3;const ACountVertices:longint;const ANormals:PKraftVector3;const ACountNormals:longint;const AVertexIndices,ANormalIndices:pointer;const ACountIndices:longint); overload;
+       procedure Load(const ASourceData:pointer;const ASourceSize:longint); overload;
 
        procedure Scale(const WithFactor:TKraftScalar); overload;
        procedure Scale(const WithVector:TKraftVector3); overload;
@@ -1200,19 +1200,19 @@ type PKraftForceMode=^TKraftForceMode;
        property Next:TKraftMesh read fNext;
 
        property Vertices:TKraftVector3Array read fVertices;
-       property CountVertices:Integer read fCountVertices;
+       property CountVertices:longint read fCountVertices;
 
        property Normals:TKraftVector3Array read fNormals;
-       property CountNormals:Integer read fCountNormals;
+       property CountNormals:longint read fCountNormals;
 
        property Triangles:TKraftMeshTriangles read fTriangles;
-       property CountTriangles:Integer read fCountTriangles;
+       property CountTriangles:longint read fCountTriangles;
 
        property Nodes:TKraftMeshNodes read fNodes;
-       property CountNodes:Integer read fCountNodes;
+       property CountNodes:longint read fCountNodes;
 
        property SkipListNodes:TKraftMeshSkipListNodes read fSkipListNodes;
-       property CountSkipListNodes:Integer read fCountSkipListNodes;
+       property CountSkipListNodes:longint read fCountSkipListNodes;
 
        property AABB:TKraftAABB read fAABB;
 
@@ -1250,10 +1250,10 @@ type PKraftForceMode=^TKraftForceMode;
 
        fUserData:pointer;
 
-       fStaticAABBTreeProxy:Integer;
-       fSleepingAABBTreeProxy:Integer;
-       fDynamicAABBTreeProxy:Integer;
-       fKinematicAABBTreeProxy:Integer;
+       fStaticAABBTreeProxy:longint;
+       fSleepingAABBTreeProxy:longint;
+       fDynamicAABBTreeProxy:longint;
+       fKinematicAABBTreeProxy:longint;
 
        fShapeAABB:TKraftAABB;
 
@@ -1312,9 +1312,9 @@ type PKraftForceMode=^TKraftForceMode;
 
        function GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3; virtual;
 
-       function GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3; virtual;
+       function GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3; virtual;
 
-       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer; virtual;
+       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint; virtual;
 
        function GetCenter(const Transform:TKraftMatrix4x4):TKraftVector3; virtual;
 
@@ -1341,10 +1341,10 @@ type PKraftForceMode=^TKraftForceMode;
 
        property UserData:pointer read fUserData write fUserData;
 
-       property StaticAABBTreeProxy:Integer read fStaticAABBTreeProxy write fStaticAABBTreeProxy;
-       property SleepingAABBTreeProxy:Integer read fSleepingAABBTreeProxy write fSleepingAABBTreeProxy;
-       property DynamicAABBTreeProxy:Integer read fDynamicAABBTreeProxy write fDynamicAABBTreeProxy;
-       property KinematicAABBTreeProxy:Integer read fKinematicAABBTreeProxy write fKinematicAABBTreeProxy;
+       property StaticAABBTreeProxy:longint read fStaticAABBTreeProxy write fStaticAABBTreeProxy;
+       property SleepingAABBTreeProxy:longint read fSleepingAABBTreeProxy write fSleepingAABBTreeProxy;
+       property DynamicAABBTreeProxy:longint read fDynamicAABBTreeProxy write fDynamicAABBTreeProxy;
+       property KinematicAABBTreeProxy:longint read fKinematicAABBTreeProxy write fKinematicAABBTreeProxy;
 
        property ShapeAABB:TKraftAABB read fShapeAABB;
 
@@ -1408,8 +1408,8 @@ type PKraftForceMode=^TKraftForceMode;
        procedure CalculateMassData; override;
        function GetSignedDistance(const Position:TKraftVector3):TKraftScalar; override;
        function GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3; override;
-       function GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3; override;
-       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer; override;
+       function GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3; override;
+       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint; override;
        function GetCenter(const Transform:TKraftMatrix4x4):TKraftVector3; override;
        function TestPoint(const p:TKraftVector3):boolean; override;
        function RayCast(var RayCastData:TKraftRaycastData):boolean; override;
@@ -1430,8 +1430,8 @@ type PKraftForceMode=^TKraftForceMode;
        procedure CalculateMassData; override;
        function GetSignedDistance(const Position:TKraftVector3):TKraftScalar; override;
        function GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3; override;
-       function GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3; override;
-       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer; override;
+       function GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3; override;
+       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint; override;
        function GetCenter(const Transform:TKraftMatrix4x4):TKraftVector3; override;
        function TestPoint(const p:TKraftVector3):boolean; override;
        function RayCast(var RayCastData:TKraftRaycastData):boolean; override;
@@ -1452,8 +1452,8 @@ type PKraftForceMode=^TKraftForceMode;
        procedure CalculateMassData; override;
        function GetSignedDistance(const Position:TKraftVector3):TKraftScalar; override;
        function GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3; override;
-       function GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3; override;
-       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer; override;
+       function GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3; override;
+       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint; override;
        function GetCenter(const Transform:TKraftMatrix4x4):TKraftVector3; override;
        function TestPoint(const p:TKraftVector3):boolean; override;
        function RayCast(var RayCastData:TKraftRaycastData):boolean; override;
@@ -1474,8 +1474,8 @@ type PKraftForceMode=^TKraftForceMode;
        procedure CalculateMassData; override;
        function GetSignedDistance(const Position:TKraftVector3):TKraftScalar; override;
        function GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3; override;
-       function GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3; override;
-       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer; override;
+       function GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3; override;
+       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint; override;
        function GetCenter(const Transform:TKraftMatrix4x4):TKraftVector3; override;
        function TestPoint(const p:TKraftVector3):boolean; override;
        function RayCast(var RayCastData:TKraftRaycastData):boolean; override;
@@ -1498,8 +1498,8 @@ type PKraftForceMode=^TKraftForceMode;
        procedure CalculateMassData; override;
        function GetSignedDistance(const Position:TKraftVector3):TKraftScalar; override;
        function GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3; override;
-       function GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3; override;
-       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer; override;
+       function GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3; override;
+       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint; override;
        function GetCenter(const Transform:TKraftMatrix4x4):TKraftVector3; override;
        function TestPoint(const p:TKraftVector3):boolean; override;
        function RayCast(var RayCastData:TKraftRaycastData):boolean; override;
@@ -1519,8 +1519,8 @@ type PKraftForceMode=^TKraftForceMode;
        procedure CalculateMassData; override;
        function GetSignedDistance(const Position:TKraftVector3):TKraftScalar; override;
        function GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3; override;
-       function GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3; override;
-       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer; override;
+       function GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3; override;
+       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint; override;
        function GetCenter(const Transform:TKraftMatrix4x4):TKraftVector3; override;
        function TestPoint(const p:TKraftVector3):boolean; override;
        function RayCast(var RayCastData:TKraftRaycastData):boolean; override;
@@ -1542,9 +1542,9 @@ type PKraftForceMode=^TKraftForceMode;
       sB:TKraftVector3;
       w:TKraftVector3;
       a:TKraftScalar;
-      iA:Integer;
-      iB:Integer;
-      Dummy:Integer;
+      iA:longint;
+      iB:longint;
+      Dummy:longint;
      end;
 
      PKraftGJKSimplexVertices=^TKraftGJKSimplexVertices;
@@ -1556,9 +1556,9 @@ type PKraftForceMode=^TKraftForceMode;
      PKraftGJKCachedSimplexVertex=^TKraftGJKCachedSimplexVertex;
      TKraftGJKCachedSimplexVertex=record
       a:TKraftScalar;
-      iA:Integer;
-      iB:Integer;
-      Dummy:Integer;
+      iA:longint;
+      iB:longint;
+      Dummy:longint;
      end;
 
      PKraftGJKCachedSimplexVertices=^TKraftGJKCachedSimplexVertices;
@@ -1567,7 +1567,7 @@ type PKraftForceMode=^TKraftForceMode;
      PKraftGJKCachedSimplex=^TKraftGJKCachedSimplex;
      TKraftGJKCachedSimplex=record
       Vertices:TKraftGJKCachedSimplexVertices;
-      Count:Integer;
+      Count:longint;
       Metric:TKraftScalar;
      end;
 
@@ -1576,7 +1576,7 @@ type PKraftForceMode=^TKraftForceMode;
       VerticesData:TKraftGJKSimplexVertices;
       Vertices:TPKraftGJKSimplexVertices;
       Divisor:TKraftScalar;
-      Count:Integer;
+      Count:longint;
      end;
 
      PKraftGJKClosestPoints=^TKraftGJKClosestPoints;
@@ -1586,7 +1586,7 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftGJK={$ifdef FPC}object{$else}record{$endif}
       public
        Distance:TKraftScalar;
-       Iterations:Integer;
+       Iterations:longint;
        UseRadii:boolean;
        Failed:boolean;
        Normal:TKraftVector3;
@@ -1608,7 +1608,7 @@ type PKraftForceMode=^TKraftForceMode;
       NormalMass:TKraftScalar;
       TangentMass:array[0..1] of TKraftScalar;
       FeatureID:TKraftContactFeatureID;
-      WarmStartState:UInt32;
+      WarmStartState:longword;
      end;
 
      PKraftContacts=^TKraftContacts;
@@ -1616,14 +1616,14 @@ type PKraftForceMode=^TKraftForceMode;
 
      PKraftContactFaceQuery=^TKraftContactFaceQuery;
      TKraftContactFaceQuery=record
-      Index:Integer;
+      Index:longint;
       Separation:TKraftScalar;
      end;
 
      PKraftContactEdgeQuery=^TKraftContactEdgeQuery;
      TKraftContactEdgeQuery=record
-      IndexA:Integer;
-      IndexB:Integer;
+      IndexA:longint;
+      IndexB:longint;
       Separation:TKraftScalar;
       Normal:TKraftVector3;
      end;
@@ -1636,7 +1636,7 @@ type PKraftForceMode=^TKraftForceMode;
 
      PKraftSolverContactManifold=^TKraftSolverContactManifold;
      TKraftSolverContactManifold=record
-      CountContacts:Integer;
+      CountContacts:longint;
       Contacts:array[0..MAX_CONTACTS-1] of TKraftSolverContact;
       Points:array[0..1] of TKraftVector3;
       Normal:TKraftVector3;
@@ -1658,7 +1658,7 @@ type PKraftForceMode=^TKraftForceMode;
       ContactManifoldType:TKraftContactManifoldType;
       HaveData:boolean;
       Persistent:boolean;
-      CountContacts:Integer;
+      CountContacts:longint;
       LostSpeculativeBounce:single;
       LocalRadius:array[0..1] of TKraftScalar;
       LocalNormal:TKraftVector3;
@@ -1688,12 +1688,12 @@ type PKraftForceMode=^TKraftForceMode;
       public
        Previous:PKraftContactPair;
        Next:PKraftContactPair;
-       HashBucket:Integer;
+       HashBucket:longint;
        HashPrevious:PKraftContactPair;
        HashNext:PKraftContactPair;
        Island:TKraftIsland;
        Shapes:array[0..1] of TKraftShape;
-       ElementIndex:Integer;
+       ElementIndex:longint;
        MeshContactPair:TKraftMeshContactPair;
        RigidBodies:array[0..1] of TKraftRigidBody;
        Edges:array[0..1] of TKraftContactPairEdge;
@@ -1701,10 +1701,10 @@ type PKraftForceMode=^TKraftForceMode;
        Restitution:TKraftScalar;
        Manifold:TKraftContactManifold;
        Flags:TKraftContactFlags;
-       TimeOfImpactCount:Integer;
+       TimeOfImpactCount:longint;
        TimeOfImpact:TKraftScalar;
        procedure GetSolverContactManifold(out SolverContactManifold:TKraftSolverContactManifold;const WorldTransformA,WorldTransformB:TKraftMatrix4x4;const ContactManifoldMode:TKraftContactPairContactManifoldMode);
-       procedure DetectCollisions(const ContactManager:TKraftContactManager;const TriangleShape:TKraftShape=nil;const ThreadIndex:Integer=0;const SpeculativeContacts:boolean=true;const DeltaTime:double=0.0);
+       procedure DetectCollisions(const ContactManager:TKraftContactManager;const TriangleShape:TKraftShape=nil;const ThreadIndex:longint=0;const SpeculativeContacts:boolean=true;const DeltaTime:double=0.0);
      end;
 
      TPKraftContactPairs=array of PKraftContactPair;
@@ -1714,7 +1714,7 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftContactManagerOnContactStayHook=procedure(const ContactPair:PKraftContactPair) of object;
 
      PKraftContactIndices=^TKraftContactIndices;
-     TKraftContactIndices=array[0..MAX_CONTACTS-1] of Integer;
+     TKraftContactIndices=array[0..MAX_CONTACTS-1] of longint;
 
      TKraftMeshContactPair=class
       private
@@ -1724,7 +1724,7 @@ type PKraftForceMode=^TKraftForceMode;
        fPrevious:TKraftMeshContactPair;
        fNext:TKraftMeshContactPair;
 
-       fHashBucket:Integer;
+       fHashBucket:longint;
        fHashPrevious:TKraftMeshContactPair;
        fHashNext:TKraftMeshContactPair;
 
@@ -1774,7 +1774,7 @@ type PKraftForceMode=^TKraftForceMode;
      PKraftContactManagerMeshTriangleContactQueueItem=^TKraftContactManagerMeshTriangleContactQueueItem;
      TKraftContactManagerMeshTriangleContactQueueItem=record
       MeshContactPair:TKraftMeshContactPair;
-      TriangleIndex:Integer;
+      TriangleIndex:longint;
      end;
 
      TKraftContactManagerMeshTriangleContactQueueItems=array of TKraftContactManagerMeshTriangleContactQueueItem;
@@ -1789,7 +1789,7 @@ type PKraftForceMode=^TKraftForceMode;
 
        fFreeContactPairs:PKraftContactPair;
 
-       fCountContactPairs:Integer;
+       fCountContactPairs:longint;
 
        fMeshContactPairFirst:TKraftMeshContactPair;
        fMeshContactPairLast:TKraftMeshContactPair;
@@ -1797,7 +1797,7 @@ type PKraftForceMode=^TKraftForceMode;
        fMeshContactPairFirstFree:TKraftMeshContactPair;
        fMeshContactPairLastFree:TKraftMeshContactPair;
 
-       fCountMeshContactPairs:Integer;
+       fCountMeshContactPairs:longint;
 
        fOnContactBegin:TKraftContactManagerOnContactBeginHook;
        fOnContactEnd:TKraftContactManagerOnContactEndHook;
@@ -1809,15 +1809,15 @@ type PKraftForceMode=^TKraftForceMode;
 
 {$ifdef DebugDraw}
        fDebugClipVertexLists:array[0..255] of TKraftClipVertexList;
-       fCountDebugClipVertexLists:Integer;
+       fCountDebugClipVertexLists:longint;
 {$endif}
 
        fTemporaryContacts:array[0..MAX_THREADS-1,0..MAX_TEMPORARY_CONTACTS-1] of TKraftContact;
-       fCountTemporaryContacts:array[0..MAX_THREADS-1] of Integer;
+       fCountTemporaryContacts:array[0..MAX_THREADS-1] of longint;
 
        fActiveContactPairs:array of PKraftContactPair;
-       fCountActiveContactPairs:Integer;
-       fCountRemainActiveContactPairsToDo:Integer;
+       fCountActiveContactPairs:longint;
+       fCountRemainActiveContactPairsToDo:longint;
 
        fConvexConvexContactPairHashTable:TKraftContactPairHashTable;
 
@@ -1830,9 +1830,9 @@ type PKraftForceMode=^TKraftForceMode;
        constructor Create(const APhysics:TKraft);
        destructor Destroy; override;
 
-       function HasDuplicateContact(const ARigidBodyA,ARigidBodyB:TKraftRigidBody;const AShapeA,AShapeB:TKraftShape;const AElementIndex:Integer=-1):boolean;
+       function HasDuplicateContact(const ARigidBodyA,ARigidBodyB:TKraftRigidBody;const AShapeA,AShapeB:TKraftShape;const AElementIndex:longint=-1):boolean;
 
-       procedure AddConvexContact(const ARigidBodyA,ARigidBodyB:TKraftRigidBody;const AShapeA,AShapeB:TKraftShape;const AElementIndex:Integer=-1;const AMeshContactPair:TKraftMeshContactPair=nil);
+       procedure AddConvexContact(const ARigidBodyA,ARigidBodyB:TKraftRigidBody;const AShapeA,AShapeB:TKraftShape;const AElementIndex:longint=-1;const AMeshContactPair:TKraftMeshContactPair=nil);
 
        procedure AddMeshContact(const ARigidBodyConvex,ARigidBodyMesh:TKraftRigidBody;const AShapeConvex,AShapeMesh:TKraftShape);
 
@@ -1848,12 +1848,12 @@ type PKraftForceMode=^TKraftForceMode;
 
        procedure DoMidPhase;
 
-       procedure ProcessContactPair(const ContactPair:PKraftContactPair;const ThreadIndex:Integer=0);
+       procedure ProcessContactPair(const ContactPair:PKraftContactPair;const ThreadIndex:longint=0);
 
 {$ifdef KraftPasMP}
-       procedure ProcessContactPairParallelForFunction(const Job:PPasMPJob;const ThreadIndex:Integer;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
+       procedure ProcessContactPairParallelForFunction(const Job:PPasMPJob;const ThreadIndex:longint;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
 {$else}
-       procedure ProcessContactPairJob(const JobIndex,ThreadIndex:Integer);
+       procedure ProcessContactPairJob(const JobIndex,ThreadIndex:longint);
 {$endif}
 
        procedure DoNarrowPhase;
@@ -1862,9 +1862,9 @@ type PKraftForceMode=^TKraftForceMode;
        procedure DebugDraw(const CameraMatrix:TKraftMatrix4x4);
 {$endif}
 
-       function ReduceContacts(const AInputContacts:PKraftContacts;const ACountInputContacts:Integer;const AOutputContacts:PKraftContacts):Integer;
+       function ReduceContacts(const AInputContacts:PKraftContacts;const ACountInputContacts:longint;const AOutputContacts:PKraftContacts):longint;
 
-       function GetMaximizedAreaReducedContactIndices(const AInputContactPositions:PPKraftVector3s;const ACountInputContactPositions:Integer;var AOutputContactIndices:TKraftContactIndices):Integer;
+       function GetMaximizedAreaReducedContactIndices(const AInputContactPositions:PPKraftVector3s;const ACountInputContactPositions:longint;var AOutputContactIndices:TKraftContactIndices):longint;
 
        property ContactPairFirst:PKraftContactPair read fContactPairFirst write fContactPairFirst;
        property ContactPairLast:PKraftContactPair read fContactPairLast write fContactPairLast;
@@ -1873,7 +1873,7 @@ type PKraftForceMode=^TKraftForceMode;
 
        property Physics:TKraft read fPhysics;
 
-       property CountContactPairs:Integer read fCountContactPairs;
+       property CountContactPairs:longint read fCountContactPairs;
 
        property MeshContactPairFirst:TKraftMeshContactPair read fMeshContactPairFirst;
        property MeshContactPairLast:TKraftMeshContactPair read fMeshContactPairLast;
@@ -1881,7 +1881,7 @@ type PKraftForceMode=^TKraftForceMode;
        property MeshContactPairFirstFree:TKraftMeshContactPair read fMeshContactPairFirstFree;
        property MeshContactPairLastFree:TKraftMeshContactPair read fMeshContactPairLastFree;
 
-       property CountMeshContactPairs:Integer read fCountMeshContactPairs;
+       property CountMeshContactPairs:longint read fCountMeshContactPairs;
 
       published
 
@@ -1903,31 +1903,31 @@ type PKraftForceMode=^TKraftForceMode;
 
        fPhysics:TKraft;
 
-       fStack:array[0..MAX_THREADS-1] of PKraftDynamicAABBTreeIntegerArray;
-       fStackCapacity:array[0..MAX_THREADS-1] of Integer;
+       fStack:array[0..MAX_THREADS-1] of PKraftDynamicAABBTreeLongintArray;
+       fStackCapacity:array[0..MAX_THREADS-1] of longint;
 
        fContactPairs:array[0..MAX_THREADS-1] of TKraftBroadPhaseContactPairs;
-       fCountContactPairs:array[0..MAX_THREADS-1] of Integer;
+       fCountContactPairs:array[0..MAX_THREADS-1] of longint;
 
-       fStaticMoveBuffer:array of Integer;
-       fStaticMoveBufferSize:Integer;
+       fStaticMoveBuffer:array of longint;
+       fStaticMoveBufferSize:longint;
 
-       fDynamicMoveBuffer:array of Integer;
-       fDynamicMoveBufferSize:Integer;
+       fDynamicMoveBuffer:array of longint;
+       fDynamicMoveBufferSize:longint;
 
-       fKinematicMoveBuffer:array of Integer;
-       fKinematicMoveBufferSize:Integer;
+       fKinematicMoveBuffer:array of longint;
+       fKinematicMoveBufferSize:longint;
 
-       fAllMoveBufferSize:Integer;
+       fAllMoveBufferSize:longint;
 
-       procedure AddPair(const ThreadIndex:Integer;ShapeA,ShapeB:TKraftShape); {$ifdef caninline}inline;{$endif}
+       procedure AddPair(const ThreadIndex:longint;ShapeA,ShapeB:TKraftShape); {$ifdef caninline}inline;{$endif}
 
-       procedure QueryShapeWithTree(const ThreadIndex:Integer;const Shape:TKraftShape;const AABBTree:TKraftDynamicAABBTree);
+       procedure QueryShapeWithTree(const ThreadIndex:longint;const Shape:TKraftShape;const AABBTree:TKraftDynamicAABBTree);
 
 {$ifdef KraftPasMP}
-       procedure ProcessMoveBufferItemParallelForFunction(const Job:PPasMPJob;const ThreadIndex:Integer;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
+       procedure ProcessMoveBufferItemParallelForFunction(const Job:PPasMPJob;const ThreadIndex:longint;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
 {$else}
-       procedure ProcessMoveBufferItem(const JobIndex,ThreadIndex:Integer);
+       procedure ProcessMoveBufferItem(const JobIndex,ThreadIndex:longint);
 {$endif}
 
 
@@ -1938,12 +1938,12 @@ type PKraftForceMode=^TKraftForceMode;
 
        procedure UpdatePairs; {$ifdef caninline}inline;{$endif}
 
-       procedure StaticBufferMove(ProxyID:Integer); {$ifdef caninline}inline;{$endif}
-       procedure StaticBufferClearMove(ProxyID:Integer); {$ifdef caninline}inline;{$endif}
-       procedure DynamicBufferMove(ProxyID:Integer); {$ifdef caninline}inline;{$endif}
-       procedure DynamicBufferClearMove(ProxyID:Integer); {$ifdef caninline}inline;{$endif}
-       procedure KinematicBufferMove(ProxyID:Integer); {$ifdef caninline}inline;{$endif}
-       procedure KinematicBufferClearMove(ProxyID:Integer); {$ifdef caninline}inline;{$endif}
+       procedure StaticBufferMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
+       procedure StaticBufferClearMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
+       procedure DynamicBufferMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
+       procedure DynamicBufferClearMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
+       procedure KinematicBufferMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
+       procedure KinematicBufferClearMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
 
      end;
 
@@ -1961,7 +1961,7 @@ type PKraftForceMode=^TKraftForceMode;
       OtherRigidBody:TKraftRigidBody;
      end;
 
-     TKraftRigidBodyIslandIndices=array of Integer;
+     TKraftRigidBodyIslandIndices=array of longint;
 
      TKraftRigidBody=class(TPersistent)
       private
@@ -1994,7 +1994,7 @@ type PKraftForceMode=^TKraftForceMode;
        fShapeFirst:TKraftShape;
        fShapeLast:TKraftShape;
 
-       fShapeCount:Integer;
+       fShapeCount:longint;
 
        fFlags:TKraftRigidBodyFlags;
 
@@ -2058,7 +2058,7 @@ type PKraftForceMode=^TKraftForceMode;
 
        fCollideWithCollisionGroups:TKraftRigidBodyCollisionGroups;
 
-       fCountConstraints:Integer;
+       fCountConstraints:longint;
 
        fConstraintEdgeFirst:PKraftConstraintEdge;
        fConstraintEdgeLast:PKraftConstraintEdge;
@@ -2175,7 +2175,7 @@ type PKraftForceMode=^TKraftForceMode;
        property ShapeFirst:TKraftShape read fShapeFirst write fShapeFirst;
        property ShapeLast:TKraftShape read fShapeLast write fShapeLast;
 
-       property ShapeCount:Integer read fShapeCount write fShapeCount;
+       property ShapeCount:longint read fShapeCount write fShapeCount;
 
        property WorldTransform:TKraftMatrix4x4 read fWorldTransform write fWorldTransform;
 
@@ -2190,7 +2190,7 @@ type PKraftForceMode=^TKraftForceMode;
        property ConstraintEdgeFirst:PKraftConstraintEdge read fConstraintEdgeFirst write fConstraintEdgeFirst;
        property ConstraintEdgeLast:PKraftConstraintEdge read fConstraintEdgeLast write fConstraintEdgeLast;
 
-       property CountConstraints:Integer read fCountConstraints;
+       property CountConstraints:longint read fCountConstraints;
 
        property ContactPairEdgeFirst:PKraftContactPairEdge read fContactPairEdgeFirst write fContactPairEdgeFirst;
        property ContactPairEdgeLast:PKraftContactPairEdge read fContactPairEdgeLast write fContactPairEdgeLast;
@@ -2309,7 +2309,7 @@ type PKraftForceMode=^TKraftForceMode;
        fParent:TKraftConstraint;
 
        fChildren:array of TKraftConstraint;
-       fCountChildren:Integer;
+       fCountChildren:longint;
 
       public
 
@@ -2356,7 +2356,7 @@ type PKraftForceMode=^TKraftForceMode;
      // Constrains a body to a specified world position which can change over time.
      TKraftConstraintJointGrab=class(TKraftConstraintJoint)
       private
-       fIslandIndex:Integer;
+       fIslandIndex:longint;
        fInverseMass:TKraftScalar;
        fSolverVelocity:PKraftSolverVelocity;
        fSolverPosition:PKraftSolverPosition;
@@ -2393,7 +2393,7 @@ type PKraftForceMode=^TKraftForceMode;
      // Keeps body at some fixed distance to a world plane.
      TKraftConstraintJointWorldPlaneDistance=class(TKraftConstraintJoint)
       private
-       fIslandIndex:Integer;
+       fIslandIndex:longint;
        fInverseMass:TKraftScalar;
        fSolverVelocity:PKraftSolverVelocity;
        fSolverPosition:PKraftSolverPosition;
@@ -2436,7 +2436,7 @@ type PKraftForceMode=^TKraftForceMode;
      // Keeps bodies at some fixed distance from each other.
      TKraftConstraintJointDistance=class(TKraftConstraintJoint)
       private
-       fIslandIndices:array[0..1] of Integer;
+       fIslandIndices:array[0..1] of longint;
        fInverseMasses:array[0..1] of TKraftScalar;
        fSolverVelocities:array[0..1] of PKraftSolverVelocity;
        fSolverPositions:array[0..1] of PKraftSolverPosition;
@@ -2468,7 +2468,7 @@ type PKraftForceMode=^TKraftForceMode;
      // Restricts the maximum distance between two points.
      TKraftConstraintJointRope=class(TKraftConstraintJoint)
       private
-       fIslandIndices:array[0..1] of Integer;
+       fIslandIndices:array[0..1] of longint;
        fInverseMasses:array[0..1] of TKraftScalar;
        fSolverVelocities:array[0..1] of PKraftSolverVelocity;
        fSolverPositions:array[0..1] of PKraftSolverPosition;
@@ -2500,7 +2500,7 @@ type PKraftForceMode=^TKraftForceMode;
      // Connects two bodies to ground and to each other. As one body goes up, the other goes down.
      TKraftConstraintJointPulley=class(TKraftConstraintJoint)
       private
-       fIslandIndices:array[0..1] of Integer;
+       fIslandIndices:array[0..1] of longint;
        fInverseMasses:array[0..1] of TKraftScalar;
        fSolverVelocities:array[0..1] of PKraftSolverVelocity;
        fSolverPositions:array[0..1] of PKraftSolverPosition;
@@ -2534,7 +2534,7 @@ type PKraftForceMode=^TKraftForceMode;
      // Allows arbitrary rotation between two bodies. This joint has three degrees of freedom.
      TKraftConstraintJointBallSocket=class(TKraftConstraintJoint)
       private
-       fIslandIndices:array[0..1] of Integer;
+       fIslandIndices:array[0..1] of longint;
        fInverseMasses:array[0..1] of TKraftScalar;
        fSolverVelocities:array[0..1] of PKraftSolverVelocity;
        fSolverPositions:array[0..1] of PKraftSolverPosition;
@@ -2562,7 +2562,7 @@ type PKraftForceMode=^TKraftForceMode;
      // Forbids any translation or rotation between two bodies.
      TKraftConstraintJointFixed=class(TKraftConstraintJoint)
       private
-       fIslandIndices:array[0..1] of Integer;
+       fIslandIndices:array[0..1] of longint;
        fInverseMasses:array[0..1] of TKraftScalar;
        fSolverVelocities:array[0..1] of PKraftSolverVelocity;
        fSolverPositions:array[0..1] of PKraftSolverPosition;
@@ -2593,7 +2593,7 @@ type PKraftForceMode=^TKraftForceMode;
      // Allows arbitrary rotation between two bodies around a TKraftScalar axis. This joint has one degree of freedom.
      TKraftConstraintJointHinge=class(TKraftConstraintJoint)
       private
-       fIslandIndices:array[0..1] of Integer;
+       fIslandIndices:array[0..1] of longint;
        fInverseMasses:array[0..1] of TKraftScalar;
        fSolverVelocities:array[0..1] of PKraftSolverVelocity;
        fSolverPositions:array[0..1] of PKraftSolverPosition;
@@ -2669,7 +2669,7 @@ type PKraftForceMode=^TKraftForceMode;
      // Allows relative translation of the bodies along a TKraftScalar direction and no rotation
      TKraftConstraintJointSlider=class(TKraftConstraintJoint)
       private
-       fIslandIndices:array[0..1] of Integer;
+       fIslandIndices:array[0..1] of longint;
        fInverseMasses:array[0..1] of TKraftScalar;
        fSolverVelocities:array[0..1] of PKraftSolverVelocity;
        fSolverPositions:array[0..1] of PKraftSolverPosition;
@@ -2772,8 +2772,8 @@ type PKraftForceMode=^TKraftForceMode;
       InverseMasses:array[0..1] of TKraftScalar;
       Restitution:TKraftScalar;
       Friction:TKraftScalar;
-      Indices:array[0..1] of Integer;
-      CountPoints:Integer;
+      Indices:array[0..1] of longint;
+      CountPoints:longint;
      end;
 
      TKraftSolverVelocityStates=array of TKraftSolverVelocityState;
@@ -2785,8 +2785,8 @@ type PKraftForceMode=^TKraftForceMode;
       LocalCenters:array[0..1] of TKraftVector3;
       WorldInverseInertiaTensors:array[0..1] of TKraftMatrix3x3;
       InverseMasses:array[0..1] of TKraftScalar;
-      Indices:array[0..1] of Integer;
-      CountPoints:Integer;
+      Indices:array[0..1] of longint;
+      CountPoints:longint;
      end;
 
      TKraftSolverPositionStates=array of TKraftSolverPositionState;
@@ -2810,7 +2810,7 @@ type PKraftForceMode=^TKraftForceMode;
       InverseMasses:array[0..1] of single;
       Restitution:single;
       Friction:single;
-      Indices:array[0..1] of Integer;
+      Indices:array[0..1] of longint;
      end;
 
      TKraftSolverSpeculativeContactStates=array of TKraftSolverSpeculativeContactState;
@@ -2823,26 +2823,26 @@ type PKraftForceMode=^TKraftForceMode;
        fIsland:TKraftIsland;
 
        fVelocities:TKraftSolverVelocities;
-       fCountVelocities:Integer;
+       fCountVelocities:longint;
 
        fPositions:TKraftSolverPositions;
-       fCountPositions:Integer;
+       fCountPositions:longint;
 
        fLinearFactors:TKraftSolverLinearFactors;
-       fCountLinearFactors:Integer;
+       fCountLinearFactors:longint;
 
        fVelocityStates:TKraftSolverVelocityStates;
-       fCountVelocityStates:Integer;
+       fCountVelocityStates:longint;
 
        fPositionStates:TKraftSolverPositionStates;
-       fCountPositionStates:Integer;
+       fCountPositionStates:longint;
 
        fSpeculativeContactStates:TKraftSolverSpeculativeContactStates;
-       fCountSpeculativeContactStates:Integer;
+       fCountSpeculativeContactStates:longint;
 
-       fCountContacts:Integer;
+       fCountContacts:longint;
 
-       fCountSpeculativeContacts:Integer;
+       fCountSpeculativeContacts:longint;
 
        fDeltaTime:TKraftScalar;
 
@@ -2869,7 +2869,7 @@ type PKraftForceMode=^TKraftForceMode;
 
        function SolvePositionConstraints:boolean;
 
-       function SolveTimeOfImpactConstraints(IndexA,IndexB:Integer):boolean;
+       function SolveTimeOfImpactConstraints(IndexA,IndexB:longint):boolean;
 
        procedure SolveSpeculativeContactConstraints;
 
@@ -2880,26 +2880,26 @@ type PKraftForceMode=^TKraftForceMode;
        property Island:TKraftIsland read fIsland;
 
        property Velocities:TKraftSolverVelocities read fVelocities;
-       property CountVelocities:Integer read fCountVelocities;
+       property CountVelocities:longint read fCountVelocities;
 
        property Positions:TKraftSolverPositions read fPositions;
-       property CountPositions:Integer read fCountPositions;
+       property CountPositions:longint read fCountPositions;
 
        property LinearFactors:TKraftSolverLinearFactors read fLinearFactors;
-       property CountLinearFactors:Integer read fCountLinearFactors;
+       property CountLinearFactors:longint read fCountLinearFactors;
 
        property VelocityStates:TKraftSolverVelocityStates read fVelocityStates;
-       property CountVelocityStates:Integer read fCountVelocityStates;
+       property CountVelocityStates:longint read fCountVelocityStates;
 
        property PositionStates:TKraftSolverPositionStates read fPositionStates;
-       property CountPositionStates:Integer read fCountPositionStates;
+       property CountPositionStates:longint read fCountPositionStates;
 
        property SpeculativeContactStates:TKraftSolverSpeculativeContactStates read fSpeculativeContactStates;
-       property CountSpeculativeContactStates:Integer read fCountSpeculativeContactStates;
+       property CountSpeculativeContactStates:longint read fCountSpeculativeContactStates;
 
-       property CountContacts:Integer read fCountContacts;
+       property CountContacts:longint read fCountContacts;
 
-       property CountSpeculativeContacts:Integer read fCountSpeculativeContacts;
+       property CountSpeculativeContacts:longint read fCountSpeculativeContacts;
 
        property DeltaTime:TKraftScalar read fDeltaTime;
 
@@ -2916,55 +2916,55 @@ type PKraftForceMode=^TKraftForceMode;
 
        fPhysics:TKraft;
 
-       fIslandIndex:Integer;
+       fIslandIndex:longint;
 
        fRigidBodies:TKraftRigidBodies;
-       fCountRigidBodies:Integer;
+       fCountRigidBodies:longint;
 
        fConstraints:TKraftConstraints;
-       fCountConstraints:Integer;
+       fCountConstraints:longint;
 
        fContactPairs:TPKraftContactPairs;
-       fCountContactPairs:Integer;
+       fCountContactPairs:longint;
 
        fStaticContactPairs:TPKraftContactPairs;
-       fCountStaticContactPairs:Integer;
+       fCountStaticContactPairs:longint;
 
        fSpeculativeContactPairs:TPKraftContactPairs;
-       fCountSpeculativeContactPairs:Integer;
+       fCountSpeculativeContactPairs:longint;
 
        fSolver:TKraftSolver;
 
       public
 
-       constructor Create(const APhysics:TKraft;const AIndex:Integer);
+       constructor Create(const APhysics:TKraft;const AIndex:longint);
        destructor Destroy; override;
        procedure Clear;
-       function AddRigidBody(RigidBody:TKraftRigidBody):Integer;
+       function AddRigidBody(RigidBody:TKraftRigidBody):longint;
        procedure AddConstraint(Constraint:TKraftConstraint);
        procedure AddContactPair(ContactPair:PKraftContactPair);
        procedure MergeContactPairs;
        procedure Solve(const TimeStep:TKraftTimeStep);
-       procedure SolveTimeOfImpact(const TimeStep:TKraftTimeStep;const IndexA,IndexB:Integer);
+       procedure SolveTimeOfImpact(const TimeStep:TKraftTimeStep;const IndexA,IndexB:longint);
 
        property Physics:TKraft read fPhysics;
 
-       property IslandIndex:Integer read fIslandIndex;
+       property IslandIndex:longint read fIslandIndex;
 
        property RigidBodies:TKraftRigidBodies read fRigidBodies;
-       property CountRigidBodies:Integer read fCountRigidBodies;
+       property CountRigidBodies:longint read fCountRigidBodies;
 
        property Constraints:TKraftConstraints read fConstraints;
-       property CountConstraints:Integer read fCountConstraints;
+       property CountConstraints:longint read fCountConstraints;
 
        property ContactPairs:TPKraftContactPairs read fContactPairs;
-       property CountContactPairs:Integer read fCountContactPairs;
+       property CountContactPairs:longint read fCountContactPairs;
 
        property StaticContactPairs:TPKraftContactPairs read fStaticContactPairs;
-       property CountStaticContactPairs:Integer read fCountStaticContactPairs;
+       property CountStaticContactPairs:longint read fCountStaticContactPairs;
 
        property SpeculativeContactPairs:TPKraftContactPairs read fSpeculativeContactPairs;
-       property CountSpeculativeContactPairs:Integer read fCountSpeculativeContactPairs;
+       property CountSpeculativeContactPairs:longint read fCountSpeculativeContactPairs;
 
        property Solver:TKraftSolver read fSolver;
 
@@ -2975,23 +2975,23 @@ type PKraftForceMode=^TKraftForceMode;
 {$ifndef KraftPasMP}
      TKraftJobManager=class;
 
-     TKraftJobManagerOnProcessJob=procedure(const JobIndex,ThreadIndex:Integer) of object;
+     TKraftJobManagerOnProcessJob=procedure(const JobIndex,ThreadIndex:longint) of object;
 
      TKraftJobThread=class(TThread)
       private
        fPhysics:TKraft;
        fJobManager:TKraftJobManager;
-       fThreadNumber:Integer;
+       fThreadNumber:longint;
        fEvent:TEvent;
        fDoneEvent:TEvent;
       protected
        procedure Execute; override;
       public
-       constructor Create(const APhysics:TKraft;const AJobManager:TKraftJobManager;const AThreadNumber:Integer);
+       constructor Create(const APhysics:TKraft;const AJobManager:TKraftJobManager;const AThreadNumber:longint);
        destructor Destroy; override;
        property Physics:TKraft read fPhysics;
        property JobManager:TKraftJobManager read fJobManager;
-       property ThreadNumber:Integer read fThreadNumber;
+       property ThreadNumber:longint read fThreadNumber;
        property Event:TEvent read fEvent;
        property DoneEvent:TEvent read fDoneEvent;
      end;
@@ -3002,12 +3002,12 @@ type PKraftForceMode=^TKraftForceMode;
       private
        fPhysics:TKraft;
        fThreads:TKraftJobThreads;
-       fCountThreads:Integer;
-       fCountAliveThreads:Integer;
+       fCountThreads:longint;
+       fCountAliveThreads:longint;
        fThreadsTerminated:boolean;
        fOnProcessJob:TKraftJobManagerOnProcessJob;
-       fCountRemainJobs:Integer;
-       fGranularity:Integer;
+       fCountRemainJobs:longint;
+       fGranularity:longint;
       public
        constructor Create(const APhysics:TKraft);
        destructor Destroy; override;
@@ -3016,12 +3016,12 @@ type PKraftForceMode=^TKraftForceMode;
        procedure ProcessJobs;
        property Physics:TKraft read fPhysics;
        property Threads:TKraftJobThreads read fThreads;
-       property CountThreads:Integer read fCountThreads;
-       property CountAliveThreads:Integer read fCountAliveThreads write fCountAliveThreads;
+       property CountThreads:longint read fCountThreads;
+       property CountAliveThreads:longint read fCountAliveThreads write fCountAliveThreads;
        property ThreadsTerminated:boolean read fThreadsTerminated write fThreadsTerminated;
        property OnProcessJob:TKraftJobManagerOnProcessJob read fOnProcessJob write fOnProcessJob;
-       property CountRemainJobs:Integer read fCountRemainJobs write fCountRemainJobs;
-       property Granularity:Integer read fGranularity write fGranularity;
+       property CountRemainJobs:longint read fCountRemainJobs write fCountRemainJobs;
+       property Granularity:longint read fGranularity write fGranularity;
      end;
 {$endif}
 
@@ -3056,23 +3056,23 @@ type PKraftForceMode=^TKraftForceMode;
        fConstraintFirst:TKraftConstraint;
        fConstraintLast:TKraftConstraint;
 
-       fCountRigidBodies:Integer;
+       fCountRigidBodies:longint;
        fRigidBodyIDCounter:uint64;
 
        fRigidBodyFirst:TKraftRigidBody;
        fRigidBodyLast:TKraftRigidBody;
 
-       fStaticRigidBodyCount:Integer;
+       fStaticRigidBodyCount:longint;
 
        fStaticRigidBodyFirst:TKraftRigidBody;
        fStaticRigidBodyLast:TKraftRigidBody;
 
-       fDynamicRigidBodyCount:Integer;
+       fDynamicRigidBodyCount:longint;
 
        fDynamicRigidBodyFirst:TKraftRigidBody;
        fDynamicRigidBodyLast:TKraftRigidBody;
 
-       fKinematicRigidBodyCount:Integer;
+       fKinematicRigidBodyCount:longint;
 
        fKinematicRigidBodyFirst:TKraftRigidBody;
        fKinematicRigidBodyLast:TKraftRigidBody;
@@ -3083,7 +3083,7 @@ type PKraftForceMode=^TKraftForceMode;
        fKinematicAABBTree:TKraftDynamicAABBTree;
 
        fIslands:TKraftIslands;
-       fCountIslands:Integer;
+       fCountIslands:longint;
 
        fBroadPhase:TKraftBroadPhase;
 
@@ -3139,21 +3139,21 @@ type PKraftForceMode=^TKraftForceMode;
 
        fTimeOfImpactAlgorithm:TKraftTimeOfImpactAlgorithm;
 
-       fMaximalSubSteps:Integer;
+       fMaximalSubSteps:longint;
 
        fContactPositionCorrectionMode:TKraftPositionCorrectionMode;
 
        fConstraintPositionCorrectionMode:TKraftPositionCorrectionMode;
 
-       fVelocityIterations:Integer;
+       fVelocityIterations:longint;
 
-       fPositionIterations:Integer;
+       fPositionIterations:longint;
 
-       fSpeculativeIterations:Integer;
+       fSpeculativeIterations:longint;
 
-       fTimeOfImpactIterations:Integer;
+       fTimeOfImpactIterations:longint;
 
-       fPerturbationIterations:Integer;
+       fPerturbationIterations:longint;
 
        fPersistentContactManifold:boolean;
 
@@ -3167,7 +3167,7 @@ type PKraftForceMode=^TKraftForceMode;
 
        fContactBreakingThreshold:TKraftScalar;
 
-       fCountThreads:Integer;
+       fCountThreads:longint;
 
 {$ifndef KraftPasMP}
        fJobManager:TKraftJobManager;
@@ -3182,17 +3182,17 @@ type PKraftForceMode=^TKraftForceMode;
 
        procedure BuildIslands;
 {$ifdef KraftPasMP}
-       procedure ProcessSolveIslandParallelForFunction(const Job:PPasMPJob;const ThreadIndex:Integer;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
+       procedure ProcessSolveIslandParallelForFunction(const Job:PPasMPJob;const ThreadIndex:longint;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
 {$else}
-       procedure ProcessSolveIslandJob(const JobIndex,ThreadIndex:Integer);
+       procedure ProcessSolveIslandJob(const JobIndex,ThreadIndex:longint);
 {$endif}
        procedure SolveIslands(const TimeStep:TKraftTimeStep);
 
-       function GetConservativeAdvancementTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:Integer;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:Integer;var Beta:TKraftScalar):boolean;
+       function GetConservativeAdvancementTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:longint;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:longint;var Beta:TKraftScalar):boolean;
 
-       function GetBilateralAdvancementTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:Integer;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:Integer;var Beta:TKraftScalar):boolean;
+       function GetBilateralAdvancementTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:longint;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:longint;var Beta:TKraftScalar):boolean;
 
-       function GetTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:Integer;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:Integer;var Beta:TKraftScalar):boolean;
+       function GetTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:longint;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:longint;var Beta:TKraftScalar):boolean;
 
        procedure Solve(const TimeStep:TKraftTimeStep);
 
@@ -3211,7 +3211,7 @@ type PKraftForceMode=^TKraftForceMode;
 {$ifdef KraftPasMP}
        constructor Create(const APasMP:TPasMP);
 {$else}
-       constructor Create(const ACountThreads:Integer=-1);
+       constructor Create(const ACountThreads:longint=-1);
 {$endif}
        destructor Destroy; override;
 
@@ -3227,7 +3227,7 @@ type PKraftForceMode=^TKraftForceMode;
 
        function RayCast(const Origin,Direction:TKraftVector3;const MaxTime:TKraftScalar;var Shape:TKraftShape;var Time:TKraftScalar;var Point,Normal:TKraftVector3;const CollisionGroups:TKraftRigidBodyCollisionGroups=[low(TKraftRigidBodyCollisionGroup)..high(TKraftRigidBodyCollisionGroup)]):boolean;
 
-       function PushSphere(var Center:TKraftVector3;const Radius:TKraftScalar;const CollisionGroups:TKraftRigidBodyCollisionGroups=[low(TKraftRigidBodyCollisionGroup)..high(TKraftRigidBodyCollisionGroup)];const TryIterations:Integer=4;const OnPushSphereShapeContactHook:TKraftOnPushSphereShapeContactHook=nil):boolean;
+       function PushSphere(var Center:TKraftVector3;const Radius:TKraftScalar;const CollisionGroups:TKraftRigidBodyCollisionGroups=[low(TKraftRigidBodyCollisionGroup)..high(TKraftRigidBodyCollisionGroup)];const TryIterations:longint=4;const OnPushSphereShapeContactHook:TKraftOnPushSphereShapeContactHook=nil):boolean;
 
        function GetDistance(const ShapeA,ShapeB:TKraftShape):TKraftScalar;
 
@@ -3251,23 +3251,23 @@ type PKraftForceMode=^TKraftForceMode;
        property ConstraintFirst:TKraftConstraint read fConstraintFirst;
        property ConstraintLast:TKraftConstraint read fConstraintLast;
 
-       property CountRigidBodies:Integer read fCountRigidBodies;
+       property CountRigidBodies:longint read fCountRigidBodies;
        property RigidBodyIDCounter:uint64 read fRigidBodyIDCounter;
 
        property RigidBodyFirst:TKraftRigidBody read fRigidBodyFirst;
        property RigidBodyLast:TKraftRigidBody read fRigidBodyLast;
 
-       property StaticRigidBodyCount:Integer read fStaticRigidBodyCount;
+       property StaticRigidBodyCount:longint read fStaticRigidBodyCount;
 
        property StaticRigidBodyFirst:TKraftRigidBody read fStaticRigidBodyFirst;
        property StaticRigidBodyLast:TKraftRigidBody read fStaticRigidBodyLast;
 
-       property DynamicRigidBodyCount:Integer read fDynamicRigidBodyCount;
+       property DynamicRigidBodyCount:longint read fDynamicRigidBodyCount;
 
        property DynamicRigidBodyFirst:TKraftRigidBody read fDynamicRigidBodyFirst;
        property DynamicRigidBodyLast:TKraftRigidBody read fDynamicRigidBodyLast;
 
-       property KinematicRigidBodyCount:Integer read fKinematicRigidBodyCount;
+       property KinematicRigidBodyCount:longint read fKinematicRigidBodyCount;
 
        property KinematicRigidBodyFirst:TKraftRigidBody read fKinematicRigidBodyFirst;
        property KinematicRigidBodyLast:TKraftRigidBody read fKinematicRigidBodyLast;
@@ -3278,7 +3278,7 @@ type PKraftForceMode=^TKraftForceMode;
        property KinematicAABBTree:TKraftDynamicAABBTree read fKinematicAABBTree;
 
        property Islands:TKraftIslands read fIslands;
-       property CountIslands:Integer read fCountIslands;
+       property CountIslands:longint read fCountIslands;
 
        property BroadPhase:TKraftBroadPhase read fBroadPhase;
 
@@ -3290,7 +3290,7 @@ type PKraftForceMode=^TKraftForceMode;
 
        property LastInverseDeltaTime:TKraftScalar read fLastInverseDeltaTime;
 
-       property CountThreads:Integer read fCountThreads;
+       property CountThreads:longint read fCountThreads;
 
 {$ifndef KraftPasMP}
        property JobManager:TKraftJobManager read fJobManager;
@@ -3342,21 +3342,21 @@ type PKraftForceMode=^TKraftForceMode;
 
        property TimeOfImpactAlgorithm:TKraftTimeOfImpactAlgorithm read fTimeOfImpactAlgorithm write fTimeOfImpactAlgorithm;
 
-       property MaximalSubSteps:Integer read fMaximalSubSteps write fMaximalSubSteps;
+       property MaximalSubSteps:longint read fMaximalSubSteps write fMaximalSubSteps;
 
        property ContactPositionCorrectionMode:TKraftPositionCorrectionMode read fContactPositionCorrectionMode write fContactPositionCorrectionMode;
 
        property ConstraintPositionCorrectionMode:TKraftPositionCorrectionMode read fConstraintPositionCorrectionMode write fConstraintPositionCorrectionMode;
 
-       property VelocityIterations:Integer read fVelocityIterations write fVelocityIterations;
+       property VelocityIterations:longint read fVelocityIterations write fVelocityIterations;
 
-       property PositionIterations:Integer read fPositionIterations write fPositionIterations;
+       property PositionIterations:longint read fPositionIterations write fPositionIterations;
 
-       property SpeculativeIterations:Integer read fSpeculativeIterations write fSpeculativeIterations;
+       property SpeculativeIterations:longint read fSpeculativeIterations write fSpeculativeIterations;
 
-       property TimeOfImpactIterations:Integer read fTimeOfImpactIterations write fTimeOfImpactIterations;
+       property TimeOfImpactIterations:longint read fTimeOfImpactIterations write fTimeOfImpactIterations;
 
-       property PerturbationIterations:Integer read fPerturbationIterations write fPerturbationIterations;
+       property PerturbationIterations:longint read fPerturbationIterations write fPerturbationIterations;
 
        property PersistentContactManifold:boolean read fPersistentContactManifold write fPersistentContactManifold;
 
@@ -3459,7 +3459,7 @@ function Vector3Add(const v1,v2:TKraftVector3):TKraftVector3;
 function Vector3Sub(const v1,v2:TKraftVector3):TKraftVector3;
 function Vector3Avg(const v1,v2:TKraftVector3):TKraftVector3; overload;
 function Vector3Avg(const v1,v2,v3:TKraftVector3):TKraftVector3; overload;
-function Vector3Avg(const va:PKraftVector3s;Count:Integer):TKraftVector3; overload;
+function Vector3Avg(const va:PKraftVector3s;Count:longint):TKraftVector3; overload;
 function Vector3ScalarMul(const v:TKraftVector3;const s:TKraftScalar):TKraftVector3; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
 function Vector3Dot(const v1,v2:TKraftVector3):TKraftScalar; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
 function Vector3Cos(const v1,v2:TKraftVector3):TKraftScalar;
@@ -3511,7 +3511,7 @@ function Vector3Add(const v1,v2:TKraftVector3):TKraftVector3; {$ifdef caninline}
 function Vector3Sub(const v1,v2:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
 function Vector3Avg(const v1,v2:TKraftVector3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
 function Vector3Avg(const v1,v2,v3:TKraftVector3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
-function Vector3Avg(const va:PKraftVector3s;Count:Integer):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
+function Vector3Avg(const va:PKraftVector3s;Count:longint):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
 function Vector3ScalarMul(const v:TKraftVector3;const s:TKraftScalar):TKraftVector3; {$ifdef caninline}inline;{$endif}
 function Vector3Dot(const v1,v2:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
 function Vector3Cos(const v1,v2:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
@@ -3602,10 +3602,10 @@ procedure Matrix3x3Transpose(var m:TKraftMatrix3x3); {$ifdef caninline}inline;{$
 function Matrix3x3TermTranspose(const m:TKraftMatrix3x3):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
 function Matrix3x3Determinant(const m:TKraftMatrix3x3):TKraftScalar; {$ifdef caninline}inline;{$endif}
 function Matrix3x3EulerAngles(const m:TKraftMatrix3x3):TKraftVector3;
-procedure Matrix3x3SetColumn(var m:TKraftMatrix3x3;const c:Integer;const v:TKraftVector3); {$ifdef caninline}inline;{$endif}
-function Matrix3x3GetColumn(const m:TKraftMatrix3x3;const c:Integer):TKraftVector3; {$ifdef caninline}inline;{$endif}
-procedure Matrix3x3SetRow(var m:TKraftMatrix3x3;const r:Integer;const v:TKraftVector3); {$ifdef caninline}inline;{$endif}
-function Matrix3x3GetRow(const m:TKraftMatrix3x3;const r:Integer):TKraftVector3; {$ifdef caninline}inline;{$endif}
+procedure Matrix3x3SetColumn(var m:TKraftMatrix3x3;const c:longint;const v:TKraftVector3); {$ifdef caninline}inline;{$endif}
+function Matrix3x3GetColumn(const m:TKraftMatrix3x3;const c:longint):TKraftVector3; {$ifdef caninline}inline;{$endif}
+procedure Matrix3x3SetRow(var m:TKraftMatrix3x3;const r:longint;const v:TKraftVector3); {$ifdef caninline}inline;{$endif}
+function Matrix3x3GetRow(const m:TKraftMatrix3x3;const r:longint):TKraftVector3; {$ifdef caninline}inline;{$endif}
 function Matrix3x3Compare(const m1,m2:TKraftMatrix3x3):boolean;
 function Matrix3x3Inverse(var mr:TKraftMatrix3x3;const ma:TKraftMatrix3x3):boolean;
 function Matrix3x3TermInverse(const m:TKraftMatrix3x3):TKraftMatrix3x3;
@@ -3644,10 +3644,10 @@ procedure Matrix4x4ScalarMul(var m:TKraftMatrix4x4;s:TKraftScalar); {$ifdef cani
 procedure Matrix4x4Transpose(var m:TKraftMatrix4x4);
 function Matrix4x4TermTranspose(const m:TKraftMatrix4x4):TKraftMatrix4x4;
 function Matrix4x4Determinant(const m:TKraftMatrix4x4):TKraftScalar;
-procedure Matrix4x4SetColumn(var m:TKraftMatrix4x4;const c:Integer;const v:TKraftVector4); {$ifdef caninline}inline;{$endif}
-function Matrix4x4GetColumn(const m:TKraftMatrix4x4;const c:Integer):TKraftVector4; {$ifdef caninline}inline;{$endif}
-procedure Matrix4x4SetRow(var m:TKraftMatrix4x4;const r:Integer;const v:TKraftVector4); {$ifdef caninline}inline;{$endif}
-function Matrix4x4GetRow(const m:TKraftMatrix4x4;const r:Integer):TKraftVector4; {$ifdef caninline}inline;{$endif}
+procedure Matrix4x4SetColumn(var m:TKraftMatrix4x4;const c:longint;const v:TKraftVector4); {$ifdef caninline}inline;{$endif}
+function Matrix4x4GetColumn(const m:TKraftMatrix4x4;const c:longint):TKraftVector4; {$ifdef caninline}inline;{$endif}
+procedure Matrix4x4SetRow(var m:TKraftMatrix4x4;const r:longint;const v:TKraftVector4); {$ifdef caninline}inline;{$endif}
+function Matrix4x4GetRow(const m:TKraftMatrix4x4;const r:longint):TKraftVector4; {$ifdef caninline}inline;{$endif}
 function Matrix4x4Compare(const m1,m2:TKraftMatrix4x4):boolean;
 function Matrix4x4LengthSquared(const m:TKraftMatrix4x4):TKraftScalar;
 function Matrix4x4Length(const m:TKraftMatrix4x4):TKraftScalar;
@@ -3661,7 +3661,7 @@ function Matrix4x4Inverse(var mr:TKraftMatrix4x4;const ma:TKraftMatrix4x4):boole
 function Matrix4x4TermInverse(const ma:TKraftMatrix4x4):TKraftMatrix4x4;
 function Matrix4x4InverseOld(var mr:TKraftMatrix4x4;const ma:TKraftMatrix4x4):boolean;
 function Matrix4x4TermInverseOld(const ma:TKraftMatrix4x4):TKraftMatrix4x4;
-function Matrix4x4GetSubMatrix3x3(const m:TKraftMatrix4x4;i,j:Integer):TKraftMatrix3x3;
+function Matrix4x4GetSubMatrix3x3(const m:TKraftMatrix4x4;i,j:longint):TKraftMatrix3x3;
 function Matrix4x4Frustum(Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4;
 function Matrix4x4Ortho(Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4;
 function Matrix4x4OrthoLH(Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4;
@@ -3766,14 +3766,14 @@ type qword=int64;
      ptruint=qword;
      ptrint=int64;
 {$else}
-     ptruint=UInt32;
-     ptrint=Integer;
+     ptruint=longword;
+     ptrint=longint;
 {$endif}
 {$endif}
 
 {$if defined(fpc) and (defined(cpu386) or defined(cpux64) or defined(cpuamd64))}
 // For to avoid "Fatal: Internal error 200604201" at the FreePascal compiler, when >= -O2 is used
-function Sign(const aValue:single):Integer;
+function Sign(const aValue:single):longint;
 begin
  if aValue<0.0 then begin
   result:=-1;
@@ -3792,7 +3792,7 @@ type TUInt128=packed record
         Hi,Lo:qword;
        );
        1:(
-        Q3,Q2,Q1,Q0:UInt32;
+        Q3,Q2,Q1,Q0:longword;
        );
 {$else}
       case byte of
@@ -3800,12 +3800,12 @@ type TUInt128=packed record
         Lo,Hi:qword;
        );
        1:(
-        Q0,Q1,Q2,Q3:UInt32;
+        Q0,Q1,Q2,Q3:longword;
        );
 {$endif}
      end;
 
-function AddWithCarry(const a,b:UInt32;var Carry:UInt32):UInt32; {$ifdef caninline}inline;{$endif}
+function AddWithCarry(const a,b:longword;var Carry:longword):longword; {$ifdef caninline}inline;{$endif}
 var r:qword;
 begin
  r:=qword(a)+qword(b)+qword(Carry);
@@ -3813,7 +3813,7 @@ begin
  result:=r and $ffffffff;
 end;
 
-function MultiplyWithCarry(const a,b:UInt32;var Carry:UInt32):UInt32; {$ifdef caninline}inline;{$endif}
+function MultiplyWithCarry(const a,b:longword;var Carry:longword):longword; {$ifdef caninline}inline;{$endif}
 var r:qword;
 begin
  r:=(qword(a)*qword(b))+qword(Carry);
@@ -3821,7 +3821,7 @@ begin
  result:=r and $ffffffff;
 end;
 
-function DivideWithRemainder(const a,b:UInt32;var Remainder:UInt32):UInt32; {$ifdef caninline}inline;{$endif}
+function DivideWithRemainder(const a,b:longword;var Remainder:longword):longword; {$ifdef caninline}inline;{$endif}
 var r:qword;
 begin
  r:=(qword(Remainder) shl 32) or a;
@@ -3851,9 +3851,9 @@ begin
 end;
 
 procedure UInt128Mul(var Dest:TUInt128;const x,y:TUInt128); {$ifdef caninline}inline;{$endif}
-var c,xw,yw,dw:array[0..15] of UInt32;
-    i,j,k:Integer;
-    v:UInt32;
+var c,xw,yw,dw:array[0..15] of longword;
+    i,j,k:longint;
+    v:longword;
 begin
  for i:=0 to 15 do begin
   c[i]:=0;
@@ -3896,7 +3896,7 @@ end;
 procedure UInt128Div64(var Dest:TUInt128;const Dividend:TUInt128;Divisor:qword); {$ifdef caninline}inline;{$endif}
 var Quotient:TUInt128;
     Remainder:qword;
-    Bit:Integer;
+    Bit:longint;
 begin
  Quotient:=Dividend;
  Remainder:=0;
@@ -3904,8 +3904,8 @@ begin
   Remainder:=(Remainder shl 1) or (ord((Quotient.Hi and $8000000000000000)<>0) and 1);
   Quotient.Hi:=(Quotient.Hi shl 1) or (Quotient.Lo shr 63);
   Quotient.Lo:=Quotient.Lo shl 1;
-  if (UInt32(Remainder shr 32)>UInt32(Divisor shr 32)) or
-     ((UInt32(Remainder shr 32)=UInt32(Divisor shr 32)) and (UInt32(Remainder and $ffffffff)>=UInt32(Divisor and $ffffffff))) then begin
+  if (longword(Remainder shr 32)>longword(Divisor shr 32)) or
+     ((longword(Remainder shr 32)=longword(Divisor shr 32)) and (longword(Remainder and $ffffffff)>=longword(Divisor and $ffffffff))) then begin
    dec(Remainder,Divisor);
    Quotient.Lo:=Quotient.Lo or 1;
   end;
@@ -3932,7 +3932,7 @@ begin
  Dest.Hi:=((u1*v1)+w2)+k;
 end;
 
-function RoundUpToPowerOfTwo(x:UInt32):UInt32; {$ifdef caninline}inline;{$endif}
+function RoundUpToPowerOfTwo(x:longword):longword; {$ifdef caninline}inline;{$endif}
 begin
  dec(x);
  x:=x or (x shr 1);
@@ -3943,7 +3943,7 @@ begin
  result:=x+1;
 end;
 
-function SIMDGetFlags:UInt32; {$ifdef cpu386}assembler;
+function SIMDGetFlags:longword; {$ifdef cpu386}assembler;
 asm
  stmxcsr dword ptr result
 end;
@@ -3953,8 +3953,8 @@ begin
 end;
 {$endif}
 
-procedure SIMDSetFlags(const Flags:UInt32); {$ifdef cpu386}register; assembler;
-var Temp:UInt32;
+procedure SIMDSetFlags(const Flags:longword); {$ifdef cpu386}register; assembler;
+var Temp:longword;
 asm
  mov dword ptr Temp,eax
  ldmxcsr dword ptr Temp
@@ -3980,8 +3980,8 @@ const DenormalsAreZero=1 shl 6;
       PrecisionMask=1 shl 12;
       FlushToZero=1 shl 15;
       SIMDFlags=InvalidOperationExceptionMask or DenormalExceptionMask or DivodeByZeroExceptionMask or OverflowExceptionMask or UnderflowExceptionMask or PrecisionMask or FlushToZero or DenormalsAreZero;
-      RoundToNearest=UInt32(UInt32($ffffffff) and not ((1 shl 13) or (1 shl 14)));
-var SIMDCtrl:UInt32;
+      RoundToNearest=longword(longword($ffffffff) and not ((1 shl 13) or (1 shl 14)));
+var SIMDCtrl:longword;
 begin
  if SSEExt then begin
   asm
@@ -4003,7 +4003,7 @@ end;
 
 procedure CheckCPU;
 {$ifdef cpu386}
-var Features,FeaturesExt:UInt32;
+var Features,FeaturesExt:longword;
 {$endif}
 begin
 {$ifdef cpu386}
@@ -4267,7 +4267,7 @@ begin
  result.z:=-v.y;
 end;
 
-const Vector3Mask:array[0..3] of UInt32=($ffffffff,$ffffffff,$ffffffff,$00000000);
+const Vector3Mask:array[0..3] of longword=($ffffffff,$ffffffff,$ffffffff,$00000000);
 
 function Vector3Abs(const v:TKraftVector3):TKraftVector3;
 begin
@@ -4371,8 +4371,8 @@ begin
  result.z:=(v1.z+v2.z+v3.z)/3.0;
 end;
 
-function Vector3Avg(const va:PKraftVector3s;Count:Integer):TKraftVector3;
-var i:Integer;
+function Vector3Avg(const va:PKraftVector3s;Count:longint):TKraftVector3;
+var i:longint;
 begin
  result.x:=0.0;
  result.y:=0.0;
@@ -4434,7 +4434,7 @@ begin
 end;
 
 function Vector3GetOneUnitOrthogonalVector(const v:TKraftVector3):TKraftVector3;
-var MinimumAxis:Integer;
+var MinimumAxis:longint;
     l:TKraftScalar;
 begin
  if abs(v.x)<abs(v.y) then begin
@@ -4957,7 +4957,7 @@ end;
 
 (*
 function Vector3TermMatrixMul(const v:TKraftVector3;const m:TKraftMatrix3x3):TKraftVector3; overload; {$ifdef CPU386ASMForSinglePrecision}assembler;
-const Mask:array[0..3] of UInt32=($ffffffff,$ffffffff,$ffffffff,$00000000);
+const Mask:array[0..3] of longword=($ffffffff,$ffffffff,$ffffffff,$00000000);
 asm
  movups xmm6,dqword ptr [Mask]
  movups xmm0,dqword ptr [v]     // d c b a
@@ -5113,7 +5113,7 @@ begin
 end;
 
 function Vector3TermMatrixMulBasis(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef CPU386ASMForSinglePrecision}assembler;
-const Mask:array[0..3] of UInt32=($ffffffff,$ffffffff,$ffffffff,$00000000);
+const Mask:array[0..3] of longword=($ffffffff,$ffffffff,$ffffffff,$00000000);
 asm
  movups xmm0,dqword ptr [v]     // d c b a
  movaps xmm1,xmm0               // d c b a
@@ -5176,7 +5176,7 @@ begin
 end;
 
 function Vector3TermQuaternionRotate(const v:TKraftVector3;const q:TKraftQuaternion):TKraftVector3; {$ifdef CPU386ASMForSinglePrecision}assembler;
-const Mask:array[0..3] of UInt32=($ffffffff,$ffffffff,$ffffffff,$00000000);
+const Mask:array[0..3] of longword=($ffffffff,$ffffffff,$ffffffff,$00000000);
 var t,qv:TKraftVector3;
 asm
 
@@ -5327,8 +5327,8 @@ begin
  result.z:=(v1.z+v2.z+v3.z)/3.0;
 end;
 
-function Vector3Avg(const va:PKraftVector3s;Count:Integer):TKraftVector3; {$ifdef caninline}inline;{$endif}
-var i:Integer;
+function Vector3Avg(const va:PKraftVector3s;Count:longint):TKraftVector3; {$ifdef caninline}inline;{$endif}
+var i:longint;
 begin
  result.x:=0.0;
  result.y:=0.0;
@@ -5369,7 +5369,7 @@ begin
 end;
 
 function Vector3GetOneUnitOrthogonalVector(const v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
-var MinimumAxis:Integer;
+var MinimumAxis:longint;
     l:TKraftScalar;
 begin
  if abs(v.x)<abs(v.y) then begin
@@ -6425,28 +6425,28 @@ begin
  end;
 end;
 
-procedure Matrix3x3SetColumn(var m:TKraftMatrix3x3;const c:Integer;const v:TKraftVector3); {$ifdef caninline}inline;{$endif}
+procedure Matrix3x3SetColumn(var m:TKraftMatrix3x3;const c:longint;const v:TKraftVector3); {$ifdef caninline}inline;{$endif}
 begin
  m[c,0]:=v.x;
  m[c,1]:=v.y;
  m[c,2]:=v.z;
 end;
 
-function Matrix3x3GetColumn(const m:TKraftMatrix3x3;const c:Integer):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Matrix3x3GetColumn(const m:TKraftMatrix3x3;const c:longint):TKraftVector3; {$ifdef caninline}inline;{$endif}
 begin
  result.x:=m[c,0];
  result.y:=m[c,1];
  result.z:=m[c,2];
 end;
 
-procedure Matrix3x3SetRow(var m:TKraftMatrix3x3;const r:Integer;const v:TKraftVector3); {$ifdef caninline}inline;{$endif}
+procedure Matrix3x3SetRow(var m:TKraftMatrix3x3;const r:longint;const v:TKraftVector3); {$ifdef caninline}inline;{$endif}
 begin
  m[0,r]:=v.x;
  m[1,r]:=v.y;
  m[2,r]:=v.z;
 end;
 
-function Matrix3x3GetRow(const m:TKraftMatrix3x3;const r:Integer):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Matrix3x3GetRow(const m:TKraftMatrix3x3;const r:longint):TKraftVector3; {$ifdef caninline}inline;{$endif}
 begin
  result.x:=m[0,r];
  result.y:=m[1,r];
@@ -6454,7 +6454,7 @@ begin
 end;
 
 function Matrix3x3Compare(const m1,m2:TKraftMatrix3x3):boolean;
-var r,c:Integer;
+var r,c:longint;
 begin
  result:=true;
  for r:=0 to 2 do begin
@@ -7455,7 +7455,7 @@ begin
 end;
 {$endif}
 
-procedure Matrix4x4SetColumn(var m:TKraftMatrix4x4;const c:Integer;const v:TKraftVector4); {$ifdef caninline}inline;{$endif}
+procedure Matrix4x4SetColumn(var m:TKraftMatrix4x4;const c:longint;const v:TKraftVector4); {$ifdef caninline}inline;{$endif}
 begin
  m[c,0]:=v.x;
  m[c,1]:=v.y;
@@ -7463,7 +7463,7 @@ begin
  m[c,3]:=v.w;
 end;
 
-function Matrix4x4GetColumn(const m:TKraftMatrix4x4;const c:Integer):TKraftVector4; {$ifdef caninline}inline;{$endif}
+function Matrix4x4GetColumn(const m:TKraftMatrix4x4;const c:longint):TKraftVector4; {$ifdef caninline}inline;{$endif}
 begin
  result.x:=m[c,0];
  result.y:=m[c,1];
@@ -7471,7 +7471,7 @@ begin
  result.w:=m[c,3];
 end;
 
-procedure Matrix4x4SetRow(var m:TKraftMatrix4x4;const r:Integer;const v:TKraftVector4); {$ifdef caninline}inline;{$endif}
+procedure Matrix4x4SetRow(var m:TKraftMatrix4x4;const r:longint;const v:TKraftVector4); {$ifdef caninline}inline;{$endif}
 begin
  m[0,r]:=v.x;
  m[1,r]:=v.y;
@@ -7479,7 +7479,7 @@ begin
  m[3,r]:=v.w;
 end;
 
-function Matrix4x4GetRow(const m:TKraftMatrix4x4;const r:Integer):TKraftVector4; {$ifdef caninline}inline;{$endif}
+function Matrix4x4GetRow(const m:TKraftMatrix4x4;const r:longint):TKraftVector4; {$ifdef caninline}inline;{$endif}
 begin
  result.x:=m[0,r];
  result.y:=m[1,r];
@@ -7488,7 +7488,7 @@ begin
 end;
 
 function Matrix4x4Compare(const m1,m2:TKraftMatrix4x4):boolean;
-var r,c:Integer;
+var r,c:longint;
 begin
  result:=true;
  for r:=0 to 3 do begin
@@ -8112,8 +8112,8 @@ begin
  end;
 end;
 
-function Matrix4x4GetSubMatrix3x3(const m:TKraftMatrix4x4;i,j:Integer):TKraftMatrix3x3;
-var di,dj,si,sj:Integer;
+function Matrix4x4GetSubMatrix3x3(const m:TKraftMatrix4x4;i,j:longint):TKraftMatrix3x3;
+var di,dj,si,sj:longint;
 begin
  for di:=0 to 2 do begin
   for dj:=0 to 2 do begin
@@ -8642,7 +8642,7 @@ end;
 {$endif}
 
 function QuaternionConjugate(const AQuaternion:TKraftQuaternion):TKraftQuaternion; {$ifdef CPU386ASMForSinglePrecision}assembler;
-const XORMask:array[0..3] of UInt32=($80000000,$80000000,$80000000,$00000000);
+const XORMask:array[0..3] of longword=($80000000,$80000000,$80000000,$00000000);
 asm
  movups xmm0,dqword ptr [AQuaternion]
  movups xmm1,dqword ptr [XORMask]
@@ -8659,7 +8659,7 @@ end;
 {$endif}
 
 function QuaternionInverse(const AQuaternion:TKraftQuaternion):TKraftQuaternion; {$ifdef CPU386ASMForSinglePrecision}assembler;
-const XORMask:array[0..3] of UInt32=($80000000,$80000000,$80000000,$00000000);
+const XORMask:array[0..3] of longword=($80000000,$80000000,$80000000,$00000000);
 asm
  movups xmm2,dqword ptr [AQuaternion]
  movups xmm3,dqword ptr [XORMask]
@@ -8739,7 +8739,7 @@ end;
 {$endif}
 
 function QuaternionMul(const q1,q2:TKraftQuaternion):TKraftQuaternion; {$ifdef CPU386ASMForSinglePrecision}assembler;
-const XORMaskW:array[0..3] of UInt32=($00000000,$00000000,$00000000,$80000000);
+const XORMaskW:array[0..3] of longword=($00000000,$00000000,$00000000,$80000000);
 asm
  movups xmm4,dqword ptr [q1]
  movaps xmm0,xmm4
@@ -9429,7 +9429,7 @@ begin
 end;
 
 function AABBTransform(const DstAABB:TKraftAABB;const Transform:TKraftMatrix4x4):TKraftAABB; {$ifdef caninline}inline;{$endif}
-var i,j:Integer;
+var i,j:longint;
     a,b:TKraftScalar;
 begin
  result.Min:=Vector3(Transform[3,0],Transform[3,1],Transform[3,2]);
@@ -10472,7 +10472,7 @@ begin
  result[2,2]:=((Matrix3x3Identity[2,2]*CenterDotCenter)-(Center.z*Center.z))*Mass;
 end;
 
-constructor TKraftHighResolutionTimer.Create(FrameRate:Integer=60);
+constructor TKraftHighResolutionTimer.Create(FrameRate:longint=60);
 begin
  inherited Create;
  fFrequencyShift:=0;
@@ -10508,7 +10508,7 @@ begin
  inherited Destroy;
 end;
 
-procedure TKraftHighResolutionTimer.SetFrameRate(FrameRate:Integer);
+procedure TKraftHighResolutionTimer.SetFrameRate(FrameRate:longint);
 begin
  fFrameInterval:=(fFrequency+((abs(FrameRate)+1) shr 1)) div abs(FrameRate);
 end;
@@ -10762,8 +10762,8 @@ type TKraftShapeTriangle=class(TKraftShapeConvexHull)
        procedure CalculateMassData; override;
        function GetSignedDistance(const Position:TKraftVector3):TKraftScalar; override;
        function GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3; override;
-       function GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3; override;
-       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer; override;
+       function GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3; override;
+       function GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint; override;
        function GetCenter(const Transform:TKraftMatrix4x4):TKraftVector3; override;
        function TestPoint(const p:TKraftVector3):boolean; override;
        function RayCast(var RayCastData:TKraftRaycastData):boolean; override;
@@ -10830,7 +10830,7 @@ end;
 
 {$ifndef fpc}
 {$ifdef cpu386}
-function InterlockedDecrement(var Target:Integer):Integer; assembler; register;
+function InterlockedDecrement(var Target:longint):longint; assembler; register;
 asm
  mov edx,$ffffffff
  xchg eax,edx
@@ -10838,7 +10838,7 @@ asm
  dec eax
 end;
 
-function InterlockedIncrement(var Target:Integer):Integer; assembler; register;
+function InterlockedIncrement(var Target:longint):longint; assembler; register;
 asm
  mov edx,1
  xchg eax,edx
@@ -10846,25 +10846,25 @@ asm
  inc eax
 end;
 
-function InterlockedExchange(var Target:Integer;Source:Integer):Integer; assembler; register;
+function InterlockedExchange(var Target:longint;Source:longint):longint; assembler; register;
 asm
  lock xchg dword ptr [eax],edx
  mov eax,edx
 end;
 
-function InterlockedExchangeAdd(var Target:Integer;Source:Integer):Integer; assembler; register;
+function InterlockedExchangeAdd(var Target:longint;Source:longint):longint; assembler; register;
 asm
  xchg edx,eax
  lock xadd dword ptr [edx],eax
 end;
 
-function InterlockedCompareExchange(var Target:Integer;NewValue,Comperand:Integer):Integer; assembler; register;
+function InterlockedCompareExchange(var Target:longint;NewValue,Comperand:longint):longint; assembler; register;
 asm
  xchg ecx,eax
  lock cmpxchg dword ptr [ecx],edx
 end;
 {$else}
-function InterlockedDecrement(var Target:Integer):Integer; {$ifdef caninline}inline;{$endif}
+function InterlockedDecrement(var Target:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=
    {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
@@ -10875,7 +10875,7 @@ begin
    (Target);
 end;
 
-function InterlockedIncrement(var Target:Integer):Integer; {$ifdef caninline}inline;{$endif}
+function InterlockedIncrement(var Target:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=
    {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
@@ -10886,7 +10886,7 @@ begin
    (Target);
 end;
 
-function InterlockedExchange(var Target:Integer;Source:Integer):Integer; {$ifdef caninline}inline;{$endif}
+function InterlockedExchange(var Target:longint;Source:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=
    {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
@@ -10901,12 +10901,12 @@ end;
 // No implementation of InterlockedExchangeAdd or InterlockedCompareExchange,
 // ... but actually nothing in Kraft uses this.
 {$else}
-function InterlockedExchangeAdd(var Target:Integer;Source:Integer):Integer; {$ifdef caninline}inline;{$endif}
+function InterlockedExchangeAdd(var Target:longint;Source:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=Windows.InterlockedExchangeAdd(Target,Source);
 end;
 
-function InterlockedCompareExchange(var Target:Integer;NewValue,Comperand:Integer):Integer; {$ifdef caninline}inline;{$endif}
+function InterlockedCompareExchange(var Target:longint;NewValue,Comperand:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=Windows.InterlockedCompareExchange(Target,NewValue,Comperand);
 end;
@@ -10914,33 +10914,33 @@ end;
 
 {$endif}
 {$else}
-function InterlockedDecrement(var Target:Integer):Integer; {$ifdef caninline}inline;{$endif}
+function InterlockedDecrement(var Target:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=System.InterlockedDecrement(Target);
 end;
 
-function InterlockedIncrement(var Target:Integer):Integer; {$ifdef caninline}inline;{$endif}
+function InterlockedIncrement(var Target:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=System.InterlockedIncrement(Target);
 end;
 
-function InterlockedExchange(var Target:Integer;Source:Integer):Integer; {$ifdef caninline}inline;{$endif}
+function InterlockedExchange(var Target:longint;Source:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=System.InterlockedExchange(Target,Source);
 end;
 
-function InterlockedExchangeAdd(var Target:Integer;Source:Integer):Integer; {$ifdef caninline}inline;{$endif}
+function InterlockedExchangeAdd(var Target:longint;Source:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=System.InterlockedExchangeAdd(Target,Source);
 end;
 
-function InterlockedCompareExchange(var Target:Integer;NewValue,Comperand:Integer):Integer; {$ifdef caninline}inline;{$endif}
+function InterlockedCompareExchange(var Target:longint;NewValue,Comperand:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=System.InterlockedCompareExchange(Target,NewValue,Comperand);
 end;
 {$endif}
 
-function HashPointer(p:pointer):UInt32; {$ifdef caninline}inline;{$endif}
+function HashPointer(p:pointer):longword; {$ifdef caninline}inline;{$endif}
 (*{$ifdef cpu64}
 var r:qword;
 begin
@@ -10949,7 +10949,7 @@ begin
  r:=r*qword($ff51afd7ed558ccd);
  r:=r xor (r shr 33);
  r:=r*qword($c4ceb9fe1a85ec53);
- result:=UInt32(ptruint(r xor (r shr 33)));
+ result:=longword(ptruint(r xor (r shr 33)));
 end;
 {$else}
 begin
@@ -10970,7 +10970,7 @@ begin
  r:=r*21; // r:=(r+(r shl 2))+(r shl 4);
  r:=r xor (r shr 11);
  r:=r+(r shl 6);
- result:=UInt32(ptruint(r xor (r shr 22)));
+ result:=longword(ptruint(r xor (r shr 22)));
 end;
 {$else}
 begin
@@ -10983,7 +10983,7 @@ begin
 end;
 {$endif}
 
-function HashTwoUInt32s(a,b:UInt32):UInt32; {$ifdef caninline}inline;{$endif}
+function HashTwoLongWords(a,b:longword):longword; {$ifdef caninline}inline;{$endif}
 var r:qword;
 begin
  r:=(qword(a) shl 32) or b;
@@ -10996,17 +10996,17 @@ begin
 {$endif}
  r:=r xor (r shr 11);
  r:=r+(r shl 6);
- result:=UInt32(ptruint(r xor (r shr 22)));
+ result:=longword(ptruint(r xor (r shr 22)));
 end;
 
-function HashTwoPointers(a,b:pointer):UInt32; {$ifdef caninline}inline;{$endif}
+function HashTwoPointers(a,b:pointer):longword; {$ifdef caninline}inline;{$endif}
 begin
- result:=HashTwoUInt32s(HashPointer(a),HashPointer(b));
+ result:=HashTwoLongWords(HashPointer(a),HashPointer(b));
 end;
 
-function HashTwoPointersAndOneUInt32(a,b:pointer;c:UInt32):UInt32; {$ifdef caninline}inline;{$endif}
+function HashTwoPointersAndOneLongWord(a,b:pointer;c:longword):longword; {$ifdef caninline}inline;{$endif}
 begin
- result:=HashTwoUInt32s(HashTwoUInt32s(HashPointer(a),HashPointer(b)),c);
+ result:=HashTwoLongWords(HashTwoLongWords(HashPointer(a),HashPointer(b)),c);
 end;
 
 function AABBStretch(const AABB:TKraftAABB;const Displacement,BoundsExpansion:TKraftVector3):TKraftAABB; {$ifdef caninline}inline;{$endif}
@@ -11033,7 +11033,7 @@ begin
  end;
 end;
 
-function CompareFloat(const a,b:pointer):Integer;
+function CompareFloat(const a,b:pointer):longint;
 begin
  if TKraftScalar(a^)<TKraftScalar(b^) then begin
   result:=1;
@@ -11088,8 +11088,8 @@ begin
  QuaternionNormalize(Sweep.q);
 end;
 
-procedure ClipFace(const InVertices,OutVertices:TKraftClipVertexList;const Plane:TKraftPlane;const ReferenceEdgeIndexOffset,ReferenceFaceIndex:Integer);
-var Index,CountVertices:Integer;
+procedure ClipFace(const InVertices,OutVertices:TKraftClipVertexList;const Plane:TKraftPlane;const ReferenceEdgeIndexOffset,ReferenceFaceIndex:longint);
+var Index,CountVertices:longint;
     PreviousClipVertexDistance,CurrentClipVertexDistance:TKraftScalar;
     PreviousClipVertex,CurrentClipVertex:PKraftClipVertex;
     FeatureID:TKraftContactFeatureID;
@@ -11207,7 +11207,7 @@ begin
 end;
 
 procedure TKraftClipVertexList.Add(const v:TKraftVector3;const fp:TKraftContactFeatureID);
-var i:Integer;
+var i:longint;
 begin
  i:=fCount;
  inc(fCount);
@@ -11220,7 +11220,7 @@ begin
 end;
 
 procedure TKraftClipVertexList.Add(const v:TKraftClipVertex);
-var i:Integer;
+var i:longint;
 begin
  i:=fCount;
  inc(fCount);
@@ -11274,7 +11274,7 @@ begin
  c:=Vector3NormEx(Vector3Cross(a,b));
 end;
 
-procedure ComputeBasis(const Normal:TKraftVector3;out Matrix:TKraftMatrix3x3;const IndexA:Integer=0;const IndexB:Integer=1;const IndexC:Integer=2); overload; {$ifdef caninline}inline;{$endif}
+procedure ComputeBasis(const Normal:TKraftVector3;out Matrix:TKraftMatrix3x3;const IndexA:longint=0;const IndexB:longint=1;const IndexC:longint=2); overload; {$ifdef caninline}inline;{$endif}
 var a,b,c:TKraftVector3;
 begin
  a:=Normal;
@@ -11359,7 +11359,7 @@ end;
 
 function BoxGetDistanceToPoint(Point:TKraftVector3;const Extents:TKraftVector3;const InverseTransformMatrix,TransformMatrix:TKraftMatrix4x4;var ClosestBoxPoint:TKraftVector3):TKraftScalar;
 var Temp,Direction:TKraftVector3;
-    Overlap:Integer;
+    Overlap:longint;
 begin
  result:=0;
  ClosestBoxPoint:=Vector3TermMatrixMul(Point,InverseTransformMatrix);
@@ -11423,9 +11423,9 @@ begin
  ClosestBoxPoint:=Vector3TermMatrixMul(ClosestBoxPoint,TransformMatrix);
 end;
 
-type TSortCompareFunction=function(const a,b:pointer):Integer;
+type TSortCompareFunction=function(const a,b:pointer):longint;
 
-function IntLog2(x:UInt32):UInt32; {$ifdef cpu386}assembler; register;
+function IntLog2(x:longword):longword; {$ifdef cpu386}assembler; register;
 asm
  test eax,eax
  jz @Done
@@ -11449,16 +11449,16 @@ begin
 end;
 {$endif}
 
-procedure MemorySwap(a,b:pointer;Size:Integer);
-var Temp:Integer;
+procedure MemorySwap(a,b:pointer;Size:longint);
+var Temp:longint;
 begin
- while Size>=SizeOf(Integer) do begin
-  Temp:=UInt32(a^);
-  UInt32(a^):=UInt32(b^);
-  UInt32(b^):=Temp;
-  inc(PtrUInt(a),SizeOf(UInt32));
-  inc(PtrUInt(b),SizeOf(UInt32));
-  dec(Size,SizeOf(UInt32));
+ while Size>=SizeOf(longint) do begin
+  Temp:=longword(a^);
+  longword(a^):=longword(b^);
+  longword(b^):=Temp;
+  inc(PtrUInt(a),SizeOf(longword));
+  inc(PtrUInt(b),SizeOf(longword));
+  dec(Size,SizeOf(longword));
  end;
  while Size>=SizeOf(byte) do begin
   Temp:=byte(a^);
@@ -11470,14 +11470,14 @@ begin
  end;
 end;
 
-procedure DirectIntroSort(Items:pointer;Left,Right,ElementSize:Integer;CompareFunc:TSortCompareFunction);
+procedure DirectIntroSort(Items:pointer;Left,Right,ElementSize:longint;CompareFunc:TSortCompareFunction);
 type PByteArray=^TByteArray;
      TByteArray=array[0..$3fffffff] of byte;
      PStackItem=^TStackItem;
      TStackItem=record
-      Left,Right,Depth:Integer;
+      Left,Right,Depth:longint;
      end;
-var Depth,i,j,Middle,Size,Parent,Child,Pivot,iA,iB,iC:Integer;
+var Depth,i,j,Middle,Size,Parent,Child,Pivot,iA,iB,iC:longint;
     StackItem:PStackItem;
     Stack:array[0..31] of TStackItem;
 begin
@@ -11597,14 +11597,14 @@ begin
  end;
 end;
 
-procedure IndirectIntroSort(Items:pointer;Left,Right:Integer;CompareFunc:TSortCompareFunction);
+procedure IndirectIntroSort(Items:pointer;Left,Right:longint;CompareFunc:TSortCompareFunction);
 type PPointers=^TPointers;
      TPointers=array[0..$ffff] of pointer;
      PStackItem=^TStackItem;
      TStackItem=record
-      Left,Right,Depth:Integer;
+      Left,Right,Depth:longint;
      end;
-var Depth,i,j,Middle,Size,Parent,Child:Integer;
+var Depth,i,j,Middle,Size,Parent,Child:longint;
     Pivot,Temp:pointer;
     StackItem:PStackItem;
     Stack:array[0..31] of TStackItem;
@@ -11795,7 +11795,7 @@ begin
 end;
 
 function MPRIntersection(const ShapeA,ShapeB:TKraftShape;const TransformA,TransformB:TKraftMatrix4x4):boolean;
-var Phase1Iteration,Phase2Iterations:Integer;
+var Phase1Iteration,Phase2Iterations:longint;
     v0,v1,v2,v3,v4,t,n:TKraftVector3;
 begin
  result:=false;
@@ -11898,7 +11898,7 @@ begin
 end;
 
 function MPRPenetration(const ShapeA,ShapeB:TKraftShape;const TransformA,TransformB:TKraftMatrix4x4;out PositionA,PositionB,Normal:TKraftVector3;out PenetrationDepth:TKraftScalar):boolean;
-var Phase1Iteration,Phase2Iterations:Integer;
+var Phase1Iteration,Phase2Iterations:longint;
     b0,b1,b2,b3,Sum,Inv:TKraftScalar;
     v0,v0a,v0b,v1,v1a,v1b,v2,v2a,v2b,v3,v3a,v3b,v4,v4a,v4b,t,n:TKraftVector3;
 begin
@@ -12109,7 +12109,7 @@ function MPRAreSweptShapesIntersecting(const ShapeA,ShapeB:TKraftShape;const Swe
    result:=Vector3Add(result,Sweep);
   end;
  end;
-var Count:Integer;
+var Count:longint;
     LocalPoint,v0,v1,v1a,v2,v2a,v3,v3a,v4,v4a,v1v0,v2v0,v3v0,t,n:TKraftVector3;
     Dot,DotV0,BarycentricCoordinate,v0v1v2v3Volume,v1v2v3Volume,v0v2v3Volume,v0v1v3Volume,
     InverseTotalVolume,v0Weight,v1Weight,v2Weight,v3Weight,Dot2:TKraftScalar;
@@ -12283,12 +12283,12 @@ begin
 end;
 
 function TKraftGJK.Run:boolean;
-var CountSaved,Index,iA,iB:Integer;
+var CountSaved,Index,iA,iB:longint;
     Initialized,Duplicate:boolean;
     SimplexVertex:PKraftGJKSimplexVertex;
     CachedSimplexVertex:PKraftGJKCachedSimplexVertex;
     Metrics,SquaredDistances:array[0..1] of TKraftScalar;
-    Saved:array[0..3,0..1] of Integer;
+    Saved:array[0..3,0..1] of longint;
     Direction,a,b,c,d,ba,ab,cb,bc,ac,ca,db,bd,cd,dc,da,ad,baxca,daxba,bcxdc,caxda:TKraftVector3;
     uAB,vAB,uBC,vBC,uCA,vCA,uBD,vBD,uDC,vDC,uAD,vAD,uADB,vADB,wADB,uACD,vACD,wACD,uCBD,vCBD,wCBD,
     uABC,vABC,wABC,uABCD,vABCD,wABCD,xABCD,Denominator:TKraftScalar;
@@ -12998,7 +12998,7 @@ begin
 end;
 
 constructor TKraftDynamicAABBTree.Create;
-var i:Integer;
+var i:longint;
 begin
  inherited Create;
  fRoot:=daabbtNULLNODE;
@@ -13016,7 +13016,7 @@ begin
  fPath:=0;
  fInsertionCount:=0;
  fStackCapacity:=16;
- GetMem(fStack,fStackCapacity*SizeOf(Integer));
+ GetMem(fStack,fStackCapacity*SizeOf(longint));
 end;
 
 destructor TKraftDynamicAABBTree.Destroy;
@@ -13026,9 +13026,9 @@ begin
  inherited Destroy;
 end;
 
-function TKraftDynamicAABBTree.AllocateNode:Integer;
+function TKraftDynamicAABBTree.AllocateNode:longint;
 var Node:PKraftDynamicAABBTreeNode;
-    i:Integer;
+    i:longint;
 begin
  if fFreeList=daabbtNULLNODE then begin
   inc(fNodeCapacity,fNodeCapacity);
@@ -13053,7 +13053,7 @@ begin
  inc(fNodeCount);
 end;
 
-procedure TKraftDynamicAABBTree.FreeNode(NodeID:Integer);
+procedure TKraftDynamicAABBTree.FreeNode(NodeID:longint);
 var Node:PKraftDynamicAABBTreeNode;
 begin
  Node:=@fNodes^[NodeID];
@@ -13063,9 +13063,9 @@ begin
  dec(fNodeCount);
 end;
 
-function TKraftDynamicAABBTree.Balance(NodeAID:Integer):Integer;
+function TKraftDynamicAABBTree.Balance(NodeAID:longint):longint;
 var NodeA,NodeB,NodeC,NodeD,NodeE,NodeF,NodeG:PKraftDynamicAABBTreeNode;
-    NodeBID,NodeCID,NodeDID,NodeEID,NodeFID,NodeGID,NodeBalance:Integer;
+    NodeBID,NodeCID,NodeDID,NodeEID,NodeFID,NodeGID,NodeBalance:longint;
 begin
  NodeA:=@fNodes^[NodeAID];
  if (NodeA.Children[0]<0) or (NodeA^.Height<2) then begin
@@ -13152,11 +13152,11 @@ begin
  end;
 end;
 
-procedure TKraftDynamicAABBTree.InsertLeaf(Leaf:Integer);
+procedure TKraftDynamicAABBTree.InsertLeaf(Leaf:longint);
 var Node:PKraftDynamicAABBTreeNode;
     LeafAABB,CombinedAABB,AABB:TKraftAABB;
-    Index,Sibling,OldParent,NewParent:Integer;
-    Children:array[0..1] of Integer;
+    Index,Sibling,OldParent,NewParent:longint;
+    Children:array[0..1] of longint;
     CombinedCost,Cost,InheritanceCost:TKraftScalar;
     Costs:array[0..1] of TKraftScalar;
 begin
@@ -13241,9 +13241,9 @@ begin
  end;
 end;
 
-procedure TKraftDynamicAABBTree.RemoveLeaf(Leaf:Integer);
+procedure TKraftDynamicAABBTree.RemoveLeaf(Leaf:longint);
 var Node:PKraftDynamicAABBTreeNode;
-    Parent,GrandParent,Sibling,Index:Integer;
+    Parent,GrandParent,Sibling,Index:longint;
 begin
  if fRoot=Leaf then begin
   fRoot:=daabbtNULLNODE;
@@ -13279,7 +13279,7 @@ begin
  end;
 end;
 
-function TKraftDynamicAABBTree.CreateProxy(const AABB:TKraftAABB;UserData:pointer):Integer;
+function TKraftDynamicAABBTree.CreateProxy(const AABB:TKraftAABB;UserData:pointer):longint;
 var Node:PKraftDynamicAABBTreeNode;
 begin
  result:=AllocateNode;
@@ -13291,13 +13291,13 @@ begin
  InsertLeaf(result);
 end;
 
-procedure TKraftDynamicAABBTree.DestroyProxy(NodeID:Integer);
+procedure TKraftDynamicAABBTree.DestroyProxy(NodeID:longint);
 begin
  RemoveLeaf(NodeID);
  FreeNode(NodeID);
 end;
 
-function TKraftDynamicAABBTree.MoveProxy(NodeID:Integer;const AABB:TKraftAABB;const Displacement,BoundsExpansion:TKraftVector3):boolean;
+function TKraftDynamicAABBTree.MoveProxy(NodeID:longint;const AABB:TKraftAABB;const Displacement,BoundsExpansion:TKraftVector3):boolean;
 var Node:PKraftDynamicAABBTreeNode;
 begin
  Node:=@fNodes^[NodeID];
@@ -13309,10 +13309,10 @@ begin
  end;
 end;
 
-procedure TKraftDynamicAABBTree.Rebalance(Iterations:Integer);
-var Counter,Node:Integer;
-    Bit:UInt32;
-//  Children:PKraftDynamicAABBTreeIntegerArray;
+procedure TKraftDynamicAABBTree.Rebalance(Iterations:longint);
+var Counter,Node:longint;
+    Bit:longword;
+//  Children:PKraftDynamicAABBTreeLongintArray;
 begin
  if (fRoot>=0) and (fRoot<fNodeCount) then begin
   for Counter:=1 to Iterations do begin
@@ -13334,10 +13334,10 @@ begin
 end;
 
 procedure TKraftDynamicAABBTree.Rebuild;
-var NewNodes:PKraftDynamicAABBTreeIntegerArray;
+var NewNodes:PKraftDynamicAABBTreeLongintArray;
     Children:array[0..1] of PKraftDynamicAABBTreeNode;
     Parent:PKraftDynamicAABBTreeNode;
-    Count,i,j,iMin,jMin,Index1,Index2,ParentIndex:Integer;
+    Count,i,j,iMin,jMin,Index1,Index2,ParentIndex:longint;
     MinCost,Cost:TKraftScalar;
     AABBi,AABBj:PKraftAABB;
     AABB:TKraftAABB;
@@ -13345,8 +13345,8 @@ var NewNodes:PKraftDynamicAABBTreeIntegerArray;
 begin
  if fNodeCount>0 then begin
   NewNodes:=nil;
-  GetMem(NewNodes,fNodeCount*SizeOf(Integer));
-  FillChar(NewNodes^,fNodeCount*SizeOf(Integer),#0);
+  GetMem(NewNodes,fNodeCount*SizeOf(longint));
+  FillChar(NewNodes^,fNodeCount*SizeOf(longint),#0);
   Count:=0;
   for i:=0 to fNodeCapacity-1 do begin
    if fNodes^[i].Height>=0 then begin
@@ -13402,10 +13402,10 @@ begin
  end;
 end;
 
-function TKraftDynamicAABBTree.ComputeHeight:Integer;
+function TKraftDynamicAABBTree.ComputeHeight:longint;
 {$ifdef KraftSingleThreadedUsage}
-var LocalStack:PKraftDynamicAABBTreeIntegerArray;
-    LocalStackPointer,NodeID,Height:Integer;
+var LocalStack:PKraftDynamicAABBTreeLongintArray;
+    LocalStackPointer,NodeID,Height:longint;
     Node:PKraftDynamicAABBTreeNode;
 begin
  result:=0;
@@ -13426,7 +13426,7 @@ begin
     if Node^.Children[0]>=0 then begin
      if fStackCapacity<=(LocalStackPointer+4) then begin
       fStackCapacity:=RoundUpToPowerOfTwo(LocalStackPointer+4);
-      ReallocMem(fStack,fStackCapacity*SizeOf(Integer));
+      ReallocMem(fStack,fStackCapacity*SizeOf(longint));
       LocalStack:=fStack;
      end;
      LocalStack^[LocalStackPointer+0]:=Node^.Children[0];
@@ -13440,8 +13440,8 @@ begin
  end;
 end;
 {$else}
-var MaximalHeight:Integer;
- procedure ProcessNode(const NodeID,Height:Integer);
+var MaximalHeight:longint;
+ procedure ProcessNode(const NodeID,Height:longint);
  var Node:PKraftDynamicAABBTreeNode;
  begin
   if result<Height then begin
@@ -13460,7 +13460,7 @@ begin
 end;
 {$endif}
 
-function TKraftDynamicAABBTree.GetHeight:Integer;
+function TKraftDynamicAABBTree.GetHeight:longint;
 begin
  if fRoot>=0 then begin
   result:=fNodes[fRoot].Height;
@@ -13470,7 +13470,7 @@ begin
 end;
 
 function TKraftDynamicAABBTree.GetAreaRatio:TKraftScalar;
-var NodeID:Integer;
+var NodeID:longint;
     Node:PKraftDynamicAABBTreeNode;
 begin
  result:=0;
@@ -13485,8 +13485,8 @@ begin
  end;
 end;
 
-function TKraftDynamicAABBTree.GetMaxBalance:Integer;
-var NodeID,Balance:Integer;
+function TKraftDynamicAABBTree.GetMaxBalance:longint;
+var NodeID,Balance:longint;
     Node:PKraftDynamicAABBTreeNode;
 begin
  result:=0;
@@ -13503,8 +13503,8 @@ end;
 
 function TKraftDynamicAABBTree.ValidateStructure:boolean;
 {$ifdef KraftSingleThreadedUsage}
-var LocalStack:PKraftDynamicAABBTreeIntegerArray;
-    LocalStackPointer,NodeID,Parent:Integer;
+var LocalStack:PKraftDynamicAABBTreeLongintArray;
+    LocalStackPointer,NodeID,Parent:longint;
     Node:PKraftDynamicAABBTreeNode;
 begin
  result:=true;
@@ -13531,7 +13531,7 @@ begin
     end else begin
      if fStackCapacity<=(LocalStackPointer+4) then begin
       fStackCapacity:=RoundUpToPowerOfTwo(LocalStackPointer+4);
-      ReallocMem(fStack,fStackCapacity*SizeOf(Integer));
+      ReallocMem(fStack,fStackCapacity*SizeOf(longint));
       LocalStack:=fStack;
      end;
      LocalStack^[LocalStackPointer+0]:=Node^.Children[0];
@@ -13549,7 +13549,7 @@ begin
 end;
 {$else}
 var OK:boolean;
- procedure ProcessNode(const NodeID,Parent:Integer);
+ procedure ProcessNode(const NodeID,Parent:longint);
  var Node:PKraftDynamicAABBTreeNode;
  begin
   if (NodeID>=0) and (NodeID<fNodeCount) and OK then begin
@@ -13571,8 +13571,8 @@ end;
 
 function TKraftDynamicAABBTree.ValidateMetrics:boolean;
 {$ifdef KraftSingleThreadedUsage}
-var LocalStack:PKraftDynamicAABBTreeIntegerArray;
-    LocalStackPointer,NodeID{,Height}:Integer;
+var LocalStack:PKraftDynamicAABBTreeLongintArray;
+    LocalStackPointer,NodeID{,Height}:longint;
     Node:PKraftDynamicAABBTreeNode;
     AABB:TKraftAABB;
 begin
@@ -13600,7 +13600,7 @@ begin
      end;
      if fStackCapacity<=(LocalStackPointer+2) then begin
       fStackCapacity:=RoundUpToPowerOfTwo(LocalStackPointer+2);
-      ReallocMem(fStack,fStackCapacity*SizeOf(Integer));
+      ReallocMem(fStack,fStackCapacity*SizeOf(longint));
       LocalStack:=fStack;
      end;
      LocalStack^[LocalStackPointer+0]:=Node^.Children[0];
@@ -13616,7 +13616,7 @@ begin
 end;
 {$else}
 var OK:boolean;
- procedure ProcessNode(const NodeID:Integer);
+ procedure ProcessNode(const NodeID:longint);
  var Node:PKraftDynamicAABBTreeNode;
  begin
   if (NodeID>=0) and OK then begin
@@ -13639,7 +13639,7 @@ end;
 {$endif}
 
 function TKraftDynamicAABBTree.Validate:boolean;
-var NodeID,FreeCount:Integer;
+var NodeID,FreeCount:longint;
 begin
  result:=ValidateStructure;
  if result then begin
@@ -13661,8 +13661,8 @@ end;
 
 function TKraftDynamicAABBTree.GetIntersectionProxy(const AABB:TKraftAABB):pointer;
 {$ifdef KraftSingleThreadedUsage}
-var LocalStack:PKraftDynamicAABBTreeIntegerArray;
-    LocalStackPointer,NodeID:Integer;
+var LocalStack:PKraftDynamicAABBTreeLongintArray;
+    LocalStackPointer,NodeID:longint;
     Node:PKraftDynamicAABBTreeNode;
 begin
  result:=nil;
@@ -13682,7 +13682,7 @@ begin
      end else begin
       if fStackCapacity<=(LocalStackPointer+2) then begin
        fStackCapacity:=RoundUpToPowerOfTwo(LocalStackPointer+2);
-       ReallocMem(fStack,fStackCapacity*SizeOf(Integer));
+       ReallocMem(fStack,fStackCapacity*SizeOf(longint));
        LocalStack:=fStack;
       end;
       LocalStack^[LocalStackPointer+0]:=Node^.Children[0];
@@ -13697,7 +13697,7 @@ end;
 {$else}
 var Data:pointer;
     Done:boolean;
- procedure ProcessNode(const NodeID:Integer);
+ procedure ProcessNode(const NodeID:longint);
  var Node:PKraftDynamicAABBTreeNode;
  begin
   if (NodeID>=0) and not Done then begin
@@ -13724,13 +13724,13 @@ end;
 type PConvexHullVector=^TConvexHullVector;
      TConvexHullVector=record
       x,y,z:double;
-      HashNext:Integer;
+      HashNext:longint;
      end;
 
      TConvexHullVectors=array of TConvexHullVector;
 
      PConvexHullTriangle=^TConvexHullTriangle;
-     TConvexHullTriangle=array[0..2] of Integer;
+     TConvexHullTriangle=array[0..2] of longint;
 
      TConvexHullTriangles=array of TConvexHullTriangle;
 
@@ -13744,17 +13744,17 @@ type PConvexHullVector=^TConvexHullVector;
 
      PConvexHullPolygon=^TConvexHullPolygon;
      TConvexHullPolygon=record
-      Indices:array of Integer;
-      Count:Integer;
+      Indices:array of longint;
+      Count:longint;
       Plane:TConvexHullPlane;
      end;
 
      TConvexHullPolygons=record
       Items:array of TConvexHullPolygon;
-      Count:Integer;
+      Count:longint;
      end;
 
-function CompareConvexHullPoints(const a,b:pointer):Integer;
+function CompareConvexHullPoints(const a,b:pointer):longint;
  function IsSameValue(const a,b:double):boolean;
  const FuzzFactor=1000;
        DoubleResolution=1e-15*FuzzFactor;
@@ -13939,7 +13939,7 @@ begin
 end;
 
 procedure ConvexHullComputePolygonNewellPlane(const Vertices:TConvexHullVectors;var Polygon:TConvexHullPolygon);
-var VertexIndex:Integer;
+var VertexIndex:longint;
     Last,Current:PConvexHullVector;
     Plane:PConvexHullPlane;
     Centroid,Normal:TConvexHullVector;
@@ -13979,25 +13979,25 @@ begin
  end;
 end;
 
-function StanHullProcess(var Points:TConvexHullVectors;var OutTriangles:TConvexHullTriangles;const MaximumOutputPoints:Integer=-1;const UserDefinedTolerance:double=-1.0):boolean;
-const ModuloThree:array[0..5] of Integer=(0,1,2,0,1,2);
+function StanHullProcess(var Points:TConvexHullVectors;var OutTriangles:TConvexHullTriangles;const MaximumOutputPoints:longint=-1;const UserDefinedTolerance:double=-1.0):boolean;
+const ModuloThree:array[0..5] of longint=(0,1,2,0,1,2);
       DOUBLE_PREC:double=2.2204460492503131e-16;
       EPSILON=1e-10;
 type PInt3=^TInt3;
-     TInt3=array[0..2] of Integer;
+     TInt3=array[0..2] of longint;
      TInt3s=array of TInt3;
      PInt4=^TInt4;
-     TInt4=array[0..3] of Integer;
+     TInt4=array[0..3] of longint;
      PTri=^TTri;
      TTri=record
       v:TInt3;
       n:TInt3;
-      ID:Integer;
-      vmax:Integer;
+      ID:longint;
+      vmax:longint;
       Rise:double;
      end;
      TTris=array of TTri;
-var CountPoints:Integer;
+var CountPoints:longint;
     MinPoint,MaxPoint:TConvexHullVector;
     Tolerance:double;
  function Roll3(const a:TInt3):TInt3;
@@ -14044,8 +14044,8 @@ var CountPoints:Integer;
   n:=TriNormal(Vertices[t[0]],Vertices[t[1]],Vertices[t[2]]);
   result:=ConvexHullVectorDot(n,ConvexHullVectorSub(p,Vertices[t[0]]))>Epsilon;
  end;
- function HasEdges(const t:TInt3;const a,b:Integer):boolean;
- var i,i1:Integer;
+ function HasEdges(const t:TInt3;const a,b:longint):boolean;
+ var i,i1:longint;
  begin
   for i:=0 to 2 do begin
    i1:=ModuloThree[i+1];
@@ -14056,12 +14056,12 @@ var CountPoints:Integer;
   end;
   result:=false;
  end;
- function HasVertex(const t:TInt3;const v:Integer):boolean;
+ function HasVertex(const t:TInt3;const v:longint):boolean;
  begin
   result:=(t[0]=v) or (t[1]=v) or (t[2]=v);
  end;
  function HasSharedEdge(const a,b:TInt3):boolean;
- var i,i1:Integer;
+ var i,i1:longint;
  begin
   for i:=0 to 2 do begin
    i1:=ModuloThree[i+1];
@@ -14072,7 +14072,7 @@ var CountPoints:Integer;
   end;
   result:=false;
  end;
- function Tri(const a,b,c,id:Integer;const na:Integer=-1;const nb:Integer=-1;const nc:Integer=-1):TTri;
+ function Tri(const a,b,c,id:longint;const na:longint=-1;const nb:longint=-1;const nc:longint=-1):TTri;
  begin
   FillChar(result,SizeOf(TTri),#0);
   result.v[0]:=a;
@@ -14089,8 +14089,8 @@ var CountPoints:Integer;
  begin
   result:=Tri.n[0]<0;
  end;
- function TriNEIB(const Tri:TTri;const va,vb:Integer):pInteger;
- var i,i1,i2:Integer;
+ function TriNEIB(const Tri:TTri;const va,vb:longint):plongint;
+ var i,i1,i2:longint;
  begin
   for i:=0 to 2 do begin
    i1:=ModuloThree[i+1];
@@ -14107,9 +14107,9 @@ var CountPoints:Integer;
   result:=nil;
   raise EKraftDegeneratedConvexHull.Create('Degenerated convex hull');
  end;
- procedure NNFix(var Tris:TTris;const CountTris,k:Integer);
- var i,i1,i2:Integer;
-     nn:pInteger;
+ procedure NNFix(var Tris:TTris;const CountTris,k:longint);
+ var i,i1,i2:longint;
+     nn:plongint;
  begin
   if Tris[k].ID>=0 then begin
    Assert(Tris[k].ID=k);
@@ -14123,9 +14123,9 @@ var CountPoints:Integer;
    end;
   end;
  end;
- procedure SwapN(var Tris:TTris;const CountTris,a,b:Integer);
+ procedure SwapN(var Tris:TTris;const CountTris,a,b:longint);
  var TempTri:TTri;
-     TempID:Integer;
+     TempID:longint;
  begin
   TempTri:=Tris[a];
   Tris[a]:=Tris[b];
@@ -14136,8 +14136,8 @@ var CountPoints:Integer;
   NNFix(Tris,CountTris,a);
   NNFix(Tris,CountTris,b);
  end;
- procedure B2BFix(var Tris:TTris;const CountTris,s,t:Integer);
- var i,i1,i2,va,vb:Integer;
+ procedure B2BFix(var Tris:TTris;const CountTris,s,t:longint);
+ var i,i1,i2,va,vb:longint;
  begin
   for i:=0 to 2 do begin
    i1:=ModuloThree[i+1];
@@ -14156,8 +14156,8 @@ var CountPoints:Integer;
   Tris[t].n[1]:=-1;
   Tris[t].n[2]:=-1;
  end;
- procedure CheckIt(const Tris:TTris;const CountTris:Integer;const t:TTri);
- var i,i1,i2,a,b:Integer;
+ procedure CheckIt(const Tris:TTris;const CountTris:longint;const t:TTri);
+ var i,i1,i2,a,b:longint;
  begin
   Assert(Tris[t.ID].ID=t.ID);
   Assert(@Tris[t.ID]=@t);
@@ -14170,8 +14170,8 @@ var CountPoints:Integer;
    Assert(TriNEIB(Tris[t.n[i]],b,a)^=t.ID);
   end;
  end;
- function Extrudable(const Tris:TTris;const CountTris:Integer;const Epsilon:double):Integer;
- var t,i:Integer;
+ function Extrudable(const Tris:TTris;const CountTris:longint;const Epsilon:double):longint;
+ var t,i:longint;
  begin
   t:=-1;
 	for i:=0 to CountTris-1 do begin
@@ -14188,8 +14188,8 @@ var CountPoints:Integer;
    result:=-1;
   end;
  end;
- function MaxDir(const Vertices:TConvexHullVectors;const CountVertices:Integer;const Direction:TConvexHullVector):Integer;
- var i:Integer;
+ function MaxDir(const Vertices:TConvexHullVectors;const CountVertices:longint;const Direction:TConvexHullVector):longint;
+ var i:longint;
      Best,Current:double;
  begin
   result:=-1;
@@ -14202,11 +14202,11 @@ var CountPoints:Integer;
    end;
   end;
  end;
- function FindSimplex(const Vertices:TConvexHullVectors;const CountVertices:Integer):TInt4;
+ function FindSimplex(const Vertices:TConvexHullVectors;const CountVertices:longint):TInt4;
  const v000:TConvexHullVector=(x:0.0;y:0.0;z:0.0);
        v100:TConvexHullVector=(x:1.0;y:0.0;z:0.0);
        v010:TConvexHullVector=(x:0.0;y:1.0;z:0.0);
- var p0,p1,p2,p3,TempIndex:Integer;
+ var p0,p1,p2,p3,TempIndex:longint;
      Basis:array[0..2] of TConvexHullVector;
  begin
   Basis[0].x:=0.01;
@@ -14267,17 +14267,17 @@ var CountPoints:Integer;
   result[3]:=p3;
  end;
 {$warnings off}
- function CalcHull(const Vertices:TConvexHullVectors;var CountVertices:Integer;VerticesLimit:Integer):TInt3s;
+ function CalcHull(const Vertices:TConvexHullVectors;var CountVertices:longint;VerticesLimit:longint):TInt3s;
  var bmin,bmax,Center,n,TempVertex:TConvexHullVector;
      isextreme:array of boolean;
-     CountTris,i,j,k,te,v,{NewStart,}nb:Integer;
+     CountTris,i,j,k,te,v,{NewStart,}nb:longint;
      Epsilon:double;
      {ti,}t,nt:TInt3;
      p:TInt4;
      Tris:TTris;
      tt:PTri;
      {TempTri:TTri;}
-     Map,Used:array of Integer;
+     Map,Used:array of longint;
   procedure TrisPushBack(const NewTri:TTri);
   begin
    if (CountTris+1)>=length(Tris) then begin
@@ -14286,9 +14286,9 @@ var CountPoints:Integer;
    Tris[CountTris]:=NewTri;
    inc(CountTris);
   end;
-  procedure Extrude(const t0,v:Integer);
+  procedure Extrude(const t0,v:longint);
   var t,n:TInt3;
-      b:Integer;
+      b:longint;
   begin
    t:=Tris[t0].v;
 	 b:=CountTris;
@@ -14498,7 +14498,7 @@ var CountPoints:Integer;
  end;
 {$warnings on}
  procedure SearchMinMax;
- var Index:Integer;
+ var Index:longint;
      Point:PConvexHullVector;
  begin
   MinPoint:=Points[0];
@@ -14529,11 +14529,11 @@ var CountPoints:Integer;
  const HashBits=8;
        HashSize=1 shl HashBits;
        HashMask=HashSize-1;
- var PointIndex,OtherPointIndex,CountNewPoints,HashItemIndex:Integer;
-     Hash:UInt32;
+ var PointIndex,OtherPointIndex,CountNewPoints,HashItemIndex:longint;
+     Hash:longword;
      NewPoints:TConvexHullVectors;
-     PointNextIndices:array of Integer;
-     HashTable:array of Integer;
+     PointNextIndices:array of longint;
+     HashTable:array of longint;
  begin
   NewPoints:=nil;
   PointNextIndices:=nil;
@@ -14595,12 +14595,12 @@ var CountPoints:Integer;
  const HashBits=8;
        HashSize=1 shl HashBits;
        HashMask=HashSize-1;
- var PointIndex,OtherPointIndex,CountNewPoints,HashItemIndex:Integer;
-     Hash:UInt32;
+ var PointIndex,OtherPointIndex,CountNewPoints,HashItemIndex:longint;
+     Hash:longword;
      InverseTolerance:double;
      NewPoints:TConvexHullVectors;
-     PointNextIndices:array of Integer;
-     HashTable:array of Integer;
+     PointNextIndices:array of longint;
+     HashTable:array of longint;
  begin
   NewPoints:=nil;
   PointNextIndices:=nil;
@@ -14663,7 +14663,7 @@ var CountPoints:Integer;
   end;
  end;
  procedure SortPoints;
- var Count,Index:Integer;
+ var Count,Index:longint;
      NewPoints:TConvexHullVectors;
      IndirectPoints:array of PConvexHullVector;
  begin
@@ -14690,7 +14690,7 @@ var CountPoints:Integer;
   end;
  end;
 var Tris:TInt3s;
-    i:Integer;
+    i:longint;
 begin
  result:=false;
  Tris:=nil;
@@ -14742,7 +14742,7 @@ begin
  end;
 end;
 
-function KraftQuickHullIntLog2(x:UInt32):UInt32; {$ifdef cpu386}assembler; register;
+function KraftQuickHullIntLog2(x:longword):longword; {$ifdef cpu386}assembler; register;
 asm
  test eax,eax
  jz @Done
@@ -14789,15 +14789,15 @@ begin
  ReallocMem(fList,0);
 end;
 
-procedure TKraftQuickHullIntegerList.SetCapacity(NewCapacity:Integer);
+procedure TKraftQuickHullIntegerList.SetCapacity(NewCapacity:longint);
 begin
  if NewCapacity>=0 then begin
-  ReallocMem(fList,NewCapacity*sizeof(Integer));
+  ReallocMem(fList,NewCapacity*sizeof(longint));
   fAllocated:=NewCapacity;
  end;
 end;
 
-procedure TKraftQuickHullIntegerList.SetCount(NewCount:Integer);
+procedure TKraftQuickHullIntegerList.SetCount(NewCount:longint);
 begin
  if NewCount>=0 then begin
   if NewCount<fCountItems then begin
@@ -14807,18 +14807,18 @@ begin
     SetCapacity((fCountItems+4096) and not 4095);
    end;
    if fCountItems<NewCount then begin
-    FillChar(fList^[fCountItems],(NewCount-fCountItems)*SizeOf(Integer),#0);
+    FillChar(fList^[fCountItems],(NewCount-fCountItems)*SizeOf(longint),#0);
    end;
    fCountItems:=NewCount;
   end;
  end;
 end;
 
-function TKraftQuickHullIntegerList.Add(Item:Integer):Integer;
+function TKraftQuickHullIntegerList.Add(Item:longint):longint;
 begin
  if fCountItems>=fAllocated then begin
   fAllocated:=(fCountItems+4096) and not 4095;
-  ReallocMem(fList,fAllocated*SizeOf(Integer));
+  ReallocMem(fList,fAllocated*SizeOf(longint));
  end;
  fList^[fCountItems]:=Item;
  result:=fCountItems;
@@ -14826,8 +14826,8 @@ begin
  fIsSorted:=false;
 end;
 
-procedure TKraftQuickHullIntegerList.AddSorted(Item:Integer);
-var i:Integer;
+procedure TKraftQuickHullIntegerList.AddSorted(Item:longint);
+var i:longint;
 begin
  if fIsSorted then begin
   if fCountItems=0 then begin
@@ -14846,8 +14846,8 @@ begin
  end;
 end;
 
-procedure TKraftQuickHullIntegerList.Insert(Index:Integer;Item:Integer);
-var i:Integer;
+procedure TKraftQuickHullIntegerList.Insert(Index:longint;Item:longint);
+var i:longint;
 begin
  if (Index>=0) and (Index<fCountItems) then begin
   SetCount(fCountItems+1);
@@ -14864,8 +14864,8 @@ begin
  fIsSorted:=false;
 end;
 
-procedure TKraftQuickHullIntegerList.Delete(Index:Integer);
-var i,j,k:Integer;
+procedure TKraftQuickHullIntegerList.Delete(Index:longint);
+var i,j,k:longint;
 begin
  if (Index>=0) and (Index<fCountItems) then begin
   k:=fCountItems-1;
@@ -14877,8 +14877,8 @@ begin
  end;
 end;
 
-function TKraftQuickHullIntegerList.Remove(Item:Integer):Integer;
-var i,j,k:Integer;
+function TKraftQuickHullIntegerList.Remove(Item:longint):longint;
+var i,j,k:longint;
 begin
  result:=-1;
  k:=fCountItems;
@@ -14899,8 +14899,8 @@ begin
  end;
 end;
 
-function TKraftQuickHullIntegerList.Find(Item:Integer):Integer;
-var i,l,r:Integer;
+function TKraftQuickHullIntegerList.Find(Item:longint):longint;
+var i,l,r:longint;
 begin
  result:=-1;
  if fIsSorted then begin
@@ -14929,13 +14929,13 @@ begin
  end;
 end;
 
-function TKraftQuickHullIntegerList.IndexOf(Item:Integer):Integer;
+function TKraftQuickHullIntegerList.IndexOf(Item:longint):longint;
 begin
  result:=Find(Item);
 end;
 
-procedure TKraftQuickHullIntegerList.Exchange(Index1,Index2:Integer);
-var TempInteger:Integer;
+procedure TKraftQuickHullIntegerList.Exchange(Index1,Index2:longint);
+var TempInteger:longint;
 begin
  if (Index1>=0) and (Index1<fCountItems) and (Index2>=0) and (Index2<fCountItems) then begin
   TempInteger:=fList^[Index1];
@@ -14945,7 +14945,7 @@ begin
  end;
 end;
 
-function TKraftQuickHullIntegerList.GetItem(Index:Integer):Integer;
+function TKraftQuickHullIntegerList.GetItem(Index:longint):longint;
 begin
  if (Index>=0) and (Index<fCountItems) then begin
   result:=fList^[Index];
@@ -14954,7 +14954,7 @@ begin
  end;
 end;
 
-procedure TKraftQuickHullIntegerList.SetItem(Index:Integer;Value:Integer);
+procedure TKraftQuickHullIntegerList.SetItem(Index:longint;Value:longint);
 begin
  if (Index>=0) and (Index<fCountItems) then begin
   fList^[Index]:=Value;
@@ -14962,7 +14962,7 @@ begin
  end;
 end;
 
-function TKraftQuickHullIntegerList.GetItemPointer(Index:Integer):pointer;
+function TKraftQuickHullIntegerList.GetItemPointer(Index:longint):pointer;
 begin
  if (Index>=0) and (Index<fCountItems) then begin
   result:=@fList^[Index];
@@ -14972,10 +14972,10 @@ begin
 end;
 
 procedure TKraftQuickHullIntegerList.Sort;
- procedure IntroSort(Left,Right,Depth:Integer);
-  procedure SiftDown(Current,MaxIndex:Integer);
-  var SiftLeft,SiftRight,Largest:Integer;
-      v:Integer;
+ procedure IntroSort(Left,Right,Depth:longint);
+  procedure SiftDown(Current,MaxIndex:longint);
+  var SiftLeft,SiftRight,Largest:longint;
+      v:longint;
   begin
    SiftLeft:=Left+(2*(Current-Left))+1;
    SiftRight:=Left+(2*(Current-Left))+2;
@@ -14994,8 +14994,8 @@ procedure TKraftQuickHullIntegerList.Sort;
    end;
   end;
   procedure InsertionSort;
-  var i,j:Integer;
-      t:Integer;
+  var i,j:longint;
+      t:longint;
   begin
    i:=Left+1;
    while i<=Right do begin
@@ -15010,8 +15010,8 @@ procedure TKraftQuickHullIntegerList.Sort;
    end;
   end;
   procedure HeapSort;
-  var i:Integer;
-      v:Integer;
+  var i:longint;
+      v:longint;
   begin
    i:=((Left+Right+1) div 2)-1;
    while i>=Left do begin
@@ -15028,8 +15028,8 @@ procedure TKraftQuickHullIntegerList.Sort;
    end;
   end;
   procedure QuickSortWidthMedianOfThreeOptimization;
-  var Middle,i,j:Integer;
-      Pivot,v:Integer;
+  var Middle,i,j:longint;
+      Pivot,v:longint;
   begin
    Middle:=(Left+Right) div 2;
    if (Right-Left)>3 then begin
@@ -15082,9 +15082,9 @@ procedure TKraftQuickHullIntegerList.Sort;
    end;
   end;
  end;
- procedure QuickSort(L,R:Integer);
- var Pivot,vL,vR:Integer;
-     v:Integer;
+ procedure QuickSort(L,R:longint);
+ var Pivot,vL,vR:longint;
+     v:longint;
  begin
   if (R-L)<=1 then begin
    if (L<R) and (fList[R]<fList[L]) then begin
@@ -15120,9 +15120,9 @@ procedure TKraftQuickHullIntegerList.Sort;
    end;
   end;
  end;
- procedure QuickSortEx(Left,Right:Integer);
- var Pivot,i,j:Integer;
-     v:Integer;
+ procedure QuickSortEx(Left,Right:longint);
+ var Pivot,i,j:longint;
+     v:longint;
  begin
   i:=Left;
   j:=Right;
@@ -15150,8 +15150,8 @@ procedure TKraftQuickHullIntegerList.Sort;
   end;
  end;
  procedure BeRoSort;
- var i:Integer;
-     v:Integer;
+ var i:longint;
+     v:longint;
  begin
   i:=0;
   while i<(fCountItems-1) do begin
@@ -15184,7 +15184,7 @@ begin
  result:=self;
 end;
 
-procedure TKraftQuickHullVector3D.SetValue(i:Integer;const v:double);
+procedure TKraftQuickHullVector3D.SetValue(i:longint;const v:double);
 begin
  case i of
   0:begin
@@ -15199,7 +15199,7 @@ begin
  end;
 end;
 
-function TKraftQuickHullVector3D.GetValue(i:Integer):double;
+function TKraftQuickHullVector3D.GetValue(i:longint):double;
 begin
  case i of
   0:begin
@@ -15459,8 +15459,8 @@ begin
  fOutside:=nil;
 end;
 
-constructor TKraftQuickHullFace.CreatePolygon(const AInstance:TKraftQuickHull;const AVertices:array of TKraftQuickHullVertex;const AIndices:array of Integer);
-var i:Integer;
+constructor TKraftQuickHullFace.CreatePolygon(const AInstance:TKraftQuickHull;const AVertices:array of TKraftQuickHullVertex;const AIndices:array of longint);
+var i:longint;
     hePrev,he:TKraftQuickHullHalfEdge;
 begin
  Create(AInstance);
@@ -15587,7 +15587,7 @@ end;
 
 procedure TKraftQuickHullFace.ComputeNormalAndCentroid;
 var he:TKraftQuickHullHalfEdge;
-    CountFoundVertices:Integer;
+    CountFoundVertices:longint;
 begin
  ComputeNormal(fNormal);
  ComputeCentroid(fCentroid);
@@ -15608,7 +15608,7 @@ begin
  fPlaneOffset:=fNormal.Dot(fCentroid);
 end;
 
-function TKraftQuickHullFace.GetEdge(i:Integer):TKraftQuickHullHalfEdge;
+function TKraftQuickHullFace.GetEdge(i:longint):TKraftQuickHullHalfEdge;
 begin
  result:=fhe0;
  while i>0 do begin
@@ -15682,7 +15682,7 @@ procedure TKraftQuickHullFace.CheckConsistency;
 var hedge,hedgeOpp:TKraftQuickHullHalfEdge;
     oppFace:TKraftQuickHullFace;
     MaxD,d:double;
-    CountFoundVertices:Integer;
+    CountFoundVertices:longint;
 begin
  Assert(fCountVertices>2,'Degenerated Face');
  MaxD:=0.0;
@@ -15706,7 +15706,7 @@ begin
  Assert(CountFoundVertices=fCountVertices,'Wrong count of vertices');
 end;
 
-function TKraftQuickHullFace.MergeAdjacentFace(const hedgeAdj:TKraftQuickHullHalfEdge;const Discarded:TList):Integer;
+function TKraftQuickHullFace.MergeAdjacentFace(const hedgeAdj:TKraftQuickHullHalfEdge;const Discarded:TList):longint;
 var oppFace,DiscardedFace:TKraftQuickHullFace;
     hedgeOpp,hedgeAdjPrev,hedgeAdjNext,hedgeOppPrev,hedgeOppNext,hedge:TKraftQuickHullHalfEdge;
 begin
@@ -15936,7 +15936,7 @@ end;
 
 procedure TKraftQuickHull.AddPoint(const x,y,z:double);
 var Vertex:TKraftQuickHullVertex;
-    Index,HashBucket:Integer;
+    Index,HashBucket:longint;
 begin
  HashBucket:=((round(x)*73856093) xor (round(y)*19349663) xor (round(z)*83492791)) and KRAFT_QUICKHULL_HASHMASK;
  Vertex:=fVertexHashTable[HashBucket];
@@ -16000,7 +16000,7 @@ begin
 end;
 
 function TKraftQuickHull.FindHalfEdge(const Tail,Head:TKraftQuickHullVertex):TKraftQuickHullHalfEdge;
-var i:Integer;
+var i:longint;
     Face:TKraftQuickHullFace;
 begin
  result:=nil;
@@ -16015,7 +16015,7 @@ end;
 
 procedure TKraftQuickHull.Triangulate;
 const DOUBLE_PREC=2.2204460492503131e-16;
-var i:Integer;
+var i:longint;
     Face:TKraftQuickHullFace;
     MinArea:double;
 begin
@@ -16037,7 +16037,7 @@ end;
 
 procedure TKraftQuickHull.ComputeMinAndMax;
 const DOUBLE_PREC=2.2204460492503131e-16;
-var i:Integer;
+var i:longint;
     MinVector,MaxVector,Point:TKraftQuickHullVector3D;
     Vertex:TKraftQuickHullVertex;
 begin
@@ -16085,8 +16085,8 @@ begin
 end;
 
 procedure TKraftQuickHull.CreateInitialSimplex;
-const ModuloThree:array[0..5] of Integer=(0,1,2,0,1,2);
-var MaxIndex,Index,OtherIndex:Integer;
+const ModuloThree:array[0..5] of longint=(0,1,2,0,1,2);
+var MaxIndex,Index,OtherIndex:longint;
     MaxValue,Diff,MaxSquared,LenSquared,MaxDistance,d0,Distance:double;
     v:TKraftQuickHullVertex;
     MaxFace:TKraftQuickHullFace;
@@ -16274,7 +16274,7 @@ begin
 end;
 
 procedure TKraftQuickHull.AddNewFaces(const NewFaces:TKraftQuickHullFaceList;const EyeVertex:TKraftQuickHullVertex;const Horizon:TList);
-var Index:Integer;
+var Index:longint;
     hedgeSidePrev,hedgeSideBegin,horizonHe,hedgeSide:TKraftQuickHullHalfEdge;
 begin
  NewFaces.clear;
@@ -16299,8 +16299,8 @@ begin
  result:=he.fFace.DistanceToPlane(he.fOpposite.fFace.fCentroid);
 end;
 
-function TKraftQuickHull.DoAdjacentMerge(const Face:TKraftQuickHullFace;const MergeType:Integer):boolean;
-var Index,CountDiscarded:Integer;
+function TKraftQuickHull.DoAdjacentMerge(const Face:TKraftQuickHullFace;const MergeType:longint):boolean;
+var Index,CountDiscarded:longint;
     hedge:TKraftQuickHullHalfEdge;
     oppFace:TKraftQuickHullFace;
     Convex,Merge:boolean;
@@ -16415,7 +16415,7 @@ begin
 
 end;
 
-procedure TKraftQuickHull.MarkFaceVertices(const Face:TKraftQuickHullFace;const Mark:Integer);
+procedure TKraftQuickHull.MarkFaceVertices(const Face:TKraftQuickHullFace;const Mark:longint);
 var he0,he:TKraftQuickHullHalfEdge;
 begin
  he0:=Face.GetFirstEdge;
@@ -16427,7 +16427,7 @@ begin
 end;
 
 procedure TKraftQuickHull.ReindexFacesAndVertices;
-var Index:Integer;
+var Index:longint;
     Face:TKraftQuickHullFace;
     Vertex:TKraftQuickHullVertex;
 begin
@@ -16462,9 +16462,9 @@ begin
 
 end;
 
-procedure TKraftQuickHull.Build(const MaximumVertices:Integer=-1);
+procedure TKraftQuickHull.Build(const MaximumVertices:longint=-1);
 var EyeVertex:TKraftQuickHullVertex;
-    RemainToDoVertices:Integer;
+    RemainToDoVertices:longint;
 begin
  ComputeMinAndMax;
  CreateInitialSimplex;
@@ -16480,10 +16480,10 @@ begin
  ReindexFacesAndVertices;
 end;
 
-procedure TKraftQuickHull.GetFaceIndices(out OutputFace:TKraftQuickHullOutputFace;const Face:TKraftQuickHullFace;const Flags:Integer);
+procedure TKraftQuickHull.GetFaceIndices(out OutputFace:TKraftQuickHullOutputFace;const Face:TKraftQuickHullFace;const Flags:longint);
 var CCW,IndexedFromOne,PointRelative:boolean;
     hedge:TKraftQuickHullHalfEdge;
-    Count,Index:Integer;
+    Count,Index:longint;
 begin
  SetLength(OutputFace,Face.fCountVertices);
  CCW:=(Flags and KRAFT_QUICKHULL_FACE_FLAG_CLOCKWISE)=0;
@@ -16510,7 +16510,7 @@ begin
 end;
 
 procedure TKraftQuickHull.GetVertices(out OutputVertices:TKraftQuickHullVector3DArray);
-var Index:Integer;
+var Index:longint;
 begin
  SetLength(OutputVertices,fCountVertices);
  for Index:=0 to fCountVertices-1 do begin
@@ -16519,7 +16519,7 @@ begin
 end;
 
 procedure TKraftQuickHull.GetFaces(out OutputFaces:TKraftQuickHullOutputFaces);
-var Index:Integer;
+var Index:longint;
 begin
  SetLength(OutputFaces,fCountFaces);
  for Index:=0 to fCountFaces-1 do begin
@@ -16529,7 +16529,7 @@ end;
 
 type PConvexHullGrahamScanVector=^TConvexHullGrahamScanVector;
      TConvexHullGrahamScanVector=record
-      OriginalIndex:Integer;
+      OriginalIndex:longint;
       Angle:double;
       LengthToAnchor:double;
       Vector:TConvexHullVector;
@@ -16537,7 +16537,7 @@ type PConvexHullGrahamScanVector=^TConvexHullGrahamScanVector;
 
      TConvexHullGrahamScanVectors=array of TConvexHullGrahamScanVector;
 
-function CompareConvexHullGrahamScanVector(const a,b:pointer):Integer;
+function CompareConvexHullGrahamScanVector(const a,b:pointer):longint;
 var va,vb:PConvexHullGrahamScanVector;
 begin
  va:=a;
@@ -16560,7 +16560,7 @@ begin
 end;
 
 procedure ConvexHullGrahamScan2D(var OriginalPoints:TConvexHullGrahamScanVectors;var Hull:TConvexHullGrahamScanVectors;const NormalAxis:TConvexHullVector);
-var CountOriginalPoints,Index,Count:Integer;
+var CountOriginalPoints,Index,Count:longint;
     ProjectionLeft,ProjectionRight:double;
     Axis0,Axis1,xVector,Relative:TConvexHullVector;
     TempPoint:TConvexHullGrahamScanVector;
@@ -16695,24 +16695,24 @@ begin
 end;
 
 procedure TKraftConvexHull.LoadFromStream(const AStream:TStream);
-var i,j:Integer;
+var i,j:longint;
 begin
 
- AStream.ReadBuffer(i,SizeOf(Integer));
+ AStream.ReadBuffer(i,SizeOf(longint));
  fCountVertices:=i;
  SetLength(fVertices,fCountVertices);
  for i:=0 to fCountVertices-1 do begin
   AStream.ReadBuffer(fVertices[i].Position.x,SizeOf(TKraftScalar));
   AStream.ReadBuffer(fVertices[i].Position.y,SizeOf(TKraftScalar));
   AStream.ReadBuffer(fVertices[i].Position.z,SizeOf(TKraftScalar));
-  AStream.ReadBuffer(fVertices[i].CountAdjacencies,SizeOf(Integer));
+  AStream.ReadBuffer(fVertices[i].CountAdjacencies,SizeOf(longint));
   SetLength(fVertices[i].Adjacencies,fVertices[i].CountAdjacencies);
   for j:=0 to fVertices[i].CountAdjacencies-1 do begin
-   AStream.ReadBuffer(fVertices[i].Adjacencies[j],SizeOf(Integer));
+   AStream.ReadBuffer(fVertices[i].Adjacencies[j],SizeOf(longint));
   end;
  end;
 
- AStream.ReadBuffer(i,SizeOf(Integer));
+ AStream.ReadBuffer(i,SizeOf(longint));
  fCountFaces:=i;
  SetLength(fFaces,fCountFaces);
  for i:=0 to fCountFaces-1 do begin
@@ -16720,22 +16720,22 @@ begin
   AStream.ReadBuffer(fFaces[i].Plane.Normal.y,SizeOf(TKraftScalar));
   AStream.ReadBuffer(fFaces[i].Plane.Normal.z,SizeOf(TKraftScalar));
   AStream.ReadBuffer(fFaces[i].Plane.Distance,SizeOf(TKraftScalar));
-  AStream.ReadBuffer(fFaces[i].CountVertices,SizeOf(Integer));
+  AStream.ReadBuffer(fFaces[i].CountVertices,SizeOf(longint));
   SetLength(fFaces[i].Vertices,fFaces[i].CountVertices);
   for j:=0 to fFaces[i].CountVertices-1 do begin
-   AStream.ReadBuffer(fFaces[i].Vertices[j],SizeOf(Integer));
+   AStream.ReadBuffer(fFaces[i].Vertices[j],SizeOf(longint));
   end;
-  AStream.ReadBuffer(fFaces[i].EdgeVertexOffset,SizeOf(Integer));
+  AStream.ReadBuffer(fFaces[i].EdgeVertexOffset,SizeOf(longint));
  end;
 
- AStream.ReadBuffer(i,SizeOf(Integer));
+ AStream.ReadBuffer(i,SizeOf(longint));
  fCountEdges:=i;
  SetLength(fEdges,fCountEdges);
  for i:=0 to fCountEdges-1 do begin
-  AStream.ReadBuffer(fEdges[i].Vertices[0],SizeOf(Integer));
-  AStream.ReadBuffer(fEdges[i].Vertices[1],SizeOf(Integer));
-  AStream.ReadBuffer(fEdges[i].Faces[0],SizeOf(Integer));
-  AStream.ReadBuffer(fEdges[i].Faces[1],SizeOf(Integer));
+  AStream.ReadBuffer(fEdges[i].Vertices[0],SizeOf(longint));
+  AStream.ReadBuffer(fEdges[i].Vertices[1],SizeOf(longint));
+  AStream.ReadBuffer(fEdges[i].Faces[0],SizeOf(longint));
+  AStream.ReadBuffer(fEdges[i].Faces[1],SizeOf(longint));
  end;
 
  AStream.ReadBuffer(fSphere.Center.x,SizeOf(TKraftScalar));
@@ -16764,42 +16764,42 @@ begin
 end;
 
 procedure TKraftConvexHull.SaveToStream(const AStream:TStream);
-var i,j:Integer;
+var i,j:longint;
 begin
 
  i:=fCountVertices;
- AStream.WriteBuffer(i,SizeOf(Integer));
+ AStream.WriteBuffer(i,SizeOf(longint));
  for i:=0 to fCountVertices-1 do begin
   AStream.WriteBuffer(fVertices[i].Position.x,SizeOf(TKraftScalar));
   AStream.WriteBuffer(fVertices[i].Position.y,SizeOf(TKraftScalar));
   AStream.WriteBuffer(fVertices[i].Position.z,SizeOf(TKraftScalar));
-  AStream.WriteBuffer(fVertices[i].CountAdjacencies,SizeOf(Integer));
+  AStream.WriteBuffer(fVertices[i].CountAdjacencies,SizeOf(longint));
   for j:=0 to fVertices[i].CountAdjacencies-1 do begin
-   AStream.WriteBuffer(fVertices[i].Adjacencies[j],SizeOf(Integer));
+   AStream.WriteBuffer(fVertices[i].Adjacencies[j],SizeOf(longint));
   end;
  end;
 
  i:=fCountFaces;
- AStream.WriteBuffer(i,SizeOf(Integer));
+ AStream.WriteBuffer(i,SizeOf(longint));
  for i:=0 to fCountFaces-1 do begin
   AStream.WriteBuffer(fFaces[i].Plane.Normal.x,SizeOf(TKraftScalar));
   AStream.WriteBuffer(fFaces[i].Plane.Normal.y,SizeOf(TKraftScalar));
   AStream.WriteBuffer(fFaces[i].Plane.Normal.z,SizeOf(TKraftScalar));
   AStream.WriteBuffer(fFaces[i].Plane.Distance,SizeOf(TKraftScalar));
-  AStream.WriteBuffer(fFaces[i].CountVertices,SizeOf(Integer));
+  AStream.WriteBuffer(fFaces[i].CountVertices,SizeOf(longint));
   for j:=0 to fFaces[i].CountVertices-1 do begin
-   AStream.WriteBuffer(fFaces[i].Vertices[j],SizeOf(Integer));
+   AStream.WriteBuffer(fFaces[i].Vertices[j],SizeOf(longint));
   end;
-  AStream.WriteBuffer(fFaces[i].EdgeVertexOffset,SizeOf(Integer));
+  AStream.WriteBuffer(fFaces[i].EdgeVertexOffset,SizeOf(longint));
  end;
 
  i:=fCountEdges;
- AStream.WriteBuffer(i,SizeOf(Integer));
+ AStream.WriteBuffer(i,SizeOf(longint));
  for i:=0 to fCountEdges-1 do begin
-  AStream.WriteBuffer(fEdges[i].Vertices[0],SizeOf(Integer));
-  AStream.WriteBuffer(fEdges[i].Vertices[1],SizeOf(Integer));
-  AStream.WriteBuffer(fEdges[i].Faces[0],SizeOf(Integer));
-  AStream.WriteBuffer(fEdges[i].Faces[1],SizeOf(Integer));
+  AStream.WriteBuffer(fEdges[i].Vertices[0],SizeOf(longint));
+  AStream.WriteBuffer(fEdges[i].Vertices[1],SizeOf(longint));
+  AStream.WriteBuffer(fEdges[i].Faces[0],SizeOf(longint));
+  AStream.WriteBuffer(fEdges[i].Faces[1],SizeOf(longint));
  end;
 
  AStream.WriteBuffer(fSphere.Center.x,SizeOf(TKraftScalar));
@@ -16827,7 +16827,7 @@ begin
 
 end;
 
-function TKraftConvexHull.AddVertex(const AVertex:TKraftVector3):Integer;
+function TKraftConvexHull.AddVertex(const AVertex:TKraftVector3):longint;
 var Vertex:PKraftConvexHullVertex;
 begin
  result:=fCountVertices;
@@ -16840,8 +16840,8 @@ begin
  Vertex^.CountAdjacencies:=0;
 end;
 
-procedure TKraftConvexHull.Load(const AVertices:PKraftVector3;const ACountVertices:Integer);
-var Index:Integer;
+procedure TKraftConvexHull.Load(const AVertices:PKraftVector3;const ACountVertices:longint);
+var Index:longint;
     Vertex:PKraftConvexHullVertex;
 begin
  fCountVertices:=ACountVertices;
@@ -16854,7 +16854,7 @@ begin
 end;
 
 procedure TKraftConvexHull.Scale(const WithFactor:TKraftScalar);
-var Index:Integer;
+var Index:longint;
 begin
  for Index:=0 to fCountVertices-1 do begin
   Vector3Scale(fVertices[Index].Position,WithFactor);
@@ -16862,7 +16862,7 @@ begin
 end;
 
 procedure TKraftConvexHull.Scale(const WithVector:TKraftVector3);
-var Index:Integer;
+var Index:longint;
 begin
  for Index:=0 to fCountVertices-1 do begin
   Vector3Scale(fVertices[Index].Position,WithVector.x,WithVector.y,WithVector.z);
@@ -16870,7 +16870,7 @@ begin
 end;
 
 procedure TKraftConvexHull.Transform(const WithMatrix:TKraftMatrix3x3);
-var Index:Integer;
+var Index:longint;
 begin
  for Index:=0 to fCountVertices-1 do begin
   Vector3MatrixMul(fVertices[Index].Position,WithMatrix);
@@ -16878,43 +16878,43 @@ begin
 end;
 
 procedure TKraftConvexHull.Transform(const WithMatrix:TKraftMatrix4x4);
-var Index:Integer;
+var Index:longint;
 begin
  for Index:=0 to fCountVertices-1 do begin
   Vector3MatrixMul(fVertices[Index].Position,WithMatrix);
  end;
 end;
 
-procedure TKraftConvexHull.Build(const AMaximumCountConvexHullPoints:Integer=-1;const AUserDefinedTolerance:double=-1.0);
+procedure TKraftConvexHull.Build(const AMaximumCountConvexHullPoints:longint=-1;const AUserDefinedTolerance:double=-1.0);
 const HashBits=8;
       HashSize=1 shl HashBits;
       HashMask=HashSize-1;
-      ModuloThree:array[0..5] of Integer=(0,1,2,0,1,2);
+      ModuloThree:array[0..5] of longint=(0,1,2,0,1,2);
       DOUBLE_PREC:double=2.2204460492503131e-16;
 type PTempFaceEdgeHashItem=^TTempFaceEdgeHashItem;
      TTempFaceEdgeHashItem=record
-      Next:Integer;
-      Hash:UInt32;
-      Edge:Integer;
-      Face:Integer;
-      FaceEdge:Integer;
-      FaceEdgeVertexA:Integer;
-      FaceEdgeVertexB:Integer;
+      Next:longint;
+      Hash:longword;
+      Edge:longint;
+      Face:longint;
+      FaceEdge:longint;
+      FaceEdgeVertexA:longint;
+      FaceEdgeVertexB:longint;
      end;
      PTempFaceEdge=^TTempFaceEdge;
      TTempFaceEdge=record
-      Face:Integer;
-      Twin:Integer;
-      Vertices:array[0..1] of Integer;
+      Face:longint;
+      Twin:longint;
+      Vertices:array[0..1] of longint;
      end;
 var PointIndex,TriangleIndex,TriangleVertexIndex,VertexIndex,OtherVertexIndex,{OtherTriangleIndex,}Index,
     OtherTriangleVertexIndex,SearchIndex,CountTempFaceEdges,FaceIndex,EdgeVertexOffset,TempFaceEdgeIndex,
     {OtherTempFaceEdgeIndex,}CountTempFaceEdgeHashItems,TempFaceEdgeHashItemIndex,{v0,v1,v2,}
-    {FoundSharedVertex,}FaceVertexIndex,{OtherFaceVertexIndex,}CountPoints,HashBucket,CountTriangles:Integer;
-    TempFaceEdgeHash:UInt32;
+    {FoundSharedVertex,}FaceVertexIndex,{OtherFaceVertexIndex,}CountPoints,HashBucket,CountTriangles:longint;
+    TempFaceEdgeHash:longword;
     TempFaceEdgeHashItem:PTempFaceEdgeHashItem;
     TempPoints:TConvexHullVectors;
-    TempPointHashTable:array of Integer;
+    TempPointHashTable:array of longint;
     TempTriangles:TConvexHullTriangles;
     Vertex:PKraftConvexHullVertex;
     Face:PKraftConvexHullFace;
@@ -16926,7 +16926,7 @@ var PointIndex,TriangleIndex,TriangleVertexIndex,VertexIndex,OtherVertexIndex,{O
     TempFaceEdge:PTempFaceEdge;
     Found:boolean;
     TempFaceEdgeHashItems:array of TTempFaceEdgeHashItem;
-    TempFaceEdgeHashTable:array of Integer;
+    TempFaceEdgeHashTable:array of longint;
     {TempInputPolygons,}TempOutputPolygons:TConvexHullPolygons;
     TempPolygon:PConvexHullPolygon;
     QuickHullInstance:TKraftQuickHull;
@@ -17286,9 +17286,9 @@ begin
    for TempFaceEdgeIndex:=0 to CountTempFaceEdges-1 do begin
     TempFaceEdge:=@TempFaceEdges[TempFaceEdgeIndex];
     if TempFaceEdge^.Vertices[0]<TempFaceEdge^.Vertices[1] then begin
-     TempFaceEdgeHash:=(UInt32(TempFaceEdge^.Vertices[0])*73856093) xor (UInt32(TempFaceEdge^.Vertices[1])*83492791);
+     TempFaceEdgeHash:=(longword(TempFaceEdge^.Vertices[0])*73856093) xor (longword(TempFaceEdge^.Vertices[1])*83492791);
     end else begin
-     TempFaceEdgeHash:=(UInt32(TempFaceEdge^.Vertices[1])*73856093) xor (UInt32(TempFaceEdge^.Vertices[0])*83492791);
+     TempFaceEdgeHash:=(longword(TempFaceEdge^.Vertices[1])*73856093) xor (longword(TempFaceEdge^.Vertices[0])*83492791);
     end;
     TempFaceEdgeHashItemIndex:=TempFaceEdgeHashTable[TempFaceEdgeHash and HashMask];
     while TempFaceEdgeHashItemIndex>=0 do begin
@@ -17411,7 +17411,7 @@ begin
 end;
 
 procedure TKraftConvexHull.Update;
-var FaceIndex,VertexIndex:Integer;
+var FaceIndex,VertexIndex:longint;
     Face:PKraftConvexHullFace;
     v0,v1,v2:PKraftVector3;
 begin
@@ -17480,9 +17480,9 @@ begin
 end;
 
 procedure TKraftConvexHull.CalculateMassData;
-const ModuloThree:array[0..5] of Integer=(0,1,2,0,1,2);
+const ModuloThree:array[0..5] of longint=(0,1,2,0,1,2);
       Density=1.0;
-var FaceIndex,FaceVertexIndex,CoordinateIndex,SecondCoordinateIndex,ThirdCoordinateIndex:Integer;
+var FaceIndex,FaceVertexIndex,CoordinateIndex,SecondCoordinateIndex,ThirdCoordinateIndex:longint;
     Face:PKraftConvexHullFace;
     vU,vV,vW:PKraftVector3;
     CurrentVolume,CentroidX,CentroidY,CentroidZ,Volume,Denominator:double;
@@ -17606,8 +17606,8 @@ end;
 
 procedure TKraftConvexHull.Finish;
 const Steps=1024;
-      //ModuloThree:array[0..5] of Integer=(0,1,2,0,1,2);
-var VertexIndex:Integer;
+      //ModuloThree:array[0..5] of longint=(0,1,2,0,1,2);
+var VertexIndex:longint;
     v:PKraftVector3;
 begin
 
@@ -17669,7 +17669,7 @@ begin
 end;
 
 function TKraftConvexHull.GetSignedDistance(const Position:TKraftVector3):TKraftScalar;
-var Index:Integer;
+var Index:longint;
     Distance:TKraftScalar;
 begin
  if fCountFaces>0 then begin
@@ -17696,7 +17696,7 @@ begin
  end;
 end;
 
-function TKraftConvexHull.GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3;
+function TKraftConvexHull.GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3;
 begin
  if (Index>=0) and (Index<fCountVertices) then begin
   result:=fVertices[Index].Position;
@@ -17705,9 +17705,9 @@ begin
  end;
 end;
 
-function TKraftConvexHull.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer;
+function TKraftConvexHull.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint;
 var Normal:TKraftVector3;
-    Index,BestVertexIndex,NewVertexIndex,CurrentVertexIndex:Integer;
+    Index,BestVertexIndex,NewVertexIndex,CurrentVertexIndex:longint;
     BestDistance,NewDistance,CurrentDistance:TKraftScalar;
     Vertex,CurrentVertex:PKraftConvexHullVertex;
 begin
@@ -17751,7 +17751,7 @@ end;
 
 function TKraftConvexHull.GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3;
 var Normal:TKraftVector3;
-    Index,BestVertexIndex,NewVertexIndex,CurrentVertexIndex:Integer;
+    Index,BestVertexIndex,NewVertexIndex,CurrentVertexIndex:longint;
     BestDistance,NewDistance,CurrentDistance:TKraftScalar;
     Vertex,CurrentVertex:PKraftConvexHullVertex;
 begin
@@ -17859,7 +17859,7 @@ begin
 
 end;
 
-function TKraftMesh.AddVertex(const AVertex:TKraftVector3):Integer;
+function TKraftMesh.AddVertex(const AVertex:TKraftVector3):longint;
 begin
  result:=fCountVertices;
  inc(fCountVertices);
@@ -17869,7 +17869,7 @@ begin
  fVertices[result]:=AVertex;
 end;
 
-function TKraftMesh.AddNormal(const ANormal:TKraftVector3):Integer;
+function TKraftMesh.AddNormal(const ANormal:TKraftVector3):longint;
 begin
  result:=fCountNormals;
  inc(fCountNormals);
@@ -17879,7 +17879,7 @@ begin
  fNormals[result]:=ANormal;
 end;
 
-function TKraftMesh.AddTriangle(const AVertexIndex0,AVertexIndex1,AVertexIndex2:Integer;const ANormalIndex0:Integer=-1;const ANormalIndex1:Integer=-1;ANormalIndex2:Integer=-1):Integer;
+function TKraftMesh.AddTriangle(const AVertexIndex0,AVertexIndex1,AVertexIndex2:longint;const ANormalIndex0:longint=-1;const ANormalIndex1:longint=-1;ANormalIndex2:longint=-1):longint;
 var Triangle:PKraftMeshTriangle;
 begin
  result:=fCountTriangles;
@@ -17899,10 +17899,10 @@ begin
  Triangle^.Next:=-1;
 end;
 
-procedure TKraftMesh.Load(const AVertices:PKraftVector3;const ACountVertices:Integer;const ANormals:PKraftVector3;const ACountNormals:Integer;const AVertexIndices,ANormalIndices:pointer;const ACountIndices:Integer);
-var i:Integer;
+procedure TKraftMesh.Load(const AVertices:PKraftVector3;const ACountVertices:longint;const ANormals:PKraftVector3;const ACountNormals:longint;const AVertexIndices,ANormalIndices:pointer;const ACountIndices:longint);
+var i:longint;
     Triangle:PKraftMeshTriangle;
-    v,n:pInteger;
+    v,n:plongint;
     HasNormals:boolean;
 begin
 
@@ -17958,11 +17958,11 @@ begin
 
 end;
 
-procedure TKraftMesh.Load(const ASourceData:pointer;const ASourceSize:Integer);
+procedure TKraftMesh.Load(const ASourceData:pointer;const ASourceSize:longint);
 type TFileSignature=array[0..3] of ansichar;
-var SrcPos:Integer;
+var SrcPos:longint;
     Signature:TFileSignature;
- function Read(var Dst;DstLen:UInt32):UInt32;
+ function Read(var Dst;DstLen:longword):longword;
  begin
   result:=ASourceSize-SrcPos;
   if result>DstLen then begin
@@ -17981,9 +17981,9 @@ var SrcPos:Integer;
  begin
   Read(result,SizeOf(word));
  end;
- function ReadUInt32:UInt32;
+ function ReadLongWord:longword;
  begin
-  Read(result,SizeOf(UInt32));
+  Read(result,SizeOf(longword));
  end;
  function ReadFloat:single;
  begin
@@ -17991,22 +17991,22 @@ var SrcPos:Integer;
  end;
  procedure LoadPMF;
  type TFace=record
-       Indices:array[0..2] of UInt32;
+       Indices:array[0..2] of longword;
       end;
       PFaces=^TFaces;
       TFaces=array[0..0] of TFace;
- var Counter:Integer;
+ var Counter:longint;
      Triangle:PKraftMeshTriangle;
  begin
-  fCountTriangles:=ReadUInt32;
+  fCountTriangles:=ReadLongWord;
   SetLength(fTriangles,fCountTriangles);
-  fCountVertices:=ReadUInt32;
+  fCountVertices:=ReadLongWord;
   if (fCountTriangles>0) and (fCountVertices>0) then begin
    for Counter:=0 to fCountTriangles-1 do begin
     Triangle:=@fTriangles[Counter];
-    Triangle^.Vertices[0]:=ReadUInt32;
-    Triangle^.Vertices[1]:=ReadUInt32;
-    Triangle^.Vertices[2]:=ReadUInt32;
+    Triangle^.Vertices[0]:=ReadLongWord;
+    Triangle^.Vertices[1]:=ReadLongWord;
+    Triangle^.Vertices[2]:=ReadLongWord;
     Triangle^.Normals[0]:=-1;
     Triangle^.Normals[1]:=-1;
     Triangle^.Normals[2]:=-1;
@@ -18025,7 +18025,7 @@ var SrcPos:Integer;
    end;
   end;
  end;
- function Load3DS(SrcData:pointer;SrcSize:UInt32):boolean;
+ function Load3DS(SrcData:pointer;SrcSize:longword):boolean;
  const CHUNK_3DS_MAIN=$4d4d;
        CHUNK_3DS_OBJMESH=$3d3d;
        CHUNK_3DS_OBJBLOCK=$4000;
@@ -18043,20 +18043,20 @@ var SrcPos:Integer;
       TKraftVector3Array=array[0..0] of TKraftVector3;
       PFace3DS=^TFace3DS;
       TFace3DS=record
-       Indices:array[0..2] of UInt32;
-       Flags:UInt32;
-       SmoothGroup:UInt32;
+       Indices:array[0..2] of longword;
+       Flags:longword;
+       SmoothGroup:longword;
       end;
       PFaces3DS=^TFaces3DS;
       TFaces3DS=array[0..0] of TFace3DS;
       PObject3DSMesh=^TObject3DSMesh;
       TObject3DSMesh=record
        Vertices:PVector3Array;
-       NumVertices:Integer;
+       NumVertices:longint;
        TexCoords:PVector2Array;
-       NumTexCoords:Integer;
+       NumTexCoords:longint;
        Faces:PFaces3DS;
-       NumFaces:Integer;
+       NumFaces:longint;
        Matrix:TKraftMatrix4x4;
       end;
       PObject3DSMeshs=^TObject3DSMeshs;
@@ -18065,16 +18065,16 @@ var SrcPos:Integer;
       TObject3DS=record
        Name:PAnsiChar;
        Meshs:PObject3DSMeshs;
-       NumMeshs:Integer;
+       NumMeshs:longint;
       end;
       PObjects3DS=^TObjects3DS;
       TObjects3DS=array[0..0] of TObject3DS;
- var SrcPos:UInt32;
+ var SrcPos:longword;
      Signature3DS:word;
-     Size3DS:UInt32;
+     Size3DS:longword;
      Objects3DS:PObjects3DS;
-     NumObjects3DS:Integer;
-  function Read(var Dst;DstLen:UInt32):UInt32;
+     NumObjects3DS:longint;
+  function Read(var Dst;DstLen:longword):longword;
   begin
    result:=SrcSize-SrcPos;
    if result>DstLen then begin
@@ -18093,15 +18093,15 @@ var SrcPos:Integer;
   begin
    Read(result,SizeOf(word));
   end;
-  function ReadUInt32:UInt32;
+  function ReadLongWord:longword;
   begin
-   Read(result,SizeOf(UInt32));
+   Read(result,SizeOf(longword));
   end;
   function ReadFloat:single;
   begin
    Read(result,SizeOf(single));
   end;
-  procedure ReallocateMemory(var p;Size:Integer);
+  procedure ReallocateMemory(var p;Size:longint);
   begin
    if assigned(pointer(p)) then begin
     if Size=0 then begin
@@ -18114,8 +18114,8 @@ var SrcPos:Integer;
     GetMem(pointer(p),Size);
    end;
   end;
-  function Read3DSChunks(const ParentChunk,Bytes:UInt32):UInt32; forward;
-  function Skip3DSString:UInt32;
+  function Read3DSChunks(const ParentChunk,Bytes:longword):longword; forward;
+  function Skip3DSString:longword;
   var c:ansichar;
   begin
    result:=0;
@@ -18127,9 +18127,9 @@ var SrcPos:Integer;
     inc(result);
    end;
   end;
-  function Read3DSString(var p:PAnsiChar):UInt32;
+  function Read3DSString(var p:PAnsiChar):longword;
   var c:ansichar;
-      OldPos:UInt32;
+      OldPos:longword;
   begin
    OldPos:=SrcPos;
    result:=0;
@@ -18152,9 +18152,9 @@ var SrcPos:Integer;
     inc(result);
    end;
   end;
-  function Read3DSChunk(const ParentChunk:UInt32):UInt32;
+  function Read3DSChunk(const ParentChunk:longword):longword;
   var Chunk:word;
-      Size,i,j:UInt32;
+      Size,i,j:longword;
       Vertex:PKraftVector3;
       TexCoord:PVector2;
       Face:PFace3DS;
@@ -18163,7 +18163,7 @@ var SrcPos:Integer;
     result:=$80000000;
     exit;
    end;
-   if Read(result,SizeOf(UInt32))<>SizeOf(UInt32) then begin
+   if Read(result,SizeOf(longword))<>SizeOf(longword) then begin
     result:=$80000000;
     exit;
    end;
@@ -18262,7 +18262,7 @@ var SrcPos:Integer;
       CHUNK_3DS_SMOOTHLIST:begin
        Face:=@Objects3DS^[NumObjects3DS-1].Meshs^[Objects3DS^[NumObjects3DS-1].NumMeshs-1].Faces^[0];
        for i:=1 to Objects3DS^[NumObjects3DS-1].Meshs^[Objects3DS^[NumObjects3DS-1].NumMeshs-1].NumFaces do begin
-        Face^.SmoothGroup:=ReadUInt32;
+        Face^.SmoothGroup:=ReadLongWord;
         inc(Face);
        end;
       end;
@@ -18276,7 +18276,7 @@ var SrcPos:Integer;
     end;
    end;
   end;
-  function Read3DSChunks(const ParentChunk,Bytes:UInt32):UInt32;
+  function Read3DSChunks(const ParentChunk,Bytes:longword):longword;
   begin
    result:=0;
    while result<Bytes do begin
@@ -18284,7 +18284,7 @@ var SrcPos:Integer;
    end;
   end;
   procedure Convert3DS;
-  var i,j,k,h:Integer;
+  var i,j,k,h:longint;
       v:array[0..2] of TKraftVector3;
       tv:TKraftVector3;
   begin
@@ -18304,7 +18304,7 @@ var SrcPos:Integer;
    end;
   end;
   procedure Free3DS;
-  var i,j:Integer;
+  var i,j:longint;
   begin
    for i:=0 to NumObjects3DS-1 do begin
     for j:=0 to Objects3DS^[i].NumMeshs-1 do begin
@@ -18322,7 +18322,7 @@ var SrcPos:Integer;
    SrcPos:=0;
    if Read(Signature3DS,SizeOf(word))=SizeOf(word) then begin
     if Signature3DS=CHUNK_3DS_MAIN then begin
-     if Read(Size3DS,SizeOf(UInt32))=SizeOf(UInt32) then begin
+     if Read(Size3DS,SizeOf(longword))=SizeOf(longword) then begin
       Objects3DS:=nil;
       NumObjects3DS:=0;
       result:=Read3DSChunks(Signature3DS,Size3DS)>0;
@@ -18360,7 +18360,7 @@ begin
 end;
 
 procedure TKraftMesh.Scale(const WithFactor:TKraftScalar);
-var Index:Integer;
+var Index:longint;
 begin
  for Index:=0 to fCountVertices-1 do begin
   Vector3Scale(fVertices[Index],WithFactor);
@@ -18368,7 +18368,7 @@ begin
 end;
 
 procedure TKraftMesh.Scale(const WithVector:TKraftVector3);
-var Index:Integer;
+var Index:longint;
 begin
  for Index:=0 to fCountVertices-1 do begin
   Vector3Scale(fVertices[Index],WithVector.x,WithVector.y,WithVector.z);
@@ -18376,7 +18376,7 @@ begin
 end;
 
 procedure TKraftMesh.Transform(const WithMatrix:TKraftMatrix3x3);
-var Index:Integer;
+var Index:longint;
 begin
  for Index:=0 to fCountVertices-1 do begin
   Vector3MatrixMul(fVertices[Index],WithMatrix);
@@ -18384,7 +18384,7 @@ begin
 end;
 
 procedure TKraftMesh.Transform(const WithMatrix:TKraftMatrix4x4);
-var Index:Integer;
+var Index:longint;
 begin
  for Index:=0 to fCountVertices-1 do begin
   Vector3MatrixMul(fVertices[Index],WithMatrix);
@@ -18392,8 +18392,8 @@ begin
 end;
 
 procedure TKraftMesh.CalculateNormals;
-var TriangleIndex,NormalIndex,Counter:Integer;
-    NormalCounts:array of Integer;
+var TriangleIndex,NormalIndex,Counter:longint;
+    NormalCounts:array of longint;
     Triangle:PKraftMeshTriangle;
 begin
  NormalCounts:=nil;
@@ -18432,14 +18432,14 @@ procedure TKraftMesh.Finish;
 type PAABBTreeNode=^TAABBTreeNode;
      TAABBTreeNode=record
       AABB:TKraftAABB;
-      Children:array[0..1] of Integer;
-      TriangleIndex:Integer;
+      Children:array[0..1] of longint;
+      TriangleIndex:longint;
      end;
      TAABBTreeNodes=array of TAABBTreeNode;
 var Counter,StackPointer,CurrentNodeIndex,LeftCount,RightCount,ParentCount,AxisCounter,Axis,BestAxis,TriangleIndex,
     Balance,BestBalance,NextTriangleIndex,LeftNodeIndex,RightNodeIndex,TargetNodeIndex,Count,Root,CountNodes,Index,
-    NodeID,Pass,NewStackCapacity:Integer;
-    Stack:array of Integer;
+    NodeID,Pass,NewStackCapacity:longint;
+    Stack:array of longint;
     Points:array[0..2] of array of TKraftScalar;
     Center,Median:TKraftVector3;
     LeftAABB,RightAABB:TKraftAABB;
@@ -18773,12 +18773,12 @@ function TKraftMesh.GetSignedDistance(const Position:TKraftVector3):TKraftScalar
 {$ifdef KraftSingleThreadedUsage}
 type PStackItem=^TStackItem;
      TStackItem=record
-      NodeIndex:Integer;
+      NodeIndex:longint;
       SquaredDistance:TKraftScalar;
      end;
      TStackItems=array[0..31] of TStackItem;
 var LocalStack:TStackItems;
-    LocalStackPointer,TriangleIndex:Integer;
+    LocalStackPointer,TriangleIndex:longint;
     Node:PKraftMeshNode;
     Triangle,BestTriangle:PKraftMeshTriangle;
     StackItem:PStackItem;
@@ -18881,11 +18881,11 @@ begin
  end;
 end;
 {$else}
-var TriangleIndex:Integer;
+var TriangleIndex:longint;
     Triangle,BestTriangle:PKraftMeshTriangle;
     SquaredDistances:array[0..1] of TKraftScalar;
     SquaredThickness,SquaredThicknessEpsilon:TKraftScalar;
- procedure ProcessNode(const NodeIndex:Integer;SquaredDistance:TKraftScalar);
+ procedure ProcessNode(const NodeIndex:longint;SquaredDistance:TKraftScalar);
  var Node:PKraftMeshNode;
  begin
   if (NodeIndex>=0) and ((SquaredDistance-SquaredThicknessEpsilon)<result) then begin
@@ -19252,12 +19252,12 @@ begin
  result:=Vector3Origin;
 end;
 
-function TKraftShape.GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3;
+function TKraftShape.GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3;
 begin
  result:=Vector3Origin;
 end;
 
-function TKraftShape.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer;
+function TKraftShape.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint;
 begin
  result:=-1;
 end;
@@ -19345,12 +19345,12 @@ begin
  result:=Vector3ScalarMul(Vector3SafeNorm(Direction),fRadius);
 end;
 
-function TKraftShapeSphere.GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3;
+function TKraftShapeSphere.GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3;
 begin
  result:=Vector3Origin;
 end;
 
-function TKraftShapeSphere.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer;
+function TKraftShapeSphere.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint;
 begin
  result:=0;
 end;
@@ -19402,7 +19402,7 @@ procedure TKraftShapeSphere.Draw(const CameraMatrix:TKraftMatrix4x4);
 const lats=16;
       longs=16;
       pi2=pi*2.0;
-var i,j:Integer;
+var i,j:longint;
     lat0,z0,zr0,lat1,z1,zr1,lng,x,y:TKraftScalar;
     ModelViewMatrix:TKraftMatrix4x4;
 begin
@@ -19582,7 +19582,7 @@ begin
  end;
 end;
 
-function TKraftShapeCapsule.GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3;
+function TKraftShapeCapsule.GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3;
 begin
  result.x:=0.0;
  case Index of
@@ -19596,7 +19596,7 @@ begin
  result.z:=0.0;
 end;
 
-function TKraftShapeCapsule.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer;
+function TKraftShapeCapsule.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint;
 begin
  if Direction.y<0.0 then begin
   result:=0;
@@ -19737,7 +19737,7 @@ const lats=16;
       longs=16;
      pi2=pi*2.0;
 var ModelViewMatrix:TKraftMatrix4x4;
-    i,j:Integer;
+    i,j:longint;
     HalfHeight,lat0,y0,yr0,lat1,y1,yr1,lng,x,z,yo0,yo1:TKraftScalar;
 begin
  glPushMatrix;
@@ -19851,12 +19851,12 @@ begin
  result:=fConvexHull.GetLocalFullSupport(Vector3SafeNorm(Direction));
 end;
 
-function TKraftShapeConvexHull.GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3;
+function TKraftShapeConvexHull.GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3;
 begin
  result:=fConvexHull.GetLocalFeatureSupportVertex(Index);
 end;
 
-function TKraftShapeConvexHull.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer;
+function TKraftShapeConvexHull.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint;
 begin
  result:=fConvexHull.GetLocalFeatureSupportIndex(Direction);
 end;
@@ -19867,7 +19867,7 @@ begin
 end;
 
 function TKraftShapeConvexHull.TestPoint(const p:TKraftVector3):boolean;
-var i:Integer;
+var i:longint;
 begin
  result:=true;
  for i:=0 to fConvexHull.fCountFaces-1 do begin
@@ -19879,7 +19879,7 @@ begin
 end;
 
 function TKraftShapeConvexHull.RayCast(var RayCastData:TKraftRaycastData):boolean;
-var FaceIndex,BestFaceIndex:Integer;
+var FaceIndex,BestFaceIndex:longint;
     Face:PKraftConvexHullFace;
     TimeFirst,TimeLast,Numerator,Denominator,Time:TKraftScalar;
     Origin,Direction:TKraftVector3;
@@ -19929,7 +19929,7 @@ end;
 
 {$ifdef DebugDraw}
 procedure TKraftShapeConvexHull.Draw(const CameraMatrix:TKraftMatrix4x4);
-var i,j:Integer;
+var i,j:longint;
     ModelViewMatrix:TKraftMatrix4x4;
     Face:PKraftConvexHullFace;
 begin
@@ -19991,7 +19991,7 @@ end;
 {$endif}
 
 constructor TKraftShapeBox.Create(const APhysics:TKraft;const ARigidBody:TKraftRigidBody;const AExtents:TKraftVector3);
-var i:Integer;
+var i:longint;
     BoxPoints:array[0..7] of TKraftVector3;
 begin
  fExtents:=AExtents;
@@ -20060,7 +20060,7 @@ end;
 
 function TKraftShapeBox.GetSignedDistance(const Position:TKraftVector3):TKraftScalar;
 var ClosestBoxPoint,Temp,Direction:TKraftVector3;
-    Overlap:Integer;
+    Overlap:longint;
 begin
  result:=0;
  ClosestBoxPoint:=Vector3TermMatrixMulInverted(Position,fWorldTransform);
@@ -20144,18 +20144,18 @@ begin
   result.z:=fExtents.z;
  end;
 {$else}
- result.x:=fExtents.x*(1-Integer(UInt32(UInt32(pointer(@Normal.x)^) shr 31) shl 1));
- result.y:=fExtents.y*(1-Integer(UInt32(UInt32(pointer(@Normal.y)^) shr 31) shl 1));
- result.z:=fExtents.z*(1-Integer(UInt32(UInt32(pointer(@Normal.z)^) shr 31) shl 1));
+ result.x:=fExtents.x*(1-longint(longword(longword(pointer(@Normal.x)^) shr 31) shl 1));
+ result.y:=fExtents.y*(1-longint(longword(longword(pointer(@Normal.y)^) shr 31) shl 1));
+ result.z:=fExtents.z*(1-longint(longword(longword(pointer(@Normal.z)^) shr 31) shl 1));
 {$endif}
 end;
 
-function TKraftShapeBox.GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3;
+function TKraftShapeBox.GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3;
 begin
  result:=inherited GetLocalFeatureSupportVertex(Index);
 end;
 
-function TKraftShapeBox.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer;
+function TKraftShapeBox.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint;
 begin
  result:=inherited GetLocalFeatureSupportIndex(Direction);
 end;
@@ -20177,7 +20177,7 @@ end;
 function TKraftShapeBox.RayCast(var RayCastData:TKraftRaycastData):boolean;
 var s,v,h:TKraftVector3;
     lo,hi,k,Alpha:TKraftScalar;
-    nlo,nhi,n:Integer;
+    nlo,nhi,n:longint;
     sign:array[0..2] of TKraftScalar;
 begin
  result:=false;
@@ -20396,7 +20396,7 @@ begin
 end;
 
 function TKraftShapePlane.GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3;
-var Index,BestIndex:Integer;
+var Index,BestIndex:longint;
     BestDistance,NewDistance:TKraftScalar;
     Normal:TKraftVector3;
 begin
@@ -20416,7 +20416,7 @@ begin
  end;
 end;
 
-function TKraftShapePlane.GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3;
+function TKraftShapePlane.GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3;
 begin
  if (Index>=0) and (Index<4) then begin
   result:=fPlaneVertices[Index];
@@ -20425,8 +20425,8 @@ begin
  end;
 end;
 
-function TKraftShapePlane.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer;
-var Index:Integer;
+function TKraftShapePlane.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint;
+var Index:longint;
     BestDistance,NewDistance:TKraftScalar;
     Normal:TKraftVector3;
 begin
@@ -20698,7 +20698,7 @@ begin
 end;
 
 function TKraftShapeTriangle.GetLocalFullSupport(const Direction:TKraftVector3):TKraftVector3;
-var i:Integer;
+var i:longint;
     Vertices:PPKraftConvexHullVertices;
     d0,d1,d2:TKraftScalar;
     Normal:TKraftVector3;
@@ -20724,7 +20724,7 @@ begin
  result:=Vertices^[i].Position;
 end;
 
-function TKraftShapeTriangle.GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3;
+function TKraftShapeTriangle.GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3;
 begin
  if (Index>=0) and (Index<3) then begin
   result:=fConvexHull.fVertices[Index].Position;
@@ -20733,7 +20733,7 @@ begin
  end;
 end;
 
-function TKraftShapeTriangle.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer;
+function TKraftShapeTriangle.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint;
 var Vertices:PPKraftConvexHullVertices;
     d0,d1,d2:TKraftScalar;
     Normal:TKraftVector3;
@@ -20891,12 +20891,12 @@ begin
  result:=Vector3Origin;
 end;
 
-function TKraftShapeMesh.GetLocalFeatureSupportVertex(const Index:Integer):TKraftVector3;
+function TKraftShapeMesh.GetLocalFeatureSupportVertex(const Index:longint):TKraftVector3;
 begin
  result:=Vector3Origin;
 end;
 
-function TKraftShapeMesh.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):Integer;
+function TKraftShapeMesh.GetLocalFeatureSupportIndex(const Direction:TKraftVector3):longint;
 begin
  result:=-1;
 end;
@@ -20912,7 +20912,7 @@ begin
 end;
 
 function TKraftShapeMesh.RayCast(var RayCastData:TKraftRaycastData):boolean;
-var SkipListNodeIndex,TriangleIndex:Integer;
+var SkipListNodeIndex,TriangleIndex:longint;
     SkipListNode:PKraftMeshSkipListNode;
     Triangle:PKraftMeshTriangle;
     First:boolean;
@@ -20971,7 +20971,7 @@ end;
 
 {$ifdef DebugDraw}
 procedure TKraftShapeMesh.Draw(const CameraMatrix:TKraftMatrix4x4);
-var i:Integer;
+var i:longint;
     ModelViewMatrix:TKraftMatrix4x4;
     Triangle:PKraftMeshTriangle;
 begin
@@ -21022,7 +21022,7 @@ end;
 {$endif}
 
 procedure TKraftContactPair.GetSolverContactManifold(out SolverContactManifold:TKraftSolverContactManifold;const WorldTransformA,WorldTransformB:TKraftMatrix4x4;const ContactManifoldMode:TKraftContactPairContactManifoldMode);
-var ContactIndex:Integer;
+var ContactIndex:longint;
     Contact:PKraftContact;
     SolverContact:PKraftSolverContact;
     PointA,PointB,PlanePoint,ClipPoint,cA,cB:TKraftVector3;
@@ -21179,11 +21179,11 @@ begin
  end;
 end;
 
-procedure TKraftContactPair.DetectCollisions(const ContactManager:TKraftContactManager;const TriangleShape:TKraftShape=nil;const ThreadIndex:Integer=0;const SpeculativeContacts:boolean=true;const DeltaTime:double=0.0);
-var OldManifoldCountContacts:Integer;
+procedure TKraftContactPair.DetectCollisions(const ContactManager:TKraftContactManager;const TriangleShape:TKraftShape=nil;const ThreadIndex:longint=0;const SpeculativeContacts:boolean=true;const DeltaTime:double=0.0);
+var OldManifoldCountContacts:longint;
     OldContactManifoldType:TKraftContactManifoldType;
     ShapeTriangle:TKraftShapeTriangle;
- function CreateFeatureID(const ElementA,ElementB:UInt32):TKraftContactFeatureID; overload; {$ifdef caninline}inline;{$endif}
+ function CreateFeatureID(const ElementA,ElementB:longword):TKraftContactFeatureID; overload; {$ifdef caninline}inline;{$endif}
  begin
   result.ElementA:=ElementA;
   result.ElementB:=ElementB;
@@ -21323,7 +21323,7 @@ var OldManifoldCountContacts:Integer;
   end;
  end;
  procedure CollideSphereWithConvexHull(ShapeA:TKraftShapeSphere;ShapeB:TKraftShapeConvexHull); {$ifdef caninline}inline;{$endif}
- var FaceIndex,ClosestFaceIndex,VertexIndex,BestClosestFaceIndex:Integer;
+ var FaceIndex,ClosestFaceIndex,VertexIndex,BestClosestFaceIndex:longint;
      Distance,ClosestDistance,BestClosestPointDistance,d:TKraftScalar;
      Center,SphereCenter,Normal,ClosestPoint,BestClosestPointOnHull,BestClosestPointNormal,ab,ap,a,b,v,n:TKraftVector3;
      InsideSphere,InsidePolygon,HasBestClosestPoint:boolean;
@@ -21455,10 +21455,10 @@ var OldManifoldCountContacts:Integer;
   end;
  end;
  procedure CollideSphereWithBox(ShapeA:TKraftShapeSphere;ShapeB:TKraftShapeBox); {$ifdef caninline}inline;{$endif}
- //const ModuloThree:array[0..5] of Integer=(0,1,2,0,1,2);
+ //const ModuloThree:array[0..5] of longint=(0,1,2,0,1,2);
  var IntersectionDist,ContactDist,DistSqr,FaceDist,MinDist:TKraftScalar;
      Center,SphereRelativePosition,ClosestPoint,Normal:TKraftVector3;
-     Axis,AxisSign,BestFaceIndex:Integer;
+     Axis,AxisSign,BestFaceIndex:longint;
  begin
   Center:=Vector3TermMatrixMul(ShapeA.fLocalCentroid,ShapeA.fWorldTransform);
   SphereRelativePosition:=Vector3TermMatrixMulInverted(Center,ShapeB.fWorldTransform);
@@ -21548,8 +21548,8 @@ var OldManifoldCountContacts:Integer;
   end;
  end;
  procedure CollideSphereWithTriangle(ShapeA:TKraftShapeSphere;ShapeB:TKraftShapeTriangle); {$ifdef caninline}inline;{$endif}
- const ModuloThree:array[0..5] of Integer=(0,1,2,0,1,2);
- var i:Integer;
+ const ModuloThree:array[0..5] of longint=(0,1,2,0,1,2);
+ var i:longint;
      Radius,RadiusWithThreshold,DistanceFromPlane,ContactRadiusSqr,DistanceSqr:TKraftScalar;
      Center,SphereCenter,Normal,P0ToCenter,ContactPointOnTriangle,NearestOnEdge,ContactToCenter:TKraftVector3;
      IsInsideContactPlane,HasContact,IsEdge:boolean;
@@ -21675,7 +21675,7 @@ var OldManifoldCountContacts:Integer;
  end;
  procedure CollideCapsuleWithConvexHull(ShapeA:TKraftShapeCapsule;ShapeB:TKraftShapeConvexHull); {$ifdef caninline}inline;{$endif}
  const Tolerance=0.005;
- var FaceIndex,VertexIndex,OtherVertexIndex,PointIndex,MaxFaceIndex,MaxEdgeIndex,EdgeIndex:Integer;
+ var FaceIndex,VertexIndex,OtherVertexIndex,PointIndex,MaxFaceIndex,MaxEdgeIndex,EdgeIndex:longint;
      CapsuleRadius,Distance,MaxFaceSeparation,MaxEdgeSeparation,Separation,L:TKraftScalar;
      CapsulePosition,CapsuleAxis,CapsulePointStart,CapsulePointEnd,Normal,FaceNormal,{MaxFaceSeparateAxis,}
      MaxEdgeSeparateAxis,CenterB,Ea,Eb,Ea_x_Eb:TKraftVector3;
@@ -21908,7 +21908,7 @@ var OldManifoldCountContacts:Integer;
 
  end;
  procedure CollideCapsuleWithTriangle(ShapeA:TKraftShapeCapsule;ShapeB:TKraftShapeTriangle); {$ifdef caninline}inline;{$endif}
- var Index,Count:Integer;
+ var Index,Count:longint;
      Radius,HalfLength,SquaredDistance,SquaredRadius,d:TKraftScalar;
      Center,GeometryDirection,HalfAxis,pa,pb,Normal:TKraftVector3;
      Segment:TKraftSegment;
@@ -22066,7 +22066,7 @@ var OldManifoldCountContacts:Integer;
    end;
   end;
   procedure QueryFaceDirections(const HullA,HullB:TKraftShapeConvexHull;out OutFaceQuery:TKraftContactFaceQuery); {$ifdef caninline}inline;{$endif}
-  var MaxIndex,Index:Integer;
+  var MaxIndex,Index:longint;
       MaxSeparation,Separation:TKraftScalar;
       Plane:TKraftPlane;
       Transform:TKraftMatrix4x4;
@@ -22090,7 +22090,7 @@ var OldManifoldCountContacts:Integer;
   end;
   procedure QueryEdgeDirections(const HullA,HullB:TKraftShapeConvexHull;out OutEdgeQuery:TKraftContactEdgeQuery); {$ifdef caninline}inline;{$endif}
   var EdgeA,EdgeB:PKraftConvexHullEdge;
-      IndexA,IndexB,MaxIndexA,MaxIndexB:Integer;
+      IndexA,IndexB,MaxIndexA,MaxIndexB:longint;
       MaxSeparation,Separation,L:TKraftScalar;
       CenterA,Pa,Qa,Ea,Ua,Va,Pb,Qb,Eb,Ub,Vb,Ea_x_Eb,Normal,MaxNormal:TKraftVector3;
       Transform:TKraftMatrix4x4;
@@ -22177,8 +22177,8 @@ var OldManifoldCountContacts:Integer;
     result:=false;
    end;
   end;
-  function FindIncidentFaceIndex(const ReferenceHull:TKraftShapeConvexHull;const ReferenceFaceIndex:Integer;const IncidentHull:TKraftShapeConvexHull):Integer; {$ifdef caninline}inline;{$endif}
-  var i:Integer;
+  function FindIncidentFaceIndex(const ReferenceHull:TKraftShapeConvexHull;const ReferenceFaceIndex:longint;const IncidentHull:TKraftShapeConvexHull):longint; {$ifdef caninline}inline;{$endif}
+  var i:longint;
       MinDot,Dot:TKraftScalar;
       ReferenceNormal:TKraftVector3;
   begin
@@ -22195,9 +22195,9 @@ var OldManifoldCountContacts:Integer;
     end;
    end;
   end;
-  procedure ClipFaceContactPoints(const ReferenceHull:TKraftShapeConvexHull;const ReferenceFaceIndex:Integer;const IncidentHull:TKraftShapeConvexHull;const IncidentFaceIndex:Integer;const Flip:boolean);
+  procedure ClipFaceContactPoints(const ReferenceHull:TKraftShapeConvexHull;const ReferenceFaceIndex:longint;const IncidentHull:TKraftShapeConvexHull;const IncidentFaceIndex:longint;const Flip:boolean);
   var Contact:PKraftContact;
-      ReferenceVertexIndex,OtherReferenceVertexIndex,IncidentVertexIndex,CliVertexIndex,ReferenceEdgeIndexOffset,IncidentEdgeIndexOffset:Integer;
+      ReferenceVertexIndex,OtherReferenceVertexIndex,IncidentVertexIndex,CliVertexIndex,ReferenceEdgeIndexOffset,IncidentEdgeIndexOffset:longint;
       ReferenceFace,IncidentFace:PKraftConvexHullFace;
       ClipVertex,PreviousClipVertex,CurrentClipVertex:PKraftClipVertex;
       PreviousClipVertexDistance,CurrentClipVertexDistance,Distance:TKraftScalar;
@@ -22351,7 +22351,7 @@ var OldManifoldCountContacts:Integer;
   end;
  var Physics:TKraft;
      Contact:PKraftContact;
-     ReferenceFaceIndex,IncidentFaceIndex,Index,ValidContacts:Integer;
+     ReferenceFaceIndex,IncidentFaceIndex,Index,ValidContacts:longint;
      EdgeA,EdgeB:PKraftConvexHullEdge;
      PenetrationDepth:TKraftScalar;
      a0,a1,b0,b1,pa,pb,Normal:TKraftVector3;
@@ -22504,8 +22504,8 @@ var OldManifoldCountContacts:Integer;
       Contact^.LocalPoints[0]:=Vector3TermMatrixMulInverted(pa,Shapes[0].fWorldTransform);
       Contact^.LocalPoints[1]:=Vector3TermMatrixMulInverted(pb,Shapes[1].fWorldTransform);
       Contact^.Penetration:=PenetrationDepth;
-      Contact^.FeatureID.ElementA:=UInt32(Manifold.EdgeQuery.IndexA) or UInt32($80000000);
-      Contact^.FeatureID.ElementB:=UInt32(Manifold.EdgeQuery.IndexB) or UInt32($80000000);
+      Contact^.FeatureID.ElementA:=longword(Manifold.EdgeQuery.IndexA) or longword($80000000);
+      Contact^.FeatureID.ElementB:=longword(Manifold.EdgeQuery.IndexB) or longword($80000000);
      end;
     end;
 
@@ -22552,7 +22552,7 @@ var OldManifoldCountContacts:Integer;
  procedure CollideWithMPRAndPerturbation(ShapeA,ShapeB:TKraftShape);
  const PerturbationAngleLimit=pi*0.125;
        pi2=pi*2.0;
- var PerturbationIterations,PreturbIteration,ContactIndex:Integer;
+ var PerturbationIterations,PreturbIteration,ContactIndex:longint;
      Contact:PKraftContact;
      PenetrationDepth,RadiusA,RadiusB,PerturbationAngle,IterationAngle:TKraftScalar;
      Normal,pa,pb,tpa,tpb,tp,v0,v1,SeperateNormalWorldSpace:TKraftVector3;
@@ -22675,9 +22675,9 @@ var OldManifoldCountContacts:Integer;
   end;
  end;
  procedure ProcessPersistentContactManifold(ShapeA,ShapeB:TKraftShape);
-  function FindReplacableContact(const NewContact:TKraftContact):Integer;
-  const Indices:array[0..3,0..2] of Integer=((1,2,3),(0,2,3),(0,1,3),(0,1,2));
-  var i,MaxPenetrationIndex:Integer;
+  function FindReplacableContact(const NewContact:TKraftContact):longint;
+  const Indices:array[0..3,0..2] of longint=((1,2,3),(0,2,3),(0,1,3),(0,1,2));
+  var i,MaxPenetrationIndex:longint;
       MaxPenetration,Area,BiggestArea:single;
       Contact:PKraftContact;
   begin
@@ -22728,7 +22728,7 @@ var OldManifoldCountContacts:Integer;
  var WorldPositions,LocalPoints:array[0..1] of TKraftVector3;
      Normal,Point:TKraftVector3;
      PenetrationDepth,ShortestDistance,Distance:TKraftScalar;
-     Nearest,Index,SubIndex:Integer;
+     Nearest,Index,SubIndex:longint;
      Contact:PKraftContact;
      NewContact:TKraftContact;
  begin
@@ -22857,7 +22857,7 @@ var OldManifoldCountContacts:Integer;
 
  end;
  procedure FindSpeculativeContacts(ShapeA,ShapeB:TKraftShape);
- var Index:Integer;
+ var Index:longint;
      VelocityLength,t0,t1:TKraftScalar;
      Sweeps:array[0..1] of TKraftSweep;
      Transforms:array[0..1,0..1] of TKraftMatrix4x4;
@@ -22918,7 +22918,7 @@ var OldManifoldCountContacts:Integer;
    end;
   end;
  end;
-var Index,SubIndex:Integer;
+var Index,SubIndex:longint;
     ShapeA,ShapeB:TKraftShape;
     MeshShape:TKraftShapeMesh;
     HasContact:boolean;
@@ -23288,7 +23288,7 @@ begin
 end;
 
 procedure TKraftMeshContactPair.Query;
-var SkipListNodeIndex,TriangleIndex:Integer;
+var SkipListNodeIndex,TriangleIndex:longint;
     SkipListNode:PKraftMeshSkipListNode;
     Triangle:PKraftMeshTriangle;
 begin
@@ -23327,7 +23327,7 @@ begin
 end;
 
 constructor TKraftContactManager.Create(const APhysics:TKraft);
-var ThreadIndex:Integer;
+var ThreadIndex:longint;
 begin
  inherited Create;
 
@@ -23379,7 +23379,7 @@ begin
 end;
 
 destructor TKraftContactManager.Destroy;
-var ThreadIndex:Integer;
+var ThreadIndex:longint;
     NextContactPair:PKraftContactPair;
 begin
 
@@ -23420,7 +23420,7 @@ begin
  inherited Destroy;
 end;
 
-function TKraftContactManager.HasDuplicateContact(const ARigidBodyA,ARigidBodyB:TKraftRigidBody;const AShapeA,AShapeB:TKraftShape;const AElementIndex:Integer=-1):boolean;
+function TKraftContactManager.HasDuplicateContact(const ARigidBodyA,ARigidBodyB:TKraftRigidBody;const AShapeA,AShapeB:TKraftShape;const AElementIndex:longint=-1):boolean;
 var HashTableBucket:PKraftContactPairHashTableBucket;
     ContactPair:PKraftContactPair;
 begin
@@ -23442,9 +23442,9 @@ begin
   end;
  end else begin
   if ptruint(AShapeA)<ptruint(AShapeB) then begin
-   HashTableBucket:=@fConvexMeshTriangleContactPairHashTable[HashTwoPointersAndOneUInt32(AShapeA,AShapeB,AElementIndex) and high(TKraftContactPairHashTable)];
+   HashTableBucket:=@fConvexMeshTriangleContactPairHashTable[HashTwoPointersAndOneLongword(AShapeA,AShapeB,AElementIndex) and high(TKraftContactPairHashTable)];
   end else begin
-   HashTableBucket:=@fConvexMeshTriangleContactPairHashTable[HashTwoPointersAndOneUInt32(AShapeB,AShapeA,AElementIndex) and high(TKraftContactPairHashTable)];
+   HashTableBucket:=@fConvexMeshTriangleContactPairHashTable[HashTwoPointersAndOneLongword(AShapeB,AShapeA,AElementIndex) and high(TKraftContactPairHashTable)];
   end;
   ContactPair:=HashTableBucket^.First;
   while assigned(ContactPair) do begin
@@ -23459,8 +23459,8 @@ begin
  end;
 end;
 
-procedure TKraftContactManager.AddConvexContact(const ARigidBodyA,ARigidBodyB:TKraftRigidBody;const AShapeA,AShapeB:TKraftShape;const AElementIndex:Integer=-1;const AMeshContactPair:TKraftMeshContactPair=nil);
-var i:Integer;
+procedure TKraftContactManager.AddConvexContact(const ARigidBodyA,ARigidBodyB:TKraftRigidBody;const AShapeA,AShapeB:TKraftShape;const AElementIndex:longint=-1;const AMeshContactPair:TKraftMeshContactPair=nil);
+var i:longint;
     ContactPair:PKraftContactPair;
     HashTableBucket:PKraftContactPairHashTableBucket;
 begin
@@ -23495,9 +23495,9 @@ begin
   HashTableBucket:=@fConvexConvexContactPairHashTable[ContactPair^.HashBucket];
  end else begin
   if ptruint(AShapeA)<ptruint(AShapeB) then begin
-   ContactPair^.HashBucket:=HashTwoPointersAndOneUInt32(AShapeA,AShapeB,AElementIndex) and high(TKraftContactPairHashTable);
+   ContactPair^.HashBucket:=HashTwoPointersAndOneLongword(AShapeA,AShapeB,AElementIndex) and high(TKraftContactPairHashTable);
   end else begin
-   ContactPair^.HashBucket:=HashTwoPointersAndOneUInt32(AShapeB,AShapeA,AElementIndex) and high(TKraftContactPairHashTable);
+   ContactPair^.HashBucket:=HashTwoPointersAndOneLongword(AShapeB,AShapeA,AElementIndex) and high(TKraftContactPairHashTable);
   end;
   HashTableBucket:=@fConvexMeshTriangleContactPairHashTable[ContactPair^.HashBucket];
  end;
@@ -23771,28 +23771,28 @@ begin
  inc(fPhysics.fMidPhaseTime,fPhysics.fHighResolutionTimer.GetTime-StartTime);
 end;
 
-procedure TKraftContactManager.ProcessContactPair(const ContactPair:PKraftContactPair;const ThreadIndex:Integer=0);
+procedure TKraftContactManager.ProcessContactPair(const ContactPair:PKraftContactPair;const ThreadIndex:longint=0);
 begin
  ContactPair^.DetectCollisions(self,fPhysics.fTriangleShapes[ThreadIndex],ThreadIndex,true,fPhysics.fWorldDeltaTime);
 end;
 
 {$ifdef KraftPasMP}
-procedure TKraftContactManager.ProcessContactPairParallelForFunction(const Job:PPasMPJob;const ThreadIndex:Integer;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
-var Index:Integer;
+procedure TKraftContactManager.ProcessContactPairParallelForFunction(const Job:PPasMPJob;const ThreadIndex:longint;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
+var Index:longint;
 begin
  for Index:=FromIndex to ToIndex do begin
   ProcessContactPair(fActiveContactPairs[Index],ThreadIndex);
  end;
 end;
 {$else}
-procedure TKraftContactManager.ProcessContactPairJob(const JobIndex,ThreadIndex:Integer);
+procedure TKraftContactManager.ProcessContactPairJob(const JobIndex,ThreadIndex:longint);
 begin
  ProcessContactPair(fActiveContactPairs[JobIndex],ThreadIndex);
 end;
 {$endif}
 
 procedure TKraftContactManager.DoNarrowPhase;
-var ActiveContactPairIndex:Integer;
+var ActiveContactPairIndex:longint;
     ContactPair,NextContactPair:PKraftContactPair;
     MeshContactPair,NextMeshContactPair:TKraftMeshContactPair;
     ShapeA,ShapeB:TKraftShape;
@@ -24021,7 +24021,7 @@ end;
 
 {$ifdef DebugDraw}
 procedure TKraftContactManager.DebugDraw(const CameraMatrix:TKraftMatrix4x4);
-var i,j:Integer;
+var i,j:longint;
     ContactPair:PKraftContactPair;
     ContactManifold:PKraftContactManifold;
     Contact:PKraftContact;
@@ -24162,8 +24162,8 @@ begin
 end;
 {$endif}
 
-function TKraftContactManager.ReduceContacts(const AInputContacts:PKraftContacts;const ACountInputContacts:Integer;const AOutputContacts:PKraftContacts):Integer;
-var Index,MaxPenetrationIndex:Integer;
+function TKraftContactManager.ReduceContacts(const AInputContacts:PKraftContacts;const ACountInputContacts:longint;const AOutputContacts:PKraftContacts):longint;
+var Index,MaxPenetrationIndex:longint;
     MaxPenetration,MaxDistance,Distance,MaxArea,Area:TKraftScalar;
     Contact:PKraftContact;
     Contacts:array[0..MAX_CONTACTS-1] of PKraftContact;
@@ -24241,12 +24241,12 @@ begin
  end;
 end;
 
-function TKraftContactManager.GetMaximizedAreaReducedContactIndices(const AInputContactPositions:PPKraftVector3s;const ACountInputContactPositions:Integer;var AOutputContactIndices:TKraftContactIndices):Integer;
-var Index,StartIndex:Integer;
+function TKraftContactManager.GetMaximizedAreaReducedContactIndices(const AInputContactPositions:PPKraftVector3s;const ACountInputContactPositions:longint;var AOutputContactIndices:TKraftContactIndices):longint;
+var Index,StartIndex:longint;
     MaxDistance,Distance,MaxArea,Area:TKraftScalar;
     Position:PKraftVector3;
     Positions:array[0..MAX_CONTACTS-1] of PKraftVector3;
-    Contacts:array[0..MAX_CONTACTS-1] of Integer;
+    Contacts:array[0..MAX_CONTACTS-1] of longint;
 begin
  if ACountInputContactPositions<=0 then begin
 
@@ -24324,7 +24324,7 @@ begin
 end;
 
 constructor TKraftBroadPhase.Create(const APhysics:TKraft);
-var ThreadIndex,CountThreads:Integer;
+var ThreadIndex,CountThreads:longint;
 begin
  inherited Create;
 
@@ -24336,7 +24336,7 @@ begin
 
   if ThreadIndex<CountThreads then begin
    fStackCapacity[ThreadIndex]:=16;
-   GetMem(fStack[ThreadIndex],fStackCapacity[ThreadIndex]*SizeOf(Integer));
+   GetMem(fStack[ThreadIndex],fStackCapacity[ThreadIndex]*SizeOf(longint));
   end else begin
    fStack[ThreadIndex]:=nil;
    fStackCapacity[ThreadIndex]:=0;
@@ -24367,7 +24367,7 @@ begin
 end;
 
 destructor TKraftBroadPhase.Destroy;
-var ThreadIndex:Integer;
+var ThreadIndex:longint;
 begin
  for ThreadIndex:=0 to MAX_THREADS-1 do begin
   if assigned(fStack[ThreadIndex]) then begin
@@ -24382,7 +24382,7 @@ begin
  inherited Destroy;
 end;
 
-function CompareContactPairs(const a,b:pointer):Integer;
+function CompareContactPairs(const a,b:pointer):longint;
 begin
  result:=PtrInt(PKraftBroadPhaseContactPair(a)^[0])-PtrInt(PKraftBroadPhaseContactPair(b)^[0]);
  if result=0 then begin
@@ -24390,9 +24390,9 @@ begin
  end;
 end;
 
-procedure TKraftBroadPhase.AddPair(const ThreadIndex:Integer;ShapeA,ShapeB:TKraftShape); {$ifdef caninline}inline;{$endif}
+procedure TKraftBroadPhase.AddPair(const ThreadIndex:longint;ShapeA,ShapeB:TKraftShape); {$ifdef caninline}inline;{$endif}
 var TempShape:TKraftShape;
-    Index:Integer;
+    Index:longint;
     ContactPair:PKraftBroadPhaseContactPair;
 begin
  if (ShapeA<>ShapeB) and (ShapeA.RigidBody<>ShapeB.RigidBody) then begin
@@ -24412,11 +24412,11 @@ begin
  end;
 end;
 
-procedure TKraftBroadPhase.QueryShapeWithTree(const ThreadIndex:Integer;const Shape:TKraftShape;const AABBTree:TKraftDynamicAABBTree);
+procedure TKraftBroadPhase.QueryShapeWithTree(const ThreadIndex:longint;const Shape:TKraftShape;const AABBTree:TKraftDynamicAABBTree);
 {$ifdef KraftSingleThreadedUsage}
 var ShapeAABB:PKraftAABB;
-    LocalStack:PKraftDynamicAABBTreeIntegerArray;
-    LocalStackPointer,NodeID:Integer;
+    LocalStack:PKraftDynamicAABBTreeLongintArray;
+    LocalStackPointer,NodeID:longint;
     Node:PKraftDynamicAABBTreeNode;
     OtherShape:TKraftShape;
 begin
@@ -24440,7 +24440,7 @@ begin
       end else begin
        if fStackCapacity[ThreadIndex]<=(LocalStackPointer+2) then begin
         fStackCapacity[ThreadIndex]:=RoundUpToPowerOfTwo(LocalStackPointer+2);
-        ReallocMem(fStack[ThreadIndex],fStackCapacity[ThreadIndex]*SizeOf(Integer));
+        ReallocMem(fStack[ThreadIndex],fStackCapacity[ThreadIndex]*SizeOf(longint));
         LocalStack:=fStack[ThreadIndex];
        end;
        LocalStack^[LocalStackPointer+0]:=Node^.Children[0];
@@ -24455,7 +24455,7 @@ begin
 end;
 {$else}
 var ShapeAABB:PKraftAABB;
- procedure ProcessNode(const NodeID:Integer);
+ procedure ProcessNode(const NodeID:longint);
  var Node:PKraftDynamicAABBTreeNode;
      OtherShape:TKraftShape;
  begin
@@ -24485,11 +24485,11 @@ end;
 {$endif}
 
 {$ifdef KraftPasMP}
-procedure TKraftBroadPhase.ProcessMoveBufferItemParallelForFunction(const Job:PPasMPJob;const ThreadIndex:Integer;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
+procedure TKraftBroadPhase.ProcessMoveBufferItemParallelForFunction(const Job:PPasMPJob;const ThreadIndex:longint;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
 {$else}
-procedure TKraftBroadPhase.ProcessMoveBufferItem(const JobIndex,ThreadIndex:Integer);
+procedure TKraftBroadPhase.ProcessMoveBufferItem(const JobIndex,ThreadIndex:longint);
 {$endif}
-var {$ifdef KraftPasMP}JobIndex,{$endif}Index:Integer;
+var {$ifdef KraftPasMP}JobIndex,{$endif}Index:longint;
     Shape:TKraftShape;
 begin
 {$ifdef KraftPasMP}for JobIndex:=FromIndex to ToIndex do{$endif}begin
@@ -24527,7 +24527,7 @@ begin
 end;
 
 procedure TKraftBroadPhase.UpdatePairs;
-var ThreadIndex,Count,Index:Integer;
+var ThreadIndex,Count,Index:longint;
     ContactPair,OtherContactPair:PKraftBroadPhaseContactPair;
 begin
 
@@ -24605,8 +24605,8 @@ begin
 
 end;
 
-procedure TKraftBroadPhase.StaticBufferMove(ProxyID:Integer);
-var Index:Integer;
+procedure TKraftBroadPhase.StaticBufferMove(ProxyID:longint);
+var Index:longint;
 begin
  Index:=fStaticMoveBufferSize;
  inc(fStaticMoveBufferSize);
@@ -24616,7 +24616,7 @@ begin
  fStaticMoveBuffer[Index]:=ProxyID;
 end;
 
-procedure TKraftBroadPhase.StaticBufferClearMove(ProxyID:Integer);
+procedure TKraftBroadPhase.StaticBufferClearMove(ProxyID:longint);
 var I:integer;
 begin
   I:=0;
@@ -24631,8 +24631,8 @@ begin
   end;
 end;
 
-procedure TKraftBroadPhase.DynamicBufferMove(ProxyID:Integer);
-var Index:Integer;
+procedure TKraftBroadPhase.DynamicBufferMove(ProxyID:longint);
+var Index:longint;
 begin
  Index:=fDynamicMoveBufferSize;
  inc(fDynamicMoveBufferSize);
@@ -24642,7 +24642,7 @@ begin
  fDynamicMoveBuffer[Index]:=ProxyID;
 end;
 
-procedure TKraftBroadPhase.DynamicBufferClearMove(ProxyID:Integer);
+procedure TKraftBroadPhase.DynamicBufferClearMove(ProxyID:longint);
 var I:integer;
 begin
   I:=0;
@@ -24657,8 +24657,8 @@ begin
   end;
 end;
 
-procedure TKraftBroadPhase.KinematicBufferMove(ProxyID:Integer);
-var Index:Integer;
+procedure TKraftBroadPhase.KinematicBufferMove(ProxyID:longint);
+var Index:longint;
 begin
  Index:=fKinematicMoveBufferSize;
  inc(fKinematicMoveBufferSize);
@@ -24668,7 +24668,7 @@ begin
  fKinematicMoveBuffer[Index]:=ProxyID;
 end;
 
-procedure TKraftBroadPhase.KinematicBufferClearMove(ProxyID:Integer);
+procedure TKraftBroadPhase.KinematicBufferClearMove(ProxyID:longint);
 var I:integer;
 begin
   I:=0;
@@ -25603,7 +25603,7 @@ begin
 end;
 
 constructor TKraftConstraint.Create(const APhysics:TKraft);
-var RigidBodyIndex:Integer;
+var RigidBodyIndex:longint;
     RigidBody:TKraftRigidBody;
     ConstraintEdge:PKraftConstraintEdge;
     ContactPairEdge:PKraftContactPairEdge;
@@ -25697,7 +25697,7 @@ begin
 end;
 
 destructor TKraftConstraint.Destroy;
-var RigidBodyIndex,ConstraintIndex:Integer;
+var RigidBodyIndex,ConstraintIndex:longint;
     RigidBody:TKraftRigidBody;
     Constraint:TKraftConstraint;
     ConstraintEdge:PKraftConstraintEdge;
@@ -29115,7 +29115,7 @@ begin
 end;
 
 procedure TKraftSolver.Store;
-var ContactPairIndex,ContactIndex:Integer;
+var ContactPairIndex,ContactIndex:longint;
     VelocityState:PKraftSolverVelocityState;
     PositionState:PKraftSolverPositionState;
     ContactPair:PKraftContactPair;
@@ -29251,7 +29251,7 @@ begin
 end;
 
 procedure TKraftSolver.InitializeConstraints;
-var ContactPairIndex,ContactIndex,TangentIndex,IndexA,IndexB:Integer;
+var ContactPairIndex,ContactIndex,TangentIndex,IndexA,IndexB:longint;
     VelocityState:PKraftSolverVelocityState;
     PositionState:PKraftSolverPositionState;
     ContactPoint:PKraftSolverVelocityStateContactPoint;
@@ -29470,7 +29470,7 @@ begin
 end;
 
 procedure TKraftSolver.WarmStart;
-var ContactPairIndex,ContactIndex,IndexA,IndexB,CountPoints:Integer;
+var ContactPairIndex,ContactIndex,IndexA,IndexB,CountPoints:longint;
     VelocityState:PKraftSolverVelocityState;
     ContactPoint:PKraftSolverVelocityStateContactPoint;
     iA,iB:PKraftMatrix3x3;
@@ -29594,7 +29594,7 @@ begin
 end;
 
 procedure TKraftSolver.SolveVelocityConstraints;
-var ContactPairIndex,ContactIndex,TangentIndex,IndexA,IndexB,CountPoints:Integer;
+var ContactPairIndex,ContactIndex,TangentIndex,IndexA,IndexB,CountPoints:longint;
     VelocityState:PKraftSolverVelocityState;
     ContactPoint:PKraftSolverVelocityStateContactPoint;
     iA,iB:PKraftMatrix3x3;
@@ -29688,7 +29688,7 @@ begin
 end;
 
 function TKraftSolver.SolvePositionConstraints:boolean;
-var ContactPairIndex,ContactIndex,IndexA,IndexB:Integer;
+var ContactPairIndex,ContactIndex,IndexA,IndexB:longint;
     PositionState:PKraftSolverPositionState;
     SolverContact:PKraftSolverContact;
     iA,iB:PKraftMatrix3x3;
@@ -29792,8 +29792,8 @@ begin
 
 end;
 
-function TKraftSolver.SolveTimeOfImpactConstraints(IndexA,IndexB:Integer):boolean;
-var ContactPairIndex,ContactIndex,CurrentIndexA,CurrentIndexB:Integer;
+function TKraftSolver.SolveTimeOfImpactConstraints(IndexA,IndexB:longint):boolean;
+var ContactPairIndex,ContactIndex,CurrentIndexA,CurrentIndexB:longint;
     PositionState:PKraftSolverPositionState;
     SolverContact:PKraftSolverContact;
     iA,iB:PKraftMatrix3x3;
@@ -29909,7 +29909,7 @@ begin
 end;
 
 procedure TKraftSolver.SolveSpeculativeContactConstraints;
-var ContactPairIndex,TangentIndex,IndexA,IndexB:Integer;
+var ContactPairIndex,TangentIndex,IndexA,IndexB:longint;
     SpeculativeContactState:PKraftSolverSpeculativeContactState;
     iA,iB:PKraftMatrix3x3;
     mA,mB,Friction,Lambda,MaxLambda,vn,Old:TKraftScalar;
@@ -29995,7 +29995,7 @@ begin
 end;
 
 procedure TKraftSolver.StoreImpulses;
-var i,j:Integer;
+var i,j:longint;
     VelocityState:PKraftSolverVelocityState;
     ContactPair:PKraftContactPair;
     Contact:PKraftContact;
@@ -30025,7 +30025,7 @@ begin
  end;
 end;
 
-constructor TKraftIsland.Create(const APhysics:TKraft;const AIndex:Integer);
+constructor TKraftIsland.Create(const APhysics:TKraft;const AIndex:longint);
 begin
  inherited Create;
 
@@ -30077,7 +30077,7 @@ begin
  fCountSpeculativeContactPairs:=0;
 end;
 
-function TKraftIsland.AddRigidBody(RigidBody:TKraftRigidBody):Integer;
+function TKraftIsland.AddRigidBody(RigidBody:TKraftRigidBody):longint;
 begin
  RigidBody.fIsland:=self;
  if (fCountRigidBodies+1)>length(fRigidBodies) then begin
@@ -30131,7 +30131,7 @@ begin
 end;
 
 procedure TKraftIsland.MergeContactPairs;
-var NewCountContactPairs:Integer;
+var NewCountContactPairs:longint;
 begin
  NewCountContactPairs:=fCountContactPairs+fCountStaticContactPairs;
  if length(fContactPairs)<NewCountContactPairs then begin
@@ -30144,7 +30144,7 @@ begin
 end;
 
 procedure TKraftIsland.Solve(const TimeStep:TKraftTimeStep);
-var Iteration,Index:Integer;
+var Iteration,Index:longint;
     RigidBody:TKraftRigidBody;
     Constraint:TKraftConstraint;
     MinSleepTime,s:TKraftScalar;
@@ -30440,8 +30440,8 @@ begin
 
 end;
 
-procedure TKraftIsland.SolveTimeOfImpact(const TimeStep:TKraftTimeStep;const IndexA,IndexB:Integer);
-var Iteration,Index:Integer;
+procedure TKraftIsland.SolveTimeOfImpact(const TimeStep:TKraftTimeStep;const IndexA,IndexB:longint);
+var Iteration,Index:longint;
     RigidBody:TKraftRigidBody;
     SolverVelocity:PKraftSolverVelocity;
     SolverPosition:PKraftSolverPosition;
@@ -30548,7 +30548,7 @@ begin
 end;
 
 {$ifndef KraftPasMP}
-constructor TKraftJobThread.Create(const APhysics:TKraft;const AJobManager:TKraftJobManager;const AThreadNumber:Integer);
+constructor TKraftJobThread.Create(const APhysics:TKraft;const AJobManager:TKraftJobManager;const AThreadNumber:longint);
 begin
 //{$ifdef memdebug}ScanMemoryPoolForCorruptions;{$endif}
  fPhysics:=APhysics;
@@ -30570,7 +30570,7 @@ begin
 end;
 
 procedure TKraftJobThread.Execute;
-var JobIndex:Integer;
+var JobIndex:longint;
 begin
  {$ifdef HAS_FPU_TYPES}
  SetPrecisionMode(PhysicsFPUPrecisionMode);
@@ -30600,7 +30600,7 @@ begin
 end;
 
 constructor TKraftJobManager.Create(const APhysics:TKraft);
-var Index:Integer;
+var Index:longint;
 begin
  inherited Create;
  fPhysics:=APhysics;
@@ -30620,7 +30620,7 @@ begin
 end;
 
 destructor TKraftJobManager.Destroy;
-var Index:Integer;
+var Index:longint;
 begin
  fThreadsTerminated:=true;
  for Index:=0 to fCountThreads-1 do begin
@@ -30634,7 +30634,7 @@ begin
 end;
 
 procedure TKraftJobManager.WakeUp;
-var Index:Integer;
+var Index:longint;
 begin
  for Index:=0 to fCountThreads-1 do begin
   fThreads[Index].fEvent.SetEvent;
@@ -30642,7 +30642,7 @@ begin
 end;
 
 procedure TKraftJobManager.WaitFor;
-var Index:Integer;
+var Index:longint;
 begin
  for Index:=0 to fCountThreads-1 do begin
   fThreads[Index].fDoneEvent.WaitFor(INFINITE);
@@ -30659,18 +30659,18 @@ end;
 {$ifdef KraftPasMP}
 constructor TKraft.Create(const APasMP:TPasMP);
 {$else}
-constructor TKraft.Create(const ACountThreads:Integer=-1);
+constructor TKraft.Create(const ACountThreads:longint=-1);
 {$endif}
 const TriangleVertex0:TKraftVector3=(x:0.0;y:0.0;z:0.0{$ifdef SIMD};w:0.0{$endif});
       TriangleVertex1:TKraftVector3=(x:1.0;y:0.0;z:0.01{$ifdef SIMD};w:0.0{$endif});
       TriangleVertex2:TKraftVector3=(x:0.0;y:1.0;z:0.02{$ifdef SIMD};w:0.0{$endif});
-var Index:Integer;
+var Index:longint;
 {$ifndef KraftPasMP}
 {$ifdef win32}
-    i,j:Integer;
+    i,j:longint;
     sinfo:SYSTEM_INFO;
     dwProcessAffinityMask,dwSystemAffinityMask:ptruint;
- function GetRealCountOfCPUCores:Integer; {$ifdef caninline}inline;{$endif}
+ function GetRealCountOfCPUCores:longint; {$ifdef caninline}inline;{$endif}
  const RelationProcessorCore=0;
        RelationNumaNode=1;
        RelationCache=2;
@@ -30711,7 +30711,7 @@ var Index:Integer;
  var GetLogicalProcessorInformation:TGetLogicalProcessorInformation;
      Buffer:array of TSystemLogicalProcessorInformation;
      ReturnLength:dword;
-     Index,Count:Integer;
+     Index,Count:longint;
  begin
   result:=-1;
   Buffer:=nil;
@@ -30942,7 +30942,7 @@ begin
 end;
 
 destructor TKraft.Destroy;
-var Index:Integer;
+var Index:longint;
 begin
 
 {$ifndef KraftPasMP}
@@ -31065,7 +31065,7 @@ begin
 end;
 
 procedure TKraft.BuildIslands;
-var IslandIndex,LastCount,SubIndex:Integer;
+var IslandIndex,LastCount,SubIndex:longint;
     SeedRigidBody,SeedRigidBodyStack,CurrentRigidBody,OtherRigidBody,StaticRigidBodiesList:TKraftRigidBody;
     CurrentConstraintEdge:PKraftConstraintEdge;
     CurrentConstraint:TKraftConstraint;
@@ -31229,22 +31229,22 @@ begin
 end;
 
 {$ifdef KraftPasMP}
-procedure TKraft.ProcessSolveIslandParallelForFunction(const Job:PPasMPJob;const ThreadIndex:Integer;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
-var Index:Integer;
+procedure TKraft.ProcessSolveIslandParallelForFunction(const Job:PPasMPJob;const ThreadIndex:longint;const Data:pointer;const FromIndex,ToIndex:TPasMPNativeInt);
+var Index:longint;
 begin
  for Index:=FromIndex to ToIndex do begin
   fIslands[Index].Solve(fJobTimeStep);
  end;
 end;
 {$else}
-procedure TKraft.ProcessSolveIslandJob(const JobIndex,ThreadIndex:Integer);
+procedure TKraft.ProcessSolveIslandJob(const JobIndex,ThreadIndex:longint);
 begin
  fIslands[JobIndex].Solve(fJobTimeStep);
 end;
 {$endif}
 
 procedure TKraft.SolveIslands(const TimeStep:TKraftTimeStep);
-var Index:Integer;
+var Index:longint;
 begin
  fJobTimeStep:=TimeStep;
  fIsSolving:=true;
@@ -31267,9 +31267,9 @@ begin
 end;
 
 // Conservative advancement
-function TKraft.GetConservativeAdvancementTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:Integer;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:Integer;var Beta:TKraftScalar):boolean;
+function TKraft.GetConservativeAdvancementTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:longint;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:longint;var Beta:TKraftScalar):boolean;
 const Radius=1e-3;
-var Tries:Integer;
+var Tries:longint;
     BoundingRadiusA,BoundingRadiusB,MaximumAngularProjectedVelocity,RelativeLinearVelocityLength,Lambda,LastLambda,
     ProjectedLinearVelocity,DistanceLambda,Distance,ContinuousMinimumRadiusScaleFactor:TKraftScalar;
     MeshShape:TKraftShapeMesh;
@@ -31397,7 +31397,7 @@ begin
 end;
 
 // Bilateral advancement
-function TKraft.GetBilateralAdvancementTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:Integer;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:Integer;var Beta:TKraftScalar):boolean;
+function TKraft.GetBilateralAdvancementTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:longint;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:longint;var Beta:TKraftScalar):boolean;
 const sfmNONE=0;
       sfmVERTICES=1;
       sfmEDGEA=2;
@@ -31405,7 +31405,7 @@ const sfmNONE=0;
       sfmFACEA=4;
       sfmFACEB=5;
       sfmEDGES=6;
-var Iteration,TryIteration,RootIteration,SeparationFunctionMode:Integer;
+var Iteration,TryIteration,RootIteration,SeparationFunctionMode:longint;
     //Unprocessed,Overlapping:boolean;
     t0,t1,s0,s1,a0,a1,t,s,{tS,tT0,tT1,}TotalRadius,Target,Tolerance,{Distance,CurrentDistance,L,}
     ContinuousMinimumRadiusScaleFactor:TKraftScalar;
@@ -31419,9 +31419,9 @@ var Iteration,TryIteration,RootIteration,SeparationFunctionMode:Integer;
     WitnessPoints:array[0..1] of TKraftVector3;
     Transforms:array[0..1] of TKraftMatrix4x4;
     //LinearVelocities,AngularVelocities:array[0..1] of TKraftVector3;
-    UniqueGJKVertexIndices:array[0..1,0..2] of Integer;
+    UniqueGJKVertexIndices:array[0..1,0..2] of longint;
     UniqueGJKVertices:array[0..1,0..2] of TKraftVector3;
-    CountUniqueGJKVertices:array[0..1] of Integer;
+    CountUniqueGJKVertices:array[0..1] of longint;
     GJKCachedSimplex:TKraftGJKCachedSimplex;
  function Evaluate:TKraftScalar; //{$ifdef caninline}inline;{$endif}
  begin
@@ -31907,7 +31907,7 @@ begin
 
 end;
 
-function TKraft.GetTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:Integer;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:Integer;var Beta:TKraftScalar):boolean;
+function TKraft.GetTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:longint;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:longint;var Beta:TKraftScalar):boolean;
 begin
  case fTimeOfImpactAlgorithm of
   ktoiaConservativeAdvancement:begin
@@ -32048,7 +32048,7 @@ end;
 procedure TKraft.SolveContinuousTimeOfImpactSubSteps(const TimeStep:TKraftTimeStep);
 const FLAG_VISITED=1 shl 0;
       FLAG_STATIC=1 shl 1;
-var TryIndex,Index,SubIndex,LastCount,Count,IndexA,IndexB{,c{}:Integer;
+var TryIndex,Index,SubIndex,LastCount,Count,IndexA,IndexB{,c{}:longint;
     NeedUpdate:boolean;
     RigidBody,CurrentRigidBody,OtherRigidBody:TKraftRigidBody;
     ContactPair,MinimumContactPair:PKraftContactPair;
@@ -32355,7 +32355,7 @@ var RigidBody:TKraftRigidBody;
     OldFPUPrecisionMode:TFPUPrecisionMode;
     OldFPUExceptionMask:TFPUExceptionMask;
     {$endif}
-    OldSIMDFlags:UInt32;
+    OldSIMDFlags:longword;
     StartTime:int64;
     TimeStep:TKraftTimeStep;
 begin
@@ -32488,8 +32488,8 @@ function TKraft.TestPoint(const Point:TKraftVector3):TKraftShape;
 var Hit:TKraftShape;
 {$ifdef KraftSingleThreadedUsage}
  procedure QueryTree(AABBTree:TKraftDynamicAABBTree);
- var LocalStack:PKraftDynamicAABBTreeIntegerArray;
-     LocalStackPointer,NodeID:Integer;
+ var LocalStack:PKraftDynamicAABBTreeLongintArray;
+     LocalStackPointer,NodeID:longint;
      Node:PKraftDynamicAABBTreeNode;
      CurrentShape:TKraftShape;
  begin
@@ -32513,7 +32513,7 @@ var Hit:TKraftShape;
        end else begin
         if AABBTree.fStackCapacity<=(LocalStackPointer+2) then begin
          AABBTree.fStackCapacity:=RoundUpToPowerOfTwo(LocalStackPointer+2);
-         ReallocMem(AABBTree.fStack,AABBTree.fStackCapacity*SizeOf(Integer));
+         ReallocMem(AABBTree.fStack,AABBTree.fStackCapacity*SizeOf(longint));
          LocalStack:=AABBTree.fStack;
         end;
         LocalStack^[LocalStackPointer+0]:=Node^.Children[0];
@@ -32528,7 +32528,7 @@ var Hit:TKraftShape;
  end;
 {$else}
  procedure QueryTree(AABBTree:TKraftDynamicAABBTree);
-  procedure ProcessNode(NodeID:Integer);
+  procedure ProcessNode(NodeID:longint);
   var Node:PKraftDynamicAABBTreeNode;
       CurrentShape:TKraftShape;
   begin
@@ -32571,8 +32571,8 @@ function TKraft.RayCast(const Origin,Direction:TKraftVector3;const MaxTime:TKraf
 var Hit:boolean;
 {$ifdef KraftSingleThreadedUsage}
  procedure QueryTree(AABBTree:TKraftDynamicAABBTree);
- var LocalStack:PKraftDynamicAABBTreeIntegerArray;
-     LocalStackPointer,NodeID:Integer;
+ var LocalStack:PKraftDynamicAABBTreeLongintArray;
+     LocalStackPointer,NodeID:longint;
      Node:PKraftDynamicAABBTreeNode;
      CurrentShape:TKraftShape;
      RayCastData:TKraftRaycastData;
@@ -32605,7 +32605,7 @@ var Hit:boolean;
        end else begin
         if AABBTree.fStackCapacity<=(LocalStackPointer+2) then begin
          AABBTree.fStackCapacity:=RoundUpToPowerOfTwo(LocalStackPointer+2);
-         ReallocMem(AABBTree.fStack,AABBTree.fStackCapacity*SizeOf(Integer));
+         ReallocMem(AABBTree.fStack,AABBTree.fStackCapacity*SizeOf(longint));
          LocalStack:=AABBTree.fStack;
         end;
         LocalStack^[LocalStackPointer+0]:=Node^.Children[0];
@@ -32620,7 +32620,7 @@ var Hit:boolean;
  end;
 {$else}
  procedure QueryTree(AABBTree:TKraftDynamicAABBTree);
-  procedure ProcessNode(NodeID:Integer);
+  procedure ProcessNode(NodeID:longint);
   var Node:PKraftDynamicAABBTreeNode;
       CurrentShape:TKraftShape;
       RayCastData:TKraftRaycastData;
@@ -32663,12 +32663,12 @@ begin
  result:=Hit;
 end;
 
-function TKraft.PushSphere(var Center:TKraftVector3;const Radius:TKraftScalar;const CollisionGroups:TKraftRigidBodyCollisionGroups=[low(TKraftRigidBodyCollisionGroup)..high(TKraftRigidBodyCollisionGroup)];const TryIterations:Integer=4;const OnPushSphereShapeContactHook:TKraftOnPushSphereShapeContactHook=nil):boolean;
+function TKraft.PushSphere(var Center:TKraftVector3;const Radius:TKraftScalar;const CollisionGroups:TKraftRigidBodyCollisionGroups=[low(TKraftRigidBodyCollisionGroup)..high(TKraftRigidBodyCollisionGroup)];const TryIterations:longint=4;const OnPushSphereShapeContactHook:TKraftOnPushSphereShapeContactHook=nil):boolean;
 var Hit:boolean;
     AABB:TKraftAABB;
     Sphere:TKraftSphere;
     SumMinimumTranslationVector:TKraftVector3;
-    Count:Integer;
+    Count:longint;
  procedure CollideSphereWithSphere(Shape:TKraftShapeSphere); {$ifdef caninline}inline;{$endif}
  var Position,Normal:TKraftVector3;
      Depth:TKraftScalar;
@@ -32720,7 +32720,7 @@ var Hit:boolean;
   end;
  end;
  procedure CollideSphereWithConvexHull(Shape:TKraftShapeConvexHull); {$ifdef caninline}inline;{$endif}
- var FaceIndex,ClosestFaceIndex,VertexIndex:Integer;
+ var FaceIndex,ClosestFaceIndex,VertexIndex:longint;
      Distance,ClosestDistance,BestClosestPointDistance,d:TKraftScalar;
      SphereCenter,Normal,ClosestPoint,{BestClosestPoint,}BestClosestPointNormal,ab,ap,a,b,v,n:TKraftVector3;
      InsideSphere,InsidePolygon,HasBestClosestPoint:boolean;
@@ -32812,10 +32812,10 @@ var Hit:boolean;
   end;
  end;
  procedure CollideSphereWithBox(Shape:TKraftShapeBox); {$ifdef caninline}inline;{$endif}
- //const ModuloThree:array[0..5] of Integer=(0,1,2,0,1,2);
+ //const ModuloThree:array[0..5] of longint=(0,1,2,0,1,2);
  var IntersectionDist,ContactDist,DistSqr,Distance,FaceDist,MinDist:TKraftScalar;
      SphereRelativePosition,ClosestPoint,Normal:TKraftVector3;
-     Axis,AxisSign:Integer;
+     Axis,AxisSign:longint;
  begin
   SphereRelativePosition:=Vector3TermMatrixMulInverted(Sphere.Center,Shape.fWorldTransform);
   ClosestPoint.x:=Min(Max(SphereRelativePosition.x,-Shape.fExtents.x),Shape.fExtents.x);
@@ -32905,8 +32905,8 @@ var Hit:boolean;
   end;
  end;
  procedure CollideSphereWithTriangle(Shape:TKraftShapeTriangle);
- const ModuloThree:array[0..5] of Integer=(0,1,2,0,1,2);
- var i:Integer;
+ const ModuloThree:array[0..5] of longint=(0,1,2,0,1,2);
+ var i:longint;
      Radius,RadiusWithThreshold,DistanceFromPlane,ContactRadiusSqr,DistanceSqr:TKraftScalar;
      SphereCenter,Normal,P0ToCenter,ContactPoint,NearestOnEdge,ContactToCenter:TKraftVector3;
      IsInsideContactPlane,HasContact:boolean;
@@ -32961,8 +32961,8 @@ var Hit:boolean;
   end;
  end;
  procedure CollideSphereWithMesh(Shape:TKraftShapeMesh); {$ifdef caninline}inline;{$endif}
- const ModuloThree:array[0..5] of Integer=(0,1,2,0,1,2);
- var i,SkipListNodeIndex,TriangleIndex:Integer;
+ const ModuloThree:array[0..5] of longint=(0,1,2,0,1,2);
+ var i,SkipListNodeIndex,TriangleIndex:longint;
      Radius,RadiusWithThreshold,DistanceFromPlane,ContactRadiusSqr,DistanceSqr:TKraftScalar;
      SphereCenter,Normal,P0ToCenter,ContactPoint,NearestOnEdge,ContactToCenter:TKraftVector3;
      IsInsideContactPlane,HasContact:boolean;
@@ -33047,8 +33047,8 @@ var Hit:boolean;
  end;
 {$ifdef KraftSingleThreadedUsage}
  procedure QueryTree(AABBTree:TKraftDynamicAABBTree);
- var LocalStack:PKraftDynamicAABBTreeIntegerArray;
-     LocalStackPointer,NodeID:Integer;
+ var LocalStack:PKraftDynamicAABBTreeLongintArray;
+     LocalStackPointer,NodeID:longint;
      Node:PKraftDynamicAABBTreeNode;
      CurrentShape:TKraftShape;
  begin
@@ -33093,7 +33093,7 @@ var Hit:boolean;
        end else begin
         if AABBTree.fStackCapacity<=(LocalStackPointer+2) then begin
          AABBTree.fStackCapacity:=RoundUpToPowerOfTwo(LocalStackPointer+2);
-         ReallocMem(AABBTree.fStack,AABBTree.fStackCapacity*SizeOf(Integer));
+         ReallocMem(AABBTree.fStack,AABBTree.fStackCapacity*SizeOf(longint));
          LocalStack:=AABBTree.fStack;
         end;
         LocalStack^[LocalStackPointer+0]:=Node^.Children[0];
@@ -33108,7 +33108,7 @@ var Hit:boolean;
  end;
 {$else}
  procedure QueryTree(AABBTree:TKraftDynamicAABBTree);
-  procedure ProcessNode(NodeID:Integer);
+  procedure ProcessNode(NodeID:longint);
   var Node:PKraftDynamicAABBTreeNode;
       CurrentShape:TKraftShape;
   begin
@@ -33154,7 +33154,7 @@ var Hit:boolean;
   ProcessNode(AABBTree.fRoot);
  end;
 {$endif}
-var TryCounter:Integer;
+var TryCounter:longint;
 begin
  result:=false;
  for TryCounter:=1 to TryIterations do begin
