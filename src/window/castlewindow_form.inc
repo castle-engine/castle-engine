@@ -1282,10 +1282,37 @@ end;
 {$endif}
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+
+  function CheckTerminated: Boolean;
+  begin
+    Result :=
+      {$ifdef FPC} FormApplication.Terminated
+      {$else}
+
+      { For the same reasons as in Fmx.CastleControl, we need to check
+        for Terminating, not only Terminated:
+        FMXLinux only sets Terminating:=true and makes GTK error
+
+         gtk_main_quit: assertion 'main_loops != NULL' failed
+
+        when trying to quit without ever calling Application.Run
+        (and we cannot call Application.Run because timer is not reliable,
+        so we need to process CGE updates differently).
+
+        We need to check Terminating to actually finish the application,
+        testcase: just click on window to close in e.g.
+        play_animation example. }
+
+      ApplicationState in [
+        TApplicationState.Terminating,
+        TApplicationState.Terminated]
+      {$endif};
+  end;
+
 var
   I: Integer;
 begin
-  if FormApplication.Terminated then
+  if CheckTerminated then
     Exit(false);
 
   { When not USE_TIMER, we cannot wait for message, as it would mean we
@@ -1301,11 +1328,11 @@ begin
     { HandleMessage will call ApplicationIdle, so no need for ProcessTasks
       hack in this case. }
     FormApplication.HandleMessage;
-    Result := not FormApplication.Terminated;
+    Result := not CheckTerminated;
   end else
   begin
     FormApplication.ProcessMessages;
-    Result := not FormApplication.Terminated;
+    Result := not CheckTerminated;
 
     {$ifndef USE_TIMER}
     if Result then

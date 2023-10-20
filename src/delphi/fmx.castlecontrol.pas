@@ -482,7 +482,25 @@ begin
   Application.Run;
   {$else}
   Application.RealCreateForms;
-  while not Application.Terminated do
+
+  { On Linux, it's especially important to check Terminating (not just Terminated)
+    below.
+
+    That's because FMXLinux seems to rely on GTK mechanism to exit
+    main loop when user calls Application.Terminate, which means it assumes
+    that you have executed Application.Run. (But we cannot use Application.Run
+    because timer is unreliable on FMXLinux and would sometimes hang application
+    rendering, see USE_TIMER comments.) Calling "Application.Run" sets
+    only Terminating:=true and makes GTK error:
+
+       gtk_main_quit: assertion 'main_loops != NULL' failed
+
+    We can't really prevent GTK error,
+    but at least we can react to Terminating and exit. }
+
+  while not (ApplicationState in [
+    TApplicationState.Terminating,
+    TApplicationState.Terminated]) do
   begin
     Application.ProcessMessages;
     ProcessTasks;
