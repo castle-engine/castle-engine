@@ -87,6 +87,7 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: Char); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
+    procedure Resize; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -337,6 +338,16 @@ begin
   begin
     KeyUp(Key, Shift);
     Key := 0;
+  end;
+end;
+
+procedure TCastleControl.Resize;
+begin
+  inherited;
+  if Container.GLInitialized then
+  begin
+    Container.MakeContextCurrent;
+    Container.EventResize;
   end;
 end;
 

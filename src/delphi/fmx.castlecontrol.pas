@@ -125,6 +125,7 @@ type
     procedure KeyDown(var Key: Word; var KeyChar: WideChar; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; var KeyChar: WideChar; Shift: TShiftState); override;
     function DefinePresentationName: String; override;
+    procedure Resize; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -463,6 +464,16 @@ begin
   {$ifndef USE_TIMER}
   TContainer.UpdatingTimerEvent(nil);
   {$endif}
+end;
+
+procedure TCastleControl.Resize;
+begin
+  inherited;
+  if Container.GLInitialized then
+  begin
+    Container.MakeContextCurrent;
+    Container.EventResize;
+  end;
 end;
 
 class procedure TCastleControl.ApplicationRun;

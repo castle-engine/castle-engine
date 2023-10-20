@@ -67,7 +67,6 @@ type
     FDesignUrl: String;
     FDesignLoaded: TCastleUserInterface;
     FDesignLoadedOwner: TComponent;
-    procedure MakeContextCurrent;
     procedure SetAutoRedisplay(const Value: Boolean);
     procedure DoUpdate;
     procedure SetDesignUrl(const Value: String);
@@ -94,8 +93,14 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GLInitialized: boolean; override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; override;
+
+    { Is OpenGL(ES) context initialized for this container. }
+    function GLInitialized: boolean; override;
+
+    { Make given OpenGL(ES) context current.
+      Can only be used if GLInitialized. }
+    procedure MakeContextCurrent;
 
     { When the DesignUrl is set you can use this method to find
       loaded components. Like this:
@@ -198,6 +203,7 @@ end;
 
 procedure TCastleContainerEasy.MakeContextCurrent;
 begin
+  Assert(GLInitialized);
   RenderContext := Context;
   FPlatformContext.MakeCurrent;
 end;
