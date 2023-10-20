@@ -878,9 +878,24 @@ begin
   begin
     FCursor := Value;
     if not Closed then
-      { Do not use Form.Cursor for this, e.g. hiding the cursor would not work
-        then on Carbon. }
+    begin
+      {$ifdef FPC}
+      { Note: OpenGLControl.Cursor is better than Form.Cursor for this,
+        hiding the cursor would not work on Carbon with Form.Cursor. }
       OpenGLControl.Cursor := CursorFromCastle(Value);
+      {$else}
+      { TODO: What to do on FMX?
+        Testing with physics_3d_shooter, right click toggles mouse look.
+        - On Windows: untested (when testing, remember to use CASTLE_WINDOW_FORM backend).
+            Form.Cursor: ?
+            OpenGLControl.Cursor: ?
+            Using IFMXCursorService: ?
+        - Linux:
+            Form.Cursor: does not work to hide.
+            OpenGLControl.Cursor: does not work to hide.
+            Using IFMXCursorService: TODO test. }
+      {$endif}
+    end;
   end;
 end;
 
@@ -900,10 +915,13 @@ begin
       unnecessary OnMotion on some systems while actual MousePosition didn't change. }
     if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
 
-    P := CastleToLeftTopInt(Value);
-    // TODO: FMX
+    P := CastleToLeftTopInt(Value / OpenGLControl.MousePosScale);
     {$ifdef FPC}
     Mouse.CursorPos := OpenGLControl.ControlToScreen(Point(P.X, P.Y));
+    {$else}
+    { It seems there's no cross-platform solution for this in FMX.
+      It has IFMXMouseService but only with GetMousePos, not setter. }
+    // TODO
     {$endif}
   end;
 end;
