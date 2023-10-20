@@ -445,6 +445,8 @@ function ConvertDoubleToString(const AValue:TPasDblStrUtilsDouble;const OutputMo
 implementation
 
 {$ifdef USE_TRIVIAL_IMPLEMENTATION}
+{$warn IMPLICIT_STRING_CAST off}
+{$warn IMPLICIT_STRING_CAST_LOSS off}
 
 uses CastleUtils;
 
