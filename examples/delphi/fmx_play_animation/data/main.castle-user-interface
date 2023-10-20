@@ -108,7 +108,6 @@
         "Green" : 7.0588237047195435E-001,
         "Red" : 8.6274510622024536E-001
       },
-      "FontSize" : 3.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
