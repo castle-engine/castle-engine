@@ -6021,7 +6021,7 @@ begin
     { Add only active and visible shapes }
     ShapesList := Shapes.TraverseList(true, true, false);
 
-  Result := TShapeOctree.Create(Limits, LocalBoundingBoxNoChildren, ShapesList, false);
+  Result := TShapeOctree.Create(Limits, LocalBoundingBoxNoChildren, ShapesList);
   try
     for I := 0 to Result.ShapesList.Count - 1 do
       if not Result.ShapesList[I].BoundingBox.IsEmpty then

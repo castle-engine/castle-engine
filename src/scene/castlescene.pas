@@ -1565,10 +1565,6 @@ begin
       LocalRenderOutside(nil, Params)
     else
     if (InternalOctreeRendering <> nil) and
-       {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
-       // TODO: workaround for Delphi/Linux
-       false and
-       {$endif}
        ShapeFrustumCulling then
     begin
       { Check above ShapeFrustumCulling, since the InternalOctreeRendering
