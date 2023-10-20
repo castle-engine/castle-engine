@@ -475,9 +475,8 @@ end;
 procedure CGEApp_Update; cdecl;
 begin
   try
-    Application.DoApplicationUpdate;
+    ApplicationProperties._Update;
     Application.FOpenWindows.DoUpdate;
-    Application.MaybeDoTimer;
   except
     on E: TObject do WritelnWarning('CGEApp_Update', ExceptMessage(E));
   end;

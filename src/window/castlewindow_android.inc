@@ -721,12 +721,11 @@ end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 
-  { Call Update and Timer on Application and all open Windows. }
-  procedure WindowsUpdateAndTimer;
+  { Call Update on ApplicationProperties and all open Windows. }
+  procedure UpdateEverything;
   begin
-    DoApplicationUpdate;
+    ApplicationProperties._Update;
     FOpenWindows.DoUpdate;
-    MaybeDoTimer;
   end;
 
   procedure Resize(Width, Height: Integer);
@@ -828,7 +827,7 @@ begin
     { we do not check Invalidated here, just redraw every frame when window is open }
     MainWindow.DoRender;
 
-    WindowsUpdateAndTimer;
+    UpdateEverything;
   end;
 
   { Note that we ignore WaitToLimitFPS here, right now.

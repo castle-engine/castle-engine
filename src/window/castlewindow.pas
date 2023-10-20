@@ -482,9 +482,6 @@ type
       of MaxWidth etc. }
     FRealWidth, FRealHeight: Integer;
     FOnCloseQuery: TContainerEvent;
-    {$ifdef FPC}
-    FOnTimer: TContainerEvent;
-    {$endif}
     FOnDropFiles: TDropFilesFunc;
     { FFullScreenWanted is the value set by FullScreen property by the user.
       FFullScreenBackend is the last value of FullScreen known to the backend
@@ -890,7 +887,6 @@ type
       Button: TCastleMouseButton; const FingerIndex: TFingerIndex = 0;
       const TrackReleased: boolean = true);
     procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
-    procedure DoTimer;
     { Just call it when user presses some MenuItem.
       This takes care of MainMenu.Enabled,
         MakeCurrent,
@@ -962,7 +958,7 @@ type
       things continuously, regardless of user input.
 
       The default implementation plays it safe, and does not allow suspending
-      if we have OnUpdate, OnTimer or such callback defined. }
+      if we have OnUpdate callback defined. }
     function AllowSuspendForInput: boolean; virtual;
 
     { Size of the window OpenGL area. Together with frame and border
@@ -1648,36 +1644,11 @@ type
     property OnUpdate: TContainerEvent read GetOnUpdate write SetOnUpdate;
       {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Update or OnUpdate event';{$endif}
 
-    {$ifdef FPC}
-    { @deprecated Deprecated name for OnUpdate. }
-    property OnIdle: TContainerEvent read GetOnUpdate write SetOnUpdate; deprecated;
-
-    { Timer event is called approximately after each
-      @link(TCastleApplication.TimerMilisec Application.TimerMilisec)
-      miliseconds passed. See also
-      @link(TCastleApplication.OnTimer Application.OnTimer).
-
-      This is a very simple timer mechanism, as all timers (timers for all windows
-      and the global @link(Application) timer) use the same delay:
-      @link(TCastleApplication.TimerMilisec Application.TimerMilisec).
-      We consciously decided to not implement anything more involved here.
-      If you need really flexible timer mechanism, do not use this.
-      Instead use @link(OnUpdate)
-      (or @link(TCastleUserInterface.Update) in your @link(TCastleUserInterface) descendant,
-      or @link(TCastleTransform.Update)) and look at it's @code(SecondsPassed)
-      value to perform actions (one time or repeated) with a specified delay.
-      The engine source is full of examples of this.
-
-      Under Lazarus, you can of course also use LCL timers. }
-    property OnTimer: TContainerEvent read FOnTimer write FOnTimer;
-      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
-    {$endif FPC}
-
     { Called when user drag and drops file(s) on the window.
       In case of macOS bundle, this is also called when user opens a document
       associated with our application by double-clicking.
 
-      Note: this is currently supported only by LCL and Cocoa backends
+      Note: this is currently supported only by Form and Cocoa backends
       of TCastleWindow, see https://castle-engine.io/castlewindow_backends . }
     property OnDropFiles: TDropFilesFunc read FOnDropFiles write FOnDropFiles;
 
@@ -2184,13 +2155,8 @@ type
 
   TWindowList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleWindow>)
   private
-    { Call wszystkie OnUpdate / OnTimer for all windows on this list.
-      Using Application.OpenWindows.DoUpdate / DoTimer  is a simplest
-      way for CastleWindow backend to handle these events.
-      @groupBegin }
+    { Call OnUpdate for all windows on this list. }
     procedure DoUpdate;
-    procedure DoTimer;
-    { @groupEnd }
   public
     { Simply calls Invalidate on all items. }
     procedure Invalidate;
@@ -2222,9 +2188,6 @@ type
     FOnInitialize{, FOnInitializeJavaActivity}: TProcedure;
     FOnInitializeEvent: TNotifyEvent;
     Initialized, InitializedJavaActivity: boolean;
-    FOnUpdate: TUpdateFunc;
-    FOnTimer: TProcedure;
-    FTimerMilisec: Cardinal;
     FVideoColorBits: integer;
     FVideoFrequency: Cardinal;
     { Current window with OpenGL context active.
@@ -2232,8 +2195,7 @@ type
     Current: TCastleWindow;
     LastLimitFPSTime: TTimerResult;
     FMainWindow: TCastleWindow;
-    FUserAgent: string;
-    LastMaybeDoTimerTime: TTimerResult;
+    //FUserAgent: string;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindow;
@@ -2290,19 +2252,8 @@ type
         then once. }
     procedure QuitWhenNoOpenWindows;
 
-    { Call Application.OnUpdate. }
-    procedure DoApplicationUpdate;
-
-    { Call Application.OnTimer. }
-    procedure DoApplicationTimer;
-
-    { Call Application.OnTimer, and all window's OnTimer, when the time is right.
-      This allows some backends to easily implement the timer.
-      Simply call this method very often (usually at the same time you're calling
-      DoApplicationUpdate). }
-    procedure MaybeDoTimer;
-
-    { Call OnUpdate, OnTimer on Application and all open windows,
+    { Call OnUpdate on all open windows,
+      call ApplicationProperties.OnUpdate,
       and call OnRender on all necessary windows.
       This allows some backends to easily do everything that typically needs
       to be done continuosly (without the need for any message from the outside). }
@@ -2314,8 +2265,8 @@ type
     { Can we wait (hang) for next message.
       See TCastleWindow.AllowSuspendForInput, this is similar but for
       the whole Application. Returns @true only if all open
-      windows allow it, and application state allows it too
-      (e.g. we do not have OnUpdate and OnTimer). }
+      windows allow it and we don't have any
+      @link(TCastleApplicationProperties.OnUpdate ApplicationProperties.OnUpdate). }
     function AllowSuspendForInput: boolean;
 
     procedure DoLimitFPS;
@@ -2431,31 +2382,6 @@ type
     property OnInitialize: TProcedure read FOnInitialize write FOnInitialize;
     property OnInitializeEvent: TNotifyEvent read FOnInitializeEvent write FOnInitializeEvent;
 
-    {property OnInitializeJavaActivity: TProcedure
-      read FOnInitializeJavaActivity write FOnInitializeJavaActivity;}
-
-    { Continuously occuring event.
-      @seealso TCastleWindow.OnUpdate }
-    property OnUpdate: TUpdateFunc read FOnUpdate write FOnUpdate;
-
-    {$ifdef FPC}
-    { @deprecated Deprecated name for OnUpdate. }
-    property OnIdle: TUpdateFunc read FOnUpdate write FOnUpdate; deprecated;
-
-    { Event called approximately after each TimerMilisec miliseconds.
-      The actual delay may be larger than TimerMilisec miliseconds,
-      depending on how the program (and OS) is busy.
-
-      You can of course change TimerMilisec (and OnTimer) even
-      when some windows are already open.
-      @groupBegin }
-    property OnTimer: TProcedure read FOnTimer write FOnTimer;
-      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
-    property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec default 1000;
-      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
-    { @groupEnd }
-    {$endif FPC}
-
     { Used on platforms that can only show a single window (TCastleWindow) at a time,
       like mobile or web applications.
 
@@ -2465,8 +2391,8 @@ type
     property MainWindow: TCastleWindow read FMainWindow write SetMainWindow;
 
     { User agent string, when running inside a browser.
-      Right now never set (was used by NPAPI plugin, may be useful to new web target). }
-    property UserAgent: string read FUserAgent;
+      TODO: Right now never set (was used by NPAPI plugin, may be useful to new web target). }
+    //property UserAgent: string read FUserAgent;
 
     { Process messages from the window system.
       You have to call this repeatedly to process key presses,
@@ -3536,17 +3462,6 @@ begin
   FrameProfiler.Stop(fmUpdate);
 end;
 
-procedure TCastleWindow.DoTimer;
-begin
-  MakeCurrent;
-  {$ifdef FPC}
-  {$warnings off} // keep deprecated working
-  if Assigned(OnTimer) then
-    OnTimer(Container);
-  {$warnings on}
-  {$endif}
-end;
-
 procedure TCastleWindow.DoMenuClick(Item: TMenuItem);
 begin
   if (MainMenu <> nil) and (not MainMenu.Enabled) then Exit;
@@ -3585,9 +3500,9 @@ end;
 
 function TCastleWindow.AllowSuspendForInput: boolean;
 begin
-  {$warnings off} // keep deprecated working - OnTimer
+  {$warnings off} // keep deprecated working - OnUpdate
   Result := Container.AllowSuspendForInput and
-    not (Invalidated or Assigned(OnUpdate) {$ifdef FPC}or Assigned(OnTimer){$endif} or FpsShowOnCaption);
+    not (Invalidated or Assigned(OnUpdate) or FpsShowOnCaption);
   {$warnings on}
 end;
 
@@ -4305,13 +4220,6 @@ begin
   for i := 0 to Count - 1 do Items[i].DoUpdate;
 end;
 
-procedure TWindowList.DoTimer;
-var
-  i: integer;
-begin
-  for i := 0 to Count - 1 do Items[i].DoTimer;
-end;
-
 { --------------------------------------------------------------------------
   Generic part of implementation of TCastleApplication,
   that does not depend what CASTLE_WINDOW_xxx backend you want. }
@@ -4323,7 +4231,6 @@ constructor TCastleApplication.Create(AOwner: TComponent);
 begin
   inherited;
   FOpenWindows := TWindowList.Create(false);
-  FTimerMilisec := 1000;
   CreateBackend;
   OnMainContainer := {$ifdef FPC}@{$endif}GetMainContainer;
 end;
@@ -4497,30 +4404,6 @@ begin
   QuitWhenNoOpenWindows;
 end;
 
-procedure TCastleApplication.DoApplicationUpdate;
-begin
-  if Assigned(FOnUpdate) then FOnUpdate;
-  ApplicationProperties._Update;
-end;
-
-procedure TCastleApplication.DoApplicationTimer;
-begin
-  if Assigned(FOnTimer) then FOnTimer;
-end;
-
-procedure TCastleApplication.MaybeDoTimer;
-var
-  Now: TTimerResult;
-begin
-  Now := Timer;
-  if TimerSeconds(Now, LastMaybeDoTimerTime) >= FTimerMilisec / 1000 then
-  begin
-    LastMaybeDoTimerTime := Now;
-    DoApplicationTimer;
-    FOpenWindows.DoTimer;
-  end;
-end;
-
 procedure TCastleApplication.UpdateAndRenderEverything(out WasAnyRendering: boolean);
 var
   I: integer;
@@ -4528,9 +4411,9 @@ var
 begin
   WasAnyRendering := false;
 
-  { We call Application.OnUpdate *right before rendering*, because:
+  { We call ApplicationProperties._Update *right before rendering*, because:
 
-     - This makes calls to Application.OnUpdate have similar frequency
+     - This makes ApplicationProperties.OnUpdate callbacks have similar frequency
        as calls to window's OnRender callbacks, when the application
        is under a lot of stress (many messages).
 
@@ -4549,10 +4432,7 @@ begin
 
      In effect, we like to have OnUpdate called roughly as often as OnRender,
      even if we don't really guarantee it. }
-  DoApplicationUpdate;
-  if Terminated then Exit;
-
-  MaybeDoTimer;
+  ApplicationProperties._Update;
   if Terminated then Exit;
 
   { Redraw some windows, and call window's OnUpdate.
@@ -4606,12 +4486,7 @@ function TCastleApplication.AllowSuspendForInput: boolean;
 var
   I: Integer;
 begin
-  {$warnings off} // keep deprecated working - OnTimer
-  Result := not (
-    Assigned(OnUpdate) or
-    {$ifdef FPC}Assigned(OnTimer) or{$endif}
-    (ApplicationProperties.OnUpdate.Count <> 0));
-  {$warnings on}
+  Result := ApplicationProperties.OnUpdate.Count = 0;
   if not Result then Exit;
 
   for I := 0 to OpenWindowsCount - 1 do

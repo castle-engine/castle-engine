@@ -225,9 +225,8 @@ type
     property IsGLContextOpen: boolean read FIsGLContextOpen;
 
     { Callbacks called continuously when (at least one) window is open.
-
       You can use this just like @link(TCastleControl.OnUpdate)
-      or @link(TCastleWindow.OnUpdate) or @link(TCastleApplication.OnUpdate). }
+      or @link(TCastleWindow.OnUpdate). }
     property OnUpdate: TNotifyEventList read FOnUpdate;
 
     { Callbacks called when Android Java activity started.

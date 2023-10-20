@@ -1023,18 +1023,10 @@ begin
     DesiredFPS := Min(MaxDesiredFPS, ApplicationProperties.LimitFPS);
   if TimerSeconds(Timer, Fps.UpdateStartTime) > 1 / DesiredFPS then
   begin
+    { Note that calling here ApplicationProperties._Update
+      may be too often, in case multiple TCastleWindow are open. }
+    ApplicationProperties._Update;
     DoUpdate;
-
-    { TODO:
-      - TCastleApplication.OnIdle is not taken care of here.
-        This takes care of calling OnUpdate for this window.
-        Other windows (in case you have multiple TCastleWindow instances)
-        will take care of themselves too, they all have separate Fps counter.
-        But TCastleApplication.OnIdle is left not called.
-      - OnTimer (both from Application and TCastleWindow)
-        is not taken care of here.
-    }
-
     if Invalidated then DoRender;
   end;
 end;
@@ -1271,13 +1263,9 @@ end;
 {$ifdef USE_TIMER}
 procedure TCastleApplication.ApplicationTimer(Sender: TObject);
 begin
-  { Call Update and Timer events of Application and all windows.
-    Update events are handled by DoApplicationUpdate and OpenWindows.DoUpdate.
-    Timer events are handled by MaybeDoTimer, that in turn will call
-    (when needed) DoApplicationTimer and OpenWindows.DoTimer. }
-  DoApplicationUpdate;
+  ApplicationProperties._Update;
+  { Call Update events on all windows. }
   FOpenWindows.DoUpdate;
-  MaybeDoTimer;
 end;
 {$endif}
 
@@ -1376,9 +1364,6 @@ begin
       promises that it's not necessary to call Run, it should be always
       equivalent to call just ProcessMessage in a loop.
       For Cocoa with CASTLE_WINDOW_FORM, this cannot be true.
-
-    - Application.OnUpdate/Application.OnTimer are broken,
-      they need our TCastleApplication.ProcessMessage to work.
 
     Other platforms with USE_TIMER call FormApplication.Run here
     as this is most straightforward.
