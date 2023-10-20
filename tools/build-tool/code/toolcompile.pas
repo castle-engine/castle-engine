@@ -431,9 +431,6 @@ var
       for S in EnginePaths do
         AddEnginePath(S);
 
-      if (not FpcVer.AtLeast(3, 1, 1)) or FpcVer.IsCodeTyphon then
-        AddEnginePath('compatibility/generics.collections/src');
-
       { Do not add castle-fpc.cfg.
         Instead, rely on code below duplicating castle-fpc.cfg logic
         (reasons: engine sources, with castle-fpc.cfg, may not be available

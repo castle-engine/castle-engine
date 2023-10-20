@@ -23,20 +23,7 @@
 //end;
 
 // See http://wiki.freepascal.org/Macros_and_Conditionals
-
-// Make Generics.Collections unit available even on FPC 3.0.x
-if GetProjValue(&apos;FPC_FULLVERSION&apos;) &lt; 30101 then
-begin
-  UnitPath += &apos;;../src/compatibility/generics.collections/src/&apos;;
-
-  { Since we don&apos;t add the Generics.Collections units
-    to the package (because we can&apos;t do it only for specific
-    FPC versions), they may not be compiled.
-    (At least now, when engine does not use them yet,
-    but it seeems like a good safeguard for the future too.)
-    So expose path to their sources for dependent projects. }
-  UsageUnitPath += &apos;;../src/compatibility/generics.collections/src/&apos;;
-end;"/>
+"/>
       <Parsing>
         <SyntaxOptions>
           <CStyleMacros Value="True"/>

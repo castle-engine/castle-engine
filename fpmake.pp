@@ -200,17 +200,6 @@ begin
     { Add our unit groups.
       For simplicity, keep things in alphabetical order in each group. }
 
-    { Add local version of Generics.Collections for FPC < 3.1.1 }
-    {$if defined(VER3_0)}
-    P.SourcePath.Add('src/compatibility/generics.collections/src' + PathDelim);
-    P.Targets.AddUnit('generics.collections.pas');
-    P.Targets.AddUnit('generics.defaults.pas');
-    P.Targets.AddUnit('generics.hashes.pas');
-    P.Targets.AddUnit('generics.helpers.pas');
-    P.Targets.AddUnit('generics.memoryexpanders.pas');
-    P.Targets.AddUnit('generics.strings.pas');
-    {$endif}
-
     P.SourcePath.Add('src/transform');
     P.Targets.AddUnit('castlebehaviors.pas');
     P.Targets.AddUnit('castleboxes.pas');
