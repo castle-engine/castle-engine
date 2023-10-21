@@ -120,7 +120,7 @@
 {$ifdef read_interface_uses}
   {$ifdef FPC}
     // LCL
-    Interfaces, Forms, Dialogs, OpenGLContext, Menus,
+    Interfaces, Forms, Dialogs, OpenGLContext, Menus, ExtCtrls,
     Controls, FileUtil, Graphics, LCLType, CastleLCLUtils, Clipbrd, CustomTimer,
     LCLVersion,
   {$else}
