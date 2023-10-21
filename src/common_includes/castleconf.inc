@@ -384,8 +384,10 @@
 {$endif}
 
 // TODO: In the long run, use dglOpenGL for OpenGL, on all platforms and compilers.
-{$if (not defined(FPC)) and (not defined(MSWINDOWS))}
-  {$define USE_DGL}
+{$ifndef PASDOC} // PasDoc cannot evaluate $if, avoid
+  {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+    {$define USE_DGL}
+  {$endif}
 {$endif}
 
 { PNG ------------------------------------------------------------------------ }

@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2022 Michalis Kamburelis.
+  Copyright 2000-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -83,8 +83,9 @@ procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
 { ---------------------------------------------------------------------------- }
 { @section(TStream utilities) }
 
-procedure StreamWriteByte(Stream: TStream; const Value: Byte);
-function StreamReadByte(Stream: TStream): Byte;
+// Unused
+//procedure StreamWriteByte(Stream: TStream; const Value: Byte);
+//function StreamReadByte(Stream: TStream): Byte;
 
 { Write string contents, encoded as 8-bit (UTF-8), to stream.
   Versions with "Ln" suffix append a newline.
@@ -1126,6 +1127,7 @@ end;
 
 { TStream helpers -------------------------------------------------------- }
 
+{ // Unused
 procedure StreamWriteByte(Stream: TStream; const Value: Byte);
 begin
   Stream.WriteBuffer(Value, SizeOf(Value));
@@ -1135,6 +1137,7 @@ function StreamReadByte(Stream: TStream): Byte;
 begin
   Stream.ReadBuffer(Result, SizeOf(Result));
 end;
+}
 
 procedure WriteStr(const Stream: TStream; const S: AnsiString);
 begin

@@ -58,8 +58,6 @@
       This will enter message loop that will call
       appropriate windows' callbacks at appropriate times
       (OnRender, OnPress, OnRelease, OnResize, OnUpdate and many more).
-      There are also some Application callbacks, like
-      @link(TCastleApplication.OnUpdate Application.OnUpdate).
 
       For more advanced needs you can use something like
 
@@ -1628,16 +1626,10 @@ type
       so it is continuously called even when your game
       is overwhelmed by messages (like mouse moves) and redraws.
 
-      Called at the same time when
-      @link(TCastleApplication.OnUpdate Application.OnUpdate) is called.
-
-      You should add code to this window's OnUpdate event
-      (not to TCastleApplication.OnUpdate) when you do something related
-      to this window. For example when you check this window's
-      @link(Pressed) keys state, or animate something displayed on this window.
-      This allows various "modal boxes" and such (see CastleMessages)
-      to nicely "pause" such processing by temporarily replacing
-      OnUpdate and other events of a window that displays a modal box.
+      This is called at the same time (right after or right before) when
+      all callbacks on the list
+      @link(TCastleApplicationProperties.OnUpdate ApplicationProperties.OnUpdate)
+      are called.
 
       @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
       method Update and OnUpdate event. }

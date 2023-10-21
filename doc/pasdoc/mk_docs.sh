@@ -121,6 +121,7 @@ if (( $# == 0 )); then
               '(' -iname 'castleinternal*.pas' ')' -or \
               '(' -iname 'castleshapeinternal*.pas' ')' -or \
               '(' -iname 'kraft.pas' ')' -or \
+              '(' -iname 'dglopengl.pas' ')' -or \
               '(' -iwholename '*/compatibility/*' ')' -or \
               '(' -iwholename '*/deprecated_units/*' ')' -or \
               '(' -iwholename '*/pasgltf/*' ')' -or \
