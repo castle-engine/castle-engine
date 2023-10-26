@@ -331,6 +331,12 @@ pack_platform_dir ()
        "${TEMP_PATH_CGE}"bin-to-keep
   fi
 
+  if [ "$OS" '=' 'linux' ]; then
+    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi --widgetset=qt5
+    cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
+       "${TEMP_PATH_CGE}"bin-to-keep/castle-editor-qt5
+  fi
+
   # Add DLLs on Windows
   case "$OS" in
     win32|win64)
