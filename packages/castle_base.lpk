@@ -74,7 +74,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1087">
+    <Files Count="1091">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4453,6 +4453,22 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_environment.inc"/>
         <Type Value="Include"/>
       </Item1087>
+      <Item1088>
+        <Filename Value="../src/scene/x3d/x3dnodes_standard_textureprojector.inc"/>
+        <Type Value="Include"/>
+      </Item1088>
+      <Item1089>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_x3dtextureprojectornode.inc"/>
+        <Type Value="Include"/>
+      </Item1089>
+      <Item1090>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_textureprojector.inc"/>
+        <Type Value="Include"/>
+      </Item1090>
+      <Item1091>
+        <Filename Value="../src/scene/x3d/auto_generated_node_helpers/x3dnodes_textureprojectorparallel.inc"/>
+        <Type Value="Include"/>
+      </Item1091>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">

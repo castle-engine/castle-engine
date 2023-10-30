@@ -1,0 +1,26 @@
+X3DTextureProjectorNode : X3DLightNode {
+  SFString [in,out] description      ""
+  SFVec3f  [in,out] direction        0 0 1
+    range: (-Inf,Inf)
+  SFFloat  [in,out] farDistance      -1
+    range: -1 or (0,Inf)
+  SFVec3f  [in,out] location         0 0 0
+    range: (-Inf,Inf)
+  SFFloat  [in,out] nearDistance     -1
+    range: -1 or (0,Inf)
+  SFNode   [in,out] texture          NULL
+    range: X3DTexture2DNode
+  SFFloat  [out]    aspectRatio
+    range: (0,Inf)
+}
+
+TextureProjector : X3DTextureProjectorNode {
+  SFFloat  [in,out] fieldOfView      Pi/4
+    range: (0,Pi)
+  SFVec3f  [in,out] upVector         0 0 1
+}
+
+TextureProjectorParallel : X3DTextureProjectorNode {
+  SFVec4f  [in,out] fieldOfView      -1 -1 1 1
+    range: (-Inf,Inf)
+}

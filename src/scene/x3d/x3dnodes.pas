@@ -231,6 +231,7 @@ type
   {$I x3dnodes_standard_picking.inc}
   {$I x3dnodes_standard_followers.inc}
   {$I x3dnodes_standard_particlesystems.inc}
+  {$I x3dnodes_standard_textureprojector.inc}
 
   { More X3D nodes, not from X3D standard }
   {$I x3dnodes_1.inc}
@@ -363,6 +364,7 @@ uses
 {$I x3dnodes_standard_picking.inc}
 {$I x3dnodes_standard_followers.inc}
 {$I x3dnodes_standard_particlesystems.inc}
+{$I x3dnodes_standard_textureprojector.inc}
 
 { More X3D nodes, not from X3D standard }
 {$I x3dnodes_1.inc}
@@ -628,6 +630,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_texturecoordinate3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturecoordinate4d.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
+{$I auto_generated_node_helpers/x3dnodes_textureprojector.inc}
+{$I auto_generated_node_helpers/x3dnodes_textureprojectorparallel.inc}
 {$I auto_generated_node_helpers/x3dnodes_textureproperties.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturetransform.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturetransform3d.inc}
@@ -724,6 +728,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtexturenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtexturetransformnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dtextureprojectornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtimedependentnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtriggernode.inc}
@@ -805,6 +810,7 @@ initialization
   RegisterPickingNodes;
   RegisterFollowersNodes;
   RegisterParticleSystemsNodes;
+  RegisterTextureProjectorNodes;
 
   X3DCache := TX3DFontTexturesCache.Create;
   TextureCache := X3DCache;
