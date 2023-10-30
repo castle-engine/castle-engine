@@ -318,11 +318,11 @@ end;
     added to ContainerField.
 
   Reads and increments PositionInParent. }
-procedure ParseStatement(
+function ParseStatement(
   const Lexer: TX3DLexer; const Reader: TX3DReaderNames;
   const ContainerNode: TX3DNode; const ContainerField: TMFNode;
   const FileTopLevel: Boolean;
-  var PositionInParent: Integer);
+  var PositionInParent: Integer): TX3DFileItem;
 
   { Parse and add PROTO or EXTERNPROTO.
     You can safely assume that current token is PROTO or EXTERNPROTO. }
@@ -335,8 +335,8 @@ procedure ParseStatement(
       Proto := TX3DExternalPrototype.Create;
     try
       Proto.Parse(Lexer, Reader);
-      Proto.PositionInParent := PositionInParent;
       ContainerNode.AddPrototype(Proto);
+      Result := Proto;
     except
       FreeAndNil(Proto); { do not add invalid Proto, free it }
       raise;
@@ -350,8 +350,8 @@ procedure ParseStatement(
     Route := TX3DRoute.Create;
     try
       Route.Parse(Lexer, Reader);
-      Route.PositionInParent := PositionInParent;
       ContainerNode.AddRoute(Route);
+      Result := Route;
     except
       FreeAndNil(Route); { do not add invalid Route, free it }
       raise;
@@ -365,8 +365,8 @@ procedure ParseStatement(
     Import := TX3DImport.Create;
     try
       Import.Parse(Lexer, Reader);
-      Import.PositionInParent := PositionInParent;
       ContainerNode.AddImport(Import);
+      Result := Import;
     except
       FreeAndNil(Import); { do not add invalid Import, free it }
       raise;
@@ -380,8 +380,8 @@ procedure ParseStatement(
     Export := TX3DExport.Create;
     try
       Export.Parse(Lexer, Reader);
-      Export.PositionInParent := PositionInParent;
       ContainerNode.AddExport(Export);
+      Result := Export;
     except
       FreeAndNil(Export); { do not add invalid Export, free it }
       raise;
@@ -393,11 +393,11 @@ procedure ParseStatement(
     NewNode: TX3DNode;
   begin
     NewNode := ParseNode(Lexer, Reader, false);
-    NewNode.PositionInParent := PositionInParent;
     if ContainerNode is TX3DRootNode then
       TX3DRootNode(ContainerNode).AddRootNode(NewNode, FileTopLevel)
     else
       ContainerField.Add(NewNode);
+    Result := NewNode;
   end;
 
 begin
@@ -416,6 +416,8 @@ begin
   else
     ParseNodeStatement;
 
+  Assert(Result <> nil);
+  Result.PositionInParent := PositionInParent;
   Inc(PositionInParent);
 end;
 

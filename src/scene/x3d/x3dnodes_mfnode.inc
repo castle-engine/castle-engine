@@ -518,6 +518,7 @@ procedure TMFNode.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
   var
     Node: TX3DNode;
     ModifiedPositionInParent: Integer;
+    NewFileItem: TX3DFileItem;
   begin
     if ParentNode = nil then
     begin
@@ -541,11 +542,23 @@ procedure TMFNode.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
         as we don't store the children directly in MFNode anyway.
         We'd need to extend MFNode to hold more things (like protos) to have useful
         PositionInParent within.
-        For now, we just store -1 always. }
+        For now, we just store -1 always.
+
+        We will modify it later to something big for things that can safely
+        go at the end - ROUTE, EXPORT, since these only reference existing nodes. }
       ModifiedPositionInParent := -1;
 
-      ParseStatement(Lexer, Reader as TX3DReaderNames,
+      NewFileItem := ParseStatement(Lexer, Reader as TX3DReaderNames,
         ParentNode, Self, false, ModifiedPositionInParent);
+
+      if (NewFileItem is TX3DRoute) or
+         (NewFileItem is TX3DExport) then
+      begin
+        { Make sure to put ROUTE and EXPORT at the end of containing node.
+          Testcase: round-trip (save as X3D classic and read it back)
+          of demo-models\x3d\routes_protos_within_mfnode.x3dv }
+        NewFileItem.PositionInParent := 1000 * 1000 * 1000;
+      end;
     end;
   end;
 
