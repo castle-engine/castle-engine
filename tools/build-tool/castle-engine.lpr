@@ -180,6 +180,7 @@ begin
             'output' +NL+
             '    Output some project information (from the manifest).' + NL +
             '    Next parameter determines the information:' + NL +
+            '      executable-name' + NL +
             '      version' + NL +
             '      version-code' + NL +
             NL+
