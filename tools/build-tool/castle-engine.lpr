@@ -427,6 +427,18 @@ begin
           Project.DoRun(Target, OS, CPU, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end else
+      if Command = 'compileandrun' then
+      begin
+        Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions);
+        RestOfParameters := TCastleStringList.Create;
+        try
+          RestOfParameters.Text := Parameters.Text;
+          RestOfParameters.Delete(0); // remove our own name
+          RestOfParameters.Delete(0); // remove "run"
+          Project.DoRun(Target, OS, CPU, RestOfParameters);
+        finally FreeAndNil(RestOfParameters) end;
+      end
+      else
       if Command = 'package-source' then
       begin
         Project.DoClean;
