@@ -41,6 +41,10 @@
 
 {$ifdef read_implementation}
 
+{$I auto_generated_node_helpers/x3dnodes_textureprojector.inc}
+{$I auto_generated_node_helpers/x3dnodes_textureprojectorparallel.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dtextureprojectornode.inc}
+
 procedure RegisterTextureProjectorNodes;
 begin
   NodesManager.RegisterNodeClasses([

@@ -215,23 +215,14 @@ type
   {$I x3dnodes_standard_environmentalsensor.inc}
   {$I x3dnodes_standard_navigation.inc}
   {$I x3dnodes_standard_environmentaleffects.inc}
-  {$I x3dnodes_standard_geospatial.inc}
   {$I x3dnodes_standard_h-anim.inc}
   {$I x3dnodes_standard_nurbs.inc}
-  {$I x3dnodes_standard_dis.inc}
   {$I x3dnodes_standard_scripting.inc}
   {$I x3dnodes_standard_eventutilities.inc}
   {$I x3dnodes_standard_shaders.inc}
   {$I x3dnodes_standard_cadgeometry.inc}
   {$I x3dnodes_standard_texturing3d.inc}
   {$I x3dnodes_standard_cubemaptexturing.inc}
-  {$I x3dnodes_standard_layering.inc}
-  {$I x3dnodes_standard_layout.inc}
-  {$I x3dnodes_standard_rigidbodyphysics.inc}
-  {$I x3dnodes_standard_picking.inc}
-  {$I x3dnodes_standard_followers.inc}
-  {$I x3dnodes_standard_particlesystems.inc}
-  {$I x3dnodes_standard_textureprojector.inc}
 
   { More X3D nodes, not from X3D standard }
   {$I x3dnodes_1.inc}
@@ -630,8 +621,6 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_texturecoordinate3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturecoordinate4d.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
-{$I auto_generated_node_helpers/x3dnodes_textureprojector.inc}
-{$I auto_generated_node_helpers/x3dnodes_textureprojectorparallel.inc}
 {$I auto_generated_node_helpers/x3dnodes_textureproperties.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturetransform.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturetransform3d.inc}
@@ -728,7 +717,6 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtexturenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtexturetransformnode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3dtextureprojectornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtimedependentnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtriggernode.inc}
@@ -794,23 +782,16 @@ initialization
   RegisterEnvironmentalSensorNodes;
   RegisterNavigationNodes;
   RegisterEnvironmentalEffectsNodes;
-  RegisterGeospatialNodes;
   RegisterHAnimNodes;
   RegisterNURBSNodes;
-  RegisterDISNodes;
   RegisterScriptingNodes;
   RegisterEventUtilitiesNodes;
   RegisterShadersNodes;
   RegisterCADGeometryNodes;
   RegisterTexturing3DNodes;
   RegisterCubeMapTexturingNodes;
-  RegisterLayeringNodes;
-  RegisterLayoutNodes;
-  RegisterRigidBodyPhysicsNodes;
-  RegisterPickingNodes;
-  RegisterFollowersNodes;
-  RegisterParticleSystemsNodes;
-  RegisterTextureProjectorNodes;
+
+  RegisterUnsupportedNodes;
 
   X3DCache := TX3DFontTexturesCache.Create;
   TextureCache := X3DCache;
