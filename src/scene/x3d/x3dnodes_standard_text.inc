@@ -780,12 +780,6 @@ begin
 end;
 
 var
-  DefaultFontData: array [
-    TX3DFontFamily,
-    { bold } Boolean,
-    { italic } Boolean
-  ] of TTextureFontData;
-
   DefaultFont: array [
     TX3DFontFamily,
     { bold } Boolean,
