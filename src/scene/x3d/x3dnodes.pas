@@ -281,7 +281,7 @@ uses Math, StrUtils, URIParser,
 {$I x3dnodes_boundingboxes.inc}
 {$I x3dnodes_verticesandtrianglescounting.inc}
 {$I x3dnodes_coordpolygons.inc}
-{$ęI x3dnodes_eventsengine.inc}
+{$I x3dnodes_eventsengine.inc}
 {$I x3dnodes_save.inc}
 {$I x3dnodes_load.inc}
 {$I x3dnodes_encoding_classic.inc}
