@@ -114,7 +114,7 @@ uses Generics.Collections, Math,
   CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
   X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime, CastleColors,
   CastleApplicationProperties, CastleTextureImages, CastleStringUtils,
-  CastleURIUtils,
+  CastleURIUtils, CastleInternalNodesUnsupported,
   CastleTestUtils;
 
 { TNode* ------------------------------------------------------------ }
