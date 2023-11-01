@@ -250,28 +250,11 @@ type
 
 implementation
 
-uses
-  { Fonts for Text, FontStyle, AsciiText nodes }
+uses Math, StrUtils, URIParser,
   CastleTextureFont_Default3d_Sans,
-  {$ifdef CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
-  CastleTextureFont_Default3d_SansB,
-  CastleTextureFont_Default3d_SansI,
-  CastleTextureFont_Default3d_SansBI,
-
-  CastleTextureFont_Default3d_Mono,
-  CastleTextureFont_Default3d_MonoB,
-  CastleTextureFont_Default3d_MonoI,
-  CastleTextureFont_Default3d_MonoBI,
-
-  CastleTextureFont_Default3d_Serif,
-  CastleTextureFont_Default3d_SerifB,
-  CastleTextureFont_Default3d_SerifI,
-  CastleTextureFont_Default3d_SerifBI,
-  {$endif CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
-
-  Math, X3DLoad, CastleInternalZStream, X3DCameraUtils,
-  CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
-  CastleLog, CastleScriptParser, CastleInternalDataUri, URIParser, CastleDownload,
+  X3DLoad, CastleInternalZStream, X3DCameraUtils,
+  CastleFilesUtils, CastleURIUtils, CastleUnicode, CastleCurves,
+  CastleLog, CastleScriptParser, CastleInternalDataUri, CastleDownload,
   CastleInternalNurbs, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
   CastleSoundBase, CastleTriangles, X3DLoadInternalUtils,
   CastleApplicationProperties, CastleInternalNodesUnsupported;
@@ -298,7 +281,7 @@ uses
 {$I x3dnodes_boundingboxes.inc}
 {$I x3dnodes_verticesandtrianglescounting.inc}
 {$I x3dnodes_coordpolygons.inc}
-{$I x3dnodes_eventsengine.inc}
+{$ęI x3dnodes_eventsengine.inc}
 {$I x3dnodes_save.inc}
 {$I x3dnodes_load.inc}
 {$I x3dnodes_encoding_classic.inc}

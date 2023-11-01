@@ -367,19 +367,7 @@ begin
     P.Targets.AddUnit('castleinternalfreetypeh.pas');
     P.Targets.AddUnit('castleinternalrichtext.pas');
     P.Targets.AddUnit('castletexturefont_defaultui.pas');
-    // 16 fonts for X3D Text node
-    P.Targets.AddUnit('castletexturefont_default3d_mono.pas');
-    P.Targets.AddUnit('castletexturefont_default3d_monob.pas');
-    P.Targets.AddUnit('castletexturefont_default3d_monobi.pas');
-    P.Targets.AddUnit('castletexturefont_default3d_monoi.pas');
     P.Targets.AddUnit('castletexturefont_default3d_sans.pas');
-    P.Targets.AddUnit('castletexturefont_default3d_sansb.pas');
-    P.Targets.AddUnit('castletexturefont_default3d_sansbi.pas');
-    P.Targets.AddUnit('castletexturefont_default3d_sansi.pas');
-    P.Targets.AddUnit('castletexturefont_default3d_serif.pas');
-    P.Targets.AddUnit('castletexturefont_default3d_serifb.pas');
-    P.Targets.AddUnit('castletexturefont_default3d_serifbi.pas');
-    P.Targets.AddUnit('castletexturefont_default3d_serifi.pas');
     P.Targets.AddUnit('castletexturefontdata.pas');
 
     P.SourcePath.Add('src/images');
