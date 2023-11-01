@@ -276,6 +276,15 @@ const
   ShapeSortNames: array [TShapeSort] of string =
   ('AUTO', 'NONE', '2D', '3D', '3D_VERTICAL_BILLBOARDS', '3D_ORIGIN', '3D_GROUND', 'CUSTOM');
 
+{$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_billboard.inc}
+{$I auto_generated_node_helpers/x3dnodes_collision.inc}
+{$I auto_generated_node_helpers/x3dnodes_lod.inc}
+{$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
+{$I auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}
+
 { TAbstractViewpointNode -------------------------------------------------- }
 
 constructor TAbstractViewpointNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');

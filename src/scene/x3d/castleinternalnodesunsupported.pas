@@ -31,7 +31,11 @@ unit CastleInternalNodesUnsupported;
 
 interface
 
+uses X3DNodes, X3DFields, CastleVectors, CastleStringUtils, CastleColors,
+  CastleTimeUtils, CastleUtils, CastleBoxes;
+
 {$define read_interface}
+
 type
   {$I x3dnodes_standard_geospatial.inc}
   {$I x3dnodes_standard_dis.inc}
@@ -43,11 +47,25 @@ type
   {$I x3dnodes_standard_particlesystems.inc}
   {$I x3dnodes_standard_textureprojector.inc}
 
+{$undef read_interface}
+
 procedure RegisterUnsupportedNodes;
 
 implementation
 
-uses X3DNodes;
+uses SysUtils;
+
+{$define read_implementation}
+
+{$I x3dnodes_standard_geospatial.inc}
+{$I x3dnodes_standard_dis.inc}
+{$I x3dnodes_standard_layering.inc}
+{$I x3dnodes_standard_layout.inc}
+{$I x3dnodes_standard_rigidbodyphysics.inc}
+{$I x3dnodes_standard_picking.inc}
+{$I x3dnodes_standard_followers.inc}
+{$I x3dnodes_standard_particlesystems.inc}
+{$I x3dnodes_standard_textureprojector.inc}
 
 procedure RegisterUnsupportedNodes;
 begin
