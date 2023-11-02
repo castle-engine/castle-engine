@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -304,6 +304,123 @@ begin
   Result := ParseNode(Lexer, Reader, NilIfUnresolvedUSE, false, IgnoredUsingNodeCycle);
 end;
 
+{ Parse any "statement" from X3D grammar.
+  See https://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ,
+  but it has been changed in X3D 4.0 to allow more things in "nodeStatement"
+  according to https://github.com/castle-engine/view3dscene/issues/79 .
+
+  Adds new parsed stuff to ContainerNode...
+  Unless that stuff is a node, in which case it is
+  - when ContainerNode is TX3DRootNode:
+    added to ContainerNode using ContainerNode.AddRootNode.
+    You can leave ContainerField=nil in this case.
+  - otherwise:
+    added to ContainerField.
+
+  Reads and increments PositionInParent. }
+function ParseStatement(
+  const Lexer: TX3DLexer; const Reader: TX3DReaderNames;
+  const ContainerNode: TX3DNode; const ContainerField: TMFNode;
+  const FileTopLevel: Boolean;
+  var PositionInParent: Integer): TX3DFileItem;
+
+  { Parse and add PROTO or EXTERNPROTO.
+    You can safely assume that current token is PROTO or EXTERNPROTO. }
+  procedure ParseProtoStatement;
+  var
+    Proto: TX3DPrototypeBase;
+  begin
+    if Lexer.TokenKeyword = vkPROTO then
+      Proto := TX3DPrototype.Create else
+      Proto := TX3DExternalPrototype.Create;
+    try
+      Proto.Parse(Lexer, Reader);
+      ContainerNode.AddPrototype(Proto);
+      Result := Proto;
+    except
+      FreeAndNil(Proto); { do not add invalid Proto, free it }
+      raise;
+    end;
+  end;
+
+  procedure ParseRouteStatement;
+  var
+    Route: TX3DRoute;
+  begin
+    Route := TX3DRoute.Create;
+    try
+      Route.Parse(Lexer, Reader);
+      ContainerNode.AddRoute(Route);
+      Result := Route;
+    except
+      FreeAndNil(Route); { do not add invalid Route, free it }
+      raise;
+    end;
+  end;
+
+  procedure ParseImportStatement;
+  var
+    Import: TX3DImport;
+  begin
+    Import := TX3DImport.Create;
+    try
+      Import.Parse(Lexer, Reader);
+      ContainerNode.AddImport(Import);
+      Result := Import;
+    except
+      FreeAndNil(Import); { do not add invalid Import, free it }
+      raise;
+    end;
+  end;
+
+  procedure ParseExportStatement;
+  var
+    Export: TX3DExport;
+  begin
+    Export := TX3DExport.Create;
+    try
+      Export.Parse(Lexer, Reader);
+      ContainerNode.AddExport(Export);
+      Result := Export;
+    except
+      FreeAndNil(Export); { do not add invalid Export, free it }
+      raise;
+    end;
+  end;
+
+  procedure ParseNodeStatement;
+  var
+    NewNode: TX3DNode;
+  begin
+    NewNode := ParseNode(Lexer, Reader, false);
+    if ContainerNode is TX3DRootNode then
+      TX3DRootNode(ContainerNode).AddRootNode(NewNode, FileTopLevel)
+    else
+      ContainerField.Add(NewNode);
+    Result := NewNode;
+  end;
+
+begin
+  if (Lexer.Token = vtKeyword) and
+     (Lexer.TokenKeyword in [vkPROTO, vkEXTERNPROTO]) then
+    ParseProtoStatement
+  else
+  if Lexer.TokenIsKeyword(vkROUTE) then
+    ParseRouteStatement
+  else
+  if Lexer.TokenIsKeyword(vkIMPORT) then
+    ParseImportStatement
+  else
+  if Lexer.TokenIsKeyword(vkEXPORT) then
+    ParseExportStatement
+  else
+    ParseNodeStatement;
+
+  Assert(Result <> nil);
+  Result.PositionInParent := PositionInParent;
+  Inc(PositionInParent);
+end;
+
 { Parses a sequence of VRML/X3D statements: any number of nodes,
   (external) protypes, routes, import/export declarations.
   This is good to use to parse whole VRML/X3D file (when FileTopLevel = true),
@@ -410,93 +527,6 @@ var
     end;
   end;
 
-  procedure ParseStatement;
-
-    { You can safely assume that current token is PROTO or EXTERNPROTO. }
-    procedure ParseProtoStatement;
-    var
-      Proto: TX3DPrototypeBase;
-    begin
-      if Lexer.TokenKeyword = vkPROTO then
-        Proto := TX3DPrototype.Create else
-        Proto := TX3DExternalPrototype.Create;
-      try
-        Proto.Parse(Lexer, Reader);
-        Proto.PositionInParent := PositionInParent;
-        Result.AddPrototype(Proto);
-      except
-        FreeAndNil(Proto); { do not add invalid Proto, free it }
-        raise;
-      end;
-    end;
-
-    procedure ParseRouteStatement;
-    var
-      Route: TX3DRoute;
-    begin
-      Route := TX3DRoute.Create;
-      try
-        Route.Parse(Lexer, Reader);
-        Route.PositionInParent := PositionInParent;
-        Result.AddRoute(Route);
-      except
-        FreeAndNil(Route); { do not add invalid Route, free it }
-        raise;
-      end;
-    end;
-
-    procedure ParseImportStatement;
-    var
-      Import: TX3DImport;
-    begin
-      Import := TX3DImport.Create;
-      try
-        Import.Parse(Lexer, Reader);
-        Import.PositionInParent := PositionInParent;
-        Result.AddImport(Import);
-      except
-        FreeAndNil(Import); { do not add invalid Import, free it }
-        raise;
-      end;
-    end;
-
-    procedure ParseExportStatement;
-    var
-      Export: TX3DExport;
-    begin
-      Export := TX3DExport.Create;
-      try
-        Export.Parse(Lexer, Reader);
-        Export.PositionInParent := PositionInParent;
-        Result.AddExport(Export);
-      except
-        FreeAndNil(Export); { do not add invalid Export, free it }
-        raise;
-      end;
-    end;
-
-    procedure ParseNodeStatement;
-    var
-      NewNode: TX3DNode;
-    begin
-      NewNode := ParseNode(Lexer, Reader, false);
-      NewNode.PositionInParent := PositionInParent;
-      Result.AddRootNode(NewNode, FileTopLevel);
-    end;
-
-  begin
-    if (Lexer.Token = vtKeyword) and
-       (Lexer.TokenKeyword in [vkPROTO, vkEXTERNPROTO]) then
-      ParseProtoStatement else
-    if Lexer.TokenIsKeyword(vkROUTE) then
-      ParseRouteStatement else
-    if Lexer.TokenIsKeyword(vkIMPORT) then
-      ParseImportStatement else
-    if Lexer.TokenIsKeyword(vkEXPORT) then
-      ParseExportStatement else
-      ParseNodeStatement;
-  end;
-
 begin
   { We used to have more conservative mechanism here when it comes to using
     CreateRootNode: we used to start with Result = nil.
@@ -539,8 +569,7 @@ begin
     begin
       while Lexer.Token <> EndToken do
       begin
-        ParseStatement;
-        Inc(PositionInParent);
+        ParseStatement(Lexer, Reader, Result, nil, FileTopLevel, PositionInParent);
       end;
     end else
     begin
@@ -550,8 +579,7 @@ begin
         but the file contents read so far are Ok). }
       while Lexer.Token <> EndToken do
       try
-        ParseStatement;
-        Inc(PositionInParent);
+        ParseStatement(Lexer, Reader, Result, nil, FileTopLevel, PositionInParent);
       except
         on E: EX3DClassicReadError do
         begin

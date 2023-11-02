@@ -896,7 +896,7 @@ var
     DistanceToAvatarTarget := Clamped(DistanceToAvatarTarget + DistanceChange,
       MinDistanceToAvatarTarget, MaxDistanceToAvatarTarget);
 
-    { The actual change in Camera.Position, caused by changing DistanceToAvatarTarget,
+    { The actual change in Camera.Translation, caused by changing DistanceToAvatarTarget,
       will be done smoothly in UpdateCamera. }
   end;
 

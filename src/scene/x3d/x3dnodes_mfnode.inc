@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -517,16 +517,58 @@ procedure TMFNode.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
   procedure ParseOneItem;
   var
     Node: TX3DNode;
+    ModifiedPositionInParent: Integer;
+    NewFileItem: TX3DFileItem;
   begin
-    Node := ParseNode(Lexer, Reader as TX3DReaderNames, false);
-    Add(Node);
-    WarningIfChildNotAllowed(Node);
+    if ParentNode = nil then
+    begin
+      { Allow MFNode to only contain nodes.
+
+        This was universally good for X3D < 4.0.
+        For X3D 4.0, it still has to be used when MFNode is a default value
+        inside a prototype, we cannot allow other things there because we don't
+        have a "parent node" to associate them with (and it's unclear what would it
+        even be -- parent node of proto definition or instance?).
+
+        Testcase: demo-models\x3d\routes_protos_within_mfnode.x3dv }
+      Node := ParseNode(Lexer, Reader as TX3DReaderNames, false);
+      Add(Node);
+      WarningIfChildNotAllowed(Node);
+
+      //raise EX3DError.Create('Cannot parse MFNode contents in classic encoding without ParentNode, since in X3D 4.0 the MFNode may contain also prototypes, routes');
+    end else
+    begin
+      { We cannot set PositionInParent on children to anything useful,
+        as we don't store the children directly in MFNode anyway.
+        We'd need to extend MFNode to hold more things (like protos) to have useful
+        PositionInParent within.
+        For now, we just store -1 always.
+
+        We will modify it later to something big for things that can safely
+        go at the end - ROUTE, EXPORT, since these only reference existing nodes. }
+      ModifiedPositionInParent := -1;
+
+      NewFileItem := ParseStatement(Lexer, Reader as TX3DReaderNames,
+        ParentNode, Self, false, ModifiedPositionInParent);
+
+      if (NewFileItem is TX3DRoute) or
+         (NewFileItem is TX3DExport) then
+      begin
+        { Make sure to put ROUTE and EXPORT at the end of containing node.
+          Testcase: round-trip (save as X3D classic and read it back)
+          of demo-models\x3d\routes_protos_within_mfnode.x3dv }
+        NewFileItem.PositionInParent := 1000 * 1000 * 1000;
+      end;
+    end;
   end;
 
 begin
   Clear;
 
-  { Note that we ignore commas here, because MFNode is in VRML 2.0 only. }
+  { Note that we ignore commas when parsing.
+    Commas are ignored (like whitespace) in VRML 2.0 and X3D,
+    and MFNode is only in these versions.
+    So we just parse until "]". }
   if Lexer.Token = vtOpenSqBracket then
   begin
     Lexer.NextToken;

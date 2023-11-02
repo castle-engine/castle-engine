@@ -331,6 +331,23 @@ pack_platform_dir ()
        "${TEMP_PATH_CGE}"bin-to-keep
   fi
 
+  # On Linux compile also Qt5 editor version.
+  #
+  # But do not do this on Raspberry Pi (Arm), as it fails at linking
+  # (bug in libqt5-pas-dev on Raspbian or it just requires a different LCL version?)
+  # with
+  # /usr/bin/ld: /home/jenkins/.lazarus/lib/LazOpenGLContext/lib/arm-linux/qt5/qlclopenglwidget.o: in function `TQTOPENGLWIDGET__EVENTFILTER':
+  # /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:106: undefined reference to `QLCLOpenGLWidget_Create'
+  # /usr/bin/ld: /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:104: undefined reference to `QLCLOpenGLWidget_InheritedPaintGL'
+  # /usr/bin/ld: /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:105: undefined reference to `QLCLOpenGLWidget_override_paintGL'
+  # /usr/bin/ld: /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:106: undefined reference to `QLCLOpenGLWidget_override_paintGL'
+  #
+  if [ "$OS" '=' 'linux' -a "${CPU}" '!=' 'arm' ]; then
+    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi --widgetset=qt5
+    cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
+       "${TEMP_PATH_CGE}"bin-to-keep/castle-editor-qt5
+  fi
+
   # Add DLLs on Windows
   case "$OS" in
     win32|win64)

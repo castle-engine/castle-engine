@@ -21,7 +21,7 @@ unit EditorUtils;
 interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
-  Dialogs,
+  Dialogs, Contnrs,
   CastleStringUtils,
   ToolArchitectures, ToolManifest, ToolProcess;
 
@@ -271,6 +271,23 @@ type
 
 { Show last file modification time as nice string. }
 function FileDateTimeStr(const FileName: String): String;
+
+type
+  TComponentListEnumerator = record
+  strict private
+    FList: TComponentList;
+    FPosition: Integer;
+    function GetCurrent: TComponent; inline;
+  public
+    constructor Create(const AList: TComponentList);
+    function MoveNext: Boolean; inline;
+    property Current: TComponent read GetCurrent;
+  end;
+
+{ Useful "for in" iterator over TComponentList,
+  following FPC feature of custom enumerators:
+  https://wiki.freepascal.org/for-in_loop }
+operator Enumerator(const A: TComponentList): TComponentListEnumerator;
 
 implementation
 
@@ -1265,6 +1282,30 @@ begin
     end;
   end else
     Result := 'Unknown';
+end;
+
+{ TComponentListEnumerator ------------------------------------------------- }
+
+function TComponentListEnumerator.GetCurrent: TComponent;
+begin
+  Result := FList[FPosition];
+end;
+
+constructor TComponentListEnumerator.Create(const AList: TComponentList);
+begin
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TComponentListEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
+end;
+
+operator Enumerator(const A: TComponentList): TComponentListEnumerator;
+begin
+  Result := TComponentListEnumerator.Create(A);
 end;
 
 end.

@@ -687,7 +687,7 @@ type
 
           By default our visible Z range is [-1500, 500],
           because this sets ProjectionNear to -1000, ProjectionFar to 1000,
-          and camera default depth (@code(Camera.Position.Z)) is 500.
+          and camera default depth (@code(Camera.Translation.Z)) is 500.
           This was chosen to be comfortable for all cases -- you can
           keep camera Z unchanged and comfortably position things around [-500, 500],
           or set camera Z to zero and then comfortably position things around [-1000, 1000].

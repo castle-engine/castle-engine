@@ -98,6 +98,18 @@
 
 {$ifdef read_implementation}
 
+{$I auto_generated_node_helpers/x3dnodes_geocoordinate.inc}
+{$I auto_generated_node_helpers/x3dnodes_geoelevationgrid.inc}
+{$I auto_generated_node_helpers/x3dnodes_geolocation.inc}
+{$I auto_generated_node_helpers/x3dnodes_geolod.inc}
+{$I auto_generated_node_helpers/x3dnodes_geometadata.inc}
+{$I auto_generated_node_helpers/x3dnodes_geoorigin.inc}
+{$I auto_generated_node_helpers/x3dnodes_geopositioninterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_geoproximitysensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_geotouchsensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_geotransform.inc}
+{$I auto_generated_node_helpers/x3dnodes_geoviewpoint.inc}
+
 { TGeoCoordinateNode --------------------------------------------------------- }
 
 function TGeoCoordinateNode.CoordCount: Cardinal;
