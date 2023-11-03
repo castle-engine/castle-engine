@@ -43,6 +43,8 @@ type
       const AResponse: IHTTPResponse);
     procedure RequestError(const Sender: TObject;
       const AError: string);
+    procedure RequestException(const Sender: TObject;
+      const AError: Exception);
   public
     procedure Start; override;
     destructor Destroy; override;
@@ -65,13 +67,15 @@ begin
 
   C := TNetHttpClient.Create(nil);
   C.Asynchronous := true;
+  C.OnReceiveData := ReceiveData;
   C.OnRequestCompleted := RequestCompleted;
   C.OnRequestError := RequestError;
-  C.OnReceiveData := ReceiveData;
+  C.OnRequestException := RequestException;
   C.SynchronizeEvents := true;
   C.Get(Url, Contents);
 
-  // TODO: support redirects, change this value during HTTP redirects
+  // TODO: Change this value during HTTP redirects.
+  // The TNetHttpClient already supports redirects, according to docs.
   FinalUrl := Url;
 end;
 
@@ -92,7 +96,7 @@ procedure TDelphiNetReader.RequestCompleted(const Sender: TObject;
   const AResponse: IHTTPResponse);
 begin
   HttpResponseCode := AResponse.StatusCode;
-  MimeType := AResponse.MimeType;
+  MimeType := ContentTypeToMimeType(AResponse.MimeType);
   DownloadedBytes := TMemoryStream(Contents).Size;
   TotalBytes := TMemoryStream(Contents).Size;
   Contents.Position := 0; // rewind
@@ -116,6 +120,13 @@ procedure TDelphiNetReader.RequestError(const Sender: TObject;
 begin
   Status := dsError;
   ErrorMessage := AError;
+end;
+
+procedure TDelphiNetReader.RequestException(const Sender: TObject;
+  const AError: Exception);
+begin
+  Status := dsError;
+  ErrorMessage := ExceptMessage(AError);
 end;
 
 procedure TDelphiNetReader.Update;
