@@ -37,6 +37,7 @@ type
   TDelphiNetReader = class(TUrlAsynchronousReader)
   strict private
     C: TNetHttpClient;
+    ContentsOwned: TMemoryStream;
     procedure ReceiveData(const Sender: TObject;
       AContentLength: Int64; AReadCount: Int64; var AAbort: Boolean);
     procedure RequestCompleted(const Sender: TObject;
@@ -63,6 +64,11 @@ begin
     HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
   }
 
+  { Using separate ContentsOwned is a hack, to let the client
+    leak in some cases.
+    See TDelphiNetReader.Destroy comments. }
+  ContentsOwned := TMemoryStream.Create;
+
   Contents := TMemoryStream.Create;
 
   C := TNetHttpClient.Create(nil);
@@ -72,7 +78,7 @@ begin
   C.OnRequestError := RequestError;
   C.OnRequestException := RequestException;
   C.SynchronizeEvents := true;
-  C.Get(Url, Contents);
+  C.Get(Url, ContentsOwned);
 
   // TODO: Change this value during HTTP redirects.
   // The TNetHttpClient already supports redirects, according to docs.
@@ -81,7 +87,26 @@ end;
 
 destructor TDelphiNetReader.Destroy;
 begin
-  FreeAndNil(C);
+  { TODO: Freeing TNetHttpClient before it finished work leads to crashes.
+    Testcase: asynchronous_download CGE example, press "Abort Downloads"
+    after starting the downloads.
+    We let the C and ContentsOwned to just leak,
+    this still causes some crashes but at least we can ignore them
+    (they seem to happen then only in some non-main thread). }
+
+  if (C <> nil) and (Status = dsDownloading) then
+  begin
+    C.OnReceiveData := nil;
+    C.OnRequestCompleted := nil;
+    C.OnRequestError := nil;
+    C.OnRequestException := nil;
+    WritelnWarning('Leaking TNetHttpClient reference. Freeing it before the request has completed leads to crashes');
+  end else
+  begin
+    FreeAndNil(ContentsOwned);
+    FreeAndNil(C);
+  end;
+
   inherited;
 end;
 
@@ -97,6 +122,9 @@ procedure TDelphiNetReader.RequestCompleted(const Sender: TObject;
 begin
   HttpResponseCode := AResponse.StatusCode;
   MimeType := ContentTypeToMimeType(AResponse.MimeType);
+
+  // finish the Contents stream
+  Contents.CopyFrom(ContentsOwned);
   DownloadedBytes := TMemoryStream(Contents).Size;
   TotalBytes := TMemoryStream(Contents).Size;
   Contents.Position := 0; // rewind
@@ -133,10 +161,21 @@ procedure TDelphiNetReader.Update;
 begin
   inherited;
 
-  // No need to do anything, our event callbacks are called already.
+  { No need to do anything, our event callbacks are called already.
 
-  // TODO: When are they called? How does Delphi do Synchronize when
-  // we're not in FMX or VCL loop? It seems to work even in console application.
+    How are the callbacks called, from where,
+    since we don't necessarily execute the Delphi VCL / FMX event loop?
+    E.g. with TCastleWindow we execute own loop.
+    But the callbacks still happen, even in console application.
+    It seems that at least for Windows, with TCastleWindow,
+    Delphi somehow hooked to the Windows event loop to make them happen.
+
+    TODO:
+    - Do these callbacks still happen with Delphi/Linux? How?
+    - How do these callbacks happen in console app?
+      Are they really in main thread then -- but when? At Sleep,
+      by more Windows hooks?
+  }
 end;
 
 {$endif DELPHI}
