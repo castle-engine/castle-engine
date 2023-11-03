@@ -332,6 +332,12 @@ uses SysUtils;
 {$define read_implementation}
 {$I castledialogviews_dialog.inc}
 
+resourcestring
+  SOk = 'OK';
+  SCancel = 'Cancel';
+  SYes = 'Yes';
+  SNo = 'No';
+
 { TViewDialog ------------------------------------------------------------- }
 
 constructor TViewDialog.Create(AOwner: TComponent);
@@ -470,7 +476,7 @@ begin
   SetLength(Buttons, 1);
   Buttons[0] := TCastleButton.Create(Self);
   Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonOKClick;
-  Buttons[0].Caption := 'OK';
+  Buttons[0].Caption := SOk;
 end;
 
 procedure TViewDialogOK.ButtonOKClick(Sender: TObject);
@@ -498,11 +504,11 @@ begin
 
   Buttons[0] := TCastleButton.Create(Self);
   Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonNoClick;
-  Buttons[0].Caption := 'No';
+  Buttons[0].Caption := SNo;
 
   Buttons[1] := TCastleButton.Create(Self);
   Buttons[1].OnClick := {$ifdef FPC}@{$endif}ButtonYesClick;
-  Buttons[1].Caption := 'Yes';
+  Buttons[1].Caption := SYes;
 end;
 
 procedure TViewDialogYesNo.ButtonYesClick(Sender: TObject);
@@ -594,17 +600,17 @@ begin
 
     Buttons[0] := TCastleButton.Create(Self);
     Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonCancelClick;
-    Buttons[0].Caption := 'Cancel';
+    Buttons[0].Caption := SCancel;
 
     Buttons[1] := TCastleButton.Create(Self);
     Buttons[1].OnClick := {$ifdef FPC}@{$endif}ButtonOKClick;
-    Buttons[1].Caption := 'OK';
+    Buttons[1].Caption := SOk;
   end else
   begin
     SetLength(Buttons, 1);
     Buttons[0] := TCastleButton.Create(Self);
     Buttons[0].OnClick := {$ifdef FPC}@{$endif}ButtonOKClick;
-    Buttons[0].Caption := 'OK';
+    Buttons[0].Caption := SOk;
   end;
 end;
 
