@@ -28,6 +28,7 @@ type
   TUrlFile = class
     class function Read(const Url: string; out MimeType: string): TStream;
     class function Write(const Url: string): TStream;
+    { Determine MIME type from URL extension. }
     class function MimeType(const URI: string; out Gzipped: Boolean): String;
   end;
 
@@ -58,17 +59,24 @@ end;
 
 class function TUrlFile.MimeType(const URI: string; out Gzipped: Boolean): String;
 var
-  Ext, ExtExt, ExtA{, ExtExtA}, URIWithoutAnchor, URIName: String;
+  U: TURI;
+  Ext, ExtExt, ExtA{, ExtExtA}, URIWithoutAnchor, URIName, UriPathDocument: String;
 begin
   Result := '';
   Gzipped := false;
+
+  U := ParseURI(URI);
+  { Deconstruct first URL properly using ParseURI.
+    This allows to strip the HTTP query part "?xxx", see
+    https://github.com/castle-engine/castle-engine/issues/547 . }
+  UriPathDocument := U.Path + U.Document;
 
   { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
     although they should be used for filenames.
     Note that this unit does not define public functions like ExtractURIExt
     or ExtractURIDoubleExt: *everything* should operate on MIME types instead. }
-  Ext := LowerCase(ExtractFileExt(URI));
-  ExtExt := LowerCase(ExtractFileDoubleExt(URI));
+  Ext := LowerCase(ExtractFileExt(UriPathDocument));
+  ExtExt := LowerCase(ExtractFileDoubleExt(UriPathDocument));
 
   { Some of our reading functions, like Spine, sprite sheets and images,
     recognize and strip anchors from URL.
@@ -78,11 +86,11 @@ begin
 
     Note that doing it here means that *all* implementations of relevant formats
     should strip anchors, e.g. both LoadImageAsNode and LoadImage must strip anchors. }
-  URIWithoutAnchor := URIDeleteAnchor(URI, true);
+  URIWithoutAnchor := URIDeleteAnchor(UriPathDocument, true);
   ExtA := LowerCase(ExtractFileExt(URIWithoutAnchor));
   // unused: ExtExtA := LowerCase(ExtractFileDoubleExt(URIWithoutAnchor));
 
-  URIName := LowerCase(ExtractURIName(URI));
+  URIName := LowerCase(ExtractURIName(UriPathDocument));
 
   { This list is based on
     http://svn.freepascal.org/cgi-bin/viewvc.cgi/trunk/lcl/interfaces/customdrawn/customdrawnobject_android.inc?root=lazarus&view=co&content-type=text%2Fplain
