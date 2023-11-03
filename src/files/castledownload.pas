@@ -42,7 +42,8 @@ uses URIParser, Math, Generics.Collections,
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleInternalDataUri, CastleStringUtils,
   CastleApplicationProperties, CastleFilesUtils
-  {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
+  {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif}
+  {$ifdef DELPHI}, IdHttp {$endif};
 
 {$define read_implementation}
 {$I castledownload_internal_utils.inc}
@@ -55,6 +56,7 @@ uses URIParser, Math, Generics.Collections,
 {$I castledownload_url_file.inc}
 {$I castledownload_url_http_android.inc}
 {$I castledownload_url_http_fphttpclient.inc}
+{$I castledownload_url_http_indy.inc}
 
 {$I castledownload_register.inc}
 {$I castledownload_synchronous.inc}
