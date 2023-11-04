@@ -64,7 +64,7 @@ type
     SynchronizationCS: TCriticalSection;
     ParentThread: TFpHttpClientThread; //< leave nil for non-threaded operation
 
-    { Updated even during downloading. }
+    { Updated even during downloading, but always using SynchronizationCS. }
     DownloadedBytes, TotalBytes: Int64;
     MimeType: String;
 
