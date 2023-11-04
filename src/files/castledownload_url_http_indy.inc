@@ -14,11 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef read_interface}
-
-{$endif}
-
-{$ifdef read_implementation}
+{$if defined(DELPHI) and not defined(CASTLE_DELPHI_NET_HTTP_CLIENT)}
 
 { Handle downloading http, https URLs using TIdHttp (Indy component).
 
@@ -32,7 +28,11 @@
   and users don't need to worry about getting Indy.
 }
 
-{$ifdef DELPHI}
+{$ifdef read_implementation_uses}
+IdHttp, IdSSL, IdSSLOpenSSL, IdSSLOpenSSLHeaders, IdCTypes,
+{$endif}
+
+{$ifdef read_implementation}
 
 type
   { TUrlAsynchronousReader descendant that implements http(s) downloading. }
@@ -47,6 +47,11 @@ type
     destructor Destroy; override;
     procedure Update; override;
   end;
+
+  { Define TDelphiHttpReader used in castledownload_register.inc.
+    It is an alias to a different class, depending on whether
+    CASTLE_DELPHI_NET_HTTP_CLIENT was defined. }
+  TDelphiHttpReader = TIndyReader;
 
 { TIndyReader --------------------------------------------------- }
 
@@ -123,6 +128,6 @@ begin
   // TODO: This does nothing, Start actually is synchronous
 end;
 
-{$endif DELPHI}
-
 {$endif read_implementation}
+
+{$endif defined(DELPHI) and not defined(CASTLE_DELPHI_NET_HTTP_CLIENT)}

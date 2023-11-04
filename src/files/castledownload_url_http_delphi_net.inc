@@ -14,12 +14,6 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef read_interface}
-
-{$endif}
-
-{$ifdef read_implementation}
-
 { Handle http, https URLs using Delphi TNetHTTPClient.
   See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Using_an_HTTP_Client ,
   https://github.com/michaliskambi/test-delphi-net-http/tree/master .
@@ -53,7 +47,13 @@
     "let it leak".
 }
 
-{$ifdef DELPHI}
+{$if defined(DELPHI) and defined(CASTLE_DELPHI_NET_HTTP_CLIENT)}
+
+{$ifdef read_implementation_uses}
+System.Net.HttpClientComponent, System.Net.HttpClient,
+{$endif}
+
+{$ifdef read_implementation}
 
 type
   { TUrlAsynchronousReader descendant that implements http(s) downloading. }
@@ -76,6 +76,11 @@ type
     destructor Destroy; override;
     procedure Update; override;
   end;
+
+  { Define TDelphiHttpReader used in castledownload_register.inc.
+    It is an alias to a different class, depending on whether
+    CASTLE_DELPHI_NET_HTTP_CLIENT was defined. }
+  TDelphiHttpReader = TDelphiNetReader;
 
 { TDelphiNetReader --------------------------------------------------- }
 
@@ -219,6 +224,6 @@ begin
   }
 end;
 
-{$endif DELPHI}
-
 {$endif read_implementation}
+
+{$endif defined(DELPHI) and defined(CASTLE_DELPHI_NET_HTTP_CLIENT)}

@@ -203,24 +203,29 @@ begin
     FRegisteredProtocols := TRegisteredProtocols.Create(true);
 
     // register default protocols handled in this unit
+
     {$if defined(ANDROID)}
+    // http(s) using Android service
     FRegisteredProtocols.Add('http', nil, nil, THttpAndroidReader,
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('https', nil, nil, THttpAndroidReader,
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
+
     {$elseif defined(HAS_FP_HTTP_CLIENT)}
+    // http(s) using FPC FpHttpClient
     FRegisteredProtocols.Add('http', nil, nil, TFpHttpClientReader,
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('https', nil, nil, TFpHttpClientReader,
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
+
     {$elseif defined(DELPHI)}
-    FRegisteredProtocols.Add('http', nil, nil,
-      {$ifdef CASTLE_DELPHI_NET_HTTP_CLIENT} TDelphiNetReader {$else} TIndyReader {$endif},
+    // http(s) using Delphi System.Net.HttpClient or Indy
+    FRegisteredProtocols.Add('http', nil, nil, TDelphiHttpReader,
       TUrlFile.MimeType);
-    FRegisteredProtocols.Add('https', nil, nil,
-      {$ifdef CASTLE_DELPHI_NET_HTTP_CLIENT} TDelphiNetReader {$else} TIndyReader {$endif},
+    FRegisteredProtocols.Add('https', nil, nil, TDelphiHttpReader,
       TUrlFile.MimeType);
     {$endif}
+
     FRegisteredProtocols.Add('',
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Read,
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Write, nil,
