@@ -32,6 +32,7 @@
 {$ifdef read_implementation_uses}
 SyncObjs,
 IdHttp, IdSSL, IdSSLOpenSSL, IdSSLOpenSSLHeaders, IdCTypes,
+IdHeaderList, IdTCPConnection, IdComponent,
 {$endif}
 
 {$ifdef read_implementation}
@@ -47,6 +48,12 @@ type
       see https://stackoverflow.com/questions/29875664/eidosslunderlyingcryptoerror-exception }
     procedure StatusInfoEx(ASender: TObject; const AsslSocket: PSSL;
       const AWhere, Aret: TIdC_INT; const AType, AMsg: String);
+    procedure Redirect(Sender: TObject;
+      var Dest: string; var NumRedirect: Integer; var Handled: boolean; var VMethod: TIdHTTPMethod);
+    procedure HeadersAvailable(Sender: TObject;
+      AHeaders: TIdHeaderList; var VContinue: Boolean);
+    procedure Work(ASender: TObject;
+      AWorkMode: TWorkMode; AWorkCount: Int64);
   public
     { Set these before Execute }
     HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings; //< TODO handle
@@ -57,6 +64,7 @@ type
     { Updated even during downloading, but always using SynchronizationCS. }
     DownloadedBytes, TotalBytes: Int64;
     MimeType: String;
+    FinalUrl: String;
 
     { Once we're finished (Running = false) then
 
@@ -71,7 +79,6 @@ type
     ErrorMessage: String;
     HttpResponseCode: Integer;
     //HttpResponseHeaders: TStrings; //< TODO handle
-    FinalUrl: String;
 
     constructor Create;
     destructor Destroy; override;
@@ -103,12 +110,6 @@ begin
   TotalBytes := -1;
 end;
 
-procedure TIndyReaderThread.StatusInfoEx(ASender: TObject; const AsslSocket: PSSL;
-  const AWhere, Aret: TIdC_INT; const AType, AMsg: String);
-begin
-  SSL_set_tlsext_host_name(AsslSocket, IdHttp.Request.Host);
-end;
-
 procedure TIndyReaderThread.Execute;
 begin
   IdHttp := TIdHTTP.Create(nil);
@@ -129,12 +130,13 @@ begin
     MyIOHandler.SSLOptions.SSLVersions := [sslvTLSv1_2, sslvTLSv1_1, sslvTLSv1];
     IdHttp.IOHandler := MyIOHandler;
 
+    IdHttp.OnRedirect := Redirect;
+    IdHttp.OnHeadersAvailable := HeadersAvailable;
+    IdHttp.OnWork := Work;
+
     IdHttp.Get(Url, Contents);
 
     HttpResponseCode := IdHttp.ResponseCode;
-
-    // TODO: get from server, also DwonloadedBytes, TotalBytes - using crit section
-    // MimeType := URIMimeType(Url);
 
     Contents.Position := 0; { rewind for easy reading }
     if HttpResponseCode <> 200 then
@@ -154,9 +156,6 @@ begin
       ErrorMessage := Format('Exception when downloading "%s": ', [URIDisplay(Url)]) + ExceptMessage(E);
     end;
   end;
-
-  // TODO: Change this value during HTTP redirects.
-  FinalUrl := Url;
 end;
 
 destructor TIndyReaderThread.Destroy;
@@ -166,6 +165,62 @@ begin
   FreeAndNil(IdHttp);
   FreeAndNil(Contents);
   inherited;
+end;
+
+procedure TIndyReaderThread.StatusInfoEx(ASender: TObject; const AsslSocket: PSSL;
+  const AWhere, Aret: TIdC_INT; const AType, AMsg: String);
+begin
+  SSL_set_tlsext_host_name(AsslSocket, IdHttp.Request.Host);
+end;
+
+procedure TIndyReaderThread.Redirect(Sender: TObject;
+  var Dest: string; var NumRedirect: Integer; var Handled: boolean; var VMethod: TIdHTTPMethod);
+begin
+  // TODO: WritelnLog is not safe from thread:
+  WritelnLog('Network', 'Following HTTP redirect to "%s"', [Dest]);
+
+  SynchronizationCS.Acquire;
+  try
+    FinalUrl := Dest;
+  finally SynchronizationCS.Release end;
+end;
+
+procedure TIndyReaderThread.HeadersAvailable(Sender: TObject;
+  AHeaders: TIdHeaderList; var VContinue: Boolean);
+var
+  ContentType, ContentLength: String;
+  ContentLengthInt: Int64;
+begin
+  ContentType := AHeaders.Values['Content-Type'];
+  if ContentType <> '' then
+  begin
+    SynchronizationCS.Acquire;
+    try
+      MimeType := ContentTypeToMimeType(ContentType);
+    finally SynchronizationCS.Release end;
+  end;
+
+  ContentLength := AHeaders.Values['Content-Length'];
+  if TryStrToInt64(ContentLength, ContentLengthInt) then
+  begin
+    SynchronizationCS.Acquire;
+    try
+      TotalBytes :=ContentLengthInt;
+    finally SynchronizationCS.Release end;
+  end;
+end;
+
+procedure TIndyReaderThread.Work(ASender: TObject;
+  AWorkMode: TWorkMode; AWorkCount: Int64);
+begin
+  SynchronizationCS.Acquire;
+  try
+    DownloadedBytes := AWorkCount;
+  finally SynchronizationCS.Release end;
+
+  // honor thread Terminate call
+  if Terminated then
+    Abort;
 end;
 
 { TIndyReader --------------------------------------------------- }
@@ -180,6 +235,10 @@ procedure TIndyReader.Start;
     Thread.HttpPostData := HttpPostData;
     Thread.HttpHeadersKeys := HttpHeadersKeys;
     Thread.HttpHeadersValues := HttpHeadersValues;
+
+    // set initial values, thread may update them later
+    Thread.FinalUrl := Url; // will be updated on each redirect
+    Thread.MimeType := URIMimeType(Url); // will be updated from HTTP headers
   end;
 
 begin
