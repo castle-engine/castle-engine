@@ -126,7 +126,10 @@ begin
       We also pass ReceiveDataAbort to at least stop actual transfer
       as soon as feasible.
 
-      There doesn't seem to be any more elegant solution. }
+      Maybe we should instead use TNetHTTPRequest with Cancel method?
+      > https://stackoverflow.com/questions/76268341/correct-way-to-terminate-a-tnethttpclient-get-request-with-a-live-stream
+      > You can use TNetHTTPClient asynchronously from the main thread and just cancel the request when application is closing or on any other appropriate user action. But to do that you need to use TNetHTTPRequest as you can call Cancel on the request associated with the TNetHTTPClient and you call Get on the request and not on the client.
+    }
 
     C.OnReceiveData := TDelphiNetReader.ReceiveDataAbort;
     C.OnRequestCompleted := nil;

@@ -214,9 +214,11 @@ begin
     FRegisteredProtocols.Add('https', nil, nil, TFpHttpClientReader,
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     {$elseif defined(DELPHI)}
-    FRegisteredProtocols.Add('http', nil, nil, TIndyReader { TDelphiNetReader },
+    FRegisteredProtocols.Add('http', nil, nil,
+      {$ifdef CASTLE_DELPHI_NET_HTTP_CLIENT} TDelphiNetReader {$else} TIndyReader {$endif},
       TUrlFile.MimeType);
-    FRegisteredProtocols.Add('https', nil, nil, TIndyReader { TDelphiNetReader },
+    FRegisteredProtocols.Add('https', nil, nil,
+      {$ifdef CASTLE_DELPHI_NET_HTTP_CLIENT} TDelphiNetReader {$else} TIndyReader {$endif},
       TUrlFile.MimeType);
     {$endif}
     FRegisteredProtocols.Add('',
