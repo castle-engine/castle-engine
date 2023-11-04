@@ -4,7 +4,7 @@ Demonstrates using `TCastleDownload` to download files asynchronously, i.e. with
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
-## HTTPS and OpenSSL
+## FPC and HTTPS
 
 If you use FPC on Linux, note that older FPC (including 3.2.2) does not handle latest OpenSSL library versions.
 

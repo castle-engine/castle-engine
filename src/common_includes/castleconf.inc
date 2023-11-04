@@ -70,7 +70,7 @@
     FPC has this by default.
     See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Pointer_Math_(Delphi) }
   {$pointermath on}
-  // For now we support only FPC or Delphi
+  // For now we only support FPC or Delphi
   {$define DELPHI}
 {$endif}
 

@@ -38,6 +38,7 @@ type
     procedure TestDotfile;
     procedure TestDecodeBase64;
     procedure TestEncodeBase64;
+    procedure TestMimeTypeHttpQuery;
   end;
 
 implementation
@@ -373,6 +374,57 @@ begin
     EncodeStr := S.DataString;
     AssertEquals('TWFueSBoYW5kcyBtYWtlIGxpZ2h0IHdvcmsu', EncodeStr);
   finally FreeAndNil(S) end;
+end;
+
+procedure TTestURIUtils.TestMimeTypeHttpQuery;
+begin
+  { See https://github.com/castle-engine/castle-engine/issues/547
+    and TUrlFile.MimeTypeStripHttpQuery }
+
+  // no protocol
+  AssertEquals('text/plain', URIMimeType('foo.pas'));
+  AssertEquals('text/plain', URIMimeType('foo.pas?query-is-stripped-for-all-protocols'));
+
+  // file protocol
+  AssertEquals('text/plain', URIMimeType('file:///foo.pas'));
+  AssertEquals('text/plain', URIMimeType('file:///foo.pas?query-is-stripped-for-all-protocols'));
+
+  // http protocol
+  AssertEquals('text/plain', URIMimeType('http://example.com/foo.pas'));
+  AssertEquals('text/plain', URIMimeType('http://example.com/foo.pas?some-query'));
+  AssertEquals('text/plain', URIMimeType('http://example.com/foo.pas?some-query=123'));
+
+  // https protocol
+  AssertEquals('text/plain', URIMimeType('https://example.com/foo.pas'));
+  AssertEquals('text/plain', URIMimeType('https://example.com/foo.pas?some-query'));
+  AssertEquals('text/plain', URIMimeType('https://example.com/foo.pas?some-query=123'));
+  AssertEquals('text/plain', URIMimeType('https://example.com/foo.pas?some-query=123#anchor'));
+
+  // glTF mime type
+
+  // no protocol
+  AssertEquals('model/gltf+json', URIMimeType('foo.gltf'));
+  AssertEquals('model/gltf+json', URIMimeType('foo.gltf?query-is-stripped-for-all-protocols'));
+  AssertEquals('model/gltf+json', URIMimeType('foo.gltf?query-is-stripped-for-all-protocols#anchor'));
+  AssertEquals('model/gltf+json', URIMimeType('foo.gltf#anchor'));
+
+  // file protocol
+  AssertEquals('model/gltf+json', URIMimeType('file:///foo.gltf'));
+  AssertEquals('model/gltf+json', URIMimeType('file:///foo.gltf?query-is-stripped-for-all-protocols'));
+
+  // http protocol
+  AssertEquals('model/gltf+json', URIMimeType('http://example.com/foo.gltf'));
+  AssertEquals('model/gltf+json', URIMimeType('http://example.com/foo.gltf?some-query'));
+  AssertEquals('model/gltf+json', URIMimeType('http://example.com/foo.gltf?some-query=123'));
+
+  // https protocol
+  AssertEquals('model/gltf+json', URIMimeType('https://example.com/foo.gltf'));
+  AssertEquals('model/gltf+json', URIMimeType('https://example.com/foo.gltf?some-query'));
+  AssertEquals('model/gltf+json', URIMimeType('https://example.com/foo.gltf?some-query=123'));
+  AssertEquals('model/gltf+json', URIMimeType('https://example.com/foo.gltf?some-query=123#anchor'));
+
+  // test exactly from https://github.com/castle-engine/castle-engine/issues/547
+  AssertEquals('image/jpeg', URIMimeType('https://cards.scryfall.io/large/front/0/9/092c48bd-b648-4c9e-aa99-cac3c407911d.jpg?1692936576'));
 end;
 
 initialization

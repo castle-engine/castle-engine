@@ -38,6 +38,8 @@ implementation
 
 uses URIParser, Math, Generics.Collections,
   {$ifdef HAS_FP_HTTP_CLIENT} SSLSockets, FpHttpClient, SyncObjs, {$endif}
+  // for castledownload_url_http_delphi_net.inc code
+  {$ifdef DELPHI} System.Net.HttpClientComponent, System.Net.HttpClient, {$endif}
   {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)} { for ESocketError } SSockets, {$endif}
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleInternalDataUri, CastleStringUtils,
@@ -55,6 +57,7 @@ uses URIParser, Math, Generics.Collections,
 {$I castledownload_url_file.inc}
 {$I castledownload_url_http_android.inc}
 {$I castledownload_url_http_fphttpclient.inc}
+{$I castledownload_url_http_delphi_net.inc}
 
 {$I castledownload_register.inc}
 {$I castledownload_synchronous.inc}
