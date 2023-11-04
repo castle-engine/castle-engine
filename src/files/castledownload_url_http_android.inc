@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,9 +16,13 @@
 
 { Handle http, https URLs using Android service. }
 
-{$ifdef read_implementation}
-
 {$ifdef ANDROID}
+
+{$ifdef read_implementation_uses}
+CastleAndroidInternalAssetStream, CastleMessaging,
+{$endif read_implementation_uses}
+
+{$ifdef read_implementation}
 
 { TUrlHttpAndroid ------------------------------------------------------------ }
 
@@ -179,6 +183,7 @@ begin
   inherited;
 end;
 
+{$endif read_implementation}
+
 {$endif ANDROID}
 
-{$endif read_implementation}

@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,15 +14,14 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef read_interface}
+{ Handle http, https URLs using FpHttpClient. }
+{$ifdef HAS_FP_HTTP_CLIENT}
 
+{$ifdef read_implementation_uses}
+SSLSockets, FpHttpClient, SyncObjs,
 {$endif}
 
 {$ifdef read_implementation}
-
-{ Handle http, https URLs using FpHttpClient. }
-
-{$ifdef HAS_FP_HTTP_CLIENT}
 
 type
   TFpHttpClientThread = class;
@@ -486,6 +485,6 @@ begin
   end;
 end;
 
-{$endif HAS_FP_HTTP_CLIENT}
-
 {$endif}
+
+{$endif HAS_FP_HTTP_CLIENT}

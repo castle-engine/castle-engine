@@ -46,28 +46,26 @@ implementation
   - Do not define CASTLE_DELPHI_NET_HTTP_CLIENT to use IdHttp, Indy.
     Requires OpenSSL DLLs.
 }
+{.$define CASTLE_DELPHI_NET_HTTP_CLIENT}
 
 uses URIParser, Math, Generics.Collections,
-  // for castledownload_url_http_fphttpclient.inc code
-  {$ifdef HAS_FP_HTTP_CLIENT} SSLSockets, FpHttpClient, SyncObjs, {$endif}
-  {$ifdef DELPHI}
-    {$ifdef CASTLE_DELPHI_NET_HTTP_CLIENT}
-      // for castledownload_url_http_delphi_net.inc code
-      System.Net.HttpClientComponent, System.Net.HttpClient,
-    {$else}
-      // for castledownload_url_http_indy.inc code
-      IdHttp, IdSSL, IdSSLOpenSSL, IdSSLOpenSSLHeaders, IdCTypes,
-    {$endif}
+  {$define read_implementation_uses}
+  {$I castledownload_url_http_android.inc}
+  {$I castledownload_url_http_fphttpclient.inc}
+  {$I castledownload_url_http_delphi_net.inc}
+  {$I castledownload_url_http_indy.inc}
+  {$undef read_implementation_uses}
+  {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)}
+    { for ESocketError } SSockets,
   {$endif}
-  {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)} { for ESocketError } SSockets, {$endif}
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleInternalDataUri, CastleStringUtils,
-  CastleApplicationProperties, CastleFilesUtils
-  {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
+  CastleApplicationProperties, CastleFilesUtils;
 
 {$define read_implementation}
 {$I castledownload_internal_utils.inc}
 
+// handlers of various URL protocols
 {$I castledownload_url_castleandroidassets.inc}
 {$I castledownload_url_castlescript.inc}
 {$I castledownload_url_compiled.inc}
@@ -76,13 +74,8 @@ uses URIParser, Math, Generics.Collections,
 {$I castledownload_url_file.inc}
 {$I castledownload_url_http_android.inc}
 {$I castledownload_url_http_fphttpclient.inc}
-{$ifdef DELPHI}
-  {$ifdef CASTLE_DELPHI_NET_HTTP_CLIENT}
-    {$I castledownload_url_http_delphi_net.inc}
-  {$else}
-    {$I castledownload_url_http_indy.inc}
-  {$endif}
-{$endif}
+{$I castledownload_url_http_delphi_net.inc}
+{$I castledownload_url_http_indy.inc}
 
 {$I castledownload_register.inc}
 {$I castledownload_synchronous.inc}
