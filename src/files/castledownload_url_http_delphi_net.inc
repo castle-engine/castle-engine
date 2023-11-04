@@ -15,8 +15,9 @@
 }
 
 { Handle http, https URLs using Delphi TNetHTTPClient.
-  See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Using_an_HTTP_Client ,
-  https://github.com/michaliskambi/test-delphi-net-http/tree/master .
+
+  See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Using_an_HTTP_Client .
+  See https://github.com/michaliskambi/delphi-http-download for my tests.
 
   Compared to Indy TIdHTTP, TNetHTTPClient :
   - Seems more feature-packed:
