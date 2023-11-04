@@ -26,9 +26,28 @@
 
   Note: We use this instead of Indy TIdHTTP,
   https://docwiki.embarcadero.com/CodeExamples/Sydney/en/HTTP_Get_(Delphi) ,
-  as TNetHTTPClient seems more feature-packed:
-  TNetHTTPClient can do asynchronous operation,
-  doing work in thread, automatically. }
+  as TNetHTTPClient
+  - Seems more feature-packed:
+    TNetHTTPClient can do asynchronous operation,
+    doing work in thread, automatically.
+  - Supports HTTPS out of the box without the need for any additional DLLs on Windows.
+    It relies on Windows system libraries (winhttp.dll) for HTTPS.
+  - See https://stackoverflow.com/questions/43153919/delphi-tidhttp-vs-tnethttpclient
+    for more info about the differences between the two.
+
+  TODO:
+
+  - The download using TNetHTTPClient seems to be quite slow.
+    Test with large file, like https://castle-engine.io/latest.zip ,
+    using e.g. asynchronous_download CGE example.
+    Compare with FPC execution of asynchronous_download, using TFpHttpClient.
+    Is there any solution aside from using Indy?
+
+  - There are some other TODOs in this file.
+    Most importantly, the TNetHTTPClient behaves very bad when trying to free
+    it before it finished the job, and the only solution seems to be to
+    "let it leak".
+}
 
 {$ifdef DELPHI}
 
