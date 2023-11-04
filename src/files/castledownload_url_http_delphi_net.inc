@@ -24,9 +24,7 @@
   See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Using_an_HTTP_Client ,
   https://github.com/michaliskambi/test-delphi-net-http/tree/master .
 
-  Note: We use this instead of Indy TIdHTTP,
-  https://docwiki.embarcadero.com/CodeExamples/Sydney/en/HTTP_Get_(Delphi) ,
-  as TNetHTTPClient
+  Compared to Indy TIdHTTP, TNetHTTPClient :
   - Seems more feature-packed:
     TNetHTTPClient can do asynchronous operation,
     doing work in thread, automatically.
@@ -40,10 +38,16 @@
   - The download using TNetHTTPClient seems to be quite slow.
     Test with large file, like https://castle-engine.io/latest.zip ,
     using e.g. asynchronous_download CGE example.
+
     Compare with FPC execution of asynchronous_download, using TFpHttpClient.
-    Is there any solution aside from using Indy?
+
+    The TNetHTTPClient is like 10x slower, very noticeable.
+
+  - Downloading on Linux works... unless you test with larger file like
+    https://castle-engine.io/latest.zip . Then it just breaks with timeout.
 
   - There are some other TODOs in this file.
+
     Most importantly, the TNetHTTPClient behaves very bad when trying to free
     it before it finished the job, and the only solution seems to be to
     "let it leak".
