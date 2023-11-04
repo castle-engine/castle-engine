@@ -46,6 +46,8 @@ type
       const AError: string);
     procedure RequestException(const Sender: TObject;
       const AError: Exception);
+    class procedure ReceiveDataAbort(const Sender: TObject;
+      AContentLength: Int64; AReadCount: Int64; var AAbort: Boolean);
   public
     procedure Start; override;
     destructor Destroy; override;
@@ -87,16 +89,23 @@ end;
 
 destructor TDelphiNetReader.Destroy;
 begin
-  { TODO: Freeing TNetHttpClient before it finished work leads to crashes.
-    Testcase: asynchronous_download CGE example, press "Abort Downloads"
-    after starting the downloads.
-    We let the C and ContentsOwned to just leak,
-    this still causes some crashes but at least we can ignore them
-    (they seem to happen then only in some non-main thread). }
-
   if (C <> nil) and (Status = dsDownloading) then
   begin
-    C.OnReceiveData := nil;
+    { TODO:
+      Freeing TNetHttpClient before it finished work leads to crashes.
+      Testcase: asynchronous_download CGE example, press "Abort Downloads"
+      after starting the downloads.
+
+      We let the C and ContentsOwned to just leak,
+      this still causes some crashes but at least we can ignore them
+      (they seem to happen then only in some non-main thread).
+
+      We also pass ReceiveDataAbort to at least stop actual transfer
+      as soon as feasible.
+
+      There doesn't seem to be any more elegant solution. }
+
+    C.OnReceiveData := TDelphiNetReader.ReceiveDataAbort;
     C.OnRequestCompleted := nil;
     C.OnRequestError := nil;
     C.OnRequestException := nil;
@@ -115,6 +124,12 @@ procedure TDelphiNetReader.ReceiveData(const Sender: TObject;
 begin
   DownloadedBytes := AReadCount;
   TotalBytes := AContentLength;
+end;
+
+class procedure TDelphiNetReader.ReceiveDataAbort(const Sender: TObject;
+  AContentLength, AReadCount: Int64; var AAbort: Boolean);
+begin
+  AAbort := true;
 end;
 
 procedure TDelphiNetReader.RequestCompleted(const Sender: TObject;
