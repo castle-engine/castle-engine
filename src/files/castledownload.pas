@@ -36,12 +36,29 @@ uses SysUtils, Classes,
 
 implementation
 
+{ What to use with Delphi to download http(s) URLs?
+
+  - Define CASTLE_DELPHI_NET_HTTP_CLIENT to use System.Net.HttpClient
+    and TNetHTTPClient with Delphi.
+    Doesn't require any external DLLs.
+    But it is very slow to download larger files.
+
+  - Do not define CASTLE_DELPHI_NET_HTTP_CLIENT to use IdHttp, Indy.
+    Requires OpenSSL DLLs.
+}
+
 uses URIParser, Math, Generics.Collections,
+  // for castledownload_url_http_fphttpclient.inc code
   {$ifdef HAS_FP_HTTP_CLIENT} SSLSockets, FpHttpClient, SyncObjs, {$endif}
-  // for castledownload_url_http_delphi_net.inc code
-  //{$ifdef DELPHI} System.Net.HttpClientComponent, System.Net.HttpClient, {$endif}
-  // for castledownload_url_http_indy.inc code
-  {$ifdef DELPHI} IdHttp, IdSSL, IdSSLOpenSSL, IdSSLOpenSSLHeaders, IdCTypes, {$endif}
+  {$ifdef DELPHI}
+    {$ifdef CASTLE_DELPHI_NET_HTTP_CLIENT}
+      // for castledownload_url_http_delphi_net.inc code
+      System.Net.HttpClientComponent, System.Net.HttpClient,
+    {$else}
+      // for castledownload_url_http_indy.inc code
+      IdHttp, IdSSL, IdSSLOpenSSL, IdSSLOpenSSLHeaders, IdCTypes,
+    {$endif}
+  {$endif}
   {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)} { for ESocketError } SSockets, {$endif}
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleInternalDataUri, CastleStringUtils,
@@ -59,8 +76,13 @@ uses URIParser, Math, Generics.Collections,
 {$I castledownload_url_file.inc}
 {$I castledownload_url_http_android.inc}
 {$I castledownload_url_http_fphttpclient.inc}
-{.$I castledownload_url_http_delphi_net.inc} // unused now
-{$I castledownload_url_http_indy.inc}
+{$ifdef DELPHI}
+  {$ifdef CASTLE_DELPHI_NET_HTTP_CLIENT}
+    {$I castledownload_url_http_delphi_net.inc}
+  {$else}
+    {$I castledownload_url_http_indy.inc}
+  {$endif}
+{$endif}
 
 {$I castledownload_register.inc}
 {$I castledownload_synchronous.inc}
