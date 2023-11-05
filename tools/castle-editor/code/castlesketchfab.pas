@@ -24,7 +24,7 @@ uses
   {$ifdef UNIX} CThreads, {$endif}
   SysUtils, Classes, Generics.Collections, FpJson, JsonParser, Zipper,
   { Enable https downloads. }
-  {$ifndef VER3_0} OpenSslSockets, {$endif}
+  {$ifdef FPC} OpenSslSockets, {$endif}
   { CGE units }
   CastleFilesUtils, CastleDownload, CastleStringUtils, CastleURIUtils, CastleLog,
   CastleUtils, CastleClassUtils, CastleApplicationProperties, CastleImages;
