@@ -56,9 +56,9 @@ type
       AWorkMode: TWorkMode; AWorkCount: Int64);
   public
     { Set these before Execute }
-    HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings; //< TODO handle
+    HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings; //< TODO HttpHeadersKeys, HttpHeadersValues
     Url: String;
-    HttpMethod: THttpMethod; //< TODO handle
+    HttpMethod: THttpMethod;
     SynchronizationCS: TCriticalSection;
 
     { Updated even during downloading, but always using SynchronizationCS. }
@@ -141,7 +141,20 @@ begin
     IdHttp.OnHeadersAvailable := HeadersAvailable;
     IdHttp.OnWork := Work;
 
-    IdHttp.Get(Url, Contents);
+    case HttpMethod of
+      hmGet: IdHttp.Get(Url, Contents);
+      { Note that HttpPostData may be nil, that's OK,
+        TIdCustomHTTP.Post is ready for this case. }
+      hmPost: IdHttp.Post(Url, HttpPostData, Contents);
+      // TODO: We should pass Source stream to put
+      hmPut: IdHttp.Put(Url, nil, Contents);
+      hmDelete: IdHttp.Delete(Url, Contents);
+      hmOptions: IdHttp.Options(Url, Contents);
+      hmHead: IdHttp.Head(Url);
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('HttpMethod=?');
+      {$endif}
+    end;
 
     HttpResponseCode := IdHttp.ResponseCode;
 
@@ -267,7 +280,10 @@ begin
     Thread.WaitFor;
     FreeAndNil(Thread);
 
-    // TODO: This can cause short delay when interrupting download.
+    { Note: Thread.WaitFor can cause short delay when interrupting download.
+      Seems unnoticeable for now, so let it be.
+      See castledownload_url_http_fphttpclient.inc for working but hacky
+      way to avoid this. }
   end;
 
   FreeAndNil(SynchronizationCS);
