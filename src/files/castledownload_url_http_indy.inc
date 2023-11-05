@@ -27,6 +27,43 @@
 
   Since Delphi includes Indy, we don't need to distribute Indy with CGE,
   and users don't need to worry about getting Indy.
+
+  Most things work:
+
+  - Asynchronous operation (TCastleDownload connecting and downloading doesn't
+    block the main thread),
+  - various HTTP methods (GET, POST with post data...),
+  - getting MIME type from server response,
+  - updating progress (total bytes, downloaded bytes),
+  - aborting download in the middle is smooth.
+
+  - Both http and https work smothly on Windows.
+
+    For https, note that you have to use  OpenSSL DLLs.
+    You can get the 2 necessary DLLs from
+
+    - win64: https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/external_libraries/x86_64-win64/openssl
+
+    - win32: https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/external_libraries/i386-win32/openssl
+
+    We advise to compile at least once using CGE editor that will place
+    the DLLs automatically alongside your EXE.
+
+  - The code also work on Delphi/Linux.
+
+    http downloading works (test e.g. http://neverssl.com/ ).
+
+    https unfortunately doesn't work, i.e. it will answer "SSL library not found".
+    It seems Indy requires really old OpenSSL library version (1.0 ?),
+    not available in latest Ubuntu. And it's not even 1.1,
+    so https://gist.github.com/joulgs/c8a85bb462f48ffc2044dd878ecaa786 will not help.
+    The PR to support newer OpenSSL was never merged https://github.com/IndySockets/Indy/pull/299 .
+
+  TODOs:
+
+  - How to have https download working from Delphi/Linux?
+
+  - Support HttpHeadersKeys, HttpHeadersValues, HttpResponseHeaders
 }
 
 {$ifdef read_implementation_uses}
