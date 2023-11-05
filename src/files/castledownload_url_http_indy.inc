@@ -276,8 +276,14 @@ begin
   begin
     Thread.Terminate;
 
-    WritelnLog('Network', 'Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
-    Thread.WaitFor;
+    { Check Thread.Finished only to avoid writing unnecessarily alarming
+      "interrupting download in-progress ..." message,
+      testcase: examples/network/remote_logging/ . }
+    if not Thread.Finished then
+    begin
+      WritelnLog('Network', 'Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
+      Thread.WaitFor;
+    end;
     FreeAndNil(Thread);
 
     { Note: Thread.WaitFor can cause short delay when interrupting download.
