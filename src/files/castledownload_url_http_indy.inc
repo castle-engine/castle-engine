@@ -121,14 +121,21 @@ begin
       about User-Agent. }
     IdHttp.Request.UserAgent :=  'Mozilla/5.0 (compatible; CastleGameEngine/1.0; https://castle-engine.io/manual_network.php)';
 
-    { Set special IO handler to do SSL_set_tlsext_host_name,
-      otherwise accessing sites behind Cloudflare will fail,
-      see https://stackoverflow.com/questions/29875664/eidosslunderlyingcryptoerror-exception }
-    MyIOHandler := TIdSSLIOHandlerSocketOpenSSL.Create(IdHttp);
-    MyIOHandler.OnStatusInfoEx := StatusInfoEx;
-    MyIOHandler.SSLOptions.Method := sslvSSLv23;
-    MyIOHandler.SSLOptions.SSLVersions := [sslvTLSv1_2, sslvTLSv1_1, sslvTLSv1];
-    IdHttp.IOHandler := MyIOHandler;
+    { Use SSL with proper options in case of https protocol.
+      Note that using TIdSSLIOHandlerSocketOpenSSL to unencrypted http
+      also works, but then we rely on OpenSSL library (DDL, SO) being present
+      unnecessarily. }
+    if URIProtocol(Url) = 'https' then
+    begin
+      { Set special IO handler to do SSL_set_tlsext_host_name,
+        otherwise accessing sites behind Cloudflare will fail,
+        see https://stackoverflow.com/questions/29875664/eidosslunderlyingcryptoerror-exception }
+      MyIOHandler := TIdSSLIOHandlerSocketOpenSSL.Create(IdHttp);
+      MyIOHandler.OnStatusInfoEx := StatusInfoEx;
+      MyIOHandler.SSLOptions.Method := sslvSSLv23;
+      MyIOHandler.SSLOptions.SSLVersions := [sslvTLSv1_2, sslvTLSv1_1, sslvTLSv1];
+      IdHttp.IOHandler := MyIOHandler;
+    end;
 
     IdHttp.OnRedirect := Redirect;
     IdHttp.OnHeadersAvailable := HeadersAvailable;
