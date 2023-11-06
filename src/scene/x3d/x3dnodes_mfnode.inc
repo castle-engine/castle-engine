@@ -559,6 +559,11 @@ procedure TMFNode.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
           of demo-models\x3d\routes_protos_within_mfnode.x3dv }
         NewFileItem.PositionInParent := 1000 * 1000 * 1000;
       end;
+
+      // Generate warning on incorrect child.
+      // Testcase: demo-models/texturing_advanced/warnings/tex3d_composed_warnings.x3dv
+      if NewFileItem is TX3DNode then
+        WarningIfChildNotAllowed(TX3DNode(NewFileItem));
     end;
   end;
 
