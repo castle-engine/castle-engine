@@ -307,7 +307,6 @@ contains
   x3dcamerautils in '..\..\src\scene\x3dcamerautils.pas',
   x3dtime in '..\..\src\scene\x3dtime.pas',
   kraft in '..\..\src\physics\kraft\kraft.pas',
-  castleprogress in '..\..\src\deprecated_units\castleprogress.pas',
   ImagingXpm in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingXpm.pas',
   ImagingPcx in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingPcx.pas',
   ImagingPsd in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingPsd.pas',
@@ -319,7 +318,8 @@ contains
   castleinternalshapesrenderer in '..\..\src\scene\castleinternalshapesrenderer.pas',
   castleinternalfilemonitor in '..\..\src\files\castleinternalfilemonitor.pas',
   castleinternalscreeneffects in '..\..\src\scene\castleinternalscreeneffects.pas',
-  castleinternalnodesunsupported in '..\..\src\scene\x3d\castleinternalnodesunsupported.pas';
+  castleinternalnodesunsupported in '..\..\src\scene\x3d\castleinternalnodesunsupported.pas',
+  imjidctasm in '..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas';
 
 end.
 

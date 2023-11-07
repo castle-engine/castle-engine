@@ -56,7 +56,7 @@ This directory contains design-time Delphi packages to use [TCastleControl compo
 
     - In case we'll want to use run-time packages, they will need to be split into separate base/FMX/VCL, as a normal application doesn't use both FMX and VCL simultaneously, so it should not depend on both.
 
-- `src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas` is implicitly imported into package -- this is normal and has to stay like this. This unit compiles only for Delphi/Win32 (not Delphi/Win64), it is also used only in case of that platform.
+- Note that we don't add deprecated units, from `src/deprecated_units`, like `CastleProgress`, to the Delphi packages. At least for now. This makes building the packages look clean in Delphi IDE -- important, as we don't want new users to be confused by warnings when building packages, warnings about things they'll likely should not care about.
 
 - The packages are not useful with Delphinus at this point, due to https://github.com/Memnarch/Delphinus/issues/93 .
 

@@ -1,4 +1,4 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{6A77C25F-C335-4381-9B5A-FB362258212C}</ProjectGuid>
         <MainSource>castle_engine.dpk</MainSource>
@@ -415,7 +415,6 @@
         <DCCReference Include="..\..\src\scene\x3dcamerautils.pas"/>
         <DCCReference Include="..\..\src\scene\x3dtime.pas"/>
         <DCCReference Include="..\..\src\physics\kraft\kraft.pas"/>
-        <DCCReference Include="..\..\src\deprecated_units\castleprogress.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingXpm.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingPcx.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingPsd.pas"/>
@@ -428,6 +427,7 @@
         <DCCReference Include="..\..\src\files\castleinternalfilemonitor.pas"/>
         <DCCReference Include="..\..\src\scene\castleinternalscreeneffects.pas"/>
         <DCCReference Include="..\..\src\scene\x3d\castleinternalnodesunsupported.pas"/>
+        <DCCReference Include="..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
