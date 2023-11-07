@@ -316,7 +316,10 @@ contains
   castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas',
   fmx.castlecontrol in '..\..\src\delphi\fmx.castlecontrol.pas',
   vcl.castlecontrol in '..\..\src\delphi\vcl.castlecontrol.pas',
-  castleinternalshapesrenderer in '..\..\src\scene\castleinternalshapesrenderer.pas';
+  castleinternalshapesrenderer in '..\..\src\scene\castleinternalshapesrenderer.pas',
+  castleinternalfilemonitor in '..\..\src\files\castleinternalfilemonitor.pas',
+  castleinternalscreeneffects in '..\..\src\scene\castleinternalscreeneffects.pas',
+  castleinternalnodesunsupported in '..\..\src\scene\x3d\castleinternalnodesunsupported.pas';
 
 end.
 
