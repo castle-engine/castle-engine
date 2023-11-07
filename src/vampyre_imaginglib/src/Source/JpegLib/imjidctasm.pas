@@ -63,7 +63,6 @@ interface
   It is actually only used by Delphi/Win32 (see notes in imjddctmgr),
   but now Delphi and Lazarus packages can also use it on all platforms. }
 implementation
-end.
 {$else}
 
 uses
@@ -799,6 +798,7 @@ asm
   pop   edi
 end;
 
+{$endif}
+
 end.
 
-{$endif}
