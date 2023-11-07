@@ -33,7 +33,10 @@ requires
   rtl,
   vcl,
   xmlrtl,
-  fmx;
+  fmx,
+  IndySystem,
+  IndyProtocols,
+  IndyCore;
 
 contains
   castleinternalcontainer in '..\..\src\delphi\castleinternalcontainer.pas',
