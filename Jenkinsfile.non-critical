@@ -106,7 +106,12 @@ pipeline {
           }
         }
         stage('Raspberry Pi') {
-          when { branch "master" }
+          /* Disable "Raspberry Pi" testing with non-critical tests.
+             Raspberry Pi is just sadly too slow and effectively too overloaded
+             for now. We need more RPi slaves or make
+             a virtual machine with them. */
+          // when { branch "master" }
+          when { false }
           agent {
             label 'raspberry-pi-cge-builder'
           }
