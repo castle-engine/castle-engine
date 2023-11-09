@@ -1997,6 +1997,22 @@ function TCastleViewport.Motion(const Event: TInputMotion): boolean;
     end;
   end;
 
+  { Like TransformUnderMouse but don't make a raycast in scene,
+    only use already-known information in FMouseRayHit.
+    So it doesn't return "current transform under mouse",
+    only "transform under mouse, last time we checked".
+
+    This is good enough for PointingDeviceCancel logic. }
+  function TransformUnderMouseFast: TCastleTransform;
+  begin
+    if FMouseRayHit <> nil then
+    begin
+      Assert(FMouseRayHitValid);
+      Result := FMouseRayHit.Transform
+    end else
+      Result := nil;
+  end;
+
 const
   DistanceToHijackDragging = 5 * 96;
 var
@@ -2008,7 +2024,7 @@ begin
     {$warnings off} // TODO: using deprecated Navigation for now
     if Navigation <> nil then
     begin
-      TopMostTransform := TransformUnderMouse;
+      TopMostTransform := TransformUnderMouseFast;
 
       { Test if dragging TTouchSensorNode. In that case cancel its dragging
         and let navigation move instead. }
