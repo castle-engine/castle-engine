@@ -3419,7 +3419,8 @@ end;
 procedure TCastleWindow.DoMotion(const Event: TInputMotion);
 begin
   MakeCurrent;
-  Container.EventMotion(Event);
+  //Container.EventMotion(Event);
+  Container.FNewMotionMousePosition := Event.Position;
   if Event.FingerIndex = 0 then
     { change FMousePosition *after* EventMotion, callbacks may depend on it }
     FMousePosition := Event.Position;

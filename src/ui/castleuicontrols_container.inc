@@ -120,6 +120,9 @@
     FViewStack: TCastleViewList;
     FDisableStackChange: Cardinal;
     FControls: TInternalChildrenControls;
+    FWasLastProcessedPosition: Boolean;
+    FLastProcessedPosition: TVector2; // last position that was processed in update function
+
     procedure ControlsVisibleChange(const Sender: TCastleUserInterface;
       const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
     class procedure RenderControlPrepare(const ViewportRect: TRectangle);
@@ -177,6 +180,7 @@
       move mouse around, and press "5" (this does "MousePosition := window middle"). }
     function SettingMousePositionCausesMotion: Boolean; virtual;
   public
+    FNewMotionMousePosition: TVector2; // new position from window
     const
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
 
@@ -1452,6 +1456,17 @@ begin
   UpdateJoysticks;
 
   HandleInput := true;
+  if not FWasLastProcessedPosition then
+  begin
+    FLastProcessedPosition := FNewMotionMousePosition;
+    EventMotion(InputMotion(FLastProcessedPosition, FNewMotionMousePosition, MousePressed, 0));
+    FWasLastProcessedPosition := true;
+  end else
+  if not FLastProcessedPosition.Equals(FLastProcessedPosition, FNewMotionMousePosition) then
+  begin
+    EventMotion(InputMotion(FLastProcessedPosition, FNewMotionMousePosition, MousePressed, 0));
+    FLastProcessedPosition := FNewMotionMousePosition;
+  end;
 
   { ForceCaptureInput has the 1st chance to process inputs }
   if UseForceCaptureInput then
@@ -1775,6 +1790,8 @@ var
   I: Integer;
   Capture: TCastleUserInterface;
 begin
+  FrameProfiler.Start('EventMotion');
+  try
   UpdateFocusAndMouseCursor;
 
   { pass to ForceCaptureInput }
@@ -1811,6 +1828,10 @@ begin
   { pass to container event }
   if Assigned(OnMotion) then
     OnMotion(Self, Event);
+
+  finally
+    FrameProfiler.Stop('EventMotion');
+  end;
 end;
 
 procedure TCastleContainer.ControlsVisibleChange(const Sender: TCastleUserInterface;
