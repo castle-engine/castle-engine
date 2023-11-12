@@ -46,12 +46,11 @@ type
     const
       DefaultMaxSensibleSecondsPassed = 0.5;
 
+    { Constructor of this class is internal, you should not create instance
+      of TFramesPerSecond class yourself.
+      Only use the already-created instance in TCastleContainer.Fps. }
     constructor Create;
 
-    { Internal for Castle Game Engine.
-      @groupBegin
-      @exclude }
-    constructor InternalCreate;
     { @exclude }
     procedure InternalRenderBegin;
     { @exclude }
@@ -60,7 +59,6 @@ type
     procedure InternalSleeping;
     { @exclude }
     procedure InternalUpdateBegin;
-    { @groupEnd }
 
     { Rendering speed, measured in frames per second, but accounting only
       time spent inside "render" calls (thus ignoring time spent on
@@ -208,11 +206,6 @@ var
   FRenderFrameId: TFrameId = 1;
 
 constructor TFramesPerSecond.Create;
-begin
-  raise Exception.Create('Do not create instance of TFramesPerSecond class directly, only use the already-created instance in TCastleContainer.Fps');
-end;
-
-constructor TFramesPerSecond.InternalCreate;
 const
   DefaultFps = 60.0;
 begin
