@@ -19,7 +19,7 @@
 
     @item(We try to open libpng library from various names, to try hard
       to work with various libpng so/dll names user may have installed
-      on his system.
+      on his/her system.
 
       In particular, we eventually fallback to using libpng.so name
       (usually coming from libpng-dev packages on Linux distros).
@@ -29,7 +29,7 @@
       (that would tie us to particular so name, the one "ld" saw referenced
       by libpng.so symlink at compilation).
 
-      Of course, this works as long as use only functions that are really
+      Of course, this works as long as we use only functions that are really
       compatible across all existing libpng versions.)
 
     @item(All functions are loaded using my TDynLib class in unit's initialization,
@@ -58,10 +58,7 @@
     )
 
     @item(
-      Compileable with Delphi (under Delphi use "{$ALIGN 4}" instead of
-      "{$PACKRECORDS C}", "pointer" instead of "jmp_buf").
-      Also DWord is LongWord, so it doesn't require Types unit under Delphi.
-      Note: Delphi not really tested since a long time.)
+      Compatible and tested with both FPC and Delphi.)
   )
 *)
 
