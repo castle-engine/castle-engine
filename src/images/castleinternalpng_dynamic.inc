@@ -1,9 +1,9 @@
 {%MainUnit castleinternalpng.pas}
 (*
   Libpng bindings. See [http://www.libpng.org/].
-  Bases on FPC sources, modified by Kambi.
+  Bases on FPC sources, modified by Michalis Kamburelis for Castle Game Engine.
 
-  Kambi modifications:
+  Michalis modifications:
 
   @unorderedList(
     @item(
@@ -255,15 +255,9 @@ const
   PNG_FILTER_HEURISTIC_LAST = 3  { Not a valid value };
 
 type
-   { @noAutoLinkHere }
-   size_t = longint;
-   { @noAutoLinkHere }
-   time_t = longint;
-   { @noAutoLinkHere }
-   int = longint;
+   png_time_t = longint;
+   png_int = longint;
    z_stream = TZStream;
-   { @noAutoLinkHere }
-   voidp = pointer;
 
    png_uint_32 = LongWord;
    png_int_32 = longint;
@@ -280,7 +274,7 @@ type
    pppng_uint_16 = ^ppng_uint_16;
    pppng_int_16 = ^ppng_int_16;
    pppng_byte = ^ppng_byte;
-   png_size_t = size_t;
+   png_size_t = longint; // TODO: This is unlike csize_t, and inlike castleinternalpng_static.inc, that make it pointer-sized
    png_fixed_point = png_int_32;
    ppng_fixed_point = ^png_fixed_point;
    pppng_fixed_point = ^ppng_fixed_point;
@@ -536,11 +530,11 @@ Type
 png_error_ptr = Procedure(Arg1 : png_structp; Arg2 : png_const_charp);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 png_rw_ptr = Procedure(Arg1 : png_structp; Arg2 : png_bytep; Arg3 : png_size_t);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 png_flush_ptr = procedure (Arg1 : png_structp) ;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
-png_read_status_ptr = procedure (Arg1 : png_structp; Arg2 : png_uint_32; Arg3: int);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
-png_write_status_ptr = Procedure (Arg1 : png_structp; Arg2: png_uint_32;Arg3 : int) ;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
+png_read_status_ptr = procedure (Arg1 : png_structp; Arg2 : png_uint_32; Arg3: png_int);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
+png_write_status_ptr = Procedure (Arg1 : png_structp; Arg2: png_uint_32;Arg3 : png_int) ;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 png_progressive_info_ptr = Procedure (Arg1 : png_structp; Arg2 : png_infop) ;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 png_progressive_end_ptr = Procedure (Arg1 : png_structp; Arg2 : png_infop) ;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
-png_progressive_row_ptr = Procedure (Arg1 : png_structp; Arg2 : png_bytep; Arg3 : png_uint_32; Arg4 : int) ;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
+png_progressive_row_ptr = Procedure (Arg1 : png_structp; Arg2 : png_bytep; Arg3 : png_uint_32; Arg4 : png_int) ;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 png_user_transform_ptr = Procedure (Arg1 : png_structp; Arg2 : png_row_infop; Arg3 : png_bytep) ;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 png_user_chunk_ptr = Function (Arg1 : png_structp; Arg2 : png_unknown_chunkp): longint;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 png_unknown_chunk_ptr = Procedure (Arg1 : png_structp);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
@@ -697,7 +691,7 @@ var
   png_read_info: procedure(png_ptr: png_structp; info_ptr: png_infop);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
   png_convert_to_rfc1123: function(png_ptr: png_structp; ptime: png_timep): png_charp;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
   png_convert_from_struct_tm: procedure(ptime: png_timep; ttime: Pointer);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
-  png_convert_from_time_t: procedure(ptime: png_timep; ttime: time_t);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
+  png_convert_from_time_t: procedure(ptime: png_timep; ttime: png_time_t);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
   png_set_expand: procedure(png_ptr: png_structp);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
   png_set_palette_to_rgb: procedure(png_ptr: png_structp);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
   png_set_tRNS_to_alpha: procedure(png_ptr: png_structp);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
@@ -845,8 +839,8 @@ var
   png_set_unknown_chunk_location: procedure(png_ptr: png_structp; info_ptr: png_infop; chunk: longint; location: longint);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
   png_get_unknown_chunks: function(png_ptr: png_structp; info_ptr: png_infop; entries: png_unknown_chunkpp): png_uint_32;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
   png_set_invalid: procedure(png_ptr: png_structp; info_ptr: png_infop; mask: longint);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
-  png_read_png: procedure(png_ptr: png_structp; info_ptr: png_infop; transforms: longint; params: voidp);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
-  png_write_png: procedure(png_ptr: png_structp; info_ptr: png_infop; transforms: longint; params: voidp);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
+  png_read_png: procedure(png_ptr: png_structp; info_ptr: png_infop; transforms: longint; params: png_voidp);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
+  png_write_png: procedure(png_ptr: png_structp; info_ptr: png_infop; transforms: longint; params: png_voidp);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
   png_get_header_ver: function(png_ptr: png_structp): png_charp;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
   png_get_header_version: function(png_ptr: png_structp): png_charp;{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 

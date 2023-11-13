@@ -229,10 +229,9 @@ const
   CastlePngInitialized = true;
 
 type
-   time_t = longint;
-   int = longint;
+   png_time_t = longint;
+   png_int = longint;
    z_stream = TZStream;
-   voidp = pointer;
 
    png_uint_32 = dword;
    png_int_32 = longint;
@@ -512,11 +511,11 @@ Type
 png_error_ptr = Procedure(Arg1 : png_structp; Arg2 : png_const_charp);cdecl;
 png_rw_ptr = Procedure(Arg1 : png_structp; Arg2 : png_bytep; Arg3 : png_size_t);cdecl;
 png_flush_ptr = procedure (Arg1 : png_structp) ;cdecl;
-png_read_status_ptr = procedure (Arg1 : png_structp; Arg2 : png_uint_32; Arg3: int);cdecl;
-png_write_status_ptr = Procedure (Arg1 : png_structp; Arg2:png_uint_32;Arg3 : int) ;cdecl;
+png_read_status_ptr = procedure (Arg1 : png_structp; Arg2 : png_uint_32; Arg3: png_int);cdecl;
+png_write_status_ptr = Procedure (Arg1 : png_structp; Arg2:png_uint_32;Arg3 : png_int) ;cdecl;
 png_progressive_info_ptr = Procedure (Arg1 : png_structp; Arg2 : png_infop) ;cdecl;
 png_progressive_end_ptr = Procedure (Arg1 : png_structp; Arg2 : png_infop) ;cdecl;
-png_progressive_row_ptr = Procedure (Arg1 : png_structp; Arg2 : png_bytep; Arg3 : png_uint_32; Arg4 : int) ;cdecl;
+png_progressive_row_ptr = Procedure (Arg1 : png_structp; Arg2 : png_bytep; Arg3 : png_uint_32; Arg4 : png_int) ;cdecl;
 png_user_transform_ptr = Procedure (Arg1 : png_structp; Arg2 : png_row_infop; Arg3 : png_bytep) ;cdecl;
 png_user_chunk_ptr = Function (Arg1 : png_structp; Arg2 : png_unknown_chunkp): longint;cdecl;
 png_unknown_chunk_ptr = Procedure (Arg1 : png_structp);cdecl;
@@ -672,7 +671,7 @@ procedure png_write_info(png_ptr:png_structp; info_ptr:png_infop);cdecl; externa
 procedure png_read_info(png_ptr:png_structp; info_ptr:png_infop);cdecl; external LibPng;
 function png_convert_to_rfc1123(png_ptr:png_structp; ptime:png_timep):png_charp;cdecl; external LibPng;
 procedure png_convert_from_struct_tm(ptime:png_timep; ttime:Pointer);cdecl; external LibPng;
-procedure png_convert_from_time_t(ptime:png_timep; ttime:time_t);cdecl; external LibPng;
+procedure png_convert_from_time_t(ptime:png_timep; ttime:png_time_t);cdecl; external LibPng;
 procedure png_set_expand(png_ptr:png_structp);cdecl; external LibPng;
 procedure png_set_palette_to_rgb(png_ptr:png_structp);cdecl; external LibPng;
 procedure png_set_tRNS_to_alpha(png_ptr:png_structp);cdecl; external LibPng;
@@ -819,8 +818,8 @@ procedure png_set_unknown_chunks(png_ptr:png_structp; info_ptr:png_infop; unknow
 procedure png_set_unknown_chunk_location(png_ptr:png_structp; info_ptr:png_infop; chunk:longint; location:longint);cdecl; external LibPng;
 function png_get_unknown_chunks(png_ptr:png_structp; info_ptr:png_infop; entries:png_unknown_chunkpp):png_uint_32;cdecl; external LibPng;
 procedure png_set_invalid(png_ptr:png_structp; info_ptr:png_infop; mask:longint);cdecl; external LibPng;
-procedure png_read_png(png_ptr:png_structp; info_ptr:png_infop; transforms:longint; params:voidp);cdecl; external LibPng;
-procedure png_write_png(png_ptr:png_structp; info_ptr:png_infop; transforms:longint; params:voidp);cdecl; external LibPng;
+procedure png_read_png(png_ptr:png_structp; info_ptr:png_infop; transforms:longint; params:png_voidp);cdecl; external LibPng;
+procedure png_write_png(png_ptr:png_structp; info_ptr:png_infop; transforms:longint; params:png_voidp);cdecl; external LibPng;
 function png_get_header_ver(png_ptr:png_structp):png_charp;cdecl; external LibPng;
 function png_get_header_version(png_ptr:png_structp):png_charp;cdecl; external LibPng;
 function png_get_libpng_ver(png_ptr:png_structp):png_charp;cdecl; external LibPng;
