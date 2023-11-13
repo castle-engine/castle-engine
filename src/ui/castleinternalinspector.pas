@@ -274,6 +274,18 @@ constructor TCastleInspector.Create(AOwner: TComponent);
     LogsVerticalGroup.VisibleChange([chChildren]);
   end;
 
+  { Create TSerializedComponent that in every TSerializedComponent.ComponentLoad
+    will create a deep clone of T. }
+  function TemplateToSerializedComponent(const T: TComponent): TSerializedComponent;
+  var
+    ContentsStringStream: TStringStream;
+  begin
+    ContentsStringStream := TStringStream.Create(ComponentToString(T));
+    try
+      Result := TSerializedComponent.Create(ContentsStringStream, '');
+    finally FreeAndNil(ContentsStringStream) end;
+  end;
+
 var
   UiOwner: TComponent;
   Ui: TCastleUserInterface;
@@ -358,9 +370,9 @@ begin
   SliderOpacity.OnChange := {$ifdef FPC}@{$endif} ChangeOpacity;
 
   { initialize templates }
-  SerializedHierarchyRowTemplate := TSerializedComponent.CreateFromString(ComponentToString(HierarchyRowTemplate));
+  SerializedHierarchyRowTemplate := TemplateToSerializedComponent(HierarchyRowTemplate);
   FreeAndNil(HierarchyRowTemplate);
-  SerializedPropertyRowTemplate := TSerializedComponent.CreateFromString(ComponentToString(PropertyRowTemplate));
+  SerializedPropertyRowTemplate := TemplateToSerializedComponent(PropertyRowTemplate);
   FreeAndNil(PropertyRowTemplate);
 
   { initialize log }

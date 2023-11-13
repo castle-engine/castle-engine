@@ -116,14 +116,29 @@ type
   { Load the serialized component once, instantiate it many times. }
   TSerializedComponent = class
   strict private
-    FUrl, FTranslationGroupName: String;
+    FTranslationGroupName: String;
     JsonObject: TJsonObject;
   private
     function InternalComponentLoad(const Owner: TComponent;
       const LoadInfo: TInternalComponentLoadInfo): TComponent;
   public
-    constructor Create(const AUrl: String);
-    constructor CreateFromString(const Contents: String);
+    { Load design from given URL.
+
+      If you set up localization (see https://castle-engine.io/manual_text.php#section_localization_gettext ),
+      then upon loading, the design will be automatically localized using
+      the translation group derived from URL base name. E.g. loading
+      @code("castle-data:/foo/my_design.castle-user-interface") will use translation
+      group @code("my_design"). }
+    constructor Create(const AUrl: String); overload;
+
+    { Load design from given TStream.
+
+      If you set up localization (see https://castle-engine.io/manual_text.php#section_localization_gettext ),
+      then upon loading, the design will be automatically localized using
+      the translation group specified.
+      Just leave ATranslationGroupName = '' to not localize. }
+    constructor Create(const Contents: TStream; const ATranslationGroupName: String); overload;
+
     destructor Destroy; override;
 
     { Instantiate component.
@@ -183,7 +198,8 @@ implementation
 
 uses JsonParser, RtlConsts, StrUtils,
   CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
-  CastleURIUtils, CastleVectors, CastleColors, CastleInternalRttiUtils;
+  CastleURIUtils, CastleVectors, CastleColors, CastleInternalRttiUtils,
+  CastleDownload;
 
 { component registration ----------------------------------------------------- }
 
@@ -821,17 +837,23 @@ end;
 { TSerializedComponent ------------------------------------------------------- }
 
 constructor TSerializedComponent.Create(const AUrl: String);
+var
+  Contents: TStream;
 begin
-  FUrl := AUrl;
-  FTranslationGroupName := DeleteURIExt(ExtractURIName(FUrl));
-  CreateFromString(FileToString(AUrl));
+  Contents := Download(AUrl);
+  try
+    Create(Contents, DeleteURIExt(ExtractURIName(AUrl)));
+  finally FreeAndNil(Contents) end;
 end;
 
-constructor TSerializedComponent.CreateFromString(const Contents: String);
+constructor TSerializedComponent.Create(const Contents: TStream;
+  const ATranslationGroupName: String);
 var
   JsonData: TJsonData;
 begin
   inherited Create;
+
+  FTranslationGroupName := ATranslationGroupName;
 
   JsonData := GetJson(Contents, true);
   if not (JsonData is TJsonObject) then
@@ -885,11 +907,15 @@ function InternalStringToComponent(const Contents: String;
   const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
   SerializedComponent: TSerializedComponent;
+  ContentsStringStream: TStringStream;
 begin
-  SerializedComponent := TSerializedComponent.CreateFromString(Contents);
+  ContentsStringStream := TStringStream.Create(Contents);
   try
-    Result := SerializedComponent.InternalComponentLoad(Owner, LoadInfo);
-  finally FreeAndNil(SerializedComponent) end;
+    SerializedComponent := TSerializedComponent.Create(ContentsStringStream, '');
+    try
+      Result := SerializedComponent.InternalComponentLoad(Owner, LoadInfo);
+    finally FreeAndNil(SerializedComponent) end;
+  finally FreeAndNil(ContentsStringStream) end;
 end;
 
 function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
