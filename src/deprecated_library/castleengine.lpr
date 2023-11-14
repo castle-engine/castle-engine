@@ -227,6 +227,21 @@ begin
       end;
     end;
 
+    { Set Cursor = mcHand when we're over or keeping active
+      some pointing-device sensors. The engine doesn't do it automatically
+      (after https://github.com/castle-engine/castle-engine/commit/5b2810d9ef2fd0f851bc50b0a6aa7b414381dd2c )
+      but it makes total sense for X3D viewers with single viewport and single
+      TCastleScene. }
+    if (Viewport.Items.MainScene <> nil) and
+      ( ( (Viewport.Items.MainScene.PointingDeviceSensors <> nil) and
+          (Viewport.Items.MainScene.PointingDeviceSensors.EnabledCount <> 0)
+        ) or
+        (Viewport.Items.MainScene.PointingDeviceActiveSensors.Count <> 0)
+      ) then
+      Window.Cursor := mcHand
+    else
+      Window.Cursor := mcDefault;
+
     CGEApp_Update;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
