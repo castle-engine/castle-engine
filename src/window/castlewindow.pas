@@ -423,25 +423,26 @@ type
 
   { Window to render everything (3D or 2D) with Castle Game Engine.
 
-    You should use this with TCastleView, following https://castle-engine.io/manual_state_events.php
+    You should use this with TCastleView, following https://castle-engine.io/views
     and the rest of CGE manual.
     All user interface creation and event handling should be inside some state.
-
-    Deprecated: You can also add any user-interface controls to the @link(Controls) property.
-    User-interface controls are any @link(TCastleUserInterface) descendants,
-    like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
-    Use events like @link(OnPress) to react to events.
-    Use event @link(OnUpdate) to do something continuously.
 
     By default, the window is filled with simple color from
     @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
 
-    If you're looking for an analogous Lazarus component
-    (that can be placed on a Lazarus form)
+    If you're looking for an analogous Lazarus / Delphi component
+    (that can be placed on a Lazarus / Delphi form)
     see @link(TCastleControl) component.
     Note that you cannot use both TCastleControl and TCastleWindow
     within the same application.
-    See https://castle-engine.io/control_on_form . }
+    See https://castle-engine.io/control_on_form .
+
+    Deprecated functionality:
+    You can also add any user-interface controls to the @link(Controls) property.
+    User-interface controls are any @link(TCastleUserInterface) descendants,
+    like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
+    Use events like @link(OnPress) to react to events.
+    Use event @link(OnUpdate) to do something continuously. }
   TCastleWindow = class(TComponent)
 
   { Include CastleWindow-backend-specific parts of TCastleWindow class.
