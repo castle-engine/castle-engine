@@ -173,10 +173,6 @@ unit CastleWindow;
 
 {$I castleconf.inc}
 
-{$ifdef CASTLE_DELPHI_PACKAGE}
-  {$message fatal 'This unit should not be included in CGE Delphi package, as this unit may talk to WinAPI to initialize window application, and it would conflict with Delphi IDE.'}
-{$endif}
-
 { Choose CastleWindow backend ------------------------------------------ }
 
 { You can define one of the CASTLE_WINDOW_xxx symbols to use
