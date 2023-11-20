@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma link "Fmx.CastleControl"
+// just test
+//#pragma link "CastleScene"
+//#pragma link "X3DNodes"
 #pragma resource "*.fmx"
 TForm1 *Form1;
 
@@ -34,7 +37,10 @@ public:
 __fastcall TForm1::TForm1(TComponent* Owner)
 	: TForm(Owner)
 {
-	CastleControl1->Container->DesignUrl = "castle-data:/test_3d.castle-user-interface";
+	CastleControl1->Container->DesignUrl =
+	  "castle-data:/test_3d.castle-user-interface";
+	  //"castle-data:/test_2d.castle-user-interface";
+	  //"castle-data:/test_ui.castle-user-interface";
 	CastleControl1->Container->Controls()->InsertFront(new TUiTest(this));
 }
 
