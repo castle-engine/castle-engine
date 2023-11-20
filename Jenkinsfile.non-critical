@@ -149,6 +149,46 @@ pipeline {
             }
           }
         }
+        stage('Raspberry Pi (64)') {
+          /* TODO: Decide if/how to limit usage of rpi64 node */
+          when { branch "master" }
+          agent {
+            label 'raspberry-pi-64-cge-builder'
+          }
+          environment {
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+            PATH = "${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/"
+          }
+          stages {
+            stage('(RPi64) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(RPi64) Build Tools') {
+              steps {
+                sh 'rm -Rf installed/'
+                sh 'mkdir -p installed/'
+                sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+              }
+            }
+            stage('(RPi64) Build Examples') {
+              steps {
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(RPi64) Build And Run Auto-Tests') {
+              steps {
+                sh 'make tests'
+              }
+            }
+            stage('(RPi64) Build Using FpMake') {
+              steps {
+                sh 'make clean test-fpmake'
+              }
+            }
+          }
+        }
         stage('macOS') {
           agent {
             label 'mac-cge-builder'
