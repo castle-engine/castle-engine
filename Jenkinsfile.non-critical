@@ -111,7 +111,7 @@ pipeline {
              for now. We need more RPi slaves or make
              a virtual machine with them. */
           // when { branch "master" }
-          when { false }
+          when { expression { return false; } }
           agent {
             label 'raspberry-pi-cge-builder'
           }
