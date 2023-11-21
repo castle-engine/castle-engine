@@ -249,6 +249,19 @@ function ApplicationConfig(const Path: string): string;
     @item(@orderedList(
       @item(@code(data) subdirectory inside our exe directory, if exists.)
 
+      @item(@code(../../data) relative to our exe location, if it exists
+        and exe seems to be inside a subdirectory @code(<platform>/<config>/).
+
+        Where <platform> matches current Delphi <platform> name
+        (like 'Win32' or 'Win64' -- this is combined OS and CPU)
+        and <config> matches 'Debug' or 'Release'.
+        This deliberately is adjusted to Delphi / C++ Builder default
+        project settings, so that we detect "data" automatically when exe
+        location follows Delphi conventions.
+        This deliberately checks whether subdirectory names match
+        @code(<platform>/<config>/), to avoid picking up a random "data"
+        subdirectory for unrelated project.)
+
       @item(Otherwise: just our exe directory.
         But this alternative is deprecated, please don't depend on it.
         Instead, place the data inside the "data" subdirectory.
@@ -651,6 +664,66 @@ begin
   Result := ApplicationData('');
 end;
 
+{ If Path ends with <platform>/<config>/,
+  return @true and put in StrippedPath the Path with the last 2 path components
+  removed.
+  Otherwise return @false.
+
+  Path must end with path delimiter.
+
+  When returns @true, StrippedPath is also guaranteed to end with path delimiter.
+}
+function StripExePathFromPlatformConfig(const Path: String;
+  out StrippedPath: String): Boolean;
+
+  { Platform name, like 'Win32', as used by Delphi in $(Platform) subdirectory
+    name, corresponding to this process OS / CPU.
+    Always lowercase.
+
+    This is made to also compile and work with FPC, for testing,
+    so it doesn't use TOSVersion. }
+  function DelphiPlatformName: String;
+  begin
+    Result :=
+      {$if defined(MSWINDOWS)} 'win'
+      {$elseif defined(LINUX)} 'linux'
+      {$elseif defined(DARWIN)} 'macos' // TODO: not yet confirmed by testing, just guessing
+      {$elseif defined(ANDROID)} 'android' // TODO: not yet confirmed by testing, just guessing
+      {$elseif defined(IOS)} 'ios' // TODO: not yet confirmed by testing, just guessing
+      {$else} ''
+      {$endif};
+
+    Result := Result +
+      {$if defined(CPU32)} '32'
+      {$elseif defined(CPU64)} '64'
+      {$else} ''
+      {$endif};
+  end;
+
+var
+  Dir: String;
+  ParentDir: String;
+  ParentName: String;
+begin
+  Result := false;
+
+  Dir := ExclPathDelim(Path);
+  // LowerCase, to detect <config> case-insensitively
+  ParentName := LowerCase(ExtractFileName(Dir));
+  if (ParentName = 'debug') or
+     (ParentName = 'release') then
+  begin
+    Dir := ExtractFileDir(Dir);
+    // LowerCase, to detect <platform> case-insensitively
+    ParentName := LowerCase(ExtractFileName(Dir));
+    if ParentName = DelphiPlatformName then
+    begin
+      StrippedPath := ExtractFilePath(Dir);
+      Result := true;
+    end;
+  end;
+end;
+
 var
   ApplicationDataIsCache: Boolean = false;
   ApplicationDataCache: string;
@@ -661,7 +734,7 @@ function ApplicationData(const Path: string): string;
   function GetApplicationDataPath: string;
   {$ifdef MSWINDOWS}
   var
-    ExePath: string;
+    ExePath, StrippedExePath: string;
   begin
     {$warnings off}
     // knowingly using deprecated; ExeName should be undeprecated but internal one day
@@ -670,6 +743,12 @@ function ApplicationData(const Path: string): string;
 
     Result := ExePath + 'data' + PathDelim;
     if DirectoryExists(Result) then Exit;
+
+    if StripExePathFromPlatformConfig(ExePath, StrippedExePath) then
+    begin
+      Result := StrippedExePath + 'data' + PathDelim;
+      if DirectoryExists(Result) then Exit;
+    end;
 
     Result := ExePath;
   {$endif MSWINDOWS}
