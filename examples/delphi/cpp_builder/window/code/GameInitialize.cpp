@@ -1,8 +1,12 @@
 //---------------------------------------------------------------------------
 #pragma hdrstop
 
-#include "GameInitialize.h"
 #include "CastleWindow.hpp"
+
+#include "GameInitialize.h"
+#include "GameViewMain.h"
+
+#pragma link "GameViewMain"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 
@@ -14,9 +18,9 @@ _fastcall void ApplicationInitialize()
 	window->Container->LoadSettings("castle-data:/CastleSettings.xml");
 
 	// Create views (see https://castle-engine.io/views ).
-	//ViewMain = new TViewMain(Application());
+	ViewMain = new TViewMain(Application());
 
-  	//window->Container->View := ViewMain;
+	window->Container->View = ViewMain;
 }
 
 void GameInitialize()

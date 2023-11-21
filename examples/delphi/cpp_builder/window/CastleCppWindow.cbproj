@@ -155,6 +155,10 @@
             <DependentOn>code\GameInitialize.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
+        <CppCompile Include="code\GameViewMain.cpp">
+            <DependentOn>code\GameViewMain.h</DependentOn>
+            <BuildOrder>3</BuildOrder>
+        </CppCompile>
         <CppCompile Include="File1.cpp">
             <BuildOrder>1</BuildOrder>
         </CppCompile>
@@ -189,31 +193,6 @@
                 </Excluded_Packages>
             </CPlusPlusBuilder.Personality>
             <Deployment Version="4">
-                <DeployFile LocalName="$(BDS)\Redist\Win64\IndyCore290.bpl" Configuration="Debug" Class="DependencyPackage">
-                    <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="$(BDS)\Redist\Win64\IndyProtocols290.bpl" Configuration="Debug" Class="DependencyPackage">
-                    <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="$(BDS)\Redist\Win64\IndySystem290.bpl" Configuration="Debug" Class="DependencyPackage">
-                    <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="$(BDS)\Redist\Win64\rtl290.bpl" Configuration="Debug" Class="DependencyPackage">
-                    <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="$(BDS)\Redist\Win64\xmlrtl290.bpl" Configuration="Debug" Class="DependencyPackage">
-                    <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="$(BDS)\Redist\iossimulator\libcgunwind.1.0.dylib" Class="DependencyModule">
                     <Platform Name="iOSSimulator">
                         <Overwrite>true</Overwrite>
@@ -276,16 +255,6 @@
                 </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32c290mt.dll" Class="DependencyModule">
                     <Platform Name="Win32">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="$(BDSCOMMONDIR)\Bpl\$(Platform)\castle_engine.bpl" Configuration="Debug" Class="DependencyPackage">
-                    <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="$(BDSCOMMONDIR)\Bpl\$(Platform)\castle_engine_window.bpl" Configuration="Debug" Class="DependencyPackage">
-                    <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
