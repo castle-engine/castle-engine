@@ -317,7 +317,7 @@
       "Image" : {
         "$$ClassName" : "TCastleImagePersistent"
       },
-      "Name" : "Button1",
+      "Name" : "ButtonMakeSound",
       "PaddingHorizontal" : 5.0000000000000000E+001,
       "PaddingVertical" : 5.0000000000000000E+001,
       "TranslationPersistent" : {
