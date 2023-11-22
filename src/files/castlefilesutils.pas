@@ -702,7 +702,6 @@ function StripExePathFromPlatformConfig(const Path: String;
 
 var
   Dir: String;
-  ParentDir: String;
   ParentName: String;
 begin
   Result := false;
