@@ -140,10 +140,12 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <BCC_UseClassicCompiler>false</BCC_UseClassicCompiler>
+        <ILINK_LibraryPath>$(BDSLIB)\$(PLATFORM)$(CC_SUFFIX)\release;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <LinkPackageImports>rtl.bpi;fmx.bpi;castle_engine.bpi;castle_engine_window.bpi;IndyCore.bpi;IndySystem.bpi;IndyProtocols.bpi;xmlrtl.bpi;vcl.bpi</LinkPackageImports>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <ILINK_LibraryPath>$(BDSLIB)\$(PLATFORM)$(CC_SUFFIX)\debug;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>$(BDSLIB)\$(PLATFORM)$(CC_SUFFIX)\release;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <LinkPackageImports>rtl.bpi;fmx.bpi;castle_engine.bpi;castle_engine_window.bpi;IndyCore.bpi;IndySystem.bpi;IndyProtocols.bpi;xmlrtl.bpi;vcl.bpi</LinkPackageImports>
     </PropertyGroup>
     <ItemGroup>
