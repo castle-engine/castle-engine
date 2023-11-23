@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,16 +13,40 @@
   ----------------------------------------------------------------------------
 }
 
-{ Delphi XML classes.
-  This unit is compatible with a subset of FPC DOM unit.
+{ Classes to access XML from Delphi.
 
-  Note that reading XML in Delphi depends on Windows-only MSXML,
-  you can download it from
-  https://www.microsoft.com/en-us/download/details.aspx?id=3988 .
-}
+  The API of this unit is deliberately compatible with (a subset of) FPC DOM
+  unit, so you can just do "uses DOM" in both FPC and Delphi code
+  and operate on XML with the same API.
+  Underneath we use Delphi XML / DOM API based on interfaces
+  ( https://docwiki.embarcadero.com/RADStudio/Sydney/en/Using_the_Document_Object_Model ). }
 unit DOM;
 
 {$I castleconf.inc}
+
+{ Delphi XML can be supported by various vendors.
+  See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Using_the_Document_Object_Model .
+
+  The default:
+  - on Windows is MSXML
+    (in some older versions you had to download it from
+    https://www.microsoft.com/en-us/download/details.aspx?id=3988 ).
+  - On other platforms, despite the Delphi docs (which say that XML will just
+    not work without selecting other vendor) it seems some other vendor is
+    automatically picked.
+    TODO: which one? Omni?
+
+  Define this symbol to explicitly select OmniXML vendor on all platform.
+  OmniXML is:
+  - cross-platform
+  - open-source
+    https://code.google.com/archive/p/omnixml/
+    https://github.com/mremec/omnixml/
+    (though it is at this point just included in Delphi, so you don't need to care)
+  - doesn't cause a crash when CastleConfig is finalized from C++ Builder
+    (testcase: examples/delphi/cpp_builder/window/)
+}
+{$define CASTLE_XML_OMNI}
 
 interface
 
@@ -252,8 +276,13 @@ type
 
 implementation
 
-{$ifdef MSWINDOWS}
-uses ComObj, Xml.Win.msxmldom;
+{$ifdef CASTLE_XML_OMNI}
+uses Xml.omnixmldom, Xml.xmldom;
+{$else}
+  // otherwise we use default MSXML on Windows, which requires some adjustments
+  {$ifdef MSWINDOWS}
+  uses ComObj, Xml.Win.msxmldom;
+  {$endif}
 {$endif}
 
 { TDOMNodeList --------------------------------------------------------------- }
@@ -568,9 +597,14 @@ constructor TDOMDocument.Create;
 begin
   inherited Create(nil);
 
+  { MSXML special tweak:
+    This needs to be called before using COM interfaces with MSXML.
+    It seems other XML vendors like OmniXML do not require it. }
+  {$ifndef CASTLE_XML_OMNI}
   {$ifdef MSWINDOWS}
   { This needs to be called before using COM interfaces with MSXML. }
   CoInitializeEx(nil, 0);
+  {$endif}
   {$endif}
 
   InternalDocument := XMLDoc.TXMLDocument.Create(Self);
@@ -728,9 +762,13 @@ begin
 end;
 
 initialization
+  {$ifdef CASTLE_XML_OMNI}
+  DefaultDOMVendor := sOmniXmlVendor;
+  {$else}
   { Reading X3D XML fails without this.
     See https://bobsotherblog.wordpress.com/2013/09/19/fixing-dtd-is-prohibited-error-in-delphi/
     https://docwiki.embarcadero.com/Libraries/Sydney/en/Xml.Win.msxmldom.MSXML6_ProhibitDTD }
   Xml.Win.msxmldom.MSXMLDOMDocumentFactory.AddDOMProperty('ProhibitDTD', False);
+  {$endif}
 end.
 
