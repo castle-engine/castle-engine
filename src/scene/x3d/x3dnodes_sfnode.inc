@@ -250,7 +250,7 @@ constructor TSFNode.Create(const AParentNode: TX3DNode;
   const AAllowedChildrenClasses: array of TX3DNodeClass;
   const AValue: TX3DNode);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   { FParentNode is just a copy of inherited (TX3DFieldOrEvent) FParentNode,
     but casted to TX3DNode }
@@ -282,7 +282,7 @@ constructor TSFNode.Create(const AParentNode: TX3DNode;
   const AnAllowedChildrenFunctionality: TNodeFunctionalityClass;
   const AValue: TX3DNode);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   { FParentNode is just a copy of inherited (TX3DFieldOrEvent) FParentNode,
     but casted to TX3DNode }

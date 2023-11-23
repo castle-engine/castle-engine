@@ -241,7 +241,7 @@ constructor TMFNode.Create(const AParentNode: TX3DNode;
   const AExposed: boolean; const AName: string;
   const AAllowedChildrenClasses: array of TX3DNodeClass);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   FParentNode := AParentNode;
 
   AllowedChildren := acClasses;
@@ -270,7 +270,7 @@ constructor TMFNode.Create(const AParentNode: TX3DNode;
   const AExposed: boolean; const AName: string;
   const AnAllowedChildrenFunctionality: TNodeFunctionalityClass);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   FParentNode := AParentNode;
 
   AllowedChildren := acFunctionality;

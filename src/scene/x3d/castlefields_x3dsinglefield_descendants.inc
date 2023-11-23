@@ -976,7 +976,7 @@
 constructor TSFBool.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: boolean);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -1105,7 +1105,7 @@ end;
 constructor TSFFloat.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: Single);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   FValue := AValue;
   AssignDefaultValueFromValue;
 end;
@@ -1242,7 +1242,7 @@ end;
 constructor TSFDouble.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: Double);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -1374,7 +1374,7 @@ end;
 constructor TSFImage.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: TCastleImage);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   if AValue <> nil then
     { use SetValue setter, to free previous value if needed }
@@ -1565,7 +1565,7 @@ end;
 constructor TSFLong.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: Longint);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   FValue := AValue;
   AssignDefaultValueFromValue;
 end;
@@ -1873,7 +1873,7 @@ end;
 constructor TSFMatrix3f.Create(const AParentNode: TX3DFileItem;
     const AExposed: boolean; const AName: string; const AValue: TMatrix3);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   FValue := AValue;
   AssignDefaultValueFromValue;
 end;
@@ -2011,7 +2011,7 @@ end;
 constructor TSFMatrix3d.Create(const AParentNode: TX3DFileItem;
     const AExposed: boolean; const AName: string; const AValue: TMatrix3Double);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   FValue := AValue;
   AssignDefaultValueFromValue;
 end;
@@ -2148,7 +2148,7 @@ end;
 constructor TSFMatrix4f.Create(const AParentNode: TX3DFileItem;
     const AExposed: boolean; const AName: string; const AValue: TMatrix4);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   FValue := AValue;
   AssignDefaultValueFromValue;
 end;
@@ -2286,7 +2286,7 @@ end;
 constructor TSFMatrix4d.Create(const AParentNode: TX3DFileItem;
     const AExposed: boolean; const AName: string; const AValue: TMatrix4Double);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   FValue := AValue;
   AssignDefaultValueFromValue;
 end;
@@ -2426,7 +2426,7 @@ constructor TSFRotation.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string;
   const AnAxis: TVector3; const ARotationRad: Single);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Axis := AnAxis;
   RotationRad := ARotationRad;
@@ -2440,7 +2440,7 @@ constructor TSFRotation.Create(const AParentNode: TX3DFileItem;
 var
   AnAxis: TVector3 absolute AValue;
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Axis := AnAxis;
   RotationRad := AValue[3];
@@ -2596,7 +2596,7 @@ end;
 constructor TSFString.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: string);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -2943,7 +2943,7 @@ end;
 constructor TSFVec2f.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: TVector2);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -3071,7 +3071,7 @@ end;
 constructor TSFVec3f.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: TVector3);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -3203,7 +3203,7 @@ end;
 constructor TSFVec4f.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: TVector4);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -3335,7 +3335,7 @@ end;
 constructor TSFVec2d.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: TVector2Double);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -3455,7 +3455,7 @@ end;
 constructor TSFVec3d.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: TVector3Double);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -3575,7 +3575,7 @@ end;
 constructor TSFVec4d.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string; const AValue: TVector4Double);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -3692,7 +3692,7 @@ constructor TSFBitMask.Create(const AParentNode: TX3DFileItem;
 var
   i: integer;
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   fFlagNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AFlagNames, fFlagNames);
@@ -3849,7 +3849,7 @@ constructor TSFEnum.Create(const AParentNode: TX3DFileItem;
   const AEnumNames: PConstantStringArray; const AEnumNamesCount: Cardinal;
   const AValue: integer);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   FEnumNames := AEnumNames;
   FEnumNamesCount := AEnumNamesCount;

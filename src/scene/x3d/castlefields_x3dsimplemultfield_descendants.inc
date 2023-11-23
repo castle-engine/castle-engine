@@ -1266,7 +1266,7 @@ constructor TMFString.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: string;
   const InitialContent: array of string);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   Items.AddRange(InitialContent);
   AssignDefaultValueFromValue;
 end;
