@@ -229,7 +229,7 @@ procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
     Assert(LastPlane = fpFar);
 
     { if infinite far plane, then ignore it }
-    if Frustum.ZFarInfinity then
+    if Frustum.FarInfinity then
       LastPlane := Pred(LastPlane);
 
     LightPos := LightPosition;
