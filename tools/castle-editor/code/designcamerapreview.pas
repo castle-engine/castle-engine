@@ -179,7 +179,7 @@ begin
   ButtonClose.FontSize := ButtonsFontSize;
   ButtonsLayout.InsertFront(ButtonClose);
 
-  Viewport := TMyViewport.InternalCreateNonDesign(DesignOwner);
+  Viewport := TMyViewport.InternalCreateNonDesign(DesignOwner, 0);
   Viewport.Preview := Self;
   Viewport.Border.AllSides := Margin;
   Viewport.Border.Top := Margin +

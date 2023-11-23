@@ -193,7 +193,7 @@ begin
   ClearLoaded;
 
   {$warnings off} // using TCastleAutoNavigationViewport that should be internal
-  Viewport := TCastleAutoNavigationViewport.InternalCreateNonDesign(Self);
+  Viewport := TCastleAutoNavigationViewport.InternalCreateNonDesign(Self, 0);
   {$warnings on}
   Viewport.FullSize := true;
   // using deprecated AutoCamera, for now this is OK to get initial camera.

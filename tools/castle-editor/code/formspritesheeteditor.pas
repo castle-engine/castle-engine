@@ -1342,7 +1342,7 @@ begin
   begin
     FNavigation := TCastle2DNavigation.Create(Self);
 
-    FViewport := TCastleViewport.InternalCreateNonDesign(Self);
+    FViewport := TCastleViewport.InternalCreateNonDesign(Self, 0);
     Assert(FViewport.Camera <> nil);
     FViewport.FullSize := true;
     FViewport.InsertFront(FNavigation);
