@@ -15,9 +15,12 @@
 }
 
 { TX3DEvent descendants with comfortable Send methods.
-  Note that it is *not* necessary to use descendants below,
-  instead you can create and use direct TX3DEvent instances.
-  The important thing is to set FieldClass right.
+
+  Note that it is *not* necessary to use the descendants below to send events.
+  You can also use TX3DEvent class (not any descendant of it),
+  if only you set it's TX3DEvent.FieldClass right (to any concrete X3D field class,
+  like TSFFloat).
+  So using e.g. TSFFloatEvent is just a convenience shortcut.
 
   These descendants only add easy Send methods, that can be type-checked
   at compile-time. They are all just shortcuts for calling
@@ -27,17 +30,6 @@
   --- e.g. by Logger node). }
 
 {$ifdef read_interface}
-  { }
-  {$ifndef FPC}
-  IX3DEvent<T> = interface
-  ['{D17B73D3-2A0A-46A3-83F3-FC87EF906CCA}']
-    procedure Send(const Value: T; const Time: TX3DTime; const PartialSend: TPartialSend = nil);
-    function SendNeeded: boolean;
-  end;
-
-  {$endif}
-
-
   TSFBoolEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
@@ -59,7 +51,7 @@
     procedure Send(const Value: TFloatTime); overload;
   end;
 
-  TSFFloatEvent = class(TX3DEvent{$ifndef FPC}, IX3DEvent<Single>{$endif})
+  TSFFloatEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
     procedure Send(const Value: Single; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
@@ -118,7 +110,7 @@
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
   end;
 
-  TSFRotationEvent = class(TX3DEvent{$ifndef FPC}, IX3DEvent<TVector4>{$endif})
+  TSFRotationEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
     procedure Send(const Value: TVector4; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
@@ -139,7 +131,7 @@
     procedure Send(const Value: TVector2Double); overload;
   end;
 
-  TSFVec2fEvent = class(TX3DEvent{$ifndef FPC}, IX3DEvent<TVector2>{$endif})
+  TSFVec2fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
     procedure Send(const Value: TVector2; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
@@ -153,7 +145,7 @@
     procedure Send(const Value: TVector3Double); overload;
   end;
 
-  TSFVec3fEvent = class(TX3DEvent{$ifndef FPC}, IX3DEvent<TVector3>{$endif})
+  TSFVec3fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
     procedure Send(const Value: TVector3; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
@@ -174,7 +166,7 @@
     procedure Send(const Value: TVector4); overload;
   end;
 
-  TSFColorEvent = class(TX3DEvent{$ifndef FPC}, IX3DEvent<TVector3>{$endif})
+  TSFColorEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
     procedure Send(const Value: TVector3; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
