@@ -6,7 +6,8 @@
 #include "CastleUIControls.hpp"
 #include "CastleControls.hpp"
 #include "CastleSoundEngine.hpp"
-//TODO #include "CastleScene.hpp"
+#include "CastleScene.hpp"
+#include "CastleViewport.hpp"
 //---------------------------------------------------------------------------
 class TViewMain : public TCastleView
 {
@@ -18,8 +19,8 @@ __published:
     TCastleButton* ButtonMove;
     TCastleButton* ButtonLoadBunny;
     TCastleSound* SoundZap;
-    //TODO TCastleScene* Scene1;
-    //TODO TCastleViewport* Viewport1;
+	TCastleScene* Scene1;
+	TCastleViewport* Viewport1;
 private:
     __fastcall void ClickMakeSound(TObject* Sender);
     __fastcall void ClickMove(TObject* Sender);

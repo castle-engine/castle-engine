@@ -2,6 +2,7 @@
 #pragma hdrstop
 
 #include "GameViewMain.h"
+#include "CastleVectors.hpp"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 
@@ -21,12 +22,19 @@ __fastcall void TViewMain::ClickMakeSound(TObject* Sender)
 
 __fastcall void TViewMain::ClickMove(TObject* Sender)
 {
-    // TODO: Scene1->Translation = Scene1->Translation + Vector3(0, 1, 0);
+	// TODO: Kraft Vector3 is exposed in C++ (unlike Pascal) and forces
+	// to define Vector3 by CastleVectors::Vector3.
+	// Can we avoid it, moving Kraft to CastleTransform implementation only?
+
+	Scene1->Translation = Scene1->Translation + Castlevectors::Vector3(0, 1, 0);
 }
 
 __fastcall void TViewMain::ClickBunny(TObject* Sender)
 {
-    // TODO: Scene1->Url = "castle-data:/Bunny.gltf";
+	// TODO: We prefer Url now, but URL is case-sensitive.
+	// Rename to Url in CGE consistently.
+
+    Scene1->URL = "castle-data:/Bunny.gltf";
 }
 
 __fastcall void TViewMain::Start()
