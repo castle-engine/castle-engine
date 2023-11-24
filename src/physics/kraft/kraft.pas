@@ -79,8 +79,6 @@ unit kraft;
   {$endif}
  {$endif}
 {$else} // Delphi
- {$hints off} // added by CGE
- {$warn SYMBOL_PLATFORM off} // added by CGE
  {$define LITTLE_ENDIAN}
  {$ifndef cpu64}
   {$define cpu32}
@@ -122,31 +120,6 @@ unit kraft;
 {$booleval off}
 {$typeinfo on}
 
-{ Workaround FPC 3.3.1 errors:
-
-  - Reproduced with revision 47824 compilation error, on Darwin (not recorded CPU).
-  - Reproduced also with FPC 3.3.1 revision 48998 with Android/Arm and Android/Aarrch64.
-
-  The errors mention invalid assembler syntax.
-  E.g. Android/Aarrch64 output:
-
-    kraft.s: Assembler messages:
-    kraft.s:86936: Error: operand mismatch -- `fadd d0,s0,s1'
-    kraft.s:86936: Info:    did you mean this?
-    kraft.s:86936: Info:    	fadd s0,s0,s1
-    kraft.s:86936: Info:    other valid variant(s):
-    kraft.s:86936: Info:    	fadd d0,d0,d1
-    kraft.s:86938: Error: operand mismatch -- `fadd d0,d0,s1'
-    kraft.s:86938: Info:    did you mean this?
-    kraft.s:86938: Info:    	fadd d0,d0,d1
-    kraft.s:86938: Info:    other valid variant(s):
-    kraft.s:86938: Info:    	fadd s0,s0,s1
-    kraft.pas(33101) Error: Error while assembling exitcode 1
-}
-{$if defined(FPC) and defined(VER3_3) and (defined(DARWIN) or defined(CPUARM) or defined(CPUAARCH64))}
-  {$undef caninline}
-{$ifend}
-
 {-$define UseMoreCollisionGroups}
 
 {$define UseTriangleMeshFullPerturbation}
@@ -159,25 +132,15 @@ unit kraft;
  {$define NonSIMD}
 {$endif}
 
-{ CGE: Define NonSIMD. Without this symbol, Kraft uses some i386-only assembler,
-  that causes crashes (access violation at TRigidBody.SynchronizeFromKraft
-  when doing "FLinearVelocity := VectorFromKraft(FKraftBody.LinearVelocity)"). 
-  Testcase:
+{ Apply some Castle Game Engine compilation defines.
 
-    castle-engine --os=win32 --cpu=i386 compile --mode=debug
-    wine ./*.exe
-
-  on all physics examples it seems,
-
-    examples/physics/physics_2d_game_sopwith
-    examples/physics/physics_3d_game
-    examples/platformer
-
-  With at least FPC 3.2.0 (but did not check other FPC versions).
-  As this is an i386-specific optimization only (and our focus is on 64-bit platforms
-  as these are, and will be, majority) so disabling it is not a problem in practice
-  anyway. }
-{$define NonSIMD}
+  This may change state of symbols:
+  - caninline
+  - NonSIMD
+  so include it *after* Kraft code above (potentially) defined them,
+  and *before* these symbols are acted upon.
+  This way castlekraft.inc can "override" what Kraft is doing. }
+{$I castlekraft.inc}
 
 {$ifdef NonSIMD}
  {$undef CPU386ASMForSinglePrecision}
@@ -192,12 +155,6 @@ unit kraft;
  {$ifdef CPU386ASMForSinglePrecision}
   {$define SIMD}
  {$endif}
-{$endif}
-
-{ CGE: Avoid FPC note: "nested procedures" not yet supported inside inline procedure/function
-  TODO: submit to Kraft. }
-{$ifdef FPC}
-  {$notes off}
 {$endif}
 
 interface

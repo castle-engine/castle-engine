@@ -22,11 +22,7 @@ __fastcall void TViewMain::ClickMakeSound(TObject* Sender)
 
 __fastcall void TViewMain::ClickMove(TObject* Sender)
 {
-	// TODO: Kraft Vector3 is exposed in C++ (unlike Pascal) and forces
-	// to define Vector3 by CastleVectors::Vector3.
-	// Can we avoid it, moving Kraft to CastleTransform implementation only?
-
-	Scene1->Translation = Scene1->Translation + Castlevectors::Vector3(0, 1, 0);
+	Scene1->Translation = Scene1->Translation + Vector3(0, 1, 0);
 }
 
 __fastcall void TViewMain::ClickBunny(TObject* Sender)
