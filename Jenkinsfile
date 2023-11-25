@@ -298,6 +298,8 @@ pipeline {
                this should be supported. */
             CASTLE_ENGINE_PATH = "${WORKSPACE}"
             PATH = "${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/"
+            // We need to use FPC 3.2.3 for packing
+            CASTLE_PACK_DISABLE_FPC_VERSION_CHECK = "true"
           }
           stages {
             stage('(RPi64) Info') {
