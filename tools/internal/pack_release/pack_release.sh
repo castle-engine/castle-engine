@@ -65,6 +65,12 @@ check_fpc_version ()
 {
   local FPC_VERSION=`fpc -iV | tr -d '\r'`
   local REQUIRED_FPC_VERSION='3.2.2'
+
+  # Raspberry Pi 64-bit requires FPC 3.2.3, not 3.2.2
+  if [ "$OS" '=' 'linux' -a "${CPU}" '=' 'aarch64' ]; then
+    REQUIRED_FPC_VERSION='3.2.3'
+  fi
+
   if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" ]; then
     echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION}, but got ${FPC_VERSION}"
     exit 1
