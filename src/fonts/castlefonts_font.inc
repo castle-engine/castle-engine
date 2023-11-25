@@ -29,17 +29,20 @@ type
     ready TTextureFontData instance. }
   TCastleFont = class(TCastleAbstractFont)
   strict private
+    FDistanceField: Boolean;
     FFont: TTextureFontData; //< nil when no font loaded successfully
-    FOwnsFont: boolean;
+    FOwnsFont: Boolean;
     DrawableImage: TDrawableImage;
+    DistanceFieldShader: TGLSLProgram;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
     FURL: String;
     FOptimalSize: Cardinal;
     FAntiAliased: Boolean;
     FLoadBasicCharacters: Boolean;
     FLoadCharacters: String;
-    function GetSmoothScaling: boolean;
+    function GetSmoothScaling: Boolean;
     function GetScale: Single;
+    procedure SetDistanceField(AValue: Boolean);
     procedure SetScale(const AValue: Single);
     procedure SetURL(const Value: String);
     procedure SetOptimalSize(const Value: Cardinal);
@@ -100,11 +103,11 @@ type
 
     procedure PrepareResources; override;
     procedure Print(const X, Y: Single; const Color: TCastleColor;
-      const S: string); override;
-    function TextWidth(const S: string): Single; override;
-    function TextHeight(const S: string): Single; override;
-    function TextHeightBase(const S: string): Single; override;
-    function TextMove(const S: string): TVector2; override;
+      const S: String); override;
+    function TextWidth(const S: String): Single; override;
+    function TextHeight(const S: String): Single; override;
+    function TextHeightBase(const S: String): Single; override;
+    function TextMove(const S: String): TVector2; override;
 
     { Underlying font data. }
     property FontData: TTextureFontData read FFont; {$ifdef FPC}deprecated 'you should not need to use this directly';{$endif} // can't be removed from delphi because x3dnodes_standard_text.inc uses that
@@ -119,6 +122,11 @@ type
       the @url(https://www.freetype.org/ FreeType library), even bitmap fonts,
       see @url(https://www.freetype.org/freetype2/docs/ft2faq.html#general-what the summary of font formats supported by FreeType). }
     property URL: String read FURL write SetURL;
+
+    { If this font texture is a regular image (false, default)
+      or a distance field image (true) which is slower to load,
+      generates larger texture but is upscaled in much higher quality }
+    property DistanceField: Boolean read FDistanceField write SetDistanceField default false;
 
     { Optimal font size (in real device pixels),
       the font will be scaled when other size is actually needed.
@@ -138,7 +146,7 @@ type
     property LoadBasicCharacters: Boolean read FLoadBasicCharacters write SetLoadBasicCharacters default true;
 
     { Load from font all characters listed here. As everywhere in CGE
-      (same as in Lazarus LCL), this is an string composed from UTF-8 characters. }
+      (same as in Lazarus LCL), this is an String composed from UTF-8 characters. }
     property LoadCharacters: String read FLoadCharacters write SetLoadCharacters;
   end;
 
@@ -200,7 +208,7 @@ begin
     Unload
   else
   begin
-    NewFontData := TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters);
+    NewFontData := TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters, FDistanceField);
     Load(NewFontData, true, AdjustProperties);
   end;
 end;
@@ -210,7 +218,7 @@ constructor TCastleFont.Create(const URL: String;
   const ACharacters: TSetOfChars);
 var
   Chars: TUnicodeCharList;
-  C: char;
+  C: Char;
 begin
   Chars := TUnicodeCharList.Create;
   try
@@ -263,6 +271,7 @@ begin
      (PropertyName = 'OptimalSize') or
      (PropertyName = 'AntiAliased') or
      (PropertyName = 'LoadCharacters') or
+     (PropertyName = 'DistanceField') or
      (PropertyName = 'LoadBasicCharacters') then
     Result := [psBasic]
   else
@@ -275,6 +284,15 @@ begin
     Result := Size / FFont.Size
   else
     Result := Size;
+end;
+
+procedure TCastleFont.SetDistanceField(AValue: Boolean);
+begin
+  if FDistanceField <> AValue then
+  begin
+    FDistanceField := AValue;
+    Reload;
+  end;
 end;
 
 procedure TCastleFont.SetScale(const AValue: Single);
@@ -296,27 +314,66 @@ begin
     DrawableImage.SmoothScaling := GetSmoothScaling;
 end;
 
-function TCastleFont.GetSmoothScaling: boolean;
+function TCastleFont.GetSmoothScaling: Boolean;
 begin
   Assert(FFont <> nil); // should never be called otherwise
   Result := Size <> FFont.Size;
 end;
 
 procedure TCastleFont.PrepareResources;
+
+  procedure AttachDistanceFieldShader;
+  var
+    VS, FS: String;
+  begin
+    VS := 'attribute vec2 vertex;' + LineEnding +
+          'attribute vec2 tex_coord;' + LineEnding +
+          'uniform vec2 viewport_size;' + LineEnding +
+          'varying vec2 tex_coord_frag;' + LineEnding +
+          'void main(void)' + LineEnding +
+          '{' + LineEnding +
+          '  gl_Position = vec4(vertex * 2.0 / viewport_size - vec2(1.0), 0.0, 1.0);' + LineEnding +
+          '  tex_coord_frag = tex_coord;' + LineEnding +
+          '}' + LineEnding;
+    FS := 'varying vec2 tex_coord_frag;' + LineEnding +
+          'uniform sampler2D image_texture;' + LineEnding +
+          'void main(void)' + LineEnding +
+          '{' + LineEnding +
+          'gl_FragColor = texture2D(image_texture, tex_coord_frag);' + LineEnding +
+          'if (gl_FragColor.a <= 0.495) discard;' + LineEnding +
+          'else if ((gl_FragColor.a > 0.495) && (gl_FragColor.a < 0.5)) gl_FragColor = vec4(1.0,1.0,1.0,(gl_FragColor.a - 0.495) * 200.0);' + LineEnding +
+          'else gl_FragColor = vec4(1.0,1.0,1.0,1.0);' +
+          '}' + LineEnding;
+
+    FreeAndNil(DistanceFieldShader);
+    DistanceFieldShader := TGLSLProgram.Create;
+    DistanceFieldShader.Name := 'TDistanceFieldCut';
+    DistanceFieldShader.AttachVertexShader(VS);
+    DistanceFieldShader.AttachFragmentShader(FS);
+    DistanceFieldShader.Link;
+    DrawableImage.CustomShader := DistanceFieldShader;
+    DrawableImage.SmoothScaling := true;
+  end;
+
 begin
   inherited;
   if (FFont <> nil) and (DrawableImage = nil) then
+  begin
     DrawableImage := TDrawableImage.Create(FFont.Image, GetSmoothScaling, false);
+    if FFont.DistanceField then
+      AttachDistanceFieldShader;
+  end;
 end;
 
 procedure TCastleFont.GLContextClose;
 begin
   FreeAndNil(DrawableImage);
+  FreeAndNil(DistanceFieldShader);
   inherited;
 end;
 
 procedure TCastleFont.Print(const X, Y: Single; const Color: TCastleColor;
-  const S: string);
+  const S: String);
 var
   ScreenX, ScreenY: Single;
   G: TTextureFontData.TGlyph;
@@ -356,8 +413,8 @@ var
       {.$define EXTRA_GLYPH_SPACE}
 
       ScreenRect := PFloatRectangle(GlyphsScreenRects.Ptr(GlyphsToRender));
-      ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveX * Outline;
-      ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveY * Outline;
+      ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif} + FFont.AdditionalPadding) * Scale + OutlineMoveX * Outline;
+      ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif} + FFont.AdditionalPadding) * Scale + OutlineMoveY * Outline;
       ScreenRect^.Width  := (G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
       ScreenRect^.Height := (G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
 
@@ -524,7 +581,7 @@ begin
   end;
 end;
 
-function TCastleFont.TextWidth(const S: string): Single;
+function TCastleFont.TextWidth(const S: String): Single;
 begin
   if FFont = nil then
     Exit(0); // font not loaded
@@ -533,21 +590,21 @@ begin
     Result := Result + Outline * 2 * StringLength(S);
 end;
 
-function TCastleFont.TextHeight(const S: string): Single;
+function TCastleFont.TextHeight(const S: String): Single;
 begin
   if FFont = nil then
     Exit(0); // font not loaded
   Result := FFont.TextHeight(S) * Scale + Outline * 2;
 end;
 
-function TCastleFont.TextHeightBase(const S: string): Single;
+function TCastleFont.TextHeightBase(const S: String): Single;
 begin
   if FFont = nil then
     Exit(0); // font not loaded
   Result := FFont.TextHeightBase(S) * Scale + Outline * 2;
 end;
 
-function TCastleFont.TextMove(const S: string): TVector2;
+function TCastleFont.TextMove(const S: String): TVector2;
 var
   M: TVector2Integer;
 begin

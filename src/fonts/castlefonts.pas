@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, Generics.Collections, Contnrs,
   CastleGLImages, CastleStringUtils, CastleColors, CastleVectors,
   CastleTextureFontData, CastleImages, CastleUnicode, CastleRectangles,
-  CastleApplicationProperties, CastleClassUtils;
+  CastleApplicationProperties, CastleClassUtils, CastleGlShaders;
 
 {$define read_interface}
 {$I castlefonts_abstractfont.inc}

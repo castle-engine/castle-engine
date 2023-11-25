@@ -32,6 +32,12 @@ type
 
   { Data for a 2D font initialized from a FreeType font file, like ttf. }
   TTextureFontData = class
+  private
+    const
+      DistanceFieldPadding = Integer(6);
+    var
+      FAdditionalPadding: Integer;
+      FDistanceField: Boolean;
   public
     type
       { Information about a particular font glyph. }
@@ -104,7 +110,7 @@ type
       @raises EFreeTypeLibraryNotFound If the freetype library is not installed. }
     constructor Create(const AUrl: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
-      ACharacters: TUnicodeCharList = nil);
+      ACharacters: TUnicodeCharList = nil; const ADistanceField: Boolean = false);
 
     { Create from a ready data for glyphs and image.
       Useful when font data is embedded inside the Pascal source code.
@@ -155,6 +161,8 @@ type
       (for example letter "y" has the tail below the baseline in most fonts). }
     function TextHeightBase(const S: string): Integer;
     function TextMove(const S: string): TVector2Integer;
+    property DistanceField: Boolean read FDistanceField;
+    property AdditionalPadding: Integer read FAdditionalPadding;
   end;
 
 implementation
@@ -253,9 +261,9 @@ end;
 
 { TTextureFontData ----------------------------------------------------------------- }
 
-constructor TTextureFontData.Create(const AUrl: String;
-  const ASize: Cardinal; const AnAntiAliased: Boolean;
-  ACharacters: TUnicodeCharList);
+constructor TTextureFontData.Create(const AUrl: string; const ASize: Cardinal;
+  const AnAntiAliased: Boolean; ACharacters: TUnicodeCharList;
+  const ADistanceField: Boolean);
 var
   FontId: Integer;
 
@@ -288,8 +296,8 @@ var
       end;
 
       Result := TGlyph.Create;
-      Result.Width    := Bitmap^.Width;
-      Result.Height   := Bitmap^.Height;
+      Result.Width    := Bitmap^.Width + 2 * AdditionalPadding;
+      Result.Height   := Bitmap^.Height + 2 * AdditionalPadding;
       Result.X        := -Bitmap^.X;
       Result.Y        := Bitmap^.Height - 1 + Bitmap^.Y;
       Result.AdvanceX := Bitmap^.AdvanceX shr 10; // 64 * 16, looks like this is just magic for freetype
@@ -316,6 +324,80 @@ var
           Image.PixelPtr(ImageX + RX, ImageY + Bitmap^.Height - 1 - RY)^ := Bitmap^.Data^[B + RX];
         Inc(B, Bitmap^.Pitch);
       end;
+    end;
+
+    { Generate distance field font texture.
+      The algorithm is roughly described at https://libgdx.com/wiki/graphics/2d/fonts/distance-field-fonts
+      Here we adjust it for anti-aliased image received in Bitmap^
+      For every pixel we calculate distance to:
+      a) at least partially opaque pixel
+      b) full transparent pixel
+      Then we blend those two distances based on opaqueness of the current pixel:
+      * for fully opaque pixel it's distance to the nearest transaprent pixel
+      * for fully transparent pixel it's distance to the nearest opaque pixel
+      * for semi-transparent pixel it's something in-between
+        (the formula was invented by trial-and-error and could be improved)
+      Note 1: We do not normalize the result as we're supposed to!
+        It'll force us to use two-pass algorithm, which will slow things down significantly
+        And it seems like the current algorithm is enough to get a good quality image
+      Note 2: This algorithm is O(n^4) and as such is rather slow
+        (approx. 50 times slower than generating a normal font texture),
+        however, absolute time can be considered negligible (far under a second).
+        This means distance field font will take longer time to load,
+        it's a single-time loading procedure though.
+        TCastleFont will also apply a different shader on top of the generated texture
+        which also can slow down performance a tiny bit,
+        however this effect should be completely negligible.
+      Note 3: We also add special padding to each symbol of the font,
+        which sometimes results in larger texure generated }
+    procedure DrawCharDistanceField;
+    var
+      RX, RY, AX, AY: Integer;
+      DX, DY: Integer;
+      MaxB: Byte;
+      DTransparent, DOpaque, TempD: Integer; //6^2 + 6^2 = 72
+      Opqaueness: Single;
+    begin
+      MaxB := 0;
+      for RY := 0 to Bitmap^.Height - 1 do
+        for RX := 0 to Bitmap^.Width - 1 do
+          if Bitmap^.Data^[RY + RY * Bitmap^.Pitch] > MaxB then
+            MaxB := Bitmap^.Data^[RY + RY * Bitmap^.Pitch];
+      if MaxB = 0 then
+        MaxB := 255; //doesn't matter in this case, the glyph doesn't have a single opaque pixel
+
+      for RY := -AdditionalPadding to Bitmap^.Height - 1 + AdditionalPadding do
+        for RX := -AdditionalPadding to Bitmap^.Width - 1 + AdditionalPadding do
+          begin
+            // opaque pixel - calculate distance to nearest transparent pixel
+            DTransparent := Sqr(AdditionalPadding);
+            DOpaque := Sqr(AdditionalPadding);
+            for DY := -AdditionalPadding to AdditionalPadding do
+              for DX := -AdditionalPadding to AdditionalPadding do
+              begin
+                TempD := Sqr(DX) + Sqr(DY);
+                AX := RX + DX;
+                AY := RY + DY;
+                if (AX >= 0) and (AX < Bitmap^.Width) and (AY >= 0) and (AY < Bitmap^.Height) and (Bitmap^.Data^[AX + AY * Bitmap^.Pitch] > 0) then
+                begin
+                  if DOpaque > TempD then
+                    DOpaque := TempD;
+                end else
+                begin
+                  if DTransparent > TempD then
+                    DTransparent := TempD;
+                end;
+              end;
+            if (RX >= 0) and (RX < Bitmap^.Width) and (RY >= 0) and (RY < Bitmap^.Height) then
+              Opqaueness := Single(Bitmap^.Data^[RX + RY * Bitmap^.Pitch]) / Single(MaxB)
+            else
+              Opqaueness := 0;
+            Image.PixelPtr(ImageX + RX + AdditionalPadding, ImageY + Bitmap^.Height - 1 - RY + AdditionalPadding)^ :=
+              Trunc(
+                Opqaueness * (128 + 127 * Single(DTransparent) / Sqr(AdditionalPadding)) +
+                (1 - Opqaueness) * (127 * (1.0 - Single(DOpaque) / Sqr(AdditionalPadding)))
+              );
+          end;
     end;
 
     { Extracting data with Pitch, like in TFreeTypeFont.DrawCharBW. }
@@ -354,8 +436,12 @@ var
           [URL, C, Ord(C)]));
         Exit;
       end;
+      if DistanceField then
+        DrawCharDistanceField
+      else
       if AntiAliased then
-        DrawChar else
+        DrawChar
+      else
         DrawCharBW;
     finally FreeAndNil(Bitmaps) end;
   end;
@@ -374,6 +460,11 @@ var
   TemporaryCharacters: boolean;
 begin
   inherited Create;
+  FDistanceField := ADistanceField;
+  if DistanceField then
+    FAdditionalPadding := DistanceFieldPadding
+  else
+    FAdditionalPadding := 0;
   FUrl := AUrl;
   FSize := ASize;
   FAntiAliased := AnAntiAliased;
@@ -422,6 +513,11 @@ begin
 
     MaxWidth := MaxWidth + GlyphPadding;
     MaxHeight := MaxHeight + GlyphPadding;
+    if DistanceField then
+    begin
+      MaxWidth := MaxWidth + 2 * AdditionalPadding;
+      MaxHeight := MaxHeight + 2 * AdditionalPadding;
+    end;
 
     ImageSize := 8;
     while (ImageSize div MaxHeight) * (ImageSize div MaxWidth) < GlyphsCount do
@@ -441,6 +537,7 @@ begin
 
     ImageX := 0;
     ImageY := 0;
+
     for C in ACharacters do
     begin
       GlyphInfo := Glyph(C, false);
