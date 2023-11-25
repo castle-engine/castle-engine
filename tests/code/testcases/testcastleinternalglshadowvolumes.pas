@@ -57,7 +57,7 @@ begin
   Projection.ProjectionFar := ZFarInfinity;
 
   Frustum.Init(Projection.Matrix(1), Camera.Matrix);
-  AssertTrue(Frustum.ZFarInfinity);
+  AssertTrue(Frustum.FarInfinity);
 
   SvRenderer := TGLShadowVolumeRenderer.Create;
   try

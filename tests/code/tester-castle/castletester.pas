@@ -774,9 +774,9 @@ begin
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
   try
-    AssertEquals(Expected.ZFarInfinity, Actual.ZFarInfinity);
+    AssertEquals(Expected.FarInfinity, Actual.FarInfinity);
 
-    if Expected.ZFarInfinity then
+    if Expected.FarInfinity then
     begin
       for I := Low(I) to Pred(High(I)) do
         AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], Epsilon);
