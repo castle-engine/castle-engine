@@ -27,10 +27,7 @@ __fastcall void TViewMain::ClickMove(TObject* Sender)
 
 __fastcall void TViewMain::ClickBunny(TObject* Sender)
 {
-	// TODO: We prefer Url now, but URL is case-sensitive.
-	// Rename to Url in CGE consistently.
-
-    Scene1->URL = "castle-data:/Bunny.gltf";
+	Scene1->Url = "castle-data:/Bunny.gltf";
 }
 
 __fastcall void TViewMain::Start()
