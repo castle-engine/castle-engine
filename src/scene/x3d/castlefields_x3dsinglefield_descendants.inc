@@ -1732,7 +1732,7 @@ constructor TSFGenericMatrix{$ifndef FPC}<
   Create(const AParentNode: TX3DFileItem;
     const AExposed: boolean; const AName: String; const AValue: TItem);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   FValue := AValue;
   AssignDefaultValueFromValue;
 end;
@@ -2824,7 +2824,7 @@ end;
 constructor TSFGenericVector.Create(const AParentNode: TX3DFileItem;
   const AExposed: boolean; const AName: String; const AValue: TItem);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
