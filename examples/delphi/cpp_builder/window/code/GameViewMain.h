@@ -29,7 +29,7 @@ public:
     __fastcall TViewMain(TComponent* Owner);
     virtual __fastcall void Start();
     virtual __fastcall void Update(const float SecondsPassed, bool &HandleInput);
-    virtual __fastcall bool Press(const TInputPressRelease Event);
+    virtual __fastcall bool Press(const TInputPressRelease &Event);
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TViewMain *ViewMain;
