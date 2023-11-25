@@ -50,12 +50,12 @@ __fastcall void TViewMain::Update(const float SecondsPassed, bool &HandleInput)
 
 __fastcall bool TViewMain::Press(const TInputPressRelease &Event)
 {
-	/* To call methods, like IsKey, you need to copy Event contents.
-	   Otherwise C++ cannot know that the methods, like IsKey, preserve
+    /* To call methods, like IsKey, you need to copy Event contents.
+       Otherwise C++ cannot know that the methods, like IsKey, preserve
        the object contents constant. */
-	TInputPressRelease LocalEvent = Event;
+    TInputPressRelease LocalEvent = Event;
 
-	WritelnLog("Pressed: " + LocalEvent.ToString());
+    WritelnLog("Pressed: " + LocalEvent.ToString());
 
     bool result = TCastleView::Press(Event);
     if (result) {
@@ -76,35 +76,35 @@ __fastcall bool TViewMain::Press(const TInputPressRelease &Event)
     if (LocalEvent.IsKey(keyX)) {
         if (Viewport1->TransformUnderMouse() != NULL) {
             TCastleRigidBody* Body = (TCastleRigidBody*)
-				Viewport1->TransformUnderMouse()->FindBehavior(__classid(TCastleRigidBody));
-			if (Body != NULL) {
-				Body->ApplyImpulse(
-					Vector3(0, 10, 0),
-					Viewport1->TransformUnderMouse()->Translation
-				);
-			}
-		}
-		return TRUE; // key was handled
-	}
+                Viewport1->TransformUnderMouse()->FindBehavior(__classid(TCastleRigidBody));
+            if (Body != NULL) {
+                Body->ApplyImpulse(
+                    Vector3(0, 10, 0),
+                    Viewport1->TransformUnderMouse()->Translation
+                );
+            }
+        }
+        return TRUE; // key was handled
+    }
 
-	// instantiate model on key press, push it along sight
-	if (LocalEvent.IsKey(keyZ)) {
-		TCastleTransform* NewTransform =
-			TransformLoad("castle-data:/my_box.castle-transform", FreeAtStop());
-		NewTransform->Translation = Viewport1->Camera->Translation +
-			Viewport1->Camera->Direction * 3.0;
-		NewTransform->Direction = Viewport1->Camera->Direction;
+    // instantiate model on key press, push it along sight
+    if (LocalEvent.IsKey(keyZ)) {
+        TCastleTransform* NewTransform =
+            TransformLoad("castle-data:/my_box.castle-transform", FreeAtStop());
+        NewTransform->Translation = Viewport1->Camera->Translation +
+            Viewport1->Camera->Direction * 3.0;
+        NewTransform->Direction = Viewport1->Camera->Direction;
 
-		// could be done cleaner by loading NewTransform in new owner and looking for name
-		TCastleRigidBody* Body = (TCastleRigidBody*)
-			NewTransform->Items[0]->FindBehavior(__classid(TCastleRigidBody));
-		Viewport1->Items->Add(NewTransform);
-		Body->ApplyImpulse(
-			Viewport1->Camera->Direction * 0.5,
-			Viewport1->Camera->Translation);
-		return TRUE; // key was handled
-	}
+        // could be done cleaner by loading NewTransform in new owner and looking for name
+        TCastleRigidBody* Body = (TCastleRigidBody*)
+            NewTransform->Items[0]->FindBehavior(__classid(TCastleRigidBody));
+        Viewport1->Items->Add(NewTransform);
+        Body->ApplyImpulse(
+            Viewport1->Camera->Direction * 0.5,
+            Viewport1->Camera->Translation);
+        return TRUE; // key was handled
+    }
 
-	return result;
+    return result;
 }
 
