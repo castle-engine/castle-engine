@@ -67,7 +67,7 @@
     FGenTexFunctionality: TGeneratedTextureFunctionality;
   private
     FX3DName: string;
-    FBaseUrl: string;
+    FBaseUrl: String;
     FVRML1Children, FVRML1Parents: TX3DNodeList;
     FKeepExisting: Cardinal;
     FParentFields: TX3DFieldList;
@@ -539,7 +539,7 @@
       various parsing routines.
       This way we could, if only we would like to, resolve nodes
       like Inline or ImageTexture immediately after parsing them. }
-    property BaseUrl: string read FBaseUrl write FBaseUrl;
+    property BaseUrl: String read FBaseUrl write FBaseUrl;
 
     {$ifdef FPC}
     { Old deprecated name for BaseUrl. @deprecated }
@@ -574,7 +574,7 @@
       )
     }
     constructor Create(const AX3DName: string = '';
-      const ABaseUrl: string = ''); virtual;
+      const ABaseUrl: String = ''); virtual;
 
     destructor Destroy; override;
 
@@ -1233,7 +1233,7 @@ end;
 
 { TX3DNode ------------------------------------------------------------------ }
 
-constructor TX3DNode.Create(const AX3DName, ABaseUrl: string);
+constructor TX3DNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited Create;
   VRML1ChildrenAllowed := false;

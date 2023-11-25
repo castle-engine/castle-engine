@@ -68,7 +68,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog, CastleURIUtils,
+  CastleLog, CastleUriUtils,
   CastleLocalizationGetText, CastleColors, CastleSystemLanguage,
   CastleVectors, CastleMessages,
   Font_DejaVuSans;

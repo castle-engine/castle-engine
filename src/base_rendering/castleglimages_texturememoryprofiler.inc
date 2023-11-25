@@ -27,7 +27,7 @@
   type
     TAllocatedTexture = class
       TextureId: TGLTextureId;
-      URL: string;
+      Url: String;
       Width, Height, Depth: Integer;
       Mipmaps: boolean;
       Size: Int64;
@@ -49,7 +49,7 @@
     { Notify about texture memory allocation.
       This should be used only by code doing direct OpenGL operations. }
     procedure Allocate(const TextureId: TGLTextureId;
-      const URL, ImageFormat: string; const Size: Int64; const Mipmaps: boolean;
+      const Url, ImageFormat: string; const Size: Int64; const Mipmaps: boolean;
       const Width, Height, Depth: Integer);
 
     { Notify about texture memory deallocation.
@@ -139,7 +139,7 @@ begin
 end;
 
 procedure TTextureMemoryProfiler.Allocate(const TextureId: TGLTextureId;
-  const URL, ImageFormat: string;
+  const Url, ImageFormat: string;
   const Size: Int64; const Mipmaps: boolean;
   const Width, Height, Depth: Integer);
 var
@@ -149,7 +149,7 @@ begin
   if FEnabled then
   begin
     AllocatedTex := TAllocatedTexture.Create;
-    AllocatedTex.URL := URL;
+    AllocatedTex.Url := Url;
     AllocatedTex.Width := Width;
     AllocatedTex.Height := Height;
     AllocatedTex.Depth := Depth;
@@ -166,7 +166,7 @@ begin
   if LogTextureLoading then
   begin
     WritelnLog('Texture Loading', 'Loaded to GPU texture "%s" size %d x %d',
-      [URIDisplay(URL), Width, Height]);
+      [UriDisplay(Url), Width, Height]);
     if FEnabled then
       WritelnLogMultiline('Texture Loading', Summary);
   end;
@@ -199,7 +199,7 @@ begin
   begin
     WritelnWarning('Textures', Format('TextureMemoryProfiler contains some textures when closing GL context. Possibly we have texture memory leak (textures will be freed anyway when closing GL context, but possibly we could free them earlier).'+' Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
       [AllocatedTextures.Count,
-       AllocatedTextures[0].URL]));
+       AllocatedTextures[0].Url]));
   end;
 end;
 
@@ -278,7 +278,7 @@ begin
   begin
     AllocatedTex := AllocatedTextures[I];
     S := S + Format('  %f - %s (size %d : format %s, dimensions %d x %d x %d, mipmaps: %s)',
-      [AllocatedTex.Size / Used, AllocatedTex.URL,
+      [AllocatedTex.Size / Used, AllocatedTex.Url,
        AllocatedTex.Size, AllocatedTex.ImageFormat,
        AllocatedTex.Width, AllocatedTex.Height, AllocatedTex.Depth,
        BoolToStr(AllocatedTex.Mipmaps, true)]) + NL;

@@ -71,7 +71,7 @@ procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringSt
 implementation
 
 uses Classes, XMLRead, XMLWrite,
-  CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
+  CastleXmlUtils, CastleUriUtils, CastleFilesUtils;
 
 { internal utils ------------------------------------------------------------- }
 

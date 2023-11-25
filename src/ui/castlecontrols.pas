@@ -24,7 +24,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleTimeUtils, CastleInternalRichText, CastleGLUtils,
-  CastleURIUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils,
+  CastleUriUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils,
   CastleRenderContext;
 
 type

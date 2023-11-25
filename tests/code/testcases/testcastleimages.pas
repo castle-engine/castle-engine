@@ -40,7 +40,7 @@ type
 implementation
 
 uses SysUtils, Classes,
-  CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleURIUtils,
+  CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleUriUtils,
   CastleInternalPng, CastleLog;
 
 procedure TTestImages.TestLoadImage;
@@ -273,7 +273,7 @@ end;
 
 procedure TTestImages.TestLoadSavePreserveAlpha;
 
-  procedure TestImage(const URL: string);
+  procedure TestImage(const Url: String);
   var
     Img, Img2: TRGBAlphaImage;
     TempImageFileName: string;
@@ -281,7 +281,7 @@ procedure TTestImages.TestLoadSavePreserveAlpha;
     try
       TempImageFileName := GetTempFileNamePrefix + 'load_save_test.png';
       try
-        Img := LoadImage(URL, [TRGBAlphaImage]) as TRGBAlphaImage;
+        Img := LoadImage(Url, [TRGBAlphaImage]) as TRGBAlphaImage;
         try
           SaveImage(Img, TempImageFileName);
 
@@ -296,7 +296,7 @@ procedure TTestImages.TestLoadSavePreserveAlpha;
       { enhance EAssertionFailedError message with image URL }
       on E: EAssertionFailedError do
       begin
-        E.Message := 'In image ' + URL + ': ' + E.Message;
+        E.Message := 'In image ' + Url + ': ' + E.Message;
         raise;
       end;
     end;
@@ -327,7 +327,7 @@ procedure TTestImages.TestLoadAnchors;
 var
   Img: TEncodedImage;
 begin
-  AssertEquals('image/png', URIMimeType('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png'));
+  AssertEquals('image/png', UriMimeType('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png'));
 
   Img := LoadImage('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png');
   try
@@ -341,9 +341,9 @@ begin
     AssertEquals(256, Img.Height);
   finally FreeAndNil(Img) end;
 
-  { since URIMimeType ignores anchors, so LoadImage should too }
+  { since UriMimeType ignores anchors, so LoadImage should too }
 
-  AssertEquals('image/png', URIMimeType('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png#some-anchor'));
+  AssertEquals('image/png', UriMimeType('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png#some-anchor'));
 
   Img := LoadImage('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png#some-anchor');
   try

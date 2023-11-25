@@ -925,7 +925,7 @@ See https://castle-engine.io/license.php for details.
       </Item206>
       <Item207>
         <Filename Value="../src/files/castleuriutils.pas"/>
-        <UnitName Value="CastleURIUtils"/>
+        <UnitName Value="CastleUriUtils"/>
       </Item207>
       <Item208>
         <Filename Value="../src/files/castlexmlcfginternal.pas"/>
@@ -937,7 +937,7 @@ See https://castle-engine.io/license.php for details.
       </Item209>
       <Item210>
         <Filename Value="../src/files/castlexmlutils.pas"/>
-        <UnitName Value="CastleXMLUtils"/>
+        <UnitName Value="CastleXmlUtils"/>
       </Item210>
       <Item211>
         <Filename Value="../src/fonts/castlefonts.pas"/>

@@ -40,7 +40,7 @@ type
     FScene: TCastleScene;
     FLayers: TLayers;
     procedure SetForceTilesetSpacing(const AValue: Boolean);
-    procedure SetURL(const Value: string);
+    procedure SetURL(const Value: String);
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetSmoothScalingSafeBorder(const Value: Boolean);
     procedure ReloadMap;
@@ -183,7 +183,7 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TCastleTiledMap.SetURL(const Value: string);
+procedure TCastleTiledMap.SetURL(const Value: String);
 begin
   if FURL <> Value then
   begin
@@ -199,7 +199,7 @@ begin
         if CastleDesignMode then
         begin
           WritelnWarning('TCastleTiledMap', 'Failed to load tiledmap "%s": %s',
-            [URIDisplay(Value), ExceptMessage(E)]);
+            [UriDisplay(Value), ExceptMessage(E)]);
           Exit;
         end else
           raise;

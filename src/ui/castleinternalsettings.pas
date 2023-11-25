@@ -79,7 +79,7 @@ procedure SettingsLoad(const Container: TCastleContainer; const SettingsUrl: Str
 implementation
 
 uses Math, TypInfo,
-  CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages,
+  CastleLog, CastleXmlUtils, CastleStringUtils, CastleGLImages,
   CastleUnicode, CastleUriUtils{$ifdef FPC}, CastleLocalizationGetText{$endif};
 
 { TWarmupCacheFormatList ----------------------------------------------------- }

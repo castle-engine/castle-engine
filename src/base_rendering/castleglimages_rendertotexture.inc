@@ -699,7 +699,7 @@ end;
 procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
-  procedure SaveColor(const URL: string);
+  procedure SaveColor(const Url: String);
   var
     Image: TCastleImage;
   begin
@@ -711,13 +711,13 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
           ImageGLType(Image), Image.RawPixels);
       finally AfterPackImage(Image) end;
 
-      SaveImage(Image, URL);
+      SaveImage(Image, Url);
     finally FreeAndNil(Image) end;
   end;
 {$endif DEBUG_SAVE_FRAMEBUFFER_COLOR}
 
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
-  procedure SaveDepth(const URL: string);
+  procedure SaveDepth(const Url: String);
   var
     Image: TGrayscaleImage;
   begin
@@ -729,7 +729,7 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
           ImageGLType(Image), Image.RawPixels);
       finally AfterPackImage(Image) end;
 
-      SaveImage(Image, URL);
+      SaveImage(Image, Url);
     finally FreeAndNil(Image) end;
   end;
 {$endif DEBUG_SAVE_FRAMEBUFFER_DEPTH}

@@ -379,7 +379,7 @@ end;
 
 procedure AndroidMainImplementation(App: PAndroid_App);
 
-  function GetInternalDataPath: string;
+  function GetInternalDataPath: String;
   var
     Env: PJNIEnv;
 
@@ -437,7 +437,7 @@ var
   ConfigState: TStringStream;
 {$endif CASTLE_PERSISTENT_ANDROID_STATE}
 begin
-  ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(GetInternalDataPath));
+  ApplicationConfigOverride := FilenameToUriSafe(InclPathDelim(GetInternalDataPath));
 
   {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
   { Use SavedState as XML contents that should be loaded to global Config.
@@ -662,7 +662,7 @@ begin
     previous NativeWindow value. }
 end;
 
-procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   // GetWholeCaption is ignored on Android
@@ -908,7 +908,7 @@ begin
   Result := FScreenStatusBarHeight;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'Android';
 end;

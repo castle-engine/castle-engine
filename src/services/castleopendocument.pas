@@ -223,7 +223,7 @@ end;
 
 function OpenDocument(APath: String): Boolean;
 begin
-  Result := OpenURL(FilenameToURISafe(APath));
+  Result := OpenURL(FilenameToUriSafe(APath));
 end;
 {$else}
 
@@ -294,7 +294,7 @@ begin
   { If this is a local filename, open it using OpenDocument. }
   if not UrlHasAnchor(AURL) then
   begin
-    FileName := URIToFilenameSafe(AURL);
+    FileName := UriToFilenameSafe(AURL);
     if FileName <> '' then
       Exit(OpenDocument(FileName));
   end;
@@ -353,7 +353,7 @@ begin
   { If this is a local filename, open it using OpenDocument. }
   if not UrlHasAnchor(AURL) then
   begin
-    FileName := URIToFilenameSafe(AURL);
+    FileName := UriToFilenameSafe(AURL);
     if FileName <> '' then
       Exit(OpenDocument(FileName));
   end;

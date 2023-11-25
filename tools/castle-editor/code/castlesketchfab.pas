@@ -26,7 +26,7 @@ uses
   { Enable https downloads. }
   {$ifdef FPC} OpenSslSockets, {$endif}
   { CGE units }
-  CastleFilesUtils, CastleDownload, CastleStringUtils, CastleURIUtils, CastleLog,
+  CastleFilesUtils, CastleDownload, CastleStringUtils, CastleUriUtils, CastleLog,
   CastleUtils, CastleClassUtils, CastleApplicationProperties, CastleImages;
 
 const

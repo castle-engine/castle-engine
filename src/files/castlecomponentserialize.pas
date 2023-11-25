@@ -198,7 +198,7 @@ implementation
 
 uses JsonParser, RtlConsts, StrUtils,
   CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
-  CastleURIUtils, CastleVectors, CastleColors, CastleInternalRttiUtils,
+  CastleUriUtils, CastleVectors, CastleColors, CastleInternalRttiUtils,
   CastleDownload;
 
 { component registration ----------------------------------------------------- }

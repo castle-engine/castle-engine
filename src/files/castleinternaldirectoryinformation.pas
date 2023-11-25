@@ -98,7 +98,7 @@ function DataDirectoryInformation: TDirectoryInformation;
 implementation
 
 uses SysUtils,
-  CastleXMLUtils, CastleURIUtils, CastleStringUtils, CastleLog;
+  CastleXmlUtils, CastleUriUtils, CastleStringUtils, CastleLog;
 
 { TDirectory ----------------------------------------------------------------- }
 

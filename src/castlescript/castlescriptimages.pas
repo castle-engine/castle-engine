@@ -121,7 +121,7 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, CastleLog, CastleScriptVectors, CastleURIUtils;
+uses SysUtils, CastleUtils, CastleLog, CastleScriptVectors, CastleUriUtils;
 
 {$ifdef CASTLE_SCRIPT_FPC} // TODO: Depends on CastleVectors, which is not for Delphi now
 
@@ -202,7 +202,7 @@ end;
 
 class procedure TCasScriptImage.HandleImageLoad(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
-  FullUrl: string;
+  FullUrl: String;
   NewImage: TCastleImage;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptImage);

@@ -131,7 +131,7 @@ implementation
 
 uses Math, Generics.Defaults,
   CastleLog, CastleGLVersion,
-  CastleApplicationProperties, CastleStringUtils, CastleURIUtils,
+  CastleApplicationProperties, CastleStringUtils, CastleUriUtils,
   CastleRenderContext;
 
 {$define read_implementation}

@@ -26,7 +26,7 @@
   strict protected
     function PositionField: TSFVec3f; virtual; abstract;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function TransformationChange: TNodeTransformationChange; override;
 
     { Position of the viewpoint. }
@@ -124,7 +124,7 @@
       Func: TEnumerateChildrenFunction;
       StateStack: TX3DGraphTraverseStateStack): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
     { Setup this Collision node to collide as a Box.
 
@@ -171,7 +171,7 @@
     procedure EventSet_BindReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
   {$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
   end;
@@ -287,7 +287,7 @@ const
 
 { TAbstractViewpointNode -------------------------------------------------- }
 
-constructor TAbstractViewpointNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractViewpointNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   Eventset_bind.AddNotification({$ifdef FPC}@{$endif} EventSet_BindReceive);

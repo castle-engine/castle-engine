@@ -119,7 +119,7 @@ end;
 
 procedure TViewMain.ClickOpen(Sender: TObject);
 var
-  NewUrl: string;
+  NewUrl: String;
 begin
   NewUrl := MainScene.Url;
   if Application.MainWindow.FileDialog('Open Scene', NewUrl, true, LoadScene_FileFilters) then

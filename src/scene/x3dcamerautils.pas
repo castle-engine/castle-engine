@@ -130,11 +130,11 @@ function MakeCameraStr(const Version: TX3DCameraVersion;
   const Position, Direction, Up, GravityUp: TVector3): string;
   deprecated 'use TMakeX3DViewpoint with its ToString method';
 function MakeCameraNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Position, Direction, Up, GravityUp: TVector3): TAbstractChildNode; overload;
   deprecated 'use TMakeX3DViewpoint with its ToNode method';
 function MakeCameraNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Position, Direction, Up, GravityUp: TVector3;
   out ViewpointNode: TAbstractViewpointNode): TAbstractChildNode; overload;
   deprecated 'use TMakeX3DViewpoint with its ToNode method';
@@ -142,13 +142,13 @@ function MakeCameraNode(const Version: TX3DCameraVersion;
 { Make camera node (like MakeCameraNode) that makes the whole box
   nicely visible (like CameraViewpointForWholeScene). }
 function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
   const WantedDirectionPositive, WantedUpPositive: boolean): TAbstractChildNode;
 
 function MakeCameraNavNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const NavigationType: string;
   const WalkSpeed, VisibilityLimit: Single; const AvatarSize: TVector3;
   const Headlight: boolean): TNavigationInfoNode;
@@ -464,7 +464,7 @@ begin
 end;
 
 function MakeCameraNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Position, Direction, Up, GravityUp: TVector3;
   out ViewpointNode: TAbstractViewpointNode): TAbstractChildNode;
 var
@@ -486,7 +486,7 @@ begin
 end;
 
 function MakeCameraNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Position, Direction, Up, GravityUp: TVector3): TAbstractChildNode;
 var
   IgnoredViewpointNode: TAbstractViewpointNode;
@@ -498,7 +498,7 @@ begin
 end;
 
 function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
   const WantedDirectionPositive, WantedUpPositive: boolean): TAbstractChildNode;
@@ -523,7 +523,7 @@ begin
 end;
 
 function MakeCameraNavNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const NavigationType: string;
   const WalkSpeed, VisibilityLimit: Single; const AvatarSize: TVector3;
   const Headlight: boolean): TNavigationInfoNode;

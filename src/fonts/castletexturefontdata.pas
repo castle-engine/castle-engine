@@ -102,7 +102,7 @@ type
       so remember to free it after calling this constructor.
 
       @raises EFreeTypeLibraryNotFound If the freetype library is not installed. }
-    constructor Create(const AUrl: string;
+    constructor Create(const AUrl: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
       ACharacters: TUnicodeCharList = nil);
 
@@ -160,7 +160,7 @@ type
 implementation
 
 uses Classes, SysUtils, Character, Generics.Defaults,
-  CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils, CastleDownload;
+  CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils, CastleDownload;
 
 { TUnicodeCharEqualityComparer ----------------------------------------------- }
 
@@ -414,7 +414,7 @@ begin
         MaxVar(MaxHeight, GlyphInfo.Height);
       end else
         WritelnWarning('Font "%s" does not contain requested character %s (Unicode number %d)',
-          [URIDisplay(URL), {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, C]);
+          [UriDisplay(URL), {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, C]);
     end;
 
     if GlyphsCount = 0 then

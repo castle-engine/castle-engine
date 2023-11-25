@@ -70,7 +70,7 @@
     { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
     InternalSkinWeights: TVector4List;
 
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     { Calculate bounding box of this geometry node.
@@ -590,7 +590,7 @@
     procedure EventSet_CoordIndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function TrianglesCount(State: TX3DGraphTraverseState;
@@ -614,7 +614,7 @@
     procedure EventSet_IndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
     function CoordIndexField: TMFLong; override;
     procedure InternalCoordPolygons(
@@ -632,7 +632,7 @@
     procedure EventSet_IndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
     function CoordIndexField: TMFLong; override;
     procedure InternalCoordPolygons(
@@ -650,7 +650,7 @@
     procedure EventSet_IndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
     function CoordIndexField: TMFLong; override;
     procedure InternalCoordPolygons(

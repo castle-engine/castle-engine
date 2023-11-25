@@ -853,7 +853,7 @@ begin
   begin
     LocalDocsPath := CastleEnginePath + 'doc' + PathDelim + 'reference' + PathDelim;
     if DirectoryExists(LocalDocsPath) then
-      Exit(FilenameToURISafe(LocalDocsPath));
+      Exit(FilenameToUriSafe(LocalDocsPath));
   end;
   {$endif}
 

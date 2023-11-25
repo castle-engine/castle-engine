@@ -58,7 +58,7 @@ uses URIParser, Math, Generics.Collections,
   {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)}
     { for ESocketError } SSockets,
   {$endif}
-  CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
+  CastleUriUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleInternalDataUri, CastleStringUtils,
   CastleApplicationProperties, CastleFilesUtils;
 

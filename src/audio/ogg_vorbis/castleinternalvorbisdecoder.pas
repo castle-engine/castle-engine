@@ -161,7 +161,7 @@ type
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
 
     { Use this function to register OggVorbis handling with RegisterSoundFormat. }
-    class function ReadStream(const Url: string; const Stream: TStream;
+    class function ReadStream(const Url: String; const Stream: TStream;
       out DataFormat: TSoundDataFormat; out Frequency: LongWord;
       out Duration: TFloatTime): TStream;
   end;
@@ -320,7 +320,7 @@ begin
   raise EStreamNotImplementedSeek.Create('TOggVorbisStream.Seek not supported for these arguments (only seeking to current or beginning position are allowed)');
 end;
 
-class function TOggVorbisStream.ReadStream(const Url: string; const Stream: TStream;
+class function TOggVorbisStream.ReadStream(const Url: String; const Stream: TStream;
   out DataFormat: TSoundDataFormat; out Frequency: LongWord;
   out Duration: TFloatTime): TStream;
 begin

@@ -95,8 +95,8 @@ function CursorCastleToLCL(const Cursor: TMouseCursor): TCursor;
   Converts between Lazarus String encoding for filenames (which is UTF-8)
   and CGE encoding for filenames (which is also UTF-8).
   So this in practice does nothing. }
-function FilenameToURISafeUTF8(const FileName: string): string;
-function URIToFilenameSafeUTF8(const URL: string): string;
+function FilenameToUriSafeUTF8(const FileName: string): string;
+function UriToFilenameSafeUTF8(const Url: String): string;
 
 { Convert LCL color values to CGE colors (vectors). }
 function ColorToVector3(const Color: TColor): TVector3;
@@ -157,7 +157,7 @@ type
 implementation
 
 uses SysUtils, FileUtil, LazUTF8, LCLProc,
-  CastleClassUtils, CastleStringUtils, CastleURIUtils, CastleLog;
+  CastleClassUtils, CastleStringUtils, CastleUriUtils, CastleLog;
 
 procedure FileFiltersToDialog(const FileFilters: string;
   Dialog: TFileDialog; const AllFields: boolean);
@@ -487,14 +487,14 @@ begin
   Result := Map[Cursor];
 end;
 
-function FilenameToURISafeUTF8(const FileName: string): string;
+function FilenameToUriSafeUTF8(const FileName: string): string;
 begin
-  Result := FilenameToURISafe(UTF8ToSys(FileName));
+  Result := FilenameToUriSafe(UTF8ToSys(FileName));
 end;
 
-function URIToFilenameSafeUTF8(const URL: string): string;
+function UriToFilenameSafeUTF8(const Url: String): string;
 begin
-  Result := SysToUTF8(URIToFilenameSafe(URL));
+  Result := SysToUTF8(UriToFilenameSafe(Url));
 end;
 
 function ColorToVector3(const Color: TColor): TVector3;

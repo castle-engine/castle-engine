@@ -22,11 +22,11 @@
   strict private
     FDisplayValue: boolean;
     FOnChange: TNotifyEvent;
-    FCaption: string;
+    FCaption: String;
     FBackground, FThumb: TCastleImagePersistent;
     FTextColor: TCastleColor;
     function GetThumbSize(const ARenderRect: TFloatRectangle): TVector2;
-    procedure SetCaption(const Value: string);
+    procedure SetCaption(const Value: String);
     procedure SetTextColor(const Value: TCastleColor);
     procedure ImageChanged(Sender: TObject);
   private
@@ -48,7 +48,7 @@
     function XCoordToSliderPosition(const XCoord: Single;
       const ARenderRect: TFloatRectangle): Single;
 
-    procedure DrawSliderText(const R: TFloatRectangle; Text: string);
+    procedure DrawSliderText(const R: TFloatRectangle; Text: String);
   strict protected
     { React to value change. The default implementation simply calls the OnChange
       event, if assigned. This is called when value is changed by user actions
@@ -81,7 +81,7 @@
       read FDisplayValue write FDisplayValue default true;
 
     { Displayed on the slider. Right before value, if @link(DisplayValue). }
-    property Caption: string read FCaption write SetCaption;
+    property Caption: String read FCaption write SetCaption;
 
     { Called when value (like @link(TCastleFloatSlider.Value) or @link(TCastleIntegerSlider.Value))
       changed because of user interaction (but not when it was changed by code setting
@@ -125,7 +125,7 @@
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
-    function ValueToStr(const AValue: Single): string; virtual;
+    function ValueToStr(const AValue: Single): String; virtual;
     { Round to multiple of @link(MultipleOf), if non-zero, and clamp
       to @link(Min) and @link(Max) range. }
     function RoundAndClamp(const AValue: Single): Single;
@@ -179,7 +179,7 @@
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
-    function ValueToStr(const AValue: Integer): string; virtual;
+    function ValueToStr(const AValue: Integer): String; virtual;
   published
     property Min: Integer read FMin write SetMin default DefaultMin;
     property Max: Integer read FMax write SetMax default DefaultMax;
@@ -297,7 +297,7 @@ begin
 end;
 
 procedure TCastleAbstractSlider.DrawSliderText(
-  const R: TFloatRectangle; Text: string);
+  const R: TFloatRectangle; Text: String);
 begin
   if (Caption <> '') and (Text <> '') then
     Text := Caption + ': ' + Text else
@@ -314,7 +314,7 @@ begin
     OnChange(Self);
 end;
 
-procedure TCastleAbstractSlider.SetCaption(const Value: string);
+procedure TCastleAbstractSlider.SetCaption(const Value: String);
 begin
   if FCaption <> Value then
   begin
@@ -447,7 +447,7 @@ begin
   end;
 end;
 
-function TCastleFloatSlider.ValueToStr(const AValue: Single): string;
+function TCastleFloatSlider.ValueToStr(const AValue: Single): String;
 begin
   Result := Format('%f', [AValue]);
 end;
@@ -612,7 +612,7 @@ begin
   end;
 end;
 
-function TCastleIntegerSlider.ValueToStr(const AValue: Integer): string;
+function TCastleIntegerSlider.ValueToStr(const AValue: Integer): String;
 begin
   Result := IntToStr(AValue);
 end;

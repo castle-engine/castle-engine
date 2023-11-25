@@ -496,7 +496,7 @@ implementation
 
 uses Math,
   CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
-  CastleShapeInternalRenderShadowVolumes, CastleURIUtils, CastleProjection,
+  CastleShapeInternalRenderShadowVolumes, CastleUriUtils, CastleProjection,
   CastleComponentSerialize, CastleRenderContext, CastleFilesUtils,
   CastleInternalGLUtils, CastleInternalRenderer, X3DCameraUtils;
 
@@ -946,7 +946,7 @@ begin
   if not ApplicationProperties.IsGLContextOpen then
   begin
     WritelnLog('PrepareResources', 'Rendering context not available, skipping preparing TCastleScene rendering resources for "%s"', [
-      URIDisplay(URL)
+      UriDisplay(URL)
     ]);
     Exit;
   end;

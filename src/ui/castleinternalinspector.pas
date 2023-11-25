@@ -182,7 +182,7 @@ implementation
 uses SysUtils, StrUtils, RttiUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
   CastleUtils, CastleLog, CastleInternalRttiUtils,
-  CastleTransform, CastleViewport, CastleScene, CastleURIUtils;
+  CastleTransform, CastleViewport, CastleScene, CastleUriUtils;
 
 { ---------------------------------------------------------------------------- }
 

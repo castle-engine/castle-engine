@@ -95,7 +95,7 @@ implementation
 
 uses LCLType, IntfGraphics, GraphType, FpImage,
   CastleOpenDocument, CastleStringUtils, CastleConfig, CastleUtils,
-  CastleURIUtils, CastleLog, CastleApplicationProperties,
+  CastleUriUtils, CastleLog, CastleApplicationProperties,
   EditorUtils;
 
 {$R *.lfm}
@@ -361,7 +361,7 @@ begin
   OnRefreshFiles(Self);
 
   ModelFileName := InclPathDelim(ZipUnpackDir) + 'scene.gltf';
-  Result := MaybeUseDataProtocol(FilenameToURISafe(ModelFileName));
+  Result := MaybeUseDataProtocol(FilenameToUriSafe(ModelFileName));
 end;
 
 procedure TImportSketchfabForm.ButtonDownloadOnlyClick(Sender: TObject);
@@ -369,7 +369,7 @@ var
   DownloadedUrl: String;
 begin
   DownloadedUrl := DownloadSelectedModel;
-  InfoBox('Model downloaded to:' + NL + NL + URIDisplay(DownloadedUrl));
+  InfoBox('Model downloaded to:' + NL + NL + UriDisplay(DownloadedUrl));
   Close;
 end;
 

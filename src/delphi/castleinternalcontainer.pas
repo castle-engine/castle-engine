@@ -153,7 +153,7 @@ implementation
 
 uses SysUtils,
   CastleRenderContext, CastleGLUtils, CastleApplicationProperties, CastleGLImages,
-  CastleGLVersion, CastleTimeUtils, CastleUtils, CastleLog, CastleURIUtils,
+  CastleGLVersion, CastleTimeUtils, CastleUtils, CastleLog, CastleUriUtils,
   CastleComponentSerialize, CastleInternalDelphiUtils, CastleFilesUtils;
 
 var
@@ -415,7 +415,7 @@ procedure TCastleContainerEasy.LoadDesign;
       ProjectPath := OnGetDesignTimeProjectPath();
 
       { Override ApplicationData interpretation, and castle-data:/xxx URL meaning. }
-      ApplicationDataOverride := FilenameToURISafe(
+      ApplicationDataOverride := FilenameToUriSafe(
         InclPathDelim(ProjectPath) + 'data' + PathDelim);
     end;
   end;
@@ -460,7 +460,7 @@ begin
           if CastleDesignMode then // looks at InternalCastleApplicationMode
           begin
             WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
-              URIDisplay(DesignUrl),
+              UriDisplay(DesignUrl),
               ExceptMessage(E)
             ]);
             Exit;
@@ -502,7 +502,7 @@ begin
   if Required and (Result = nil) then
     raise EComponentNotFound.CreateFmt('Cannot find component named "%s" in design "%s"', [
       ComponentName,
-      URIDisplay(DesignUrl)
+      UriDisplay(DesignUrl)
     ]);
 end;
 

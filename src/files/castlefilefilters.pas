@@ -86,7 +86,7 @@ type
 
 implementation
 
-uses StrUtils, CastleStringUtils, CastleURIUtils, CastleUtils;
+uses StrUtils, CastleStringUtils, CastleUriUtils, CastleUtils;
 
 { TFileFilter ---------------------------------------------------------------- }
 

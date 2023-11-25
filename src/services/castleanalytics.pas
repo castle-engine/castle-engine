@@ -54,35 +54,35 @@ type
   }
   TAnalytics = class(TComponent)
   private
-    FLastGoogleAnalyticsPropertyId: string;
-    FLastGameAnalyticsGameKey, FLastGameAnalyticsSecretKey: string;
+    FLastGoogleAnalyticsPropertyId: String;
+    FLastGameAnalyticsGameKey, FLastGameAnalyticsSecretKey: String;
     procedure ReinitializeJavaActivity(Sender: TObject);
-    procedure CheckValidName(const S: string);
+    procedure CheckValidName(const S: String);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Initialize Google Analytics https://www.google.com/analytics/ .
       Usually called from @link(TCastleApplication.OnInitialize). }
-    procedure InitializeGoogleAnalytics(const AnalyticsPropertyId: string);
+    procedure InitializeGoogleAnalytics(const AnalyticsPropertyId: String);
 
     { Initialize Game Analytics http://www.gameanalytics.com/ .
       Usually called from @link(TCastleApplication.OnInitialize). }
-    procedure InitializeGameAnalytics(const GameKey, SecretKey: string);
+    procedure InitializeGameAnalytics(const GameKey, SecretKey: String);
 
     { Send to analytics view of the screen, e.g. when user switches
       between UI states.
 
       @raises(EInvalidChar If the screen name contains invalid characters.
         Use only ASCII letters, digits, hyphens, underscores.) }
-    procedure ScreenView(const ScreenName: string);
+    procedure ScreenView(const ScreenName: String);
 
     { Send to analytics a general event.
 
       @raises(EInvalidChar If some string contains invalid characters.
         Use only ASCII letters, digits, hyphens, underscores for the category
         and other strings.) }
-    procedure Event(const Category, Action, ALabel: string; const Value: Int64); overload;
+    procedure Event(const Category, Action, ALabel: String; const Value: Int64); overload;
 
     { Send to analytics a general event, along with a custom dimension.
       DimensionIndex must be > 0.
@@ -99,15 +99,15 @@ type
       @raises(EInvalidChar If some string contains invalid characters.
         Use only ASCII letters, digits, hyphens, underscores for the category
         and other strings.) }
-    procedure Event(const Category, Action, ALabel: string; const Value: Int64;
-      const DimensionIndex: Cardinal; const DimensionValue: string); overload;
+    procedure Event(const Category, Action, ALabel: String; const Value: Int64;
+      const DimensionIndex: Cardinal; const DimensionValue: String); overload;
 
     { Send to analytics a timing event.
 
       @raises(EInvalidChar If some string contains invalid characters.
         Use only ASCII letters, digits, hyphens, underscores for the category
         and other strings.) }
-    procedure Timing(const Category, AVariable, ALabel: string; const Time: TFloatTime);
+    procedure Timing(const Category, AVariable, ALabel: String; const Time: TFloatTime);
 
     { Send to analytics a progress event.
 
@@ -115,8 +115,8 @@ type
         Use only ASCII letters, digits, hyphens, underscores for the world
         and other strings.) }
     procedure Progress(const Status: TAnalyticsProgress;
-      const World: string;
-      const Level: string = ''; const Phase: string = ''; const Score: Integer = 0);
+      const World: String;
+      const Level: String = ''; const Phase: String = ''; const Score: Integer = 0);
   end;
 
 implementation
@@ -147,30 +147,30 @@ begin
     InitializeGameAnalytics(FLastGameAnalyticsGameKey, FLastGameAnalyticsSecretKey);
 end;
 
-procedure TAnalytics.InitializeGoogleAnalytics(const AnalyticsPropertyId: string);
+procedure TAnalytics.InitializeGoogleAnalytics(const AnalyticsPropertyId: String);
 begin
   FLastGoogleAnalyticsPropertyId := AnalyticsPropertyId;
   Messaging.Send(['google-analytics-initialize', AnalyticsPropertyId]);
 end;
 
-procedure TAnalytics.InitializeGameAnalytics(const GameKey, SecretKey: string);
+procedure TAnalytics.InitializeGameAnalytics(const GameKey, SecretKey: String);
 begin
   FLastGameAnalyticsGameKey := GameKey;
   FLastGameAnalyticsSecretKey := SecretKey;
   Messaging.Send(['game-analytics-initialize', GameKey, SecretKey]);
 end;
 
-procedure TAnalytics.ScreenView(const ScreenName: string);
+procedure TAnalytics.ScreenView(const ScreenName: String);
 begin
   Messaging.Send(['analytics-send-screen-view', ScreenName]);
 end;
 
-procedure TAnalytics.Event(const Category, Action, ALabel: string; const Value: Int64);
+procedure TAnalytics.Event(const Category, Action, ALabel: String; const Value: Int64);
 begin
   Event(Category, Action, ALabel, Value, 0, '');
 end;
 
-procedure TAnalytics.CheckValidName(const S: string);
+procedure TAnalytics.CheckValidName(const S: String);
 begin
   // TODO: for now, merely warning
   SCheckChars(S, ['a'..'z', 'A'..'Z', '0'..'9', '-', '_'], false);
@@ -178,8 +178,8 @@ begin
   // not sure what GoogleAnalytics allows
 end;
 
-procedure TAnalytics.Event(const Category, Action, ALabel: string; const Value: Int64;
-  const DimensionIndex: Cardinal; const DimensionValue: string);
+procedure TAnalytics.Event(const Category, Action, ALabel: String; const Value: Int64;
+  const DimensionIndex: Cardinal; const DimensionValue: String);
 begin
   CheckValidName(Category);
   CheckValidName(Action);
@@ -189,7 +189,7 @@ begin
     IntToStr(Value), IntToStr(DimensionIndex), DimensionValue]);
 end;
 
-procedure TAnalytics.Timing(const Category, AVariable, ALabel: string; const Time: TFloatTime);
+procedure TAnalytics.Timing(const Category, AVariable, ALabel: String; const Time: TFloatTime);
 begin
   CheckValidName(Category);
   CheckValidName(AVariable);
@@ -199,7 +199,7 @@ begin
 end;
 
 procedure TAnalytics.Progress(const Status: TAnalyticsProgress;
-  const World, Level, Phase: string; const Score: Integer);
+  const World, Level, Phase: String; const Score: Integer);
 begin
   CheckValidName(World);
   if World = '' then

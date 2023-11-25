@@ -1326,7 +1326,7 @@ implementation
 uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleTextureImages,
-  CastleInternalSettings, CastleXMLUtils, CastleURIUtils, CastleInternalRenderer,
+  CastleInternalSettings, CastleXmlUtils, CastleUriUtils, CastleInternalRenderer,
   CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
 
 {$define read_implementation}

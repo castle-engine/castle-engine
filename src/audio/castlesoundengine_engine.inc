@@ -48,7 +48,7 @@
 
     procedure SetVolume(const Value: Single);
     procedure SetDistanceModel(const Value: TSoundDistanceModel);
-    procedure SetDevice(const Value: string);
+    procedure SetDevice(const Value: String);
     procedure SetEnabled(const Value: boolean);
     procedure SetPaused(const Value: boolean);
     procedure ReinitializeJavaActivity(Sender: TObject);
@@ -179,15 +179,15 @@
         or a library required to decompress e.g. OggVorbis is missing.)
 
       @groupBegin }
-    function LoadBuffer(const URL: string; const SoundLoading: TSoundLoading;
+    function LoadBuffer(const Url: String; const SoundLoading: TSoundLoading;
       const ExceptionOnError: Boolean = true): TInternalSoundBuffer; overload;
-      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.URL)';
-    function LoadBuffer(const URL: string;
+      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.Url)';
+    function LoadBuffer(const Url: String;
       const ExceptionOnError: Boolean = true): TInternalSoundBuffer; overload;
-      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.URL)';
-    function LoadBuffer(const URL: string; out Duration: TFloatTime): TInternalSoundBuffer;
+      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.Url)';
+    function LoadBuffer(const Url: String; out Duration: TFloatTime): TInternalSoundBuffer;
       overload;
-      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.URL)';
+      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.Url)';
     { @groupEnd }
 
     { Free a sound file buffer. Ignored when buffer is @nil.
@@ -196,7 +196,7 @@
       @raises(ESoundBufferNotLoaded When invalid (not @nil,
         and not returned by LoadBuffer) buffer identifier is given.) }
     procedure FreeBuffer(var Buffer: TInternalSoundBuffer);
-      deprecated 'use TCastleSound to load and free sound buffers (just assign TCastleSound.URL)';
+      deprecated 'use TCastleSound to load and free sound buffers (just assign TCastleSound.Url)';
 
     { Play a sound from given buffer.
 
@@ -881,37 +881,37 @@ begin
   finally FreeAndNil(Params) end;
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TInternalSoundBuffer;
+function TSoundEngine.LoadBuffer(const Url: String; out Duration: TFloatTime): TInternalSoundBuffer;
 begin
   {$warnings off} // using deprecated that should be internal
-  Result := LoadBuffer(URL);
+  Result := LoadBuffer(Url);
   {$warnings on}
   Duration := Result.Duration;
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean): TInternalSoundBuffer;
+function TSoundEngine.LoadBuffer(const Url: String; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean): TInternalSoundBuffer;
 var
   I: Integer;
-  FullURL: string;
+  FullUrl: String;
 begin
   ContextOpen;
 
-  FullURL := AbsoluteURI(URL);
+  FullUrl := AbsoluteURI(Url);
 
   { try to load from cache Result }
   for I := 0 to LoadedBuffers.Count - 1 do
-    if LoadedBuffers[I].URL = FullURL then
+    if LoadedBuffers[I].Url = FullUrl then
     begin
       Result := LoadedBuffers[I];
       Inc(Result.References);
       if LogSoundLoading then
         WritelnLog('Sound', Format('Loaded sound buffer "%s" from cache, now it has %d references',
-          [URIDisplay(FullURL), Result.References]));
+          [UriDisplay(FullUrl), Result.References]));
       Exit;
     end;
 
   Result := TInternalSoundBuffer.Create(Backend, SoundLoading);
-  Result.FURL := FullURL;
+  Result.FUrl := FullUrl;
   Result.References := 1;
   LoadedBuffers.Add(Result);
 
@@ -920,10 +920,10 @@ begin
     Result.ContextOpen(ExceptionOnError);
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; const ExceptionOnError: Boolean): TInternalSoundBuffer;
+function TSoundEngine.LoadBuffer(const Url: String; const ExceptionOnError: Boolean): TInternalSoundBuffer;
 begin
   {$warnings off} // using deprecated that should be internal
-  Result := LoadBuffer(URL, slComplete, ExceptionOnError);
+  Result := LoadBuffer(Url, slComplete, ExceptionOnError);
   {$warnings on}
 end;
 
@@ -948,7 +948,7 @@ begin
     Buffer := nil;
   end else
     raise ESoundBufferNotLoaded.CreateFmt('Sound buffer "%s" not loaded by this sound engine',
-      [URIDisplay(Buffer.URL)]);
+      [UriDisplay(Buffer.Url)]);
 end;
 
 procedure TSoundEngine.SetVolume(const Value: Single);
@@ -981,7 +981,7 @@ begin
   end;
 end;
 
-procedure TSoundEngine.SetDevice(const Value: string);
+procedure TSoundEngine.SetDevice(const Value: String);
 begin
   if Value <> FDevice then
   begin

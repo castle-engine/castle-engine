@@ -85,11 +85,11 @@ type
 
     { Generate a Pascal file from template. }
     procedure GeneratedSourceFile(
-      const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
+      const TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits: string;
       const CreateIfNecessary: boolean;
       out RelativeResult, AbsoluteResult: string);
     procedure GeneratedSourceFile(
-      const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
+      const TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits: string;
       const CreateIfNecessary: boolean);
 
     function AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
@@ -267,7 +267,7 @@ implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM, Process,
-  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
   CastleTimeUtils,
   ToolResources, ToolAndroid, ToolMacOS,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
@@ -304,10 +304,10 @@ procedure ExternalLibraries(const OS: TOS; const CPU: TCPU;
     and raises exception in case of trouble. }
   function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
   var
-    LibraryURL: string;
+    LibraryUrl: String;
   begin
-    LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
-    Result := URIToFilenameSafe(LibraryURL);
+    LibraryUrl := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
+    Result := UriToFilenameSafe(LibraryUrl);
     if CheckFilesExistence and (not RegularFileExists(Result)) then
       raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
   end;
@@ -435,10 +435,10 @@ constructor TCastleProject.Create(const APath: string);
     end;
 
   var
-    ManifestUrl: string;
+    ManifestUrl: String;
   begin
     ManifestFile := InclPathDelim(APath) + ManifestName;
-    ManifestUrl := FilenameToURISafe(ManifestFile);
+    ManifestUrl := FilenameToUriSafe(ManifestFile);
 
     if not RegularFileExists(ManifestFile) then
     begin
@@ -1085,7 +1085,7 @@ begin
 end;
 
 procedure TCastleProject.GeneratedSourceFile(
-  const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
+  const TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits: string;
   const CreateIfNecessary: boolean;
   out RelativeResult, AbsoluteResult: string);
 var
@@ -1094,10 +1094,10 @@ begin
   AbsoluteResult := TempOutputPath(Path, CreateIfNecessary) + TargetRelativePath;
   if CreateIfNecessary then
   begin
-    TemplateFile := URIToFilenameSafe(ApplicationData(TemplateRelativeURL));
+    TemplateFile := UriToFilenameSafe(ApplicationData(TemplateRelativeUrl));
     if Manifest.GameUnits = '' then
       raise Exception.Create(ErrorMessageMissingGameUnits);
-    ExtractTemplateFile(TemplateFile, AbsoluteResult, TemplateRelativeURL, true);
+    ExtractTemplateFile(TemplateFile, AbsoluteResult, TemplateRelativeUrl, true);
   end;
   // This may not be true anymore, if user changes OutputPathBase
   // if not IsPrefix(Path, AbsoluteResult, true) then
@@ -1107,12 +1107,12 @@ begin
 end;
 
 procedure TCastleProject.GeneratedSourceFile(
-  const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
+  const TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits: string;
   const CreateIfNecessary: boolean);
 var
   RelativeResult, AbsoluteResult: string;
 begin
-  GeneratedSourceFile(TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits,
+  GeneratedSourceFile(TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits,
     CreateIfNecessary, RelativeResult, AbsoluteResult);
   // just ignore RelativeResult, AbsoluteResult output values
 end;
@@ -1127,7 +1127,7 @@ function TCastleProject.AndroidSourceFile(const AbsolutePath, CreateIfNecessary:
 const
   ErrorMessageMissingGameUnits = 'You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an Android project. Alternatively, you can specify android_source="..." in the CastleEngineManifest.xml, to explicitly indicate the Android library source code.';
 var
-  AndroidSourceContents, RelativeResult, AbsoluteResult, TemplateRelativeURL: string;
+  AndroidSourceContents, RelativeResult, AbsoluteResult, TemplateRelativeUrl: String;
 begin
   { calculate RelativeResult, AbsoluteResult }
   if Manifest.AndroidSource <> '' then
@@ -1136,8 +1136,8 @@ begin
     AbsoluteResult := Path + RelativeResult;
   end else
   begin
-    TemplateRelativeURL := 'android/library_template_integrated.lpr';
-    GeneratedSourceFile(TemplateRelativeURL,
+    TemplateRelativeUrl := 'android/library_template_integrated.lpr';
+    GeneratedSourceFile(TemplateRelativeUrl,
       'android' + PathDelim + NamePascal + '_android.lpr',
       ErrorMessageMissingGameUnits,
       CreateIfNecessary, RelativeResult, AbsoluteResult);
@@ -1396,7 +1396,7 @@ procedure TCastleProject.DoGenerateProgram(const GuidFromName: Boolean);
   var
     TemplateFile, TargetFile: string;
   begin
-    TemplateFile := URIToFilenameSafe(ApplicationData(TemplateRelativePath));
+    TemplateFile := UriToFilenameSafe(ApplicationData(TemplateRelativePath));
     TargetFile := Path + TargeRelativePath;
     ExtractTemplateFile(TemplateFile, TargetFile, TemplateRelativePath, true);
     Writeln('Generated ', ExtractRelativePath(Path, TargetFile));
@@ -2138,7 +2138,7 @@ var
 begin
   ExtractTemplateOverrideExisting := OverrideExisting;
   ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
-  ExtractTemplateDir := ExclPathDelim(URIToFilenameSafe(ApplicationData(TemplatePath)));
+  ExtractTemplateDir := ExclPathDelim(UriToFilenameSafe(ApplicationData(TemplatePath)));
   if not DirectoryExists(ExtractTemplateDir) then
     raise Exception.Create('Cannot find template in "' + ExtractTemplateDir + '". ' + SErrDataDir);
 
@@ -2241,9 +2241,9 @@ begin
       CheckCopyFile(SourceFileName, DestinationFileName);
     end else
     begin
-      Contents := FileToString(FilenameToURISafe(SourceFileName));
+      Contents := FileToString(FilenameToUriSafe(SourceFileName));
       Contents := ReplaceMacros(Contents);
-      StringToFile(FilenameToURISafe(DestinationFileName), Contents);
+      StringToFile(FilenameToUriSafe(DestinationFileName), Contents);
     end;
   except
     on E: EFOpenError do

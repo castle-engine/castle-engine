@@ -54,7 +54,7 @@ implementation
 
 uses SysUtils,
   CastleComponentSerialize, CastleImages, CastleRectangles, CastleStringUtils,
-  CastleUtils, CastleLog, CastleURIUtils
+  CastleUtils, CastleLog, CastleUriUtils
   { Use CastlePropEdits, and thus LCL and castle_components, only when part of the editor. }
   {$ifdef CASTLE_DESIGN_MODE} , PropEdits, ComponentEditors, CastlePropEdits {$endif};
 
@@ -148,7 +148,7 @@ begin
         if CastleDesignMode then
         begin
           WritelnWarning('TImageGrid', 'Failed to load image "%s": %s',
-            [URIDisplay(Value), ExceptMessage(E)]);
+            [UriDisplay(Value), ExceptMessage(E)]);
         end else
           raise;
       end;

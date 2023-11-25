@@ -30,7 +30,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleFilesUtils, CastleURIUtils;
+  CastleFilesUtils, CastleUriUtils;
 
 type
   { Descendant of TToolVersion, just to expose protected ParseVersion.

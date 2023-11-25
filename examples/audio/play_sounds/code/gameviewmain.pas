@@ -74,7 +74,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog, CastleWindow, CastleURIUtils, CastleTimeUtils,
+  CastleLog, CastleWindow, CastleUriUtils, CastleTimeUtils,
   CastleSoundBase, CastleViewport, CastleUtils;
 
 { TButtonSound --------------------------------------------------------- }
@@ -99,7 +99,7 @@ begin
 
   Caption := FormatDot('%s (%f)', [
     // extract last URL component, i.e. just the filename
-    URIDisplay(SoundFileURL, true),
+    UriDisplay(SoundFileURL, true),
     Sound.Duration
   ]);
 end;
@@ -123,7 +123,7 @@ begin
   GroupPlayingSounds.InsertFront(Ui);
 
   LabelSoundName := FindRequiredComponent('LabelSoundName') as TCastleLabel;
-  LabelSoundName.Caption := URIDisplay(PlayingSound.Sound.URL, true);
+  LabelSoundName.Caption := UriDisplay(PlayingSound.Sound.Url, true);
 
   ButtonStop := FindRequiredComponent('ButtonStop') as TCastleButton;
   ButtonStop.OnClick := {$ifdef FPC}@{$endif}ClickStop;

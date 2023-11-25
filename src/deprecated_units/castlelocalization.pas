@@ -133,7 +133,7 @@ implementation
 {$warnings off} // using deprecated unit here
 uses
   SysUtils,
-  CastleURIUtils, CastleUtils, CastleDownload,
+  CastleUriUtils, CastleUtils, CastleDownload,
   CastleLocalizationFileLoader;
 {$warnings on}
 

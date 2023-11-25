@@ -80,11 +80,11 @@ type
   { Event called when @link(Download) function wants to download URL with this protocol.
     Use with @link(RegisterUrlProtocol). }
   TUrlReadEvent = function (
-    const Url: string; out MimeType: string): TStream of object;
+    const Url: String; out MimeType: string): TStream of object;
 
   { Event called when @link(URLSaveStream) function wants to save URL with this protocol.
     Use with @link(RegisterUrlProtocol). }
-  TUrlWriteEvent = function(const Url: string): TStream of object;
+  TUrlWriteEvent = function(const Url: String): TStream of object;
 
   EProtocolAlreadyRegistered = class(Exception);
 
@@ -138,9 +138,9 @@ end;
 { registering URL protocols -------------------------------------------------- }
 
 type
-  { Event called when @link(URIMimeType) function wants to get MIME type from given URL.
+  { Event called when @link(UriMimeType) function wants to get MIME type from given URL.
     Use with @link(RegisterUrlProtocol). }
-  TUrlMimeTypeEvent = function(const Url: string; out Gzipped: Boolean): String of object;
+  TUrlMimeTypeEvent = function(const Url: String; out Gzipped: Boolean): String of object;
 
   TRegisteredProtocol = class
     Protocol: String;

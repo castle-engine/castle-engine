@@ -30,14 +30,14 @@ type
 
 implementation
 
-uses CastleStringUtils, CastleURIUtils, CastleFilesUtils, CastleVectors,
+uses CastleStringUtils, CastleUriUtils, CastleFilesUtils, CastleVectors,
   CastleConfig;
 
 procedure TTestToolProject.TestMacros;
 var
   P: TCastleProject;
 begin
-  P := TCastleProject.Create(URIToFilenameSafe(ResolveCastleDataURL('castle-data:/test_project/')));
+  P := TCastleProject.Create(UriToFilenameSafe(ResolveCastleDataURL('castle-data:/test_project/')));
   try
     AssertEquals('My Test Project', P.ReplaceMacros('${CAPTION}'));
     AssertEquals('test_project', P.ReplaceMacros('${NAME}'));

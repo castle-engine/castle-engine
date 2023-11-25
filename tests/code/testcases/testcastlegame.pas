@@ -31,7 +31,7 @@ implementation
 
 uses CastleVectors, CastleLevels, CastleResources, CastleSoundEngine, CastlePlayer,
   CastleInternalMaterialProperties, CastleCreatures, CastleShapes, CastleTransform,
-  CastleURIUtils;
+  CastleUriUtils;
 
 procedure TTestGame.TestGameData;
 

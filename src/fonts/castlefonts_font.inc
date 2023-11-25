@@ -664,7 +664,7 @@ begin
           to default UIFont (with warning "cannot load font with no glyphs"). }
         Unload;
         WritelnWarning('TCastleFont', 'Failed to load font "%s": %s',
-          [URIDisplay(URL), ExceptMessage(E)]);
+          [UriDisplay(URL), ExceptMessage(E)]);
       end;
     end;
   end else
@@ -678,7 +678,7 @@ begin
       begin
         Unload;
         WritelnWarning('TCastleFont', 'Failed to load font "%s": %s',
-          [URIDisplay(URL), E.Message]);
+          [UriDisplay(URL), E.Message]);
       end;
     end;
   end;

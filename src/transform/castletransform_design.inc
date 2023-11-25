@@ -138,7 +138,7 @@ begin
         begin
           if CastleDesignMode then
           begin
-            WritelnWarning('TCastleTransformDesign', 'Failed to load design "%s": %s', [URIDisplay(URL), ExceptMessage(E)]);
+            WritelnWarning('TCastleTransformDesign', 'Failed to load design "%s": %s', [UriDisplay(URL), ExceptMessage(E)]);
             Exit;
           end else
             raise;

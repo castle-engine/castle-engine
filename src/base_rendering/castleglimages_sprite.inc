@@ -103,14 +103,14 @@
     procedure SetSmoothScaling(const Value: Boolean);
   public
     { Constructor.
-      @param(URL URL of source image.)
+      @param(Url URL of source image.)
       @param(AFrames Total numer of animation frames.)
       @param(AColumns Mumber of columns.)
       @param(ARows Number of rows.)
       @param(ASmoothscaling Enables interpolation, see @link(TDrawableImage.SmoothScaling) for details, default @True.)
       @param(ATimeLoop Should animation be repeated?, default @true.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
-    constructor Create(const URL: string;
+    constructor Create(const Url: String;
       const AFrames, AColumns, ARows: Cardinal;
       const ASmoothScaling: Boolean = True;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False);
@@ -130,7 +130,7 @@
 
     { Constructor that takes explicit frame size.
 
-      @param(URL URL of source image.)
+      @param(Url URL of source image.)
       @param(AFrames Total numer of animation frames.)
       @param(AColumns Number of columns.)
       @param(AFrameWidth Width of each frame.)
@@ -138,7 +138,7 @@
       @param(ASmoothscaling Enables interpolation, see @link(TDrawableImage.SmoothScaling) for details, default @True.)
       @param(ATimeLoop Should animation be repeated?, default True.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
-    constructor CreateFrameSize(const URL: string;
+    constructor CreateFrameSize(const Url: String;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ASmoothScaling: Boolean = True;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False); overload;
@@ -568,7 +568,7 @@ begin
   FOwnsImage := true;
 end;
 
-constructor TSprite.CreateFrameSize(const URL: string;
+constructor TSprite.CreateFrameSize(const Url: String;
   const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
   const ASmoothScaling: Boolean = True;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
@@ -576,12 +576,12 @@ var
   Img: TDrawableImage;
 begin
   FSmoothScaling := ASmoothScaling;
-  Img := TDrawableImage.Create(URL, SmoothScaling);
+  Img := TDrawableImage.Create(Url, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns, AFrameWidth, AFrameHeight,
     ATimeLoop, APlay);
 end;
 
-constructor TSprite.Create(const URL: string;
+constructor TSprite.Create(const Url: String;
   const AFrames, AColumns, ARows: Cardinal;
   const ASmoothScaling: Boolean = True;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
@@ -589,7 +589,7 @@ var
   Img: TDrawableImage;
 begin
   FSmoothScaling := ASmoothScaling;
-  Img := TDrawableImage.Create(URL, SmoothScaling);
+  Img := TDrawableImage.Create(Url, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns,
     { Note that ARows is not remembered in this instance.
       It's only used to calculate default AFrameHeight below, which can
