@@ -814,6 +814,8 @@ begin
   FDeStreamer.AfterReadObject := {$ifdef FPC}@{$endif}AfterReadObject;
   FDeStreamer.OnRestoreProperty := {$ifdef FPC}@{$endif}RestoreProperty;
   FDeStreamer.OnGetObject := {$ifdef FPC}@{$endif}ReaderGetObject;
+  // read property like Url (TCastleScene.Url) from URL
+  FDeStreamer.Options := FDeStreamer.Options + [jdoCaseInsensitive]; 
 
   ResolveObjectProperties := TResolveObjectPropertyList.Create(true);
 
