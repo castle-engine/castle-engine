@@ -286,7 +286,7 @@ pipeline {
           }
         }
         stage('Raspberry Pi (64-bit)') {
-          /* TODO: Decide if/how to limit usage of rpi64 node */
+          /* To not overload the slower RPi, use it only with master. */
           when { branch "master" }
           agent {
             label 'raspberry-pi-64-cge-builder'

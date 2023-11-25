@@ -150,8 +150,10 @@ pipeline {
           }
         }
         stage('Raspberry Pi (64)') {
-          /* TODO: Decide if/how to limit usage of rpi64 node */
-          when { branch "master" }
+          /* Disable "Raspberry Pi" testing with non-critical tests.
+             "make examples" take > 10 hours. */
+          // when { branch "master" }
+          when { expression { return false; } }
           agent {
             label 'raspberry-pi-64-cge-builder'
           }
