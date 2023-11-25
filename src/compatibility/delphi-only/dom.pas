@@ -594,6 +594,8 @@ begin
 end;
 
 constructor TDOMDocument.Create;
+var
+  InternalDocumentNonRef: XMLDoc.TXMLDocument;
 begin
   inherited Create(nil);
 
@@ -607,8 +609,13 @@ begin
   {$endif}
   {$endif}
 
-  InternalDocument := XMLDoc.TXMLDocument.Create(Self);
-  InternalDocument.Active := true;
+  InternalDocumentNonRef := XMLDoc.TXMLDocument.Create(Self);
+  {$ifdef CASTLE_XML_OMNI}
+  InternalDocumentNonRef.DOMVendor := GetDOMVendor(sOmniXmlVendor);
+  {$endif}
+  InternalDocumentNonRef.Active := true;
+  InternalDocument := InternalDocumentNonRef; // assign to interface, it is ref-counted from now on
+
   FDocumentElement := nil;
 end;
 
@@ -763,7 +770,43 @@ end;
 
 initialization
   {$ifdef CASTLE_XML_OMNI}
-  DefaultDOMVendor := sOmniXmlVendor;
+  (*In the past we changed DefaultDOMVendor, but this was more invasive,
+    as it affects XML implementation used by Delphi IDE (since this unit
+    is also in a design-time package).
+    
+    It caused occasional issues when trying to save / open a project in Delphi IDE,
+    about "document encoding",
+    with Delphi IDE stacktrace like this:
+    
+      [6FBD3F97]{xmlrtl290.bpl} Xml.XMLDoc.TXMLDocument.LoadData (Line 2557, "Xml.XMLDoc.pas" + 11) + $26
+      [7168A1C4]{rtl290.bpl  } System.@CheckAutoResult (Line 40283, "System.pas" + 4) + $6
+      [6FBD3F97]{xmlrtl290.bpl} Xml.XMLDoc.TXMLDocument.LoadData (Line 2557, "Xml.XMLDoc.pas" + 11) + $26
+      [6FBD3E53]{xmlrtl290.bpl} Xml.XMLDoc.TXMLDocument.SetActive (Line 2523, "Xml.XMLDoc.pas" + 13) + $7
+      [67E70559]{profiledeployide290.bpl} DeploymentImpl.TDeploymentStorageManager.ReadDefaultDeployment (Line 1802, "DeploymentImpl.pas" + 47) + $7
+      [67E6C40D]{profiledeployide290.bpl} DeploymentImpl.TDeploymentModuleHandler.EnsureDefaultDeployment (Line 651, "DeploymentImpl.pas" + 13) + $1A
+      [67E6D5C5]{profiledeployide290.bpl} DeploymentImpl.TDeploymentModuleHandler.GetFiles (Line 909, "DeploymentImpl.pas" + 1) + $2
+      [67E6D420]{profiledeployide290.bpl} DeploymentImpl.TDeploymentModuleHandler.GetSortedFiles (Line 865, "DeploymentImpl.pas" + 1) + $2
+      [67E71758]{profiledeployide290.bpl} DeploymentImpl.TDeploymentStorageManager.Write (Line 1962, "DeploymentImpl.pas" + 9) + $8
+      [67E72B37]{profiledeployide290.bpl} DeploymentImpl.TDeploymentStorageManager.ProjectSaving (Line 2153, "DeploymentImpl.pas" + 3) + $11
+      [6F162850]{coreide290.bpl} ProjectFileUtils.CallProjectFileStorage (Line 562, "ProjectFileUtils.pas" + 14) + $B
+      [6F163D55]{coreide290.bpl} ProjectFileUtils.NotifyProjectStorageSaving (Line 844, "ProjectFileUtils.pas" + 4) + $67
+      [6F0C67F5]{coreide290.bpl} ProjectModule.TBaseProject.NotifyProjectStorageSaving (Line 2028, "ProjectModule.pas" + 3) + $23
+      [6F0C6B5A]{coreide290.bpl} ProjectModule.TCustomProject.Save (Line 2108, "ProjectModule.pas" + 20) + $3
+      [6F029C25]{coreide290.bpl} ProjectGroup.SaveProjects (Line 2022, "ProjectGroup.pas" + 68) + $1E
+      [6F029EB4]{coreide290.bpl} ProjectGroup.TProjectGroup.Save (Line 2058, "ProjectGroup.pas" + 2) + $1
+      [6F02DBF9]{coreide290.bpl} ProjectGroup.TProjectGroupWrapper.Save (Line 3357, "ProjectGroup.pas" + 2) + $7
+      [00C28263]{bds.exe     } AppMain.TAppBuilder.CanCloseProjectGroup + $4F
+      ....    
+      
+    The testcase was not 100% confirmed, but it seems that changing package settings
+    from AllProjects group, then trying to open a different project (like fps_game),
+    saying "Yes" to save the AllProjects changes, was causing errors.
+    
+    Now we do a safer approach: never change global DefaultDOMVendor,
+    instead we'll set TXMLDocument.DOMVendor after TXMLDocument creation.
+  *)
+  //DefaultDOMVendor := sOmniXmlVendor;
+
   {$else}
   {$ifdef MSWINDOWS}
   { Reading X3D XML fails without this.
