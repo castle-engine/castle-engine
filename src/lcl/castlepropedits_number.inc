@@ -133,19 +133,15 @@ type
   { Improved property editor for TComponent.Tag (PtrInt, which means Int64 on x86_64). }
   TCastleTagPropertyEditor = class(TInt64PropertyEditor)
   public
-    {$ifdef LCL_HAS_DEFAULT_VALUE}
     { Determines whether the object inspector shows
       the current property state as default or not (bold). }
     function GetDefaultValue: String; override;
-    {$endif}
   end;
 
-{$ifdef LCL_HAS_DEFAULT_VALUE}
 { We know that Tag has always default 0. }
 function TCastleTagPropertyEditor.GetDefaultValue: String;
 begin
   Result := IntToStr(0);
 end;
-{$endif}
 
 {$endif}
