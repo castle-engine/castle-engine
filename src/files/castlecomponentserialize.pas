@@ -973,8 +973,9 @@ var
 begin
   ContentsStringStream := TStringStream.Create(Contents);
   try
-    Factory := TCastleComponentFactory.Create(ContentsStringStream, '');
+    Factory := TCastleComponentFactory.Create(nil);
     try
+      Factory.LoadFromStream(ContentsStringStream, '');
       Result := Factory.InternalComponentLoad(Owner, LoadInfo);
     finally FreeAndNil(Factory) end;
   finally FreeAndNil(ContentsStringStream) end;
@@ -993,8 +994,9 @@ end;}
 var
   Factory: TCastleComponentFactory;
 begin
-  Factory := TCastleComponentFactory.Create(Url);
+  Factory := TCastleComponentFactory.Create(nil);
   try
+    Factory.Url := Url;
     Result := Factory.ComponentLoad(Owner);
   finally FreeAndNil(Factory) end;
 end;
