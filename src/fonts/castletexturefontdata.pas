@@ -20,7 +20,7 @@ unit CastleTextureFontData;
 
 interface
 
-uses Generics.Collections,
+uses Generics.Collections, Generics.Defaults,
   CastleVectors, CastleUnicode, CastleStringUtils, CastleImages,
   CastleInternalFreeType;
 
@@ -50,9 +50,21 @@ type
         { Position of the glyph on the image in TTextureFontData.Image. }
         ImageX, ImageY: Cardinal;
       end;
+
       { Map Unicode code to a TGlyph representation. }
       TGlyphDictionary = class({$ifdef FPC}specialize{$endif} TDictionary<TUnicodeChar, TGlyph>)
       strict private
+        {$ifndef FPC}
+        type
+          TUnicodeCharEqualityComparer = class(TCustomComparer<TUnicodeChar>)
+            function Compare(const Left, Right: TUnicodeChar): Integer; override;
+            function Equals(const Left, Right: TUnicodeChar): Boolean; override;
+            function GetHashCode(const Value: TUnicodeChar): Integer; override;
+          end;
+        var
+          FComparer: TUnicodeCharEqualityComparer;
+        {$endif}
+
         FOwnsGlyphs: boolean;
         function GetItems(const AKey: TUnicodeChar): TGlyph;
         procedure SetItems(const AKey: TUnicodeChar; const AValue: TGlyph);
@@ -159,31 +171,27 @@ type
 
 implementation
 
-uses Classes, SysUtils, Character, Generics.Defaults,
+uses Classes, SysUtils, Character,
   CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils, CastleDownload;
 
 { TUnicodeCharEqualityComparer ----------------------------------------------- }
 
 {$ifndef FPC}
 
-type
-  TUnicodeCharEqualityComparer = class(TCustomComparer<TUnicodeChar>)
-    function Compare(const Left, Right: TUnicodeChar): Integer; override;
-    function Equals(const Left, Right: TUnicodeChar): Boolean; override;
-    function GetHashCode(const Value: TUnicodeChar): Integer; override;
-  end;
-
-function TUnicodeCharEqualityComparer.Compare(const Left, Right: TUnicodeChar): Integer;
+function TTextureFontData.TGlyphDictionary.TUnicodeCharEqualityComparer.
+  Compare(const Left, Right: TUnicodeChar): Integer;
 begin
   Result := Left - Right;
 end;
 
-function TUnicodeCharEqualityComparer.Equals(const Left, Right: TUnicodeChar): Boolean;
+function TTextureFontData.TGlyphDictionary.TUnicodeCharEqualityComparer.
+  Equals(const Left, Right: TUnicodeChar): Boolean;
 begin
   Result := Left = Right;
 end;
 
-function TUnicodeCharEqualityComparer.GetHashCode(const Value: TUnicodeChar): Integer;
+function TTextureFontData.TGlyphDictionary.TUnicodeCharEqualityComparer.
+  GetHashCode(const Value: TUnicodeChar): Integer;
 begin
   Result := Value;
 end;
@@ -222,7 +230,8 @@ begin
     - This way we don't care about carefully testing at which Delphi version
       (10.3.x, 10.4.x?) the bug is fixed.
   }
-  inherited Create(TUnicodeCharEqualityComparer.Create);
+  FComparer := TUnicodeCharEqualityComparer.Create;
+  inherited Create(FComparer);
   {$else}
   inherited;
   {$endif}
@@ -239,6 +248,9 @@ begin
       G.Free;
   Clear;
   inherited;
+  {$ifndef FPC}
+  FreeAndNil(FComparer);
+  {$endif}
 end;
 
 function TTextureFontData.TGlyphDictionary.GetItems(const AKey: TUnicodeChar): TGlyph;
