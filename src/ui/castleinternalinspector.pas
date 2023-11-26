@@ -88,8 +88,8 @@ type
       FOpacity: Single;
       FSelectedComponent: TComponent;
       InsideLogCallback: Boolean;
-      SerializedHierarchyRowTemplate: TSerializedComponent;
-      SerializedPropertyRowTemplate: TSerializedComponent;
+      SerializedHierarchyRowFactory: TCastleComponentFactory;
+      SerializedPropertyRowFactory: TCastleComponentFactory;
       ProfilerData: TProfilerData;
       ProfilerDataNonEmpty: Boolean;
       { We have useful data at ProfilerDataFirst...ProfilerDataLast-1 indexes,
@@ -274,15 +274,16 @@ constructor TCastleInspector.Create(AOwner: TComponent);
     LogsVerticalGroup.VisibleChange([chChildren]);
   end;
 
-  { Create TSerializedComponent that in every TSerializedComponent.ComponentLoad
-    will create a deep clone of T. }
-  function TemplateToSerializedComponent(const T: TComponent): TSerializedComponent;
+  { Create TCastleComponentFactory that in every TCastleComponentFactory.ComponentLoad
+    will create a deep clone of Template. }
+  function TemplateToFactory(const Template: TComponent): TCastleComponentFactory;
   var
     ContentsStringStream: TStringStream;
   begin
-    ContentsStringStream := TStringStream.Create(ComponentToString(T));
+    ContentsStringStream := TStringStream.Create(ComponentToString(Template));
     try
-      Result := TSerializedComponent.Create(ContentsStringStream, '');
+      Result := TCastleComponentFactory.Create(nil);
+      Result.LoadFromStream(ContentsStringStream, '');
     finally FreeAndNil(ContentsStringStream) end;
   end;
 
@@ -369,10 +370,10 @@ begin
   SliderOpacity.Value := Opacity;
   SliderOpacity.OnChange := {$ifdef FPC}@{$endif} ChangeOpacity;
 
-  { initialize templates }
-  SerializedHierarchyRowTemplate := TemplateToSerializedComponent(HierarchyRowTemplate);
+  { initialize Factories }
+  SerializedHierarchyRowFactory := TemplateToFactory(HierarchyRowTemplate);
   FreeAndNil(HierarchyRowTemplate);
-  SerializedPropertyRowTemplate := TemplateToSerializedComponent(PropertyRowTemplate);
+  SerializedPropertyRowFactory := TemplateToFactory(PropertyRowTemplate);
   FreeAndNil(PropertyRowTemplate);
 
   { initialize log }
@@ -414,8 +415,8 @@ begin
 
   FreeAndNil(Properties);
 
-  FreeAndNil(SerializedHierarchyRowTemplate);
-  FreeAndNil(SerializedPropertyRowTemplate);
+  FreeAndNil(SerializedHierarchyRowFactory);
+  FreeAndNil(SerializedPropertyRowFactory);
 
   inherited;
 end;
@@ -457,7 +458,7 @@ var
       DimLabel := HierarchyButton.Controls[0] as TSimpleLabel;
     end else
     begin
-      HierarchyButton := SerializedHierarchyRowTemplate.ComponentLoad(Self) as TCastleButton;
+      HierarchyButton := SerializedHierarchyRowFactory.ComponentLoad(Self) as TCastleButton;
       HierarchyButton.OnClick := {$ifdef FPC}@{$endif} ClickHierarchyRow;
       HierarchyButton.Culling := true; // many such buttons are often not visible, in scroll view
       HierarchyButton.Width := RectHierarchy.EffectiveWidthForChildren;
@@ -940,7 +941,7 @@ procedure TCastleInspector.UpdateProperties;
     PropertyOwner.PropInfo := PropInfo;
     Properties.Add(PropertyOwner);
 
-    PropertyOwner.Ui := SerializedPropertyRowTemplate.ComponentLoad(PropertyOwner) as TCastleUserInterface;
+    PropertyOwner.Ui := SerializedPropertyRowFactory.ComponentLoad(PropertyOwner) as TCastleUserInterface;
     PropertyOwner.Ui.Culling := true; // many such rows are often not visible, in scroll view
     PropertyOwner.Ui.Width := RectProperties.EffectiveWidthForChildren;
     ForceFallbackLook(PropertyOwner.Ui);

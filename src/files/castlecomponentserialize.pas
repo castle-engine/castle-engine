@@ -28,7 +28,8 @@ unit CastleComponentSerialize;
 
 interface
 
-uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo;
+uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo,
+  CastleClassUtils;
 
 type
   EInvalidComponentFile = class(Exception);
@@ -113,40 +114,68 @@ type
     function FindRequiredComponent(const AName: String): TComponent;
   end;
 
-  { Load the serialized component once, instantiate it many times. }
-  TSerializedComponent = class
+  { Load a serialized component (from a design file, like .castle-user-interface,
+    .castle-transform, .castle-component) and instantiate it multiple times.
+
+    Set @link(Url) or call @link(LoadFromStream) to load the design.
+
+    Then instantiate it (multiple times if needed)
+    using @link(ComponentLoad). }
+  TCastleComponentFactory = class(TCastleComponent)
   strict private
-    FTranslationGroupName: String;
+    FUrl, FTranslationGroupName: String;
     JsonObject: TJsonObject;
+    procedure SetUrl(const Value: String);
   private
-    function InternalComponentLoad(const Owner: TComponent;
+    function InternalComponentLoad(const InstanceOwner: TComponent;
       const LoadInfo: TInternalComponentLoadInfo): TComponent;
   public
+    { Main constructor.
+      Does not load anything immediately.
+      Set @link(Url) or call @link(LoadFromStream) to load component. }
+    constructor Create(AOwner: TComponent); overload; override;
+
+    constructor Create(const AUrl: String); overload;
+      deprecated 'use Create(AOwner) overload, then set Url to load';
+    constructor Create(const Contents: TStream; const ATranslationGroupName: String); overload;
+      deprecated 'use Create(AOwner) overload, then LoadFromStream';
+
     { Load design from given URL.
+      Set to '' to clear the loaded component.
 
       If you set up localization (see https://castle-engine.io/manual_text.php#section_localization_gettext ),
       then upon loading, the design will be automatically localized using
       the translation group derived from URL base name. E.g. loading
       @code("castle-data:/foo/my_design.castle-user-interface") will use translation
       group @code("my_design"). }
-    constructor Create(const AUrl: String); overload;
+    property Url: String read FUrl write SetUrl;
 
     { Load design from given TStream.
 
       If you set up localization (see https://castle-engine.io/manual_text.php#section_localization_gettext ),
       then upon loading, the design will be automatically localized using
       the translation group specified.
-      Just leave ATranslationGroupName = '' to not localize. }
-    constructor Create(const Contents: TStream; const ATranslationGroupName: String); overload;
+      Just leave ATranslationGroupName = '' to not localize.
+
+      This @link(Url) value is unchanged by this. In most common case,
+      you don't really care about the @link(Url) value of this component,
+      if you load the contents from TStream. }
+    procedure LoadFromStream(const Contents: TStream; const ATranslationGroupName: String);
 
     destructor Destroy; override;
 
     { Instantiate component.
-      Using this is equivalent to using global
+      Using this is similar to using global
       @link(CastleComponentSerialize.ComponentLoad),
-      but it is much faster if you want to instantiate the same file many times. }
-    function ComponentLoad(const Owner: TComponent): TComponent;
+      but it is much faster if you want to instantiate the same file many times.
+
+      Newly created component will be owned by InstanceOwner.
+      Do not confuse this with the owner of this TCastleComponentFactory
+      -- which may be the same or different component. }
+    function ComponentLoad(const InstanceOwner: TComponent): TComponent;
   end;
+
+  TSerializedComponent = TCastleComponentFactory deprecated 'use TCastleComponentFactory';
 
   { Internal, used by TranslateAllDesigns. @exclude }
   TInternalTranslateDesignCallback = procedure (const C: TComponent; const GroupName: String);
@@ -197,7 +226,7 @@ procedure InternalAssignUsingSerialization(const Destination, Source: TComponent
 implementation
 
 uses JsonParser, RtlConsts, StrUtils,
-  CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
+  CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils,
   CastleUriUtils, CastleVectors, CastleColors, CastleInternalRttiUtils,
   CastleDownload;
 
@@ -815,7 +844,7 @@ begin
   FDeStreamer.OnRestoreProperty := {$ifdef FPC}@{$endif}RestoreProperty;
   FDeStreamer.OnGetObject := {$ifdef FPC}@{$endif}ReaderGetObject;
   // read property like Url (TCastleScene.Url) from URL
-  FDeStreamer.Options := FDeStreamer.Options + [jdoCaseInsensitive]; 
+  FDeStreamer.Options := FDeStreamer.Options + [jdoCaseInsensitive];
 
   ResolveObjectProperties := TResolveObjectPropertyList.Create(true);
 
@@ -836,25 +865,54 @@ begin
   Result := FDeStreamer;
 end;
 
-{ TSerializedComponent ------------------------------------------------------- }
+{ TCastleComponentFactory ------------------------------------------------------- }
 
-constructor TSerializedComponent.Create(const AUrl: String);
+constructor TCastleComponentFactory.Create(AOwner: TComponent);
+begin
+  inherited;
+end;
+
+constructor TCastleComponentFactory.Create(const AUrl: String);
+begin
+  Create(nil);
+  Url := AUrl;
+end;
+
+constructor TCastleComponentFactory.Create(const Contents: TStream;
+  const ATranslationGroupName: String);
+begin
+  Create(nil);
+  LoadFromStream(Contents, ATranslationGroupName);
+end;
+
+procedure TCastleComponentFactory.SetUrl(const Value: String);
 var
   Contents: TStream;
 begin
-  Contents := Download(AUrl);
-  try
-    Create(Contents, DeleteURIExt(ExtractURIName(AUrl)));
-  finally FreeAndNil(Contents) end;
+  if FUrl <> Value then
+  begin
+    FUrl := Value;
+
+    // free previously loaded, if any
+    FreeAndNil(JsonObject);
+    FTranslationGroupName := '';
+
+    // load new, if set
+    if Value <> '' then
+    begin
+      Contents := Download(Value);
+      try
+        LoadFromStream(Contents, DeleteURIExt(ExtractURIName(Value)));
+      finally FreeAndNil(Contents) end;
+    end;
+  end;
 end;
 
-constructor TSerializedComponent.Create(const Contents: TStream;
+procedure TCastleComponentFactory.LoadFromStream(const Contents: TStream;
   const ATranslationGroupName: String);
 var
   JsonData: TJsonData;
 begin
-  inherited Create;
-
   FTranslationGroupName := ATranslationGroupName;
 
   JsonData := GetJson(Contents, true);
@@ -863,29 +921,29 @@ begin
   JsonObject := JsonData as TJsonObject;
 end;
 
-destructor TSerializedComponent.Destroy;
+destructor TCastleComponentFactory.Destroy;
 begin
   FreeAndNil(JsonObject);
   inherited;
 end;
 
-function TSerializedComponent.ComponentLoad(const Owner: TComponent): TComponent;
+function TCastleComponentFactory.ComponentLoad(const InstanceOwner: TComponent): TComponent;
 begin
-  Result := InternalComponentLoad(Owner, nil);
+  Result := InternalComponentLoad(InstanceOwner, nil);
 end;
 
-function TSerializedComponent.InternalComponentLoad(const Owner: TComponent;
+function TCastleComponentFactory.InternalComponentLoad(const InstanceOwner: TComponent;
   const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
   Reader: TCastleJsonReader;
 begin
   Reader := TCastleJsonReader.Create;
   try
-    Reader.FOwner := Owner;
+    Reader.FOwner := InstanceOwner;
     Reader.LoadInfo := LoadInfo;
 
     { create Result with appropriate class }
-    Result := CreateComponentFromJson(JsonObject, Owner, LoadInfo);
+    Result := CreateComponentFromJson(JsonObject, InstanceOwner, LoadInfo);
 
     { read Result contents from JSON }
     Reader.DeStreamer.JsonToObject(JsonObject, Result);
@@ -899,6 +957,8 @@ begin
   end;
 end;
 
+{ routines ----------------------------------------------------------------- }
+
 function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
 begin
   Result := InternalStringToComponent(Contents, Owner, nil);
@@ -908,22 +968,22 @@ function InternalStringToComponent(const Contents: String;
   const Owner: TComponent;
   const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
-  SerializedComponent: TSerializedComponent;
+  Factory: TCastleComponentFactory;
   ContentsStringStream: TStringStream;
 begin
   ContentsStringStream := TStringStream.Create(Contents);
   try
-    SerializedComponent := TSerializedComponent.Create(ContentsStringStream, '');
+    Factory := TCastleComponentFactory.Create(ContentsStringStream, '');
     try
-      Result := SerializedComponent.InternalComponentLoad(Owner, LoadInfo);
-    finally FreeAndNil(SerializedComponent) end;
+      Result := Factory.InternalComponentLoad(Owner, LoadInfo);
+    finally FreeAndNil(Factory) end;
   finally FreeAndNil(ContentsStringStream) end;
 end;
 
 function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
 
-{ We could use StringToComponent now, but then TSerializedComponent
-  would not know Url, so TSerializedComponent.FTranslationGroupName
+{ We could use StringToComponent now, but then TCastleComponentFactory
+  would not know Url, so TCastleComponentFactory.FTranslationGroupName
   would be empty and TranslateAllDesigns would not work.
 
 begin
@@ -931,12 +991,12 @@ begin
 end;}
 
 var
-  SerializedComponent: TSerializedComponent;
+  Factory: TCastleComponentFactory;
 begin
-  SerializedComponent := TSerializedComponent.Create(Url);
+  Factory := TCastleComponentFactory.Create(Url);
   try
-    Result := SerializedComponent.ComponentLoad(Owner);
-  finally FreeAndNil(SerializedComponent) end;
+    Result := Factory.ComponentLoad(Owner);
+  finally FreeAndNil(Factory) end;
 end;
 
 { saving to JSON ------------------------------------------------------------- }

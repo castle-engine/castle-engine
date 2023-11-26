@@ -14,7 +14,7 @@ But the designs are much more flexible. You can create any number of design file
 
     - instantiate by code using global `UserInterfaceLoad` function, to easily instantiate them once
 
-    - instantiate by code using `TSerializedComponent.UserInterfaceLoad`, to efficiently instantiate them multiple times
+    - instantiate by code using `TCastleComponentFactory.UserInterfaceLoad`, to efficiently instantiate them multiple times
 
     - instantiate using `TCastleDesign` (you can do this visually, in the editor, you can also create `TCastleDesign` using Pascal code).
 
@@ -26,7 +26,7 @@ But the designs are much more flexible. You can create any number of design file
 
     - instantiate by code using global `TransformLoad` function, to easily instantiate them once
 
-    - instantiate by code using `TSerializedComponent.TransformLoad`, to efficiently instantiate them multiple times
+    - instantiate by code using `TCastleComponentFactory.TransformLoad`, to efficiently instantiate them multiple times
 
     - instantiate using `TCastleTransformDesign` (you can do this visually, in the editor, you can also create `TCastleTransformDesign` using Pascal code).
 
