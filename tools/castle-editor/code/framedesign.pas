@@ -5260,6 +5260,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
         Exit(true);
       PotentialChildNode := PotentialChildNode.Parent;
     end;
+
+    Result := false;
   end;
 
   procedure MoveUserInterface(const Src, Dst: TCastleUserInterface);
