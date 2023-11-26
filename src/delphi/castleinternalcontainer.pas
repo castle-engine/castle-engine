@@ -388,14 +388,31 @@ var
   I: Integer;
   C: TCastleContainerEasy;
 begin
-  for I := ContainersList.Count - 1 downto 0 do
+  { Be extra careful about processing here, so check ContainersList <> nil.
+
+    As this may run after our
+    "finalization" has run in case of VCL TCastleControl,
+    when ReportMemoryLeaksOnShutdown:=true is used.
+    In this case, the dialog shown by ReportMemoryLeaksOnShutdown happens
+    after our "finalization", but before
+    the TCastleControl.TContainer.UpdatingDisable from Vcl.CastleControl,
+    so before the TCastleControl lost GL context.
+    And during ReportMemoryLeaksOnShutdown, the WinAPI message loop runs,
+    making the TCastleControl timer execute.
+  }
+
+  if ContainersList <> nil then
+    for I := ContainersList.Count - 1 downto 0 do
+    begin
+      C := ContainersList[I];
+      if C.GLInitialized then
+        C.DoUpdate;
+    end;
+  if ApplicationProperties(false) <> nil then
   begin
-    C := ContainersList[I];
-    if C.GLInitialized then
-      C.DoUpdate;
+    ApplicationProperties(false)._Update;
+    DoLimitFPS;
   end;
-  ApplicationProperties._Update;
-  DoLimitFPS;
 end;
 
 procedure TCastleContainerEasy.LoadDesign;
