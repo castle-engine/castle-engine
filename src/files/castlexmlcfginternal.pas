@@ -152,7 +152,7 @@ begin
   if Assigned(Doc) then
   begin
     Flush;
-    Doc.Free;
+    FreeAndNil(Doc);
   end;
   inherited Destroy;
 end;
