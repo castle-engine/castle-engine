@@ -114,7 +114,7 @@ type
       const ASize: Cardinal; const AnAntiAliased: Boolean);
     destructor Destroy; override;
 
-    property URL: String read FUrl;
+    property Url: String read FUrl;
     property Size: Cardinal read FSize;
     property AntiAliased: Boolean read FAntiAliased;
 
@@ -272,18 +272,18 @@ var
       if Bitmaps.Count = 0 then
       begin
         WritelnWarning('Font', Format('Font "%s" does not contain glyph for character "%s" (index %d)',
-          [URL, C, Ord(C)]));
+          [Url, C, Ord(C)]));
         Exit(nil);
       end;
 
       Bitmap := Bitmaps.Bitmaps[0];
       if Bitmaps.Count > 1 then
         WritelnWarning('Font', Format('Font "%s" contains a sequence of glyphs (more than a single glyph) for a single character "%s" (index %d)',
-          [URL, C, Ord(C)]));
+          [Url, C, Ord(C)]));
       if (Bitmap^.Width < 0) or (Bitmap^.Height < 0) then
       begin
         WritelnWarning('Font', Format('Font "%s" contains a glyphs with Width or Height < 0 for character "%s" (index %d)',
-          [URL, C, Ord(C)]));
+          [Url, C, Ord(C)]));
         Exit(nil);
       end;
 
@@ -351,7 +351,7 @@ var
       if (Bitmap^.Pitch < 0) then
       begin
         WritelnWarning('Font', Format('Font "%s" contains a glyphs with Pitch < 0 for character "%s" (index %d)',
-          [URL, C, Ord(C)]));
+          [Url, C, Ord(C)]));
         Exit;
       end;
       if AntiAliased then
@@ -380,7 +380,7 @@ begin
   FUseFallbackGlyph := true;
 
   InitFontMgr;
-  FontId := FontMgr.RequestFont(URL);
+  FontId := FontMgr.RequestFont(Url);
 
   TemporaryCharacters := ACharacters = nil;
   if TemporaryCharacters then
@@ -414,7 +414,7 @@ begin
         MaxVar(MaxHeight, GlyphInfo.Height);
       end else
         WritelnWarning('Font "%s" does not contain requested character %s (Unicode number %d)',
-          [UriDisplay(URL), {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, C]);
+          [UriDisplay(Url), {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, C]);
     end;
 
     if GlyphsCount = 0 then
@@ -428,13 +428,13 @@ begin
       ImageSize := ImageSize * 2;
 
     WritelnLog('Font', 'Creating image %dx%d to store glyphs of font "%s" (%d glyphs, max glyph size (including %d pixel padding) is %dx%d)',
-      [ImageSize, ImageSize, URL, GlyphsCount, GlyphPadding, MaxWidth, MaxHeight]);
+      [ImageSize, ImageSize, Url, GlyphsCount, GlyphPadding, MaxWidth, MaxHeight]);
 
     FImage := TGrayscaleImage.Create(ImageSize, ImageSize);
     Image.Clear(0);
     Image.TreatAsAlpha := true;
-    // Image.URL doesn't change image contents, it is only information for profiler
-    Image.URL := URL + Format('[font converted to a texture, size: %d, anti-aliased: %s]', [
+    // Image.Url doesn't change image contents, it is only information for profiler
+    Image.Url := Url + Format('[font converted to a texture, size: %d, anti-aliased: %s]', [
       Size,
       BoolToStr(AntiAliased, true)
     ]);
@@ -477,13 +477,13 @@ var
   GlyphPair: {$ifdef FPC}TGlyphDictionary.TDictionaryPair{$else}TPair<TUnicodeChar, TGlyph>{$endif};
 begin
   inherited Create;
-  FUrl := AImage.URL; // this is only for debug purposes now (to potentially display in debug, profiler etc.)
+  FUrl := AImage.Url; // this is only for debug purposes now (to potentially display in debug, profiler etc.)
   FSize := ASize;
   FAntiAliased := AnAntiAliased;
   FUseFallbackGlyph := true;
 
   // WritelnLog('Creating font from %s with %d glyphs', [
-  //   AImage.URL,
+  //   AImage.Url,
   //   AGlyphs.Count
   // ]);
 
