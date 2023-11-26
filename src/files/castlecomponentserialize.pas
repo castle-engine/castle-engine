@@ -135,10 +135,15 @@ type
       Set @link(Url) or call @link(LoadFromStream) to load component. }
     constructor Create(AOwner: TComponent); overload; override;
 
+    // Avoid Delphi warnings about constructor hiding.
+    // In the long-run, these deprecated constructors should be removed,
+    // once everyone got chance to migrate.
+    {$warnings off}
     constructor Create(const AUrl: String); overload;
       deprecated 'use Create(AOwner) overload, then set Url to load';
     constructor Create(const Contents: TStream; const ATranslationGroupName: String); overload;
       deprecated 'use Create(AOwner) overload, then LoadFromStream';
+    {$warnings on}
 
     { Load design from given URL.
       Set to '' to clear the loaded component.
