@@ -210,6 +210,8 @@ type
     function GetAttributes: TDOMNamedNodeMap; override;
 
   public
+    destructor Destroy; override;
+
     { Read from Element attribute value and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. Value is a "var", not "out" param,
@@ -292,6 +294,9 @@ begin
   inherited Create;
   FOwnerDocument := ANode.OwnerDocument;
   InternalList := ANode.InternalNode.ChildNodes;
+
+  { We pass OwnsChildren=false parameter to TObjectList.Create,
+    because we use TComponent ownership mechanism to free TXMLNode instances. }
   Nodes := TObjectList.Create(false);
 end;
 
@@ -495,6 +500,12 @@ end;
 
 { TDOMElement ---------------------------------------------------------------- }
 
+destructor TDOMElement.Destroy;
+begin
+  FreeAndNil(FAttributes);
+  inherited;
+end;
+
 procedure TDOMElement.AppendChild(const Child: TDOMNode);
 begin
   InternalNode.ChildNodes.Add(Child.InternalNode);
@@ -632,6 +643,9 @@ end;
 
 destructor TDOMDocument.Destroy;
 begin
+  { Note that we do nothing with InternalDocument,
+    it's a COM interface and should be ref-counted.
+    No need for "InternalDocument := nil;". }
   inherited;
 end;
 
@@ -675,12 +689,14 @@ begin
   FOwnerDocument := FOwnerNode.FOwnerDocument;
   InternalList := FOwnerNode.InternalNode.AttributeNodes;
 
+  { We pass OwnsChildren=false parameter to TObjectList.Create,
+    because we use TComponent ownership mechanism to free TXMLNode instances. }
   Nodes := TObjectList.Create(false);
 end;
 
 destructor TDOMNamedNodeMap.Destroy;
 begin
-
+  FreeAndNil(Nodes);
   inherited;
 end;
 
@@ -773,11 +789,11 @@ initialization
   (*In the past we changed DefaultDOMVendor, but this was more invasive,
     as it affects XML implementation used by Delphi IDE (since this unit
     is also in a design-time package).
-    
+
     It caused occasional issues when trying to save / open a project in Delphi IDE,
     about "document encoding",
     with Delphi IDE stacktrace like this:
-    
+
       [6FBD3F97]{xmlrtl290.bpl} Xml.XMLDoc.TXMLDocument.LoadData (Line 2557, "Xml.XMLDoc.pas" + 11) + $26
       [7168A1C4]{rtl290.bpl  } System.@CheckAutoResult (Line 40283, "System.pas" + 4) + $6
       [6FBD3F97]{xmlrtl290.bpl} Xml.XMLDoc.TXMLDocument.LoadData (Line 2557, "Xml.XMLDoc.pas" + 11) + $26
@@ -796,12 +812,12 @@ initialization
       [6F029EB4]{coreide290.bpl} ProjectGroup.TProjectGroup.Save (Line 2058, "ProjectGroup.pas" + 2) + $1
       [6F02DBF9]{coreide290.bpl} ProjectGroup.TProjectGroupWrapper.Save (Line 3357, "ProjectGroup.pas" + 2) + $7
       [00C28263]{bds.exe     } AppMain.TAppBuilder.CanCloseProjectGroup + $4F
-      ....    
-      
+      ....
+
     The testcase was not 100% confirmed, but it seems that changing package settings
     from AllProjects group, then trying to open a different project (like fps_game),
     saying "Yes" to save the AllProjects changes, was causing errors.
-    
+
     Now we do a safer approach: never change global DefaultDOMVendor,
     instead we'll set TXMLDocument.DOMVendor after TXMLDocument creation.
   *)
