@@ -222,6 +222,14 @@ end;
 
 destructor TCastleControl.Destroy;
 begin
+  { Looks like VCL doesn't (always?) call DestroyHandle.
+    While FContainer would be destroyed anyway,
+    but we need TCastleContainerEasy.DestroyContext call,
+    to e.g. make ApplicationProperties.OnGLContextClose call,
+    that frees various CGE things when last GL context is released. }
+
+  if FContainer.GLInitialized then
+    FContainer.DestroyContext;
   inherited;
 end;
 
