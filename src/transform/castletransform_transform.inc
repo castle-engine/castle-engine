@@ -1563,10 +1563,33 @@
       Rotation is done around @link(Center).
 
       Set it like this:
+
       @longCode(#
         Scene.Rotation := Vector4(0, 0, 1, Pi / 10);
         Scene.Rotation := Scene.Rotation + Vector4(0, 0, 0, Pi / 10);
-      #) }
+      #)
+
+      To combine multiple rotations, you can use @italic(quaternion multiplication).
+      For example to combine a rotation around Y axis with rotation around Z axis,
+      you can do this:
+
+      @longCode(#
+      var
+        Q, Q1, Q2: TQuaternion;
+      begin
+        Q1 := QuatFromAxisAngle(Vector3(0, 1, 0), 0.123);
+        Q2 := QuatFromAxisAngle(Vector3(0, 0, 1), 0.456);
+        Q := Q1 * Q2;
+        MyTransform.Rotation := Q.ToAxisAngle;
+      end;
+      #)
+
+      Combining rotations this way is very flexible. You can combine
+      as many as you want, and it is clear (you define it yourself)
+      in which order each rotation is applied.
+      Note that you can also just nest one TCastleTransform within
+      another TCastleTransform, and set different rotations on each of them,
+      to also effectively combine the rotations. }
     property Rotation: TVector4 read FRotation write SetRotation;
 
     { Scale in 3D. Scaling is done around @link(Center)
