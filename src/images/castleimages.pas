@@ -436,6 +436,15 @@ type
 
     function GetColors(const X, Y, Z: Integer): TCastleColor; virtual;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); virtual;
+
+    { Assign properties (other than @link(Url), sizes and pixel contents).
+
+      Used when creating a copy like @link(MakeCopy), @link(MakeRotated),
+      @link(MakeResized) and so on.
+      This is not used by @link(Assign), so @link(Assign) implementation
+      overrides must make sure to do the same thing (or call AssignProperties
+      in descendants). }
+    procedure AssignProperties(const Source: TCastleImage); virtual;
   public
     { Constructor without parameters creates image with Width = Height = Depth = 0
       and RawPixels = nil, so IsEmpty will return @true. }
@@ -1425,6 +1434,7 @@ type
       const Mode: TDrawMode); override;
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
+    procedure AssignProperties(const Source: TCastleImage); override;
   public
     constructor Create; overload; override;
 
@@ -2353,6 +2363,7 @@ begin
     try
       // since we request our own class as output, CreateFromFpImage must return some TCastleImage
       Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]) as TCastleImage;
+      Result.AssignProperties(Self);
     finally FreeAndNil(NewFpImage) end;
     {$else FPC}
     WritelnWarning('Resizing with interpolation %d not supported with Delphi, falling back to bilinear', [
@@ -2374,6 +2385,7 @@ begin
                  RawPixels,        Rect,        Width,        Height,
           Result.RawPixels, Result.Rect, Result.Width, Result.Height,
           Interpolation, {$ifdef FPC}@{$endif} MixColors);
+      Result.AssignProperties(Self)
     except Result.Free; raise end;
   end;
 end;
@@ -2469,6 +2481,7 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Y, Width - 1 - X)^, PixelSize);
+    Result.AssignProperties(Self);
   end;
 
   procedure Rotate180;
@@ -2480,6 +2493,7 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Width - 1 - X, Height - 1 - Y)^, PixelSize);
+    Result.AssignProperties(Self);
   end;
 
   procedure Rotate270;
@@ -2491,6 +2505,7 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Height - 1 - Y, X)^, PixelSize);
+    Result.AssignProperties(Self);
   end;
 
 begin
@@ -2504,6 +2519,11 @@ begin
     3: Rotate270;
     else Result := MakeCopy; // else Angle = 0
   end;
+end;
+
+procedure TCastleImage.AssignProperties(const Source: TCastleImage);
+begin
+  // No need to do anything in TCastleImage
 end;
 
 procedure TCastleImage.Rotate(const Angle: Integer);
@@ -2580,6 +2600,8 @@ begin
         Move(PixelPtr(0, j mod Height)^,
              Result.PixelPtr(i * Width, j)^,
              PixelSize * Width );
+
+    Result.AssignProperties(Self);
   except Result.Free; raise end;
 end;
 
@@ -2596,6 +2618,7 @@ begin
   try
     for Y := 0 to ExtractHeight - 1 do
       Move(PixelPtr(x0, y + y0)^, Result.RowPtr(y)^, PixelSize * ExtractWidth);
+    Result.AssignProperties(Self);
   except Result.Free; raise end;
 end;
 
@@ -4016,9 +4039,9 @@ var
   Pixel: PByte;
 begin
   Pixel := PixelPtr(X, Y, Z);
-  Result.X := Pixel^;
-  Result.Y := Pixel^;
-  Result.Z := Pixel^;
+  Result.X := Pixel^ / 255;
+  Result.Y := Pixel^ / 255;
+  Result.Z := Pixel^ / 255;
   Result.W := 1.0;
 end;
 
@@ -4034,6 +4057,23 @@ procedure TGrayscaleImage.SetColorWhenTreatedAsAlpha(const Value: TVector3Byte);
 begin
   FColorWhenTreatedAsAlpha := Value;
   FGrayscaleColorWhenTreatedAsAlpha := GrayscaleValue(Value);
+end;
+
+procedure TGrayscaleImage.AssignProperties(const Source: TCastleImage);
+begin
+  inherited;
+
+  { Copying these properties between TGrayscaleImage->TGrayscaleImage
+    is important, e.g. when old OpenGLs need to resize font texture
+    (to be power of 2) we have to copy the TreatAsAlpha value,
+    to render font properly with alpha blending.
+  }
+  if Source is TGrayscaleImage then
+  begin
+    FTreatAsAlpha := TGrayscaleImage(Source).TreatAsAlpha;
+    FColorWhenTreatedAsAlpha := TGrayscaleImage(Source).ColorWhenTreatedAsAlpha;
+    FGrayscaleColorWhenTreatedAsAlpha := TGrayscaleImage(Source).GrayscaleColorWhenTreatedAsAlpha;
+  end;
 end;
 
 { TGrayscaleAlphaImage ------------------------------------------------------------ }
@@ -4201,7 +4241,7 @@ var
 begin
   Pixel := PixelPtr(X, Y, Z);
   Pixel^.X := Clamped(Round(GrayscaleValue(C) * 255), Low(Byte), High(Byte));
-  Pixel^.Y := Clamped(Round(C.W         * 255), Low(Byte), High(Byte));
+  Pixel^.Y := Clamped(Round(C.W               * 255), Low(Byte), High(Byte));
 end;
 
 function TGrayscaleAlphaImage.ToGrayscaleImage: TGrayscaleImage;
