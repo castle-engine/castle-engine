@@ -48,19 +48,17 @@ This directory contains Delphi packages to make Delphi aware of _Castle Game Eng
 
 - We put output in the default directory determined by Delphi, which will be like `C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl` .
 
-- Package settings disable some warnings.
-  Disabling them this way (not in DPK, e.g. by including `castleconf.inc` or writing directives explicitly) seems like the only reliable way to hide them. The directives (and reasons for hiding) are:
+- Not relevant anymore:
 
-    ```
-    { Disable Delphi warnings that we're not compatible with C++.
-      TODO: In the future we plan to support C++ builder, so these will have to be dealt with. }
-    {$warn DUPLICATE_CTOR_DTOR off}
-    {$warn UNSUPPORTED_CONSTRUCT}
+  Package settings DID disable some warnings.
+  Disabling them this way (not in DPK, e.g. by including `castleconf.inc`
+  or writing directives explicitly) seemed like the only reliable way to hide them.
+  The directives (and reasons for hiding) were:
 
-    { Disable Delphi warnings that we import more units implicitly.
-      We do it deliberately, to avoid listing huge number of units in castle_base. }
-    {$warn IMPLICIT_IMPORT off}
-    ```
+  ... Not relevant anymore. We no longer disable any warnings.
+
+  - Even C++-related warnings are fine, we honor (fix) them,
+    to stay perfectly compatible with C++.
 
 - We used to have here a set of packages:
 
