@@ -24,7 +24,21 @@ void EarlyInitialization()
 	InitializeLog();
 }
 
-int _tmain(int argc, _TCHAR* argv[])
+/* Note: We define FMXMain, not _tmain,
+   because for C++ Builder we recommend to define applications
+   using TCastleWindow as "FMX application". Reasons:
+
+   - This is the way to avoid console on Windows.
+	 Unlike Delphi/Pascal, where the {$apptype console} / {$apptype gui}
+	 determines application type (and it is independent from VCL / VFMX / other),
+	 with C++ Builder it seems that using a framework like FMX is the only way
+	 to avoid console.
+
+   - On non-Windows (like Linux), TCastleWindow uses FMX under the hood.
+*/
+
+//int _tmain(int argc, _TCHAR* argv[])
+extern "C" int FMXmain()
 {
 	EarlyInitialization();
 
@@ -33,10 +47,9 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	/* Open Application()->MainWindow and run application loop */
 	Application()->MainWindow->OpenAndRun();
-}
 
-// TODO: How to request Windows GUI application?
-// In Pascal: {$apptype GUI}
+	return 0;
+}
 
 // TODO: How to request from C++ to use dedicated GPU on laptops?
 // We do this in Pascal, see https://castle-engine.io/dedicated_gpu
