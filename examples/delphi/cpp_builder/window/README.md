@@ -8,6 +8,10 @@ Just as with the sibling example, `examples/delphi/cpp_builder/fmx`: The full po
 
 The source code shows a game designed using [CGE editor](https://castle-engine.io/editor) and using multiple [views](https://castle-engine.io/views). It is quite similar to the `coding` example in Pascal that we presented at the [ITDevCon 2023 conference](https://github.com/castle-engine/conference-itdevcon-2023/), but now it uses C++ for everything.
 
+## Screenshot
+
+![screenshot](screenshot.png)
+
 ## Building
 
 Make sure to build and install CGE packages first. Make sure to build the packages for all the platforms you want (like _Win32_, _Win64_). See the [packages/delphi documentation](https://github.com/castle-engine/castle-engine/tree/master/packages/delphi). Make sure in particular to build `castle_engine_window.bpl` package.

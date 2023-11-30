@@ -6,6 +6,10 @@ This allows to write a cross-platform 3D applications using C++ language, and de
 
 The full power of _Castle Game Engine_ is available, thanks to the close integration of _C++ Builder_ and _Delphi_. All CGE Pascal classes and just available for C++ code in a natural way, i.e. they are just C++ classes as well. The source code shows loading a CGE design (made by [CGE editor](https://castle-engine.io/editor)) into the `TCastleControl` component, and adding a custom descendant of `TCastleUserInterface` to the form.
 
+## Screenshot
+
+![screenshot](screenshot.png)
+
 ## Building
 
 Make sure to build and install CGE packages first. Make sure to build the packages for all the platforms you want (like _Win32_, _Win64_). See the [packages/delphi documentation](https://github.com/castle-engine/castle-engine/tree/master/packages/delphi) and [TCastleControl documentation](https://castle-engine.io/control_on_form).
