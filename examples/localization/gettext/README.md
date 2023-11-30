@@ -72,8 +72,7 @@ end.
 
 Note that we also adjust font in this application.
 We load a font with additional German, Polish, Russian and Ukrainian characters.
-See https://castle-engine.io/manual_text.php about loading fonts
-in Castle Game Engine.
+See the [manual about text and fonts](https://castle-engine.io/manual_text.php).
 
 This is no longer strictly necessary with latest engine [that includes most common Unicode characters in the default font](https://wp.me/p9IgYW-1bL).
 
