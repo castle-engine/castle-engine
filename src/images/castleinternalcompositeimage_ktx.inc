@@ -86,7 +86,7 @@ type
       RowsTopToBottom, SlicesFrontToBack: boolean;
 
     procedure ReadKeyValues(const Stream: TStream);
-    procedure ReadOrientation(const Value: string);
+    procedure ReadOrientation(const Value: String);
 
     { The KTX specification says
       "Uncompressed texture data matches a GL_UNPACK_ALIGNMENT of 4." }
@@ -112,7 +112,7 @@ type
     procedure ReadFloatImage(const Stream: TStream; const W, H, D: Cardinal);
     procedure ReadCompressed(const Stream: TStream; const Compression: TTextureCompression; const W, H, D: Cardinal);
   public
-    procedure LoadFromStream(const Stream: TStream; const URL: string); override;
+    procedure LoadFromStream(const Stream: TStream; const Url: String); override;
   end;
 
 function TKTXHandler.TargetY(const Y: Integer; const H: Cardinal): Integer;
@@ -336,7 +336,7 @@ begin
   finally FreeAndNil(Floats) end;
 end;
 
-procedure TKTXHandler.ReadOrientation(const Value: string);
+procedure TKTXHandler.ReadOrientation(const Value: String);
 begin
   if (Value = 'S=r,T=d') or
      (Value = 'S=r,T=d,R=o') then
@@ -631,7 +631,7 @@ begin
   end;
 end;
 
-procedure TKTXHandler.LoadFromStream(const Stream: TStream; const URL: string);
+procedure TKTXHandler.LoadFromStream(const Stream: TStream; const Url: String);
 
   procedure ReadMipmapLevel(const W, H, D: Cardinal);
   var

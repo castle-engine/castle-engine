@@ -57,7 +57,7 @@ implementation
 uses SysUtils, DOM,
   CastleFilesUtils, CastleVectors,
   CastleGLUtils, CastleImages, CastleSoundEngine,
-  CastleStringUtils, CastleXMLUtils,
+  CastleStringUtils, CastleXmlUtils,
   CastleColors, CastleApplicationProperties, CastleRenderOptions,
   GameConfiguration, GameSound, GameViewMainMenu;
 

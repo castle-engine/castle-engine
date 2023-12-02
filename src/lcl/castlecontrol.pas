@@ -366,7 +366,7 @@ type
 
     { Capture the current control contents to an image.
       @groupBegin }
-    procedure SaveScreen(const URL: string); overload;
+    procedure SaveScreen(const Url: String); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
     { @groupEnd }
@@ -656,7 +656,7 @@ implementation
 
 uses Math, Contnrs, LazUTF8, Clipbrd,
   CastleControls, CastleGLUtils, CastleStringUtils, CastleLog, CastleRenderContext,
-  CastleURIUtils, CastleComponentSerialize, CastleInternalLclDesign;
+  CastleUriUtils, CastleComponentSerialize, CastleInternalLclDesign;
 
 // TODO: We never call Fps.InternalSleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
@@ -740,7 +740,7 @@ begin
           if CastleDesignMode then // looks at InternalCastleApplicationMode
           begin
             WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
-              URIDisplay(DesignUrl),
+              UriDisplay(DesignUrl),
               ExceptMessage(E)
             ]);
             Exit;
@@ -782,7 +782,7 @@ begin
   if Required and (Result = nil) then
     raise EComponentNotFound.CreateFmt('Cannot find component named "%s" in design "%s"', [
       ComponentName,
-      URIDisplay(DesignUrl)
+      UriDisplay(DesignUrl)
     ]);
 end;
 
@@ -1452,9 +1452,9 @@ begin
     Result := cbFront;
 end;
 
-procedure TCastleControl.SaveScreen(const URL: string);
+procedure TCastleControl.SaveScreen(const Url: String);
 begin
-  Container.SaveScreen(URL);
+  Container.SaveScreen(Url);
 end;
 
 function TCastleControl.SaveScreen: TRGBImage;
@@ -1536,16 +1536,16 @@ end;
 type
   TLCLClipboard = class(TCastleClipboard)
   protected
-    function GetAsText: string; override;
-    procedure SetAsText(const Value: string); override;
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
   end;
 
-function TLCLClipboard.GetAsText: string;
+function TLCLClipboard.GetAsText: String;
 begin
   Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
 end;
 
-procedure TLCLClipboard.SetAsText(const Value: string);
+procedure TLCLClipboard.SetAsText(const Value: String);
 begin
   Clipbrd.Clipboard.AsText := SysToUTF8(Value);
 end;

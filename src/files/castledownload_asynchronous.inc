@@ -362,7 +362,7 @@ procedure TCastleDownload.Start;
       on E: TObject do
       begin
         FStatus := dsError;
-        FErrorMessage := Format('Error when downloading "%s": ', [URIDisplay(Url)]) +
+        FErrorMessage := Format('Error when downloading "%s": ', [UriDisplay(Url)]) +
           ExceptMessage(E);
         {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)}
         if (E is ESocketError) and (URIProtocol(RealUrl) = 'https') then
@@ -402,7 +402,7 @@ begin
     FFinalUrl := Url;
 
   if LogAllLoading then
-    WritelnLog('Loading', 'Loading "%s"', [URIDisplay(FFinalUrl)]);
+    WritelnLog('Loading', 'Loading "%s"', [UriDisplay(FFinalUrl)]);
 
   RegisteredProtocol := RegisteredProtocols.Find(P);
   if RegisteredProtocol <> nil then

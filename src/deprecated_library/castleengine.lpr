@@ -1,6 +1,6 @@
 { -*- compile-command: "./castleengine_compile.sh" -*- }
 {
-  Copyright 2013-2021 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2023 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -54,21 +54,37 @@ type
 
 var
   Window: TCastleWindow;
+  { Using TCastleAutoNavigationViewport in this case is justified,
+    it is the most straightforward solution to make viewport navigation
+    follow X3D navigation. }
+  {$warnings off}
   Viewport: TCastleAutoNavigationViewport;
+  {$warnings on}
+  MainScene: TCastleScene; //< Always equal to Viewport.Items.MainScene
   PreviousNavigationType: TNavigationType;
   TouchNavigation: TCastleTouchNavigation;
   Crosshair: TCrosshairManager;
 
+{ Check that CGE_Open was called, and at least Window and Viewport are created. }
 function CGE_VerifyWindow(const FromFunc: string): boolean;
 begin
-  Result := (Window <> nil) and (Viewport <> nil);
+  Result :=
+    (Window <> nil) and
+    (Viewport <> nil);
   if not Result then
     WarningWrite(FromFunc + ' : CGE window not initialized (CGE_Open not called)');
 end;
 
+{ Check that CGE_LoadSceneFromFile was called,
+  and at least Window and Viewport and MainScene are created. }
 function CGE_VerifyScene(const FromFunc: string): boolean;
 begin
-  Result := (Window <> nil) and (Viewport <> nil) and (Viewport.Items.MainScene <> nil);
+  Result :=
+    (Window <> nil) and
+    (Viewport <> nil) and
+    (MainScene <> nil);
+  {$warnings off} // using Viewport.Items.MainScene is this case is justified
+  Assert((not Result) or (Viewport.Items.MainScene = MainScene));
   if not Result then
     WarningWrite(FromFunc + ': CGE scene not initialized (CGE_LoadSceneFromFile not called)');
 end;
@@ -131,8 +147,8 @@ begin
   try
     if not CGE_VerifyWindow('CGE_Close') then Exit;
 
-    if Viewport.Items.MainScene <> nil then
-      Viewport.Items.MainScene.OnPointingDeviceSensorsChange := nil;
+    if MainScene <> nil then
+      MainScene.OnPointingDeviceSensorsChange := nil;
     FreeAndNil(Crosshair);
 
     CGEApp_Close(QuitWhenNoOpenWindows);
@@ -227,6 +243,21 @@ begin
       end;
     end;
 
+    { Set Cursor = mcHand when we're over or keeping active
+      some pointing-device sensors. The engine doesn't do it automatically
+      (after https://github.com/castle-engine/castle-engine/commit/5b2810d9ef2fd0f851bc50b0a6aa7b414381dd2c )
+      but it makes total sense for X3D viewers with single viewport and single
+      TCastleScene. }
+    if (MainScene <> nil) and
+      ( ( (MainScene.PointingDeviceSensors <> nil) and
+          (MainScene.PointingDeviceSensors.EnabledCount <> 0)
+        ) or
+        (MainScene.PointingDeviceActiveSensors.Count <> 0)
+      ) then
+      Viewport.Cursor := mcHand
+    else
+      Viewport.Cursor := mcDefault;
+
     CGEApp_Update;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -298,20 +329,23 @@ begin
 end;
 
 procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl;
-var
-  Scene: TCastleScene;
 begin
   if Window = nil then exit;
   try
-    Viewport.Items.MainScene.Free; // if any previous scene exists, remove it
+    FreeAndNil(MainScene); // if any previous scene exists, remove it
 
-    Scene := TCastleScene.Create(Window);
-    Scene.Load(StrPas(PChar(szFile)));
-    Scene.PreciseCollisions := true;
-    Scene.ProcessEvents := true;
-    Scene.ListenPressRelease := true; // necessary to pass keys to X3D sensors
-    Viewport.Items.Add(Scene);
-    Viewport.Items.MainScene := Scene;
+    MainScene := TCastleScene.Create(Window);
+    MainScene.Load(StrPas(PChar(szFile)));
+    MainScene.PreciseCollisions := true;
+    MainScene.ProcessEvents := true;
+    MainScene.ListenPressRelease := true; // necessary to pass keys to X3D sensors
+    Viewport.Items.Add(MainScene);
+    { While CGE deprecated Items.MainScene, it is justified and recommended
+      solution in this case, to make MainScene affect various things
+      (skybox, fog, camera, navigation etc.). }
+    {$warnings off}
+    Viewport.Items.MainScene := MainScene;
+    {$warnings on}
 
     Viewport.AssignDefaultCamera;
     Viewport.AssignDefaultNavigation;
@@ -329,7 +363,7 @@ begin
       exit;
     end;
 
-    Result := Viewport.Items.MainScene.ViewpointsCount;
+    Result := MainScene.ViewpointsCount;
   except
     on E: TObject do
     begin
@@ -346,7 +380,7 @@ begin
   try
     if not CGE_VerifyScene('CGE_GetViewpointName') then exit;
 
-    sName := Viewport.Items.MainScene.GetViewpointName(iViewpointIdx);
+    sName := MainScene.GetViewpointName(iViewpointIdx);
     StrPLCopy(szName, sName, nBufSize-1);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -358,7 +392,7 @@ begin
   try
     if not CGE_VerifyScene('CGE_MoveToViewpoint') then exit;
 
-    Viewport.Items.MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
+    MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
@@ -370,7 +404,7 @@ begin
     if not CGE_VerifyScene('CGE_AddViewpointFromCurrentView') then exit;
 
     if Viewport.Navigation <> nil then
-      Viewport.Items.MainScene.AddViewpointFromNavigation(
+      MainScene.AddViewpointFromNavigation(
         Viewport.Navigation, StrPas(PChar(szName)));
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -384,7 +418,7 @@ begin
   try
     if not CGE_VerifyScene('CGE_GetBoundingBox') then exit;
 
-    BBox := Viewport.Items.MainScene.BoundingBox;
+    BBox := MainScene.BoundingBox;
     pfXMin^ := BBox.Data[0].X; pfXMax^ := BBox.Data[1].X;
     pfYMin^ := BBox.Data[0].Y; pfYMax^ := BBox.Data[1].Y;
     pfZMin^ := BBox.Data[0].Z; pfZMax^ := BBox.Data[1].Z;
@@ -526,7 +560,7 @@ var
   DummyRemoveType: TRemoveType;
 begin
   try
-    Viewport.Items.MainScene.IncreaseTime(fTimeS);
+    MainScene.IncreaseTime(fTimeS);
     DummyRemoveType := rtNone;
     Viewport.Camera.Update(fTimeS, DummyRemoveType);
   except
@@ -583,7 +617,7 @@ begin
              else
                Crosshair.CrosshairCtl.Shape := csCross;
              Crosshair.UpdateCrosshairImage;
-             Viewport.Items.MainScene.OnPointingDeviceSensorsChange := @Crosshair.OnPointingDeviceSensorsChange;
+             MainScene.OnPointingDeviceSensorsChange := @Crosshair.OnPointingDeviceSensorsChange;
            end;
          end;
 
@@ -600,8 +634,8 @@ begin
          end;
 
       8: begin    // ecgevarHeadlight
-           if Viewport.Items.MainScene <> nil then
-              Viewport.Items.MainScene.HeadlightOn := (nValue > 0);
+           if MainScene <> nil then
+              MainScene.HeadlightOn := (nValue > 0);
          end;
 
       9: begin    // ecgevarOcclusionCulling
@@ -610,8 +644,8 @@ begin
          end;
 
       10: begin    // ecgevarPhongShading
-            if Viewport.Items.MainScene <> nil then
-               Viewport.Items.MainScene.RenderOptions.PhongShading := (nValue > 0);
+            if MainScene <> nil then
+               MainScene.RenderOptions.PhongShading := (nValue > 0);
           end;
     end;
   except
@@ -690,7 +724,7 @@ begin
          end;
 
       8: begin    // ecgevarHeadlight
-           if (Viewport.Items.MainScene <> nil) and Viewport.Items.MainScene.HeadlightOn then
+           if (MainScene <> nil) and MainScene.HeadlightOn then
              Result := 1
            else
              Result := 0;
@@ -704,7 +738,7 @@ begin
          end;
 
       10: begin    // ecgevarPhongShading
-        if (Viewport.Items.MainScene <> nil) and Viewport.Items.MainScene.RenderOptions.PhongShading then
+        if (MainScene <> nil) and MainScene.RenderOptions.PhongShading then
           Result := 1 else
           Result := 0;
       end;
@@ -725,7 +759,7 @@ begin
     if not CGE_VerifyScene('CGE_SetNodeFieldValue') then exit;
 
     // find node and field
-    aField := Viewport.Items.MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
     if aField = nil then Exit;
 
     if aField is TSFVec2f then
@@ -799,7 +833,7 @@ var
 begin
   { check if the crosshair (mouse) is over any sensor }
   OverSensor := false;
-  SensorList := Viewport.Items.MainScene.PointingDeviceSensors;
+  SensorList := MainScene.PointingDeviceSensors;
   if (SensorList <> nil) then
     OverSensor := (SensorList.EnabledCount>0);
 

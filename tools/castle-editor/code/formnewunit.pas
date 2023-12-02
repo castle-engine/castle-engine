@@ -95,7 +95,7 @@ var
 implementation
 
 uses Generics.Collections,
-  CastleFilesUtils, CastleURIUtils, CastleLog, CastleUtils, CastleStringUtils,
+  CastleFilesUtils, CastleUriUtils, CastleLog, CastleUtils, CastleStringUtils,
   EditorUtils, ProjectUtils, EditorCodeTools;
 
 {$R *.lfm}
@@ -206,7 +206,7 @@ begin
   SelectDirectoryDialog1.FileName := CombinePaths(FProjectManifest.Path, EditDesignDir.Text);
   if SelectDirectoryDialog1.Execute then
   begin
-    DataPath := URIToFilenameSafe(ResolveCastleDataURL('castle-data:/'));
+    DataPath := UriToFilenameSafe(ResolveCastleDataURL('castle-data:/'));
     if not IsPrefix(DataPath, InclPathDelim(SelectDirectoryDialog1.FileName), not FileNameCaseSensitive) then
     begin
       MessageDlg('Design outside data', 'You are saving a design outside of the project''s "data" directory.' + NL +
@@ -338,7 +338,7 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
             ViewVariableName := PrefixRemove('t', EditClassName.Text, true);
             Macros.Add('${VIEW_CLASS_NAME}', EditClassName.Text);
             Macros.Add('${VIEW_VARIABLE_NAME}', ViewVariableName);
-            Macros.Add('${DESIGN_FILE_URL}', MaybeUseDataProtocol(FilenameToURISafe(FinalDesignAbsolute)));
+            Macros.Add('${DESIGN_FILE_URL}', MaybeUseDataProtocol(FilenameToUriSafe(FinalDesignAbsolute)));
 
             StringToFile(FinalDesignAbsolute, FileToString(
               InternalCastleDesignData + 'templates/newunitview.castle-user-interface'));

@@ -17,7 +17,7 @@
 { Check CGE Lazarus packages correctness. }
 
 uses SysUtils, DOM,
-  CastleXMLUtils, CastleUtils, CastleFindFiles, CastleStringUtils, CastleParameters,
+  CastleXmlUtils, CastleUtils, CastleFindFiles, CastleStringUtils, CastleParameters,
   CastleLog, CastleApplicationProperties;
 
 var

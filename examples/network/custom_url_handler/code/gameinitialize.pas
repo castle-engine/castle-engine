@@ -24,7 +24,7 @@ uses SysUtils, Classes, URIParser,
   CastleWindow, CastleScene, CastleControls, CastleLog, CastleUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleDownload, CastleStringUtils,
-  CastleURIUtils, CastleViewport, CastleCameras,
+  CastleUriUtils, CastleViewport, CastleCameras,
   GameUnzip;
 
 var
@@ -40,14 +40,14 @@ type
   TPackedDataReader = class
   public
     SourceZipFileName: String;
-    function ReadUrl(const Url: string; out MimeType: string): TStream;
+    function ReadUrl(const Url: String; out MimeType: string): TStream;
     destructor Destroy; override;
   end;
 
 var
   PackedDataReader: TPackedDataReader;
 
-function TPackedDataReader.ReadUrl(const Url: string; out MimeType: string): TStream;
+function TPackedDataReader.ReadUrl(const Url: String; out MimeType: string): TStream;
 var
   U: TURI;
   FileInZip: String;
@@ -58,7 +58,7 @@ begin
 
   { Determine mime type from Url, which practically means:
     determine content type from filename extension. }
-  MimeType := URIMimeType(Url);
+  MimeType := UriMimeType(Url);
 end;
 
 destructor TPackedDataReader.Destroy;
@@ -84,7 +84,7 @@ procedure ApplicationInitialize;
 begin
   { initialize PackedDataReader to read ZIP when we access my-packed-data:/ }
   PackedDataReader := TPackedDataReader.Create;
-  PackedDataReader.SourceZipFileName := URIToFilenameSafe('castle-data:/packed_game_data.zip');
+  PackedDataReader.SourceZipFileName := UriToFilenameSafe('castle-data:/packed_game_data.zip');
   RegisterUrlProtocol('my-packed-data',
     {$ifdef FPC}@{$endif} PackedDataReader.ReadUrl, nil);
 

@@ -27,6 +27,43 @@
 
   Since Delphi includes Indy, we don't need to distribute Indy with CGE,
   and users don't need to worry about getting Indy.
+
+  Most things work:
+
+  - Asynchronous operation (TCastleDownload connecting and downloading doesn't
+    block the main thread),
+  - various HTTP methods (GET, POST with post data...),
+  - getting MIME type from server response,
+  - updating progress (total bytes, downloaded bytes),
+  - aborting download in the middle is smooth.
+
+  - Both http and https work smothly on Windows.
+
+    For https, note that you have to use  OpenSSL DLLs.
+    You can get the 2 necessary DLLs from
+
+    - win64: https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/external_libraries/x86_64-win64/openssl
+
+    - win32: https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/external_libraries/i386-win32/openssl
+
+    We advise to compile at least once using CGE editor that will place
+    the DLLs automatically alongside your EXE.
+
+  - The code also work on Delphi/Linux.
+
+    http downloading works (test e.g. http://neverssl.com/ ).
+
+    https unfortunately doesn't work, i.e. it will answer "SSL library not found".
+    It seems Indy requires really old OpenSSL library version (1.0 ?),
+    not available in latest Ubuntu. And it's not even 1.1,
+    so https://gist.github.com/joulgs/c8a85bb462f48ffc2044dd878ecaa786 will not help.
+    The PR to support newer OpenSSL was never merged https://github.com/IndySockets/Indy/pull/299 .
+
+  TODOs:
+
+  - How to have https download working from Delphi/Linux?
+
+  - Support HttpHeadersKeys, HttpHeadersValues, HttpResponseHeaders
 }
 
 {$ifdef read_implementation_uses}
@@ -56,9 +93,9 @@ type
       AWorkMode: TWorkMode; AWorkCount: Int64);
   public
     { Set these before Execute }
-    HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings; //< TODO handle
+    HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings; //< TODO HttpHeadersKeys, HttpHeadersValues
     Url: String;
-    HttpMethod: THttpMethod; //< TODO handle
+    HttpMethod: THttpMethod;
     SynchronizationCS: TCriticalSection;
 
     { Updated even during downloading, but always using SynchronizationCS. }
@@ -121,20 +158,40 @@ begin
       about User-Agent. }
     IdHttp.Request.UserAgent :=  'Mozilla/5.0 (compatible; CastleGameEngine/1.0; https://castle-engine.io/manual_network.php)';
 
-    { Set special IO handler to do SSL_set_tlsext_host_name,
-      otherwise accessing sites behind Cloudflare will fail,
-      see https://stackoverflow.com/questions/29875664/eidosslunderlyingcryptoerror-exception }
-    MyIOHandler := TIdSSLIOHandlerSocketOpenSSL.Create(IdHttp);
-    MyIOHandler.OnStatusInfoEx := StatusInfoEx;
-    MyIOHandler.SSLOptions.Method := sslvSSLv23;
-    MyIOHandler.SSLOptions.SSLVersions := [sslvTLSv1_2, sslvTLSv1_1, sslvTLSv1];
-    IdHttp.IOHandler := MyIOHandler;
+    { Use SSL with proper options in case of https protocol.
+      Note that using TIdSSLIOHandlerSocketOpenSSL to unencrypted http
+      also works, but then we rely on OpenSSL library (DDL, SO) being present
+      unnecessarily. }
+    if URIProtocol(Url) = 'https' then
+    begin
+      { Set special IO handler to do SSL_set_tlsext_host_name,
+        otherwise accessing sites behind Cloudflare will fail,
+        see https://stackoverflow.com/questions/29875664/eidosslunderlyingcryptoerror-exception }
+      MyIOHandler := TIdSSLIOHandlerSocketOpenSSL.Create(IdHttp);
+      MyIOHandler.OnStatusInfoEx := StatusInfoEx;
+      MyIOHandler.SSLOptions.Method := sslvSSLv23;
+      MyIOHandler.SSLOptions.SSLVersions := [sslvTLSv1_2, sslvTLSv1_1, sslvTLSv1];
+      IdHttp.IOHandler := MyIOHandler;
+    end;
 
     IdHttp.OnRedirect := Redirect;
     IdHttp.OnHeadersAvailable := HeadersAvailable;
     IdHttp.OnWork := Work;
 
-    IdHttp.Get(Url, Contents);
+    case HttpMethod of
+      hmGet: IdHttp.Get(Url, Contents);
+      { Note that HttpPostData may be nil, that's OK,
+        TIdCustomHTTP.Post is ready for this case. }
+      hmPost: IdHttp.Post(Url, HttpPostData, Contents);
+      // TODO: We should pass Source stream to put
+      hmPut: IdHttp.Put(Url, nil, Contents);
+      hmDelete: IdHttp.Delete(Url, Contents);
+      hmOptions: IdHttp.Options(Url, Contents);
+      hmHead: IdHttp.Head(Url);
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('HttpMethod=?');
+      {$endif}
+    end;
 
     HttpResponseCode := IdHttp.ResponseCode;
 
@@ -153,7 +210,7 @@ begin
     on E: TObject do
     begin
       Success := false;
-      ErrorMessage := Format('Exception when downloading "%s": ', [URIDisplay(Url)]) + ExceptMessage(E);
+      ErrorMessage := Format('Exception when downloading "%s": ', [UriDisplay(Url)]) + ExceptMessage(E);
     end;
   end;
 end;
@@ -238,12 +295,12 @@ procedure TIndyReader.Start;
 
     // set initial values, thread may update them later
     Thread.FinalUrl := Url; // will be updated on each redirect
-    Thread.MimeType := URIMimeType(Url); // will be updated from HTTP headers
+    Thread.MimeType := UriMimeType(Url); // will be updated from HTTP headers
   end;
 
 begin
   inherited;
-  WritelnLog('Network', 'Downloading "%s"', [URIDisplay(Url)]);
+  WritelnLog('Network', 'Downloading "%s"', [UriDisplay(Url)]);
   SynchronizationCS := TCriticalSection.Create;
   Thread := TIndyReaderThread.Create;
   InitializeThread(Thread);
@@ -256,11 +313,20 @@ begin
   begin
     Thread.Terminate;
 
-    WritelnLog('Network', 'Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
-    Thread.WaitFor;
+    { Check Thread.Finished only to avoid writing unnecessarily alarming
+      "interrupting download in-progress ..." message,
+      testcase: examples/network/remote_logging/ . }
+    if not Thread.Finished then
+    begin
+      WritelnLog('Network', 'Interrupting download in-progress of "%s"', [UriDisplay(Url)]);
+      Thread.WaitFor;
+    end;
     FreeAndNil(Thread);
 
-    // TODO: This can cause short delay when interrupting download.
+    { Note: Thread.WaitFor can cause short delay when interrupting download.
+      Seems unnoticeable for now, so let it be.
+      See castledownload_url_http_fphttpclient.inc for working but hacky
+      way to avoid this. }
   end;
 
   FreeAndNil(SynchronizationCS);

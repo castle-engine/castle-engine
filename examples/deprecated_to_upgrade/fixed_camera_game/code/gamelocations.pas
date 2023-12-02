@@ -40,9 +40,9 @@ type
 
   private
     FName: string;
-    FImageURL: string;
-    FShadowedImageURL: string;
-    FSceneURL: string;
+    FImageUrl: String;
+    FShadowedImageUrl: String;
+    FSceneUrl: String;
     FViewpoint: String;
     FScene: TLocationScene;
     FImageTransform: TLocationImageTransform;
@@ -65,9 +65,9 @@ type
       name and X3D node name, for easy data reading). }
     property Name: string read FName;
 
-    property ImageURL: string read FImageURL;
-    property ShadowedImageURL: string read FShadowedImageURL;
-    property SceneURL: string read FSceneURL;
+    property ImageUrl: String read FImageUrl;
+    property ShadowedImageUrl: String read FShadowedImageUrl;
+    property SceneUrl: String read FSceneUrl;
 
     property SceneCameraDescription: string read FSceneCameraDescription;
 
@@ -104,7 +104,7 @@ var
 implementation
 
 uses SysUtils, DOM,
-  CastleImages, CastleUIControls, CastleGLUtils, CastleXMLUtils,
+  CastleImages, CastleUIControls, CastleGLUtils, CastleXmlUtils,
   CastleSceneCore, CastleApplicationProperties, X3DLoad, CastleRenderContext,
   GameConfiguration;
 
@@ -190,8 +190,8 @@ begin
   if Loaded then Exit;
   Loaded := true;
 
-  FImage := TDrawableImage.Create(ImageURL, [TRGBImage]);
-  FShadowedImage := TDrawableImage.Create(ShadowedImageURL, [TRGBImage]);
+  FImage := TDrawableImage.Create(ImageUrl, [TRGBImage]);
+  FShadowedImage := TDrawableImage.Create(ShadowedImageUrl, [TRGBImage]);
 
   FScene := TLocationScene.Create(nil);
   FScene.PreciseCollisions := true;
@@ -202,7 +202,7 @@ begin
     and change location Image to *not* contain location shadows "baked". }
   FScene.CastShadows := false;
   FScene.InitialViewpointName := FViewpoint;
-  FScene.Load(SceneURL);
+  FScene.Load(SceneUrl);
   FScene.PrepareResources([prRenderSelf, prBoundingBox], PrepareParams);
 
   FImageTransform := TLocationImageTransform.Create(nil);
@@ -275,9 +275,9 @@ begin
       if Location.Name = StartLocationName then
         StartLocation := Location;
 
-      Location.FImageURL := I.Current.AttributeURL('image_url', GameConfig.URL);
-      Location.FShadowedImageURL := I.Current.AttributeURL('shadowed_image_url', GameConfig.URL);
-      Location.FSceneURL := I.Current.AttributeURL('scene_url', GameConfig.URL);
+      Location.FImageUrl := I.Current.AttributeUrl('image_Url', GameConfig.Url);
+      Location.FShadowedImageUrl := I.Current.AttributeUrl('shadowed_image_Url', GameConfig.Url);
+      Location.FSceneUrl := I.Current.AttributeUrl('scene_Url', GameConfig.Url);
       Location.FViewpoint := I.Current.AttributeStringDef('viewpoint', '');
 
       I.Current.AttributeString('scene_camera_description',

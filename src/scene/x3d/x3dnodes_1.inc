@@ -113,7 +113,7 @@
     (IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet). }
   TAbstractIndexedNode_1 = class(TAbstractGeometryNode_1)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndexField: TMFLong; override;
@@ -155,7 +155,7 @@
   strict private
     CoordSubrange: TMFVec3f;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -201,7 +201,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_lod_1.inc}
   end;
 
@@ -368,7 +368,7 @@
 
   TPointLightNode_1 = class(TAbstractPointLightNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function HasRadius: boolean; override;
     function Scope: TLightScope; override;
   {$I auto_generated_node_helpers/x3dnodes_pointlight_1.inc}
@@ -381,7 +381,7 @@
     function  GetProjectionDirectionLocal: TVector3; override;
     procedure SetProjectionDirectionLocal(const Value: TVector3); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
     { Spot exponent (based on dropOffRate).
       Not normalized (i.e. is a real exponent, in VRML 1.0 expresses
@@ -415,7 +415,7 @@
 
   TGroupNode_1 = class(TAbstractChildNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_group_1.inc}
   end;
 
@@ -427,7 +427,7 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_abstractvrml1separator_1.inc}
   end;
 
@@ -439,7 +439,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_switch_1.inc}
   end;
 
@@ -450,7 +450,7 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_transformseparator_1.inc}
   end;
 
@@ -469,7 +469,7 @@
   protected
     function SeparateGroup: boolean; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_wwwinline_1.inc}
   end;
 {$endif read_interface}
@@ -588,7 +588,7 @@ begin
   Result := true;
 end;
 
-constructor TAbstractIndexedNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractIndexedNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FdCoordIndex.SaveToStreamLineUptoNegative := true;
@@ -646,7 +646,7 @@ begin
 end;
 {$warnings on}
 
-constructor TPointSetNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TPointSetNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   CoordSubrange := TMFVec3f.Create(Self, true, '', []);
@@ -745,7 +745,7 @@ begin
   Result := TFontStyleNode.GetDefaultFont(Family, Bold, Italic);
 end;
 
-constructor TLODNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TLODNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
@@ -989,7 +989,7 @@ end;
 
 procedure TTexture2Node_1.LoadTextureData(out CacheUsed: boolean);
 var
-  FullUrl: string;
+  FullUrl: String;
 begin
   CacheUsed := false;
   FTextureUsedFullUrl := '';
@@ -1007,7 +1007,7 @@ begin
     on E: Exception do
       { Remember that WritelnWarning *may* raise an exception. }
       WritelnWarning('Texture', Format(SLoadError,
-        [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]));
+        [E.ClassName, 'texture', UriDisplay(FullUrl), E.Message]));
   end;
 
   { Still not loaded (maybe FdFilename.Value is ''
@@ -1147,7 +1147,7 @@ begin
     Result := lsLocalVRML1;
 end;
 
-constructor TPointLightNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TPointLightNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
@@ -1167,7 +1167,7 @@ begin
     Result := lsLocalVRML1;
 end;
 
-constructor TSpotLightNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TSpotLightNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
@@ -1273,14 +1273,14 @@ begin
     Result := lsLocalVRML1;
 end;
 
-constructor TGroupNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TGroupNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
 end;
 
-constructor TAbstractSeparatorNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractSeparatorNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
@@ -1323,7 +1323,7 @@ begin
   inherited;
 end;
 
-constructor TSwitchNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TSwitchNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
@@ -1356,7 +1356,7 @@ begin
   end;
 end;
 
-constructor TTransformSeparatorNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TTransformSeparatorNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
@@ -1379,7 +1379,7 @@ begin
   inherited;
 end;
 
-constructor TWWWInlineNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TWWWInlineNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
 

@@ -1081,7 +1081,7 @@ implementation
 
 uses Generics.Defaults, Math,
   CastleSceneCore, CastleInternalNormals, CastleLog,
-  CastleStringUtils, CastleInternalArraysGenerator, CastleURIUtils;
+  CastleStringUtils, CastleInternalArraysGenerator, CastleUriUtils;
 
 const
   UnknownTexCoord: TTriangle4 = (Data: (
@@ -3070,7 +3070,7 @@ end;
 
 function TShape.InternalMaterialProperty: TMaterialProperty;
 var
-  TextureUrl: string;
+  TextureUrl: String;
 begin
   if IsCachedMaterialProperty then
     Exit(CachedMaterialProperty);

@@ -33,7 +33,10 @@ requires
   rtl,
   vcl,
   xmlrtl,
-  fmx;
+  fmx,
+  IndySystem,
+  IndyProtocols,
+  IndyCore;
 
 contains
   castleinternalcontainer in '..\..\src\delphi\castleinternalcontainer.pas',
@@ -304,7 +307,6 @@ contains
   x3dcamerautils in '..\..\src\scene\x3dcamerautils.pas',
   x3dtime in '..\..\src\scene\x3dtime.pas',
   kraft in '..\..\src\physics\kraft\kraft.pas',
-  castleprogress in '..\..\src\deprecated_units\castleprogress.pas',
   ImagingXpm in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingXpm.pas',
   ImagingPcx in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingPcx.pas',
   ImagingPsd in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingPsd.pas',
@@ -313,7 +315,11 @@ contains
   castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas',
   fmx.castlecontrol in '..\..\src\delphi\fmx.castlecontrol.pas',
   vcl.castlecontrol in '..\..\src\delphi\vcl.castlecontrol.pas',
-  castleinternalshapesrenderer in '..\..\src\scene\castleinternalshapesrenderer.pas';
+  castleinternalshapesrenderer in '..\..\src\scene\castleinternalshapesrenderer.pas',
+  castleinternalfilemonitor in '..\..\src\files\castleinternalfilemonitor.pas',
+  castleinternalscreeneffects in '..\..\src\scene\castleinternalscreeneffects.pas',
+  castleinternalnodesunsupported in '..\..\src\scene\x3d\castleinternalnodesunsupported.pas',
+  imjidctasm in '..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas';
 
 end.
 

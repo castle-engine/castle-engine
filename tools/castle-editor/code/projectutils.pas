@@ -43,7 +43,7 @@ procedure UseEditorApplicationData;
 implementation
 
 uses Forms,
-  CastleURIUtils, CastleStringUtils, CastleFindFiles, CastleUtils,
+  CastleUriUtils, CastleStringUtils, CastleFindFiles, CastleUtils,
   CastleFilesUtils,
   EditorUtils, ToolCommonUtils, FormProject;
 
@@ -69,13 +69,13 @@ begin
     raise Exception.CreateFmt('Unexpected: %s is not a prefix of %s, report a bug',
       [TemplateUrl, FileInfo.URL]);
   RelativeUrl := PrefixRemove(TemplateUrl, FileInfo.URL, true);
-  TargetUrl := CombineURI(ProjectDirUrl, RelativeUrl);
+  TargetUrl := CombineUri(ProjectDirUrl, RelativeUrl);
   { Rename target files that depend on MainView. }
-  if ExtractURIName(TargetUrl) = 'gameviewmain.pas' then
-    TargetUrl := ExtractURIPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.pas';
-  if ExtractURIName(TargetUrl) = 'gameviewmain.castle-user-interface' then
-    TargetUrl := ExtractURIPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.castle-user-interface';
-  TargetFileName := URIToFilenameSafe(TargetUrl);
+  if ExtractUriName(TargetUrl) = 'gameviewmain.pas' then
+    TargetUrl := ExtractUriPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.pas';
+  if ExtractUriName(TargetUrl) = 'gameviewmain.castle-user-interface' then
+    TargetUrl := ExtractUriPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.castle-user-interface';
+  TargetFileName := UriToFilenameSafe(TargetUrl);
 
   if FileInfo.Directory then
   begin
@@ -84,7 +84,7 @@ begin
       raise Exception.CreateFmt('Cannot create directory "%s"', [TargetFileName]);
   end else
   begin
-    Mime := URIMimeType(FileInfo.URL);
+    Mime := UriMimeType(FileInfo.URL);
     if (Mime = 'application/xml') or
        (Mime = 'text/plain') then
     begin
@@ -95,7 +95,7 @@ begin
     end else
     begin
       // simply copy other file types (e.g. sample png images in project templates)
-      CheckCopyFile(URIToFilenameSafe(FileInfo.URL), TargetFileName);
+      CheckCopyFile(UriToFilenameSafe(FileInfo.URL), TargetFileName);
     end;
   end;
 end;
@@ -131,7 +131,7 @@ begin
     TemplateUrl does not any longer start with castle-data:/ }
   TemplateUrl := ResolveCastleDataURL(TemplateUrl);
 
-  if URIExists(TemplateUrl) <> ueDirectory then
+  if UriExists(TemplateUrl) <> ueDirectory then
     raise Exception.CreateFmt('Cannot find template directory %s, make sure that $CASTLE_ENGINE_PATH is configured correctly',
       [TemplateUrl]);
 
@@ -189,7 +189,7 @@ begin
     NewEnvironment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
   end;
 
-  MyRunCommandIndir(URIToFilenameSafe(ProjectDirUrl), BuildToolExe,
+  MyRunCommandIndir(UriToFilenameSafe(ProjectDirUrl), BuildToolExe,
     ['generate-program'], BuildToolOutput, BuildToolStatus, nil, nil,
     // prevent from blinking console on Windows
     [rcNoConsole],
@@ -215,7 +215,7 @@ begin
     DataPath := CastleEnginePath +
       'tools' + PathDelim + 'castle-editor' + PathDelim + 'data' + PathDelim;
     if DirectoryExists(DataPath) then
-      ApplicationDataOverride := FilenameToURISafe(DataPath);
+      ApplicationDataOverride := FilenameToUriSafe(DataPath);
   end;
 end;
 

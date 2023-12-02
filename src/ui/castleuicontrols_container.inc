@@ -442,7 +442,7 @@
       OpenGL drawing (you have to capture the back buffer, before swap).
 
       @groupBegin }
-    procedure SaveScreen(const URL: string); overload;
+    procedure SaveScreen(const Url: String); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; virtual;
     function SaveScreen(const SaveRect: TFloatRectangle): TRGBImage; overload;
@@ -833,7 +833,7 @@ begin
   FUIScale := 1.0; // default safe value, in case some TCastleUserInterface will look here
   FFocus := TCastleUserInterfaceList.Create(false);
   FNewFocus := TCastleUserInterfaceList.Create(false);
-  FFps := TFramesPerSecond.InternalCreate;
+  FFps := TFramesPerSecond.Create;
   FPressed := TKeysPressed.Create;
   FContext := TRenderContext.Create(nil);
   FBackgroundEnable := true;
@@ -2305,14 +2305,14 @@ begin
   Result := SaveScreen_NoFlush(SaveRect, cbBack);
 end;
 
-procedure TCastleContainer.SaveScreen(const URL: string);
+procedure TCastleContainer.SaveScreen(const Url: String);
 var
   Image: TRGBImage;
 begin
   Image := SaveScreen;
   try
-    WritelnLog('SaveScreen', 'Screen saved to ' + URL);
-    SaveImage(Image, URL);
+    WritelnLog('SaveScreen', 'Screen saved to ' + Url);
+    SaveImage(Image, Url);
   finally FreeAndNil(Image) end;
 end;
 
@@ -2333,7 +2333,7 @@ begin
   Path := SaveScreenPath;
   if Path <> '' then
   begin
-    Result := FilenameToURISafe(FileNameAutoInc(Path + ApplicationName, '_screen_%d.png'));
+    Result := FilenameToUriSafe(FileNameAutoInc(Path + ApplicationName, '_screen_%d.png'));
     SaveScreen(Result);
     WritelnLog('Screen saved to ' + Result);
   end else

@@ -171,10 +171,6 @@ unit CastleWindow;
 
 {$I castleconf.inc}
 
-{$ifdef CASTLE_DELPHI_PACKAGE}
-  {$message fatal 'This unit should not be included in CGE Delphi package, as this unit may talk to WinAPI to initialize window application, and it would conflict with Delphi IDE.'}
-{$endif}
-
 { Choose CastleWindow backend ------------------------------------------ }
 
 { You can define one of the CASTLE_WINDOW_xxx symbols to use
@@ -437,25 +433,26 @@ type
 
   { Window to render everything (3D or 2D) with Castle Game Engine.
 
-    You should use this with TCastleView, following https://castle-engine.io/manual_state_events.php
+    You should use this with TCastleView, following https://castle-engine.io/views
     and the rest of CGE manual.
     All user interface creation and event handling should be inside some state.
-
-    Deprecated: You can also add any user-interface controls to the @link(Controls) property.
-    User-interface controls are any @link(TCastleUserInterface) descendants,
-    like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
-    Use events like @link(OnPress) to react to events.
-    Use event @link(OnUpdate) to do something continuously.
 
     By default, the window is filled with simple color from
     @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
 
-    If you're looking for an analogous Lazarus component
-    (that can be placed on a Lazarus form)
+    If you're looking for an analogous Lazarus / Delphi component
+    (that can be placed on a Lazarus / Delphi form)
     see @link(TCastleControl) component.
     Note that you cannot use both TCastleControl and TCastleWindow
     within the same application.
-    See https://castle-engine.io/control_on_form . }
+    See https://castle-engine.io/control_on_form .
+
+    Deprecated functionality:
+    You can also add any user-interface controls to the @link(Controls) property.
+    User-interface controls are any @link(TCastleUserInterface) descendants,
+    like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
+    Use events like @link(OnPress) to react to events.
+    Use event @link(OnUpdate) to do something continuously. }
   TCastleWindow = class(TComponent)
 
   { Include CastleWindow-backend-specific parts of TCastleWindow class.
@@ -518,7 +515,7 @@ type
     FAlphaBits: Cardinal;
     FMultiSampling: Cardinal;
     FAntiAliasing: TAntiAliasing;
-    FGtkIconName: string;
+    FGtkIconName: String;
     FVisible: boolean;
     FMinWidth: Integer;
     FMinHeight: Integer;
@@ -540,10 +537,10 @@ type
     procedure SetColorBits(const Value: Cardinal);
     procedure SetAntiAliasing(const Value: TAntiAliasing);
     procedure SetAutoRedisplay(const Value: boolean);
-    function GetPublicCaption: string;
-    procedure SetPublicCaption(const Value: string);
-    procedure SetCaption(const Part: TCaptionPart; const Value: string);
-    function GetWholeCaption: string;
+    function GetPublicCaption: String;
+    procedure SetPublicCaption(const Value: String);
+    procedure SetCaption(const Part: TCaptionPart; const Value: String);
+    function GetWholeCaption: String;
     procedure SetCursor(const Value: TMouseCursor);
     function GetOnOpen: TContainerEvent;
     procedure SetOnOpen(const Value: TContainerEvent);
@@ -867,7 +864,7 @@ type
          MakeCurrent,
          EventKeyDown/Up.
     }
-    procedure DoKeyDown(const Key: TKey; const KeyString: string);
+    procedure DoKeyDown(const Key: TKey; const KeyString: String);
     procedure DoKeyUp(const key: TKey);
     { Do MakeCurrent,
          EventMotion,
@@ -901,7 +898,7 @@ type
       contains only a path (not the final file name), since this is
       good behavior for users (even if some API allow to set proposed
       file name). }
-    function BackendFileDialog(const Title: string; var FileName: string;
+    function BackendFileDialog(const Title: String; var FileName: String;
       OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
 
     procedure OpenCore;
@@ -914,7 +911,7 @@ type
       (It doesn't even need an OpenGL context open.)
 
       Useful for constructing messages e.g. for EGLContextNotPossible exceptions. }
-    function RequestedBufferAttributes: string;
+    function RequestedBufferAttributes: String;
 
     { Check do given OpenGL buffers configuration satisfies the
       requested configuration.
@@ -936,7 +933,7 @@ type
       MultiSampling = 1, which happens commonly (since our MultiSampling = 1 means
       "no multisampling" and is default, but most backends returns num_samples
       (or something equivalent) as = 0 when multisampling not supported). }
-    procedure CheckRequestedBufferAttributes(const ProviderName: string;
+    procedure CheckRequestedBufferAttributes(const ProviderName: String;
       ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
       ProvidedMultiSampling: Cardinal);
 
@@ -1407,7 +1404,7 @@ type
       for short information how and where to install your icons.
 
       It's ignored on non-GTK 2 backends. }
-    property GtkIconName: string read FGtkIconName write FGtkIconName;
+    property GtkIconName: String read FGtkIconName write FGtkIconName;
 
     (*Should this window be actually displayed on the desktop.
       In all normal programs you want to leave this as @true, as the
@@ -1461,7 +1458,7 @@ type
       By default it's initialized from ApplicationProperties.Caption or (if empty)
       ApplicationName.
       May be changed even when the window is already open. }
-    property Caption: string read GetPublicCaption write SetPublicCaption;
+    property Caption: String read GetPublicCaption write SetPublicCaption;
 
     { Render window contents here.
 
@@ -1890,7 +1887,7 @@ type
       Note that only capturing the double-buffered windows (the default)
       is reliable.
       @groupBegin }
-    procedure SaveScreen(const URL: string); overload;
+    procedure SaveScreen(const Url: String); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
     function SaveScreenToGL(const SmoothScaling: boolean = false): TDrawableImage; overload;
@@ -1906,10 +1903,10 @@ type
 
     { Asks and saves current screenshot.
       Asks user where to save the file (using @link(FileDialog),
-      as default URL taking ProposedURL).
+      as default URL taking ProposedUrl).
       If user accepts calls Window.SaveScreen.
       In case of problems with saving, shows a dialog (doesn't raise exception). }
-    procedure SaveScreenDialog(ProposedURL: string);
+    procedure SaveScreenDialog(ProposedUrl: String);
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2020,7 +2017,7 @@ type
             try to do it.
 
             To directly write to a file (as a stream) to the obtained URL
-            you should usually use our URLSaveStream.)
+            you should usually use our UrlSaveStream.)
         )
       )
 
@@ -2059,10 +2056,10 @@ type
       )
 
       @groupBegin }
-    function FileDialog(const Title: string; var URL: string;
+    function FileDialog(const Title: String; var Url: String;
       OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
-    function FileDialog(const Title: string; var URL: string;
-      OpenDialog: boolean; const FileFilters: string): boolean; overload;
+    function FileDialog(const Title: String; var Url: String;
+      OpenDialog: boolean; const FileFilters: String): boolean; overload;
     { @groupEnd }
 
     { Choose a color, using native (looks familiar on a given system) dialog box.
@@ -2084,10 +2081,10 @@ type
 
     { Show some information and just ask to press "OK",
       using native (looks familiar on a given system) dialog box. }
-    procedure MessageOK(const S: string; const MessageType: TWindowMessageType);
+    procedure MessageOK(const S: String; const MessageType: TWindowMessageType);
 
     { Ask a yes/no question, using native (looks familiar on a given system) dialog box. }
-    function MessageYesNo(const S: string;
+    function MessageYesNo(const S: String;
       const MessageType: TWindowMessageType = mtQuestion): boolean;
 
     { Named parameters used to initialize this window.
@@ -2187,7 +2184,7 @@ type
     Current: TCastleWindow;
     LastLimitFPSTime: TTimerResult;
     FMainWindow: TCastleWindow;
-    //FUserAgent: string;
+    //FUserAgent: String;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindow;
@@ -2270,8 +2267,8 @@ type
     procedure CloseAllOpenWindows;
 
     {$ifdef FPC}
-    function GetVersion: string;
-    procedure SetVersion(const Value: string);
+    function GetVersion: String;
+    procedure SetVersion(const Value: String);
     function GetTouchDevice: boolean;
     procedure SetTouchDevice(const Value: boolean);
     function GetLimitFPS: Single;
@@ -2311,7 +2308,7 @@ type
       used by VideoChange and TryVideoChange.
       This is a multiline string, each line is indented by 2 spaces,
       always ends with CastleUtils.NL. }
-    function VideoSettingsDescribe: string;
+    function VideoSettingsDescribe: String;
 
     { Change the screen size, color bits and such, following the directions
       you set in VideoColorBits, VideoResize,
@@ -2384,7 +2381,7 @@ type
 
     { User agent string, when running inside a browser.
       TODO: Right now never set (was used by NPAPI plugin, may be useful to new web target). }
-    //property UserAgent: string read FUserAgent;
+    //property UserAgent: String read FUserAgent;
 
     { Process messages from the window system.
       You have to call this repeatedly to process key presses,
@@ -2494,7 +2491,7 @@ type
       to work and exits immediately without any error. }
     procedure Run;
 
-    function BackendName: string;
+    function BackendName: String;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2555,7 +2552,7 @@ type
     {$ifdef FPC}
     property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
       deprecated 'use ApplicationProperties.LimitFps';
-    property Version: string read GetVersion write SetVersion;
+    property Version: String read GetVersion write SetVersion;
       deprecated 'use ApplicationProperties.Version';
     property TouchDevice: boolean read GetTouchDevice write SetTouchDevice;
       deprecated 'use ApplicationProperties.TouchDevice';
@@ -2589,9 +2586,9 @@ procedure Resize2D(Container: TCastleContainer);
   then this combination doesn't describe any key, and we return @false.
   Otherwise we return @true and set S. }
 function KeyToString(const KeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
-  out S: string): boolean;
+  out S: String): boolean;
 function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
-  out S: string): boolean; deprecated 'use KeyToString';
+  out S: String): boolean; deprecated 'use KeyToString';
 
 {$undef read_interface}
 
@@ -2606,7 +2603,7 @@ function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: T
 implementation
 
 uses
-  CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging,
+  CastleLog, CastleGLVersion, CastleUriUtils, CastleControls, CastleMessaging,
   CastleRenderContext, CastleInternalGLUtils,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
@@ -3257,7 +3254,7 @@ begin
   end;
 end;
 
-procedure TCastleWindow.DoKeyDown(const Key: TKey; const KeyString: string);
+procedure TCastleWindow.DoKeyDown(const Key: TKey; const KeyString: String);
 var
   Event: TInputPressRelease;
 
@@ -3478,7 +3475,7 @@ end;
 function TCastleWindow.MessageReceived(const Received: TCastleStringList;
   const ReceivedStream: TMemoryStream): boolean;
 var
-  Url: string;
+  Url: String;
 begin
   Result := false;
   if (Received.Count = 2) and
@@ -3534,9 +3531,9 @@ begin
     Result := cbFront;
 end;
 
-procedure TCastleWindow.SaveScreen(const URL: string);
+procedure TCastleWindow.SaveScreen(const Url: String);
 begin
-  Container.SaveScreen(URL);
+  Container.SaveScreen(Url);
 end;
 
 function TCastleWindow.SaveScreen: TRGBImage;
@@ -3569,39 +3566,39 @@ begin
   Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, SmoothScaling);
 end;
 
-procedure TCastleWindow.SaveScreenDialog(ProposedURL: string);
+procedure TCastleWindow.SaveScreenDialog(ProposedUrl: String);
 begin
-  if FileDialog('Save screen to file', ProposedURL, false, SaveImage_FileFilters) then
+  if FileDialog('Save screen to file', ProposedUrl, false, SaveImage_FileFilters) then
   try
-    SaveScreen(ProposedURL);
+    SaveScreen(ProposedUrl);
   except
     on E: Exception do MessageOK('Unable to save screen: ' + E.Message, mtError);
   end;
 end;
 
-function TCastleWindow.FileDialog(const Title: string; var URL: string;
+function TCastleWindow.FileDialog(const Title: String; var Url: String;
   OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean;
 var
-  FileName: string;
+  FileName: String;
 begin
   { calculate FileName from URL }
-  FileName := URIToFilenameSafe(URL);
+  FileName := UriToFilenameSafe(Url);
   if OpenDialog then
     FileName := ExtractFilePath(FileName);
   Result := BackendFileDialog(Title, FileName, OpenDialog, FileFilters);
   if Result then
-    URL := FilenameToURISafe(FileName);
+    Url := FilenameToUriSafe(FileName);
 end;
 
-function TCastleWindow.FileDialog(const Title: string; var URL: string;
-  OpenDialog: boolean; const FileFilters: string): boolean;
+function TCastleWindow.FileDialog(const Title: String; var Url: String;
+  OpenDialog: boolean; const FileFilters: String): boolean;
 var
   FFList: TFileFilterList;
 begin
   FFList := TFileFilterList.Create(true);
   try
     FFList.AddFiltersFromString(FileFilters);
-    Result := FileDialog(Title, URL, OpenDialog, FFList);
+    Result := FileDialog(Title, Url, OpenDialog, FFList);
   finally FreeAndNil(FFList) end;
 end;
 
@@ -3639,11 +3636,11 @@ end;
 { TCastleWindow ParseParameters -------------------------------------------------- }
 
 procedure WindowOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
   Window: TCastleWindow absolute Data;
 
-  procedure ApplyGeometryParam(const geom: string);
+  procedure ApplyGeometryParam(const geom: String);
   var
     p: integer;
     parWidth, parHeight, parXoff, parYoff: integer;
@@ -3744,7 +3741,7 @@ var
    end;
   end;
 
-  procedure ApplyFullScreenCustomParam(const option: string);
+  procedure ApplyFullScreenCustomParam(const option: String);
   var p: integer;
   begin
    Window.FullScreen := true;
@@ -3809,14 +3806,14 @@ begin
   FRequirements.MultiSampling := MultiSampling;
 end;
 
-function TCastleWindow.RequestedBufferAttributes: string;
+function TCastleWindow.RequestedBufferAttributes: String;
 begin
   UpdateRequirements;
   Result := FRequirements.RequestedBufferAttributes;
 end;
 
 procedure TCastleWindow.CheckRequestedBufferAttributes(
-  const ProviderName: string;
+  const ProviderName: String;
   ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
   ProvidedMultiSampling: Cardinal);
 begin
@@ -3984,17 +3981,17 @@ begin
   FullScreen := not FullScreen;
 end;
 
-function TCastleWindow.GetPublicCaption: string;
+function TCastleWindow.GetPublicCaption: String;
 begin
   Result := FCaption[cpPublic];
 end;
 
-procedure TCastleWindow.SetPublicCaption(const Value: string);
+procedure TCastleWindow.SetPublicCaption(const Value: String);
 begin
   SetCaption(cpPublic, Value);
 end;
 
-function TCastleWindow.GetWholeCaption: string;
+function TCastleWindow.GetWholeCaption: String;
 begin
   Result := FCaption[cpPublic] + FCaption[cpFps];
 end;
@@ -4501,7 +4498,7 @@ begin
 end;
 {$endif not CASTLE_WINDOW_HAS_VIDEO_CHANGE}
 
-function TCastleApplication.VideoSettingsDescribe: string;
+function TCastleApplication.VideoSettingsDescribe: String;
 begin
   Result := '';
   if VideoResize then
@@ -4516,7 +4513,7 @@ begin
 end;
 
 procedure TCastleApplication.VideoChange(OnErrorWarnUserAndContinue: boolean);
-var s: string;
+var s: String;
 begin
  if not TryVideoChange then
  begin
@@ -4611,7 +4608,7 @@ procedure TCastleApplication.HandleException(Sender: TObject);
     OriginalFrameCount: Longint;
     OriginalFrame: Pointer;
     {$endif}
-    ErrMessage: string;
+    ErrMessage: String;
     ContinueApp: Boolean;
   begin
     ErrMessage := ExceptMessage(ExceptObject) + NL + NL +
@@ -4721,9 +4718,9 @@ end;
 
 // TODO: why this doesn't work as static TCastleApplication.OptionProc ?
 procedure ApplicationOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
-  HelpString: string;
+  HelpString: String;
 begin
   case OptionNum of
     0: begin
@@ -4870,12 +4867,12 @@ begin
   ApplicationProperties.LimitFPS := Value;
 end;
 
-function TCastleApplication.GetVersion: string;
+function TCastleApplication.GetVersion: String;
 begin
   Result := ApplicationProperties.Version;
 end;
 
-procedure TCastleApplication.SetVersion(const Value: string);
+procedure TCastleApplication.SetVersion(const Value: String);
 begin
   ApplicationProperties.Version := Value;
 end;
@@ -4901,7 +4898,7 @@ begin
 end;
 
 function KeyToString(const KeyString: String; const Key: TKey;
-  const Modifiers: TModifierKeys; out S: string): boolean;
+  const Modifiers: TModifierKeys; out S: String): boolean;
 begin
   if KeyString <> '' then
   begin
@@ -4919,7 +4916,7 @@ begin
 end;
 
 function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
-  out S: string): boolean;
+  out S: String): boolean;
 begin
   Result := KeyToString(AKeyString, Key, Modifiers, S);
 end;

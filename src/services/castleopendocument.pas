@@ -24,7 +24,7 @@ unit CastleOpenDocument;
 interface
 
 resourcestring
-  SCannotOpenURL = 'Browser not found on your system.';
+  SCannotOpenUrl = 'Browser not found on your system.';
 
 { Open URL with the suitable application.
 
@@ -37,10 +37,10 @@ resourcestring
 
   To use this on Android, declare your Android project type as "integrated",
   see https://castle-engine.io/android-Project-Services-Integrated-with-Castle-Game-Engine . }
-function OpenURL(AURL: String): Boolean;
+function OpenUrl(AUrl: String): Boolean;
 
 { Open a local file or directory.
-  @deprecated You should instead use OpenURL,
+  @deprecated You should instead use OpenUrl,
   that automatically detects local filenames and URLs leading to local filenames. }
 function OpenDocument(APath: String): Boolean;
 
@@ -128,7 +128,7 @@ begin
   Result := Anchor <> '';
 end;
 
-{ Portions of OpenURL below copied and adapted from Lazarus LCL unit LCLIntf.
+{ Portions of OpenUrl below copied and adapted from Lazarus LCL unit LCLIntf.
   The core of our engine cannot depend on LCL. Fortunately, Lazarus
   has the same license as our engine, so copying code is fine.
 
@@ -151,7 +151,7 @@ end;
   - GetExeExt => ExeExtension
   - GetEnvironmentVariableUTF8 => GetEnvironmentVariable
   - FindFilenameOfCmd => PathFileSearch or FindExe
-  - FindDefaultBrowser => simplified and folded inside OpenURL for Unix,
+  - FindDefaultBrowser => simplified and folded inside OpenUrl for Unix,
     LCL implementation was cross-platform but was used only on
     Unix (except Darwin) (for these OpenXxx routines).
   - SearchFileInPath => PathFileSearch (it's only used by Unix) or FindExe
@@ -168,7 +168,7 @@ resourcestring
 
 { lcl/include/sysenvapis_win.inc --------------------------------------------- }
 
-function OpenURL(AURL: String): Boolean;
+function OpenUrl(AUrl: String): Boolean;
 var
 {$IFDEF WinCE}
   Info: SHELLEXECUTEINFO;
@@ -178,31 +178,31 @@ var
 {$ENDIF}
 begin
   Result := False;
-  if AURL = '' then Exit;
+  if AUrl = '' then Exit;
 
   {$IFDEF WinCE}
   FillChar(Info, SizeOf(Info), 0);
   Info.cbSize := SizeOf(Info);
   Info.fMask := SEE_MASK_FLAG_NO_UI;
   Info.lpVerb := 'open';
-  Info.lpFile := PWideChar(UTF8Decode(AURL));
+  Info.lpFile := PWideChar(UTF8Decode(AUrl));
   Result := ShellExecuteEx(@Info);
   {$ELSE}
   if Win32Platform = VER_PLATFORM_WIN32_NT then
   begin
     {$ifdef FPC}
-    ws := UTF8Decode(AURL);
+    ws := UTF8Decode(AUrl);
     {$else}
-    ws := AURL;
+    ws := AUrl;
     {$endif}
     Result := ShellExecuteW(0, 'open', PWideChar(ws), nil, nil, SW_SHOWNORMAL) > 32;
   end
   else
   begin
     {$ifdef FPC}
-    ans := Utf8ToAnsi(AURL); // utf8 must be converted to Windows Ansi-codepage
+    ans := Utf8ToAnsi(AUrl); // utf8 must be converted to Windows Ansi-codepage
     {$else}
-    ans := AnsiString(AURL);
+    ans := AnsiString(AUrl);
     {$endif}
     Result := ShellExecuteA(0, 'open', PAnsiChar(ans), nil, nil, SW_SHOWNORMAL) > 32;
   end;
@@ -212,7 +212,7 @@ end;
 // Open a document with the default application associated with it in the system
 function OpenDocument(APath: String): Boolean;
 begin
-  Result := OpenURL(APath);
+  Result := OpenUrl(APath);
 end;
 
 {$endif MSWINDOWS}
@@ -224,15 +224,15 @@ end;
 // TODO: Delphi on non-Windows for now also uses this code,
 // and effectively on Delphi/Linux the OpenURL, OpenDocument do nothing.
 
-function OpenURL(AURL: String): Boolean;
+function OpenUrl(AUrl: String): Boolean;
 begin
-  Messaging.Send(['view-url', AURL]);
+  Messaging.Send(['view-url', AUrl]);
   Result := true;
 end;
 
 function OpenDocument(APath: String): Boolean;
 begin
-  Result := OpenURL(FilenameToURISafe(APath));
+  Result := OpenUrl(FilenameToUriSafe(APath));
 end;
 {$else}
 
@@ -291,28 +291,28 @@ end;
 { lcl/include/sysenvapis_mac.inc --------------------------------------------- }
 
 // Open a given URL with the default browser
-function OpenURL(AURL: String): Boolean;
+function OpenUrl(AUrl: String): Boolean;
 var
   cf: CFStringRef;
-  url: CFURLRef;
+  url: CFUrlRef;
   FileName: string;
 begin
-  if AURL = '' then
+  if AUrl = '' then
     Exit(False);
 
   { If this is a local filename, open it using OpenDocument. }
-  if not UrlHasAnchor(AURL) then
+  if not UrlHasAnchor(AUrl) then
   begin
-    FileName := URIToFilenameSafe(AURL);
+    FileName := UriToFilenameSafe(AUrl);
     if FileName <> '' then
       Exit(OpenDocument(FileName));
   end;
 
-  cf := CFStringCreateWithCString(kCFAllocatorDefault, @AURL[1], kCFStringEncodingUTF8);
+  cf := CFStringCreateWithCString(kCFAllocatorDefault, @AUrl[1], kCFStringEncodingUTF8);
   if not Assigned(cf) then
     Exit(False);
-  url := CFURLCreateWithString(nil, cf, nil);
-  Result := LSOpenCFURLRef(url, nil) = 0;
+  url := CFUrlCreateWithString(nil, cf, nil);
+  Result := LSOpenCFUrlRef(url, nil) = 0;
 
   CFRelease(url);
   CFRelease(cf);
@@ -354,15 +354,15 @@ end;
 
 { lcl/include/sysenvapis_unix.inc -------------------------------------------- }
 
-// Open a given URL with the default browser
-function OpenURL(AURL: String): Boolean;
+// Open a given Url with the default browser
+function OpenUrl(AUrl: String): Boolean;
 var
   ABrowser, FileName: String;
 begin
   { If this is a local filename, open it using OpenDocument. }
-  if not UrlHasAnchor(AURL) then
+  if not UrlHasAnchor(AUrl) then
   begin
-    FileName := URIToFilenameSafe(AURL);
+    FileName := UriToFilenameSafe(AUrl);
     if FileName <> '' then
       Exit(OpenDocument(FileName));
   end;
@@ -370,7 +370,7 @@ begin
   Result := FindDefaultBrowser(ABrowser) and FileExists(ABrowser) and FileIsExecutable(ABrowser);
   if not Result then
     Exit;
-  RunCmdFromPath(ABrowser, AURL);
+  RunCmdFromPath(ABrowser, AUrl);
 end;
 
 // Open a document with the default application associated with it in the system
@@ -404,7 +404,7 @@ end;
 
 procedure OpenApplicationStore(const ApplicationId: string);
 begin
-  {$ifdef ANDROID} OpenURL('market://details?id=' + ApplicationId); {$endif}
+  {$ifdef ANDROID} OpenUrl('market://details?id=' + ApplicationId); {$endif}
 
   {$ifdef CASTLE_IOS} Messaging.Send(['open-application-store', ApplicationId]); {$endif}
 end;

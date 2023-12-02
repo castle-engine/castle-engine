@@ -26,31 +26,31 @@
 
 type
   TUrlFile = class
-    class function Read(const Url: string; out MimeType: string): TStream;
-    class function Write(const Url: string): TStream;
+    class function Read(const Url: String; out MimeType: string): TStream;
+    class function Write(const Url: String): TStream;
     { Determine MIME type from URL extension. }
     class function MimeType(const URI: string; out Gzipped: Boolean): String;
   end;
 
-class function TUrlFile.Read(const Url: string; out MimeType: string): TStream;
+class function TUrlFile.Read(const Url: String; out MimeType: string): TStream;
 var
   FileName: String;
 begin
   CheckFileAccessSafe(URL);
 
-  FileName := URIToFilenameSafe(URL);
+  FileName := UriToFilenameSafe(URL);
   if FileName = '' then
     raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
 
   Result := TFileStream.Create(FileName, fmOpenRead);
-  MimeType := URIMimeType(URL);
+  MimeType := UriMimeType(URL);
 end;
 
-class function TUrlFile.Write(const Url: string): TStream;
+class function TUrlFile.Write(const Url: String): TStream;
 var
   FileName: String;
 begin
-  FileName := URIToFilenameSafe(URL);
+  FileName := UriToFilenameSafe(URL);
   if FileName = '' then
     raise ESaveError.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
 

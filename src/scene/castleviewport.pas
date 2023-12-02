@@ -549,7 +549,7 @@ type
     { Constructor that disables special design-mode viewport camera/navigation.
       Useful in editor.
       @exclude }
-    constructor InternalCreateNonDesign(AOwner: TComponent);
+    constructor InternalCreateNonDesign(AOwner: TComponent; const Ignored: Integer);
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
@@ -1326,7 +1326,7 @@ implementation
 uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleTextureImages,
-  CastleInternalSettings, CastleXMLUtils, CastleURIUtils, CastleInternalRenderer,
+  CastleInternalSettings, CastleXmlUtils, CastleUriUtils, CastleInternalRenderer,
   CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
 
 {$define read_implementation}
@@ -1478,7 +1478,7 @@ begin
   begin
     { We need to use TCastleCamera.InternalCreateNonDesign,
       otherwise InternalDesignCamera would be visible in preview of other camera. }
-    InternalDesignCamera := TCastleCamera.InternalCreateNonDesign(Self);
+    InternalDesignCamera := TCastleCamera.InternalCreateNonDesign(Self, 0);
     InternalDesignCamera.SetTransient;
     // this somewhat replicates what happens at SetCamera
     InternalDesignCamera.InternalOnCameraChanged := {$ifdef FPC}@{$endif} InternalCameraChanged;
@@ -1530,7 +1530,7 @@ begin
   CommonCreate(AOwner, CastleDesignMode);
 end;
 
-constructor TCastleViewport.InternalCreateNonDesign(AOwner: TComponent);
+constructor TCastleViewport.InternalCreateNonDesign(AOwner: TComponent; const Ignored: Integer);
 begin
   CommonCreate(AOwner, false);
 end;
@@ -1581,7 +1581,7 @@ begin
     - or replace existing camera. }
   Assert(Camera = nil);
 
-  NewCamera := TCastleCamera.InternalCreateNonDesign(Self);
+  NewCamera := TCastleCamera.InternalCreateNonDesign(Self, 0);
   Camera := NewCamera;
   Items.Add(NewCamera);
 end;

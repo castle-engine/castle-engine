@@ -53,7 +53,7 @@
     procedure ParseAfter(Reader: TX3DReaderNames); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     {$I auto_generated_node_helpers/x3dnodes_audioclip.inc}
@@ -81,7 +81,7 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     {$I auto_generated_node_helpers/x3dnodes_sound.inc}
@@ -93,7 +93,7 @@
 
 { TAudioClipNode ------------------------------------------------------------- }
 
-constructor TAudioClipNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TAudioClipNode.Create(const AX3DName: string; const ABaseUrl: String);
 begin
   inherited;
 
@@ -233,7 +233,7 @@ end;
 procedure TAudioClipNode.SetBufferLoaded(const Value: boolean);
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   if FBufferLoaded <> Value then
   begin
@@ -278,7 +278,7 @@ begin
           on E: Exception do
             { Remember that WritelnWarning *may* raise an exception. }
             WritelnWarning('Audio', Format(SLoadError,
-              [E.ClassName, 'sound file', URIDisplay(FullUrl), E.Message]));
+              [E.ClassName, 'sound file', UriDisplay(FullUrl), E.Message]));
         end;
       end;
     end else
@@ -303,7 +303,7 @@ end;
 
 { TSoundNode ----------------------------------------------------------------- }
 
-constructor TSoundNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TSoundNode.Create(const AX3DName: string; const ABaseUrl: String);
 begin
   inherited;
   FdLocation.AddNotification({$ifdef FPC}@{$endif} EventLocationReceive);

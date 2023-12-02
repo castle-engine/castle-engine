@@ -70,7 +70,7 @@
     { Create TOutputField instance, to send it by EventValue_Changed. }
     function CreateOutputField: TOutputField; virtual; abstract;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
   end;
 

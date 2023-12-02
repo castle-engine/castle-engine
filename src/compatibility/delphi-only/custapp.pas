@@ -52,7 +52,7 @@ Type
     function GetTitle: string;
   Protected
     function GetOptionAtIndex(AIndex: Integer; IsLong: Boolean): String;
-    procedure SetTitle(const AValue: string); Virtual;
+    procedure SetTitle(const AValue: String); Virtual;
     Function GetConsoleApplication : boolean; Virtual;
     Procedure DoRun; Virtual;
     Function GetParams(Index : Integer) : String;virtual;
@@ -246,7 +246,7 @@ begin
   Result := FSingleInstance;
 end;
 
-procedure TCustomApplication.SetTitle(const AValue: string);
+procedure TCustomApplication.SetTitle(const AValue: String);
 begin
   FTitle:=AValue;
 end;

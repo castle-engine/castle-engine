@@ -36,7 +36,7 @@ type
       TButtonSound = class(TCastleButton)
       public
         Sound: TCastleSound;
-        constructor Create(const AOwner: TComponent; const SoundFileURL: String); reintroduce;
+        constructor Create(const AOwner: TComponent; const SoundFileUrl: String); reintroduce;
       end;
 
       TPlayingSoundUiOwner = class(TComponent)
@@ -74,13 +74,13 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog, CastleWindow, CastleURIUtils, CastleTimeUtils,
+  CastleLog, CastleWindow, CastleUriUtils, CastleTimeUtils,
   CastleSoundBase, CastleViewport, CastleUtils;
 
 { TButtonSound --------------------------------------------------------- }
 
 constructor TViewMain.TButtonSound.Create(const AOwner: TComponent;
-  const SoundFileURL: String);
+  const SoundFileUrl: String);
 begin
   inherited Create(AOwner);
   Sound := TCastleSound.Create(Self);
@@ -95,11 +95,11 @@ begin
     (but it's done in a thread and should not matter in normal use-cases).
   }
   // Sound.Stream := true;
-  Sound.URL := SoundFileURL;
+  Sound.Url := SoundFileUrl;
 
   Caption := FormatDot('%s (%f)', [
     // extract last URL component, i.e. just the filename
-    URIDisplay(SoundFileURL, true),
+    UriDisplay(SoundFileUrl, true),
     Sound.Duration
   ]);
 end;
@@ -123,7 +123,7 @@ begin
   GroupPlayingSounds.InsertFront(Ui);
 
   LabelSoundName := FindRequiredComponent('LabelSoundName') as TCastleLabel;
-  LabelSoundName.Caption := URIDisplay(PlayingSound.Sound.URL, true);
+  LabelSoundName.Caption := UriDisplay(PlayingSound.Sound.Url, true);
 
   ButtonStop := FindRequiredComponent('ButtonStop') as TCastleButton;
   ButtonStop.OnClick := {$ifdef FPC}@{$endif}ClickStop;
@@ -171,17 +171,17 @@ end;
 
 procedure TViewMain.Start;
 
-  procedure AddSoundBufferButton(const SoundFileURL: String);
+  procedure AddSoundBufferButton(const SoundFileUrl: String);
   var
     Button: TButtonSound;
   begin
     try
-      Button := TButtonSound.Create(FreeAtStop, SoundFileURL);
+      Button := TButtonSound.Create(FreeAtStop, SoundFileUrl);
     except
       on E: Exception do
       begin
         WritelnWarning('Loading of sound file "%s" failed: %s',
-          [SoundFileURL, E.Message]);
+          [SoundFileUrl, E.Message]);
         Exit;
       end;
     end;

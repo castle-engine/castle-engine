@@ -72,13 +72,13 @@ type
 
   TXMLConfig = class(TCastleComponent)
   private
-    FURL: String;
+    FUrl: String;
     FStartEmpty: Boolean;
     FUseEscaping: Boolean;
     FRootName: DOMString;
     FBlowFishKeyPhrase: string;
-    procedure SetURLForce(const AURL: String; ForceReload: Boolean);
-    procedure SetURL(const AURL: String);
+    procedure SetUrlForce(const AUrl: String; ForceReload: Boolean);
+    procedure SetUrl(const AUrl: String);
     procedure SetStartEmpty(AValue: Boolean);
     procedure SetRootName(const AValue: DOMString);
   protected
@@ -91,11 +91,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Clear;
-    { Writes the config to XML file in @link(URL).
+    { Writes the config to XML file in @link(Url).
       @returns(@true If the file was really written to disk.
       Returns @false if file was not written,
       which may happen if there were no changes in config since the last save/load,
-      or if the @link(URL) wasn't set.) }
+      or if the @link(Url) wasn't set.) }
     function Flush : Boolean;
     function  GetValue(const APath, ADefault: String): String; overload;
     function  GetValue(const APath: String; ADefault: Integer): Integer; overload;
@@ -111,16 +111,16 @@ type
     property Modified: Boolean read FModified;
 
     { Load and save config state to a TStream instance.
-      Loading changes URL to PretendURL, and does Flush before, so it works
+      Loading changes URL to PretendUrl, and does Flush before, so it works
       similarly to setting an URL.
       Saving does not change any state (it also ignores the @link(Modified)
       value), it unconditionally dumps the contents to stream.
       @groupBegin }
-    procedure LoadFromStream(const Stream: TStream; const PretendURL: string);
+    procedure LoadFromStream(const Stream: TStream; const PretendUrl: String);
     procedure SaveToStream(const Stream: TStream);
     { @groupEnd }
   published
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
     { If non-empty, we will encrypt / decrypt the XML data when
       writing / reading using BlowFish.
       Note: only first @code(High(TBlowFishKey)+1) characters matter. }
@@ -136,7 +136,7 @@ type
 
 implementation
 
-uses CastleXMLUtils, CastleURIUtils, CastleStringUtils;
+uses CastleXmlUtils, CastleUriUtils, CastleStringUtils;
 
 constructor TXMLConfig.Create(AOwner: TComponent);
 begin
@@ -152,7 +152,7 @@ begin
   if Assigned(Doc) then
   begin
     Flush;
-    Doc.Free;
+    FreeAndNil(Doc);
   end;
   inherited Destroy;
 end;
@@ -165,13 +165,13 @@ end;
 
 function TXMLConfig.Flush: Boolean;
 begin
- if (URL <> EmptyStr) and Modified then
+ if (Url <> EmptyStr) and Modified then
   begin
     if BlowFishKeyPhrase <> '' then
       // TODO: Delphi support
-      URLWriteXML(Doc, URL{$ifdef FPC}, BlowFishKeyPhrase{$endif})
+      UrlWriteXML(Doc, Url{$ifdef FPC}, BlowFishKeyPhrase{$endif})
     else
-      URLWriteXML(Doc, URL);
+      UrlWriteXML(Doc, Url);
     FModified := false;
     Result := true;
   end else
@@ -433,8 +433,8 @@ end;
 procedure TXMLConfig.Loaded;
 begin
   inherited Loaded;
-  if Length(URL) > 0 then
-    SetURLForce(URL, true);              // Load the XML config file
+  if Length(Url) > 0 then
+    SetUrlForce(Url, true);              // Load the XML config file
 end;
 
 function TXMLConfig.FindNode(const APath: String;
@@ -536,25 +536,25 @@ begin
     Result := s;
 end;
 
-procedure TXMLConfig.SetURLForce(const AURL: String; ForceReload: Boolean);
+procedure TXMLConfig.SetUrlForce(const AUrl: String; ForceReload: Boolean);
 begin
-  {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLConfig.SetURL A '+AURL);{$ENDIF}
-  if (not ForceReload) and (FURL = AURL) then
+  {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLConfig.SetUrl A '+AUrl);{$ENDIF}
+  if (not ForceReload) and (FUrl = AUrl) then
     exit;
   Flush;
   FreeAndNil(Doc);
 
-  FURL := AURL;
+  FUrl := AUrl;
 
   if IsLoading then
     exit;
 
-  if URIFileExists(AURL) and (not FStartEmpty) then
+  if URIFileExists(AUrl) and (not FStartEmpty) then
     if BlowFishKeyPhrase <> '' then
       // TODO: Delphi support
-      URLReadXML(Doc, AURL{$ifdef FPC}, BlowFishKeyPhrase{$endif})
+      UrlReadXML(Doc, AUrl{$ifdef FPC}, BlowFishKeyPhrase{$endif})
     else
-      URLReadXML(Doc, AURL);
+      UrlReadXML(Doc, AUrl);
 
   if not Assigned(Doc) then
     Doc := TXMLDocument.Create;
@@ -565,14 +565,14 @@ begin
     if Doc.DocumentElement.NodeName <> RootName then
       raise EXMLConfigError.Create('XML file has wrong root element name');
 
-  {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLConfig.SetURL END');{$ENDIF}
+  {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLConfig.SetUrl END');{$ENDIF}
 end;
 
-procedure TXMLConfig.LoadFromStream(const Stream: TStream; const PretendURL: string);
+procedure TXMLConfig.LoadFromStream(const Stream: TStream; const PretendUrl: String);
 begin
   Flush;
   FreeAndNil(Doc);
-  FURL := PretendURL;
+  FUrl := PretendUrl;
 
   ReadXMLFile(Doc, Stream);
 
@@ -590,9 +590,9 @@ begin
   WriteXMLFile(Doc, Stream);
 end;
 
-procedure TXMLConfig.SetURL(const AURL: String);
+procedure TXMLConfig.SetUrl(const AUrl: String);
 begin
-  SetURLForce(AURL, False);
+  SetUrlForce(AUrl, False);
 end;
 
 procedure TXMLConfig.SetRootName(const AValue: DOMString);
@@ -616,7 +616,7 @@ begin
   begin
     FStartEmpty := AValue;
     if (not AValue) and not Modified then
-      SetURLForce(URL, True);
+      SetUrlForce(Url, True);
   end;
 end;
 

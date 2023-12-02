@@ -40,7 +40,7 @@
       May return @nil if none possible. }
     class function CreateAndParse(const Json: TJSONObject;
       const ASlotName, AnAttachmentName: string; const Bones: TBoneList): TAttachment;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); virtual; abstract;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); virtual; abstract;
     { Some attachments (skinnedmesh) can be attached only to a single bone
       at a time, and must be transformed from world to bone space. }
     procedure TransformToBoneSpace(const Bone: TBone); virtual;
@@ -53,8 +53,8 @@
     Width, Height: Integer;
     Path: string;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
-    function BuildGeometry(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); override;
+    function BuildGeometry(const BaseUrl: String;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
       const TexRotated: boolean): TAbstractGeometryNode; virtual;
   end;
@@ -74,7 +74,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    function BuildGeometry(const BaseUrl: string;
+    function BuildGeometry(const BaseUrl: String;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
       const TexRotated: boolean): TAbstractGeometryNode; override;
   end;
@@ -116,7 +116,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); override;
   end;
 
   TClippingAttachment = class(TAttachment)
@@ -124,7 +124,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); override;
   end;
 
   TAttachmentList = class({$ifdef FPC}specialize{$endif} TObjectList<TAttachment>)
@@ -223,7 +223,7 @@ begin
   Path := Json.Get('path', '');
 end;
 
-procedure TRegionAttachment.BuildNodes(const BaseUrl: string;
+procedure TRegionAttachment.BuildNodes(const BaseUrl: String;
   const TextureLoader: TTextureLoader);
 var
   TexRect: TQuadTexRect;
@@ -282,7 +282,7 @@ begin
   Appearance.Material := Material;
 end;
 
-function TRegionAttachment.BuildGeometry(const BaseUrl: string;
+function TRegionAttachment.BuildGeometry(const BaseUrl: String;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
   const TexRotated: boolean): TAbstractGeometryNode;
 var
@@ -361,7 +361,7 @@ begin
   Hull := Json.Get('hull', 0);
 end;
 
-function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: string;
+function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: String;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
   const TexRotated: boolean): TAbstractGeometryNode;
 var
@@ -410,7 +410,7 @@ begin
       [SlotName, Name]));
 
   if TexRotated then
-    WritelnWarning('Spine ' + URIDisplay(BaseUrl), 'Atlas region used for mesh attachment is rotated. This is not supported, texture will be applied incorrectly. Export with "Rotation" turned off in "Texture Packer Settings".');
+    WritelnWarning('Spine ' + UriDisplay(BaseUrl), 'Atlas region used for mesh attachment is rotated. This is not supported, texture will be applied incorrectly. Export with "Rotation" turned off in "Texture Packer Settings".');
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
   UVRangeX.X := Min(TexCoord[0].X, TexCoord[2].X);
@@ -586,7 +586,7 @@ begin
     WritelnWarning('Spine "path" attachment has unexpected "lengths" count: expected %d, has %d', [VertexCount div 3, Lengths.Count]);
 end;
 
-procedure TPathAttachment.BuildNodes(const BaseUrl: string;
+procedure TPathAttachment.BuildNodes(const BaseUrl: String;
   const TextureLoader: TTextureLoader);
 var
   Shape: TShapeNode;
@@ -659,7 +659,7 @@ begin
     WritelnWarning('Spine "clipping" attachment has unexpected "vertices" count: expected %d, has %d', [VertexCount, Vertices.Count]);
 end;
 
-procedure TClippingAttachment.BuildNodes(const BaseUrl: string;
+procedure TClippingAttachment.BuildNodes(const BaseUrl: String;
   const TextureLoader: TTextureLoader);
 
   procedure VisualizeClipPolygon;

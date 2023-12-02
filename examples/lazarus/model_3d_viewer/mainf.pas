@@ -84,7 +84,7 @@ type
     procedure MenuMouseLookToggleClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
-    SceneURL: string;
+    SceneUrl: String;
     CameraChanged: boolean;
     ButtonsNavigationType: array [TNavigationType] of TSpeedButton;
     CrosshairCtl: TCastleCrosshair;
@@ -95,11 +95,11 @@ type
     NavigationType: TNavigationType;
     Navigation: TCastleNavigation;
 
-    procedure OpenScene(const URL: string);
+    procedure OpenScene(const Url: String);
     procedure UpdateCaption;
     procedure UpdateCrosshairImage;
     procedure OnPointingDeviceSensorsChange(Sender: TObject);
-    procedure RecentFilesOpenRecent(const URL: string);
+    procedure RecentFilesOpenRecent(const Url: String);
     procedure ChangeNavigationType(const NewNavigationType: TNavigationType);
   public
     { public declarations }
@@ -111,21 +111,21 @@ var
 implementation
 
 uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes,
-  CastleClassUtils, CastleUtils, X3DLoad, CastleURIUtils,
+  CastleClassUtils, CastleUtils, X3DLoad, CastleUriUtils,
   CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
   CastleApplicationProperties,
   OpenGLInformation, CastleLCLUtils, ConsoleF, CastleImages, CastleSoundEngine;
 
 {$R *.lfm}
 
-procedure TMain.OpenScene(const URL: string);
+procedure TMain.OpenScene(const Url: String);
 
-  procedure LoadScene(const URL: String);
+  procedure LoadScene(const Url: String);
   begin
     MainScene.Free; // free previous MainScene
 
     MainScene := TCastleScene.Create(Self);
-    MainScene.Load(URL);
+    MainScene.Load(Url);
     MainScene.PreciseCollisions := true;
     MainScene.ProcessEvents := true;
 
@@ -136,11 +136,11 @@ procedure TMain.OpenScene(const URL: string);
 
 begin
   Console.WasWarnings := false;
-  Console.Memo1.Lines.Append('--- Loading ' + URL);
+  Console.Memo1.Lines.Append('--- Loading ' + Url);
 
-  LoadScene(URL);
+  LoadScene(Url);
 
-  SceneURL := URL;
+  SceneUrl := Url;
   UpdateCaption;
 
   if Console.WasWarnings then
@@ -149,7 +149,7 @@ begin
     Console.Visible := MenuShowConsole.Checked;
   end;
 
-  RecentFiles.Add(URL);
+  RecentFiles.Add(Url);
 
   { for changing the crosshair shape }
   MainScene.OnPointingDeviceSensorsChange := @OnPointingDeviceSensorsChange;
@@ -177,18 +177,18 @@ end;
 
 procedure TMain.MenuOpenClick(Sender: TObject);
 begin
-  if SceneURL <> '' then
-    OpenDialog1.URL := SceneURL;
+  if SceneUrl <> '' then
+    OpenDialog1.Url := SceneUrl;
   if OpenDialog1.Execute then
-    OpenScene(OpenDialog1.URL);
+    OpenScene(OpenDialog1.Url);
 end;
 
 procedure TMain.UpdateCaption;
 var
   S: string;
 begin
-  if SceneURL <> '' then
-    S := URICaption(SceneURL)
+  if SceneUrl <> '' then
+    S := UriCaption(SceneUrl)
   else
     S := 'No Scene';
   S := S + ' | Castle Game Engine - Lazarus Model Viewer';
@@ -207,7 +207,7 @@ end;
 
 procedure TMain.MenuWebsiteClick(Sender: TObject);
 begin
-  if not OpenURL('https://castle-engine.io/') then
+  if not OpenUrl('https://castle-engine.io/') then
     MessageDlg('WWW browser not found on your system.', mtError, [mbClose], 0);
 end;
 
@@ -343,9 +343,9 @@ begin
   UserConfig.Save;
 end;
 
-procedure TMain.RecentFilesOpenRecent(const URL: string);
+procedure TMain.RecentFilesOpenRecent(const Url: String);
 begin
-  OpenScene(URL);
+  OpenScene(Url);
 end;
 
 procedure TMain.FormDeactivate(Sender: TObject);
@@ -422,7 +422,7 @@ begin
   begin
     Image := Browser.SaveScreen;
     try
-      SaveImage(Image, SaveScreenshotDialog.URL);
+      SaveImage(Image, SaveScreenshotDialog.Url);
     finally FreeAndNil(Image) end;
   end;
 end;

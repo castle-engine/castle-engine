@@ -38,7 +38,7 @@ procedure AddInitializeView(const UnitFileAbsolute: String;
 
 implementation
 
-uses CastleStringUtils, CastleFilesUtils, CastleURIUtils, CastleLog, CastleUtils;
+uses CastleStringUtils, CastleFilesUtils, CastleUriUtils, CastleLog, CastleUtils;
 
 const
   CommentViewCreateBegin = '{$region ''Castle View Creation''}';
@@ -53,7 +53,7 @@ var
   Content: String;
 begin
   try
-    Content := FileToString(FilenameToURISafe(FileName));
+    Content := FileToString(FilenameToUriSafe(FileName));
   except
     on E: Exception do
     begin
@@ -101,7 +101,7 @@ var
   Content: String;
   P: SizeInt;
 begin
-  UnitFileUrl := FilenameToURISafe(UnitFileAbsolute);
+  UnitFileUrl := FilenameToUriSafe(UnitFileAbsolute);
   Content := FileToString(UnitFileUrl);
 
   P := Pos(CommentViewCreateEnd, Content);

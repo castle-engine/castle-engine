@@ -43,7 +43,7 @@
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils,
-  CastleParameters, CastleURIUtils, CastleStringUtils,
+  CastleParameters, CastleUriUtils, CastleStringUtils,
   CastleClassUtils, CastleDownload;
 
 var
@@ -89,12 +89,12 @@ begin
   end;
 end;
 
-function PascalNameFromURL(const URL: String): String;
+function PascalNameFromUrl(const Url: String): String;
 const
   ValidChars = ['0'..'9', 'a'..'z', 'A'..'Z', '_'];
   ValidFirstChars = ['a'..'z', 'A'..'Z', '_'];
 begin
-  Result := DeleteURIExt(ExtractURIName(URL));
+  Result := DeleteURIExt(ExtractURIName(Url));
   // replace chars not valid in the middle of Pascal identifier
   Result := SReplaceChars(Result, AllChars - ValidChars, '_');
   // replace chars not valid as 1st char of Pascal identifier
@@ -108,7 +108,7 @@ type
 
 var
   Image, TempImage: TCastleImage;
-  ImageURL: string;
+  ImageUrl: String;
   UnitName, ImageName: string;
   CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string;
   ImageIndex: Integer;
@@ -128,34 +128,34 @@ begin
   CodeFinalization := '';
   for ImageIndex := 1 to Parameters.High do
   begin
-    ImageURL := Parameters[ImageIndex];
+    ImageUrl := Parameters[ImageIndex];
 
-    if ImageURL = '@alpha=strip' then
+    if ImageUrl = '@alpha=strip' then
     begin
       Alpha := alphaStrip;
       Continue;
     end else
-    if ImageURL = '@alpha=keep' then
+    if ImageUrl = '@alpha=keep' then
     begin
       Alpha := alphaKeep;
       Continue;
     end else
-    if ImageURL = '@alpha=keep-and-bleed' then
+    if ImageUrl = '@alpha=keep-and-bleed' then
     begin
       Alpha := alphaKeepAndBleed;
       Continue;
     end;
 
     { init other Image* variables }
-    ImageName := PascalNameFromURL(ImageURL);
-    Image := LoadImage(ImageURL);
+    ImageName := PascalNameFromUrl(ImageUrl);
+    Image := LoadImage(ImageUrl);
     try
       if Image.HasAlpha then
       begin
         case Alpha of
           alphaStrip:
             begin
-              Writeln(ErrOutput, 'Stripping alpha from ', ImageURL);
+              Writeln(ErrOutput, 'Stripping alpha from ', ImageUrl);
               TempImage := TRGBImage.Create;
               TempImage.Assign(Image);
               FreeAndNil(Image);
@@ -164,7 +164,7 @@ begin
             end;
           alphaKeepAndBleed:
             begin
-              Writeln(ErrOutput, 'Making alpha bleeding on ', ImageURL);
+              Writeln(ErrOutput, 'Making alpha bleeding on ', ImageUrl);
               // convert to TRGBAlphaImage as alpha bleeding is implemented only there
               TempImage := TRGBAlphaImage.Create;
               TempImage.Assign(Image);

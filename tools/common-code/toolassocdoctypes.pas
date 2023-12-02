@@ -45,7 +45,7 @@ type
 implementation
 
 uses XMLRead, XMLWrite,
-  CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
+  CastleXmlUtils, CastleUriUtils, CastleFilesUtils;
 
 { TAssocDocType ------------------------------------------------------ }
 

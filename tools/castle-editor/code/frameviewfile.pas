@@ -77,7 +77,7 @@ type
 implementation
 
 uses CastleColors, CastleUtils, CastleSoundBase, CastleVectors, CastleCameras,
-  CastleTransform, CastleURIUtils,
+  CastleTransform, CastleUriUtils,
   EditorUtils;
 
 {$R *.lfm}
@@ -140,7 +140,7 @@ end;
 procedure TViewFileFrame.FinishLoading(const AURL: String);
 begin
   FURL := AURL;
-  LabelURL.Caption := URIDisplay(AURL, true);
+  LabelURL.Caption := UriDisplay(AURL, true);
   if FErrorMessage <> '' then
   begin
     LabelInformation.Caption := FErrorMessage;
@@ -193,7 +193,7 @@ begin
   ClearLoaded;
 
   {$warnings off} // using TCastleAutoNavigationViewport that should be internal
-  Viewport := TCastleAutoNavigationViewport.InternalCreateNonDesign(Self);
+  Viewport := TCastleAutoNavigationViewport.InternalCreateNonDesign(Self, 0);
   {$warnings on}
   Viewport.FullSize := true;
   // using deprecated AutoCamera, for now this is OK to get initial camera.

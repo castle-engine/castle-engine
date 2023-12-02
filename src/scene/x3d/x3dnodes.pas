@@ -253,9 +253,9 @@ implementation
 uses Math, StrUtils, URIParser,
   CastleTextureFont_Default3d_Sans,
   X3DLoad, CastleInternalZStream, X3DCameraUtils,
-  CastleFilesUtils, CastleURIUtils, CastleUnicode, CastleCurves,
+  CastleFilesUtils, CastleUriUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleInternalDataUri, CastleDownload,
-  CastleInternalNurbs, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
+  CastleInternalNurbs, CastleQuaternions, CastleXmlUtils, CastleOpenDocument,
   CastleSoundBase, CastleTriangles, X3DLoadInternalUtils,
   CastleApplicationProperties, CastleInternalNodesUnsupported;
 

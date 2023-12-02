@@ -52,7 +52,7 @@
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
       const DragonBonesFormat: boolean);
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
   end;
 
@@ -62,7 +62,7 @@
     function Find(const SlotName: string): TSlot;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
       const DragonBonesFormat: boolean);
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
     procedure Assign(const Source: TSlotList);
   end;
@@ -102,7 +102,7 @@ begin
   Color := HexToColor(Json.Get('color', 'ffffffff'));
 end;
 
-procedure TSlot.BuildNodes(const BaseUrl: string;
+procedure TSlot.BuildNodes(const BaseUrl: String;
   const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
 var
   IsWeightedMeshAttachmentExisted: Boolean {$ifdef FPC}= False{$endif};
@@ -239,7 +239,7 @@ begin
     end;
 end;
 
-procedure TSlotList.BuildNodes(const BaseUrl: string;
+procedure TSlotList.BuildNodes(const BaseUrl: String;
   const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
 var
   I: Integer;

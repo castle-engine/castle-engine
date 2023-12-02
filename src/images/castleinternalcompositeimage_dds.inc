@@ -485,7 +485,7 @@ type
     class procedure ReadOptimized_ABGR8(const Stream: TStream;
       const Image: TCastleImage; const RowBytePadding: Integer); static;
   public
-    procedure LoadFromStream(const Stream: TStream; const URL: string); override;
+    procedure LoadFromStream(const Stream: TStream; const Url: String); override;
     procedure SaveToStream(const Stream: TStream); override;
   end;
 
@@ -594,7 +594,7 @@ begin
     end;
 end;
 
-procedure TDDSHandler.LoadFromStream(const Stream: TStream; const URL: string);
+procedure TDDSHandler.LoadFromStream(const Stream: TStream; const Url: String);
 
   procedure CheckWarn(const Check: boolean; const Message: string);
   begin
@@ -1122,7 +1122,7 @@ var
       except FreeAndNil(Result); raise end;
 
       // useful to see this URL in logs, TextureMemoryProfiler dumps etc.
-      Result.URL := URL + '[subimage]';
+      Result.Url := Url + '[subimage]';
     end { ReadImage };
 
   var

@@ -54,7 +54,7 @@ type
           Loads the scene only if URL is not empty and if it's not already loaded (that is, when Scene = nil).
           Prepares for fast rendering and other processing by TCastleTransform.PrepareResources.
           Calls Progress.Step 2 times, if DoProgress. }
-        procedure Prepare(const URL: String; const Resource: T3DResource;
+        procedure Prepare(const Url: String; const Resource: T3DResource;
           const PrepareParams: TPrepareParams; const DoProgress: Boolean);
       end;
     var
@@ -63,7 +63,7 @@ type
       FOwner: T3DResource;
       FSceneState: TSceneState;
       FDuration: Single;
-      FURL: string;
+      FUrl: String;
       FAnimationName: string;
     procedure Prepare(const Params: TPrepareParams; const DoProgress: boolean);
     procedure Release;
@@ -101,7 +101,7 @@ type
     { Scene URL, only when each animation is inside a separate 3D file.
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
-    property URL: string read FURL write FURL; {$ifdef FPC}deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';{$endif}
+    property Url: String read FUrl write FUrl; {$ifdef FPC}deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';{$endif}
 
     { Animation name (like for @link(TCastleSceneCore.PlayAnimation)),
       which is equal to TimeSensor node name.
@@ -109,8 +109,8 @@ type
       If not given, we assume it's just 'animation', which is fine
       at least for castle-anim-frames and MD3 files loaded using TNodeInterpolator.
       This refers to an X3D TimeSensor node inside
-      animation model (from @link(URL)) or, when not defined,
-      inside whole resource model (from @link(T3DResource.ModelURL)).
+      animation model (from @link(Url)) or, when not defined,
+      inside whole resource model (from @link(T3DResource.ModelUrl)).
 
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
@@ -211,8 +211,8 @@ type
     FReceiveShadowVolumes: boolean;
     FCastShadowVolumes: boolean;
     FDefaultAnimationTransition: Single;
-    FModelURL: string;
-    { Model loaded from ModelURL }
+    FModelUrl: String;
+    { Model loaded from ModelUrl }
     ModelState: T3DResourceAnimation.TSceneState;
     { Non-nil only if we're using Pool to allocate scenes for resource instances.
       See @link(Pool) description. }
@@ -405,7 +405,7 @@ type
       a single 3D file. See
       [https://castle-engine.io/creating_data_resources.php]
       for notes about <model> element in resource.xml files. }
-    property ModelURL: string read FModelURL write FModelURL;
+    property ModelUrl: String read FModelUrl write FModelUrl;
 
     { If non-zero, use a pool of TCastleScene to create resource instances.
 
@@ -456,7 +456,7 @@ type
 
       In the @code(resource.xml), you can specify this value an explicit integer
       (0 means to not use pool), or you can write @code("auto") to automatically guess
-      the best value. The best value means to use pool, unless the ModelURL indicates castle-anim-frames
+      the best value. The best value means to use pool, unless the ModelUrl indicates castle-anim-frames
       or MD3 formats.
     }
     property Pool: Cardinal read FPool write FPool default 0;
@@ -468,7 +468,7 @@ type
   private
     ResourceXmlReload: boolean;
     procedure AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
-    procedure AddFromFileDefaultReload(const URL: string);
+    procedure AddFromFileDefaultReload(const Url: String);
   public
     { Find resource with given T3DResource.Name.
       @raises Exception if not found and NilWhenNotFound = false. }
@@ -502,7 +502,7 @@ type
       @param(Reload If @true, and the loaded resource will have a name
         matching existing T3DResource.Name, we will replace the current resource.
         Otherwise, we'll make an exception.) }
-    procedure AddFromFile(const URL: string; const Reload: boolean = false);
+    procedure AddFromFile(const Url: String; const Reload: boolean = false);
 
     { Reads <prepare_resources> XML element.
       <prepare_resources> element is an optional child of given ParentElement.
@@ -531,9 +531,9 @@ implementation
 
 {$warnings off} // using deprecated CastleProgress in deprecated
 uses SysUtils,
-  CastleProgress, CastleXMLUtils, CastleUtils, CastleSceneCore,
+  CastleProgress, CastleXmlUtils, CastleUtils, CastleSceneCore,
   CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
-  CastleFilesUtils, CastleInternalNodeInterpolator, CastleURIUtils;
+  CastleFilesUtils, CastleInternalNodeInterpolator, CastleUriUtils;
 {$warnings on}
 
 var
@@ -580,10 +580,10 @@ end;
 { T3DResourceAnimation.TSceneState ------------------------------------------- }
 
 procedure T3DResourceAnimation.TSceneState.Prepare(
-  const URL: String; const Resource: T3DResource;
+  const Url: String; const Resource: T3DResource;
   const PrepareParams: TPrepareParams; const DoProgress: Boolean);
 begin
-  if (URL <> '') and (Scene = nil) then
+  if (Url <> '') and (Scene = nil) then
   begin
     Scene := TCastleScene.Create(nil);
     Scene.Load(Url);
@@ -711,7 +711,7 @@ end;
 function T3DResourceAnimation.Defined: boolean;
 begin
   {$warnings off} // using deprecated to keep it working
-  Result := (URL <> '') or (AnimationName <> '');
+  Result := (Url <> '') or (AnimationName <> '');
   {$warnings on}
 end;
 
@@ -719,9 +719,9 @@ procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
   const DoProgress: boolean);
 begin
   {$warnings off} // using deprecated to keep it working
-  if URL <> '' then
+  if Url <> '' then
   begin
-    FSceneState.Prepare(URL, Owner, Params, DoProgress);
+    FSceneState.Prepare(Url, Owner, Params, DoProgress);
     if AnimationName <> '' then
       FDuration := FSceneState.Scene.AnimationDuration(AnimationName)
     else
@@ -750,12 +750,12 @@ begin
   {$warnings off} // using deprecated to keep it working
   if ResourceConfig.GetValue('model/' + Name + '/file_name', '') <> '' then
   begin
-    URL := ResourceConfig.GetURL('model/' + Name + '/file_name', true);
+    Url := ResourceConfig.GetUrl('model/' + Name + '/file_name', true);
     WritelnWarning('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
   end else
-    URL := ResourceConfig.GetURL('model/' + Name + '/url', true);
+    Url := ResourceConfig.GetUrl('model/' + Name + '/url', true);
 
-  if URL <> '' then
+  if Url <> '' then
     WritelnWarning('Animation "%s" of "%s" has it''s own URL, this is deprecated. Use one URL for all animations. See https://castle-engine.io/creating_data_resources.php .', [
       Name,
       Owner.Name
@@ -951,7 +951,7 @@ var
 begin
   TimeStart := Profiler.Start('Prepare Animations of Resource ' + Name);
 
-  ModelState.Prepare(ModelURL, Self, Params, DoProgress);
+  ModelState.Prepare(ModelUrl, Self, Params, DoProgress);
 
   if (ModelState.Scene <> nil) and (Pool <> 0) then
   begin
@@ -1001,10 +1001,10 @@ begin
   FDefaultAnimationTransition := ResourceConfig.GetFloat('model/default_animation_transition', 0.0);
   if ResourceConfig.GetValue('model/file_name', '') <> '' then
   begin
-    FModelURL := ResourceConfig.GetURL('model/file_name', true);
+    FModelUrl := ResourceConfig.GetUrl('model/file_name', true);
     WritelnLog('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
   end else
-    FModelURL := ResourceConfig.GetURL('model/url', true);
+    FModelUrl := ResourceConfig.GetUrl('model/url', true);
 
   { calculate Pool }
   PoolStr := ResourceConfig.GetValue('model/pool', 'auto');
@@ -1014,9 +1014,9 @@ begin
       - fast to switch current frame (ForceAnimationPose is fast)
       - do not support animation blending anyway
       In practice, this means formats with precalculated animation frames, like castle-anim-frames. }
-    if (FModelURL <> '') and
-       ( (URIMimeType(FModelURL) = 'application/x-castle-anim-frames') or
-         (URIMimeType(FModelURL) = 'application/x-md3')
+    if (FModelUrl <> '') and
+       ( (UriMimeType(FModelUrl) = 'application/x-castle-anim-frames') or
+         (UriMimeType(FModelUrl) = 'application/x-md3')
        ) then
       Pool := 0
     else
@@ -1126,10 +1126,10 @@ end;
 
 procedure T3DResourceList.AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
 begin
-  AddFromFileDefaultReload(FileInfo.URL);
+  AddFromFileDefaultReload(FileInfo.Url);
 end;
 
-procedure T3DResourceList.AddFromFileDefaultReload(const URL: string);
+procedure T3DResourceList.AddFromFileDefaultReload(const Url: String);
 var
   Xml: TCastleConfig;
   ResourceClassName, ResourceName: string;
@@ -1141,13 +1141,13 @@ begin
     try
       Xml.RootName := 'resource';
       Xml.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
-      Xml.URL := URL;
-      // WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
+      Xml.Url := Url;
+      // WritelnLog('Resources', Format('Loading T3DResource from "%s"', [Url]));
 
       ResourceClassName := Xml.GetStringNonEmpty('type');
       if not ResourceClasses.TryGetValue(ResourceClassName, ResourceClass) then
         raise Exception.CreateFmt('Resource type "%s" not found, mentioned in file "%s"',
-          [ResourceClassName, URL]);
+          [ResourceClassName, Url]);
 
       ResourceName := Xml.GetStringNonEmpty('name');
       if CharsPos(AllChars - ['a'..'z', 'A'..'Z'], ResourceName) <> 0 then
@@ -1177,17 +1177,17 @@ begin
         it occured }
       on E: EMissingAttribute do
       begin
-        E.Message := E.Message + ' (When reading "' + URL + '")';
+        E.Message := E.Message + ' (When reading "' + Url + '")';
         raise;
       end;
     end;
   finally FreeAndNil(Xml) end;
 end;
 
-procedure T3DResourceList.AddFromFile(const URL: string; const Reload: boolean);
+procedure T3DResourceList.AddFromFile(const Url: String; const Reload: boolean);
 begin
   ResourceXmlReload := Reload;
-  AddFromFileDefaultReload(URL);
+  AddFromFileDefaultReload(Url);
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Path: string; const Reload: boolean);

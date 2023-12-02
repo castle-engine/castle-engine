@@ -123,7 +123,7 @@ implementation
 uses {$ifdef UNIX} BaseUnix, {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
   Classes, Process, SysUtils,
-  CastleFilesUtils, CastleURIUtils, CastleLog, CastleXMLUtils, CastleFindFiles,
+  CastleFilesUtils, CastleUriUtils, CastleLog, CastleXmlUtils, CastleFindFiles,
   ToolCommonUtils;
 
 procedure SmartCopyFile(const Source, Dest: string);

@@ -52,7 +52,7 @@ type
   strict private
     FBaseAnimation: T3DResourceAnimation;
     FCaption: string;
-    FImageURL: string;
+    FImageUrl: String;
     FImage: TEncodedImage;
     FDrawableImage: TDrawableImage;
   private
@@ -92,7 +92,7 @@ type
       menu option. }
     function Image: TEncodedImage;
 
-    property ImageURL: string read FImageURL;
+    property ImageUrl: String read FImageUrl;
 
     { Resource to draw @link(Image). }
     function DrawableImage: TDrawableImage;
@@ -645,7 +645,7 @@ procedure TItemResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  FImageURL := ResourceConfig.GetURL('image');
+  FImageUrl := ResourceConfig.GetUrl('image');
 
   FCaption := ResourceConfig.GetValue('caption', '');
   if FCaption = '' then
@@ -655,15 +655,15 @@ end;
 function TItemResource.Image: TEncodedImage;
 begin
   if FImage = nil then
-    FImage := LoadEncodedImage(ImageURL);
+    FImage := LoadEncodedImage(ImageUrl);
   Result := FImage;
 end;
 
 function TItemResource.DrawableImage: TDrawableImage;
 begin
   if FDrawableImage = nil then
-    { TODO: this will load the ImageURL 2nd time. }
-    FDrawableImage := TDrawableImage.Create(ImageURL);
+    { TODO: this will load the ImageUrl 2nd time. }
+    FDrawableImage := TDrawableImage.Create(ImageUrl);
   Result := FDrawableImage;
 end;
 

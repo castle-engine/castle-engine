@@ -1,0 +1,7 @@
+/Win32/
+/Win64/
+*.d
+*.il?
+*.map
+*.pdi
+*.tds

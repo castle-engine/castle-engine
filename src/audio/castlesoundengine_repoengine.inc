@@ -31,7 +31,7 @@
     and all other methods. This only adds easy preloaded sounds,
     but you're not limited to them.
 
-    To initialize your sounds repository, you have to set the RepositoryURL
+    To initialize your sounds repository, you have to set the RepositoryUrl
     property. }
   TRepoSoundEngine = class(TSoundEngine)
   private
@@ -115,7 +115,7 @@
         { Group URL.
           Absolute (including parent group URL parts).
           Always ends with slash. }
-        URL: string;
+        Url: String;
         { A parent group (one among FSoundGroups, or @nil if not in any group). }
         ParentGroup: TSoundGroup;
       end;
@@ -139,11 +139,11 @@
         It means "no sound" in many cases. }
       FSounds: TSoundInfoList;
       FSoundGroups: TSoundGroupList;
-      FRepositoryURL: string;
+      FRepositoryUrl: String;
       FLoopingChannels: TLoopingChannelList;
     {$endif PASDOC}
 
-    procedure SetRepositoryURL(const Value: string);
+    procedure SetRepositoryUrl(const Value: String);
     { Reinitialize looping channels sounds.
       Should be called as soon as Sounds changes and we may have OpenAL context. }
     procedure RestartLoopingChannels;
@@ -159,10 +159,10 @@
       pointing to an XML file describing your sounds.
       See https://castle-engine.io/creating_data_sound.php#section_sample .
 
-      When you set RepositoryURL property, we read sound information from
-      given XML file. You usually set RepositoryURL at the very beginning
+      When you set RepositoryUrl property, we read sound information from
+      given XML file. You usually set RepositoryUrl at the very beginning
       of the application.
-      Right after setting RepositoryURL you usually call SoundFromName
+      Right after setting RepositoryUrl you usually call SoundFromName
       a couple of times to convert some names into TCastleSound values,
       to later use these TCastleSound values with @link(Sound) and @link(Sound3D)
       methods.
@@ -180,7 +180,7 @@
       property. For example like this:
 
       @longCode(#
-        SoundEngine.RepositoryURL := 'castle-data:/sounds.xml';
+        SoundEngine.RepositoryUrl := 'castle-data:/sounds.xml';
         MySound1 := SoundEngine.SoundFromName('my_sound_1');
         MySound2 := SoundEngine.SoundFromName('my_sound_2');
         // ... and later in your game you can do stuff like this:
@@ -191,22 +191,22 @@
       for information about the castle-data:/ protocol. In short, on desktop,
       this just indicates the "data" subdirectory of your project.
     }
-    property RepositoryURL: string read FRepositoryURL write SetRepositoryURL;
+    property RepositoryUrl: String read FRepositoryUrl write SetRepositoryUrl;
       {$ifdef FPC}deprecated 'instead of XML file, create design with .castle-component that contains a number of TCastleSound components';{$endif}
 
     {$ifdef FPC}
-    { Deprecated name for RepositoryURL. @deprecated }
-    property SoundsFileName: string read FRepositoryURL write SetRepositoryURL; deprecated 'use RepositoryURL';
+    { Deprecated name for RepositoryUrl. @deprecated }
+    property SoundsFileName: string read FRepositoryUrl write SetRepositoryUrl; deprecated 'use RepositoryUrl';
     {$endif}
 
-    { Reload the RepositoryURL and all referenced buffers.
+    { Reload the RepositoryUrl and all referenced buffers.
       Useful as a tool for game designers, to reload the sounds XML file
       without restarting the game and sound engine. }
-    procedure ReloadSounds; deprecated 'deprecated just like RepositoryURL';
+    procedure ReloadSounds; deprecated 'deprecated just like RepositoryUrl';
 
     { Return sound with given name.
       Available names are given in SoundNames, defined in XML file pointed
-      by RepositoryURL.
+      by RepositoryUrl.
       Always for SoundName = '' it will return nil.
 
       @param(Required
@@ -215,7 +215,7 @@
         is not found. This may mean that sound is missing in your sounds.xml
         file (so you should correct your sounds.xml),
         or that you didn't load the sounds.xml file yet
-        (so you should correct your code to set @link(TRepoSoundEngine.RepositoryURL)
+        (so you should correct your code to set @link(TRepoSoundEngine.RepositoryUrl)
         early enough), or that you specified invalid sound name.
         When Required = @false, missing sound is silently ignored,
         which is sensible if it was optional.
@@ -225,7 +225,7 @@
         or not.)
     }
     function SoundFromName(const SoundName: string; const Required: boolean = true): TCastleSound;
-      deprecated 'deprecated just like RepositoryURL';
+      deprecated 'deprecated just like RepositoryUrl';
 
     {$ifdef FPC}
     { Sound importance names and values.
@@ -286,20 +286,20 @@
       read GetLoopingChannel;
 
     { Opens sound context and loads sound files,
-      but only if RepositoryURL was set and contains some sounds.
+      but only if RepositoryUrl was set and contains some sounds.
 
       The idea is that you can call this during "loading" stage for any game that
       *possibly but not necessarily* uses sound. If a game doesn't use sound,
       this does nothing (doesn't waste time to even initialize sound context,
       which on some systems may cause some warnings).
-      If a game uses sound (through RepositoryURL), this will initialize
+      If a game uses sound (through RepositoryUrl), this will initialize
       sound backend and load these sound files, to play them without any delay
       in game.
 
-      Note that, if this does nothing, but you later set @link(RepositoryURL)
+      Note that, if this does nothing, but you later set @link(RepositoryUrl)
       or do @link(LoadBuffer) or @link(Play), then sound context will
       be created on-demand anyway. So calling this is always optional. }
-    procedure PrepareResources; deprecated 'deprecated just like RepositoryURL';
+    procedure PrepareResources; deprecated 'deprecated just like RepositoryUrl';
   end;
 
 {$endif read_interface}
@@ -428,7 +428,7 @@ procedure TRepoSoundEngine.TSoundInfoBuffer.ReadElement(const Element: TDOMEleme
   const AParentGroup: TSoundGroup;
   const BaseUrl: String; const ASoundEngine: TRepoSoundEngine);
 var
-  URL, ImportanceStr, URLPrefix: String;
+  Url, ImportanceStr, UrlPrefix: String;
   SoundImportanceIndex: Integer;
 begin
   inherited;
@@ -443,20 +443,20 @@ begin
     and when it's present and set to empty string
     (in this case URL must also be set to empty string).
     Standard Element.GetAttribute wouldn't allow me this. }
-  URL := '';
-  if (Element.AttributeString('url', URL) or
-      Element.AttributeString('file_name', URL)) and
-     (URL <> '') then
+  Url := '';
+  if (Element.AttributeString('url', Url) or
+      Element.AttributeString('file_name', Url)) and
+     (Url <> '') then
   begin
-    URL := CombineURI(BaseUrl, URL);
+    Url := CombineURI(BaseUrl, Url);
   end else
   begin
-    URLPrefix := CombineURI(BaseUrl, ShortName);
-    if URIFileExists(URLPrefix + '.ogg') then
-      URL := URLPrefix + '.ogg'
+    UrlPrefix := CombineURI(BaseUrl, ShortName);
+    if URIFileExists(UrlPrefix + '.ogg') then
+      Url := UrlPrefix + '.ogg'
     else
-    if URIFileExists(URLPrefix + '.wav') then
-      URL := URLPrefix + '.wav'
+    if URIFileExists(UrlPrefix + '.wav') then
+      Url := UrlPrefix + '.wav'
     else
       WritelnWarning('No matching sound file found for sound "%s"', [Name]);
   end;
@@ -508,7 +508,7 @@ begin
   Sound.Stream := Element.AttributeBooleanDef('stream', false);
 
   { set URL at the end, to avoid reloading when Sound.Stream changes }
-  Sound.URL := URL;
+  Sound.Url := Url;
 end;
 
 function TRepoSoundEngine.TSoundInfoBuffer.FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer;
@@ -584,7 +584,7 @@ begin
         L.AllocateSource;
 end;
 
-procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
+procedure TRepoSoundEngine.SetRepositoryUrl(const Value: String);
 
   { Check that SoundInfo.Name is unique. }
   procedure CheckUniqueSoundInfo(var SoundInfo: TSoundInfo);
@@ -674,15 +674,15 @@ procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
     if ParentGroup <> nil then
       Group.Name := ParentGroup.Name + '/' + Group.Name;
 
-    Group.URL := BaseUrl;
+    Group.Url := BaseUrl;
     Subdirectory := Element.AttributeStringDef('subdirectory', '');
     if Subdirectory <> '' then
-      Group.URL := Group.URL + Subdirectory + '/';
+      Group.Url := Group.Url + Subdirectory + '/';
 
     I := Element.ChildrenIterator;
     try
       while I.GetNext do
-        ReadGroupChild(I.Current, Group, Group.URL);
+        ReadGroupChild(I.Current, Group, Group.Url);
     finally FreeAndNil(I) end;
   end;
 
@@ -698,11 +698,11 @@ var
   SoundConfig: TXMLDocument;
   Stream: TStream;
   I: TXMLElementIterator;
-  BaseUrl: string;
+  BaseUrl: String;
   TimeStart: TCastleProfilerTime;
 begin
-  if FRepositoryURL = Value then Exit;
-  FRepositoryURL := Value;
+  if FRepositoryUrl = Value then Exit;
+  FRepositoryUrl := Value;
 
   FSoundGroups.Clear;
   FSounds.Clear;
@@ -710,13 +710,13 @@ begin
   FSounds.Add(TSoundInfoBuffer.Create);
 
   { if no sounds XML file, then that's it --- no more sounds }
-  if FRepositoryURL = '' then Exit;
+  if FRepositoryUrl = '' then Exit;
 
-  TimeStart := Profiler.Start('Loading All Sounds From ' + FRepositoryURL + ' (TRepoSoundEngine)');
+  TimeStart := Profiler.Start('Loading All Sounds From ' + FRepositoryUrl + ' (TRepoSoundEngine)');
   try
-    { This must be an absolute path, since FSounds[].URL should be
+    { This must be an absolute path, since FSounds[].Url should be
       absolute (to not depend on the current dir when loading sound files. }
-    BaseUrl := AbsoluteURI(FRepositoryURL);
+    BaseUrl := AbsoluteURI(FRepositoryUrl);
 
     Stream := Download(BaseUrl);
     try
@@ -762,7 +762,7 @@ begin
     stMenuClick              := SoundFromName('menu_click'               , false);
     {$warnings on}
 
-    { in case you set RepositoryURL when sound context is already
+    { in case you set RepositoryUrl when sound context is already
       initialized, start playing music immediately if necessary }
     RestartLoopingChannels;
 
@@ -771,14 +771,14 @@ end;
 
 procedure TRepoSoundEngine.ReloadSounds;
 var
-  OldRepositoryURL: string;
+  OldRepositoryUrl: String;
 begin
   {$warnings off} // using deprecated in deprecated
-  if RepositoryURL <> '' then
+  if RepositoryUrl <> '' then
   begin
-    OldRepositoryURL := RepositoryURL;
-    RepositoryURL := '';
-    RepositoryURL := OldRepositoryURL;
+    OldRepositoryUrl := RepositoryUrl;
+    RepositoryUrl := '';
+    RepositoryUrl := OldRepositoryUrl;
   end;
   {$warnings on}
 end;

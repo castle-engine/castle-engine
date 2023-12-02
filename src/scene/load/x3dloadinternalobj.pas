@@ -34,7 +34,7 @@ implementation
 
 uses Generics.Collections,
   CastleStringUtils, CastleFilesUtils, CastleLog, CastleVectors, CastleUtils,
-  CastleClassUtils, X3DLoadInternalUtils, CastleURIUtils,
+  CastleClassUtils, X3DLoadInternalUtils, CastleUriUtils,
   CastleDownload;
 
 { TWavefrontTexture ---------------------------------------------------------- }

@@ -55,12 +55,12 @@ function AmbientIntensity(const AmbientColor, DiffuseColor: TVector4): Single; o
   We prefer to return just Base, if it exists, or when no alternative exists.
   When Base doesn't exist but some likely alternative exists (e.g. with
   different case), we return it. }
-function SearchTextureFile(const BaseUrl: string; Base: string): string;
+function SearchTextureFile(const BaseUrl: String; Base: string): string;
 
 { Convert backslashes to slashes. Use for formats where this interpretation
   of backslash (instead of %-encoding actual backslash, see
   https://sourceforge.net/p/castle-engine/tickets/21/ ) seems more common. }
-function FixRelativeUrl(const URL: string): string;
+function FixRelativeUrl(const Url: String): string;
 
 var
   { Use CGE X3D extensions when importing the model.
@@ -70,7 +70,7 @@ var
 implementation
 
 uses SysUtils, Math, URIParser, StrUtils,
-  CastleStringUtils, CastleFindFiles, CastleLog, CastleURIUtils, CastleUnicode;
+  CastleStringUtils, CastleFindFiles, CastleLog, CastleUriUtils, CastleUnicode;
 
 const
   EncodedPrefix = 'CastleEncoded_';
@@ -214,7 +214,7 @@ begin
     DiffuseColor.XYZ);
 end;
 
-function SearchTextureFile(const BaseUrl: string; Base: string): string;
+function SearchTextureFile(const BaseUrl: String; Base: string): string;
 var
   SomePathDelim: Integer;
   BaseShort, Path: string;
@@ -274,9 +274,9 @@ begin
   Result := Base;
 end;
 
-function FixRelativeUrl(const URL: string): string;
+function FixRelativeUrl(const Url: String): string;
 begin
-  Result := SReplaceChars(URL, '\', '/');
+  Result := SReplaceChars(Url, '\', '/');
 end;
 
 end.

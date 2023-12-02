@@ -31,7 +31,7 @@
 uses
   {$ifdef UNIX} CThreads, {$endif} // necessary to have asynchronous downloading on Unix
   SysUtils, Classes, StrUtils, Math,
-  {$ifdef FPC} {$ifndef VER3_0} OpenSSLSockets, {$endif} {$endif} // support HTTPS
+  {$ifdef FPC} OpenSSLSockets, {$endif} // support HTTPS
   CastleDownload, CastleParameters, CastleClassUtils, CastleLog, CastleUtils,
   CastleApplicationProperties, CastleStringUtils;
 

@@ -446,7 +446,9 @@ pack_windows_installer ()
 # Main body
 
 detect_platform
-check_fpc_version
+if [ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]; then
+  check_fpc_version
+fi
 prepare_build_tool
 calculate_cge_version
 if [ -n "${1:-}" ]; then

@@ -62,7 +62,7 @@
       reason.) }
     function TextureImage_IncReference(
       const TextureImage: TEncodedImage;
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
@@ -75,7 +75,7 @@
 
     function TextureVideo_IncReference(
       const TextureVideo: TVideo;
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const FlipVertically: Boolean;
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
@@ -90,7 +90,7 @@
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function TextureCubeMap_IncReference(
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
       const PositiveX, NegativeX,
@@ -103,7 +103,7 @@
 
     { Requires GLFeatures.TextureDepthCompare (not just TextureDepth!) before calling this. }
     function TextureDepth_IncReference(
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const TextureWrap: TTextureWrap2D;
       const Width, Height: Cardinal): TGLuint;
 
@@ -115,7 +115,7 @@
       Precision32 = @true requires 32-bit full Single floats,
       Precision32 = @false requires 16-bit (half) floats. }
     function TextureFloat_IncReference(
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const Filter: TTextureFilter;
       const TextureWrap: TTextureWrap2D;
       const Width, Height: Cardinal;
@@ -128,7 +128,7 @@
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function Texture3D_IncReference(
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
@@ -264,7 +264,7 @@ end;
 
 function TRendererCache.TextureImage_IncReference(
   const TextureImage: TEncodedImage;
-  const TextureFullUrl: string;
+  const TextureFullUrl: String;
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
@@ -366,7 +366,7 @@ end;
 
 function TRendererCache.TextureVideo_IncReference(
   const TextureVideo: TVideo;
-  const TextureFullUrl: string;
+  const TextureFullUrl: String;
   const FlipVertically: Boolean;
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
@@ -445,7 +445,7 @@ begin
 end;
 
 function TRendererCache.TextureCubeMap_IncReference(
-  const TextureFullUrl: string;
+  const TextureFullUrl: String;
   const Filter: TTextureFilter;
   const Anisotropy: TGLfloat;
   const PositiveX, NegativeX,
@@ -540,7 +540,7 @@ begin
 end;
 
 function TRendererCache.Texture3D_IncReference(
-  const TextureFullUrl: string;
+  const TextureFullUrl: String;
   const Filter: TTextureFilter;
   const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;

@@ -114,7 +114,7 @@ uses Generics.Collections, Math,
   CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
   X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime, CastleColors,
   CastleApplicationProperties, CastleTextureImages, CastleStringUtils,
-  CastleURIUtils, CastleInternalNodesUnsupported,
+  CastleUriUtils, CastleInternalNodesUnsupported,
   CastleTestUtils;
 
 { TNode* ------------------------------------------------------------ }
@@ -274,11 +274,11 @@ var
     Result.AString := Lexer.TokenString;
   end;
 
-  function LexerFromFile(const URL: string): TX3DLexer;
+  function LexerFromFile(const Url: String): TX3DLexer;
   var
     Stream: TStream;
   begin
-    Stream := Download(URL);
+    Stream := Download(Url);
     Result := TX3DLexer.Create(TBufferedReadStream.Create(Stream, true), true);
   end;
 

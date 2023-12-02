@@ -70,7 +70,7 @@
     { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
     InternalSkinWeights: TVector4List;
 
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     { Calculate bounding box of this geometry node.
@@ -443,8 +443,6 @@
     }
     constructor CreateWithShape(out Shape: TShapeNode);
 
-    constructor CreateShape(out Shape: TShapeNode); deprecated 'use CreateWithShape';
-
     { Create an instance of this geometry node,
       and make it a child of a new shape node (TShapeNode),
       and make it a child of a new transform node (TTransformNode).
@@ -472,8 +470,6 @@
       or add it to some scene, as shown above.
     }
     constructor CreateWithTransform(out Shape: TShapeNode; out Transform: TTransformNode);
-
-    constructor CreateTransform(out Shape: TShapeNode; out Transform: TTransformNode); deprecated 'use CreateWithTransform';
 
   {$I auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc}
   end;
@@ -594,7 +590,7 @@
     procedure EventSet_CoordIndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function TrianglesCount(State: TX3DGraphTraverseState;
@@ -618,7 +614,7 @@
     procedure EventSet_IndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
     function CoordIndexField: TMFLong; override;
     procedure InternalCoordPolygons(
@@ -636,7 +632,7 @@
     procedure EventSet_IndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
     function CoordIndexField: TMFLong; override;
     procedure InternalCoordPolygons(
@@ -654,7 +650,7 @@
     procedure EventSet_IndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
     function CoordIndexField: TMFLong; override;
     procedure InternalCoordPolygons(
@@ -825,11 +821,6 @@ begin
   Shape.Geometry := Self;
 end;
 
-constructor TAbstractGeometryNode.CreateShape(out Shape: TShapeNode);
-begin
-  CreateWithShape(Shape);
-end;
-
 constructor TAbstractGeometryNode.CreateWithTransform(out Shape: TShapeNode; out Transform: TTransformNode);
 begin
   Create;
@@ -839,11 +830,6 @@ begin
 
   Transform := TTransformNode.Create;
   Transform.AddChildren(Shape);
-end;
-
-constructor TAbstractGeometryNode.CreateTransform(out Shape: TShapeNode; out Transform: TTransformNode);
-begin
-  CreateWithTransform(Shape, Transform);
 end;
 
 function TAbstractGeometryNode.InternalCoord(State: TX3DGraphTraverseState;

@@ -89,10 +89,10 @@ type
     CastleScript. }
   TCasScriptEnvironment = class
   private
-    FBaseUrl: string;
+    FBaseUrl: String;
   public
     { Base URL to resolve relative URLs. Similar to TX3DNode.BaseUrl. }
-    property BaseUrl: string read FBaseUrl write FBaseUrl;
+    property BaseUrl: String read FBaseUrl write FBaseUrl;
   end;
 
   TCasScriptExpression = class
@@ -182,7 +182,7 @@ type
     { Execute expression, return the result as a simple string value.
       It assumes that the expression is written to always return string.
       To easily create such expression, use @link(ParseStringExpression). }
-    function AsString(const ADefaultValue: string = ''): string;
+    function AsString(const ADefaultValue: String = ''): string;
 
     { Execute expression, return the result as a simple boolean value.
       It assumes that the expression is written to always return boolean.
@@ -470,16 +470,16 @@ type
     class procedure HandleWriteln(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleCharacterFromCode(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
-    FValue: string;
-    procedure SetValue(const AValue: string);
+    FValue: String;
+    procedure SetValue(const AValue: String);
   public
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to ''. }
-    constructor Create(const AWriteable: boolean; const AValue: string); reintroduce; overload;
+    constructor Create(const AWriteable: boolean; const AValue: String); reintroduce; overload;
     constructor Create(const AWriteable: boolean); reintroduce; overload; override;
 
-    property Value: string read FValue write SetValue;
+    property Value: String read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
@@ -1041,7 +1041,7 @@ begin
   end;
 end;
 
-function TCasScriptExpression.AsString(const ADefaultValue: string): string;
+function TCasScriptExpression.AsString(const ADefaultValue: String): string;
 var
   Res: TCasScriptValue;
 begin
@@ -1915,7 +1915,7 @@ end;
 
 { TCasScriptString ---------------------------------------------------------- }
 
-constructor TCasScriptString.Create(const AWriteable: boolean; const AValue: string);
+constructor TCasScriptString.Create(const AWriteable: boolean; const AValue: String);
 begin
   Create(AWriteable);
   Value := AValue;

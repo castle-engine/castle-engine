@@ -128,7 +128,7 @@ begin
   SavedApplicationMode := InternalCastleApplicationMode;
   InternalCastleApplicationMode := appDesign;
   try
-    V := TCastleViewport.InternalCreateNonDesign(nil);
+    V := TCastleViewport.InternalCreateNonDesign(nil, 0);
     try
       // V.Camera will be auto-created, but it will not have a bounding box or any children (so no gizmo)
       AssertTrue(V.Camera <> nil);

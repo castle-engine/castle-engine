@@ -56,7 +56,7 @@ implementation
 {$R *.lfm}
 
 uses CastleGLUtils, CastleSoundEngine, CastleUtils, CastleFilesUtils,
-  CastleURIUtils,
+  CastleUriUtils,
   ProjectUtils;
 
 procedure TSystemInformationForm.ListSectionsClick(Sender: TObject);
@@ -143,7 +143,7 @@ procedure TSystemInformationForm.HelpButtonClick(Sender: TObject);
 begin
   if SaveDialogText.Execute then
   begin
-    StringToFile(FilenameToURISafe(SaveDialogText.FileName),
+    StringToFile(FilenameToUriSafe(SaveDialogText.FileName),
       'Rendering:' + NL + Info[itRendering] + NL + NL +
       'Audio:' + NL + Info[itAudio] + NL + NL +
       'Other:' + NL + Info[itOther]// + NL + NL +

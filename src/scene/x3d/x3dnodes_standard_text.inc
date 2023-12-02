@@ -63,7 +63,7 @@
       DefaultJustifyMinor = fjFirst;
       DefaultBlending = true;
 
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     property Family: TX3DFontFamily read GetFamily write SetFamily;
@@ -599,7 +599,7 @@ const
 
 { TFontStyleNode ------------------------------------------------------------- }
 
-constructor TFontStyleNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TFontStyleNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FCustomFontObserver := TFreeNotificationObserver.Create(nil);

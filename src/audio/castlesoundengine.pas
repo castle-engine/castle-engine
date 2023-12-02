@@ -55,8 +55,8 @@ implementation
 
 uses XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleLog, CastleInternalVorbisFile, CastleInternalDataURI,
-  CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
-  CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties
+  CastleParameters, CastleXmlUtils, CastleFilesUtils, CastleConfig,
+  CastleUriUtils, CastleDownload, CastleMessaging, CastleApplicationProperties
   {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}, CastleOpenALSoundBackend{$endif}
   , CastleComponentSerialize;
 

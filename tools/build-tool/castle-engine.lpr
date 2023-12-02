@@ -26,7 +26,7 @@
 uses SysUtils,
   ToolDisableDynamicLibraries, //< use this unit early, before any other CGE unit
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
-  CastleFilesUtils, CastleURIUtils, CastleStringUtils,
+  CastleFilesUtils, CastleUriUtils, CastleStringUtils,
   CastleApplicationProperties,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
   ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcess,
@@ -305,7 +305,7 @@ begin
     DataPath := CastleEnginePath +
       'tools' + PathDelim + 'build-tool' + PathDelim + 'data' + PathDelim;
     if DirectoryExists(DataPath) then
-      ApplicationDataOverride := FilenameToURISafe(DataPath);
+      ApplicationDataOverride := FilenameToUriSafe(DataPath);
 
     { We do not complain when CastleEnginePath is empty or doesn't contain
       valid data, because CastleEnginePath already did that. }
