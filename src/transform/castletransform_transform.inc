@@ -131,6 +131,9 @@
       FOnAddedBehaviorNotification: TCastleComponentNotification;
       FBeforeRemoveBehaviorNotification: TCastleComponentNotification;
 
+      // Always equal to FindBehaviors(TCastleRigidBody)
+      FCachedRigidBody: TCastleRigidBody;
+
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
     procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -144,8 +147,6 @@
     procedure SetTranslation(const Value: TVector3);
     function GetTranslationXY: TVector2;
     procedure SetTranslationXY(const Value: TVector2);
-    procedure SetRigidBody(const Value: TCastleRigidBody);
-    function GetRigidBody: TCastleRigidBody;
     function GetDirection: TVector3;
     function GetUp: TVector3;
     procedure SetDirection(const Value: TVector3);
@@ -179,6 +180,7 @@
     procedure ChangedTransformCore(const UpdatePhysicsTransform: Boolean = true);
     function GetWorldViewRec: TViewVectors;
     procedure SetWorldViewRec(const Value: TViewVectors);
+    procedure UpdateCachedBehaviors;
   private
     { "Meaningful" parent is a parent that competes to be a value of Parent.
       This allows to avoid TCastleTransformReference from being considered
@@ -609,6 +611,15 @@
         by the bounding volume, and it would create a "feedback loop"
         if the visualization itself would enlarge the bounding box). }
       InternalExcludeFromParentBoundingVolume: Boolean;
+
+      { Results in more correct, but often unnecessary and time wasting operation:
+        changing this transformation also updates all children's rigid bodies
+        transformation in the physics engine.
+
+        This is important if you change transformation of some parent,
+        without directly changing the transformation of children,
+        but the children have rigid bodies attached. }
+      InternalMovesPhysicsBodies: Boolean;
 
     { How many times this is a child in the FWorld,
       counting all possible paths in transformation tree.
@@ -1658,35 +1669,32 @@
       @link(Scale) to one. Also resets @link(ScaleOrientation). }
     procedure Identity;
 
-    { Participate in the physics simulation.
-      This makes this object collidable with other rigid bodies
-      and it allows to move and rotate because of gravity
+    { Current TCastleRigidBody behavior that determines do we
+      participate in the physics simulation.
+
+      This property is always exactly equivalent to using
+      @code(FindBehavior(TCastleRigidBody) as TCastleRigidBody).
+      It is just a more convenient (and marginally faster) way to access this
+      common behavior.
+
+      See @url(https://castle-engine.io/physics physics manual)
+      for an overview of using physics. You need to add both
+      TCastleRigidBody and TCastleCollider to make physics work.
+      Then this object is collidable with other rigid bodies,
+      it can move and rotate because of gravity
       or because of collisions with other objects
       (if @link(TCastleRigidBody.Dynamic) is @true).
 
-      Setting this property makes this object
-      a single rigid body for the physics engine.
-      Underneath, it just adds TCastleRigidBody to behaviors.
-
-      If this property is assigned and the @link(TCastleRigidBody.Dynamic) is @true
-      (and @link(TCastleRigidBody.Dynamic) is @true by default)
-      then this object is moved and rotated using the physics engine.
-      It will move because of gravity (if @link(TCastleRigidBody.Gravity),
-      also @true by default),
-      and because of collisions with other objects.
-
-      If you use deprecated TCollider:
-      The @link(TCastleRigidBody.Collider) property must be initialized
-      @italic(before) assigning the @link(TRigidBody) instance here.
-      So you must create a @link(TCollider) descendant, specyfying the given
-      @link(TRigidBody) as a parent.
+      It is not possible to set this property.
+      Instead use @link(AddBehavior)
+      to add an instance of TCastleRigidBody to the behaviors list.
+      If there was a previous TCastleRigidBody instance, you can decide what
+      to do with it, e.g. you can remove it using @link(RemoveBehavior).
 
       Note that an object can only be present once in the @link(World)
       to be a rigid body. Breaking this rule will cause the
-      @link(EMultipleReferencesInWorld) exception at an undefined time.
-    }
-    property RigidBody: TCastleRigidBody read GetRigidBody write SetRigidBody;
-      {$ifdef FPC}deprecated 'use AddBehavior (to set)/FindBehavior (to get)';{$endif}
+      @link(EMultipleReferencesInWorld) exception at an undefined time. }
+    property RigidBody: TCastleRigidBody read FCachedRigidBody;
 
     { @deprecated Deprecated name for Translation. }
     property Position: TVector3 read FTranslation write SetTranslation;
@@ -3636,8 +3644,24 @@ begin
 end;
 
 procedure TCastleTransform.ChangedTransformCore(const UpdatePhysicsTransform: Boolean);
-var
-  RBody: TCastleRigidBody;
+
+  procedure RecursiveRigidBodySetWorldTransformation(const Transform: TCastleTransform);
+  var
+    I: Integer;
+    RBody: TCastleRigidBody;
+  begin
+    RBody := Transform.RigidBody;
+    if (RBody <> nil) and
+       (not RBody.DuringSettingTransformationFromPhysicsEngine) then
+      RBody.SetWorldTransformation(Transform.WorldTransform);
+
+    { TODO: This is time-consuming for changing larger hierarchies.
+      We should avoid it somehow. }
+    if InternalMovesPhysicsBodies then
+      for I := 0 to Transform.List.Count - 1 do
+        RecursiveRigidBodySetWorldTransformation(Transform.List[I]);
+  end;
+
 begin
   FTransformationValid := false;
   FWorldTransformationValid := false;
@@ -3645,10 +3669,7 @@ begin
 
   if (FWorld <> nil) and (FWorld.EnablePhysics) and UpdatePhysicsTransform then
   begin
-    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if (RBody <> nil) and
-       (not RBody.DuringSettingTransformationFromPhysicsEngine) then
-      RBody.SetWorldTransformation(WorldTransform);
+    RecursiveRigidBodySetWorldTransformation(Self);
   end;
 
   ChangedTransform;
@@ -4065,6 +4086,11 @@ begin
   Result := TCastleBehavior(FBehaviors[Index]);
 end;
 
+procedure TCastleTransform.UpdateCachedBehaviors;
+begin
+  FCachedRigidBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+end;
+
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
 var
   ReasonWhyCannot: String;
@@ -4106,6 +4132,7 @@ begin
     NotifyBehaviorAdded(Behavior);
 
     UpdateBehaviorsNeedBeforeRender;
+    UpdateCachedBehaviors;
   end;
 end;
 
@@ -4131,6 +4158,7 @@ begin
   RemoveWorldChangeNotification(Beh);
 
   UpdateBehaviorsNeedBeforeRender;
+  UpdateCachedBehaviors;
 end;
 
 procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
@@ -4289,7 +4317,7 @@ begin
     FExists := Value;
     UpdateExistsInRoot;
 
-    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    RBody := RigidBody; // FindBehavior(TCastleRigidBody) as TCastleRigidBody; // use cached value
     if (RBody <> nil) and RBody.Exists then
     begin
       if FLastExistsChangeFrameId = TFramesPerSecond.FrameId then
@@ -4335,7 +4363,7 @@ begin
   { Update rigid body existence when ExistsInRoot changes }
   if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) then
   begin
-    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    RBody := RigidBody; // FindBehavior(TCastleRigidBody) as TCastleRigidBody; // use cached value
     if RBody <> nil then
       RBody.UpdateExist;
   end;
@@ -4369,7 +4397,7 @@ var
   R, C: TCastleBehavior;
 begin
   inherited;
-  R := FindBehavior(TCastleRigidBody);
+  R := RigidBody; // FindBehavior(TCastleRigidBody) as TCastleRigidBody; // use cached value
   C := FindBehavior(TCastleCollider);
 
   if (R <> nil) <> (C <> nil) then
