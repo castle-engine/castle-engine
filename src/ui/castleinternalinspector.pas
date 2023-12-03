@@ -277,14 +277,9 @@ constructor TCastleInspector.Create(AOwner: TComponent);
   { Create TCastleComponentFactory that in every TCastleComponentFactory.ComponentLoad
     will create a deep clone of Template. }
   function TemplateToFactory(const Template: TComponent): TCastleComponentFactory;
-  var
-    ContentsStringStream: TStringStream;
   begin
-    ContentsStringStream := TStringStream.Create(ComponentToString(Template));
-    try
-      Result := TCastleComponentFactory.Create(nil);
-      Result.LoadFromStream(ContentsStringStream, '');
-    finally FreeAndNil(ContentsStringStream) end;
+    Result := TCastleComponentFactory.Create(nil);
+    Result.LoadFromComponent(Template);
   end;
 
 var
