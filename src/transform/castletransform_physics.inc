@@ -3804,31 +3804,6 @@ end;
 {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
-{ TCastleTransform ---------------------------------------------------------- }
-
-procedure TCastleTransform.SetRigidBody(const Value: TCastleRigidBody);
-var
-  OldRigidBody: TCastleRigidBody;
-begin
-  OldRigidBody := GetRigidBody;
-  if OldRigidBody = Value then
-     Exit;
-
-  if OldRigidBody <> nil then
-  begin
-    RemoveBehavior(OldRigidBody);
-    FreeAndNil(OldRigidBody);
-  end;
-
-  if Value <> nil then
-    AddBehavior(Value);
-end;
-
-function TCastleTransform.GetRigidBody: TCastleRigidBody;
-begin
-  Result := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-end;
-
 { TCastleAbstractRootTransform ------------------------------------------------------------------- }
 
 procedure TCastleAbstractRootTransform.InitializePhysicsEngine;
