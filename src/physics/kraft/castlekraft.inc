@@ -74,6 +74,7 @@
   We use Kraft in CastleTransform interface to make it easy to define
   CGE classes based on Kraft, though all their Kraft usage is private/internal. }
 {$ifndef FPC}
+  {$NODEFINE Vector2}
   {$NODEFINE Vector3}
   {$NODEFINE Quaternion}
 {$endif}
