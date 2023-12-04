@@ -134,6 +134,7 @@ castle-game-engine-*.fpm
 /examples/mobile/drawing_toy/drawing_toy
 /examples/mobile/on_screen_keyboard/on_screen_keyboard
 /examples/mobile/simple_3d_demo/simple_3d_demo
+/examples/mobile/two_cars/two_cars
 /examples/viewport_and_scenes/shadows/shadows
 /examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/shadow_volumes_whole_scene_manifold
 /examples/viewport_and_scenes/bump_mapping/bump_mapping
