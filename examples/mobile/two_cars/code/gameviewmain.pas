@@ -69,7 +69,7 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils, CastleUtils;
 
 const
   CarHorizontalMoveSpeed = 10.0;
@@ -150,7 +150,7 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   EnvMove := SecondsPassed * StreetMoveSpeed;
-  Distance += EnvMove;
+  Distance := Distance + EnvMove;
   MovingEnv.Translation := MovingEnv.Translation - Vector3(0, EnvMove, 0);
   MovingEnvCopy.Translation := MovingEnvCopy.Translation - Vector3(0, EnvMove, 0);
 
@@ -164,13 +164,13 @@ begin
 
     MovingEnvNextTransform.Translation := MovingEnvPrevTransform.Translation + Vector3(0, MovingEnvSize, 0);
     MovingEnvNextTransform := MovingEnvPrevTransform;
-    MovingEnvNextDistance += MovingEnvSize;
+    MovingEnvNextDistance := MovingEnvNextDistance + MovingEnvSize;
   end;
 
   MoveCarHorizontally(Car1, Car1TargetX);
   MoveCarHorizontally(Car2, Car2TargetX);
 
-  LabelDistance.Caption := Format('%f', [Distance]);
+  LabelDistance.Caption := FormatDot('%f', [Distance]);
 
   UpdateCarCollides(Car1, Car1CollideMarker);
   UpdateCarCollides(Car2, Car2CollideMarker);
