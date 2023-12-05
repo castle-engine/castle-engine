@@ -50,10 +50,10 @@ type
     MovingEnvNextDistance: Double;
     MovingEnvNextTransform: TCastleTransform;
     StreetMoveSpeed: Single;
-    procedure ButtonCar1LeftClick(Sender: TObject);
-    procedure ButtonCar1RightClick(Sender: TObject);
-    procedure ButtonCar2LeftClick(Sender: TObject);
-    procedure ButtonCar2RightClick(Sender: TObject);
+    procedure ClickCar1Left(Sender: TObject);
+    procedure ClickCar1Right(Sender: TObject);
+    procedure ClickCar2Left(Sender: TObject);
+    procedure ClickCar2Right(Sender: TObject);
     procedure ButtonSpeedClick(Sender: TObject);
     { X that positions the car exactly in the middle of the street column.
       Doesn't allow cars to move outside of the street (of 3 columns we have). }
@@ -62,6 +62,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -105,10 +106,10 @@ begin
   MovingEnvNextDistance := MovingEnvSize;
   MovingEnvNextTransform := MovingEnv;
 
-  ButtonCar1Left.OnClick := {$ifdef FPC}@{$endif} ButtonCar1LeftClick;
-  ButtonCar1Right.OnClick := {$ifdef FPC}@{$endif} ButtonCar1RightClick;
-  ButtonCar2Left.OnClick := {$ifdef FPC}@{$endif} ButtonCar2LeftClick;
-  ButtonCar2Right.OnClick := {$ifdef FPC}@{$endif} ButtonCar2RightClick;
+  ButtonCar1Left.OnClick := {$ifdef FPC}@{$endif} ClickCar1Left;
+  ButtonCar1Right.OnClick := {$ifdef FPC}@{$endif} ClickCar1Right;
+  ButtonCar2Left.OnClick := {$ifdef FPC}@{$endif} ClickCar2Left;
+  ButtonCar2Right.OnClick := {$ifdef FPC}@{$endif} ClickCar2Right;
   ButtonSpeed.OnClick := {$ifdef FPC}@{$endif} ButtonSpeedClick;
 end;
 
@@ -187,22 +188,22 @@ begin
     Result := 0;
 end;
 
-procedure TViewMain.ButtonCar1LeftClick(Sender: TObject);
+procedure TViewMain.ClickCar1Left(Sender: TObject);
 begin
   Car1TargetX := CarNormalizeToColWidth(Car1.Translation.X - StreetColWidth);
 end;
 
-procedure TViewMain.ButtonCar1RightClick(Sender: TObject);
+procedure TViewMain.ClickCar1Right(Sender: TObject);
 begin
   Car1TargetX := CarNormalizeToColWidth(Car1.Translation.X + StreetColWidth);
 end;
 
-procedure TViewMain.ButtonCar2LeftClick(Sender: TObject);
+procedure TViewMain.ClickCar2Left(Sender: TObject);
 begin
   Car2TargetX := CarNormalizeToColWidth(Car2.Translation.X - StreetColWidth);
 end;
 
-procedure TViewMain.ButtonCar2RightClick(Sender: TObject);
+procedure TViewMain.ClickCar2Right(Sender: TObject);
 begin
   Car2TargetX := CarNormalizeToColWidth(Car2.Translation.X + StreetColWidth);
 end;
@@ -211,6 +212,42 @@ procedure TViewMain.ButtonSpeedClick(Sender: TObject);
 begin
   ButtonSpeed.Pressed := not ButtonSpeed.Pressed;
   StreetMoveSpeed := StreetMoveSpeeds[ButtonSpeed.Pressed];
+end;
+
+function TViewMain.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Event.IsKey(keyA) then
+  begin
+    ClickCar1Left(nil);
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyS) then
+  begin
+    ClickCar1Right(nil);
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyK) then
+  begin
+    ClickCar2Left(nil);
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyL) then
+  begin
+    ClickCar2Right(nil);
+    Exit(true);
+  end;
+
+  if Event.IsKey(keySpace) then
+  begin
+    ButtonSpeedClick(nil);
+    Exit(true);
+  end;
 end;
 
 end.
