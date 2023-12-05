@@ -226,34 +226,6 @@
     function PlaySound(const Parameters: TPlaySoundParameters): TInternalSoundSource; overload;
       deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
 
-    { Simply play given TCastleSound. This should be used to play sounds
-      that are not spatial, i.e. have no place in 3D space.
-
-      Returns used TInternalSoundSource (or nil if none was available)
-      to further control the sound. It is deprecated: You should not use this
-      TInternalSoundSource instance anymore.
-      If you need more elaborate sound control, use TCastleSoundSource to play sounds,
-      that also automaticall applies TCastleSound changes to the playing sound.
-
-      @noAutoLinkHere }
-    function Sound(const SoundType: TCastleSound;
-      const Loop: boolean = false): TInternalSoundSource;
-      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
-
-    { Play given sound at appropriate position in 3D space.
-
-      Returns used TInternalSoundSource (or nil if none was available)
-      to further control the sound. It is deprecated: You should not use this
-      TInternalSoundSource instance anymore.
-      If you need more elaborate sound control, use TCastleSoundSource to play sounds,
-      that also automaticall applies TCastleSound changes to the playing sound.
-
-      @noAutoLinkHere }
-    function Sound3D(const SoundType: TCastleSound;
-      const Position: TVector3;
-      const Loop: boolean = false): TInternalSoundSource; overload;
-      deprecated 'use TCastleSound with TCastleSoundSource or SoundEngine.Play to play sounds';
-
     { Play given sound once (not looping).
 
       This is the simplest method to just play the sound and "forget about it"
@@ -727,56 +699,6 @@ begin
     Result := PlaySound(Parameters);
     {$warnings on}
   finally FreeAndNil(Parameters) end;
-end;
-
-function TSoundEngine.Sound(const SoundType: TCastleSound;
-  const Loop: boolean): TInternalSoundSource;
-begin
-  { If there is no actual sound, exit early without initializing sound backend.
-    - SoundType is nil (which includes sound name not defined in sounds.xml,
-      since SoundFromName returns nil for them).
-    - SoundType is <> nil but InternalBuffer = nil (if sound name is defined in
-      sounds.xml with explicit url="", like this:
-      <sound name="player_sudden_pain" url="" />)
-  }
-  if (SoundType = nil) or
-     (SoundType.InternalBuffer = nil) then
-    Exit(nil);
-
-  {$warnings off} // using deprecated from another deprecated
-  Result := PlaySound(
-    SoundType.InternalBuffer,
-    { spatial } false,
-    Loop,
-    SoundType.Priority,
-    SoundType.Volume,
-    SoundType.MinGain,
-    SoundType.MaxGain,
-    TVector3.Zero);
-  {$warnings on}
-end;
-
-function TSoundEngine.Sound3D(const SoundType: TCastleSound;
-  const Position: TVector3;
-  const Loop: boolean): TInternalSoundSource;
-begin
-  { If there is no actual sound, exit early without initializing sound backend.
-    See Sound for more comments why we do this. }
-  if (SoundType = nil) or
-     (SoundType.InternalBuffer = nil) then
-    Exit(nil);
-
-  {$warnings off} // using deprecated from another deprecated
-  Result := PlaySound(
-    SoundType.InternalBuffer,
-    { spatial } true,
-    Loop,
-    SoundType.Priority,
-    SoundType.Volume,
-    SoundType.MinGain,
-    SoundType.MaxGain,
-    Position);
-  {$warnings on}
 end;
 
 procedure TSoundEngine.Play(const ASound: TCastleSound);
