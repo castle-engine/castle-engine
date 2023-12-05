@@ -459,7 +459,7 @@ begin
   { TODO: although we pass it to FMOD, we also manually manage limited sources
     in TSoundAllocator.
     We should instead allocate many sound sources (MaxAllocatedSources large?)
-    at let FMOD to do its job. }
+    and let FMOD to do its job. }
 
   if FMODChannel = nil then Exit;
   CheckFMOD(FMOD_Channel_SetPriority(FMODChannel, Round(Value * 256)));
