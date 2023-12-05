@@ -119,9 +119,7 @@ begin
     Parameters.MinGain    := Sound.MinGain;
     Parameters.MaxGain    := Sound.MaxGain;
     {$warnings on}
-    {$warnings off} // using deprecated that should be internal
     FAllocatedSource := FEngine.PlaySound(Parameters);
-    {$warnings on}
   finally FreeAndNil(Parameters) end;
 
   if FAllocatedSource <> nil then
