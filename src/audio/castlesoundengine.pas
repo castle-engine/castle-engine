@@ -29,6 +29,14 @@ unit CastleSoundEngine;
   {$error When CASTLE_STRICT_CLI is defined, you cannot link to this unit.}
 {$endif}
 
+{$ifndef FPC}
+  { Ignore the TSoundEngine.InternalBackend exposing private ancestor field.
+    This makes this property not useful from C++ Builder
+    ( https://docwiki.embarcadero.com/RADStudio/Alexandria/en/W1045_Property_declaration_references_ancestor_private_%27%25s.%25s%27_(Delphi) )
+    but it is an internal property anyway, no code should use it. }
+  {$warn PRIVATE_PROPACCESSOR off}
+{$endif}
+
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections, DOM,
