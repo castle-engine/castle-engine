@@ -4,9 +4,12 @@ Build, package Castle Game Engine projects from the command-line.
 
 See the https://castle-engine.io/build_tool for documentation.
 
-- This tool is used by the GUI editor.
+- This tool is used by the GUI editor, https://castle-engine.io/editor
+
 - It is also useful in all environments when only command-line is available, e.g. in CI jobs (Jenkins, GitHub actions, GitLab CI -- see https://castle-engine.io/manual_automatic_builds.php ).
-- You can call it from editors (e.g. to integrate VS Code or Emacs with CGE).
+
+- You can call it from own editors (e.g. to integrate [VS Code](https://castle-engine.io/vscode) or Emacs with CGE).
+
 - Or just use it directly from command-line, if you like to use CLI :)
 
 ## Building
@@ -24,6 +27,7 @@ To compile the build tool, all you need is an FPC installed.
 
     ```
     cd castle-engine/tools/build-tool/ # first enter the build tool directory
+    Set-ExecutionPolicy Bypass -Scope Process
     ./castle-engine_compile.ps1
     ```
 
@@ -31,11 +35,11 @@ See https://castle-engine.io/compiling_from_source.php about compiling CGE.
 
 You can also compile the build tool using standard methods for CGE applications:
 
-- From [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+- From [CGE editor](https://castle-engine.io/editor). Just use menu item _"Compile"_.
 
 - Use [CGE command-line build tool](https://castle-engine.io/build_tool) to "bootstrap" it. Run `castle-engine compile` in this directory.
 
-- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `castle-engine.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `castle-engine.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
 
 ## Dev notes: CASTLE_STRICT_CLI symbol
 
