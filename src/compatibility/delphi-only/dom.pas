@@ -151,14 +151,13 @@ type
     FOwnerDocument: TDOMDocument;
     InternalNode: IXMLNode;
     FParentNode: TDOMNode;
-    function GetNodeName: String;
-
   strict private
     FChildNodes: TDOMNodeList;
     function GetNodeValue: String;
     procedure SetNodeValue(const Value: String);
     function  GetFirstChild: TDOMNode; virtual;
   protected
+    function GetNodeName: String;
     procedure InvalidateParent;
     function GetAttributes: TDOMNamedNodeMap; virtual;
     function GetParentNode: TDOMNode; virtual;

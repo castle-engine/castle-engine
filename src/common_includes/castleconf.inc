@@ -208,11 +208,6 @@
     $warnings on/off... but not enough for Delphi.
     TODO: This should eventually by unhidden. }
   {$warn SYMBOL_DEPRECATED off}
-
-  { The below are problems only for C++.
-    TODO: This should eventually by unhidden and we can support C++ builder. }
-  {$warn DUPLICATE_CTOR_DTOR off}
-  {$warn PRIVATE_PROPACCESSOR off}
 {$endif}
 
 { If GENERICS_CONSTREF is defined, then various routines used with Generics.Collections
