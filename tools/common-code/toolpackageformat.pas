@@ -71,7 +71,7 @@ end;
 
 function StringToPackageFormat(const S: String): TPackageFormat;
 begin
-  for Result in TPackageFormat do
+  for Result := Low(TPackageFormat) to High(TPackageFormat) do
     if AnsiSameText(PackageFormatNames[Result], S) then
       Exit;
   raise Exception.CreateFmt('Invalid package-format name "%s"', [S]);

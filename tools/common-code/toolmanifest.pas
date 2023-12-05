@@ -38,14 +38,14 @@ type
     AppName: String;
     constructor Create(const ALanguage, AAppName: String);
   end;
-  TLocalizedAppNameList = specialize TObjectList<TLocalizedAppName>;
+  TLocalizedAppNameList = {$ifdef FPC}specialize{$endif} TObjectList<TLocalizedAppName>;
 
   TIncludePath = class
     Path: String;
     Recursive: Boolean;
     ExecutablePermission: Boolean;
   end;
-  TIncludePathList = specialize TObjectList<TIncludePath>;
+  TIncludePathList = {$ifdef FPC}specialize{$endif} TObjectList<TIncludePath>;
 
   TProjectVersion = class(TComponent)
   public
@@ -178,10 +178,10 @@ type
     { Load manifest file.
       @param APath Project path, must be absolute.
       @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
-    constructor CreateFromUrl(const APath, ManifestUrl: String);
+    constructor CreateFromUrl(const APath, ManifestUrl: String); overload;
     { Load manifest file.
       @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
-    constructor CreateFromUrl(const ManifestUrl: String);
+    constructor CreateFromUrl(const ManifestUrl: String); overload;
     { Guess values for the manifest.
       @param APath Project path, must be absolute.
       @param AStandaloneSource Guessed StandaloneSource value. Project Name will be derived from it too. }

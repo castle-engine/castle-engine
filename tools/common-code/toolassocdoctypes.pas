@@ -35,7 +35,7 @@ type
     function ToIntentFilterPathPattern: string;
   end;
 
-  TAssociatedDocTypeList = class(specialize TObjectList<TAssocDocType>)
+  TAssociatedDocTypeList = class({$ifdef FPC}specialize{$endif} TObjectList<TAssocDocType>)
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     function ToPListSection(const ProjectQualifiedName, DefaultIcon: string): string;
