@@ -456,7 +456,7 @@ end;
 
 class function TCaptureOutput.Construct(const ASource: TStream;
   const ALineFiltering: TLineFiltering;
-  const ALineFilteringData: Pointer): TCaptureOutput; static;
+  const ALineFilteringData: Pointer): TCaptureOutput;
 begin
   if Assigned(ALineFiltering) then
   begin
@@ -706,9 +706,7 @@ procedure RunCommandSimple(
 
       if OverrideEnvironmentName <> '' then
       begin
-        NewEnvironment := TStringList.Create;
-        for I := 1 to GetEnvironmentVariableCount do
-          NewEnvironment.Add(GetEnvironmentString(I));
+        NewEnvironment := EnvironmentStrings;
         NewEnvironment.Values[OverrideEnvironmentName] := OverrideEnvironmentValue;
         P.Environment := NewEnvironment;
         // WritelnVerbose('Environment: ' + P.Environment.Text);
