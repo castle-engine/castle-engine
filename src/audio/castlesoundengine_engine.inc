@@ -66,6 +66,58 @@
 
     class function GetLogSoundLoading: Boolean; static;
     class procedure SetLogSoundLoading(const Value: Boolean); static;
+
+    { Load a sound file contents such that they can be immediately played.
+
+      This method tries to initialize backend (like OpenAL) context,
+      and loads the buffer contents. But even when it fails, it still returns
+      a valid (non-nil) TInternalSoundBuffer instance. As the OpenAL context
+      may be lost while the game is ongoing (in case of Android) we take care
+      to reload it when necessary.
+
+      The buffer should be released by @link(FreeBuffer) later when it's not needed.
+      Although we will take care to always free remaining buffers
+      before closing OpenAL context anyway.
+
+      We have a cache of sound files here. An absolute URL
+      will be recorded as being loaded to given buffer. Loading the same
+      URL second time returns the same buffer instance. The buffer
+      is released only once you call @link(FreeBuffer) as many times as you called
+      LoadBuffer for it.
+
+      @param(ExceptionOnError When to raise exception,
+        or merely make a warning by WritelnWarning,
+        in case of error when loading.
+
+        Note that it always returns non-nil, even in case of ExceptionOnError=@false
+        and an error at loading. But in this case, TInternalSoundBuffer is mostly a useless
+        empty instance. Do not depend on this behavior, and check for @nil
+        result in case you use ExceptionOnError=@false.
+      )
+
+      @param(SoundLoading Specifies whether to load sound at once, or use streaming.
+        See @link(TSoundLoading) for details.)
+
+      @raises(ESoundFileError If loading of this sound file failed.
+        There are many reasons why this may happen: we cannot read given URL,
+        or it may contain invalid contents,
+        or a library required to decompress e.g. OggVorbis is missing.)
+
+      @groupBegin }
+    function LoadBuffer(const Url: String; const SoundLoading: TSoundLoading;
+      const ExceptionOnError: Boolean = true): TInternalSoundBuffer; overload;
+    function LoadBuffer(const Url: String;
+      const ExceptionOnError: Boolean = true): TInternalSoundBuffer; overload;
+    function LoadBuffer(const Url: String; out Duration: TFloatTime): TInternalSoundBuffer;
+      overload;
+    { @groupEnd }
+
+    { Free a sound file buffer. Ignored when buffer is @nil.
+      Buffer is always set to @nil after this.
+
+      @raises(ESoundBufferNotLoaded When invalid (not @nil,
+        and not returned by LoadBuffer) buffer identifier is given.) }
+    procedure FreeBuffer(var Buffer: TInternalSoundBuffer);
   public
     const
       DefaultVolume = 1.0;
@@ -127,62 +179,6 @@
     { One-line information about the currently initialized
       sound backend (OpenAL, FMOD etc.). }
     property InformationSummary: string read FInformationSummary;
-
-    { Load a sound file contents such that they can be immediately played.
-
-      This method tries to initialize backend (like OpenAL) context,
-      and loads the buffer contents. But even when it fails, it still returns
-      a valid (non-nil) TInternalSoundBuffer instance. As the OpenAL context
-      may be lost while the game is ongoing (in case of Android) we take care
-      to reload it when necessary.
-
-      The buffer should be released by @link(FreeBuffer) later when it's not needed.
-      Although we will take care to always free remaining buffers
-      before closing OpenAL context anyway.
-
-      We have a cache of sound files here. An absolute URL
-      will be recorded as being loaded to given buffer. Loading the same
-      URL second time returns the same buffer instance. The buffer
-      is released only once you call @link(FreeBuffer) as many times as you called
-      LoadBuffer for it.
-
-      @param(ExceptionOnError When to raise exception,
-        or merely make a warning by WritelnWarning,
-        in case of error when loading.
-
-        Note that it always returns non-nil, even in case of ExceptionOnError=@false
-        and an error at loading. But in this case, TInternalSoundBuffer is mostly a useless
-        empty instance. Do not depend on this behavior, and check for @nil
-        result in case you use ExceptionOnError=@false.
-      )
-
-      @param(SoundLoading Specifies whether to load sound at once, or use streaming.
-        See @link(TSoundLoading) for details.)
-
-      @raises(ESoundFileError If loading of this sound file failed.
-        There are many reasons why this may happen: we cannot read given URL,
-        or it may contain invalid contents,
-        or a library required to decompress e.g. OggVorbis is missing.)
-
-      @groupBegin }
-    function LoadBuffer(const Url: String; const SoundLoading: TSoundLoading;
-      const ExceptionOnError: Boolean = true): TInternalSoundBuffer; overload;
-      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.Url)';
-    function LoadBuffer(const Url: String;
-      const ExceptionOnError: Boolean = true): TInternalSoundBuffer; overload;
-      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.Url)';
-    function LoadBuffer(const Url: String; out Duration: TFloatTime): TInternalSoundBuffer;
-      overload;
-      deprecated 'use TCastleSound to load sound buffers (just assign TCastleSound.Url)';
-    { @groupEnd }
-
-    { Free a sound file buffer. Ignored when buffer is @nil.
-      Buffer is always set to @nil after this.
-
-      @raises(ESoundBufferNotLoaded When invalid (not @nil,
-        and not returned by LoadBuffer) buffer identifier is given.) }
-    procedure FreeBuffer(var Buffer: TInternalSoundBuffer);
-      deprecated 'use TCastleSound to load and free sound buffers (just assign TCastleSound.Url)';
 
     { Play a sound from given buffer.
 
@@ -869,9 +865,7 @@ end;
 
 function TSoundEngine.LoadBuffer(const Url: String; out Duration: TFloatTime): TInternalSoundBuffer;
 begin
-  {$warnings off} // using deprecated that should be internal
   Result := LoadBuffer(Url);
-  {$warnings on}
   Duration := Result.Duration;
 end;
 
@@ -908,9 +902,7 @@ end;
 
 function TSoundEngine.LoadBuffer(const Url: String; const ExceptionOnError: Boolean): TInternalSoundBuffer;
 begin
-  {$warnings off} // using deprecated that should be internal
   Result := LoadBuffer(Url, slComplete, ExceptionOnError);
-  {$warnings on}
 end;
 
 procedure TSoundEngine.FreeBuffer(var Buffer: TInternalSoundBuffer);

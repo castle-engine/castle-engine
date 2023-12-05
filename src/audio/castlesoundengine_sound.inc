@@ -319,7 +319,6 @@ begin
       SoundLoading := slStreaming
     else
       SoundLoading := slComplete;
-    {$warnings off} // using deprecated that should be internal
     { Using ExceptionOnError = false. Because
       - The programs can generally tolerate missing sound files, and continue just fine.
       - Error at OggVorbis reading may be caused by
@@ -327,7 +326,6 @@ begin
         libraries, as it is easy to miss installation of some libs on some systems
         (like Linux) or package with appropriate DLLs (like Windows). }
     FBuffer := SoundEngine.LoadBuffer(Url, SoundLoading, false);
-    {$warnings on}
     DoChange(scAfterBufferCreated);
   end;
 end;
