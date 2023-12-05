@@ -41,6 +41,28 @@ You can also compile the build tool using standard methods for CGE applications:
 
 - Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `castle-engine.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
 
+## Delphi TODOs
+
+The build tool cannot be compiled with Delphi for now.
+
+It can only be compiled with FPC. Never the less, it can execute Delphi compiler to compile your projects (if instructed by `--compiler` option or `compiler` attribute in the [CastleEngineManifest.xml](https://castle-engine.io/project_manifest#_compiler_options_and_paths)).
+
+To make the build tool compile with Delphi, we miss:
+
+- `Process` unit, part of FPC, to run external programs with
+  nice cross-platform API.
+
+- Ability to enumerate *all* environment variables (not only query by name),
+  like FPC `GetEnvironmentVariableCount` and `GetEnvironmentString(Integer)`.
+
+- Understand the issue of `castleconf.inc` reporting problems with `CompilerVersion`
+  when trying to compile the build tool with Delphi.
+  In general `castleconf.inc` works with Delphi -- we include it in every CGE unit,
+  but it fails when trying to compile the build tool.
+  A temporary workaround is to comment out `{$if CompilerVersion < ...}`
+  checks when compiling build tool with Delphi.
+
+
 ## Dev notes: CASTLE_STRICT_CLI symbol
 
 The `CASTLE_STRICT_CLI` symbol is used when building the CGE for build tool. It means we know this is only a command-line application and we avoid linking any unit that may (indirectly) reference OpenGL units, sound or the big X3D/transform/scenes units.
