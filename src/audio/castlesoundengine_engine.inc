@@ -113,20 +113,6 @@
       from CastleFMODSoundBackend unit. }
     property InternalBackend: TSoundEngineBackend read Backend write SetInternalBackend;
 
-    { Do we have active sound rendering context.
-      This is @true when you successfully
-      called ContextOpen (and you didn't call ContextClose yet).
-
-      You should not need this property much.
-      The whole CastleSoundEngine API works regardless if the context
-      was successfully open or not.
-      However, reading this is useful to display to user warning
-      e.g. "Sound could not be initialized for some reason" (use @link(Information)
-      to get the details).
-
-      In case of OpenAL backend, this also implies that OpenAL library is loaded. }
-    property IsContextOpenSuccess: boolean read FIsContextOpenSuccess;
-
     { Did we attempt to initialize sound rendering context.
       This indicates that ContextOpen was called,
       and not closed with ContextClose yet.

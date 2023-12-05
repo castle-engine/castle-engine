@@ -1,4 +1,4 @@
-{%MainUnit castletransform.pas}
+﻿{%MainUnit castletransform.pas}
 {
   Copyright 2017-2023 Michalis Kamburelis.
 
@@ -194,13 +194,14 @@
       FSizeScale (set explicitly by user to tweak size). }
     procedure UpdateWorldScale;
 
-    function StoredWithAutoSize: Boolean;
-
     function WorldScaleScalar: Single;
 
     { Configure Sender (TCastleCollider) to have Mode2D. }
     class procedure CreateComponent2D(Sender: TObject);
   protected
+    { Use this for "stored" for properties that are auto-calculated when AutoSize. }
+    function StoredWithAutoSize: Boolean;
+
     { Total scale, accumulated from all parents TCastleTransform.Scale (converted to scalar
       following Mode2D) and collider SizeScale. }
     function TotalScale: Single;
