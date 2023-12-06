@@ -177,7 +177,9 @@ var
   I: Integer;
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    WritelnWarning('Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TDrawableImage) too late, you should move their destruction to an event like TCastleWindow.OnClose or TCastleControl.OnGLContextClose.',
+    WritelnWarning('Textures', Format(
+      'Releasing texture id %d after the rendering context has been closed. You release some rendering resources too late. You should release (at the latest) in an event registered on "ApplicationProperties.OnGLContextClose".' + NL +
+      'That said, all classes (like TDrawableImage, TCastleScene, TCastleImageControl, TCastleImageTransform) should do this management correctly automatically, so this warning should never happen. If you see this -> please submit a bug to Castle Game Engine with a testcase to reproduce this problem.',
       [TextureId]));
 
   if FEnabled then
@@ -197,7 +199,7 @@ begin
       { texture id 0 may be allocated, but never released }
       (AllocatedTextures[0].TextureId = 0)) then
   begin
-    WritelnWarning('Textures', Format('TextureMemoryProfiler contains some textures when closing GL context. Possibly we have texture memory leak (textures will be freed anyway when closing GL context, but possibly we could free them earlier).'+' Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
+    WritelnWarning('Textures', Format('TextureMemoryProfiler contains some textures when closing the rendering context. Possibly we have texture memory leak (textures will be freed anyway when closing rendering context, but possibly we could free them earlier).'+' Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
       [AllocatedTextures.Count,
        AllocatedTextures[0].Url]));
   end;
