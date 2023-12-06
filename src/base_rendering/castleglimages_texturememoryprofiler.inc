@@ -179,7 +179,7 @@ begin
   if not ApplicationProperties.IsGLContextOpen then
     WritelnWarning('Textures', Format(
       'Releasing texture id %d after the rendering context has been closed. You release some rendering resources too late. You should release (at the latest) in an event registered on "ApplicationProperties.OnGLContextClose".' + NL +
-      'That said, all classes (like TDrawableImage, TCastleScene, TCastleImageControl, TCastleImageTransform) should do this management correctly automatically, so this warning should never happen. If you see this -> please submit a bug to Castle Game Engine with a testcase to reproduce this problem.',
+      'That said, all classes (like TDrawableImage, TCastleScene, TCastleImageControl, TCastleImageTransform) should do this management correctly automatically, so this warning should never happen.' + ' If you see this -> please submit a bug to Castle Game Engine with a testcase to reproduce this problem.',
       [TextureId]));
 
   if FEnabled then
