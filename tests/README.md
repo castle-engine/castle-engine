@@ -51,7 +51,7 @@ You can pass command-line parameter `--filter` to filter the initially enabled t
 
 Note that it makes sense to add quotes (single or double) around the command-line option, to avoid shell from interpreting the `*` and `?` characters. Though you are unlikely to have any files matching the `--filter...`, so it should not be a problem. Unless you use space to separate `--filter` to option argument like `*image*`, then the quotes matter.
 
-TODO: Filtering should be used by console too.
+This filtering is applied to both console and GUI operation.
 
 ## Deprecated: Alternative testing framework (FpcUnit) - console
 

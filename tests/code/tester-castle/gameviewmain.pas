@@ -161,7 +161,10 @@ var
   View: TViewMain;
 begin
   View := TViewMain(Data);
-  View.FilterTests := Argument;
+  case OptionNum of
+    0: View.FilterTests := Argument;
+    else raise EInternalError.Create('OptionProc: OptionNum = ' + IntToStr(OptionNum));
+  end;
 end;
 
 { TViewMain ----------------------------------------------------------------- }
