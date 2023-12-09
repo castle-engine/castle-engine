@@ -376,20 +376,9 @@ type
       read FNotifyEnabledTestCountChanged write FNotifyEnabledTestCountChanged;
 
     { Set Enabled of all tests, to reflect whether they match Filter.
-
-      Filter can use wildcards (* and ?) and is compared with the test name,
-      which is the test case class name + test method name, separated by dot,
-      like 'TTestCastleClassUtils.TestRleCompression'.
-      The comparison ignores case (since in Pascal identifiers, case is ignored).
-
-      E.g.
-
-      - use filter 'TTestCastleClassUtils.*' to run all tests from
-        the 'TTestCastleClassUtils' test case.
-      - use filter 'TTestCastleClassUtils.TestRleCompression' to run
-        exactly this particular test.
-      - use filter '*image*' to run all tests that have 'image' in their name.
-    }
+      Filter can use wildcards (* and ?) and is compared with
+      the test GetFullName.
+      See ../../README.md for detailed description and examples. }
     procedure EnableFilter(const Filter: String);
   end;
 
