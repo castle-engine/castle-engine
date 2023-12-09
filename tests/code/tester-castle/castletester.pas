@@ -374,6 +374,23 @@ type
     { Callback after enabled test count changed }
     property NotifyEnabledTestCountChanged: TNotifyEvent
       read FNotifyEnabledTestCountChanged write FNotifyEnabledTestCountChanged;
+
+    { Set Enabled of all tests, to reflect whether they match Filter.
+
+      Filter can use wildcards (* and ?) and is compared with the test name,
+      which is the test case class name + test method name, separated by dot,
+      like 'TTestCastleClassUtils.TestRleCompression'.
+      The comparison ignores case (since in Pascal identifiers, case is ignored).
+
+      E.g.
+
+      - use filter 'TTestCastleClassUtils.*' to run all tests from
+        the 'TTestCastleClassUtils' test case.
+      - use filter 'TTestCastleClassUtils.TestRleCompression' to run
+        exactly this particular test.
+      - use filter '*image*' to run all tests that have 'image' in their name.
+    }
+    procedure EnableFilter(const Filter: String);
   end;
 
   procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
@@ -382,7 +399,8 @@ implementation
 
 { TCastleTester }
 
-uses CastleLog, TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} CastleUtils;
+uses TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} StrUtils,
+  CastleLog, CastleUtils;
 
 var
   FRegisteredTestCaseList: {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>;
@@ -644,6 +662,20 @@ end;
 function TCastleTester.IsConsoleMode: Boolean;
 begin
   Result := FUIWindow = nil;
+end;
+
+procedure TCastleTester.EnableFilter(const Filter: String);
+var
+  TestCase: TCastleTestCase;
+  Test: TCastleTest;
+  I: Integer;
+begin
+  for TestCase in FTestCaseList do
+    for I := 0 to TestCase.TestCount - 1 do
+    begin
+      Test := TestCase.Test[I];
+      Test.Enabled := IsWild(Test.GetFullName, Filter, true);
+    end;
 end;
 
 { TCastleTestCase }
