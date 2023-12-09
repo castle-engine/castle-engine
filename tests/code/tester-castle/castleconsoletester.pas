@@ -25,7 +25,7 @@ type
   strict private
     FTester: TCastleTester;
     procedure TestExecuted(const AName: String);
-    procedure AssertFailed(const TestName, Msg: String);
+    procedure TestFailed(const TestName, Msg: String);
 
     procedure Log(const AMessage: String);
   public
@@ -43,7 +43,7 @@ implementation
 
 uses CastleLog, CastleParameters;
 
-procedure TCastleConsoleTester.AssertFailed(const TestName, Msg: String);
+procedure TCastleConsoleTester.TestFailed(const TestName, Msg: String);
 begin
   Log(TestName + ': Failed: ' + Msg);
 end;
@@ -52,7 +52,7 @@ constructor TCastleConsoleTester.Create;
 begin
   FTester := TCastleTester.Create(nil);
   FTester.NotifyTestCaseExecuted := {$ifdef FPC}@{$endif}TestExecuted;
-  FTester.NotifyAssertFail := {$ifdef FPC}@{$endif}AssertFailed;
+  FTester.NotifyTestFail := {$ifdef FPC}@{$endif}TestFailed;
 end;
 
 destructor TCastleConsoleTester.Destroy;

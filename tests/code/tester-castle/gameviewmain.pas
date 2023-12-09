@@ -49,8 +49,8 @@ type
     procedure TestFailedCountChanged(const TestCount: Integer);
     procedure EnabledTestCountChanged(Sender: TObject);
     procedure TestExecuted(const AName: String);
-    procedure AssertFailed(const TestName, Msg: String);
-    procedure LogFailedAssertion(const AMessage: String);
+    procedure TestFailed(const TestName, Msg: String);
+    procedure LogFailure(const AMessage: String);
 
     procedure StartTesting;
     procedure StopTesting(const AMessage: String;
@@ -153,9 +153,9 @@ uses SysUtils,
 
 { TViewMain ----------------------------------------------------------------- }
 
-procedure TViewMain.AssertFailed(const TestName, Msg: String);
+procedure TViewMain.TestFailed(const TestName, Msg: String);
 begin
-  LogFailedAssertion(TestName + ': ' + Msg);
+  LogFailure(TestName + ': ' + Msg);
 end;
 
 procedure TViewMain.ClickStartTests(Sender: TObject);
@@ -184,7 +184,7 @@ begin
   ]);
 end;
 
-procedure TViewMain.LogFailedAssertion(const AMessage: String);
+procedure TViewMain.LogFailure(const AMessage: String);
 begin
   if LabelFailedTests.Caption = '' then
     LabelFailedTests.Caption :=  AMessage
@@ -214,7 +214,7 @@ begin
   Tester.NotifyTestFailedChanged := {$ifdef FPC}@{$endif}TestFailedCountChanged;
   Tester.NotifyEnabledTestCountChanged := {$ifdef FPC}@{$endif}EnabledTestCountChanged;
   Tester.NotifyTestCaseExecuted := {$ifdef FPC}@{$endif}TestExecuted;
-  Tester.NotifyAssertFail := {$ifdef FPC}@{$endif}AssertFailed;
+  Tester.NotifyTestFail := {$ifdef FPC}@{$endif}TestFailed;
 
 
   { You can add all Registered tests by calling AddRegisteredTestCases }
@@ -253,7 +253,7 @@ begin
 
   { If some test ends with unhandled exception we want it on our error list }
   if Exception then
-    LogFailedAssertion(AMessage);
+    LogFailure(AMessage);
 
   if (Tester.TestFailedCount > 0) or (Exception) then
     LabelMessage.Color := HexToColor('C60D0D')
