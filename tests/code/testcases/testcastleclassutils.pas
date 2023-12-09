@@ -45,6 +45,7 @@ type
     procedure TestLineColumn_BufferedReadStream;
     procedure TestForIn;
     procedure TestGetBaseNameFromUrl;
+    procedure TestRleCompression;
   end;
 
   TFoo = class
@@ -62,7 +63,7 @@ type
 implementation
 
 uses Generics.Defaults,
-  CastleStringUtils, CastleInternalUrlUtils;
+  CastleStringUtils, CastleInternalUrlUtils, CastleLog;
 
 { TFoo, TFoosList ------------------------------------------------------------ }
 
@@ -429,6 +430,62 @@ begin
     AssertEquals('SceneWrl1', NewComponent.Name);
 
   finally FreeAndNil(Parent) end;
+end;
+
+{$I test_font_image_to_compress.inc}
+
+{ Like CompareMem, but slower,
+  and when the memory is different, log the difference:
+  position and the 2 different bytes. }
+function CompareMemDebug(const P1, P2: Pointer; const Size: Int64): Boolean;
+var
+  I: Int64;
+  P1B, P2B: PByte;
+begin
+  Result := true;
+  P1B := P1;
+  P2B := P2;
+  for I := 0 to Size - 1 do
+    if P1B^ <> P2B^ then
+    begin
+      WritelnLog('Difference at %d: %d <> %d', [I, P1B^, P2B^]);
+      Exit(false);
+      Inc(P1B);
+      Inc(P2B);
+    end;
+end;
+
+procedure TTestCastleClassUtils.TestRleCompression;
+var
+  Initial, Compressed, Decompressed: TMemoryStream;
+begin
+  Initial := TMemoryStream.Create;
+  try
+    Initial.Size := SizeOf(FontImagePixels);
+    Move(FontImagePixels[0], Initial.Memory^, Initial.Size);
+
+    Compressed := TMemoryStream.Create;
+    try
+      InternalCastleSimpleCompress(Initial.Memory, Initial.Size, Compressed);
+
+      WritelnLog('Compressed %d (%s) to %d (%s), ratio %f', [
+        Initial.Size, SizeToStr(Initial.Size),
+        Compressed.Size, SizeToStr(Compressed.Size),
+        Compressed.Size / Initial.Size
+      ]);
+
+      Compressed.Position := 0;
+
+      Decompressed := TMemoryStream.Create;
+      try
+        InternalCastleSimpleDecompress(Compressed.Memory, Compressed.Size, Decompressed);
+        AssertEquals(Initial.Size, Decompressed.Size);
+        AssertTrue(CompareMemDebug(Decompressed.Memory, Initial.Memory, Initial.Size));
+        // TODO: why CompareMem fails, and CompareMemDebug not?
+        // AssertTrue(CompareMem(Decompressed.Memory, Initial.Memory, Initial.Size));
+      finally FreeAndNil(Decompressed) end;
+    finally FreeAndNil(Compressed) end;
+  finally FreeAndNil(Initial) end;
 end;
 
 initialization

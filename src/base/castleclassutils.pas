@@ -20,13 +20,13 @@
   Some notes about TStream descendants :
   @unorderedList(
     @item(
-      I call a stream "purely sequential" (or just "sequential")
+      We call a stream "purely sequential" (or just "sequential")
       if it allows only reading and/or writing of data
       and does not allow free "Seek" calls,
       in particular --- it does not allow Seek to move back in a stream.)
 
     @item(
-      I call a stream "growing" if it's read-only and it's purely sequential
+      We call a stream "growing" if it's read-only and it's purely sequential
       and it's Size property may be useless. In other words, when you read
       a "growing" stream, you don't know when it ends, until you reach the end.
       You just have to read data until Read returns 0.)
@@ -37,7 +37,6 @@
       e.g. seen for THandleStream when handle is StdIn.)
   )
 }
-
 unit CastleClassUtils;
 
 {$I castleconf.inc}
@@ -1068,6 +1067,54 @@ type
       (we will not expose dangling pointer). }
     property Observed: TComponent read FObserved write SetObserved;
   end;
+
+{ Simple RLE compression / decompression.
+
+  Design goals:
+
+  - Simple to implement, so we can implement it in Pascal in CGE,
+    without depending on any external libs or any FPC/Delphi-specific units.
+    So can be used with all platforms, compilers, easily.
+
+  - Fast to decompress.
+    Compression itself is also fast, but isn't a priority.
+    In our main use-case, compression occurs at pre-processing stage
+    (texture-to-pascal, font-to-pascal) while decompression occurs at runtime
+    (almost every CGE application will need to decompress to use FallbackFont).
+
+  - Efficient compression of typical image data,
+    where we have often long sequences of the same byte.
+    We are not trying to get the best compression ratio,
+    we are useful only with specialized data that is really easy to compress.
+    See https://en.wikipedia.org/wiki/Run-length_encoding .
+
+  - See implementation comments for the exact algorithm.
+    This algorithm should be considered an implementation detail only!
+
+  Compatibility:
+
+  This is not a stable algorithm for now, do not count on it being backward
+  compatible between CGE releases, do not compress your files with it!
+  It is used internally in CGE only, to temporarily compress some data.
+  When we use it, we always depend that compression + decompression
+  was done by the same CGE version.
+
+  Stream usage:
+
+  Since the primary use-case is to compress / decompress data already in memory,
+  we assume that whole input is already in memory with known size.
+  So we don't try to read source from a general TStream (with unknown size),
+  or even TMemoryStream. The Source is just a pointer with content size.
+
+  SourceSize is limited to 4 GB (max Cardinal) to allow fast iteration
+  using 32-bit Integers.
+
+  @groupBegin }
+procedure InternalCastleSimpleCompress(
+  const Source: Pointer; const SourceSize: Cardinal; const Dest: TStream);
+procedure InternalCastleSimpleDeCompress(
+  const Source: Pointer; const SourceSize: Cardinal; const Dest: TStream);
+{ @groupEnd }
 
 implementation
 
@@ -2554,6 +2601,173 @@ begin
     FObserved := Value;
     if FObserved <> nil then
       FObserved.FreeNotification(Self);
+  end;
+end;
+
+{ ------------------------------------------------------------------------
+  Castle Game Engine RLE compression data format:
+
+  We have 2 types of chunks:
+
+  - 1st byte has most significant bit not set, IOW it is < 128.
+
+    Let's call Length = 1st byte.
+
+    Decompression should read next byte, and repeat it Length times.
+    This is the core of the RLE compression.
+    So, at best, 127 bytes can be compressed into 2 bytes
+    (length = 127, and byte to be repeated 127 times).
+
+  - 1st byte has most significant bit set, IOW it is >= 128.
+
+    Let's call Length = 1st byte - 128 = 1st byte with most significant bit zeroed.
+
+    Decompression should read next Length bytes, and copy them to output, once.
+
+    This is done to lessed the impact of the least favorable data for
+    RLE compression, when all bytes are different.
+    So we don't need to encode each unique byte as "1 a", "1 b" etc.
+    (effectively doubling the size of unique bytes)
+    Instead, we can encode a sequence of unique bytes.
+
+    On tests (TTestCastleClassUtils.TestRleCompression),
+    this makes compression better, from 17% to 12%.
+
+  -------------------------------------------------------------------------
+}
+
+const
+  { max value in least significant 7 digits }
+  MaxChunkLength = $7F;
+  MaxLeftoverUniqueBytes = $7F;
+
+procedure InternalCastleSimpleCompress(
+  const Source: Pointer; const SourceSize: Cardinal; const Dest: TStream);
+var
+  LeftoverUniqueBytes: array [1..MaxLeftoverUniqueBytes] of Byte;
+  LeftoverUniqueBytesCount: Byte;
+
+  { Put LeftoverUniqueBytes* into Dest, if LeftoverUniqueBytesCount is zero.
+    Set LeftoverUniqueBytesCount to zero. }
+  procedure FlushLeftoverUniqueBytes;
+  var
+    LeftoverUniqueBytesCountEncoded: Byte;
+  begin
+    if LeftoverUniqueBytesCount <> 0 then
+    begin
+      {$ifdef CASTLE_DEBUG_RLE} WritelnLog(Format('Compress leftover unique bytes count %d', [LeftoverUniqueBytesCount])); {$endif}
+      LeftoverUniqueBytesCountEncoded := LeftoverUniqueBytesCount or (1 shl 7);
+      Dest.WriteBuffer(LeftoverUniqueBytesCountEncoded, SizeOf(LeftoverUniqueBytesCountEncoded));
+      Dest.WriteBuffer(LeftoverUniqueBytes, LeftoverUniqueBytesCount);
+      LeftoverUniqueBytesCount := 0;
+    end;
+  end;
+
+var
+  I: Cardinal;
+  ChunkByte, ChunkSize: Byte;
+  Buffer: PByte;
+begin
+  LeftoverUniqueBytesCount := 0;
+
+  { Compress contents of Buffer^ into Dest stream. }
+  Buffer := PByte(Source);
+
+  { We look at character with index I (1-based).
+    We move Buffer pointer, such that Buffer^ always points to ith byte. }
+  I := 1;
+  while I <= SourceSize do
+  begin
+    ChunkSize := 1;
+    ChunkByte := Buffer^;
+    Inc(I);
+    Inc(Buffer);
+    while
+      (I <= SourceSize) and
+      (PByte(PtrUInt(Buffer + 1))^ = ChunkByte) and
+      (ChunkSize < MaxChunkLength) do
+    begin
+      Inc(I);
+      Inc(Buffer);
+      Inc(ChunkSize);
+    end;
+
+    { We could ignore now the optimization to use LeftoverUniqueBytes,
+      and just do this:
+        Dest.WriteBuffer(ChunkSize, SizeOf(ChunkSize));
+        Dest.WriteBuffer(ChunkByte, SizeOf(ChunkByte));
+      This would result in correct, albeit unoptimal, compression.
+    }
+
+    if ChunkSize = 1 then
+    begin
+      if LeftoverUniqueBytesCount = MaxLeftoverUniqueBytes then
+        FlushLeftoverUniqueBytes;
+      Assert(LeftoverUniqueBytesCount < MaxLeftoverUniqueBytes);
+      Inc(LeftoverUniqueBytesCount);
+      LeftoverUniqueBytes[LeftoverUniqueBytesCount] := ChunkByte;
+    end else
+    begin
+      FlushLeftoverUniqueBytes;
+      {$ifdef CASTLE_DEBUG_RLE} WritelnLog(Format('Compress chunk size %d byte %d', [ChunkSize, ChunkByte])); {$endif}
+      Dest.WriteBuffer(ChunkSize, SizeOf(ChunkSize));
+      Dest.WriteBuffer(ChunkByte, SizeOf(ChunkByte));
+    end;
+  end;
+
+  FlushLeftoverUniqueBytes;
+end;
+
+procedure InternalCastleSimpleDeCompress(
+  const Source: Pointer; const SourceSize: Cardinal; const Dest: TStream);
+var
+  Buffer: PByte;
+  I, J: Cardinal;
+  ChunkSize, ChunkByte: Byte;
+begin
+  { Decompress contents of Buffer^ into Dest stream. }
+  Buffer := PByte(Source);
+
+  { We look at character with index I (1-based).
+    We move Buffer pointer, such that Buffer^ always points to ith byte. }
+  I := 1;
+  while I <= SourceSize do
+  begin
+    ChunkSize := Buffer^;
+    Inc(I);
+    Inc(Buffer);
+
+    if ChunkSize and (1 shl 7) <> 0 then
+    begin
+      ChunkSize := ChunkSize and not (1 shl 7);
+
+      { We have ChunkSize of unique bytes to copy from Buffer^ to Dest. }
+      {$ifdef CASTLE_DEBUG_RLE} WritelnLog(Format('Decompress leftover unique bytes count %d', [ChunkSize])); {$endif}
+
+      if ChunkSize > MaxLeftoverUniqueBytes then
+        raise Exception.CreateFmt('Too large leftover chunk size %d, should be <= %d', [
+          ChunkSize,
+          MaxLeftoverUniqueBytes
+        ]);
+      if I + ChunkSize - 1 > SourceSize then
+        raise Exception.CreateFmt('Compressed stream ended in the middle of leftover chunk (has size %d, should have size at least %d)', [
+          SourceSize,
+          I + ChunkSize - 1
+        ]);
+
+      Dest.WriteBuffer(Buffer^, ChunkSize);
+      Inc(I, ChunkSize);
+      Inc(Buffer, ChunkSize);
+    end else
+    begin
+      ChunkByte := Buffer^;
+      Inc(I);
+      Inc(Buffer);
+
+      {$ifdef CASTLE_DEBUG_RLE} WritelnLog(Format('Decompress chunk size %d byte %d', [ChunkSize, ChunkByte])); {$endif}
+      for J := 1 to ChunkSize do
+        Dest.WriteBuffer(ChunkByte, SizeOf(ChunkByte));
+    end;
   end;
 end;
 
