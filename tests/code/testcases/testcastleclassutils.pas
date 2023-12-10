@@ -481,8 +481,27 @@ begin
         InternalCastleSimpleDecompress(Compressed.Memory, Compressed.Size, Decompressed);
         AssertEquals(Initial.Size, Decompressed.Size);
         AssertTrue(CompareMemDebug(Decompressed.Memory, Initial.Memory, Initial.Size));
-        // TODO: why CompareMem fails, and CompareMemDebug not?
-        // AssertTrue(CompareMem(Decompressed.Memory, Initial.Memory, Initial.Size));
+        (*
+        TODO: CompareByte and CompareMem seem to be wrong here!
+
+        They detect the memory differs, while it is really the same,
+        shown by CompareMemDebug and looking at dump of it.
+        Observed with FPC 3.2.2 on Linux/x86_64.
+        Test on other compilers, OS, architectures and submit as FPC bug.
+        *)
+
+        WritelnLog('CompareByte (should be 0) %d', [
+          CompareByte(Decompressed.Memory^, Initial.Memory^, Initial.Size)
+        ]);
+        WritelnLog('CompareMem (should be true) %s', [
+          BoolToStr(CompareMem(Decompressed.Memory, Initial.Memory, Initial.Size), true)
+        ]);
+
+        (*
+        Once/where this is fixed, use AssertTrue(CompareMem(...))
+        instead of CompareMemDebug. Use slower CompareMemDebug only
+        when CompareMem answers false, to get precise information what failed.
+        *)
       finally FreeAndNil(Decompressed) end;
     finally FreeAndNil(Compressed) end;
   finally FreeAndNil(Initial) end;
