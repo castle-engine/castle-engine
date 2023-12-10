@@ -512,11 +512,29 @@ begin
       Test.TearDown;
     end;
   except
-    on E: EAssertionFailedError do
-    begin
-      if FStopOnFirstFail then
-        raise;
-    end;
+    { Notes:
+
+      - We don't treat EAssertionFailedError
+        any differently from other exceptions here.
+
+        (EAssertionFailedError is raised by our Fail
+        and our AssertXxx methods; *not* raised by standard Pascal Assert.)
+
+        Reason: When the test raises (and doesn't catch) any exception
+        (explicitly like "raise ..", or because of check failed
+        e.g. range check error, or because of standard Pascal Assert failed)
+        it should be reported as a failure, just like a failure in our Fail
+        or AssertXxx.
+
+        Trying to differentiate between EAssertionFailedError and others
+        actually caused bugs in display of castle-tester in the past.
+        It seems simpler and more consistent to treat all exceptions the same.
+
+      - We capture all TObject exceptions here, not just Exception,
+        to be sure to really catch everything. Though I know of no real-life
+        cases when something in standard Pascal libraries raises an exception
+        that is not Exception.
+    }
     on E: TObject do
     begin
       // call FNotifyTestFail
