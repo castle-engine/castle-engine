@@ -1130,11 +1130,8 @@ begin
     if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
       Include(Options, prShadowVolume);
 
-    {$warnings off} // using deprecated in deprecated unit
-    Items.MainScene.PrepareResources(Options, false, Viewport.PrepareParams);
-
+    Viewport.PrepareResources(Items.MainScene, Options);
     Items.MainScene.FreeResources([frTextureDataInNodes]);
-    {$warnings on}
 
     Progress.Step;
   finally
