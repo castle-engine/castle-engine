@@ -141,8 +141,9 @@ type
   {$endif}
 
   { Abstract class for an image with unspecified, possibly compressed,
-    memory format. The idea is that both uncompressed images (TCastleImage)
-    and images compressed for GPU (TGPUCompressedImage) are derived from this class. }
+    memory format. Both uncompressed images (TCastleImage)
+    and images compressed for GPU (TGPUCompressedImage) are derived from this
+    base class. }
   TEncodedImage = class
   private
     FWidth, FHeight, FDepth: Cardinal;
@@ -163,13 +164,44 @@ type
 
     property Width: Cardinal read FWidth;
     property Height: Cardinal read FHeight;
+
+    { Depth of the image.
+      For 2D images (most common) this is just 1.
+
+      All images in CastleImages can be potentially 3D, which means they
+      can have Depth > 1.
+      A 3D image is just a 3-dimensional array of pixels,
+      and you can use it e.g. as a texture with 3D texture coordinates.
+      A sample use-cases for 3D textures are:
+
+      @unorderedList(
+        @item(Generated colors of some material that you can imagine as
+          a 3D volume, like a volume of wood or marble. This is nice to apply
+          on any complicated 3D shape, because the necessary
+          3D texture coordinates are trivial,
+          since 3D position of a point on the shape
+          can be used as a reasonable 3D texture coordinate.)
+        @item(Medical data, some scans are 3D.)
+        @item(Noise (like Perlin noise) used for various
+          effects in shaders.)
+        @item(Specialized noise, e.g. a volume of smoke, or a volume of clouds.)
+      )
+    }
     property Depth: Cardinal read FDepth;
 
+    { Image data. The layout of this memory is defined by descendants.
+      For example, for TCastleImage it's a simple array of pixels
+      (see TCastleImage docs for exact description of the memory layout),
+      for TGPUCompressedImage it's a compressed data for GPU.
+
+      Note that this may be @nil, if Width * Height * Depth = 0.
+      In this case, IsEmpty returns @true. }
     property RawPixels: Pointer read FRawPixels;
 
     { Size of image contents in bytes. }
     function Size: Cardinal; virtual; abstract;
 
+    { Get a 3D vector with @link(Width), @link(Height), @link(Depth). }
     function Dimensions: TVector3Cardinal;
 
     { Is an image empty.
