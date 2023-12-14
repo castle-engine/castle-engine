@@ -187,9 +187,7 @@ begin
     finally FreeAndNil(Image) end;
   end;
 
-  { output full unit contents.
-    Beware to not concatenate huge Images* strings in the memory,
-    could be a performance / memory problem? Although code above does it anyway? }
+  { output full unit contents }
   OutputUnit := TTextWriter.Create(OutputDirectory + LowerCase(UnitName) + '.pas');
   OutputUnit.Write(
     '{ -*- buffer-read-only: t -*- }' +NL+
@@ -207,7 +205,7 @@ begin
   OutputUnit.Write(
     'implementation' + nl +
     nl+
-    'uses SysUtils;' + nl +
+    'uses SysUtils, CastleInternalDataCompression;' + nl +
     nl +
     '{ Actual image data is included from another file, with a deliberately' +NL+
     '  non-Pascal file extension ".image_data". This way online code analysis' +NL+

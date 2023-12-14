@@ -82,7 +82,7 @@ uses SysUtils,
   {$ifdef FPC}TestFPImage,{$endif}
   //TestToolFpcVersion,
 
-{ Testing CGE units }
+  { Testing CGE units }
   TestCastleUtils,
   TestCastleRectangles,
   TestCastleFindFiles,
@@ -96,6 +96,7 @@ uses SysUtils,
   TestCastleRenderOptions,
   TestCastleKeysMouse,
   TestCastleImages,
+  TestCastleInternalDataCompression,
   TestCastleImagesDraw,
   TestCastleBoxes,
   TestCastleFrustum,
