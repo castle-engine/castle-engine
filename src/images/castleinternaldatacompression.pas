@@ -25,12 +25,29 @@ interface
 uses SysUtils, Classes, Generics.Collections;
 
 type
-  TStreamsList = {$ifdef FPC}specialize{$endif} TObjectList<TMemoryStream>;
+  TChannelsSplit = class
+    Data: array of Pointer;
+    { Every Data[I] has this size. }
+    DataSize: Cardinal;
 
-{ Split data into per-channel streams.
+    { Allocate all Data[I] arrays using GetMem.
+
+      Note that this is not the only way to initialize Data[I] arrays,
+      e.g. embedded images/fonts will just set Data[I] to pointers
+      to data embedded in EXE. }
+    procedure DataAllocate;
+
+    { Free all Data[I] arrays using FreeMem. }
+    procedure DataFree;
+  end;
+
+{ Split data into per-channel arrays.
   This is good to apply RLE compression to each image channel separately,
   this makes compression most efficient, e.g. RGB image will compress great
   when it contains the single color.
+
+  The TChannelsSplit has allocated data with DataAllocate,
+  so remember to call DataFree when you're done with it.
 
   While this routine technically doesn't assume anything about "what is the data
   content", but in practice it is useful only with TCastleImage.RawPixels data.
@@ -38,12 +55,12 @@ type
   i.e. assuming that data is a sequence of pixels, each pixel having PixelSize
   bytes. }
 function DataChannelsSplit(const RawPixels: Pointer; const RawPixelsSize: Cardinal;
-  const PixelSize: Integer): TStreamsList;
+  const PixelSize: Integer): TChannelsSplit;
 
-{ Fill the RawPixels memory by data from Streams.
+{ Fill the RawPixels memory by data from ChannelData.
   Reverses the operation of DataChannelsSplit. }
 procedure DataChannelsCombine(const RawPixels: Pointer; const RawPixelsSize: Cardinal;
-  const PixelSize: Integer; const Streams: TStreamsList);
+  const PixelSize: Integer; const ChannelData: TChannelsSplit);
 
 { RLE compression / decompression.
 
@@ -97,50 +114,79 @@ implementation
 
 uses CastleUtils;
 
+{ TChannelsSplit ------------------------------------------------------------- }
+
+procedure TChannelsSplit.DataAllocate;
+var
+  I: Integer;
+begin
+  for I := 0 to High(Data) do
+    Data[I] := GetMem(DataSize);
+end;
+
+procedure TChannelsSplit.DataFree;
+var
+  I: Integer;
+begin
+  for I := 0 to High(Data) do
+    FreeMemNiling(Data[I]);
+end;
+
+{ DataChannelsSplit / DataChannelsCombine ------------------------------------ }
+
 function DataChannelsSplit(const RawPixels: Pointer; const RawPixelsSize: Cardinal;
-  const PixelSize: Integer): TStreamsList;
+  const PixelSize: Integer): TChannelsSplit;
 var
   Channel: Integer;
-  Stream: TMemoryStream;
   SourcePtr, DestPtr: PByte;
   I: Integer;
 begin
-  Result := TStreamsList.Create(true);
-  for Channel := 0 to PixelSize - 1 do
-  begin
-    Stream := TMemoryStream.Create;
-    Stream.Size := RawPixelsSize div PixelSize;
+  Result := TChannelsSplit.Create;
+  try
+    { prepare TChannelsSplit memory }
+    SetLength(Result.Data, PixelSize);
+    Result.DataSize := RawPixelsSize div PixelSize;
+    Assert(RawPixelsSize mod PixelSize = 0);
+    Result.DataAllocate;
 
-    // fill Stream memory contents
-    SourcePtr := RawPixels;
-    Inc(SourcePtr, Channel);
-    DestPtr := Stream.Memory;
-    for I := 0 to Stream.Size - 1 do
+    for Channel := 0 to PixelSize - 1 do
     begin
-      DestPtr^ := SourcePtr^;
-      Inc(SourcePtr, PixelSize);
-      Inc(DestPtr);
+      // fill Result.Data[Channel] memory contents
+      SourcePtr := RawPixels;
+      Inc(SourcePtr, Channel);
+      DestPtr := Result.Data[Channel];
+      for I := 0 to Result.DataSize - 1 do
+      begin
+        DestPtr^ := SourcePtr^;
+        Inc(SourcePtr, PixelSize);
+        Inc(DestPtr);
+      end;
     end;
-
-    Result.Add(Stream);
-  end;
+  except FreeAndNil(Result); raise end;
 end;
 
 procedure DataChannelsCombine(const RawPixels: Pointer; const RawPixelsSize: Cardinal;
-  const PixelSize: Integer; const Streams: TStreamsList);
+  const PixelSize: Integer; const ChannelData: TChannelsSplit);
 var
-  Channel: Integer;
-  Stream: TMemoryStream;
+  Channel, I: Integer;
+  SourcePtr, DestPtr: PByte;
 begin
+  if ChannelData.DataSize <> RawPixelsSize div PixelSize then
+    raise EInternalError.Create('Invalid input size to DataChannelsCombine');
+
   for Channel := 0 to PixelSize - 1 do
   begin
-    Stream := Streams[Channel];
-    if Stream.Size <> RawPixelsSize div PixelSize then
-      raise EInternalError.Create('Invalid input stream size to DataChannelsCombine');
+    SourcePtr := ChannelData.Data[Channel];
+    DestPtr := RawPixels;
+    Inc(DestPtr, Channel);
 
-    // TODO
+    for I := 0 to ChannelData.DataSize - 1 do
+    begin
+      DestPtr^ := SourcePtr^;
+      Inc(SourcePtr);
+      Inc(DestPtr, PixelSize);
+    end;
   end;
-
 end;
 
 { ------------------------------------------------------------------------

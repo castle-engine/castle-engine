@@ -26,12 +26,13 @@ type
   TTestCastleInternalDataCompression = class(TCastleTestCase)
   published
     procedure TestChannelsSplitCombine;
+    procedure TestChannelsSplitCombineMultiChannels;
     procedure TestRleCompression;
   end;
 
 implementation
 
-uses CastleInternalDataCompression, CastleLog, CastleStringUtils;
+uses CastleInternalDataCompression, CastleLog, CastleStringUtils, CastleImages;
 
 {$I test_font_image_to_compress.inc}
 
@@ -59,7 +60,65 @@ end;
 { TTestCastleInternalDataCompression ----------------------------------------- }
 
 procedure TTestCastleInternalDataCompression.TestChannelsSplitCombine;
+var
+  Combined: TMemoryStream;
+  Split: TChannelsSplit;
 begin
+  Split := DataChannelsSplit(@FontImagePixels, SizeOf(FontImagePixels), 1);
+  try
+    Combined := TMemoryStream.Create;
+    try
+      Combined.Size := SizeOf(FontImagePixels);
+      DataChannelsCombine(Combined.Memory, Combined.Size, 1, Split);
+
+      AssertEquals(SizeOf(FontImagePixels), Combined.Size);
+      AssertTrue(CompareMemDebug(Combined.Memory, @FontImagePixels, Combined.Size));
+      AssertTrue(CompareMem(Combined.Memory, @FontImagePixels, Combined.Size));
+    finally FreeAndNil(Combined) end;
+  finally
+    Split.DataFree;
+    FreeAndNil(Split);
+  end;
+end;
+
+procedure TTestCastleInternalDataCompression.TestChannelsSplitCombineMultiChannels;
+
+  procedure Test(Image: TCastleImage);
+  var
+    Split: TChannelsSplit;
+    NewImage: TCastleImage;
+  begin
+    Split := DataChannelsSplit(Image.RawPixels, Image.Size, Image.PixelSize);
+    try
+      NewImage := TCastleImageClass(Image.ClassType).Create(Image.Width, Image.Height);
+      try
+        DataChannelsCombine(NewImage.RawPixels, NewImage.Size, NewImage.PixelSize, Split);
+
+        AssertEquals(Image.Size, NewImage.Size);
+        AssertEquals(Image.Width, NewImage.Width);
+        AssertEquals(Image.Height, NewImage.Height);
+        AssertTrue(CompareMemDebug(NewImage.RawPixels, Image.RawPixels, Image.Size));
+        AssertTrue(CompareMem(NewImage.RawPixels, Image.RawPixels, Image.Size));
+      finally FreeAndNil(NewImage) end;
+    finally
+      Split.DataFree;
+      FreeAndNil(Split);
+    end;
+
+    FreeAndNil(Image);
+  end;
+
+begin
+  Test(LoadImage('castle-data:/images/f023ours.jpg'));
+  Test(LoadImage('castle-data:/images/alpha.png'));
+  Test(LoadImage('castle-data:/images/alpha_grayscale.png'));
+  Test(LoadImage('castle-data:/images/rgbe.rgbe'));
+
+  Test(LoadImage('castle-data:/images/f023ours.jpg', [TGrayscaleImage]) as TGrayscaleImage);
+  Test(LoadImage('castle-data:/images/f023ours.jpg', [TGrayscaleAlphaImage]) as TGrayscaleAlphaImage);
+  Test(LoadImage('castle-data:/images/f023ours.jpg', [TRGBImage]) as TRGBImage);
+  Test(LoadImage('castle-data:/images/f023ours.jpg', [TRGBAlphaImage]) as TRGBAlphaImage);
+  Test(LoadImage('castle-data:/images/f023ours.jpg', [TRGBFloatImage]) as TRGBFloatImage);
 end;
 
 procedure TTestCastleInternalDataCompression.TestRleCompression;
