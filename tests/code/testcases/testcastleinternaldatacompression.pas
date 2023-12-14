@@ -153,7 +153,8 @@ begin
         They detect the memory differs, while it is really the same,
         shown by CompareMemDebug and looking at dump of it.
         Observed with FPC 3.2.2 on Linux/x86_64.
-        Test on other compilers, OS, architectures and submit as FPC bug.
+        Observed with Delphi 12 on Windows/x86_64.
+        So we're doing something wrong, but I can't see it?
         *)
 
         {$ifdef FPC}
