@@ -2849,11 +2849,11 @@ begin
   CodeImplementationBuilder.Append(
     SReplacePatterns(
       'var' + NL +
-      '  FImage: ${IMAGE_CLASS};' + NL +
+      '  F${IMAGE_NAME}: ${IMAGE_CLASS};' + NL +
       'const' + NL +
-      '  ImageWidth = ' +IntToStr(Width)+ ';' + NL +
-      '  ImageHeight = ' +IntToStr(Height)+ ';' + NL +
-      '  ImageDepth = ' +IntToStr(Depth)+ ';' + NL +
+      '  ${IMAGE_NAME}Width = ' +IntToStr(Width)+ ';' + NL +
+      '  ${IMAGE_NAME}Height = ' +IntToStr(Height)+ ';' + NL +
+      '  ${IMAGE_NAME}Depth = ' +IntToStr(Depth)+ ';' + NL +
       NL,
       [
         '${IMAGE_NAME}',
@@ -2880,7 +2880,7 @@ begin
         RleCompress(Split.Data[Channel], Split.DataSize, ChannelCompressed);
 
         // write ChannelCompressed to CodeImplementationBuilder
-        NameChannelData := 'ChannelData' + IntToStr(Channel);
+        NameChannelData := ImageName + 'ChannelData' + IntToStr(Channel);
         AddChannelData(ChannelCompressed, NameChannelData, CodeImplementationBuilder);
 
         // update stats
@@ -2900,13 +2900,13 @@ begin
     'var' + NL +
     '  Split: TChannelsSplit;' + NL +
     'begin' + NL +
-    '  if FImage = nil then' + NL +
+    '  if F${IMAGE_NAME} = nil then' + NL +
     '  begin' + NL +
-    '    FImage := ${IMAGE_CLASS}.Create(ImageWidth, ImageHeight, ImageDepth);' + NL +
+    '    F${IMAGE_NAME} := ${IMAGE_CLASS}.Create(${IMAGE_NAME}Width, ${IMAGE_NAME}Height, ${IMAGE_NAME}Depth);' + NL +
     '    Split := TChannelsSplit.Create;' + NL +
     '    try' + NL +
-    '      SetLength(Split.Data, FImage.PixelSize);' + NL +
-    '      Split.DataSize := FImage.Size div FImage.PixelSize;' + NL +
+    '      SetLength(Split.Data, F${IMAGE_NAME}.PixelSize);' + NL +
+    '      Split.DataSize := F${IMAGE_NAME}.Size div F${IMAGE_NAME}.PixelSize;' + NL +
     '      Split.DataAllocate;' + NL,
     [
       '${IMAGE_NAME}',
@@ -2918,7 +2918,7 @@ begin
 
   for Channel := 0 to PixelSize - 1 do
   begin
-    NameChannelData := 'ChannelData' + IntToStr(Channel);
+    NameChannelData := ImageName + 'ChannelData' + IntToStr(Channel);
     CodeImplementationBuilder.Append(
       SReplacePatterns(
         '      RleDecompress(@${CHANNEL_DATA}, SizeOf(${CHANNEL_DATA}), Split.Data[${CHANNEL}], Split.DataSize);' + NL,
@@ -2933,12 +2933,12 @@ begin
 
   CodeImplementationBuilder.Append(
     SReplacePatterns(
-      '      DataChannelsCombine(FImage.RawPixels, FImage.Size,' + NL +
-      '        FImage.PixelSize, Split);' + NL +
+      '      DataChannelsCombine(F${IMAGE_NAME}.RawPixels, F${IMAGE_NAME}.Size,' + NL +
+      '        F${IMAGE_NAME}.PixelSize, Split);' + NL +
       '    finally FreeAndNil(Split) end;' + NL +
-      '    FImage.Url := ''embedded-image:/${IMAGE_NAME}'';' + NL +
+      '    F${IMAGE_NAME}.Url := ''embedded-image:/${IMAGE_NAME}'';' + NL +
       '  end;' + NL +
-      '  Result := FImage;' + NL +
+      '  Result := F${IMAGE_NAME};' + NL +
       'end;' + NL +
       NL,
       [
@@ -2946,10 +2946,11 @@ begin
       ], [
         ImageName
       ], { ignore case when replacing } false));
-  CodeImplementation := CodeImplementationBuilder.ToString;
+  CodeImplementation := CodeImplementation +
+    CodeImplementationBuilder.ToString;
 
   CodeFinalization := CodeFinalization +
-    '  FreeAndNil(FImage);' +nl;
+    '  FreeAndNil(F' + ImageName + ');' +nl;
 end;
 
 procedure TCastleImage.AlphaBleed(const ProgressTitle: string);
