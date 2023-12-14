@@ -920,10 +920,14 @@
         Rendering parameters to prepare for.
         It is used only if Options contains prRenderSelf or prRenderClones.
       )
+
+      TODO: It is not possible to call this now without TPrepareParams,
+      and to get params you need to access deprecated TCastleViewport.PrepareParams.
+      We advise to call TCastleViewport.PrepareResources instead.
+      We'd like to get rid of TPrepareParams eventually.
     }
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const Params: TPrepareParams); virtual;
-      deprecated 'use TCastleViewport.PrepareResources to prepare transforms';
 
     { Press and release events of key and mouse, passed only to instances that set ListenPressRelease.
       Return @true if you handled the event, and it should not be passed to other objects.
