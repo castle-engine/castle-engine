@@ -312,10 +312,9 @@ procedure RleDecompress(
 var
   DestStream: TMemoryStream;
 begin
-  { TODO: Possibly optimize RleDecompress for this use-case, it is used when
-    decompressing images at runtime, so its important to be fast. }
   DestStream := TMemoryStream.Create;
   try
+    DestStream.Size := DestSize; // preallocate necessary memory
     RleDecompress(Source, SourceSize, DestStream);
     if DestStream.Size <> DestSize then
       raise Exception.CreateFmt('Decompressed stream size %d is different than expected %d', [
