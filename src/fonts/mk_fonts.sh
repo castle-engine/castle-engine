@@ -23,7 +23,7 @@ TEXTUREFONT2PASCAL="${TEXTUREFONT2PASCAL} --sample-text-file=common_unicode_char
 # so that changing sizes used by default by CGE can be easily done by changing +
 # running this shell script.
 TEXT_NODE_FONT_SIZE=25
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans.ttf                  --unit-name CastleTextureFont_Default3D_Sans    --function-name Font_Default3D_Sans
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans.ttf --unit-name CastleTextureFont_Default3D_Sans    --function-name Font_Default3D_Sans
 
 # For other 11 font variants used by X3D,
 # see view3dscene view3dscene/embedded_data/fonts/ .

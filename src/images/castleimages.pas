@@ -2071,7 +2071,7 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   {$endif}
   CastleInternalZLib, CastleStringUtils, CastleFilesUtils, CastleLog, CastleDynLib,
   CastleInternalCompositeImage, CastleDownload, CastleUriUtils, CastleTimeUtils,
-  CastleStreamUtils;
+  CastleStreamUtils, CastleInternalDataCompression;
 
 { parts ---------------------------------------------------------------------- }
 
@@ -2806,63 +2806,150 @@ end;
 
 procedure TCastleImage.SaveToPascalCode(const ImageName: string;
   var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
-var
-  NameWidth, NameHeight, NameDepth, NamePixels: string;
-  pb: PByte;
-  I: Integer;
-begin
-  { calculate Name* variables }
-  NameWidth := ImageName + 'Width';
-  NameHeight := ImageName + 'Height';
-  NameDepth := ImageName + 'Depth';
-  NamePixels := ImageName + 'Pixels';
 
+  { Add to Pascal code in Builder a constant that defines an array of bytes,
+    with name from NameChannelData, with contents from ChannelData. }
+  procedure AddChannelData(const ChannelData: TMemoryStream;
+    const NameChannelData: String; const Builder: TStringBuilder);
+  var
+    PB: PByte;
+    I: Integer;
+  begin
+    Builder.Append(
+      '  ' + NameChannelData +
+      ': array[0 .. ' + IntToStr(ChannelData.Size) + ' - 1] of Byte = (' + NL +
+      '    ');
+    PB := PByte(ChannelData.Memory);
+    for I := 1 to ChannelData.Size do
+    begin
+      Builder.Append(Format('%4d', [PB^]));
+      if I < ChannelData.Size then
+        Builder.Append(',');
+      if (I mod 12) = 0 then
+        Builder.Append(NL + '    ')
+      else
+        Builder.Append(' ');
+      Inc(PB);
+    end;
+    Builder.Append(NL + '  );' + NL);
+  end;
+
+var
+  NameChannelData: String;
+  CodeImplementationBuilder: TStringBuilder;
+  Split: TChannelsSplit;
+  ChannelCompressed: TMemoryStream;
+  Channel: Integer;
+  TotalCompressedSize: Int64;
+begin
   CodeInterface := CodeInterface +
     'function ' +ImageName+ ': ' +ClassName+ ';' +nl + nl;
 
-  CodeImplementation := CodeImplementation +
-    'var' + NL +
-    '  F' +ImageName+ ': ' +ClassName+ ';' + NL +
-    'const' + NL +
-    '  ' +NameWidth+ ' = ' +IntToStr(Width)+ ';' + NL +
-    '  ' +NameHeight+ ' = ' +IntToStr(Height)+ ';' + NL +
-    '  ' +NameDepth+ ' = ' +IntToStr(Depth)+ ';' + NL +
-    '  ' +NamePixels+ ': array[0 .. '
-      +NameWidth+ ' * '
-      +NameHeight+ ' * '
-      +NameDepth+ ' * '
-      +IntToStr(PixelSize) + ' - 1] of Byte = (' + NL +
-    '    ';
+  CodeImplementationBuilder := TStringBuilder.Create;
+  CodeImplementationBuilder.Append(
+    SReplacePatterns(
+      'var' + NL +
+      '  FImage: ${IMAGE_CLASS};' + NL +
+      'const' + NL +
+      '  ImageWidth = ' +IntToStr(Width)+ ';' + NL +
+      '  ImageHeight = ' +IntToStr(Height)+ ';' + NL +
+      '  ImageDepth = ' +IntToStr(Depth)+ ';' + NL +
+      NL,
+      [
+        '${IMAGE_NAME}',
+        '${IMAGE_CLASS}'
+      ], [
+        ImageName,
+        ClassName
+      ], { ignore case when replacing } false)
+  );
 
-  pb := PByte(RawPixels);
-  for I := 1 to Size - 1 do
-  begin
-    CodeImplementation := CodeImplementation + Format('%4d,', [pb^]);
-    if (i mod 12) = 0 then
-    begin
-      CodeImplementation := CodeImplementation + NL + '    ';
-    end else
-      CodeImplementation := CodeImplementation + ' ';
-    Inc(pb);
-  end;
-  CodeImplementation := CodeImplementation +
-    Format('%4d);', [pb^]) + NL +
+  // add compressed data for all channels
+  TotalCompressedSize := 0;
+  Split := DataChannelsSplit(RawPixels, Size, PixelSize);
+  try
+    ChannelCompressed := TMemoryStream.Create;
+    try
+      for Channel := 0 to PixelSize - 1 do
+      begin
+        // reset ChannelCompressed contents
+        ChannelCompressed.Size := 0;
+        ChannelCompressed.Position := 0;
+
+        // generate ChannelCompressed contents
+        RleCompress(Split.Data[Channel], Split.DataSize, ChannelCompressed);
+
+        // write ChannelCompressed to CodeImplementationBuilder
+        NameChannelData := 'ChannelData' + IntToStr(Channel);
+        AddChannelData(ChannelCompressed, NameChannelData, CodeImplementationBuilder);
+
+        // update stats
+        TotalCompressedSize := TotalCompressedSize + ChannelCompressed.Size;
+      end;
+    finally FreeAndNil(ChannelCompressed) end;
+  finally FreeAndNil(Split) end;
+  WritelnLog('Compress', 'Compressed size of ' +ImageName+ ' is ' +IntToStr(TotalCompressedSize)+ ' bytes, achieving compression ratio (lower the better) %f', [
+    TotalCompressedSize / Size
+  ]);
+
+  // add code to decompress data and combine channels when the generated Pascal code is used
+  CodeImplementationBuilder.Append(
+    SReplacePatterns(
     NL +
-    'function ' +ImageName+ ': ' +ClassName+ ';' + NL +
+    'function ${IMAGE_NAME}: ${IMAGE_CLASS};' + NL +
+    'var' + NL +
+    '  Split: TChannelsSplit;' + NL +
     'begin' + NL +
-    '  if F' +ImageName + ' = nil then' + NL +
+    '  if FImage = nil then' + NL +
     '  begin' + NL +
-    '    F' +ImageName+ ' := ' +ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ', ' +NameDepth+ ');' + NL +
-    '    Move(' +NamePixels+ ', F' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' + NL +
-    '    F' +ImageName+ '.Url := ''embedded-image:/' +ImageName+ ''';' + NL +
-    '  end;' + NL +
-    '  Result := F' +ImageName+ ';' + NL +
-    'end;' + NL +
-    NL +
-    '';
+    '    FImage := ${IMAGE_CLASS}.Create(ImageWidth, ImageHeight, ImageDepth);' + NL +
+    '    Split := TChannelsSplit.Create;' + NL +
+    '    try' + NL +
+    '      SetLength(Split.Data, FImage.PixelSize);' + NL +
+    '      Split.DataSize := FImage.Size div FImage.PixelSize;' + NL +
+    '      Split.DataAllocate;' + NL,
+    [
+      '${IMAGE_NAME}',
+      '${IMAGE_CLASS}'
+    ], [
+      ImageName,
+      ClassName
+    ], { ignore case when replacing } false));
+
+  for Channel := 0 to PixelSize - 1 do
+  begin
+    NameChannelData := 'ChannelData' + IntToStr(Channel);
+    CodeImplementationBuilder.Append(
+      SReplacePatterns(
+        '      RleDecompress(@${CHANNEL_DATA}, SizeOf(${CHANNEL_DATA}), Split.Data[${CHANNEL}], Split.DataSize);' + NL,
+        [
+          '${CHANNEL_DATA}',
+          '${CHANNEL}'
+        ], [
+          NameChannelData,
+          IntToStr(Channel)
+        ], { ignore case when replacing } false));
+  end;
+
+  CodeImplementationBuilder.Append(
+    SReplacePatterns(
+      '      DataChannelsCombine(FImage.RawPixels, FImage.Size,' + NL +
+      '        FImage.PixelSize, Split);' + NL +
+      '    finally FreeAndNil(Split) end;' + NL +
+      '    FImage.Url := ''embedded-image:/${IMAGE_NAME}'';' + NL +
+      '  end;' + NL +
+      '  Result := FImage;' + NL +
+      'end;' + NL +
+      NL,
+      [
+        '${IMAGE_NAME}'
+      ], [
+        ImageName
+      ], { ignore case when replacing } false));
+  CodeImplementation := CodeImplementationBuilder.ToString;
 
   CodeFinalization := CodeFinalization +
-    '  FreeAndNil(F' +ImageName+ ');' +nl;
+    '  FreeAndNil(FImage);' +nl;
 end;
 
 procedure TCastleImage.AlphaBleed(const ProgressTitle: string);

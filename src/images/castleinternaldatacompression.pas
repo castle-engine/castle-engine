@@ -33,8 +33,8 @@ type
     { Allocate all Data[I] arrays using GetMem.
 
       Note that this is not the only way to initialize Data[I] arrays,
-      e.g. embedded images/fonts will just set Data[I] to pointers
-      to data embedded in EXE. }
+      one can also set Data[I] to pointers to some hardcoded arrays.
+      Though this use-case is not actually used now in the end. }
     procedure DataAllocate;
 
     { Free all Data[I] arrays using FreeMem. }
@@ -107,7 +107,10 @@ procedure DataChannelsCombine(const RawPixels: Pointer; const RawPixelsSize: Car
 procedure RleCompress(
   const Source: Pointer; const SourceSize: Cardinal; const Dest: TStream);
 procedure RleDecompress(
-  const Source: Pointer; const SourceSize: Cardinal; const Dest: TStream);
+  const Source: Pointer; const SourceSize: Cardinal; const Dest: TStream); overload;
+procedure RleDecompress(
+  const Source: Pointer; const SourceSize: Cardinal;
+  const Dest: Pointer; const DestSize: Cardinal); overload;
 { @groupEnd }
 
 implementation
@@ -301,6 +304,26 @@ begin
   end;
 
   FlushLeftoverUniqueBytes;
+end;
+
+procedure RleDecompress(
+  const Source: Pointer; const SourceSize: Cardinal;
+  const Dest: Pointer; const DestSize: Cardinal);
+var
+  DestStream: TMemoryStream;
+begin
+  { TODO: Possibly optimize RleDecompress for this use-case, it is used when
+    decompressing images at runtime, so its important to be fast. }
+  DestStream := TMemoryStream.Create;
+  try
+    RleDecompress(Source, SourceSize, DestStream);
+    if DestStream.Size <> DestSize then
+      raise Exception.CreateFmt('Decompressed stream size %d is different than expected %d', [
+        DestStream.Size,
+        DestSize
+      ]);
+    Move(DestStream.Memory^, Dest^, DestSize);
+  finally FreeAndNil(DestStream) end;
 end;
 
 procedure RleDecompress(
