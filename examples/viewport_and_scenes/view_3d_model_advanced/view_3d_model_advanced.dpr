@@ -76,7 +76,8 @@ begin
   { load a Scene and add it to Viewport, just like view_3d_model_simple }
   Scene := TCastleScene.Create(Application);
   Scene.Load(Url);
-  Scene.PlayAnimation('animation', true); // play animation named "animation", if exists.
+  // play animation named "wheels_turning", if exists.
+  Scene.PlayAnimation('wheels_turning', true);
 
   Scene.PreciseCollisions := true;
   Viewport.Items.Add(Scene);
