@@ -156,9 +156,11 @@ begin
         Test on other compilers, OS, architectures and submit as FPC bug.
         *)
 
+        {$ifdef FPC}
         WritelnLog('CompareByte (should be 0) %d', [
           CompareByte(Decompressed.Memory^, Initial.Memory^, Initial.Size)
         ]);
+        {$endif}
         WritelnLog('CompareMem (should be true) %s', [
           BoolToStr(CompareMem(Decompressed.Memory, Initial.Memory, Initial.Size), true)
         ]);
