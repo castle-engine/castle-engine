@@ -400,7 +400,11 @@ begin
     Otherwise "InclPathDelim(ExtractFilePath(UriToFilenameSafe('my_file.gtlf')))"
     would result in '/' (accidentally making all TPasGLTF.TImage.Uri values
     relative to root directory on Unix). This was reproducible doing
-    "view3dscene my_file.gtlf" on the command-line. }
+    "view3dscene my_file.gtlf" on the command-line.
+
+    Also tovrmlx3d assumes that passing "stdin.x3dv" means that "stdin.x3dv"
+    file is in current working dir. Using AbsoluteUri(BaseUrl) correctly
+    adds the current working dir to URL. }
   BaseUrl := AbsoluteUri(BaseUrl);
 
   if (MimeType = 'application/x-inventor') or

@@ -20,13 +20,13 @@
   Some notes about TStream descendants :
   @unorderedList(
     @item(
-      I call a stream "purely sequential" (or just "sequential")
+      We call a stream "purely sequential" (or just "sequential")
       if it allows only reading and/or writing of data
       and does not allow free "Seek" calls,
       in particular --- it does not allow Seek to move back in a stream.)
 
     @item(
-      I call a stream "growing" if it's read-only and it's purely sequential
+      We call a stream "growing" if it's read-only and it's purely sequential
       and it's Size property may be useless. In other words, when you read
       a "growing" stream, you don't know when it ends, until you reach the end.
       You just have to read data until Read returns 0.)
@@ -37,7 +37,6 @@
       e.g. seen for THandleStream when handle is StdIn.)
   )
 }
-
 unit CastleClassUtils;
 
 {$I castleconf.inc}

@@ -25,25 +25,27 @@ type
   strict private
     FTester: TCastleTester;
     procedure TestExecuted(const AName: String);
-    procedure AssertFailed(const TestName, Msg: String);
+    procedure TestFailed(const TestName, Msg: String);
 
     procedure Log(const AMessage: String);
+  private
+    FilterTests: String;
   public
     constructor Create;
     destructor Destroy; override;
 
-    { Runs all tests or only one test case when ATestCaseToRun <> '' }
-    procedure Run(const ATestCaseToRun: String = '');
+    { Parse --filter command-line parameter. }
+    procedure ParseParameters;
 
-    { Parsing --suite=xx parameter and returns only value (xx) }
-    class function GetTestCaseNameFromParameters: String;
+    { Runs all tests (allowed by current filter, if any). }
+    procedure Run(const ATestCaseToRun: String = '');
   end;
 
 implementation
 
-uses CastleLog, CastleParameters;
+uses CastleLog, CastleParameters, CastleUtils;
 
-procedure TCastleConsoleTester.AssertFailed(const TestName, Msg: String);
+procedure TCastleConsoleTester.TestFailed(const TestName, Msg: String);
 begin
   Log(TestName + ': Failed: ' + Msg);
 end;
@@ -52,7 +54,7 @@ constructor TCastleConsoleTester.Create;
 begin
   FTester := TCastleTester.Create(nil);
   FTester.NotifyTestCaseExecuted := {$ifdef FPC}@{$endif}TestExecuted;
-  FTester.NotifyAssertFail := {$ifdef FPC}@{$endif}AssertFailed;
+  FTester.NotifyTestFail := {$ifdef FPC}@{$endif}TestFailed;
 end;
 
 destructor TCastleConsoleTester.Destroy;
@@ -70,7 +72,12 @@ begin
   FTester.AddRegisteredTestCases;
   Log('Scaning tests...');
   FTester.Scan;
-  Log('Found ' + IntToStr(Ftester.EnabledTestCount) + ' tests.');
+  Log('Found ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
+  if FilterTests <> '' then
+  begin
+    FTester.EnableFilter(FilterTests);
+    Log('Applying filter: Enabled ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
+  end;
   Log('Preparing tests...');
   FTester.PrepareTestListToRun(ATestCaseToRun);
   Log('Running tests...');
@@ -82,25 +89,32 @@ begin
   //Readln;
 end;
 
-class function TCastleConsoleTester.GetTestCaseNameFromParameters: String;
-var
-  I: Integer;
-begin
-  Result := '';
-  for I := 0 to Parameters.Count - 1 do
-  begin
-    if Pos('--suite=', Parameters[I]) = 1 then
-    begin
-      Result := Parameters[I];
-      Delete(Result, 1, 8);
-      Exit(trim(Result));
-    end;
-  end;
-end;
-
 procedure TCastleConsoleTester.TestExecuted(const AName: String);
 begin
   Log('Processing: ' + AName);
+end;
+
+{ Handle --filter command-line option.
+  This is a callback for Parameters.Parse. }
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+var
+  Sender: TCastleConsoleTester;
+begin
+  Sender := TCastleConsoleTester(Data);
+  case OptionNum of
+    0: Sender.FilterTests := Argument;
+    else raise EInternalError.Create('OptionProc: OptionNum = ' + IntToStr(OptionNum));
+  end;
+end;
+
+procedure TCastleConsoleTester.ParseParameters;
+const
+  Options: array [0..0] of TOption = (
+    (Short:'f'; Long:'filter'; Argument: oaRequired)
+  );
+begin
+  Parameters.Parse(Options, @OptionProc, Self, true);
 end;
 
 end.

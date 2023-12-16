@@ -83,7 +83,7 @@ function Edit: TRGBImage;
 
 implementation
 
-uses SysUtils;
+uses SysUtils, CastleInternalDataCompression;
 
 { Actual image data is included from another file, with a deliberately
   non-Pascal file extension ".image_data". This way online code analysis

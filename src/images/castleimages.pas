@@ -141,8 +141,9 @@ type
   {$endif}
 
   { Abstract class for an image with unspecified, possibly compressed,
-    memory format. The idea is that both uncompressed images (TCastleImage)
-    and images compressed for GPU (TGPUCompressedImage) are derived from this class. }
+    memory format. Both uncompressed images (TCastleImage)
+    and images compressed for GPU (TGPUCompressedImage) are derived from this
+    base class. }
   TEncodedImage = class
   private
     FWidth, FHeight, FDepth: Cardinal;
@@ -163,13 +164,44 @@ type
 
     property Width: Cardinal read FWidth;
     property Height: Cardinal read FHeight;
+
+    { Depth of the image.
+      For 2D images (most common) this is just 1.
+
+      All images in CastleImages can be potentially 3D, which means they
+      can have Depth > 1.
+      A 3D image is just a 3-dimensional array of pixels,
+      and you can use it e.g. as a texture with 3D texture coordinates.
+      A sample use-cases for 3D textures are:
+
+      @unorderedList(
+        @item(Generated colors of some material that you can imagine as
+          a 3D volume, like a volume of wood or marble. This is nice to apply
+          on any complicated 3D shape, because the necessary
+          3D texture coordinates are trivial,
+          since 3D position of a point on the shape
+          can be used as a reasonable 3D texture coordinate.)
+        @item(Medical data, some scans are 3D.)
+        @item(Noise (like Perlin noise) used for various
+          effects in shaders.)
+        @item(Specialized noise, e.g. a volume of smoke, or a volume of clouds.)
+      )
+    }
     property Depth: Cardinal read FDepth;
 
+    { Image data. The layout of this memory is defined by descendants.
+      For example, for TCastleImage it's a simple array of pixels
+      (see TCastleImage docs for exact description of the memory layout),
+      for TGPUCompressedImage it's a compressed data for GPU.
+
+      Note that this may be @nil, if Width * Height * Depth = 0.
+      In this case, IsEmpty returns @true. }
     property RawPixels: Pointer read FRawPixels;
 
     { Size of image contents in bytes. }
     function Size: Cardinal; virtual; abstract;
 
+    { Get a 3D vector with @link(Width), @link(Height), @link(Depth). }
     function Dimensions: TVector3Cardinal;
 
     { Is an image empty.
@@ -2039,7 +2071,7 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   {$endif}
   CastleInternalZLib, CastleStringUtils, CastleFilesUtils, CastleLog, CastleDynLib,
   CastleInternalCompositeImage, CastleDownload, CastleUriUtils, CastleTimeUtils,
-  CastleStreamUtils;
+  CastleStreamUtils, CastleInternalDataCompression;
 
 { parts ---------------------------------------------------------------------- }
 
@@ -2774,63 +2806,151 @@ end;
 
 procedure TCastleImage.SaveToPascalCode(const ImageName: string;
   var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
-var
-  NameWidth, NameHeight, NameDepth, NamePixels: string;
-  pb: PByte;
-  I: Integer;
-begin
-  { calculate Name* variables }
-  NameWidth := ImageName + 'Width';
-  NameHeight := ImageName + 'Height';
-  NameDepth := ImageName + 'Depth';
-  NamePixels := ImageName + 'Pixels';
 
+  { Add to Pascal code in Builder a constant that defines an array of bytes,
+    with name from NameChannelData, with contents from ChannelData. }
+  procedure AddChannelData(const ChannelData: TMemoryStream;
+    const NameChannelData: String; const Builder: TStringBuilder);
+  var
+    PB: PByte;
+    I: Integer;
+  begin
+    Builder.Append(
+      '  ' + NameChannelData +
+      ': array[0 .. ' + IntToStr(ChannelData.Size) + ' - 1] of Byte = (' + NL +
+      '    ');
+    PB := PByte(ChannelData.Memory);
+    for I := 1 to ChannelData.Size do
+    begin
+      Builder.Append(Format('%4d', [PB^]));
+      if I < ChannelData.Size then
+        Builder.Append(',');
+      if (I mod 12) = 0 then
+        Builder.Append(NL + '    ')
+      else
+        Builder.Append(' ');
+      Inc(PB);
+    end;
+    Builder.Append(NL + '  );' + NL);
+  end;
+
+var
+  NameChannelData: String;
+  CodeImplementationBuilder: TStringBuilder;
+  Split: TChannelsSplit;
+  ChannelCompressed: TMemoryStream;
+  Channel: Integer;
+  TotalCompressedSize: Int64;
+begin
   CodeInterface := CodeInterface +
     'function ' +ImageName+ ': ' +ClassName+ ';' +nl + nl;
 
-  CodeImplementation := CodeImplementation +
-    'var' + NL +
-    '  F' +ImageName+ ': ' +ClassName+ ';' + NL +
-    'const' + NL +
-    '  ' +NameWidth+ ' = ' +IntToStr(Width)+ ';' + NL +
-    '  ' +NameHeight+ ' = ' +IntToStr(Height)+ ';' + NL +
-    '  ' +NameDepth+ ' = ' +IntToStr(Depth)+ ';' + NL +
-    '  ' +NamePixels+ ': array[0 .. '
-      +NameWidth+ ' * '
-      +NameHeight+ ' * '
-      +NameDepth+ ' * '
-      +IntToStr(PixelSize) + ' - 1] of Byte = (' + NL +
-    '    ';
+  CodeImplementationBuilder := TStringBuilder.Create;
+  CodeImplementationBuilder.Append(
+    SReplacePatterns(
+      'var' + NL +
+      '  F${IMAGE_NAME}: ${IMAGE_CLASS};' + NL +
+      'const' + NL +
+      '  ${IMAGE_NAME}Width = ' +IntToStr(Width)+ ';' + NL +
+      '  ${IMAGE_NAME}Height = ' +IntToStr(Height)+ ';' + NL +
+      '  ${IMAGE_NAME}Depth = ' +IntToStr(Depth)+ ';' + NL +
+      NL,
+      [
+        '${IMAGE_NAME}',
+        '${IMAGE_CLASS}'
+      ], [
+        ImageName,
+        ClassName
+      ], { ignore case when replacing } false)
+  );
 
-  pb := PByte(RawPixels);
-  for I := 1 to Size - 1 do
-  begin
-    CodeImplementation := CodeImplementation + Format('%4d,', [pb^]);
-    if (i mod 12) = 0 then
-    begin
-      CodeImplementation := CodeImplementation + NL + '    ';
-    end else
-      CodeImplementation := CodeImplementation + ' ';
-    Inc(pb);
-  end;
-  CodeImplementation := CodeImplementation +
-    Format('%4d);', [pb^]) + NL +
+  // add compressed data for all channels
+  TotalCompressedSize := 0;
+  Split := DataChannelsSplit(RawPixels, Size, PixelSize);
+  try
+    ChannelCompressed := TMemoryStream.Create;
+    try
+      for Channel := 0 to PixelSize - 1 do
+      begin
+        // reset ChannelCompressed contents
+        ChannelCompressed.Size := 0;
+        ChannelCompressed.Position := 0;
+
+        // generate ChannelCompressed contents
+        RleCompress(Split.Data[Channel], Split.DataSize, ChannelCompressed);
+
+        // write ChannelCompressed to CodeImplementationBuilder
+        NameChannelData := ImageName + 'ChannelData' + IntToStr(Channel);
+        AddChannelData(ChannelCompressed, NameChannelData, CodeImplementationBuilder);
+
+        // update stats
+        TotalCompressedSize := TotalCompressedSize + ChannelCompressed.Size;
+      end;
+    finally FreeAndNil(ChannelCompressed) end;
+  finally FreeAndNil(Split) end;
+  WritelnLog('Compress', 'Compressed size of ' +ImageName+ ' is ' +IntToStr(TotalCompressedSize)+ ' bytes, achieving compression ratio (lower the better) %f', [
+    TotalCompressedSize / Size
+  ]);
+
+  // add code to decompress data and combine channels when the generated Pascal code is used
+  CodeImplementationBuilder.Append(
+    SReplacePatterns(
     NL +
-    'function ' +ImageName+ ': ' +ClassName+ ';' + NL +
+    'function ${IMAGE_NAME}: ${IMAGE_CLASS};' + NL +
+    'var' + NL +
+    '  Split: TChannelsSplit;' + NL +
     'begin' + NL +
-    '  if F' +ImageName + ' = nil then' + NL +
+    '  if F${IMAGE_NAME} = nil then' + NL +
     '  begin' + NL +
-    '    F' +ImageName+ ' := ' +ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ', ' +NameDepth+ ');' + NL +
-    '    Move(' +NamePixels+ ', F' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' + NL +
-    '    F' +ImageName+ '.Url := ''embedded-image:/' +ImageName+ ''';' + NL +
-    '  end;' + NL +
-    '  Result := F' +ImageName+ ';' + NL +
-    'end;' + NL +
-    NL +
-    '';
+    '    F${IMAGE_NAME} := ${IMAGE_CLASS}.Create(${IMAGE_NAME}Width, ${IMAGE_NAME}Height, ${IMAGE_NAME}Depth);' + NL +
+    '    Split := TChannelsSplit.Create;' + NL +
+    '    try' + NL +
+    '      SetLength(Split.Data, F${IMAGE_NAME}.PixelSize);' + NL +
+    '      Split.DataSize := F${IMAGE_NAME}.Size div F${IMAGE_NAME}.PixelSize;' + NL +
+    '      Split.DataAllocate;' + NL,
+    [
+      '${IMAGE_NAME}',
+      '${IMAGE_CLASS}'
+    ], [
+      ImageName,
+      ClassName
+    ], { ignore case when replacing } false));
+
+  for Channel := 0 to PixelSize - 1 do
+  begin
+    NameChannelData := ImageName + 'ChannelData' + IntToStr(Channel);
+    CodeImplementationBuilder.Append(
+      SReplacePatterns(
+        '      RleDecompress(@${CHANNEL_DATA}, SizeOf(${CHANNEL_DATA}), Split.Data[${CHANNEL}], Split.DataSize);' + NL,
+        [
+          '${CHANNEL_DATA}',
+          '${CHANNEL}'
+        ], [
+          NameChannelData,
+          IntToStr(Channel)
+        ], { ignore case when replacing } false));
+  end;
+
+  CodeImplementationBuilder.Append(
+    SReplacePatterns(
+      '      DataChannelsCombine(F${IMAGE_NAME}.RawPixels, F${IMAGE_NAME}.Size,' + NL +
+      '        F${IMAGE_NAME}.PixelSize, Split);' + NL +
+      '    finally FreeAndNil(Split) end;' + NL +
+      '    F${IMAGE_NAME}.Url := ''embedded-image:/${IMAGE_NAME}'';' + NL +
+      '  end;' + NL +
+      '  Result := F${IMAGE_NAME};' + NL +
+      'end;' + NL +
+      NL,
+      [
+        '${IMAGE_NAME}'
+      ], [
+        ImageName
+      ], { ignore case when replacing } false));
+  CodeImplementation := CodeImplementation +
+    CodeImplementationBuilder.ToString;
 
   CodeFinalization := CodeFinalization +
-    '  FreeAndNil(F' +ImageName+ ');' +nl;
+    '  FreeAndNil(F' + ImageName + ');' +nl;
 end;
 
 procedure TCastleImage.AlphaBleed(const ProgressTitle: string);

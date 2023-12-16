@@ -41,7 +41,19 @@ To limit testing to just one test case use `--suite=xx` e.g.:
 ./castle-tester --console --suite=TTestRectangles
 ```
 
-## Alternative testing framework (FpcUnit) - console
+## Filtering
+
+You can pass command-line parameter `--filter` to filter the initially enabled tests. Given filter can use wildcards (`*` and `?`) and is compared with the test name, which is the test case class name + test method name, separated by dot, like `TTestCastleClassUtils.TestRleCompression`. The comparison ignores case (since in Pascal identifiers, case is ignored). E.g.
+
+- use `"--filter=TTestCastleClassUtils.*"` to run all tests from the `TTestCastleClassUtils` test case.
+- use `--filter=TTestCastleClassUtils.TestRleCompression` to run exactly this particular test.
+- use `"--filter=*image*"` to run all tests that have `image` in their name.
+
+Note that it makes sense to add quotes (single or double) around the command-line option, to avoid shell from interpreting the `*` and `?` characters. Though you are unlikely to have any files matching the `--filter...`, so it should not be a problem. Unless you use space to separate `--filter` to option argument like `*image*`, then the quotes matter.
+
+This filtering is applied to both console and GUI operation.
+
+## Deprecated: Alternative testing framework (FpcUnit) - console
 
 We also maintain a version of the tester using FPC's FpcUnit. Compile it with console UI (passes `TEXT_RUNNER` define) like this:
 
@@ -62,7 +74,7 @@ Running specific tests like this:
 ./test_castle_game_engine --suite=TTestCastleTransform
 ```
 
-## Alternative testing framework (FpcUnit) - GUI
+## Deprecated: Alternative testing framework (FpcUnit) - GUI
 
 You can also open in Lazarus and compile + run `test_castle_game_engine.lpi` project. Or build it using command-line
 

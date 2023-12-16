@@ -898,7 +898,8 @@
       e.g. at Application.OnInitialize or later.
       Calling this method before the rendering context is initialized
       (e.g. from initializaton section of some unit)
-      will have to skip some preparations, thus reducing the effectiveness of this method.
+      will have to skip some preparations, thus reducing the effectiveness
+      of this method.
 
       This makes sure that appropriate methods execute as fast as possible.
       It's never required to call this method
@@ -919,14 +920,14 @@
         Rendering parameters to prepare for.
         It is used only if Options contains prRenderSelf or prRenderClones.
       )
+
+      TODO: It is not possible to call this now without TPrepareParams,
+      and to get params you need to access deprecated TCastleViewport.PrepareParams.
+      We advise to call TCastleViewport.PrepareResources instead.
+      We'd like to get rid of TPrepareParams eventually.
     }
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const Params: TPrepareParams); overload; virtual;
-
-    procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const Ignored: Boolean;
-      const Params: TPrepareParams); overload;
-      deprecated 'use PrepareResources(Options,Params) overload (remove the 2nd Boolean parameter)';
+      const Params: TPrepareParams); virtual;
 
     { Press and release events of key and mouse, passed only to instances that set ListenPressRelease.
       Return @true if you handled the event, and it should not be passed to other objects.
@@ -2658,13 +2659,6 @@ begin
     RegisteredGLContextCloseListener := true;
     ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}GLContextCloseEvent);
   end;
-end;
-
-procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;
-  const Ignored: Boolean;
-  const Params: TPrepareParams);
-begin
-  PrepareResources(Options, Params);
 end;
 
 procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;

@@ -62,7 +62,7 @@ type
 implementation
 
 uses Generics.Defaults,
-  CastleStringUtils, CastleInternalUrlUtils;
+  CastleStringUtils, CastleInternalUrlUtils, CastleLog;
 
 { TFoo, TFoosList ------------------------------------------------------------ }
 

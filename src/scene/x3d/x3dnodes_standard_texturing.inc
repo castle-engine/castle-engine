@@ -53,7 +53,7 @@
 
       @exclude }
     property InternalRendererResource: TInternalRendererResource
-      read FInternalRendererResource write FInternalRendererResource;
+      read FInternalRendererResource write SetInternalRendererResource;
 
     { Free InternalRendererResource, if any. }
     procedure InternalRendererResourceFree;
