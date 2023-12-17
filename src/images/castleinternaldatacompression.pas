@@ -20,6 +20,8 @@
   smaller (faster to compile, and not taking huge space in EXE). }
 unit CastleInternalDataCompression;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, Generics.Collections;
