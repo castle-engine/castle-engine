@@ -22,7 +22,6 @@ interface
 { This tests Delphi-specific CastleInternalDelphiUtils,
   ignore if compiled with FPC. }
 implementation
-end.
 {$else}
 
 uses
@@ -52,5 +51,5 @@ end;
 
 initialization
   RegisterTest(TTestCastleInternalDelphiUtils);
-end.
 {$endif}
+end.
