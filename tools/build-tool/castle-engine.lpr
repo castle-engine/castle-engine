@@ -427,7 +427,7 @@ begin
           Project.DoRun(Target, OS, CPU, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end else
-      if Command = 'compileandrun' then
+      if Command = 'compile-run' then
       begin
         Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions);
         RestOfParameters := TCastleStringList.Create;
