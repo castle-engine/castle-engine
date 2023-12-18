@@ -24,6 +24,8 @@
 {$ifdef read_interface}
 
   strict private
+    function GetShape: TX3DNode;
+    procedure SetShape(const Value: TX3DNode);
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
@@ -34,6 +36,8 @@
     strict private FFdShape: TSFNode;
     { Internal wrapper for property @code(Shape). This wrapper API may change, we advise to access simpler @code(Shape) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShape: TSFNode read FFdShape;
+    {  }
+    property Shape: TX3DNode read GetShape write SetShape;
 
     strict private FFdBboxCenter: TSFVec3f;
     { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -50,6 +54,19 @@
 {$ifdef read_implementation}
 
 { TCADFaceNode ----------------------------------------------- }
+
+function TCADFaceNode.GetShape: TX3DNode;
+begin
+  if FdShape.Value is TX3DNode then
+    Result := TX3DNode(FdShape.Value)
+  else
+    Result := nil;
+end;
+
+procedure TCADFaceNode.SetShape(const Value: TX3DNode);
+begin
+  FdShape.Send(Value);
+end;
 
 function TCADFaceNode.GetBBox: TBox3D;
 begin

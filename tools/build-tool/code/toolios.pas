@@ -63,7 +63,7 @@ procedure MergeIOSInfoPlist(const Source, Destination: string;
 implementation
 
 uses SysUtils, DOM,
-  CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils, CastleXMLUtils,
+  CastleImages, CastleUriUtils, CastleLog, CastleFilesUtils, CastleXmlUtils,
   ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolCommonUtils,
   ToolServicesOperations;
 
@@ -220,7 +220,7 @@ var
           'Images.xcassets' + PathDelim +
           'AppIcon.appiconset' + PathDelim +
           'icon-' + IntToStr(Size) + '.png';
-        SaveImage(R, FilenameToURISafe(XcodeProject + OutputFile));
+        SaveImage(R, FilenameToUriSafe(XcodeProject + OutputFile));
         if Verbose then
           Writeln('Packaging generated icon file: ' + OutputFile);
       finally FreeAndNil(R) end;
@@ -262,7 +262,7 @@ var
   begin
     if Project.IOSHasLaunchImageStoryboard then
     begin
-      ProjectOutputUrl := FilenameToURISafe(XcodeProject + Project.Name + PathDelim);
+      ProjectOutputUrl := FilenameToUriSafe(XcodeProject + Project.Name + PathDelim);
 
       Storyboard := FileToString('castle-data:/ios/Launch%20Screen.storyboard');
       Storyboard := Project.ReplaceMacros(Storyboard);
@@ -272,8 +272,8 @@ var
         Project.LaunchImageStoryboard.BaseUrl,
         Project.LaunchImageStoryboard.Path);
       CheckCopyFile(
-        URIToFilenameSafe(ImageUrl),
-        URIToFilenameSafe(ProjectOutputUrl + 'LaunchScreenImage.png'));
+        UriToFilenameSafe(ImageUrl),
+        UriToFilenameSafe(ProjectOutputUrl + 'LaunchScreenImage.png'));
     end;
   end;
 
@@ -326,7 +326,7 @@ var
           'Images.xcassets' + PathDelim +
           'LaunchImage.launchimage' + PathDelim +
           'launch-image-' + IntToStr(Width) + 'x' + IntToStr(Height) + '.png';
-        SaveImage(R, FilenameToURISafe(XcodeProject + OutputFile));
+        SaveImage(R, FilenameToUriSafe(XcodeProject + OutputFile));
         // it's already reported by FindBestMatching
         // if Verbose then
         //   Writeln('Packaging generated launch icon file: ' + OutputFile);
@@ -372,7 +372,7 @@ var
   procedure FixPbxProjectFile;
   var
     PbxProject: TXcodeProject;
-    PBXContentsGenerated, PBX, PBXFileUrl: string;
+    PBXContentsGenerated, PBX, PBXFileUrl: String;
   begin
     PbxProject := TXcodeProject.Create;
     try
@@ -400,7 +400,7 @@ var
       // process macros inside PBXContentsGenerated, to replace ${NAME} etc. inside
       PBXContentsGenerated := Project.ReplaceMacros(PBXContentsGenerated);
 
-      PBXFileUrl := FilenameToURISafe(
+      PBXFileUrl := FilenameToUriSafe(
         XcodeProject + Project.Name + '.xcodeproj' + PathDelim + 'project.pbxproj');
       PBX := FileToString(PBXFileUrl);
       StringReplaceAllVar(PBX, '${PBX_CONTENTS_GENERATED}', PBXContentsGenerated, false);
@@ -614,7 +614,7 @@ begin
 
   CreateCode := Format(CreateTemplate, [CreateClass]);
 
-  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  DestinationContents := FileToString(FilenameToUriSafe(Destination));
   InsertAtMarker(MarkerImport, Import);
   InsertAtMarker(MarkerCreate, CreateCode);
   StringToFile(Destination, DestinationContents);
@@ -642,10 +642,10 @@ var
 begin
   SourceContents := NL +
     '# ---- Inserted contents of ' + Source + NL +
-    Trim(ReplaceMacros(FileToString(FilenameToURISafe(Source)))) + NL +
+    Trim(ReplaceMacros(FileToString(FilenameToUriSafe(Source)))) + NL +
     '# ---- End of inserted contents of ' + Source + NL + NL;
 
-  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  DestinationContents := FileToString(FilenameToUriSafe(Destination));
   InsertAtMarker(Marker, SourceContents);
   StringToFile(Destination, DestinationContents);
 end;
@@ -672,10 +672,10 @@ var
 begin
   SourceContents := NL +
     '<!-- Inserted contents of ' + Source + ' -->' + NL +
-    Trim(ReplaceMacros(FileToString(FilenameToURISafe(Source)))) + NL +
+    Trim(ReplaceMacros(FileToString(FilenameToUriSafe(Source)))) + NL +
     '<!-- End of inserted contents of ' + Source + ' -->' + NL + NL;
 
-  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  DestinationContents := FileToString(FilenameToUriSafe(Destination));
   InsertAtMarker(Marker, SourceContents);
   StringToFile(Destination, DestinationContents);
 end;

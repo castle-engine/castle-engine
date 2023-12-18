@@ -238,6 +238,13 @@ var
   *)
   RebaseRelativeUrlsInPrototypes: boolean = false;
 
+  { Default fonts used by Text and FontStyle nodes. }
+  DefaultFontData: array [
+    TX3DFontFamily,
+    { bold } Boolean,
+    { italic } Boolean
+  ] of TTextureFontData;
+
 { Free all unused X3D nodes on the list, then free and @nil the list itself.
   Ignores @nil items within the list. }
 procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);

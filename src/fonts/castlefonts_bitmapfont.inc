@@ -151,7 +151,7 @@ begin
         if CastleDesignMode then
         begin
           WritelnWarning('TCastleBitmapFont', 'Failed to load image "%s": %s',
-            [URIDisplay(FImageUrl), ExceptMessage(E)]);
+            [UriDisplay(FImageUrl), ExceptMessage(E)]);
           Exit;
         end else
           raise;

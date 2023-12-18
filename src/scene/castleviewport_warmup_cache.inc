@@ -43,7 +43,7 @@ begin
     if uses uses the same URL twice in warmup_cache specification. }
   if X3DCache.IsCached(AURL) then Exit;
 
-  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (warming up cache)');
+  TimeStart := Profiler.Start('Loading "' + UriDisplay(AURL) + '" (warming up cache)');
   try
     FRootNodeFromCache := X3DCache.LoadNode(AURL);
   finally Profiler.Stop(TimeStart) end;

@@ -10,6 +10,8 @@ Put together, this demo sends HTTP POST message (to a hardcoded URL https://cast
 
 In effect, you can view logs remotely.
 
+![Screenshot](screenshot.png)
+
 Usage:
 
 - Just run and press any keys or mouse buttons. They will cause `WritelnLog`, which will be send to your server usign asynchronous HTTP POST.
@@ -20,7 +22,7 @@ Note that only logs send to CGE CastleLog (like `WritelnLog`, `WritelnWarning`) 
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
-## HTTPS and OpenSSL
+## FPC + HTTPS + Linux
 
 If you use FPC on Linux, note that older FPC (including 3.2.2) does not handle latest OpenSSL library versions.
 

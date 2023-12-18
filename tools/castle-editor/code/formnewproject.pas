@@ -63,7 +63,7 @@ implementation
 
 uses {$ifdef MSWINDOWS} WinDirs, {$endif}
   LazFileUtils,
-  CastleURIUtils, CastleConfig, CastleUtils, CastleStringUtils,
+  CastleUriUtils, CastleConfig, CastleUtils, CastleStringUtils,
   EditorUtils;
 
 const

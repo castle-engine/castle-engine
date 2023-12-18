@@ -30,7 +30,7 @@ type
     Appearances: TAppearancesDictionary;
 
     { Read the indicated .skin file and fill the Skin contents, if skin file exists. }
-    procedure ReadSkinFile(const SkinUrl: string);
+    procedure ReadSkinFile(const SkinUrl: String);
 
     { Read the stream containing MD3 file. }
     procedure ReadMd3(const Stream: TStream);
@@ -88,7 +88,7 @@ type
       that if you created it, you should also free it, this class will not
       do it for you. You can free Stream right after constructor finished
       it's work. }
-    constructor Create(const Stream: TStream; const ABaseUrl: string);
+    constructor Create(const Stream: TStream; const ABaseUrl: String);
     destructor Destroy; override;
 
     property BaseUrl: String read FBaseUrl;
@@ -96,7 +96,7 @@ type
     function ToX3D: TX3DRootNode;
   end;
 
-constructor TMD3Converter.Create(const Stream: TStream; const ABaseUrl: string);
+constructor TMD3Converter.Create(const Stream: TStream; const ABaseUrl: String);
 var
   SkinUrl: String;
 begin
@@ -143,7 +143,7 @@ begin
       end else
         WritelnWarning('MD3', 'Unknown setting (%s) in "%s" anchor.', [
           Setting.Key,
-          URIDisplay(BaseUrl)
+          UriDisplay(BaseUrl)
         ]);
     end;
   finally
@@ -176,10 +176,10 @@ begin
   end;
 end;
 
-procedure TMD3Converter.ReadSkinFile(const SkinUrl: string);
+procedure TMD3Converter.ReadSkinFile(const SkinUrl: String);
 var
   SkinFile: TTextReader;
-  S, SkinKey, TextureUrl: string;
+  S, SkinKey, TextureUrl: String;
   CommaPos: Integer;
   TexturePath: string;
 begin

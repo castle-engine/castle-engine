@@ -63,21 +63,21 @@ type
 { Compile with Pascal compiler.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure Compile(Compiler: TCompiler;
-  const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+  const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 
 { Compile with FPC and proper command-line option given file.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure CompileFpc(
-  const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+  const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 
 { Compile with Delphi and proper command-line option given file.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure CompileDelphi(
-  const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+  const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 
 { Compile with lazbuild. }
 procedure CompileLazbuild(
-  const WorkingDirectory, LazarusProjectFile: string; const Options: TCompilerOptions);
+  const WorkingDirectory, LazarusProjectFile: String; const Options: TCompilerOptions);
 
 { Run lazbuild with specified command-line options.
   Warning: This @italic(may) modify LazbuildOptions contents,
@@ -89,16 +89,16 @@ procedure RunLazbuild(const WorkingDirectory: String; const LazbuildOptions: arr
   are placed. }
 function CompilationOutputPath(const Compiler: TCompiler;
   const OS: TOS; const CPU: TCPU;
-  const WorkingDirectory: string): string;
+  const WorkingDirectory: String): String;
 
-function ModeToString(const M: TCompilationMode): string;
-function StringToMode(const S: string): TCompilationMode;
+function ModeToString(const M: TCompilationMode): String;
+function StringToMode(const S: String): TCompilationMode;
 
 var
   { Should we use the -Vxxx parameter, that is necessary if you got FPC
     from the fpc-3.0.3.intel-macosx.cross.ios.dmg
     (official "FPC for iOS" installation). }
-  FpcVersionForIPhoneSimulator: string = 'auto';
+  FpcVersionForIPhoneSimulator: String = 'auto';
 
 const
   { Paths with units and include files that are for all OSes and all compilers.
@@ -221,16 +221,16 @@ type
   strict private
     class var
       IsCached: boolean;
-      CachedValue: string;
-    class function AutoDetect(const FpcVer: TFpcVersion): string; static;
+      CachedValue: String;
+    class function AutoDetect(const FpcVer: TFpcVersion): String; static;
   public
     { Return FpcVersionForIPhoneSimulator, but the 1st time this is run,
       we check and optionally change the returned value to something better. }
-    class function Value(const FpcVer: TFpcVersion): string; static;
+    class function Value(const FpcVer: TFpcVersion): String; static;
   end;
 
 class function TFpcVersionForIPhoneSimulatorChecked.AutoDetect(
-  const FpcVer: TFpcVersion): string; static;
+  const FpcVer: TFpcVersion): String; static;
 begin
   if (not Odd(FpcVer.Minor)) and
      (not Odd(FpcVer.Release)) then
@@ -250,9 +250,9 @@ begin
 end;
 
 class function TFpcVersionForIPhoneSimulatorChecked.Value(
-  const FpcVer: TFpcVersion): string; static;
+  const FpcVer: TFpcVersion): String; static;
 var
-  FpcOutput, FpcExe: string;
+  FpcOutput, FpcExe: String;
   FpcExitStatus: Integer;
 begin
   if not IsCached then
@@ -297,11 +297,11 @@ begin
 end;
 
 { Clean compilation trash in Directory, recursively. }
-procedure CleanDirectory(const Directory: string);
+procedure CleanDirectory(const Directory: String);
 var
   Helper: TCleanDirectoryHelper;
 
-  procedure DeleteFilesRecursive(const Mask: string);
+  procedure DeleteFilesRecursive(const Mask: String);
   begin
     FindFiles(Directory, Mask, false,
       {$ifdef FPC}@{$endif} Helper.DeleteFoundFile, [ffRecursive]);
@@ -406,13 +406,13 @@ begin
   // Line := '<begin>' + Line + '<end>';
 end;
 
-procedure CompileFpc(const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+procedure CompileFpc(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 var
-  CastleEngineSrc: string;
+  CastleEngineSrc: String;
   FpcVer: TFpcVersion;
   FpcOptions: TCastleStringList;
 
-  procedure AddEnginePath(Path: string);
+  procedure AddEnginePath(Path: String);
   begin
     Path := CastleEngineSrc + Path;
     if not DirectoryExists(Path) then
@@ -488,7 +488,7 @@ var
   {$endif}
   var
     LikeIOS: boolean; // physical iOS or iPhoneSimulator
-    VersionForSimulator: string;
+    VersionForSimulator: String;
   begin
     LikeIOS := false;
 
@@ -602,7 +602,7 @@ var
   end;
 
 var
-  FpcOutput, FpcExe, CompilationOutputPathFinal, FpcStandardUnitsPath: string;
+  FpcOutput, FpcExe, CompilationOutputPathFinal, FpcStandardUnitsPath: String;
   FpcExitStatus: Integer;
 begin
   FpcVer := FpcVersion;
@@ -854,7 +854,7 @@ begin
   finally FreeAndNil(FpcOptions) end;
 end;
 
-procedure Compile(Compiler: TCompiler; const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+procedure Compile(Compiler: TCompiler; const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 begin
   { resolve Compiler to something other than coAutodetect }
   if Compiler = coAutodetect then
@@ -876,7 +876,7 @@ begin
   end;
 end;
 
-procedure CompileDelphi(const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+procedure CompileDelphi(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 var
   CastleEngineSrc: String;
   DccOptions: TCastleStringList;
@@ -899,7 +899,7 @@ var
     DccOptions.Add('-NS' + SearchNamespaces);
   end;
 
-  procedure AddEnginePath(Path: string);
+  procedure AddEnginePath(Path: String);
   begin
     Path := CastleEngineSrc + Path;
     if not DirectoryExists(Path) then
@@ -1094,7 +1094,7 @@ begin
   finally FreeAndNil(L) end;
 end;
 
-procedure CompileLazbuild(const WorkingDirectory, LazarusProjectFile: string; const Options: TCompilerOptions);
+procedure CompileLazbuild(const WorkingDirectory, LazarusProjectFile: String; const Options: TCompilerOptions);
 var
   LazbuildOptions: TCastleStringList;
 
@@ -1163,7 +1163,7 @@ end;
 
 function CompilationOutputPath(const Compiler: TCompiler;
   const OS: TOS; const CPU: TCPU;
-  const WorkingDirectory: string): string;
+  const WorkingDirectory: String): String;
 begin
   Result := TempOutputPath(WorkingDirectory) + 'compilation' + PathDelim;
   if Compiler = coDelphi then
@@ -1176,12 +1176,12 @@ const
   CompilationModeNames: array [TCompilationMode] of string =
   ('release', 'valgrind', 'debug');
 
-function ModeToString(const M: TCompilationMode): string;
+function ModeToString(const M: TCompilationMode): String;
 begin
   Result := CompilationModeNames[M];
 end;
 
-function StringToMode(const S: string): TCompilationMode;
+function StringToMode(const S: String): TCompilationMode;
 begin
   for Result in TCompilationMode do
     if AnsiSameText(CompilationModeNames[Result], S) then

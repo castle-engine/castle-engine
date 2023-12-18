@@ -27,7 +27,7 @@
   type
     TAllocatedTexture = class
       TextureId: TGLTextureId;
-      URL: string;
+      Url: String;
       Width, Height, Depth: Integer;
       Mipmaps: boolean;
       Size: Int64;
@@ -49,7 +49,7 @@
     { Notify about texture memory allocation.
       This should be used only by code doing direct OpenGL operations. }
     procedure Allocate(const TextureId: TGLTextureId;
-      const URL, ImageFormat: string; const Size: Int64; const Mipmaps: boolean;
+      const Url, ImageFormat: string; const Size: Int64; const Mipmaps: boolean;
       const Width, Height, Depth: Integer);
 
     { Notify about texture memory deallocation.
@@ -139,7 +139,7 @@ begin
 end;
 
 procedure TTextureMemoryProfiler.Allocate(const TextureId: TGLTextureId;
-  const URL, ImageFormat: string;
+  const Url, ImageFormat: string;
   const Size: Int64; const Mipmaps: boolean;
   const Width, Height, Depth: Integer);
 var
@@ -149,7 +149,7 @@ begin
   if FEnabled then
   begin
     AllocatedTex := TAllocatedTexture.Create;
-    AllocatedTex.URL := URL;
+    AllocatedTex.Url := Url;
     AllocatedTex.Width := Width;
     AllocatedTex.Height := Height;
     AllocatedTex.Depth := Depth;
@@ -166,7 +166,7 @@ begin
   if LogTextureLoading then
   begin
     WritelnLog('Texture Loading', 'Loaded to GPU texture "%s" size %d x %d',
-      [URIDisplay(URL), Width, Height]);
+      [UriDisplay(Url), Width, Height]);
     if FEnabled then
       WritelnLogMultiline('Texture Loading', Summary);
   end;
@@ -177,7 +177,9 @@ var
   I: Integer;
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    WritelnWarning('Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TDrawableImage) too late, you should move their destruction to an event like TCastleWindow.OnClose or TCastleControl.OnGLContextClose.',
+    WritelnWarning('Textures', Format(
+      'Releasing texture id %d after the rendering context has been closed. You release some rendering resources too late. You should release (at the latest) in an event registered on "ApplicationProperties.OnGLContextClose".' + NL +
+      'That said, all classes (like TDrawableImage, TCastleScene, TCastleImageControl, TCastleImageTransform) should do this management correctly automatically, so this warning should never happen.' + ' If you see this -> please submit a bug to Castle Game Engine with a testcase to reproduce this problem.',
       [TextureId]));
 
   if FEnabled then
@@ -197,9 +199,9 @@ begin
       { texture id 0 may be allocated, but never released }
       (AllocatedTextures[0].TextureId = 0)) then
   begin
-    WritelnWarning('Textures', Format('TextureMemoryProfiler contains some textures when closing GL context. Possibly we have texture memory leak (textures will be freed anyway when closing GL context, but possibly we could free them earlier).'+' Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
+    WritelnWarning('Textures', Format('TextureMemoryProfiler contains some textures when closing the rendering context. Possibly we have texture memory leak (textures will be freed anyway when closing rendering context, but possibly we could free them earlier).'+' Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
       [AllocatedTextures.Count,
-       AllocatedTextures[0].URL]));
+       AllocatedTextures[0].Url]));
   end;
 end;
 
@@ -278,7 +280,7 @@ begin
   begin
     AllocatedTex := AllocatedTextures[I];
     S := S + Format('  %f - %s (size %d : format %s, dimensions %d x %d x %d, mipmaps: %s)',
-      [AllocatedTex.Size / Used, AllocatedTex.URL,
+      [AllocatedTex.Size / Used, AllocatedTex.Url,
        AllocatedTex.Size, AllocatedTex.ImageFormat,
        AllocatedTex.Width, AllocatedTex.Height, AllocatedTex.Depth,
        BoolToStr(AllocatedTex.Mipmaps, true)]) + NL;

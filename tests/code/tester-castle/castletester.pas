@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
+  Copyright 2022-2023 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,7 +38,7 @@ type
 
   EAssertionFailedError = class(Exception);
 
-  TNotifyAssertFail = procedure (const TestName, Msg: String) of object;
+  TNotifyTestFail = procedure (const TestName, Msg: String) of object;
   TNotifyTestExecuted = procedure (const Name: String) of object;
   TNotifyTestCaseExecuted = procedure (const Name: String) of object;
   TNotifyTestCountChanged = procedure (const TestCount: Integer) of object;
@@ -86,7 +86,7 @@ type
 
     function GetTest(const Index: Integer): TCastleTest;
   private
-    FNotifyAssertFail: TNotifyAssertFail;
+    FNotifyTestFail: TNotifyTestFail;
     FCurrentTestName: String;
 
     FWindowForTest: TCastleWindow;
@@ -284,7 +284,7 @@ type
     FTestPassedCount: Integer;
     FTestFailedCount: Integer;
 
-    procedure SetNotifyAssertFail(const ANotifyAssertFail: TNotifyAssertFail);
+    procedure SetNotifyTestFail(const ANotifyTestFail: TNotifyTestFail);
 
     { Scans test case using RTTI }
     procedure ScanTestCase(TestCase: TCastleTestCase);
@@ -300,7 +300,7 @@ type
     { Callbacks to change UI }
     FNotifyTestExecuted: TNotifyTestExecuted;
     FNotifyTestCaseExecuted: TNotifyTestCaseExecuted;
-    FNotifyAssertFail: TNotifyAssertFail;
+    FNotifyTestFail: TNotifyTestFail;
     FNotifyTestCountChanged: TNotifyTestCountChanged;
     FNotifyTestPassedChanged: TNotifyTestCountChanged;
     FNotifyTestFailedChanged: TNotifyTestCountChanged;
@@ -333,7 +333,13 @@ type
 
     function IsConsoleMode: Boolean;
 
-    { Stop testing on first fail or run all tests }
+    { Stop testing on first fail or run all tests.
+
+      This also means that unhandled exception is just "let through",
+      which is nice to let FPC print backtrace of exception to console,
+      if outside code will just let unhandled exception to break the program.
+
+      Default @true is suitable for console version. }
     property StopOnFirstFail: Boolean read FStopOnFirstFail
       write FStopOnFirstFail default true;
 
@@ -350,8 +356,8 @@ type
       read FNotifyTestCaseExecuted write FNotifyTestCaseExecuted;
 
     { Callback after test fail }
-    property NotifyAssertFail: TNotifyAssertFail read FNotifyAssertFail
-      write SetNotifyAssertFail;
+    property NotifyTestFail: TNotifyTestFail read FNotifyTestFail
+      write SetNotifyTestFail;
 
     { Callback after test count changed }
     property NotifyTestCountChanged: TNotifyTestCountChanged
@@ -368,6 +374,12 @@ type
     { Callback after enabled test count changed }
     property NotifyEnabledTestCountChanged: TNotifyEvent
       read FNotifyEnabledTestCountChanged write FNotifyEnabledTestCountChanged;
+
+    { Set Enabled of all tests, to reflect whether they match Filter.
+      Filter can use wildcards (* and ?) and is compared with
+      the test GetFullName.
+      See ../../README.md for detailed description and examples. }
+    procedure EnableFilter(const Filter: String);
   end;
 
   procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
@@ -376,7 +388,8 @@ implementation
 
 { TCastleTester }
 
-uses CastleLog, TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} CastleUtils;
+uses TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} StrUtils,
+  CastleLog, CastleUtils;
 
 var
   FRegisteredTestCaseList: {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>;
@@ -400,7 +413,7 @@ end;
 procedure TCastleTester.AddTestCase(const TestCase: TCastleTestCase);
 begin
   FTestCaseList.Add(TestCase);
-  TestCase.FNotifyAssertFail := FNotifyAssertFail;
+  TestCase.FNotifyTestFail := FNotifyTestFail;
   TestCase.FCastleTester := Self;
 end;
 
@@ -480,6 +493,8 @@ begin
 end;
 
 procedure TCastleTester.RunTest(Test: TCastleTest);
+var
+  FailMsg: String;
 begin
   // raise Exception.Create('Test Return Adress') at {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
   if not Test.Enabled then
@@ -497,15 +512,45 @@ begin
       Test.TearDown;
     end;
   except
-    on E: EAssertionFailedError do
+    { Notes:
+
+      - We don't treat EAssertionFailedError
+        any differently from other exceptions here.
+
+        (EAssertionFailedError is raised by our Fail
+        and our AssertXxx methods; *not* raised by standard Pascal Assert.)
+
+        Reason: When the test raises (and doesn't catch) any exception
+        (explicitly like "raise ..", or because of check failed
+        e.g. range check error, or because of standard Pascal Assert failed)
+        it should be reported as a failure, just like a failure in our Fail
+        or AssertXxx.
+
+        Trying to differentiate between EAssertionFailedError and others
+        actually caused bugs in display of castle-tester in the past.
+        It seems simpler and more consistent to treat all exceptions the same.
+
+      - We capture all TObject exceptions here, not just Exception,
+        to be sure to really catch everything. Though I know of no real-life
+        cases when something in standard Pascal libraries raises an exception
+        that is not Exception.
+    }
+    on E: TObject do
     begin
+      // call FNotifyTestFail
+      if Assigned(FNotifyTestFail) then
+      begin
+        if E is Exception then
+          FailMsg := Exception(E).Message
+        else
+          FailMsg := ''; // exception class not Exception, no better message
+        FNotifyTestFail(Test.GetFullName, FailMsg);
+      end;
+
+      // handle TestFailedCount
       TestFailedCount := TestFailedCount + 1;
-      if FStopOnFirstFail then
-        raise;
-    end;
-    on E: Exception do
-    begin
-      // TODO: warnning here when we don't stop on first Exception.
+
+      // handle FStopOnFirstFail
       if FStopOnFirstFail then
         raise;
     end;
@@ -567,18 +612,18 @@ begin
   {$endif}
 end;
 
-procedure TCastleTester.SetNotifyAssertFail(
-  const ANotifyAssertFail: TNotifyAssertFail);
+procedure TCastleTester.SetNotifyTestFail(
+  const ANotifyTestFail: TNotifyTestFail);
 var
   TestCase: TCastleTestCase;
 begin
-  if @FNotifyAssertFail = @ANotifyAssertFail then
+  if @FNotifyTestFail = @ANotifyTestFail then
     Exit;
 
-  FNotifyAssertFail := ANotifyAssertFail;
+  FNotifyTestFail := ANotifyTestFail;
   for TestCase in FTestCaseList do
   begin
-    TestCase.FNotifyAssertFail := ANotifyAssertFail;
+    TestCase.FNotifyTestFail := ANotifyTestFail;
   end;
 end;
 
@@ -624,6 +669,20 @@ end;
 function TCastleTester.IsConsoleMode: Boolean;
 begin
   Result := FUIWindow = nil;
+end;
+
+procedure TCastleTester.EnableFilter(const Filter: String);
+var
+  TestCase: TCastleTestCase;
+  Test: TCastleTest;
+  I: Integer;
+begin
+  for TestCase in FTestCaseList do
+    for I := 0 to TestCase.TestCount - 1 do
+    begin
+      Test := TestCase.Test[I];
+      Test.Enabled := IsWild(Test.GetFullName, Filter, true);
+    end;
 end;
 
 { TCastleTestCase }
@@ -774,9 +833,9 @@ begin
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
   try
-    AssertEquals(Expected.ZFarInfinity, Actual.ZFarInfinity);
+    AssertEquals(Expected.FarInfinity, Actual.FarInfinity);
 
-    if Expected.ZFarInfinity then
+    if Expected.FarInfinity then
     begin
       for I := Low(I) to Pred(High(I)) do
         AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], Epsilon);
@@ -1178,9 +1237,6 @@ end;
 
 procedure TCastleTestCase.Fail(const Msg: String; const AddrOfError: Pointer);
 begin
-  if Assigned(FNotifyAssertFail) then
-    FNotifyAssertFail(CurrentTestName, Msg);
-
   if Assigned(AddrOfError) then
     raise EAssertionFailedError.Create(Msg) at AddrOfError
   else

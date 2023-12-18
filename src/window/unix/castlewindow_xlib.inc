@@ -43,7 +43,7 @@ private
 
 {$ifdef read_application_interface}
 private
-  FXDisplayName: string;
+  FXDisplayName: String;
   FXScreen: Integer;
   InitializeXDisplayDone: boolean;
   XCursors: array [TMouseCursor] of TCursor;
@@ -83,7 +83,7 @@ public
 
   { X display name used to communicate with X server (to open windows,
     query screen size and so on). }
-  property XDisplayName: string read FXDisplayName write FXDisplayName;
+  property XDisplayName: String read FXDisplayName write FXDisplayName;
   property XDisplay: PDisplay read FXDisplay;
   property XScreen: Integer read FXScreen;
 {$endif read_application_interface}
@@ -402,7 +402,7 @@ begin
     doesn't require X server runnning. }
 end;
 
-procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 var
   PValue: PChar;
   WindTitleProp: TXTextProperty;
@@ -473,7 +473,7 @@ function TCastleWindow.HandleXEvent(const Event: TXEvent): boolean;
   var
     k: TKeySym;
     CharKey: char;
-    EventString: string;
+    EventString: String;
     Key: TKey;
   begin
     { calculate k, CharKey }
@@ -787,7 +787,7 @@ begin
   end;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'Xlib+' + {$ifndef OpenGLES} 'glX' {$else} 'EGL' {$endif};
 end;

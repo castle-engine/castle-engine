@@ -49,14 +49,16 @@ type
     procedure TestFailedCountChanged(const TestCount: Integer);
     procedure EnabledTestCountChanged(Sender: TObject);
     procedure TestExecuted(const AName: String);
-    procedure AssertFailed(const TestName, Msg: String);
-    procedure LogFailedAssertion(const AMessage: String);
+    procedure TestFailed(const TestName, Msg: String);
+    procedure LogFailure(const AMessage: String);
 
     procedure StartTesting;
     procedure StopTesting(const AMessage: String;
       const Exception: Boolean = false);
 
   public
+    { Can be set before Start. }
+    FilterTests: String;
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single;
@@ -69,7 +71,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleColors, CastleUtils,
+  CastleColors, CastleUtils, CastleParameters,
 
   { Testing (mainly) things inside Pascal standard library, not CGE }
   TestCompiler,
@@ -80,7 +82,7 @@ uses SysUtils,
   {$ifdef FPC}TestFPImage,{$endif}
   //TestToolFpcVersion,
 
-{ Testing CGE units }
+  { Testing CGE units }
   TestCastleUtils,
   TestCastleRectangles,
   TestCastleFindFiles,
@@ -94,6 +96,7 @@ uses SysUtils,
   TestCastleRenderOptions,
   TestCastleKeysMouse,
   TestCastleImages,
+  TestCastleInternalDataCompression,
   TestCastleImagesDraw,
   TestCastleBoxes,
   TestCastleFrustum,
@@ -120,8 +123,8 @@ uses SysUtils,
   TestCastleCompositeImage,
   TestCastleTriangulate,
   TestCastleGame,
-  TestCastleURIUtils,
-  TestCastleXMLUtils,
+  TestCastleUriUtils,
+  TestCastleXmlUtils,
   TestCastleCurves,
   TestCastleTimeUtils,
   TestCastleControls,
@@ -151,11 +154,25 @@ uses SysUtils,
   // {$ifdef FPC}TestCastleLCLUtils{$endif}
   ;
 
+{ Handle --filter command-line option.
+  This is a callback for Parameters.Parse. }
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+var
+  View: TViewMain;
+begin
+  View := TViewMain(Data);
+  case OptionNum of
+    0: View.FilterTests := Argument;
+    else raise EInternalError.Create('OptionProc: OptionNum = ' + IntToStr(OptionNum));
+  end;
+end;
+
 { TViewMain ----------------------------------------------------------------- }
 
-procedure TViewMain.AssertFailed(const TestName, Msg: String);
+procedure TViewMain.TestFailed(const TestName, Msg: String);
 begin
-  LogFailedAssertion(TestName + ': ' + Msg);
+  LogFailure(TestName + ': ' + Msg);
 end;
 
 procedure TViewMain.ClickStartTests(Sender: TObject);
@@ -171,9 +188,14 @@ begin
 end;
 
 constructor TViewMain.Create(AOwner: TComponent);
+const
+  Options: array [0..0] of TOption = (
+    (Short:'f'; Long:'filter'; Argument: oaRequired)
+  );
 begin
   inherited;
   DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
+  Parameters.Parse(Options, @OptionProc, Self, true);
 end;
 
 procedure TViewMain.EnabledTestCountChanged(Sender: TObject);
@@ -184,7 +206,7 @@ begin
   ]);
 end;
 
-procedure TViewMain.LogFailedAssertion(const AMessage: String);
+procedure TViewMain.LogFailure(const AMessage: String);
 begin
   if LabelFailedTests.Caption = '' then
     LabelFailedTests.Caption :=  AMessage
@@ -214,7 +236,7 @@ begin
   Tester.NotifyTestFailedChanged := {$ifdef FPC}@{$endif}TestFailedCountChanged;
   Tester.NotifyEnabledTestCountChanged := {$ifdef FPC}@{$endif}EnabledTestCountChanged;
   Tester.NotifyTestCaseExecuted := {$ifdef FPC}@{$endif}TestExecuted;
-  Tester.NotifyAssertFail := {$ifdef FPC}@{$endif}AssertFailed;
+  Tester.NotifyTestFail := {$ifdef FPC}@{$endif}TestFailed;
 
 
   { You can add all Registered tests by calling AddRegisteredTestCases }
@@ -231,6 +253,8 @@ begin
 
   { Scans all tests }
   Tester.Scan;
+  if FilterTests <> '' then
+    Tester.EnableFilter(FilterTests);
   { First prepare to count acctualy selected tests }
   Tester.PrepareTestListToRun;
 end;
@@ -253,7 +277,7 @@ begin
 
   { If some test ends with unhandled exception we want it on our error list }
   if Exception then
-    LogFailedAssertion(AMessage);
+    LogFailure(AMessage);
 
   if (Tester.TestFailedCount > 0) or (Exception) then
     LabelMessage.Color := HexToColor('C60D0D')

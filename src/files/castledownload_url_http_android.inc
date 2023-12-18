@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,9 +16,13 @@
 
 { Handle http, https URLs using Android service. }
 
-{$ifdef read_implementation}
-
 {$ifdef ANDROID}
+
+{$ifdef read_implementation_uses}
+CastleAndroidInternalAssetStream, CastleMessaging,
+{$endif read_implementation_uses}
+
+{$ifdef read_implementation}
 
 { TUrlHttpAndroid ------------------------------------------------------------ }
 
@@ -72,11 +76,11 @@ begin
 
   CheckFileAccessSafe(Url);
   WritelnLog('Network', 'Download service started for "%s", id %d', [
-    URIDisplay(Url),
+    UriDisplay(Url),
     DownloadId
   ]);
 
-  MimeType := URIMimeType(Url);
+  MimeType := UriMimeType(Url);
 
   Messaging.OnReceive.Add({$ifdef FPC}@{$endif} HandleDownloadMessages);
   Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName, HttpPostDataStr]);
@@ -158,7 +162,7 @@ begin
   begin
     HttpResponseCode := StrToInt(Received[2]);
     // WritelnLog('Network', 'HTTP response for "%s" is %d: %s', [
-    //   URIDisplay(Url),
+    //   UriDisplay(Url),
     //   HttpResponseCode,
     //   Received[3]
     // ]);
@@ -179,6 +183,7 @@ begin
   inherited;
 end;
 
+{$endif read_implementation}
+
 {$endif ANDROID}
 
-{$endif read_implementation}

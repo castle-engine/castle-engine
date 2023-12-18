@@ -339,6 +339,9 @@ examples:
 # - build tool is already build, in $(BUILD_TOOL)
 # - doesn't deal with template tests
 # - only searches examples/ subdir
+#
+# TODO: We don't automatically build examples/delphi/cpp_builder,
+# our build tool doesn't support C++ Builder compilation now.
 .PHONY: examples-delphi
 examples-delphi:
 	"$(FIND)" ./examples/ \
@@ -349,6 +352,7 @@ examples-delphi:
 	  '(' -path ./examples/deprecated_random_generator -prune ')' -o \
 	  '(' -path ./examples/deprecated_library -prune ')' -o \
 	  '(' -path ./examples/lazarus -prune ')' -o \
+	  '(' -path ./examples/delphi/cpp_builder -prune ')' -o \
 	  '(' -iname CastleEngineManifest.xml -print ')' > \
 	  /tmp/cge-delphi-projects.txt
 	echo 'Found projects: '`wc -l < /tmp/cge-delphi-projects.txt`

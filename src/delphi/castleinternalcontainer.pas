@@ -153,7 +153,7 @@ implementation
 
 uses SysUtils,
   CastleRenderContext, CastleGLUtils, CastleApplicationProperties, CastleGLImages,
-  CastleGLVersion, CastleTimeUtils, CastleUtils, CastleLog, CastleURIUtils,
+  CastleGLVersion, CastleTimeUtils, CastleUtils, CastleLog, CastleUriUtils,
   CastleComponentSerialize, CastleInternalDelphiUtils, CastleFilesUtils;
 
 var
@@ -276,6 +276,7 @@ begin
     EventClose(ContainersOpen);
     Dec(ContainersOpen);
     FGLInitialized := false;
+    FPlatformContext.ContextDestroy;
 
     if UpdatingEnabled and (ContainersOpen = 0) then
     begin
@@ -388,14 +389,31 @@ var
   I: Integer;
   C: TCastleContainerEasy;
 begin
-  for I := ContainersList.Count - 1 downto 0 do
+  { Be extra careful about processing here, so check ContainersList <> nil.
+
+    As this may run after our
+    "finalization" has run in case of VCL TCastleControl,
+    when ReportMemoryLeaksOnShutdown:=true is used.
+    In this case, the dialog shown by ReportMemoryLeaksOnShutdown happens
+    after our "finalization", but before
+    the TCastleControl.TContainer.UpdatingDisable from Vcl.CastleControl,
+    so before the TCastleControl lost GL context.
+    And during ReportMemoryLeaksOnShutdown, the WinAPI message loop runs,
+    making the TCastleControl timer execute.
+  }
+
+  if ContainersList <> nil then
+    for I := ContainersList.Count - 1 downto 0 do
+    begin
+      C := ContainersList[I];
+      if C.GLInitialized then
+        C.DoUpdate;
+    end;
+  if ApplicationProperties(false) <> nil then
   begin
-    C := ContainersList[I];
-    if C.GLInitialized then
-      C.DoUpdate;
+    ApplicationProperties(false)._Update;
+    DoLimitFPS;
   end;
-  ApplicationProperties._Update;
-  DoLimitFPS;
 end;
 
 procedure TCastleContainerEasy.LoadDesign;
@@ -415,7 +433,7 @@ procedure TCastleContainerEasy.LoadDesign;
       ProjectPath := OnGetDesignTimeProjectPath();
 
       { Override ApplicationData interpretation, and castle-data:/xxx URL meaning. }
-      ApplicationDataOverride := FilenameToURISafe(
+      ApplicationDataOverride := FilenameToUriSafe(
         InclPathDelim(ProjectPath) + 'data' + PathDelim);
     end;
   end;
@@ -460,7 +478,7 @@ begin
           if CastleDesignMode then // looks at InternalCastleApplicationMode
           begin
             WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
-              URIDisplay(DesignUrl),
+              UriDisplay(DesignUrl),
               ExceptMessage(E)
             ]);
             Exit;
@@ -502,7 +520,7 @@ begin
   if Required and (Result = nil) then
     raise EComponentNotFound.CreateFmt('Cannot find component named "%s" in design "%s"', [
       ComponentName,
-      URIDisplay(DesignUrl)
+      UriDisplay(DesignUrl)
     ]);
 end;
 

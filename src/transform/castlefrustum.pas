@@ -52,8 +52,9 @@ const
 
     It's guaranteed that the first 4 items
     touch only the first 4 (near plane) points of the frustum --- useful
-    if you want to draw only the near plane rect. For ZFarInfinity,
-    other points may be in infinity. }
+    if you want to draw only the near plane rect.
+
+    When TFrustum.FarInfinity, other points may be in infinity. }
   FrustumPointsLinesIndexes: packed array [0..11, 0..1] of UInt16 =
   ( (0, 1), (1, 2), (2, 3), (3, 0),
     (4, 5), (5, 6), (6, 7), (7, 4),
@@ -99,12 +100,12 @@ type
       Currently, they are always normalized.
 
       Note that if projection has far plane in infinity (indicated by
-      ZFarInfinity) then the far plane will be invalid ---
+      FarInfinity) then the far plane will be invalid ---
       first three values of it's equation will be 0.
-      Always check @link(ZFarInfinity) before accessing that plane. }
+      Always check @link(FarInfinity) before accessing that plane. }
     Planes: array [TFrustumPlane] of TVector4;
 
-    ZFarInfinity: boolean;
+    FarInfinity: boolean;
 
     { Calculate 8 points of frustum. These points are simply
       calculated doing ThreePlanesIntersectionPoint on appropriate planes.
@@ -268,7 +269,7 @@ begin
 
   { If Planes[fpFar] has really exactly zero vector,
     then far plane is in infinity. }
-  ZFarInfinity :=
+  FarInfinity :=
     (Planes[fpFar].X = 0) and
     (Planes[fpFar].Y = 0) and
     (Planes[fpFar].Z = 0);
@@ -281,7 +282,7 @@ var
   fp, LastPlane: TFrustumPlane;
 begin
   LastPlane := High(fp);
-  if ZFarInfinity then
+  if FarInfinity then
     LastPlane := Pred(LastPlane);
 
   for fp := Low(fp) to LastPlane do
@@ -339,7 +340,7 @@ begin
   FrustumPoints[2] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpBottom])), 1);
   FrustumPoints[3] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpBottom])), 1);
 
-  if not ZFarInfinity then
+  if not FarInfinity then
   begin
     FrustumPoints[4] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]))   , 1);
     FrustumPoints[5] := Vector4Double(ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpTop]))   , 1);
@@ -371,7 +372,7 @@ begin
 
   { If the frustum has far plane in infinity, then ignore this plane.
     Inc InsidePlanesCount, since the sphere is inside this infinite plane. }
-  if ZFarInfinity then
+  if FarInfinity then
   begin
     LastPlane := Pred(LastPlane);
     Inc(InsidePlanesCount);
@@ -428,7 +429,7 @@ begin
   Assert(LastPlane = fpFar);
 
   { If the frustum has far plane in infinity, then ignore this plane. }
-  if ZFarInfinity then
+  if FarInfinity then
     LastPlane := Pred(LastPlane);
 
   for fp := Low(fp) to LastPlane do
@@ -474,7 +475,7 @@ begin
 
   { If the frustum has far plane in infinity, then ignore this plane.
     Inc InsidePlanesCount, since the box is inside this infinite plane. }
-  if ZFarInfinity then
+  if FarInfinity then
   begin
     LastPlane := Pred(LastPlane);
     Inc(InsidePlanesCount);
@@ -518,7 +519,7 @@ begin
   Assert(LastPlane = fpFar);
 
   { If the frustum has far plane in infinity, then ignore this plane. }
-  if ZFarInfinity then
+  if FarInfinity then
     LastPlane := Pred(LastPlane);
 
   for fp := Low(fp) to LastPlane do
@@ -541,7 +542,7 @@ begin
   { This is Ok for frustum with infinite far plane, since
     PlaneMove will simply keep the far plane invalid }
   Result.Planes[fpFar   ] := PlaneMove(Planes[fpFar]   , M);
-  Result.ZFarInfinity := ZFarInfinity;
+  Result.FarInfinity := FarInfinity;
   Result.NormalizePlanes;
 end;
 
@@ -580,7 +581,7 @@ function TFrustum.Transform(const M: TMatrix4): TFrustum;
 var
   I: TFrustumPlane;
 begin
-  if ZFarInfinity then
+  if FarInfinity then
   begin
     Assert(High(I) = fpFar);
     for I := Low(I) to Pred(High(I)) do
@@ -590,14 +591,14 @@ begin
     for I := Low(I) to High(I) do
       Result.Planes[I] := PlaneTransform(Planes[I], M);
 
-  Result.ZFarInfinity := ZFarInfinity;
+  Result.FarInfinity := FarInfinity;
 end;
 
 function TFrustum.TransformByInverse(const MInverse: TMatrix4): TFrustum;
 var
   I: TFrustumPlane;
 begin
-  if ZFarInfinity then
+  if FarInfinity then
   begin
     Assert(High(I) = fpFar);
     { Multiply by transpose(inverse(M)) to transform plane.
@@ -611,7 +612,7 @@ begin
     for I := Low(I) to High(I) do
       Result.Planes[I] := MInverse.TransposeMultiply(Planes[I]);
 
-  Result.ZFarInfinity := ZFarInfinity;
+  Result.FarInfinity := FarInfinity;
 end;
 
 function TFrustum.ToNiceStr(const Indent: string): string;
@@ -624,7 +625,7 @@ var
   I: TFrustumPlane;
 begin
   Result := '';
-  if ZFarInfinity then
+  if FarInfinity then
   begin
     Assert(High(I) = fpFar);
     for I := Low(I) to Pred(High(I)) do

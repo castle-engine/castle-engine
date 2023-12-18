@@ -17,27 +17,55 @@
 {$ifdef read_interface}
 
 type
-  { Options for the @link(URLSaveStream) function. }
+  { Options for the @link(UrlSaveStream) function. }
   TSaveStreamOption = (
     { Filter the contents through gzip compression. }
     ssoGzip
   );
   TSaveStreamOptions = set of TSaveStreamOption;
 
-{ Create a stream to save a given URL, for example create a TFileStream
-  to save a file for a @code(file) URL. In other words, perform @italic(upload).
+{ Create a stream to save (write to) a given URL.
 
-  Right now, this only works for @code(file) and @code(castle-data) URLs,
-  and (as all engine functions) can also accept simple filenames.
+  For example, to save a file.
+  When you use URLSaveStream with URL with a @code(file) protocol,
+  or just with a regular filename, it will return a TFileStream instance
+  to write this file.
 
-  When saving to @code(castle-data) URL, remember that on some platforms
-  the game data is read-only. Use this only during development on desktop,
-  when you know that "data" is just your regular data directory.
+  This function supports any CGE custom protocol registered by @link(RegisterUrlProtocol),
+  if only you provided @code(WriteEvent: TUrlWriteEvent) when registering that
+  protocol.
+
+  Note: When saving to @code(castle-data) URL, remember that on some platforms
+  (like Android) or installation methods (like system-wide installation
+  on Linux or Windows) the game data is read-only. To be portable,
+  you should never use URLSaveStream with the @code(castle-data) protocol.
+  It is only useful in limited cases when you know that you distribute your
+  game in such way (and users install it in such way) and on such platforms,
+  that the "data" directory is writable.
 
   On Android, you should use the "write_external_storage"
   service to be able to write storage files (e.g. to SD card).
   This means files accessed by the 'file' protocol.
   See https://castle-engine.io/android-Services .
+
+  Example usage:
+
+  @longCode(#
+  var
+    Stream: TStream;
+    I: Uint32;
+  begin
+    Stream := URLSaveStream('file:///tmp/foo.txt', []);
+    try
+      // write some strings
+      WritelnStr(Stream, 'Some string');
+      WritelnStr(Stream, 'Another string');
+      // write some binary data
+      I := 666;
+      Stream.WriteBuffer(I, SizeOf(I));
+    finally FreeAndNil(Stream) end;
+  end;
+  #)
 
   @raises(ESaveError In case of problems saving this URL.)
 
@@ -48,25 +76,25 @@ type
     (instead of catching and re-raising).
     So be ready that this function may raise @italic(any) Exception class.)
 }
-function URLSaveStream(const URL: string; const Options: TSaveStreamOptions = []): TStream;
+function UrlSaveStream(const Url: String; const Options: TSaveStreamOptions = []): TStream;
 
 {$endif}
 
 {$ifdef read_implementation}
 
-function URLSaveStream(const URL: string; const Options: TSaveStreamOptions): TStream;
+function UrlSaveStream(const Url: String; const Options: TSaveStreamOptions): TStream;
 var
   P: String;
   RegisteredProtocol: TRegisteredProtocol;
   UnderlyingStream: TStream;
 begin
-  P := URIProtocol(URL);
+  P := URIProtocol(Url);
 
   { Handle early castle-data:, protocol to access application data,
     https://castle-engine.io/manual_data_directory.php }
   if P = 'castle-data' then
   begin
-    Result := URLSaveStream(ResolveCastleDataURL(URL), Options);
+    Result := UrlSaveStream(ResolveCastleDataUrl(Url), Options);
     Exit;
   end;
 
@@ -75,7 +103,7 @@ begin
   begin
     if Assigned(RegisteredProtocol.WriteEvent) then
     begin
-      UnderlyingStream := RegisteredProtocol.WriteEvent(URL);
+      UnderlyingStream := RegisteredProtocol.WriteEvent(Url);
       // Compress using gzip, if requested in Options
       if ssoGzip in Options then
         Result := TGZFileStream.Create(UnderlyingStream, true)

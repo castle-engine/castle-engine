@@ -28,7 +28,7 @@ procedure Font2Pascal(const Font: TTextureFontData;
 { @noAutoLinkHere }
 procedure Font2Pascal(const Font: TTextureFontData;
   const UnitName, PrecedingComment, FontFunctionName: string;
-  const OutURL: string); overload;
+  const OutUrl: String); overload;
 
 implementation
 
@@ -62,7 +62,7 @@ begin
     NL+
     'implementation' +NL+
     NL+
-    'uses SysUtils, CastleImages;' + NL+
+    'uses SysUtils, CastleImages, CastleInternalDataCompression;' + NL+
     NL
   );
 
@@ -90,7 +90,7 @@ begin
     '  G: TTextureFontData.TGlyph;' +NL+
     'begin' +NL+
     '  FontImage.TreatAsAlpha := true;' +NL+
-    '  FontImage.URL := ''embedded-font:/' + UnitName + ''';' +NL+
+    '  FontImage.Url := ''embedded-font:/' + UnitName + ''';' +NL+
     NL+
     '  Glyphs := TTextureFontData.TGlyphDictionary.Create;' +NL+
     NL);
@@ -146,11 +146,11 @@ end;
 
 procedure Font2Pascal(const Font: TTextureFontData;
   const UnitName, PrecedingComment, FontFunctionName: string;
-  const OutURL: string); overload;
+  const OutUrl: String); overload;
 var
   Stream: TStream;
 begin
-  Stream := URLSaveStream(OutURL);
+  Stream := UrlSaveStream(OutUrl);
   try
     Font2Pascal(Font, UnitName, PrecedingComment, FontFunctionName, Stream);
   finally Stream.Free end;

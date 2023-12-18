@@ -21,7 +21,7 @@
 uses Classes, SysUtils,
   CastleFont2Pascal, CastleUtils, CastleClassUtils, CastleLog,
   CastleParameters, CastleTextureFontData, CastleStringUtils,
-  CastleURIUtils, CastleUnicode, CastleFilesUtils,
+  CastleUriUtils, CastleUnicode, CastleFilesUtils,
   CastleImages, CastleApplicationProperties, CastleLocalizationGetText;
 
 var

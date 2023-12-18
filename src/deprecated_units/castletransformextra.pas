@@ -330,7 +330,7 @@ const
 
 implementation
 
-uses CastleComponentSerialize, CastleLog, CastleURIUtils;
+uses CastleComponentSerialize, CastleLog, CastleUriUtils;
 
 { TCastleMoving --------------------------------------------------------- }
 

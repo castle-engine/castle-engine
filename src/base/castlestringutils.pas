@@ -1249,7 +1249,7 @@ begin
   Result := inherited Items[AKey];
 end;
 
-procedure TStringStringMap.SetItems(const AKey: string; const AValue: string);
+procedure TStringStringMap.SetItems(const AKey: string; const AValue: String);
 begin
   AddOrSetValue(AKey, AValue);
 end;

@@ -130,7 +130,7 @@ private
   { Used by SetCursor, each item may be nil if not initialized. }
   Cursors: array [TMouseCursor] of PGdkCursor;
 
-  FXDisplayName: string;
+  FXDisplayName: String;
 
   InitializeXDisplayDone: boolean;
 
@@ -161,7 +161,7 @@ public
 
     Note that this is exposed by GTK even for non-XWindows platforms,
     but I don't know what it does there. }
-  property XDisplayName: string read FXDisplayName write FXDisplayName;
+  property XDisplayName: String read FXDisplayName write FXDisplayName;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -438,7 +438,7 @@ function signal_key_press_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
 var
   Key: TKey;
-  KeyString: string;
+  KeyString: String;
 SIGNAL_WINDOW_BEGIN
   case Event^.KeyVal of
     GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, true);
@@ -761,7 +761,7 @@ begin
   end;
 end;
 
-procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then
@@ -1239,7 +1239,7 @@ begin
          (gtk_micro_version >= Micro) ));
 end;
 
-function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindow.BackendFileDialog(const Title: String; var FileName: String;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
 { FileChooser is available only in GTK >= 2.4.
@@ -1280,7 +1280,7 @@ var
   OkButtonText: PChar;
   Dialog: PGtkFileChooserDialog;
   CFileName: PChar;
-  ExpandedFileName, Dir: string;
+  ExpandedFileName, Dir: String;
 begin
   if OpenDialog then
   begin
@@ -1447,10 +1447,10 @@ const
     Ord(GTK_MESSAGE_ERROR),
     { GTK_MESSAGE_OTHER, missing from FPC bindings } 4 );
 
-procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindow.MessageOK(const S: String; const MessageType: TWindowMessageType);
 var
   Dialog: PGtkMessageDialog;
-  SNew: string;
+  SNew: String;
 begin
   SNew := SUnformattable(S); // gtk_message_dialog_new formats argument using printf, prevent it
   Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk, 0,
@@ -1460,10 +1460,10 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-function TCastleWindow.MessageYesNo(const S: string; const MessageType: TWindowMessageType): boolean;
+function TCastleWindow.MessageYesNo(const S: String; const MessageType: TWindowMessageType): boolean;
 var
   Dialog: PGtkMessageDialog;
-  SNew: string;
+  SNew: String;
 begin
   SNew := SUnformattable(S); // gtk_message_dialog_new formats argument using printf, prevent it
   Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk, 0,
@@ -1505,11 +1505,11 @@ end;
 type
   TGTKClipboard = class(TCastleClipboard)
   protected
-    function GetAsText: string; override;
-    procedure SetAsText(const Value: string); override;
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
   end;
 
-function TGTKClipboard.GetAsText: string;
+function TGTKClipboard.GetAsText: String;
 var
   C: PGtkClipboard;
 begin
@@ -1517,7 +1517,7 @@ begin
   Result := gtk_clipboard_wait_for_text(C);
 end;
 
-procedure TGTKClipboard.SetAsText(const Value: string);
+procedure TGTKClipboard.SetAsText(const Value: String);
 var
   C: PGtkClipboard;
 begin
@@ -1760,7 +1760,7 @@ begin
   Result := 0;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'GTK+';
 end;

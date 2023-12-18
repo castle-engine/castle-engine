@@ -34,7 +34,7 @@ type
 
 implementation
 
-uses CastleFindFiles, CastleURIUtils;
+uses CastleFindFiles, CastleUriUtils;
 
 procedure TTestCastleFindFiles.TestNilHandler;
 begin
@@ -55,7 +55,7 @@ begin
   // guaranteed to be true in all situations
   AssertTrue(FindFirstFileIgnoreCase('castle-data:/designs_to_count_files/', '*.CASTLE-user-interface', false, [], FileInfo));
 
-  DataLocalSystem := URIToFilenameSafe(ResolveCastleDataUrl('castle-data:/'));
+  DataLocalSystem := UriToFilenameSafe(ResolveCastleDataUrl('castle-data:/'));
 
   if DataLocalSystem <> '' then
   begin

@@ -89,9 +89,9 @@
   public
     constructor Create(Video: TVideo;
       const SmoothScaling: boolean = true); overload;
-    constructor Create(const URL: string;
+    constructor Create(const Url: String;
       const SmoothScaling: boolean = true); overload;
-    constructor Create(const URL: string;
+    constructor Create(const Url: String;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
       const Interpolation: TResizeInterpolation = riBilinear); overload;
@@ -178,19 +178,19 @@ begin
     FItems[I] := TDrawableImage.Create(Video.Items[I], SmoothScaling, false);
 end;
 
-constructor TGLVideo2D.Create(const URL: string;
+constructor TGLVideo2D.Create(const Url: String;
   const SmoothScaling: boolean = true);
 var
   Video: TVideo;
 begin
   Video := TVideo.Create;
   try
-    Video.LoadFromFile(URL);
+    Video.LoadFromFile(Url);
     Create(Video, SmoothScaling);
   finally FreeAndNil(Video) end;
 end;
 
-constructor TGLVideo2D.Create(const URL: string;
+constructor TGLVideo2D.Create(const Url: String;
   const ResizeToX: Cardinal;
   const ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation);
@@ -199,7 +199,7 @@ var
 begin
   Video := TVideo.Create;
   try
-    Video.LoadFromFile(URL, ResizeToX, ResizeToY, Interpolation);
+    Video.LoadFromFile(Url, ResizeToX, ResizeToY, Interpolation);
     Create(Video);
   finally FreeAndNil(Video) end;
 end;

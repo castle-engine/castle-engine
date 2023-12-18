@@ -49,7 +49,7 @@ end;
 
 function TText.Press(const Event: TInputPressRelease): boolean;
 var
-  URL: string;
+  Url: String;
 begin
   Result := inherited;
   if Result then Exit;
@@ -62,10 +62,10 @@ begin
       end;
     'o':
       begin
-        URL := '';
+        Url := '';
         { when file dialog is open, note that the other windows
           are still active as they should. }
-        ParentWindow.FileDialog('Test open file dialog', URL, true);
+        ParentWindow.FileDialog('Test open file dialog', Url, true);
         Exit(true);
       end;
   end;

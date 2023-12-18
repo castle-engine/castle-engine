@@ -57,6 +57,11 @@ Sound : X3DSoundNode {
   SFFloat [in,out] priority   0
     range: [0,1]
   SFNode  [in,out] source     NULL
-    range: X3DSoundSourceNode
+    # Note that we have to allow MovieTexture explicitly,
+    # even though in X3D standard the MovieTexture is descendant of X3DSoundSourceNode
+    # already. But in CGE, X3DSoundSourceNode is a class (not interface),
+    # as that's simpler, and MovieTexture is not a descendant of X3DSoundSourceNode
+    # (it has to descend from X3DTexture2DNode).
+    range: X3DSoundSourceNode, MovieTexture
   SFBool  []       spatialize TRUE
 }

@@ -23,18 +23,11 @@ TEXTUREFONT2PASCAL="${TEXTUREFONT2PASCAL} --sample-text-file=common_unicode_char
 # so that changing sizes used by default by CGE can be easily done by changing +
 # running this shell script.
 TEXT_NODE_FONT_SIZE=25
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans-BoldOblique.ttf      --unit-name CastleTextureFont_Default3D_SansBI  --function-name Font_Default3D_SansBI
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans-Bold.ttf             --unit-name CastleTextureFont_Default3D_SansB   --function-name Font_Default3D_SansB
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans-Oblique.ttf          --unit-name CastleTextureFont_Default3D_SansI   --function-name Font_Default3D_SansI
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans.ttf                  --unit-name CastleTextureFont_Default3D_Sans    --function-name Font_Default3D_Sans
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSansMono-BoldOblique.ttf  --unit-name CastleTextureFont_Default3D_MonoBI  --function-name Font_Default3D_MonoBI
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSansMono-Bold.ttf         --unit-name CastleTextureFont_Default3D_MonoB   --function-name Font_Default3D_MonoB
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSansMono-Oblique.ttf      --unit-name CastleTextureFont_Default3D_MonoI   --function-name Font_Default3D_MonoI
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSansMono.ttf              --unit-name CastleTextureFont_Default3D_Mono    --function-name Font_Default3D_Mono
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSerif-BoldItalic.ttf      --unit-name CastleTextureFont_Default3D_SerifBI --function-name Font_Default3D_SerifBI
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSerif-Bold.ttf            --unit-name CastleTextureFont_Default3D_SerifB  --function-name Font_Default3D_SerifB
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSerif-Italic.ttf          --unit-name CastleTextureFont_Default3D_SerifI  --function-name Font_Default3D_SerifI
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSerif.ttf                 --unit-name CastleTextureFont_Default3D_Serif   --function-name Font_Default3D_Serif
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans.ttf --unit-name CastleTextureFont_Default3D_Sans    --function-name Font_Default3D_Sans
+
+# For other 11 font variants used by X3D,
+# see view3dscene view3dscene/embedded_data/fonts/ .
+# We no longer generate / embed them in CGE core.
 
 # Used by FallbackFont and (default) UIFont.
 # Note that changing the default size here will change the default font size in UI,

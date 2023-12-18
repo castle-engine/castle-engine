@@ -67,7 +67,7 @@
     FGenTexFunctionality: TGeneratedTextureFunctionality;
   private
     FX3DName: string;
-    FBaseUrl: string;
+    FBaseUrl: String;
     FVRML1Children, FVRML1Parents: TX3DNodeList;
     FKeepExisting: Cardinal;
     FParentFields: TX3DFieldList;
@@ -135,6 +135,10 @@
       instead of this, like TAbstractShapeNode.SetAppearanceBefore. }
     procedure MoveShapeAssociations(const Sender: TSFNode; const NewNode: TX3DNode);
   protected
+    { Make a specified warning, but only once for this node instance.
+      Uses WarningDone to track if warning was already done.
+      Warning will contain automatically NiceName, so X3D node name and type. }
+    procedure WarningOnce(var WarningDone: boolean; const Message: string);
 
     { Does actual DeepCopy work. You can override this to copy some
       more properties for descendants. }
@@ -535,7 +539,7 @@
       various parsing routines.
       This way we could, if only we would like to, resolve nodes
       like Inline or ImageTexture immediately after parsing them. }
-    property BaseUrl: string read FBaseUrl write FBaseUrl;
+    property BaseUrl: String read FBaseUrl write FBaseUrl;
 
     {$ifdef FPC}
     { Old deprecated name for BaseUrl. @deprecated }
@@ -570,7 +574,7 @@
       )
     }
     constructor Create(const AX3DName: string = '';
-      const ABaseUrl: string = ''); virtual;
+      const ABaseUrl: String = ''); virtual;
 
     destructor Destroy; override;
 
@@ -1229,7 +1233,7 @@ end;
 
 { TX3DNode ------------------------------------------------------------------ }
 
-constructor TX3DNode.Create(const AX3DName, ABaseUrl: string);
+constructor TX3DNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited Create;
   VRML1ChildrenAllowed := false;
@@ -3627,6 +3631,15 @@ procedure TX3DNode.MoveShapeAssociations(const Sender: TSFNode; const NewNode: T
 begin
   if Scene <> nil then
     Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
+end;
+
+procedure TX3DNode.WarningOnce(var WarningDone: boolean; const Message: string);
+begin
+  if not WarningDone then
+  begin
+    WritelnWarning(NiceName, Message);
+    WarningDone := true;
+  end;
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

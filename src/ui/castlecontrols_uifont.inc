@@ -81,13 +81,17 @@ var
   FUIFont: TCastleAbstractFont;
 
 function FallbackFont: TCastleFont;
+var
+  TimeStart: TCastleProfilerTime;
 begin
   if DefaultUIFont = nil then
     DefaultUIFont := TDefaultUIFont.Create(nil);
   if DefaultUIFont.Normal = nil then
   begin
     DefaultUIFont.Normal := TCastleFont.Create(DefaultUIFont);
+    TimeStart := Profiler.Start('Loading Font_DefaultUi');
     DefaultUIFont.Normal.Load(Font_DefaultUi);
+    Profiler.Stop(TimeStart);
   end;
   Result := DefaultUIFont.Normal;
 end;

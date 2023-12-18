@@ -88,9 +88,9 @@ type
     You can start from EnvironmentStrings.)
 }
 procedure MyRunCommandIndir(
-  const CurrentDirectory: string; const ExeName: string;
+  const CurrentDirectory: String; const ExeName: String;
   const Options: array of string;
-  out OutputString: string; out ExitStatus: integer;
+  out OutputString: String; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil;
   const Flags: TRunCommandFlags = [];
@@ -110,11 +110,11 @@ procedure MyRunCommandIndir(
     When not empty, this environment variable has set
     value OverrideEnvironmentValue in the process.) }
 procedure RunCommandIndirPassthrough(
-  const CurrentDirectory: string; const ExeName: string;
+  const CurrentDirectory: String; const ExeName: String;
   const Options: array of string;
   var OutputString: String; var ExitStatus: Integer;
-  const OverrideEnvironmentName: string = '';
-  const OverrideEnvironmentValue: string = '';
+  const OverrideEnvironmentName: String = '';
+  const OverrideEnvironmentValue: String = '';
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil);
 
@@ -139,21 +139,21 @@ var
   "castle-engine run" in PowerShell in VS Code.
   For some reason, "castle-engine run" in CGE editor doesn't need it. }
 procedure RunCommandSimple(
-  const ExeName: string; const Options: array of string); overload;
+  const ExeName: String; const Options: array of string); overload;
 procedure RunCommandSimple(
-  const CurrentDirectory: string; const ExeName: string; const Options: array of string;
-  const OverrideEnvironmentName: string = '';
-  const OverrideEnvironmentValue: string = ''); overload;
+  const CurrentDirectory: String; const ExeName: String; const Options: array of string;
+  const OverrideEnvironmentName: String = '';
+  const OverrideEnvironmentValue: String = ''); overload;
 
 { Run the command, and return immediately, without waiting for finish. }
 procedure RunCommandNoWait(
-  const CurrentDirectory: string;
-  const ExeName: string; const Options: array of string;
+  const CurrentDirectory: String;
+  const ExeName: String; const Options: array of string;
   const Flags: TRunCommandFlags = [];
   const OverrideEnvironment: TStringList = nil);
 
 { Determine and create a new (unique, with random number in the name) temp directory. }
-function CreateTemporaryDir: string;
+function CreateTemporaryDir: String;
 
 { Make correct CGE project qualified name from any ProjectName. }
 function MakeQualifiedName(ProjectName: String): String;
@@ -169,7 +169,7 @@ var
 implementation
 
 uses SysUtils, Process,
-  CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog,
+  CastleFilesUtils, CastleUtils, CastleUriUtils, CastleLog,
   ToolArchitectures;
 
 procedure WritelnVerbose(const S: String);
@@ -456,7 +456,7 @@ end;
 
 class function TCaptureOutput.Construct(const ASource: TStream;
   const ALineFiltering: TLineFiltering;
-  const ALineFilteringData: Pointer): TCaptureOutput; static;
+  const ALineFilteringData: Pointer): TCaptureOutput;
 begin
   if Assigned(ALineFiltering) then
   begin
@@ -550,9 +550,9 @@ begin
     Result.Add(GetEnvironmentString(I));
 end;
 
-procedure MyRunCommandIndir(const CurrentDirectory: string;
-  const ExeName: string;const Options: array of string;
-  out OutputString: string; out ExitStatus: integer;
+procedure MyRunCommandIndir(const CurrentDirectory: String;
+  const ExeName: String;const Options: array of string;
+  out OutputString: String; out ExitStatus: integer;
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil;
   const Flags: TRunCommandFlags = [];
@@ -603,12 +603,12 @@ begin
   end;
 end;
 
-procedure RunCommandIndirPassthrough(const CurrentDirectory: string;
-  const ExeName: string;
+procedure RunCommandIndirPassthrough(const CurrentDirectory: String;
+  const ExeName: String;
   const Options: array of string;
   var OutputString: String; var ExitStatus: Integer;
-  const OverrideEnvironmentName: string = '';
-  const OverrideEnvironmentValue: string = '';
+  const OverrideEnvironmentName: String = '';
+  const OverrideEnvironmentValue: String = '';
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil);
 var
@@ -662,15 +662,15 @@ begin
 end;
 
 procedure RunCommandSimple(
-  const ExeName: string; const Options: array of string);
+  const ExeName: String; const Options: array of string);
 begin
   RunCommandSimple(GetCurrentDir, ExeName, Options);
 end;
 
 procedure RunCommandSimple(
-  const CurrentDirectory: string; const ExeName: string; const Options: array of string;
-  const OverrideEnvironmentName: string = '';
-  const OverrideEnvironmentValue: string = '');
+  const CurrentDirectory: String; const ExeName: String; const Options: array of string;
+  const OverrideEnvironmentName: String = '';
+  const OverrideEnvironmentValue: String = '');
 
   { Run the given command, wait for it.
     The stdout/stderr is not captured to any string,
@@ -678,12 +678,12 @@ procedure RunCommandSimple(
 
     ( Use RunCommandIndirPassthrough to capture output to String and pass-through,
     use RunCommandIndir to only capture output to String. ) }
-  procedure RunCommandNoPipes(const CurrentDirectory: string;
-    const ExeName: string;
+  procedure RunCommandNoPipes(const CurrentDirectory: String;
+    const ExeName: String;
     const Options: array of string;
     var ExitStatus: Integer;
-    const OverrideEnvironmentName: string = '';
-    const OverrideEnvironmentValue: string = '');
+    const OverrideEnvironmentName: String = '';
+    const OverrideEnvironmentValue: String = '');
   var
     P: TProcess;
     I: Integer;
@@ -706,9 +706,7 @@ procedure RunCommandSimple(
 
       if OverrideEnvironmentName <> '' then
       begin
-        NewEnvironment := TStringList.Create;
-        for I := 1 to GetEnvironmentVariableCount do
-          NewEnvironment.Add(GetEnvironmentString(I));
+        NewEnvironment := EnvironmentStrings;
         NewEnvironment.Values[OverrideEnvironmentName] := OverrideEnvironmentValue;
         P.Environment := NewEnvironment;
         // WritelnVerbose('Environment: ' + P.Environment.Text);
@@ -730,7 +728,7 @@ procedure RunCommandSimple(
 
 var
   ProcessStatus: Integer;
-  AbsoluteExeName, IgnoredOutput: string;
+  AbsoluteExeName, IgnoredOutput: String;
 begin
   { use FindExe to use our fixed PathFileSearch that does not accidentally find
     "ant" directory as "ant" executable }
@@ -795,8 +793,8 @@ end;
 {$define UNIX_RUN_NO_WAIT_BY_SHELL}
 
 procedure RunCommandNoWait(
-  const CurrentDirectory: string;
-  const ExeName: string; const Options: array of string;
+  const CurrentDirectory: String;
+  const ExeName: String; const Options: array of string;
   const Flags: TRunCommandFlags = [];
   const OverrideEnvironment: TStringList = nil);
 var
@@ -859,7 +857,7 @@ begin
   finally FreeAndNil(P) end;
 end;
 
-function CreateTemporaryDir: string;
+function CreateTemporaryDir: String;
 begin
   Result := InclPathDelim(GetTempDir(false)) +
     ApplicationName + IntToStr(Random(1000000));

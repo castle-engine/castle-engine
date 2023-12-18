@@ -63,7 +63,7 @@
       DefaultJustifyMinor = fjFirst;
       DefaultBlending = true;
 
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     property Family: TX3DFontFamily read GetFamily write SetFamily;
@@ -599,7 +599,7 @@ const
 
 { TFontStyleNode ------------------------------------------------------------- }
 
-constructor TFontStyleNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TFontStyleNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FCustomFontObserver := TFreeNotificationObserver.Create(nil);
@@ -780,12 +780,6 @@ begin
 end;
 
 var
-  DefaultFontData: array [
-    TX3DFontFamily,
-    { bold } Boolean,
-    { italic } Boolean
-  ] of TTextureFontData;
-
   DefaultFont: array [
     TX3DFontFamily,
     { bold } Boolean,
@@ -886,22 +880,9 @@ end;
 
 procedure FontsInitialization;
 begin
-  {$ifdef CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
-  DefaultFontData[ffTypeWriter, true , true ] := Font_Default3d_MonoBI;
-  DefaultFontData[ffTypeWriter, true , false] := Font_Default3d_MonoB;
-  DefaultFontData[ffTypeWriter, false, true ] := Font_Default3d_MonoI;
-  DefaultFontData[ffTypeWriter, false, false] := Font_Default3d_Mono;
-
-  DefaultFontData[ffSerif, true , true ] := Font_Default3d_SerifBI;
-  DefaultFontData[ffSerif, true , false] := Font_Default3d_SerifB;
-  DefaultFontData[ffSerif, false, true ] := Font_Default3d_SerifI;
-  DefaultFontData[ffSerif, false, false] := Font_Default3d_Serif;
-
-  DefaultFontData[ffSans, true , true ] := Font_Default3d_SansBI;
-  DefaultFontData[ffSans, true , false] := Font_Default3d_SansB;
-  DefaultFontData[ffSans, false, true ] := Font_Default3d_SansI;
-  DefaultFontData[ffSans, false, false] := Font_Default3d_Sans;
-  {$else}
+  { We do not embed in CGE now all 12 font variants,
+    see view3dscene/embedded_data/fonts/README.md for explanation.
+    So just set all fonts to use default Font_Default3d_Sans. }
   DefaultFontData[ffTypeWriter, true , true ] := Font_Default3d_Sans;
   DefaultFontData[ffTypeWriter, true , false] := Font_Default3d_Sans;
   DefaultFontData[ffTypeWriter, false, true ] := Font_Default3d_Sans;
@@ -916,7 +897,6 @@ begin
   DefaultFontData[ffSans, true , false] := Font_Default3d_Sans;
   DefaultFontData[ffSans, false, true ] := Font_Default3d_Sans;
   DefaultFontData[ffSans, false, false] := Font_Default3d_Sans;
-  {$endif}
 end;
 
 procedure FontsFinalization;

@@ -73,11 +73,11 @@ type
     { One of the filtes (excluding "catch all" filters) matches given URL.
       This excludes masks like "*" and "*.*" (the latter should not really
       be used, because it will not match all files on Unix). }
-    function Matches(const URL: String): Boolean; overload;
+    function Matches(const Url: String): Boolean; overload;
 
     { Whether the filters described in FiltersStr (like for
       @link(AddFiltersFromString)) match the given URL. }
-    class function Matches(const FiltersStr, URL: String): Boolean; overload;
+    class function Matches(const FiltersStr, Url: String): Boolean; overload;
 
     { Writes all recognized extensions (without * and *.*) separated
       by semicolon. }
@@ -86,7 +86,7 @@ type
 
 implementation
 
-uses StrUtils, CastleStringUtils, CastleURIUtils, CastleUtils;
+uses StrUtils, CastleStringUtils, CastleUriUtils, CastleUtils;
 
 { TFileFilter ---------------------------------------------------------------- }
 
@@ -188,29 +188,29 @@ begin
   until LastSeparator = 0;
 end;
 
-function TFileFilterList.Matches(const URL: String): Boolean;
+function TFileFilterList.Matches(const Url: String): Boolean;
 var
-  URLName, Pattern: String;
+  UrlName, Pattern: String;
   Filter: TFileFilter;
 begin
-  URLName := ExtractURIName(URL);
+  UrlName := ExtractURIName(Url);
   for Filter in Self do
     for Pattern in Filter.Patterns do
       if (Pattern <> '*') and
          (Pattern <> '*.*') and
-         IsWild(URLName, Pattern, FileNameCaseSensitive) then
+         IsWild(UrlName, Pattern, FileNameCaseSensitive) then
         Exit(true);
   Result := false;
 end;
 
-class function TFileFilterList.Matches(const FiltersStr, URL: String): Boolean;
+class function TFileFilterList.Matches(const FiltersStr, Url: String): Boolean;
 var
   Filters: TFileFilterList;
 begin
   Filters := TFileFilterList.Create(true);
   try
     Filters.AddFiltersFromString(FiltersStr);
-    Result := Filters.Matches(URL);
+    Result := Filters.Matches(Url);
   finally FreeAndNil(Filters) end;
 end;
 

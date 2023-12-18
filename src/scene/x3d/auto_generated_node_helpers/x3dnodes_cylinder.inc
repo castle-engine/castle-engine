@@ -34,6 +34,8 @@
     procedure SetSide(const Value: Boolean);
     function GetTop: Boolean;
     procedure SetTop(const Value: Boolean);
+    function GetTexCoord: TX3DNode;
+    procedure SetTexCoord(const Value: TX3DNode);
     function GetSlices: Integer;
     procedure SetSlices(const Value: Integer);
     function GetStacks: Integer;
@@ -80,6 +82,8 @@
     strict private FFdTexCoord: TSFNode;
     { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoord: TSFNode read FFdTexCoord;
+    {  }
+    property TexCoord: TX3DNode read GetTexCoord write SetTexCoord;
 
     strict private FFdSlices: TSFInt32;
     { Internal wrapper for property @code(Slices). This wrapper API may change, we advise to access simpler @code(Slices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -147,6 +151,19 @@ end;
 procedure TCylinderNode.SetTop(const Value: Boolean);
 begin
   FdTop.Send(Value);
+end;
+
+function TCylinderNode.GetTexCoord: TX3DNode;
+begin
+  if FdTexCoord.Value is TX3DNode then
+    Result := TX3DNode(FdTexCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TCylinderNode.SetTexCoord(const Value: TX3DNode);
+begin
+  FdTexCoord.Send(Value);
 end;
 
 function TCylinderNode.GetSlices: Integer;

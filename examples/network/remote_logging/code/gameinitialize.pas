@@ -21,7 +21,7 @@ interface
 implementation
 
 uses SysUtils, Math, Classes,
-  {$ifdef FPC} {$ifndef VER3_0} OpenSSLSockets, {$endif} {$endif} // support HTTPS
+  {$ifdef FPC} OpenSSLSockets, {$endif} // support HTTPS
   CastleWindow, CastleLog, CastleApplicationProperties,
   GameLogHandler
   {$region 'Castle Initialization Uses'}

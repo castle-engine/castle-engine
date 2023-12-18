@@ -106,18 +106,7 @@ uses
   castleinternalfreetypeh,
   castleinternalrichtext,
   castletexturefont_defaultui,
-  castletexturefont_default3d_mono,
-  castletexturefont_default3d_monob,
-  castletexturefont_default3d_monobi,
-  castletexturefont_default3d_monoi,
   castletexturefont_default3d_sans,
-  castletexturefont_default3d_sansb,
-  castletexturefont_default3d_sansbi,
-  castletexturefont_default3d_sansi,
-  castletexturefont_default3d_serif,
-  castletexturefont_default3d_serifb,
-  castletexturefont_default3d_serifbi,
-  castletexturefont_default3d_serifi,
   castletexturefontdata,
 
   // src/images

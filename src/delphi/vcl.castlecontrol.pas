@@ -216,12 +216,20 @@ begin
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
 
-  // commented out, as this doesn't help us get focus
-  // TabStop := true;
+  // needed to receive keys, like AWSD, in TCastleControl
+  TabStop := true;
 end;
 
 destructor TCastleControl.Destroy;
 begin
+  { Looks like VCL doesn't (always?) call DestroyHandle.
+    While FContainer would be destroyed anyway,
+    but we need TCastleContainerEasy.DestroyContext call,
+    to e.g. make ApplicationProperties.OnGLContextClose call,
+    that frees various CGE things when last GL context is released. }
+
+  if FContainer.GLInitialized then
+    FContainer.DestroyContext;
   inherited;
 end;
 
@@ -254,8 +262,11 @@ procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
 var
   MyButton: TCastleMouseButton;
 begin
-  //if not Focused then // TODO: doesn't seem to help with focus
-  //  SetFocus;
+  { Focus on click, to receive e.g. AWSD keys in TCastleControl.
+    Testcase: examples/delphi/vcl with TCastleWalkNavigation in 3D view,
+    should handle AWSD without the need to do anything else. }
+  if not Focused then
+    SetFocus;
 
   inherited; { VCL OnMouseDown before our callbacks }
 

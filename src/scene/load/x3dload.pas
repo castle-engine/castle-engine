@@ -113,7 +113,7 @@ end;
   so you would actually use @code('castle-data:/my_model.x3d') URL instead
   of @code('my_model.x3d').
 }
-function LoadNode(const Url: string;
+function LoadNode(const Url: String;
   const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; overload;
 
 { Load a scene as X3D node from TStream.
@@ -146,7 +146,7 @@ function LoadNode(const Url: string;
 function LoadNode(const Stream: TStream; BaseUrl: String; const MimeType: String;
   const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; overload;
 
-function Load3D(const Url: string;
+function Load3D(const Url: String;
   const AllowStdIn: boolean = false;
   const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; deprecated 'use LoadNode, and note it has one less parameter (AllowStdIn is not implemented anymore)';
 
@@ -183,7 +183,7 @@ function Load3D_FileFilters: String; deprecated 'use LoadScene_FileFilters';
     Pass here some created and empty instance of TSingleList.)
 }
 procedure Load3DSequence(
-  const Url: string;
+  const Url: String;
   const AllowStdIn: boolean;
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
@@ -223,7 +223,7 @@ var
   )
 }
 procedure SaveNode(const Node: TX3DNode;
-  const URL: String;
+  const Url: String;
   const Generator: String = '';
   const Source: String = ''); overload;
 procedure SaveNode(const Node: TX3DNode;
@@ -233,7 +233,7 @@ procedure SaveNode(const Node: TX3DNode;
 
 implementation
 
-uses CastleClassUtils, CastleImages, CastleURIUtils, CastleStringUtils,
+uses CastleClassUtils, CastleImages, CastleUriUtils, CastleStringUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalImage,
@@ -243,9 +243,9 @@ uses CastleClassUtils, CastleImages, CastleURIUtils, CastleStringUtils,
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
   Allows to read sequence of static models as an animation,
   e.g. Blender can export Wavefront OBJ like that. }
-function LoadSequenceUsingCounter(const URL: string): TX3DRootNode;
+function LoadSequenceUsingCounter(const Url: String): TX3DRootNode;
 
-  function LoadAnimationUsingCounter(const URL: string): TNodeInterpolator.TAnimationList;
+  function LoadAnimationUsingCounter(const Url: String): TNodeInterpolator.TAnimationList;
   const
     FramesPerSecond = 30;
   var
@@ -264,15 +264,15 @@ function LoadSequenceUsingCounter(const URL: string): TX3DRootNode;
       Animation.Backwards := false;
 
       FrameIndex := 0;
-      FrameUrl := FormatNameCounter(URL, FrameIndex, false);
-      if not URIFileExists(FrameUrl) then
+      FrameUrl := FormatNameCounter(Url, FrameIndex, false);
+      if not UriFileExists(FrameUrl) then
       begin
         FrameIndex := 1;
-        FrameUrl := FormatNameCounter(URL, FrameIndex, false);
-        if not URIFileExists(FrameUrl) then
+        FrameUrl := FormatNameCounter(Url, FrameIndex, false);
+        if not UriFileExists(FrameUrl) then
           raise Exception.CreateFmt('First model in a sequence ("%s" or "%s") cannot be found', [
-            FormatNameCounter(URL, 0, false),
-            FormatNameCounter(URL, 1, false)
+            FormatNameCounter(Url, 0, false),
+            FormatNameCounter(Url, 1, false)
           ]);
       end;
 
@@ -282,8 +282,8 @@ function LoadSequenceUsingCounter(const URL: string): TX3DRootNode;
         Animation.KeyNodes.Add(LoadNode(FrameUrl));
         Animation.KeyTimes.Add((FrameIndex - FirstFrameIndex) / FramesPerSecond);
         Inc(FrameIndex);
-        FrameUrl := FormatNameCounter(URL, FrameIndex, false);
-      until not URIFileExists(FrameUrl);
+        FrameUrl := FormatNameCounter(Url, FrameIndex, false);
+      until not UriFileExists(FrameUrl);
     except
       Result.FreeKeyNodesContents;
       FreeAndNil(Result);
@@ -294,16 +294,16 @@ function LoadSequenceUsingCounter(const URL: string): TX3DRootNode;
 var
   Animations: TNodeInterpolator.TAnimationList;
 begin
-  Animations := LoadAnimationUsingCounter(URL);
+  Animations := LoadAnimationUsingCounter(Url);
   try
     Result := TNodeInterpolator.LoadToX3D(Animations);
   finally FreeAndNil(Animations) end;
 end;
 
-function LoadNode(const URL: string;
+function LoadNode(const Url: String;
   const NilOnUnrecognizedFormat: boolean): TX3DRootNode;
 var
-  MimeType, URLWithoutAnchor: string;
+  MimeType, UrlWithoutAnchor: string;
 
   function DownloadAndLoad(DownloadOptions: TStreamOptions): TX3DRootNode;
   var
@@ -324,9 +324,9 @@ var
        IsImageMimeType(MimeType, true, false) then
       Include(DownloadOptions, soForceMemoryStream);
 
-    Stream := Download(URLWithoutAnchor, DownloadOptions);
+    Stream := Download(UrlWithoutAnchor, DownloadOptions);
     try
-      Result := LoadNode(Stream, URL, MimeType, NilOnUnrecognizedFormat);
+      Result := LoadNode(Stream, Url, MimeType, NilOnUnrecognizedFormat);
     finally FreeAndNil(Stream) end;
   end;
 
@@ -336,14 +336,14 @@ begin
   { We always download stripping anchor.
     Spine, sprite sheets (Starling, Cocos2d), images, Tiled all expect such anchor.
     Other model formats may support it as well in the future. }
-  URLWithoutAnchor := URIDeleteAnchor(URL, true);
+  UrlWithoutAnchor := UriDeleteAnchor(Url, true);
 
-  if HasNameCounter(URL, false) then
+  if HasNameCounter(Url, false) then
   begin
-    Result := LoadSequenceUsingCounter(URL)
+    Result := LoadSequenceUsingCounter(Url)
   end else
   begin
-    MimeType := URIMimeType(URL, Gzipped);
+    MimeType := UriMimeType(Url, Gzipped);
     if Gzipped then
     begin
       Result := DownloadAndLoad([soGzip])
@@ -381,7 +381,7 @@ function LoadNode(const Stream: TStream;
   BaseUrl: String; const MimeType: String;
   const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;
 
-  function LoadAnimFrames(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
+  function LoadAnimFrames(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
   var
     Animations: TNodeInterpolator.TAnimationList;
   begin
@@ -397,11 +397,15 @@ begin
     E.g. from glTF loader:
 
     Absolute BaseUrl makes the later Document.RootPath calculation correct.
-    Otherwise "InclPathDelim(ExtractFilePath(URIToFilenameSafe('my_file.gtlf')))"
-    would result in '/' (accidentally making all TPasGLTF.TImage.URI values
+    Otherwise "InclPathDelim(ExtractFilePath(UriToFilenameSafe('my_file.gtlf')))"
+    would result in '/' (accidentally making all TPasGLTF.TImage.Uri values
     relative to root directory on Unix). This was reproducible doing
-    "view3dscene my_file.gtlf" on the command-line. }
-  BaseUrl := AbsoluteURI(BaseUrl);
+    "view3dscene my_file.gtlf" on the command-line.
+
+    Also tovrmlx3d assumes that passing "stdin.x3dv" means that "stdin.x3dv"
+    file is in current working dir. Using AbsoluteUri(BaseUrl) correctly
+    adds the current working dir to URL. }
+  BaseUrl := AbsoluteUri(BaseUrl);
 
   if (MimeType = 'application/x-inventor') or
      (MimeType = 'model/vrml') or
@@ -477,7 +481,7 @@ begin
     Result := nil
   else
     raise Exception.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"',
-      [MimeType, URIDisplay(BaseUrl)]);
+      [MimeType, UriDisplay(BaseUrl)]);
 
   if Result <> nil then
   begin
@@ -528,13 +532,13 @@ begin
   Result := LoadScene_FileFilters;
 end;
 
-function Load3D(const URL: string;
+function Load3D(const Url: String;
   const AllowStdIn, NilOnUnrecognizedFormat: boolean): TX3DRootNode;
 begin
-  Result := LoadNode(URL, NilOnUnrecognizedFormat);
+  Result := LoadNode(Url, NilOnUnrecognizedFormat);
 end;
 
-procedure Load3DSequence(const URL: string;
+procedure Load3DSequence(const Url: String;
   const AllowStdIn: boolean;
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
@@ -581,17 +585,17 @@ begin
   Assert(KeyTimes.Count = 0);
   Assert(KeyNodes.Count = 0);
 
-  MimeType := URIMimeType(URL);
+  MimeType := UriMimeType(Url);
 
   if MimeType = 'application/x-castle-anim-frames' then
   begin
-    AbsoluteBaseUrl := AbsoluteURI(URL);
-    Stream := Download(URL);
+    AbsoluteBaseUrl := AbsoluteUri(Url);
+    Stream := Download(Url);
     try
       LoadNodeAnimation(TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, AbsoluteBaseUrl));
     finally FreeAndNil(Stream) end;
   end else
-    LoadSingle(LoadNode(URL));
+    LoadSingle(LoadNode(Url));
 end;
 
 function Load3DSequence_FileFilters: String;
@@ -600,12 +604,12 @@ begin
 end;
 
 procedure SaveNode(const Node: TX3DNode;
-  const URL: String;
+  const Url: String;
   const Generator: String;
   const Source: String);
 begin
   {$warnings off} // using deprecated, it will be internal
-  Save3D(Node, URL, Generator, Source);
+  Save3D(Node, Url, Generator, Source);
   {$warnings on}
 end;
 

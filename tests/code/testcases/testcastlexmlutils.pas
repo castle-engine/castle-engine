@@ -1,4 +1,4 @@
-// -*- compile-command: "./test_single_testcase.sh TTestCastleXMLUtils" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestCastleXmlUtils" -*-
 {
   Copyright 2014-2022 Michalis Kamburelis.
 
@@ -14,8 +14,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test CastleXMLUtils unit. }
-unit TestCastleXMLUtils;
+{ Test CastleXmlUtils unit. }
+unit TestCastleXmlUtils;
 
 interface
 
@@ -24,7 +24,7 @@ uses
   CastleTestCase{$else}CastleTester{$endif};
 
 type
-  TTestCastleXMLUtils = class(TCastleTestCase)
+  TTestCastleXmlUtils = class(TCastleTestCase)
   published
     procedure TestReadResult;
     procedure TestAttributeReading;
@@ -32,9 +32,9 @@ type
 
 implementation
 
-uses DOM, CastleXMLUtils, CastleFilesUtils, CastleDownload;
+uses DOM, CastleXmlUtils, CastleFilesUtils, CastleDownload;
 
-procedure TTestCastleXMLUtils.TestReadResult;
+procedure TTestCastleXmlUtils.TestReadResult;
 var
   Doc: TXMLDocument;
 begin
@@ -55,7 +55,7 @@ begin
   except on EDownloadError do begin { this is Ok } end; end;
 end;
 
-procedure TTestCastleXMLUtils.TestAttributeReading;
+procedure TTestCastleXmlUtils.TestAttributeReading;
 var
   Doc: TXMLDocument;
   S: string;
@@ -103,5 +103,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestCastleXMLUtils);
+  RegisterTest(TTestCastleXmlUtils);
 end.

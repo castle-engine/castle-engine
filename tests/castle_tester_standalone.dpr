@@ -34,7 +34,8 @@ begin
     ApplicationProperties._FileAccessSafe := true;
     ConsoleTester := TCastleConsoleTester.Create;
     try
-      ConsoleTester.Run(ConsoleTester.GetTestCaseNameFromParameters);
+      ConsoleTester.ParseParameters;
+      ConsoleTester.Run;
     finally
       FreeAndNil(ConsoleTester);
     end;

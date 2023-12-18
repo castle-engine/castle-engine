@@ -664,7 +664,7 @@ begin
         'MinificationFilter', 'MagnificationFilter', 'PointSize', 'LineWidth',
         'BumpMapping', 'BumpMappingParallaxHeight', 'PhongShading', 'ShadowSampling',
         'MaxLightsPerShape', 'Blending', 'BlendingSourceFactor', 'BlendingDestinationFactor',
-        'WireframeEffect',
+        'WireframeEffect', 'WireframeColorPersistent',
         'SolidWireframeScale', 'SolidWireframeBias', 'SilhouetteScale',
         'SilhouetteBias', 'RobustNegativeScale',
         'WholeSceneManifold', 'ColorChannels'

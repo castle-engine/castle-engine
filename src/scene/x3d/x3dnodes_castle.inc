@@ -112,7 +112,7 @@
 
       @exclude }
     property InternalRendererResource: TInternalRendererResource
-      read FInternalRendererResource write FInternalRendererResource;
+      read FInternalRendererResource write SetInternalRendererResource;
 
     { Free InternalRendererResource, if any. }
     procedure InternalRendererResourceFree;
@@ -159,11 +159,11 @@
   TEffectPartNode = class(TAbstractNode)
   strict private
     ContentsCached: boolean;
-    ContentsCache: string;
+    ContentsCache: String;
     procedure EventUrlReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
-    function GetContents: string;
-    procedure SetContents(const Value: string);
+    function GetContents: String;
+    procedure SetContents(const Value: String);
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
@@ -177,7 +177,7 @@
       (loading errors are reported to WritelnWarning).
 
       Setting this overrides the URL field, to specify only the given shader code. }
-    property Contents: string read GetContents write SetContents;
+    property Contents: String read GetContents write SetContents;
 
   {$I auto_generated_node_helpers/x3dnodes_effectpart.inc}
   end;
@@ -369,7 +369,7 @@ begin
   CDataField := FdUrl;
 end;
 
-function TEffectPartNode.GetContents: string;
+function TEffectPartNode.GetContents: String;
 begin
   if not ContentsCached then
   begin
@@ -379,7 +379,7 @@ begin
   Result := ContentsCache;
 end;
 
-procedure TEffectPartNode.SetContents(const Value: string);
+procedure TEffectPartNode.SetContents(const Value: String);
 begin
   SetUrl(['data:text/plain,' + Value]);
 

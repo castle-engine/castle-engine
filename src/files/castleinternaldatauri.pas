@@ -42,7 +42,7 @@ type
     FURIPrefix: string;
     FForceMemoryStream: boolean;
     procedure FreeStream;
-    procedure SetURI(const Value: string);
+    procedure SetURI(const Value: String);
   public
     destructor Destroy; override;
     class function IsDataURI(const URI: string; out Colon: Integer): boolean; overload;
@@ -103,7 +103,7 @@ function StreamToDataUri(const AStream: TStream; const MimeType: String): String
 implementation
 
 uses Base64,
-  CastleURIUtils, CastleStringUtils, CastleClassUtils, CastleLog;
+  CastleUriUtils, CastleStringUtils, CastleClassUtils, CastleLog;
 
 { TODO: We treat non-base64 data verbatim, not interpreting %xx hex encoding
   inside. }
@@ -131,7 +131,7 @@ begin
   Result := URIProtocolIs(URI, 'data', Colon);
 end;
 
-procedure TDataURI.SetURI(const Value: string);
+procedure TDataURI.SetURI(const Value: String);
 var
   ValidMimeType, ValidCharset: string;
   ValidBase64: boolean;

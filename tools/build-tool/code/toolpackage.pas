@@ -82,7 +82,7 @@ procedure GenerateDataInformation(const CurrentDataPath: String);
 implementation
 
 uses SysUtils, Process,
-  CastleFilesUtils, CastleLog, CastleFindFiles, CastleURIUtils,
+  CastleFilesUtils, CastleLog, CastleFindFiles, CastleUriUtils,
   CastleStringUtils, CastleInternalDirectoryInformation,
   ToolCommonUtils, ToolUtils, ToolDebian;
 
@@ -210,8 +210,8 @@ begin
 
     DataInformation := TDirectoryInformation.Create;
     try
-      DataInformation.Generate(FilenameToURISafe(CurrentDataPath));
-      DataInformation.SaveToFile(FilenameToURISafe(DataInformationFileName));
+      DataInformation.Generate(FilenameToUriSafe(CurrentDataPath));
+      DataInformation.SaveToFile(FilenameToUriSafe(DataInformationFileName));
 
       DataInformation.Sum(DirsCount, FilesCount, FilesSize);
       Writeln('Generated CastleDataInformation.xml.');

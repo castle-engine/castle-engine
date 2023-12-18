@@ -44,7 +44,7 @@ implementation
 
 uses SysUtils, Classes,
   {$ifdef TEST_CASTLE_WINDOW} CastleWindow, {$endif}
-  CastleFonts, CastleTextureFont_Default3d_MonoB, CastleLog,
+  CastleFonts, CastleTextureFont_Default3d_Sans, CastleLog,
   Font_LatoRegular_300, CastleInternalFreeTypeH;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtml;
@@ -55,7 +55,7 @@ var
 begin
   F := TCastleFont.Create(nil);
   try
-    F.Load(Font_Default3d_MonoB);
+    F.Load(Font_Default3d_Sans);
 
     SList := TStringList.Create;
     try
@@ -98,7 +98,7 @@ var
 begin
   Font := TCastleFont.Create(nil);
   try
-    Font.Load(Font_Default3d_MonoB);
+    Font.Load(Font_Default3d_Sans);
 
     AssertEquals(25, Font.Size);
     AssertEquals(25, Font.EffectiveSize);

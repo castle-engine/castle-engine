@@ -384,7 +384,7 @@ procedure TInlineNode.LoadInlined(CanReload: boolean;
 
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   if Exported <> nil then Exported.Clear;
 
@@ -423,7 +423,7 @@ begin
         on E: Exception do
           { Careful here, as WritelnWarning may also raise exception. }
           WritelnWarning('X3D', Format(SLoadError,
-            [E.ClassName, 'inline file', URIDisplay(FullUrl), E.Message]));
+            [E.ClassName, 'inline file', UriDisplay(FullUrl), E.Message]));
       end;
     end;
 

@@ -50,6 +50,8 @@
     strict private FFdChildren: TMFNode;
     { Internal wrapper for property @code(Children). This wrapper API may change, we advise to access simpler @code(Children) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdChildren: TMFNode read FFdChildren;
+    {  }
+    procedure SetChildren(const Value: array of TX3DNode);
 
     strict private FFdBboxCenter: TSFVec3f;
     { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -86,6 +88,18 @@
 {$ifdef read_implementation}
 
 { TAbstractGroupingNode ----------------------------------------------- }
+
+procedure TAbstractGroupingNode.SetChildren(const Value: array of TX3DNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TX3DNode));
+  FdChildren.Send(A);
+end;
 
 function TAbstractGroupingNode.GetBBox: TBox3D;
 begin

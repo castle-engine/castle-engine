@@ -29,14 +29,14 @@ type
   private
     FAdviceDataDirectory: Boolean;
     FUseCastleDataProtocol: Boolean;
-    function GetURL: string;
-    procedure SetURL(AValue: string);
+    function GetUrl: String;
+    procedure SetUrl(AValue: String);
   protected
     function DoExecute: boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property URL: string read GetURL write SetURL stored false;
+    property Url: String read GetUrl write SetUrl stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
     { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
@@ -50,14 +50,14 @@ type
   private
     FAdviceDataDirectory: Boolean;
     FUseCastleDataProtocol: Boolean;
-    function GetURL: string;
-    procedure SetURL(AValue: string);
+    function GetUrl: String;
+    procedure SetUrl(AValue: String);
   protected
     function DoExecute: boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property URL: string read GetURL write SetURL stored false;
+    property Url: String read GetUrl write SetUrl stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
     { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
@@ -68,22 +68,22 @@ type
   { Dialog to open scene (select a file that can be loaded using TCastleScene.Load).
     It uses an URL, and additionally initializes the filters
     to include all the scene types we can load (through
-    LoadNode, TCastleScene.Load, TCastleScene.URL and so on). }
+    LoadNode, TCastleScene.Load, TCastleScene.Url and so on). }
   TCastleOpen3DDialog = class(TOpenDialog)
   private
     FAdviceDataDirectory: Boolean;
     FUseCastleDataProtocol: Boolean;
     InitialFilterIndex: Integer;
-    InitialFilter: string;
-    function GetURL: string;
-    procedure SetURL(AValue: string);
+    InitialFilter: String;
+    function GetUrl: String;
+    procedure SetUrl(AValue: String);
     function StoreFilterAndFilterIndex: boolean;
   protected
     function DoExecute: boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property URL: string read GetURL write SetURL stored false;
+    property Url: String read GetUrl write SetUrl stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
     { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
@@ -101,11 +101,11 @@ type
     FAdviceDataDirectory: Boolean;
     FUseCastleDataProtocol: Boolean;
     InitialFilterIndex: Integer;
-    InitialFilter: string;
-    function PrepareURL(const AFileName: String): String;
-    function GetURL: String;
-    function GetURLWithIndex(const Index: Integer): String;
-    procedure SetURL(AValue: String);
+    InitialFilter: String;
+    function PrepareUrl(const AFileName: String): String;
+    function GetUrl: String;
+    function GetUrlWithIndex(const Index: Integer): String;
+    procedure SetUrl(AValue: String);
     function StoreFilterAndFilterIndex: boolean;
   protected
     function DoExecute: boolean; override;
@@ -113,12 +113,12 @@ type
     constructor Create(AOwner: TComponent); override;
 
     { Number of selected images to open (useful when multi-selection is allowed). }
-    function URLCount: Integer;
+    function UrlCount: Integer;
 
-    { Get URL of a selected image to open (useful when multi-selection is allowed). }
-    property URLs[Index: Integer]: String read GetURLWithIndex;
+    { Get Url of a selected image to open (useful when multi-selection is allowed). }
+    property Urls[Index: Integer]: String read GetUrlWithIndex;
   published
-    property URL: string read GetURL write SetURL stored false;
+    property Url: String read GetUrl write SetUrl stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
     { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
@@ -136,16 +136,16 @@ type
     FAdviceDataDirectory: Boolean;
     FUseCastleDataProtocol: Boolean;
     InitialFilterIndex: Integer;
-    InitialFilter: string;
-    function GetURL: string;
-    procedure SetURL(AValue: string);
+    InitialFilter: String;
+    function GetUrl: String;
+    procedure SetUrl(AValue: String);
     function StoreFilterAndFilterIndex: boolean;
   protected
     function DoExecute: boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property URL: string read GetURL write SetURL stored false;
+    property Url: String read GetUrl write SetUrl stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
     { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
@@ -175,7 +175,7 @@ procedure Register;
 implementation
 
 uses SysUtils,
-  CastleURIUtils, CastleLCLUtils, X3DLoad, CastleImages, CastleFilesUtils,
+  CastleUriUtils, CastleLCLUtils, X3DLoad, CastleImages, CastleFilesUtils,
   CastleStringUtils, CastleUtils;
 
 procedure Register;
@@ -190,14 +190,14 @@ begin
   ]);
 end;
 
-procedure WarningIfOutsideDataDirectory(const URL: String);
+procedure WarningIfOutsideDataDirectory(const Url: String);
 begin
-  if URIProtocol(URL) <> 'castle-data' then
+  if URIProtocol(Url) <> 'castle-data' then
     MessageDlg('File outside data', 'You are saving or opening a file outside of the project''s "data" directory.' + NL +
       NL +
-      'The file is: ' + URL + NL +
+      'The file is: ' + Url + NL +
       NL +
-      'The "data" directory is: ' + ResolveCastleDataURL('castle-data:/') + NL +
+      'The "data" directory is: ' + ResolveCastleDataUrl('castle-data:/') + NL +
       NL +
       'While it is allowed, it is not encouraged for cross-platform applications:' + NL +
       '- You will not be able to open this file using castle-data:/ URL (or ApplicationData function).' + NL +
@@ -224,16 +224,16 @@ end;
 
 { TCastleOpen3DDialog ----------------------------------------------------- }
 
-function TCastleOpen3DDialog.GetURL: string;
+function TCastleOpen3DDialog.GetUrl: String;
 begin
-  Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
+  Result := FilenameToUriSafeUTF8(CleanupFileName(FileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-procedure TCastleOpen3DDialog.SetURL(AValue: string);
+procedure TCastleOpen3DDialog.SetUrl(AValue: String);
 begin
-  FileName := URIToFilenameSafeUTF8(AValue);
+  FileName := UriToFilenameSafeUTF8(AValue);
   InitialDir := ExtractFileDir(FileName);
 end;
 
@@ -246,7 +246,7 @@ function TCastleOpen3DDialog.DoExecute: boolean;
 begin
   Result := inherited DoExecute;
   if Result and AdviceDataDirectory then
-    WarningIfOutsideDataDirectory(URL);
+    WarningIfOutsideDataDirectory(Url);
 end;
 
 constructor TCastleOpen3DDialog.Create(AOwner: TComponent);
@@ -260,16 +260,16 @@ end;
 
 { TCastleSaveImageDialog ------------------------------------------------- }
 
-function TCastleSaveImageDialog.GetURL: string;
+function TCastleSaveImageDialog.GetUrl: String;
 begin
-  Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
+  Result := FilenameToUriSafeUTF8(CleanupFileName(FileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-procedure TCastleSaveImageDialog.SetURL(AValue: string);
+procedure TCastleSaveImageDialog.SetUrl(AValue: String);
 begin
-  FileName := URIToFilenameSafeUTF8(AValue);
+  FileName := UriToFilenameSafeUTF8(AValue);
   InitialDir := ExtractFileDir(FileName);
 end;
 
@@ -282,7 +282,7 @@ function TCastleSaveImageDialog.DoExecute: boolean;
 begin
   Result := inherited DoExecute;
   if Result and AdviceDataDirectory then
-    WarningIfOutsideDataDirectory(URL);
+    WarningIfOutsideDataDirectory(Url);
 end;
 
 constructor TCastleSaveImageDialog.Create(AOwner: TComponent);
@@ -296,26 +296,26 @@ end;
 
 { TCastleOpenImageDialog --------------------------------------------------- }
 
-function TCastleOpenImageDialog.PrepareURL(const AFileName: String): String;
+function TCastleOpenImageDialog.PrepareUrl(const AFileName: String): String;
 begin
-  Result := FilenameToURISafeUTF8(CleanupFileName(AFileName));
+  Result := FilenameToUriSafeUTF8(CleanupFileName(AFileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-function TCastleOpenImageDialog.GetURL: String;
+function TCastleOpenImageDialog.GetUrl: String;
 begin
-  Result := PrepareURL(FileName);
+  Result := PrepareUrl(FileName);
 end;
 
-function TCastleOpenImageDialog.GetURLWithIndex(const Index: Integer): String;
+function TCastleOpenImageDialog.GetUrlWithIndex(const Index: Integer): String;
 begin
-  Result := PrepareURL(Files[Index]);
+  Result := PrepareUrl(Files[Index]);
 end;
 
-procedure TCastleOpenImageDialog.SetURL(AValue: String);
+procedure TCastleOpenImageDialog.SetUrl(AValue: String);
 begin
-  FileName := URIToFilenameSafeUTF8(AValue);
+  FileName := UriToFilenameSafeUTF8(AValue);
   InitialDir := ExtractFileDir(FileName);
 end;
 
@@ -328,7 +328,7 @@ function TCastleOpenImageDialog.DoExecute: boolean;
 begin
   Result := inherited DoExecute;
   if Result and AdviceDataDirectory then
-    WarningIfOutsideDataDirectory(URL);
+    WarningIfOutsideDataDirectory(Url);
 end;
 
 constructor TCastleOpenImageDialog.Create(AOwner: TComponent);
@@ -340,23 +340,23 @@ begin
   InitialFilterIndex := FilterIndex;
 end;
 
-function TCastleOpenImageDialog.URLCount: Integer;
+function TCastleOpenImageDialog.UrlCount: Integer;
 begin
   Result := Files.Count;
 end;
 
 { TCastleSaveDialog -------------------------------------------------------- }
 
-function TCastleSaveDialog.GetURL: string;
+function TCastleSaveDialog.GetUrl: String;
 begin
-  Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
+  Result := FilenameToUriSafeUTF8(CleanupFileName(FileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-procedure TCastleSaveDialog.SetURL(AValue: string);
+procedure TCastleSaveDialog.SetUrl(AValue: String);
 begin
-  FileName := URIToFilenameSafeUTF8(AValue);
+  FileName := UriToFilenameSafeUTF8(AValue);
   InitialDir := ExtractFileDir(FileName);
 end;
 
@@ -364,7 +364,7 @@ function TCastleSaveDialog.DoExecute: boolean;
 begin
   Result := inherited DoExecute;
   if Result and AdviceDataDirectory then
-    WarningIfOutsideDataDirectory(URL);
+    WarningIfOutsideDataDirectory(Url);
 end;
 
 constructor TCastleSaveDialog.Create(AOwner: TComponent);
@@ -375,16 +375,16 @@ end;
 
 { TCastleOpenDialog ---------------------------------------------------------- }
 
-function TCastleOpenDialog.GetURL: string;
+function TCastleOpenDialog.GetUrl: String;
 begin
-  Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
+  Result := FilenameToUriSafeUTF8(CleanupFileName(FileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-procedure TCastleOpenDialog.SetURL(AValue: string);
+procedure TCastleOpenDialog.SetUrl(AValue: String);
 begin
-  FileName := URIToFilenameSafeUTF8(AValue);
+  FileName := UriToFilenameSafeUTF8(AValue);
   InitialDir := ExtractFileDir(FileName);
 end;
 
@@ -392,7 +392,7 @@ function TCastleOpenDialog.DoExecute: boolean;
 begin
   Result := inherited DoExecute;
   if Result and AdviceDataDirectory then
-    WarningIfOutsideDataDirectory(URL);
+    WarningIfOutsideDataDirectory(Url);
 end;
 
 constructor TCastleOpenDialog.Create(AOwner: TComponent);

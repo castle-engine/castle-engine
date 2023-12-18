@@ -58,7 +58,7 @@ implementation
 uses SysUtils, DOM, XMLWrite,
   // TODO: Should not be needed after https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
   {$IFDEF UNIX}BaseUnix, {$ENDIF}
-  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
   ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
   ToolServicesOperations;
 
@@ -208,7 +208,7 @@ var
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileName));
     if not RegularFileExists(AndroidProjectPath + FileName) then
-      SaveImage(Image, FilenameToURISafe(AndroidProjectPath + FileName))
+      SaveImage(Image, FilenameToUriSafe(AndroidProjectPath + FileName))
     else
       WritelnWarning('Android', 'Android package file specified by multiple services: ' + FileName);
   end;
