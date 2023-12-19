@@ -20773,6 +20773,7 @@ initialization
 
 
 finalization
-
+  dglFreeLibrary(GL_LibHandle);
+  dglFreeLibrary(GLU_LibHandle);
 end.
 
