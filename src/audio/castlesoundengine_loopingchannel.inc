@@ -70,11 +70,6 @@
       0.0 means that there is no music (this case should be optimized).}
     property Volume: Single read GetVolume write SetVolume {$ifdef FPC}default DefaultVolume{$endif};
 
-    {$ifdef FPC}
-    property MusicVolume: Single read GetVolume write SetVolume default DefaultVolume;
-      deprecated 'use Volume';
-    {$endif}
-
     property Pitch: Single read GetPitch write SetPitch;
   end;
 

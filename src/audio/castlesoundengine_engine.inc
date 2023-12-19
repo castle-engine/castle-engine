@@ -332,10 +332,6 @@
       set the @link(Volume) to zero. }
     property Enabled: boolean read FEnabled write SetEnabled default DefaultEnabled;
 
-    {$ifdef FPC}
-    property Enable: boolean read FEnabled write SetEnabled default DefaultEnabled; deprecated 'Use Enabled';
-    {$endif}
-
     { How does the distance affect spatial sounds (with @link(TCastleSoundSource.Spatial)).
       See TSoundDistanceModel for the description of possible options. }
     property DistanceModel: TSoundDistanceModel
@@ -352,13 +348,6 @@
       corresponds to 1 meter.
       Larger values allow to emphasize the effect more. }
     property DopplerFactor: Single read FDopplerFactor write SetDopplerFactor {$ifdef FPC}default 0.0{$endif};
-
-    {$ifdef FPC}
-    property DefaultRolloffFactor: Single read FDefaultRolloffFactor write FDefaultRolloffFactor;
-      deprecated 'does nothing now; use SoundEngine.DistanceModel, TCastleSound.ReferenceDistance, TCastleSound.MaxDistance to control sound rolloff (spatialization)';
-    property DefaultReferenceDistance: Single read FDefaultReferenceDistance write FDefaultReferenceDistance;
-      deprecated 'does nothing now; use SoundEngine.DistanceModel, TCastleSound.ReferenceDistance, TCastleSound.MaxDistance to control sound rolloff (spatialization)';
-    {$endif}
   end;
 
 {$endif read_interface}

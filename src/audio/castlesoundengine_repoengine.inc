@@ -147,9 +147,32 @@
     { Reinitialize looping channels sounds.
       Should be called as soon as Sounds changes and we may have OpenAL context. }
     procedure RestartLoopingChannels;
-    function GetMusicPlayer: TLoopingChannel;
     function GetLoopingChannel(const Index: Cardinal): TLoopingChannel;
     procedure ContextOpenCore; override;
+
+    { Sound importance names and values.
+      *Maintained only to provide backward compatibility when reading sound XML files*.
+
+      Each item is a name (as a string) and a value (that is stored in Objects
+      property of the item as a pointer; add new importances by
+      AddSoundImportanceName for comfort).
+
+      These can be used within sounds.xml file.
+      Before using ContextOpen, you can fill this list with values.
+
+      Initially, it contains a couple of useful values (ordered here
+      from most to least important):
+
+      @unorderedList(
+        @item 'max' - MaxSoundImportance
+        @item 'level_event' - LevelEventSoundImportance
+        @item 'player' - PlayerSoundImportance
+        @item 'default_creature' - DefaultCreatureSoundImportance
+        @item 'minor_non_spatial' - MinorNonSpatialSoundImportance
+        @item 'default' - DefaultSoundImportance
+      ) }
+    property SoundImportanceNames: TStringList read FSoundImportanceNames;
+    procedure AddSoundImportanceName(const Name: string; Importance: Integer);
   public
     constructor Create;
     destructor Destroy; override;
@@ -194,11 +217,6 @@
     property RepositoryUrl: String read FRepositoryUrl write SetRepositoryUrl;
       {$ifdef FPC}deprecated 'instead of XML file, create design with .castle-component that contains a number of TCastleSound components';{$endif}
 
-    {$ifdef FPC}
-    { Deprecated name for RepositoryUrl. @deprecated }
-    property SoundsFileName: string read FRepositoryUrl write SetRepositoryUrl; deprecated 'use RepositoryUrl';
-    {$endif}
-
     { Reload the RepositoryUrl and all referenced buffers.
       Useful as a tool for game designers, to reload the sounds XML file
       without restarting the game and sound engine. }
@@ -226,39 +244,6 @@
     }
     function SoundFromName(const SoundName: string; const Required: boolean = true): TCastleSound;
       deprecated 'deprecated just like RepositoryUrl';
-
-    {$ifdef FPC}
-    { Sound importance names and values.
-      Each item is a name (as a string) and a value (that is stored in Objects
-      property of the item as a pointer; add new importances by
-      AddSoundImportanceName for comfort).
-
-      These can be used within sounds.xml file.
-      Before using ContextOpen, you can fill this list with values.
-
-      Initially, it contains a couple of useful values (ordered here
-      from most to least important):
-
-      @unorderedList(
-        @item 'max' - MaxSoundImportance
-        @item 'level_event' - LevelEventSoundImportance
-        @item 'player' - PlayerSoundImportance
-        @item 'default_creature' - DefaultCreatureSoundImportance
-        @item 'minor_non_spatial' - MinorNonSpatialSoundImportance
-        @item 'default' - DefaultSoundImportance
-      ) }
-    property SoundImportanceNames: TStringList read FSoundImportanceNames;
-      deprecated 'use Priority, with numeric values';
-
-    procedure AddSoundImportanceName(const Name: string; Importance: Integer);
-      deprecated 'use Priority, with numeric values';
-
-    { Comfortable way to play and control the music.
-      Simply assign @link(TLoopingChannel.Sound MusicPlayer.Sound)
-      to play music. Set it to @nil to stop playing music.
-      This is just a shortcut for @link(LoopingChannel LoopingChannel[0]). }
-    property MusicPlayer: TLoopingChannel read GetMusicPlayer; deprecated 'use LoopingChannel[0]';
-    {$endif FPC}
 
     { Comfortable way to play and control looping non-spatial sounds, like music tracks, ambience.
 
@@ -468,7 +453,6 @@ begin
   end else
     Sound.Volume := Element.AttributeSingleDef('volume', 1);
 
-  {$ifdef FPC}
   {$warnings off} // using unportable symbols knowingly
   Sound.MinGain := Element.AttributeSingleDef('min_gain', 0);
   Sound.MaxGain := Element.AttributeSingleDef('max_gain', 1);
@@ -483,7 +467,6 @@ begin
     Sound.MaxGain := 1;
   end;
   {$warnings on}
-  {$endif}
 
   if Element.AttributeString('default_importance', ImportanceStr) then
   begin
@@ -491,17 +474,12 @@ begin
       Name
     ]);
 
-    {$ifdef FPC}
-    {$warnings off} // using deprecated, to keep it working
     SoundImportanceIndex := ASoundEngine.SoundImportanceNames.IndexOf(ImportanceStr);
     if SoundImportanceIndex = -1 then
       Sound.Priority := ImportanceToPriority(StrToInt(ImportanceStr))
     else
       Sound.Priority := ImportanceToPriority(
         PtrUInt(ASoundEngine.SoundImportanceNames.Objects[SoundImportanceIndex]));
-    {$warnings on}
-    {$endif}
-
   end else
     Sound.Priority := Element.AttributeSingleDef('priority', 0.5);
 
@@ -538,16 +516,12 @@ begin
   FSoundImportanceNames := TStringList.Create;
   FSoundImportanceNames.CaseSensitive := true;
 
-  {$ifdef FPC}
-  {$warnings off} // using deprecated to keep it working
   AddSoundImportanceName('max', MaxSoundImportance);
   AddSoundImportanceName('level_event', LevelEventSoundImportance);
   AddSoundImportanceName('player', PlayerSoundImportance);
   AddSoundImportanceName('default_creature', DefaultCreatureSoundImportance);
   AddSoundImportanceName('minor_non_spatial', MinorNonSpatialSoundImportance);
   AddSoundImportanceName('default', DefaultSoundImportance);
-  {$warnings on}
-  {$endif}
 
   FSoundGroups := TSoundGroupList.Create;
 
@@ -800,13 +774,11 @@ begin
   end;
 end;
 
-{$ifdef FPC}
 procedure TRepoSoundEngine.AddSoundImportanceName(const Name: string;
   Importance: Integer);
 begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
 end;
-{$endif}
 
 procedure TRepoSoundEngine.PrepareResources;
 begin
@@ -826,11 +798,6 @@ begin
     FLoopingChannels[Index] := TLoopingChannel.Create(Self);
 
   Result := FLoopingChannels[Index];
-end;
-
-function TRepoSoundEngine.GetMusicPlayer: TLoopingChannel;
-begin
-  Result := LoopingChannel[0];
 end;
 
 {$endif read_implementation}
