@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2020 Michalis Kamburelis.
+  Copyright 2016-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,9 +38,6 @@ const
   tmUncharted = CastleRenderOptions.tmUncharted;
   tmHejlRichard = CastleRenderOptions.tmHejlRichard;
   tmACES = CastleRenderOptions.tmACES;
-  gcNone = CastleRenderOptions.gcNone;
-  gcPhysicalMaterial = CastleRenderOptions.gcPhysicalMaterial;
-  gcAlways = CastleRenderOptions.gcAlways;
   // ShaderTypeName = CastleRenderOptions.ShaderTypeName; // not allowed by FPC
 
 function GetLogShadowVolumes: Boolean;
