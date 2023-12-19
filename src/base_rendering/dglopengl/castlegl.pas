@@ -14903,7 +14903,7 @@ const
 
 function InitOpenGL(LibName: String = OPENGL_LIBNAME; GLULibName: String = GLU_LIBNAME): Boolean;
 
-function dglGetProcAddress(ProcName: PAnsiChar; LibHandle: TDynLib = nil {$IFDEF DGL_LINUX}; ForceDLSym: Boolean = False{$ENDIF}): Pointer;
+function dglGetProcAddress(const ProcNameStr: String; LibHandle: TDynLib = nil {$IFDEF DGL_LINUX}; ForceDLSym: Boolean = False{$ENDIF}): Pointer;
 function dglCheckExtension(Extension: AnsiString): Boolean;
 
 procedure ReadExtensions;
@@ -15193,7 +15193,7 @@ function dglLoadLibrary(const Name: String): TDynLib;
 begin
   Result := TDynLib.Load(Name, false);
   if Result <> nil then
-    Result.SymbolErrorBehaviour := seReturnNil;
+    Result.SymbolError := seReturnNil;
 end;
 
 function dglFreeLibrary(LibHandle: TDynLib): Boolean;
@@ -15207,18 +15207,29 @@ begin
   end;
 end;
 
-function dglGetProcAddress(ProcName: PAnsiChar; LibHandle: TDynLib = nil {$IFDEF DGL_LINUX}; ForceDLSym: Boolean = False{$ENDIF}): Pointer;
+{$ifndef FPC}
+  {$hints off}  // don't warn that "Result := nil" is unused, we want it to be safe on all platforms
+{$endif}
+
+function dglGetProcAddress(const ProcNameStr: String; LibHandle: TDynLib = nil {$IFDEF DGL_LINUX}; ForceDLSym: Boolean = False{$ENDIF}): Pointer;
 
   function SymbolFromLibHandle: Pointer;
   begin
     if LibHandle <> nil then
-      Result := LibHandle.Symbol(ProcName)
+      Result := LibHandle.Symbol(PChar(ProcNameStr))
     else
       Result := nil;
   end;
 
+var
+  ProcName: AnsiString;
 begin
   Result := nil;
+
+  { TDynLib.Symbol, just like FPC and Delphi GetProcAddress (which it uses underneath),
+    takes default String, i.e. 8-bit in FPC, 16-bit in Delphi.
+    But wglGetProcAddress and glXGetProcAddress get 8-bit. }
+  ProcName := ProcNameStr;
 
   if LibHandle = nil then
     LibHandle := GL_LibHandle;
@@ -15229,19 +15240,19 @@ begin
       exit;
 
     if Addr(wglGetProcAddress) <> nil then
-      Result := wglGetProcAddress(ProcName);
+      Result := wglGetProcAddress(PAnsiChar(ProcName));
   {$ENDIF}
 
   {$IFDEF DGL_LINUX}
     if not ForceDLSym then begin
       if Addr(glXGetProcAddress) <> nil then
-        Result := glXGetProcAddress(ProcName);
+        Result := glXGetProcAddress(PAnsiChar(ProcName));
 
       if result <> nil then
         exit;
 
       if Addr(glXGetProcAddressARB) <> nil then
-        Result := glXGetProcAddressARB(ProcName);
+        Result := glXGetProcAddressARB(PAnsiChar(ProcName));
 
       if result <> nil then
         exit;
@@ -15255,6 +15266,9 @@ begin
   {$ENDIF}
 end;
 
+{$ifndef FPC}
+  {$hints on}
+{$endif}
 
 function Int_GetExtensionString: AnsiString;
 var
