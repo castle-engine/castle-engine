@@ -23,7 +23,7 @@ interface
 
 uses
   SysUtils, Math, Generics.Collections, Classes,
-  {$ifdef USE_DGL} dglOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions;
 

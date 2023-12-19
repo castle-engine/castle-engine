@@ -7,8 +7,6 @@
         - (Win32, Win64) Delphi XE2
         - (Win32, Win64, Linux, MacOSX) FreePascal (1.9.3 and up)
 
-        Castle Game Engine addition: support also Delphi + Linux.
-
 ==============================================================================
 
        Copyright (C) DGL-OpenGL-Portteam
@@ -125,8 +123,6 @@ interface
   {$A+}
 {$ELSE}
   {$A4}
-  { CGE: Do not warn about casting String->AnsiString }
-  {$warn IMPLICIT_STRING_CAST_LOSS off}
 {$ENDIF}
 
 // 64 BIT architecture
@@ -172,7 +168,7 @@ uses
   SysUtils
   {$IFDEF DGL_WIN}, Windows{$ENDIF}
   {$IFDEF DGL_64BIT} ,math {$ENDIF}
-  {$ifdef FPC} {$IFDEF DGL_LINUX}, X, XLib, XUtil{$ENDIF} {$endif}
+  {$IFDEF DGL_LINUX}, X, XLib, XUtil{$ENDIF}
   ;
 
 type
@@ -183,13 +179,7 @@ type
   {$ENDIF}
 
   GLenum = Cardinal;
-  {$if (not defined(MSWINDOWS)) and (not defined(FPC))}
-  { See GL_TRUE comments for reasons behind this exception
-    for Delphi/non-Windows. }
-  GLboolean = Byte;
-  {$else}
   GLboolean = BYTEBOOL;
-  {$endif}
   GLbitfield = Cardinal;
   GLbyte = Shortint;
   GLshort = SmallInt;
@@ -331,12 +321,6 @@ type
 
   // GLX
   {$IFDEF DGL_LINUX}
-    {$ifndef FPC}
-    TXID = Pointer;
-    PDisplay = Pointer;
-    PXVisualInfo = Pointer;
-    {$endif}
-
     GLXContext = Pointer;
     GLXContextID = TXID;
     GLXDrawable = TXID;
@@ -1065,34 +1049,8 @@ const
   GL_STENCIL_BUFFER_BIT = $00000400;
   GL_COLOR_BUFFER_BIT = $00004000;
   { Boolean }
-  { For Delphi/Linux, definining
-
-      GL_TRUE: ByteBool = True
-
-    is not correct, because the Ord(GL_TRUE) is then -1 (so it's $FF).
-    While OpenGL says it is 1.
-    Even if we try to define it like this:
-
-      GL_TRUE: ByteBool = ByteBool(1)
-
-    ...doesn't help, it gets changed to -1 internally it seems,
-    and the Ord(GL_TRUE) is still -1.
-    This makes problems, as e.g. after
-
-      glGetShaderiv(..., GL_COMPILE_STATUS, @Compiled);
-
-    code should be able to check whether "Compiled = Ord(GL_TRUE)",
-    but it will never be true when Ord(GL_TRUE) is -1.
-    So define them differently for Delphi on non-Windows
-    (assuming, to be safe, that all non-Windows platforms treat ByteBool
-    as Delphi on Linux). }
-  {$if (not defined(MSWINDOWS)) and (not defined(FPC))}
-  GL_TRUE = 1;
-  GL_FALSE = 0;
-  {$else}
   GL_TRUE: ByteBool = True;
   GL_FALSE: ByteBool = False;
-  {$endif}
   { BeginMode }
   GL_POINTS = $0000;
   GL_LINES = $0001;
@@ -4580,7 +4538,7 @@ const
   GL_TEXTURE_MAX_ANISOTROPY = $84FE;
   GL_MAX_TEXTURE_MAX_ANISOTROPY = $84FF;
   GL_TRANSFORM_FEEDBACK_OVERFLOW = $82EC;
-  GL_TRANSFORM_FEEDBACK_STREAM_OVERFLOW = $82ED;
+  GL_TRANSFORM_FEEDBACK_STREAM_OVERFLOW = $82ED;  
 
   // GL_ATI_draw_buffers
   GL_MAX_DRAW_BUFFERS_ATI = $8824;
@@ -13008,7 +12966,7 @@ var
   glMultiDrawArraysIndirectCount : TglMultiDrawArraysIndirectCount;
   glMultiDrawElementsIndirectCount : TglMultiDrawElementsIndirectCount;
   glPolygonOffsetClamp : TglPolygonOffsetClamp;
-
+  
   // GL_ARB_sparse_buffer
   glBufferPageCommitmentARB : TglBufferPageCommitmentARB;
   glNamedBufferPageCommitmentEXT : TglNamedBufferPageCommitmentEXT;
@@ -15172,8 +15130,8 @@ const
   // Seems to work on Debian / Fedora
   LibraryLib = {$IFDEF Linux} 'libdl.so.2'{$ELSE} 'c'{$ENDIF};
 
-function dlopen(Name: PAnsiChar; Flags: Integer): Pointer; cdecl; external LibraryLib name 'dlopen';
-function dlclose(Lib: Pointer): Integer; cdecl; external LibraryLib name 'dlclose';
+function dlopen(Name: PAnsiChar; Flags: LongInt): Pointer; cdecl; external LibraryLib name 'dlopen';
+function dlclose(Lib: Pointer): LongInt; cdecl; external LibraryLib name 'dlclose';
 
 function dlsym(Lib: Pointer; Name: PAnsiChar): Pointer; cdecl; external LibraryLib name 'dlsym';
 {$ENDIF}
@@ -15183,17 +15141,14 @@ const
   RTLD_DEFAULT = Pointer(-2);
 {$ENDIF}{$ENDIF}
 
-function dglLoadLibrary(const Name: String): Pointer;
-var
-  Name8: AnsiString;
+function dglLoadLibrary(Name: PChar): Pointer;
 begin
   {$IFDEF DGL_WIN}
-  Result := Pointer(LoadLibrary(PChar(Name)));
+  Result := Pointer(LoadLibrary(Name));
   {$ENDIF}
 
   {$IFDEF DGL_LINUX}
-  Name8 := Name;
-  Result := dlopen(PAnsiChar(Name8), RTLD_LAZY);
+  Result := dlopen(Name, RTLD_LAZY);
   {$ENDIF}
 
   {$IFDEF DGL_MAC}
@@ -15231,8 +15186,6 @@ end;
 
 function dglGetProcAddress(ProcName: PAnsiChar; LibHandle: Pointer = nil {$IFDEF DGL_LINUX}; ForceDLSym: Boolean = False{$ENDIF}): Pointer;
 begin
-  Result := nil;
-
   if LibHandle = nil then
     LibHandle := GL_LibHandle;
 
@@ -15352,8 +15305,8 @@ begin
     dglFreeLibrary(GLU_LibHandle);
 
   // load library
-  GL_LibHandle := dglLoadLibrary(LibName);
-  GLU_LibHandle := dglLoadLibrary(GLULibName);
+  GL_LibHandle := dglLoadLibrary(PChar(LibName));
+  GLU_LibHandle := dglLoadLibrary(PChar(GLULibName));
 
   // load GL functions
   if (GL_LibHandle <> nil) then begin
@@ -17377,7 +17330,7 @@ end;
 
 procedure Read_GL_4_6;
 begin
-  glSpecializeShader := dglGetProcAddress('glSpecializeShader');
+  glSpecializeShader := dglGetProcAddress('glSpecializeShader'); 
   glMultiDrawArraysIndirectCount := dglGetProcAddress('glMultiDrawArraysIndirectCount');
   glMultiDrawElementsIndirectCount := dglGetProcAddress('glMultiDrawElementsIndirectCount');
   glPolygonOffsetClamp := dglGetProcAddress('glPolygonOffsetClamp');
@@ -19492,7 +19445,7 @@ begin
   Read_GL_APPLE_vertex_array_range;
   Read_GL_APPLE_texture_range;
   Read_GL_APPLE_vertex_program_evaluators;
-  Read_GL_APPLE_object_purgeable;
+  Read_GL_APPLE_object_purgeable; 
   Read_GL_ATI_draw_buffers;
   Read_GL_ATI_element_array;
   Read_GL_ATI_envmap_bumpmap;

@@ -295,7 +295,7 @@
 
   CGE units that directly access OpenGL(ES) should use this line:
 
-    {$ifdef USE_DGL} dglOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
+    {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
 
   Applications using CGE (including CGE examples) cannot include castleconf.inc
   (it's internal what it defines) and usually should not need to access OpenGL(ES)
@@ -304,17 +304,10 @@
 
     {$ifdef ANDROID} {$define OpenGLES} {$endif}
     {$ifdef CASTLE_IOS} {$define OpenGLES} {$endif}
-    {$ifdef FPC}
-      {$ifdef OpenGLES} CastleGLES, {$else} GL, GLExt, {$endif}
-    {$else}
-      {$ifndef MSWINDOWS} dglOpenGL, {$else} OpenGL, OpenGLext, {$endif}
-    {$endif}
+    {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
 
   The above code supports both FPC and Delphi, and supports both OpenGL and OpenGLES.
-  You can simplify it in a particular application, if you don't support
-  e.g. both FPC and Delphi.
-  Please note that above recommendation may change from time to time,
-  as e.g. we enable dglOpenGL usage for more platforms.
+  Please note that above recommendation may change from time to time.
 *)
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
@@ -326,14 +319,8 @@
 {$ifdef CASTLE_NINTENDO_SWITCH} {$define OpenGLES} {$endif}
 
 {$ifdef OpenGLES}
-  {$ifndef FPC}
-    {$error We do not support OpenGLES (necessary for Android, iOS) with Delphi yet}
-  {$else}
-    {$ifdef CASTLE_NINTENDO_SWITCH}
-      {$define CastleGL := CastleInternalNxGLES20}
-    {$else}
-      {$define CastleGL := CastleGLES}
-    {$endif}
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+    {$define CastleGLES := CastleInternalNxGLES20}
   {$endif}
 
   { This is necessary for OpenGL ES 2.0 versions that support only 16-bit indexes,
@@ -375,14 +362,9 @@
   }
   {$define GLIndexesShort}
 {$else}
-  {$define CastleGL := GL, GLExt}
-{$endif}
-
-// TODO: In the long run, use dglOpenGL for OpenGL, on all platforms and compilers.
-{$ifndef PASDOC} // PasDoc cannot evaluate $if, avoid
-  {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
-    {$define USE_DGL}
-  {$endif}
+  { For OpenGL (not ES), we use our own fork of dglOpenGL
+    (with all compilers and platforms now). }
+  {$define USE_DGL}
 {$endif}
 
 { PNG ------------------------------------------------------------------------ }

@@ -23,7 +23,7 @@ interface
 
 uses Generics.Collections,
   X3DNodes, X3DFields, CastleImages, CastleVectors, CastleClassUtils,
-  {$ifdef USE_DGL} dglOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleGLUtils, CastleInternalRenderer, CastleRenderOptions, CastleShapes;
 
 type

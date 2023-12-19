@@ -23,7 +23,7 @@ interface
 
 uses
   CastleVectors, CastleSceneCore, CastleSceneInternalShape,
-  {$ifdef USE_DGL} dglOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleGLUtils, CastleRenderContext, CastleFrustum, CastleGLShaders,
   CastleBoxes, CastleTransform, CastleRenderPrimitives, CastleRenderOptions;
 

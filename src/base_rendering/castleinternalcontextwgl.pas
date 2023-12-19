@@ -58,14 +58,12 @@ type
 
 implementation
 
-uses {$ifdef USE_DGL} dglOpenGL, {$else} {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif} {$endif}
+uses {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleUtils, CastleStringUtils, CastleGLUtils, CastleInternalGLUtils, CastleLog;
 
 { TGLContextWGL -------------------------------------------------------------- }
 
 procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements);
-var
-  Has_WGL_ARB_create_context, Has_WGL_ARB_create_context_profile: Boolean;
 
   { Both SetPixelFormat* set pixel format (required context capabilities)
     of Windows H_Dc device context. They try to set it, and eventually raise some
@@ -214,7 +212,6 @@ var
     end;
 
   var
-    WglExtensions: string;
     PixelFormat: Int32;
     ReturnedFormats: UINT;
     VisualAttr: TInt32List;
@@ -223,23 +220,16 @@ var
   begin
     CreateTemporaryWindow;
     try
-      { Note: GLExt unit Load_Xxx procedures work with wglGetCurrentDC
+      { Note: CastleGL unit ReadImplementationProperties looks at wglGetCurrentDC
         (this is passed to wglGetExtensionsStringARB call).
-        That's Ok, this current context is set by our  CreateTemporaryWindow. }
+        That's Ok, this current context is set by our CreateTemporaryWindow. }
 
-      if Load_WGL_ARB_extensions_string then
+      ReadImplementationProperties;
+      ReadExtensions; // read extension entry points like wglChoosePixelFormatARB
+
+      if WGL_ARB_extensions_string then
       begin
-        { There is no critical reason to keep reusing WglExtensions,
-          instead each Load_WGL_Xxx could call it again.
-          But it looks simpler to reuse it. }
-
-        WglExtensions := wglGetExtensionsStringARB(Temp_H_Dc);
-        // WritelnLog('wgl', 'Extensions: ' + WglExtensions);  // too verbose
-
-        Has_WGL_ARB_create_context := Load_WGL_ARB_create_context(WglExtensions);
-        Has_WGL_ARB_create_context_profile := Load_WGL_ARB_create_context_profile(WglExtensions);
-
-        if Load_WGL_ARB_pixel_format then
+        if WGL_ARB_pixel_format then
         begin
           { Ok, wglChoosePixelFormatARB is available }
 
@@ -265,7 +255,7 @@ var
 
             if Requirements.MultiSampling > 1 then
             begin
-              if Load_WGL_ARB_multisample(WglExtensions) then
+              if WGL_ARB_multisample then
               begin
                 VisualAttr.AddRange([
                   WGL_SAMPLE_BUFFERS_ARB, 1,
@@ -381,17 +371,21 @@ begin
   Assert(WndPtr <> 0);
   Assert(h_Dc <> 0);
 
-  // will be initialized once SetPixelFormat_WGLChoose has a temporary context
-  Has_WGL_ARB_create_context := false;
-  Has_WGL_ARB_create_context_profile := false;
+  // load base (not extensions) WGL functions
+  if GL_LibHandle = nil then
+  	InitOpenGL;
 
   SetPixelFormat_WGLChoose;
+
+  { Note that SetPixelFormat_WGLChoose setup temporary context
+    and called ReadImplementationProperties
+    and thus initialized WGL_ARB_xxx. }
 
   if (GetDeviceCaps(h_Dc, RASTERCAPS) and RC_PALETTE) <> 0 then
     raise EGLContextNotPossible.Create('This device is paletted, bad display settings');
 
-  if Has_WGL_ARB_create_context and
-     Has_WGL_ARB_create_context_profile then
+  if WGL_ARB_create_context and
+     WGL_ARB_create_context_profile then
     UseCreateContextAttribsARB
   else
     UseCreateContext;

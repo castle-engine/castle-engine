@@ -320,7 +320,7 @@ begin
       P.Targets.AddUnit('castleinternalcontextwgl.pas');
 
     P.SourcePath.Add('src/base_rendering/dglopengl');
-    P.Targets.AddUnit('dglopengl.pas');
+    P.Targets.AddUnit('castlegl.pas');
 
     P.SourcePath.Add('src/services');
     P.Targets.AddUnit('castleads.pas');

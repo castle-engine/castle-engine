@@ -61,7 +61,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1091">
+    <Files Count="1089">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -558,10 +558,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base_rendering/castleglutils.pas"/>
         <UnitName Value="CastleGLUtils"/>
       </Item124>
-      <Item125>
-        <Filename Value="../src/base_rendering/castleinternalglutils_delphi_wgl.inc"/>
-        <Type Value="Include"/>
-      </Item125>
       <Item126>
         <Filename Value="../src/base_rendering/castleglutils_draw_primitive_2d.inc"/>
         <Type Value="Include"/>
@@ -4239,10 +4235,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base/castleinternalclassutils.pas"/>
         <UnitName Value="CastleInternalClassUtils"/>
       </Item1037>
-      <Item1038>
-        <Filename Value="../src/base_rendering/castleinternalglutils_wgl.inc"/>
-        <Type Value="Include"/>
-      </Item1038>
       <Item1039>
         <Filename Value="../src/ui/castleuicontrols_view.inc"/>
         <Type Value="Include"/>
@@ -4437,8 +4429,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalEgl"/>
       </Item1086>
       <Item1087>
-        <Filename Value="../src/base_rendering/dglopengl/dglopengl.pas"/>
-        <UnitName Value="dglOpenGL"/>
+        <Filename Value="../src/base_rendering/dglopengl/castlegl.pas"/>
+        <UnitName Value="CastleGL"/>
       </Item1087>
       <Item1088>
         <Filename Value="../src/files/castledownload_url_http_delphi_net.inc"/>
@@ -4448,14 +4440,14 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/files/castledownload_url_http_indy.inc"/>
         <Type Value="Include"/>
       </Item1089>
-      <Item1090>
+      <Item125>
         <Filename Value="../src/physics/kraft/castlekraft.inc"/>
         <Type Value="Include"/>
-      </Item1090>
-      <Item1091>
+      </Item125>
+      <Item1038>
         <Filename Value="../src/images/castleinternaldatacompression.pas"/>
         <UnitName Value="CastleInternalDataCompression"/>
-      </Item1091>
+      </Item1038>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">
