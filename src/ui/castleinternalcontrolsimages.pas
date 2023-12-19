@@ -13,7 +13,7 @@ function Panel: TGrayscaleAlphaImage;
 
 function WindowDarkTransparent: TRGBAlphaImage;
 
-function Tooltip: TRGBImage;
+function Tooltip: TRGBAlphaImage;
 
 function TooltipRounded: TRGBAlphaImage;
 

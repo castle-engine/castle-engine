@@ -75,6 +75,7 @@ begin
       RleDecompress(@PanelChannelData1, SizeOf(PanelChannelData1), Split.Data[1], Split.DataSize);
       DataChannelsCombine(FPanel.RawPixels, FPanel.Size,
         FPanel.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FPanel.Url := 'embedded-image:/Panel';
   end;
@@ -150,6 +151,7 @@ begin
       RleDecompress(@WindowDarkTransparentChannelData3, SizeOf(WindowDarkTransparentChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FWindowDarkTransparent.RawPixels, FWindowDarkTransparent.Size,
         FWindowDarkTransparent.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FWindowDarkTransparent.Url := 'embedded-image:/WindowDarkTransparent';
   end;
@@ -157,7 +159,7 @@ begin
 end;
 
 var
-  FTooltip: TRGBImage;
+  FTooltip: TRGBAlphaImage;
 const
   TooltipWidth = 16;
   TooltipHeight = 16;
@@ -193,14 +195,17 @@ const
      131,  169,  105,  105,   13,  169,  131,  169,  105,  105,   13,  169,
      129,  169,   16,  105,  129,  105 
   );
+  TooltipChannelData3: array[0 .. 7 - 1] of Byte = (
+     127,  255,  127,  255,  130,  255,  255 
+  );
 
-function Tooltip: TRGBImage;
+function Tooltip: TRGBAlphaImage;
 var
   Split: TChannelsSplit;
 begin
   if FTooltip = nil then
   begin
-    FTooltip := TRGBImage.Create(TooltipWidth, TooltipHeight, TooltipDepth);
+    FTooltip := TRGBAlphaImage.Create(TooltipWidth, TooltipHeight, TooltipDepth);
     Split := TChannelsSplit.Create;
     try
       SetLength(Split.Data, FTooltip.PixelSize);
@@ -209,8 +214,10 @@ begin
       RleDecompress(@TooltipChannelData0, SizeOf(TooltipChannelData0), Split.Data[0], Split.DataSize);
       RleDecompress(@TooltipChannelData1, SizeOf(TooltipChannelData1), Split.Data[1], Split.DataSize);
       RleDecompress(@TooltipChannelData2, SizeOf(TooltipChannelData2), Split.Data[2], Split.DataSize);
+      RleDecompress(@TooltipChannelData3, SizeOf(TooltipChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FTooltip.RawPixels, FTooltip.Size,
         FTooltip.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FTooltip.Url := 'embedded-image:/Tooltip';
   end;
@@ -308,7 +315,7 @@ const
      133,   47,  234,  129,  234,    2,  133,  129,  133,   10,    0,  130,
        0,  234,   49,  133,  130,  133,  234,    6,    0 
   );
-  TooltipRoundedChannelData2: array[0 .. 477 - 1] of Byte = (
+  TooltipRoundedChannelData2: array[0 .. 479 - 1] of Byte = (
        5,    0,  130,    0,  169,   49,  105,  130,  105,  169,   10,    0,
      129,    0,    2,  105,  129,  105,   47,  169,  129,  169,    2,  105,
      129,  105,    7,    0,  132,    0,  169,  105,  105,   51,  169,  132,
@@ -348,9 +355,9 @@ const
      105,  105,  169,    4,    0,  132,    0,  169,  105,  105,   51,  169,
      132,  169,  105,  105,  169,    7,    0,  129,    0,    2,  105,  129,
      105,   47,  169,  129,  169,    2,  105,  129,  105,   10,    0,  130,
-       0,  169,   49,  105,  130,  105,  169,    6,    0 
+       0,  169,   49,  105,  130,  105,  169,    5,    0,  129,    0 
   );
-  TooltipRoundedChannelData3: array[0 .. 168 - 1] of Byte = (
+  TooltipRoundedChannelData3: array[0 .. 170 - 1] of Byte = (
        5,    0,  130,    0,   17,   49,  255,  130,  255,   17,   10,    0,
      129,    0,   53,  255,  129,  255,    7,    0,  130,    0,   40,   55,
      255,  130,  255,   40,    4,    0,  130,    0,   40,   57,  255,  130,
@@ -364,8 +371,8 @@ const
        2,    0,  129,    0,   59,  255,  129,  255,    3,    0,  130,    0,
       40,   57,  255,  130,  255,   40,    4,    0,  130,    0,   40,   55,
      255,  130,  255,   40,    7,    0,  129,    0,   53,  255,  129,  255,
-      10,    0,  130,    0,   17,   49,  255,  130,  255,   17,    6,    0
-    
+      10,    0,  130,    0,   17,   49,  255,  130,  255,   17,    5,    0,
+     129,    0 
   );
 
 function TooltipRounded: TRGBAlphaImage;
@@ -386,6 +393,7 @@ begin
       RleDecompress(@TooltipRoundedChannelData3, SizeOf(TooltipRoundedChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FTooltipRounded.RawPixels, FTooltipRounded.Size,
         FTooltipRounded.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FTooltipRounded.Url := 'embedded-image:/TooltipRounded';
   end;
@@ -758,6 +766,7 @@ begin
       RleDecompress(@ButtonPressedChannelData1, SizeOf(ButtonPressedChannelData1), Split.Data[1], Split.DataSize);
       DataChannelsCombine(FButtonPressed.RawPixels, FButtonPressed.Size,
         FButtonPressed.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FButtonPressed.Url := 'embedded-image:/ButtonPressed';
   end;
@@ -1131,6 +1140,7 @@ begin
       RleDecompress(@ButtonDisabledChannelData1, SizeOf(ButtonDisabledChannelData1), Split.Data[1], Split.DataSize);
       DataChannelsCombine(FButtonDisabled.RawPixels, FButtonDisabled.Size,
         FButtonDisabled.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FButtonDisabled.Url := 'embedded-image:/ButtonDisabled';
   end;
@@ -1144,7 +1154,7 @@ const
   ButtonFocusedHeight = 256;
   ButtonFocusedDepth = 1;
 
-  ButtonFocusedChannelData0: array[0 .. 2016 - 1] of Byte = (
+  ButtonFocusedChannelData0: array[0 .. 2014 - 1] of Byte = (
        7,   99,    8,   99,  131,   99,  221,  221,    3,  193,  133,  193,
       99,   99,  221,  221,    3,  194,  133,  194,   99,   99,  221,  221,
        3,  194,  133,  194,   99,   99,  221,  221,    3,  194,  133,  194,
@@ -1312,8 +1322,7 @@ const
       99,   99,  221,  221,  233,  233,  232,  232,   99,   99,  221,  221,
        3,  233,  149,  233,   99,   99,  221,  221,  234,  234,  233,  233,
       99,   99,  221,  221,  233,  233,  234,  234,   99,   99,  221,  221,
-       3,  234,  131,  234,   99,   99,    6,  221,    9,  221,  129,  221
-    
+       3,  234,  131,  234,   99,   99,    6,  221,   10,  221 
   );
   ButtonFocusedChannelData1: array[0 .. 2020 - 1] of Byte = (
       17,  255,  129,  255,    3,  204,  129,  204,    3,  255,  129,  255,
@@ -1503,6 +1512,7 @@ begin
       RleDecompress(@ButtonFocusedChannelData1, SizeOf(ButtonFocusedChannelData1), Split.Data[1], Split.DataSize);
       DataChannelsCombine(FButtonFocused.RawPixels, FButtonFocused.Size,
         FButtonFocused.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FButtonFocused.Url := 'embedded-image:/ButtonFocused';
   end;
@@ -1516,7 +1526,7 @@ const
   ButtonNormalHeight = 256;
   ButtonNormalDepth = 1;
 
-  ButtonNormalChannelData0: array[0 .. 2024 - 1] of Byte = (
+  ButtonNormalChannelData0: array[0 .. 2022 - 1] of Byte = (
        7,   99,    8,   99,  131,   99,  221,  221,    3,  176,  133,  176,
       99,   99,  221,  221,    3,  176,  133,  176,   99,   99,  221,  221,
        3,  176,  133,  176,   99,   99,  221,  221,    3,  176,  141,  176,
@@ -1685,7 +1695,7 @@ const
        3,  227,  141,  227,   99,   99,  221,  221,  226,  226,  227,  227,
       99,   99,  221,  221,    3,  227,  133,  227,   99,   99,  221,  221,
        3,  227,  133,  227,   99,   99,  221,  221,    3,  227,  131,  227,
-      99,   99,    6,  221,    9,  221,  129,  221 
+      99,   99,    6,  221,   10,  221 
   );
   ButtonNormalChannelData1: array[0 .. 2020 - 1] of Byte = (
       17,  255,  129,  255,    3,  204,  129,  204,    3,  255,  129,  255,
@@ -1875,6 +1885,7 @@ begin
       RleDecompress(@ButtonNormalChannelData1, SizeOf(ButtonNormalChannelData1), Split.Data[1], Split.DataSize);
       DataChannelsCombine(FButtonNormal.RawPixels, FButtonNormal.Size,
         FButtonNormal.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FButtonNormal.Url := 'embedded-image:/ButtonNormal';
   end;
@@ -1925,6 +1936,7 @@ begin
       RleDecompress(@FrameWhiteChannelData1, SizeOf(FrameWhiteChannelData1), Split.Data[1], Split.DataSize);
       DataChannelsCombine(FFrameWhite.RawPixels, FFrameWhite.Size,
         FFrameWhite.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FFrameWhite.Url := 'embedded-image:/FrameWhite';
   end;
@@ -1975,6 +1987,7 @@ begin
       RleDecompress(@FrameWhiteBlackChannelData1, SizeOf(FrameWhiteBlackChannelData1), Split.Data[1], Split.DataSize);
       DataChannelsCombine(FFrameWhiteBlack.RawPixels, FFrameWhiteBlack.Size,
         FFrameWhiteBlack.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FFrameWhiteBlack.Url := 'embedded-image:/FrameWhiteBlack';
   end;
@@ -2040,6 +2053,7 @@ begin
       RleDecompress(@FrameYellowChannelData3, SizeOf(FrameYellowChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FFrameYellow.RawPixels, FFrameYellow.Size,
         FFrameYellow.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FFrameYellow.Url := 'embedded-image:/FrameYellow';
   end;
@@ -2105,6 +2119,7 @@ begin
       RleDecompress(@FrameYellowBlackChannelData3, SizeOf(FrameYellowBlackChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FFrameYellowBlack.RawPixels, FFrameYellowBlack.Size,
         FFrameYellowBlack.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FFrameYellowBlack.Url := 'embedded-image:/FrameYellowBlack';
   end;
@@ -2155,6 +2170,7 @@ begin
       RleDecompress(@FrameThickWhiteChannelData1, SizeOf(FrameThickWhiteChannelData1), Split.Data[1], Split.DataSize);
       DataChannelsCombine(FFrameThickWhite.RawPixels, FFrameThickWhite.Size,
         FFrameThickWhite.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FFrameThickWhite.Url := 'embedded-image:/FrameThickWhite';
   end;
@@ -2220,6 +2236,7 @@ begin
       RleDecompress(@FrameThickYellowChannelData3, SizeOf(FrameThickYellowChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FFrameThickYellow.RawPixels, FFrameThickYellow.Size,
         FFrameThickYellow.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FFrameThickYellow.Url := 'embedded-image:/FrameThickYellow';
   end;
@@ -2350,6 +2367,7 @@ begin
       RleDecompress(@ProgressBarChannelData3, SizeOf(ProgressBarChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FProgressBar.RawPixels, FProgressBar.Size,
         FProgressBar.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FProgressBar.Url := 'embedded-image:/ProgressBar';
   end;
@@ -2363,7 +2381,7 @@ const
   ProgressFillHeight = 32;
   ProgressFillDepth = 1;
 
-  ProgressFillChannelData0: array[0 .. 178 - 1] of Byte = (
+  ProgressFillChannelData0: array[0 .. 176 - 1] of Byte = (
       32,    0,  130,    0,   22,   29,   25,  131,   25,    0,   22,   29,
       24,  131,   24,    0,   22,   29,   24,  131,   24,    0,   22,   29,
       24,  131,   24,    0,   22,   29,   24,  131,   24,    0,   22,   29,
@@ -2378,7 +2396,7 @@ const
        0,   22,   29,   26,  131,   26,    0,   22,   29,   26,  131,   26,
        0,   22,   29,   25,  131,   25,    0,   22,   29,   24,  131,   24,
        0,   22,   29,   24,  131,   24,    0,   22,   29,   23,  131,   23,
-       0,   22,   29,   23,  129,   23,   31,    0,  129,    0 
+       0,   22,   29,   23,  129,   23,   32,    0 
   );
   ProgressFillChannelData1: array[0 .. 183 - 1] of Byte = (
       32,    0,  130,    0,  117,   29,  130,  131,  130,    0,  117,   29,
@@ -2442,6 +2460,7 @@ begin
       RleDecompress(@ProgressFillChannelData3, SizeOf(ProgressFillChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FProgressFill.RawPixels, FProgressFill.Size,
         FProgressFill.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FProgressFill.Url := 'embedded-image:/ProgressFill';
   end;
@@ -2600,7 +2619,7 @@ const
      132,  136,  132,  109,  104,  141,  100,  122,  127,  130,   11,  128,
      129,  128,  101,    0,  129,    0 
   );
-  TouchCtlInnerChannelData1: array[0 .. 1710 - 1] of Byte = (
+  TouchCtlInnerChannelData1: array[0 .. 1708 - 1] of Byte = (
       13,  128,  148,  128,  138,  115,  118,  121,   95,  129,  114,  127,
      127,  138,  139,  132,  122,  117,  126,  113,   92,  123,  105,   14,
      128,  131,  128,    0,    0,   10,  128,  141,  128,  129,  132,  127,
@@ -2743,7 +2762,7 @@ const
      128,  131,  128,    0,    0,   11,  128,    2,  128,  141,  128,  130,
      110,  100,  108,  124,  119,  133,  133,  143,  137,  136,  140,    2,
      132,  136,  132,  109,  104,  141,  100,  122,  127,  130,   11,  128,
-     129,  128,  101,    0,  129,    0 
+     129,  128,  102,    0 
   );
   TouchCtlInnerChannelData2: array[0 .. 1710 - 1] of Byte = (
       13,  128,  148,  128,  138,  115,  118,  121,   95,  129,  114,  127,
@@ -2890,7 +2909,7 @@ const
      132,  136,  132,  109,  104,  141,  100,  122,  127,  130,   11,  128,
      129,  128,  101,    0,  129,    0 
   );
-  TouchCtlInnerChannelData3: array[0 .. 707 - 1] of Byte = (
+  TouchCtlInnerChannelData3: array[0 .. 709 - 1] of Byte = (
       19,    0,  138,    0,    3,    5,    7,    8,    8,    7,    6,    4,
        1,   36,    0,  146,    0,    4,    6,   11,   26,   45,   60,   70,
       74,   74,   72,   65,   53,   37,   19,    8,    5,    2,   30,    0,
@@ -2949,7 +2968,8 @@ const
      105,   52,   18,    8,    1,   28,    0,  147,    0,    3,   11,   23,
       40,   76,  106,  127,  141,  152,  156,  143,  133,  113,   85,   46,
       24,   11,    4,   33,    0,  143,    0,    1,    4,    5,    8,   11,
-      14,   18,   19,   15,   12,    9,    6,    5,    1,  119,    0 
+      14,   18,   19,   15,   12,    9,    6,    5,    1,  118,    0,  129,
+       0 
   );
 
 function TouchCtlInner: TRGBAlphaImage;
@@ -2970,6 +2990,7 @@ begin
       RleDecompress(@TouchCtlInnerChannelData3, SizeOf(TouchCtlInnerChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FTouchCtlInner.RawPixels, FTouchCtlInner.Size,
         FTouchCtlInner.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FTouchCtlInner.Url := 'embedded-image:/TouchCtlInner';
   end;
@@ -2983,7 +3004,7 @@ const
   TouchCtlOuterHeight = 150;
   TouchCtlOuterDepth = 1;
 
-  TouchCtlOuterChannelData0: array[0 .. 5334 - 1] of Byte = (
+  TouchCtlOuterChannelData0: array[0 .. 5332 - 1] of Byte = (
      127,    0,  127,    0,  127,    0,  127,    0,  127,    0,   30,    0,
      135,    0,   85,  127,  113,  139,  137,  145,    4,  136,  135,  136,
      145,  137,  115,  127,  127,   85,  126,    0,  142,    0,  127,  141,
@@ -3428,9 +3449,9 @@ const
      145,  153,  153,  145,  127,  127,  126,    0,  136,    0,   85,  127,
      113,  139,  137,  145,  136,    2,  143,  136,  143,  136,  145,  137,
      115,  127,  127,   85,  127,    0,  127,    0,  127,    0,  127,    0,
-     127,    0,   31,    0,  129,    0 
+     127,    0,   32,    0 
   );
-  TouchCtlOuterChannelData1: array[0 .. 5334 - 1] of Byte = (
+  TouchCtlOuterChannelData1: array[0 .. 5332 - 1] of Byte = (
      127,    0,  127,    0,  127,    0,  127,    0,  127,    0,   30,    0,
      135,    0,   85,  127,  113,  139,  137,  145,    4,  136,  135,  136,
      145,  137,  115,  127,  127,   85,  126,    0,  142,    0,  127,  141,
@@ -3875,7 +3896,7 @@ const
      145,  153,  153,  145,  127,  127,  126,    0,  136,    0,   85,  127,
      113,  139,  137,  145,  136,    2,  143,  136,  143,  136,  145,  137,
      115,  127,  127,   85,  127,    0,  127,    0,  127,    0,  127,    0,
-     127,    0,   31,    0,  129,    0 
+     127,    0,   32,    0 
   );
   TouchCtlOuterChannelData2: array[0 .. 5332 - 1] of Byte = (
      127,    0,  127,    0,  127,    0,  127,    0,  127,    0,   30,    0,
@@ -4685,6 +4706,7 @@ begin
       RleDecompress(@TouchCtlOuterChannelData3, SizeOf(TouchCtlOuterChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FTouchCtlOuter.RawPixels, FTouchCtlOuter.Size,
         FTouchCtlOuter.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FTouchCtlOuter.Url := 'embedded-image:/TouchCtlOuter';
   end;
@@ -5199,6 +5221,7 @@ begin
       RleDecompress(@TouchCtlFlyInnerChannelData3, SizeOf(TouchCtlFlyInnerChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FTouchCtlFlyInner.RawPixels, FTouchCtlFlyInner.Size,
         FTouchCtlFlyInner.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FTouchCtlFlyInner.Url := 'embedded-image:/TouchCtlFlyInner';
   end;
@@ -5212,7 +5235,7 @@ const
   TouchCtlFlyOuterHeight = 150;
   TouchCtlFlyOuterDepth = 1;
 
-  TouchCtlFlyOuterChannelData0: array[0 .. 4914 - 1] of Byte = (
+  TouchCtlFlyOuterChannelData0: array[0 .. 4916 - 1] of Byte = (
      127,    0,  127,    0,  127,    0,  127,    0,   12,    0,  129,    0,
        5,  127,    2,  127,  129,  127,  127,    0,   10,    0,  145,    0,
      127,  143,  137,  151,  156,  155,  158,  160,  160,  161,  155,  156,
@@ -5622,7 +5645,7 @@ const
      127,    0,    5,    0,  144,    0,  127,  127,  150,  146,  147,  141,
      146,  139,  145,  147,  147,  145,  142,  127,  127,  127,    0,   12,
        0,  129,    0,    3,  127,  130,  127,  255,  127,    0,  127,    0,
-     127,    0,  127,    0,   15,    0 
+     127,    0,  127,    0,   14,    0,  129,    0 
   );
   TouchCtlFlyOuterChannelData1: array[0 .. 4916 - 1] of Byte = (
      127,    0,  127,    0,  127,    0,  127,    0,   12,    0,  129,    0,
@@ -6036,7 +6059,7 @@ const
        0,  129,    0,    3,  127,  130,  127,  255,  127,    0,  127,    0,
      127,    0,  127,    0,   14,    0,  129,    0 
   );
-  TouchCtlFlyOuterChannelData2: array[0 .. 4916 - 1] of Byte = (
+  TouchCtlFlyOuterChannelData2: array[0 .. 4914 - 1] of Byte = (
      127,    0,  127,    0,  127,    0,  127,    0,   12,    0,  129,    0,
        5,  127,    2,  127,  129,  127,  127,    0,   10,    0,  145,    0,
      127,  143,  137,  151,  156,  155,  158,  160,  160,  161,  155,  156,
@@ -6446,9 +6469,9 @@ const
      127,    0,    5,    0,  144,    0,  127,  127,  150,  146,  147,  141,
      146,  139,  145,  147,  147,  145,  142,  127,  127,  127,    0,   12,
        0,  129,    0,    3,  127,  130,  127,  255,  127,    0,  127,    0,
-     127,    0,  127,    0,   14,    0,  129,    0 
+     127,    0,  127,    0,   15,    0 
   );
-  TouchCtlFlyOuterChannelData3: array[0 .. 4964 - 1] of Byte = (
+  TouchCtlFlyOuterChannelData3: array[0 .. 4962 - 1] of Byte = (
      127,    0,  127,    0,  127,    0,  127,    0,   11,    0,  132,    0,
        1,    2,    3,    3,    4,  132,    4,    3,    2,    1,  127,    0,
        8,    0,  147,    0,    1,    2,    8,   17,   27,   37,   47,   55,
@@ -6862,7 +6885,7 @@ const
        0,  144,    0,    2,    4,   12,   23,   32,   38,   43,   46,   40,
       33,   25,   16,    8,    4,    2,  127,    0,   10,    0,  131,    0,
        1,    1,    3,    2,  131,    2,    1,    1,  127,    0,  127,    0,
-     127,    0,  127,    0,   13,    0,  129,    0 
+     127,    0,  127,    0,   14,    0 
   );
 
 function TouchCtlFlyOuter: TRGBAlphaImage;
@@ -6883,6 +6906,7 @@ begin
       RleDecompress(@TouchCtlFlyOuterChannelData3, SizeOf(TouchCtlFlyOuterChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FTouchCtlFlyOuter.RawPixels, FTouchCtlFlyOuter.Size,
         FTouchCtlFlyOuter.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FTouchCtlFlyOuter.Url := 'embedded-image:/TouchCtlFlyOuter';
   end;
@@ -7516,6 +7540,7 @@ begin
       RleDecompress(@LoadingChannelData1, SizeOf(LoadingChannelData1), Split.Data[1], Split.DataSize);
       DataChannelsCombine(FLoading.RawPixels, FLoading.Size,
         FLoading.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FLoading.Url := 'embedded-image:/Loading';
   end;
@@ -7578,6 +7603,7 @@ begin
       RleDecompress(@Crosshair1ChannelData3, SizeOf(Crosshair1ChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FCrosshair1.RawPixels, FCrosshair1.Size,
         FCrosshair1.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FCrosshair1.Url := 'embedded-image:/Crosshair1';
   end;
@@ -7654,6 +7680,7 @@ begin
       RleDecompress(@Crosshair2ChannelData3, SizeOf(Crosshair2ChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FCrosshair2.RawPixels, FCrosshair2.Size,
         FCrosshair2.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FCrosshair2.Url := 'embedded-image:/Crosshair2';
   end;
@@ -7667,7 +7694,7 @@ const
   ScrollbarSliderHeight = 130;
   ScrollbarSliderDepth = 1;
 
-  ScrollbarSliderChannelData0: array[0 .. 2305 - 1] of Byte = (
+  ScrollbarSliderChannelData0: array[0 .. 2303 - 1] of Byte = (
       18,    0,  129,    0,   15,   86,  138,   86,    0,    0,   86,  134,
      133,  133,  132,  130,  130,    2,  126,  255,  126,  124,  123,  122,
      121,  121,   86,    0,    0,   86,  134,  128,  126,  125,  124,  123,
@@ -7859,8 +7886,7 @@ const
      121,   86,    0,    0,   86,  134,  128,  126,  125,  124,  123,  119,
      119,  117,  116,  115,  113,  112,  121,   86,    0,    0,   86,  134,
      133,  133,  132,  130,  130,    2,  126,  137,  126,  124,  123,  122,
-     121,  121,   86,    0,    0,   15,   86,  129,   86,   18,    0,  129,
-       0 
+     121,  121,   86,    0,    0,   15,   86,  129,   86,   19,    0 
   );
   ScrollbarSliderChannelData1: array[0 .. 774 - 1] of Byte = (
       18,    0,  129,    0,   15,  255,  131,  255,    0,    0,   15,  255,
@@ -7946,6 +7972,7 @@ begin
       RleDecompress(@ScrollbarSliderChannelData1, SizeOf(ScrollbarSliderChannelData1), Split.Data[1], Split.DataSize);
       DataChannelsCombine(FScrollbarSlider.RawPixels, FScrollbarSlider.Size,
         FScrollbarSlider.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FScrollbarSlider.Url := 'embedded-image:/ScrollbarSlider';
   end;
@@ -7971,7 +7998,7 @@ const
      127,  255,  127,  255,  127,  255,  127,  255,   67,  255,  129,  255
     
   );
-  CheckmarkChannelData3: array[0 .. 150 - 1] of Byte = (
+  CheckmarkChannelData3: array[0 .. 152 - 1] of Byte = (
      127,    0,   23,    0,  133,    0,   22,  203,  203,   22,   18,    0,
      135,    0,   22,  211,  255,  255,  211,   22,   16,    0,  130,    0,
       22,    3,  211,    2,  211,  130,  211,   22,   14,    0,  139,    0,
@@ -7984,7 +8011,7 @@ const
      134,    0,   21,  210,  255,  215,   24,   19,    0,  134,    0,   21,
      210,  255,  215,   24,   19,    0,  134,    0,   21,  210,  255,  215,
       24,   19,    0,  133,    0,   22,  211,  255,  202,   20,    0,  132,
-       0,   22,  204,  195,  123,    0 
+       0,   22,  204,  195,  122,    0,  129,    0 
   );
 
 function Checkmark: TRGBAlphaImage;
@@ -8005,6 +8032,7 @@ begin
       RleDecompress(@CheckmarkChannelData3, SizeOf(CheckmarkChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FCheckmark.RawPixels, FCheckmark.Size,
         FCheckmark.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FCheckmark.Url := 'embedded-image:/Checkmark';
   end;
@@ -8066,7 +8094,7 @@ const
       20,    0,  129,    0,    2,  255,  129,  255,   89,    0,  129,    0
     
   );
-  DisclosureChannelData3: array[0 .. 153 - 1] of Byte = (
+  DisclosureChannelData3: array[0 .. 151 - 1] of Byte = (
       81,    0,  132,    0,   49,  150,   15,   21,    0,  133,    0,   91,
      255,  200,   15,   21,    0,  133,    0,  129,  255,  204,   17,   21,
        0,  133,    0,  129,  255,  204,   17,   21,    0,  133,    0,  129,
@@ -8079,7 +8107,7 @@ const
      205,   18,   19,    0,  133,    0,  128,  255,  205,   18,   19,    0,
      133,    0,  128,  255,  205,   18,   19,    0,  133,    0,  128,  255,
      205,   18,   19,    0,  133,    0,   89,  255,  200,   15,   20,    0,
-     132,    0,   47,  143,   15,   89,    0,  129,    0 
+     132,    0,   47,  143,   15,   90,    0 
   );
 
 function Disclosure: TRGBAlphaImage;
@@ -8100,6 +8128,7 @@ begin
       RleDecompress(@DisclosureChannelData3, SizeOf(DisclosureChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FDisclosure.RawPixels, FDisclosure.Size,
         FDisclosure.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FDisclosure.Url := 'embedded-image:/Disclosure';
   end;
@@ -8125,7 +8154,7 @@ const
      127,  255,  127,  255,  127,  255,  127,  255,   67,  255,  129,  255
     
   );
-  SquareEmptyChannelData3: array[0 .. 246 - 1] of Byte = (
+  SquareEmptyChannelData3: array[0 .. 248 - 1] of Byte = (
       49,    0,  132,    0,    7,  137,  229,   13,  255,  132,  255,  229,
      136,    6,    3,    0,  130,    0,  137,   17,  255,  130,  255,  135,
        3,    0,  132,    0,  230,  255,   59,   13,    0,  132,    0,   60,
@@ -8146,7 +8175,7 @@ const
      255,  255,    3,    0,  132,    0,  230,  255,   58,   13,    0,  132,
        0,   59,  255,  229,    3,    0,  130,    0,  138,   17,  255,  130,
      255,  136,    3,    0,  132,    0,    7,  138,  230,   13,  255,  132,
-     255,  230,  137,    6,   50,    0 
+     255,  230,  137,    6,   49,    0,  129,    0 
   );
 
 function SquareEmpty: TRGBAlphaImage;
@@ -8167,6 +8196,7 @@ begin
       RleDecompress(@SquareEmptyChannelData3, SizeOf(SquareEmptyChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FSquareEmpty.RawPixels, FSquareEmpty.Size,
         FSquareEmpty.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FSquareEmpty.Url := 'embedded-image:/SquareEmpty';
   end;
@@ -8238,6 +8268,7 @@ begin
       RleDecompress(@SquarePressedBackgroundChannelData3, SizeOf(SquarePressedBackgroundChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FSquarePressedBackground.RawPixels, FSquarePressedBackground.Size,
         FSquarePressedBackground.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FSquarePressedBackground.Url := 'embedded-image:/SquarePressedBackground';
   end;
@@ -8255,13 +8286,11 @@ const
      127,  255,  127,  255,  127,  255,  127,  255,   67,  255,  129,  255
     
   );
-  SquareCheckedChannelData1: array[0 .. 12 - 1] of Byte = (
-     127,  255,  127,  255,  127,  255,  127,  255,   67,  255,  129,  255
-    
+  SquareCheckedChannelData1: array[0 .. 10 - 1] of Byte = (
+     127,  255,  127,  255,  127,  255,  127,  255,   68,  255 
   );
-  SquareCheckedChannelData2: array[0 .. 12 - 1] of Byte = (
-     127,  255,  127,  255,  127,  255,  127,  255,   67,  255,  129,  255
-    
+  SquareCheckedChannelData2: array[0 .. 10 - 1] of Byte = (
+     127,  255,  127,  255,  127,  255,  127,  255,   68,  255 
   );
   SquareCheckedChannelData3: array[0 .. 322 - 1] of Byte = (
       49,    0,  132,    0,    6,  137,  229,   13,  255,  132,  255,  229,
@@ -8311,6 +8340,7 @@ begin
       RleDecompress(@SquareCheckedChannelData3, SizeOf(SquareCheckedChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FSquareChecked.RawPixels, FSquareChecked.Size,
         FSquareChecked.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FSquareChecked.Url := 'embedded-image:/SquareChecked';
   end;
@@ -8649,6 +8679,7 @@ begin
       RleDecompress(@SliderBackgroundChannelData3, SizeOf(SliderBackgroundChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FSliderBackground.RawPixels, FSliderBackground.Size,
         FSliderBackground.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FSliderBackground.Url := 'embedded-image:/SliderBackground';
   end;
@@ -9031,6 +9062,7 @@ begin
       RleDecompress(@SliderThumbChannelData3, SizeOf(SliderThumbChannelData3), Split.Data[3], Split.DataSize);
       DataChannelsCombine(FSliderThumb.RawPixels, FSliderThumb.Size,
         FSliderThumb.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FSliderThumb.Url := 'embedded-image:/SliderThumb';
   end;
@@ -9064,6 +9096,7 @@ begin
       RleDecompress(@PanelSeparatorChannelData0, SizeOf(PanelSeparatorChannelData0), Split.Data[0], Split.DataSize);
       DataChannelsCombine(FPanelSeparator.RawPixels, FPanelSeparator.Size,
         FPanelSeparator.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FPanelSeparator.Url := 'embedded-image:/PanelSeparator';
   end;
@@ -9127,6 +9160,7 @@ begin
       RleDecompress(@WindowDarkChannelData2, SizeOf(WindowDarkChannelData2), Split.Data[2], Split.DataSize);
       DataChannelsCombine(FWindowDark.RawPixels, FWindowDark.Size,
         FWindowDark.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FWindowDark.Url := 'embedded-image:/WindowDark';
   end;
@@ -9194,6 +9228,7 @@ begin
       RleDecompress(@WindowGrayChannelData2, SizeOf(WindowGrayChannelData2), Split.Data[2], Split.DataSize);
       DataChannelsCombine(FWindowGray.RawPixels, FWindowGray.Size,
         FWindowGray.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FWindowGray.Url := 'embedded-image:/WindowGray';
   end;
@@ -9264,6 +9299,7 @@ begin
       RleDecompress(@ScrollbarFrameChannelData2, SizeOf(ScrollbarFrameChannelData2), Split.Data[2], Split.DataSize);
       DataChannelsCombine(FScrollbarFrame.RawPixels, FScrollbarFrame.Size,
         FScrollbarFrame.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FScrollbarFrame.Url := 'embedded-image:/ScrollbarFrame';
   end;
@@ -9310,6 +9346,7 @@ begin
       RleDecompress(@EditChannelData2, SizeOf(EditChannelData2), Split.Data[2], Split.DataSize);
       DataChannelsCombine(FEdit.RawPixels, FEdit.Size,
         FEdit.PixelSize, Split);
+      Split.DataFree;
     finally FreeAndNil(Split) end;
     FEdit.Url := 'embedded-image:/Edit';
   end;

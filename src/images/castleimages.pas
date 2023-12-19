@@ -2935,6 +2935,7 @@ begin
     SReplacePatterns(
       '      DataChannelsCombine(F${IMAGE_NAME}.RawPixels, F${IMAGE_NAME}.Size,' + NL +
       '        F${IMAGE_NAME}.PixelSize, Split);' + NL +
+      '      Split.DataFree;' + NL +
       '    finally FreeAndNil(Split) end;' + NL +
       '    F${IMAGE_NAME}.Url := ''embedded-image:/${IMAGE_NAME}'';' + NL +
       '  end;' + NL +
