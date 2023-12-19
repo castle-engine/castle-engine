@@ -26,8 +26,6 @@
   TPlaySoundParameters = class
   strict private
     FPriority: Single;
-    function GetImportance: Cardinal;
-    procedure SetImportance(const Value: Cardinal);
     procedure SetPriority(const Value: Single);
   public
     Buffer: TInternalSoundBuffer;
@@ -79,16 +77,6 @@ begin
   Pitch := 1;
   ReferenceDistance := TCastleSound.DefaultReferenceDistance;
   MaxDistance       := TCastleSound.DefaultMaxDistance;
-end;
-
-function TPlaySoundParameters.GetImportance: Cardinal;
-begin
-  Result := PriorityToImportance(Priority);
-end;
-
-procedure TPlaySoundParameters.SetImportance(const Value: Cardinal);
-begin
-  Priority := ImportanceToPriority(Value);
 end;
 
 procedure TPlaySoundParameters.SetPriority(const Value: Single);
