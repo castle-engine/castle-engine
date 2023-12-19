@@ -20506,7 +20506,7 @@ const
   PFD_TYPE_RGBA = 0;
   PFD_MAIN_PLANE = 0;
   PFD_OVERLAY_PLANE = 1;
-  PFD_UNDERLAY_PLANE = LongWord(-1);
+  PFD_UNDERLAY_PLANE = $FF;
   MemoryDCs = [OBJ_MEMDC, OBJ_METADC, OBJ_ENHMETADC];
 var
   PFDescriptor: TPixelFormatDescriptor;
@@ -20556,7 +20556,7 @@ begin
     if Layer > 0 then
       iLayerType := PFD_OVERLAY_PLANE
     else
-      iLayerType := Byte(PFD_UNDERLAY_PLANE);
+      iLayerType := PFD_UNDERLAY_PLANE;
   end;
 
   PixelFormat := ChoosePixelFormat(DC, @PFDescriptor);
@@ -20599,7 +20599,7 @@ const
   PFD_TYPE_RGBA      = 0;
   PFD_MAIN_PLANE     = 0;
   PFD_OVERLAY_PLANE  = 1;
-  PFD_UNDERLAY_PLANE = LongWord(-1);
+  PFD_UNDERLAY_PLANE = $FF;
   MemoryDCs          = [OBJ_MEMDC, OBJ_METADC, OBJ_ENHMETADC];
 var
   PFDescriptor : TPixelFormatDescriptor;
@@ -20653,7 +20653,7 @@ begin
         if Layer > 0 then
           iLayerType := PFD_OVERLAY_PLANE
         else
-          iLayerType := Byte(PFD_UNDERLAY_PLANE);
+          iLayerType := PFD_UNDERLAY_PLANE;
     end;
 
   PixelFormat := ChoosePixelFormat(DC, @PFDescriptor);
