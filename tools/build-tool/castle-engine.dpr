@@ -185,10 +185,9 @@ begin
             '      version-code' + NL +
             NL+
             'output-environment' +NL+
-            '    Output some environment informations.' + NL +
+            '    Output some environment information (independent of any project).' + NL +
             '    Next parameter determines the information:' + NL +
             '      fpc-exe' + NL +
-            '      ???' + NL +
             NL+
             'cache' +NL+
             '    Create cache to speed up future compilations.' + NL +
@@ -326,6 +325,16 @@ var
   Project: TCastleProject;
   RestOfParameters: TCastleStringList;
   SimpleCompileOptions: TCompilerOptions; // used only when command is "simple-compile"
+
+  function CreateRunParameters: TCastleStringList;
+  begin
+    Result := TCastleStringList.Create;
+    Result.Text := Parameters.Text;
+    Result.Delete(0); // remove our own name
+    Assert(SameText(Result[0], 'run') or SameText(Result[0], 'compile-run'));
+    Result.Delete(0); // remove "run"
+  end;
+
 begin
   ApplicationProperties.ApplicationName := 'castle-engine';
   ApplicationProperties.Version := CastleEngineVersion;
@@ -419,22 +428,16 @@ begin
       else
       if Command = 'run' then
       begin
-        RestOfParameters := TCastleStringList.Create;
+        RestOfParameters := CreateRunParameters;
         try
-          RestOfParameters.Text := Parameters.Text;
-          RestOfParameters.Delete(0); // remove our own name
-          RestOfParameters.Delete(0); // remove "run"
           Project.DoRun(Target, OS, CPU, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end else
       if Command = 'compile-run' then
       begin
         Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions);
-        RestOfParameters := TCastleStringList.Create;
+        RestOfParameters := CreateRunParameters;
         try
-          RestOfParameters.Text := Parameters.Text;
-          RestOfParameters.Delete(0); // remove our own name
-          RestOfParameters.Delete(0); // remove "run"
           Project.DoRun(Target, OS, CPU, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end

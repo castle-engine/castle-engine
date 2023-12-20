@@ -41,8 +41,9 @@ function FindExeLazarus(const ExeName: String): String;
   and LazarusCustomPath. }
 function PathExtendForFpcLazarus(const PathList: String): String;
 
-{ Returns compiler info to std output
-  Keys: fpc-exe - path to the compiler executable }
+{ Write environment information to the standard output.
+  See "castle-engine --help" for valid arguments after "castle-engine output-environment",
+  these are values allowed for OutputKey. }
 procedure DoOutputEnvironment(const OutputKey: String);
 
 type
