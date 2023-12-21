@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleLCLUtils" -*-
 {
-  Copyright 2011-2021 Michalis Kamburelis.
+  Copyright 2011-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,50 +14,44 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test CastleLCLUtils unit.
-
-  TODO: Add it to the testsuite, but only when compiled using lpi (with
-  lazbuild or Lazarus IDE) and add to lpi dependency on LCL.
-
-  TODO: Hm, or move these tests to some unit not depending on LCL?
-  They actually should not require LCL, and we abstracted it for Delphi/Linux anyway. }
-unit TestCastleLCLUtils;
+{ Test CastleFileFilters unit. }
+unit TestCastleFileFilters;
 
 interface
 
 uses CastleTester;
 
 type
-  TTestCastleLCLUtils = class(TCastleTestCase)
+  TTestCastleFileFilters = class(TCastleTestCase)
   published
     procedure TestCastleLCLUtils;
   end;
 
 implementation
 
-uses SysUtils, Classes, CastleLCLUtils;
+uses SysUtils, Classes, CastleFileFilters;
 
-procedure TTestCastleLCLUtils.TestCastleLCLUtils;
+procedure TTestCastleFileFilters.TestCastleLCLUtils;
 var
   LCLFilter: string;
   LCLFilterIndex: Integer;
 begin
-  FileFiltersToDialog('All files (*)|*|*All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg',
+  TFileFilterList.LclFmxFiltersFromString('All files (*)|*|*All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg',
     LCLFilter, LCLFilterIndex);
   AssertTrue(LCLFilter = 'All files (*)|*|All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg|');
   AssertTrue(LCLFilterIndex = 2);
 
-  FileFiltersToDialog('All files (*)|*|*All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg',
+  TFileFilterList.LclFmxFiltersFromString('All files (*)|*|*All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg',
     LCLFilter, LCLFilterIndex, false);
   AssertTrue(LCLFilter = 'PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg|');
   AssertTrue(LCLFilterIndex = 1);
 
-  FileFiltersToDialog('All files (*)|*|All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|*JPEG images (*.jpg)|*.jpg',
+  TFileFilterList.LclFmxFiltersFromString('All files (*)|*|All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|*JPEG images (*.jpg)|*.jpg',
     LCLFilter, LCLFilterIndex, false);
   AssertTrue(LCLFilter = 'PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg|');
   AssertTrue(LCLFilterIndex = 2);
 end;
 
 initialization
-  RegisterTest(TTestCastleLCLUtils);
+  RegisterTest(TTestCastleFileFilters);
 end.
