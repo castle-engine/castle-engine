@@ -267,13 +267,6 @@ begin
     will know what's going on. }
   if not FreeTypeLibraryInitialized then
   begin
-    { TODO: Why doing
-        raise Exception.Create(...)
-      here, instead of Fail, does not report test as failed in castle_tester GUI?
-      Using "Fail" is OK, it's actually cleaner, but still raising exception
-      should also be reported.
-      Observed on Delphi 10.2.3 / Win64. }
-
     Fail('FreeType library not available, so TTestCastleFonts.TestSizeChangeNotificationFontFamily has to fail.'
       {$ifdef MSWINDOWS}
       + ' On Windows, be sure to place proper DLL files alongside EXE. It is easiest to build using CGE editor that will place proper DLLs automatically.'
