@@ -14,15 +14,21 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test CastleLCLUtils unit. }
+{ Test CastleLCLUtils unit.
+
+  TODO: Add it to the testsuite, but only when compiled using lpi (with
+  lazbuild or Lazarus IDE) and add to lpi dependency on LCL.
+
+  TODO: Hm, or move these tests to some unit not depending on LCL?
+  They actually should not require LCL, and we abstracted it for Delphi/Linux anyway. }
 unit TestCastleLCLUtils;
 
 interface
 
-uses FpcUnit, TestUtils, TestRegistry;
+uses CastleTester;
 
 type
-  TTestCastleLCLUtils = class(TTestCase)
+  TTestCastleLCLUtils = class(TCastleTestCase)
   published
     procedure TestCastleLCLUtils;
   end;
