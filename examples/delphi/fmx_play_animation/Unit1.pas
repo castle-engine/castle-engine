@@ -34,7 +34,7 @@ var
 
 implementation
 
-uses CastleSceneCore, CastleFmxUtils, X3DLoad, CastleUriUtils;
+uses CastleSceneCore, CastleFmxUtils, X3DLoad, CastleUriUtils, CastleRenderOptions;
 
 {$R *.fmx}
 
@@ -98,6 +98,14 @@ end;
 procedure TForm1.LoadScene(const Url: String);
 begin
   MainScene.Load(Url);
+
+  { Set blending sort following "NavigationInfo.blendingSort" info from scene.
+    This means we use 2D sorting e.g. for Spine models by default. }
+  if (MainScene.NavigationInfoStack.Top <> nil) and
+     (MainScene.NavigationInfoStack.Top.BlendingSort <> sortAuto) then
+    MainViewport.BlendingSort := MainScene.NavigationInfoStack.Top.BlendingSort
+  else
+    MainViewport.BlendingSort := sortAuto;
 
   MainViewport.AssignDefaultCamera; // adjust camera to scene size
 
