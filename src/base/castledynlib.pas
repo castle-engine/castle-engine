@@ -195,8 +195,30 @@ end;
 
 destructor TDynLib.Destroy;
 begin
+  { Delphi on Posix (Linux) implementation of FreeLibrary has a trivial error:
+    It returns "Result := LongBool(dlclose(Module));" which is the opposite
+    of what it should return, because dlclose returns 0 on success.
+
+    But FreeLibrary should return True on success, False on failure,
+    Delphi evidently wanted it to be consistent with FreeLibrary
+    on WinAPI ( https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-freelibrary )
+    that has "If the function succeeds, the return value is nonzero".
+
+    So Delphi FreeLibrary should be fixed to report
+    "Result := dlclose(Module) = 0;"
+    TODO: Report to Embarcadero.
+  }
+  {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+    {$define IGNORE_FREE_LIBRARY_ERRORS}
+  {$endif}
+
+  {$ifdef IGNORE_FREE_LIBRARY_ERRORS}
+  FreeLibrary(FHandle);
+  {$else}
   if not FreeLibrary(FHandle) then
     WriteLnWarning('Unloading library ' + Name + ' failed');
+  {$endif}
+
   inherited;
 end;
 
