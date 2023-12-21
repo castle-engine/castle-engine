@@ -20,9 +20,8 @@ unit TestCastleTriangulate;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase, {$else}CastleTester, {$endif} CastleVectors,
-  CastleTriangulate, CastleTriangles;
+  Classes, SysUtils,
+  CastleTester, CastleVectors, CastleTriangulate, CastleTriangles;
 
 type
   TTestCastleTriangulate = class(TCastleTestCase)

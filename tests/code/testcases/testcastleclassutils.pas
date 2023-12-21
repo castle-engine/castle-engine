@@ -22,9 +22,8 @@ unit TestCastleClassUtils;
 
 interface
 
-uses Classes, SysUtils, Generics.Collections, {$ifndef CASTLE_TESTER}FpcUnit,
-  TestUtils, TestRegistry, CastleTestCase, {$else}CastleTester, {$endif}
-  CastleUtils, CastleClassUtils;
+uses Classes, SysUtils, Generics.Collections,
+  CastleTester, CastleUtils, CastleClassUtils;
 
 type
   TStreamFromStreamFunc = function(Stream: TStream): TPeekCharStream of object;

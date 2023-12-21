@@ -23,11 +23,10 @@ unit TestCompiler;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry
-  {$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
-  TTestCompiler = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestCompiler = class(TCastleTestCase)
     procedure TestIs;
     procedure TestSinglePrecision;
     procedure TestCTypesSizes;

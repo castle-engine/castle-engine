@@ -19,9 +19,8 @@ unit TestCastleTransform;
 interface
 
 uses
-  Classes, SysUtils, CastleBoxes,
-  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils,
+  CastleBoxes, CastleTester;
 
 type
   TTestCastleTransform = class(TCastleTestCase)

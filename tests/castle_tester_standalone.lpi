@@ -407,8 +407,6 @@
       </Verbosity>
       <CustomOptions Value="-vm05075
 -vm05066
-
--dCASTLE_TESTER
 "/>
     </Other>
   </CompilerOptions>

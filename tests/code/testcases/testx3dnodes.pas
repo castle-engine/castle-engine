@@ -20,8 +20,8 @@ unit TestX3DNodes;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, CastleVectors, X3DNodes;
+  Classes, SysUtils,
+  CastleTester, CastleVectors, X3DNodes;
 
 type
   TTestX3DNodes = class(TCastleTestCase)
@@ -199,11 +199,11 @@ type
   end;
 
   TX3DTokenInfoList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DTokenInfo>)
-    procedure AssertEqual(const TestCase: {$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif}; SecondValue: TX3DTokenInfoList);
+    procedure AssertEqual(const TestCase: TCastleTestCase; SecondValue: TX3DTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;
 
-procedure TX3DTokenInfoList.AssertEqual(const TestCase: {$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif};
+procedure TX3DTokenInfoList.AssertEqual(const TestCase: TCastleTestCase;
   SecondValue: TX3DTokenInfoList);
 
   procedure AssertEqualTokens(const T1, T2: TX3DTokenInfo);
@@ -311,7 +311,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       First.ReadFromFile(FileName);
 
       Node := LoadX3DClassic(FileName, false);
-      NewFile := InclPathDelim({$ifndef CASTLE_TESTER}GetTempDir{$else}GetTempDirectory{$endif}) + 'test_castle_game_engine.x3dv';
+      NewFile := InclPathDelim(GetTempDirectory) + 'test_castle_game_engine.x3dv';
       Save3D(Node, NewFile, ApplicationName, '', xeClassic, false);
 
       Second := TX3DTokenInfoList.Create;

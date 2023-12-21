@@ -20,7 +20,8 @@ unit CastleTriangulate;
 
 interface
 
-uses SysUtils, CastleVectors, CastleUtils, CastleTriangles;
+uses SysUtils,
+  CastleVectors, CastleUtils, CastleTriangles;
 
 type
   TTriangulatorProc = procedure (const Tri: TVector3Integer) of object;

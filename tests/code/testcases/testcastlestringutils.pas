@@ -19,11 +19,10 @@ unit TestCastleStringUtils;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils,
-  TestRegistry{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
-  TTestCastleStringUtils = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestCastleStringUtils = class(TCastleTestCase)
   published
     procedure TestIntToStrBase;
     procedure TestDeFormat;

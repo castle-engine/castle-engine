@@ -18,8 +18,7 @@ unit TestCastleFonts;
 
 interface
 
-uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+uses CastleTester;
 
 type
   TTestCastleFonts = class(TCastleTestCase)

@@ -22,8 +22,8 @@ unit TestCastleVectors;
 interface
 
 uses
-  Classes, SysUtils{$ifndef CASTLE_TESTER}, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}, CastleTester{$endif}, CastleVectors;
+  Classes, SysUtils,
+  CastleTester, CastleVectors;
 
 type
   TTestCastleVectors = class(TCastleTestCase)

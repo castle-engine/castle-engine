@@ -19,8 +19,7 @@ unit TestCastleWindow;
 
 interface
 
-uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase
-     {$else}CastleTester{$endif};
+uses CastleTester;
 
 type
   TTestCastleWindow = class(TCastleTestCase)
@@ -56,10 +55,8 @@ procedure TTestCastleWindow.Test1;
 var
   Window: TCastleWindow;
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
     Exit;
-  {$endif}
 
   Window := TCastleWindow.Create(nil);
   try
@@ -75,10 +72,8 @@ var
   Window: TCastleWindow;
   C: TCastleButton;
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
     Exit;
-  {$endif}
 
   Window := TCastleWindow.Create(nil);
   try
@@ -119,10 +114,8 @@ var
   Window: TCastleWindow;
   Parent, Child1, Child2: TCastleUserInterface;
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
     Exit;
-  {$endif}
 
   Window := nil;
   Parent := nil;
@@ -241,10 +234,8 @@ var
   end;
 
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
     Exit;
-  {$endif}
 
   Window := TCastleWindow.Create(nil);
   try
@@ -390,10 +381,8 @@ var
 var
   Window: TCastleWindow;
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
     Exit;
-  {$endif}
 
   Window := TCastleWindow.Create(nil);
   try
@@ -448,21 +437,11 @@ var
   Window: TCastleWindow;
   SomeState: TCastleView;
 begin
-  {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
     Exit; // TODO: We can test TCastleView only in console mode
-  {$endif}
 
-  {$ifndef CASTLE_TESTER}
-  Window := TCastleWindow.Create(nil);
-  {$else}
   Window := CreateWindowForTest;
-  {$endif}
   try
-    {$ifndef CASTLE_TESTER}
-    Application.MainWindow := Window;
-    {$endif}
-
     Window.Open;
     SomeState := TCastleView.Create(Window);
     TCastleView.Current := SomeState;
@@ -472,16 +451,8 @@ begin
       - stopping of SomeState
       - closing of Window
     }
-    {$ifndef CASTLE_TESTER}
-    FreeAndNil(Window);
-    {$else}
     DestroyWindowForTest;
-    {$endif}
   end;
-
-  {$ifndef CASTLE_TESTER}
-  Application.MainWindow := nil;
-  {$endif}
 end;
 
 type
@@ -525,21 +496,11 @@ var
   Window: TCastleWindow;
   StateTesting: TStateTestingSize;
 begin
-  {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
     Exit; // TODO: We can test TCastleView only in console mode
-  {$endif}
 
-  {$ifndef CASTLE_TESTER}
-  Window := TCastleWindow.Create(nil);
-  {$else}
   Window := CreateWindowForTest;
-  {$endif}
   try
-    {$ifndef CASTLE_TESTER}
-    Application.MainWindow := Window;
-    {$endif}
-
     Window.Open;
     Window.Container.UIScaling := usEncloseReferenceSize;
     Window.Container.UIReferenceWidth := 160;
@@ -558,15 +519,8 @@ begin
 
     TCastleView.Current := StateTesting;
   finally
-    {$ifndef CASTLE_TESTER}
-    FreeAndNil(Window);
-    {$else}
     DestroyWindowForTest;
-    {$endif}
   end;
-  {$ifndef CASTLE_TESTER}
-  Application.MainWindow := nil;
-  {$endif}
 end;
 
 type
@@ -610,21 +564,11 @@ var
   Window: TCastleWindow;
   StateTesting: TStateTestingSize2;
 begin
-  {$ifdef CASTLE_TESTER}
   if not IsConsoleMode then
     Exit; // TODO: We can test TCastleView only in console mode
-  {$endif}
 
-  {$ifndef CASTLE_TESTER}
-  Window := TCastleWindow.Create(nil);
-  {$else}
   Window := CreateWindowForTest;
-  {$endif}
   try
-    {$ifndef CASTLE_TESTER}
-    Application.MainWindow := Window;
-    {$endif}
-
     Window.Width := 200;
     Window.Height := 400;
     Window.Open;
@@ -643,16 +587,8 @@ begin
 
     TCastleView.Current := StateTesting;
   finally
-    {$ifndef CASTLE_TESTER}
-    FreeAndNil(Window);
-    {$else}
     DestroyWindowForTest;
-    {$endif}
   end;
-
-  {$ifndef CASTLE_TESTER}
-  Application.MainWindow := nil;
-  {$endif}
 end;
 
 procedure TTestCastleWindow.TestViewportWithoutCamera;
@@ -661,11 +597,7 @@ var
   V: TCastleViewport;
   DummyHandleInput: Boolean;
 begin
-  {$ifndef CASTLE_TESTER}
-  Window := TCastleWindow.Create(nil);
-  {$else}
   Window := CreateWindowForTest;
-  {$endif}
   try
     Window.Visible := false;
     Window.Open;
@@ -690,11 +622,7 @@ begin
 
     FreeAndNil(V);
   finally
-    {$ifndef CASTLE_TESTER}
-    FreeAndNil(Window);
-    {$else}
     DestroyWindowForTest;
-    {$endif}
   end;
 end;
 
@@ -705,11 +633,7 @@ var
   DummyHandleInput: Boolean;
   Scene, Scene2: TCastleScene;
 begin
-  {$ifndef CASTLE_TESTER}
-  Window := TCastleWindow.Create(nil);
-  {$else}
   Window := CreateWindowForTest;
-  {$endif}
   try
     V := TCastleViewport.Create(Window);
 
@@ -739,11 +663,7 @@ begin
 
     FreeAndNil(V);
   finally
-    {$ifndef CASTLE_TESTER}
-    FreeAndNil(Window);
-    {$else}
     DestroyWindowForTest;
-    {$endif}
   end;
 end;
 

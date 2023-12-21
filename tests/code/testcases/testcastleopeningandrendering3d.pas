@@ -29,8 +29,7 @@ unit TestCastleOpeningAndRendering3D;
 
 interface
 
-uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase,
-  {$else}CastleTester,{$endif} CastleFilesUtils, CastleFindFiles,
+uses CastleTester, CastleFilesUtils, CastleFindFiles,
   CastleWindow, CastleSceneCore, CastleScene, CastleViewport;
 
 type
@@ -195,10 +194,8 @@ end;
 
 procedure TTestOpeningAndRendering3D.Test1;
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
     Exit;
-  {$endif}
 
   TestOpenAndRender(false);
   TestOpenAndRender(true);
