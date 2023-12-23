@@ -81,6 +81,7 @@ type
     UpdateInitialized: Boolean;
     FHttpPostData: TStringList;
     FHttpHeadersKeys, FHttpHeadersValues: TStringList;
+    FHttpBody: TStream;
     FHttpResponseCode: Integer;
     FHttpResponseHeaders: TStrings;
     procedure SetUrl(const Value: String);
@@ -202,6 +203,24 @@ type
     function HttpPostData: TStrings;
     function PostData: TStrings; deprecated 'use HttpPostData';
 
+    { Request body to send when HttpMethod is hmPost/hmPut.
+      Would overrule HttpPostData for Post requests, because both of them could not be used at the same time.
+      Initially empty(nil).
+      For some requests you may want to add http headers like Content-Type etc.
+      Use TStream.CopyFrom method to set the contents of the request body, like
+
+      @longCode(#
+        StringStream := TStringStream.Create(SomeRequestBodyAsString);
+        try
+          Download.HttpBody.CopyFrom(StringStream, 0); // copy contents, 
+          //as for asynchronous calls you would be unable to free StringStream properly
+        finally
+          FreeAndNil(StringStream);
+        end;
+      #)
+    }
+    function HttpBody: TStream;
+
     { Add additional HTTP headers, e.g. User-Agent. }
     procedure HttpHeader(const AKey, AValue: String);
     procedure AddHeader(const AKey, AValue: String); deprecated 'use HttpHeader';
@@ -246,6 +265,7 @@ begin
   FreeAndNil(FHttpResponseHeaders);
   FreeAndNil(FHttpHeadersKeys);
   FreeAndNil(FHttpHeadersValues);
+  FreeAndNil(FHttpBody);
   inherited;
 end;
 
@@ -417,6 +437,7 @@ begin
         this way it may remain nil and not waste memory
         in case user didn't touch HttpPostData. }
       Reader.HttpPostData := FHttpPostData;
+      Reader.HttpBody := FHttpBody;
       Reader.HttpHeadersKeys := FHttpHeadersKeys;
       Reader.HttpHeadersValues := FHttpHeadersValues;
       Reader.Start;
@@ -576,6 +597,14 @@ begin
   if FHttpPostData = nil then
     FHttpPostData := TStringList.Create;
   Result := FHttpPostData;
+end;
+
+function TCastleDownload.HttpBody: TStream;
+begin
+  // FHttpBody is created on-demand, because it is often not needed
+  if FHttpBody = nil then
+    FHttpBody := TStringStream.Create;
+  Result := FHttpBody;
 end;
 
 procedure TCastleDownload.HttpHeader(const AKey, AValue: String);
