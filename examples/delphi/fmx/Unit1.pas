@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,11 +36,15 @@ type
     Button3D: TButton;
     LabelFps: TLabel;
     CastleControl: TCastleControl;
+    ButtonParentSet: TButton;
+    ButtonParentClear: TButton;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button3DClick(Sender: TObject);
     procedure Button2DClick(Sender: TObject);
     procedure ButtonUIClick(Sender: TObject);
+    procedure ButtonParentClearClick(Sender: TObject);
+    procedure ButtonParentSetClick(Sender: TObject);
   public
     { Public declarations }
   end;
@@ -86,6 +90,20 @@ begin
 end;
 
 { TTestCgeControl ------------------------------------------------------------ }
+
+procedure TTestCgeControl.ButtonParentClearClick(Sender: TObject);
+begin
+  { We remove CastleControl from the parent, making it disappear from the form.
+    This is not really something we expect developers will often use
+    when working with TCastleControl, but it is an important test that
+    TCastleControl reacts correctly to be removed / readded to the form. }
+  CastleControl.Parent := nil;
+end;
+
+procedure TTestCgeControl.ButtonParentSetClick(Sender: TObject);
+begin
+  CastleControl.Parent := Self;
+end;
 
 procedure TTestCgeControl.Button2DClick(Sender: TObject);
 begin
