@@ -137,16 +137,24 @@ function GetLinuxHandle(const Control: TPresentedControl): TLinuxWindowHandle;
 var
   Form: TCustomForm;
 begin
-  { TODO: For TCastleControl, it is bad this
-    assumes TCastleControl has form as direct parent.
-    We could extract form somehow better, check Parent recursively maybe?
-  }
+  if Control.Root = nil then
+    raise Exception.CreateFmt('Control %s does not have root', [Control.ClassName]);
+  if not (Control.Root is TCustomForm) then
+    raise Exception.CreateFmt('Control %s root is not TCastleForm, but is %s', [
+      Control.ClassName,
+      (Control.Root as TObject).ClassName
+    ]);
+  Form := Control.Root as TCustomForm;
+
+  (*
+  Old version, assuming Control.Parent is form (which is only sometimes true):
   if Control.Parent = nil then
     raise Exception.CreateFmt('Parent of %s must be set', [Control.ClassName]);
   // This actually also tests Parent <> nil, but previous check makes better error message
   if not (Control.Parent is TCustomForm) then
     raise Exception.CreateFmt('Parent of %s must be form', [Control.ClassName]);
   Form := Control.Parent as TCustomForm;
+  *)
 
   Result := TLinuxWindowHandle(Form.Handle);
   if Result = nil then
