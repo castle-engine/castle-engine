@@ -704,7 +704,9 @@ end;
 procedure TCastleControl.DoRootChanging(const NewRoot: IRoot);
 begin
   inherited;
-  // We will recreate this handle later by FGLUtility.HandleNeeded
+  { This happens e.g. when developer does "CastleControl.Parent := nil"
+    or when TCastleControl is destroyed (e.g. because parent form is destroyed).
+    We will recreate this handle later by FGLUtility.HandleNeeded. }
   FGLUtility.HandleRelease;
 end;
 

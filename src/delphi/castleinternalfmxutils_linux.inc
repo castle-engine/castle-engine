@@ -210,6 +210,8 @@ begin
     Exit;
   GLAreaInitialized := true;
 
+  WritelnLog('FMX OpenGL', 'Creating context and GLAreaGtk widget');
+
   LinuxHandle := GetLinuxHandle(Control);
 
   { Tests show that parent of is GtkFixed,
@@ -235,6 +237,21 @@ begin
     Now actually create GLAreaGtk, if things look sensible. }
 
   GLAreaGtk := gtk_drawing_area_new;
+
+  { Add a refcount to GLAreaGtk, and later HandleRelease will do g_object_unref.
+
+    This way HandleRelease is more robust: in case the GTK window of the form
+    was already destroyed at the moment of HandleRelease call,
+    the GLAreaGtk remains valid (it would be invalid
+    without this g_object_ref call). So we can call gtk_widget_destroy
+    safely on it.
+
+    Otherwise, gtk_widget_destroy(GLAreaGtk) in HandleRelease could cause
+    GTK errors, that argument is not a widget, sometimes: when the form
+    was already freed.
+
+    Testcase: CastleFmx with explicit "FreeAndNil(TestCgeControl)" in main program file. }
+  g_object_ref(GLAreaGtk);
 
   { connect signal handlers to GLAreaGtk }
   { What events to catch ? It must cover all signal_yyy_event functions that we
@@ -293,9 +310,11 @@ procedure TFmxOpenGLUtility.HandleRelease;
 begin
   if GLAreaGtk <> nil then
   begin
+    WritelnLog('FMX OpenGL', 'Destroying context and GLAreaGtk widget');
     if Assigned(OnHandleBeforeDestroyEvent) then
       OnHandleBeforeDestroyEvent();
     gtk_widget_destroy(GLAreaGtk);
+    g_object_unref(GLAreaGtk);
 
     GLAreaGtk := nil;
     GLAreaInitialized := false;

@@ -141,6 +141,9 @@ procedure g_value_set_instance(value: PGValue; instance: Pointer); cdecl; extern
 procedure g_value_set_pointer(value: PGValue; ptr: Pointer); cdecl; external 'libgobject-2.0.so';
 procedure g_value_set_boolean(value: PGValue; v_boolean: gboolean); cdecl; external 'libgobject-2.0.so';
 
+function g_object_ref(Obj: Pointer): Pointer; cdecl; external 'libgobject-2.0.so';
+procedure g_object_unref(Obj: Pointer); cdecl; external 'libgobject-2.0.so';
+
 { Macros following code in FPC GTK 2 bindings
   (FPC RTL license same as CGE). }
 
