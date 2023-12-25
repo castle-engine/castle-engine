@@ -126,6 +126,8 @@ type
     procedure KeyUp(var Key: Word; var KeyChar: WideChar; Shift: TShiftState); override;
     function DefinePresentationName: String; override;
     procedure Resize; override;
+    // Not needed in the end // procedure DoRootChanged; override;
+    procedure DoRootChanging(const NewRoot: IRoot); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -309,7 +311,8 @@ begin
 
   FGLUtility := TFmxOpenGLUtility.Create;
   FGLUtility.Control := Self;
-  FGLUtility.OnHandleCreatedEvent := CreateHandle;
+  FGLUtility.OnHandleAfterCreateEvent := CreateHandle;
+  FGLUtility.OnHandleBeforeDestroyEvent := DestroyHandle;
 
   { In FMX, this causes adding WS_TABSTOP to Params.Style
     in TWinPresentation.CreateParams. So it is more efficient to call
@@ -697,6 +700,24 @@ begin
 
   Result := 'CastleControl-' + GetPresentationSuffix;
 end;
+
+procedure TCastleControl.DoRootChanging(const NewRoot: IRoot);
+begin
+  inherited;
+  // We will recreate this handle later by FGLUtility.HandleNeeded
+  FGLUtility.HandleRelease;
+end;
+
+(*
+procedure TCastleControl.DoRootChanged;
+begin
+  inherited;
+  { Not really needed, we'll create context from Paint anyway.
+    And this was too early in some cases. }
+//  if FGLUtility.HandlePossible then
+//    FGLUtility.HandleNeeded;
+end;
+*)
 
 {$ifdef MSWINDOWS}
 initialization

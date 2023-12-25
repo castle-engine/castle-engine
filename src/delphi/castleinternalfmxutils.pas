@@ -25,7 +25,7 @@ uses FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
   CastleInternalContextBase, CastleVectors;
 
 type
-  THandleCreatedEvent = procedure of object;
+  THandleEvent = procedure of object;
 
   { Utility for FMX controls to help them initialize OpenGL context.
 
@@ -62,20 +62,38 @@ type
       Cannot change during lifetime of this instance, for now. }
     Control: TPresentedControl;
 
-    { Called, if assigned, but only on platforms where
-      FMX Presentation is not available.
+    { Called, if assigned, after creation (OnHandleAfterCreateEvent)
+      or before destruction (OnHandleBeforeDestroyEvent)
+      of a native handle.
+
+      @bold(This is called only on platforms where
+      FMX Presentation is not available.)
       This also implies it is called only on platforms
       where our code creates the native handle we need,
       e.g. Gtk handle on Linux.
 
-      This means this is called now only on Delphi/Linux.
+      In practice this means this is called now only on Delphi/Linux.
 
       On Delphi/Windows, use FMX Presentation features
       instead of register notifications when handle is created/
       destroyed. }
-    OnHandleCreatedEvent: THandleCreatedEvent;
+    OnHandleAfterCreateEvent: THandleEvent;
+    OnHandleBeforeDestroyEvent: THandleEvent;
 
-    { Make sure that Control has initialized internal Handle.
+    { Is initializing internal resources, needed by HandleNeeded,
+      possible now. Use this if calling HandleNeeded is not necessary now,
+
+      This does something only on platforms where
+      FMX Presentation is not available and we need to take care ourselves
+      of the necessary internal per-control handle where OpenGL context
+      exists. In practice: only on Delphi/Linux now.
+
+      On other platforms, it always returns true. }
+    // Not needed in the end // function HandlePossible: Boolean;
+
+    { Make sure that Control has initialized internal handle,
+      necessary to later initialize OpenGL context for this.
+      This must be called before ContextAdjustEarly.
 
       - On some platforms, like Windows,
         creating a handle should provoke ContextAdjustEarly
@@ -92,7 +110,16 @@ type
         stuff and only creates a handle for the entire form. }
     procedure HandleNeeded;
 
+    { Release handle that was created by @link(HandleNeeded).
+
+      This does something only on platforms where
+      FMX Presentation is not available and we need to take care ourselves
+      of the necessary internal per-control handle where OpenGL context
+      exists. }
+    procedure HandleRelease;
+
     { Adjust TGLContext parameters before calling TGLContext.CreateContext.
+      You must call HandleNeeded earlier.
 
       Extracts platform-specific bits from given FMX Control,
       and puts in platform-specific bits of TGLContext descendants.

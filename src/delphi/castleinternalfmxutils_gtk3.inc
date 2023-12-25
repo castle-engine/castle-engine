@@ -227,6 +227,7 @@ function gtk_widget_get_parent(Widget: Pointer): Pointer; cdecl; external 'libgt
  // deprecated and not necessary it seems:
  //procedure gtk_widget_set_double_buffered(Widget: Pointer; double_buffered: gboolean); cdecl; external 'libgtk-3.so.0';
 procedure gtk_widget_set_events(Widget: Pointer; events: Gint); cdecl; external 'libgtk-3.so.0';
+procedure gtk_widget_destroy(Widget: Pointer); cdecl; external 'libgtk-3.so.0';
 
 function gtk_drawing_area_new: Pointer; cdecl; external 'libgtk-3.so.0';
 

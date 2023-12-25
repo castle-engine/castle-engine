@@ -28,6 +28,10 @@ procedure TFmxOpenGLUtility.HandleNeeded;
 begin
 end;
 
+procedure TFmxOpenGLUtility.HandleRelease;
+begin
+end;
+
 procedure TFmxOpenGLUtility.Update;
 begin
 end;

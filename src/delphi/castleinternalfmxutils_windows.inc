@@ -48,6 +48,10 @@ begin
     raise Exception.CreateFmt('%s: ControlHandleNeeded failed to create a handle', [Control.ClassName]);
 end;
 
+procedure TFmxOpenGLUtility.HandleRelease;
+begin
+end;
+
 procedure TFmxOpenGLUtility.Update;
 begin
 end;

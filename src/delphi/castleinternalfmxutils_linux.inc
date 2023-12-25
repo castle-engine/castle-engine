@@ -105,6 +105,26 @@ end;
 
 { TFmxOpenGLUtility ---------------------------------------------------------- }
 
+(*
+// Note: This wasn't needed in the end, so we never finished or tested it.
+// Keeping it here -- as it may make sense again.
+
+function TFmxOpenGLUtility.HandlePossible: Boolean;
+var
+  LinuxFormHandle: TLinuxWindowHandle;
+begin
+  Result := false;
+
+  if (Control.Root <> nil) and
+     (Control.Root is TCustomForm) then
+  begin
+    LinuxFormHandle := TLinuxWindowHandle(TCustomForm(Control.Root).Handle);
+    if LinuxFormHandle <> nil then
+      Exit(true);
+  end;
+end;
+*)
+
 procedure TFmxOpenGLUtility.ContextAdjustEarly(const PlatformContext: TGLContext);
 
   { Get XWindow handle (to pass to EGL) from GTK widget. }
@@ -248,8 +268,8 @@ begin
   WritelnLog('GLAreaGtk type ' + G_OBJECT_TYPE_NAME(GLAreaGtk));
   }
 
-  if Assigned(OnHandleCreatedEvent) then
-    OnHandleCreatedEvent();
+  if Assigned(OnHandleAfterCreateEvent) then
+    OnHandleAfterCreateEvent();
 end;
 
 procedure TFmxOpenGLUtility.Update;
@@ -266,6 +286,20 @@ begin
     gtk_fixed_move(DrawingAreaParent, GLAreaGtk, NewRect.X, NewRect.Y);
     gtk_widget_set_size_request(GLAreaGtk, NewRect.Z, NewRect.W);
     GLAreaRect := NewRect;
+  end;
+end;
+
+procedure TFmxOpenGLUtility.HandleRelease;
+begin
+  if GLAreaGtk <> nil then
+  begin
+    if Assigned(OnHandleBeforeDestroyEvent) then
+      OnHandleBeforeDestroyEvent();
+    gtk_widget_destroy(GLAreaGtk);
+
+    GLAreaGtk := nil;
+    GLAreaInitialized := false;
+    DrawingAreaParent := nil;
   end;
 end;
 
