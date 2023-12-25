@@ -17,7 +17,7 @@
 { Use this from castlewindow_winapi.inc to make a CastleWindow backend
   using WinAPI and wgl. Initializes window on Windows with OpenGL context.
 
-  At this point this is a thin wrapper that uses CastleIntenalContextWgl
+  At this point this is a thin wrapper that uses CastleInternalContextWgl
   to do the actual job. }
 
 {$ifdef read_interface_uses}
