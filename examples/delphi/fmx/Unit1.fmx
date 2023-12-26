@@ -73,7 +73,7 @@ object TestCgeControl: TTestCgeControl
       Text = 'LabelFps'
       TabOrder = 1
     end
-    object ButtonParentSet: TButton
+    object ButtonShowCge: TButton
       Anchors = [akRight, akBottom]
       Position.X = 208.000000000000000000
       Position.Y = 404.000000000000000000
@@ -82,9 +82,9 @@ object TestCgeControl: TTestCgeControl
       Size.PlatformDefault = False
       TabOrder = 5
       Text = 'Show CGE Control'
-      OnClick = ButtonParentSetClick
+      OnClick = ButtonShowCgeClick
     end
-    object ButtonParentClear: TButton
+    object ButtonHideCge: TButton
       Anchors = [akRight, akBottom]
       Position.X = 208.000000000000000000
       Position.Y = 434.000000000000000000
@@ -93,7 +93,7 @@ object TestCgeControl: TTestCgeControl
       Size.PlatformDefault = False
       TabOrder = 6
       Text = 'Hide CGE Control'
-      OnClick = ButtonParentClearClick
+      OnClick = ButtonHideCgeClick
     end
   end
   object CastleControl: TCastleControl

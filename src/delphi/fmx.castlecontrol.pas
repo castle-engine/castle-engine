@@ -128,6 +128,7 @@ type
     procedure Resize; override;
     // Not needed in the end // procedure DoRootChanged; override;
     procedure DoRootChanging(const NewRoot: IRoot); override;
+    procedure SetVisible(const AValue: Boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -729,12 +730,23 @@ begin
   Result := 'CastleControl-' + GetPresentationSuffix;
 end;
 
+procedure TCastleControl.SetVisible(const AValue: Boolean);
+begin
+  inherited;
+  { This happens e.g. when developer does "CastleControl.Visible := false".
+    We will recreate this handle later by FGLUtility.HandleNeeded,
+    at first paint. }
+  if not AValue then
+    FGLUtility.HandleRelease;
+end;
+
 procedure TCastleControl.DoRootChanging(const NewRoot: IRoot);
 begin
   inherited;
   { This happens e.g. when developer does "CastleControl.Parent := nil"
     or when TCastleControl is destroyed (e.g. because parent form is destroyed).
-    We will recreate this handle later by FGLUtility.HandleNeeded. }
+    We will recreate this handle later by FGLUtility.HandleNeeded,
+    at first paint. }
   FGLUtility.HandleRelease;
 end;
 

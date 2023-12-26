@@ -36,15 +36,15 @@ type
     Button3D: TButton;
     LabelFps: TLabel;
     CastleControl: TCastleControl;
-    ButtonParentSet: TButton;
-    ButtonParentClear: TButton;
+    ButtonShowCge: TButton;
+    ButtonHideCge: TButton;
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button3DClick(Sender: TObject);
     procedure Button2DClick(Sender: TObject);
     procedure ButtonUIClick(Sender: TObject);
-    procedure ButtonParentClearClick(Sender: TObject);
-    procedure ButtonParentSetClick(Sender: TObject);
+    procedure ButtonHideCgeClick(Sender: TObject);
+    procedure ButtonShowCgeClick(Sender: TObject);
   public
     { Public declarations }
   end;
@@ -91,18 +91,17 @@ end;
 
 { TTestCgeControl ------------------------------------------------------------ }
 
-procedure TTestCgeControl.ButtonParentClearClick(Sender: TObject);
+procedure TTestCgeControl.FormCreate(Sender: TObject);
 begin
-  { We remove CastleControl from the parent, making it disappear from the form.
-    This is not really something we expect developers will often use
-    when working with TCastleControl, but it is an important test that
-    TCastleControl reacts correctly to be removed / readded to the form. }
-  CastleControl.Parent := nil;
-end;
+  // Call this to have UI scaling, same as in editor
+  CastleControl.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-procedure TTestCgeControl.ButtonParentSetClick(Sender: TObject);
-begin
-  CastleControl.Parent := Self;
+  InitializeLog;
+
+  CastleControl.Container.DesignUrl := 'castle-data:/test_3d.castle-user-interface';
+
+  // adding a component created by code, doing manual rendering in TUiTest.Render
+  CastleControl.Container.Controls.InsertFront(TUiTest.Create(Self));
 end;
 
 procedure TTestCgeControl.Button2DClick(Sender: TObject);
@@ -120,22 +119,22 @@ begin
   CastleControl.Container.DesignUrl := 'castle-data:/test_ui.castle-user-interface';
 end;
 
-procedure TTestCgeControl.FormCreate(Sender: TObject);
-begin
-  // Call this to have UI scaling, same as in editor
-  CastleControl.Container.LoadSettings('castle-data:/CastleSettings.xml');
-
-  InitializeLog;
-
-  CastleControl.Container.DesignUrl := 'castle-data:/test_3d.castle-user-interface';
-
-  // adding a component created by code, doing manual rendering in TUiTest.Render
-  CastleControl.Container.Controls.InsertFront(TUiTest.Create(Self));
-end;
-
 procedure TTestCgeControl.Timer1Timer(Sender: TObject);
 begin
   LabelFps.Text := 'FPS: ' + CastleControl.Container.Fps.ToString;
+end;
+
+procedure TTestCgeControl.ButtonHideCgeClick(Sender: TObject);
+begin
+  { This is not an often needed operation,
+    but we support hiding / showing of TCastleControl using the "Visible"
+    property (on all platforms, Windows and Linux). }
+  CastleControl.Visible := false;
+end;
+
+procedure TTestCgeControl.ButtonShowCgeClick(Sender: TObject);
+begin
+  CastleControl.Visible := true;
 end;
 
 end.
