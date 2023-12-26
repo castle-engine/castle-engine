@@ -797,9 +797,7 @@ begin
 
   GetInitialCursorPos;
 
-  {$ifdef FPC}
-  Container.Dpi := Screen.PixelsPerInch;
-  {$endif}
+  Container.Dpi := {$ifdef FPC} Screen {$else} OpenGLControl {$endif}.PixelsPerInch;
 end;
 
 const

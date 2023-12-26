@@ -845,7 +845,7 @@ const
         NewDpi := gdk_screen_width() / (ScreenWidthMM / 25.4);
     end;
     Container.Dpi := NewDpi;
-    // Too verbose by default, UpdateUIScale will show it if UIScaling is usDpiScale.
+    // Too verbose by default, TCastleContainer.InternalCalculateUIScale will log it if UIScaling is usDpiScale.
     // WritelnLog('GTK', 'Dots (pixels) per inch is %f (%f * default %f)',
     //   [NewDpi, NewDpi / DefaultDpi, DefaultDpi]);
   end;

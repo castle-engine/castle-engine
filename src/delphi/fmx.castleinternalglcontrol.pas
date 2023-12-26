@@ -96,6 +96,10 @@ type
 
     { Scaling of FMX reported mouse coordinates to pixels. }
     function MousePosScale: Single;
+
+    { Pixels per inch, reported by system, affected by user OS-wide preferences
+      like font scaling. }
+    function PixelsPerInch: Single;
   end;
 
 implementation
@@ -296,6 +300,14 @@ begin
     We will recreate this handle later by FGLUtility.HandleNeeded,
     at first paint. }
   FGLUtility.HandleRelease;
+end;
+
+function TOpenGLControl.PixelsPerInch: Single;
+const
+  { Default value for container's Dpi, as is usually set on desktops. }
+  DefaultDpi = 96.0;
+begin
+  Result := FGLUtility.Scale * DefaultDpi;
 end;
 
 {$ifdef MSWINDOWS}
