@@ -377,6 +377,10 @@ procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
 function NextToken(const S: string; var SeekPos: Integer;
   const TokenDelims: TSetOfChars = WhiteSpaces): string;
 
+{ Count the amount of tokens in the string }
+function CountTokens(const S: String;
+  const TokenDelims: TSetOfChars = WhiteSpaces): Integer;
+
 { NextTokenOnce works just like NextToken, but doesn't advance the SeekPos
   position. This means that it's quite useless when you're interested
   in @italic(all) tokens inside some string, but it's also more comfortable
@@ -1580,7 +1584,7 @@ begin
   until false;
   TokStart := SeekPos; { TokStart := first character not in TokenDelims }
 
-  while (SeekPos <= Length(s)) and
+  while (SeekPos <= Length(S)) and
     not CharInSet(S[SeekPos], TokenDelims) do
     Inc(SeekPos);
 
@@ -1590,6 +1594,26 @@ begin
   { We don't have to do Inc(seekPos) below. But it's obvious that searching
     for next token can skip SeekPos, since we know S[SeekPos] is TokenDelim. }
   Inc(SeekPos);
+end;
+
+function CountTokens(const S: String; const TokenDelims: TSetOfChars): Integer;
+var
+  I: Integer;
+  IsToken: Boolean;
+begin
+  Result := 0;
+  IsToken := false;
+  for I := 1 to Length(S) do
+  begin
+    if IsToken and CharInSet(S[I], TokenDelims) then
+      IsToken := false
+    else
+    if not IsToken and not CharInSet(S[I], TokenDelims) then
+    begin
+      IsToken := true;
+      Inc(Result);
+    end;
+  end;
 end;
 
 function NextTokenOnce(const s: string; SeekPos: integer;
