@@ -366,7 +366,11 @@ type
 
     { Set the attribute as TCastleColor converted to HEX string,
       such that it's readable back by @link(AttributeColor) and @link(AttributeColorDef). }
-    procedure AttributeColorSet(const AttrName: String; const Value: TCastleColor);
+    procedure AttributeColorSet(const AttrName: String; const Value: TCastleColor); overload;
+
+    { Set the attribute as TCastleColorRGB converted to HEX string,
+      such that it's readable back by @link(AttributeColorRGB) and @link(AttributeColorRGBDef). }
+    procedure AttributeColorSet(const AttrName: String; const Value: TCastleColorRGB); overload;
 
     { Other methods ---------------------------------------------------------- }
 
@@ -1073,6 +1077,12 @@ procedure TDOMElementHelper.AttributeColorSet(const AttrName: String;
   const Value: TCastleColor);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(ColorToHex(Value)));
+end;
+
+procedure TDOMElementHelper.AttributeColorSet(const AttrName: String;
+  const Value: TCastleColorRGB);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(ColorRGBToHex(Value)));
 end;
 
 { ------------------------------------------------------------------------
