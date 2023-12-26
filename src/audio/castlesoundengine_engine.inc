@@ -41,8 +41,6 @@
       FOnOpenClose: TNotifyEventList;
       FResumeToInitialized, FPaused: boolean;
       FListenerPosition, FListenerDirection, FListenerUp: TVector3;
-      FDefaultRolloffFactor: Single;
-      FDefaultReferenceDistance: Single;
       FDopplerFactor: Single;
 
     procedure SetVolume(const Value: Single);
