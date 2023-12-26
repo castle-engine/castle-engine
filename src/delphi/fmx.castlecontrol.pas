@@ -508,6 +508,34 @@ begin
     Application.ProcessMessages;
     ProcessTasks;
   end;
+
+  { TODO (but it seems FMXLinux issue -- we should report):
+    On FMXLinux, not using "Application.Run"
+    means that FMXLinux never frees the Application singleton.
+
+    Consequently, things owned by Application are never freed,
+    TForm.OnDestroy callbacks are not run,
+    and component destructors like TCastleControl.Destroy are not run.
+    Things just leak at program exit.
+
+    It seems FMXLinux "TPlatformLinux.Destroy"
+    should just call "FreeAndNil(Application)". This is what Delphi built-in
+    "TPlatformWin.Destroy" and "TPlatformCocoa.Destroy" are doing.
+    It also makes sense since "TPlatformLinux.Create" creates the Application
+    singleton.
+
+    In fact, I haven't found *how is Application freed when
+    we call Application.Run*. FMXLinux never seems to free Application.
+    Unlike Windows and macOS FMX platforms.
+    But logging shows that forms *are* freed at application exit
+    if we run Application.Run, but not otherwise.
+
+    This is reproducible in FMX almost-blank application, without any CGE,
+    just remove Application.Run but call Application.RealCreateForms .
+    You will notice that form OnCreate callback executes,
+    but form OnDestroy callback never happens. }
+
+  FreeAndNil(Application);
   {$endif}
 end;
 
