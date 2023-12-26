@@ -52,6 +52,7 @@ end;
 
 constructor TCastleConsoleTester.Create;
 begin
+  inherited;
   FTester := TCastleTester.Create(nil);
   FTester.NotifyTestCaseExecuted := {$ifdef FPC}@{$endif}TestExecuted;
   FTester.NotifyTestFail := {$ifdef FPC}@{$endif}TestFailed;
@@ -60,6 +61,7 @@ end;
 destructor TCastleConsoleTester.Destroy;
 begin
   FreeAndNil(FTester);
+  inherited;
 end;
 
 procedure TCastleConsoleTester.Log(const AMessage: String);
