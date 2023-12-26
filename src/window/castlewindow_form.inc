@@ -247,12 +247,6 @@ private
   {$ifdef USE_TIMER}
   FTimer: TTimer;
   procedure ApplicationTimer(Sender: TObject);
-  {$else}
-  { In case we don't use timer, we also do not use FormApplication.Run,
-    in which case FormApplication.Terminate with Delphi/Linux
-    makes an error that GTK is not in any loop.
-    So we track terminated status ourselves instead. }
-  MyTerminated: Boolean;
   {$endif}
   procedure DoNothingOnException(Sender: TObject; E: Exception);
   procedure ProcessTasks;
@@ -1296,29 +1290,28 @@ function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boole
   function CheckTerminated: Boolean;
   begin
     Result :=
-      {$if not defined(USE_TIMER)}
-        MyTerminated
-      {$elseif defined(FPC)}
-        FormApplication.Terminated
-      {$else}
-        { For the same reasons as in Fmx.CastleControl, we need to check
-          for Terminating, not only Terminated:
-          FMXLinux only sets Terminating:=true and makes GTK error
+      { Check our "Terminated" (from TCustomApplication):
 
-          gtk_main_quit: assertion 'main_loops != NULL' failed
+        - This way we honor "Application.Terminate" calls
+          from CGE applications, like fps_game main menu "Quit" button.
+          Which is necessary regardless of USE_TIMER.
 
-          when trying to quit without ever calling Application.Run
-          (and we cannot call Application.Run because timer is not reliable,
-          so we need to process CGE updates differently).
+        - Moreover, in case we don't use timer (USE_TIMER not defined),
+          we also do not use FormApplication.Run,
+          in which case FormApplication.Terminate with Delphi/Linux
+          makes an error that GTK is not in any loop.
+          So we don't use FormApplication.Terminate from QuitWhenNoOpenWindows.
 
-          We need to check Terminating to actually finish the application,
-          testcase: just click on window to close in e.g.
-          play_animation example. }
-
-        ApplicationState in [
-          TApplicationState.Terminating,
-          TApplicationState.Terminated]
-      {$endif};
+          So we must track terminated status ourselves,
+          so QuitWhenNoOpenWindows also does just "Terminate".
+      }
+      Terminated
+      or
+      { It is unclear do we need to check FormApplication.Terminated at all now.
+        Unless some LCL widgetset sets FormApplication.Terminated,
+        e.g. Cocoa application menu "Quit" sets FormApplication.Terminated?
+      }
+      FormApplication.Terminated;
   end;
 
 var
@@ -1403,10 +1396,9 @@ end;
 
 procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
+  Terminate; // set our Terminated to true
   {$ifdef USE_TIMER}
   FormApplication.Terminate; // break also FormApplication.Run
-  {$else}
-  MyTerminated := true;
   {$endif}
 end;
 
