@@ -58,6 +58,8 @@ type
     procedure DestroyContext;
   protected
     function DefinePresentationName: String; override;
+    procedure DoRootChanging(const NewRoot: IRoot); override;
+    procedure SetVisible(const AValue: Boolean); override;
   public
     OnPaint: TNotifyEvent;
 
@@ -176,7 +178,8 @@ begin
 
   FGLUtility := TFmxOpenGLUtility.Create;
   FGLUtility.Control := Self;
-  FGLUtility.OnHandleCreatedEvent := CreateHandle;
+  FGLUtility.OnHandleAfterCreateEvent := CreateHandle;
+  FGLUtility.OnHandleBeforeDestroyEvent := DestroyHandle;
 
   TabStop := true;
   CanFocus := True;
@@ -272,6 +275,27 @@ begin
   }
 
   Result := FGLUtility.Scale;
+end;
+
+procedure TOpenGLControl.SetVisible(const AValue: Boolean);
+begin
+  inherited;
+  { This happens e.g. when developer does "CastleControl.Visible := false".
+    (Not actually used by castlewindow_form.inc for now.)
+    We will recreate this handle later by FGLUtility.HandleNeeded,
+    at first paint. }
+  if not AValue then
+    FGLUtility.HandleRelease;
+end;
+
+procedure TOpenGLControl.DoRootChanging(const NewRoot: IRoot);
+begin
+  inherited;
+  { This happens e.g. when developer does "CastleControl.Parent := nil"
+    or when TOpenGLControl is destroyed.
+    We will recreate this handle later by FGLUtility.HandleNeeded,
+    at first paint. }
+  FGLUtility.HandleRelease;
 end;
 
 {$ifdef MSWINDOWS}
