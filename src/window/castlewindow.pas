@@ -2223,23 +2223,18 @@ type
     procedure CreateBackend;
     procedure DestroyBackend;
 
-    { The CastleWindow-backend specific part of Quit method implementation.
-      In non-backend-specific part of Quit we already closed all windows,
-      so this will be called only when OpenWindowsCount = 0.
-      So the only things you have to do here is:
-      - make ProcessMessage to return false
-      - terminate Run method, if it works (if Run is implemented using
-        "while ProcessMessage do ;" then the first condition is all that is
-        really needed)
+    { Make sure that event loop exits as soon as possible.
 
-        Note: it is NOT guaranteed that we are inside Run method
-        when calling this function, i.e. it may be the case that noone ever
-        called Application.Run (e.g. in @code(kambi_lines) game, where everything is done
-        using while ProcessMessages do ...), but still it must be valid to call
-        Quit and QuitWhenNoOpenWindows in such situation.
-        Also it must be valid to call Quit and QuitWhenNoOpenWindows more
-        then once. }
-    procedure QuitWhenNoOpenWindows;
+      At this point, we already set "Terminated" (from ancestor
+      TCustomApplication) to @true. And your methods like "ProcessMessage"
+      should check it, so no need to do anything special in BackendTerminate
+      to make them exit.
+
+      However, some backends execute some native code to run a loop,
+      like CASTLE_WINDOW_FORM may run FormApplication.Run
+      or CASTLE_WINDOW_GTK may run (though doesn't now) gtk_main.
+      You need to break these loops in this method. }
+    procedure BackendTerminate;
 
     { Call OnUpdate on all open windows,
       call ApplicationProperties.OnUpdate,
@@ -2474,8 +2469,6 @@ type
       So ProcessAllMessages makes sure we have processed all pending events,
       thus we are up-to-date with window system requests. }
     function ProcessAllMessages: boolean;
-
-    procedure Quit; deprecated 'Use Terminate';
 
     procedure Terminate; override;
 
@@ -4351,11 +4344,6 @@ begin
   result := -1;
 end;
 
-procedure TCastleApplication.Quit;
-begin
-  Terminate;
-end;
-
 {$ifdef CASTLE_NINTENDO_SWITCH}
 procedure CgeNxApplicationTerminate; cdecl; external;
 {$endif}
@@ -4363,9 +4351,12 @@ procedure CgeNxApplicationTerminate; cdecl; external;
 procedure TCastleApplication.Terminate;
 begin
   inherited;
+
   {$ifdef CASTLE_NINTENDO_SWITCH}
   CgeNxApplicationTerminate;
   {$endif}
+
+  BackendTerminate;
 end;
 
 procedure TCastleApplication.CloseAllOpenWindows;
@@ -4390,7 +4381,7 @@ begin
     Assert(OpenWindowsCount = OldOpenWindowsCount - 1);
   end;
 
-  QuitWhenNoOpenWindows;
+  Terminate;
 end;
 
 procedure TCastleApplication.UpdateAndRenderEverything(out WasAnyRendering: boolean);

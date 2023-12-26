@@ -1696,20 +1696,17 @@ begin
     DoLimitFPS;
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
- if gtk_main_level() > 0 then gtk_main_quit();
+  { TODO: This implementation (doing gtk_main_quit)
+    is now likely unnecessary.
 
- { Tracking "Terminated" is needed, gtk_main_quit is not enough --- see
-   comments in ProcessMessage implementation.
+    We call gtk_main_quit only to exit from gtk_main --- but we do not use
+    gtk_main anymore to implement our loop.
+    We implement loop simply by calling ProcessMessage. }
 
-   Actually, we call gtk_main_quit
-   only to exit from gtk_main --- if we would not use gtk_main
-   (but e.g. implement Loop simply by calling ProcessMessage,
-   which is entirely possible), then calling gtk_main_quit
-   would not be needed at all. }
-
- Terminate; // set Terminated := true
+  if gtk_main_level() > 0 then
+    gtk_main_quit();
 end;
 
 procedure TCastleApplication.CreateBackend;

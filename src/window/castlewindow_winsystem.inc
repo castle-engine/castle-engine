@@ -203,9 +203,8 @@ begin
   inherited Run; // calls DoRun, surrounded by HandleException, in a loop
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  Terminate; // set Terminated := true
 end;
 
 {$endif read_implementation}

@@ -887,9 +887,8 @@ begin
   FreeAndNil(QEvents);
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  { TODO }
 end;
 
 function TCastleApplication.ScreenWidth: integer;

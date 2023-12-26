@@ -1296,20 +1296,20 @@ function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boole
           from CGE applications, like fps_game main menu "Quit" button.
           Which is necessary regardless of USE_TIMER.
 
-        - Moreover, in case we don't use timer (USE_TIMER not defined),
-          we also do not use FormApplication.Run,
-          in which case FormApplication.Terminate with Delphi/Linux
-          makes an error that GTK is not in any loop.
-          So we don't use FormApplication.Terminate from QuitWhenNoOpenWindows.
-
-          So we must track terminated status ourselves,
-          so QuitWhenNoOpenWindows also does just "Terminate".
+        - And we honor "Terminate" calls done by TCastleApplication
+          itself when last open window is closed.
       }
       Terminated
       or
-      { It is unclear do we need to check FormApplication.Terminated at all now.
-        Unless some LCL widgetset sets FormApplication.Terminated,
-        e.g. Cocoa application menu "Quit" sets FormApplication.Terminated?
+      { It seems we don't need to check FormApplication.Terminated at all now.
+        Unless some LCL widgetset sets FormApplication.Terminated directly,
+        e.g. maybe Cocoa application menu "Quit" sets FormApplication.Terminated?
+
+        Note that such widgetset would interrupt its own FormApplication.Run
+        anyway. So us checking here "FormApplication.Terminated" matters only
+        if
+        1. USE_TIMER is not defined in this case,
+        2. or user code uses CGE "Application.ProcessMessage" directly.
       }
       FormApplication.Terminated;
   end;
@@ -1394,9 +1394,8 @@ begin
   {$endif}
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  Terminate; // set our Terminated to true
   {$ifdef USE_TIMER}
   FormApplication.Terminate; // break also FormApplication.Run
   {$endif}
