@@ -1397,7 +1397,23 @@ end;
 procedure TCastleApplication.BackendTerminate;
 begin
   {$ifdef USE_TIMER}
-  FormApplication.Terminate; // break also FormApplication.Run
+
+  { TODO: This line makes sense, for USE_TIMER,
+    to break FormApplication.Run when user code runs "Application.Terminate".
+    Testcase: "fps_game" "Quit" menu button.
+
+    But it causes crash -- reproduced with Delphi 11.3 on Win32 and Win64,
+    when compiled with CASTLE_WINDOW_FORM for Windows.
+    Backtrace uncertain, stack trace seems somewhat currupted.
+    Maybe this fails when called from CloseAllOpenWindows,
+    maybe from TCastleApplication destructor,
+    but workaround by "if not (csDestroying in ComponentState)"
+    doesn't help.
+
+    So commented out, temporarily. In effect "Quit" menu button
+    will not work there. }
+  //FormApplication.Terminate; // break also FormApplication.Run
+
   {$endif}
 end;
 
