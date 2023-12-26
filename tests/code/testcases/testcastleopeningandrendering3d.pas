@@ -157,9 +157,12 @@ procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachT
   end;
 
 begin
+  if not CanCreateWindowForTest then
+    Exit;
+
   RecreateSceneEachTime := ARecreateSceneEachTime;
 
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     Scene := TCastleScene.Create(Window);
     Scene.PreciseCollisions := true;
@@ -192,7 +195,7 @@ begin
     end;
 
     Window.Close;
-  finally FreeAndNil(Window) end;
+  finally DestroyWindowForTest end;
 end;
 
 procedure TTestOpeningAndRendering3D.Test1;

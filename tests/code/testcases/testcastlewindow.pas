@@ -58,13 +58,11 @@ begin
   if not CanCreateWindowForTest then
     Exit;
 
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     Window.Open;
     Window.Close;
-  finally
-    FreeAndNil(Window)
-  end;
+  finally DestroyWindowForTest end;
 end;
 
 procedure TTestCastleWindow.TestNotifications;
@@ -75,11 +73,11 @@ begin
   if not CanCreateWindowForTest then
     Exit;
 
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     C := TCastleButton.Create(Window);
     FreeAndNil(C);
-  finally FreeAndNil(Window) end;
+  finally DestroyWindowForTest end;
 end;
 
 procedure TTestCastleWindow.TestMenu;
@@ -117,12 +115,12 @@ begin
   if not CanCreateWindowForTest then
     Exit;
 
-  Window := nil;
-  Parent := nil;
-  Child1 := nil;
-  Child2 := nil;
+  Window := CreateWindowForTest;
   try
-    Window := TCastleWindow.Create(nil);
+    Parent := nil;
+    Child1 := nil;
+    Child2 := nil;
+
     Window.Width := 500;
     Window.Height := 500;
     Window.ResizeAllowed := raNotAllowed;
@@ -173,7 +171,7 @@ begin
     Child2.Anchor(vpBottom, 60);
     AssertRectsEqual(FloatRectangle(50, 500 - 60 - 90, 120, 90), Parent.RenderRect);
   finally
-    FreeAndNil(Window);
+    DestroyWindowForTest;
     FreeAndNil(Parent);
     FreeAndNil(Child1);
     FreeAndNil(Child2);
@@ -237,7 +235,7 @@ begin
   if not CanCreateWindowForTest then
     Exit;
 
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     Window.Width := 800;
     Window.Height := 800;
@@ -266,7 +264,7 @@ begin
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
     AssertTrue(Window.Container.Focus[3] = Button2);
-  finally FreeAndNil(Window) end;
+  finally DestroyWindowForTest end;
 end;
 
 procedure TTestCastleWindow.TestEventLoop;
@@ -304,9 +302,12 @@ var
   Box: TCastleBox;
   Viewport: TCastleViewport;
 begin
+  if not CanCreateWindowForTest then
+    Exit;
+
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
-    Window := TCastleWindow.Create(nil);
+    Window := CreateWindowForTest;
     try
       // for rendering, OpenGL context must be ready, with GLFeatures initialized
       Window.Visible := false;
@@ -336,7 +337,7 @@ begin
           finally FreeAndNil(ShapesCollector) end;
         finally FreeAndNil(Renderer) end;
       finally FreeAndNil(Viewport) end;
-    finally FreeAndNil(Window) end;
+    finally DestroyWindowForTest end;
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
@@ -384,7 +385,7 @@ begin
   if not CanCreateWindowForTest then
     Exit;
 
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     Window.Width := 300;
     Window.Height := 300;
@@ -413,7 +414,7 @@ begin
       Vector3(0.01, 0.01, -10.00),
       Vector2(150.00, 150.00)
     );
-  finally FreeAndNil(Window) end;
+  finally DestroyWindowForTest end;
 end;
 
 procedure TTestCastleWindow.TestStateAutoStop;

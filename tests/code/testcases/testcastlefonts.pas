@@ -43,7 +43,7 @@ implementation
 
 uses SysUtils, Classes,
   {$ifdef TEST_CASTLE_WINDOW} CastleWindow, {$endif}
-  CastleFonts, CastleTextureFont_Default3d_Sans, CastleLog,
+  CastleFonts, CastleTextureFont_Default3d_Sans, CastleLog, CastleWindow,
   Font_LatoRegular_300, CastleInternalFreeTypeH;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtml;
@@ -72,21 +72,19 @@ begin
 end;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtmlInWindow;
-{$ifdef TEST_CASTLE_WINDOW}
 var
   Window: TCastleWindow;
 begin
+  if not CanCreateWindowForTest then Exit;
+
   // should work with OpenGL context too, actually it doesn't matter now
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     Window.Visible := false;
     Window.Open;
     TestMaxTextWidthHtml;
     Window.Close;
-  finally FreeAndNil(Window) end;
-{$else}
-begin
-{$endif}
+  finally DestroyWindowForTest end;
 end;
 
 procedure TTestCastleFonts.TestSizeFontFamily;
