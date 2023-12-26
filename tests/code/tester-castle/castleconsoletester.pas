@@ -104,17 +104,22 @@ begin
   Sender := TCastleConsoleTester(Data);
   case OptionNum of
     0: Sender.FilterTests := Argument;
+    { --console is actually handled earlier, we add it to Options only
+      so that "Parameters.Parse(Options, ..)" will strip it from Parameters. }
+    1: ;
     else raise EInternalError.Create('OptionProc: OptionNum = ' + IntToStr(OptionNum));
   end;
 end;
 
 procedure TCastleConsoleTester.ParseParameters;
 const
-  Options: array [0..0] of TOption = (
-    (Short:'f'; Long:'filter'; Argument: oaRequired)
+  Options: array [0..1] of TOption = (
+    (Short: 'f'; Long: 'filter'; Argument: oaRequired),
+    (Short:  #0; Long: 'console'; Argument: oaNone)
   );
 begin
-  Parameters.Parse(Options, @OptionProc, Self, true);
+  Parameters.Parse(Options, @OptionProc, Self, false);
+  Parameters.CheckHigh(0); // check no excessive parameters
 end;
 
 end.
