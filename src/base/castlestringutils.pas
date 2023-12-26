@@ -670,6 +670,11 @@ function SReplacePatterns(const s: string; const patterns, values: array of stri
 function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: boolean): string; overload;
 function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: boolean): string; overload;
 
+{$ifndef FPC}
+{ Does InputStr match Wildcards (with * and ?). }
+function IsWild(const InputStr, Wildcards: string; const IgnoreCase: Boolean): Boolean;
+{$endif}
+
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
 
@@ -2070,6 +2075,24 @@ function SReplacePatterns(const S: string;
 begin
   Result := SReplacePatterns(S, Patterns.ToArray, Values.ToArray, IgnoreCase);
 end;
+
+{$ifndef FPC}
+function IsWild(const InputStr, Wildcards: string; const IgnoreCase: Boolean): Boolean;
+var
+  Regex: string;
+  RegexOptions: TRegExOptions;
+begin
+  { TODO: This is not perfect, as it doesn't handle all the quoting for special
+    characters in InputStr that could mean something special for regex.
+    But it's good enough for now.}
+  Regex := SReplacePatterns(Wildcards, ['.', '*', '?'], ['\.', '.*', '.'], IgnoreCase);
+  if IgnoreCase then
+    RegexOptions := [roIgnoreCase]
+  else
+    RegexOptions := [];
+  Result := TRegEx.IsMatch(InputStr, Regex, RegexOptions);
+end;
+{$endif}
 
 function SCharsCount(const S: string; C: char): Cardinal;
 var

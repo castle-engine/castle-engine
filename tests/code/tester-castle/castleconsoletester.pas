@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2022-2022 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -43,7 +43,7 @@ type
 
 implementation
 
-uses CastleLog, CastleParameters, CastleUtils;
+uses CastleLog, CastleParameters, CastleUtils, CastleStringUtils;
 
 procedure TCastleConsoleTester.TestFailed(const TestName, Msg: String);
 begin

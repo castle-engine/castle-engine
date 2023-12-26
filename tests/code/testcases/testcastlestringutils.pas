@@ -39,6 +39,7 @@ type
     procedure TestTrimEndingNewline;
     procedure TestAddMultiLine;
     procedure TestRegexpMatches;
+    procedure TestIsWild;
   end;
 
 implementation
@@ -514,6 +515,20 @@ begin
   {$endif}
   AssertTrue(StringMatchesRegexp('blah1foo', 'blah1*foo'));
   AssertTrue(StringMatchesRegexp('blahfoo', 'blah1*foo'));
+end;
+
+procedure TTestCastleStringUtils.TestIsWild;
+begin
+  AssertFalse(IsWild('TTestCompiler.TestIs', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestCompiler.TestSinglePrecision', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestCompiler.TestCTypesSizes', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestCompiler.TestSizes', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestCompiler.TestPackedOpenArray', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestSysUtils.TestDirectoryFileExists', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestGenericsCollections.Test1', '*testeventloop*', true));
+
+  AssertTrue(IsWild('TTestEventLoop.Test1', '*testeventloop*', true));
+  AssertTrue(IsWild('TTestCastleWindow.TestEventLoop', '*testeventloop*', true));
 end;
 
 initialization
