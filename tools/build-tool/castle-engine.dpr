@@ -50,7 +50,7 @@ var
   GuidFromName: Boolean = false;
 
 const
-  Options: array [0..25] of TOption =
+  Options: array [0..24] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -65,7 +65,6 @@ const
     (Short: #0 ; Long: 'fpc-version-iphone-simulator'; Argument: oaRequired),
     (Short: #0 ; Long: 'compiler-option'; Argument: oaRequired),
     (Short: #0 ; Long: 'output'; Argument: oaRequired),
-    (Short: #0 ; Long: 'output-environment'; Argument: oaRequired),
     (Short: #0 ; Long: 'project'; Argument: oaRequired),
     (Short: #0 ; Long: 'package-format'; Argument: oaRequired),
     (Short: #0 ; Long: 'package-name-no-version'; Argument: oaNone),
