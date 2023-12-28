@@ -226,7 +226,24 @@ type
 
 implementation
 
-{ TODO: Use this approach to initialize OpenGL contexts everywhere for TCastleWindow. }
+{ Note: We plan to use this approach (TGLContext class)
+  to initialize OpenGL(ES) contexts everywhere,
+  for both TCastleWindow and TCastleControl.
+
+  It is almost done at this point: we have
+  - wgl,
+  - EGL,
+  - glX descendants.
+  And they are used by TCastleWindow and Delphi + TCastleControl.
+
+  TODO: But we have some notable exceptions:
+  - TCastleWindow on Cocoa uses custom code
+  - TCastleWindow on Android and iOS use special organization (library)
+  - TCastleControl on LCL uses LCL TOpenGLControl
+
+  At some point, everything will likely be adjusted to TGLContext,
+  and we'll be able to simplify some API.
+}
 
 uses {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleUtils, CastleStringUtils, CastleGLUtils, CastleLog;
