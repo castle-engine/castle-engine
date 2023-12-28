@@ -93,13 +93,10 @@ uses
   TestCastleInternalRttiUtils,
   TestCastleShapes,
   TestCastleInternalDelphiUtils,
-  TestCastleFileFilters
-
-  {$ifndef NO_WINDOW_SYSTEM},
+  TestCastleFileFilters,
   TestCastleWindow,
   TestCastleOpeningAndRendering3D,
-  TestCastleWindowOpen
-  {$endif};
+  TestCastleWindowOpen;
 
 var
   ConsoleTester: TCastleConsoleTester;

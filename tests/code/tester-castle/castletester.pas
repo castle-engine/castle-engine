@@ -80,6 +80,7 @@ type
   TCastleTestCase = class
   strict private
     FName: String;
+    SavedApplicationMainWindow: TCastleWindow;
 
     { Object list for tests }
     FTestList: {$ifdef FPC}specialize{$endif} TObjectList<TCastleTest>;
@@ -221,10 +222,17 @@ type
     procedure OnWarningRaiseException(const Category, S: string);
 
     { Create TCastleWindow for test purposes.
-      It will be automatically freed when test method ends but if you need you
-      can also call DestroyWindowForTest explicitly. }
+
+      Only one such window may exist at given time,
+      it is also automatically set as Application.MainWindow. }
     function CreateWindowForTest: TCastleWindow;
-    procedure DestroyWindowForTest;
+
+    { Destroy TCastleWindow created by CreateWindowForTest.
+      This method also checks Window value and sets it to @nil.
+
+      It is often not necessary to actually use it,
+      because the window will be automatically freed when test method ends anyway. }
+    procedure DestroyWindowForTest(var Window: TCastleWindow);
 
     { If you need a TCastleViewport for testing, you can use this one.
       This viewport is automatically cleaned when test method ends. }
@@ -235,14 +243,16 @@ type
       {$ifdef FPC}const AMethodPointer: CodePointer{$else}
       const ARttiMethod: TRttiMethod{$endif}): TCastleTest;
 
-    function IsConsoleMode: Boolean;
-
     { Does the current platform allow to create new TCastleWindow during tests.
-      This applies to calling CreateWindowForTest as well as to explicit
-      "TCastleWindow.Create" calls.
 
-      This is false on mobile.
-      On non-mobile, it is true both in console and non-console mode. }
+      In case you do manually TCastleWindow.Create call,
+      you should also honour this method, do not create TCastleWindow instance
+      when this is @false. Abort the test (without any failure) in this case.
+
+      All test windows should be created using CreateWindowForTest now,
+      and CreateWindowForTest will actually raise exception if this is true.
+
+      This is @false on mobile or when compiled with NO_WINDOW_SYSTEM . }
     function CanCreateWindowForTest: Boolean;
 
     { Clears test list }
@@ -330,8 +340,6 @@ type
     procedure RunNextTest;
 
     function EnabledTestCount: Integer;
-
-    function IsConsoleMode: Boolean;
 
     { Stop testing on first fail or run all tests.
 
@@ -671,11 +679,6 @@ begin
     if TestCase.Enabled then
       Inc(Result, TestCase.EnabledTestCount);
   end;
-end;
-
-function TCastleTester.IsConsoleMode: Boolean;
-begin
-  Result := FUIWindow = nil;
 end;
 
 procedure TCastleTester.EnableFilter(const Filter: String);
@@ -1204,29 +1207,35 @@ begin
   FWindowForTest := nil;
 end;
 
-function TCastleTestCase.CreateWindowForTest: TCastleWindow;
-begin
-  FWindowForTest := TCastleWindow.Create(nil);
-  if IsConsoleMode then
-  begin
-    Application.MainWindow := FWindowForTest;
-  end;
-  Result := FWindowForTest;
-end;
-
 destructor TCastleTestCase.Destroy;
 begin
   FreeAndNil(FTestList);
   inherited;
 end;
 
-procedure TCastleTestCase.DestroyWindowForTest;
+function TCastleTestCase.CreateWindowForTest: TCastleWindow;
 begin
+  if FWindowForTest <> nil then
+    raise Exception.Create('CreateWindowForTest called twice without DestroyWindowForTest');
+  if not CanCreateWindowForTest then
+    raise Exception.Create('CreateWindowForTest called when CanCreateWindowForTest = false');
+
+  FWindowForTest := TCastleWindow.Create(nil);
+  SavedApplicationMainWindow := Application.MainWindow;
+  Application.MainWindow := FWindowForTest;
+  Result := FWindowForTest;
+end;
+
+procedure TCastleTestCase.DestroyWindowForTest(var Window: TCastleWindow);
+begin
+  if FWindowForTest = nil then
+    raise Exception.Create('DestroyWindowForTest called without CreateWindowForTest');
+
+  Assert(FWindowForTest = Window);
+  Window := nil;
+
   FreeAndNil(FWindowForTest);
-  if IsConsoleMode then
-  begin
-    Application.MainWindow := nil;
-  end;
+  Application.MainWindow := SavedApplicationMainWindow;
 end;
 
 function TCastleTestCase.EnabledTestCount: Integer;
@@ -1280,15 +1289,14 @@ begin
 end;
 }
 
-function TCastleTestCase.IsConsoleMode: Boolean;
-begin
-  Result := FCastleTester.IsConsoleMode;
-end;
-
 function TCastleTestCase.CanCreateWindowForTest: Boolean;
 begin
   Result :=
-    {$if defined(ANDROID) or defined(iPHONESIM) or defined(iOS)} false
+    {$if defined(ANDROID) or
+         defined(iPHONESIM) or
+         defined(iOS) or
+         defined(NO_WINDOW_SYSTEM) or
+         defined(CASTLE_NINTENDO_SWITCH)} false
     {$else} true
     {$endif};
 end;
@@ -1424,8 +1432,9 @@ var
   Method: TMethod;
 type
   TCastleTestFunc = procedure() of object;
-
 {$endif}
+var
+  DummyWindowForTest: TCastleWindow;
 begin
   FTestCase.FCurrentTestName := GetFullName;
   try
@@ -1437,9 +1446,13 @@ begin
     FRttiMethod.Invoke(FTestCase, []);
     {$endif}
   finally
-    { Some tests need a new window after running test we check should it be
-      freed }
-    FTestCase.DestroyWindowForTest;
+    { Automatically free window created by CreateWindowForTest. }
+    if FTestCase.FWindowForTest <> nil then
+    begin
+      { Use DummyWindowForTest that will be set to nil by DestroyWindowForTest. }
+      DummyWindowForTest := FTestCase.FWindowForTest;
+      FTestCase.DestroyWindowForTest(DummyWindowForTest);
+    end;
   end;
 end;
 
@@ -1466,8 +1479,6 @@ end;
 
 initialization
   FRegisteredTestCaseList := {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>.Create;
-
 finalization
   FreeAndNil(FRegisteredTestCaseList);
-
 end.

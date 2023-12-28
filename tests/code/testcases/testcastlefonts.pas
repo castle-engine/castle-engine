@@ -35,15 +35,8 @@ type
 
 implementation
 
-{$ifdef TEXT_RUNNER}
-  {$ifndef NO_WINDOW_SYSTEM}
-    {$define TEST_CASTLE_WINDOW}
-  {$endif}
-{$endif}
-
 uses SysUtils, Classes,
-  {$ifdef TEST_CASTLE_WINDOW} CastleWindow, {$endif}
-  CastleFonts, CastleTextureFont_Default3d_Sans, CastleLog, CastleWindow,
+  CastleWindow, CastleFonts, CastleTextureFont_Default3d_Sans, CastleLog,
   Font_LatoRegular_300, CastleInternalFreeTypeH;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtml;
@@ -75,7 +68,8 @@ procedure TTestCastleFonts.TestMaxTextWidthHtmlInWindow;
 var
   Window: TCastleWindow;
 begin
-  if not CanCreateWindowForTest then Exit;
+  if not CanCreateWindowForTest then
+    Exit;
 
   // should work with OpenGL context too, actually it doesn't matter now
   Window := CreateWindowForTest;
@@ -84,7 +78,7 @@ begin
     Window.Open;
     TestMaxTextWidthHtml;
     Window.Close;
-  finally DestroyWindowForTest end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestCastleFonts.TestSizeFontFamily;

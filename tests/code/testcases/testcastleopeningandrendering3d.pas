@@ -195,7 +195,7 @@ begin
     end;
 
     Window.Close;
-  finally DestroyWindowForTest end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestOpeningAndRendering3D.Test1;

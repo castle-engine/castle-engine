@@ -62,7 +62,7 @@ begin
   try
     Window.Open;
     Window.Close;
-  finally DestroyWindowForTest end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestCastleWindow.TestNotifications;
@@ -77,7 +77,7 @@ begin
   try
     C := TCastleButton.Create(Window);
     FreeAndNil(C);
-  finally DestroyWindowForTest end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestCastleWindow.TestMenu;
@@ -171,7 +171,7 @@ begin
     Child2.Anchor(vpBottom, 60);
     AssertRectsEqual(FloatRectangle(50, 500 - 60 - 90, 120, 90), Parent.RenderRect);
   finally
-    DestroyWindowForTest;
+    DestroyWindowForTest(Window);
     FreeAndNil(Parent);
     FreeAndNil(Child1);
     FreeAndNil(Child2);
@@ -264,7 +264,7 @@ begin
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
     AssertTrue(Window.Container.Focus[3] = Button2);
-  finally DestroyWindowForTest end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestCastleWindow.TestEventLoop;
@@ -337,7 +337,7 @@ begin
           finally FreeAndNil(ShapesCollector) end;
         finally FreeAndNil(Renderer) end;
       finally FreeAndNil(Viewport) end;
-    finally DestroyWindowForTest end;
+    finally DestroyWindowForTest(Window) end;
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
@@ -414,7 +414,7 @@ begin
       Vector3(0.01, 0.01, -10.00),
       Vector2(150.00, 150.00)
     );
-  finally DestroyWindowForTest end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestCastleWindow.TestStateAutoStop;
@@ -438,21 +438,23 @@ var
   Window: TCastleWindow;
   SomeState: TCastleView;
 begin
-  if not IsConsoleMode then
-    Exit; // TODO: We can test TCastleView only in console mode
+  if not CanCreateWindowForTest then
+    Exit;
 
   Window := CreateWindowForTest;
   try
     Window.Open;
     SomeState := TCastleView.Create(Window);
-    TCastleView.Current := SomeState;
+    Window.Container.View := SomeState;
+    AssertTrue(TCastleView.Current = SomeState); // deprecated
+    AssertTrue(Window.Container.View = SomeState);
   finally
     { let freeing Window cause everything else:
       - freeing of SomeState
       - stopping of SomeState
       - closing of Window
     }
-    DestroyWindowForTest;
+    DestroyWindowForTest(Window);
   end;
 end;
 
@@ -497,8 +499,8 @@ var
   Window: TCastleWindow;
   StateTesting: TStateTestingSize;
 begin
-  if not IsConsoleMode then
-    Exit; // TODO: We can test TCastleView only in console mode
+  if not CanCreateWindowForTest then
+    Exit;
 
   Window := CreateWindowForTest;
   try
@@ -520,7 +522,7 @@ begin
 
     TCastleView.Current := StateTesting;
   finally
-    DestroyWindowForTest;
+    DestroyWindowForTest(Window);
   end;
 end;
 
@@ -565,8 +567,8 @@ var
   Window: TCastleWindow;
   StateTesting: TStateTestingSize2;
 begin
-  if not IsConsoleMode then
-    Exit; // TODO: We can test TCastleView only in console mode
+  if not CanCreateWindowForTest then
+    Exit;
 
   Window := CreateWindowForTest;
   try
@@ -588,7 +590,7 @@ begin
 
     TCastleView.Current := StateTesting;
   finally
-    DestroyWindowForTest;
+    DestroyWindowForTest(Window);
   end;
 end;
 
@@ -598,6 +600,9 @@ var
   V: TCastleViewport;
   DummyHandleInput: Boolean;
 begin
+  if not CanCreateWindowForTest then
+    Exit;
+
   Window := CreateWindowForTest;
   try
     Window.Visible := false;
@@ -623,7 +628,7 @@ begin
 
     FreeAndNil(V);
   finally
-    DestroyWindowForTest;
+    DestroyWindowForTest(Window);
   end;
 end;
 
@@ -634,6 +639,9 @@ var
   DummyHandleInput: Boolean;
   Scene, Scene2: TCastleScene;
 begin
+  if not CanCreateWindowForTest then
+    Exit;
+
   Window := CreateWindowForTest;
   try
     V := TCastleViewport.Create(Window);
@@ -664,7 +672,7 @@ begin
 
     FreeAndNil(V);
   finally
-    DestroyWindowForTest;
+    DestroyWindowForTest(Window);
   end;
 end;
 
