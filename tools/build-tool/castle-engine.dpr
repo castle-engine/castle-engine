@@ -30,7 +30,7 @@ uses SysUtils,
   CastleApplicationProperties,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
   ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcess,
-  ToolCache;
+  ToolCache, ToolCompilerInfo;
 
 var
   Target: TTarget;
@@ -179,8 +179,14 @@ begin
             'output' +NL+
             '    Output some project information (from the manifest).' + NL +
             '    Next parameter determines the information:' + NL +
+            '      executable-name' + NL +
             '      version' + NL +
             '      version-code' + NL +
+            NL+
+            'output-environment' +NL+
+            '    Output some environment information (independent of any project).' + NL +
+            '    Next parameter determines the information:' + NL +
+            '      fpc-exe' + NL +
             NL+
             'cache' +NL+
             '    Create cache to speed up future compilations.' + NL +
@@ -318,6 +324,16 @@ var
   Project: TCastleProject;
   RestOfParameters: TCastleStringList;
   SimpleCompileOptions: TCompilerOptions; // used only when command is "simple-compile"
+
+  function CreateRunParameters: TCastleStringList;
+  begin
+    Result := TCastleStringList.Create;
+    Result.Text := Parameters.Text;
+    Result.Delete(0); // remove our own name
+    Assert(SameText(Result[0], 'run') or SameText(Result[0], 'compile-run'));
+    Result.Delete(0); // remove "run"
+  end;
+
 begin
   ApplicationProperties.ApplicationName := 'castle-engine';
   ApplicationProperties.Version := CastleEngineVersion;
@@ -380,6 +396,11 @@ begin
     Parameters.CheckHigh(1);
     CacheClean;
   end else
+  if Command = 'output-environment' then
+  begin
+    Parameters.CheckHigh(2);
+    DoOutputEnvironment(Parameters[2]);
+  end else
   begin
     if (Command <> 'run') and (Command <> 'output') then
       Parameters.CheckHigh(1);
@@ -406,14 +427,20 @@ begin
       else
       if Command = 'run' then
       begin
-        RestOfParameters := TCastleStringList.Create;
+        RestOfParameters := CreateRunParameters;
         try
-          RestOfParameters.Text := Parameters.Text;
-          RestOfParameters.Delete(0); // remove our own name
-          RestOfParameters.Delete(0); // remove "run"
           Project.DoRun(Target, OS, CPU, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end else
+      if Command = 'compile-run' then
+      begin
+        Project.DoCompile(OverrideCompiler, Target, OS, CPU, Mode, CompilerExtraOptions);
+        RestOfParameters := CreateRunParameters;
+        try
+          Project.DoRun(Target, OS, CPU, RestOfParameters);
+        finally FreeAndNil(RestOfParameters) end;
+      end
+      else
       if Command = 'package-source' then
       begin
         Project.DoClean;
