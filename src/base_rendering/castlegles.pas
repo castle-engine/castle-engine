@@ -1444,7 +1444,7 @@ begin
 end;
 
   var
-    GLESLib : tlibhandle;
+    GLESLib : tlibhandle = 0;
 
   procedure FreeGLES;
     begin
