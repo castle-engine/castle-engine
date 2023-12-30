@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2022-2023 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -49,9 +49,14 @@ type
   TNotifyTestCountChanged = procedure (const TestCount: Integer) of object;
 
   TCastleTester = class;
-  TCastleTestCase = class;
 
-  {$M+} // Generate type info
+  { Generate type info for TCastleTestCase and descendants.
+    Delphi expects the forward class declaration to have the same $M state
+    as an actual class declaration. }
+  {$M+}
+  TCastleTestCase = class;
+  {$M-}
+
   TCastleTest = class
   strict private
     FTestCase: TCastleTestCase;
@@ -82,6 +87,7 @@ type
     property Enabled: Boolean read FEnabled write SetEnabled;
   end;
 
+  {$M+} // Generate type info for TCastleTestCase and descendants
   TCastleTestCase = class
   strict private
     FName: String;
