@@ -636,7 +636,6 @@ procedure TTestCastleWindow.TestPrepareResourcesWithoutContextOpen;
 var
   Window: TCastleWindow;
   V: TCastleViewport;
-  DummyHandleInput: Boolean;
   Scene, Scene2: TCastleScene;
 begin
   if not CanCreateWindowForTest then

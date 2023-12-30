@@ -27,9 +27,10 @@ See https://castle-engine.io/project_manifest for documentation of this file.
         Hide warnings about deprecated stuff.
         In tests, we often deliberately test deprecated API, to make sure it still works.
       -->
+      <option>-vm5043</option> <!-- Symbol "$1" is deprecated -->
       <option>-vm5066</option> <!-- Symbol "$1" is deprecated: "$2" -->
-      <option>-vm5074</option> <!-- unit deprecated -->
-      <option>-vm5075</option> <!-- unit deprecated alt -->
+      <option>-vm5074</option> <!-- Unit "$1" is deprecated -->
+      <option>-vm5075</option> <!-- Unit "$1" is deprecated: "$2" -->
     </custom_options>
   </compiler_options>
 </project>

@@ -114,7 +114,7 @@ uses Generics.Collections, Math,
   CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
   X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime, CastleColors,
   CastleApplicationProperties, CastleTextureImages, CastleStringUtils,
-  CastleUriUtils, CastleInternalNodesUnsupported,
+  CastleUriUtils, CastleInternalNodesUnsupported, CastleLog,
   CastleTestUtils;
 
 { TNode* ------------------------------------------------------------ }
@@ -1127,6 +1127,8 @@ procedure TTestX3DNodes.TestTimeDependentFunctionality;
     begin
       B := F.IsActive;
       C := F.CycleInterval;
+      AssertFalse(B); // time-dependent node is not active before it is inserted into scene with ProcessEvents
+      WritelnLog('Default CycleInterval of %s is %f', [N.NiceName, C]);
     end;
   end;
 
@@ -2471,7 +2473,7 @@ procedure TTestX3DNodes.TestWarningUnquotedIdentifier;
 
 var
   S: TStringStream;
-  Node: TX3DRootNode;
+  //Node: TX3DRootNode;
 begin
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
@@ -2481,7 +2483,7 @@ begin
       'Shape { appearance Appearance { alphaMode OPAQUE } }');
     try
       try
-        Node := LoadNode(S, '', 'model/x3d+vrml');
+        {Node := }LoadNode(S, '', 'model/x3d+vrml');
         Fail('Should have made warning (in effect exception) about unquoted OPAQUE');
       except
         on E: Exception do
