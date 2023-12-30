@@ -57,8 +57,6 @@ type
       const Exception: Boolean = false);
 
   public
-    { Can be set before Start. }
-    FilterTests: String;
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single;
@@ -71,21 +69,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleColors, CastleUtils, CastleParameters;
-
-{ Handle --filter command-line option.
-  This is a callback for Parameters.Parse. }
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var
-  View: TViewMain;
-begin
-  View := TViewMain(Data);
-  case OptionNum of
-    0: View.FilterTests := Argument;
-    else raise EInternalError.Create('OptionProc: OptionNum = ' + IntToStr(OptionNum));
-  end;
-end;
+  CastleColors, CastleUtils, CastleTesterParameters;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -107,14 +91,9 @@ begin
 end;
 
 constructor TViewMain.Create(AOwner: TComponent);
-const
-  Options: array [0..0] of TOption = (
-    (Short:'f'; Long:'filter'; Argument: oaRequired)
-  );
 begin
   inherited;
   DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
-  Parameters.Parse(Options, @OptionProc, Self, true);
 end;
 
 procedure TViewMain.EnabledTestCountChanged(Sender: TObject);
@@ -165,8 +144,8 @@ begin
 
   { Scans all tests }
   Tester.Scan;
-  if FilterTests <> '' then
-    Tester.EnableFilter(FilterTests);
+  if ParamFilter <> '' then
+    Tester.EnableFilter(ParamFilter);
   { First prepare to count acctualy selected tests }
   Tester.PrepareTestListToRun;
 end;

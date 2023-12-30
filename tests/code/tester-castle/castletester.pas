@@ -20,8 +20,13 @@ unit CastleTester;
 
 interface
 
+// FPC: Do not warn that Rtti is experimental
+{$ifdef FPC} {$warnings off} {$endif}
+
 uses SysUtils, Classes, Generics.Collections, Rtti, CastleVectors, CastleBoxes,
   CastleFrustum, CastleImages, CastleRectangles, CastleWindow, CastleViewport;
+
+{$ifdef FPC} {$warnings on} {$endif}
 
 const
   { Epsilon used by default when compating Single (Single-precision float values).
@@ -252,7 +257,7 @@ type
       All test windows should be created using CreateWindowForTest now,
       and CreateWindowForTest will actually raise exception if this is true.
 
-      This is @false on mobile or when compiled with NO_WINDOW_SYSTEM . }
+      This is @false on mobile or when run with --no-window-create . }
     function CanCreateWindowForTest: Boolean;
 
     { Clears test list }
@@ -390,13 +395,12 @@ type
     procedure EnableFilter(const Filter: String);
   end;
 
-  procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
+procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
 
 implementation
 
 uses TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} StrUtils,
-  CastleLog,
-  CastleUtils, CastleStringUtils;
+  CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters;
 
 var
   FRegisteredTestCaseList: {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>;
@@ -1295,9 +1299,11 @@ begin
     {$if defined(ANDROID) or
          defined(iPHONESIM) or
          defined(iOS) or
-         defined(NO_WINDOW_SYSTEM) or
-         defined(CASTLE_NINTENDO_SWITCH)} false
-    {$else} true
+         defined(CASTLE_NINTENDO_SWITCH)}
+      // On these platforms, we cannot create a window, so we cannot test
+      false
+    {$else}
+      not ParamNoWindowCreate
     {$endif};
 end;
 

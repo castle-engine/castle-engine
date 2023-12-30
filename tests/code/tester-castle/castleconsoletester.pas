@@ -28,22 +28,17 @@ type
     procedure TestFailed(const TestName, Msg: String);
 
     procedure Log(const AMessage: String);
-  private
-    FilterTests: String;
   public
     constructor Create;
     destructor Destroy; override;
 
-    { Parse --filter command-line parameter. }
-    procedure ParseParameters;
-
-    { Runs all tests (allowed by current filter, if any). }
+    { Runs all tests (allowed by current ParamFilter, if any). }
     procedure Run(const ATestCaseToRun: String = '');
   end;
 
 implementation
 
-uses CastleLog, CastleParameters, CastleUtils, CastleStringUtils;
+uses CastleLog, CastleTesterParameters, CastleUtils, CastleStringUtils;
 
 procedure TCastleConsoleTester.TestFailed(const TestName, Msg: String);
 begin
@@ -75,9 +70,9 @@ begin
   Log('Scaning tests...');
   FTester.Scan;
   Log('Found ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
-  if FilterTests <> '' then
+  if ParamFilter <> '' then
   begin
-    FTester.EnableFilter(FilterTests);
+    FTester.EnableFilter(ParamFilter);
     Log('Applying filter: Enabled ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
   end;
   Log('Preparing tests...');
@@ -94,34 +89,6 @@ end;
 procedure TCastleConsoleTester.TestExecuted(const AName: String);
 begin
   Log('Processing: ' + AName);
-end;
-
-{ Handle --filter command-line option.
-  This is a callback for Parameters.Parse. }
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var
-  Sender: TCastleConsoleTester;
-begin
-  Sender := TCastleConsoleTester(Data);
-  case OptionNum of
-    0: Sender.FilterTests := Argument;
-    { --console is actually handled earlier, we add it to Options only
-      so that "Parameters.Parse(Options, ..)" will strip it from Parameters. }
-    1: ;
-    else raise EInternalError.Create('OptionProc: OptionNum = ' + IntToStr(OptionNum));
-  end;
-end;
-
-procedure TCastleConsoleTester.ParseParameters;
-const
-  Options: array [0..1] of TOption = (
-    (Short: 'f'; Long: 'filter'; Argument: oaRequired),
-    (Short:  #0; Long: 'console'; Argument: oaNone)
-  );
-begin
-  Parameters.Parse(Options, @OptionProc, Self, false);
-  Parameters.CheckHigh(0); // check no excessive parameters
 end;
 
 end.

@@ -40,12 +40,10 @@ castle-engine compile --mode=debug
 # castle-engine run -- --console
 ```
 
-You can also recompile with `NO_WINDOW_SYSTEM` to avoid making tests that require any graphic environment. This is good for testing inside e.g. a server without GUI, or a Docker container.
+You can also run with `--no-window-create` to avoid making tests that require to create a new window, thus making it possible to run tests when no graphic environment is available. This is good for testing inside e.g. a server without GUI, or a Docker container.
 
 ```
-castle-engine clean # make sure to recompile everything
-castle-engine compile --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM
-castle-engine run -- --console
+./castle-tester --console --no-window-create
 ```
 
 ## Filtering

@@ -571,7 +571,7 @@ pipeline {
                 sh 'cp tools/build-tool/castle-engine.exe ${CASTLE_ENGINE_PATH}/installed/bin/'
               }
             }
-            stage('(Delphi) Check AutoTests (Win64)') {
+            stage('(Delphi) Check Delphi AutoTests (Win64)') {
               steps {
                 dir ('tests/delphi_tests/') {
                   sh 'castle-engine clean'
@@ -580,7 +580,7 @@ pipeline {
                 }
               }
             }
-            stage('(Delphi) Check AutoTests (Win32)') {
+            stage('(Delphi) Check Delphi AutoTests (Win32)') {
               steps {
                 dir ('tests/delphi_tests/') {
                   sh 'castle-engine clean'
@@ -589,21 +589,21 @@ pipeline {
                 }
               }
             }
-            stage('(Delphi) Check AutoTests with NO_WINDOW_SYSTEM (Win64)') {
+            stage('(Delphi) Check AutoTests (Win64)') {
               steps {
                 dir ('tests/') {
                   sh 'castle-engine clean'
-                  sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64 --compiler-option=-dNO_WINDOW_SYSTEM'
-                  sh 'castle-engine run -- --console'
+                  sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64'
+                  sh 'castle-engine run -- --console --no-window-create'
                 }
               }
             }
-            stage('(Delphi) Check AutoTests with NO_WINDOW_SYSTEM (Win32)') {
+            stage('(Delphi) Check AutoTests (Win32)') {
               steps {
                 dir ('tests/') {
                   sh 'castle-engine clean'
-                  sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386 --compiler-option=-dNO_WINDOW_SYSTEM'
-                  sh 'castle-engine run -- --console'
+                  sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
+                  sh 'castle-engine run -- --console --no-window-create'
                 }
               }
             }

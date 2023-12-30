@@ -507,21 +507,21 @@ tests:
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ clean
 # Run in debug mode
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
 # Run in debug mode, testing DecimalSeparator = comma
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_TEST_DECIMAL_SEPARATOR_COMMA compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dCASTLE_TEST_DECIMAL_SEPARATOR_COMMA compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
 # Run in debug mode without LibPng
 # (useful to test image processing, e.g. TTestImages.TestLoadImage, without libpng, which matters for mobile now)
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
 # Run in release mode, since all tests must pass the same when optimizations are enabled
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=release --compiler-option=-dNO_WINDOW_SYSTEM compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=release compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
 # Conserve disk space for GH actions
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 # Run tests in tools/build-tool/tests
