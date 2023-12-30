@@ -30,7 +30,7 @@ type
 implementation
 
 uses CastleDownload, CastleInternalSoundFile, CastleImages, CastleUriUtils,
-  CastleSoundBase;
+  CastleSoundBase, CastleUtils;
 
 procedure TTestCastleInternalDataUri.TestDataUri;
 const
