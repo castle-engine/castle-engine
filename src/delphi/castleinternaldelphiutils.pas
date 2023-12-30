@@ -31,6 +31,29 @@ function MouseButtonToCastle(const MouseButton: TMouseButton;
   If not possible, returns keyNone. }
 function KeyToCastle(const Key: Word; const Shift: TShiftState) : TKey;
 
+{$ifdef LINUX}
+{ Hacky way to convert key as WideChar into a TKey.
+
+  Used only to workaround Delphi FMXLinux: FMXLinux never sends a key code
+  (as Word, like vkA, vkSpace etc.) to OnKeyDown.
+  It only sends the key as WideChar, and the key code is always 0.
+
+  Confirmed with almost-blank FMX application (not using CGE), compiled for Linux.
+  TForm.OnKeyDown, TEdit.OnKeyDown report Key = 0, and KeyChar = 'a' when
+  you press key A.
+  Weirdly, the non-zero Key *is* passed properly by FMXLinux for things that have
+  no KeyChar representation, like arrow keys.
+  Tested that doing
+  "g_signal_connect(GLAreaGtk, 'key_press_event', @signal_key_press_event,
+    LinuxHandle.NativeDrawingArea);" inside
+  castleinternalfmxutils_linux.inc doesn't help (makes sense, since almost-blank
+  FMX application, not using CGE, also shows this problem).
+
+  So we workaround it in TCastleControl.KeyDown and TCastleWindow.OpenGLControlKeyDown,
+  so that CGE applications don't see this problem. }
+function SimpleWideCharToKey(const KeyChar: WideChar): TKey;
+{$endif}
+
 { Hacky and quick conversion of TKey to String representation.
   Knows additionally modifiers state from Shift.
 
@@ -146,7 +169,7 @@ end;
 
 function SimpleKeyToString(const Key: TKey; const Shift: TShiftState): String;
 const
-  Map: array [TKey] of string = (
+  Map: array [TKey] of String = (
     '',
     '',
     '',
@@ -352,6 +375,39 @@ begin
       Result := '+';
   end;
 end;
+
+{$ifdef LINUX}
+function SimpleWideCharToKey(const KeyChar: WideChar): TKey;
+begin
+  Result := keyNone;
+  case KeyChar of
+    CharBackSpace: Result := keyBackSpace;
+    CharTab:       Result := keyTab;
+    CharEnter:     Result := keyEnter;
+    CharEscape:    Result := keyEscape;
+    ' ':           Result := keySpace;
+    ',':           Result := keyComma;
+    '.':           Result := keyPeriod;
+    '*':           Result := keyNumpadMultiply;
+    '/':           Result := keyNumpadDivide;
+    '-':           Result := keyMinus;
+    '=':           Result := KeyEqual;
+    '+':           Result := keyPlus;
+    '0'..'9':
+      begin
+        Result := TKey(Ord(key0)  + Ord(KeyChar) - Ord('0'));
+      end;
+    'A'..'Z':
+      begin
+        Result := TKey(Ord(keyA)  + Ord(KeyChar) - Ord('A'));
+      end;
+    'a'..'z':
+      begin
+        Result := TKey(Ord(keyA)  + Ord(KeyChar) - Ord('a'));
+      end;
+  end;
+end;
+{$endif}
 
 function CursorFromCastle(const Cursor: TMouseCursor): TCursor;
 const

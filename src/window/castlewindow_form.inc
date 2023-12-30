@@ -977,6 +977,14 @@ var
 begin
   CastleKey := KeyToCastle(Key, Shift);
 
+  { Workaround FMXLinux bug: it always passes Key=0 for regular
+    keys that represent printable characters, like 'a' or space,
+    see SimpleWideCharToKey comments. }
+  {$if defined(DELPHI) and defined(LINUX)}
+  if (Key = 0) and (KeyChar <> #0) and (CastleKey = keyNone) then
+    CastleKey := SimpleWideCharToKey(KeyChar);
+  {$endif}
+
   if KeyChar <> #0 then
     CastleKeyString := KeyChar
   else
@@ -1005,6 +1013,23 @@ begin
   FKeyPressHandler.BeforeKeyUp(Key, Shift);
   {$endif}
   CastleKey := KeyToCastle(Key, Shift);
+
+  { Workaround FMXLinux bug: it always passes Key=0 for regular
+    keys that represent printable characters, like 'a' or space,
+    see SimpleWideCharToKey comments.
+
+    Note that KeyUp seems to have additional issue with FMXLinux:
+    when the key is held (so we expect to receive multiple KeyDown
+    for one KeyUp), FMXLinux sends additional KeyUp before each KeyDown.
+    So for code, it seems as if user is pressing and releasing the key.
+    We cannot easily workaround it on CGE side.
+    To track keys being held, we advise to check Pressed[keyXxx] in Update
+    methods, instead of relying on KeyDown/KeyUp. }
+  {$if defined(DELPHI) and defined(LINUX)}
+  if (Key = 0) and (KeyChar <> #0) and (CastleKey = keyNone) then
+    CastleKey := SimpleWideCharToKey(KeyChar);
+  {$endif}
+
   if CastleKey <> keyNone then
     DoKeyUp(CastleKey);
 end;
