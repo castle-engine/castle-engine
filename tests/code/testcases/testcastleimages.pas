@@ -28,6 +28,7 @@ uses CastleTester;
 type
   TTestImages = class(TCastleTestCase)
   published
+    procedure TestBasicImageLoad;
     procedure TestLoadImage;
     procedure TestImageClassBestForSavingToFormat;
     procedure TestClear;
@@ -46,6 +47,17 @@ implementation
 uses SysUtils, Classes,
   CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleUriUtils,
   CastleInternalPng, CastleLog;
+
+procedure TTestImages.TestBasicImageLoad;
+var
+  Img: TCastleImage;
+begin
+  Img := LoadImage('castle-data:/test_texture.png');
+  try
+    AssertEquals(256, Img.Width);
+    AssertEquals(256, Img.Height);
+  finally FreeAndNil(Img) end;
+end;
 
 procedure TTestImages.TestLoadImage;
 

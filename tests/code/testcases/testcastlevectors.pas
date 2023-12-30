@@ -62,6 +62,7 @@ type
     procedure TestRotationZeroAxis;
     procedure TestVectorsList;
     procedure TestToString;
+    procedure TestBasicVectorMatrix;
   end;
 
 function RandomVector: TVector3;
@@ -1298,6 +1299,18 @@ begin
     '9 10 11 12' + LineEnding +
     '13 14 15 16',
     M4.ToString);
+end;
+
+procedure TTestCastleVectors.TestBasicVectorMatrix;
+var
+  M: TMatrix4;
+  V: TVector3;
+begin
+  // vectors
+  M := TranslationMatrix(10, 20, 30);
+  V := Vector3(1, 2, 3);
+  V := M.MultPoint(V);
+  AssertVectorEquals(Vector3(11, 22, 33), V);
 end;
 
 initialization

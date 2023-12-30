@@ -194,11 +194,11 @@ begin
   { assertions below should work for both AllowOldPercentSyntax values }
   for AllowOldPercentSyntax := false to true do
   begin
-    AssertTrue(FormatNameCounter('', 0, AllowOldPercentSyntax, ReplacementsDone) = '');
-    AssertTrue(FormatNameCounter('a', 0, AllowOldPercentSyntax, ReplacementsDone) = 'a');
-    AssertTrue(FormatNameCounter('%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%again66');
-    AssertTrue(FormatNameCounter('%%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%%again66');
-    AssertTrue(FormatNameCounter('%%again@counter(4)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%%again0066');
+    AssertEquals('', FormatNameCounter('', 0, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('a', FormatNameCounter('a', 0, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('%again66', FormatNameCounter('%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('%%again66', FormatNameCounter('%%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('%%again0066', FormatNameCounter('%%again@counter(4)', 66, AllowOldPercentSyntax, ReplacementsDone));
   end;
 end;
 

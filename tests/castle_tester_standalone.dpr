@@ -73,6 +73,7 @@ uses
   TestCastleTriangulate,
   TestCastleGame,
   TestCastleUriUtils,
+  TestCastleInternalDataUri,
   TestCastleXmlUtils,
   TestCastleCurves,
   TestCastleTimeUtils,

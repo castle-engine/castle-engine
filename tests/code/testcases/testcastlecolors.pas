@@ -33,6 +33,7 @@ type
     procedure TestLerpInHsv;
     procedure TestColorPickerCodeRgb;
     procedure TestColorPickerCodeRgba;
+    procedure TestColorHsvAndBack;
   end;
 
 implementation
@@ -173,6 +174,19 @@ begin
     MyControl.Color := HsvToRgba(Vector3(0.901, 1.000, 0.318), 0.598);
     MyControl.Color := HexToColor('51490099');
   finally FreeAndNil(MyControl) end;
+end;
+
+procedure TTestCastleColors.TestColorHsvAndBack;
+var
+  Col: TCastleColorRGB;
+  ColHsv: TVector3;
+begin
+  Col := RedRGB;
+  ColHsv := RgbToHsv(Col);
+  ColHsv.Z := 0.5; // half brightness
+  Col := HsvToRgb(ColHsv);
+  //Writeln('Red color with half brightness ', Col.ToString);
+  AssertVectorEquals(Vector3(0.5, 0, 0), Col);
 end;
 
 initialization
