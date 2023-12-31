@@ -200,9 +200,15 @@
       @link(EventSensorRotation),
       @link(EventSensorTranslation).
 
+      OpenContextsCount should specify the number of open contexts
+      at this point. This is always >= 1 since the current context is always
+      open. So for EventOpen, OpenContextsCount = 1 means we initialize
+      1st context, and for EventClose, OpenContextsCount = 1 means we
+      finalize last context.
+
       @groupBegin }
-    procedure EventOpen(const OpenWindowsCount: Cardinal); virtual;
-    procedure EventClose(const OpenWindowsCount: Cardinal); virtual;
+    procedure EventOpen(const OpenContextsCount: Cardinal); virtual;
+    procedure EventClose(const OpenContextsCount: Cardinal); virtual;
     function EventPress(const Event: TInputPressRelease): boolean; virtual;
     function EventRelease(const Event: TInputPressRelease): boolean; virtual;
     procedure EventUpdate; virtual;
@@ -1639,7 +1645,7 @@ begin
     FCaptureInput.Remove(FingerIndex);
 end;
 
-procedure TCastleContainer.EventOpen(const OpenWindowsCount: Cardinal);
+procedure TCastleContainer.EventOpen(const OpenContextsCount: Cardinal);
 
   procedure RecursiveGLContextOpen(const C: TCastleUserInterface);
   var
@@ -1658,7 +1664,7 @@ procedure TCastleContainer.EventOpen(const OpenWindowsCount: Cardinal);
 var
   I: Integer;
 begin
-  if OpenWindowsCount = 1 then
+  if OpenContextsCount = 1 then
     ApplicationProperties._GLContextOpen;
 
   { Call GLContextOpen on controls before OnOpen,
@@ -1671,7 +1677,7 @@ begin
   if Assigned(OnOpenObject) then OnOpenObject(Self);
 end;
 
-procedure TCastleContainer.EventClose(const OpenWindowsCount: Cardinal);
+procedure TCastleContainer.EventClose(const OpenContextsCount: Cardinal);
 
   procedure RecursiveGLContextClose(const C: TCastleUserInterface);
   var
@@ -1704,7 +1710,7 @@ begin
     for I := Controls.Count - 1 downto 0 do
       RecursiveGLContextClose(Controls[I]);
 
-  if OpenWindowsCount = 1 then
+  if OpenContextsCount = 1 then
   begin
     ApplicationProperties._GLContextClose;
 

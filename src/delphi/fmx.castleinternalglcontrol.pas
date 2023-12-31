@@ -151,9 +151,6 @@ begin
   if not FGLInitialized then
   begin
     FGLInitialized := true;
-    // TODO: implement sharing of OpenGL contexts in this case
-    // In CGE, all open contexts should share GL resources
-    // FPlatformContext.SharedContext := AnyOtherOpenContext;
     FGLUtility.ContextAdjustEarly(FPlatformContext);
     FPlatformContext.ContextCreate(FRequirements);
     // Invalidate; // would be too early, CASTLE_WINDOW_FORM will do it later

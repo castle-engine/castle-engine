@@ -164,16 +164,8 @@ uses SysUtils,
   CastleComponentSerialize, CastleInternalDelphiUtils, CastleFilesUtils;
 
 var
-  { All TCastleContainerEasy instances created.
-
-    We use this to share OpenGL contexts,
-    as all OpenGL contexts in our engine must share OpenGL resources
-    (our OnGLContextOpen and such callbacks depend on it,
-    and it makes implementation much easier). }
+  { All TCastleContainerEasy instances created. }
   ContainersList: TCastleContainerEasyList;
-
-  { Tracks how many containers on ContainersList have GL context initialized. }
-  ContainersOpen: Cardinal;
 
   LastLimitFPSTime: TTimerResult;
 
@@ -227,24 +219,10 @@ begin
 end;
 
 procedure TCastleContainerEasy.CreateContext;
-
-  function AnyOtherOpenContext: TGLContext;
-  var
-    C: TCastleContainerEasy;
-  begin
-    for C in ContainersList do
-      if (C <> Self) and C.GLInitialized then
-        Exit(C.FPlatformContext);
-    Result := nil;
-  end;
-
 begin
   if not FGLInitialized then
   begin
     FGLInitialized := true;
-
-    // In CGE, all open contexts should share GL resources
-    FPlatformContext.SharedContext := AnyOtherOpenContext;
 
     AdjustContext(FPlatformContext);
 
@@ -258,9 +236,8 @@ begin
     RenderContext.Viewport := Rect;
     ApplicationProperties._GLContextEarlyOpen;
 
-    Inc(ContainersOpen);
     // Note that this will cause ApplicationProperties._GLContextOpen if necessary
-    EventOpen(ContainersOpen);
+    EventOpen(TGLContext.OpenContextsCount);
     EventResize;
     Invalidate;
 
@@ -281,12 +258,11 @@ procedure TCastleContainerEasy.DestroyContext;
 begin
   if FGLInitialized then
   begin
-    EventClose(ContainersOpen);
-    Dec(ContainersOpen);
+    EventClose(TGLContext.OpenContextsCount);
     FGLInitialized := false;
     FPlatformContext.ContextDestroy;
 
-    if UpdatingEnabled and (ContainersOpen = 0) then
+    if UpdatingEnabled and (TGLContext.OpenContextsCount = 0) then
     begin
       UpdatingEnabled := false;
       UpdatingDisable;

@@ -20,7 +20,7 @@ unit CastleInternalContextBase;
 
 interface
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleRenderOptions;
 
 type
@@ -205,16 +205,38 @@ type
 
   { OpenGL(ES) context. }
   TGLContext = class
+  private
+    type
+      TGLContextList = {$ifdef FPC}specialize{$endif} TObjectList<TGLContext>;
+    class var
+      { TGLContext instances between ContextCreate and ContextDestroy.
+
+        We use this to share OpenGL contexts,
+        as all OpenGL contexts in our engine must share OpenGL resources
+        (it makes caching easier, e.g. TCastleScene and textures cache
+        is not per-context but just one global cache).
+
+        May be @nil if empty. }
+      FOpenContexts: TGLContextList;
+  protected
+    procedure OpenContextsAdd;
+    procedure OpenContextsRemove;
+    { Any open context with which new context (not yet added using OpenContextsAdd!)
+      should share data, or @nil if none. }
+    class function SharedContext: TGLContext;
   public
-    // Set this before using ContextCreate
-    SharedContext: TGLContext; //< leave nil to not share
+    class function OpenContextsCount: Cardinal;
+
+    destructor Destroy; override;
 
     { Create GL context.
-      GL context creation (called after creating native window). }
+      GL context creation (called after creating native window).
+      Descendants: must call OpenContextsAdd at the end. }
     procedure ContextCreate(const Requirements: TGLContextRequirements); virtual; abstract;
 
     { Destroy GL context.
-      GL context creation (called before destroying native window). }
+      GL context creation (called before destroying native window).
+      Descendants: must call OpenContextsRemove at the beginning. }
     procedure ContextDestroy; virtual; abstract;
 
     { Make the GL context current. }
@@ -321,4 +343,52 @@ procedure TGLContextRequirements.CheckRequestedBufferAttributes(
   end;
 end;
 
+{ TGLContext --------------------------------------------------------------- }
+
+destructor TGLContext.Destroy;
+begin
+  if (FOpenContexts <> nil) and
+     (FOpenContexts.Contains(Self)) then
+  begin
+    WritelnWarning('TGLContext', 'Destroying TGLContext instance with open OpenGL context');
+    FOpenContexts.Remove(Self);
+  end;
+
+  inherited;
+end;
+
+class function TGLContext.OpenContextsCount: Cardinal;
+begin
+  if FOpenContexts <> nil then
+    Result := FOpenContexts.Count
+  else
+    Result := 0;
+end;
+
+procedure TGLContext.OpenContextsAdd;
+begin
+  if FOpenContexts = nil then
+    FOpenContexts := TGLContextList.Create(false);
+  FOpenContexts.Add(Self);
+end;
+
+procedure TGLContext.OpenContextsRemove;
+begin
+  if FOpenContexts <> nil then
+    FOpenContexts.Remove(Self)
+  else
+    WritelnWarning('TGLContext', 'Destroying TGLContext instance after finalization of CastleInternalContextBase unit, we no longer track currently open contexts');
+end;
+
+class function TGLContext.SharedContext: TGLContext;
+begin
+  if FOpenContexts <> nil then
+    Result := FOpenContexts.First
+  else
+    Result := nil;
+end;
+
+initialization
+finalization
+  FreeAndNil(TGLContext.FOpenContexts);
 end.

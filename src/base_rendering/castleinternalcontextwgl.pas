@@ -389,12 +389,16 @@ begin
     UseCreateContextAttribsARB
   else
     UseCreateContext;
+
+  OpenContextsAdd;
 end;
 
 procedure TGLContextWGL.ContextDestroy;
 begin
   if h_GLRc <> 0 then
   begin
+    OpenContextsRemove;
+
     if (not wglMakeCurrent(h_Dc, 0)) then
       WritelnWarning('WinAPI', 'Deactivating current OpenGL rendering context (wglMakeCurrent(..., NULL)) failed.');
     if (not wglDeleteContext(h_GLRc)) then

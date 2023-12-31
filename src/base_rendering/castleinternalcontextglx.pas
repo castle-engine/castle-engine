@@ -247,12 +247,16 @@ begin
     Context := glXCreateContext(XDisplay, XVisual, ShareContextGlx, true);
 
   Check(Context <> nil, 'Could not create OpenGL rendering context');
+
+  OpenContextsAdd;
 end;
 
 procedure TGLContextGlx.ContextDestroy;
 begin
   if Context <> nil then
   begin
+    OpenContextsRemove;
+
     glXDestroyContext(XDisplay, Context);
     Context := nil;
   end;

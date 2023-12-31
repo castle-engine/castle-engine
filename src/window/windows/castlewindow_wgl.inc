@@ -42,9 +42,6 @@ begin
   Context := TGLContextWGL.Create;
   Context.WndPtr := WndPtr;
   Context.h_Dc := h_Dc;
-  { All OpenGL contexts created by CGE should be shared }
-  if Application.OpenWindowsCount <> 0 then
-    Context.SharedContext := Application.OpenWindows[0].Context;
   Context.ContextCreate(FRequirements);
 end;
 

@@ -49,9 +49,6 @@ begin
     must define Application.XDisplay / XScreen. }
   Context.XDisplay := Application.XDisplay;
   Context.XScreen := Application.XScreen;
-  { All OpenGL contexts created by CGE should be shared }
-  if Application.OpenWindowsCount <> 0 then
-    Context.SharedContext := Application.OpenWindows[0].Context;
   Context.ContextCreateEarly(FRequirements);
   XVisual := Context.XVisual;
 end;

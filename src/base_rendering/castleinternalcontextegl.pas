@@ -214,10 +214,14 @@ begin
   Surface := eglCreateWindowSurface(Display, Config, WndPtr, nil);
   if Surface = EGL_NO_SURFACE then
     raise EGLContextNotPossible.Create('EGL: Cannot create surface: ' + EGLError);
+
+  OpenContextsAdd;
 end;
 
 procedure TGLContextEgl.ContextDestroy;
 begin
+  OpenContextsRemove;
+
   if Surface <> EGL_NO_SURFACE { nil } then
   begin
     if eglDestroySurface(Display, Surface) = EGL_FALSE then
