@@ -83,8 +83,8 @@ type
       public
         constructor Create(AParent: TCastleControl); reintroduce;
         procedure Invalidate; override;
-        function Width: Integer; override;
-        function Height: Integer; override;
+        function PixelsWidth: Integer; override;
+        function PixelsHeight: Integer; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
       end;
 
@@ -266,7 +266,7 @@ begin
   // TODO
 end;
 
-function TCastleControl.TContainer.Width: Integer;
+function TCastleControl.TContainer.PixelsWidth: Integer;
 var
   Scale: Single;
 begin
@@ -278,7 +278,7 @@ begin
   Result := Round(Parent.Width * Scale);
 end;
 
-function TCastleControl.TContainer.Height: Integer;
+function TCastleControl.TContainer.PixelsHeight: Integer;
 var
   Scale: Single;
 begin

@@ -47,8 +47,8 @@ type
       public
         constructor Create(AParent: TCastleControl); reintroduce;
         procedure Invalidate; override;
-        function Width: Integer; override;
-        function Height: Integer; override;
+        function PixelsWidth: Integer; override;
+        function PixelsHeight: Integer; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
       end;
 
@@ -183,7 +183,7 @@ begin
   DoUpdateEverything;
 end;
 
-function TCastleControl.TContainer.Width: Integer;
+function TCastleControl.TContainer.PixelsWidth: Integer;
 begin
   Result := Parent.Width;
 end;
@@ -193,7 +193,7 @@ begin
   Message.Result := 1;
 end;
 
-function TCastleControl.TContainer.Height: Integer;
+function TCastleControl.TContainer.PixelsHeight: Integer;
 begin
   Result := Parent.Height;
 end;

@@ -109,8 +109,8 @@ type
     constructor Create(AParent: TCastleControl); reintroduce;
     procedure Invalidate; override;
     function GLInitialized: boolean; override;
-    function Width: Integer; override;
-    function Height: Integer; override;
+    function PixelsWidth: Integer; override;
+    function PixelsHeight: Integer; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
 
@@ -803,12 +803,12 @@ begin
   Result := Parent.GLInitialized;
 end;
 
-function TCastleControlContainer.Width: Integer;
+function TCastleControlContainer.PixelsWidth: Integer;
 begin
   Result := Parent.Width;
 end;
 
-function TCastleControlContainer.Height: Integer;
+function TCastleControlContainer.PixelsHeight: Integer;
 begin
   Result := Parent.Height;
 end;

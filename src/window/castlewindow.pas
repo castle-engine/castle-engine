@@ -413,9 +413,9 @@ type
 
     procedure Invalidate; override;
     function GLInitialized: boolean; override;
-    function Width: Integer; override;
-    function Height: Integer; override;
-    function Rect: TRectangle; override;
+    function PixelsWidth: Integer; override;
+    function PixelsHeight: Integer; override;
+    function PixelsRect: TRectangle; override;
     function ScaledStatusBarHeight: Cardinal; override;
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
@@ -2629,17 +2629,17 @@ begin
   Result := Parent.GLInitialized;
 end;
 
-function TWindowContainer.Width: Integer;
+function TWindowContainer.PixelsWidth: Integer;
 begin
   Result := Parent.Width;
 end;
 
-function TWindowContainer.Height: Integer;
+function TWindowContainer.PixelsHeight: Integer;
 begin
   Result := Parent.Height;
 end;
 
-function TWindowContainer.Rect: TRectangle;
+function TWindowContainer.PixelsRect: TRectangle;
 begin
   Result := Parent.Rect;
 end;

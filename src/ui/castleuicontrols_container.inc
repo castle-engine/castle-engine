@@ -285,21 +285,25 @@
       Prefer using @link(UnscaledWidth) instead of this. @link(UnscaledWidth)
       is more natural when you use UI scaling (@link(UIScaling)),
       and it's simply equal to @name when UI scaling is not used. }
-    function Width: Integer; virtual; abstract;
+    function PixelsWidth: Integer; virtual; abstract;
 
     { Container size, in pixels.
       This is expressed in real device pixels.
       Prefer using @link(UnscaledHeight) instead of this. @link(UnscaledHeight)
       is more natural when you use UI scaling (@link(UIScaling)),
       and it's simply equal to @name when UI scaling is not used. }
-    function Height: Integer; virtual; abstract;
+    function PixelsHeight: Integer; virtual; abstract;
 
     { Container size, in pixels.
       This is expressed in real device pixels, using @link(Width) and @link(Height).
       Prefer using @link(UnscaledRect) instead of this. @link(UnscaledRect)
       is more natural when you use UI scaling (@link(UIScaling)),
       and it's simply equal to @name when UI scaling is not used. }
-    function Rect: TRectangle; virtual;
+    function PixelsRect: TRectangle; virtual;
+
+    function Width: Integer; deprecated 'use PixelsWidth or UnscaledWidth, depending on what you need; for backward compatibility, "Width" is equal to "PixelsWidth" now, but it will change to "UnscaledWidth" in the future';
+    function Height: Integer; deprecated 'use PixelsHeight or UnscaledHeight, depending on what you need; for backward compatibility, "Height" is equal to "PixelsHeight" now, but it will change to "UnscaledHeight" in the future';
+    function Rect: TRectangle; deprecated 'use PixelsRect or UnscaledRect, depending on what you need; for backward compatibility, "Rect" is equal to "PixelsRect" now, but it will change to "UnscaledRect" in the future';
 
     { Translucent status bar height in the container, in pixels.
       This is expressed in real device pixels.
@@ -2359,7 +2363,22 @@ begin
   Result := SaveScreenRgba(Rect);
 end;
 
+function TCastleContainer.Width: Integer;
+begin
+  Result := PixelsWidth;
+end;
+
+function TCastleContainer.Height: Integer;
+begin
+  Result := PixelsHeight;
+end;
+
 function TCastleContainer.Rect: TRectangle;
+begin
+  Result := PixelsRect;
+end;
+
+function TCastleContainer.PixelsRect: TRectangle;
 begin
   Result := Rectangle(0, 0, Width, Height);
 end;
