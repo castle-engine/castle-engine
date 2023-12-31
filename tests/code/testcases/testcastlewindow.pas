@@ -400,6 +400,12 @@ begin
 
     Window.Controls.InsertFront(Viewport);
 
+    // make sure Window and Viewport sizes are as expected
+    AssertSameValue(150, Window.Width / 2);
+    AssertSameValue(150, Window.Height / 2);
+    AssertSameValue(150, Viewport.RenderRect.Width / 2);
+    AssertSameValue(150, Viewport.RenderRect.Height / 2);
+
     TestQueryPosition(Vector2(100, 100),
       Vector3(0.00, 0.00, 0.00),
       Vector3(-0.13, -0.13, -0.98),
@@ -407,6 +413,7 @@ begin
       Vector3(-1.37, -1.37, -10.00),
       Vector2(100.00, 100.00)
     );
+
     TestQueryPosition(Vector2(Window.Width / 2, Window.Height / 2),
       Vector3(0.00, 0.00, 0.00),
       Vector3(0.00, 0.00, -1.00),
