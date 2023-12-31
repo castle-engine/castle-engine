@@ -223,7 +223,7 @@ type
     procedure OpenContextsRemove;
     { Any open context with which new context (not yet added using OpenContextsAdd!)
       should share data, or @nil if none. }
-    class function SharedContext: TGLContext;
+    function SharedContext: TGLContext;
   public
     class function OpenContextsCount: Cardinal;
 
@@ -380,11 +380,13 @@ begin
     WritelnWarning('TGLContext', 'Destroying TGLContext instance after finalization of CastleInternalContextBase unit, we no longer track currently open contexts');
 end;
 
-class function TGLContext.SharedContext: TGLContext;
+function TGLContext.SharedContext: TGLContext;
 begin
   if FOpenContexts <> nil then
-    Result := FOpenContexts.First
-  else
+  begin
+    Result := FOpenContexts.First;
+    Assert(Result <> Self, 'TGLContext.SharedContext should be used before OpenContextsAdd, so Self should not be on the list yet');
+  end else
     Result := nil;
 end;
 
