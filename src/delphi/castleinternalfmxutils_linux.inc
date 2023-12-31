@@ -153,6 +153,16 @@ begin
   Assert(EglContext.WndPtr <> nil); // XHandleFromGtkWidget already checks this and made exception if problem
 end;
 
+{ If @true, there's a reasonable chance that everything necessary
+  for GetLinuxHandle is already initialized. }
+function GetLinuxHandlePossible(const Control: TPresentedControl): Boolean;
+begin
+  Result :=
+    (Control <> nil) and
+    (Control.Root is TCustomForm) and // also checks Control.Root <> nil
+    (TCustomForm(Control.Root).Handle <> nil);
+end;
+
 function GetLinuxHandle(const Control: TPresentedControl): TLinuxWindowHandle;
 var
   Form: TCustomForm;
@@ -179,12 +189,6 @@ begin
   Result := TLinuxWindowHandle(Form.Handle);
   if Result = nil then
     raise Exception.CreateFmt('Form of %s does not have TLinuxHandle initialized yet', [Control.ClassName]);
-
-  if Result.NativeHandle = nil then
-    raise Exception.CreateFmt('Form of %s does not have GTK NativeHandle initialized yet', [Control.ClassName]);
-
-  if Result.NativeDrawingArea = nil then
-    raise Exception.CreateFmt('Form of %s does not have GTK NativeDrawingArea initialized yet', [Control.ClassName]);
 end;
 
 function GetControlRect(const Control: TPresentedControl; const Scale: Single): TVector4Integer;
@@ -213,6 +217,11 @@ begin
   WritelnLog('FMX OpenGL', 'Creating context and GLAreaGtk widget');
 
   LinuxHandle := GetLinuxHandle(Control);
+
+  if LinuxHandle.NativeHandle = nil then
+    raise Exception.CreateFmt('Form of %s does not have GTK NativeHandle initialized yet', [Control.ClassName]);
+  if LinuxHandle.NativeDrawingArea = nil then
+    raise Exception.CreateFmt('Form of %s does not have GTK NativeDrawingArea initialized yet', [Control.ClassName]);
 
   { Tests show that parent of is GtkFixed,
     this makes things easy for us to insert GLAreaGtk later. }
@@ -326,10 +335,19 @@ function TFmxOpenGLUtility.Scale: Single;
 var
   LinuxHandle: TLinuxWindowHandle;
 begin
-  // abort if HandleNeeded not yet called (or not successful)
-  if GLAreaGtk = nil then
-    Exit(1);
+  { Note that we check GetLinuxHandlePossible, not "GLAreaGtk <> nil".
+    This way we can get scale before the OpenGL context was initialized.
 
-  LinuxHandle := GetLinuxHandle(Control);
-  Result := LinuxHandle.Scale;
+    This way castlewindow_form.inc code doesn't need to care that
+    FGLUtility.Scale may change after form creation,
+    and thus PixelWidth/Height could change without causing OnResize event.
+
+    Testcase: multi_window.
+  }
+  if GetLinuxHandlePossible(Control) then
+  begin
+    LinuxHandle := GetLinuxHandle(Control);
+    Result := LinuxHandle.Scale;
+  end else
+    Result := 1;
 end;
