@@ -60,7 +60,7 @@ function TFmxOpenGLUtility.Scale: Single;
 begin
   // this may be called at units finalization, when Handle is no longer available
   if Control.Presentation <> nil then
-    Scale := (Control.Presentation as TWinPresentation).Scale
+    Result := (Control.Presentation as TWinPresentation).Scale
   else
-    Scale := 1;
+    Result := 1;
 end;
