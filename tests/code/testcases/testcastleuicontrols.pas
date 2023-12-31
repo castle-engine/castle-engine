@@ -153,16 +153,16 @@ end;
 type
   TTestContainer = class(TCastleContainer)
   public
-    function Width: Integer; override;
-    function Height: Integer; override;
+    function PixelsWidth: Integer; override;
+    function PixelsHeight: Integer; override;
   end;
 
-function TTestContainer.Width: Integer;
+function TTestContainer.PixelsWidth: Integer;
 begin
   Result := 100;
 end;
 
-function TTestContainer.Height: Integer;
+function TTestContainer.PixelsHeight: Integer;
 begin
   Result := 100;
 end;
