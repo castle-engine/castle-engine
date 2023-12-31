@@ -702,7 +702,7 @@ begin
     So for code, it seems as if user is pressing and releasing the key.
     We cannot easily workaround it on CGE side.
     To track keys being held, we advise to check Pressed[keyXxx] in Update
-    methods, instead of relying on KeyDown/KeyUp. } }
+    methods, instead of relying on KeyDown/KeyUp. }
   {$if defined(DELPHI) and defined(LINUX)}
   if (Key = 0) and (KeyChar <> #0) and (CastleKey = keyNone) then
     CastleKey := SimpleWideCharToKey(KeyChar);
