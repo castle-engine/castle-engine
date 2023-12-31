@@ -382,7 +382,7 @@ end;
 
 function TGLContext.SharedContext: TGLContext;
 begin
-  if FOpenContexts <> nil then
+  if OpenContextsCount >= 1 then
   begin
     Result := FOpenContexts.First;
     Assert(Result <> Self, 'TGLContext.SharedContext should be used before OpenContextsAdd, so Self should not be on the list yet');
