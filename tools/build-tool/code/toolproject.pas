@@ -1636,6 +1636,7 @@ end;
 procedure TCastleProject.DoOutput(const OutputKey: String);
 begin
   case OutputKey of
+    'executable-name': Writeln(ExecutableName);
     'version': Writeln(Manifest.Version.DisplayValue);
     'version-code': Writeln(Manifest.Version.Code);
     else raise Exception.CreateFmt('Unsupported output key: "%s"', [OutputKey]);
