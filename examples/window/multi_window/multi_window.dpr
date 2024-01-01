@@ -27,7 +27,7 @@ program multi_window;
 
 uses SysUtils, Classes,
   CastleWindow, CastleUtils, CastleGLUtils, CastleKeysMouse, CastleVectors,
-  CastleStringUtils, CastleColors, CastleControls, CastleUIControls;
+  CastleStringUtils, CastleColors, CastleControls, CastleUIControls, CastleLog;
 
 type
   TWindowView = class(TCastleUserInterface)
@@ -113,6 +113,8 @@ var
   Windows: array [0..4] of TCastleWindow;
   WindowView: TWindowView;
 begin
+  InitializeLog;
+
   for i := 0 to High(Windows) do
   begin
     Windows[I] := TCastleWindow.Create(Application);
