@@ -820,10 +820,19 @@ procedure TCastleWindow.UpdateFullScreenForm;
 begin
   if FullScreen then
   begin
-    Form.BorderStyle := BorderNone;
-    {$ifdef FPC} // TODO: FMX
-    Form.WindowState := wsFullScreen;
-    {$endif}
+    { For Lazarus (LCL with FPC):
+      - Setting Form.WindowState to wsFullScreen is key to make form fullscreen.
+
+      For FMX (in Delphi):
+      - Setting Form.FullScreen := true (done later) it key.
+        For both Linux and Windows.
+      - Setting Form.BorderStyle to BorderNone actually breaks it on Linux,
+        making form non-full-screen (but borderless).
+        For Windows, it is not a problem.
+        Seems FMXLinux bug? Or at least inconsistency with FMX on Windows.
+    }
+    Form.BorderStyle := {$ifdef FPC} BorderNone {$else} TFmxFormBorderStyle.Sizeable {$endif};
+    Form.WindowState := {$ifdef FPC} wsFullScreen {$else} TWindowState.wsNormal {$endif};
   end else
   begin
     if ResizeAllowed <> raAllowed then
@@ -832,6 +841,10 @@ begin
       Form.BorderStyle := {$ifdef FPC} bsSizeable {$else} TFmxFormBorderStyle.Sizeable {$endif};
     Form.WindowState := {$ifdef FPC} wsNormal {$else} TWindowState.wsNormal {$endif};
   end;
+
+  {$ifdef DELPHI}
+  Form.FullScreen := FullScreen;
+  {$endif}
 end;
 
 {$ifdef FPC}
