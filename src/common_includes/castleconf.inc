@@ -217,8 +217,10 @@
   https://gitlab.com/freepascal.org/fpc/source/-/commit/693491048bf2c6f9122a0d8b044ad0e55382354d }
 {$ifdef VER3_0} {$define GENERICS_CONSTREF} {$endif}
 {$ifdef VER3_2} {$define GENERICS_CONSTREF} {$endif}
-{$if defined(LINUX) and defined(CPUARM) and defined(VER3_2_3)}
-  // On 32-bit Raspberry Pi, FPC 3.2.3 (fixes_3_2 branch, as of 2023-12-23) it no longer uses "constref".
+{$if defined(VER3_2_3)}
+  { FPC 3.2.3 (fixes_3_2 branch, as of 2023-12-23) no longer uses "constref".
+    Confirmed on Linux/Arm32 and Linux/Arm64(Aarch64)
+    (Raspberry Pi, 32 and 64, with FPC compiled from FPC upstream sources). }
   {$undef GENERICS_CONSTREF}
 {$endif}
 
