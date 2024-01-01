@@ -265,6 +265,7 @@ begin
     with Windows from CASTLE_WINDOW_FORM.
     Though Windows usage through TCastleControl shows that we need to scale
     mouse coordinates and sizes by FGLUtility.Scale.
+    See also src\window\castlewindow_form_fmx_scaling.md .
 
     On Linux, both usage here (from CASTLE_WINDOW_FORM)
     and in TCastleControl may actually show non-1.0 scaling (configure scaling

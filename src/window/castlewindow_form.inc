@@ -649,6 +649,9 @@ procedure TCastleWindow.OpenBackend;
     if Form.Handle <> nil then
       Result := Round(Result / TLinuxWindowHandle(Form.Handle).Scale);
     {$endif}
+
+    { Note: We tried, but failed, to cope with FMX (Delphi) scaling also on Windows.
+      See castlewindow_form_fmx_scaling.md }
   end;
 
 begin
@@ -1460,30 +1463,9 @@ end;
 
 function TCastleApplication.ScreenWidth: integer;
 begin
-  { Note about FMX: It seems that
-
-    - on Windows, FMX actually scales the Screen.Width by Windows scaling
-      (same as used by FGLUtiliy.Scale).
-
-    - on Linux, FMX reports unscaled Screen.Width. It is real screen size
-      in pixels, with cut off margins for GNOME 3 top bar / sidebar.
-
-    Code below adjusts better to FMX on Linux behavior.
-    So
-
-    - We assume that Screen.Width is in real device pixels.
-    - Our FormSizeRequestPrecisely on FMXLinux also accounts to make sure
-      TCastleWindow.Width sets the requested size in real device pixels,
-      so e.g. setting size like "Window.Width := Screen.Width * 0.75" makes sense.
-
-    TODO:
-    On FMX on Windows, "Window.Width := Screen.Width * 0.75" also works,
-    but because 2 bugs "cancel each other out": Screen.Width is scaled,
-    but also our FormSizeRequestPrecisely lets to set scaled value.
-    So "Window.Width := Screen.Width * 0.75" works as you expect,
-    but e.g. "Window.Width := 200" (testcase: multi_window) is actually wrong,
-    the resulting window will not have requested size.
-  }
+  { TODO: On FMX (Delphi) and Windows, this doesn't return correct size in pixels.
+    We tried, but failed, to fix it:
+    See castlewindow_form_fmx_scaling.md }
 
   Result := Round(Screen.Width);  // Round for FMX
 end;
