@@ -30,7 +30,38 @@ void main()
   printf("EGLNativePixmapType size: %zu\n", sizeof(EGLNativePixmapType));
   printf("EGLNativeWindowType size: %zu\n", sizeof(EGLNativeWindowType));
 
-  // X types
+  /*
+    X types.
+    These are pointer-sized, in practice (32 on 32-bit systems, 64 on 64-bit).
+
+    Note: Ignore a confusing statement from X.h header, that says:
+
+      """
+      * _XSERVER64 must ONLY be defined when compiling X server sources on
+      * systems where unsigned long is not 32 bits, must NOT be used in
+      * client or library code.
+      """
+
+    and does
+
+      """
+      #ifndef _XSERVER64
+      ...
+      typedef unsigned long XID;
+      #else
+      ...
+      typedef CARD32 XID;
+      """
+
+    So it seems that X developers wanted XID to be always 32-bit,
+    even on 64-bit systems... But actually _XSERVER64 is not defined, ever.
+
+    As this program shows in fact, on x86_64 systems,
+    - "unsigned long" is 64-bit
+    - and X.h *does not* define _XSERVER64
+    - and thus XID is also 64-bit
+  */
+  printf("XID size: %zu\n", sizeof(XID));
   printf("Pixmap size: %zu\n", sizeof(Pixmap));
   printf("Window size: %zu\n", sizeof(Window));
 }

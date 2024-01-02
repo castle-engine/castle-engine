@@ -12,6 +12,7 @@ EGLint size: 4
 EGLNativeDisplayType size: 8
 EGLNativePixmapType size: 8
 EGLNativeWindowType size: 8
+XID size: 8
 Pixmap size: 8
 Window size: 8
 ```
