@@ -97,7 +97,8 @@ uses
   TestCastleFileFilters,
   TestCastleWindow,
   TestCastleOpeningAndRendering3D,
-  TestCastleWindowOpen;
+  TestCastleWindowOpen,
+  TestCastleInternalEgl;
 
 var
   ConsoleTester: TCastleConsoleTester;

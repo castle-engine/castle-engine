@@ -81,6 +81,7 @@ type
     i.e. X headers declare them as 32-bit on 32-bit CPUs,
     and 64-bit on 64-bit CPUs.
     See tests/egl_sizes_test .
+    See TTestCastleInternalEgl.TestEglTypeSizes .
 
     This is nice, it makes things safe -- at means that at binary
     (ABI) level, EGL calls accept the same sizes for these arguments,
