@@ -70,15 +70,53 @@ type
   EGLConfig = pointer;
 
 {$if defined(UNIX_WITH_X)}
+  { Xlib types that are needed by EGL.
+    Match EGL/eglplatform.h from Khronos:
+
+      typedef Display *EGLNativeDisplayType;
+      typedef Pixmap   EGLNativePixmapType;
+      typedef Window   EGLNativeWindowType;
+
+    Note that TWindow and TPixmap sizes match also Pointer type,
+    i.e. X headers declare them as 32-bit on 32-bit CPUs,
+    and 64-bit on 64-bit CPUs.
+    See tests/egl_sizes_test .
+
+    This is nice, it makes things safe -- at means that at binary
+    (ABI) level, EGL calls accept the same sizes for these arguments,
+    whether they are compiled to be aliases to X types or to be aliases to
+    just pointers.
+  }
   EGLNativeDisplayType = PDisplay;
   EGLNativeWindowType = TWindow;
   EGLNativePixmapType = TPixmap;
 {$elseif defined(MSWINDOWS)}
+  { WinAPI types that are needed by EGL.
+    Match EGL/eglplatform.h from Khronos:
+
+      typedef HDC     EGLNativeDisplayType;
+      typedef HBITMAP EGLNativePixmapType;
+      typedef HWND    EGLNativeWindowType;
+
+    Note that all these native Windows handles are aliases to System.THandle,
+    which is 32-bit on 32-bit CPUs, and 64-bit on 64-bit CPUs.
+    This is nice, it makes things safe -- at means that at binary
+    (ABI) level, EGL calls accept the same sizes for these arguments,
+    whether they are compiled to be aliases to WinAPI types or to be aliases to
+    just pointers.
+  }
   EGLNativeDisplayType = HDC;
   EGLNativeWindowType = HWND;
   EGLNativePixmapType = HBITMAP;
 {$else}
-  { Cross-platform generic definition of EGL types. }
+  { Cross-platform generic definition of EGL types.
+    Match EGL/eglplatform.h from Khronos:
+
+      #if defined(EGL_NO_PLATFORM_SPECIFIC_TYPES)
+      typedef void *EGLNativeDisplayType;
+      typedef void *EGLNativePixmapType;
+      typedef void *EGLNativeWindowType;
+  }
   EGLNativeDisplayType = Pointer;
   EGLNativeWindowType = Pointer;
   EGLNativePixmapType = Pointer;
