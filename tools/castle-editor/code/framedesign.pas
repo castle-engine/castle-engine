@@ -726,7 +726,7 @@ const
 function ParentRenderRect(const UI: TCastleUserInterface): TFloatRectangle;
 begin
   if UI.Parent = nil then
-    Result := FloatRectangle(UI.Container.Rect)
+    Result := FloatRectangle(UI.Container.PixelsRect)
   else
     Result := UI.Parent.RenderRect;
 end;
@@ -1473,9 +1473,9 @@ procedure TDesignFrame.TDesignerLayer.Render;
       Rect.Anchor(hpLeft, Max(0, UIRect.Left));
       Rect.Anchor(vpBottom, UIRect.Top);
 
-      if Rect.RenderRect.Top > Rect.Container.Height then
+      if Rect.RenderRect.Top > Rect.Container.PixelsHeight then
         // put Rect inside UI, otherwise it would be offscreen
-        Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
+        Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.PixelsHeight, UIRect.Top));
     end else
       Rect.Exists := false;
   end;
