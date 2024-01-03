@@ -320,7 +320,6 @@ procedure TPlayerHUD.Render;
     end;
   end;
 
-
 const
   InventoryImageSize = 128;
 var
@@ -336,7 +335,7 @@ begin
   { Write text in the upper-left corner of the screen.
     The (0, 0) position is always bottom-left corner,
     (ContainerWidth, ContainerHeight) position is top-right corner.
-    You can take font measurements by UIFont.Height or UIFont.TextWidth
+    You can take font measurements by FallbackFont.Height or FallbackFont.TextWidth
     to adjust initial position as needed. }
   Y := Y - (FallbackFont.Height + ControlsMargin);
   FallbackFont.Print(ControlsMargin, Y, Yellow,
@@ -406,7 +405,6 @@ end;
 
 var
   PlayerHUD: TPlayerHUD;
-
 
 { Create player. Player implements:
   - inventory,
