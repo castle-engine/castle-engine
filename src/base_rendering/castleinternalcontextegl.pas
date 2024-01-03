@@ -27,16 +27,32 @@ type
   { Initializes OpenGL or OpenGLES context using cross-platform EGL. }
   TGLContextEgl = class(TGLContext)
   private
-    Context: EGLContext;
-    Surface: EGLSurface;
-    Display: EGLDisplay;
-    EGLMajor, EGLMinor: EGLint;
+    class var
+      Display: EGLDisplay;
+      EGLMajor, EGLMinor: EGLint;
+    var
+      Context: EGLContext;
+      Surface: EGLSurface;
     { Call eglCreateContext, hiding some differences between
       OpenGLES and OpenGL needs. }
     function CallEglCreateContext(Config: EGLConfig;
       ShareContextEgl: EGLContext): EGLContext;
     { Check is EGL version at least as specified. }
     function VersionAtLeast(const Major, Minor: EGLint): Boolean;
+
+    { Initialize EGL library, Display, and version (EGLMajor, EGLMinor).
+      Does nothing if already initialized.
+
+      The Display is a class variable, so it's shared between all contexts.
+      This is important, as we cannot terminate eglTerminate(Display)
+      just in any FinalizeCore.
+      eglTerminate(Display) it would release Display of all contexts.
+      We need to call eglTerminate(Display) only when finalizing the last context. }
+    procedure ClassInitialize;
+
+    { Finalize Display.
+      Does nothing if already finalized. }
+    procedure ClassFinalize;
   protected
     procedure InitializeCore(const Requirements: TGLContextRequirements); override;
     procedure FinalizeCore; override;
@@ -165,6 +181,39 @@ end;
 
 {$endif}
 
+procedure TGLContextEgl.ClassInitialize;
+begin
+  if Display = EGL_NO_DISPLAY { nil } then
+  begin
+    if not EglAvailable then
+      raise Exception.Create('Could not load EGL library, required to initialize context');
+
+    Display := eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if Display = EGL_NO_DISPLAY then
+      { This does not set eglGetError, so we don't use EGLError in message below. }
+      raise EGLContextNotPossible.Create('EGL: Cannot get display');
+
+    if eglInitialize(Display, @EGLMajor, @EGLMinor) = EGL_FALSE then
+      raise EGLContextNotPossible.Create('EGL: Cannot initialize: ' + EGLError);
+    WritelnLog('EGL initialized (version %d.%d).', [EGLMajor, EGLMinor]);
+  end;
+end;
+
+procedure TGLContextEgl.ClassFinalize;
+begin
+  if Display <> EGL_NO_DISPLAY { nil } then
+  begin
+    { Release the current context, to allow eglTerminate to release resources.
+      This allows on Android to reopen OpenGL context from the application
+      (like android_demo ReopenContextButton). }
+    if eglMakeCurrent(Display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) = EGL_FALSE then
+      WritelnWarning('EGL', 'Cannot release current context: ' + EGLError);
+    if eglTerminate(Display) = EGL_FALSE then
+      WritelnWarning('EGL', 'Cannot terminate display connection: ' + EGLError);
+    Display := EGL_NO_DISPLAY;
+  end;
+end;
+
 procedure TGLContextEgl.InitializeCore(const Requirements: TGLContextRequirements);
 var
   Config: EGLConfig;
@@ -172,17 +221,7 @@ var
   NumConfig: EGLint;
   ConfigAttribs: TInt32List;
 begin
-  if not EglAvailable then
-    raise Exception.Create('Could not load EGL library, required to initialize context');
-
-  Display := eglGetDisplay(EGL_DEFAULT_DISPLAY);
-  if Display = EGL_NO_DISPLAY then
-    { This does not set eglGetError, so we don't use EGLError in message below. }
-    raise EGLContextNotPossible.Create('EGL: Cannot get display');
-
-  if eglInitialize(Display, @EGLMajor, @EGLMinor) = EGL_FALSE then
-    raise EGLContextNotPossible.Create('EGL: Cannot initialize: ' + EGLError);
-  WritelnLog('EGL initialized (version %d.%d).', [EGLMajor, EGLMinor]);
+  ClassInitialize;
 
   ConfigAttribs := TInt32List.Create;
   try
@@ -225,26 +264,17 @@ begin
     Surface := EGL_NO_SURFACE;
   end;
 
-  if Display <> EGL_NO_DISPLAY { nil } then
-  begin
-    { Release the current context, to allow eglTerminate to release resources.
-      This allows on Android to reopen OpenGL context from the application
-      (like android_demo ReopenContextButton). }
-    if eglMakeCurrent(Display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) = EGL_FALSE then
-      WritelnWarning('EGL', 'Cannot release current context: ' + EGLError);
-    if eglTerminate(Display) = EGL_FALSE then
-      WritelnWarning('EGL', 'Cannot terminate display connection: ' + EGLError);
-    Display := EGL_NO_DISPLAY;
-  end;
+  if InitializedContextsCount = 1 then // we are the last context
+    ClassFinalize;
 end;
 
-procedure TGLContextEgl.MakeCurrent;
+procedure TGLContextEgl.MakeCurrentCore;
 begin
   if eglMakeCurrent(Display, Surface, Surface, Context) = EGL_FALSE then
     WritelnWarning('EGL', 'Cannot make context current: ' + EGLError);
 end;
 
-procedure TGLContextEgl.SwapBuffers;
+procedure TGLContextEgl.SwapBuffersCore;
 begin
   if eglSwapBuffers(Display, Surface) = EGL_FALSE then
     WritelnWarning('EGL', 'Cannot swap buffers (this is normal if app is no longer active): ' + EGLError);
