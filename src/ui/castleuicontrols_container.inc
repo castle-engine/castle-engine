@@ -1909,17 +1909,17 @@ begin
 
   { draw controls in "to" order, back to front }
   for I := 0 to Controls.Count - 1 do
-    Controls[I].InternalRecursiveRender(Rect);
+    Controls[I].InternalRecursiveRender(PixelsRect);
 
   if FTooltipParent <> nil then
   begin
-    RenderControlPrepare(Rect);
+    RenderControlPrepare(PixelsRect);
     {$warnings off} // using deprecated to keep it working, also to enable TCastleUserInterfaceFont to display tooltip
     FTooltipParent.TooltipRender(FTooltipPosition);
     {$warnings on}
   end;
 
-  RenderControlPrepare(Rect);
+  RenderControlPrepare(PixelsRect);
   if Assigned(OnRender) then OnRender(Self);
 end;
 
@@ -2037,7 +2037,7 @@ end;
 
 function TCastleContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
 begin
-  Result := MouseLookDelta(Event, FloatRectangle(Rect));
+  Result := MouseLookDelta(Event, FloatRectangle(PixelsRect));
 end;
 
 function TCastleContainer.MouseLookDelta(const Event: TInputMotion;
@@ -2272,7 +2272,7 @@ begin
   else
     FUIScale := InternalCalculateUIScale(
       UIScaling, UIReferenceWidth, UIReferenceHeight, UIExplicitScale,
-      Dpi, Width, Height);
+      Dpi, PixelsWidth, PixelsHeight);
 
   { Note that we don't cause TCastleUserInterface.UIScaleChanged calls now.
     They are done before BeforeRender, this way culled UI controls
@@ -2284,17 +2284,17 @@ end;
 
 function TCastleContainer.UnscaledWidth: Single;
 begin
-  Result := Width / FUIScale;
+  Result := PixelsWidth / FUIScale;
 end;
 
 function TCastleContainer.UnscaledHeight: Single;
 begin
-  Result := Height / FUIScale;
+  Result := PixelsHeight / FUIScale;
 end;
 
 function TCastleContainer.UnscaledRect: TFloatRectangle;
 begin
-  Result := FloatRectangle(Rect);
+  Result := FloatRectangle(PixelsRect);
   if not Result.IsEmpty then
   begin
     Result.Width  := Result.Width  / FUIScale;
@@ -2328,7 +2328,7 @@ end;
 
 function TCastleContainer.SaveScreen: TRGBImage;
 begin
-  Result := SaveScreen(Rect);
+  Result := SaveScreen(PixelsRect);
 end;
 
 function TCastleContainer.SaveScreen(const SaveRect: TFloatRectangle): TRGBImage;
@@ -2360,7 +2360,7 @@ end;
 
 function TCastleContainer.SaveScreenRgba: TRGBAlphaImage;
 begin
-  Result := SaveScreenRgba(Rect);
+  Result := SaveScreenRgba(PixelsRect);
 end;
 
 function TCastleContainer.Width: Integer;
@@ -2380,7 +2380,7 @@ end;
 
 function TCastleContainer.PixelsRect: TRectangle;
 begin
-  Result := Rectangle(0, 0, Width, Height);
+  Result := Rectangle(0, 0, PixelsWidth, PixelsHeight);
 end;
 
 function TCastleContainer.ScaledStatusBarHeight: Cardinal;
@@ -2410,7 +2410,7 @@ begin
     Some methods, like TCastleContainer.UpdateFocusAndMouseCursor,
     use this to calculate "focused" CGE control.
   }
-  Result := Vector2(Width / 2, Height / 2);
+  Result := Vector2(PixelsWidth / 2, PixelsHeight / 2);
 end;
 
 procedure TCastleContainer.SetMousePosition(const Value: TVector2);

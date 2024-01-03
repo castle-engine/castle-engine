@@ -1872,7 +1872,7 @@ begin
   if Container = nil then
     Result := FullSize
   else
-    Result := RenderRect.Round.Equals(Container.Rect);
+    Result := RenderRect.Round.Equals(Container.PixelsRect);
 end;
 
 function TCastleViewport.GetNavigation: TCastleNavigation;

@@ -139,7 +139,6 @@ begin
 
   { setup Window, Window.Open }
   Window.OnRender := @Render;
-  Window.OnResize := @Resize2D;
   Window.DoubleBuffer := true;
   Window.OnCloseQuery := @CloseQueryNotAllowed;
   Window.ParseParameters;

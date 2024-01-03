@@ -1604,21 +1604,23 @@ end;
 function TCastleUserInterface.ContainerWidth: Cardinal;
 begin
   if ContainerSizeKnown then
-    Result := Container.Width else
+    Result := Container.PixelsWidth
+  else
     Result := 0;
 end;
 
 function TCastleUserInterface.ContainerHeight: Cardinal;
 begin
   if ContainerSizeKnown then
-    Result := Container.Height else
+    Result := Container.PixelsHeight
+  else
     Result := 0;
 end;
 
 function TCastleUserInterface.ContainerRect: TRectangle;
 begin
   if ContainerSizeKnown then
-    Result := Container.Rect
+    Result := Container.PixelsRect
   else
     Result := TRectangle.Empty;
 end;
@@ -1915,8 +1917,8 @@ var
 begin
   if Container <> nil then
   begin
-    NewContainerWidth := Container.Width;
-    NewContainerHeight := Container.Height;
+    NewContainerWidth := Container.PixelsWidth;
+    NewContainerHeight := Container.PixelsHeight;
   end else
   begin
     NewContainerWidth := 0;

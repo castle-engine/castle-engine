@@ -2559,17 +2559,6 @@ type
   Automatically created / destroyed by CastleWindow unit. }
 function Application: TCastleApplication;
 
-{ A simple TCastleWindow.OnResize callback implementation, that sets 2D projection.
-  You can use it like @code(Window.OnResize := Resize2D;) or just by calling
-  it directly from your OnResize callback.
-
-  It does
-  @longCode(#
-    RenderContext.Viewport := Window.Rect;
-    OrthoProjection(0, Window.Width, 0, Window.Height);
-  #) }
-procedure Resize2D(Container: TCastleContainer);
-
 { Describe given key. Key is given as combination of character (UTF-8 character as String, may be '')
   and Key code (may be keyNone), and additional required @code(Modifiers)
   (although some modifiers may be already implied by KeyString, e.g. when it is CtrlA).
@@ -4881,12 +4870,6 @@ end;
 {$endif}
 
 { global --------------------------------------------------------------------- }
-
-procedure Resize2D(Container: TCastleContainer);
-begin
-  RenderContext.Viewport := Container.Rect;
-  OrthoProjection(FloatRectangle(Container.Rect));
-end;
 
 function KeyToString(const KeyString: String; const Key: TKey;
   const Modifiers: TModifierKeys; out S: String): boolean;

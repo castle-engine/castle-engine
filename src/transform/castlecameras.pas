@@ -2519,7 +2519,7 @@ var
       //Result := XYRotation(0.5); // this matches the rotation speed of ntExamine
       { Do one turn around Y axis by dragging from one viewport side to another
         (so it does not depend on viewport size)  }
-      V.Rotations := XYRotation(2 * Pi * MoveDivConst / Container.Width);
+      V.Rotations := XYRotation(2 * Pi * MoveDivConst / Container.PixelsWidth);
     end else
     begin
       { When the cursor is close to the window edge, make rotation around Z axis.
@@ -2529,8 +2529,8 @@ var
       AvgX := (Event.Position[0] + Event.OldPosition[0]) / 2;
       AvgY := (Event.Position[1] + Event.OldPosition[1]) / 2;
       { let physical size affect scaling speed }
-      W2 := Container.Width / 2;
-      H2 := Container.Height / 2;
+      W2 := Container.PixelsWidth / 2;
+      H2 := Container.PixelsHeight / 2;
       { calculate rotation around Z }
       ZRotAngle :=
         ArcTan2((Event.OldPosition[1] - H2) / H2, (Event.OldPosition[0] - W2) / W2) -
