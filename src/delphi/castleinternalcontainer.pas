@@ -78,8 +78,8 @@ type
 
     { Call these methods from final components that wrap TCastleContainerEasy,
       like TCastleControl, TCastleWindow. }
-    procedure CreateContext;
-    procedure DestroyContext;
+    procedure InitializeContext;
+    procedure FinalizeContext;
     procedure DoRender;
 
     class var
@@ -218,7 +218,7 @@ begin
   Result := SaveScreen_NoFlush(Rect, SaveScreenBuffer);
 end;
 
-procedure TCastleContainerEasy.CreateContext;
+procedure TCastleContainerEasy.InitializeContext;
 begin
   if not FGLInitialized then
   begin
@@ -226,7 +226,7 @@ begin
 
     AdjustContext(FPlatformContext);
 
-    FPlatformContext.ContextCreate(FRequirements);
+    FPlatformContext.Initialize(FRequirements);
 
     FEffectiveDoubleBuffer := Requirements.DoubleBuffer;
 
@@ -237,7 +237,7 @@ begin
     ApplicationProperties._GLContextEarlyOpen;
 
     // Note that this will cause ApplicationProperties._GLContextOpen if necessary
-    EventOpen(TGLContext.OpenContextsCount);
+    EventOpen(TGLContext.InitializedContextsCount);
     EventResize;
     Invalidate;
 
@@ -254,15 +254,15 @@ procedure TCastleContainerEasy.AdjustContext(const PlatformContext: TGLContext);
 begin
 end;
 
-procedure TCastleContainerEasy.DestroyContext;
+procedure TCastleContainerEasy.FinalizeContext;
 begin
   if FGLInitialized then
   begin
-    EventClose(TGLContext.OpenContextsCount);
+    EventClose(TGLContext.InitializedContextsCount);
     FGLInitialized := false;
-    FPlatformContext.ContextDestroy;
+    FPlatformContext.Finalize;
 
-    if UpdatingEnabled and (TGLContext.OpenContextsCount = 0) then
+    if UpdatingEnabled and (TGLContext.InitializedContextsCount = 0) then
     begin
       UpdatingEnabled := false;
       UpdatingDisable;

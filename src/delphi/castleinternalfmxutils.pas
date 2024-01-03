@@ -97,7 +97,7 @@ type
 
       - On some platforms, like Windows,
         creating a handle should provoke ContextAdjustEarly
-        and TGLContext.ContextCreate.
+        and TGLContext.Initialize.
         The caller should make it happen: see
         TPresentationProxyFactory.Current.Register and our presentation classes.
         This works nicely when FMX platform defines

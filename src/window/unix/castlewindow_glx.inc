@@ -49,21 +49,21 @@ begin
     must define Application.XDisplay / XScreen. }
   Context.XDisplay := Application.XDisplay;
   Context.XScreen := Application.XScreen;
-  Context.ContextCreateEarly(FRequirements);
+  Context.InitializeEarly(FRequirements);
   XVisual := Context.XVisual;
 end;
 
 procedure TCastleWindow.ContextCreate;
 begin
   Assert(Context <> nil);
-  Context.ContextCreate(FRequirements);
+  Context.Initialize(FRequirements);
 end;
 
 procedure TCastleWindow.ContextDestroy;
 begin
   if Context <> nil then
   begin
-    Context.ContextDestroy;
+    Context.Finalize;
     // FreeAndNil(Context); // leave it for ContextDestroyLate
   end;
 end;
@@ -72,7 +72,7 @@ procedure TCastleWindow.ContextDestroyLate;
 begin
   if Context <> nil then
   begin
-    Context.ContextDestroyLate;
+    Context.FinalizeLate;
     FreeAndNil(Context);
   end;
 end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2023 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -44,31 +44,32 @@ type
     UseFBConfig: boolean;
     FBConfig: TGLXFBConfig;
     procedure GlxAvailableCheck;
+  protected
+    procedure InitializeCore(const Requirements: TGLContextRequirements); override;
+    procedure FinalizeCore; override;
+    procedure MakeCurrentCore; override;
+    procedure SwapBuffersCore; override;
   public
-    { Set this before using ContextCreate and other methods.
+    { Set this before using Initialize and other methods.
 
       Note: screen of a window can change at runtime.
-      But this class doesn't use XScreen after context creation. }
+      But this class doesn't use XScreen after context initialization. }
     XDisplay: PDisplay;
     XScreen: Integer;
 
-    // Initialized by ContextCreateEarly, freed by ContextDestroyLate
+    // Initialized by InitializeEarly, freed by FinalizeLate
     XVisual: PXVisualInfo;
 
     // Set before SwapBuffer, MakeCurrent
-    // TODO: simplify, require it before ContextCreate
+    // TODO: simplify, require it before Initialize
     WindowXID: TWindow;
 
-    { Call before creating a window (since window creation needs XVisual)
+    { Call before creating an X window (since window creation needs XVisual)
       to create XVisual. }
-    procedure ContextCreateEarly(const Requirements: TGLContextRequirements);
-    { Call after window is destroyed to safely free XVisual.}
-    procedure ContextDestroyLate;
+    procedure InitializeEarly(const Requirements: TGLContextRequirements);
 
-    procedure ContextCreate(const Requirements: TGLContextRequirements); override;
-    procedure ContextDestroy; override;
-    procedure MakeCurrent; override;
-    procedure SwapBuffers; override;
+    { Call after window is destroyed to safely free XVisual.}
+    procedure FinalizeLate;
   end;
 
 implementation
@@ -102,7 +103,7 @@ begin
   end;
 end;
 
-procedure TGLContextGlx.ContextCreateEarly(const Requirements: TGLContextRequirements);
+procedure TGLContextGlx.InitializeEarly(const Requirements: TGLContextRequirements);
 var
   Attribs: TInt32List;
   FBConfigs: PGLXFBConfig;
@@ -177,7 +178,7 @@ begin
   { XScreen should always be XVisual.screen now }
 end;
 
-procedure TGLContextGlx.ContextCreate(const Requirements: TGLContextRequirements);
+procedure TGLContextGlx.InitializeCore(const Requirements: TGLContextRequirements);
 var
   ShareContextGlx: GLXContext;
 
@@ -239,30 +240,26 @@ begin
        TGLFeatures.Debug then
     begin
       if not GLX_ARB_create_context_profile(XDisplay, XScreen) then
-        raise EGLContextNotPossible.Create('GLX_ARB_create_context_profile not available, cannot OpenGL context with "core" profile or debug bit');
+        raise EGLContextNotPossible.Create('GLX_ARB_create_context_profile not available, cannot initialize context with "core" profile or debug bit');
       Context := UseCreateContextAttribsARB;
     end else
       Context := glXCreateNewContext(XDisplay, FBConfig, GLX_RGBA_TYPE, ShareContextGlx, true);
   end else
     Context := glXCreateContext(XDisplay, XVisual, ShareContextGlx, true);
 
-  Check(Context <> nil, 'Could not create OpenGL rendering context');
-
-  OpenContextsAdd;
+  Check(Context <> nil, 'Could not initialize rendering context');
 end;
 
-procedure TGLContextGlx.ContextDestroy;
+procedure TGLContextGlx.FinalizeCore;
 begin
   if Context <> nil then
   begin
-    OpenContextsRemove;
-
     glXDestroyContext(XDisplay, Context);
     Context := nil;
   end;
 end;
 
-procedure TGLContextGlx.ContextDestroyLate;
+procedure TGLContextGlx.FinalizeLate;
 begin
   if XVisual <> nil then
   begin
@@ -271,12 +268,12 @@ begin
   end;
 end;
 
-procedure TGLContextGlx.MakeCurrent;
+procedure TGLContextGlx.MakeCurrentCore;
 begin
   Check( glXMakeCurrent(XDisplay, WindowXID, Context), 'glXMakeCurrent');
 end;
 
-procedure TGLContextGlx.SwapBuffers;
+procedure TGLContextGlx.SwapBuffersCore;
 begin
   glXSwapBuffers(XDisplay, WindowXID);
 end;

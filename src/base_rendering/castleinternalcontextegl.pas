@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2023 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,14 +37,14 @@ type
       ShareContextEgl: EGLContext): EGLContext;
     { Check is EGL version at least as specified. }
     function VersionAtLeast(const Major, Minor: EGLint): Boolean;
+  protected
+    procedure InitializeCore(const Requirements: TGLContextRequirements); override;
+    procedure FinalizeCore; override;
+    procedure MakeCurrentCore; override;
+    procedure SwapBuffersCore; override;
   public
-    // Set this before using ContextCreate and other methods
+    // Set this before using Initialize and other methods
     WndPtr: EGLNativeWindowType;
-
-    procedure ContextCreate(const Requirements: TGLContextRequirements); override;
-    procedure ContextDestroy; override;
-    procedure MakeCurrent; override;
-    procedure SwapBuffers; override;
 
     { Query context size, returns 0 0 if cannot query for some reason. }
     procedure QuerySize(out AWidth, AHeight: EGLint);
@@ -165,7 +165,7 @@ end;
 
 {$endif}
 
-procedure TGLContextEgl.ContextCreate(const Requirements: TGLContextRequirements);
+procedure TGLContextEgl.InitializeCore(const Requirements: TGLContextRequirements);
 var
   Config: EGLConfig;
   ShareContextEgl: EGLContext;
@@ -214,14 +214,10 @@ begin
   Surface := eglCreateWindowSurface(Display, Config, WndPtr, nil);
   if Surface = EGL_NO_SURFACE then
     raise EGLContextNotPossible.Create('EGL: Cannot create surface: ' + EGLError);
-
-  OpenContextsAdd;
 end;
 
-procedure TGLContextEgl.ContextDestroy;
+procedure TGLContextEgl.FinalizeCore;
 begin
-  OpenContextsRemove;
-
   if Surface <> EGL_NO_SURFACE { nil } then
   begin
     if eglDestroySurface(Display, Surface) = EGL_FALSE then

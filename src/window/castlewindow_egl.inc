@@ -37,14 +37,14 @@ procedure TCastleWindow.ContextCreate(WndPtr: EGLNativeWindowType);
 begin
   Context := TGLContextEgl.Create;
   Context.WndPtr := WndPtr;
-  Context.ContextCreate(FRequirements);
+  Context.Initialize(FRequirements);
 end;
 
 procedure TCastleWindow.ContextDestroy;
 begin
   if Context <> nil then
   begin
-    Context.ContextDestroy;
+    Context.Finalize;
     FreeAndNil(Context);
   end;
 end;

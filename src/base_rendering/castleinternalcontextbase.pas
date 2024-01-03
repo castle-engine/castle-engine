@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2023 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -209,41 +209,84 @@ type
     type
       TGLContextList = {$ifdef FPC}specialize{$endif} TObjectList<TGLContext>;
     class var
-      { TGLContext instances between ContextCreate and ContextDestroy.
+      { TGLContext instances between @link(Initialize) (without exception) and
+        @link(Finalize).
 
-        We use this to share OpenGL contexts,
-        as all OpenGL contexts in our engine must share OpenGL resources
-        (it makes caching easier, e.g. TCastleScene and textures cache
-        is not per-context but just one global cache).
+        We use this to share rendering contexts,
+        as all rendering contexts in our engine must share rendering resources,
+        like OpenGL textures, shaders, VBOs.
+        This sharing makes caching easier, e.g. TCastleScene and textures cache
+        is not per-context but just one global cache.
 
         May be @nil if empty. }
-      FOpenContexts: TGLContextList;
+      FInitializedContexts: TGLContextList;
+  strict private
+    FInitialized: Boolean;
   protected
-    procedure OpenContextsAdd;
-    procedure OpenContextsRemove;
-    { Any open context with which new context (not yet added using OpenContextsAdd!)
-      should share data, or @nil if none. }
+    { Any initialized context. A new context
+      should share data with it. May be @nil if no sharing necessary
+      (which means this is 1st context). }
     function SharedContext: TGLContext;
+
+    { Override in descendants to initialize rendering context.
+
+      No need to worry in descendants about what happens when this raises
+      an exception (non-virtual @link(Initialize) will make sure to call
+      @link(FinalizeCore) in such case).
+
+      No need to worry in descendants whether this is called on already-initialized
+      context. (non-virtual @link(Initialize) will make sure to never call
+      this when context is already initialized.) }
+    procedure InitializeCore(const Requirements: TGLContextRequirements); virtual; abstract;
+
+    { Override in descendants to finalize rendering context,
+      reverting work done by @link(InitializeCore).
+
+      Has to be implemented to tolerate without errors a partially open context,
+      because this will be called also when @link(InitializeCore)
+      raised an exception. }
+    procedure FinalizeCore; virtual; abstract;
+
+    { Override in descendants to make this rendering context current.
+
+      Implementation can assume context is initialized. }
+    procedure MakeCurrentCore; virtual; abstract;
+
+    { Override in descendants to swap buffers.
+
+      Implementation can assume context is initialized.
+
+      Implementation can assume context was created with DoubleBuffer. }
+    procedure SwapBuffersCore; virtual; abstract;
   public
-    class function OpenContextsCount: Cardinal;
+    class function InitializedContextsCount: Cardinal;
 
     destructor Destroy; override;
 
-    { Create GL context.
-      GL context creation (called after creating native window).
-      Descendants: must call OpenContextsAdd at the end. }
-    procedure ContextCreate(const Requirements: TGLContextRequirements); virtual; abstract;
+    { Initialize rendering context.
+      Called after creating native window.
+      Calling this is ignored when used on already-initialized context.
+      If context cannot be initialized, this raises an exception.
+      But it leaves this class in reliable (not initialized) state. }
+    procedure Initialize(const Requirements: TGLContextRequirements);
 
-    { Destroy GL context.
-      GL context creation (called before destroying native window).
-      Descendants: must call OpenContextsRemove at the beginning. }
-    procedure ContextDestroy; virtual; abstract;
+    { Finalize rendering context, reverting work done by @link(Initialize).
+      Called before destroying native window.
+      Calling this is ignored when used on non-initialized context. }
+    procedure Finalize;
 
-    { Make the GL context current. }
-    procedure MakeCurrent; virtual; abstract;
+    { Make the GL context current.
+      Should only be called on initialized context. }
+    procedure MakeCurrent;
 
-    { Swap buffers (called only if context was created with DoubleBuffer). }
-    procedure SwapBuffers; virtual; abstract;
+    { Swap buffers.
+      Should only be called on initialized context.
+      Should only be called on context created with DoubleBuffer. }
+    procedure SwapBuffers;
+
+    { Is the context initialized now,
+      that is between @link(Initialize) and @link(Finalize). }
+    property Initialized: Boolean read FInitialized;
   end;
 
 implementation
@@ -345,52 +388,98 @@ end;
 
 { TGLContext --------------------------------------------------------------- }
 
+procedure TGLContext.Initialize(const Requirements: TGLContextRequirements);
+begin
+  if FInitialized then
+    Exit;
+
+  try
+    InitializeCore(Requirements);
+  except
+    FinalizeCore;
+    raise;
+  end;
+
+  FInitialized := true;
+
+  if FInitializedContexts = nil then
+    FInitializedContexts := TGLContextList.Create(false);
+  Assert(not FInitializedContexts.Contains(Self));
+  FInitializedContexts.Add(Self);
+
+  // This should always be true, FInitialized is just more efficient than checking Contains
+  Assert(FInitialized = FInitializedContexts.Contains(Self));
+end;
+
+procedure TGLContext.Finalize;
+begin
+  if not FInitialized then
+    Exit;
+
+  FinalizeCore;
+  FInitialized := false;
+  if FInitializedContexts <> nil then
+  begin
+    FInitializedContexts.Remove(Self);
+
+    // This should always be true, FInitialized is just more efficient than checking Contains
+    Assert(FInitialized = FInitializedContexts.Contains(Self));
+  end else
+  begin
+    WritelnWarning('TGLContext', 'Finalizing TGLContext instance after finalization of CastleInternalContextBase unit, we no longer track currently initialized contexts');
+  end;
+end;
+
 destructor TGLContext.Destroy;
 begin
-  if (FOpenContexts <> nil) and
-     (FOpenContexts.Contains(Self)) then
+  { We do not Finalize here automatically, since possibly native window
+    was already destroyed, and trying to do Finalize now would cause further errors.
+    So we just warn.
+    Outside code should always make sure to call Finalize before destroying.
+
+    We remove from FInitializedContexts, to prevent danling pointers on this list. }
+
+  if (FInitializedContexts <> nil) and
+     (FInitializedContexts.Contains(Self)) then
   begin
-    WritelnWarning('TGLContext', 'Destroying TGLContext instance with open OpenGL context');
-    FOpenContexts.Remove(Self);
+    WritelnWarning('TGLContext', 'Destroying TGLContext instance with initialized OpenGL context; you should call Finalize first');
+    FInitializedContexts.Remove(Self);
   end;
 
   inherited;
 end;
 
-class function TGLContext.OpenContextsCount: Cardinal;
+class function TGLContext.InitializedContextsCount: Cardinal;
 begin
-  if FOpenContexts <> nil then
-    Result := FOpenContexts.Count
+  if FInitializedContexts <> nil then
+    Result := FInitializedContexts.Count
   else
     Result := 0;
 end;
 
-procedure TGLContext.OpenContextsAdd;
-begin
-  if FOpenContexts = nil then
-    FOpenContexts := TGLContextList.Create(false);
-  FOpenContexts.Add(Self);
-end;
-
-procedure TGLContext.OpenContextsRemove;
-begin
-  if FOpenContexts <> nil then
-    FOpenContexts.Remove(Self)
-  else
-    WritelnWarning('TGLContext', 'Destroying TGLContext instance after finalization of CastleInternalContextBase unit, we no longer track currently open contexts');
-end;
-
 function TGLContext.SharedContext: TGLContext;
 begin
-  if OpenContextsCount >= 1 then
+  if InitializedContextsCount >= 1 then // also checks FInitializedContexts <> nil
   begin
-    Result := FOpenContexts.First;
-    Assert(Result <> Self, 'TGLContext.SharedContext should be used before OpenContextsAdd, so Self should not be on the list yet');
+    Result := FInitializedContexts.First;
+    Assert(Result <> Self, 'TGLContext.SharedContext should be used before adding context to FInitializedContexts, so Self should not be on the list yet');
   end else
     Result := nil;
 end;
 
+procedure TGLContext.MakeCurrent;
+begin
+  Assert(Initialized);
+  MakeCurrentCore;
+end;
+
+procedure TGLContext.SwapBuffers;
+begin
+  Assert(Initialized);
+  SwapBuffersCore;
+end;
+
 initialization
 finalization
-  FreeAndNil(TGLContext.FOpenContexts);
+  FreeAndNil(TGLContext.FInitializedContexts);
 end.

@@ -200,15 +200,16 @@
       @link(EventSensorRotation),
       @link(EventSensorTranslation).
 
-      OpenContextsCount should specify the number of open contexts
+      InitializedContextsCount should specify the number of initialized contexts
       at this point. This is always >= 1 since the current context is always
-      open. So for EventOpen, OpenContextsCount = 1 means we initialize
-      1st context, and for EventClose, OpenContextsCount = 1 means we
+      initialized at the point of this call.
+      So for EventOpen, InitializedContextsCount = 1 means we initialize
+      1st context, and for EventClose, InitializedContextsCount = 1 means we
       finalize last context.
 
       @groupBegin }
-    procedure EventOpen(const OpenContextsCount: Cardinal); virtual;
-    procedure EventClose(const OpenContextsCount: Cardinal); virtual;
+    procedure EventOpen(const InitializedContextsCount: Cardinal); virtual;
+    procedure EventClose(const InitializedContextsCount: Cardinal); virtual;
     function EventPress(const Event: TInputPressRelease): boolean; virtual;
     function EventRelease(const Event: TInputPressRelease): boolean; virtual;
     procedure EventUpdate; virtual;
@@ -1649,7 +1650,7 @@ begin
     FCaptureInput.Remove(FingerIndex);
 end;
 
-procedure TCastleContainer.EventOpen(const OpenContextsCount: Cardinal);
+procedure TCastleContainer.EventOpen(const InitializedContextsCount: Cardinal);
 
   procedure RecursiveGLContextOpen(const C: TCastleUserInterface);
   var
@@ -1668,7 +1669,7 @@ procedure TCastleContainer.EventOpen(const OpenContextsCount: Cardinal);
 var
   I: Integer;
 begin
-  if OpenContextsCount = 1 then
+  if InitializedContextsCount = 1 then
     ApplicationProperties._GLContextOpen;
 
   { Call GLContextOpen on controls before OnOpen,
@@ -1681,7 +1682,7 @@ begin
   if Assigned(OnOpenObject) then OnOpenObject(Self);
 end;
 
-procedure TCastleContainer.EventClose(const OpenContextsCount: Cardinal);
+procedure TCastleContainer.EventClose(const InitializedContextsCount: Cardinal);
 
   procedure RecursiveGLContextClose(const C: TCastleUserInterface);
   var
@@ -1714,7 +1715,7 @@ begin
     for I := Controls.Count - 1 downto 0 do
       RecursiveGLContextClose(Controls[I]);
 
-  if OpenContextsCount = 1 then
+  if InitializedContextsCount = 1 then
   begin
     ApplicationProperties._GLContextClose;
 

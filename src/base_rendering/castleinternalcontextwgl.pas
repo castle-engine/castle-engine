@@ -42,18 +42,18 @@ type
     class var
       WndClassName: UnicodeString;
     class procedure NeedsWndClassName;
+  protected
+    procedure InitializeCore(const Requirements: TGLContextRequirements); override;
+    procedure FinalizeCore; override;
+    procedure MakeCurrentCore; override;
+    procedure SwapBuffersCore; override;
   public
-    // Set this before using ContextCreate and other methods
+    // Set this before using Initialize and other methods
     WndPtr: HWND;
     h_Dc: HDC;
 
-    // Created by ContextCreate, destroyed by ContextDestroy
+    // Created by Initialize, destroyed by Finalize
     h_GLRc: HGLRC;
-
-    procedure ContextCreate(const Requirements: TGLContextRequirements); override;
-    procedure ContextDestroy; override;
-    procedure MakeCurrent; override;
-    procedure SwapBuffers; override;
   end;
 
 implementation
@@ -63,7 +63,7 @@ uses {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
 
 { TGLContextWGL -------------------------------------------------------------- }
 
-procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements);
+procedure TGLContextWGL.InitializeCore(const Requirements: TGLContextRequirements);
 
   { Both SetPixelFormat* set pixel format (required context capabilities)
     of Windows H_Dc device context. They try to set it, and eventually raise some
@@ -127,12 +127,11 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
 
     { We have to create temporary window, just to query wgl. It's useless to
       call wglGetProcAddress without any GL context active.
-      Yes, I know, this is utterly stupid and brain-dead to create a window
-      just to query wgl extensions, but every OpenGL programmer has to do it
-      (if we want to use e.g. multisampling) --- congrats M$.
+      It is quite weird to create a window just to query wgl extensions,
+      but that's effectively what every program using wgl has to do.
 
       We create this temporary window with absolutely standard, minumum
-      properties --- ideally, any system (supporting OpenGL at all) should
+      properties --- any system (supporting OpenGL at all) should
       be able to create our CreateTemporaryWindow. }
 
     procedure DestroyTemporaryWindow; forward;
@@ -312,7 +311,7 @@ procedure TGLContextWGL.ContextCreate(const Requirements: TGLContextRequirements
     Attribs: TInt32List;
     ShareContextGlrc: HGLRC;
   begin
-    // WritelnLog('wgl', 'Creating Windows OpenGL context using modern wglCreateContextAttribsARB, good'); // too verbose
+    // WritelnLog('wgl', 'Initializing Windows OpenGL context using modern wglCreateContextAttribsARB, good'); // too verbose
 
     Attribs := TInt32List.Create;
     try
@@ -389,16 +388,12 @@ begin
     UseCreateContextAttribsARB
   else
     UseCreateContext;
-
-  OpenContextsAdd;
 end;
 
-procedure TGLContextWGL.ContextDestroy;
+procedure TGLContextWGL.FinalizeCore;
 begin
   if h_GLRc <> 0 then
   begin
-    OpenContextsRemove;
-
     if (not wglMakeCurrent(h_Dc, 0)) then
       WritelnWarning('WinAPI', 'Deactivating current OpenGL rendering context (wglMakeCurrent(..., NULL)) failed.');
     if (not wglDeleteContext(h_GLRc)) then
@@ -407,26 +402,15 @@ begin
   end;
 end;
 
-procedure TGLContextWGL.MakeCurrent;
+procedure TGLContextWGL.MakeCurrentCore;
 begin
-  if h_GLRc = 0 then
-  begin
-    WritelnWarning('MakeCurrent called but the OpenGL(ES) context is not open, ignoring');
-    Exit;
-  end;
-
-  Assert(h_GLRc <> 0); // window not closed
+  Assert(h_GLRc <> 0); // this is called only when Initialized
   OSCheck( wglMakeCurrent(h_Dc, h_GLRc), 'wglMakeCurrent');
 end;
 
-procedure TGLContextWGL.SwapBuffers;
+procedure TGLContextWGL.SwapBuffersCore;
 begin
-  if h_GLRc = 0 then
-  begin
-    WritelnWarning('SwapBuffers called but the OpenGL(ES) context is not open, ignoring');
-    Exit;
-  end;
-
+  Assert(h_GLRc <> 0); // this is called only when Initialized
   Windows.SwapBuffers(h_Dc);
 end;
 

@@ -391,12 +391,12 @@ begin
       WindowHandleToPlatform(Handle).Wnd
     but this is not useful for us (we don't want to always render to full window).
   }
-  FContainer.CreateContext;
+  FContainer.InitializeContext;
 end;
 
 procedure TCastleControl.DestroyHandle;
 begin
-  FContainer.DestroyContext;
+  FContainer.FinalizeContext;
 end;
 
 procedure TCastleControl.Paint;

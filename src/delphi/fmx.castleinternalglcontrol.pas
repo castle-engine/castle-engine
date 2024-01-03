@@ -54,8 +54,8 @@ type
     FGLUtility: TFmxOpenGLUtility;
     procedure CreateHandle;
     procedure DestroyHandle;
-    procedure CreateContext;
-    procedure DestroyContext;
+    procedure InitializeContext;
+    procedure FinalizeContext;
   protected
     function DefinePresentationName: String; override;
     procedure DoRootChanging(const NewRoot: IRoot); override;
@@ -146,23 +146,23 @@ end;
 
 { TOpenGLControl ------------------------------------------------------------ }
 
-procedure TOpenGLControl.CreateContext;
+procedure TOpenGLControl.InitializeContext;
 begin
   if not FGLInitialized then
   begin
     FGLInitialized := true;
     FGLUtility.ContextAdjustEarly(FPlatformContext);
-    FPlatformContext.ContextCreate(FRequirements);
+    FPlatformContext.Initialize(FRequirements);
     // Invalidate; // would be too early, CASTLE_WINDOW_FORM will do it later
   end;
 end;
 
-procedure TOpenGLControl.DestroyContext;
+procedure TOpenGLControl.FinalizeContext;
 begin
   if FGLInitialized then
   begin
     FGLInitialized := false;
-    FPlatformContext.ContextDestroy;
+    FPlatformContext.Finalize;
   end;
   inherited;
 end;
@@ -197,12 +197,12 @@ end;
 
 procedure TOpenGLControl.CreateHandle;
 begin
-  CreateContext;
+  InitializeContext;
 end;
 
 procedure TOpenGLControl.DestroyHandle;
 begin
-  DestroyContext;
+  FinalizeContext;
 end;
 
 procedure TOpenGLControl.Paint;
