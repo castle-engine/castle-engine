@@ -69,7 +69,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleColors, CastleUtils, CastleTesterParameters;
+  CastleColors, CastleUtils, CastleTesterParameters, CastleLog;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -183,6 +183,7 @@ end;
 procedure TViewMain.TestExecuted(const AName: String);
 begin
   LabelCurrentTest.Caption := AName;
+  WritelnLog('Running test ' + AName);
 end;
 
 procedure TViewMain.TestFailedCountChanged(const TestCount: Integer);
