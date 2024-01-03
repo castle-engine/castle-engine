@@ -275,57 +275,6 @@ type
       ) }
     property Radius: Single read FRadius write FRadius {$ifdef FPC}default DefaultRadius{$endif};
 
-    { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
-
-      Uses current container size, which means that it assumes that viewport
-      fills the whole container. The navigation, as well as the parent viewport,
-      must be part of some container UI hierarchy for this to work.
-
-      Projection (read-only here) describe your projection,
-      required for calculating the ray properly.
-      Resulting RayDirection is always normalized.
-
-      WindowPosition is given in the same style as TCastleContainer.MousePosition:
-      (0, 0) is bottom-left. }
-    procedure Ray(const WindowPosition: TVector2;
-      const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3); deprecated 'use Viewport.Camera.CustomRay with proper viewport sizes, or use higher-level utilities like Viewport.MouseRayHit instead';
-
-    { Calculate a ray picked by current mouse position on the window.
-
-      Uses current container size, which means that it assumes that viewport
-      fills the whole container. The navigation, as well as the parent viewport,
-      must be part of some container UI hierarchy for this to work.
-
-      @seealso Ray
-      @seealso CustomRay }
-    procedure MouseRay(
-      const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3); deprecated 'use Viewport.Camera.CustomRay with proper viewport sizes, or use higher-level utilities like Viewport.MouseRayHit instead';
-
-    { Calculate a ray picked by WindowPosition position on the viewport,
-      assuming current viewport dimensions are as given.
-      This doesn't look at our container sizes at all.
-
-      Projection (read-only here) describe projection,
-      required for calculating the ray properly.
-
-      Resulting RayDirection is always normalized.
-
-      WindowPosition is given in the same style as TCastleContainer.MousePosition:
-      (0, 0) is bottom-left. }
-    procedure CustomRay(
-      const ViewportRect: TRectangle;
-      const WindowPosition: TVector2;
-      const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3); overload;
-      deprecated 'use Viewport.Camera.CustomRay';
-    procedure CustomRay(
-      const ViewportRect: TFloatRectangle;
-      const WindowPosition: TVector2;
-      const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3); overload; deprecated 'use Viewport.Camera.CustomRay';
-
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 
@@ -1577,41 +1526,6 @@ begin
   Result := (InternalViewport as TCastleViewport).InternalCamera;
 end;
 
-procedure TCastleNavigation.Ray(const WindowPosition: TVector2;
-  const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3);
-begin
-  Assert(ContainerSizeKnown, 'Container size not known yet (probably navigation instance not added to UI controls hierarchy of some container), cannot use TCastleNavigation.Ray');
-  Camera.CustomRay(FloatRectangle(ContainerRect), WindowPosition, Projection, RayOrigin, RayDirection);
-end;
-
-procedure TCastleNavigation.MouseRay(
-  const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3);
-begin
-  Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCastleNavigation.MouseRay');
-  Camera.CustomRay(FloatRectangle(ContainerRect), Container.MousePosition, Projection, RayOrigin, RayDirection);
-end;
-
-procedure TCastleNavigation.CustomRay(
-  const ViewportRect: TFloatRectangle;
-  const WindowPosition: TVector2;
-  const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3);
-begin
-  Camera.CustomRay(ViewportRect, WindowPosition, Projection, RayOrigin, RayDirection);
-end;
-
-procedure TCastleNavigation.CustomRay(
-  const ViewportRect: TRectangle;
-  const WindowPosition: TVector2;
-  const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3);
-begin
-  Camera.CustomRay(FloatRectangle(ViewportRect),
-    WindowPosition, Projection, RayOrigin, RayDirection);
-end;
-
 procedure TCastleNavigation.AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime);
 begin
   Camera.AnimateTo(APos, ADir, AUp, Time);
@@ -2510,7 +2424,9 @@ var
   begin
     V := ExamineVectors;
 
+    {$warnings off} // using deprecated ContainerSizeKnown
     if (not ContainerSizeKnown) then
+    {$warnings on}
     begin
       V.Rotations := XYRotation(1);
     end else
@@ -2820,10 +2736,12 @@ begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
 
+  {$warnings off} // using deprecated ContainerSizeKnown
   if InternalUsingMouseLook and
     Container.Focused and
     ContainerSizeKnown and
     Valid then
+  {$warnings on}
   begin
     HandleMouseLook;
     Exit;

@@ -2243,9 +2243,6 @@ var
 begin
   EnsureCameraDetected;
 
-  { We need to know container size now. }
-  Check(ContainerSizeKnown, ClassName + ' did not receive "Resize" event yet, cannnot apply projection. This usually means you try to call "Render" method with a container that does not yet have an open context.');
-
   Viewport := RenderRect.Round;
   RenderContext.Viewport := Viewport;
 
@@ -3540,16 +3537,6 @@ begin
 
   { call TCastleScreenEffects.PrepareResources. }
   inherited PrepareResources;
-
-  if ContainerSizeKnown then
-  begin
-    { TODO: This is possibly not necessary now.
-
-      It used to be necessary, to update MainScene.BackgroundSkySphereRadius,
-      and in effect make preparation of "prBackground" useful.
-      But we removed the need for MainScene.BackgroundSkySphereRadius. }
-    ApplyProjection;
-  end;
 
   {$warnings off} // using deprecated, this should be internal
   Item.PrepareResources(Options, PrepareParams);

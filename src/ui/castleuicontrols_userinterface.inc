@@ -257,10 +257,10 @@
 
     { Container sizes.
       @groupBegin }
-    function ContainerWidth: Cardinal; virtual;
-    function ContainerHeight: Cardinal; virtual;
-    function ContainerRect: TRectangle; virtual;
-    function ContainerSizeKnown: boolean; virtual;
+    function ContainerWidth: Cardinal; virtual; deprecated 'arrange UI using anchors, FullSize and friends; if you really need container size, use "Container.UnscaledWidth" or "Container.PixelsWidth" after checking "Container <> nil"';
+    function ContainerHeight: Cardinal; virtual; deprecated 'arrange UI using anchors, FullSize and friends; if you really need container size, use "Container.UnscaledHeight" or "Container.PixelsHeight" after checking "Container <> nil"';
+    function ContainerRect: TRectangle; virtual; deprecated 'arrange UI using anchors, FullSize and friends; if you really need container size, use "Container.UnscaledRect" or "Container.PixelsRect" after checking "Container <> nil"';
+    function ContainerSizeKnown: boolean; virtual; deprecated 'arrange UI using anchors, FullSize and friends; if you really need container size, use "Container.UnscaledWidth/Height" or "Container.PixelsWidth/Height" after checking "Container <> nil"';
     { @groupEnd }
 
     {$ifdef FPC}
@@ -528,10 +528,9 @@
     { Event called when the container (component or window with OpenGL context)
       size changes.
 
-      You can resize/reposition your component here,
-      for example set @link(TCastleUserInterface.Left) or @link(TCastleUserInterface.Bottom),
+      You can resize/reposition your component here
       to react to parent size changes.
-      This is called only when the OpenGL context of the container
+      This is called only when the rendering context of the container
       is initialized, so you can be sure that this is called only between
       GLContextOpen and GLContextClose.
 
@@ -547,8 +546,6 @@
       the size of the container, if and only if the OpenGL context is
       initialized. }
     procedure Resize; virtual;
-
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual; deprecated 'use Resize';
 
     { Container of this control. When adding control to container's Controls
       list (like TCastleWindow.Controls) container will automatically
@@ -1592,18 +1589,13 @@ end;
 
 procedure TCastleUserInterface.Resize;
 begin
-  {$warnings off}
-  ContainerResize(ContainerWidth, ContainerHeight); // call deprecated, to keep it working
-  {$warnings on}
-end;
-
-procedure TCastleUserInterface.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-begin
 end;
 
 function TCastleUserInterface.ContainerWidth: Cardinal;
 begin
+  {$warnings off} // using deprecated to implement deprecated
   if ContainerSizeKnown then
+  {$warnings on}
     Result := Container.PixelsWidth
   else
     Result := 0;
@@ -1611,7 +1603,9 @@ end;
 
 function TCastleUserInterface.ContainerHeight: Cardinal;
 begin
+  {$warnings off} // using deprecated to implement deprecated
   if ContainerSizeKnown then
+  {$warnings on}
     Result := Container.PixelsHeight
   else
     Result := 0;
@@ -1619,7 +1613,9 @@ end;
 
 function TCastleUserInterface.ContainerRect: TRectangle;
 begin
+  {$warnings off} // using deprecated to implement deprecated
   if ContainerSizeKnown then
+  {$warnings on}
     Result := Container.PixelsRect
   else
     Result := TRectangle.Empty;
@@ -1876,6 +1872,7 @@ begin
     Exit(false);
 
   SR := RenderRect;
+  {$warnings off} // using deprecated ContainerWidth/Height now
   Result := SR.Contains(Position) or
     { if the control covers the whole Container, it *always* captures events,
       even when mouse position is unknown yet, or outside the window. }
@@ -1884,6 +1881,7 @@ begin
      (SR.Bottom <= 0) and
      (SR.Width >= ContainerWidth) and
      (SR.Height >= ContainerHeight));
+  {$warnings on}
 end;
 
 function TCastleUserInterface.TooltipExists: boolean;
@@ -2007,7 +2005,9 @@ procedure TCastleUserInterface.InternalRecursiveRender(const ViewportRect: TRect
   var
     ResultInt, ScissorRect: TRectangle;
   begin
+    {$warnings off} // using deprecated ContainerRect
     ResultInt := ContainerRect;
+    {$warnings on}
     if RenderContext.FinalScissor(ScissorRect) then
       ResultInt := ResultInt * ScissorRect;
     Result := FloatRectangle(ResultInt);
@@ -2525,12 +2525,14 @@ function TCastleUserInterface.RectWithAnchors(const CalculateEvenWithoutContaine
 var
   PR: TFloatRectangle;
 begin
+  {$warnings off} // using deprecated ContainerSizeKnown for now
   if (not ContainerSizeKnown) and
      (not CalculateEvenWithoutContainer) then
     { Don't call virtual Rect in this state, Rect implementations
       typically assume that ParentRect is sensible.
       This is crucial, various programs will crash without it. }
     Exit(TFloatRectangle.Empty);
+  {$warnings on}
 
   Result := FastRectWithoutAnchors;
 
@@ -2638,7 +2640,9 @@ begin
         RemoveBottom(Parent.FBorder.TotalBottom * UIScale).
         RemoveLeft  (Parent.FBorder.TotalLeft   * UIScale);
   end else
+    {$warnings off} // using deprecated ContainerRect
     Result := FloatRectangle(ContainerRect);
+    {$warnings on}
 end;
 
 procedure TCastleUserInterface.SetHorizontalAnchorSelf(const Value: THorizontalPosition);
