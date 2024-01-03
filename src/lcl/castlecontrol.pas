@@ -844,7 +844,7 @@ begin
     EventBeforeRender;
     EventRender;
   end;
-  Result := SaveScreen_NoFlush(Rect, Parent.SaveScreenBuffer);
+  Result := SaveScreen_NoFlush(PixelsRect, Parent.SaveScreenBuffer);
 end;
 
 {$warnings off} // keep deprecated OnXxx wor
@@ -1497,7 +1497,7 @@ end;
 
 function TCastleControl.Rect: TRectangle;
 begin
-  Result := Container.Rect;
+  Result := Container.PixelsRect;
 end;
 
 function TCastleControl.DesignedComponent(const ComponentName: String
