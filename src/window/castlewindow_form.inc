@@ -767,7 +767,18 @@ begin
   if (MainMenu <> nil) and MainMenuVisible then
     MenuInitialize;
 
-  Form.Visible := Visible;
+  Form.Visible :=
+    {$if not (defined(DELPHI) and defined(LINUX))}
+      Visible
+    {$else}
+      { For Delphi/Linux, we set Form.Visible always to true.
+        Otherwise the GDK resources are not created for hidden window,
+        and thus we cannot create OpenGL context there.
+        In effect our testcases (that create window with Visible:=false)
+        would fail on Delphi/Linux with
+        "Widget does not have GDK handle initialized yet". }
+      true
+    {$endif};
 
   if FullScreen then
   begin
