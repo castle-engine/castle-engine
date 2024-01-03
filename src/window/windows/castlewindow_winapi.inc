@@ -578,7 +578,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     function ToPoint(const V: TVector2): TPoint;
     begin
       Result.X := Floor(V.X);
-      Result.Y := Floor(Container.Height - V.Y);
+      Result.Y := Floor(Container.PixelsHeight - V.Y);
     end;
 
     function GetCaretPos(var CaretPos: TPoint): Boolean;
