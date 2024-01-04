@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,7 +17,7 @@
   a xxx.castle-user-interface, xxx.castle-transform, xxx.castle-component file. }
 unit FrameDesign;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 interface
 
@@ -5301,7 +5301,9 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             MoveOnlyTreeNodes(Src, Dst);
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+      {$endif}
     end;
     ValidateHierarchy;
   end;
@@ -5352,7 +5354,9 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             MoveOnlyTreeNodes(Src, Dst);
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+      {$endif}
     end;
     ValidateHierarchy;
   end;
@@ -5639,6 +5643,7 @@ begin
            (Node.Data <> nil) then
           DrawTreeNodeClassName(TObject(Node.Data).ClassName);
       end;
+    else ; // nothing to do otherwise
   end;
 end;
 

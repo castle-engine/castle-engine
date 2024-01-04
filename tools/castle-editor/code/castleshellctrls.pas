@@ -819,6 +819,7 @@ begin
   if Assigned(Files) then begin
 
     case AFileSortType of
+      fstNone: ; // do no sorting
       fstAlphabet:     Files.Sort(@FilesSortAlphabet);
       fstFoldersFirst: Files.Sort(@FilesSortFoldersFirst);
     end;
