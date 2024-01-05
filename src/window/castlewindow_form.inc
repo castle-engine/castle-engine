@@ -255,9 +255,6 @@ private
 
 {$ifdef read_implementation}
 
-const
-  MaxDesiredFPS = TCastleApplicationProperties.DefaultLimitFPS;
-
 { Return LCL or FMX Application singleton.
   Just trivial "Application" in most code, but we need to avoid clashing with
   CGE "Application" and take into account that LCL / FMX
@@ -1098,20 +1095,20 @@ begin
 end;
 
 procedure TCastleWindow.ProcessTasks;
-var
-  DesiredFPS: Single;
 begin
-  if ApplicationProperties.LimitFPS <= 0 then
-    DesiredFPS := MaxDesiredFPS
-  else
-    DesiredFPS := Min(MaxDesiredFPS, ApplicationProperties.LimitFPS);
-  if TimerSeconds(Timer, Fps.UpdateStartTime) > 1 / DesiredFPS then
+  { Use ApplicationProperties.LimitFPS (if non-zero, by default 100)
+    to avoid performing too many updates per second. }
+  if (ApplicationProperties.LimitFPS <= 0) or
+     (Fps.UpdateStartTime.ElapsedTime > 1 / ApplicationProperties.LimitFPS) then
   begin
     { Note that calling here ApplicationProperties._Update
       may be too often, in case multiple TCastleWindow are open. }
     ApplicationProperties._Update;
     DoUpdate;
+    
+    {$ifdef FPC} // This doesn't seem needed with Delphi/Linux, so don't do it to conserve resources
     if Invalidated then DoRender;
+    {$endif}
   end;
 end;
 
@@ -1128,13 +1125,20 @@ begin
   DoMotion(InputMotion(MousePosition, MousePosToCastle(X, Y),
     MousePressed, 0));
 
+  {$ifdef FPC}
   { On LCL, we need to call ProcessTasks often,
     as Forms.Application.ProcessMessages in LCL may process ~100 OS events in one call.
     This means that LCL Forms.Application.ProcessMessages is quite blocked
     when user moves mouse a lot (e.g. doing mouse look in games).
-    We ensure processing by manually calling ProcessTasks often. }
+    We ensure processing by manually calling ProcessTasks often.
 
+    With Delphi FMX, we don't need to do this, and actually we shouldn't
+    -- it was causing perceived FPS drops when we were moving the mouse.
+    Testcase:
+    - moving with mouse Examine mode in play_animation
+    - rotating around in fps_game }
   ProcessTasks;
+  {$endif}
 end;
 
 procedure TCastleWindow.OpenGLControlMouseWheel(Sender: TObject;
