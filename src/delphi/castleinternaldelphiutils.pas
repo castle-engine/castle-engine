@@ -460,12 +460,14 @@ begin
   {$endif}
 
   // Debug what happens
+  {
   WritelnLog('FMX Key', 'Key=%d KeyChar=%s CastleKey=%s CastleKeyString=%s', [
     Key,
     SReadableForm(KeyChar),
     KeyToStr(CastleKey),
     SReadableForm(CastleKeyString)
   ]);
+  }
 end;
 
 function CursorFromCastle(const Cursor: TMouseCursor): TCursor;
