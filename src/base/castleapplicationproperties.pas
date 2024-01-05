@@ -73,7 +73,7 @@ type
     procedure SetApplicationName(const Value: String);
   public
     const
-      DefaultLimitFPS = 100.0;
+      DefaultLimitFPS = 120.0;
 
       { Some platforms do not support Application.ProcessMessages, which means you
         cannot just write a function like MessageYesNo that waits until user clicks
