@@ -276,14 +276,30 @@ begin
     for J := 0 to Filter.Patterns.Count - 1 do
     begin
       if J <> 0 then OutFilter := OutFilter + ';';
+      { TODO: We're considering this, to improve display of rows with very long
+        filters list, like "All Scenes" or "Images" when opening scenes,
+        e.g. in CastleFmxPlayAnimation.
+
+      if J > 5 then
+      begin
+        OutFilter := OutFilter + '...';
+        Break;
+      end;
+      }
       OutFilter := OutFilter + Filter.Patterns[J];
     end;
 
     OutFilter := OutFilter + '|';
   end;
 
-  { LCL/FMX FilterIndex counts from 1. }
+  { LCL/FMX FilterIndex counts from 1.
+
+    Except Delphi/Linux (FMXLinux) that seems (maybe a bug?) to count from 0.
+    Testcase; CastleFmxPlayAnimation, press "Load scene" button,
+    default filter should be "All Scenes". }
+  {$if not (defined(DELPHI) and defined(LINUX))}
   Inc(OutFilterIndex);
+  {$endif}
 end;
 
 class procedure TFileFilterList.LclFmxFiltersFromString(const FileFilters: string;
