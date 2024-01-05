@@ -20,23 +20,31 @@
   See https://github.com/michaliskambi/delphi-http-download for my tests.
 
   Compared to Indy TIdHTTP, TNetHTTPClient :
+
   - Seems more feature-packed:
     TNetHTTPClient can do asynchronous operation,
     doing work in thread, automatically.
+
   - Supports HTTPS out of the box without the need for any additional DLLs on Windows.
-    It relies on Windows system libraries (winhttp.dll) for HTTPS.
+    On Windows, it relies on system libraries (winhttp.dll) for HTTPS (and unencrypted HTTP too).
+    On Linux, it relies on libcurl (and unencrypted HTTP too).
+    Overall, it works on "higher-level", whereas Indy uses sockets directly
+    and has more work to implement e.g. HTTPS support.
+
   - See https://stackoverflow.com/questions/43153919/delphi-tidhttp-vs-tnethttpclient
     for more info about the differences between the two.
 
   TODO:
 
-  - The download using TNetHTTPClient seems to be quite slow.
+  - On Windows: The download using TNetHTTPClient seems to be quite slow.
     Test with large file, like https://castle-engine.io/latest.zip ,
     using e.g. asynchronous_download CGE example.
 
     Compare with FPC execution of asynchronous_download, using TFpHttpClient.
 
     The TNetHTTPClient is like 10x slower, very noticeable.
+
+    Unknown whether this is also on Linux, due to Linux problems below.
 
   - Downloading on Linux works... unless you test with larger file like
     https://castle-engine.io/latest.zip . Then it just breaks with timeout.
