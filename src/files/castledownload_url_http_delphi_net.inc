@@ -86,13 +86,14 @@ type
 { TDelphiNetReader --------------------------------------------------- }
 
 procedure TDelphiNetReader.Start;
+var
+  EmptyPostData: TStringList;
 begin
   inherited;
 
   { TODO: honor
     ForceSynchronous: Boolean;
-    HttpMethod: THttpMethod;
-    HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
+    HttpHeadersKeys, HttpHeadersValues: TStrings;
   }
 
   { Using separate ContentsOwned is a hack, to let the client
@@ -109,7 +110,34 @@ begin
   C.OnRequestError := RequestError;
   C.OnRequestException := RequestException;
   C.SynchronizeEvents := true;
-  C.Get(Url, ContentsOwned);
+  case HttpMethod of
+    hmGet: C.Get(Url, ContentsOwned);
+    hmPost:
+      begin
+        if HttpPostData = nil then
+        begin
+          EmptyPostData := TStringList.Create;
+          try
+            C.Post(Url, EmptyPostData, Contents)
+          finally FreeAndNil(EmptyPostData) end;
+        end else
+          C.Post(Url, HttpPostData, Contents);
+      end;
+    hmPut:
+      // TODO: We should pass Source stream to put
+      begin
+        EmptyPostData := TStringList.Create;
+        try
+          C.Put(Url, EmptyPostData, Contents);
+        finally FreeAndNil(EmptyPostData) end;
+      end;
+    hmDelete: C.Delete(Url, Contents);
+    hmOptions: C.Options(Url, Contents);
+    hmHead: C.Head(Url);
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('HttpMethod=?');
+    {$endif}
+  end;
 
   // TODO: Change this value during HTTP redirects.
   // The TNetHttpClient already supports redirects, according to docs.
