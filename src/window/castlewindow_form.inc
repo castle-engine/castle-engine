@@ -249,7 +249,6 @@ private
   FTimer: TTimer;
   procedure ApplicationTimer(Sender: TObject);
   {$endif}
-  procedure DoNothingOnException(Sender: TObject; E: Exception);
   procedure ProcessTasks;
 {$endif read_application_interface}
 
@@ -1310,11 +1309,14 @@ begin
     in CastleUtils. }
   FormApplication.CaptureExceptions := false;
   {$else}
-  { Do not capture exceptions in our ProcessMessages (catched in FMX
-    TApplication.HandleException). Let exceptions happen,
-    code in TCastleWindow (unrelated to backend) will catch them
-    and display nice window. }
-  FormApplication.OnException := DoNothingOnException;
+  { We tested assigning on Delphi FMX
+      FormApplication.OnException := DoNothingOnException;
+    to a callback that does nothing.
+    But this was bad: exceptions still didn't reach TCastleWindow
+    (testcase: deliberate exception from simple_3d_demo)
+    and CtrlC handling was worse (first CtrlC was ignored -- though later tests
+    suggest it can happen anyway, regardless of FormApplication.OnException).
+    So don't tweak this for Delphi FMX. }
   {$endif}
 
   FormApplication.Initialize;
@@ -1332,12 +1334,6 @@ begin
   {$ifdef USE_TIMER}
   FreeAndNil(FTimer);
   {$endif}
-end;
-
-procedure TCastleApplication.DoNothingOnException(Sender: TObject; E: Exception);
-begin
-  // deliberately do nothing
-  WritelnLog('Exception in TForm event, passing up to TCastleWindow: ' + ExceptMessage(E));
 end;
 
 {$ifdef USE_TIMER}
