@@ -130,7 +130,7 @@
     FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
     FMX.StdCtrls, FMX.Menus, FMX.Platform,
     // CGE
-    Fmx.CastleInternalGLControl, CastleInternalDelphiUtils,
+    Fmx.CastleInternalGLControl, CastleInternalDelphiUtils, CastleFmxUtils,
   {$endif}
 {$endif}
 
@@ -1163,9 +1163,7 @@ begin
       Dialog.InitialDir := ExtractFilePath(ExpandedFileName);
       Dialog.FileName := ExtractFileName(ExpandedFileName);
     end;
-    {$ifdef FPC} // TODO: FMX
     FileFiltersToDialog(FileFilters, Dialog);
-    {$endif}
     ReleaseAllKeysAndMouse; // do it manually
     Result := Dialog.Execute;
     if Result then
