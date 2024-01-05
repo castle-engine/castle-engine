@@ -38,15 +38,15 @@ uses FMX.Dialogs,
 
   @groupBegin }
 procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TOpenDialog; const AllFields: boolean = true); overload;
+  const Dialog: TOpenDialog; const AllFields: boolean = true); overload;
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TOpenDialog; const AllFields: boolean = true); overload;
+  const Dialog: TOpenDialog; const AllFields: boolean = true); overload;
 { @groupEnd }
 
 implementation
 
 procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TOpenDialog; const AllFields: boolean = true);
+  const Dialog: TOpenDialog; const AllFields: boolean = true);
 var
   OutFilter: String;
   OutFilterIndex: Integer;
@@ -58,7 +58,7 @@ begin
 end;
 
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TOpenDialog; const AllFields: boolean = true);
+  const Dialog: TOpenDialog; const AllFields: boolean = true);
 var
   OutFilter: String;
   OutFilterIndex: Integer;

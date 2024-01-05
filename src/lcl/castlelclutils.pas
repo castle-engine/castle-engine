@@ -39,11 +39,11 @@ uses Dialogs, Classes, Controls, LCLType, Graphics, EditBtn,
 
   @groupBegin }
 procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TFileDialog; const AllFields: boolean = true);
+  const Dialog: TFileDialog; const AllFields: boolean = true);
 procedure FileFiltersToDialog(const FileFilters: string;
   const Edit: TFileNameEdit; const AllFields: boolean = true);
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TFileDialog; const AllFields: boolean = true);
+  const Dialog: TFileDialog; const AllFields: boolean = true);
 
 procedure FileFiltersToDialog(const FileFilters: string;
   out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
@@ -164,7 +164,7 @@ uses SysUtils, FileUtil, LazUTF8, LCLProc,
   CastleClassUtils, CastleStringUtils, CastleUriUtils, CastleLog;
 
 procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TFileDialog; const AllFields: boolean);
+  const Dialog: TFileDialog; const AllFields: boolean);
 var
   LCLFilter: string;
   LCLFilterIndex: Integer;
@@ -186,7 +186,7 @@ begin
 end;
 
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TFileDialog; const AllFields: boolean);
+  const Dialog: TFileDialog; const AllFields: boolean);
 var
   LCLFilter: string;
   LCLFilterIndex: Integer;
