@@ -640,24 +640,7 @@ begin
   inherited;
   CurrentShift := Shift;
 
-  CastleKey := KeyToCastle(Key, Shift);
-
-  { Workaround FMXLinux bug: it always passes Key=0 for regular
-    keys that represent printable characters, like 'a' or space,
-    see SimpleWideCharToKey comments. }
-  {$if defined(DELPHI) and defined(LINUX)}
-  if (Key = 0) and (KeyChar <> #0) and (CastleKey = keyNone) then
-    CastleKey := SimpleWideCharToKey(KeyChar);
-
-  // Useful to debug that above workaround actually works e.g. in CastleFmx
-  //WritelnLog('Key', Format('KeyDown: Key=%d KeyChar=%s CastleKey=%s',
-  //  [Key, KeyChar, KeyToStr(CastleKey)]));
-  {$endif}
-
-  if KeyChar <> #0 then
-    CastleKeyString := KeyChar
-  else
-    CastleKeyString := '';
+  FmxKeysToCastle(Key, KeyChar, Shift, CastleKey, CastleKeyString);
 
   if (CastleKey <> keyNone) or (CastleKeyString <> '') then
   begin
@@ -690,28 +673,17 @@ begin
   inherited;
   CurrentShift := Shift;
 
-  CastleKey := KeyToCastle(Key, Shift);
+  FmxKeysToCastle(Key, KeyChar, Shift, CastleKey, CastleKeyString);
 
-  { Workaround FMXLinux bug: it always passes Key=0 for regular
-    keys that represent printable characters, like 'a' or space,
-    see SimpleWideCharToKey comments.
+  { Note that KeyUp seems to have additional issue with FMXLinux,
+    not fixed in this code:
 
-    Note that KeyUp seems to have additional issue with FMXLinux:
-    when the key is held (so we expect to receive multiple KeyDown
+    When the key is held (so we expect to receive multiple KeyDown
     for one KeyUp), FMXLinux sends additional KeyUp before each KeyDown.
     So for code, it seems as if user is pressing and releasing the key.
     We cannot easily workaround it on CGE side.
     To track keys being held, we advise to check Pressed[keyXxx] in Update
     methods, instead of relying on KeyDown/KeyUp. }
-  {$if defined(DELPHI) and defined(LINUX)}
-  if (Key = 0) and (KeyChar <> #0) and (CastleKey = keyNone) then
-    CastleKey := SimpleWideCharToKey(KeyChar);
-  {$endif}
-
-  if KeyChar <> #0 then
-    CastleKeyString := KeyChar
-  else
-    CastleKeyString := '';
 
   if (CastleKey <> keyNone) or (CastleKeyString <> '') then
   begin

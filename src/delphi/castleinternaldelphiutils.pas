@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,28 +31,11 @@ function MouseButtonToCastle(const MouseButton: TMouseButton;
   If not possible, returns keyNone. }
 function KeyToCastle(const Key: Word; const Shift: TShiftState) : TKey;
 
-{$ifdef LINUX}
-{ Hacky way to convert key as WideChar into a TKey.
-
-  Used only to workaround Delphi FMXLinux: FMXLinux never sends a key code
-  (as Word, like vkA, vkSpace etc.) to OnKeyDown.
-  It only sends the key as WideChar, and the key code is always 0.
-
-  Confirmed with almost-blank FMX application (not using CGE), compiled for Linux.
-  TForm.OnKeyDown, TEdit.OnKeyDown report Key = 0, and KeyChar = 'a' when
-  you press key A.
-  Weirdly, the non-zero Key *is* passed properly by FMXLinux for things that have
-  no KeyChar representation, like arrow keys.
-  Tested that doing
-  "g_signal_connect(GLAreaGtk, 'key_press_event', @signal_key_press_event,
-    LinuxHandle.NativeDrawingArea);" inside
-  castleinternalfmxutils_linux.inc doesn't help (makes sense, since almost-blank
-  FMX application, not using CGE, also shows this problem).
-
-  So we workaround it in TCastleControl.KeyDown and TCastleWindow.OpenGLControlKeyDown,
-  so that CGE applications don't see this problem. }
-function SimpleWideCharToKey(const KeyChar: WideChar): TKey;
-{$endif}
+{ Convert FMX information about keys (received on key up or key down)
+  to CGE. }
+procedure FmxKeysToCastle(
+  const Key: Word; const KeyChar: WideChar; const Shift: TShiftState;
+  out CastleKey: TKey; out CastleKeyString: String);
 
 { Hacky and quick conversion of TKey to String representation.
   Knows additionally modifiers state from Shift.
@@ -84,7 +67,7 @@ implementation
 uses
   {$ifdef MSWINDOWS} CastleInternalContextWgl, {$endif}
   {$ifdef LINUX} CastleInternalContextEgl, {$endif}
-  CastleStringUtils;
+  CastleStringUtils, CastleLog;
 
 function MouseButtonToCastle(const MouseButton: TMouseButton;
   out CastleMouseButton: TCastleMouseButton): Boolean;
@@ -377,6 +360,26 @@ begin
 end;
 
 {$ifdef LINUX}
+{ Hacky way to convert key as WideChar into a TKey.
+
+  Used only to workaround Delphi FMXLinux: FMXLinux never sends a key code
+  (as Word, like vkA, vkSpace etc.) to OnKeyDown.
+  It only sends the key as WideChar, and the key code is always 0.
+
+  Confirmed with almost-blank FMX application (not using CGE), compiled for Linux.
+  TForm.OnKeyDown, TEdit.OnKeyDown report Key = 0, and KeyChar = 'a' when
+  you press key A.
+  Weirdly, the non-zero Key *is* passed properly by FMXLinux for things that have
+  no KeyChar representation, like arrow keys.
+  Tested that doing
+  "g_signal_connect(GLAreaGtk, 'key_press_event', @signal_key_press_event,
+    LinuxHandle.NativeDrawingArea);" inside
+  castleinternalfmxutils_linux.inc doesn't help (makes sense, since almost-blank
+  FMX application, not using CGE, also shows this problem).
+
+  So we workaround it in TCastleControl.KeyDown and TCastleWindow.OpenGLControlKeyDown,
+  so that CGE applications don't see this problem. }
+
 function SimpleWideCharToKey(const KeyChar: WideChar): TKey;
 begin
   Result := keyNone;
@@ -407,7 +410,63 @@ begin
       end;
   end;
 end;
+
+{ Workaround 2 FMXLinux bugs:
+
+  - FMXLinux always passes Key=0 for regular
+    keys that represent printable characters, like 'a' or space,
+    see SimpleWideCharToKey comments.
+
+  - On Enter, it passes vkReturn as Key, but KeyChar = #0.
+    We want to pass CharEnter.
+    Same thing for a few other special chars.
+}
+procedure FmxLinuxFixKeys(
+  const FmxKey: Word; const FmxKeyChar: WideChar;
+  var CastleKey: TKey; var CastleKeyString: String);
+begin
+  if (FmxKey = 0) and
+     (FmxKeyChar <> #0) and
+     (CastleKey = keyNone) then
+    CastleKey := SimpleWideCharToKey(FmxKeyChar);
+
+  if CastleKeyString = '' then
+    case CastleKey of
+      keyEnter :    CastleKeyString := CharEnter;
+      keyEscape:    CastleKeyString := CharEscape;
+      keyTab:       CastleKeyString := CharTab;
+      keyBackSpace: CastleKeyString := CharBackSpace;
+      else ;
+    end;
+end;
 {$endif}
+
+procedure FmxKeysToCastle(
+  const Key: Word; const KeyChar: WideChar; const Shift: TShiftState;
+  out CastleKey: TKey; out CastleKeyString: String);
+begin
+  // calculate CastleKey
+  CastleKey := KeyToCastle(Key, Shift);
+
+  // calculate CastleKeyString
+  if KeyChar <> #0 then
+    CastleKeyString := KeyChar
+  else
+    CastleKeyString := '';
+
+  // apply FMXLinux fixes
+  {$ifdef LINUX}
+  FmxLinuxFixKeys(Key, KeyChar, CastleKey, CastleKeyString);
+  {$endif}
+
+  // Debug what happens
+  WritelnLog('FMX Key', 'Key=%d KeyChar=%s CastleKey=%s CastleKeyString=%s', [
+    Key,
+    SReadableForm(KeyChar),
+    KeyToStr(CastleKey),
+    SReadableForm(CastleKeyString)
+  ]);
+end;
 
 function CursorFromCastle(const Cursor: TMouseCursor): TCursor;
 const

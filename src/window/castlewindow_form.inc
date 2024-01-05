@@ -1015,20 +1015,7 @@ var
   CastleKey: TKey;
   CastleKeyString: String;
 begin
-  CastleKey := KeyToCastle(Key, Shift);
-
-  { Workaround FMXLinux bug: it always passes Key=0 for regular
-    keys that represent printable characters, like 'a' or space,
-    see SimpleWideCharToKey comments. }
-  {$if defined(DELPHI) and defined(LINUX)}
-  if (Key = 0) and (KeyChar <> #0) and (CastleKey = keyNone) then
-    CastleKey := SimpleWideCharToKey(KeyChar);
-  {$endif}
-
-  if KeyChar <> #0 then
-    CastleKeyString := KeyChar
-  else
-    CastleKeyString := '';
+  FmxKeysToCastle(Key, KeyChar, Shift, CastleKey, CastleKeyString);
 
   if (CastleKey <> keyNone) or (CastleKeyString <> '') then
     DoKeyDown(CastleKey, CastleKeyString);
@@ -1048,26 +1035,31 @@ procedure TCastleWindow.OpenGLControlKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   CastleKey: TKey;
+  {$ifndef FPC}
+  CastleKeyString: String;
+  {$endif}
 begin
   {$ifdef FPC}
   FKeyPressHandler.BeforeKeyUp(Key, Shift);
-  {$endif}
   CastleKey := KeyToCastle(Key, Shift);
+  {$else}
 
-  { Workaround FMXLinux bug: it always passes Key=0 for regular
-    keys that represent printable characters, like 'a' or space,
-    see SimpleWideCharToKey comments.
+  { Note that KeyUp seems to have additional issue with FMXLinux,
+    not fixed in this code:
 
-    Note that KeyUp seems to have additional issue with FMXLinux:
-    when the key is held (so we expect to receive multiple KeyDown
+    When the key is held (so we expect to receive multiple KeyDown
     for one KeyUp), FMXLinux sends additional KeyUp before each KeyDown.
     So for code, it seems as if user is pressing and releasing the key.
     We cannot easily workaround it on CGE side.
     To track keys being held, we advise to check Pressed[keyXxx] in Update
     methods, instead of relying on KeyDown/KeyUp. }
-  {$if defined(DELPHI) and defined(LINUX)}
-  if (Key = 0) and (KeyChar <> #0) and (CastleKey = keyNone) then
-    CastleKey := SimpleWideCharToKey(KeyChar);
+
+  { In principle, FmxKeysToCastle does something similar to
+    "CastleKey := KeyToCastle(Key, Shift)" in FPC.
+    But we have to use it with Delphi, to apply some FMXLinux-specific fixes.
+    We actually ignore the resulting CastleKeyString now. }
+
+  FmxKeysToCastle(Key, KeyChar, Shift, CastleKey, CastleKeyString);
   {$endif}
 
   if CastleKey <> keyNone then
@@ -1105,7 +1097,7 @@ begin
       may be too often, in case multiple TCastleWindow are open. }
     ApplicationProperties._Update;
     DoUpdate;
-    
+
     {$ifdef FPC} // This doesn't seem needed with Delphi/Linux, so don't do it to conserve resources
     if Invalidated then DoRender;
     {$endif}
