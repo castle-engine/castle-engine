@@ -206,7 +206,7 @@ begin
 
     So Delphi FreeLibrary should be fixed to report
     "Result := dlclose(Module) = 0;"
-    TODO: Report to Embarcadero.
+    Reported to Embarcadero: https://quality.embarcadero.com/browse/RSP-44047
   }
   {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
     {$define IGNORE_FREE_LIBRARY_ERRORS}
