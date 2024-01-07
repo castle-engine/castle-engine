@@ -61,7 +61,7 @@ interface
 
 uses CTypes, SysUtils
   {$ifdef UNIX_WITH_X}, X, XLib {$endif}
-  {$ifdef WINDOWS}, Windows {$endif};
+  {$ifdef MSWINDOWS}, Windows {$endif};
 
 type
   PEGLConfig  = ^EGLConfig;

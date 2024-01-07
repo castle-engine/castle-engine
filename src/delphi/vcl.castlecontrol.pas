@@ -230,7 +230,7 @@ begin
     that frees various CGE things when last GL context is released. }
 
   if FContainer.GLInitialized then
-    FContainer.DestroyContext;
+    FContainer.FinalizeContext;
   inherited;
 end;
 
@@ -239,12 +239,12 @@ begin
   inherited;
   { Handle is only available now, in CreateHandle.
     So only now call FContainer.CreateContext that does FContainer.AdjustContext. }
-  FContainer.CreateContext;
+  FContainer.InitializeContext;
 end;
 
 procedure TCastleControl.DestroyHandle;
 begin
-  FContainer.DestroyContext;
+  FContainer.FinalizeContext;
   inherited;
 end;
 
