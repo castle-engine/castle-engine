@@ -107,7 +107,7 @@ begin
   Contents := TMemoryStream.Create;
 
   C := TNetHttpClient.Create(nil);
-  C.Asynchronous := true;
+  C.Asynchronous := not ForceSynchronous;
   C.OnReceiveData := ReceiveData;
   C.OnRequestCompleted := RequestCompleted;
   C.OnRequestError := RequestError;
