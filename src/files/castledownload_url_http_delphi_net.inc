@@ -48,12 +48,6 @@
 
   - Downloading on Linux works... unless you test with larger file like
     https://castle-engine.io/latest.zip . Then it just breaks with timeout.
-
-  - There are some other TODOs in this file.
-
-    Most importantly, the TNetHTTPClient behaves very bad when trying to free
-    it before it finished the job, and the only solution seems to be to
-    "let it leak".
 }
 
 {$if defined(DELPHI) and defined(CASTLE_DELPHI_NET_HTTP_CLIENT)}
@@ -70,6 +64,7 @@ type
   strict private
     C: TNetHttpClient;
     ContentsOwned: TMemoryStream;
+    Response: IHTTPResponse;
     procedure ReceiveData(const Sender: TObject;
       AContentLength: Int64; AReadCount: Int64; var AAbort: Boolean);
     procedure RequestCompleted(const Sender: TObject;
@@ -119,29 +114,29 @@ begin
   C.OnRequestException := RequestException;
   C.SynchronizeEvents := true;
   case HttpMethod of
-    hmGet: C.Get(Url, ContentsOwned);
+    hmGet: Response := C.Get(Url, ContentsOwned);
     hmPost:
       begin
         if HttpPostData = nil then
         begin
           EmptyPostData := TStringList.Create;
           try
-            C.Post(Url, EmptyPostData, Contents)
+            Response := C.Post(Url, EmptyPostData, Contents)
           finally FreeAndNil(EmptyPostData) end;
         end else
-          C.Post(Url, HttpPostData, Contents);
+          Response := C.Post(Url, HttpPostData, Contents);
       end;
     hmPut:
       // TODO: We should pass Source stream to put
       begin
         EmptyPostData := TStringList.Create;
         try
-          C.Put(Url, EmptyPostData, Contents);
+          Response := C.Put(Url, EmptyPostData, Contents);
         finally FreeAndNil(EmptyPostData) end;
       end;
-    hmDelete: C.Delete(Url, Contents);
-    hmOptions: C.Options(Url, Contents);
-    hmHead: C.Head(Url);
+    hmDelete: Response := C.Delete(Url, Contents);
+    hmOptions: Response := C.Options(Url, Contents);
+    hmHead: Response := C.Head(Url);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('HttpMethod=?');
     {$endif}
@@ -153,36 +148,99 @@ begin
 end;
 
 destructor TDelphiNetReader.Destroy;
-begin
-  if (C <> nil) and (Status = dsDownloading) then
+
+  { TNetHttpClient cannot be freed before it finished the work
+    or it will crash with access violation.
+
+    We try to cancel it, and this seems to usually work,
+    but in case it fails:
+    we let the C and ContentsOwned to just leak,
+    this still causes some crashes but at least we can ignore them
+    (they seem to happen then only in some non-main thread).
+
+    We also pass ReceiveDataAbort to at least stop actual transfer
+    as soon as feasible. }
+  procedure LeakNetHttpClient;
   begin
-    { TODO:
-      Freeing TNetHttpClient before it finished work leads to crashes.
-      Testcase: asynchronous_download CGE example, press "Abort Downloads"
-      after starting the downloads.
-
-      We let the C and ContentsOwned to just leak,
-      this still causes some crashes but at least we can ignore them
-      (they seem to happen then only in some non-main thread).
-
-      We also pass ReceiveDataAbort to at least stop actual transfer
-      as soon as feasible.
-
-      Maybe we should instead use TNetHTTPRequest with Cancel method?
-      > https://stackoverflow.com/questions/76268341/correct-way-to-terminate-a-tnethttpclient-get-request-with-a-live-stream
-      > You can use TNetHTTPClient asynchronously from the main thread and just cancel the request when application is closing or on any other appropriate user action. But to do that you need to use TNetHTTPRequest as you can call Cancel on the request associated with the TNetHTTPClient and you call Get on the request and not on the client.
-    }
-
     C.OnReceiveData := TDelphiNetReader.ReceiveDataAbort;
     C.OnRequestCompleted := nil;
     C.OnRequestError := nil;
     C.OnRequestException := nil;
+
     WritelnWarning('Leaking TNetHttpClient reference. Freeing it before the request has completed leads to crashes');
-  end else
-  begin
-    FreeAndNil(ContentsOwned);
-    FreeAndNil(C);
+
+    ContentsOwned := nil;
+    C := nil;
+    Response := nil;
   end;
+
+const
+  WaitForCancelStep = 10; //< in miliseconds
+  WaitForCancelMax = 1000; //< in miliseconds; so we wait max 1 second
+var
+  Waited: Cardinal;
+begin
+  if (C <> nil) and
+    (Status = dsDownloading) and
+    (Response <> nil) and
+    (not Response.AsyncResult.IsCompleted) then
+  begin
+    WritelnLog('TNetHttpClient', 'Aborting download in progress of "%s"', [UriDisplay(Url)]);
+
+    { We have to use SynchronizeEvents:=false, otherwise aborting
+      TNetHttpClient would cause crashes as it would put in Synchronize()
+      calls to our callbacks, so they will run from next
+      Application.ProcessMessages, but by then we are already freed.
+
+      So we also change callbacks to things that are harmless to run
+      from arbitrary thread.
+    }
+    C.OnReceiveData := TDelphiNetReader.ReceiveDataAbort;
+    C.OnRequestCompleted := nil;
+    C.OnRequestError := nil;
+    C.OnRequestException := nil;
+    C.SynchronizeEvents := false;
+
+    { TNetHttpClient causes exceptions if freed without properly closing the connection.
+      Testcase: asynchronous_download CGE example, press "Abort Downloads"
+      after starting the downloads.
+      Luckily, usually it can be cancelled immediately. }
+    if Response.AsyncResult.Cancel then
+    begin
+      Assert(Response.AsyncResult.IsCancelled);
+      Waited := 0;
+      while
+        (not Response.AsyncResult.IsCompleted) and
+        (Waited < WaitForCancelMax) do
+      begin
+        Sleep(WaitForCancelStep);
+        Waited := Waited + WaitForCancelStep;
+      end;
+      // warn when Waited <> 0
+      if Waited <> 0 then
+      begin
+        if Response.AsyncResult.IsCancelled then
+          WritelnWarning('Waited to cancel for %f seconds. At least we cancelled OK, so we can cleanup TNetHttpClient OK. But cancelling this way causes delays in execution of the main loop. Report a bug with reproduction.', [Waited / 1000])
+        else
+        begin
+          WritelnWarning('Waited to cancel for %f seconds. And we failed to cancel, to we will just leak TNetHttpClient now. Report a bug with reproduction.', [Waited / 1000]);
+          LeakNetHttpClient;
+        end;
+      end;
+    end else
+    begin
+      WritelnWarning('TNetHttpClient cannot be cancelled; leaking it');
+      LeakNetHttpClient;
+
+      // TODO: Calling LeakNetHttpClient, to avoid crashes.
+      // Find a case when it can be tested it in practice.
+      // When does Cancel return false? Does it imply we can free TNetHttpClient?
+    end;
+  end;
+
+  FreeAndNil(C);
+  Response := nil; // release reference count from interface
+  FreeAndNil(ContentsOwned);
 
   inherited;
 end;
@@ -197,14 +255,27 @@ end;
 class procedure TDelphiNetReader.ReceiveDataAbort(const Sender: TObject;
   AContentLength, AReadCount: Int64; var AAbort: Boolean);
 begin
+  { Note: This cannot access any main thread stuff, it may be run
+    in arbitrary thread by TNetHttpClient. }
   AAbort := true;
 end;
 
 procedure TDelphiNetReader.RequestCompleted(const Sender: TObject;
   const AResponse: IHTTPResponse);
 begin
+  WritelnLog('Completed request for "%s" with status %d', [
+    UriDisplay(Url),
+    AResponse.StatusCode
+  ]);
+
   HttpResponseCode := AResponse.StatusCode;
   MimeType := ContentTypeToMimeType(AResponse.MimeType);
+
+  { TODO: Set HttpResponseHeaders from AResponse.Headers
+  HttpResponseHeaders := TStringList.Create;
+  HttpResponseHeaders.NameValueSeparator := ':';
+  // for each pair in AResponse.Headers, add it to HttpResponseHeaders
+  }
 
   // finish the Contents stream
   Contents.CopyFrom(ContentsOwned);
@@ -222,8 +293,6 @@ begin
   begin
     Status := dsSuccess;
   end;
-
-  // TODO: set HttpResponseHeaders from AResponse.Headers
 end;
 
 procedure TDelphiNetReader.RequestError(const Sender: TObject;
@@ -246,18 +315,26 @@ begin
 
   { No need to do anything, our event callbacks are called already.
 
-    How are the callbacks called, from where,
+    Even in console application, that doesn't explicitly
+    do Application.ProcessMessages.
+    On both Windows and Linux.
+    See https://github.com/michaliskambi/delphi-http-download test.
+
+    TODO: How are the callbacks called, from where,
     since we don't necessarily execute the Delphi VCL / FMX event loop?
-    E.g. with TCastleWindow we execute own loop.
+    E.g. with TCastleWindow (WinAPI backend) we execute own loop,
+    and we don't call VCL / FMX Application.ProcessMessages.
     But the callbacks still happen, even in console application.
     It seems that at least for Windows, with TCastleWindow,
-    Delphi somehow hooked to the Windows event loop to make them happen.
+    Delphi somehow hooked to the Windows event loop to make them happen?
+    I haven't found how are they done on Linux.
 
-    TODO:
-    - Do these callbacks still happen with Delphi/Linux? How?
-    - How do these callbacks happen in console app?
-      Are they really in main thread then -- but when? At Sleep,
-      by more Windows hooks?
+    Note: The work of TNetHttpClient is done in a thread, so it makes sense
+    that it *does processing (downloads new bytes)* without
+    Application.ProcessMessages.
+    The above question is how does Delphi Synchronize work in
+    Linux console application
+    that doesn't call VCL / FMX Application.ProcessMessages?
   }
 end;
 
