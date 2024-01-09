@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1771,6 +1771,10 @@ end;
 type
   TWinApiClipboard = class(TCastleClipboard)
   protected
+    const
+      // Use 16-bit CF_UNICODETEXT with Delphi 16-bit String,
+      // use 8-bit CF_TEXT with FPC 8-bit String.
+      StringClipboardFormat = {$ifdef FPC} CF_TEXT {$else} CF_UNICODETEXT {$endif};
     function GetAsText: String; override;
     procedure SetAsText(const Value: String); override;
   end;
@@ -1779,25 +1783,29 @@ function TWinApiClipboard.GetAsText: String;
 var
   DataHandle: Windows.HGLOBAL;
   Data: Pointer;
-  Size: Integer;
+  ByteSize, CharSize: Integer;
 begin
   Result := '';
-  if IsClipboardFormatAvailable(CF_TEXT) then
+  if IsClipboardFormatAvailable(StringClipboardFormat) then
   begin
     if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
     try
-      DataHandle := Windows.GetClipboardData(CF_TEXT);
+      DataHandle := Windows.GetClipboardData(StringClipboardFormat);
       if DataHandle = 0 then Exit;
 
-      Size := Windows.GlobalSize(DataHandle);
-      if Size > 1 then
+      ByteSize := Windows.GlobalSize(DataHandle);
+      CharSize := ByteSize div SizeOf(Char);
+      if ByteSize mod SizeOf(Char) <> 0 then
+        WritelnWarning('WinAPI', 'Clipboard data size is not a multiple of SizeOf(Char)');
+
+      if CharSize > 1 then
       begin
-        Dec(Size); // do not copy trailing #0
-        Assert(Size > 0);
+        Dec(CharSize); // do not copy trailing #0
+        Assert(CharSize > 0);
         Data := Windows.GlobalLock(DataHandle);
         try
-          SetLength(Result, Size);
-          Move(Data^, Result[1], Size);
+          SetLength(Result, CharSize);
+          Move(Data^, Result[1], ByteSize);
         finally Windows.GlobalUnlock(DataHandle) end;
       end;
     finally Windows.CloseClipboard end;
@@ -1808,7 +1816,7 @@ procedure TWinApiClipboard.SetAsText(const Value: String);
 var
   DataHandle : Windows.HGLOBAL;
   Data: Pointer;
-  Size: Integer;
+  ByteSize, CharSize: Integer;
 begin
   if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
   try
@@ -1816,15 +1824,17 @@ begin
 
     if Value <> '' then
     begin
-      Size := Length(Value) + 1; // copy to Windows with trailing #0
-      DataHandle := Windows.GlobalAlloc(Windows.GMEM_MOVEABLE, Size);
+      CharSize := Length(Value) + 1; // copy to Windows with trailing #0
+      ByteSize := CharSize * SizeOf(Char);
+
+      DataHandle := Windows.GlobalAlloc(Windows.GMEM_MOVEABLE, ByteSize);
       if DataHandle = 0 then Exit;
 
       Data := GlobalLock(DataHandle);
       try
-        Move(Value[1], Data^, Size);
+        Move(Value[1], Data^, ByteSize);
       finally Windows.GlobalUnlock(DataHandle) end;
-      Windows.SetClipboardData(CF_TEXT, DataHandle);
+      Windows.SetClipboardData(StringClipboardFormat, DataHandle);
     end;
   finally Windows.CloseClipboard end;
 end;
