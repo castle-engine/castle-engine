@@ -159,6 +159,16 @@ begin
   C.HandleRedirects := false;
   {$endif}
 
+  {$ifdef LINUX}
+  { Disable timeouts, otherwise downloading long files
+    (like http://castle-engine.io/latest.zip) is always broken at timeout,
+    even when things actually go OK (e.g. after downloading over 400 MB).
+    This is asynchronous downloader anyway -- outside code can always
+    break it, so timeouts hardcoded here should not be necessary. }
+  C.ConnectionTimeout := -1;
+  C.ResponseTimeout := -1;
+  {$endif}
+
   { TODO: Update FinalUrl during HTTP redirects even when
     CASTLE_HTTP_MANUAL_REDIRECTS not defined.
     For now only CASTLE_HTTP_MANUAL_REDIRECTS will update it. }
