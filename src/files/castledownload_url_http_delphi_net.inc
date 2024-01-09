@@ -54,6 +54,8 @@
 
 {$ifdef read_implementation_uses}
 System.Net.HttpClientComponent, System.Net.HttpClient,
+// for sLocation used when CASTLE_HTTP_MANUAL_REDIRECTS
+System.NetConsts,
 {$endif}
 
 {$ifdef read_implementation}
@@ -65,6 +67,8 @@ type
     C: TNetHttpClient;
     ContentsOwned: TMemoryStream;
     Response: IHTTPResponse;
+    { Call C.Get or similar method of C to actually start HTTP request. }
+    procedure NetClientStart(const StartUrl: String);
     procedure ReceiveData(const Sender: TObject;
       AContentLength: Int64; AReadCount: Int64; var AAbort: Boolean);
     procedure RequestCompleted(const Sender: TObject;
@@ -86,11 +90,48 @@ type
     CASTLE_DELPHI_NET_HTTP_CLIENT was defined. }
   TDelphiHttpReader = TDelphiNetReader;
 
+{ TNetHttpClient on Delphi/Linux fails to handle redirects in some cases,
+  testcase: http://castle-engine.io/latest.zip failing with timeout.
+  Handling them on our side fixes the issue. }
+{$define CASTLE_HTTP_MANUAL_REDIRECTS}
+
 { TDelphiNetReader --------------------------------------------------- }
 
-procedure TDelphiNetReader.Start;
+procedure TDelphiNetReader.NetClientStart(const StartUrl: String);
 var
   EmptyPostData: TStringList;
+begin
+  case HttpMethod of
+    hmGet: Response := C.Get(StartUrl, ContentsOwned);
+    hmPost:
+      begin
+        if HttpPostData = nil then
+        begin
+          EmptyPostData := TStringList.Create;
+          try
+            Response := C.Post(StartUrl, EmptyPostData, Contents)
+          finally FreeAndNil(EmptyPostData) end;
+        end else
+          Response := C.Post(StartUrl, HttpPostData, Contents);
+      end;
+    hmPut:
+      // TODO: We should pass Source stream to put, otherwise it is not very useful
+      begin
+        EmptyPostData := TStringList.Create;
+        try
+          Response := C.Put(StartUrl, EmptyPostData, Contents);
+        finally FreeAndNil(EmptyPostData) end;
+      end;
+    hmDelete: Response := C.Delete(StartUrl, Contents);
+    hmOptions: Response := C.Options(StartUrl, Contents);
+    hmHead: Response := C.Head(StartUrl);
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('HttpMethod=?');
+    {$endif}
+  end;
+end;
+
+procedure TDelphiNetReader.Start;
 begin
   inherited;
 
@@ -113,38 +154,17 @@ begin
   C.OnRequestError := RequestError;
   C.OnRequestException := RequestException;
   C.SynchronizeEvents := true;
-  case HttpMethod of
-    hmGet: Response := C.Get(Url, ContentsOwned);
-    hmPost:
-      begin
-        if HttpPostData = nil then
-        begin
-          EmptyPostData := TStringList.Create;
-          try
-            Response := C.Post(Url, EmptyPostData, Contents)
-          finally FreeAndNil(EmptyPostData) end;
-        end else
-          Response := C.Post(Url, HttpPostData, Contents);
-      end;
-    hmPut:
-      // TODO: We should pass Source stream to put
-      begin
-        EmptyPostData := TStringList.Create;
-        try
-          Response := C.Put(Url, EmptyPostData, Contents);
-        finally FreeAndNil(EmptyPostData) end;
-      end;
-    hmDelete: Response := C.Delete(Url, Contents);
-    hmOptions: Response := C.Options(Url, Contents);
-    hmHead: Response := C.Head(Url);
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('HttpMethod=?');
-    {$endif}
-  end;
 
-  // TODO: Change this value during HTTP redirects.
-  // The TNetHttpClient already supports redirects, according to docs.
+  {$ifdef CASTLE_HTTP_MANUAL_REDIRECTS}
+  C.HandleRedirects := false;
+  {$endif}
+
+  { TODO: Update FinalUrl during HTTP redirects even when
+    CASTLE_HTTP_MANUAL_REDIRECTS not defined.
+    For now only CASTLE_HTTP_MANUAL_REDIRECTS will update it. }
   FinalUrl := Url;
+
+  NetClientStart(Url);
 end;
 
 destructor TDelphiNetReader.Destroy;
@@ -262,7 +282,69 @@ end;
 
 procedure TDelphiNetReader.RequestCompleted(const Sender: TObject;
   const AResponse: IHTTPResponse);
+
+  {$ifdef CASTLE_HTTP_MANUAL_REDIRECTS}
+  function ArrayContainsInt(const X: Integer; const A: array of Integer): Boolean;
+  var
+    I: Integer;
+  begin
+    for I := 0 to High(A) do
+      if A[I] = X then
+        Exit(true);
+    Result := false;
+  end;
+
+  { Detect and handle http redirect, doing new NetClientStart if needed.
+    Returns @true if redirect was handled, @false if not. }
+  function HandleRedirect: Boolean;
+  var
+    RedirectToGet: Boolean;
+    RedirectUrl: String;
+  begin
+    Result := false;
+
+    if ArrayContainsInt(AResponse.StatusCode, [300, 301, 302, 303, 307, 308]) then
+    begin
+      RedirectUrl := Trim(AResponse.GetHeaderValue(sLocation));
+      if RedirectUrl <> '' then
+      begin
+        { TODO: Preserve fragment (#xxx, it seems https://tools.ietf.org/html/rfc7231#section-7.1.2 )
+          from Url to FinalUrl. It practically doesn't matter for just downloading. }
+        FinalUrl := RedirectUrl;
+        WritelnLog('Redirecting to "%s"', [UriDisplay(FinalUrl)]);
+
+        { Some redirects should change method to GET.
+          Logic matches default value of CHTTPDefRedirectsWithGET in Delphi. }
+        RedirectToGet := false;
+        case HttpMethod of
+          hmPost: RedirectToGet := ArrayContainsInt(AResponse.StatusCode, [301, 302, 303]);
+          hmPut: RedirectToGet := ArrayContainsInt(AResponse.StatusCode, [303]);
+          hmDelete: RedirectToGet := ArrayContainsInt(Response.StatusCode, [303]);
+        end;
+        if RedirectToGet and (HttpMethod <> hmGet) then
+        begin
+          WritelnLog('Redirect changes method to GET');
+          HttpMethod := hmGet;
+        end;
+
+        // reset ContentsOwned
+        ContentsOwned.Size := 0;
+        ContentsOwned.Position := 0;
+
+        NetClientStart(FinalUrl);
+
+        Result := true;
+      end;
+    end;
+  end;
+  {$endif}
+
 begin
+  {$ifdef CASTLE_HTTP_MANUAL_REDIRECTS}
+  if HandleRedirect then
+    Exit;
+  {$endif}
+
   WritelnLog('Completed request for "%s" with status %d', [
     UriDisplay(Url),
     AResponse.StatusCode
