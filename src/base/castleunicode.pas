@@ -518,7 +518,7 @@ var
 begin
   I := StartCharIndex;
   AddedChars := 0;
-  while (I <= Length(S)) or (AddedChars < CharCount) do
+  while (I <= Length(S)) and (AddedChars < CharCount) do
   begin
     if IsSurrogate(S, I) then
     begin
