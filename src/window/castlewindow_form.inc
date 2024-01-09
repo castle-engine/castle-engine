@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2013-2023 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -622,15 +622,30 @@ end;
 
 procedure TCastleWindow.OpenBackend;
 
-  procedure GetInitialCursorPos;
+  procedure GetInitialMousePos;
   var
-    InitialCursorPos: TPoint;
+    {$ifdef FPC}
+    InitialMousePos: TPoint;
+    {$else}
+    InitialMousePos: TPointF;
+    MouseService: IFMXMouseService;
+    {$endif}
   begin
     {$ifdef FPC}
-    // FMX: TODO
-    InitialCursorPos := OpenGLControl.ScreenToControl(Mouse.CursorPos);
-    FMousePosition := MousePosToCastle(InitialCursorPos.X, InitialCursorPos.Y);
+    InitialMousePos := Mouse.CursorPos;
+    InitialMousePos := OpenGLControl.ScreenToControl(InitialMousePos);
+    {$else}
+    if not TPlatformServices.Current.SupportsPlatformService(IFMXMouseService, MouseService) then
+      Exit;
+    InitialMousePos := MouseService.GetMousePos;
+    //WritelnLog('Initial mouse position (screen coordinates): %f %f', [InitialMousePos.X, InitialMousePos.Y]);
+    InitialMousePos := Form.ScreenToClient(InitialMousePos);
+    //WritelnLog('Initial mouse position (form coordinates): %f %f', [InitialMousePos.X, InitialMousePos.Y]);
+    InitialMousePos := OpenGLControl.AbsoluteToLocal(InitialMousePos);
+    //WritelnLog('Initial mouse position (OpenGL control coordinates): %f %f', [InitialMousePos.X, InitialMousePos.Y]);
     {$endif}
+    FMousePosition := MousePosToCastle(InitialMousePos.X, InitialMousePos.Y);
+    //WritelnLog('Initial mouse position (CGE coordinates): %s', [FMousePosition.ToString]);
   end;
 
   { Convert argument to assign to Form.Width / Height to make the result
@@ -815,7 +830,7 @@ begin
 
   Application.OpenWindowsAdd(Self);
 
-  GetInitialCursorPos;
+  GetInitialMousePos;
 
   Container.Dpi := {$ifdef FPC} Screen {$else} OpenGLControl {$endif}.PixelsPerInch;
 end;
