@@ -250,7 +250,7 @@ begin
       if Waited <> 0 then
       begin
         if Response.AsyncResult.IsCancelled then
-          WritelnWarning('Waited to cancel for %f seconds. At least we cancelled OK, so we can cleanup TNetHttpClient OK. But cancelling this way causes delays in execution of the main loop. Report a bug with reproduction.', [Waited / 1000])
+          WritelnWarning('Waited to cancel for %f seconds. At least we cancelled OK, so we can cleanup TNetHttpClient OK. But cancelling this way causes delays in execution of the main loop.', [Waited / 1000])
         else
         begin
           WritelnWarning('Waited to cancel for %f seconds. And we failed to cancel, to we will just leak TNetHttpClient now. Report a bug with reproduction.', [Waited / 1000]);
