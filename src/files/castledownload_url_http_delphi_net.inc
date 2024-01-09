@@ -92,7 +92,30 @@ type
 
 { TNetHttpClient on Delphi/Linux fails to handle redirects in some cases,
   testcase: http://castle-engine.io/latest.zip failing with timeout.
-  Handling them on our side fixes the issue. }
+  Handling redirects on our side fixes the issue.
+
+  Details:
+
+  - https://github.com/michaliskambi/delphi-http-download (no CGE code)
+    allows to reproduce it too (so it's really unrelated to CGE):
+
+    - using the command-line https://github.com/michaliskambi/delphi-http-download/blob/master/test_net_http_client.dpr
+
+    - using the FMX (GUI) application in https://github.com/michaliskambi/delphi-http-download/tree/master/fmx
+
+  - Tested and reproduced with both Delphi 11.3 and 12.
+
+  - It is reproducible regardless of the `Asynchronous` property value --
+    so it fails even in simpler case of synchronous operation.
+
+  - Using `curl` from the command-line on the same system works OK,
+    i.e. this works OK:
+
+      curl -L http://castle-engine.io/latest.zip --output cge.zip
+
+    Note that `TNetHttpClient` uses `libcurl` under the hood,
+    so it should really work like `curl`.
+}
 {$define CASTLE_HTTP_MANUAL_REDIRECTS}
 
 { TDelphiNetReader --------------------------------------------------- }
