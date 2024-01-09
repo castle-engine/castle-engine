@@ -447,6 +447,9 @@ end;
 
 procedure TCastleEdit.DoChange;
 begin
+  { Every time the contents change, make sure caret is visible.
+    This matches what other GUIs (like GTK) do. }
+  LifeTime := 0;
   if Assigned(OnChange) then
     OnChange(Self);
 end;
