@@ -422,7 +422,7 @@ end;
     Same thing for a few other special chars.
 }
 procedure FmxLinuxFixKeys(
-  const FmxKey: Word; const FmxKeyChar: WideChar;
+  const FmxKey: Word; const FmxKeyChar: WideChar; const FmxShift: TShiftState;
   var CastleKey: TKey; var CastleKeyString: String);
 begin
   if (FmxKey = 0) and
@@ -436,6 +436,11 @@ begin
       keyEscape:    CastleKeyString := CharEscape;
       keyTab:       CastleKeyString := CharTab;
       keyBackSpace: CastleKeyString := CharBackSpace;
+      keyA..keyZ:
+        begin
+          if ssCtrl in FmxShift then
+            CastleKeyString := Chr(Ord(CtrlA) + Ord(CastleKey) - Ord(keyA));
+        end;
       else ;
     end;
 end;
@@ -456,7 +461,7 @@ begin
 
   // apply FMXLinux fixes
   {$ifdef LINUX}
-  FmxLinuxFixKeys(Key, KeyChar, CastleKey, CastleKeyString);
+  FmxLinuxFixKeys(Key, KeyChar, Shift, CastleKey, CastleKeyString);
   {$endif}
 
   // Debug what happens
