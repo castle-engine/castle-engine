@@ -1265,31 +1265,18 @@ type
     procedure SetAsText(const Value: string); override;
   end;
 
-{$ifndef FPC}
-{ FMX clipboard handling thanks to
-  https://blog.dummzeuch.de/2015/02/28/accessing-the-clipboard-in-a-firemonkey-application/
-  https://blogs.embarcadero.com/multi-device-apps-and-clipboard-support/
-}
-function TryGetClipboardService(out Clp: IFMXClipboardService): Boolean;
-begin
-  Result := TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService);
-  if Result then
-    Clp := IFMXClipboardService(TPlatformServices.Current.GetPlatformService(IFMXClipboardService));
-end;
-{$endif}
-
 function TFormsClipboard.GetAsText: string;
 {$ifdef FPC}
 begin
   Result := Clipbrd.Clipboard.AsText;
 {$else}
 var
-  Clp: IFMXClipboardService;
+  ClipboardService: IFMXClipboardService;
   Value: TValue;
 begin
-  if TryGetClipboardService(Clp) then
+  if TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, ClipboardService) then
   begin
-    Value := Clp.GetClipboard;
+    Value := ClipboardService.GetClipboard;
     if not Value.TryAsType(Result) then
       Result := '';
   end;
@@ -1302,11 +1289,11 @@ begin
   Clipbrd.Clipboard.AsText := Value;
 {$else}
 var
-  Clp: IFMXClipboardService;
+  ClipboardService: IFMXClipboardService;
 begin
-  if TryGetClipboardService(Clp) then
+  if TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, ClipboardService) then
   begin
-    Clp.SetClipboard(Value);
+    ClipboardService.SetClipboard(Value);
   end;
 {$endif}
 end;
