@@ -24,6 +24,7 @@ lib/
 *.local
 __recovery
 *.deployproj
+*.delphilsp.json
 
 # Other backups
 *.blend1
