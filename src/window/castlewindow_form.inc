@@ -287,11 +287,29 @@ end;
 
 procedure TCastleWindow.TGoodOpenGLControl.Invalidate;
 
-{ Note that in FMX, this is not called by the system.
-  So this is worthless to catch system invalidate events
-  (TODO: we should somehow catch system invalidate).
-  But it is still useful as TCastleWindow.Invalidate sets
-  Window.Invalidated := true indirectly, through this. }
+{ TODO: In FMX, this is not called automatically when a system event
+  (e.g. when window is obscured and then revealed again) occurs.
+
+  Still, this is a useful method to react to.
+  When CGE knows to invalidate (because e.g. some UI called
+  VisibleChange, or we have AutoRedisplay) then TCastleWindow.Invalidate
+  is called, and in turn calls this method.
+
+  We should make sure to call DoRender soon:
+
+  - In FMX, "inherited" will invalidate the control
+    using FMX features, causing OpenGLControl.OnPaint soon.
+
+    So we actually don't depend on "Window.Invalidated" (own tracking
+    of invalidated).
+
+  - Unsure about LCL at this point, does it cause OpenGLControl.OnPaint
+    reliably on all backends.
+
+    So with LCL (FPC) we rely on own Window.Invalidated.
+    Window.Invalidated := true is set set here,
+    later DoRender will clear it.
+}
 
 begin
   // track our own Invalidated state, although still cooperate with LCL invalidate
@@ -1112,8 +1130,38 @@ begin
     ApplicationProperties._Update;
     DoUpdate;
 
-    {$ifdef FPC} // This doesn't seem needed with Delphi/Linux, so don't do it to conserve resources
-    if Invalidated then DoRender;
+    {$ifdef FPC}
+
+    { Manually using Invalidated flag to call DoRender
+      doesn't seem needed with Delphi/Linux,
+      so we don't do it to conserve resources.
+      On Delphi/Linux, DoRender is called from OpenGLControlPaint.
+
+      For FPC/LCL, we rely on own Invalidated tracking,
+      and apply Invalidated here.
+      Note that DoRender will clear the Invalidated flag
+      (unless AutoRedisplay). }
+
+    if Invalidated then
+      DoRender;
+
+    {$else}
+
+    { Implement AutoRedisplay,
+      for FMX this is the only place causing render each frame.
+
+      The "if AutoRedisplay then Invalidate;" done by DoRender
+      doesn't have a desired effect on FMX (at least on Linux),
+      it seems TOpenGLControl.Invalidate inside OnPaint is ignored.
+      And we ignore own Window.Invalidated tracking with FMX.
+
+      Testcase: edit_test, but with TCastleEdit deliberately
+      not doing VisibleChanged each frame.
+      Without the code below: Window would not be redrawn there
+      with blinking cursor, so it would ignore AutoRedisplay=true. }
+
+    if AutoRedisplay and (not Closed) then
+      Invalidate;
     {$endif}
   end;
 end;
