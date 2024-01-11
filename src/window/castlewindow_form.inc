@@ -1034,6 +1034,38 @@ begin
   DoResize(
     OpenGLControl.PixelsWidth,
     OpenGLControl.PixelsHeight, false);
+
+  (*
+  TODO: The issue is now solved in a different way, to effectively
+  always behave as if AutoRedisplay=true.
+  It seems that calling either Invalidate or even DoRender from
+  TCastleWindow.OpenGLControlResize is sometimes not effective -- the context
+  doesn't get redrawn, even though logs show it is executed.
+
+  Testcase: AutoRedisplay:=false in some
+  TCastleWindow application *not* doing something in each update that
+  already causes redisplay each frame (like updating FPS on label).
+  Then maximize / restore it (e.g. by Alt+F10 in GNOME) repeatedly.
+  On Delphi/Linux.
+
+  {$ifndef FPC}
+  { When using FMX TOpenGLControl, our Invalidate is not automatically
+    called by the system when we should be redrawn.
+    So we have to call it manually.
+
+    Testcase this is needed: set AutoRedisplay:=false in some
+    TCastleWindow application *not* doing something in each update that
+    already causes redisplay each frame (like updating FPS on label).
+    Then resize this window.
+    Without this code, the window would not be redrawn to show new size.
+    On Delphi/Linux.
+  }
+
+  Invalidate;
+
+  //DoRender;
+  {$endif}
+  *)
 end;
 
 procedure TCastleWindow.OpenGLControlKeyDown(Sender: TObject;
@@ -1147,20 +1179,25 @@ begin
 
     {$else}
 
-    { Implement AutoRedisplay,
+    { Original intention: Implement AutoRedisplay,
       for FMX this is the only place causing render each frame.
 
-      The "if AutoRedisplay then Invalidate;" done by DoRender
+      The "if AutoRedisplay then Invalidate;" done by TCastleWindow.DoRender
       doesn't have a desired effect on FMX (at least on Linux),
       it seems TOpenGLControl.Invalidate inside OnPaint is ignored.
       And we ignore own Window.Invalidated tracking with FMX.
+      So we redo it here.
 
       Testcase: edit_test, but with TCastleEdit deliberately
       not doing VisibleChanged each frame.
       Without the code below: Window would not be redrawn there
       with blinking cursor, so it would ignore AutoRedisplay=true. }
 
-    if AutoRedisplay and (not Closed) then
+    { TODO: Later intention: behave as if AutoRedisplay was always true.
+      Reason: Only then we get proper redisplay on maximize / restore of the window
+      with Delphi/Linux. }
+
+    //if AutoRedisplay then
       Invalidate;
     {$endif}
   end;
