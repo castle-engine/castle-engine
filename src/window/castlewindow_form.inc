@@ -35,6 +35,9 @@
   LCL: Bugs on Carbon, untested elsewhere:
   - When you switch FullScreen, at application exit there is an access violation
     in LCL. Seems harmless, so we just ignore it for now.
+
+  A few Delphi (FMX), or Delphi/Win64 or Delphi/Linux specific TODOs
+  are within the code below.
 *)
 
 { How to implement calling CGE Update (and if needed Render) events continuously?
@@ -207,6 +210,7 @@ private
   procedure MenuItemClick(Sender: TObject);
   procedure MenuUpdateShortcut(Entry: TMenuItem);
   procedure ProcessTasks;
+  procedure UpdateCursor;
   procedure UpdateFullScreenForm;
   {$ifdef FPC}
   procedure KeyPressHandlerPress(Sender: TObject;
@@ -739,7 +743,6 @@ begin
   Form.Width := FormSizeRequestPrecisely(Form, Width);
   Form.Height := FormSizeRequestPrecisely(Form, Height);
   Form.Caption := GetWholeCaption; // SetCaption may also change it later
-  Form.Cursor := CursorFromCastle(InternalCursor); // SetCursor may also change it later
 
   UpdateFullScreenForm;
 
@@ -790,6 +793,8 @@ begin
     OpenGLControl.Requirements.AlphaBits := AlphaBits;
     OpenGLControl.Requirements.MultiSampling := MultiSampling;
   {$endif}
+
+  UpdateCursor; // SetCursor may call it also later
 
   Form.ActiveControl := OpenGLControl;
 
@@ -942,30 +947,58 @@ begin
   OpenGLControl.MakeCurrent;
 end;
 
+procedure TCastleWindow.UpdateCursor;
+begin
+  { FPC (LCL) notes:
+
+    - OpenGLControl.Cursor is better than Form.Cursor for this,
+      hiding the cursor would not work on Carbon with Form.Cursor.
+
+    Delphi (FMX) notes:
+
+    - Setting Form.Cursor := .. no effect.
+      Tested on Delphi/Linux and Delphi/Win64, with Delphi 11.3.
+
+    - Using
+
+      var
+        CursorService: IFMXCursorService;
+      begin
+        if not TPlatformServices.Current.SupportsPlatformService(IFMXCursorService, CursorService) then
+         Exit;
+       CursorService.SetCursor(CursorFromCastle(InternalCursor));
+      end;
+
+      On Delphi/Linux with Delphi 11.3:
+      It changes the cursor only temporarily -- until next mouse move.
+      So we're not supposed to use this, as I understand -- FMX is internally
+      I guess using IFMXCursorService to set the value from
+      OpenGLControl.Cursor.
+
+      On Delphi/Win64 with Delphi 11.3:
+      Seems to do nothing.
+
+    - OpenGLControl.Cursor := .. :
+
+      Is reliable, on Delphi/Linux, with Delphi 11.3.
+
+      Doesn't work Delphi/Win64 with Delphi 11.3.
+
+      So really no solution works for Delphi/Win64 with Delphi 11.3...
+      We just ignore it, as Windows users shall not use this backend,
+      they shall use better CASTLE_WINDOW_WINAPI.
+  }
+
+  OpenGLControl.Cursor := CursorFromCastle(InternalCursor);
+end;
+
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
     FCursor := Value;
     if not Closed then
-    begin
-      {$ifdef FPC}
-      { Note: OpenGLControl.Cursor is better than Form.Cursor for this,
-        hiding the cursor would not work on Carbon with Form.Cursor. }
-      OpenGLControl.Cursor := CursorFromCastle(Value);
-      {$else}
-      { TODO: What to do on FMX?
-        Testing with physics_3d_shooter, right click toggles mouse look.
-        - On Windows: untested (when testing, remember to use CASTLE_WINDOW_FORM backend).
-            Form.Cursor: ?
-            OpenGLControl.Cursor: ?
-            Using IFMXCursorService: ?
-        - Linux:
-            Form.Cursor: does not work to hide.
-            OpenGLControl.Cursor: does not work to hide.
-            Using IFMXCursorService: TODO test. }
-      {$endif}
-    end;
+      UpdateCursor;
   end;
 end;
 
