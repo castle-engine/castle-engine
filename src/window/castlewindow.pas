@@ -1740,11 +1740,6 @@ type
 
     property Closed: boolean read FClosed default true;
 
-    {$ifdef FPC}
-    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
-      deprecated 'do not set this, engine will override this. Set TCastleUserInterface.Cursor of your UI controls to control the Cursor.';
-    {$endif}
-
     { Mouse cursor appearance over this window.
       See TMouseCursor for a list of possible values and their meanings.
 
