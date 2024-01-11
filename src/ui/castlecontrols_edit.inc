@@ -588,6 +588,10 @@ procedure TCastleEdit.Update(const SecondsPassed: Single;
 begin
   inherited;
   LifeTime := LifeTime + SecondsPassed;
+
+  // cursor is blinking based on LifeTime, so redisplay each frame
+  VisibleChange([chRender]);
+
   { do not allow other controls to handle key presses
     (and e.g. move camera when "A" is pressed down), TCastleEdit handles all keys }
   HandleInput := false;
