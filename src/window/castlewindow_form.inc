@@ -1008,8 +1008,20 @@ begin
 end;
 
 procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+
+  { Convert window position from the CGE convention to window system
+    convention where (0,0) is left-top.
+    This reverses LeftTopToCastle. }
+  function CastleToLeftTop(const V: TVector2): TVector2;
+  begin
+    Result.X := V.X;
+    Result.Y := FRealHeight / OpenGLControl.MousePosScale - 1 - V.Y;
+  end;
+
 var
-  P: TVector2Integer;
+  { LCL takes int mouse positions, Delphi (FMX) takes float mouse positions. }
+  P: {$ifdef FPC} TVector2Integer {$else} TVector2 {$endif};
+  Pt: {$ifdef FPC} TPoint {$else} TPointF {$endif};
 begin
   if not Closed then
   begin
@@ -1018,13 +1030,29 @@ begin
       unnecessary OnMotion on some systems while actual MousePosition didn't change. }
     if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
 
-    P := CastleToLeftTopInt(Value / OpenGLControl.MousePosScale);
+    //WritelnLog('New mouse position (CGE coordinates): %f %f', [Value.X, Value.Y]);
+
+    P := {$ifdef FPC} CastleToLeftTopInt {$else} CastleToLeftTop {$endif}
+      (Value / OpenGLControl.MousePosScale);
+
     {$ifdef FPC}
-    Mouse.CursorPos := OpenGLControl.ControlToScreen(Point(P.X, P.Y));
+    Pt := Point(P.X, P.Y);
+    Pt := OpenGLControl.ControlToScreen(Pt);
+    Mouse.CursorPos := Pt;
     {$else}
+    Pt := PointF(P.X, P.Y);
+    //WritelnLog('New mouse position (OpenGL control coordinates): %f %f', [Pt.X, Pt.Y]);
+    Pt := OpenGLControl.LocalToAbsolute(Pt);
+    //WritelnLog('New mouse position (form coordinates): %f %f', [Pt.X, Pt.Y]);
+    Pt := Form.ClientToScreen(Pt);
+    //WritelnLog('New mouse position (screen coordinates): %f %f', [Pt.X, Pt.Y]);
+
     { It seems there's no cross-platform solution for this in FMX.
       It has IFMXMouseService but only with GetMousePos, not setter. }
-    // TODO
+
+    {$ifdef LINUX}
+    FmxSetMousePos(Pt);
+    {$endif}
     {$endif}
   end;
 end;
@@ -1623,6 +1651,17 @@ end;
 
 function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
 begin
+  { Delphi/Linux, using
+    https://docs.gtk.org/gdk3/method.Device.warp.html for SetMousePosition,
+    says
+
+    """
+    Warping the pointer creates events as if the user had moved
+    the mouse instantaneously to the destination.
+    """
+
+    So it does generate Motion events.
+  }
   Result := true;
 end;
 
