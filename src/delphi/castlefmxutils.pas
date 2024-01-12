@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -44,7 +44,11 @@ procedure FileFiltersToDialog(FFList: TFileFilterList;
 { @groupEnd }
 
 {$ifdef LINUX}
-procedure FmxSetMousePos(const Point: TPointF);
+{ Set mouse position, in screen coordinates.
+  WidgetNativeHandle is a GTK widget pointer, used to determine
+  display and screen where to set the pointer. }
+procedure FmxSetMousePos(const WidgetNativeHandle: Pointer;
+  const Point: TPointF);
 {$endif}
 
 implementation
@@ -80,31 +84,37 @@ type
   PGdkScreen = Pointer;
   PGdkDisplay = Pointer;
   PGdkDeviceManager = Pointer;
+  PGtkWidget = Pointer;
 
 procedure gdk_device_warp(Device: PGdkDevice; Screen: PGdkScreen; X, Y: CInt); cdecl; external 'libgtk-3.so.0';
 
-function gdk_display_get_default: PGdkDisplay; cdecl; external 'libgtk-3.so.0';
+//function gdk_display_get_default: PGdkDisplay; cdecl; external 'libgtk-3.so.0';
+function gtk_widget_get_display(widget: PGtkWidget): PGdkDisplay; cdecl; external 'libgtk-3.so.0';
 function gdk_display_get_device_manager(display: PGdkDisplay): PGdkDeviceManager; cdecl; external 'libgtk-3.so.0';
 function gdk_device_manager_get_client_pointer(manager: PGdkDeviceManager): PGdkDevice; cdecl; external 'libgtk-3.so.0';
 
-function gdk_screen_get_default: PGdkScreen; cdecl; external 'libgtk-3.so.0';
+//function gdk_screen_get_default: PGdkScreen; cdecl; external 'libgtk-3.so.0';
+function gtk_widget_get_screen(widget: PGtkWidget): PGdkScreen; cdecl; external 'libgtk-3.so.0';
 
-procedure FmxSetMousePos(const Point: TPointF);
+procedure FmxSetMousePos(const WidgetNativeHandle: Pointer;
+  const Point: TPointF);
 var
   Display: PGdkDisplay;
   DeviceManager: PGdkDeviceManager;
   Device: PGdkDevice;
   Screen: PGdkScreen;
 begin
-  // TODO: use Display, Screen of my widget
-  // Maybe move this to _gtk3.inc include
+  { Get main device (mouse) following
+    https://stackoverflow.com/questions/24844489/how-to-use-gdk-device-get-position .
+    We use Display and Screen that correspond to the WidgetNativeHandle .
+    Then we "warp" (set mouse position) using
+    https://docs.gtk.org/gdk3/method.Device.warp.html . }
 
-  // Following https://stackoverflow.com/questions/24844489/how-to-use-gdk-device-get-position
-  Display := gdk_display_get_default;
+  Display := gtk_widget_get_display(WidgetNativeHandle);
   DeviceManager := gdk_display_get_device_manager(Display);
   Device := gdk_device_manager_get_client_pointer(DeviceManager);
 
-  Screen := gdk_screen_get_default;
+  Screen := gtk_widget_get_screen(WidgetNativeHandle);
 
   //WritelnLog('Mouse', 'Warping mouse to %f %f', [Point.X, Point.Y]);
   gdk_device_warp(Device, Screen, Round(Point.X), Round(Point.Y));

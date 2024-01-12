@@ -1036,10 +1036,18 @@ begin
       (Value / OpenGLControl.MousePosScale);
 
     {$ifdef FPC}
+    { LCL version: use Mouse.CursorPos .}
     Pt := Point(P.X, P.Y);
     Pt := OpenGLControl.ControlToScreen(Pt);
     Mouse.CursorPos := Pt;
+
     {$else}
+    { FMX version.
+      It seems there's no cross-platform solution for this in FMX.
+      It has IFMXMouseService but only with GetMousePos, not setter.
+      So we just do platform-specific call in FmxSetMousePos,
+      for now implemented only for Linux (GTK 3). }
+
     Pt := PointF(P.X, P.Y);
     //WritelnLog('New mouse position (OpenGL control coordinates): %f %f', [Pt.X, Pt.Y]);
     Pt := OpenGLControl.LocalToAbsolute(Pt);
@@ -1047,12 +1055,22 @@ begin
     Pt := Form.ClientToScreen(Pt);
     //WritelnLog('New mouse position (screen coordinates): %f %f', [Pt.X, Pt.Y]);
 
-    { It seems there's no cross-platform solution for this in FMX.
-      It has IFMXMouseService but only with GetMousePos, not setter. }
-
     {$ifdef LINUX}
-    FmxSetMousePos(Pt);
+    if Form.Handle = nil then
+    begin
+      WritelnWarning('Cannot set mouse position, form has no Handle');
+      Exit;
+    end;
+    if TLinuxWindowHandle(Form.Handle).NativeHandle = nil then
+    begin
+      WritelnWarning('Cannot set mouse position, form has no NativeHandle');
+      Exit;
+    end;
+    FmxSetMousePos(TLinuxWindowHandle(Form.Handle).NativeHandle, Pt);
+    {$else}
+    WritelnWarning('Setting mouse position not implemented for this platform with Delphi and CASTLE_WINDOW_FORM');
     {$endif}
+
     {$endif}
   end;
 end;
