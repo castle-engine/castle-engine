@@ -17,15 +17,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ RunCmdFromPath using TProcess.
+{ RunCmdFromPath (using TProcess on FPC, or Unix-specific System call on Delphi).
   This is used by OpenUrl and/or OpenDocument on some platforms. }
 
-{$ifndef FPC}
-  {$error This file should be compiled only by FPC (Delphi doesn't have TProcess).}
-{$endif}
-
 {$ifdef read_uses}
-Process,
+  // With Delphi, this will compile only on platforms that have Posix.Stdlib, and that's good.
+  {$ifdef FPC} BaseUnix, Process, {$else} Posix.Stdlib, {$endif}
 {$endif}
 
 {$ifdef read_implementation}
@@ -38,13 +35,18 @@ Process,
 }
 
 function FileIsExecutable(const AFilename: string): boolean;
-var
-  Info : Stat;
 begin
-  // first check AFilename is not a directory and then check if executable
+  {$ifdef FPC}
+  // First check AFilename is not a directory and then check if executable
   Result:= (FpStat(AFilename,info)<>-1) and FPS_ISREG(info.st_mode) and
            (BaseUnix.FpAccess(AFilename,BaseUnix.X_OK)=0);
+  {$else}
+  // For now, in Delphi, just assume it's executable.
+  Result := true;
+  {$endif}
 end;
+
+{$ifdef FPC}
 
 resourcestring
   lisProgramFileNotFound = 'program file not found %s';
@@ -86,5 +88,24 @@ begin
     BrowserProcess.Free;
   end;
 end;
+
+{$else}
+
+procedure RunCmdFromPath(const ProgramFilename, Parameter: string);
+var
+  Command: AnsiString;
+begin
+  if (Pos('"', ProgramFilename) <> 0) or
+     (Pos('"', Parameter) <> 0) then
+  begin
+    WritelnWarning('RunCmdFromPath', 'Not implemented for the case when ProgramFilename or Parameter contain a double quote');
+    Exit;
+  end;
+
+  Command := Format('"%s" "%s"', [ProgramFilename, Parameter]);
+  _System(PAnsiChar(Command));
+end;
+
+{$endif}
 
 {$endif read_implementation}

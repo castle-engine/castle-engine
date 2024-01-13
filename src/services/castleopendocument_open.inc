@@ -24,7 +24,7 @@
   {$I castleopendocument_messaging.inc}
 {$elseif defined(FPC) and defined(DARWIN) and not defined(CASTLE_IOS)}
   {$I castleopendocument_macos.inc}
-{$elseif defined(FPC) and defined(UNIX)}
+{$elseif defined(UNIX)}
   {$I castleopendocument_freedesktop.inc}
 {$else}
   {$I castleopendocument_unimplemented.inc}
