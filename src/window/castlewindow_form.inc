@@ -148,6 +148,8 @@ private
     strict private
       function GetCaption: String;
       procedure SetCaption(const Value: String);
+      function GetChecked: Boolean;
+      procedure SetChecked(const Value: Boolean);
     {$endif}
     public
       Window: TCastleWindow;
@@ -169,8 +171,11 @@ private
         This should be also harmless on other non-GTK2 widgetsets. }
       procedure IntfDoSelect; override;
       {$else}
-      // FMX calls this "Text", alias to "Caption" to be easier to handle - like in LCL
+      { Use FMX Text under the hood. }
       property Caption: String read GetCaption write SetCaption;
+
+      { Use FMX IsChecked under the hood. }
+      property Checked: Boolean read GetChecked write SetChecked;
       {$endif}
     end;
 
@@ -283,7 +288,17 @@ end;
 
 procedure TCastleWindow.TGoodMenuItem.SetCaption(const Value: String);
 begin
-  Text := Caption;
+  Text := Value;
+end;
+
+function TCastleWindow.TGoodMenuItem.GetChecked: Boolean;
+begin
+  Result := IsChecked;
+end;
+
+procedure TCastleWindow.TGoodMenuItem.SetChecked(const Value: Boolean);
+begin
+  IsChecked := Value;
 end;
 {$endif}
 
@@ -385,11 +400,7 @@ begin
   for I := 0 to MyMenu.Count - 1 do
   begin
     NewMenuChild := MenuEntryConvert(MyMenu[I]);
-    {$ifdef FPC}
-    AMenu.Add(NewMenuChild);
-    {$else}
-    NewMenuChild.Parent := AMenu;
-    {$endif}
+    AMenu.{$ifdef FPC}Add{$else}AddObject{$endif}(NewMenuChild);
   end;
 end;
 
@@ -566,9 +577,7 @@ var
   FormMenuItem: TGoodMenuItem;
 begin
   if not CheckMenu(Entry, FormMenuItem) then Exit;
-  {$ifdef FPC} // FMX: TODO
   FormMenuItem.Checked := Entry.Checked;
-  {$endif}
 end;
 
 function TCastleWindow.MenuUpdateCheckedFast: boolean;
@@ -583,11 +592,7 @@ var
 begin
   if not CheckMenu(Parent, ParentFormMenu) then Exit;
   NewFormMenu := MenuEntryConvert(Entry);
-  {$ifdef FPC}
-  ParentFormMenu.Insert(ParentPosition, NewFormMenu);
-  {$else}
-  NewFormMenu.Parent := ParentFormMenu;
-  {$endif}
+  ParentFormMenu.{$ifdef FPC}Insert{$else}InsertObject{$endif}(ParentPosition, NewFormMenu);
 end;
 
 procedure TCastleWindow.MenuDelete(const Parent: TMenu;
