@@ -61,7 +61,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="1089">
+    <Files Count="1096">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4448,6 +4448,34 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/images/castleinternaldatacompression.pas"/>
         <UnitName Value="CastleInternalDataCompression"/>
       </Item1038>
+      <Item1090>
+        <Filename Value="../src/services/castleopendocument_freedesktop.inc"/>
+        <Type Value="Include"/>
+      </Item1090>
+      <Item1091>
+        <Filename Value="../src/services/castleopendocument_process.inc"/>
+        <Type Value="Include"/>
+      </Item1091>
+      <Item1092>
+        <Filename Value="../src/services/castleopendocument_open.inc"/>
+        <Type Value="Include"/>
+      </Item1092>
+      <Item1093>
+        <Filename Value="../src/services/castleopendocument_macos.inc"/>
+        <Type Value="Include"/>
+      </Item1093>
+      <Item1094>
+        <Filename Value="../src/services/castleopendocument_shellexecute.inc"/>
+        <Type Value="Include"/>
+      </Item1094>
+      <Item1095>
+        <Filename Value="../src/services/castleopendocument_messaging.inc"/>
+        <Type Value="Include"/>
+      </Item1095>
+      <Item1096>
+        <Filename Value="../src/services/castleopendocument_unimplemented.inc"/>
+        <Type Value="Include"/>
+      </Item1096>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">
