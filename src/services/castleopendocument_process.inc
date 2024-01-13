@@ -35,6 +35,10 @@
 }
 
 function FileIsExecutable(const AFilename: string): boolean;
+{$ifdef FPC}
+var
+  Info: Stat;
+{$endif}
 begin
   {$ifdef FPC}
   // First check AFilename is not a directory and then check if executable
