@@ -912,17 +912,22 @@ end;
 
 procedure TCastleWindow.CloseBackend;
 begin
+  { Make freeing of Form and OpenGLControl independent.
+    It seems that otherwise, when OpenGLControl.Parent is Form,
+    freeing Form will also free OpenGLControl - at least on FMX Linux. }
+  if OpenGLControl <> nil then
+    OpenGLControl.Parent := nil;
+
+  {$if not (defined(LCLCarbon) or defined(LCLCocoa))}
+  FreeAndNil(Form);
+  FreeAndNil(OpenGLControl);
+  {$else}
   { Workaround LCL problem with both Carbon and Cocoa
     https://github.com/castle-engine/castle-engine/issues/237
     Freeing LCL form may fail with EAccessViolation. }
-  {$if not (defined(LCLCarbon) or defined(LCLCocoa))}
-  FreeAndNil(Form);
-  {$else}
   Form := nil; // causing memory leak, but at least not crash
+  OpenGLControl := nil;
   {$endif}
-
-  // FreeAndNil(OpenGLControl);
-  // TODO: seems freeing the form has already freed OpenGLControl, but why?
 
   { freeing the Form will automatically free other owned components }
   Menu := nil;
