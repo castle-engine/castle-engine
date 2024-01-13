@@ -596,7 +596,7 @@ function TryDeFormat(Data: string; const Format: string;
 
 {$ifdef FPC}
 { Extract file extensions from a file filter usually specified
-  a TOpenDialog.Filter value.
+  as TOpenDialog.Filter value.
 
   More precisely: expects FileFilter to be in the form of
   @code('xxxx|name1.ext1;name2.ext2'). Where "xxxx" is just about anything
