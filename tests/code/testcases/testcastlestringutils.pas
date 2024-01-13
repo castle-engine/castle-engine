@@ -34,6 +34,7 @@ type
     procedure TestCastleStringList;
     procedure TestCastleStringListNewlinesInside;
     procedure TestSReplacePatterns;
+    procedure TestSReplacePatternsMenu;
     {$ifdef FPC}procedure TestGetFileFilter;{$endif}
     procedure TestSplitString;
     procedure TestTrimEndingNewline;
@@ -366,6 +367,14 @@ begin
     SMap['cat'] := 'dog';
     AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cat', SMap, false));
   finally FreeAndNil(SMap) end;
+end;
+
+procedure TTestCastleStringUtils.TestSReplacePatternsMenu;
+begin
+  { Test replacements done by TCastleWindow.MenuUpdateCaption }
+  AssertEquals('&Color', SReplacePatterns('_Color', ['__', '_', '&'], ['_', '&', '&&'], false));
+  AssertEquals('Gr&ay', SReplacePatterns('Gr_ay', ['__', '_', '&'], ['_', '&', '&&'], false));
+  AssertEquals('Somet_hing && ampersand', SReplacePatterns('Somet__hing & ampersand', ['__', '_', '&'], ['_', '&', '&&'], false));
 end;
 
 {$ifdef FPC}
