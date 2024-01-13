@@ -450,8 +450,26 @@ begin
 end;
 
 procedure TCastleWindow.MenuUpdateShortcut(Entry: TMenuItem);
+
+  {$ifndef FPC}
+  { Convert FMX key code (Word) and shift state to TShortCut.
+    FMX doesn't have this function built-in,
+    but it is straightforward following
+    http://docwiki.embarcadero.com/RADStudio/Sydney/en/Representing_Keys_and_Shortcuts#Representing_Shortcuts }
+  function KeyToShortCut(const Key: Word; const Shift: TShiftState): TShortCut;
+  begin
+    Result := Key;
+    if ssShift in Shift then
+      Result := Result or scShift;
+    if ssCtrl in Shift then
+      Result := Result or scCtrl;
+    if ssAlt in Shift then
+      Result := Result or scAlt;
+  end;
+  {$endif}
+
 var
-  LazKey: Word;
+  KeyCode: Word;
   Shift: TShiftState;
   FormMenuItem: TGoodMenuItem;
 begin
@@ -480,11 +498,8 @@ begin
   end;
   {$endif}
 
-  // TODO: fmx
-  {$ifdef FPC}
-  KeyCastleToLCL(Entry.Key, Entry.KeyString, Entry.Modifiers, LazKey, Shift);
-  FormMenuItem.ShortCut := KeyToShortCut(LazKey, Shift);
-  {$endif}
+  KeyFromCastle(Entry.Key, Entry.KeyString, Entry.Modifiers, KeyCode, Shift);
+  FormMenuItem.ShortCut := KeyToShortCut(KeyCode, Shift);
 end;
 
 procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);

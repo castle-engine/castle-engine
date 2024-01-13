@@ -31,6 +31,12 @@ function MouseButtonToCastle(const MouseButton: TMouseButton;
   If not possible, returns keyNone. }
 function KeyToCastle(const Key: Word; const Shift: TShiftState) : TKey;
 
+{ Convert key from CGE to VCL or FMX.
+  If not possible, sets KeyCode to 0 and Shift to []. }
+procedure KeyFromCastle(const Key: TKey; const KeyString: String;
+  const Modifiers: TModifierKeys;
+  out KeyCode: Word; out Shift: TShiftState);
+
 { Convert FMX information about keys (received on key up or key down)
   to CGE. }
 procedure FmxKeysToCastle(
@@ -148,6 +154,108 @@ begin
     vkF1 .. vkF12:
       Result := TKey(Ord(keyF1) + Ord(Key) - vkF1);
   end;
+end;
+
+procedure KeyFromCastle(const Key: TKey; const KeyString: String;
+  const Modifiers: TModifierKeys;
+  out KeyCode: Word; out Shift: TShiftState);
+const
+  { Ctrl key on most systems, Command key on macOS. }
+  ssCtrlOrCommand = {$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif};
+var
+  KeyChar: Char;
+begin
+  Shift := [];
+  KeyCode := 0;
+  case Key of
+    keyBackSpace:        KeyCode := vkBack;
+    keyTab:              KeyCode := vkTab;
+    keyEnter:            KeyCode := vkReturn;
+    keyShift:            KeyCode := vkShift;
+    keyCtrl:             KeyCode := vkControl;
+    keyAlt:              KeyCode := vkMenu;
+    keyEscape:           KeyCode := vkEscape;
+    keySpace:            KeyCode := vkSpace;
+    keyPageUp:           KeyCode := vkPrior;
+    keyPageDown:         KeyCode := vkNext;
+    keyEnd:              KeyCode := vkEnd;
+    keyHome:             KeyCode := vkHome;
+    keyArrowLeft:        KeyCode := vkLeft;
+    keyArrowUp:          KeyCode := vkUp;
+    keyArrowRight:       KeyCode := vkRight;
+    keyArrowDown:        KeyCode := vkDown;
+    keyInsert:           KeyCode := vkInsert;
+    keyDelete:           KeyCode := vkDelete;
+    keyNumpadPlus:       KeyCode := vkAdd;
+    keyNumpadMinus:      KeyCode := vkSubtract;
+    keyPrintScreen:      KeyCode := vkSnapshot;
+    keyNumLock:          KeyCode := vkNumlock;
+    keyScrollLock:       KeyCode := vkScroll;
+    keyCapsLock:         KeyCode := vkCapital;
+    keyPause:            KeyCode := vkPause;
+    keyComma:            KeyCode := vkComma;
+    keyPeriod:           KeyCode := vkPeriod;
+    keyNumpad0:          KeyCode := vkNumpad0;
+    keyNumpad1:          KeyCode := vkNumpad1;
+    keyNumpad2:          KeyCode := vkNumpad2;
+    keyNumpad3:          KeyCode := vkNumpad3;
+    keyNumpad4:          KeyCode := vkNumpad4;
+    keyNumpad5:          KeyCode := vkNumpad5;
+    keyNumpad6:          KeyCode := vkNumpad6;
+    keyNumpad7:          KeyCode := vkNumpad7;
+    keyNumpad8:          KeyCode := vkNumpad8;
+    keyNumpad9:          KeyCode := vkNumpad9;
+    keyNumpadBegin:      KeyCode := vkClear;
+    keyNumpadMultiply:   KeyCode := vkMultiply;
+    keyNumpadDivide:     KeyCode := vkDivide;
+    keyMinus:            KeyCode := vkMinus;
+    keyEqual:            KeyCode := vkEqual;
+    { TKey ranges }
+    key0 ..key9  : KeyCode := vk0 + Ord(Key) - Ord(key0);
+    keyA ..keyZ  : KeyCode := vkA + Ord(Key) - Ord(keyA);
+    keyF1..keyF12: KeyCode := vkF1 + Ord(Key) - Ord(keyF1);
+
+    else
+      if Length(KeyString) = 1 then
+      begin
+        KeyChar := KeyString[1];
+        case KeyChar of
+          { follow TMenuItem.Key docs: when Key is keyNone, only KeyChar indicates
+            CharBackSpace / CharTab / CharEnter, convert them to Ctrl+xxx shortcuts }
+            //CharBackSpace:              KeyCode := vkBack;
+            //CharTab:                    KeyCode := vkTab;
+            //CharEnter:                  KeyCode := vkReturn;
+            CharEscape:                 KeyCode := vkEscape;
+            ' ':                        KeyCode := vkSpace;
+            CharDelete:                 KeyCode := vkDelete;
+            '+':                        KeyCode := vkAdd;
+            '-':                        KeyCode := vkSubtract;
+            ',':                        KeyCode := vkComma;
+            '.':                        KeyCode := vkPeriod;
+            '*':                        KeyCode := vkMultiply;
+            '/':                        KeyCode := vkDivide;
+            '=':                        KeyCode := vkEqual;
+
+          { Char ranges }
+          '0' .. '9' : KeyCode := Ord(KeyChar);
+          { for latter: uppercase letters are VK_xxx codes }
+          'A' .. 'Z' : begin KeyCode := Ord(KeyChar); Shift := [ssShift]; end;
+          'a' .. 'z' : begin KeyCode := Ord(UpCase(KeyChar)); end;
+          CtrlA .. CtrlZ:
+            begin
+              KeyCode := vkA + Ord(KeyChar) - Ord(CtrlA);
+              Shift := [ssCtrlOrCommand];
+            end;
+        end;
+      end;
+  end;
+
+  if mkShift in Modifiers then
+    Shift := Shift + [ssShift];
+  if mkCtrl in Modifiers then
+    Shift := Shift + [ssCtrlOrCommand];
+  if mkAlt in Modifiers then
+    Shift := Shift + [ssAlt];
 end;
 
 function SimpleKeyToString(const Key: TKey; const Shift: TShiftState): String;
