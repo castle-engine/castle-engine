@@ -1,3 +1,4 @@
+{%MainUnit castleopendocument.pas}
 {
   Copyright 2024-2024 Michalis Kamburelis.
 

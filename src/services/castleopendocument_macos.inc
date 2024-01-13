@@ -1,3 +1,4 @@
+{%MainUnit castleopendocument.pas}
 {
   Copyright 2012-2024 Michalis Kamburelis and Lazarus developers.
 
