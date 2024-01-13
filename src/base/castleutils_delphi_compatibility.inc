@@ -262,7 +262,7 @@ begin
       if (length(OldPattern[strcount])>0) and
          (OldPattern[strcount][1]=pc^) and
          (Length(OldPattern[strcount]) <= (lastpc-pc)) and
-         CompareMem(Pointer(OldPattern[strcount]), pc, Length(OldPattern[strcount])) then
+         CompareMem(Pointer(OldPattern[strcount]), pc, Length(OldPattern[strcount]) * SizeOf(Char)) then
         begin
         ResStr := ResStr + NewPattern[strcount];
         pc := pc+Length(OldPattern[strcount]);
