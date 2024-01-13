@@ -28,10 +28,10 @@
 }
 program window_menu;
 
-{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils,
-  CastleVectors, CastleKeysMouse, CastleColors,
+  CastleVectors, CastleKeysMouse, CastleColors, CastleLog,
   CastleWindow, CastleGLUtils, CastleMessages, CastleStringUtils,
   CastleViewport, CastleScene, X3DNodes;
 
@@ -146,8 +146,10 @@ procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
 var
   M: TMenu;
 begin
-  Writeln('You clicked menu item "', SRemoveMnemonics(Item.Caption),
-    '" with SmallId ', Item.SmallId);
+  WritelnLog('You clicked menu item "%s" with id %d', [
+    SRemoveMnemonics(Item.Caption),
+    Item.SmallId
+  ]);
   case Item.IntData of
     0..High(Colors): Material.DiffuseColor := Colors[Item.IntData];
     10: begin
@@ -197,6 +199,8 @@ var
   RadioGroup: TMenuItemRadioGroup;
   Viewport: TCastleViewport;
 begin
+  InitializeLog;
+
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window; // makes MessageYesNo work OK
 
