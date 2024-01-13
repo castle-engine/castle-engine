@@ -498,6 +498,12 @@ begin
   end;
   {$endif}
 
+  { TODO: FMX Linux doesn't handle (pass to GTK?) "Home" shortcut it seems.
+    Or Page Up / Page Down.
+    It is displayed in menu OK, but FMX doesn't actually call menu item
+    when pressing home.
+    Testcase: castle-view-image. }
+
   KeyFromCastle(Entry.Key, Entry.KeyString, Entry.Modifiers, KeyCode, Shift);
   FormMenuItem.ShortCut := KeyToShortCut(KeyCode, Shift);
 end;
