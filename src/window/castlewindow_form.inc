@@ -489,21 +489,25 @@ end;
 
 procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 
-  function MenuCaptionCastleToLCL(const S: string): string;
+  function MenuCaptionFromCastle(const S: string): string;
   begin
-    { We use _ for the same purpose as LCL uses &, to mark mnemonics.
+    { We use _ for the same purpose as FMX LCL uses &, to mark mnemonics.
+
       But we cannot just replace _ with &:
+
       Double underscore should be converted to single underscore.
       Only unpaired single underscore should be converted to &.
-      Our SReplacePatterns guarantees correct behavior. }
-    Result := SReplacePatterns(S, ['__', '_'], ['_', '&'], false);
+
+      Moreover, single & shoule be doubled: to make it visible,
+      not as accelerator. }
+    Result := SReplacePatterns(S, ['__', '_', '&'], ['_', '&', '&&'], false);
   end;
 
 var
   FormMenuItem: TGoodMenuItem;
 begin
   if not CheckMenu(Entry, FormMenuItem) then Exit;
-  FormMenuItem.Caption := MenuCaptionCastleToLCL(Entry.Caption);
+  FormMenuItem.Caption := MenuCaptionFromCastle(Entry.Caption);
 end;
 
 procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
