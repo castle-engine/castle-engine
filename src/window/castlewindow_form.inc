@@ -420,7 +420,7 @@ begin
   for I := 0 to MyMenu.Count - 1 do
   begin
     NewMenuChild := MenuEntryConvert(MyMenu[I]);
-    NewMenuChild.Parent := AMenu;
+    AMenu.{$ifdef FPC}Add{$else}AddObject{$endif}(NewMenuChild);
   end;
 {$endif}
 end;
@@ -599,10 +599,29 @@ end;
 
 procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
+
+  procedure InsertInMainMenu;
+  var
+    NewFormMenu: TFormMenuItem;
+  begin
+    NewFormMenu := MenuEntryConvert(Entry);
+    Menu.{$ifdef FPC}Items.Insert{$else}InsertObject{$endif}(ParentPosition, NewFormMenu);
+  end;
+
 var
   ParentFormMenu, NewFormMenu: TGoodMenuItem;
 begin
-  if not CheckMenu(Parent, ParentFormMenu) then Exit;
+  if not CheckMenu(Parent, ParentFormMenu) then
+  begin
+    { Our main menu (Menu:TMainMenu) is not set as MainMenu.Handle,
+      because we use just standard FMX / LCL TMainMenu class,
+      not our TGoodMenuItem.
+      But we can handle it by a special case here. }
+    if Parent = MainMenu then
+      InsertInMainMenu;
+    Exit;
+  end;
+
   NewFormMenu := MenuEntryConvert(Entry);
   ParentFormMenu.{$ifdef FPC}Insert{$else}InsertObject{$endif}(ParentPosition, NewFormMenu);
 end;
