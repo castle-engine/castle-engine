@@ -18,10 +18,6 @@
   using Xlib and glX (initialize window on X, without any toolkit,
   with OpenGL context). }
 
-{ Define this to use OpenGL 3 forward-compatible context.
-  Not supported for now throughout CGE, but this define is useful to test it. }
-{.$define CASTLE_CONTEXT_FORWARD_3}
-
 {$ifdef read_interface_uses}
 CastleInternalContextGlx,
 {$endif}
