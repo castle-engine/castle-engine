@@ -270,9 +270,10 @@ unit CastleWindow;
   With regular OpenGL (not ES), it's better to use glX / wgl instead of EGL,
   that are practically guaranteed to be installed on Linux
   (if it has OpenGL at all) or Windows.
+  Though EGL is also practically almost guaranteed.
 
-  But if you want, define USE_EGL to use EGL also with regular OpenGL.
-  It will work with WinAPI, Xlib, GTK backends. }
+  If you want, define USE_EGL to use EGL also with regular OpenGL.
+  It will work with WinAPI, Xlib, GTK backends, replacing wgl / glX work. }
 {.$define USE_EGL}
 {$ifdef OpenGLES}
   {$define USE_EGL}
