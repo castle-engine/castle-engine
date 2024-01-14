@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -724,10 +724,19 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
     This knows that Node.X3DName is <> '' and it exists in Names,
     IOW on entry the Node is named, and the name is not unique. }
   procedure RenameUniquely(const Node: TX3DNode);
+  type
+    { Type for index used to uniquely rename the node.
 
-    procedure RenameUniquelyCore(const Node: TX3DNode; const Prefix: String; NextNumber: Int64);
+      For implementation reasons (we store it in TStringList objects),
+      size of this needs to match Pointer.
+      Again for implementation reasons, needs to be signed, because we sometimes
+      have -1 value in this type (though we don't store this in
+      TStringList objects). }
+    TUniqueNumber = PtrInt;
+
+    procedure RenameUniquelyCore(const Node: TX3DNode; const Prefix: String; NextNumber: TUniqueNumber);
     var
-      PrefixIndex: Integer;
+      PrefixIndex: TUniqueNumber;
     begin
       { Look for next free number for this prefix.
 
@@ -741,7 +750,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
       }
       PrefixIndex := Prefixes.IndexOf(Prefix);
       if PrefixIndex <> -1 then
-        MaxVar(NextNumber, PtrUInt(Prefixes.Objects[PrefixIndex]) + 1);
+        MaxVar(NextNumber, PtrInt(Prefixes.Objects[PrefixIndex]) + 1);
 
       while Names.IndexOf(Prefix + IntToStr(NextNumber)) <> -1 do
         Inc(NextNumber);
@@ -755,7 +764,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
 
   var
     I: Integer;
-    Number: Int64;
+    Number: TUniqueNumber;
     {$ifdef CASTLE_LOG_NODE_RENAMES}
     OriginalName: String;
     {$endif CASTLE_LOG_NODE_RENAMES}
