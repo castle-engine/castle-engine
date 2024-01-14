@@ -16,28 +16,31 @@
 
 (*CastleWindow backend using Lazarus LCL or Delphi FMX underneath.
 
-  Should work with all platforms,
+  *Should* work with all platforms,
   all LCL widgetsets,
   all Delphi FMX platforms.
 
-  TODO:
-  - LCL: Mouse look still stutters awfully on both Carbon and GTK2.
+  Note that there are a few TODOs in this file, for some specific Delphi (FMX)
+  or FPC / Lazarus (LCL) backends. Things are not perfect on their end always,
+  there are platform-specific edge cases.
+  We still try to support all LCL and FMX widgetsets here, *but*
+  we focus our testing on platforms where we actually use this backend by default.
+  This means right now only:
+
+  - Delphi/Linux with FMX
+
+  Historically, it was useful also with some LCL backends (e.g. we depended on
+  this for FPC/macOS for a long time, before we implemented castlewindow_cocoa.inc).
+  And it may be useful with more platforms in the future, both LCL and FMX
+  (e.g. Delphi/macOS will likely depend on this too).
+
+  - LCL TODO: Mouse look still stutters awfully on both Carbon and GTK2.
     ProcessTasks helps (without it, mouse look would not work at all)
     but doesn't completely fix the problem. Other CastleWindow backends
     have smooth mouse look.
 
-  - LCL: We never call Fps.InternalSleeping, so Fps.WasSleeping will be always false.
-    This may result in confusing Fps.ToString in case AutoRedisplay was false.
-
-  LCL: Bugs on GTK2, not on Carbon:
-  - All radio menu items are always on. Why?
-
-  LCL: Bugs on Carbon, untested elsewhere:
-  - When you switch FullScreen, at application exit there is an access violation
-    in LCL. Seems harmless, so we just ignore it for now.
-
-  A few Delphi (FMX), or Delphi/Win64 or Delphi/Linux specific TODOs
-  are within the code below.
+    Note that Carbon is unused now (only Cocoa matters).
+    Needs retest with Cocoa.
 *)
 
 { How to implement calling CGE Update (and if needed Render) events continuously?
@@ -475,29 +478,6 @@ var
 begin
   if not CheckMenu(Entry, FormMenuItem) then Exit;
 
-  {$ifdef LCLCarbon}
-  { Workaround yet another bug in LCL Carbon.
-    When a menu item is disabled (because Entry.Enabled is false or
-    MainMenu.Enabled is false), it turns out we have to disable it's shortcut.
-    Otherwise pressing this shortcut can be captured and cause strange behavior
-    later.
-
-    view3dscene bugs (when this workaround not present) on macOS:
-    - Enter "Open Link" with Command+L. Press Command+O (that leads to disabled
-      menu item, and doesn't do anything!). Nothing happens, dummy letter with
-      Ord(CtrlO) is inserted, that's Ok. Then press Escape. And the dialog appears
-      again... Somehow, the Command+O (pressed when it was disabled!) was captured,
-      with delay, and caused weird double menu item activation.
-    - Similarly, after Command+R, press Command+O before escaping.
-      It causes the raytracing dialog to appear again after escaping.
-  }
-  if not FormMenuItem.Enabled then
-  begin
-    FormMenuItem.ShortCut := 0;
-    Exit;
-  end;
-  {$endif}
-
   { TODO: FMX Linux doesn't handle (pass to GTK?) "Home" shortcut it seems.
     Or Page Up / Page Down.
     It is displayed in menu OK, but FMX doesn't actually call menu item
@@ -512,7 +492,7 @@ procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 
   function MenuCaptionFromCastle(const S: string): string;
   begin
-    { We use _ for the same purpose as FMX LCL uses &, to mark mnemonics.
+    { We use _ for the same purpose as FMX / LCL use &: to mark mnemonics.
 
       But we cannot just replace _ with &:
 
@@ -579,7 +559,7 @@ begin
     In MenuInsert and MenuDelete and in this method, MenuUpdateEnabled,
     we merely change the existing LCL menu instances.
 
-    This all could be considered Carbon's bug, anyway we have to work with it.
+    This all could be considered LCL bug, anyway we have to work with it.
   }
 
   if Entry = MainMenu then
@@ -590,17 +570,14 @@ begin
 
   if not CheckMenu(Entry, FormMenuItem) then Exit;
   FormMenuItem.Enabled := Entry.Enabled and MainMenu.Enabled;
-
-  {$ifdef LCLCarbon}
-  if Entry is TMenuItem then
-    MenuUpdateShortcut(TMenuItem(Entry));
-  {$endif}
 end;
 
 procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 var
   FormMenuItem: TGoodMenuItem;
 begin
+  // TODO: LCL GTK2 backend only: All radio menu items are always on, reason unknown.
+
   if not CheckMenu(Entry, FormMenuItem) then Exit;
   FormMenuItem.Checked := Entry.Checked;
 end;
@@ -1589,7 +1566,16 @@ begin
 
   if WaitForMessage then
   begin
-    { HandleMessage will call ApplicationIdle, so no need for ProcessTasks
+    { TODO: We never call Fps.InternalSleeping, so Fps.WasSleeping
+      will be always false.
+
+      This may result in confusing Fps.ToString in case
+      - AutoRedisplay is false (since otherwise we render each frame)
+      - and USE_TIMER is defined (since otherwise we never have WaitForMessage=true)
+
+      This doesn't seem to matter for any practical application of this. }
+
+    { HandleMessage will call timer events, so no need for ProcessTasks
       hack in this case. }
     FormApplication.HandleMessage;
     Result := not CheckTerminated;
