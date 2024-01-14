@@ -43,7 +43,7 @@ CastleAndroidInternalConfiguration,
 {$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif} CastleDynLib,
 {$ifdef CASTLE_PNG_DYNAMIC} CastleInternalPng, {$endif}
 CastleInternalOpenAL, CastleInternalVorbisFile, CastleInternalFreeTypeH,
-CastleInternalZLib, CastleInternalEgl,
+CastleInternalZLib,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -864,7 +864,8 @@ begin
     may be called many times, because ANativeActivity_onCreate may be called
     multple times. So things below must be implemented in a secure way,
     to work Ok when executed multiple times. }
-  EglInitialization;
+  if not EglAvailable then
+    LoadEgl;
   GLESInitialization;
   OpenALInitialization;
   VorbisFileInitialization;
