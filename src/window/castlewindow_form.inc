@@ -588,6 +588,15 @@ var
 begin
   // TODO: LCL GTK2 backend only: All radio menu items are always on, reason unknown.
 
+  { TODO: FMX on Linux (not a problem elsewhere, in particular with FMX on Windows):
+    Sometimes it seems that checked menu item, after updating to "true",
+    is left with an empty checkbox box -- a state that actually should not be
+    possible through FMX API (it shows a checkbox possibility but it is "off",
+    and FMX doesn't have property like ShowAlwaysCheckable from LCL)
+    and moreover incorrect (we set it to "true", but it shows "false").
+    Testcase: window_menu, set to "Top", then set to "Top" again.
+  }
+
   if not CheckMenu(Entry, FormMenuItem) then Exit;
   FormMenuItem.Checked := Entry.Checked;
 end;
