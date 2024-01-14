@@ -500,7 +500,17 @@ procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
       Only unpaired single underscore should be converted to &.
 
       Moreover, single & shoule be doubled: to make it visible,
-      not as accelerator. }
+      not as accelerator.
+
+      Note: FMX Linux has a bug, and it strips last _ from
+      '&foo with underscore : _' .
+      Probably FMX Linux code doesn't quote (double) the underscore and it gets
+      interpreted by GTK as accelerator?
+      Since underscore is GTK accelerator,
+      https://docs.gtk.org/gtk3/ctor.CheckMenuItem.new_with_mnemonic.html .
+      We have autotest that we pass it OK (single underscore) to FMX,
+      see TTestCastleStringUtils.TestSReplacePatternsMenu . }
+
     Result := SReplacePatterns(S, ['__', '_', '&'], ['_', '&', '&&'], false);
   end;
 

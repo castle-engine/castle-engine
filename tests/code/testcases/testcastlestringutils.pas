@@ -375,6 +375,7 @@ begin
   AssertEquals('&Color', SReplacePatterns('_Color', ['__', '_', '&'], ['_', '&', '&&'], false));
   AssertEquals('Gr&ay', SReplacePatterns('Gr_ay', ['__', '_', '&'], ['_', '&', '&&'], false));
   AssertEquals('Somet_hing && ampersand', SReplacePatterns('Somet__hing & ampersand', ['__', '_', '&'], ['_', '&', '&&'], false));
+  AssertEquals('&foo with underscore : _', SReplacePatterns('_foo with underscore : __', ['__', '_', '&'], ['_', '&', '&&'], false));
 end;
 
 {$ifdef FPC}
