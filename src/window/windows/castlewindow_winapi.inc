@@ -1795,8 +1795,10 @@ begin
 
       ByteSize := Windows.GlobalSize(DataHandle);
       CharSize := ByteSize div SizeOf(Char);
+      {$warnings off} // ignore warning "unreachable code" with FPC, where SizeOf(Char) = 1
       if ByteSize mod SizeOf(Char) <> 0 then
         WritelnWarning('WinAPI', 'Clipboard data size is not a multiple of SizeOf(Char)');
+      {$warnings on}
 
       if CharSize > 1 then
       begin

@@ -667,8 +667,10 @@ begin
   FreeEGL;
 
   EGLLib := TDynLib.Load(LibName, false);
+  {$warnings off} // ignore warning "unreachable code" on Windows, where LibName2 = ''
   if (EGLLib = nil) and (LibName2 <> '') then
     EGLLib := TDynLib.Load(LibName2, false);
+  {$warnings on}
 
   if EGLLib <> nil then
   begin
