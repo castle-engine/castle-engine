@@ -265,15 +265,25 @@ unit CastleWindow;
   {$endif}
 {$endif}
 
-{ By default, we define USE_EGL only when OpenGLES is defined.
+{ Define EGL to use EGL, cross-platform library to initialize OpenGL or OpenGLES
+  context.
+  It can work with WinAPI, Xlib, GTK backends of CastleWindow.
 
-  With regular OpenGL (not ES), it's better to use glX / wgl instead of EGL,
-  that are practically guaranteed to be installed on Linux
+  By default, we define USE_EGL only when OpenGLES is defined.
+
+  With regular OpenGL (not ES), it's better to use glX (Unix) / wgl (Windows)
+  instead of EGL, that are practically guaranteed to be installed on Linux
   (if it has OpenGL at all) or Windows.
-  Though EGL is also practically almost guaranteed.
 
-  If you want, define USE_EGL to use EGL also with regular OpenGL.
-  It will work with WinAPI, Xlib, GTK backends, replacing wgl / glX work. }
+  - Unix: Though EGL is also practically almost guaranteed,
+    with both OpenGL and OpenGLES support.
+  - Windows, EGL can be found, but note: some implementations will
+    not support OpenGL, will only support OpenGLES.
+    Trying to use OpenGL will result in
+    EGLContextNotPossible exception with message like "EGL: Cannot bind OpenGL API...".
+
+  If you want, define below USE_EGL to always use EGL,
+  with OpenGL or OpenGLES. }
 {.$define USE_EGL}
 {$ifdef OpenGLES}
   {$define USE_EGL}
