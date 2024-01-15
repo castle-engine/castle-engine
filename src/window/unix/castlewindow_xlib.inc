@@ -144,6 +144,8 @@ begin
     XVisual^.Visual, AllocNone);
   Attr.Colormap := Colormap;
   AttrValueMask := AttrValueMask or CWColormap;
+
+  ContextCreate;
   {$endif}
 
   if FullScreen then
@@ -244,7 +246,10 @@ begin
       XMapWindow(Application.XDisplay, windowXID);
   end;
 
-  ContextCreateEnd(windowXID);
+  {$ifdef USE_EGL}
+  { In case of EGL we need WindowXID. }
+  ContextCreate(windowXID);
+  {$endif}
 
   { applying FullScreen changes to the Left / Top / Width / Height }
   if FullScreen then
@@ -684,7 +689,6 @@ begin
 
     // TODO: Is it OK for a plugin to just get XDefaultScreen below?
     FXScreen := XDefaultScreen(XDisplay);
-    ContextApplicationCheck;
     WMDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
     InitializeXDisplayDone := true;
   end;
