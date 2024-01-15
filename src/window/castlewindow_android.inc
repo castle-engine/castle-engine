@@ -156,7 +156,22 @@ begin
   Window := Application.MainWindow;
   if Window <> nil then
   begin
-    Window.Close;
+    { Passing QuitWhenLastWindowClosed = false here is critical:
+
+      Window may be closed and reopened during Android application lifetime,
+      this is normal e.g. on low-end Android devices that need to close
+      OpenGLES context (stopping activity) when switching to another application.
+      CGE handles it gracefully by allowing to open the TCastleWindow again
+      (creating OpenGL context).
+      Pascal code (like current TCastleView and its state) retains full
+      knowledge about the current state, so it generally restarts where it
+      left off.
+
+      Testcase: platformer, on Android, go to "Credits" and click on some
+      link to open the browser.
+      Do it on low-end Android device (e.g. Samsung Galaxy Tab A). }
+    Window.Close(false);
+
     Window.NativeWindow := nil; // make sure to not access the NativeWindow anymore
   end;
 end;
