@@ -30,14 +30,14 @@ private
 
   { Methods compatible with castlewindow_egl.inc.
     @groupBegin }
-  procedure ContextCreateEnd(WndPtr: HWND);
+  procedure ContextCreate(WndPtr: HWND);
   procedure ContextDestroy;
   { @groupEnd }
 {$endif}
 
 {$ifdef read_implementation}
 
-procedure TCastleWindow.ContextCreateEnd(WndPtr: HWND);
+procedure TCastleWindow.ContextCreate(WndPtr: HWND);
 begin
   Context := TGLContextWGL.Create;
   Context.WndPtr := WndPtr;

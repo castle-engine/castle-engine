@@ -1269,7 +1269,7 @@ begin
   h_Dc := GetDC(h_Wnd);
   Check ( h_Dc <> 0, 'GetDC failed');
 
-  ContextCreateEnd(h_Wnd);
+  ContextCreate(h_Wnd);
 
   MakeCurrent;
 
