@@ -736,7 +736,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
 
     procedure RenameUniquelyCore(const Node: TX3DNode; const Prefix: String; NextNumber: TUniqueNumber);
     var
-      PrefixIndex: TUniqueNumber;
+      PrefixIndex, MaybeNextNumber: TUniqueNumber;
     begin
       { Look for next free number for this prefix.
 
@@ -750,7 +750,16 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
       }
       PrefixIndex := Prefixes.IndexOf(Prefix);
       if PrefixIndex <> -1 then
-        MaxVar(NextNumber, PtrInt(Prefixes.Objects[PrefixIndex]) + 1);
+      begin
+        { Delphi rejects using below MaxVar Int64 overload on Win64.
+          For safety, to not assume CPU-specific PtrInt = In64?
+          Makes sense, just implement this without MaxVar. }
+        // MaxVar(NextNumber, PtrInt(Prefixes.Objects[PrefixIndex]) + 1);
+
+        MaybeNextNumber := PtrInt(Prefixes.Objects[PrefixIndex]) + 1;
+        if MaybeNextNumber > NextNumber then
+          NextNumber := MaybeNextNumber;
+      end;
 
       while Names.IndexOf(Prefix + IntToStr(NextNumber)) <> -1 do
         Inc(NextNumber);
