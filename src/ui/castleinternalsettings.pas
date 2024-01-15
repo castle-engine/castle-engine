@@ -340,7 +340,9 @@ begin
       else
       begin
         NewFontFamily := TCastleFontFamily.Create(Container);
-        NewFontFamily.Name := 'CastleInternalDefaultFontFamily';
+        { Don't assign name, to enable users to call LoadSettings
+          multiple times on the same container -- the names shouldn't clash. }
+        // NewFontFamily.Name := 'CastleInternalDefaultFontFamily';
         NewFontFamily.Regular := LoadFontSettings(E.Child('regular', false));
         NewFontFamily.Bold := LoadFontSettings(E.Child('bold', false));
         NewFontFamily.Italic := LoadFontSettings(E.Child('italic', false));

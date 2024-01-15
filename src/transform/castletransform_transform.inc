@@ -697,9 +697,9 @@
       to be fast, so you can do it even in the middle of the game.
       In particular calling @link(Remove) doesn't free rendering reasources
       of the removed scene,
-      So e.g. removing scene only to add it later to another 
+      So e.g. removing scene only to add it later to another
       TCastleViewport.Items is fast.
-      
+
       Note that removing the child Item @italic(does not free the Item).
       It merely makes the Item no longer be a child of this TCastleTransform,
       so it will no longer be shown in the viewport.
@@ -750,7 +750,7 @@
     function Count: Integer;
 
     { Remove all children TCastleTransform instances.
-    
+
       Note that removing the children using this method,
       just like using @link(Remove), @italic(does not free the children).
       It merely makes the children no longer be inside this TCastleTransform,
@@ -920,7 +920,9 @@
       Calling this method before the rendering context is initialized
       (e.g. from initializaton section of some unit)
       will have to skip some preparations, thus reducing the effectiveness
-      of this method.
+      of this method. But it is allowed to call this at any time,
+      regardless of the context being initialized, just like e.g.
+      @link(TCastleContainer.LoadSettings) (which may call this, to warmup cache).
 
       This makes sure that appropriate methods execute as fast as possible.
       It's never required to call this method

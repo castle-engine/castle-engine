@@ -634,13 +634,28 @@
       method helps. }
     procedure ReleaseCapture(const C: TCastleUserInterface);
 
-    { Load visual settings from an XML file.
+    { Load application settings from an XML file.
       See https://castle-engine.io/manual_castle_settings.php
       for a documentation of the file format.
 
       This loads UIScaling, UIReferenceWidth, UIReferenceHeight, DefaultFont.
-      In the future, it may load more things configurable by the CGE editor
-      and CastleSettings.xml file. }
+      It allows "warms the cache" by loading some assets into it -- which
+      means that actually instatiating them at runtime will be faster.
+
+      Note: It is allowed to call this at any moment, even before the rendering
+      context is initialized. That's because it makes sense in some cases:
+      e.g. if using with LCL / FMX form, it is natural to call this
+      in TForm.OnCreate callback, without the additional complexity of
+      waiting for context (e.g. by waiting for GLContextOpen call on some
+      TCastleUserInterface instance).
+
+      We still recommend to call this only once rendering context is available,
+      in case you use "warmup cache" feature ( https://castle-engine.io/manual_castle_settings.php#section_warmup_cache ).
+      The cache will be initialized better (with rendering resoruces too)
+      if you call this after rendering context is available.
+      It is easiest if you use TCastleWindow: just do this in Application.OnInitialize
+      callback, which is called after rendering context is available
+      and is natural place to initialize stuff. }
     procedure LoadSettings(const SettingsUrl: String);
 
     { Delay in seconds before showing the tooltip. }
@@ -2439,19 +2454,6 @@ end;
 
 procedure TCastleContainer.LoadSettings(const SettingsUrl: String);
 begin
-  { TODO: Test, also with warmup cache, to make sure we don't crash.
-
-    We allow now to load CastleSettings.xml before OpenGL context is
-    initialized because:
-    - it makes sense in many cases when you don't use warmup_cache,
-      and only use CastleSettings.xml to define UI scaling or default
-      fonts.
-    - it is natural to do this from form OnCreate for LCL / FMX / VCL
-      applications.
-
-  if not ApplicationProperties.IsGLContextOpen then
-    raise Exception.Create('Rendering context not open when calling TCastleContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindow.OnOpen, TCastleControl.OnOpen');
-  }
   SettingsLoad(Self, SettingsUrl);
 end;
 
