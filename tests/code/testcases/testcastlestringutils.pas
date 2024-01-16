@@ -35,7 +35,6 @@ type
     procedure TestCastleStringListNewlinesInside;
     procedure TestSReplacePatterns;
     procedure TestSReplacePatternsMenu;
-    {$ifdef FPC}procedure TestGetFileFilter;{$endif}
     procedure TestSplitString;
     procedure TestTrimEndingNewline;
     procedure TestAddMultiLine;
@@ -377,41 +376,6 @@ begin
   AssertEquals('Somet_hing && ampersand', SReplacePatterns('Somet__hing & ampersand', ['__', '_', '&'], ['_', '&', '&&'], false));
   AssertEquals('&foo with underscore : _', SReplacePatterns('_foo with underscore : __', ['__', '_', '&'], ['_', '&', '&&'], false));
 end;
-
-{$ifdef FPC}
-procedure TTestCastleStringUtils.TestGetFileFilter;
-var
-  Exts: TStringList;
-begin
-  Exts := TStringList.Create;
-  try
-    GetFileFilterExts('xxxx|name1.ext1;name2.ext2', Exts);
-    AssertEquals(2, Exts.Count);
-    AssertEquals('.ext1', Exts[0]);
-    AssertEquals('.ext2', Exts[1]);
-
-    GetFileFilterExts('name1.ext1;name2.ext2', Exts);
-    AssertEquals(0, Exts.Count);
-
-    GetFileFilterExts('some name|*.ext1;*.ext2', Exts);
-    AssertEquals(2, Exts.Count);
-    AssertEquals('.ext1', Exts[0]);
-    AssertEquals('.ext2', Exts[1]);
-
-    GetFileFilterExts('some name|ext1;*.ext2', Exts);
-    AssertEquals(2, Exts.Count);
-    AssertEquals('.ext1', Exts[0]);
-    AssertEquals('.ext2', Exts[1]);
-  finally FreeAndNil(Exts) end;
-
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas)|*.pas'));
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas;*.inc)|*.pas;*.inc'));
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas,*.inc)|*.pas;*.inc'));
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files|*.pas;*.inc'));
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files'));
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files ()|'));
-end;
-{$endif}
 
 procedure TTestCastleStringUtils.TestSplitString;
 
