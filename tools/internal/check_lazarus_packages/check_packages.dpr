@@ -1,6 +1,6 @@
-// -*- compile-command: "castle-engine compile --mode=release && castle-engine run" -*-
+// -*- compile-command: "castle-engine compile --mode=debug && castle-engine run" -*-
 {
-  Copyright 2021-2023 Michalis Kamburelis.
+  Copyright 2021-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,24 @@
   ----------------------------------------------------------------------------
 }
 
-{ Check CGE Lazarus packages correctness. }
+{ Check Castle Game Engine Lazarus (.lpk) and Delphi (.dpk) packages.
+
+  In particular check that they contain all files they should,
+  and none of the files they shouldn't.
+  This checks:
+
+  - The packages are complete.
+    Missing files from .lpk or .dpk, while not critical, is bothersome.
+    E.g. Lazarus will not auto-recompile package if you change a file
+    that wasn't explicitly listed in .lpk.
+
+  - The package doesn't use something it should not.
+    E.g. castle_base.lpk should not use any files from src/window/,
+    as they depend on CastleWindow, and castle_base.lpk deliberately
+    doesn't depend on CastleWindow.
+
+    See https://castle-engine.io/units_map about CGE subdirectories.
+}
 
 uses SysUtils, DOM,
   CastleXmlUtils, CastleUtils, CastleFindFiles, CastleStringUtils, CastleParameters,
@@ -40,30 +57,58 @@ begin
   HasWarnings := true;
 end;
 
-{ TLazarusPackage ------------------------------------------------------------}
+{ TPackage ------------------------------------------------------------------- }
 
 type
-  TLazarusPackage = class
+  { Abstract class that represents Lazarus or Delphi package (.lpk or .dpk).
+
+    Descendants:
+    - Must implement constructor to read PackageFileName file and fill Files.
+      May also extend ConsideredFilesMask.
+    - May override ProposeFix. }
+  TPackage = class
   strict private
     RequiredFilesList: TCastleStringList;
-    FLpkFileName: String;
+    FPackageFileName: String;
     procedure GatherRequiredFiles(const FileInfo: TFileInfo; var StopSearch: Boolean);
     procedure ExcludeFromRequiredFiles(const FileInfo: TFileInfo; var StopSearch: Boolean);
-    { If TryFixing, this will overwrite LPK file adding the missing units.
+  protected
+    { List of filenames.
+      Relative to CGE root.
+      Use only slash (/) as path separator, for simplicity -- convert backslashes
+      to slashes when filling this list. }
+    Files: TCastleStringList;
+
+    { Filename masks (like *.pas) that must be present in packages
+      if found in CGE sources.
+      By default this contains just *.pas, and this is good enough for Delphi packages
+      that only include units.
+      For Lazarus packages, they should include also *.inc and some other files,
+      so descendant TLazarusPackage extends this. }
+    ConsideredFilesMask: TCastleStringList;
+
+    { If TryFixing, this will overwrite PackageFileName adding the missing units.
 
       This automatic fix is not perfect, so beware! Known issues:
 
+      - It is implemented now only for LPK, not DPK.
       - It only adds missing files. Doesn't remove files that should not be in package.
       - It can mess some initial LPK XML stuff, causing unnecessary edits. Revert them.
       - Generated UnitName follows filename, so it is all lowercase.
       - It doesn't add to units (because it doesn't know which are platform-specific)
         <AddToUsesPkgSection Value="False"/>
+
+      Descendants: you can override this.
+      Do not call inherited when overriding (since this implementation makes
+      warning).
+      Do nothing if not TryFixing.
     }
-    procedure ProposeLpkFix(const MissingFiles: TCastleStringList);
+    procedure ProposeFix(const MissingFiles: TCastleStringList); virtual;
   public
-    Files: TCastleStringList;
-    constructor Create(const ALpkFileName: String);
+    property PackageFileName: String read FPackageFileName;
+    constructor Create(const APackageFileName: String);
     destructor Destroy; override;
+
     { Check that package
       - contains all files from RequiredFiles (except ExcludedFromRequiredFiles)
       - doesn't contain any files not in RequiredFiles (except ExcludedFromRequiredFiles) + OptionalFiles
@@ -71,43 +116,27 @@ type
     procedure CheckFiles(const RequiredFiles, ExcludedFromRequiredFiles, OptionalFiles: array of String);
   end;
 
-constructor TLazarusPackage.Create(const ALpkFileName: String);
-var
-  Doc: TXMLDocument;
-  FilesElement, FileElement: TDOMElement;
-  I, FilesCount: Cardinal;
-  FileName: String;
+constructor TPackage.Create(const APackageFileName: String);
 begin
   inherited Create;
   Files := TCastleStringList.Create;
   Files.CaseSensitive := FileNameCaseSensitive;
 
-  FLpkFileName := ALpkFileName;
-  Doc := URLReadXML(FLpkFileName);
-  try
-    FilesElement := Doc.DocumentElement.Child('Package').Child('Files');
-    FilesCount := FilesElement.AttributeCardinal('Count');
-    for I := 1 to FilesCount do
-    begin
-      FileElement := FilesElement.Child('Item' + IntToStr(I));
-      FileName := FileElement.Child('Filename').AttributeString('Value');
-      if not IsPrefix('../', FileName, not FileNameCaseSensitive) then
-        PackageWarning('All filenames in lpk must be in CGE root, invalid: %s', [FileName]);
-      FileName := PrefixRemove('../', FileName, not FileNameCaseSensitive);
-      Files.Append(FileName);
-    end;
-  finally FreeAndNil(Doc) end;
+  ConsideredFilesMask := TCastleStringList.Create;
+  //ConsideredFilesMask.CaseSensitive := FileNameCaseSensitive; // doesn't matter
+  ConsideredFilesMask.Append('*.pas');
 
-  Writeln(Format('LPK %s: %d files', [FLpkFileName, Files.Count]));
+  FPackageFileName := APackageFileName;
 end;
 
-destructor TLazarusPackage.Destroy;
+destructor TPackage.Destroy;
 begin
   FreeAndNil(Files);
+  FreeAndNil(ConsideredFilesMask);
   inherited;
 end;
 
-procedure TLazarusPackage.GatherRequiredFiles(const FileInfo: TFileInfo; var StopSearch: Boolean);
+procedure TPackage.GatherRequiredFiles(const FileInfo: TFileInfo; var StopSearch: Boolean);
 var
   FileName, CgePrefix: String;
 begin
@@ -122,7 +151,7 @@ begin
   RequiredFilesList.Append(FileName);
 end;
 
-procedure TLazarusPackage.ExcludeFromRequiredFiles(const FileInfo: TFileInfo; var StopSearch: Boolean);
+procedure TPackage.ExcludeFromRequiredFiles(const FileInfo: TFileInfo; var StopSearch: Boolean);
 var
   FileName, CgePrefix: String;
   I: Integer;
@@ -141,7 +170,7 @@ begin
   RequiredFilesList.Delete(I);
 end;
 
-procedure TLazarusPackage.CheckFiles(const RequiredFiles, ExcludedFromRequiredFiles, OptionalFiles: array of String);
+procedure TPackage.CheckFiles(const RequiredFiles, ExcludedFromRequiredFiles, OptionalFiles: array of String);
 
   function InsideOptionalFiles(const FileName: String): Boolean;
   var
@@ -156,7 +185,7 @@ procedure TLazarusPackage.CheckFiles(const RequiredFiles, ExcludedFromRequiredFi
 
 var
   I, FilesIndex: Integer;
-  FindPath: String;
+  FindPath, Mask: String;
   MissingFiles: TCastleStringList;
 begin
   RequiredFilesList := TCastleStringList.Create;
@@ -164,10 +193,8 @@ begin
   for I := 0 to High(RequiredFiles) do
   begin
     FindPath := CgePathExpanded + RequiredFiles[I] + PathDelim;
-    FindFiles(FindPath, '*.inc', false, @GatherRequiredFiles, [ffRecursive]);
-    FindFiles(FindPath, '*.pas', false, @GatherRequiredFiles, [ffRecursive]);
-    FindFiles(FindPath, '*.image_data', false, @GatherRequiredFiles, [ffRecursive]);
-    FindFiles(FindPath, '*.lrs', false, @GatherRequiredFiles, [ffRecursive]);
+    for Mask in ConsideredFilesMask do
+      FindFiles(FindPath, Mask, false, @GatherRequiredFiles, [ffRecursive]);
   end;
   Writeln('Found required files on disk: ', RequiredFilesList.Count);
 
@@ -175,10 +202,8 @@ begin
   for I := 0 to High(ExcludedFromRequiredFiles) do
   begin
     FindPath := CgePathExpanded + ExcludedFromRequiredFiles[I] + PathDelim;
-    FindFiles(FindPath, '*.inc', false, @ExcludeFromRequiredFiles, [ffRecursive]);
-    FindFiles(FindPath, '*.pas', false, @ExcludeFromRequiredFiles, [ffRecursive]);
-    FindFiles(FindPath, '*.image_data', false, @ExcludeFromRequiredFiles, [ffRecursive]);
-    FindFiles(FindPath, '*.lrs', false, @ExcludeFromRequiredFiles, [ffRecursive]);
+    for Mask in ConsideredFilesMask do
+      FindFiles(FindPath, Mask, false, @ExcludeFromRequiredFiles, [ffRecursive]);
   end;
   Writeln('Required files after removing exclusions: ', RequiredFilesList.Count);
 
@@ -192,7 +217,7 @@ begin
       begin
         PackageWarning('Required file "%s" is not present in package "%s"', [
           RequiredFilesList[I],
-          FLpkFileName
+          FPackageFileName
         ]);
         MissingFiles.Add(RequiredFilesList[I]);
       end else
@@ -200,7 +225,7 @@ begin
     end;
 
     if MissingFiles.Count <> 0 then
-      ProposeLpkFix(MissingFiles);
+      ProposeFix(MissingFiles);
   finally FreeAndNil(MissingFiles) end;
 
   { verify that rest of Files is in OptionalFiles }
@@ -208,13 +233,62 @@ begin
     if not InsideOptionalFiles(Files[I]) then
       PackageWarning('File "%s" in package "%s" is neither in OptionalFiles or RequiredFiles of this package, or it is in package but not existing on disk', [
         Files[I],
-        FLpkFileName
+        FPackageFileName
       ]);
 
   FreeAndNil(RequiredFilesList);
 end;
 
-procedure TLazarusPackage.ProposeLpkFix(const MissingFiles: TCastleStringList);
+procedure TPackage.ProposeFix(const MissingFiles: TCastleStringList);
+begin
+  PackageWarning('Automatic fixing not implemented for this package type %s', [
+    ClassName
+  ]);
+end;
+
+{ TLazarusPackage ------------------------------------------------------------ }
+
+type
+  { Represents Lazarus package (.lpk). }
+  TLazarusPackage = class(TPackage)
+  protected
+    procedure ProposeFix(const MissingFiles: TCastleStringList); override;
+  public
+    constructor Create(const APackageFileName: String);
+  end;
+
+constructor TLazarusPackage.Create(const APackageFileName: String);
+var
+  Doc: TXMLDocument;
+  FilesElement, FileElement: TDOMElement;
+  I, FilesCount: Cardinal;
+  FileName: String;
+begin
+  inherited;
+
+  ConsideredFilesMask.Append('*.inc');
+  ConsideredFilesMask.Append('*.image_data');
+  ConsideredFilesMask.Append('*.lrs');
+
+  Doc := URLReadXML(PackageFileName);
+  try
+    FilesElement := Doc.DocumentElement.Child('Package').Child('Files');
+    FilesCount := FilesElement.AttributeCardinal('Count');
+    for I := 1 to FilesCount do
+    begin
+      FileElement := FilesElement.Child('Item' + IntToStr(I));
+      FileName := FileElement.Child('Filename').AttributeString('Value');
+      if not IsPrefix('../', FileName, not FileNameCaseSensitive) then
+        PackageWarning('All filenames in lpk must be in CGE root, invalid: %s', [FileName]);
+      FileName := PrefixRemove('../', FileName, not FileNameCaseSensitive);
+      Files.Append(FileName);
+    end;
+  finally FreeAndNil(Doc) end;
+
+  Writeln(Format('LPK %s: %d files', [PackageFileName, Files.Count]));
+end;
+
+procedure TLazarusPackage.ProposeFix(const MissingFiles: TCastleStringList);
 var
   Doc: TXMLDocument;
   FilesElement, FileElement,
@@ -224,7 +298,7 @@ var
 begin
   if not TryFixing then Exit;
 
-  Doc := URLReadXML(FLpkFileName);
+  Doc := URLReadXML(PackageFileName);
   try
     FilesElement := Doc.DocumentElement.Child('Package').Child('Files');
     FilesCount := FilesElement.AttributeCardinal('Count');
@@ -246,16 +320,16 @@ begin
       end;
     end;
     FilesElement.AttributeSet('Count', FilesCount);
-    URLWriteXML(Doc, FLpkFileName);
+    URLWriteXML(Doc, PackageFileName);
   finally FreeAndNil(Doc) end;
 end;
 
 { main routine --------------------------------------------------------------- }
 
 var
-  Lpk: TLazarusPackage;
+  Package: TPackage;
 begin
-  ApplicationProperties.ApplicationName := 'check_lazarus_packages';
+  ApplicationProperties.ApplicationName := 'check_packages';
   ApplicationProperties.Version := CastleEngineVersion;
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
@@ -267,9 +341,9 @@ begin
   CgePathExpanded := SReplaceChars(CgePathExpanded, PathDelim, '/'); // replace backslashes with slashes on Windows
   Writeln('Checking CGE in directory: ', CgePathExpanded);
 
-  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_base.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_base.lpk');
   try
-    Lpk.CheckFiles([
+    Package.CheckFiles([
       'src/common_includes',
       'src/transform',
       'src/audio',
@@ -292,54 +366,54 @@ begin
     [
       'src/vampyre_imaginglib'
     ]);
-  finally FreeAndNil(Lpk) end;
+  finally FreeAndNil(Package) end;
 
-  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_window.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_window.lpk');
   try
-    Lpk.CheckFiles([
+    Package.CheckFiles([
       'src/window'
     ],
     [ ],
     [ ]);
-  finally FreeAndNil(Lpk) end;
+  finally FreeAndNil(Package) end;
 
-  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'alternative_castle_window_based_on_lcl.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'alternative_castle_window_based_on_lcl.lpk');
   try
-    Lpk.CheckFiles([
+    Package.CheckFiles([
       'src/window'
     ],
     [ ],
     [ ]);
-  finally FreeAndNil(Lpk) end;
+  finally FreeAndNil(Package) end;
 
-  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_components.lpk');
   try
-    Lpk.CheckFiles([
+    Package.CheckFiles([
       'src/lcl'
     ],
     [],
     [ ]);
-  finally FreeAndNil(Lpk) end;
+  finally FreeAndNil(Package) end;
 
-  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_indy.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_indy.lpk');
   try
-    Lpk.CheckFiles([
+    Package.CheckFiles([
       'src/files/indy'
     ],
     [ ],
     [ ]);
-  finally FreeAndNil(Lpk) end;
+  finally FreeAndNil(Package) end;
 
-  Lpk := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_editor_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_editor_components.lpk');
   try
-    Lpk.CheckFiles([
+    Package.CheckFiles([
       'tools/castle-editor/components'
     ],
     [
       'tools/castle-editor/components/mbColorLib/examples'
     ],
     [ ]);
-  finally FreeAndNil(Lpk) end;
+  finally FreeAndNil(Package) end;
 
   if HasWarnings then
   begin

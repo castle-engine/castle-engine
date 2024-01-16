@@ -499,12 +499,12 @@ cleanall: cleanmore
 .PHONY: tests
 tests:
 	tools/build-tool/castle-engine_compile.sh
-# Build and run check_lazarus_packages
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ clean
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ --mode=debug compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ run -- ../../../
+# Build and run check_packages
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ --mode=debug compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ run -- ../../../
 # Conserve disk space for GH actions
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ clean
 # Run in debug mode
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug compile
