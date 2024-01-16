@@ -14,28 +14,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ Check Castle Game Engine Lazarus (.lpk) and Delphi (.dpk) packages.
-
-  In particular check that they contain all files they should,
-  and none of the files they shouldn't.
-  This checks:
-
-  - The packages are complete.
-    Missing files from .lpk or .dpk, while not critical, is bothersome.
-    E.g. Lazarus will not auto-recompile package if you change a file
-    that wasn't explicitly listed in .lpk.
-
-  - The package doesn't use something it should not.
-    E.g. castle_base.lpk should not use any files from src/window/,
-    as they depend on CastleWindow, and castle_base.lpk deliberately
-    doesn't depend on CastleWindow.
-
-    See https://castle-engine.io/units_map about CGE subdirectories.
-}
+{ Check Castle Game Engine Lazarus (.lpk) and Delphi (.dpk, .dproj) packages.
+  See README.md for more description. }
 
 uses SysUtils, DOM,
   CastleXmlUtils, CastleUtils, CastleFindFiles, CastleStringUtils, CastleParameters,
-  CastleLog, CastleApplicationProperties;
+  CastleLog, CastleApplicationProperties, CastleDownload,
+  PackageUtils;
 
 var
   CgePath: String = '../../../';
@@ -60,7 +45,7 @@ end;
 { TPackage ------------------------------------------------------------------- }
 
 type
-  { Abstract class that represents Lazarus or Delphi package (.lpk or .dpk).
+  { Abstract class that represents Lazarus or Delphi package.
 
     Descendants:
     - Must implement constructor to read PackageFileName file and fill Files.
@@ -91,7 +76,7 @@ type
 
       This automatic fix is not perfect, so beware! Known issues:
 
-      - It is implemented now only for LPK, not DPK.
+      - It is implemented now only for Lazarus packages, not Delphi.
       - It only adds missing files. Doesn't remove files that should not be in package.
       - It can mess some initial LPK XML stuff, causing unnecessary edits. Revert them.
       - Generated UnitName follows filename, so it is all lowercase.
@@ -101,7 +86,7 @@ type
       Descendants: you can override this.
       Do not call inherited when overriding (since this implementation makes
       warning).
-      Do nothing if not TryFixing.
+      You can assume when this is called that TryFixing = true.
     }
     procedure ProposeFix(const MissingFiles: TCastleStringList); virtual;
   public
@@ -224,7 +209,7 @@ begin
         Files.Delete(FilesIndex);
     end;
 
-    if MissingFiles.Count <> 0 then
+    if (MissingFiles.Count <> 0) and TryFixing then
       ProposeFix(MissingFiles);
   finally FreeAndNil(MissingFiles) end;
 
@@ -296,7 +281,7 @@ var
   FilesCount: Cardinal;
   MissingFile: String;
 begin
-  if not TryFixing then Exit;
+  Assert(TryFixing);
 
   Doc := URLReadXML(PackageFileName);
   try
@@ -322,6 +307,60 @@ begin
     FilesElement.AttributeSet('Count', FilesCount);
     URLWriteXML(Doc, PackageFileName);
   finally FreeAndNil(Doc) end;
+end;
+
+{ TDelphiPackage ------------------------------------------------------------ }
+
+type
+  { Represents Delphi package (.dpk and .dproj, PackageFileName should point to .dpk). }
+  TDelphiPackage = class(TPackage)
+  public
+    constructor Create(const APackageFileName: String);
+  end;
+
+constructor TDelphiPackage.Create(const APackageFileName: String);
+
+  procedure ReadDpk;
+  var
+    Reader: TTextReader;
+    Line, FoundFileName: String;
+    Matches: TCastleStringList;
+  begin
+    Matches := TCastleStringList.Create;
+    try
+      Reader := TTextReader.Create(PackageFileName);
+      try
+        while not Reader.Eof do
+        begin
+          Line := Reader.Readln;
+          Matches.Clear;
+          if StringMatchesRegexp(Line, '^ (.*) in ''(.*)'',$', Matches) then
+          begin
+            Check(Matches.Count = 3);
+            FoundFileName := Matches[2];
+
+            // replace backslashes with slashes on Windows
+            FoundFileName := SReplaceChars(FoundFileName, PathDelim, '/');
+
+            // strip prefix, to make it relative to CGE root
+            if not IsPrefix('../../', FoundFileName, not FileNameCaseSensitive) then
+              PackageWarning('All filenames in dpk must be in CGE root, invalid: %s', [FoundFileName]);
+            FoundFileName := PrefixRemove('../../', FoundFileName, not FileNameCaseSensitive);
+
+            Files.Append(FoundFileName);
+          end;
+        end;
+      finally FreeAndNil(Reader) end;
+    finally FreeAndNil(Matches) end;
+  end;
+
+begin
+  inherited;
+
+  ReadDpk;
+  // ReadDproj; TODO - read and make sure matches DPK
+
+  Writeln(Format('DPK (and DPROJ) %s: %d files', [PackageFileName, Files.Count]));
 end;
 
 { main routine --------------------------------------------------------------- }
@@ -413,6 +452,37 @@ begin
       'tools/castle-editor/components/mbColorLib/examples'
     ],
     [ ]);
+  finally FreeAndNil(Package) end;
+
+  Package := TDelphiPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'delphi' + PathDelim + 'castle_engine.dpk');
+  try
+    Package.CheckFiles([
+      'src/common_includes',
+      'src/transform',
+      'src/audio',
+      'src/base',
+      'src/base_rendering',
+      'src/castlescript',
+      'src/files',
+      'src/fonts',
+      'src/images',
+      'src/physics',
+      'src/services',
+      'src/ui',
+      'src/scene',
+      // Delphi specific:
+      'src/delphi',
+      'src/compatibility/delphi-only'
+      // TODO: not in package, but maybe they should be?
+      // 'src/deprecated_units'
+    ],
+    [
+      'src/base/android',
+      'src/files/indy'
+    ],
+    [
+      'src/vampyre_imaginglib'
+    ]);
   finally FreeAndNil(Package) end;
 
   if HasWarnings then
