@@ -202,7 +202,7 @@
       In the past we had ViewportRenderBegin/End, called by viewport,
       but then TRenderer state changes (e.g. depth range)
       could easily accidentally affect TCastleTransform custom rendering
-      (e.g. using TRenderUnlitMesh). }
+      (e.g. using TCastleRenderUnlitMesh). }
     class procedure ClassRenderBegin;
     class procedure ClassRenderEnd;
   public
