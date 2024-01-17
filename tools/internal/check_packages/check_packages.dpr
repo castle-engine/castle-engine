@@ -86,19 +86,24 @@ type
       Descendants: you can override this.
       Do not call inherited when overriding (since this implementation makes
       warning).
-      You can assume when this is called that TryFixing = true.
-    }
+      You can assume when this is called that TryFixing = true. }
     procedure ProposeFix(const MissingFiles: TCastleStringList); virtual;
   public
     property PackageFileName: String read FPackageFileName;
     constructor Create(const APackageFileName: String);
     destructor Destroy; override;
 
-    { Check that package
-      - contains all files from RequiredFiles (except ExcludedFromRequiredFiles)
-      - doesn't contain any files not in RequiredFiles (except ExcludedFromRequiredFiles) + OptionalFiles
-    }
-    procedure CheckFiles(const RequiredFiles, ExcludedFromRequiredFiles, OptionalFiles: array of String);
+    { Check that package contains all files from
+      RequiredFiles (except ExcludedFromRequiredFiles).
+
+      Moreover, check it doesn't contain anything additional,
+      except OptionalFiles.
+
+      All the lists can contain directories (in which case all Pascal files
+      in this directory are considered,  following ConsideredFilesMask,
+      by default just *.pas) or specific files (to indicate a specific file). }
+    procedure CheckFiles(const RequiredFiles, ExcludedFromRequiredFiles,
+      OptionalFiles: array of String);
   end;
 
 constructor TPackage.Create(const APackageFileName: String);
@@ -177,18 +182,28 @@ begin
   RequiredFilesList.CaseSensitive := FileNameCaseSensitive;
   for I := 0 to High(RequiredFiles) do
   begin
-    FindPath := CgePathExpanded + RequiredFiles[I] + PathDelim;
-    for Mask in ConsideredFilesMask do
-      FindFiles(FindPath, Mask, false, @GatherRequiredFiles, [ffRecursive]);
+    FindPath := CgePathExpanded + RequiredFiles[I];
+    if DirectoryExists(FindPath) then
+    begin
+      for Mask in ConsideredFilesMask do
+        FindFiles(FindPath, Mask, false, @GatherRequiredFiles, [ffRecursive]);
+    end else
+      // just send exactly one filename to FindFiles, to call GatherRequiredFiles
+      FindFiles(FindPath, false, @GatherRequiredFiles, [ffRecursive]);
   end;
   Writeln('Found required files on disk: ', RequiredFilesList.Count);
 
   { remove ExcludedFromRequiredFiles }
   for I := 0 to High(ExcludedFromRequiredFiles) do
   begin
-    FindPath := CgePathExpanded + ExcludedFromRequiredFiles[I] + PathDelim;
-    for Mask in ConsideredFilesMask do
-      FindFiles(FindPath, Mask, false, @ExcludeFromRequiredFiles, [ffRecursive]);
+    FindPath := CgePathExpanded + ExcludedFromRequiredFiles[I];
+    if DirectoryExists(FindPath) then
+    begin
+      for Mask in ConsideredFilesMask do
+        FindFiles(FindPath, Mask, false, @ExcludeFromRequiredFiles, [ffRecursive]);
+    end else
+      // just send exactly one filename to FindFiles, to call ExcludeFromRequiredFiles
+      FindFiles(FindPath, false, @ExcludeFromRequiredFiles, [ffRecursive]);
   end;
   Writeln('Required files after removing exclusions: ', RequiredFilesList.Count);
 
@@ -320,6 +335,19 @@ type
 
 constructor TDelphiPackage.Create(const APackageFileName: String);
 
+  function FixFileNameFromPackage(const FileName: String): String;
+  begin
+    Result := FileName;
+
+    // replace backslashes with slashes on Windows
+    Result := SReplaceChars(Result, PathDelim, '/');
+
+    // strip prefix, to make it relative to CGE root
+    if not IsPrefix('../../', Result, not FileNameCaseSensitive) then
+      PackageWarning('All filenames in dpk must be in CGE root, invalid: %s', [Result]);
+    Result := PrefixRemove('../../', Result, not FileNameCaseSensitive);
+  end;
+
   procedure ReadDpk;
   var
     Reader: TTextReader;
@@ -334,33 +362,62 @@ constructor TDelphiPackage.Create(const APackageFileName: String);
         begin
           Line := Reader.Readln;
           Matches.Clear;
-          if StringMatchesRegexp(Line, '^ (.*) in ''(.*)'',$', Matches) then
+          if StringMatchesRegexp(Line, '^ (.*) in ''(.*)''', Matches) then
           begin
             Check(Matches.Count = 3);
             FoundFileName := Matches[2];
-
-            // replace backslashes with slashes on Windows
-            FoundFileName := SReplaceChars(FoundFileName, PathDelim, '/');
-
-            // strip prefix, to make it relative to CGE root
-            if not IsPrefix('../../', FoundFileName, not FileNameCaseSensitive) then
-              PackageWarning('All filenames in dpk must be in CGE root, invalid: %s', [FoundFileName]);
-            FoundFileName := PrefixRemove('../../', FoundFileName, not FileNameCaseSensitive);
-
+            FoundFileName := FixFileNameFromPackage(FoundFileName);
             Files.Append(FoundFileName);
           end;
         end;
       finally FreeAndNil(Reader) end;
     finally FreeAndNil(Matches) end;
+
+    Writeln(Format('DPK %s: %d files', [PackageFileName, Files.Count]));
+  end;
+
+  procedure ReadDproj;
+  var
+    Doc: TXMLDocument;
+    ItemGroupElement, DccReferenceElement: TDOMElement;
+    I: TXMLElementIterator;
+    FileName, DprojFileName: String;
+    AltFiles: TCastleStringList;
+  begin
+    AltFiles := TCastleStringList.Create;
+    try
+      DprojFileName := ChangeFileExt(PackageFileName, '.dproj');
+      Doc := UrlReadXml(DprojFileName);
+      try
+        ItemGroupElement := Doc.DocumentElement.Child('ItemGroup');
+        I := ItemGroupElement.ChildrenIterator('DCCReference');
+        try
+          while I.GetNext do
+          begin
+            DccReferenceElement := I.Current;
+            FileName := DccReferenceElement.AttributeString('Include');
+            if ExtractFileExt(FileName) <> '.dcp' then
+            begin
+              FileName := FixFileNameFromPackage(FileName);
+              AltFiles.Append(FileName);
+            end;
+          end;
+        finally FreeAndNil(I) end;
+      finally FreeAndNil(Doc) end;
+
+      CompareFilesLists(Files, AltFiles, Format('Files in DPK (%s) and DPROJ differ (%s)', [
+        PackageFileName,
+        DprojFileName
+      ]));
+
+      Writeln(Format('DPROJ %s: %d files', [DprojFileName, AltFiles.Count]));
+    finally FreeAndNil(AltFiles) end;
   end;
 
 begin
   inherited;
-
   ReadDpk;
-  // ReadDproj; TODO - read and make sure matches DPK
-
-  Writeln(Format('DPK (and DPROJ) %s: %d files', [PackageFileName, Files.Count]));
+  ReadDproj;
 end;
 
 { main routine --------------------------------------------------------------- }
@@ -477,12 +534,22 @@ begin
       // 'src/deprecated_units'
     ],
     [
+      'src/delphi/castleinternaldelphidesignutils.pas',
       'src/base/android',
       'src/files/indy'
     ],
     [
       'src/vampyre_imaginglib'
     ]);
+  finally FreeAndNil(Package) end;
+
+  Package := TDelphiPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'delphi' + PathDelim + 'castle_engine_design.dpk');
+  try
+    Package.CheckFiles([
+      'src/delphi/castleinternaldelphidesignutils.pas'
+    ],
+    [ ],
+    [ ]);
   finally FreeAndNil(Package) end;
 
   if HasWarnings then

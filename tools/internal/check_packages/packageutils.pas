@@ -38,6 +38,11 @@ uses Classes;
 function StringMatchesRegexp(const S, RegexpPattern: String;
   const Matches: TStrings): Boolean;
 
+{ Compare 2 lists of files. May change the order.
+  The CaseSensitive property of lists doesn't matter.
+  Makes exception in case they differ. }
+procedure CompareFilesLists(const A, B: TStringList; const FailureMessage: String);
+
 implementation
 
 uses SysUtils, {$ifdef FPC} Regexpr {$else} RegularExpressions, Character {$endif};
@@ -64,6 +69,17 @@ begin
   Result := TRegEx.IsMatch(S, RegexpPattern);
   // TODO
 {$endif}
+end;
+
+procedure CompareFilesLists(const A, B: TStringList; const FailureMessage: String);
+begin
+  A.Sort;
+  B.Sort;
+  if A.Count <> B.Count then
+    raise Exception.CreateFmt('%s: different number of files: %d vs %d',
+      [FailureMessage, A.Count, B.Count]);
+  if AnsiCompareFileName(A.Text, B.Text) <> 0 then
+    raise Exception.CreateFmt('%s: different files', [FailureMessage]);
 end;
 
 end.
