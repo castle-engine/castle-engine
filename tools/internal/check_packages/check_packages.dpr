@@ -25,7 +25,7 @@ uses SysUtils, DOM,
 var
   CgePath: String = '../../../';
   CgePathExpanded: String;
-  HasWarnings: Boolean = false;
+  WarningsCount: Cardinal = 0;
 
 const
   TryFixing = false;
@@ -39,7 +39,7 @@ type
 procedure PackageWarning(const S: String; const Args: array of const);
 begin
   WriteLnWarning(Format(S, Args));
-  HasWarnings := true;
+  Inc(WarningsCount);
 end;
 
 { TPackage ------------------------------------------------------------------- }
@@ -99,9 +99,19 @@ type
       Moreover, check it doesn't contain anything additional,
       except OptionalFiles.
 
-      All the lists can contain directories (in which case all Pascal files
-      in this directory are considered,  following ConsideredFilesMask,
-      by default just *.pas) or specific files (to indicate a specific file). }
+      All the lists can contain
+
+      - directories, end with / (in which case all Pascal files
+        in this directory are considered,  following ConsideredFilesMask,
+        by default just *.pas)
+
+      - or mask for files (to indicate a specific file, or files
+        if you use wildcards * and ?).
+
+      Use only slash, never backslash (including PathDelim which may be backslash
+      on Windows), as path separator.
+      We make things easier at certain places in this implementation,
+      by just working only with slashes. }
     procedure CheckFiles(const RequiredFiles, ExcludedFromRequiredFiles,
       OptionalFiles: array of String);
   end;
@@ -167,9 +177,13 @@ procedure TPackage.CheckFiles(const RequiredFiles, ExcludedFromRequiredFiles, Op
     I: Integer;
   begin
     for I := 0 to High(OptionalFiles) do
-      if IsPrefix(OptionalFiles[I] + PathDelim, FileName, not FileNameCaseSensitive) or
-         IsPrefix(OptionalFiles[I] + '/', FileName, not FileNameCaseSensitive) then // accept / also on Windows
+    begin
+      if Pos('\', OptionalFiles[I]) <> 0 then
+        raise Exception.CreateFmt('OptionalFiles must use only slashes, not backslashes: %s', [OptionalFiles[I]]);
+
+      if IsPrefix(OptionalFiles[I], FileName, not FileNameCaseSensitive) then
         Exit(true);
+    end;
     Result := false;
   end;
 
@@ -182,13 +196,16 @@ begin
   RequiredFilesList.CaseSensitive := FileNameCaseSensitive;
   for I := 0 to High(RequiredFiles) do
   begin
+    if Pos('\', RequiredFiles[I]) <> 0 then
+      raise Exception.CreateFmt('RequiredFiles must use only slashes, not backslashes: %s', [RequiredFiles[I]]);
+
     FindPath := CgePathExpanded + RequiredFiles[I];
-    if DirectoryExists(FindPath) then
+    if IsSuffix('/', FindPath) then
     begin
       for Mask in ConsideredFilesMask do
         FindFiles(FindPath, Mask, false, @GatherRequiredFiles, [ffRecursive]);
     end else
-      // just send exactly one filename to FindFiles, to call GatherRequiredFiles
+      // just use this mask with FindFiles, to find matching files
       FindFiles(FindPath, false, @GatherRequiredFiles, [ffRecursive]);
   end;
   Writeln('Found required files on disk: ', RequiredFilesList.Count);
@@ -196,13 +213,16 @@ begin
   { remove ExcludedFromRequiredFiles }
   for I := 0 to High(ExcludedFromRequiredFiles) do
   begin
+    if Pos('\', ExcludedFromRequiredFiles[I]) <> 0 then
+      raise Exception.CreateFmt('ExcludedFromRequiredFiles must use only slashes, not backslashes: %s', [ExcludedFromRequiredFiles[I]]);
+
     FindPath := CgePathExpanded + ExcludedFromRequiredFiles[I];
-    if DirectoryExists(FindPath) then
+    if IsSuffix('/', FindPath) then
     begin
       for Mask in ConsideredFilesMask do
         FindFiles(FindPath, Mask, false, @ExcludeFromRequiredFiles, [ffRecursive]);
     end else
-      // just send exactly one filename to FindFiles, to call ExcludeFromRequiredFiles
+      // just use this mask with FindFiles, to find matching files
       FindFiles(FindPath, false, @ExcludeFromRequiredFiles, [ffRecursive]);
   end;
   Writeln('Required files after removing exclusions: ', RequiredFilesList.Count);
@@ -437,113 +457,113 @@ begin
   CgePathExpanded := SReplaceChars(CgePathExpanded, PathDelim, '/'); // replace backslashes with slashes on Windows
   Writeln('Checking CGE in directory: ', CgePathExpanded);
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_base.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_base.lpk');
   try
     Package.CheckFiles([
-      'src/common_includes',
-      'src/transform',
-      'src/audio',
-      'src/base',
-      'src/base_rendering',
-      'src/castlescript',
-      'src/files',
-      'src/fonts',
-      'src/images',
-      'src/physics',
-      'src/services',
-      'src/ui',
-      'src/scene',
-      'src/deprecated_units'
+      'src/common_includes/',
+      'src/transform/',
+      'src/audio/',
+      'src/base/',
+      'src/base_rendering/',
+      'src/castlescript/',
+      'src/files/',
+      'src/fonts/',
+      'src/images/',
+      'src/physics/',
+      'src/services/',
+      'src/ui/',
+      'src/scene/',
+      'src/deprecated_units/'
     ],
     [
-      'src/base/android',
-      'src/files/indy'
+      'src/base/android/',
+      'src/files/indy/'
     ],
     [
-      'src/vampyre_imaginglib'
+      'src/vampyre_imaginglib/'
     ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_window.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_window.lpk');
   try
     Package.CheckFiles([
-      'src/window'
+      'src/window/'
     ],
     [ ],
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'alternative_castle_window_based_on_lcl.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/alternative_castle_window_based_on_lcl.lpk');
   try
     Package.CheckFiles([
-      'src/window'
+      'src/window/'
     ],
     [ ],
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_components.lpk');
   try
     Package.CheckFiles([
-      'src/lcl'
+      'src/lcl/'
     ],
     [],
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_indy.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_indy.lpk');
   try
     Package.CheckFiles([
-      'src/files/indy'
+      'src/files/indy/'
     ],
     [ ],
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TLazarusPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'castle_editor_components.lpk');
+  Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_editor_components.lpk');
   try
     Package.CheckFiles([
-      'tools/castle-editor/components'
+      'tools/castle-editor/components/'
     ],
     [
-      'tools/castle-editor/components/mbColorLib/examples'
+      'tools/castle-editor/components/mbColorLib/examples/'
     ],
     [ ]);
   finally FreeAndNil(Package) end;
 
-  Package := TDelphiPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'delphi' + PathDelim + 'castle_engine.dpk');
+  Package := TDelphiPackage.Create(CgePathExpanded + 'packages/delphi/castle_engine.dpk');
   try
     Package.CheckFiles([
-      'src/common_includes',
-      'src/transform',
-      'src/audio',
-      'src/base',
-      'src/base_rendering',
-      'src/castlescript',
-      'src/files',
-      'src/fonts',
-      'src/images',
-      'src/physics',
-      'src/services',
-      'src/ui',
-      'src/scene',
+      'src/common_includes/',
+      'src/transform/',
+      'src/audio/',
+      'src/base/',
+      'src/base_rendering/',
+      'src/castlescript/',
+      'src/files/',
+      'src/fonts/',
+      'src/images/',
+      'src/physics/',
+      'src/services/',
+      'src/ui/',
+      'src/scene/',
       // Delphi specific:
-      'src/delphi',
-      'src/compatibility/delphi-only'
+      'src/delphi/',
+      'src/compatibility/delphi-only/'
       // TODO: not in package, but maybe they should be?
-      // 'src/deprecated_units'
+      // 'src/deprecated_units/'
     ],
     [
       'src/delphi/castleinternaldelphidesignutils.pas',
-      'src/base/android',
-      'src/files/indy'
+      'src/base/android/',
+      'src/files/indy/'
     ],
     [
-      'src/vampyre_imaginglib'
+      'src/vampyre_imaginglib/'
     ]);
   finally FreeAndNil(Package) end;
 
-  Package := TDelphiPackage.Create(CgePathExpanded + 'packages' + PathDelim + 'delphi' + PathDelim + 'castle_engine_design.dpk');
+  Package := TDelphiPackage.Create(CgePathExpanded + 'packages/delphi/castle_engine_design.dpk');
   try
     Package.CheckFiles([
       'src/delphi/castleinternaldelphidesignutils.pas'
@@ -552,9 +572,9 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
-  if HasWarnings then
+  if WarningsCount <> 0 then
   begin
-    Writeln('Some package problems reported above, exiting with status 1');
+    Writeln(Format('%d package problems found (see report above), exiting with status 1', [WarningsCount]));
     Halt(1);
   end else
     Writeln('All packages OK');
