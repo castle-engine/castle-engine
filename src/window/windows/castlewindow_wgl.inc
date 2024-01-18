@@ -40,10 +40,7 @@ private
 procedure TCastleWindow.ContextCreate(WndPtr: HWND);
 begin
   Context := TGLContextWGL.Create;
-  { Our TGLContextWGL doesn't actually use WndPtr,
-    we just ignore it here.
-    It is used by alternative TGLContextEGL implemented in castlewindow_egl.inc. }
-  //Context.WndPtr := WndPtr;
+  Context.WndPtr := WndPtr;
   Context.h_Dc := h_Dc;
   Context.Initialize(FRequirements);
 end;

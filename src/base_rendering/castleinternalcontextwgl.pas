@@ -49,6 +49,7 @@ type
     procedure SwapBuffersCore; override;
   public
     // Set this before using Initialize and other methods
+    WndPtr: HWND;
     h_Dc: HDC;
 
     // Created by Initialize, destroyed by Finalize
@@ -366,6 +367,7 @@ procedure TGLContextWGL.InitializeCore(const Requirements: TGLContextRequirement
 
 begin
   // make sure caller didn't forget to set these before calling CreateContext
+  Assert(WndPtr <> 0);
   Assert(h_Dc <> 0);
 
   // load base (not extensions) WGL functions
