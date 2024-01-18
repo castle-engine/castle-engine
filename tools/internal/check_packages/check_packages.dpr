@@ -141,7 +141,7 @@ var
   FileName, CgePrefix: String;
 begin
   FileName := FileInfo.AbsoluteName;
-  FileName := SReplaceChars(FileName, PathDelim, '/'); // replace backslashes with slashes on Windows
+  FileName := SReplaceChars(FileName, '\', '/'); // replace backslashes with slashes
 
   CgePrefix := CgePathExpanded;
   if not IsPrefix(CgePrefix, FileName, not FileNameCaseSensitive) then
@@ -157,7 +157,7 @@ var
   I: Integer;
 begin
   FileName := FileInfo.AbsoluteName;
-  FileName := SReplaceChars(FileName, PathDelim, '/'); // replace backslashes with slashes on Windows
+  FileName := SReplaceChars(FileName, '\', '/'); // replace backslashes with slashes
 
   CgePrefix := CgePathExpanded;
   if not IsPrefix(CgePrefix, FileName, not FileNameCaseSensitive) then
@@ -368,8 +368,8 @@ constructor TDelphiPackage.Create(const APackageFileName: String);
   begin
     Result := FileName;
 
-    // replace backslashes with slashes on Windows
-    Result := SReplaceChars(Result, PathDelim, '/');
+    // replace backslashes with slashes
+    Result := SReplaceChars(Result, '\', '/');
 
     // strip prefix, to make it relative to CGE root
     if not IsPrefix('../../', Result, not FileNameCaseSensitive) then
@@ -484,7 +484,7 @@ begin
     CgePath := Parameters[1];
 
   CgePathExpanded := InclPathDelim(ExpandFileName(CgePath));
-  CgePathExpanded := SReplaceChars(CgePathExpanded, PathDelim, '/'); // replace backslashes with slashes on Windows
+  CgePathExpanded := SReplaceChars(CgePathExpanded, '\', '/'); // replace backslashes with slashes
   Writeln('Checking CGE in directory: ', CgePathExpanded);
 
   Package := TLazarusPackage.Create(CgePathExpanded + 'packages/castle_base.lpk');
