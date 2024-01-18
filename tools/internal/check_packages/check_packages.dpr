@@ -346,10 +346,19 @@ end;
 
 { TDelphiPackage ------------------------------------------------------------ }
 
+const
+  { Delphi packages may have various default platforms.
+    For ease of installation, we require it to be Win32
+    (the platform you need to install in Delphi IDE). }
+  RequiredDefaultPlatform = 'Win32';
+
 type
   { Represents Delphi package (.dpk and .dproj, PackageFileName should point to .dpk). }
   TDelphiPackage = class(TPackage)
+  strict private
+    FDefaultPlatform: String;
   public
+    property DefaultPlatform: String read FDefaultPlatform;
     constructor Create(const APackageFileName: String);
   end;
 
@@ -396,6 +405,25 @@ constructor TDelphiPackage.Create(const APackageFileName: String);
     Writeln(Format('DPK %s: %d files', [PackageFileName, Files.Count]));
   end;
 
+  procedure ReadDefaultPlatformFromDproj(const DocumentRoot: TDOMElement);
+  var
+    PropertyGroupIterator: TXMLElementIterator;
+    PropertyGroupElement: TDOMElement;
+  begin
+    { Choose first PropertyGroup from the XML document }
+    PropertyGroupIterator := DocumentRoot.ChildrenIterator('PropertyGroup');
+    if not PropertyGroupIterator.GetNext then
+      raise EInvalidPackage.Create('No PropertyGroup in DPROJ file');
+    PropertyGroupElement := PropertyGroupIterator.Current;
+
+    FDefaultPlatform := PropertyGroupElement.Child('Platform').TextData;
+    if DefaultPlatform <> RequiredDefaultPlatform then
+      PackageWarning('DefaultPlatform is "%s", but we require "%s"', [
+        DefaultPlatform,
+        RequiredDefaultPlatform
+      ]);
+  end;
+
   procedure ReadDproj;
   var
     Doc: TXMLDocument;
@@ -423,6 +451,8 @@ constructor TDelphiPackage.Create(const APackageFileName: String);
             end;
           end;
         finally FreeAndNil(I) end;
+
+        ReadDefaultPlatformFromDproj(Doc.DocumentElement);
       finally FreeAndNil(Doc) end;
 
       CompareFilesLists(Files, AltFiles, Format('Files in DPK (%s) and DPROJ differ (%s)', [
