@@ -1,8 +1,40 @@
-# Delphi package
+# Delphi packages
 
-This directory contains Delphi packages to make Delphi aware of _Castle Game Engine_.
+Installing these packages in Delphi is necessary to [register TCastleControl component, that you can drop on a VCL or FMX form](https://castle-engine.io/control_on_form).
 
-## Packages
+NOTE: These packages are *not* necessary for developing applications using `TCastleWindow`. And `TCastleWindow` is recommended if you want to create a typical game using CGE, with everything (including UI) designed using CGE. Our _"New Project"_ templates and most examples use `TCastleWindow`, not `TCastleControl`.
+
+## Installation in Delphi
+
+- Open in Delphi `AllPackages.groupproj`
+
+- Make sure the platform of all packages is _"Windows 32-bit"_.
+
+    NOTE: Your applications can target all platforms supported by CGE with Delphi: _"Windows 32-bit"_, _"Windows 64-bit"_, _"Linux 64-bit"_. Here you select _"Windows 32-bit"_ just because Delphi IDE is Win32 application.
+
+- Right-click on all packages (except `castle_engine_window.bpl`) in succession and click _"Install"_.
+
+**Most users can stop reading at this point. You have [TCastleControl component, that you can drop on a VCL or FMX form](https://castle-engine.io/control_on_form).**
+
+The rest of this package is only for the developers of CGE itself, or if you want to better understand how CGE packages work.
+
+## Optional: Building packages in Delphi IDE, for all platforms
+
+While this is not necessary for installation, you can make sure that all packages build correctly for all platforms you want to use:
+
+- Make sure all packages have platform set to _"Windows 32-bit"_.
+
+  Then right-click on _"AllPackages"_ and select _"Build All"_.
+
+- Switch platform of all packages (except `castle_engine_design.bpl`) to _"Windows 64-bit"_.
+
+  Again, right-click on _"AllPackages"_ and select _"Build All"_.
+
+- Switch platform of all packages (except `castle_engine_design.bpl` and `castle_engine_vcl.bpl`) to _"Linux 64-bit"_. Do this if you want to use link:delphi_linux[Delphi on Linux].
+
+  Again, right-click on _"AllPackages"_ and select _"Build All"_.
+
+## Packages ovierview
 
 - `castle_engine.bpl` contains the base engine units. Not dependent on VCL, not dependent on FMX, not using `TCastleWindow`.
 
@@ -30,23 +62,7 @@ Platforms:
 
 - Other packages are for all platforms supported by CGE (with Delphi), which right now means Win32, Win64, Linux 64-bit.
 
-## Installation in Delphi
-
-- Open in Delphi `AllPackages.groupproj`
-
-- Optional: Make sure they all build correctly for all platforms you want to use:
-
-    - Make sure all packages have platform set to _"Windows 32-bit"_.
-    - Then right-click on _"AllPackages"_ and select _"Build All"_.
-    - Switch platform of all packages (except `castle_engine_design.bpl`) to _"Windows 64-bit"_.
-    - Again, right-click on _"AllPackages"_ and select _"Build All"_.
-    - Switch platform of all packages (except `castle_engine_design.bpl` and `castle_engine_vcl.bpl`) to _"Linux 64-bit"_. Do this if you want to use link:delphi_linux[Delphi on Linux].
-
-- Make sure the platform of all packages is _"Windows 32-bit"_ (Delphi IDE is 32-bit right now, so installed packages must be 32-bit too).
-
-- Right-click on all packages (except `castle_engine_window.bpl`) in succession and select _"Install"_.
-
-## Notes - why packages are configured like this
+## Various notes about why packages are configured like this
 
 - The packages that register components (`TCastleControl` for both VCL and FMX) and their dependencies must include all platforms supported by Castle Game Engine with Delphi.
 
