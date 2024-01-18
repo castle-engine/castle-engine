@@ -1,6 +1,6 @@
 {%MainUnit x3dfields.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1150,7 +1150,7 @@ end;
 
 procedure TSFFloat.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(FormatDot('%g', [Value]));
+  Writer.Write(FormatDot(FloatOutputFormat, [Value]));
 end;
 
 function TSFFloat.EqualsDefaultValue: boolean;
@@ -1262,7 +1262,7 @@ end;
 
 procedure TSFDouble.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(FormatDot('%g', [Value]));
+  Writer.Write(FormatDot(FloatOutputFormat, [Value]));
 end;
 
 function TSFDouble.EqualsDefaultValue: boolean;
@@ -1767,13 +1767,13 @@ var
   Column: integer;
 begin
   V := FValue.Columns[0];
-  Writer.Writeln(V.ToRawString);
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
     V := FValue.Columns[Column];
-    Writer.WritelnIndent(V.ToRawString);
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
   end;
   Writer.DecIndent;
 end;
@@ -1904,13 +1904,13 @@ var
   Column: Integer;
 begin
   V := FValue.Columns[0];
-  Writer.Writeln(V.ToRawString);
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
     V := FValue.Columns[Column];
-    Writer.WritelnIndent(V.ToRawString);
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
   end;
   Writer.DecIndent;
 end;
@@ -2042,13 +2042,13 @@ var
   Column: integer;
 begin
   V := FValue.Columns[0];
-  Writer.Writeln(V.ToRawString);
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
     V := FValue.Columns[Column];
-    Writer.WritelnIndent(V.ToRawString);
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
   end;
   Writer.DecIndent;
 end;
@@ -2179,13 +2179,13 @@ var
   Column: integer;
 begin
   V := FValue.Columns[0];
-  Writer.Writeln(V.ToRawString);
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
     V := FValue.Columns[Column];
-    Writer.WritelnIndent(V.ToRawString);
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
   end;
   Writer.DecIndent;
 end;
@@ -2317,13 +2317,13 @@ var
   Column: integer;
 begin
   V := FValue.Columns[0];
-  Writer.Writeln(V.ToRawString);
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
     V := FValue.Columns[Column];
-    Writer.WritelnIndent(V.ToRawString);
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
   end;
   Writer.DecIndent;
 end;
@@ -2486,7 +2486,7 @@ end;
 
 procedure TSFRotation.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Axis.ToRawString +' ' +FormatDot('%g', [RotationRad]));
+  Writer.Write(Axis.ToRawString(FloatOutputFormat) +' ' +FormatDot(FloatOutputFormat, [RotationRad]));
 end;
 
 function TSFRotation.RotatedPoint(const pt: TVector3): TVector3;
@@ -2849,7 +2849,7 @@ end;
 
 procedure TSFGenericVector.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFGenericVector.EqualsDefaultValue: boolean;
@@ -2968,7 +2968,7 @@ end;
 
 procedure TSFVec2f.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec2f.EqualsDefaultValue: boolean;
@@ -3096,7 +3096,7 @@ end;
 
 procedure TSFVec3f.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec3f.EqualsDefaultValue: boolean;
@@ -3228,7 +3228,7 @@ end;
 
 procedure TSFVec4f.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec4f.EqualsDefaultValue: boolean;
@@ -3360,7 +3360,7 @@ end;
 
 procedure TSFVec2d.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec2d.EqualsDefaultValue: boolean;
@@ -3480,7 +3480,7 @@ end;
 
 procedure TSFVec3d.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec3d.EqualsDefaultValue: boolean;
@@ -3600,7 +3600,7 @@ end;
 
 procedure TSFVec4d.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec4d.EqualsDefaultValue: boolean;

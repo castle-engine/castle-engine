@@ -106,6 +106,7 @@ type
     procedure TestSolidField;
     procedure TestConversionDot;
     procedure TestWarningUnquotedIdentifier;
+    procedure TestConversionPrecision;
   end;
 
 implementation
@@ -2497,6 +2498,74 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
+end;
+
+procedure TTestX3DNodes.TestConversionPrecision;
+
+  { Assert 2 strings are equal.
+    Ignore newline differences (Unix vs Windows line endings). }
+  procedure AssertEqualsIgnoreNewlines(const Expected, Actual: String);
+  begin
+    // debug
+    //StringToFile('tmp1.txt', SDeleteChars(Expected, [#13]));
+    //StringToFile('tmp2.txt', SDeleteChars(Actual, [#13]));
+
+    AssertEquals(
+      SDeleteChars(Expected, [#10]),
+      SDeleteChars(Actual, [#10])
+    );
+  end;
+
+  procedure TestSaveMakesExpectedResult(
+    const InputModel, OutputModelDefaultPrecision, OutputModelPrecision3: String;
+    const OutputMime: String);
+  var
+    Node: TX3DRootNode;
+    OutputStream: TStringStream;
+    SavedFloatOutputFormat: String;
+  begin
+    Node := LoadNode(InputModel);
+    try
+      OutputStream := TStringStream.Create('');
+      try
+        SaveNode(Node, OutputStream, OutputMime, '', '');
+        // useful to generate correct output (of course you have to manually check is it correct)
+        //StringToFile(OutputModelDefaultPrecision, OutputStream.DataString);
+        AssertEqualsIgnoreNewlines(
+          FileToString(OutputModelDefaultPrecision),
+          OutputStream.DataString);
+      finally FreeAndNil(OutputStream) end;
+
+      SavedFloatOutputFormat := FloatOutputFormat;
+      try
+        FloatOutputFormat := '%.3f';
+
+        OutputStream := TStringStream.Create('');
+        try
+          SaveNode(Node, OutputStream, OutputMime, '', '');
+          // useful to generate correct output (of course you have to manually check is it correct)
+          //StringToFile(OutputModelPrecision3, OutputStream.DataString);
+          AssertEqualsIgnoreNewlines(
+            FileToString(OutputModelPrecision3),
+            OutputStream.DataString);
+        finally FreeAndNil(OutputStream) end;
+      finally FloatOutputFormat := SavedFloatOutputFormat end;
+    finally FreeAndNil(Node) end;
+  end;
+
+begin
+  TestSaveMakesExpectedResult(
+    'castle-data:/test_conversion_precision.x3dv',
+    'castle-data:/test_conversion_precision_output_max.x3dv',
+    'castle-data:/test_conversion_precision_output_3.x3dv',
+    'model/x3d+vrml'
+  );
+  TestSaveMakesExpectedResult(
+    'castle-data:/test_conversion_precision.x3dv',
+    'castle-data:/test_conversion_precision_output_max.x3d',
+    'castle-data:/test_conversion_precision_output_3.x3d',
+    'model/x3d+xml'
+  );
 end;
 
 initialization

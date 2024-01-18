@@ -493,7 +493,7 @@ end;
 
 function TMFMatrix3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix3f.AddToList(const ItemList: TMatrix3List; const Item: TSFMatrix3f);
@@ -530,7 +530,7 @@ end;
 
 function TMFMatrix3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix3d.AddToList(const ItemList: TMatrix3DoubleList; const Item: TSFMatrix3d);
@@ -567,7 +567,7 @@ end;
 
 function TMFMatrix4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix4f.AddToList(const ItemList: TMatrix4List; const Item: TSFMatrix4f);
@@ -604,7 +604,7 @@ end;
 
 function TMFMatrix4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix4d.AddToList(const ItemList: TMatrix4DoubleList; const Item: TSFMatrix4d);
@@ -641,7 +641,7 @@ end;
 
 function TMFVec2f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec2f.AddToList(const ItemList: TVector2List; const Item: TSFVec2f);
@@ -678,7 +678,7 @@ end;
 
 function TMFVec3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec3f.AddToList(const ItemList: TVector3List; const Item: TSFVec3f);
@@ -727,7 +727,7 @@ end;
 
 function TMFVec4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec4f.AddToList(const ItemList: TVector4List; const Item: TSFVec4f);
@@ -776,7 +776,7 @@ end;
 
 function TMFVec2d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec2d.AddToList(const ItemList: TVector2DoubleList; const Item: TSFVec2d);
@@ -813,7 +813,7 @@ end;
 
 function TMFVec3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec3d.AddToList(const ItemList: TVector3DoubleList; const Item: TSFVec3d);
@@ -850,7 +850,7 @@ end;
 
 function TMFVec4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec4d.AddToList(const ItemList: TVector4DoubleList; const Item: TSFVec4d);
@@ -887,7 +887,7 @@ end;
 
 function TMFRotation.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFRotation.AddToList(const ItemList: TVector4List; const Item: TSFRotation);
@@ -914,7 +914,7 @@ end;
 
 function TMFFloat.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := FormatDot('%g', [Items[ItemNum]]);
+  Result := FormatDot(FloatOutputFormat, [Items[ItemNum]]);
 end;
 
 procedure TMFFloat.AddToList(const ItemList: TSingleList; const Item: TSFFloat);
@@ -961,7 +961,7 @@ end;
 
 function TMFDouble.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := FormatDot('%g', [Items[ItemNum]]);
+  Result := FormatDot(FloatOutputFormat, [Items[ItemNum]]);
 end;
 
 procedure TMFDouble.AddToList(const ItemList: TDoubleList; const Item: TSFDouble);

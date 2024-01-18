@@ -78,6 +78,13 @@ const
 
 function X3DChangesToStr(const Changes: TX3DChanges): string;
 
+var
+  { Float output precision, for outputting 3D models (X3D text encodings,
+    in the future also glTF - the JSON parts).
+    Not for serializing to CGE JSON using CastleComponentSerialize,
+    which shall always use maximum precision. }
+  FloatOutputFormat: String = '%g';
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
