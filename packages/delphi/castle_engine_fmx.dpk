@@ -25,6 +25,7 @@ package castle_engine_fmx;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'Castle Game Engine - FMX components'}
 {$IMPLICITBUILD ON}
 
 requires
