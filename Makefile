@@ -503,7 +503,9 @@ tests:
 # Build and run check_packages
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ clean
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ --mode=debug compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ run -- ../../../
+# Do not build with FPC <= 3.2.0 (note that we don't support older FPC at all).
+# FPC 3.2.0 regular expressions are different/broken for our purposes.
+	if [ `fpc -iV` '!=' '3.2.0' ]; then $(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ run -- ../../../; fi
 # Conserve disk space for GH actions
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ clean
 # Run in debug mode

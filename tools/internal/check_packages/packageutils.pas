@@ -13,6 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
+{$ifdef VER3_2_0}
+  {$error Do not compile with FPC 3.2.0 or older -- these FPC versions have quite different regular expressions, they compile but fail at runtime.}
+{$endif}
+
 { Various utilities of check_packages. }
 unit PackageUtils;
 
