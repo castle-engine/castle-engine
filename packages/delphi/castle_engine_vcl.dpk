@@ -31,7 +31,8 @@ package castle_engine_vcl;
 
 requires
   rtl,
-  castle_engine;
+  castle_engine,
+  vcl;
 
 contains
   vcl.castlecontrol in '..\..\src\delphi\vcl.castlecontrol.pas';
