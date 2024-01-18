@@ -558,6 +558,9 @@ begin
       'src/base/android/',
       'src/files/indy/',
 
+      // This is in castle_engine_vcl package
+      'src/delphi/vcl.castlecontrol.pas'
+
       // Internal units only for FPC
       'src/audio/castleinternalsoxsoundbackend.pas',
       'src/base/castleinternalgzio.pas',
@@ -611,6 +614,15 @@ begin
       // Only for CASTLE_WINDOW_XLIB, available only with FPC, and that's OK -- it's not a default for Linux
       'src/window/unix/castleinternalxlib.pas'
     ],
+    [ ]);
+  finally FreeAndNil(Package) end;
+
+  Package := TDelphiPackage.Create(CgePathExpanded + 'packages/delphi/castle_engine_vcl.dpk');
+  try
+    Package.CheckFiles([
+      'src/delphi/vcl.castlecontrol.pas'
+    ],
+    [ ],
     [ ]);
   finally FreeAndNil(Package) end;
 
