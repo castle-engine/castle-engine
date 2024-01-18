@@ -117,6 +117,7 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="castle_engine.dcp"/>
+        <DCCReference Include="fmx.dcp"/>
         <DCCReference Include="..\..\src\delphi\castlefmxutils.pas"/>
         <DCCReference Include="..\..\src\delphi\castleinternalfmxutils.pas"/>
         <DCCReference Include="..\..\src\delphi\fmx.castlecontrol.pas"/>
@@ -161,6 +162,12 @@
                 </DeployFile>
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl\Linux64\bplcastle_engine_fmx.so" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Linux64">
+                        <RemoteName>bplcastle_engine_fmx.so</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

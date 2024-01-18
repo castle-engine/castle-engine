@@ -31,7 +31,8 @@ package castle_engine_fmx;
 
 requires
   rtl,
-  castle_engine;
+  castle_engine,
+  fmx;
 
 contains
   castlefmxutils in '..\..\src\delphi\castlefmxutils.pas',
