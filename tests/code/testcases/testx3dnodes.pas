@@ -2511,8 +2511,9 @@ procedure TTestX3DNodes.TestConversionPrecision;
     //StringToFile('tmp2.txt', SDeleteChars(Actual, [#13]));
 
     AssertEquals(
-      SDeleteChars(Expected, [#10]),
-      SDeleteChars(Actual, [#10])
+      // Normalize both to Unix line endings
+      SDeleteChars(Expected, [#13]),
+      SDeleteChars(Actual, [#13])
     );
   end;
 
