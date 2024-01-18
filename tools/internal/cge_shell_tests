@@ -64,7 +64,31 @@ do_test_examples_up_to_date ()
   cd ../
 }
 
+# Check that Delphi packages do not refer to VCL or FMX when they should not.
+do_test_packages_dependencies ()
+{
+  if grep --ignore-case 'vcl' packages/delphi/castle_engine.dpk; then
+    echo 'Error: packages/delphi/castle_engine.dpk should not depend on VCL'
+    exit 1
+  fi
+  if grep --ignore-case 'fmx' packages/delphi/castle_engine.dpk; then
+    echo 'Error: packages/delphi/castle_engine.dpk should not depend on FMX'
+    exit 1
+  fi
+
+  if grep --ignore-case 'vcl' packages/delphi/castle_engine_fmx.dpk; then
+    echo 'Error: packages/delphi/castle_engine_fmx.dpk should not depend on VCL'
+    exit 1
+  fi
+
+  if grep --ignore-case 'fmx' packages/delphi/castle_engine_vcl.dpk; then
+    echo 'Error: packages/delphi/castle_engine_vcl.dpk should not depend on FMX'
+    exit 1
+  fi
+}
+
 do_test_qualified_name
 do_test_examples_copyright
 do_test_custom_editor_template_up_to_date
 do_test_examples_up_to_date
+do_test_packages_dependencies
