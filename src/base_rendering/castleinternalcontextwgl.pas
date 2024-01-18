@@ -48,6 +48,20 @@ type
     procedure MakeCurrentCore; override;
     procedure SwapBuffersCore; override;
   public
+    { Note about WndPtr:
+      We actually ignore it in the current implementation. Only h_Dc is used.
+      But we still define the field and require to set it (we assert it is <> 0),
+      because
+
+      - in all practical cases, you *have* HWND when using this,
+        no significant benefit from not requiring it.
+      - and it is consistent with EGL that only uses WinPtr.
+      - and it may be again useful in the future -- this is actually the major
+        argument. It is very likely to be useful for something in the future,
+        since so much WinAPI works with HWND,
+        and it would be detrimental having to readd it later,
+        after removing it now. }
+
     // Set this before using Initialize and other methods
     WndPtr: HWND;
     h_Dc: HDC;
