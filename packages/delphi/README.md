@@ -34,9 +34,15 @@ Platforms:
 
 - Open in Delphi `AllPackages.groupproj`
 
-- Optional: Right-click on _"AllPackages"_ and select _"Build All"_, to make sure all packages are built.
+- Optional: Make sure they all build correctly for all platforms you want to use:
 
-- Make sure your platform is _"Windows 32-bit"_ (Delphi IDE is 32-bit right now, so installed packages must be 32-bit too)
+    - Make sure all packages have platform set to _"Windows 32-bit"_.
+    - Then right-click on _"AllPackages"_ and select _"Build All"_.
+    - Switch platform of all packages (except `castle_engine_design.bpl`) to _"Windows 64-bit"_.
+    - Again, right-click on _"AllPackages"_ and select _"Build All"_.
+    - Switch platform of all packages (except `castle_engine_design.bpl` and `castle_engine_vcl.bpl`) to _"Linux 64-bit"_. Do this if you want to use link:delphi_linux[Delphi on Linux].
+
+- Make sure the platform of all packages is _"Windows 32-bit"_ (Delphi IDE is 32-bit right now, so installed packages must be 32-bit too).
 
 - Right-click on all packages (except `castle_engine_window.bpl`) in succession and select _"Install"_.
 
@@ -64,9 +70,11 @@ Platforms:
 
 - We put output in the default directory determined by Delphi, which will be like `C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl` .
 
-- VCL stuff has to be in a separate package, since VCL is only for Windows, while CGE suuports more platforms (like Linux).
+- VCL stuff has to be in a separate package, since VCL is only for Windows, while CGE supports more platforms (like Linux).
 
-    FMX stuff could be, for now, actually merged in `castle_engine.bpl`. So we could merge `castle_engine.bpl` and `castle_engine_fmx.bpl` into 1 package. But:
+    We also put FMX stuff in a separate package, i.e. `castle_engine.bpl` doesn't depend on FMX or VCL.
+
+    Note that FMX stuff could be, for now, actually merged in `castle_engine.bpl`. So we could merge `castle_engine.bpl` and `castle_engine_fmx.bpl` into 1 package. But:
 
     - For the future, we want to be prepared for platforms that may not have FMX. In CGE, we can already deal with them (using our `TCastleWindow` which may have various backends, including using direct access to API like WinAPI or GTK or Cocoa, and thus it doesn't require FMX). Actually on Windows our `castle_engine_window.bpl` already doesn't need FMX (it uses WinAPI directly). But on Linux it does (for now).
 
