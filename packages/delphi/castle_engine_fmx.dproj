@@ -3,7 +3,7 @@
         <ProjectGuid>{E141864F-BF0C-41B2-9565-A0E6C5064D67}</ProjectGuid>
         <MainSource>castle_engine_fmx.dpk</MainSource>
         <ProjectVersion>19.5</ProjectVersion>
-        <FrameworkType>None</FrameworkType>
+        <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
@@ -102,6 +102,10 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
+        <DCCReference Include="..\..\src\delphi\castlefmxutils.pas"/>
+        <DCCReference Include="..\..\src\delphi\castleinternalfmxutils.pas"/>
+        <DCCReference Include="..\..\src\delphi\fmx.castlecontrol.pas"/>
+        <DCCReference Include="..\..\src\delphi\fmx.castleinternalglcontrol.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -142,6 +146,12 @@
                 </DeployFile>
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl\Win64\castle_engine_fmx.bpl" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>castle_engine_fmx.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

@@ -312,7 +312,6 @@ contains
   castlescriptarrays in '..\..\src\castlescript\castlescriptarrays.pas',
   castlescriptimages in '..\..\src\castlescript\castlescriptimages.pas',
   castlescriptvectors in '..\..\src\castlescript\castlescriptvectors.pas',
-  fmx.castlecontrol in '..\..\src\delphi\fmx.castlecontrol.pas',
   castleinternalshapesrenderer in '..\..\src\scene\castleinternalshapesrenderer.pas',
   castleinternalfilemonitor in '..\..\src\files\castleinternalfilemonitor.pas',
   castleinternalscreeneffects in '..\..\src\scene\castleinternalscreeneffects.pas',
@@ -324,10 +323,7 @@ contains
   castleinternalcontextwgl in '..\..\src\base_rendering\castleinternalcontextwgl.pas',
   castleinternalegl in '..\..\src\base_rendering\castleinternalegl.pas',
   castlegl in '..\..\src\base_rendering\dglopengl\castlegl.pas',
-  castleinternalurlutils in '..\..\src\files\castleinternalurlutils.pas',
-  castlefmxutils in '..\..\src\delphi\castlefmxutils.pas',
-  castleinternalfmxutils in '..\..\src\delphi\castleinternalfmxutils.pas',
-  fmx.castleinternalglcontrol in '..\..\src\delphi\fmx.castleinternalglcontrol.pas';
+  castleinternalurlutils in '..\..\src\files\castleinternalurlutils.pas';
 
 end.
 

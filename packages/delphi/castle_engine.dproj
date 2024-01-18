@@ -398,7 +398,6 @@
         <DCCReference Include="..\..\src\castlescript\castlescriptarrays.pas"/>
         <DCCReference Include="..\..\src\castlescript\castlescriptimages.pas"/>
         <DCCReference Include="..\..\src\castlescript\castlescriptvectors.pas"/>
-        <DCCReference Include="..\..\src\delphi\fmx.castlecontrol.pas"/>
         <DCCReference Include="..\..\src\scene\castleinternalshapesrenderer.pas"/>
         <DCCReference Include="..\..\src\files\castleinternalfilemonitor.pas"/>
         <DCCReference Include="..\..\src\scene\castleinternalscreeneffects.pas"/>
@@ -411,9 +410,6 @@
         <DCCReference Include="..\..\src\base_rendering\castleinternalegl.pas"/>
         <DCCReference Include="..\..\src\base_rendering\dglopengl\castlegl.pas"/>
         <DCCReference Include="..\..\src\files\castleinternalurlutils.pas"/>
-        <DCCReference Include="..\..\src\delphi\castlefmxutils.pas"/>
-        <DCCReference Include="..\..\src\delphi\castleinternalfmxutils.pas"/>
-        <DCCReference Include="..\..\src\delphi\fmx.castleinternalglcontrol.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

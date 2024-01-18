@@ -559,7 +559,10 @@ begin
       'src/files/indy/',
 
       // This is in castle_engine_vcl package
-      'src/delphi/vcl.castlecontrol.pas'
+      'src/delphi/vcl.castlecontrol.pas',
+
+      // This is in castle_engine_fmx package
+      'src/delphi/*fmx*.pas',
 
       // Internal units only for FPC
       'src/audio/castleinternalsoxsoundbackend.pas',
@@ -621,6 +624,15 @@ begin
   try
     Package.CheckFiles([
       'src/delphi/vcl.castlecontrol.pas'
+    ],
+    [ ],
+    [ ]);
+  finally FreeAndNil(Package) end;
+
+  Package := TDelphiPackage.Create(CgePathExpanded + 'packages/delphi/castle_engine_fmx.dpk');
+  try
+    Package.CheckFiles([
+      'src/delphi/*fmx*.pas'
     ],
     [ ],
     [ ]);
