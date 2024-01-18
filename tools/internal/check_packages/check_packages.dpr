@@ -585,7 +585,9 @@ begin
       // TODO: Joysticks on Linux are not yet supported with Delphi
       'src/ui/castleinternaljoystickslinux.pas',
 
-      // This is VCL-specific with Delphi, maybe in the future will be in some VCL package
+      // This is VCL-specific with Delphi, maybe in the future will be in some VCL package.
+      // It also makes warnings about dispinterface not being portable.
+      // It's only for 3dconnexion devices -- it is uncertain do we even want to maintain it in CGE core.
       'src/ui/windows/castleinternaltdxinput_tlb.pas',
 
       // This is only supported with FPC, but planned to be removed from CGE
