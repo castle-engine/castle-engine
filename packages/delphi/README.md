@@ -32,9 +32,11 @@ While this is not necessary for installation, you can make sure that all package
 
 - Switch platform of all packages (except `castle_engine_design.bpl` and `castle_engine_vcl.bpl`) to _"Linux 64-bit"_. Do this if you want to use link:delphi_linux[Delphi on Linux].
 
+  To make it work, first [add FMXLinux to "Library Paths"](https://castle-engine.io/delphi_linux#library_paths).
+
   Again, right-click on _"AllPackages"_ and select _"Build All"_.
 
-If anything fails, please https://github.com/castle-engine/castle-engine/issues[submit a bug].
+If anything fails, please [submit a bug](https://github.com/castle-engine/castle-engine/issues).
 
 ## Packages ovierview
 
