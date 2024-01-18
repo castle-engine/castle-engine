@@ -556,7 +556,34 @@ begin
     [
       'src/delphi/castleinternaldelphidesignutils.pas',
       'src/base/android/',
-      'src/files/indy/'
+      'src/files/indy/',
+
+      // Internal units only for FPC
+      'src/audio/castleinternalsoxsoundbackend.pas',
+      'src/base/castleinternalgzio.pas',
+
+      // TODO: FMOD is not yet supported with Delphi
+      'src/audio/fmod/castlefmodsoundbackend.pas',
+      'src/audio/fmod/castleinternalfmod.pas',
+
+      // TODO: CGE localization is not yet supported with Delphi, uses FPC GetText
+      'src/base/castlesystemlanguage.pas',
+      'src/files/castlelocalizationgettext.pas',
+
+      // TODO: OpenGLES (mobile) is not yet supported with Delphi
+      'src/base_rendering/castlegles.pas',
+
+      // TODO: CastleScript is not yet fully supported with Delphi
+      'src/castlescript/castlescriptxml.pas',
+
+      // TODO: Joysticks on Linux are not yet supported with Delphi
+      'src/ui/castleinternaljoystickslinux.pas',
+
+      // This is VCL-specific with Delphi, maybe in the future will be in some VCL package
+      'src/ui/windows/castleinternaltdxinput_tlb.pas',
+
+      // This is only supported with FPC, but planned to be removed from CGE
+      'src/scene/castleraytracer.pas'
     ],
     [
       'src/vampyre_imaginglib/'

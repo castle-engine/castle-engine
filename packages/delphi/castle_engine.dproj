@@ -334,8 +334,6 @@
         <DCCReference Include="..\..\src\compatibility\delphi-only\fcl-json\jsonparser.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\fcl-json\jsonreader.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\fcl-json\jsonscanner.pas"/>
-        <DCCReference Include="..\..\src\window\castleinternalcontextbase.pas"/>
-        <DCCReference Include="..\..\src\window\windows\castleinternalcontextwgl.pas"/>
         <DCCReference Include="..\..\src\scene\load\pasgltf\PasDblStrUtils.pas"/>
         <DCCReference Include="..\..\src\scene\load\pasgltf\PasGLTF.pas"/>
         <DCCReference Include="..\..\src\scene\load\pasgltf\PasJSON.pas"/>
@@ -427,6 +425,16 @@
         <DCCReference Include="..\..\src\scene\castleinternalscreeneffects.pas"/>
         <DCCReference Include="..\..\src\scene\x3d\castleinternalnodesunsupported.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas"/>
+        <DCCReference Include="..\..\src\base_rendering\castleinternalcontextbase.pas"/>
+        <DCCReference Include="..\..\src\base_rendering\castleinternalcontextegl.pas"/>
+        <DCCReference Include="..\..\src\base_rendering\castleinternalcontextglx.pas"/>
+        <DCCReference Include="..\..\src\base_rendering\castleinternalcontextwgl.pas"/>
+        <DCCReference Include="..\..\src\base_rendering\castleinternalegl.pas"/>
+        <DCCReference Include="..\..\src\base_rendering\dglopengl\castlegl.pas"/>
+        <DCCReference Include="..\..\src\files\castleinternalurlutils.pas"/>
+        <DCCReference Include="..\..\src\delphi\castlefmxutils.pas"/>
+        <DCCReference Include="..\..\src\delphi\castleinternalfmxutils.pas"/>
+        <DCCReference Include="..\..\src\delphi\fmx.castleinternalglcontrol.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

@@ -228,8 +228,6 @@ contains
   jsonparser in '..\..\src\compatibility\delphi-only\fcl-json\jsonparser.pas',
   jsonreader in '..\..\src\compatibility\delphi-only\fcl-json\jsonreader.pas',
   jsonscanner in '..\..\src\compatibility\delphi-only\fcl-json\jsonscanner.pas',
-  castleinternalcontextbase in '..\..\src\window\castleinternalcontextbase.pas',
-  castleinternalcontextwgl in '..\..\src\window\windows\castleinternalcontextwgl.pas',
   PasDblStrUtils in '..\..\src\scene\load\pasgltf\PasDblStrUtils.pas',
   PasGLTF in '..\..\src\scene\load\pasgltf\PasGLTF.pas',
   PasJSON in '..\..\src\scene\load\pasgltf\PasJSON.pas',
@@ -320,7 +318,17 @@ contains
   castleinternalfilemonitor in '..\..\src\files\castleinternalfilemonitor.pas',
   castleinternalscreeneffects in '..\..\src\scene\castleinternalscreeneffects.pas',
   castleinternalnodesunsupported in '..\..\src\scene\x3d\castleinternalnodesunsupported.pas',
-  imjidctasm in '..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas';
+  imjidctasm in '..\..\src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas',
+  castleinternalcontextbase in '..\..\src\base_rendering\castleinternalcontextbase.pas',
+  castleinternalcontextegl in '..\..\src\base_rendering\castleinternalcontextegl.pas',
+  castleinternalcontextglx in '..\..\src\base_rendering\castleinternalcontextglx.pas',
+  castleinternalcontextwgl in '..\..\src\base_rendering\castleinternalcontextwgl.pas',
+  castleinternalegl in '..\..\src\base_rendering\castleinternalegl.pas',
+  castlegl in '..\..\src\base_rendering\dglopengl\castlegl.pas',
+  castleinternalurlutils in '..\..\src\files\castleinternalurlutils.pas',
+  castlefmxutils in '..\..\src\delphi\castlefmxutils.pas',
+  castleinternalfmxutils in '..\..\src\delphi\castleinternalfmxutils.pas',
+  fmx.castleinternalglcontrol in '..\..\src\delphi\fmx.castleinternalglcontrol.pas';
 
 end.
 
