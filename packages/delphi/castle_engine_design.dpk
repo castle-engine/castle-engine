@@ -33,7 +33,8 @@ package castle_engine_design;
 requires
   rtl,
   designide,
-  castle_engine;
+  castle_engine,
+  castle_engine_vcl;
 
 contains
   castleinternaldelphidesignutils in '..\..\src\delphi\castleinternaldelphidesignutils.pas';
