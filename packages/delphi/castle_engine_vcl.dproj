@@ -105,6 +105,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
+        <DCCReference Include="castle_engine.dcp"/>
         <DCCReference Include="..\..\src\delphi\vcl.castlecontrol.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

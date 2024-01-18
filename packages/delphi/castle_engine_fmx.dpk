@@ -29,7 +29,8 @@ package castle_engine_fmx;
 {$IMPLICITBUILD ON}
 
 requires
-  rtl;
+  rtl,
+  castle_engine;
 
 contains
   castlefmxutils in '..\..\src\delphi\castlefmxutils.pas',

@@ -103,6 +103,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
+        <DCCReference Include="castle_engine.dcp"/>
         <DCCReference Include="..\..\src\delphi\castlefmxutils.pas"/>
         <DCCReference Include="..\..\src\delphi\castleinternalfmxutils.pas"/>
         <DCCReference Include="..\..\src\delphi\fmx.castlecontrol.pas"/>

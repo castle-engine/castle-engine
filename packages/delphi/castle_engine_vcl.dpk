@@ -29,7 +29,8 @@ package castle_engine_vcl;
 {$IMPLICITBUILD ON}
 
 requires
-  rtl;
+  rtl,
+  castle_engine;
 
 contains
   vcl.castlecontrol in '..\..\src\delphi\vcl.castlecontrol.pas';
