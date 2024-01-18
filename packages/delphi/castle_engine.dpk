@@ -31,9 +31,7 @@ package castle_engine;
 
 requires
   rtl,
-  vcl,
   xmlrtl,
-  fmx,
   IndySystem,
   IndyProtocols,
   IndyCore;
