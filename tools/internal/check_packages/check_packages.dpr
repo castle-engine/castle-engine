@@ -599,6 +599,21 @@ begin
     [ ]);
   finally FreeAndNil(Package) end;
 
+  Package := TDelphiPackage.Create(CgePathExpanded + 'packages/delphi/castle_engine_window.dpk');
+  try
+    Package.CheckFiles([
+      'src/window/'
+    ],
+    [
+      // TODO: not in package, but maybe they should be?
+      'src/window/deprecated_units/',
+
+      // Only for CASTLE_WINDOW_XLIB, available only with FPC, and that's OK -- it's not a default for Linux
+      'src/window/unix/castleinternalxlib.pas'
+    ],
+    [ ]);
+  finally FreeAndNil(Package) end;
+
   if WarningsCount <> 0 then
   begin
     Writeln(Format('%d package problems found (see report above), exiting with status 1', [WarningsCount]));
