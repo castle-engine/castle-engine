@@ -427,6 +427,7 @@ clean: cleanexamples
 			   -iname '*.dbg' -or \
 	                   -iname '*.dcu' -or \
 			   -iname '*.dpu' -or \
+			   -iname '*.bpi' -or \
 			   -iname '*.dproj.local' -or \
 			   -iname '*.identcache' -or \
 			   -iname '*.rsm' -or \
