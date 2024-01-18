@@ -24,6 +24,14 @@ unit CastleInternalJoysticksWindows;
 
 interface
 
+{$ifndef MSWINDOWS}
+{ To make things easier for packages, this unit is part of Delphi
+  castle_engine.bpl package, and so it has to compile on any platform
+  (including Linux), but then it just doesn't do anything.
+  From code, just don't use this unit when not MSWINDOWS. }
+implementation
+{$else}
+
 uses CastleJoysticks;
 
 type
@@ -341,5 +349,7 @@ begin
       Joysticks.InternalDisconnected;
   end;
 end;
+
+{$endif}
 
 end.
