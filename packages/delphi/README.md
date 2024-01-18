@@ -34,6 +34,8 @@ While this is not necessary for installation, you can make sure that all package
 
   Again, right-click on _"AllPackages"_ and select _"Build All"_.
 
+If anything fails, please https://github.com/castle-engine/castle-engine/issues[submit a bug].
+
 ## Packages ovierview
 
 - `castle_engine.bpl` contains the base engine units. Not dependent on VCL, not dependent on FMX, not using `TCastleWindow`.
@@ -109,3 +111,5 @@ Platforms:
     Hopefully this will be fixed eventually, we'd love to recommend to use install our packages using [Delphinus](https://castle-engine.io/download#delphinus). It should install the package and extend your Delphi settings, to make CGE units available for all applications.
 
 - There is automatic checked of these packages in `tools/internal/check_packages/`. You can run it manually whenever you want, Jenkins and GitHub Actions also run it automatically.
+
+- It practically doesn't matter if you build (and install) CGE packages with _Debug_ or _Release_. At design-time, we don't do anything time-consuming, that would be affected by the debug/release settings.
