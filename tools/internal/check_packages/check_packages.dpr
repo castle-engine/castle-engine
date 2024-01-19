@@ -14,10 +14,14 @@
   ----------------------------------------------------------------------------
 }
 
+program check_packages;
+
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+
 { Check Castle Game Engine Lazarus (.lpk) and Delphi (.dpk, .dproj) packages.
   See README.md for more description. }
 
-uses SysUtils, DOM,
+uses SysUtils, DOM, Classes,
   CastleXmlUtils, CastleUtils, CastleFindFiles, CastleStringUtils, CastleParameters,
   CastleLog, CastleApplicationProperties, CastleDownload,
   PackageUtils;
@@ -203,10 +207,10 @@ begin
     if IsSuffix('/', FindPath) then
     begin
       for Mask in ConsideredFilesMask do
-        FindFiles(FindPath, Mask, false, @GatherRequiredFiles, [ffRecursive]);
+        FindFiles(FindPath, Mask, false, {$ifdef FPC}@{$endif} GatherRequiredFiles, [ffRecursive]);
     end else
       // just use this mask with FindFiles, to find matching files
-      FindFiles(FindPath, false, @GatherRequiredFiles, [ffRecursive]);
+      FindFiles(FindPath, false, {$ifdef FPC}@{$endif} GatherRequiredFiles, [ffRecursive]);
   end;
   Writeln('Found required files on disk: ', RequiredFilesList.Count);
 
@@ -220,10 +224,10 @@ begin
     if IsSuffix('/', FindPath) then
     begin
       for Mask in ConsideredFilesMask do
-        FindFiles(FindPath, Mask, false, @ExcludeFromRequiredFiles, [ffRecursive]);
+        FindFiles(FindPath, Mask, false, {$ifdef FPC}@{$endif} ExcludeFromRequiredFiles, [ffRecursive]);
     end else
       // just use this mask with FindFiles, to find matching files
-      FindFiles(FindPath, false, @ExcludeFromRequiredFiles, [ffRecursive]);
+      FindFiles(FindPath, false, {$ifdef FPC}@{$endif} ExcludeFromRequiredFiles, [ffRecursive]);
   end;
   Writeln('Required files after removing exclusions: ', RequiredFilesList.Count);
 
@@ -477,7 +481,7 @@ var
 begin
   ApplicationProperties.ApplicationName := 'check_packages';
   ApplicationProperties.Version := CastleEngineVersion;
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif} ApplicationProperties.WriteWarningOnConsole);
 
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
