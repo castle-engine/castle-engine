@@ -13,10 +13,6 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef VER3_2_0}
-  {$error Do not compile with FPC 3.2.0 or older -- these FPC versions have quite different regular expressions, they compile but fail at runtime.}
-{$endif}
-
 { Various utilities of check_packages. }
 unit PackageUtils;
 
@@ -49,11 +45,10 @@ procedure CompareFilesLists(const A, B: TStringList; const FailureMessage: Strin
 
 implementation
 
-uses SysUtils, {$ifdef FPC} Regexpr {$else} RegularExpressions, Character {$endif};
+uses SysUtils, CastleRegexpr;
 
 function StringMatchesRegexp(const S, RegexpPattern: String;
   const Matches: TStrings): Boolean;
-{$ifdef FPC}
 var
   R:  TRegExpr;
   I: Integer;
@@ -68,11 +63,6 @@ begin
         Matches.Add(R.Match[I]);
     end;
   finally FreeAndNil(R) end;
-{$else}
-begin
-  Result := TRegEx.IsMatch(S, RegexpPattern);
-  // TODO
-{$endif}
 end;
 
 procedure CompareFilesLists(const A, B: TStringList; const FailureMessage: String);
