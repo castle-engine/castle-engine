@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,6 +26,7 @@ implementation
 
 uses SysUtils, Classes,
   ToolsAPI, // design-time only unit
+  Vcl.Menus, Vcl.Dialogs,
   CastleInternalDelphiUtils;
 
 function GetProjectPath: String;
@@ -33,9 +34,91 @@ begin
   Result := ExtractFilePath(GetActiveProject.FileName);
 end;
 
+{ TCastleDelphiIdeIntegration ----------------------------------------------- }
+
+type
+  TCastleDelphiIdeIntegration = class(TComponent)
+  strict private
+    procedure TestMenuItemClick(Sender: TObject);
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  end;
+
+constructor TCastleDelphiIdeIntegration.Create(AOwner: TComponent);
+var
+  Services: INTAServices;
+  MainMenu: TMainMenu;
+  TestMenuItem: TMenuItem;
+begin
+  inherited ;
+  Services := BorlandIDEServices as INTAServices;
+  MainMenu := Services.MainMenu;
+
+  TestMenuItem := TMenuItem.Create(Self);
+  TestMenuItem.Caption := 'Castle Test';
+  TestMenuItem.OnClick := TestMenuItemClick;
+
+  MainMenu.Items.Insert(0, TestMenuItem);
+end;
+
+destructor TCastleDelphiIdeIntegration.Destroy;
+begin
+  // will automatically free TestMenuItem owned by this
+  inherited;
+end;
+
+procedure TCastleDelphiIdeIntegration.TestMenuItemClick(Sender: TObject);
+var
+  OptionName: TOTAOptionName;
+  ProjectOptions: IOTAProjectOptions;
+  Report: TStringList;
+  ReportFileName, ValueStr: String;
+begin
+  ShowMessage('hello from menu item');
+
+  Report := TStringList.Create;
+  try
+    ProjectOptions := GetActiveProject.ProjectOptions;
+
+    for OptionName in ProjectOptions.GetOptionNames do
+    begin
+      try
+        ValueStr := ProjectOptions.Values[OptionName.Name];
+      except
+        ValueStr := 'Error reading as String';
+      end;
+      Report.Append(Format('%s: %s', [
+        OptionName.Name,
+        ValueStr
+      ]));
+    end;
+
+    ReportFileName := 'd:/cygwin64/tmp/' + IntToStr(Random(100000));
+    Report.SaveToFile(ReportFileName);
+
+    ShowMessage(Format('Found %d options, saved to %s', [
+      Length(ProjectOptions.GetOptionNames),
+      ReportFileName
+    ]));
+  finally FreeAndNil(Report) end;
+end;
+
+{ initialization / finalization ---------------------------------------------- }
+
+var
+  DelphiIdeIntegration: TCastleDelphiIdeIntegration;
+
 procedure Register;
 begin
   OnGetDesignTimeProjectPath := GetProjectPath;
+
+  if DelphiIdeIntegration = nil then
+    DelphiIdeIntegration := TCastleDelphiIdeIntegration.Create(nil);
 end;
 
+initialization
+finalization
+  // When unloading the package, make sure to remove menu item
+  FreeAndNil(DelphiIdeIntegration);
 end.
