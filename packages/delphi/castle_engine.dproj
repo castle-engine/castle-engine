@@ -1,4 +1,4 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{6A77C25F-C335-4381-9B5A-FB362258212C}</ProjectGuid>
         <MainSource>castle_engine.dpk</MainSource>
@@ -408,6 +408,7 @@
         <DCCReference Include="..\..\src\base_rendering\castleinternalegl.pas"/>
         <DCCReference Include="..\..\src\base_rendering\dglopengl\castlegl.pas"/>
         <DCCReference Include="..\..\src\files\castleinternalurlutils.pas"/>
+        <DCCReference Include="..\..\src\base\castleinternaltools.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
