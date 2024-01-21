@@ -6,11 +6,9 @@ NOTE: These packages are *not* necessary for developing applications using `TCas
 
 ## Installation in Delphi
 
+This is duplicated in https://castle-engine.io/delphi_packages[Delphi packages installation docs]:
+
 - Open in Delphi `AllPackages.groupproj`
-
-- Make sure the platform of all packages is _"Windows 32-bit"_.
-
-    NOTE: Your applications can target all platforms supported by CGE with Delphi: _"Windows 32-bit"_, _"Windows 64-bit"_, _"Linux 64-bit"_. Here you select _"Windows 32-bit"_ just because Delphi IDE is Win32 application.
 
 - Right-click on all packages (except `castle_engine_window.bpl`) in succession and click _"Install"_.
 
@@ -68,6 +66,12 @@ Platforms:
 
 ## Various notes about why packages are configured like this
 
+- To keep our installation instructions simple, we make sure (there's auto-test for this) to keep default platform of all packages set to _"Windows 32-bit"_.
+
+    As Delphi IDE is 32-bit right now, note that you can use _"Install"_ on any package (regardless of target platforms it supports) only when the platform is set to _"Windows 32-bit"_.
+
+    NOTE: Your applications can target all platforms supported by CGE with Delphi: _"Windows 32-bit"_, _"Windows 64-bit"_, _"Linux 64-bit"_. Here you select _"Windows 32-bit"_ just because Delphi IDE is Win32 application.
+
 - The packages that register components (`TCastleControl` for both VCL and FMX) and their dependencies must include all platforms supported by Castle Game Engine with Delphi.
 
     This means _"Windows 32-bit"_, _"Windows 64-bit"_, _"Linux 64-bit"_. This allows to drop `TCastleControl` on a form when your application platform is set to any platform supported by CGE.
@@ -75,8 +79,6 @@ Platforms:
 - The `castle_engine_design` package _"Target platforms"_ must be only Win32. Because `designide` package is only for Windows 32-bit, just like Delphi IDE.
 
     And `designide` includes unit `ToolsAPI` which is in turn used by `CastleInternalDelphiDesignUtils` unit.
-
-- As Delphi IDE is 32-bit right now, note that you can use _"Install"_ on any package (regardless of target platforms it supports) only when the platform is set to _"Windows 32-bit"_.
 
 - Note about Win32 vs Win64: We generally recommend to build your Windows applications for 64-bit, as this is what users expect nowadays. But we fully support both 32-bit and 64-bit Windows versions, with any compiler.
 
