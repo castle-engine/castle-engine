@@ -283,6 +283,7 @@ begin
     P.Targets.AddUnit('castleinternalclassutils.pas');
     P.Targets.AddUnit('castleinternalgzio.pas');
     P.Targets.AddUnit('castleinternalrttiutils.pas');
+    P.Targets.AddUnit('castleinternaltools.pas');
     P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castleinternalzstream.pas');
     P.Targets.AddUnit('castlelog.pas');
