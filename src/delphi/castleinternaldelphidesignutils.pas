@@ -55,11 +55,12 @@ begin
   Services := BorlandIDEServices as INTAServices;
   MainMenu := Services.MainMenu;
 
-  TestMenuItem := TMenuItem.Create(Self);
-  TestMenuItem.Caption := 'Castle Test';
-  TestMenuItem.OnClick := TestMenuItemClick;
+  // TODO: Work in progress to add menu in proper place
+  // TestMenuItem := TMenuItem.Create(Self);
+  // TestMenuItem.Caption := 'Castle Test';
+  // TestMenuItem.OnClick := TestMenuItemClick;
 
-  MainMenu.Items.Insert(0, TestMenuItem);
+  // MainMenu.Items.Insert(0, TestMenuItem);
 end;
 
 destructor TCastleDelphiIdeIntegration.Destroy;
