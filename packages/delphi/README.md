@@ -66,6 +66,8 @@ Platforms:
 
 ## Various notes about why packages are configured like this
 
+### Platforms
+
 - To keep our installation instructions simple, we make sure (there's auto-test for this) to keep default platform of all packages set to _"Windows 32-bit"_.
 
     As Delphi IDE is 32-bit right now, note that you can use _"Install"_ on any package (regardless of target platforms it supports) only when the platform is set to _"Windows 32-bit"_.
@@ -82,6 +84,8 @@ Platforms:
 
 - Note about Win32 vs Win64: We generally recommend to build your Windows applications for 64-bit, as this is what users expect nowadays. But we fully support both 32-bit and 64-bit Windows versions, with any compiler.
 
+### Why castle_engine_window not design-time?
+
 - `castle_engine_window.bpl` cannot be installed in Delphi IDE, to secure us from an important mistake:
 
     `TCastleWindow` and `TCastleApplication` inside `CastleWindow` unit may talk to widgetsets directly, e.g. using WinAPI. Doing this could conflict with normal working of Delphi IDE -- there are some things that are essentially set application-wide on the widgetset (like WinAPI) and all libraries (VCL, FMX, and `TCastleWindow`) have to set these things assuming "we are the only library through which user integrates with this widgetset".
@@ -90,7 +94,7 @@ Platforms:
 
     ... But just in case we'll make a mistake (e.g. `CastleWindow` initialization does, by mistake, some call to WinAPI, maybe indirectly) it is better to keep these units to never be installed in Delphi IDE. They should never be needed at design-time anyway.
 
-- We put output in the default directory determined by Delphi, which will be like `C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl` .
+### Dependencies
 
 - VCL stuff has to be in a separate package, since VCL is only for Windows, while CGE supports more platforms (like Linux).
 
@@ -108,6 +112,8 @@ Platforms:
 
     It is possible we will remove this dependency in the future. Some `TCastleWindow` backends access system APIs (like WinAPI or GTK) directly, wihtout the need for FMX, VCL (or LCL in case of FPC/Lazarus). For now it's not a problem, but we want to keep this possibility open for the future, e.g. to support future platforms that may not have FMX.
 
+### Other notes
+
 - Note that we don't add deprecated units, from `src/deprecated_units` or `src/window/deprecated_units`, like `CastleProgress`, to the Delphi packages. At least for now. This makes building the packages look clean in Delphi IDE -- important, as we don't want new users to be confused by warnings when building packages, warnings about things they'll likely should not care about.
 
 - The packages are not useful with Delphinus at this point, due to https://github.com/Memnarch/Delphinus/issues/93 .
@@ -116,4 +122,18 @@ Platforms:
 
 - There is automatic checked of these packages in `tools/internal/check_packages/`. You can run it manually whenever you want, Jenkins and GitHub Actions also run it automatically.
 
+    We also have some checks in `tools/internal/cge_shell_tests` (just a bash script).
+
 - It practically doesn't matter if you build (and install) CGE packages with _Debug_ or _Release_. At design-time, we don't do anything time-consuming, that would be affected by the debug/release settings.
+
+- Crafting the perfect version of DPROJ files to commit to this repository is a bit tricky.
+
+    Delphi likes to add/remove some stuff that is depedent on your Delphi version, and on the platforms you have currently installed in Delphi. We don't want that -- as then everyone would change back and forth some DPROJ sections, depending on platforms and Delphi version of each developer. It would be hard to make sure we continue to work in all Delphi versions and platforms we support.
+
+    So make sure to revert some DPROJ sections, or even revert whole DPROJ files (if you intended no modification, i.e. you don't change compilation settings or list of included files), before committing.
+
+- We put resulting BPL files in the default directory determined by Delphi, using the `$(BDSCOMMONDIR)\Bpl\`.
+
+    Like `<DeployFile LocalName="$(BDSCOMMONDIR)\Bpl\castle_engine_design.bpl" Configuration="Debug" Class="ProjectOutput">` in the DPROJ file. The platforms other than `Win32` are in a platform-specific subdirectory, like `Win64` and `Linux64`. This is consistent with how other Delphi BPLs are installed, e.g. JEDI components.
+
+    Be careful when creating new packages, as by default Delphi will configure it to a hardcoded directory like `C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl`, specific to your Delphi version and Windows settings.
