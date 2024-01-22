@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2022 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,11 +43,7 @@ implementation
 
     Doesn't require any external DLLs on Windows.
 
-    But it is very slow to download larger files.
-
-    Is problematic on Linux with HTTPS: breaks on larger files with timeout.
-    But that's better than Indy that practically cannot handle HTTPS on Linux,
-    due to requiring OpenSSL version that no modern distro has.
+    But it is very slow to download larger files on Windows.
 
   - Do not define CASTLE_DELPHI_NET_HTTP_CLIENT to use IdHttp, Indy.
     Requires OpenSSL DLLs.

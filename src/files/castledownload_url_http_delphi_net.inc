@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -45,9 +45,6 @@
     The TNetHTTPClient is like 10x slower, very noticeable.
 
     Unknown whether this is also on Linux, due to Linux problems below.
-
-  - Downloading on Linux works... unless you test with larger file like
-    https://castle-engine.io/latest.zip . Then it just breaks with timeout.
 }
 
 {$if defined(DELPHI) and defined(CASTLE_DELPHI_NET_HTTP_CLIENT)}
