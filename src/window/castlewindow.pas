@@ -70,7 +70,7 @@
       You can also call @link(TCastleWindow.OpenAndRun Window.OpenAndRun),
       this is just a shortcut for Window.Open + Application.Run.)
 
-    @item(Application.Run ends when you call @link(TCastleApplication.Quit Application.Quit)
+    @item(Application.Run ends when you call @link(TCastleApplication.Terminate Application.Terminate)
       or when you close last visible window using @link(TCastleWindow.Close Close(true)).
 
       User is also allowed to close a window using WindowManager facilities
@@ -1851,7 +1851,7 @@ type
         @item(
           if this was the only open TCastleWindow window
           and QuitWhenLastWindowClosed = true then
-          this calls Application.Quit.)
+          this calls Application.Terminate.)
       )
 
       Note that often there's no need to call Close explicitly in your program,
@@ -2484,7 +2484,7 @@ type
       Note that this does nothing if OpenWindowsCount = 0, that is there
       are no open windows. Besides the obvious reason (you didn't call
       TCastleWindow.Open on any window...) this may also happen if you called
-      Close (or Application.Quit) from your window OnOpen / OnResize callback.
+      Close (or Application.Terminate) from your window OnOpen / OnResize callback.
       In such case no event would probably reach
       our program, and user would have no chance to quit, so Run just refuses
       to work and exits immediately without any error. }
@@ -2907,7 +2907,7 @@ procedure TCastleWindow.OpenCore;
       Container.EventOpen(Application.OpenWindowsCount);
 
       { Check Closed here, in case OnOpen closed the window
-        (by calling Application.Quit (that calls Close on all windows) or direct Close
+        (by calling Application.Terminate (that calls Close on all windows) or direct Close
         on this window). Note that Close calls
         CloseBackend and generally has *immediate* effect --- that's why
         doing anything more with window now (like MakeCurrent) would be wrong. }
