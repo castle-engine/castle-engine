@@ -129,6 +129,16 @@ implementation
 initialization
   InitializationOSSpecific;
 
+  { CASTLE_TEST_DECIMAL_SEPARATOR_COMMA should only be defined for test
+    purposes. It allows to deliberately test CGE behavior by simulating
+    a system where the DecimalSeparator is a comma, not a dot.
+    E.g. FPC on Windows or Delphi on Windows with "Regional settings" to Polish
+    look like this.
+    This forces CGE to use things like FormatDot instead of Format carefully.
+
+    Never define CASTLE_TEST_DECIMAL_SEPARATOR_COMMA for a real application,
+    in a real application you want the default format settings to reflect
+    the user's preferences. }
   {$ifdef CASTLE_TEST_DECIMAL_SEPARATOR_COMMA}
   {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}
     .DecimalSeparator := ',';
