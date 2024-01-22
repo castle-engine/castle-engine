@@ -318,8 +318,8 @@
     function GetEnumerator: TEnumerator;
     procedure InternalSetContainer(const Value: TCastleContainer); virtual;
 
-    (*Handle press or release of a key, mouse button or mouse wheel.
-      Return @true if the event was somehow handled,
+    (*Override this method to react to user pressing a key, mouse button or mouse wheel.
+      Return @true if the event was handled,
       which prevents from passing this event to other UI controls.
 
       When implementing in descendants it is best to override it like this:
@@ -361,26 +361,45 @@
       subsequent mouse events: subsequent mouse moves and release will be send
       to this control even if mouse will move outside of this control.
 
-      The events PreviewPress and PreviewRelease are passed first to
-      the parent control, before children have a chance to process this event.
-      In partcular, overriding them makes sense if you draw something that "looks clickable"
-      in @link(TCastleUserInterface.RenderOverChildren).
-
       The events Press and Release are passed to the parent only
       after the children had a chance to process this event.
       Overriding them makes sense if you draw something that "looks clickable"
       in @link(TCastleUserInterface.Render), which is the standard place you should draw stuff.
       For example our TCastleButton draws there.
 
-      Note that releasing of the mouse wheel is not reported now by any backend.
+      In contrast, the events PreviewPress and PreviewRelease are passed first to
+      the parent control, before children have a chance to process this event.
+      In partcular, overriding them makes sense if you draw something that "looks clickable"
+      in @link(TCastleUserInterface.RenderOverChildren).
+    *)
+    function Press(const Event: TInputPressRelease): boolean; virtual;
+
+    { Override this method to react to user releasing a key, mouse button.
+      Return @true if the event was handled,
+      which prevents from passing this event to other UI controls.
+
+      This is counterpart to @link(Press) method.
+      See @link(Press) for more details.
+
+      Note: We'd like this method to also be called when user releases
+      a mouse wheel. But currently releasing of the mouse wheel
+      is not reported now by any backend.
       Only releasing of keys and mouse buttons is reported.
 
-      @groupBegin *)
-    function Press(const Event: TInputPressRelease): boolean; virtual;
+      @seealso Press }
     function Release(const Event: TInputPressRelease): boolean; virtual;
+
+    { Similar to @link(Press) but allows the parent control to preview
+      the event before it is passed to children UI controls.
+
+      @seealso Press }
     function PreviewPress(const Event: TInputPressRelease): boolean; virtual;
+
+    { Similar to @link(Release) but allows the parent control to preview
+      the event before it is passed to children UI controls.
+
+      @seealso Press }
     function PreviewRelease(const Event: TInputPressRelease): boolean; virtual;
-    { @groupEnd }
 
     { Motion of mouse or touch. }
     function Motion(const Event: TInputMotion): boolean; virtual;
