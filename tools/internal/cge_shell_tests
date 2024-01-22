@@ -87,8 +87,49 @@ do_test_packages_dependencies ()
   fi
 }
 
+# Check that Delphi packages do not contain invalid DeployFile config,
+# pointing to absolute paths on specific disk (specific to given computer,
+# and Delphi version)
+# or relative (which are also wrong in this case, as we don't know Delphi BPL
+# location relative to the CGE).
+# They should instead point using env variables, defined by Delphi,
+# like `$(BDSCOMMONDIR)\Bpl\castle_engine_design.bpl` .
+# See packages/delphi/README.md .
+#
+# This intends to catch errors like this in DPROJ files:
+#
+#   <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl\castle_engine_design.bpl"  Configuration="Debug" Class="ProjectOutput">
+#
+# or
+#
+#   <DeployFile LocalName="..\..\..\..\..\Public\Documents\Embarcadero\Studio\23.0\Bpl\castle_engine_window.bpl" Configuration="Debug" Class="ProjectOutput">
+#
+# These should use
+#
+do_test_no_invalid_deploy_files ()
+{
+  if grep --ignore-case --fixed-strings '<DeployFile LocalName="c:' packages/delphi/*.dproj; then
+    echo 'Error: packages/delphi/*.dproj should not contain hardcoded absolute paths in DeployFile'
+    exit 1
+  fi
+  if grep --ignore-case --fixed-strings '<DeployFile LocalName="d:' packages/delphi/*.dproj; then
+    echo 'Error: packages/delphi/*.dproj should not contain hardcoded absolute paths in DeployFile'
+    exit 1
+  fi
+  if grep --ignore-case --fixed-strings '<DeployFile LocalName="e:' packages/delphi/*.dproj; then
+    echo 'Error: packages/delphi/*.dproj should not contain hardcoded absolute paths in DeployFile'
+    exit 1
+  fi
+
+  if grep --ignore-case --fixed-strings '<DeployFile LocalName="..' packages/delphi/*.dproj; then
+    echo 'Error: packages/delphi/*.dproj should not contain relative paths in DeployFile'
+    exit 1
+  fi
+}
+
 do_test_qualified_name
 do_test_examples_copyright
 do_test_custom_editor_template_up_to_date
 do_test_examples_up_to_date
 do_test_packages_dependencies
+do_test_no_invalid_deploy_files
