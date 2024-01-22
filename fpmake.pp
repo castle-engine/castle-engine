@@ -427,7 +427,6 @@ begin
 
     P.SourcePath.Add('src/window');
     P.Targets.AddUnit('castleinternalwindowmodes.pas');
-    P.Targets.AddUnit('castleinternalcontextbase.pas');
     P.Targets.AddUnit('castlemessages.pas');
     P.Targets.AddUnit('castlewindowrecentfiles.pas');
     P.Targets.AddUnit('castlewindow.pas');
