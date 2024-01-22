@@ -145,7 +145,7 @@ begin
     if eglBindAPI(EGL_OPENGL_API) <> EGL_TRUE then
       raise EGLContextNotPossible.Create('EGL: Cannot bind OpenGL API. Error reported: ' + EGLError);
   end else
-    raise Exception.Create('EGL version is too old to initialize OpenGL (not ES), we need at least 1.4');
+    raise EGLContextNotPossible.Create('EGL version is too old to initialize OpenGL (not ES), we need at least 1.4');
 
   ContextAttribs := TInt32List.Create;
   try
@@ -186,7 +186,7 @@ begin
   if Display = EGL_NO_DISPLAY { nil } then
   begin
     if not EglAvailable then
-      raise Exception.Create('Could not load EGL library, required to initialize context');
+      raise EGLContextNotPossible.Create('Could not load EGL library, required to initialize context');
 
     Display := eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if Display = EGL_NO_DISPLAY then
