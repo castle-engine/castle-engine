@@ -29,7 +29,7 @@ unit CastleScene;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils, CastleFonts,
   CastleUtils, CastleSceneCore, CastleInternalBackgroundRenderer,
   CastleGLUtils, CastleInternalShapeOctree, CastleInternalGLShadowVolumes, X3DFields,
@@ -1564,7 +1564,8 @@ begin
     if Params.Frustum = nil then
       LocalRenderOutside(nil, Params)
     else
-    if (InternalOctreeRendering <> nil) and ShapeFrustumCulling then
+    if (InternalOctreeRendering <> nil) and
+       ShapeFrustumCulling then
     begin
       { Check above ShapeFrustumCulling, since the InternalOctreeRendering
         does per-shape frustum culling automatically, even before

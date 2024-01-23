@@ -49,7 +49,7 @@ type
   end;
 
 {$ifdef FPC}
-function UTF8CharacterLength(p: PChar): integer;
+function UTF8CharacterLength(p: PChar): Integer;
 function UTF8Length(const s: string): PtrInt; overload;
 function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt; overload;
 
@@ -155,7 +155,7 @@ function StringUnicodeChar(const S: String; const Index: Integer): TUnicodeChar;
 
 implementation
 
-uses SysUtils{$ifndef FPC}, Character{$endif};
+uses SysUtils{$ifndef FPC}, Character{$endif}, CastleLog;
 
 { TUnicodeCharList ----------------------------------------------------------- }
 
@@ -220,7 +220,7 @@ end;
 { global --------------------------------------------------------------------- }
 {$ifdef FPC}
 
-function UTF8CharacterLength(p: PChar): integer;
+function UTF8CharacterLength(p: PChar): Integer;
 begin
   if p<>nil then begin
     if ord(p^)<$C0 { binary 11000000 } then begin
@@ -267,12 +267,12 @@ end;
 
 function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt;
 var
-  CharLen: LongInt;
+  CharLen: Integer;
 begin
   Result:=0;
   while (ByteCount>0) do begin
     inc(Result);
-    CharLen:=UTF8CharacterLength(p);
+    CharLen := UTF8CharacterLength(p);
     inc(p,CharLen);
     dec(ByteCount,CharLen);
   end;
@@ -283,12 +283,12 @@ end;
 }
 function UTF8CharStart(UTF8Str: PChar; Len, CharIndex: PtrInt): PChar;
 var
-  CharLen: LongInt;
+  CharLen: Integer;
 begin
   Result:=UTF8Str;
   if Result<>nil then begin
     while (CharIndex>0) and (Len>0) do begin
-      CharLen:=UTF8CharacterLength(Result);
+      CharLen := UTF8CharacterLength(Result);
       dec(Len,CharLen);
       dec(CharIndex);
       inc(Result,CharLen);
@@ -478,7 +478,50 @@ end;
 
 {$else FPC}
 
-{ Length of string assuming it is a standard Delphi String (that is, UnicodeString holding UTF-16). }
+{ About IsSurrogate usage below:
+
+  IsSurrogate detects either leading or trailing surrogate.
+  And in valid UTF-16 string, you either have:
+
+  - 1 code unit (16 bit char) == 1 Unicode code point
+
+    And then this 16-bit character is not surrogate.
+
+  - 2 code unit (2x 16 bit char) == 1 Unicode code point
+
+    And then both 16-bit characters are surrogate (they both will have
+    IsSurrogate true).
+    1st is high, leading.
+    2nd is low, trailing.
+
+  Note that Delphi also has IsHighSurrogate and IsLowSurrogate.
+
+  See https://stackoverflow.com/questions/52584308/convert-unicode-surrogate-pair-to-literal-string :
+
+  """
+  In Unicode, you have code points. These are 21 bits long.
+  Your character 𝐀, Mathematical Bold Capital A, has a code point of U+1D400.
+
+  In Unicode encodings, you have code units.
+  These are the natural unit of the encoding: 8-bit for UTF-8, 16-bit for UTF-16, and so on.
+  One or more code units encode a single code point.
+
+  In UTF-16, two code units that form a single code point are called a surrogate pair.
+  Surrogate pairs are used to encode any code point greater than 16 bits, i.e. U+10000 and up.
+  """
+
+  https://datacadamia.com/data/type/text/surrogate
+
+  """
+  A surrogate pair:
+
+  is composed of a two pair of code point (H and L) 1) (with a value in a special range)
+  represents a unicode code point known as S with a value above 0xFFFF
+  """
+}
+
+{ Length of string assuming it is a standard Delphi String
+  (that is, UnicodeString holding UTF-16). }
 function UnicodeStringLength(const Text: String): Integer;
 var
   I: Integer;
@@ -488,9 +531,7 @@ begin
   while I <= Length(Text) do
   begin
     if IsSurrogate(Text, I) then
-    begin
       Inc(I);
-    end;
     Inc(Result);
     Inc(I);
   end;
@@ -500,11 +541,8 @@ function UnicodeStringNextChar(const Text: String; const Index: Integer; out Nex
 begin
   NextCharIndex := Index + 1;
 
-  // check 4 byte char
-  if IsSurrogate(Text, Index) then
-  begin
+  if IsLowSurrogate(Text, Index) then // skip trailing surrogate
     Inc(NextCharIndex);
-  end;
 
   Result := ConvertToUtf32(Text, Index);
 end;
@@ -518,7 +556,7 @@ var
 begin
   I := StartCharIndex;
   AddedChars := 0;
-  while (I <= Length(S)) or (AddedChars < CharCount) do
+  while (I <= Length(S)) and (AddedChars < CharCount) do
   begin
     if IsSurrogate(S, I) then
     begin
@@ -526,7 +564,13 @@ begin
       Inc(I);
     end;
 
-    Result := Result + S[I]; // TODO: can be dangerous when string is not valid UTF16
+    if I > Length(S) then
+    begin
+      WritelnWarning('StringCopy', 'String ends in the middle of a Unicode character, cannot copy it');
+      Break;
+    end;
+
+    Result := Result + S[I];
     Inc(AddedChars);
     Inc(I);
   end;

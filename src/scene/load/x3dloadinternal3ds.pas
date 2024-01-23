@@ -246,7 +246,7 @@ type
     Materials: TMaterial3dsList;
     { @groupEnd }
     { Autodesk version used to create this 3DS. }
-    Version: LongWord;
+    Version: UInt32;
     constructor Create(const Stream: TStream);
     destructor Destroy; override;
   end;
@@ -349,7 +349,7 @@ const
 type
   TChunkHeader = packed record
     Id: Word;
-    Len: LongWord;
+    Len: UInt32;
     procedure ReadFromStream(const Stream: TStream);
   end;
 

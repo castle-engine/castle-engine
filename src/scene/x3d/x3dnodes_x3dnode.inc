@@ -2196,7 +2196,7 @@ var
               end else
                 WritelnWarning('X3D', 'X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
             end else
-              WritelnWarning('X3D', 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.X3DType + '" inside node "' + X3DType + '"');
+              WritelnWarning('X3D', 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.NiceName + '" inside node "' + NiceName + '"');
           finally
             { Any WritelnWarning above makes the Child unused.
               Note that WritelnWarning may, but doesn't have, raise an exception. }

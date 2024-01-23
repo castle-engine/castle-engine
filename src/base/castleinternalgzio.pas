@@ -50,10 +50,10 @@ unit CastleInternalGzio;
 
 interface
 
-uses zbase, crc, zdeflate, zinflate, Classes;
+uses CTypes, zbase, crc, zdeflate, zinflate, Classes;
 
 type gzFile = pointer;
-type z_off_t = longint;
+type z_off_t = CInt32;
 
 function gzopen  (const Stream: TStream; const WriteMode: boolean) : gzFile;
 function gzread  (f:gzFile; buf:pointer; len:cardinal) : integer;
@@ -112,7 +112,7 @@ type gz_stream = record
   msg         : string[79]; { error message - limit 79 chars }
   transparent : boolean;  { true if input file is not a .gz file }
   WriteMode   : boolean;  { false means that we're in read mode }
-  startpos    : longint;     { start of compressed data in file (header skipped) }
+  startpos    : CInt32;     { start of compressed data in file (header skipped) }
 end;
 
 type gz_streamp = ^gz_stream;
@@ -209,7 +209,7 @@ begin
     gzheader [8] := 0;            { xflags }
     gzheader [9] := {$ifdef UNIX} 3 {$else} 0 {$endif}; { OS code, see http://www.gzip.org/zlib/rfc-gzip.html#header-trailer }
     s^.gzStream.WriteBuffer(gzheader, 10);
-    s^.startpos := longint(10);
+    s^.startpos := CInt32(10);
 {$ENDIF}
   end
   else begin
@@ -289,7 +289,7 @@ end;
 
 { GETLONG ===================================================================
 
-   Reads a Longint in LSB order from the given gz_stream.
+   Reads a CInt32 in LSB order from the given gz_stream.
 
 ============================================================================}
 {
@@ -298,8 +298,8 @@ var
   x  : array [0..3] of byte;
   i  : byte;
   c  : integer;
-  n1 : longint;
-  n2 : longint;
+  n1 : CInt32;
+  n2 : CInt32;
 begin
 
   for i:=0 to 3 do begin
@@ -317,7 +317,7 @@ var
   x : packed array [0..3] of byte;
   c : integer;
 begin
-  { x := cardinal(get_byte(s));  - you can't do this with TP, no unsigned longint }
+  { x := cardinal(get_byte(s));  - you can't do this with TP, no unsigned CInt32 }
 {$ifdef ENDIAN_BIG}
   x[3] := Byte(get_byte(s));
   x[2] := Byte(get_byte(s));
@@ -999,7 +999,7 @@ end;
 
 { PUTLONG ===================================================================
 
-  Outputs a Longint in LSB order to the given file
+  Outputs a CInt32 in LSB order to the given file
 
 ============================================================================}
 

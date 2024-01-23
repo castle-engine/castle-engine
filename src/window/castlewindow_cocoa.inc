@@ -623,18 +623,19 @@ begin
   inherited viewDidMoveToWindow;
 
   if openGLContext = nil then
-    begin
-      openGLContext := NSOpenGLContext.alloc.initWithFormat_shareContext(defaultPixelFormat, nil);
-      if openGLContext = nil then
-        raise EInternalError.Create('invalid NSOpenGLContext');
-      openGLContext.makeCurrentContext;
-      openGLContext.setView(self);
+  begin
+    openGLContext := NSOpenGLContext.alloc.initWithFormat_shareContext(defaultPixelFormat, nil);
+    if openGLContext = nil then
+      raise EInternalError.Create('invalid NSOpenGLContext');
+    openGLContext.makeCurrentContext;
+    openGLContext.setView(self);
 
-      openGLContext.setValues_forParameter_fixed(@swapInterval, NSOpenGLCPSwapInterval);
+    openGLContext.setValues_forParameter_fixed(@swapInterval, NSOpenGLCPSwapInterval);
 
-      if not isOpaque then
-        openGLContext.setValues_forParameter_fixed(@opacity, NSOpenGLCPSurfaceOpacity);
-    end;
+    if not isOpaque then
+      openGLContext.setValues_forParameter_fixed(@opacity, NSOpenGLCPSurfaceOpacity);
+  end;
+
   if window = nil then
     openGLContext.clearDrawable;
 end;
@@ -1094,6 +1095,10 @@ begin
   end;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TCastleApplication ---------------------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;
@@ -1219,9 +1224,8 @@ begin
   while ProcessMessage(true, true) do ;
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  Terminate; // set Terminated := true
 end;
 
 function TCastleApplication.ScreenWidth: integer;

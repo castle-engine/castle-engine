@@ -19,9 +19,8 @@ unit TestCastleTransform;
 interface
 
 uses
-  Classes, SysUtils, CastleBoxes,
-  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils,
+  CastleBoxes, CastleTester;
 
 type
   TTestCastleTransform = class(TCastleTestCase)
@@ -1282,7 +1281,7 @@ var
   Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
   Body: TRigidBody;
-  Collider: TBoxCollider;
+  //Collider: TBoxCollider;
 begin
   try
     Viewport := TCastleViewport.Create(nil);
@@ -1291,7 +1290,7 @@ begin
 
       Body := TRigidBody.Create(Viewport.Items);
 
-      Collider := TBoxCollider.Create(Body);
+      {Collider := }TBoxCollider.Create(Body);
 
       // add to Viewport before setting Scene.RigidBody,
       // to provoke RigidBody.InitializeTransform to create all physics stuff
@@ -1309,7 +1308,7 @@ var
   Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
   Body: TRigidBody;
-  Collider: TSphereCollider;
+  //Collider: TSphereCollider;
 begin
   //try
     Viewport := TCastleViewport.Create(nil);
@@ -1318,7 +1317,7 @@ begin
 
       Body := TRigidBody.Create(Viewport.Items);
 
-      Collider := TSphereCollider.Create(Body);
+      {Collider := }TSphereCollider.Create(Body);
 
       // add to Viewport before setting Scene.RigidBody,
       // to provoke RigidBody.InitializeTransform to create all physics stuff

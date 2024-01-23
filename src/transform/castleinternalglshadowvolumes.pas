@@ -21,7 +21,7 @@ unit CastleInternalGLShadowVolumes;
 interface
 
 uses
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum,
   CastleRenderPrimitives;
 

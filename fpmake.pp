@@ -200,17 +200,6 @@ begin
     { Add our unit groups.
       For simplicity, keep things in alphabetical order in each group. }
 
-    { Add local version of Generics.Collections for FPC < 3.1.1 }
-    {$if defined(VER3_0)}
-    P.SourcePath.Add('src/compatibility/generics.collections/src' + PathDelim);
-    P.Targets.AddUnit('generics.collections.pas');
-    P.Targets.AddUnit('generics.defaults.pas');
-    P.Targets.AddUnit('generics.hashes.pas');
-    P.Targets.AddUnit('generics.helpers.pas');
-    P.Targets.AddUnit('generics.memoryexpanders.pas');
-    P.Targets.AddUnit('generics.strings.pas');
-    {$endif}
-
     P.SourcePath.Add('src/transform');
     P.Targets.AddUnit('castlebehaviors.pas');
     P.Targets.AddUnit('castleboxes.pas');
@@ -294,6 +283,7 @@ begin
     P.Targets.AddUnit('castleinternalclassutils.pas');
     P.Targets.AddUnit('castleinternalgzio.pas');
     P.Targets.AddUnit('castleinternalrttiutils.pas');
+    P.Targets.AddUnit('castleinternaltools.pas');
     P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castleinternalzstream.pas');
     P.Targets.AddUnit('castlelog.pas');
@@ -319,9 +309,19 @@ begin
     P.Targets.AddUnit('castleglshaders.pas');
     P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('castleglversion.pas');
+    P.Targets.AddUnit('castleinternalcontextbase.pas');
+    P.Targets.AddUnit('castleinternalcontextegl.pas');
+    P.Targets.AddUnit('castleinternalegl.pas');
     P.Targets.AddUnit('castleinternalglutils.pas');
     P.Targets.AddUnit('castlerendercontext.pas');
     P.Targets.AddUnit('castlerenderprimitives.pas');
+    if Xlib then
+      P.Targets.AddUnit('castleinternalcontextglx.pas');
+    if Defaults.OS in AllWindowsOSes then
+      P.Targets.AddUnit('castleinternalcontextwgl.pas');
+
+    P.SourcePath.Add('src/base_rendering/dglopengl');
+    P.Targets.AddUnit('castlegl.pas');
 
     P.SourcePath.Add('src/services');
     P.Targets.AddUnit('castleads.pas');

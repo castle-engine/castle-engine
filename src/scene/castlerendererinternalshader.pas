@@ -54,9 +54,9 @@ type
 
   TShaderCodeHash = record
   strict private
-    Sum, XorValue: LongWord;
+    Sum, XorValue: UInt32;
   public
-    procedure AddString(const S: AnsiString; const Multiplier: LongWord);
+    procedure AddString(const S: AnsiString; const Multiplier: UInt32);
     procedure AddInteger(const I: Integer);
     procedure AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
     procedure AddPointer(Ptr: Pointer);
@@ -312,7 +312,7 @@ type
 
     { Uniform to set for this texture. May be empty. }
     UniformName: String;
-    UniformValue: LongInt;
+    UniformValue: Integer;
 
     class var TextureEnvWarningDone: Boolean;
 
@@ -727,7 +727,7 @@ function UniformMissingFromNode(const Node: TX3DNode): TUniformMissing;
 implementation
 
 uses SysUtils, StrUtils,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleGLUtils, CastleLog, CastleGLVersion, CastleInternalScreenEffects,
   CastleScreenEffects, CastleInternalX3DLexer, CastleInternalGLUtils;
 
@@ -844,13 +844,13 @@ end;
 
 {$include norqcheckbegin.inc}
 
-procedure TShaderCodeHash.AddString(const S: AnsiString; const Multiplier: LongWord);
+procedure TShaderCodeHash.AddString(const S: AnsiString; const Multiplier: UInt32);
 var
-  PS: PLongWord;
-  Last: LongWord;
+  PS: PUInt32;
+  Last: UInt32;
   I: Integer;
 begin
-  PS := PLongWord(S);
+  PS := PUInt32(S);
 
   for I := 1 to Length(S) div 4 do
   begin
@@ -873,8 +873,8 @@ begin
   { This will cut the pointer on non-32bit processors.
     But that's not a problem --- we just want it for hash,
     taking the least significant 32 bits from pointer is OK for this. }
-  Sum := Sum + LongWord(PtrUInt(Ptr));
-  XorValue := XorValue xor LongWord(PtrUInt(Ptr));
+  Sum := Sum + UInt32(PtrUInt(Ptr));
+  XorValue := XorValue xor UInt32(PtrUInt(Ptr));
 end;
 
 procedure TShaderCodeHash.AddInteger(const I: Integer);
@@ -978,7 +978,7 @@ end;
 const
   LightDefines: array [TLightDefine] of record
     Name: String;
-    Hash: LongWord;
+    Hash: UInt32;
   end =
   ( (Name: 'LIGHT%d_TYPE_POSITIONAL'  ; Hash: 107; ),
     (Name: 'LIGHT%d_TYPE_SPOT'        ; Hash: 109; ),
@@ -1568,7 +1568,7 @@ end;
 
 procedure TTextureCoordinateShader.Prepare(var Hash: TShaderCodeHash);
 var
-  IntHash: LongWord;
+  IntHash: UInt32;
 begin
 {$include norqcheckbegin.inc}
   IntHash :=
@@ -1625,7 +1625,7 @@ end;
 
 procedure TTextureShader.Prepare(var Hash: TShaderCodeHash);
 var
-  IntHash: LongWord;
+  IntHash: UInt32;
 begin
   inherited;
 
@@ -2776,7 +2776,7 @@ var
 
 var
   HasBumpMappingUniform_NormalMapTextureUnit: Boolean;
-  BumpMappingUniform_NormalMapTextureUnit: LongInt;
+  BumpMappingUniform_NormalMapTextureUnit: Integer;
   HasBumpMappingUniform_NormalMapScale: Boolean;
   BumpMappingUniform_NormalMapScale: Single;
   HasBumpMappingUniform_HeightMapScale: Boolean;
@@ -3420,7 +3420,7 @@ begin
   begin
     FClipPlaneAlgorithm := cpFixedFunction;
 
-    glClipPlane(GL_CLIP_PLANE0 + ClipPlaneIndex, Vector4Double(Plane));
+    CastleGlClipPlane(GL_CLIP_PLANE0 + ClipPlaneIndex, Vector4Double(Plane));
     glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
   end else
 
@@ -3513,7 +3513,7 @@ procedure TShader.EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
   const TextureUnit, TextureCoordinatesId: Cardinal;
   const UniformTextureName, PlugCode: String);
 var
-  HashMultiplier: LongWord;
+  HashMultiplier: UInt32;
 begin
   FSurfaceTextureShaders[SurfaceTexture].Enable := true;
   FSurfaceTextureShaders[SurfaceTexture].TextureUnit := TextureUnit;

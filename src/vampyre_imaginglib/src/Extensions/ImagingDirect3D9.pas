@@ -7,7 +7,7 @@
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
   file, You can obtain one at https://mozilla.org/MPL/2.0.
-} 
+}
 
 { This unit contains functions for loading and saving Direct3D 9 textures
   using Imaging and for converting images to textures and vice versa.}
@@ -78,7 +78,7 @@ function LoadD3DTextureFromMemory(Data: Pointer; Size: LongInt;
   look at CreateD3DTextureFromMultiImage function.}
 function CreateD3DTextureFromImage(const Image: TImageData;
   Device: IDirect3DDevice9; var Texture: IDirect3DTexture9; Width: LongInt = 0;
-  Height: LongInt = 0; MipLevels: LongInt = 0; Usage: LongWord = 0;
+  Height: LongInt = 0; MipLevels: LongInt = 0; Usage: UInt32 = 0;
   Format: TD3DFormat = D3DFMT_UNKNOWN; Pool: TD3DPool = D3DPOOL_MANAGED;
   CreatedWidth: PLongInt = nil; CreatedHeight: PLongInt = nil): Boolean;
 { Converts images in TDymImageDataArray to one IDirect3DTexture9 texture.
@@ -97,7 +97,7 @@ function CreateD3DTextureFromImage(const Image: TImageData;
   of source image).}
 function CreateD3DTextureFromMultiImage(const Images: TDynImageDataArray;
   Device: IDirect3DDevice9; var Texture: IDirect3DTexture9; Width: LongInt = 0;
-  Height: LongInt = 0; MipLevels: LongInt = 0; Usage: LongWord = 0;
+  Height: LongInt = 0; MipLevels: LongInt = 0; Usage: UInt32 = 0;
   Format: TD3DFormat = D3DFMT_UNKNOWN; Pool: TD3DPool = D3DPOOL_MANAGED;
   CreatedWidth: PLongInt = nil; CreatedHeight: PLongInt = nil): Boolean;
 
@@ -345,7 +345,7 @@ end;
 
 function CreateD3DTextureFromImage(const Image: TImageData;
   Device: IDirect3DDevice9; var Texture: IDirect3DTexture9; Width,
-  Height, MipLevels: LongInt; Usage: LongWord; Format: TD3DFormat;
+  Height, MipLevels: LongInt; Usage: UInt32; Format: TD3DFormat;
   Pool: TD3DPool; CreatedWidth, CreatedHeight: PLongInt): Boolean;
 var
   Arr: TDynImageDataArray;
@@ -377,7 +377,7 @@ end;
 
 function CreateD3DTextureFromMultiImage(const Images: TDynImageDataArray;
   Device: IDirect3DDevice9; var Texture: IDirect3DTexture9; Width,
-  Height, MipLevels: LongInt; Usage: LongWord; Format: TD3DFormat;
+  Height, MipLevels: LongInt; Usage: UInt32; Format: TD3DFormat;
   Pool: TD3DPool; CreatedWidth, CreatedHeight: PLongInt): Boolean;
 var
   I, PossibleLevels, ExistingLevels, CurrentWidth, CurrentHeight: LongInt;

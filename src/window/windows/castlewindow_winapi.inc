@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,7 +38,7 @@
   - Note: LCL win32 widgetset (used on 64-bit Windows too) still uses ANSI.
 }
 
-{$ifdef OpenGLES}
+{$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_wgl.inc}
@@ -369,7 +369,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
       it allows to specify signedness of values as you wish. }
     TWinParam = packed record
       case Integer of
-        0:(Signed: LongInt {$if defined(cpu64)}; Dummy: LongWord {$endif});
+        0:(Signed: LongInt {$if defined(cpu64)}; Dummy: UInt32 {$endif});
         1:(LoWord, HiWord: Word);
         2:(LoSmallint, HiSmallint: Smallint);
         3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);
@@ -574,13 +574,13 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
   end;
 
   function Handle_IME: Boolean;
-  
+
     function ToPoint(const V: TVector2): TPoint;
     begin
       Result.X := Floor(V.X);
-      Result.Y := Floor(Container.Height - V.Y);
+      Result.Y := Floor(Container.PixelsHeight - V.Y);
     end;
-    
+
     function GetCaretPos(var CaretPos: TPoint): Boolean;
     var
       CastleEdit: TCastleEdit;
@@ -639,15 +639,15 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
           finally
             ImmReleaseContext(h_Wnd, vhIMC);
           end;
-          
+
           { About return value:
-            Note that WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION must return false. 
-            Because we do not implement the IME input window by itself, we return false to let the system IME handle it by itself. 
+            Note that WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION must return false.
+            Because we do not implement the IME input window by itself, we return false to let the system IME handle it by itself.
             We only tell the system where the IME window needs to be displayed, font information, etc.
-            
+
             Why do we handle WM_IME_ENDCOMPOSITION at all (that is usually when IME window is hidden)?
-            Since the IME can be developed by any company, sometimes the IME window will appear prematurely at the last closed position. 
-            So deal with WM_IME_ENDCOMPOSITION to avoid This case. 
+            Since the IME can be developed by any company, sometimes the IME window will appear prematurely at the last closed position.
+            So deal with WM_IME_ENDCOMPOSITION to avoid This case.
           }
         end;
       WM_IME_COMPOSITION:
@@ -1269,7 +1269,7 @@ begin
   h_Dc := GetDC(h_Wnd);
   Check ( h_Dc <> 0, 'GetDC failed');
 
-  ContextCreateEnd(h_Wnd);
+  ContextCreate(h_Wnd);
 
   MakeCurrent;
 
@@ -1700,7 +1700,7 @@ end;
 
 (*
 const
-  MessageTypeToWin: array [TWindowMessageType] of LongWord =
+  MessageTypeToWin: array [TWindowMessageType] of UInt32 =
   ( MB_ICONINFORMATION,
     MB_ICONWARNING,
     MB_ICONQUESTION,
@@ -1756,6 +1756,10 @@ begin
   SimpleUpdateFullScreenBackend;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TWinApiClipboard ----------------------------------------------------------- }
 
 { Clipboard operations using WinAPI based on:
@@ -1767,6 +1771,10 @@ end;
 type
   TWinApiClipboard = class(TCastleClipboard)
   protected
+    const
+      // Use 16-bit CF_UNICODETEXT with Delphi 16-bit String,
+      // use 8-bit CF_TEXT with FPC 8-bit String.
+      StringClipboardFormat = {$ifdef FPC} CF_TEXT {$else} CF_UNICODETEXT {$endif};
     function GetAsText: String; override;
     procedure SetAsText(const Value: String); override;
   end;
@@ -1775,25 +1783,31 @@ function TWinApiClipboard.GetAsText: String;
 var
   DataHandle: Windows.HGLOBAL;
   Data: Pointer;
-  Size: Integer;
+  ByteSize, CharSize: Integer;
 begin
   Result := '';
-  if IsClipboardFormatAvailable(CF_TEXT) then
+  if IsClipboardFormatAvailable(StringClipboardFormat) then
   begin
     if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
     try
-      DataHandle := Windows.GetClipboardData(CF_TEXT);
+      DataHandle := Windows.GetClipboardData(StringClipboardFormat);
       if DataHandle = 0 then Exit;
 
-      Size := Windows.GlobalSize(DataHandle);
-      if Size > 1 then
+      ByteSize := Windows.GlobalSize(DataHandle);
+      CharSize := ByteSize div SizeOf(Char);
+      {$warnings off} // ignore warning "unreachable code" with FPC, where SizeOf(Char) = 1
+      if ByteSize mod SizeOf(Char) <> 0 then
+        WritelnWarning('WinAPI', 'Clipboard data size is not a multiple of SizeOf(Char)');
+      {$warnings on}
+
+      if CharSize > 1 then
       begin
-        Dec(Size); // do not copy trailing #0
-        Assert(Size > 0);
+        Dec(CharSize); // do not copy trailing #0
+        Assert(CharSize > 0);
         Data := Windows.GlobalLock(DataHandle);
         try
-          SetLength(Result, Size);
-          Move(Data^, Result[1], Size);
+          SetLength(Result, CharSize);
+          Move(Data^, Result[1], ByteSize);
         finally Windows.GlobalUnlock(DataHandle) end;
       end;
     finally Windows.CloseClipboard end;
@@ -1804,7 +1818,7 @@ procedure TWinApiClipboard.SetAsText(const Value: String);
 var
   DataHandle : Windows.HGLOBAL;
   Data: Pointer;
-  Size: Integer;
+  ByteSize, CharSize: Integer;
 begin
   if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
   try
@@ -1812,15 +1826,17 @@ begin
 
     if Value <> '' then
     begin
-      Size := Length(Value) + 1; // copy to Windows with trailing #0
-      DataHandle := Windows.GlobalAlloc(Windows.GMEM_MOVEABLE, Size);
+      CharSize := Length(Value) + 1; // copy to Windows with trailing #0
+      ByteSize := CharSize * SizeOf(Char);
+
+      DataHandle := Windows.GlobalAlloc(Windows.GMEM_MOVEABLE, ByteSize);
       if DataHandle = 0 then Exit;
 
       Data := GlobalLock(DataHandle);
       try
-        Move(Value[1], Data^, Size);
+        Move(Value[1], Data^, ByteSize);
       finally Windows.GlobalUnlock(DataHandle) end;
-      Windows.SetClipboardData(CF_TEXT, DataHandle);
+      Windows.SetClipboardData(StringClipboardFormat, DataHandle);
     end;
   finally Windows.CloseClipboard end;
 end;

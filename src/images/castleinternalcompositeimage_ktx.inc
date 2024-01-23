@@ -41,7 +41,7 @@ type
         NumberOfArrayElements,
         NumberOfFaces,
         NumberOfMipmapLevels,
-        BytesOfKeyValueData: LongWord;
+        BytesOfKeyValueData: UInt32;
       end;
     const
       // See /usr/include/GL/gl.h , /usr/include/GL/glext.h
@@ -373,7 +373,7 @@ end;
 
 procedure TKTXHandler.ReadKeyValues(const Stream: TStream);
 var
-  RemainingToRead, KeyAndValueByteSize, ValuePadding: LongWord;
+  RemainingToRead, KeyAndValueByteSize, ValuePadding: UInt32;
   KeyAndValue: array of AnsiChar;
   Key, Value: AnsiString;
 begin
@@ -636,7 +636,7 @@ procedure TKTXHandler.LoadFromStream(const Stream: TStream; const Url: String);
   procedure ReadMipmapLevel(const W, H, D: Cardinal);
   var
     I: Integer;
-    ImageSize: LongWord;
+    ImageSize: UInt32;
   begin
     Stream.ReadBuffer(ImageSize, SizeOf(ImageSize));
     if SwapEndianness then

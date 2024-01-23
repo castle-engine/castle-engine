@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,7 +17,7 @@
   a xxx.castle-user-interface, xxx.castle-transform, xxx.castle-component file. }
 unit FrameDesign;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 interface
 
@@ -726,7 +726,7 @@ const
 function ParentRenderRect(const UI: TCastleUserInterface): TFloatRectangle;
 begin
   if UI.Parent = nil then
-    Result := FloatRectangle(UI.Container.Rect)
+    Result := FloatRectangle(UI.Container.PixelsRect)
   else
     Result := UI.Parent.RenderRect;
 end;
@@ -1473,9 +1473,9 @@ procedure TDesignFrame.TDesignerLayer.Render;
       Rect.Anchor(hpLeft, Max(0, UIRect.Left));
       Rect.Anchor(vpBottom, UIRect.Top);
 
-      if Rect.RenderRect.Top > Rect.Container.Height then
+      if Rect.RenderRect.Top > Rect.Container.PixelsHeight then
         // put Rect inside UI, otherwise it would be offscreen
-        Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
+        Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.PixelsHeight, UIRect.Top));
     end else
       Rect.Exists := false;
   end;
@@ -5301,7 +5301,9 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             MoveOnlyTreeNodes(Src, Dst);
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+      {$endif}
     end;
     ValidateHierarchy;
   end;
@@ -5352,7 +5354,9 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             MoveOnlyTreeNodes(Src, Dst);
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+      {$endif}
     end;
     ValidateHierarchy;
   end;
@@ -5639,6 +5643,7 @@ begin
            (Node.Data <> nil) then
           DrawTreeNodeClassName(TObject(Node.Data).ClassName);
       end;
+    else ; // nothing to do otherwise
   end;
 end;
 

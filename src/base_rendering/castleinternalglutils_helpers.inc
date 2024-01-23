@@ -69,7 +69,7 @@ procedure glColorv(const v: TVector3); overload; //deprecated 'instead of this, 
 procedure glColorv(const v: TVector4); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleAbstractFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 
 { }
-procedure glClipPlane(plane: TGLenum; const V: TVector4Double); overload;
+procedure CastleGlClipPlane(plane: TGLenum; const V: TVector4Double);
 
 procedure glNormalv(const v: TVector3); overload;
 
@@ -230,9 +230,9 @@ begin
   {$warnings on}
 end;
 
-procedure glClipPlane(plane: TGLenum; const V: TVector4Double);
+procedure CastleGlClipPlane(plane: TGLenum; const V: TVector4Double);
 begin
-  {$ifdef FPC}GL.{$else}OpenGL.{$endif}glClipPlane(plane, @V);
+  glClipPlane(plane, @V);
 end;
 
 procedure glNormalv(const v: TVector3); begin glNormal3fv(@v); end;

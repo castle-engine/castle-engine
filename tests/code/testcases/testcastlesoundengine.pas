@@ -20,8 +20,7 @@ unit TestCastleSoundEngine;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
   TTestCastleSoundEngine = class(TCastleTestCase)
@@ -118,26 +117,6 @@ begin
   Params := TPlaySoundParameters.Create;
   try
     AssertSameValue(0.5, Params.Priority);
-    {$ifdef FPC}AssertTrue(Params.Importance > 0);{$endif}
-
-    { Importance is deprecated and availble only in FPC }
-    {$ifdef FPC}
-    Params.Importance := 0;
-    AssertSameValue(0.0, Params.Priority);
-    AssertEquals(0.0, Params.Importance);
-
-    Params.Importance := LevelEventSoundImportance;
-    AssertSameValue(1.0, Params.Priority);
-    AssertEquals(LevelEventSoundImportance, Params.Importance);
-
-    Params.Importance := PlayerSoundImportance;
-    AssertSameValue(0.31, Params.Priority, 0.01);
-    AssertEquals(PlayerSoundImportance, Params.Importance);
-
-    Params.Importance := DefaultSoundImportance;
-    AssertSameValue(0.01, Params.Priority, 0.001);
-    AssertEquals(DefaultSoundImportance, Params.Importance);
-    {$endif}
   finally FreeAndNil(Params) end;
 end;
 

@@ -50,7 +50,7 @@ type
 implementation
 
 uses DOM, TypInfo, Math,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleLog, CastleXmlUtils, CastleStringUtils,
   CastleInternalSettings, CastleFilesUtils, CastleUriUtils, CastleRenderOptions,
   CastleInternalInspector, CastleInternalControlsImages, CastleInternalGLUtils;

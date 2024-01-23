@@ -153,7 +153,7 @@ end;
 
 procedure TBone.UpdateWorldTransform;
 var
-  C, S: Float;
+  C, S: Single;
 begin
   WorldXY := XY;
   WorldScale := Scale;

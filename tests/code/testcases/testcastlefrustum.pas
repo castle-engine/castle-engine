@@ -19,8 +19,8 @@ unit TestCastleFrustum;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, CastleVectors, CastleBoxes, CastleFrustum;
+  Classes, SysUtils,
+  CastleTester, CastleVectors, CastleBoxes, CastleFrustum;
 
 type
   TTestCastleFrustum = class(TCastleTestCase)

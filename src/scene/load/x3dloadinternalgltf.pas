@@ -1538,7 +1538,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.Items.L[0], SizeOf(LongInt) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(Int32) * Len);
     end;
   end;
 
