@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2023 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -193,8 +193,7 @@ procedure Register;
 
 implementation
 
-uses FMX.Presentation.Factory, Types, FMX.Graphics,
-  FMX.Forms, // TODO should not be needed
+uses FMX.Presentation.Factory, Types, FMX.Graphics, FMX.Forms,
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
   CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
   CastleLog;
@@ -263,7 +262,13 @@ end;
 
 procedure TCastleControl.TContainer.SetMousePosition(const Value: TVector2);
 begin
-  // TODO
+  { TODO
+
+    There's no facility to do this using FMX, it seems.
+    We need platform-specific code.
+    - So far in CastleFmxUtils we have FmxSetMousePos for Linux, use it.
+    - And implement equivalent for Windows.
+  }
 end;
 
 function TCastleControl.TContainer.PixelsWidth: Integer;
@@ -297,7 +302,10 @@ end;
 
 procedure TCastleControl.TContainer.SetInternalCursor(const Value: TMouseCursor);
 begin
-  // TODO
+  { TODO (use similar code from CASTLE_WINDOW_FORM implementation).
+
+    Note: This is commonly used by MouseLook, but it will not work OK
+    until both this and SetMousePosition are implemented. }
 end;
 
 { TCastleControl ---------------------------------------------------- }
@@ -421,16 +429,22 @@ begin
       true, 1.0, [], TTextAlign.Center);
   end else
   begin
-    // We must have OpenGL context at this point,
-    // and on Delphi/Linux there seems no way to register "on native handle creation".
-    // TODO: We should make sure we get handle before some other events,
-    // like update or mouse/key press.
+    { We must have OpenGL context at this point,
+      and on Delphi/Linux there is no way to register "on native handle creation",
+      we must manually perform native handle creation (with GL context)
+      using our FGLUtility.
+
+      Maybe in the future it will make sense to do this also from some other events,
+      like update or mouse/key press?
+      Doesn't seem necessary in practice for now. }
     InternalHandleNeeded;
 
     { TODO: Not the best place to call this.
       This assumes we render often (like every frame)
       and we can update our GTK control size (thus OpenGL size)
-      right before render. }
+      right before render.
+      Hm, but we don't have in this class comfortable Update (for this TCastleWindow)
+      now, though our Container could expose it. }
     FGLUtility.Update;
 
     // inherited not needed, and possibly causes something unnecessary

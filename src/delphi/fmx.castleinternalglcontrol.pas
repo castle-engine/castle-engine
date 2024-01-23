@@ -207,10 +207,17 @@ end;
 
 procedure TOpenGLControl.Paint;
 begin
-  // We must have OpenGL context at this point,
-  // and on Delphi/Linux there seems no way to register "on native handle creation".
-  // TODO: We should make sure we get handle before some other events,
-  // like update or mouse/key press.
+  { We must have OpenGL context at this point,
+    and on Delphi/Linux there is no way to register "on native handle creation",
+    we must manually perform native handle creation (with GL context)
+    using our FGLUtility.
+
+    Maybe in the future it will make sense to do this also from some other events,
+    like update or mouse/key press?
+    Doesn't seem necessary in practice for now.
+
+    The TOpenGLControl is only used from CASTLE_WINDOW_FORM in practice,
+    which always calls HandleNeeded manually after creation anyway. }
   HandleNeeded;
 
   if Assigned(OnPaint) then
