@@ -693,11 +693,21 @@
 
     { Remove a child.
 
-      Note that adding and removing from the TCastleTransform hierarchy is guaranteed
+      Adding and removing from the TCastleTransform hierarchy is guaranteed
       to be fast, so you can do it even in the middle of the game.
       In particular calling @link(Remove) doesn't free rendering reasources
       of the removed scene,
-      so removing scene only to add it later to another TCastleViewport.Items is fast. }
+      So e.g. removing scene only to add it later to another
+      TCastleViewport.Items is fast.
+
+      Note that removing the child Item @italic(does not free the Item).
+      It merely makes the Item no longer be a child of this TCastleTransform,
+      so it will no longer be shown in the viewport.
+      If you want to free the item instance, you have to do it explicitly,
+      by @code(Item.Free) or @code(FreeAndNil(Item)).
+      Freed items are automatically removed from parent.
+      See also @url(https://castle-engine.io/castle_game_engine_for_unity_developers#_what_is_the_difference_between_owner_and_parent_in_cge
+      What is the difference between Owner and Parent in CGE?). }
     procedure Remove(const Item: TCastleTransform);
 
     { Use this to remove (and possibly free) the child, but not immediately.
@@ -739,7 +749,18 @@
     { Count of current children, to iterate over @link(Items) from 0 to Count-1. }
     function Count: Integer;
 
-    { Remove all children TCastleTransform instances. }
+    { Remove all children TCastleTransform instances.
+
+      Note that removing the children using this method,
+      just like using @link(Remove), @italic(does not free the children).
+      It merely makes the children no longer be inside this TCastleTransform,
+      so they will no longer be shown in the viewport.
+      If you want to free the children,
+      you have to do it explicitly, calling
+      @code(Item.Free) or @code(FreeAndNil(Item)) for each child.
+      Freed items are automatically removed from parent.
+      See also @url(https://castle-engine.io/castle_game_engine_for_unity_developers#_what_is_the_difference_between_owner_and_parent_in_cge
+      What is the difference between Owner and Parent in CGE?). }
     procedure Clear;
 
     { Exchange position of 2 children TCastleTransform instances. }
@@ -899,7 +920,9 @@
       Calling this method before the rendering context is initialized
       (e.g. from initializaton section of some unit)
       will have to skip some preparations, thus reducing the effectiveness
-      of this method.
+      of this method. But it is allowed to call this at any time,
+      regardless of the context being initialized, just like e.g.
+      @link(TCastleContainer.LoadSettings) (which may call this, to warmup cache).
 
       This makes sure that appropriate methods execute as fast as possible.
       It's never required to call this method

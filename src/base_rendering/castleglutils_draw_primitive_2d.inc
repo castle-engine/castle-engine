@@ -241,6 +241,10 @@ procedure GLBlendFunction(
 { DrawPrimitive2D ---------------------------------------------------------------- }
 
 const
+  {$ifdef USE_DGL}
+  GL_CONSTANT_COLOR = GL_CONSTANT_COLOR_ARB;
+  {$endif}
+
   BlendingSourceFactorToGL: array [TBlendingSourceFactor] of TGLEnum = (
     GL_SRC_ALPHA,
     GL_ONE_MINUS_SRC_ALPHA,
@@ -562,7 +566,7 @@ procedure DrawCircle(const Middle: TVector2;
   const ForceBlending: boolean = false);
 var
   CirclePoint: array of TVector2;
-  PreviousSin, PreviousCos, NextSin, NextCos: Float;
+  PreviousSin, PreviousCos, NextSin, NextCos: Single;
   I: Integer;
 begin
   SetLength(CirclePoint, CircleSlices * 3);
@@ -614,7 +618,7 @@ procedure DrawCircleOutline(const Middle: TVector2;
   const ForceBlending: boolean = false);
 var
   CirclePoint: array of TVector2;
-  S, C: Float;
+  S, C: Single;
   I: Integer;
 begin
   SetLength(CirclePoint, CircleSlices);

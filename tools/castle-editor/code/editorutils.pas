@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -697,6 +697,7 @@ begin
           end;
         end;
       okError: C.Brush.Color := clRed;
+      else ; // no need to customize font/brush otherwise
     end;
   end else
   begin

@@ -22,8 +22,8 @@ unit TestCastleVectors;
 interface
 
 uses
-  Classes, SysUtils{$ifndef CASTLE_TESTER}, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}, CastleTester{$endif}, CastleVectors;
+  Classes, SysUtils,
+  CastleTester, CastleVectors;
 
 type
   TTestCastleVectors = class(TCastleTestCase)
@@ -62,6 +62,7 @@ type
     procedure TestRotationZeroAxis;
     procedure TestVectorsList;
     procedure TestToString;
+    procedure TestBasicVectorMatrix;
   end;
 
 function RandomVector: TVector3;
@@ -475,8 +476,8 @@ const
     (X: 2; Y: 3; Z: 0),
     (X: 2; Y: 1; Z: 0),
     (X: 6; Y: 2; Z: 0) );
-  CCWPolyIndex: array [0..6] of LongInt = (0, 1, 5, 2, 3, 4, 999);
-  CWPolyIndex: array [0..6] of LongInt = (666, 4, 105, 3, 2, 1, 0);
+  CCWPolyIndex: array [0..6] of Int32 = (0, 1, 5, 2, 3, 4, 999);
+  CWPolyIndex: array [0..6] of Int32 = (666, 4, 105, 3, 2, 1, 0);
 begin
   AssertVectorEquals(
     Vector3(0, 0, 1),
@@ -1298,6 +1299,18 @@ begin
     '9 10 11 12' + LineEnding +
     '13 14 15 16',
     M4.ToString);
+end;
+
+procedure TTestCastleVectors.TestBasicVectorMatrix;
+var
+  M: TMatrix4;
+  V: TVector3;
+begin
+  // vectors
+  M := TranslationMatrix(10, 20, 30);
+  V := Vector3(1, 2, 3);
+  V := M.MultPoint(V);
+  AssertVectorEquals(Vector3(11, 22, 33), V);
 end;
 
 initialization

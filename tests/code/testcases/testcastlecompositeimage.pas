@@ -19,11 +19,10 @@ unit TestCastleCompositeImage;
 
 interface
 
-uses
-  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry{$else}CastleTester{$endif};
+uses CastleTester;
 
 type
-  TTestCastleCompositeImage = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestCastleCompositeImage = class(TCastleTestCase)
   published
     procedure TestLoadSave;
     procedure TestLoadSaveS3TC;

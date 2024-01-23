@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2022-2023 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -20,8 +20,13 @@ unit CastleTester;
 
 interface
 
+// FPC: Do not warn that Rtti is experimental
+{$ifdef FPC} {$warnings off} {$endif}
+
 uses SysUtils, Classes, Generics.Collections, Rtti, CastleVectors, CastleBoxes,
   CastleFrustum, CastleImages, CastleRectangles, CastleWindow, CastleViewport;
+
+{$ifdef FPC} {$warnings on} {$endif}
 
 const
   { Epsilon used by default when compating Single (Single-precision float values).
@@ -44,9 +49,14 @@ type
   TNotifyTestCountChanged = procedure (const TestCount: Integer) of object;
 
   TCastleTester = class;
-  TCastleTestCase = class;
 
-  {$M+} // Generate type info
+  { Generate type info for TCastleTestCase and descendants.
+    Delphi expects the forward class declaration to have the same $M state
+    as an actual class declaration. }
+  {$M+}
+  TCastleTestCase = class;
+  {$M-}
+
   TCastleTest = class
   strict private
     FTestCase: TCastleTestCase;
@@ -77,9 +87,11 @@ type
     property Enabled: Boolean read FEnabled write SetEnabled;
   end;
 
+  {$M+} // Generate type info for TCastleTestCase and descendants
   TCastleTestCase = class
   strict private
     FName: String;
+    SavedApplicationMainWindow: TCastleWindow;
 
     { Object list for tests }
     FTestList: {$ifdef FPC}specialize{$endif} TObjectList<TCastleTest>;
@@ -221,10 +233,17 @@ type
     procedure OnWarningRaiseException(const Category, S: string);
 
     { Create TCastleWindow for test purposes.
-      It will be automatically freed when test method ends but if you need you
-      can also call DestroyWindowForTest explicitly. }
+
+      Only one such window may exist at given time,
+      it is also automatically set as Application.MainWindow. }
     function CreateWindowForTest: TCastleWindow;
-    procedure DestroyWindowForTest;
+
+    { Destroy TCastleWindow created by CreateWindowForTest.
+      This method also checks Window value and sets it to @nil.
+
+      It is often not necessary to actually use it,
+      because the window will be automatically freed when test method ends anyway. }
+    procedure DestroyWindowForTest(var Window: TCastleWindow);
 
     { If you need a TCastleViewport for testing, you can use this one.
       This viewport is automatically cleaned when test method ends. }
@@ -235,14 +254,16 @@ type
       {$ifdef FPC}const AMethodPointer: CodePointer{$else}
       const ARttiMethod: TRttiMethod{$endif}): TCastleTest;
 
-    function IsConsoleMode: Boolean;
-
     { Does the current platform allow to create new TCastleWindow during tests.
-      This applies to calling CreateWindowForTest as well as to explicit
-      "TCastleWindow.Create" calls.
 
-      This is false on mobile.
-      On non-mobile, it is true both in console and non-console mode. }
+      In case you do manually TCastleWindow.Create call,
+      you should also honour this method, do not create TCastleWindow instance
+      when this is @false. Abort the test (without any failure) in this case.
+
+      All test windows should be created using CreateWindowForTest now,
+      and CreateWindowForTest will actually raise exception if this is true.
+
+      This is @false on mobile or when run with --no-window-create . }
     function CanCreateWindowForTest: Boolean;
 
     { Clears test list }
@@ -331,8 +352,6 @@ type
 
     function EnabledTestCount: Integer;
 
-    function IsConsoleMode: Boolean;
-
     { Stop testing on first fail or run all tests.
 
       This also means that unhandled exception is just "let through",
@@ -382,14 +401,12 @@ type
     procedure EnableFilter(const Filter: String);
   end;
 
-  procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
+procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
 
 implementation
 
-{ TCastleTester }
-
 uses TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} StrUtils,
-  CastleLog, CastleUtils;
+  CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters;
 
 var
   FRegisteredTestCaseList: {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>;
@@ -574,6 +591,14 @@ begin
 end;
 
 procedure TCastleTester.ScanTestCase(TestCase: TCastleTestCase);
+
+  function TestMethod(const MethodName: String): Boolean;
+  begin
+    Result := IsPrefix('test', MethodName, true) and
+      { Avoid adding internal method TestCount }
+      not SameText(MethodName, 'TestCount');
+  end;
+
 var
   {$ifdef FPC}
   MethodList: TStringList;
@@ -590,7 +615,7 @@ begin
 
     for AMethodName in MethodList do
     begin
-      if (pos('TEST', UpperCase(AMethodName)) = 1) then
+      if TestMethod(AMethodName) then
         TestCase.AddTest(AMethodName, TestCase.MethodAddress(AMethodName));
     end;
 
@@ -604,7 +629,7 @@ begin
   begin
     if (RttiMethod.MethodKind in [mkProcedure, mkFunction]) and
       (Length(RttiMethod.GetParameters) = 0) and
-      (pos('TEST', UpperCase(RttiMethod.Name)) = 1) then
+      TestMethod(RttiMethod.Name) then
     begin
       TestCase.AddTest(RttiMethod.Name, RttiMethod);
     end;
@@ -664,11 +689,6 @@ begin
     if TestCase.Enabled then
       Inc(Result, TestCase.EnabledTestCount);
   end;
-end;
-
-function TCastleTester.IsConsoleMode: Boolean;
-begin
-  Result := FUIWindow = nil;
 end;
 
 procedure TCastleTester.EnableFilter(const Filter: String);
@@ -1197,29 +1217,35 @@ begin
   FWindowForTest := nil;
 end;
 
-function TCastleTestCase.CreateWindowForTest: TCastleWindow;
-begin
-  FWindowForTest := TCastleWindow.Create(nil);
-  if IsConsoleMode then
-  begin
-    Application.MainWindow := FWindowForTest;
-  end;
-  Result := FWindowForTest;
-end;
-
 destructor TCastleTestCase.Destroy;
 begin
   FreeAndNil(FTestList);
   inherited;
 end;
 
-procedure TCastleTestCase.DestroyWindowForTest;
+function TCastleTestCase.CreateWindowForTest: TCastleWindow;
 begin
+  if FWindowForTest <> nil then
+    raise Exception.Create('CreateWindowForTest called twice without DestroyWindowForTest');
+  if not CanCreateWindowForTest then
+    raise Exception.Create('CreateWindowForTest called when CanCreateWindowForTest = false');
+
+  FWindowForTest := TCastleWindow.Create(nil);
+  SavedApplicationMainWindow := Application.MainWindow;
+  Application.MainWindow := FWindowForTest;
+  Result := FWindowForTest;
+end;
+
+procedure TCastleTestCase.DestroyWindowForTest(var Window: TCastleWindow);
+begin
+  if FWindowForTest = nil then
+    raise Exception.Create('DestroyWindowForTest called without CreateWindowForTest');
+
+  Assert(FWindowForTest = Window);
+  Window := nil;
+
   FreeAndNil(FWindowForTest);
-  if IsConsoleMode then
-  begin
-    Application.MainWindow := nil;
-  end;
+  Application.MainWindow := SavedApplicationMainWindow;
 end;
 
 function TCastleTestCase.EnabledTestCount: Integer;
@@ -1273,16 +1299,17 @@ begin
 end;
 }
 
-function TCastleTestCase.IsConsoleMode: Boolean;
-begin
-  Result := FCastleTester.IsConsoleMode;
-end;
-
 function TCastleTestCase.CanCreateWindowForTest: Boolean;
 begin
   Result :=
-    {$if defined(ANDROID) or defined(iPHONESIM) or defined(iOS)} false
-    {$else} true
+    {$if defined(ANDROID) or
+         defined(iPHONESIM) or
+         defined(iOS) or
+         defined(CASTLE_NINTENDO_SWITCH)}
+      // On these platforms, we cannot create a window, so we cannot test
+      false
+    {$else}
+      not ParamNoWindowCreate
     {$endif};
 end;
 
@@ -1417,8 +1444,9 @@ var
   Method: TMethod;
 type
   TCastleTestFunc = procedure() of object;
-
 {$endif}
+var
+  DummyWindowForTest: TCastleWindow;
 begin
   FTestCase.FCurrentTestName := GetFullName;
   try
@@ -1430,9 +1458,13 @@ begin
     FRttiMethod.Invoke(FTestCase, []);
     {$endif}
   finally
-    { Some tests need a new window after running test we check should it be
-      freed }
-    FTestCase.DestroyWindowForTest;
+    { Automatically free window created by CreateWindowForTest. }
+    if FTestCase.FWindowForTest <> nil then
+    begin
+      { Use DummyWindowForTest that will be set to nil by DestroyWindowForTest. }
+      DummyWindowForTest := FTestCase.FWindowForTest;
+      FTestCase.DestroyWindowForTest(DummyWindowForTest);
+    end;
   end;
 end;
 
@@ -1459,8 +1491,6 @@ end;
 
 initialization
   FRegisteredTestCaseList := {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>.Create;
-
 finalization
   FreeAndNil(FRegisteredTestCaseList);
-
 end.

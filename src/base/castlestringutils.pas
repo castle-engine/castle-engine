@@ -594,48 +594,6 @@ function TryDeFormat(Data: string; const Format: string;
   const IgnoreCase: boolean = true;
   const RelaxedWhitespaceChecking: boolean = true): integer; overload;
 
-{$ifdef FPC}
-{ Extract file extensions from a file filter usually specified
-  a TOpenDialog.Filter value.
-
-  More precisely: expects FileFilter to be in the form of
-  @code('xxxx|name1.ext1;name2.ext2'). Where "xxxx" is just about anything
-  (it is ignored), and in fact whole "xxxx|" (with bar) may be omitted.
-  The rest (after "|") is treated as a filename list, separated by semicolon ";".
-
-  As Extensions contents, we set an array of all extensions extracted from these
-  filenames. For example above, we would set Extensions to array
-  with two items: @code(['.ext1', '.ext2']). }
-procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
-  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
-
-{ Extract file filter name, from a file filter usually specified
-  a TOpenDialog.Filter value.
-
-  More precisely: if we do not see bar "|" character, then this is
-  the filter name. Otherwise, everything on the right of "|" is "extensions"
-  and everything on the left is "filter name".
-
-  Additionally, if filter name ends with extensions value in parenthesis,
-  they are removed. In other words, for 'Pascal files (*.pas)|*.pas',
-  this will return just 'Pascal files'. The '(*.pas)' was removed
-  from the filter name, because we detected this just repeats the extensions
-  on the right of "|". Extensions on the right of "|" must be separated by
-  semicolons, extensions within parenthesis on the left of "|" may
-  be separated by semicolons ";" or colons ",". }
-function GetFileFilterName(const FileFilter: string): string;
-  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
-
-{ Search in FileFilter for the bar character "|", and return everything
-  after it. This is a simple basis for GetFileFilterExts.
-
-  If no "|" found, we return an empty string (in other words,
-  file filter without "|" is treated as just a filter name, without
-  any extensions). }
-function GetFileFilterExtsStr(const FileFilter: string): string;
-  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
-{$endif}
-
 { Replace all strings in Patterns with corresponding strings in Values.
   This is similar to standard StringReplace, but this does many
   replacements at once. This is just like StrUtils.StringsReplace in FPC.
@@ -669,6 +627,11 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
 function SReplacePatterns(const s: string; const patterns, values: array of string; const IgnoreCase: boolean): string; overload;
 function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: boolean): string; overload;
 function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: boolean): string; overload;
+
+{$ifndef FPC}
+{ Does InputStr match Wildcards (with * and ?). }
+function IsWild(const InputStr, Wildcards: string; const IgnoreCase: Boolean): Boolean;
+{$endif}
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
@@ -1957,100 +1920,6 @@ begin
     'data ''%s'' too long - unexpected end of format ''%s''', [Data, Format]);
 end;
 
-{$ifdef FPC}
-procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
-var
-  p, SeekPos: integer;
-  ExtsStr, filemask: string;
-begin
-  Extensions.Clear;
-  {$warnings off} // using deprecated in deprecated
-  ExtsStr := GetFileFilterExtsStr(FileFilter);
-  {$warnings on}
-  SeekPos := 1;
-  repeat
-    filemask := NextToken(ExtsStr, SeekPos,[';']);
-    if filemask = '' then break;
-    p := Pos('.', filemask);
-    if p > 0 then
-      Delete(filemask, 1, p-1) else { delete name from filemask }
-      filemask := '.'+filemask; { it means there was no name and dot in filemask. So prepend dot. }
-    Extensions.Add(filemask);
-  until false;
-end;
-
-function GetFileFilterName(const FileFilter: string): string;
-var
-  Left, Right: string;
-  LeftUpperCase, RightUpperCase: string;
-  p, len: integer;
-begin
-  p := Pos('|', FileFilter);
-  if p = 0 then result := Trim(FileFilter) else
-  begin
-    Left := Trim(Copy(FileFilter, 1, p-1));
-    Right := Trim(SEnding(FileFilter, p+1));
-    if Right = '' then
-    begin
-      result := Left;
-      { if FileFilter = 'xxx()|' then it matches to pattern 'xxx(exts)|exts'
-        so we should return 'xxx', not 'xxx()'.
-        This is often really useful when FileFilter was constructed in an
-        automatic way (e.g. as in mine edytorek). }
-      if IsSuffix('()', Result) then
-      begin
-        SetLength(Result, Length(Result)-2);
-        { trim once again to delete rightmost whitespace (as in 'xxx ()|') }
-        Result := TrimRight(Result);
-      end;
-    end else
-    begin
-      // convert to uppercase to search ignoring case with RPos below
-      LeftUpperCase := AnsiUpperCase(Left);
-      RightUpperCase := AnsiUpperCase(Right);
-      p := RPos(RightUpperCase, LeftUpperCase);
-      if p = 0 then
-        p := RPos(SReplaceChars(RightUpperCase, ';', ','), LeftUpperCase);
-      if p = 0 then result := Left else
-      begin
-        len := Length(Right);
-        {zwieksz len tak zeby objelo biale znaki az do ')'}
-        while p+len <= Length(Left) do
-        begin
-          if Left[p+len] = ')' then
-            begin Inc(len); break end else
-          if Left[p+len] in WhiteSpaces then
-            Inc(len) else
-            break;
-        end;
-        {zmniejsz p tak zeby objelo biale znaki az do '('}
-        while p-1 >= 1 do
-        begin
-          if Left[p-1] = '(' then
-            begin Dec(p); Inc(len); break end else
-          if Left[p-1] in WhiteSpaces then
-            begin Dec(p); Inc(len) end else
-            break;
-        end;
-        {koniec; wypieprz p, len}
-        Delete(Left, p, len);
-        result := Trim(Left);
-      end;
-    end;
-  end;
-end;
-
-function GetFileFilterExtsStr(const FileFilter: string): string;
-var
-  p: integer;
-begin
-  p := Pos('|', FileFilter);
-  if p > 0 then
-    result := SEnding(FileFilter, p+1) else
-    result := '';
-end;
-{$endif}
-
 function SReplacePatterns(const S: string;
   const Patterns, Values: array of string; const IgnoreCase: boolean): string;
 begin
@@ -2070,6 +1939,24 @@ function SReplacePatterns(const S: string;
 begin
   Result := SReplacePatterns(S, Patterns.ToArray, Values.ToArray, IgnoreCase);
 end;
+
+{$ifndef FPC}
+function IsWild(const InputStr, Wildcards: string; const IgnoreCase: Boolean): Boolean;
+var
+  Regex: string;
+  RegexOptions: TRegExOptions;
+begin
+  { TODO: This is not perfect, as it doesn't handle all the quoting for special
+    characters in InputStr that could mean something special for regex.
+    But it's good enough for now.}
+  Regex := SReplacePatterns(Wildcards, ['.', '*', '?'], ['\.', '.*', '.'], IgnoreCase);
+  if IgnoreCase then
+    RegexOptions := [roIgnoreCase]
+  else
+    RegexOptions := [];
+  Result := TRegEx.IsMatch(InputStr, Regex, RegexOptions);
+end;
+{$endif}
 
 function SCharsCount(const S: string; C: char): Cardinal;
 var

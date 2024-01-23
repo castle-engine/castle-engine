@@ -17,6 +17,7 @@
 
 // This whole file is only used for Delphi, FPC already has this.
 {$ifndef FPC}
+{$ifndef PASDOC}
 {$ifdef read_interface}
 const
   LineEnding = SLineBreak;
@@ -63,7 +64,7 @@ type
   TEventTypes = Set of TEventType;
 
   {$ifndef MSWINDOWS}
-  DWord = LongWord;
+  DWord = UInt32;
   PDWord = ^DWord;
   {$endif}
 
@@ -99,7 +100,30 @@ function ApplicationName: string;
 function GetAppConfigDir(Global : Boolean) : String;
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
 function StrToQWord(const S: String): QWord;
-function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
+
+{ More reliable IsWild implementation for Delphi
+  can be found in CastleStringUtils unit.
+
+  For unknown reason, the commented out implementation here (copied from FPC RTL)
+  was completely unstable in Delphi, returning random results in some cases
+  -- testcase e.g.
+
+     ./castle_tester_standalone --console --filter='*testeventloop*'
+
+  The filter was matching randomly ~330 names...
+
+  Weird:
+
+  - The implementation here doesn't seem to depend on 8-bit vs 16-bit
+    strings.
+  - And it returns stable results in simple applications.
+  - Adding Writelns to debug... changed the results to be correct sometimes!
+
+  For now, for Delphi, we use a hacky but simpler IsWild from CastleStringUtils
+  that is based on regexps.
+  Autotested in TTestCastleStringUtils.TestIsWild . }
+//function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
+
 procedure FillByte(var X; Count: SizeInt; Value: Byte);
 procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
 function StrToDWord(const S: String): DWord;
@@ -238,7 +262,7 @@ begin
       if (length(OldPattern[strcount])>0) and
          (OldPattern[strcount][1]=pc^) and
          (Length(OldPattern[strcount]) <= (lastpc-pc)) and
-         CompareMem(Pointer(OldPattern[strcount]), pc, Length(OldPattern[strcount])) then
+         CompareMem(Pointer(OldPattern[strcount]), pc, Length(OldPattern[strcount]) * SizeOf(Char)) then
         begin
         ResStr := ResStr + NewPattern[strcount];
         pc := pc+Length(OldPattern[strcount]);
@@ -266,22 +290,29 @@ begin
   Result := StrToUInt64(S);
 end;
 
+(*
 Function isMatch(level : integer;inputstr,wilds : string; CWild, CinputWord: SizeInt;MaxInputword,maxwilds : SizeInt; Out EOS : Boolean) : Boolean;
+
   function WildisQuestionmark : boolean;
-begin
+  begin
     Result:=CWild <= MaxWilds;
     if Result then
       Result:= Wilds[CWild]='?';
   end;
+
   function WildisStar : boolean;
   begin
     Result:=CWild <= MaxWilds;
     if Result then
       Result:= Wilds[CWild]='*';
   end;
+
 begin
   EOS:=False;
   Result:=True;
+
+  //Writeln('IsMatch start: ', inputStr, ' ', Wilds);
+
   repeat
     if WildisStar then { handling of '*' }
       begin
@@ -336,7 +367,9 @@ begin
     EOS:=Wilds[CWild]='*';
     if not EOS then
       Result:=False;
-    end
+    end;
+
+  //Writeln('IsMatch: ', inputStr, ' ', Wilds, ' ', Result);
 end;
 
 function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
@@ -369,8 +402,10 @@ begin
     inputStr:=AnsiUpperCase(inputStr);
     Wilds:=AnsiUpperCase(Wilds);
     end;
+  //Writeln('IsWild: ',inputStr,' ',Wilds);
   Result:=isMatch(1,inputStr,wilds,1,1,MaxinputWord, MaxWilds,EOS);
 end;
+*)
 
 procedure FillDWord(var X; const Count: SizeInt; const Value: DWord);
 var
@@ -396,4 +431,5 @@ begin
 end;
 
 {$endif read_implementation}
+{$endif not PASDOC}
 {$endif not FPC}

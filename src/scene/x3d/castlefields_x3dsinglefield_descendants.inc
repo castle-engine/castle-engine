@@ -1,6 +1,6 @@
 {%MainUnit x3dfields.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -160,7 +160,7 @@
 
     class function X3DType: String; override;
 
-    procedure Send(const AValue: LongInt); overload;
+    procedure Send(const AValue: Int32); overload;
   end;
 
   { X3D field containing a floating-point value with Single precision. }
@@ -312,19 +312,19 @@
   TSFLong = class(TX3DSingleField)
   strict private
     FMustBeNonnegative: boolean;
-    FValue: Longint;
-    procedure SetValue(const AValue: Longint);
+    FValue: Int32;
+    procedure SetValue(const AValue: Int32);
     procedure SetMustBeNonnegative(const ANewMustBeNonnegative: Boolean);
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    DefaultValue: Longint;
+    DefaultValue: Int32;
     DefaultValueExists: boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: String; const AValue: Longint);
+      const AExposed: boolean; const AName: String; const AValue: Int32);
 
-    property Value: Longint read FValue write SetValue;
+    property Value: Int32 read FValue write SetValue;
 
     { Set this to @true to request that only values >= 0 are valid.
       Trying to set Value to something < 0 will make a warning
@@ -348,7 +348,7 @@
     class function X3DType: String; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
 
-    procedure Send(const AValue: LongInt); overload; virtual;
+    procedure Send(const AValue: Int32); overload; virtual;
   end;
 
   { X3D field containing an single integer 32-bit value.
@@ -357,7 +357,7 @@
   public
     class function X3DType: String; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
-    procedure Send(const AValue: LongInt); override;
+    procedure Send(const AValue: Int32); override;
   end;
 
   {$ifdef FPC}
@@ -1150,7 +1150,7 @@ end;
 
 procedure TSFFloat.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(FormatDot('%g', [Value]));
+  Writer.Write(FormatDot(FloatOutputFormat, [Value]));
 end;
 
 function TSFFloat.EqualsDefaultValue: boolean;
@@ -1262,7 +1262,7 @@ end;
 
 procedure TSFDouble.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(FormatDot('%g', [Value]));
+  Writer.Write(FormatDot(FloatOutputFormat, [Value]));
 end;
 
 function TSFDouble.EqualsDefaultValue: boolean;
@@ -1407,7 +1407,7 @@ end;
 
 procedure TSFImage.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
-  w, h, comp: LongWord;
+  w, h, comp: UInt32;
   i: Cardinal;
   RGBPixels: PVector3ByteArray;
   RGBAlphaPixels: PVector4ByteArray;
@@ -1424,9 +1424,9 @@ begin
 
   Value.Empty;
 
-  w := ParseLongWord(Lexer);
-  h := ParseLongWord(Lexer);
-  comp := ParseLongWord(Lexer);
+  w := ParseUInt32(Lexer);
+  h := ParseUInt32(Lexer);
+  comp := ParseUInt32(Lexer);
 
   { If w or h =0 then w*h = 0 so we don't have to read anything more.
     We leave Value.IsEmpty in this case. }
@@ -1437,25 +1437,25 @@ begin
           Value := TGrayscaleImage.Create(w, h);
           GrayscalePixels := TGrayscaleImage(Value).PixelsArray;
           for i := 0 to W * H - 1 do
-            DecodeX3DColor(ParseLongWord(Lexer), GrayscalePixels^[I]);
+            DecodeX3DColor(ParseUInt32(Lexer), GrayscalePixels^[I]);
         end;
       2:begin
           Value := TGrayscaleAlphaImage.Create(w, h);
           GrayscaleAlphaPixels := TGrayscaleAlphaImage(Value).PixelsArray;
           for i := 0 to W * H - 1 do
-            DecodeX3DColor(ParseLongWord(Lexer), GrayscaleAlphaPixels^[i]);
+            DecodeX3DColor(ParseUInt32(Lexer), GrayscaleAlphaPixels^[i]);
         end;
       3:begin
           Value := TRGBImage.Create(w, h);
           RGBPixels := TRGBImage(Value).PixelsArray;
           for i := 0 to W * H - 1 do
-            DecodeX3DColor(ParseLongWord(Lexer), RGBPixels^[i]);
+            DecodeX3DColor(ParseUInt32(Lexer), RGBPixels^[i]);
         end;
       4:begin
           Value := TRGBAlphaImage.Create(w, h);
           RGBAlphaPixels := TRGBAlphaImage(Value).PixelsArray;
           for i := 0 to W * H - 1 do
-            DecodeX3DColor(ParseLongWord(Lexer), RGBAlphaPixels^[i]);
+            DecodeX3DColor(ParseUInt32(Lexer), RGBAlphaPixels^[i]);
         end;
       else raise EX3DParserError.Create(Lexer, Format('Invalid components count'+
              ' for SFImage : is %d, should be 1, 2, 3 or 4.',[comp]));
@@ -1469,7 +1469,7 @@ var
   rgb: TVector3Byte;
   rgba: TVector4Byte;
   i: Cardinal;
-  pixel: LongWord;
+  pixel: UInt32;
 begin
   if Value.IsEmpty then
     Writer.Write('0 0 1') else
@@ -1563,14 +1563,14 @@ end;
 { TSFLong -------------------------------------------------------------------- }
 
 constructor TSFLong.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: String; const AValue: Longint);
+  const AExposed: boolean; const AName: String; const AValue: Int32);
 begin
   CreateUndefined(AParentNode, AExposed, AName);
   FValue := AValue;
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFLong.SetValue(const AValue: LongInt);
+procedure TSFLong.SetValue(const AValue: Int32);
 begin
   if MustBeNonnegative and (AValue < 0) then
   begin
@@ -1606,8 +1606,8 @@ begin
   Lexer.CheckTokenIs(vtInteger);
 
   { Check is TokenInteger outside of 32-bit range. }
-  if (Lexer.TokenInteger >= Low(LongInt)) and
-     (Lexer.TokenInteger <= High(LongInt)) then
+  if (Lexer.TokenInteger >= Low(Int32)) and
+     (Lexer.TokenInteger <= High(Int32)) then
   begin
     Value := Lexer.TokenInteger;
   end else
@@ -1686,7 +1686,7 @@ begin
   Result := 'SFLong';
 end;
 
-procedure TSFLong.Send(const AValue: LongInt);
+procedure TSFLong.Send(const AValue: Int32);
 var
   FieldValue: TX3DField;
 begin
@@ -1708,7 +1708,7 @@ begin
   Result := 'SFInt32';
 end;
 
-procedure TSFInt32.Send(const AValue: LongInt);
+procedure TSFInt32.Send(const AValue: Int32);
 var
   FieldValue: TX3DField;
 begin
@@ -1767,13 +1767,13 @@ var
   Column: integer;
 begin
   V := FValue.Columns[0];
-  Writer.Writeln(V.ToRawString);
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
     V := FValue.Columns[Column];
-    Writer.WritelnIndent(V.ToRawString);
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
   end;
   Writer.DecIndent;
 end;
@@ -1904,13 +1904,13 @@ var
   Column: Integer;
 begin
   V := FValue.Columns[0];
-  Writer.Writeln(V.ToRawString);
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
     V := FValue.Columns[Column];
-    Writer.WritelnIndent(V.ToRawString);
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
   end;
   Writer.DecIndent;
 end;
@@ -2042,13 +2042,13 @@ var
   Column: integer;
 begin
   V := FValue.Columns[0];
-  Writer.Writeln(V.ToRawString);
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
     V := FValue.Columns[Column];
-    Writer.WritelnIndent(V.ToRawString);
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
   end;
   Writer.DecIndent;
 end;
@@ -2179,13 +2179,13 @@ var
   Column: integer;
 begin
   V := FValue.Columns[0];
-  Writer.Writeln(V.ToRawString);
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
     V := FValue.Columns[Column];
-    Writer.WritelnIndent(V.ToRawString);
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
   end;
   Writer.DecIndent;
 end;
@@ -2317,13 +2317,13 @@ var
   Column: integer;
 begin
   V := FValue.Columns[0];
-  Writer.Writeln(V.ToRawString);
+  Writer.Writeln(V.ToRawString(FloatOutputFormat));
 
   Writer.IncIndent;
   for Column := 1 to MatrixSize - 1 do
   begin
     V := FValue.Columns[Column];
-    Writer.WritelnIndent(V.ToRawString);
+    Writer.WritelnIndent(V.ToRawString(FloatOutputFormat));
   end;
   Writer.DecIndent;
 end;
@@ -2486,7 +2486,7 @@ end;
 
 procedure TSFRotation.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Axis.ToRawString +' ' +FormatDot('%g', [RotationRad]));
+  Writer.Write(Axis.ToRawString(FloatOutputFormat) +' ' +FormatDot(FloatOutputFormat, [RotationRad]));
 end;
 
 function TSFRotation.RotatedPoint(const pt: TVector3): TVector3;
@@ -2849,7 +2849,7 @@ end;
 
 procedure TSFGenericVector.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFGenericVector.EqualsDefaultValue: boolean;
@@ -2968,7 +2968,7 @@ end;
 
 procedure TSFVec2f.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec2f.EqualsDefaultValue: boolean;
@@ -3096,7 +3096,7 @@ end;
 
 procedure TSFVec3f.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec3f.EqualsDefaultValue: boolean;
@@ -3228,7 +3228,7 @@ end;
 
 procedure TSFVec4f.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec4f.EqualsDefaultValue: boolean;
@@ -3360,7 +3360,7 @@ end;
 
 procedure TSFVec2d.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec2d.EqualsDefaultValue: boolean;
@@ -3480,7 +3480,7 @@ end;
 
 procedure TSFVec3d.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec3d.EqualsDefaultValue: boolean;
@@ -3600,7 +3600,7 @@ end;
 
 procedure TSFVec4d.SaveToStreamValue(Writer: TX3DWriter);
 begin
-  Writer.Write(Value.ToRawString);
+  Writer.Write(Value.ToRawString(FloatOutputFormat));
 end;
 
 function TSFVec4d.EqualsDefaultValue: boolean;
@@ -3945,7 +3945,7 @@ end;
 const
   FakeEnumStrings: array [0..0] of String = ('');
 
-procedure TSFEnum.Send(const AValue: LongInt);
+procedure TSFEnum.Send(const AValue: Int32);
 var
   FieldValue: TX3DField;
 begin

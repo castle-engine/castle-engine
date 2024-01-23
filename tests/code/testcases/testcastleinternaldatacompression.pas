@@ -18,9 +18,8 @@ unit TestCastleInternalDataCompression;
 
 interface
 
-uses Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit,
-  TestUtils, TestRegistry, CastleTestCase, {$else}CastleTester, {$endif}
-  CastleUtils, CastleClassUtils;
+uses Classes, SysUtils,
+  CastleTester, CastleUtils, CastleClassUtils;
 
 type
   TTestCastleInternalDataCompression = class(TCastleTestCase)

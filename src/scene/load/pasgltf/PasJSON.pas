@@ -319,11 +319,11 @@ type PPPasJSONInt8=^PPasJSONInt8;
 
      PPPasJSONInt32=^PPasJSONInt32;
      PPasJSONInt32=^TPasJSONInt32;
-     TPasJSONInt32={$ifdef fpc}Int32{$else}longint{$endif};
+     TPasJSONInt32={$ifdef fpc}Int32{$else}Integer{$endif};
 
      PPPasJSONUInt32=^PPasJSONUInt32;
      PPasJSONUInt32=^TPasJSONUInt32;
-     TPasJSONUInt32={$ifdef fpc}UInt32{$else}longword{$endif};
+     TPasJSONUInt32={$ifdef fpc}UInt32{$else}Cardinal{$endif};
 
      PPPasJSONInt64=^PPasJSONInt64;
      PPasJSONInt64=^TPasJSONInt64;
@@ -392,8 +392,8 @@ type PPPasJSONInt8=^PPasJSONInt8;
      TPasJSONPtrUInt=uint64;
      TPasJSONPtrInt=int64;
 {$else}
-     TPasJSONPtrUInt=longword;
-     TPasJSONPtrInt=longint;
+     TPasJSONPtrUInt=Cardinal;
+     TPasJSONPtrInt=Integer;
 {$endif}
 {$endif}
 

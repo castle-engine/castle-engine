@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -156,7 +156,7 @@ function MakeCameraNavNode(const Version: TX3DCameraVersion;
 implementation
 
 uses SysUtils, Math,
-  CastleTransform;
+  CastleTransform, X3DFields;
 
 { TMakeX3DViewpoint ---------------------------------------------------------- }
 
@@ -326,7 +326,7 @@ begin
     AngleForGravity := AngleRadBetweenVectors(DefaultX3DGravityUp, GravityUp);
     S1 := Position.ToRawString;
     S2 := RotationVectorForGravity.ToRawString;
-    S3 := Format('%g', [AngleForGravity]);
+    S3 := FormatDot(FloatOutputFormat, [AngleForGravity]);
     { We want such that
         1. standard VRML/X3D dir/up vectors
         2. rotated by orientation

@@ -3,5 +3,6 @@
         "dscene",
         "filesystems",
         "VRML"
-    ]
+    ],
+    "dotnet.defaultSolution": "disable"
 }

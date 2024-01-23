@@ -316,6 +316,21 @@
 {$longstrings on}
 {$openstrings on}
 
+// CGE: fix for Delphi on non-Windows, also makes sense for WebAssembly
+{$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+  {$define USE_TRIVIAL_IMPLEMENTATION}
+{$ifend}
+{$if defined(WASI)}
+  {$define USE_TRIVIAL_IMPLEMENTATION}
+{$ifend}
+
+{ CGE: Delphi on Linux doesn't define
+  - TFPUPrecisionMode, SetPrecisionMode
+  - TFPUExceptionMask, SetFPUExceptionMask }
+{$if defined(FPC) or defined(MSWINDOWS)}
+  {$define HAS_FPU_TYPES}
+{$ifend}
+
 interface
 
 uses SysUtils,Math;
@@ -333,10 +348,10 @@ type PPasDblStrUtilsInt8=^TPasDblStrUtilsInt8;
      TPasDblStrUtilsUInt16={$ifdef fpc}UInt16{$else}Word{$endif};
 
      PPasDblStrUtilsInt32=^TPasDblStrUtilsInt32;
-     TPasDblStrUtilsInt32={$ifdef fpc}Int32{$else}LongInt{$endif};
+     TPasDblStrUtilsInt32={$ifdef fpc}Int32{$else}Integer{$endif};
 
      PPasDblStrUtilsUInt32=^TPasDblStrUtilsUInt32;
-     TPasDblStrUtilsUInt32={$ifdef fpc}UInt32{$else}LongWord{$endif};
+     TPasDblStrUtilsUInt32={$ifdef fpc}UInt32{$else}Cardinal{$endif};
 
      PPasDblStrUtilsInt64=^TPasDblStrUtilsInt64;
      TPasDblStrUtilsInt64=Int64;
@@ -407,7 +422,12 @@ type PPasDblStrUtilsInt8=^TPasDblStrUtilsInt8;
      TPasDblStrUtilsPointer=Pointer;
 
      PPasDblStrUtilsRoundingMode=^TPasDblStrUtilsRoundingMode;
-     TPasDblStrUtilsRoundingMode=type TFPURoundingMode;
+     TPasDblStrUtilsRoundingMode=
+       {$ifdef HAS_FPU_TYPES}
+         type TFPURoundingMode
+       {$else}
+         (rmNearest, rmDown, rmUp, rmTruncate)
+       {$endif};
 
      TPasDblStrUtilsOutputMode=(
       omStandard,
@@ -423,6 +443,29 @@ function ConvertStringToDouble(const StringValue:TPasDblStrUtilsString;const Rou
 function ConvertDoubleToString(const AValue:TPasDblStrUtilsDouble;const OutputMode:TPasDblStrUtilsOutputMode=omStandard;RequestedDigits:TPasDblStrUtilsInt32=-1):TPasDblStrUtilsString;
 
 implementation
+
+{$ifdef USE_TRIVIAL_IMPLEMENTATION}
+{$warn IMPLICIT_STRING_CAST off}
+{$warn IMPLICIT_STRING_CAST_LOSS off}
+
+uses CastleUtils;
+
+function ConvertStringToDouble(const StringValue:TPasDblStrUtilsString;const RoundingMode:TPasDblStrUtilsRoundingMode=rmNearest;const OK:PPasDblStrUtilsBoolean=nil;const Base:TPasDblStrUtilsInt32=-1):TPasDblStrUtilsDouble;
+var
+  Success: Boolean;
+begin
+  Success := TryStrToFloatDot(StringValue, Result);
+  { Assign OK^, if OK non-nil. }
+  if OK <> nil then
+    OK^ := Success;
+end;
+
+function ConvertDoubleToString(const AValue:TPasDblStrUtilsDouble;const OutputMode:TPasDblStrUtilsOutputMode=omStandard;RequestedDigits:TPasDblStrUtilsInt32=-1):TPasDblStrUtilsString;
+begin
+  Result := FloatToStrDot(AValue);
+end;
+
+{$else}
 
 type PDoubleHiLo=^TDoubleHiLo;
      TDoubleHiLo=packed record
@@ -3962,6 +4005,8 @@ begin
   end;
  end;
 end;
+
+{$endif}
 
 initialization
 finalization

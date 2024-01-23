@@ -922,17 +922,17 @@ end;
 
 function TCastleView.ContainerWidth: Cardinal;
 begin
-  Result := PredictedContainer.Width;
+  Result := PredictedContainer.PixelsWidth;
 end;
 
 function TCastleView.ContainerHeight: Cardinal;
 begin
-  Result := PredictedContainer.Height;
+  Result := PredictedContainer.PixelsHeight;
 end;
 
 function TCastleView.ContainerRect: TRectangle;
 begin
-  Result := PredictedContainer.Rect;
+  Result := PredictedContainer.PixelsRect;
 end;
 
 function TCastleView.ContainerSizeKnown: boolean;

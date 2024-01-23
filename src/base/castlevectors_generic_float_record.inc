@@ -1,6 +1,6 @@
 {%MainUnit castlevectors.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -113,9 +113,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString(const FloatFormat: String = '%g'): string;
 
     function Normalize: TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure NormalizeMe; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -233,9 +237,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString(const FloatFormat: String = '%g'): string;
 
     function Normalize: TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure NormalizeMe; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -379,9 +387,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString(const FloatFormat: String = '%g'): string;
 
     function Length: TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
@@ -477,9 +489,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''; const FloatFormat: String = '%g'): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector2 read GetRows write SetRows;
@@ -567,9 +583,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''; const FloatFormat: String = '%g'): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector3 read GetRows write SetRows;
@@ -652,9 +672,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''; const FloatFormat: String = '%g'): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector4 read GetRows write SetRows;
@@ -725,6 +749,11 @@ implementation
 uses Math,
   CastleUtils;
 
+function FormatScalar(const Value: TGenericScalar; const Fmt: String): String;
+begin
+  Result := FormatDot(Fmt, [Value]);
+end;
+
 { TGenericVector2 ------------------------------------------------------------ }
 
 class operator TGenericVector2. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2;
@@ -785,9 +814,11 @@ begin
     FloatToStrDisplay(Y);
 end;
 
-function TGenericVector2.ToRawString: string;
+function TGenericVector2.ToRawString(const FloatFormat: String): string;
 begin
-  Result := FormatDot('%g %g', [X, Y]);
+  Result :=
+    FormatScalar(X, FloatFormat) + ' ' +
+    FormatScalar(Y, FloatFormat);
 end;
 
 function TGenericVector2.GetItems(const Index: TIndex): TGenericScalar;
@@ -1000,9 +1031,12 @@ begin
     FloatToStrDisplay(Z);
 end;
 
-function TGenericVector3.ToRawString: string;
+function TGenericVector3.ToRawString(const FloatFormat: String): string;
 begin
-  Result := FormatDot('%g %g %g', [X, Y, Z]);
+  Result :=
+    FormatScalar(X, FloatFormat) + ' ' +
+    FormatScalar(Y, FloatFormat) + ' ' +
+    FormatScalar(Z, FloatFormat);
 end;
 
 function TGenericVector3.GetItems(const Index: TIndex): TGenericScalar;
@@ -1259,9 +1293,13 @@ begin
     FloatToStrDisplay(W);
 end;
 
-function TGenericVector4.ToRawString: string;
+function TGenericVector4.ToRawString(const FloatFormat: String): string;
 begin
-  Result := FormatDot('%g %g %g %g', [X, Y, Z, W]);
+  Result :=
+    FormatScalar(X, FloatFormat) + ' ' +
+    FormatScalar(Y, FloatFormat) + ' ' +
+    FormatScalar(Z, FloatFormat) + ' ' +
+    FormatScalar(W, FloatFormat);
 end;
 
 function TGenericVector4.GetItems(const Index: TIndex): TGenericScalar;
@@ -1481,12 +1519,11 @@ begin
     LineIndent, FloatToStrDisplay(Data[0, 1]), FloatToStrDisplay(Data[1, 1]) ]);
 end;
 
-function TGenericMatrix2.ToRawString(const LineIndent: string): string;
+function TGenericMatrix2.ToRawString(const LineIndent, FloatFormat: String): String;
 begin
-  Result := FormatDot('%s%g %g' + NL +
-                      '%s%g %g',
-   [LineIndent, Data[0, 0], Data[1, 0],
-    LineIndent, Data[0, 1], Data[1, 1] ]);
+  Result :=
+    LineIndent + FormatScalar(Data[0, 0], FloatFormat) + ' ' + FormatScalar(Data[1, 0], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 1], FloatFormat) + ' ' + FormatScalar(Data[1, 1], FloatFormat);
 end;
 
 function TGenericMatrix2.GetItems(const AColumn, ARow: TIndex): TGenericScalar;
@@ -1735,14 +1772,12 @@ begin
     LineIndent, FloatToStrDisplay(Data[0, 2]), FloatToStrDisplay(Data[1, 2]), FloatToStrDisplay(Data[2, 2]) ]);
 end;
 
-function TGenericMatrix3.ToRawString(const LineIndent: string): string;
+function TGenericMatrix3.ToRawString(const LineIndent, FloatFormat: String): String;
 begin
-  Result := FormatDot('%s%g %g %g' + NL +
-                      '%s%g %g %g' + NL +
-                      '%s%g %g %g',
-   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0],
-    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1],
-    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2] ]);
+  Result :=
+    LineIndent + FormatScalar(Data[0, 0], FloatFormat) + ' ' + FormatScalar(Data[1, 0], FloatFormat) + ' ' + FormatScalar(Data[2, 0], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 1], FloatFormat) + ' ' + FormatScalar(Data[1, 1], FloatFormat) + ' ' + FormatScalar(Data[2, 1], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 2], FloatFormat) + ' ' + FormatScalar(Data[1, 2], FloatFormat) + ' ' + FormatScalar(Data[2, 2], FloatFormat);
 end;
 
 function TGenericMatrix3.GetItems(const AColumn, ARow: TIndex): TGenericScalar;
@@ -2100,16 +2135,13 @@ begin
     LineIndent, FloatToStrDisplay(Data[0, 3]), FloatToStrDisplay(Data[1, 3]), FloatToStrDisplay(Data[2, 3]), FloatToStrDisplay(Data[3, 3]) ]);
 end;
 
-function TGenericMatrix4.ToRawString(const LineIndent: string): string;
+function TGenericMatrix4.ToRawString(const LineIndent, FloatFormat: String): String;
 begin
-  Result := FormatDot('%s%g %g %g %g' + NL +
-                      '%s%g %g %g %g' + NL +
-                      '%s%g %g %g %g' + NL +
-                      '%s%g %g %g %g',
-   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0], Data[3, 0],
-    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1], Data[3, 1],
-    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2], Data[3, 2],
-    LineIndent, Data[0, 3], Data[1, 3], Data[2, 3], Data[3, 3] ]);
+  Result :=
+    LineIndent + FormatScalar(Data[0, 0], FloatFormat) + ' ' + FormatScalar(Data[1, 0], FloatFormat) + ' ' + FormatScalar(Data[2, 0], FloatFormat) + ' ' + FormatScalar(Data[3, 0], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 1], FloatFormat) + ' ' + FormatScalar(Data[1, 1], FloatFormat) + ' ' + FormatScalar(Data[2, 1], FloatFormat) + ' ' + FormatScalar(Data[3, 1], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 2], FloatFormat) + ' ' + FormatScalar(Data[1, 2], FloatFormat) + ' ' + FormatScalar(Data[2, 2], FloatFormat) + ' ' + FormatScalar(Data[3, 2], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 3], FloatFormat) + ' ' + FormatScalar(Data[1, 3], FloatFormat) + ' ' + FormatScalar(Data[2, 3], FloatFormat) + ' ' + FormatScalar(Data[3, 3], FloatFormat);
 end;
 
 function TGenericMatrix4.GetItems(const AColumn, ARow: TIndex): TGenericScalar;

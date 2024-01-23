@@ -481,7 +481,7 @@ procedure TCastleTiledMapData.TData.Load(const Element: TDOMElement; const BaseU
     Decoder: TBase64DecodingStream;
     Decompressor: TStream;
     Buffer: array[0..BufferSize-1] of Cardinal;
-    DataCount, DataLength: Longint;
+    DataCount, DataLength: Int64;
   begin
     Decoder := TBase64DecodingStream.Create(TStringStream.Create(Element.TextData));
     try

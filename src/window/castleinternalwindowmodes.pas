@@ -265,9 +265,6 @@ begin
   OldCloseQuery := Window.OnCloseQuery;
   OldResize := Window.OnResize;
   OldUpdate := Window.OnUpdate;
-  {$ifdef FPC}
-  OldTimer := Window.OnTimer;
-  {$endif}
   {$warnings on}
   OldMenuClick := Window.OnMenuClick;
   oldCaption := Window.Caption;
@@ -298,9 +295,6 @@ begin
   Window.OnCloseQuery := OldCloseQuery;
   Window.OnResize := OldResize;
   Window.OnUpdate := OldUpdate;
-  {$ifdef FPC}
-  Window.OnTimer := OldTimer;
-  {$endif}
   {$warnings on}
   Window.OnMenuClick := OldMenuClick;
   Window.Caption := oldCaption;
@@ -372,9 +366,6 @@ begin
   Window.OnRender := nil;
   Window.OnCloseQuery := nil;
   Window.OnUpdate := nil;
-  {$ifdef FPC}
-  Window.OnTimer := nil;
-  {$endif}
   Window.OnResize := nil;
   Window.OnRender := NewRender;
   Window.OnResize := NewResize;

@@ -35,7 +35,7 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/level/level.gltf",
+            "Url" : "castle-data:/level/level.gltf",
             "$Children" : [
               {
                 "$$ClassName" : "TCastleScene",
@@ -46,7 +46,7 @@
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                 },
-                "URL" : "castle-data:/level/terrain_multi_texture.x3dv",
+                "Url" : "castle-data:/level/terrain_multi_texture.x3dv",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleMeshCollider",
@@ -81,7 +81,7 @@
                         "RenderOptions" : {
                           "$$ClassName" : "TCastleScene.TSceneRenderOptions"
                         },
-                        "URL" : "castle-data:/level/Tree.gltf"
+                        "Url" : "castle-data:/level/Tree.gltf"
                       }
                     ]
                   },
@@ -149,7 +149,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Z" : -2.6426731109619141E+001
                 },
-                "URL" : "castle-data:/enemy/knight.gltf"
+                "Url" : "castle-data:/enemy/knight.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -172,7 +172,7 @@
                   "X" : -4.7773938179016113E+000,
                   "Z" : 2.8669331073760986E+000
                 },
-                "URL" : "castle-data:/enemy/knight.gltf"
+                "Url" : "castle-data:/enemy/knight.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -189,7 +189,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Z" : -8.6825172424316406E+001
                 },
-                "URL" : "castle-data:/enemy/knight.gltf"
+                "Url" : "castle-data:/enemy/knight.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -207,7 +207,7 @@
                   "X" : 7.6490526199340820E+000,
                   "Z" : -8.6825172424316406E+001
                 },
-                "URL" : "castle-data:/enemy/knight.gltf"
+                "Url" : "castle-data:/enemy/knight.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -225,7 +225,7 @@
                   "X" : -1.0116898536682129E+001,
                   "Z" : -8.6825172424316406E+001
                 },
-                "URL" : "castle-data:/enemy/knight.gltf"
+                "Url" : "castle-data:/enemy/knight.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -242,7 +242,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Z" : -1.6945663452148438E+001
                 },
-                "URL" : "castle-data:/enemy/knight.gltf"
+                "Url" : "castle-data:/enemy/knight.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -265,7 +265,7 @@
                   "X" : 1.5549259185791016E+001,
                   "Z" : -1.6945663452148438E+001
                 },
-                "URL" : "castle-data:/enemy/knight.gltf"
+                "Url" : "castle-data:/enemy/knight.gltf"
               }
             ]
           },
@@ -973,12 +973,12 @@
                       "W" : 3.1400001049041748E+000,
                       "Y" : 1.0000000000000000E+000
                     },
-                    "URL" : "castle-data:/item_gun/plasma.gltf",
+                    "Url" : "castle-data:/item_gun/plasma.gltf",
                     "$NonVisualComponents" : [
                       {
                         "$$ClassName" : "TCastleSound",
                         "Name" : "SoundShoot",
-                        "URL" : "castle-data:/sounds/shoot.wav"
+                        "Url" : "castle-data:/sounds/shoot.wav"
                       }
                     ]
                   }
@@ -1481,7 +1481,7 @@
               {
                 "$$ClassName" : "TCastleSound",
                 "Name" : "SoundFootsteps",
-                "URL" : "castle-data:/sounds/footsteps_grass.wav"
+                "Url" : "castle-data:/sounds/footsteps_grass.wav"
               }
             ]
           }
@@ -1510,28 +1510,16 @@
         {
           "$$ClassName" : "TCastleImageControl",
           "Content" : {
-            "$$ClassName" : "TCastleImagePersistent"
-          },
-          "Name" : "Crosshair"
-        },
-        {
-          "$$ClassName" : "TCastleImageControl",
-          "Content" : {
             "$$ClassName" : "TCastleImagePersistent",
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorPersistent",
               "Alpha" : 7.5000000000000000E-001
             },
-            "URL" : "castle-data:/hud/crosshair.png"
+            "Url" : "castle-data:/hud/crosshair.png"
           },
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
-          "Name" : "ImageControl5",
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 1.1000000000000000E+002,
-            "Y" : 1.0000000000000000E+001
-          },
+          "Name" : "Crosshair",
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle"
         }
@@ -1585,7 +1573,7 @@
       "FullSize" : true,
       "Height" : 7.8000000000000000E+002,
       "Name" : "DesignHud",
-      "URL" : "castle-data:/hud.castle-user-interface",
+      "Url" : "castle-data:/hud.castle-user-interface",
       "Width" : 1.1600000000000000E+003
     }
   ]

@@ -224,7 +224,7 @@ var
 
     procedure SaveComponents(Root: TX3DRootNode);
     var
-      ComponentLevel: {$ifdef FPC}TStringLongIntMap.TDictionaryPair{$else}TPair<string, LongInt>{$endif};
+      ComponentLevel: {$ifdef FPC}TStringIntegerMap.TDictionaryPair{$else}TPair<string, Integer>{$endif};
     begin
       for ComponentLevel in Root.Components do
         Writer.Writeln(Format('COMPONENT %s:%d',
@@ -314,7 +314,7 @@ var
 
     procedure SaveComponents(Root: TX3DRootNode);
     var
-      ComponentLevel: {$ifdef FPC}TStringLongIntMap.TDictionaryPair{$else}TPair<string, LongInt>{$endif};
+      ComponentLevel: {$ifdef FPC}TStringIntegerMap.TDictionaryPair{$else}TPair<string, Integer>{$endif};
     begin
       for ComponentLevel in Root.Components do
         Writer.WritelnIndent(Format('<component name=%s level="%d" />',

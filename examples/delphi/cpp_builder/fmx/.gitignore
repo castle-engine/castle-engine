@@ -5,3 +5,5 @@
 *.map
 *.pdi
 *.tds
+# Delphi 11.3 (but not 12) makes this temp dir when building
+__astcache

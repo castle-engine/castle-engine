@@ -448,7 +448,7 @@ procedure TFontManager.SetPixelSize (aSize : integer);
       end;
   end;
 
-var s : longint;
+var s : Integer;
     Err : integer;
 
 const

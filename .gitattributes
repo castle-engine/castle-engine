@@ -23,4 +23,5 @@
 
 # Even on Windows, shell scripts line endings must be Unix, to work with Cygwin's bash.
 *.sh text eol=lf
+cge_shell_tests eol=lf
 *gradlew text eol=lf

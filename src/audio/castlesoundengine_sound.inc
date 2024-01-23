@@ -138,7 +138,7 @@
     { Frequency (sample rate) of the loaded sound file.
       0 if not loaded yet.
       The sound is loaded once you set @link(Url) and don't get any loading exceptions. }
-    function Frequency: LongWord;
+    function Frequency: Cardinal;
   published
     { URL of the sound file.
       Set this to load a new sound buffer, you can set to '' to clear the sound buffer.
@@ -457,7 +457,7 @@ begin
     Result := Default(TSoundDataFormat); // whatever, just not memory garbage
 end;
 
-function TCastleSound.Frequency: LongWord;
+function TCastleSound.Frequency: Cardinal;
 begin
   if FBuffer <> nil then
     Result := FBuffer.Frequency

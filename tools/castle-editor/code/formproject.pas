@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,7 +16,7 @@
 { Project form (@link(TProjectForm)). }
 unit FormProject;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 { Hack to use OpenDocument instead of RunCommandNoWait to execute Delphi.
   This assumes that Delphi is associated on your system with Pascal files.
@@ -1950,6 +1950,7 @@ begin
             PageControlBottom.Height := NewControlHeight;
           end;
         end;
+      else ; // do not restore other state, like wsMinimized
     end;
   end;
 end;
@@ -3184,7 +3185,9 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
     case BuildMode of
       bmDebug  : ModeString := '--mode=debug';
       bmRelease: ModeString := '--mode=release';
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('BuildMode?');
+      {$endif}
     end;
     Params.Add(ModeString);
   end;
@@ -3537,6 +3540,7 @@ begin
           ShellTreeView1.Refresh(nil);
           ShellTreeView1.Path := TreeViewPath;
         end;
+      else ; // no need to do for others
     end;
 
     ShellListView1.SelectedFileNameInRoot := SavedSelectedFileNameInRoot;

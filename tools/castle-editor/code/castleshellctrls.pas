@@ -714,7 +714,7 @@ var
   //FileTree: TStringList;
   ShortFilename: AnsiString;
   {$if defined(windows) and not defined(wince)}
-  ErrMode : LongWord;
+  ErrMode : UInt32;
   {$endif}
 begin
   ExcludedCount := 0;
@@ -819,6 +819,7 @@ begin
   if Assigned(Files) then begin
 
     case AFileSortType of
+      fstNone: ; // do no sorting
       fstAlphabet:     Files.Sort(@FilesSortAlphabet);
       fstFoldersFirst: Files.Sort(@FilesSortFoldersFirst);
     end;
@@ -942,7 +943,7 @@ end;
 procedure TCustomCastleShellTreeView.PopulateWithBaseFiles;
 {$if defined(windows) and not defined(wince)}
 var
-  r: LongWord;
+  r: UInt32;
   Drives: array[0..128] of char;
   pDrive: PChar;
   NewNode: TTreeNode;

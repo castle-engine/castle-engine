@@ -20,8 +20,8 @@ unit TestCastleSceneCore;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, CastleSceneCore, X3DNodes;
+  Classes, SysUtils,
+  CastleTester, CastleSceneCore, X3DNodes;
 
 type
   TTestSceneCore = class(TCastleTestCase)

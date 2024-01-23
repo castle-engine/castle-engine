@@ -42,7 +42,7 @@ type
     { Sound buffer information. }
     function Duration: TFloatTime; virtual; abstract;
     function DataFormat: TSoundDataFormat; virtual; abstract;
-    function Frequency: LongWord; virtual; abstract;
+    function Frequency: Cardinal; virtual; abstract;
 
     constructor Create(const ASoundEngine: TSoundEngineBackend);
 
@@ -64,7 +64,7 @@ type
   strict private
     FDuration: TFloatTime;
     FDataFormat: TSoundDataFormat;
-    FFrequency: LongWord;
+    FFrequency: Cardinal;
   protected
     { Optionally change (pre-process in some way) SoundFile contents
       before loading it. Called by @link(ContextOpen),
@@ -81,7 +81,7 @@ type
     procedure ContextOpen(const AUrl: String); override;
     function Duration: TFloatTime; override;
     function DataFormat: TSoundDataFormat; override;
-    function Frequency: LongWord; override;
+    function Frequency: Cardinal; override;
   end;
 
   { TSoundBufferBackend descendant that loads sound files using TStreamedSoundFile.
@@ -107,14 +107,14 @@ type
     // Fields below are valid only if FStreamConfigRead
     FDuration: TFloatTime;
     FDataFormat: TSoundDataFormat;
-    FFrequency: LongWord;
+    FFrequency: Cardinal;
     procedure ReadStreamConfigFromTemp;
   protected
     procedure ReadStreamConfig(const StreamedSoundFile: TStreamedSoundFile);
   public
     function Duration: TFloatTime; override;
     function DataFormat: TSoundDataFormat; override;
-    function Frequency: LongWord; override;
+    function Frequency: Cardinal; override;
   end;
 
   { Abstract sound engine sound source: something in 3D that plays sound. }
@@ -232,7 +232,7 @@ begin
   Result := FDataFormat;
 end;
 
-function TSoundBufferBackendFromSoundFile.Frequency: LongWord;
+function TSoundBufferBackendFromSoundFile.Frequency: Cardinal;
 begin
   Result := FFrequency;
 end;
@@ -277,7 +277,7 @@ begin
   Result := FDataFormat;
 end;
 
-function TSoundBufferBackendFromStreamedFile.Frequency: LongWord;
+function TSoundBufferBackendFromStreamedFile.Frequency: Cardinal;
 begin
   if not FStreamConfigRead then
     ReadStreamConfigFromTemp;

@@ -14,6 +14,8 @@ The source code shows a game designed using [CGE editor](https://castle-engine.i
 
 ## Building
 
-Make sure to build and install CGE packages first. Make sure to build the packages for all the platforms you want (like _Win32_, _Win64_). See the [packages/delphi documentation](https://github.com/castle-engine/castle-engine/tree/master/packages/delphi). Make sure in particular to build `castle_engine_window.bpl` package.
+Make sure to build and install CGE packages first. Make sure to build the packages for all the platforms you want (like _Win32_, _Win64_). See the [Delphi packages installation](https://castle-engine.io/delphi_packages), [Delphi packages documentation](https://github.com/castle-engine/castle-engine/tree/master/packages/delphi). Make sure in particular to build `castle_engine_window.bpl` package.
+
+Note that for _C++ Builder_ you need to _Build_ the packages (and for all your target platforms), not only _Install_ them (which is enough for usage from Delphi / Pascal).
 
 Then open this project in _C++ Builder_ and build and run as usual (hit F9).

@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -128,20 +128,20 @@
   end;
   TGroupNode_2 = TGroupNode;
 
-  { Map String->LongInt. }
-  TStringLongIntMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, LongInt>)
+  { Map String->Integer. }
+  TStringIntegerMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, Integer>)
   strict private
-    function GetItems(const AKey: string): LongInt;
-    procedure SetItems(const AKey: string; const AValue: LongInt);
+    function GetItems(const AKey: string): Integer;
+    procedure SetItems(const AKey: string; const AValue: Integer);
   public
-    { Assign contents (all keys, values) of another TStringLongIntMap instance. }
-    procedure Assign(const Source: TStringLongIntMap);
+    { Assign contents (all keys, values) of another TStringIntegerMap instance. }
+    procedure Assign(const Source: TStringIntegerMap);
 
     { Access dictionary items.
       Setting this is allowed regardless if the key previously existed or not,
       in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
       that only allows setting when the key already exists. }
-    property Items [const AKey: string]: LongInt read GetItems write SetItems; default;
+    property Items [const AKey: string]: Integer read GetItems write SetItems; default;
   end;
 
   { Node functionality for all X3D transformation nodes.
@@ -192,7 +192,7 @@
       FHasForceVersion: boolean;
       FSaveAsRootNode: boolean;
       FProfile: string;
-      FComponents: TStringLongIntMap;
+      FComponents: TStringIntegerMap;
       FMeta: TStringStringMap;
       FScale: Single;
   private
@@ -255,7 +255,7 @@
 
     { Components and levels required for this X3D file.
       Relevant if this node is the root of X3D file. }
-    property Components: TStringLongIntMap read FComponents;
+    property Components: TStringIntegerMap read FComponents;
 
     { Meta keys and values of this X3D file.
       Relevant if this node is the root of X3D file. }
@@ -639,23 +639,23 @@ begin
   if Result <> nil then Exit;
 end;
 
-{ TStringLongIntMap ---------------------------------------------------------- }
+{ TStringIntegerMap ---------------------------------------------------------- }
 
-procedure TStringLongIntMap.Assign(const Source: TStringLongIntMap);
+procedure TStringIntegerMap.Assign(const Source: TStringIntegerMap);
 var
-  Pair: {$ifdef FPC}TDictionaryPair{$else}TPair<string, LongInt>{$endif};
+  Pair: {$ifdef FPC}TDictionaryPair{$else}TPair<string, Integer>{$endif};
 begin
   Clear;
   for Pair in Source do
     Items[Pair.Key] := Pair.Value;
 end;
 
-function TStringLongIntMap.GetItems(const AKey: string): LongInt;
+function TStringIntegerMap.GetItems(const AKey: string): Integer;
 begin
   Result := inherited Items[AKey];
 end;
 
-procedure TStringLongIntMap.SetItems(const AKey: string; const AValue: LongInt);
+procedure TStringIntegerMap.SetItems(const AKey: string; const AValue: Integer);
 begin
   AddOrSetValue(AKey, AValue);
 end;
@@ -724,10 +724,19 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
     This knows that Node.X3DName is <> '' and it exists in Names,
     IOW on entry the Node is named, and the name is not unique. }
   procedure RenameUniquely(const Node: TX3DNode);
+  type
+    { Type for index used to uniquely rename the node.
 
-    procedure RenameUniquelyCore(const Node: TX3DNode; const Prefix: String; NextNumber: Int64);
+      For implementation reasons (we store it in TStringList objects),
+      size of this needs to match Pointer.
+      Again for implementation reasons, needs to be signed, because we sometimes
+      have -1 value in this type (though we don't store this in
+      TStringList objects). }
+    TUniqueNumber = PtrInt;
+
+    procedure RenameUniquelyCore(const Node: TX3DNode; const Prefix: String; NextNumber: TUniqueNumber);
     var
-      PrefixIndex: Integer;
+      PrefixIndex, MaybeNextNumber: TUniqueNumber;
     begin
       { Look for next free number for this prefix.
 
@@ -741,7 +750,16 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
       }
       PrefixIndex := Prefixes.IndexOf(Prefix);
       if PrefixIndex <> -1 then
-        MaxVar(NextNumber, PtrUInt(Prefixes.Objects[PrefixIndex]) + 1);
+      begin
+        { Delphi rejects using below MaxVar Int64 overload on Win64.
+          For safety, to not assume CPU-specific PtrInt = In64?
+          Makes sense, just implement this without MaxVar. }
+        // MaxVar(NextNumber, PtrInt(Prefixes.Objects[PrefixIndex]) + 1);
+
+        MaybeNextNumber := PtrInt(Prefixes.Objects[PrefixIndex]) + 1;
+        if MaybeNextNumber > NextNumber then
+          NextNumber := MaybeNextNumber;
+      end;
 
       while Names.IndexOf(Prefix + IntToStr(NextNumber)) <> -1 do
         Inc(NextNumber);
@@ -755,7 +773,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
 
   var
     I: Integer;
-    Number: Int64;
+    Number: TUniqueNumber;
     {$ifdef CASTLE_LOG_NODE_RENAMES}
     OriginalName: String;
     {$endif CASTLE_LOG_NODE_RENAMES}
@@ -914,7 +932,7 @@ end;
 constructor TX3DRootNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  FComponents := TStringLongIntMap.Create;
+  FComponents := TStringIntegerMap.Create;
   FMeta := TStringStringMap.Create;
   FSaveAsRootNode := true;
   FScale := 1;

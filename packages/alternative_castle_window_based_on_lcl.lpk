@@ -35,7 +35,7 @@
         </ConfigFile>
         <CustomOptions Value="-Sh
 -dCASTLE_ENGINE_LAZARUS_PACKAGE
--dCASTLE_WINDOW_LCL"/>
+-dCASTLE_WINDOW_FORM"/>
       </Other>
     </CompilerOptions>
     <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (glTF, X3D, Spine...), we are cross-platform (desktop, mobile, console), we have an optimized renderer with many cool graphic effects (physically-based rendering, shadows, mirrors, bump mapping, gamma correction...). See https://castle-engine.io/features.php for a complete list of features.
@@ -50,7 +50,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="92"/>
-    <Files Count="35">
+    <Files Count="33">
       <Item1>
         <Filename Value="../src/window/castleinternalwindowmodes.pas"/>
         <UnitName Value="CastleInternalWindowModes"/>
@@ -85,7 +85,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item8>
       <Item9>
-        <Filename Value="../src/window/castlewindow_lcl.inc"/>
+        <Filename Value="../src/window/castlewindow_form.inc"/>
         <Type Value="Include"/>
       </Item9>
       <Item10>
@@ -187,15 +187,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/window/castlewindow_cocoa_colordialog.inc"/>
         <Type Value="Include"/>
       </Item33>
-      <Item34>
-        <Filename Value="../src/window/windows/castleinternalcontextwgl.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleInternalContextWGL"/>
-      </Item34>
-      <Item35>
-        <Filename Value="../src/window/windows/castleinternalcontextbase.pas"/>
-        <UnitName Value="CastleInternalContextBase"/>
-      </Item35>
     </Files>
     <RequiredPkgs Count="3">
       <Item1>

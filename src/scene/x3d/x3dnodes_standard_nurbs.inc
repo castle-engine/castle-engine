@@ -288,7 +288,7 @@ end;
 procedure NurbsCurveProxy(
   const LS: TLineSetNode;
   const ControlPoint: TVector3List;
-  const Tessellation, Order: LongInt;
+  const Tessellation, Order: Integer;
   const FieldKnot, Weight: TDoubleList);
 var
   ResultCoord: TCoordinateNode;
@@ -509,7 +509,7 @@ end;
 procedure NurbsPatchSurfaceProxy(
   const QS: TIndexedQuadSetNode;
   const ControlPoint: TVector3List;
-  const UTessellation, VTessellation, UDimension, VDimension, UOrder, VOrder: LongInt;
+  const UTessellation, VTessellation, UDimension, VDimension, UOrder, VOrder: Integer;
   const FieldUKnot, FieldVKnot, Weight: TDoubleList;
   const PossiblyUClosed, PossiblyVClosed, Solid, Ccw: boolean;
   const TexCoord: TX3DNode);
