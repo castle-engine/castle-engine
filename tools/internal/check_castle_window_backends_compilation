@@ -51,9 +51,9 @@ do_test_one_backend ()
     FPC_OPTIONS="-T$1 -P$2"
 
     make clean
-    do_run castle-engine compile --mode=debug --project="${TEST_PROJECT}" --compiler-options=-d$3
+    do_run "${BUILD_TOOL}" compile --mode=debug --project="${TEST_PROJECT}" --compiler-options=-d$3
     make clean
-    do_run castle-engine compile --mode=release @castle-fpc.cfg "${TEST_LPR}" --compiler-options=-d$3
+    do_run "${BUILD_TOOL}" compile --mode=release @castle-fpc.cfg "${TEST_LPR}" --compiler-options=-d$3
   fi
 }
 
@@ -81,5 +81,9 @@ do_test_all_backends ()
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_LIBRARY
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_FORM
 }
+
+cd "${CASTLE_ENGINE_PATH}"
+./tools/build-tool/castle-engine_compile.sh
+BUILD_TOOL="${CASTLE_ENGINE_PATH}/tools/build-tool/castle-engine"
 
 do_test_all_backends
