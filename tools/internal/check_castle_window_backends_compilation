@@ -22,9 +22,6 @@ do_run ()
 # Parameters: OS CPU
 do_test_one_backend_lcl ()
 {
-  # Clean compiled units to not conflict with Lazarus build
-  make clean
-
   LAZBUILD_OPTIONS="--os=$1 --cpu=$2"
   lazbuild $LAZBUILD_OPTIONS packages/alternative_castle_window_based_on_lcl.lpk
 
@@ -45,15 +42,11 @@ do_test_one_backend ()
   if [ "$3" = 'CASTLE_WINDOW_FORM' ]; then
     do_test_one_backend_lcl $1 $2
   else
-    # Always clean to be sure that new -dCASTLE_WINDOW_xxx
-    # will be taken into account.
-
-    FPC_OPTIONS="-T$1 -P$2"
-
-    make clean
-    do_run "${BUILD_TOOL}" compile --mode=debug --project="${TEST_PROJECT}" --compiler-options=-d$3
-    make clean
-    do_run "${BUILD_TOOL}" compile --mode=release @castle-fpc.cfg "${TEST_LPR}" --compiler-options=-d$3
+    # Cleans the project, to remove compilation outputs with defined CASTLE_WINDOW_*
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" clean
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --mode=debug --compiler-options=-d$3
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" clean
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --mode=release --compiler-options=-d$3
   fi
 }
 
@@ -81,6 +74,9 @@ do_test_all_backends ()
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_LIBRARY
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_FORM
 }
+
+# make sure no leftover compilation remains with some specific CASTLE_WINDOW_*
+make clean
 
 cd "${CASTLE_ENGINE_PATH}"
 ./tools/build-tool/castle-engine_compile.sh
