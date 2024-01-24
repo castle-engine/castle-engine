@@ -1,0 +1,85 @@
+#!/bin/bash
+set -eu
+
+# -----------------------------------------------------------------
+# Test compilation of various CGE CastleWindow backends.
+# -----------------------------------------------------------------
+
+TEST_PROJECT=examples/viewport_and_scenes/view_3d_model_advanced/
+TEST_LPI="${TEST_PROJECT}"view_3d_model_advanced.lpi
+
+# Run the command in parameters, reporting it to console too.
+do_run ()
+{
+  echo '---------------------------------------------------------'
+  echo 'Running:'
+  echo "$@"
+  "$@"
+}
+
+# Test the LCL backend.
+# This requires a bit different code than standard do_test_one_backend implementation.
+# Parameters: OS CPU
+do_test_one_backend_lcl ()
+{
+  # Clean compiled units to not conflict with Lazarus build
+  make clean
+
+  LAZBUILD_OPTIONS="--os=$1 --cpu=$2"
+  lazbuild $LAZBUILD_OPTIONS packages/alternative_castle_window_based_on_lcl.lpk
+
+  # Depend on alternative_castle_window_based_on_lcl from TEST_LPI
+  sed -e 's|<PackageName Value="castle_window"/>|<PackageName Value="alternative_castle_window_based_on_lcl"/>|' \
+    --in-place "${TEST_LPI}"
+  do_run lazbuild $LAZBUILD_OPTIONS "${TEST_LPI}"
+
+  # Restore original view_3d_model_advanced.lpi
+  sed -e 's|<PackageName Value="alternative_castle_window_based_on_lcl"/>|<PackageName Value="castle_window"/>|' \
+    --in-place "${TEST_LPI}"
+}
+
+# Test a single backend.
+# Parameters: OS CPU backend-name
+do_test_one_backend ()
+{
+  if [ "$3" = 'CASTLE_WINDOW_FORM' ]; then
+    do_test_one_backend_lcl $1 $2
+  else
+    # Always clean to be sure that new -dCASTLE_WINDOW_xxx
+    # will be taken into account.
+
+    FPC_OPTIONS="-T$1 -P$2"
+
+    make clean
+    do_run castle-engine compile --mode=debug --project="${TEST_PROJECT}" --compiler-options=-d$3
+    make clean
+    do_run castle-engine compile --mode=release @castle-fpc.cfg "${TEST_LPR}" --compiler-options=-d$3
+  fi
+}
+
+# Test all CastleWindow backends.
+do_test_all_backends ()
+{
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_GTK_2
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_XLIB
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_TEMPLATE
+  # Note that CASTLE_WINDOW_LIBRARY backend will not really work
+  # with a standalone application, but it should compile OK.
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_LIBRARY
+  do_test_one_backend linux x86_64 CASTLE_WINDOW_FORM
+
+  do_test_one_backend win32 i386 CASTLE_WINDOW_WINAPI
+  do_test_one_backend win32 i386 CASTLE_WINDOW_GTK_2
+  do_test_one_backend win32 i386 CASTLE_WINDOW_TEMPLATE
+  do_test_one_backend win32 i386 CASTLE_WINDOW_LIBRARY
+  do_test_one_backend win32 i386 CASTLE_WINDOW_FORM
+
+  do_test_one_backend win64 x86_64 CASTLE_WINDOW_WINAPI
+  # GTK2 units not available for win64 in FPC, it seems?
+  # do_test_one_backend win64 x86_64 CASTLE_WINDOW_GTK_2
+  do_test_one_backend win64 x86_64 CASTLE_WINDOW_TEMPLATE
+  do_test_one_backend win64 x86_64 CASTLE_WINDOW_LIBRARY
+  do_test_one_backend win64 x86_64 CASTLE_WINDOW_FORM
+}
+
+do_test_all_backends
