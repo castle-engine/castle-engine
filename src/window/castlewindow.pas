@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -286,6 +286,11 @@ unit CastleWindow;
   with OpenGL or OpenGLES. }
 {.$define USE_EGL}
 {$ifdef OpenGLES}
+  {$define USE_EGL}
+{$endif}
+// By default CASTLE_WINDOW_GTK_2 uses glX to initialize OpenGL context,
+// but it's not available on Windows.
+{$if defined(MSWINDOWS) and defined(CASTLE_WINDOW_GTK_2)}
   {$define USE_EGL}
 {$endif}
 
