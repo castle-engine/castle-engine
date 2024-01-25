@@ -439,7 +439,7 @@
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
-    { Check collision with a ray, building a TRayCollision result.
+    { First object hit by the ray, as a TRayCollision.
       Returns a collision as TRayCollision instance, or @nil if no collision.
       Caller is responsible for freeing the returned TRayCollision instance.
 
