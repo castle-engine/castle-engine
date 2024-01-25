@@ -44,9 +44,9 @@ do_test_one_backend ()
   else
     # Cleans the project, to remove compilation outputs with defined CASTLE_WINDOW_*
     do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" clean
-    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --mode=debug --compiler-options=-d$3
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --mode=debug --compiler-option=-d$3
     do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" clean
-    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --mode=release --compiler-options=-d$3
+    do_run "${BUILD_TOOL}" --project="${TEST_PROJECT}" compile --mode=release --compiler-option=-d$3
   fi
 }
 
