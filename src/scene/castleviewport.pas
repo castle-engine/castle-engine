@@ -889,7 +889,8 @@ type
       Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload; virtual;
 
     { Current components (TCastleTransform hierarchy) pointed by the mouse cursor
-      position.
+      position. This is the @italic(first) object being hit by the ray from camera
+      through the mouse cursor position.
 
       Automatically updated to always reflect the current mouse position.
       May be @nil if nothing is hit.
@@ -902,7 +903,8 @@ type
     property MouseRayHit: TRayCollision read GetMouseRayHit;
 
     { Current TCastleTransform pointed by the mouse cursor
-      position.
+      position. This is the @italic(first) object being hit by the ray from camera
+      through the mouse cursor position.
 
       Automatically updated to always reflect the current mouse position.
       May be @nil if nothing is hit.
@@ -912,8 +914,7 @@ type
       we automatically use viewport center as the "mouse cursor position".
 
       @seealso MouseRayHit
-      @seealso TRayCollision.Transform
-    }
+      @seealso TRayCollision.Transform }
     function TransformUnderMouse: TCastleTransform;
 
     { Do not collide with this object when moving by @link(Navigation).

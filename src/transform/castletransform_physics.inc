@@ -842,7 +842,7 @@
     { Transformations that we collide with currently. }
     function GetCollidingTransforms: TCastleTransformList;
 
-    { Cast a ray using physics engine, see what is hit.
+    { First object hit by the ray, calculated using the physics engine.
 
       Returns the TPhysicsRayCastResult record.
       Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
