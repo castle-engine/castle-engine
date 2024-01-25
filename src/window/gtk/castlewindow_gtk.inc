@@ -1038,6 +1038,8 @@ begin
     So we cannot use previous workaround, instead we wait for a good time
     to get WindowXID, when widget is realized.
     TODO: Should we just do it with glX version too? }
+  { TODO: WindowXID is only with X, so for now CASTLE_WINDOW_GTK_2
+    cannot work with non-Unix (like Windows). }
   ContextCreate(WindowXID);
   {$endif}
 
