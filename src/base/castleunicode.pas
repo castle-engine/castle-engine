@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis,
+  Copyright 2014-2024 Michalis Kamburelis,
   parts based on LazUTF8 unit copyright by Lazarus developers.
   Parts of this source code are based on Lazarus LazUTF8 source code,
   but no worries --- Lazarus license is exactly the same as Castle Game Engine :)
@@ -44,7 +44,12 @@ type
       Doesn't add duplicates. }
     procedure Add(const Characters: TSetOfChars); overload;
 
-    { Express all characters inside as one UTF-8 string. }
+    { Express all characters inside as one string.
+
+      The resulting String follows the encoding conventions used throughout CGE,
+      which means it will be UTF-8 with FPC (AnsiString)
+      or UTF-16 with Delphi (UnicodeString).
+      See https://castle-engine.io/coding_conventions#strings_unicode . }
     function ToString: String; override;
   end;
 
