@@ -10,9 +10,17 @@ set -eu
 #
 # Exceptions are:
 #
-# - LCL projects (leave LPI to be managed using Lazarus and specify LCL packages,
-#   and DPROJ doesn't make sense for these projects)
-# - simplest_manifest_test (we deliberately do not store dpr/lpi/dproj in this demo).
+# - Lazarus (LCL) specific projects
+#   (leave LPI to be managed using Lazarus and specify LCL packages,
+#   and DPROJ doesn't make sense for these projects).
+#   TODO: We'd like to limit these projects to only "examples/lazarus/*",
+#   but for now we also have 2 projects in examples/audio/ that use LCL.
+#
+# - Delphi (VCL, FMX) or C++ Builder specific projects
+#   (only DPROJ is defined there, not Lazarus stuff like LPI).
+#
+# - simplest_manifest_test
+#   (we deliberately do not store dpr/lpi/dproj in this demo).
 # ----------------------------------------------------------------------------
 
 FIND='find'
@@ -21,6 +29,7 @@ if which cygpath.exe > /dev/null; then
 fi
 
 "${FIND}" \
+  "${CASTLE_ENGINE_PATH}/examples/" \
   '(' -iname CastleEngineManifest.xml ')' -and \
   '(' -not -iwholename '*/simplest_manifest_test/*' ')' -and \
   '(' -not -iwholename '*/delphi/*' ')' -and \
