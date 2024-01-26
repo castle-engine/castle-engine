@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,17 +22,15 @@
   TSoundType = TCastleSound deprecated 'use TCastleSound';
 
   { Sound engine that keeps a repository of sounds, defined in a nice XML file.
-    This allows to have simple @link(Sound) and @link(Sound3D) methods,
-    that take a sound identifier (managing sound buffers will just happen
-    automatically under the hood).
+    Loading this XML file by setting @link(RepositoryUrl) property
+    creates a number of TCastleSound instances, that you can find using
+    @link(SoundFromName) method. You can use these TCastleSound instances
+    e.g. with @link(TSoundEngine.Play) method.
 
-    It extends TSoundEngine, so you can always still load new buffers
-    and play them by TSoundEngine.LoadBuffer, TSoundEngine.PlaySound
-    and all other methods. This only adds easy preloaded sounds,
-    but you're not limited to them.
-
-    To initialize your sounds repository, you have to set the RepositoryUrl
-    property. }
+    This class extends TSoundEngine. So using the sounds defined in the XML file
+    is completely optional. You can also create instances of TCastleSound
+    and use them through any other means -- by code, by setting them up in editor,
+    see https://castle-engine.io/manual_sound.php . }
   TRepoSoundEngine = class(TSoundEngine)
   private
     {$ifndef PASDOC} // PasDoc cannot parse the private section of this correctly yet
@@ -187,8 +185,8 @@
       of the application.
       Right after setting RepositoryUrl you usually call SoundFromName
       a couple of times to convert some names into TCastleSound values,
-      to later use these TCastleSound values with @link(Sound) and @link(Sound3D)
-      methods.
+      to later use these TCastleSound values with @link(Play) or
+      @link(TCastleSoundSource.Sound).
 
       When the sound context is initialized (or when you set this property,
       if the sound context is initialized already)
@@ -198,8 +196,7 @@
       and TRepoSoundEngine doesn't really give you much above standard
       TSoundEngine.
 
-      If you want to actually use TRepoSoundEngine features
-      (like the @link(Sound) and @link(Sound3D) methods) you have to set this
+      If you want to actually use TRepoSoundEngine features you have to set this
       property. For example like this:
 
       @longCode(#
@@ -282,7 +279,7 @@
       in game.
 
       Note that, if this does nothing, but you later set @link(RepositoryUrl)
-      or do @link(LoadBuffer) or @link(Play), then sound context will
+      or use @link(Play), then sound context will
       be created on-demand anyway. So calling this is always optional. }
     procedure PrepareResources; deprecated 'deprecated just like RepositoryUrl';
   end;

@@ -35,8 +35,10 @@ type
     function Initialized: Boolean;
 
     { Expose internal Value for Kraft when USE_CASTLE_TIME_UTILS. }
-    {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
-    property InternalValue: QWord read Value;
+    {$ifndef PASDOC}
+      {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+        property InternalValue: QWord read Value;
+      {$endif}
     {$endif}
   end;
 

@@ -256,7 +256,7 @@
         @item Set @link(Device) variable to given argument.
 
         @itemLabel @--no-sound
-        @item Disable any sound (sets @link(Enable) to @false).
+        @item Disable any sound (sets @link(Enabled) to @false).
       )
 
       More user-oriented documentation for the above options is here:
