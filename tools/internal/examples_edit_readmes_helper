@@ -29,6 +29,9 @@ PROJECT_PASCAL_NAME="`castle-engine output pascal-name`"
 EXISTING_TEXT="- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus \`${PROJECT_PASCAL_NAME}_standalone.lpi\` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus)."
 NEW_TEXT="- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi \`${PROJECT_PASCAL_NAME}_standalone.dproj\` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details."
 
+EXISTING_TEXT='[CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.'
+NEW_TEXT='[CGE editor](https://castle-engine.io/editor). Just use menu items _"Compile"_ or _"Compile And Run"_.'
+
 # Escape special regexp characters, like [], in input parameter $1.
 # This replaces things for sed regexps.
 function escape_regexp ()
@@ -47,14 +50,15 @@ if grep --fixed-strings -- "${EXISTING_TEXT}" README.md; then
   fi
 
   # Use this to append something to README.md:
-  echo '' >> README.md
-  echo "${NEW_TEXT}" >> README.md
+  #
+  # echo '' >> README.md
+  # echo "${NEW_TEXT}" >> README.md
 
   # Use this to replace something in README.md:
   #
-  # NEW_TEXT_ESCAPED=$(escape_regexp "${NEW_TEXT}")
-  # EXISTING_TEXT_ESCAPED=$(escape_regexp "${EXISTING_TEXT}")
-  # sed --in-place --expression="s|${EXISTING_TEXT_ESCAPED}|${NEW_TEXT_ESCAPED}|" README.md
+  NEW_TEXT_ESCAPED=$(escape_regexp "${NEW_TEXT}")
+  EXISTING_TEXT_ESCAPED=$(escape_regexp "${EXISTING_TEXT}")
+  sed --in-place --expression="s|${EXISTING_TEXT_ESCAPED}|${NEW_TEXT_ESCAPED}|" README.md
 else
   echo `pwd`": WARNING: README.md does not contain expected text"
 fi
