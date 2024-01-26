@@ -157,3 +157,5 @@ Disadvantages:
 TODO: our current method of generating elements works only for nodes
 with explicit vertexes, so will not work for X3D primitives (sphere,
 cone and and such).
+
+- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi `dynamic_ambient_occlusion_standalone.dproj` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details.
