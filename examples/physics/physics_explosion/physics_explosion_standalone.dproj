@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{B3CD79C8-7C62-7DF5-40D3-66F98C1FB245}</ProjectGuid>
+        <ProjectGuid>{B8234B4E-3C64-3DF7-0A9D-E477BE51982B}</ProjectGuid>
         <MainSource>physics_explosion_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -272,53 +272,6 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-                <DeployFile LocalName="data\boxes.castle-transform" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -363,6 +316,53 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>CastleSettings.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\boxes.castle-transform" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -413,53 +413,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\terrain_hole.png" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -507,379 +460,379 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\detonator\detonator.bin" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\detonator/detonator.gltf" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\detonator/detonator.bin" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\detonator\detonator.gltf" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\sounds/kaboom.wav" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\drop_more\drop_more.bin" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\drop_more\drop_more.gltf" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds\AUTHORS.txt" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds\kaboom.wav" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\sounds\menu_click.wav" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\sounds/menu_click.wav" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\boxes.castle-transform" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\sounds/AUTHORS.txt" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\drop_more/drop_more.gltf" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\drop_more/drop_more.bin" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -930,6 +883,53 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\boxes.castle-transform" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>boxes.castle-transform</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -974,53 +974,6 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1071,332 +1024,379 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\detonator\detonator.bin" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\detonator/detonator.gltf" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/detonator/</RemoteDir>
+                        <RemoteName>detonator.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\detonator/detonator.bin" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
+                        <RemoteDir>./data/detonator/</RemoteDir>
                         <RemoteName>detonator.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\detonator\detonator.gltf" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\sounds/kaboom.wav" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/detonator\</RemoteDir>
-                        <RemoteName>detonator.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\drop_more\drop_more.bin" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\drop_more\drop_more.gltf" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/drop_more\</RemoteDir>
-                        <RemoteName>drop_more.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds\AUTHORS.txt" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds\kaboom.wav" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>kaboom.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\sounds\menu_click.wav" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\sounds/menu_click.wav" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/sounds\</RemoteDir>
+                        <RemoteDir>./data/sounds/</RemoteDir>
                         <RemoteName>menu_click.wav</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\sounds/AUTHORS.txt" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/sounds/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\drop_more/drop_more.gltf" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\drop_more/drop_more.bin" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/drop_more/</RemoteDir>
+                        <RemoteName>drop_more.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

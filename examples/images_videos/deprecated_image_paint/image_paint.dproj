@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{9B45E1F3-E665-E4D2-F966-D34045B21F8C}</ProjectGuid>
+        <ProjectGuid>{E56EE031-B5A7-B414-A310-C936EF5C1582}</ProjectGuid>
         <MainSource>image_paint.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

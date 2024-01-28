@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3200037B-44CD-433A-71DE-4BB8BD2A9704}</ProjectGuid>
+        <ProjectGuid>{90822161-EB77-E9E4-B320-D946FF6C2592}</ProjectGuid>
         <MainSource>save_screen_rgba.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

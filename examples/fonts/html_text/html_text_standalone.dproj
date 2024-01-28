@@ -183,6 +183,7 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
+        <None Include="README.md"/>
         <None Include="html_text_standalone.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
@@ -210,7 +211,8 @@
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k280.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp280.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
-
+                <WelcomePageFile Path="README.md"/>
+                <WelcomePageFolder/>
             </Delphi.Personality>
             <Deployment Version="4">
                 <DeployFile LocalName="$(BDS)\Redist\iossimulator\libcgunwind.1.0.dylib" Class="DependencyModule">
@@ -364,190 +366,190 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\fonts\DejaVuSans-Bold.ttf" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\fonts/DejaVuSans-Oblique.ttf" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\fonts\DejaVuSans-BoldOblique.ttf" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\fonts\DejaVuSans-Oblique.ttf" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\fonts\DejaVuSans.ttf" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\fonts/DejaVuSans-BoldOblique.ttf" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\fonts/DejaVuSans-Bold.ttf" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\fonts/DejaVuSans.ttf" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
@@ -646,190 +648,190 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\fonts\DejaVuSans-Bold.ttf" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\fonts/DejaVuSans-Oblique.ttf" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\fonts\DejaVuSans-BoldOblique.ttf" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
-                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\fonts\DejaVuSans-Oblique.ttf" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans-Oblique.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\fonts\DejaVuSans.ttf" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\fonts/DejaVuSans-BoldOblique.ttf" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-BoldOblique.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\fonts/DejaVuSans-Bold.ttf" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/fonts/</RemoteDir>
+                        <RemoteName>DejaVuSans-Bold.ttf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\fonts/DejaVuSans.ttf" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/fonts\</RemoteDir>
+                        <RemoteDir>./data/fonts/</RemoteDir>
                         <RemoteName>DejaVuSans.ttf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>

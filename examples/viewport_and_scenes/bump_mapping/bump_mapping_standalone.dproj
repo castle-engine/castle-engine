@@ -413,191 +413,191 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\textures\leaf.png" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\textures/lion.png" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\leaf_normal_map.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\lion.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\textures\lion_normal_height_maps.png" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\textures/lion_normal_height_maps.png" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/leaf.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/leaf_normal_map.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -742,191 +742,191 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\textures\leaf.png" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\textures/lion.png" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\leaf_normal_map.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>leaf_normal_map.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\lion.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\textures\lion_normal_height_maps.png" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\textures/lion_normal_height_maps.png" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>lion_normal_height_maps.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/leaf.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/leaf_normal_map.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>leaf_normal_map.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

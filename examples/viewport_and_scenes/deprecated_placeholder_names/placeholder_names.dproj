@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{5A2C0E57-BDC1-BC2E-75E2-4FBC29960370}</ProjectGuid>
+        <ProjectGuid>{D2F67959-628F-60FC-1B88-41AE67D48DFA}</ProjectGuid>
         <MainSource>placeholder_names.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

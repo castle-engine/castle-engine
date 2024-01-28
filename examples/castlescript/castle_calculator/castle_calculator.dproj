@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{ABD0ABD4-B5A6-B739-B447-DA6D68FB8E21}</ProjectGuid>
+        <ProjectGuid>{6E444988-66A2-6835-0093-26B94CDF7205}</ProjectGuid>
         <MainSource>castle_calculator.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

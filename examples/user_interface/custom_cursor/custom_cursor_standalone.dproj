@@ -272,53 +272,6 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-                <DeployFile LocalName="data\animated_cursor.castle-user-interface" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -413,50 +366,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\image_cursor.castle-user-interface" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\animated_cursor.castle-user-interface" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -507,238 +460,238 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\animated_cursor_data\animated_cursor.bin" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\image_cursor.castle-user-interface" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\animated_cursor_data\animated_cursor.gltf" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\image_cursor_data/dwarven_gauntlet_0.png" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
-                        <RemoteName>animated_cursor.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\image_cursor_data\AUTHORS.txt" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\image_cursor_data\dwarven_gauntlet_0.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
                         <RemoteName>dwarven_gauntlet_0.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
                         <RemoteName>dwarven_gauntlet_0.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
                         <RemoteName>dwarven_gauntlet_0.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
                         <RemoteName>dwarven_gauntlet_0.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
                         <RemoteName>dwarven_gauntlet_0.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
                         <RemoteName>dwarven_gauntlet_0.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
                         <RemoteName>dwarven_gauntlet_0.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
                         <RemoteName>dwarven_gauntlet_0.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
                         <RemoteName>dwarven_gauntlet_0.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\animated_cursor.castle-user-interface" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\image_cursor_data/AUTHORS.txt" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\animated_cursor_data/animated_cursor.bin" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\animated_cursor_data/animated_cursor.gltf" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
+                        <RemoteName>animated_cursor.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -836,50 +789,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\image_cursor.castle-user-interface" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\animated_cursor.castle-user-interface" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <RemoteName>animated_cursor.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -930,191 +883,238 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\animated_cursor_data\animated_cursor.bin" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\image_cursor.castle-user-interface" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>image_cursor.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\image_cursor_data/dwarven_gauntlet_0.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\image_cursor_data/AUTHORS.txt" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/image_cursor_data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\animated_cursor_data/animated_cursor.bin" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\animated_cursor_data\animated_cursor.gltf" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\animated_cursor_data/animated_cursor.gltf" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/animated_cursor_data\</RemoteDir>
+                        <RemoteDir>./data/animated_cursor_data/</RemoteDir>
                         <RemoteName>animated_cursor.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\image_cursor_data\AUTHORS.txt" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\image_cursor_data\dwarven_gauntlet_0.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/image_cursor_data\</RemoteDir>
-                        <RemoteName>dwarven_gauntlet_0.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

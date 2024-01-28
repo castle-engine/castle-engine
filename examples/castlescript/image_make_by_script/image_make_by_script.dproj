@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{5DC15521-D9B7-D824-73E0-9906BF2CE552}</ProjectGuid>
+        <ProjectGuid>{7A9761AD-7AFB-7968-67D4-8DFA1B8841AE}</ProjectGuid>
         <MainSource>image_make_by_script.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

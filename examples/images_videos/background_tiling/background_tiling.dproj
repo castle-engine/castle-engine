@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{686CD2F3-BF65-BDD2-F966-D34045B21F8C}</ProjectGuid>
+        <ProjectGuid>{3D39F7BB-278D-25FA-B11E-8BF8FD6AD744}</ProjectGuid>
         <MainSource>background_tiling.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

@@ -413,191 +413,191 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\quaternius_alpaca\Alpaca.bin" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\quaternius_alpaca/Alpaca.bin" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\quaternius_alpaca\Alpaca.gltf" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\quaternius_alpaca/Alpaca_original_no_backface_culling.gltf" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\quaternius_alpaca\Alpaca_original_no_backface_culling.gltf" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\quaternius_alpaca\AUTHORS.txt" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\quaternius_alpaca/AUTHORS.txt" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\quaternius_alpaca/Alpaca.gltf" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -742,191 +742,191 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\quaternius_alpaca\Alpaca.bin" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\quaternius_alpaca/Alpaca.bin" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\quaternius_alpaca\Alpaca.gltf" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\quaternius_alpaca/Alpaca_original_no_backface_culling.gltf" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
-                        <RemoteName>Alpaca.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\quaternius_alpaca\Alpaca_original_no_backface_culling.gltf" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>Alpaca_original_no_backface_culling.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\quaternius_alpaca\AUTHORS.txt" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\quaternius_alpaca/AUTHORS.txt" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/quaternius_alpaca\</RemoteDir>
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\quaternius_alpaca/Alpaca.gltf" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/quaternius_alpaca/</RemoteDir>
+                        <RemoteName>Alpaca.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

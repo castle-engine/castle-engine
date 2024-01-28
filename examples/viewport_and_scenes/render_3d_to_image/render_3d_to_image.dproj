@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3070479F-2589-23F6-4DBA-2794016EDB48}</ProjectGuid>
+        <ProjectGuid>{F05BD652-2EB0-3043-56E9-30C3A2357C0F}</ProjectGuid>
         <MainSource>render_3d_to_image.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -272,6 +272,194 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
+                <DeployFile LocalName="data\teapot.x3dv" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>teapot.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>teapot.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>teapot.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>teapot.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>teapot.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>teapot.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>teapot.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>teapot.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>teapot.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\bridge_final.x3dv" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\car.gltf" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\car.bin" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\AUTHORS.txt" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -366,148 +554,336 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\bridge_final.x3dv" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\textures/tunnel_road.jpg" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\car.bin" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\textures/059_plombieresgbr.jpg" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\car.gltf" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\textures/car_shell.png" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\teapot.x3dv" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\textures/dirtfrancecornergrass.jpg" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/023bois.jpg" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/car_wheel.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/water2.jpg" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>water2.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>water2.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>water2.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>water2.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>water2.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>water2.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>water2.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>water2.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>water2.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\teapot.x3dv" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>teapot.x3dv</RemoteName>
@@ -554,332 +930,144 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\textures\023bois.jpg" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\bridge_final.x3dv" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\textures\059_plombieresgbr.jpg" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\car.gltf" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\textures\car_shell.png" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\car.bin" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\car_wheel.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\dirtfrancecornergrass.jpg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\tunnel_road.jpg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>tunnel_road.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>tunnel_road.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>tunnel_road.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>tunnel_road.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>tunnel_road.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>tunnel_road.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>tunnel_road.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>tunnel_road.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>tunnel_road.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\water2.jpg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>water2.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>water2.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>water2.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>water2.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>water2.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>water2.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>water2.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>water2.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>water2.jpg</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>car.bin</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -977,519 +1165,331 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\bridge_final.x3dv" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\textures/tunnel_road.jpg" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\car.bin" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\car.gltf" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>car.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\teapot.x3dv" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>teapot.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>teapot.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>teapot.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>teapot.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>teapot.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>teapot.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>teapot.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>teapot.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>teapot.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\023bois.jpg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\059_plombieresgbr.jpg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\car_shell.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_shell.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\car_wheel.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>car_wheel.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\dirtfrancecornergrass.jpg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
-                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures\tunnel_road.jpg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>tunnel_road.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\textures\water2.jpg" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\textures/059_plombieresgbr.jpg" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/car_shell.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_shell.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/dirtfrancecornergrass.jpg" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>dirtfrancecornergrass.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/023bois.jpg" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/car_wheel.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>car_wheel.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/water2.jpg" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>water2.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>water2.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>water2.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>water2.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>water2.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>water2.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>water2.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>water2.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/textures\</RemoteDir>
+                        <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>water2.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>

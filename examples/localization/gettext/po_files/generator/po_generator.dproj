@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{085D1E32-02D0-0463-7609-50E3C2559C2F}</ProjectGuid>
+        <ProjectGuid>{63A78E9C-D54E-D6E1-0C9F-32C5C053E679}</ProjectGuid>
         <MainSource>po_generator.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
