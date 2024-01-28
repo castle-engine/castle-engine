@@ -1942,6 +1942,14 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     begin
       PascalFiles := Manifest.FindPascalFiles;
       try
+        { Make the files' list sorted,
+          to have the `castle-engine generate-program`
+          output fully deterministic for a given project,
+          and indepedent from source OS, undefined ordef of FindFiles etc.
+          This avoids diffs in version control if nothing changed. }
+        PascalFiles.CaseSensitive := true;
+        PascalFiles.Sort;
+
         PascalFilesXml := '';
         I := 1;
         for PascalFile in PascalFiles do
@@ -2054,6 +2062,14 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     try
       Files := PackageFiles(true, cpDesktop);
       try
+        { Make the files' list sorted,
+          to have the `castle-engine generate-program`
+          output fully deterministic for a given project,
+          and indepedent from source OS, undefined ordef of FindFiles etc.
+          This avoids diffs in version control if nothing changed. }
+        Files.CaseSensitive := true;
+        Files.Sort;
+
         for ConfigName in AllDelphiConfigNames do
         begin
           for FileRelativeName in Files do

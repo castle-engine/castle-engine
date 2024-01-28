@@ -319,53 +319,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -413,97 +366,238 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\gltf_knight/knight.gltf" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\cocos2d/README.txt" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\gltf_knight/knight.png" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\cocos2d/wolf.plist" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\cocos2d/wolf.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\cocos2d/wolf.xml" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -601,332 +695,97 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\starling/character_zombie_atlas.starling-xml" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\gltf_knight/knight.gltf" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\starling/License.txt" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\gltf_knight/knight.png" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\starling/character_zombie_atlas.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\cocos2d/wolf.plist" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\cocos2d/wolf.xml" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\cocos2d/wolf.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\cocos2d/README.txt" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -974,6 +833,53 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/spine_dragon/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\spine_dragon/dragon.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1071,50 +977,144 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\spine_dragon/dragon.atlas" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\starling/License.txt" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\starling/character_zombie_atlas.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\starling/character_zombie_atlas.starling-xml" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1165,53 +1165,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -1259,97 +1212,238 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\gltf_knight/knight.gltf" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\cocos2d/README.txt" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\gltf_knight/knight.png" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\cocos2d/wolf.plist" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/gltf_knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.plist</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\cocos2d/wolf.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\cocos2d/wolf.xml" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/cocos2d/</RemoteDir>
+                        <RemoteName>wolf.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1447,332 +1541,97 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\starling/character_zombie_atlas.starling-xml" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\gltf_knight/knight.gltf" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\starling/License.txt" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\gltf_knight/knight.png" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>License.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\starling/character_zombie_atlas.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/starling/</RemoteDir>
-                        <RemoteName>character_zombie_atlas.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\cocos2d/wolf.plist" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.plist</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\cocos2d/wolf.xml" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\cocos2d/wolf.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>wolf.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\cocos2d/README.txt" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/cocos2d/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
+                        <RemoteDir>./data/gltf_knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1820,6 +1679,53 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/spine_dragon/</RemoteDir>
                         <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\spine_dragon/dragon.atlas" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/spine_dragon/</RemoteDir>
+                        <RemoteName>dragon.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1917,50 +1823,144 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\spine_dragon/dragon.atlas" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\starling/License.txt" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/spine_dragon/</RemoteDir>
-                        <RemoteName>dragon.atlas</RemoteName>
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>License.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\starling/character_zombie_atlas.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\starling/character_zombie_atlas.starling-xml" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/starling/</RemoteDir>
+                        <RemoteName>character_zombie_atlas.starling-xml</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

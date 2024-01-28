@@ -272,6 +272,53 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
+                <DeployFile LocalName="data\AUTHORS.txt" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -319,97 +366,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\level_simple.x3dv" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\level_complex.x3d" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -507,53 +507,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\sphere.x3d" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -598,6 +551,53 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\level_complex.x3d" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -695,6 +695,100 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\level_simple.x3dv" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\sphere.x3d" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\sphere_with_physics.castle-transform" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -739,147 +833,6 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>sphere_with_physics.castle-transform</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\AUTHORS.txt" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures/059_plombieresgbr.jpg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -977,6 +930,100 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\textures/059_plombieresgbr.jpg" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\AUTHORS.txt" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -1024,97 +1071,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\level_simple.x3dv" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_simple.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\level_complex.x3d" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>level_complex.x3d</RemoteName>
+                        <RemoteName>README.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1212,53 +1212,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\sphere.x3d" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>sphere.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -1303,6 +1256,53 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\level_complex.x3d" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_complex.x3d</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1400,6 +1400,100 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\level_simple.x3dv" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>level_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\sphere.x3d" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>sphere.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\sphere_with_physics.castle-transform" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -1444,147 +1538,6 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>sphere_with_physics.castle-transform</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\AUTHORS.txt" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures/059_plombieresgbr.jpg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1679,6 +1632,53 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/059_plombieresgbr.jpg" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>059_plombieresgbr.jpg</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

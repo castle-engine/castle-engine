@@ -272,53 +272,6 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-                <DeployFile LocalName="data\raptor.castle-anim-frames" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -363,241 +316,6 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\raptor_2.x3d" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\castle_script_particles.x3dv" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\background.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\raptor_1.x3d" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -648,50 +366,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\bridge_level/bridge_final.x3dv" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\background.png" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -789,6 +507,100 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\bridge_level/bridge_final.x3dv" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\bridge_level/textures/023bois.jpg" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\bridge_level/textures/059_plombieresgbr.jpg" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/bridge_level/textures/</RemoteDir>
@@ -883,53 +695,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\bridge_level/textures/023bois.jpg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\bridge_level/textures/water2.jpg" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/bridge_level/textures/</RemoteDir>
@@ -977,7 +742,101 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\raptor.castle-anim-frames" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\castle_script_particles.x3dv" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\raptor.castle-anim-frames" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>raptor.castle-anim-frames</RemoteName>
@@ -1021,6 +880,100 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>raptor.castle-anim-frames</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\raptor_1.x3d" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\raptor_2.x3d" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1071,241 +1024,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\raptor_2.x3d" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_2.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\castle_script_particles.x3dv" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>castle_script_particles.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\background.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>background.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\raptor_1.x3d" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>raptor_1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -1353,50 +1071,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\bridge_level/bridge_final.x3dv" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\background.png" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/bridge_level/</RemoteDir>
-                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>background.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1494,6 +1212,100 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\bridge_level/bridge_final.x3dv" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/bridge_level/</RemoteDir>
+                        <RemoteName>bridge_final.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\bridge_level/textures/023bois.jpg" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
+                        <RemoteName>023bois.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\bridge_level/textures/059_plombieresgbr.jpg" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/bridge_level/textures/</RemoteDir>
@@ -1588,53 +1400,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\bridge_level/textures/023bois.jpg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/bridge_level/textures/</RemoteDir>
-                        <RemoteName>023bois.jpg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\bridge_level/textures/water2.jpg" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/bridge_level/textures/</RemoteDir>
@@ -1679,6 +1444,241 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/bridge_level/textures/</RemoteDir>
                         <RemoteName>water2.jpg</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\castle_script_particles.x3dv" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>castle_script_particles.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\raptor.castle-anim-frames" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor.castle-anim-frames</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor.castle-anim-frames</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor.castle-anim-frames</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor.castle-anim-frames</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor.castle-anim-frames</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor.castle-anim-frames</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor.castle-anim-frames</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor.castle-anim-frames</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor.castle-anim-frames</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\raptor_1.x3d" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\raptor_2.x3d" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>raptor_2.x3d</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

@@ -366,241 +366,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\locale/user_interface.ua.mo" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\locale/user_interface.de.mo" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\locale/user_interface.pl.mo" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\locale/game.pl.mo" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\locale/user_interface.ru.mo" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\locale/game.de.mo" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/locale/</RemoteDir>
@@ -645,53 +410,6 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/locale/</RemoteDir>
                         <RemoteName>game.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\locale/game.ua.mo" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -742,6 +460,53 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\locale/game.pl.mo" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\locale/game.ru.mo" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/locale/</RemoteDir>
@@ -789,6 +554,100 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\locale/game.ua.mo" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\locale/user_interface.de.mo" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\locale/user_interface.en.mo" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/locale/</RemoteDir>
@@ -833,6 +692,147 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/locale/</RemoteDir>
                         <RemoteName>user_interface.en.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\locale/user_interface.pl.mo" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\locale/user_interface.ru.mo" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\locale/user_interface.ua.mo" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -930,241 +930,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\locale/user_interface.ua.mo" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\locale/user_interface.de.mo" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\locale/user_interface.pl.mo" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\locale/game.pl.mo" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.pl.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\locale/user_interface.ru.mo" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>user_interface.ru.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\locale/game.de.mo" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/locale/</RemoteDir>
@@ -1209,53 +974,6 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/locale/</RemoteDir>
                         <RemoteName>game.de.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\locale/game.ua.mo" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/locale/</RemoteDir>
-                        <RemoteName>game.ua.mo</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1306,6 +1024,53 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\locale/game.pl.mo" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\locale/game.ru.mo" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/locale/</RemoteDir>
@@ -1353,6 +1118,100 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\locale/game.ua.mo" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>game.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\locale/user_interface.de.mo" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.de.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\locale/user_interface.en.mo" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/locale/</RemoteDir>
@@ -1397,6 +1256,147 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/locale/</RemoteDir>
                         <RemoteName>user_interface.en.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\locale/user_interface.pl.mo" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.pl.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\locale/user_interface.ru.mo" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ru.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\locale/user_interface.ua.mo" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/locale/</RemoteDir>
+                        <RemoteName>user_interface.ua.mo</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

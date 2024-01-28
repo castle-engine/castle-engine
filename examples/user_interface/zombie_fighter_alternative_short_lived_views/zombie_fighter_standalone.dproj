@@ -272,6 +272,53 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
+                <DeployFile LocalName="data\AUTHORS.txt" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>AUTHORS.txt</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -363,6 +410,147 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>ask_dialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\enemy_images/Female-Zombie-300px.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\enemy_images/Male-Zombie-300px.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\gameviewaskdialog.castle-user-interface" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -460,53 +648,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\AUTHORS.txt" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\gameviewplay.castle-user-interface" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -551,6 +692,53 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>gameviewplay.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\level/level1.x3d" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/level/</RemoteDir>
+                        <RemoteName>level1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/level/</RemoteDir>
+                        <RemoteName>level1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/level/</RemoteDir>
+                        <RemoteName>level1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/level/</RemoteDir>
+                        <RemoteName>level1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/level/</RemoteDir>
+                        <RemoteName>level1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/level/</RemoteDir>
+                        <RemoteName>level1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/level/</RemoteDir>
+                        <RemoteName>level1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/level/</RemoteDir>
+                        <RemoteName>level1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/level/</RemoteDir>
+                        <RemoteName>level1.x3d</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -601,191 +789,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\gameviewaskdialog.castle-user-interface" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\AUTHORS.txt" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\enemy_images/Male-Zombie-300px.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\enemy_images/Female-Zombie-300px.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\level/level1.x3d" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level1.x3d</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level1.x3d</RemoteName>
+                        <RemoteName>AUTHORS.txt</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -883,6 +930,147 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\enemy_images/Female-Zombie-300px.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Female-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\enemy_images/Male-Zombie-300px.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/enemy_images/</RemoteDir>
+                        <RemoteName>Male-Zombie-300px.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\gameviewaskdialog.castle-user-interface" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\gameviewloading.castle-user-interface" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -977,53 +1165,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\AUTHORS.txt" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\gameviewplay.castle-user-interface" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -1071,194 +1212,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\loading.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>loading.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>loading.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>loading.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>loading.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>loading.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>loading.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>loading.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>loading.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>loading.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\gameviewaskdialog.castle-user-interface" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewaskdialog.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\enemy_images/Male-Zombie-300px.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Male-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\enemy_images/Female-Zombie-300px.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/enemy_images/</RemoteDir>
-                        <RemoteName>Female-Zombie-300px.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\level/level1.x3d" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/level/</RemoteDir>
@@ -1303,6 +1256,53 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/level/</RemoteDir>
                         <RemoteName>level1.x3d</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\loading.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>loading.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>loading.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>loading.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>loading.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>loading.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>loading.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>loading.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>loading.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>loading.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

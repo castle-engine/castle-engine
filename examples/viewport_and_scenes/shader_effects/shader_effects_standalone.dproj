@@ -319,53 +319,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -413,97 +366,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\knight/knight.gltf" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight/knight.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -601,144 +507,97 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\test_textures/handpaintedwall2.png" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\knight/knight.gltf" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\test_textures/AUTHORS.md" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\knight/knight.png" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\test_textures/mountain.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -883,6 +742,147 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\test_textures/AUTHORS.md" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\test_textures/handpaintedwall2.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\test_textures/mountain.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -927,53 +927,6 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1024,97 +977,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\knight/knight.gltf" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight/knight.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1212,144 +1118,97 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\test_textures/handpaintedwall2.png" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\knight/knight.gltf" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\test_textures/AUTHORS.md" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\knight/knight.png" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>AUTHORS.md</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\test_textures/mountain.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/test_textures/</RemoteDir>
-                        <RemoteName>mountain.png</RemoteName>
+                        <RemoteDir>./data/knight/</RemoteDir>
+                        <RemoteName>knight.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1491,6 +1350,147 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/shaders/</RemoteDir>
                         <RemoteName>texture_effect.vs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\test_textures/AUTHORS.md" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>AUTHORS.md</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\test_textures/handpaintedwall2.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>handpaintedwall2.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\test_textures/mountain.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/test_textures/</RemoteDir>
+                        <RemoteName>mountain.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

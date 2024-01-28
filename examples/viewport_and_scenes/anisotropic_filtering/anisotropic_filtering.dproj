@@ -270,53 +270,6 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-                <DeployFile LocalName="data\test_environment.gltf" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="data\test_environment.bin" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -364,238 +317,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\textures/grass_01_Nrm.png" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\test_environment.gltf" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures/bricks_normal.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures/grass_01.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures/bricks_diffuse.tga" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures/bricks_normal.tga" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -693,50 +458,238 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\test_environment.gltf" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\textures/bricks_diffuse.tga" Configuration="Debug" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>test_environment.gltf</RemoteName>
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/bricks_normal.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/bricks_normal.tga" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/grass_01.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/grass_01_Nrm.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -787,238 +740,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\textures/grass_01_Nrm.png" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\test_environment.gltf" Configuration="Release" Class="File">
                     <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01_Nrm.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures/bricks_normal.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures/grass_01.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>grass_01.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures/bricks_diffuse.tga" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_diffuse.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\textures/bricks_normal.tga" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/textures/</RemoteDir>
-                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <RemoteDir>./data/</RemoteDir>
+                        <RemoteName>test_environment.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1113,6 +878,241 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/textures/</RemoteDir>
                         <RemoteName>bricks_diffuse.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/bricks_diffuse.tga" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_diffuse.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/bricks_normal.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/bricks_normal.tga" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>bricks_normal.tga</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/grass_01.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textures/grass_01_Nrm.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textures/</RemoteDir>
+                        <RemoteName>grass_01_Nrm.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
