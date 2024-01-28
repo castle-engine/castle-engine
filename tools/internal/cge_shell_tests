@@ -55,7 +55,7 @@ do_test_custom_editor_template_up_to_date ()
   rm -Rf tools/build-tool/data/custom_editor_template-temptest/
 }
 
-# Test running regenerate_auto_files_in_all_examples.sh makes no change.
+# Test running examples_regenerate_auto_files makes no change.
 do_test_examples_up_to_date ()
 {
   ./tools/internal/examples_regenerate_auto_files
