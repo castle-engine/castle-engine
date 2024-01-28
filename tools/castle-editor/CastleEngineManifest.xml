@@ -18,5 +18,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="castle-editor"
   lazarus_project="castle_editor.lpi"
   build_using_lazbuild="true"
+  qualified_name="io.castleengine.editor"
 >
 </project>

@@ -8,7 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="physics_explosion"
   standalone_source="physics_explosion_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="io.castle.engine.physics.explosion"
+  qualified_name="io.castleengine.physics.explosion"
   caption="Explosion!"
 >
   <compiler_options>

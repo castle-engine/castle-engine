@@ -2,6 +2,8 @@
 <project
   caption="My Test Project"
   name="test_project"
-  standalone_source="test_project.lpr">
+  standalone_source="test_project.lpr"
+  qualified_name="io.castleengine.test.project"
+>
   <data exists="false"/>
 </project>
