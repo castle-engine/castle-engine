@@ -4,6 +4,8 @@ Demonstrates using `TCastleDownload` to send HTTP PUT request with some body.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
+Handling PUT on a server side: This is the most trivial PHP script to do it: https://github.com/castle-engine/cge-www/blob/master/htdocs/miscella/test_put.php .
+
 ## Building
 
 Compile by:
