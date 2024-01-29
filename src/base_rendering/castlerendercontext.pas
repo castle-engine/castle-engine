@@ -21,7 +21,7 @@ unit CastleRenderContext;
 interface
 
 uses SysUtils, Generics.Collections, Classes,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleUtils, CastleVectors, CastleRectangles, CastleGLShaders, CastleColors,
   CastleRenderOptions, CastleGLUtils;
 
@@ -422,7 +422,7 @@ begin
   for B in Buffers do
     Mask := Mask or ClearBufferMask[B];
   if Mask <> 0 then
-    {$ifndef OpenGLES} {$ifdef FPC} GL {$else} OpenGL {$endif} {$else} CastleGL {$endif}.GLClear(Mask);
+    glClear(Mask);
 end;
 
 procedure TRenderContext.SetLineWidth(const Value: Single);
@@ -634,12 +634,11 @@ end;
 
 procedure TRenderContext.UpdateViewport;
 begin
-  {$ifndef OpenGLES} {$ifdef FPC} GL {$else} OpenGL {$endif} {$else} CastleGL {$endif}
-    .glViewport(
-      FViewport.Left   + FViewportDelta.X,
-      FViewport.Bottom + FViewportDelta.Y,
-      FViewport.Width,
-      FViewport.Height);
+  glViewport(
+    FViewport.Left   + FViewportDelta.X,
+    FViewport.Bottom + FViewportDelta.Y,
+    FViewport.Width,
+    FViewport.Height);
 end;
 
 procedure TRenderContext.WarningViewportTooLarge;

@@ -74,10 +74,10 @@ const
   it just doesn't return Composite object instance).
 
   @groupBegin }
-function LoadTextureImage(const URL: string;
+function LoadTextureImage(const Url: String;
   out Composite: TCompositeImage;
   const LoadOptions: TLoadImageOptions = []): TEncodedImage; overload;
-function LoadTextureImage(const URL: string;
+function LoadTextureImage(const Url: String;
   const LoadOptions: TLoadImageOptions = []): TEncodedImage; overload;
 { @groupEnd }
 
@@ -129,7 +129,7 @@ type
       { Internal for TTexturesVideosCache. @exclude }
       TCachedTexture = class
         References: Cardinal;
-        URL: string;
+        Url: String;
         LoadOptions: TLoadImageOptions;
         Image: TEncodedImage;
         Composite: TCompositeImage;
@@ -142,14 +142,14 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TextureImage_IncReference(const URL: string;
+    function TextureImage_IncReference(const Url: String;
       out Composite: TCompositeImage;
       out AlphaChannel: TAlphaChannel;
       const LoadOptions: TLoadImageOptions = []): TEncodedImage; overload;
-    function TextureImage_IncReference(const URL: string;
+    function TextureImage_IncReference(const Url: String;
       out AlphaChannel: TAlphaChannel;
       const LoadOptions: TLoadImageOptions = []): TEncodedImage; overload;
-    function TextureImage_IncReference(const URL: string;
+    function TextureImage_IncReference(const Url: String;
       const LoadOptions: TLoadImageOptions = []): TEncodedImage; overload;
 
     procedure TextureImage_DecReference(var Image: TEncodedImage; var Composite: TCompositeImage); overload;
@@ -258,12 +258,12 @@ const
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleLog, CastleURIUtils;
+uses SysUtils, CastleStringUtils, CastleLog, CastleUriUtils;
 
-function LoadTextureImage(const URL: string; out Composite: TCompositeImage;
+function LoadTextureImage(const Url: String; out Composite: TCompositeImage;
   const LoadOptions: TLoadImageOptions): TEncodedImage;
 begin
-  if not TCompositeImage.MatchesURL(URL) then
+  if not TCompositeImage.MatchesUrl(Url) then
   begin
     { Note: We need to enable here GPU-compressed textures, TGPUCompressedImage,
       which is (for now) in TextureImageClassesAll, but not in TextureImageClasses.
@@ -276,13 +276,13 @@ begin
 
       Loading through TCompositeImage also allows them.
     }
-    Result := LoadEncodedImage(URL, TextureImageClassesAll, LoadOptions);
+    Result := LoadEncodedImage(Url, TextureImageClassesAll, LoadOptions);
     Composite := nil;
   end else
   begin
     Composite := TCompositeImage.Create;
     try
-      Composite.LoadFromFile(URL, LoadOptions);
+      Composite.LoadFromFile(Url, LoadOptions);
       Composite.OwnsFirstImage := false;
       Result := Composite.Images[0];
     except
@@ -292,12 +292,12 @@ begin
   end;
 end;
 
-function LoadTextureImage(const URL: string;
+function LoadTextureImage(const Url: String;
   const LoadOptions: TLoadImageOptions): TEncodedImage;
 var
   Composite: TCompositeImage;
 begin
-  Result := LoadTextureImage(URL, Composite, LoadOptions);
+  Result := LoadTextureImage(Url, Composite, LoadOptions);
   Composite.Free;
 end;
 
@@ -321,7 +321,7 @@ begin
 end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
-  const URL: string;
+  const Url: String;
   out Composite: TCompositeImage; out AlphaChannel: TAlphaChannel;
   const LoadOptions: TLoadImageOptions): TEncodedImage;
 
@@ -339,13 +339,13 @@ begin
   for I := 0 to CachedTextures.Count - 1 do
   begin
     C := CachedTextures[I];
-    if (C.URL = URL) and
+    if (C.Url = Url) and
        (C.LoadOptions = LoadOptions) then
     begin
       Inc(C.References);
 
       if LogTextureCache then
-        WritelnLog('++', 'Texture image %s: %d', [URIDisplay(URL), C.References]);
+        WritelnLog('++', 'Texture image %s: %d', [UriDisplay(Url), C.References]);
 
       Composite := C.Composite;
       AlphaChannel := C.AlphaChannel;
@@ -358,13 +358,13 @@ begin
     we don't want to add image to cache (because caller would have
     no way to call TextureImage_DecReference later). }
 
-  Result := LoadTextureImage(URL, Composite, LoadOptions);
+  Result := LoadTextureImage(Url, Composite, LoadOptions);
   AlphaChannel := Result.AlphaChannel;
 
   C := TCachedTexture.Create;
   CachedTextures.Add(C);
   C.References := 1;
-  C.URL := URL;
+  C.Url := Url;
   C.LoadOptions := LoadOptions;
   C.Image := Result;
   C.Composite := Composite;
@@ -372,7 +372,7 @@ begin
 
   if LogTextureCache then
     WritelnLog('++', 'Texture image %s: %d%s',
-      [URIDisplay(URL), 1, AlphaChannelLog(AlphaChannel)]);
+      [UriDisplay(Url), 1, AlphaChannelLog(AlphaChannel)]);
 end;
 
 procedure TTexturesVideosCache.TextureImage_DecReference(
@@ -387,7 +387,7 @@ begin
     if C.Image = Image then
     begin
       if LogTextureCache then
-        WritelnLog('--', 'Texture image %s: %d', [URIDisplay(C.URL), C.References - 1]);
+        WritelnLog('--', 'Texture image %s: %d', [UriDisplay(C.Url), C.References - 1]);
 
       { We cannot simply assert
 
@@ -395,7 +395,7 @@ begin
 
         because when textures have many references,
         some references may be with and some without Composite information.
-        We don't want to force all references to the same URL to always
+        We don't want to force all references to the same Url to always
         have or never have Composite information. (This would be uncomfortable
         for caller, as different nodes may share textures, e.g. VRML/X3D Background
         and ImageTexture nodes. They would all be forced to remember Composite
@@ -431,20 +431,20 @@ begin
 end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
-  const URL: string; out AlphaChannel: TAlphaChannel;
+  const Url: String; out AlphaChannel: TAlphaChannel;
   const LoadOptions: TLoadImageOptions): TEncodedImage;
 var
   Dummy: TCompositeImage;
 begin
-  Result := TextureImage_IncReference(URL, Dummy, AlphaChannel, LoadOptions);
+  Result := TextureImage_IncReference(Url, Dummy, AlphaChannel, LoadOptions);
 end;
 
-function TTexturesVideosCache.TextureImage_IncReference(const URL: string;
+function TTexturesVideosCache.TextureImage_IncReference(const Url: String;
   const LoadOptions: TLoadImageOptions): TEncodedImage;
 var
   DummyAlphaChannel: TAlphaChannel;
 begin
-  Result := TextureImage_IncReference(URL, DummyAlphaChannel, LoadOptions);
+  Result := TextureImage_IncReference(Url, DummyAlphaChannel, LoadOptions);
 end;
 
 procedure TTexturesVideosCache.TextureImage_DecReference(

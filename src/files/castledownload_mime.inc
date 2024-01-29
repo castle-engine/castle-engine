@@ -17,16 +17,16 @@
 {$ifdef read_interface}
 
 { @exclude
-  CastleURIUtils.URIMimeType actually calls this, for now.
-  Maybe it should be in higher unit, used by both CastleDownload and CastleURIUtils,
+  CastleUriUtils.UriMimeType actually calls this, for now.
+  Maybe it should be in higher unit, used by both CastleDownload and CastleUriUtils,
   like CastleUrls. }
-function InternalURIMimeType(const URI: string; out Gzipped: boolean): string; overload;
+function InternalUriMimeType(const URI: string; out Gzipped: boolean): string; overload;
 
 {$endif}
 
 {$ifdef read_implementation}
 
-function InternalURIMimeType(const URI: string; out Gzipped: boolean): string;
+function InternalUriMimeType(const URI: string; out Gzipped: boolean): string;
 var
   P: string;
   RegisteredProtocol: TRegisteredProtocol;

@@ -31,10 +31,10 @@ type
 
   TSoundFile = class
   strict private
-    FURL: String;
+    FUrl: String;
     DataStream: TMemoryStream;
     FDataFormat: TSoundDataFormat;
-    FFrequency: LongWord;
+    FFrequency: Cardinal;
     FDuration: TFloatTime;
   public
     { Load a sound data from a given URL.
@@ -49,19 +49,19 @@ type
         (e.g. stream ended prematurely).
       )
     }
-    constructor Create(const AURL: string);
+    constructor Create(const AUrl: String);
     destructor Destroy; override;
 
     { URL from which we loaded this sound file. }
-    property URL: String read FURL;
+    property Url: String read FUrl;
 
     { Sound data, according to DataFormat.
       Contents of Data are readonly. }
     function Data: Pointer;
     { Bytes allocated for @link(Data). }
-    function DataSize: LongWord;
+    function DataSize: Cardinal;
     property DataFormat: TSoundDataFormat read FDataFormat;
-    property Frequency: LongWord read FFrequency;
+    property Frequency: Cardinal read FFrequency;
 
     { Duration in seconds. Returns -1 if not known. }
     property Duration: TFloatTime read FDuration;
@@ -73,10 +73,10 @@ type
 
   TStreamedSoundFile = class
   strict private
-    FURL: String;
+    FUrl: String;
     CompressedStream, DecompressedStream: TStream;
     FDataFormat: TSoundDataFormat;
-    FFrequency: LongWord;
+    FFrequency: Cardinal;
     FDuration: TFloatTime;
   public
     { Load a sound from a given URL.
@@ -90,14 +90,14 @@ type
         (e.g. strean ended prematurely).
       )
     }
-    constructor Create(const AURL: string);
+    constructor Create(const AUrl: String);
     destructor Destroy; override;
 
     { URL from which we loaded this sound file. }
-    property URL: String read FURL;
+    property Url: String read FUrl;
 
     property DataFormat: TSoundDataFormat read FDataFormat;
-    property Frequency: LongWord read FFrequency;
+    property Frequency: Cardinal read FFrequency;
     property Duration: TFloatTime read FDuration;
 
     { Returns read size. }
@@ -115,8 +115,8 @@ type
     Returns a stream with uncompressed sound data in format described
     by DataFormat. }
   TSoundReadEvent = function (
-    const Url: string; const Stream: TStream;
-    out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+    const Url: String; const Stream: TStream;
+    out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
     out Duration: TFloatTime): TStream
     of object;
 
@@ -128,7 +128,7 @@ implementation
 
 uses Generics.Collections,
   CastleStringUtils, CastleInternalVorbisDecoder,
-  CastleLog, CastleDownload, CastleURIUtils, CastleClassUtils;
+  CastleLog, CastleDownload, CastleUriUtils, CastleClassUtils;
 
 const
   SampleSize: array [TSoundDataFormat] of Cardinal = (1, 2, 2, 4);
@@ -153,7 +153,7 @@ function RegisteredSoundFormats: TRegisteredSoundFormats; forward;
 
 { TSoundFile ----------------------------------------------------------------- }
 
-constructor TSoundFile.Create(const AURL: string);
+constructor TSoundFile.Create(const AUrl: String);
 
   { Call ReadEvent and put complete uncompressed data in DataStream. }
   procedure DecodeStream(const CompressedStream: TStream;
@@ -166,7 +166,7 @@ constructor TSoundFile.Create(const AURL: string);
   var
     DecodingStream: TStream;
   begin
-    DecodingStream := ReadEvent(AURL, CompressedStream, FDataFormat, FFrequency, FDuration);
+    DecodingStream := ReadEvent(AUrl, CompressedStream, FDataFormat, FFrequency, FDuration);
     if DecodingStream is TMemoryStream then
       DataStream := TMemoryStream(DecodingStream)
     else
@@ -180,13 +180,13 @@ constructor TSoundFile.Create(const AURL: string);
   begin
     if DataSize mod SampleSize[DataFormat] <> 0 then
       raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": %d is not a multiple of sample size (%d)', [
-        URIDisplay(URL),
+        UriDisplay(Url),
         DataSize,
         SampleSize[DataFormat]
       ]);
     if DataSize = 0 then
       raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": size cannot be zero', [
-        URIDisplay(URL)
+        UriDisplay(Url)
       ]);
   end;
 
@@ -199,19 +199,19 @@ var
   F: TRegisteredSoundFormat;
 begin
   inherited Create;
-  FURL := AURL;
+  FUrl := AUrl;
 
-  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TSoundFile)');
+  TimeStart := Profiler.Start('Loading "' + UriDisplay(AUrl) + '" (TSoundFile)');
   try
     try
       { Use soForceMemoryStream as file readers may need seeking }
-      CompressedStream := Download(AURL, [soForceMemoryStream], MimeType);
+      CompressedStream := Download(AUrl, [soForceMemoryStream], MimeType);
       try
         F := RegisteredSoundFormats.Find(MimeType);
         if F = nil then
           raise ESoundFileError.CreateFmt('Not recognized (not supported) sound file format: %s for file "%s"', [
             MimeType,
-            URIDisplay(AURL)
+            UriDisplay(AUrl)
           ]);
 
         DecodeStream(CompressedStream, F.ReadEvent);
@@ -222,7 +222,7 @@ begin
       if LogSoundLoading then
       begin
         WritelnLog('Sound', 'Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f', [
-          URIDisplay(AURL),
+          UriDisplay(AUrl),
           MimeType,
           DataFormatToStr(DataFormat),
           DataSize,
@@ -232,18 +232,18 @@ begin
       end;
       if Duration > DurationSuggestStreaming then
         WritelnLog('Sound', 'Consider using streaming when loading long sound file "%s" (duration %f)', [
-          URIDisplay(AURL),
+          UriDisplay(AUrl),
           Duration
         ]);
     except
       { May be raised by Download in case opening the underlying stream failed. }
       on E: EFOpenError do
         { Reraise as ESoundFileError, and add URL to exception message }
-        raise ESoundFileError.Create('Error while opening URL "' + URIDisplay(AURL) + '": ' + E.Message);
+        raise ESoundFileError.Create('Error while opening URL "' + UriDisplay(AUrl) + '": ' + E.Message);
 
       on E: EStreamError do
         { Reraise as ESoundFileError, and add URL to exception message }
-        raise ESoundFileError.Create('Error while reading URL "' + URIDisplay(AURL) + '": ' + E.Message);
+        raise ESoundFileError.Create('Error while reading URL "' + UriDisplay(AUrl) + '": ' + E.Message);
     end;
 
   finally Profiler.Stop(TimeStart) end;
@@ -260,7 +260,7 @@ begin
   Result := DataStream.Memory;
 end;
 
-function TSoundFile.DataSize: LongWord;
+function TSoundFile.DataSize: Cardinal;
 begin
   Result := DataStream.Size;
 end;
@@ -276,7 +276,7 @@ var
 begin
   if DataFormat in [sfMono8, sfStereo8] then
   begin
-    WritelnWarning('Sound', 'Converting to 16-bit "%s".', [URIDisplay(URL)]);
+    WritelnWarning('Sound', 'Converting to 16-bit "%s".', [UriDisplay(Url)]);
 
     { create NewDataStream with 16-bit samples }
     NewDataStream := TMemoryStream.Create;
@@ -306,34 +306,34 @@ end;
 
 { TStreamedSoundFile --------------------------------------------------------- }
 
-constructor TStreamedSoundFile.Create(const AURL: string);
+constructor TStreamedSoundFile.Create(const AUrl: String);
 var
   MimeType: string;
   TimeStart: TCastleProfilerTime;
   F: TRegisteredSoundFormat;
 begin
   inherited Create;
-  FURL := AURL;
+  FUrl := AUrl;
 
-  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TStreamedSoundFile)');
+  TimeStart := Profiler.Start('Loading "' + UriDisplay(AUrl) + '" (TStreamedSoundFile)');
   try
     try
       { Use soForceMemoryStream as file readers may need seeking }
-      CompressedStream := Download(AURL, [soForceMemoryStream], MimeType);
+      CompressedStream := Download(AUrl, [soForceMemoryStream], MimeType);
 
       F := RegisteredSoundFormats.Find(MimeType);
       if F = nil then
         raise ESoundFileError.CreateFmt('Not recognized (not supported) sound file format: %s for file "%s"', [
           MimeType,
-          URIDisplay(AURL)
+          UriDisplay(AUrl)
         ]);
 
-      DecompressedStream := F.ReadEvent(AURL, CompressedStream, FDataFormat, FFrequency, FDuration);
+      DecompressedStream := F.ReadEvent(AUrl, CompressedStream, FDataFormat, FFrequency, FDuration);
 
       if LogSoundLoading then
       begin
         WritelnLog('Sound', 'Loaded "%s": %s, %s, frequency: %d, duration: %f', [
-          URIDisplay(AURL),
+          UriDisplay(AUrl),
           MimeType,
           DataFormatToStr(DataFormat),
           Frequency,
@@ -345,13 +345,13 @@ begin
       on E: EFOpenError do
       begin
         { Reraise as ESoundFileError, and add URL to exception message }
-        raise ESoundFileError.Create('Error while opening URL "' + URIDisplay(AURL) + '": ' + E.Message);
+        raise ESoundFileError.Create('Error while opening URL "' + UriDisplay(AUrl) + '": ' + E.Message);
       end;
 
       on E: EStreamError do
       begin
         { Reraise as ESoundFileError, and add URL to exception message }
-        raise ESoundFileError.Create('Error while reading URL "' + URIDisplay(AURL) + '": ' + E.Message);
+        raise ESoundFileError.Create('Error while reading URL "' + UriDisplay(AUrl) + '": ' + E.Message);
       end;
     end;
   finally
@@ -382,13 +382,13 @@ type
   EWavLoadError = class(ESoundFileError);
 
   TWAVReader = class
-    class function Read(const Url: string; const Stream: TStream;
-      out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+    class function Read(const Url: String; const Stream: TStream;
+      out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
       out Duration: TFloatTime): TStream;
   end;
 
-class function TWAVReader.Read(const Url: string; const Stream: TStream;
-  out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+class function TWAVReader.Read(const Url: String; const Stream: TStream;
+  out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
   out Duration: TFloatTime): TStream;
 
 { WAV file reader. Written mostly based on
@@ -430,8 +430,8 @@ type
     { 1 channel means mono, 2 = stereo. Theoretically other values
       are probably possible? }
     Channels: Word;
-    SamplesPerSec: LongWord;
-    AvgBytesPerSec: LongWord;
+    SamplesPerSec: UInt32;
+    AvgBytesPerSec: UInt32;
     BlockAlign: Word;
     BitsPerSample: Word;
   end;
@@ -478,7 +478,7 @@ begin
       Stream.ReadBuffer(Format, SizeOf(Format));
       if Format.FormatTag <> 1 then
         raise EWavLoadError.CreateFmt('Not supported format of "%s". Only uncompressed (PCM) WAV files are supported. Convert WAV files to uncompressed e.g. using Audacity or Sox.', [
-          URIDisplay(Url)
+          UriDisplay(Url)
         ]);
       { calculate DataFormat }
       case Format.Channels of

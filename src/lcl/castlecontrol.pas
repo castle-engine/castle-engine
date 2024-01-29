@@ -109,8 +109,8 @@ type
     constructor Create(AParent: TCastleControl); reintroduce;
     procedure Invalidate; override;
     function GLInitialized: boolean; override;
-    function Width: Integer; override;
-    function Height: Integer; override;
+    function PixelsWidth: Integer; override;
+    function PixelsHeight: Integer; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
 
@@ -366,7 +366,7 @@ type
 
     { Capture the current control contents to an image.
       @groupBegin }
-    procedure SaveScreen(const URL: string); overload;
+    procedure SaveScreen(const Url: String); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
     { @groupEnd }
@@ -656,7 +656,7 @@ implementation
 
 uses Math, Contnrs, LazUTF8, Clipbrd,
   CastleControls, CastleGLUtils, CastleStringUtils, CastleLog, CastleRenderContext,
-  CastleURIUtils, CastleComponentSerialize, CastleInternalLclDesign;
+  CastleUriUtils, CastleComponentSerialize, CastleInternalLclDesign;
 
 // TODO: We never call Fps.InternalSleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
@@ -740,7 +740,7 @@ begin
           if CastleDesignMode then // looks at InternalCastleApplicationMode
           begin
             WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
-              URIDisplay(DesignUrl),
+              UriDisplay(DesignUrl),
               ExceptMessage(E)
             ]);
             Exit;
@@ -782,7 +782,7 @@ begin
   if Required and (Result = nil) then
     raise EComponentNotFound.CreateFmt('Cannot find component named "%s" in design "%s"', [
       ComponentName,
-      URIDisplay(DesignUrl)
+      UriDisplay(DesignUrl)
     ]);
 end;
 
@@ -803,12 +803,12 @@ begin
   Result := Parent.GLInitialized;
 end;
 
-function TCastleControlContainer.Width: Integer;
+function TCastleControlContainer.PixelsWidth: Integer;
 begin
   Result := Parent.Width;
 end;
 
-function TCastleControlContainer.Height: Integer;
+function TCastleControlContainer.PixelsHeight: Integer;
 begin
   Result := Parent.Height;
 end;
@@ -827,7 +827,7 @@ procedure TCastleControlContainer.SetInternalCursor(const Value: TMouseCursor);
 var
   NewCursor: TCursor;
 begin
-  NewCursor := CursorCastleToLCL(Value);
+  NewCursor := CursorFromCastle(Value);
 
   { Check explicitly "Cursor <> NewCursor", to avoid changing LCL property Cursor
     too often. The SetInternalCursor may be called very often (in each mouse move).
@@ -844,7 +844,7 @@ begin
     EventBeforeRender;
     EventRender;
   end;
-  Result := SaveScreen_NoFlush(Rect, Parent.SaveScreenBuffer);
+  Result := SaveScreen_NoFlush(PixelsRect, Parent.SaveScreenBuffer);
 end;
 
 {$warnings off} // keep deprecated OnXxx wor
@@ -1282,7 +1282,7 @@ begin
     This may call OnPress (which sets Pressed to true). }
   FKeyPressHandler.BeforeKeyUp(Key, Shift);
 
-  MyKey := KeyLCLToCastle(Key, Shift);
+  MyKey := KeyToCastle(Key, Shift);
   if MyKey <> keyNone then
     Pressed.KeyUp(MyKey, MyKeyString);
 
@@ -1313,14 +1313,14 @@ begin
 
   FMousePosition := Vector2(X, Height - 1 - Y);
 
-  if MouseButtonLCLToCastle(Button, MyButton) then
+  if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed + [MyButton];
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
   inherited MouseDown(Button, Shift, X, Y); { LCL OnMouseDown before our callbacks }
 
-  if MouseButtonLCLToCastle(Button, MyButton) then
+  if MouseButtonToCastle(Button, MyButton) then
     Container.EventPress(InputMouseButton(MousePosition, MyButton, 0,
       ModifiersDown(Container.Pressed)));
 end;
@@ -1332,14 +1332,14 @@ var
 begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
-  if MouseButtonLCLToCastle(Button, MyButton) then
+  if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed - [MyButton];
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
   inherited MouseUp(Button, Shift, X, Y); { LCL OnMouseUp before our callbacks }
 
-  if MouseButtonLCLToCastle(Button, MyButton) then
+  if MouseButtonToCastle(Button, MyButton) then
     Container.EventRelease(InputMouseButton(MousePosition, MyButton, 0));
 end;
 
@@ -1452,9 +1452,9 @@ begin
     Result := cbFront;
 end;
 
-procedure TCastleControl.SaveScreen(const URL: string);
+procedure TCastleControl.SaveScreen(const Url: String);
 begin
-  Container.SaveScreen(URL);
+  Container.SaveScreen(Url);
 end;
 
 function TCastleControl.SaveScreen: TRGBImage;
@@ -1497,7 +1497,7 @@ end;
 
 function TCastleControl.Rect: TRectangle;
 begin
-  Result := Container.Rect;
+  Result := Container.PixelsRect;
 end;
 
 function TCastleControl.DesignedComponent(const ComponentName: String
@@ -1536,16 +1536,16 @@ end;
 type
   TLCLClipboard = class(TCastleClipboard)
   protected
-    function GetAsText: string; override;
-    procedure SetAsText(const Value: string); override;
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
   end;
 
-function TLCLClipboard.GetAsText: string;
+function TLCLClipboard.GetAsText: String;
 begin
   Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
 end;
 
-procedure TLCLClipboard.SetAsText(const Value: string);
+procedure TLCLClipboard.SetAsText(const Value: String);
 begin
   Clipbrd.Clipboard.AsText := SysToUTF8(Value);
 end;

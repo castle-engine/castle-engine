@@ -410,7 +410,7 @@ end;
 function QuatFromAxisAngle(const Axis: TVector3;
   const AngleRad: Single; const NormalizeAxis: boolean): TQuaternion;
 var
-  SinHalfAngle, CosHalfAngle: Float;
+  SinHalfAngle, CosHalfAngle: Single;
 begin
   { The quaternion requires half angles. }
   SinCos(AngleRad / 2, SinHalfAngle, CosHalfAngle);

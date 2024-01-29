@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -85,11 +85,11 @@ type
 
     { Generate a Pascal file from template. }
     procedure GeneratedSourceFile(
-      const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
+      const TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits: string;
       const CreateIfNecessary: boolean;
       out RelativeResult, AbsoluteResult: string);
     procedure GeneratedSourceFile(
-      const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
+      const TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits: string;
       const CreateIfNecessary: boolean);
 
     function AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
@@ -267,8 +267,8 @@ implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM, Process,
-  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  CastleTimeUtils,
+  CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleTimeUtils, CastleInternalTools,
   ToolResources, ToolAndroid, ToolMacOS,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
@@ -304,10 +304,10 @@ procedure ExternalLibraries(const OS: TOS; const CPU: TCPU;
     and raises exception in case of trouble. }
   function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
   var
-    LibraryURL: string;
+    LibraryUrl: String;
   begin
-    LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
-    Result := URIToFilenameSafe(LibraryURL);
+    LibraryUrl := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
+    Result := UriToFilenameSafe(LibraryUrl);
     if CheckFilesExistence and (not RegularFileExists(Result)) then
       raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
   end;
@@ -435,10 +435,10 @@ constructor TCastleProject.Create(const APath: string);
     end;
 
   var
-    ManifestUrl: string;
+    ManifestUrl: String;
   begin
     ManifestFile := InclPathDelim(APath) + ManifestName;
-    ManifestUrl := FilenameToURISafe(ManifestFile);
+    ManifestUrl := FilenameToUriSafe(ManifestFile);
 
     if not RegularFileExists(ManifestFile) then
     begin
@@ -1085,7 +1085,7 @@ begin
 end;
 
 procedure TCastleProject.GeneratedSourceFile(
-  const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
+  const TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits: string;
   const CreateIfNecessary: boolean;
   out RelativeResult, AbsoluteResult: string);
 var
@@ -1094,10 +1094,10 @@ begin
   AbsoluteResult := TempOutputPath(Path, CreateIfNecessary) + TargetRelativePath;
   if CreateIfNecessary then
   begin
-    TemplateFile := URIToFilenameSafe(ApplicationData(TemplateRelativeURL));
+    TemplateFile := UriToFilenameSafe(ApplicationData(TemplateRelativeUrl));
     if Manifest.GameUnits = '' then
       raise Exception.Create(ErrorMessageMissingGameUnits);
-    ExtractTemplateFile(TemplateFile, AbsoluteResult, TemplateRelativeURL, true);
+    ExtractTemplateFile(TemplateFile, AbsoluteResult, TemplateRelativeUrl, true);
   end;
   // This may not be true anymore, if user changes OutputPathBase
   // if not IsPrefix(Path, AbsoluteResult, true) then
@@ -1107,12 +1107,12 @@ begin
 end;
 
 procedure TCastleProject.GeneratedSourceFile(
-  const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
+  const TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits: string;
   const CreateIfNecessary: boolean);
 var
   RelativeResult, AbsoluteResult: string;
 begin
-  GeneratedSourceFile(TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits,
+  GeneratedSourceFile(TemplateRelativeUrl, TargetRelativePath, ErrorMessageMissingGameUnits,
     CreateIfNecessary, RelativeResult, AbsoluteResult);
   // just ignore RelativeResult, AbsoluteResult output values
 end;
@@ -1127,7 +1127,7 @@ function TCastleProject.AndroidSourceFile(const AbsolutePath, CreateIfNecessary:
 const
   ErrorMessageMissingGameUnits = 'You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an Android project. Alternatively, you can specify android_source="..." in the CastleEngineManifest.xml, to explicitly indicate the Android library source code.';
 var
-  AndroidSourceContents, RelativeResult, AbsoluteResult, TemplateRelativeURL: string;
+  AndroidSourceContents, RelativeResult, AbsoluteResult, TemplateRelativeUrl: String;
 begin
   { calculate RelativeResult, AbsoluteResult }
   if Manifest.AndroidSource <> '' then
@@ -1136,8 +1136,8 @@ begin
     AbsoluteResult := Path + RelativeResult;
   end else
   begin
-    TemplateRelativeURL := 'android/library_template_integrated.lpr';
-    GeneratedSourceFile(TemplateRelativeURL,
+    TemplateRelativeUrl := 'android/library_template_integrated.lpr';
+    GeneratedSourceFile(TemplateRelativeUrl,
       'android' + PathDelim + NamePascal + '_android.lpr',
       ErrorMessageMissingGameUnits,
       CreateIfNecessary, RelativeResult, AbsoluteResult);
@@ -1396,7 +1396,7 @@ procedure TCastleProject.DoGenerateProgram(const GuidFromName: Boolean);
   var
     TemplateFile, TargetFile: string;
   begin
-    TemplateFile := URIToFilenameSafe(ApplicationData(TemplateRelativePath));
+    TemplateFile := UriToFilenameSafe(ApplicationData(TemplateRelativePath));
     TargetFile := Path + TargeRelativePath;
     ExtractTemplateFile(TemplateFile, TargetFile, TemplateRelativePath, true);
     Writeln('Generated ', ExtractRelativePath(Path, TargetFile));
@@ -1636,6 +1636,9 @@ end;
 procedure TCastleProject.DoOutput(const OutputKey: String);
 begin
   case OutputKey of
+    'name': Writeln(Name);
+    'pascal-name': Writeln(NamePascal);
+    'executable-name': Writeln(ExecutableName);
     'version': Writeln(Manifest.Version.DisplayValue);
     'version-code': Writeln(Manifest.Version.Code);
     else raise Exception.CreateFmt('Unsupported output key: "%s"', [OutputKey]);
@@ -1939,6 +1942,14 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     begin
       PascalFiles := Manifest.FindPascalFiles;
       try
+        { Make the files' list sorted,
+          to have the `castle-engine generate-program`
+          output fully deterministic for a given project,
+          and indepedent from source OS, undefined ordef of FindFiles etc.
+          This avoids diffs in version control if nothing changed. }
+        PascalFiles.CaseSensitive := true;
+        PascalFiles.Sort;
+
         PascalFilesXml := '';
         I := 1;
         for PascalFile in PascalFiles do
@@ -2011,6 +2022,85 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       Result := Result + D + ';';
   end;
 
+  { Generate proper DeployFile elements for DPROJ,
+    to deploy programs with their data using PAServer.
+
+    Sample:
+      <DeployFile LocalName="data\Dino.gltf" Configuration="Debug" Class="File">
+          <Platform Name="Linux64">
+              <RemoteDir>./data/</RemoteDir>
+              <RemoteName>Dino.gltf</RemoteName>
+              <Overwrite>true</Overwrite>
+          </Platform>
+          ... // repeat for all platforms
+      </DeployFile>
+      // repeat for release too
+  }
+  function DelphiDprojDeployFiles: String;
+  const
+    AllDelphiPlatformNames: array [0..8] of String = (
+      'Android',
+      'Android64',
+      'iOSDevice64',
+      'iOSSimARM64',
+      'Linux64',
+      'OSX64',
+      'OSXARM64',
+      'Win32',
+      'Win64'
+    );
+    AllDelphiConfigNames: array [0..1] of String = (
+      'Debug',
+      'Release'
+    );
+  var
+    ConfigName, PlatformName, FileRelativeName: String;
+    Files: TStringList;
+    ResultBuilder: TStringBuilder;
+  begin
+    ResultBuilder := TStringBuilder.Create;
+    try
+      Files := PackageFiles(true, cpDesktop);
+      try
+        { Make the files' list sorted,
+          to have the `castle-engine generate-program`
+          output fully deterministic for a given project,
+          and indepedent from source OS, undefined ordef of FindFiles etc.
+          This avoids diffs in version control if nothing changed. }
+        Files.CaseSensitive := true;
+        Files.Sort;
+
+        for ConfigName in AllDelphiConfigNames do
+        begin
+          for FileRelativeName in Files do
+          begin
+            ResultBuilder.Append(Format(
+              '                <DeployFile LocalName="%s\%s" Configuration="%s" Class="File">' + NL, [
+                TCastleManifest.DataName,
+                FileRelativeName,
+                ConfigName
+              ]));
+            for PlatformName in AllDelphiPlatformNames do
+              ResultBuilder.Append(Format(
+                '                    <Platform Name="%s">' + NL +
+                '                        <RemoteDir>./%s/%s</RemoteDir>' + NL +
+                '                        <RemoteName>%s</RemoteName>' + NL +
+                '                        <Overwrite>true</Overwrite>' + NL +
+                '                    </Platform>' + NL, [
+                  PlatformName,
+                  TCastleManifest.DataName,
+                  ExtractFilePath(FileRelativeName),
+                  ExtractFileName(FileRelativeName)
+                ]));
+            ResultBuilder.Append(
+              '                </DeployFile>' + NL);
+          end;
+        end;
+      finally FreeAndNil(Files) end;
+      Result := ResultBuilder.ToString;
+    finally FreeAndNil(ResultBuilder) end;
+  end;
+
   { Add macros specifically useful by Delphi project files. }
   procedure AddMacrosDproj(const Macros: TStringStringMap;
     const StandaloneSource: String);
@@ -2037,10 +2127,10 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     IncludedFiles := '';
     if WelcomePageFile <> '' then
       IncludedFiles := SAppendPart(IncludedFiles, NL,
-        '<None Include="' + WelcomePageFile + '"/>');
+        '        <None Include="' + WelcomePageFile + '"/>');
     if StandaloneSource <> '' then
       IncludedFiles := SAppendPart(IncludedFiles, NL,
-        '<None Include="' + StandaloneSource + '"/>');
+        '        <None Include="' + StandaloneSource + '"/>');
     Macros.Add('DPROJ_INCLUDED_FILES', IncludedFiles);
 
     { Define welcome page by XML content like this:
@@ -2050,11 +2140,16 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     }
     if WelcomePageFile <> '' then
       WelcomePageXml := Format(
-        '<WelcomePageFile Path="%s"/>' + NL +
-        '<WelcomePageFolder/>', [WelcomePageFile])
+        '                <WelcomePageFile Path="%s"/>' + NL +
+        '                <WelcomePageFolder/>', [WelcomePageFile])
     else
       WelcomePageXml := '';
     Macros.Add('DPROJ_WELCOME_PAGE', WelcomePageXml);
+
+    { As an optimization, do not calculate DPROJ_DEPLOY_FILES
+      macro value when not needed. }
+    if Pos('${DPROJ_DEPLOY_FILES}', Source) <> 0 then
+      Macros.Add('DPROJ_DEPLOY_FILES', DelphiDprojDeployFiles);
   end;
 
 var
@@ -2083,6 +2178,14 @@ begin
     Macros.Add('CAPTION'         , Caption);
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
+    { TODO: Right now Delphi IDE compiles exe with basename matching
+      DeleteFileExt(StandaloneSource), not our ExecutableName
+      (which is sometimes different, e.g. doesn't contain "_standalone" suffix,
+      has - instead of _).
+      So we have DELPHI_EXECUTABLE_NAME.
+      In the long run, it would be ideal to only have EXECUTABLE_NAME
+      and make Delphi IDE build the same as Delphi command-line and FPCr. }
+    Macros.Add('DELPHI_EXECUTABLE_NAME', DeleteFileExt(StandaloneSource));
     Macros.Add('GAME_UNITS'      , Manifest.GameUnits);
     Macros.Add('SEARCH_PATHS'          , MakePathsStr(Manifest.SearchPaths, false));
     Macros.Add('ABSOLUTE_SEARCH_PATHS' , MakePathsStr(Manifest.SearchPaths, true));
@@ -2138,7 +2241,7 @@ var
 begin
   ExtractTemplateOverrideExisting := OverrideExisting;
   ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
-  ExtractTemplateDir := ExclPathDelim(URIToFilenameSafe(ApplicationData(TemplatePath)));
+  ExtractTemplateDir := ExclPathDelim(UriToFilenameSafe(ApplicationData(TemplatePath)));
   if not DirectoryExists(ExtractTemplateDir) then
     raise Exception.Create('Cannot find template in "' + ExtractTemplateDir + '". ' + SErrDataDir);
 
@@ -2241,9 +2344,9 @@ begin
       CheckCopyFile(SourceFileName, DestinationFileName);
     end else
     begin
-      Contents := FileToString(FilenameToURISafe(SourceFileName));
+      Contents := FileToString(FilenameToUriSafe(SourceFileName));
       Contents := ReplaceMacros(Contents);
-      StringToFile(FilenameToURISafe(DestinationFileName), Contents);
+      StringToFile(FilenameToUriSafe(DestinationFileName), Contents);
     end;
   except
     on E: EFOpenError do

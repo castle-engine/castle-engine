@@ -19,8 +19,7 @@ unit TestCastleTimeUtils;
 
 interface
 
-uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase
-     {$else}CastleTester{$endif};
+uses CastleTester;
 
 type
   TTestCastleTimeUtils = class(TCastleTestCase)
@@ -60,8 +59,8 @@ begin
   AssertFalse(TimeTickSecondLater(1000, 1999, 1000));
 
   { test on prepared values simulating wrap with 32-bit GetTickCount }
-  AssertTrue(TimeTickSecondLater(High(LongWord) - 500, 501, 1000));
-  AssertFalse(TimeTickSecondLater(High(LongWord) - 500, 499, 1000));
+  AssertTrue(TimeTickSecondLater(High(UInt32) - 500, 501, 1000));
+  AssertFalse(TimeTickSecondLater(High(UInt32) - 500, 499, 1000));
 end;
 
 {$warnings on}

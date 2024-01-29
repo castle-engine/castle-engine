@@ -189,18 +189,18 @@ const
 
 type
   TDDSPixelFormat = packed record
-    Size: LongWord;
-    Flags: LongWord;
+    Size: UInt32;
+    Flags: UInt32;
     case Integer of
       0: ( FourCC: array [0 .. 3] of AnsiChar;
-           RGBBitCount: LongWord;
-           RBitMask: LongWord;
-           GBitMask: LongWord;
-           BBitMask: LongWord;
-           ABitMask: LongWord; );
-      1: ( { Alternative FourCC view, as LongWord, always in little endian memory
+           RGBBitCount: UInt32;
+           RBitMask: UInt32;
+           GBitMask: UInt32;
+           BBitMask: UInt32;
+           ABitMask: UInt32; );
+      1: ( { Alternative FourCC view, as UInt32, always in little endian memory
              order (process with LEtoN to compare with ints). }
-           FourCCIntLE: LongWord; )
+           FourCCIntLE: UInt32; )
 
   end;
   PDDSPixelFormat = ^TDDSPixelFormat;
@@ -208,19 +208,19 @@ type
   { Corresponds to DDS_HEADER (Direct3D 10),
     http://msdn.microsoft.com/en-us/library/bb943982(VS.85).aspx. }
   TDDSHeader = packed record
-    Size: LongWord;
-    Flags: LongWord;
-    Height: LongWord;
-    Width: LongWord;
-    PitchOrLinearSize: LongWord;
-    Depth: LongWord;
-    MipMapCount: LongWord;
-    Reserved: array [0 .. 10] of LongWord;
+    Size: UInt32;
+    Flags: UInt32;
+    Height: UInt32;
+    Width: UInt32;
+    PitchOrLinearSize: UInt32;
+    Depth: UInt32;
+    MipMapCount: UInt32;
+    Reserved: array [0 .. 10] of UInt32;
     PixelFormat: TDDSPixelFormat;
-    Caps1: LongWord;
-    Caps2: LongWord;
-    ReservedCaps: array [0 .. 1] of LongWord;
-    Reserved2: LongWord;
+    Caps1: UInt32;
+    Caps2: UInt32;
+    ReservedCaps: array [0 .. 1] of UInt32;
+    Reserved2: UInt32;
   end;
 
   { DDS header extension to handle resource arrays,
@@ -228,11 +228,11 @@ type
     pixel format structures, and additional metadata.
     From https://msdn.microsoft.com/en-us/library/windows/desktop/bb943983%28v=vs.85%29.aspx }
   TDDSHeaderDxt10 = packed record
-    DxgiFormat: LongWord;
-    ResourceDimension: LongWord;
-    MiscFlag: LongWord;
-    ArraySize: LongWord;
-    MiscFlags2: LongWord;
+    DxgiFormat: UInt32;
+    ResourceDimension: UInt32;
+    MiscFlag: UInt32;
+    ArraySize: UInt32;
+    MiscFlags2: UInt32;
   end;
 
 { TDDSRowReader -------------------------------------------------------------- }
@@ -241,7 +241,7 @@ type
   TRGBAChannel = 0..3;
 
   TChannelInfo = record
-    Mask: LongWord;
+    Mask: UInt32;
     { Shift (to the right, by ShiftR) to fit into Byte }
     ShiftToByte: Integer;
     { Shift (to the right, by ShiftR) to have the least significant bit at
@@ -271,7 +271,7 @@ type
     FWidth, FRowBytePadding: Cardinal;
     Row: Pointer;
     Pixel: Pointer;
-    PixelValue: LongWord;
+    PixelValue: UInt32;
     RowByteSize, PixelByteSize: Cardinal;
     Channels: array [TRGBAChannel] of TChannelInfo;
     procedure CalculatePixelValue;
@@ -287,7 +287,7 @@ type
 
 { Shift bits to the right if Value is positive.
   Shift to the left if negative. }
-function ShiftR(const Value: LongWord; const Shift: Integer): LongWord;
+function ShiftR(const Value: UInt32; const Shift: Integer): UInt32;
 begin
   if Shift >= 0 then
     Result := Value shr Shift else
@@ -298,12 +298,12 @@ constructor TDDSRowReader.Create(const PixelFormat: PDDSPixelFormat;
   const Width, RowBytePadding: Cardinal);
 
   { Calculate TChannelInfo. }
-  procedure CalculateChannelInfo(const Mask: LongWord; var Info: TChannelInfo);
+  procedure CalculateChannelInfo(const Mask: UInt32; var Info: TChannelInfo);
   const
-    High1 = LongWord(1) shl 31;
+    High1 = UInt32(1) shl 31;
   var
     LeadingZeros, Ones: Integer;
-    M: LongWord;
+    M: UInt32;
   begin
     Info.Mask := Mask;
 
@@ -388,7 +388,7 @@ begin
   { The tricky memory part: move the meaningful bytes of current pixel
     (under Pixel^) to appropriate part of PixelValue, such that
     PixelValue can be directly and'ed with DDS masks (in ChannelMask[]).
-    The copied bytes are the least significant part of LongWord value
+    The copied bytes are the least significant part of UInt32 value
     (DDS masks are specified like that). }
 
   Move(Pixel^, Pointer(PtrUInt(PtrUInt(@PixelValue)
@@ -485,7 +485,7 @@ type
     class procedure ReadOptimized_ABGR8(const Stream: TStream;
       const Image: TCastleImage; const RowBytePadding: Integer); static;
   public
-    procedure LoadFromStream(const Stream: TStream; const URL: string); override;
+    procedure LoadFromStream(const Stream: TStream; const Url: String); override;
     procedure SaveToStream(const Stream: TStream); override;
   end;
 
@@ -594,7 +594,7 @@ begin
     end;
 end;
 
-procedure TDDSHandler.LoadFromStream(const Stream: TStream; const URL: string);
+procedure TDDSHandler.LoadFromStream(const Stream: TStream; const Url: String);
 
   procedure CheckWarn(const Check: boolean; const Message: string);
   begin
@@ -978,7 +978,7 @@ var
               (e.g. UberPack-1/Torque3D/levels/lonerock_island/
               inside UberPack-1 on opengameart.org). }
             (Header.PitchOrLinearSize <> 0) and
-            (Header.PitchOrLinearSize <> High(LongWord)) and
+            (Header.PitchOrLinearSize <> High(UInt32)) and
             { check this only on base level }
             (MipmapLevel = 0) and
             (Header.PitchOrLinearSize <> Result.Size) and
@@ -1122,7 +1122,7 @@ var
       except FreeAndNil(Result); raise end;
 
       // useful to see this URL in logs, TextureMemoryProfiler dumps etc.
-      Result.URL := URL + '[subimage]';
+      Result.Url := Url + '[subimage]';
     end { ReadImage };
 
   var

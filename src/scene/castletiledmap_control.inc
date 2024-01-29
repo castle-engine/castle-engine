@@ -23,7 +23,7 @@ type
   TCastleTiledMapControl = class(TCastleUserInterface)
   strict private
     FMap: TCastleTiledMapData;
-    FURL: String;
+    FUrl: String;
     FObjectsVisible: Boolean;
     FOrigin: TVector2;
     FScale: Single;
@@ -32,9 +32,9 @@ type
     procedure LoadTilesetsImages;
     { Free images created by LoadTilesetsImages. }
     procedure FreeTilesetsImages;
-    { Free everything created by SetURL. }
+    { Free everything created by SetUrl. }
     procedure Close;
-    procedure SetURL(const Value: string);
+    procedure SetUrl(const Value: String);
     procedure SetOrigin(const Value: TVector2);
     procedure SetScale(const Value: Single);
     procedure SetSmoothScaling(const Value: Boolean);
@@ -46,15 +46,15 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Load given TMX file to memory and creates structures. }
-    procedure LoadFromFile(const AURL: string); deprecated 'set URL instead of calling LoadFromFile';
+    procedure LoadFromFile(const AUrl: String); deprecated 'set Url instead of calling LoadFromFile';
 
     { Origin determines the map position at control's left-bottom corner.
       Increasing Origin.X moves visually the map to the left,
       increasing Origin.Y moves it down. }
     property Origin: TVector2 read FOrigin write SetOrigin;
 
-    { Currently loaded map (from @link(URL)), if any.
-      @nil if no map is loaded (when @link(URL) is empty). Read-only. }
+    { Currently loaded map (from @link(Url)), if any.
+      @nil if no map is loaded (when @link(Url) is empty). Read-only. }
     property Map: TCastleTiledMapData read FMap;
 
     { Detect tile under given position.
@@ -131,7 +131,7 @@ type
       )
 
       This method works for any TilePosition, even outside of valid map positions.
-      Returns TFloatRectangle.Empty is @link(Map) not loaded (@link(URL) not set).
+      Returns TFloatRectangle.Empty is @link(Map) not loaded (@link(Url) not set).
 
       Some maps may use tilesets in which image size is different
       than map tile size. That is, TCastleTiledMapData.TTileset.TileWidth may be different
@@ -151,8 +151,8 @@ type
   published
     property ClipChildren default true;
 
-    { URL (or just filename) of the Tiled map file (TMX). }
-    property URL: String read FURL write SetURL;
+    { Url (or just filename) of the Tiled map file (TMX). }
+    property Url: String read FUrl write SetUrl;
 
     property Scale: Single read FScale write SetScale {$ifdef FPC}default 1{$endif};
 
@@ -345,7 +345,7 @@ begin
         Continue;
       end;
       Spr := TSprite.Create(
-        Tileset.Image.URL, Tileset.TileCount,
+        Tileset.Image.Url, Tileset.TileCount,
         Tileset.Columns, Tileset.TileCount div Tileset.Columns,
         SmoothScaling, false);
       { Note that we use here Tileset.TileWidth/Height,
@@ -381,16 +381,16 @@ begin
   FreeAndNil(FMap);
 end;
 
-procedure TCastleTiledMapControl.LoadFromFile(const AURL: string);
+procedure TCastleTiledMapControl.LoadFromFile(const AUrl: String);
 begin
-  URL := AURL;
+  Url := AUrl;
 end;
 
-procedure TCastleTiledMapControl.SetURL(const Value: string);
+procedure TCastleTiledMapControl.SetUrl(const Value: String);
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
-    FURL := Value;
+    FUrl := Value;
     Close;
     if Value <> '' then
       FMap := TCastleTiledMapData.Create(Value);
@@ -617,7 +617,7 @@ end;
 function TCastleTiledMapControl.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'URL') or
+  if (PropertyName = 'Url') or
      (PropertyName = 'SmoothScaling') or
      (PropertyName = 'SmoothScalingSafeBorder') then
     Result := [psBasic]

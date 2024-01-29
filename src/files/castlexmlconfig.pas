@@ -21,7 +21,7 @@ unit CastleXMLConfig;
 interface
 
 uses SysUtils, Classes, DOM, Generics.Collections,
-  CastleUtils, CastleXMLCfgInternal, CastleXMLUtils, CastleVectors, CastleColors;
+  CastleUtils, CastleXMLCfgInternal, CastleXmlUtils, CastleVectors, CastleColors;
 
 type
   EMissingAttribute = class(Exception);
@@ -63,7 +63,7 @@ type
       is broken for some reason (e.g. file corruption),
       but you want to override it and just get into a state
       where config is considered loaded.  }
-    procedure LoadEmpty(const PretendURL: string);
+    procedure LoadEmpty(const PretendUrl: String);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -374,13 +374,13 @@ type
       error will be raised.
 
       @raises(EMissingAttribute If EmptyIfNoAttribute = @false and no such attribute.) }
-    function GetURL(const APath: string;
+    function GetUrl(const APath: string;
       const EmptyIfNoAttribute: boolean = false): string;
 
     { Read string from a text content of given element.
       The text may be multiline, line endings are guaranteed to be converted
       to current OS newlines. }
-    function GetMultilineText(const APath: string; const DefaultValue: string): string; overload;
+    function GetMultilineText(const APath: string; const DefaultValue: String): string; overload;
 
     { Read @italic(required, non-empty) string from a text content of given element.
       The text may be multiline, line endings are guaranteed to be converted
@@ -435,21 +435,21 @@ type
           It uses @link(ApplicationConfig) to determine location of this file.)
 
         @item(The overloaded @code(Load) version with URL
-          sets @code(TXMLConfig.URL), loading the file from given URL.
+          sets @code(TXMLConfig.Url), loading the file from given URL.
           The URL may use any supported protocol,
           see https://castle-engine.io/manual_network.php .
           It can also just be a filename. )
 
         @item(The overloaded @code(Load) version with TStream loads from a stream.
-          URL is set to PretendURL (just pass empty string if you don't
+          URL is set to PretendUrl (just pass empty string if you don't
           need to be able to save it back).)
       )
 
       @groupBegin }
     procedure Load; overload;
-    procedure Load(const AURL: string); overload;
-    procedure Load(const Stream: TStream; const PretendURL: string); overload;
-    procedure LoadFromString(const Data: string; const PretendURL: string);
+    procedure Load(const AUrl: String); overload;
+    procedure Load(const Stream: TStream; const PretendUrl: String); overload;
+    procedure LoadFromString(const Data: string; const PretendUrl: String);
     { @groupEnd }
 
     { Save the user persistent configuration.
@@ -458,7 +458,7 @@ type
       @unorderedList(
         @item(The overloaded parameter-less version flushes
           the changes to disk, thus saving them back to the file from which
-          they were read (in @code(TXMLConfig.URL) property).)
+          they were read (in @code(TXMLConfig.Url) property).)
 
         @item(The overloaded version with TStream parameter saves to a stream.
           If does not use inherited Flush method, instead it always
@@ -475,7 +475,7 @@ type
 implementation
 
 uses //Base64,
-  CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils;
+  CastleStringUtils, CastleFilesUtils, CastleLog, CastleUriUtils;
 
 { TCastleConfigEventList ----------------------------------------------------- }
 
@@ -935,7 +935,7 @@ begin
   end;
 
   if (Result = nil) and RaiseExceptionWhenMissing then
-    raise Exception.CreateFmt('Missing element "%s" in file "%s"', [APath, URL]);
+    raise Exception.CreateFmt('Missing element "%s" in file "%s"', [APath, Url]);
 end;
 
 function TCastleConfig.MakePathElement(const APath: string): TDOMElement;
@@ -977,7 +977,7 @@ begin
   Result := PathElement(APath, true).ChildrenIterator(ChildName);
 end;
 
-function TCastleConfig.GetURL(const APath: string;
+function TCastleConfig.GetUrl(const APath: string;
   const EmptyIfNoAttribute: boolean): string;
 begin
   Result := GetValue(APath, '');
@@ -986,11 +986,11 @@ begin
     if not EmptyIfNoAttribute then
       raise EMissingAttribute.CreateFmt('Missing attribute "%s" in XML file', [APath]);
   end else
-    Result := CombineURI(URL, Result);
+    Result := CombineURI(Url, Result);
 end;
 
 function TCastleConfig.GetMultilineText(const APath: string;
-  const DefaultValue: string): string;
+  const DefaultValue: String): string;
 var
   E: TDOMElement;
 begin
@@ -1058,15 +1058,15 @@ begin
   Load(ApplicationConfig(ApplicationName + '.conf'));
 end;
 
-procedure TCastleConfig.Load(const AURL: string);
+procedure TCastleConfig.Load(const AUrl: String);
 begin
   try
-    URL := AURL; // use ancestor method to load
+    Url := AUrl; // use ancestor method to load
   except
     on E: Exception do
     begin
-      WritelnWarning('UserConfig', 'User config in "' + AURL + '" corrupted (will load defaults): ' + E.Message);
-      LoadEmpty(AURL);
+      WritelnWarning('UserConfig', 'User config in "' + AUrl + '" corrupted (will load defaults): ' + E.Message);
+      LoadEmpty(AUrl);
       Exit;
     end;
   end;
@@ -1076,56 +1076,56 @@ begin
   { This is used for various files (not just user preferences,
     also resource.xml files). Logging this may get talkative, but it's also
     useful for now... }
-  WritelnLog('Config', 'Loaded configuration from "%s"', [AURL]);
+  WritelnLog('Config', 'Loaded configuration from "%s"', [AUrl]);
 end;
 
-procedure TCastleConfig.Load(const Stream: TStream; const PretendURL: string);
+procedure TCastleConfig.Load(const Stream: TStream; const PretendUrl: String);
 begin
   try
-    LoadFromStream(Stream, PretendURL); // use ancestor method to load
+    LoadFromStream(Stream, PretendUrl); // use ancestor method to load
   except
     on E: Exception do
     begin
       WritelnWarning('UserConfig', 'User config in stream corrupted (will load defaults): ' + E.Message);
-      LoadEmpty(PretendURL);
+      LoadEmpty(PretendUrl);
       Exit;
     end;
   end;
 
   FOnLoad.ExecuteAll(Self);
   FLoaded := true;
-  WritelnLog('Config', 'Loaded configuration from stream, pretending the URL is "%s"', [PretendURL]);
+  WritelnLog('Config', 'Loaded configuration from stream, pretending the Url is "%s"', [PretendUrl]);
 end;
 
-procedure TCastleConfig.LoadFromString(const Data: string; const PretendURL: string);
+procedure TCastleConfig.LoadFromString(const Data: string; const PretendUrl: String);
 var
   InputStream: TStringStream;
 begin
   InputStream := TStringStream.Create(Data);
   try
-    Load(InputStream, PretendURL);
+    Load(InputStream, PretendUrl);
   finally FreeAndNil(InputStream) end;
 end;
 
-procedure TCastleConfig.LoadEmpty(const PretendURL: string);
+procedure TCastleConfig.LoadEmpty(const PretendUrl: String);
 const
   EmptyConfig = '<?xml version="1.0" encoding="utf-8"?>' + LineEnding +
     '<CONFIG>' + LineEnding +
     '</CONFIG>';
 begin
-  LoadFromString(EmptyConfig, PretendURL);
+  LoadFromString(EmptyConfig, PretendUrl);
 end;
 
 procedure TCastleConfig.Save;
 begin
   FOnSave.ExecuteAll(Self);
   if Flush then //use ancestor method to save
-    WriteLnLog('Config', 'Saving configuration to "%s"', [URIDisplay(URL)])
+    WriteLnLog('Config', 'Saving configuration to "%s"', [UriDisplay(Url)])
   else
-  if URL <> '' then
-    WriteLnLog('Config', 'No changes in config to save "%s"', [URIDisplay(URL)])
+  if Url <> '' then
+    WriteLnLog('Config', 'No changes in config to save "%s"', [UriDisplay(Url)])
   else
-    WriteLnWarning('Config', 'Configuration was not saved, because no URL is specified. Call TCastleConfig.Load or explicitly set TCastleConfig.URL before calling TCastleConfig.Save.');
+    WriteLnWarning('Config', 'Configuration was not saved, because no URL is specified. Call TCastleConfig.Load or explicitly set TCastleConfig.Url before calling TCastleConfig.Save.');
 end;
 
 procedure TCastleConfig.Save(const Stream: TStream);

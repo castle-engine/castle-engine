@@ -68,7 +68,7 @@
   }
   TCastleImagePersistent = class(TPersistent)
   strict private
-    FURL: string;
+    FUrl: String;
     FCache: boolean;
     FScaleFromUrl: Single;
     FDrawableImage: TDrawableImage;
@@ -105,7 +105,7 @@
     procedure SetOwnsImage(const Value: boolean);
     procedure SetCache(const Value: Boolean);
     procedure SetRegion(AValue: TFloatRectangle);
-    procedure SetURL(const Value: string);
+    procedure SetUrl(const Value: String);
     procedure SetImage(const Value: TEncodedImage);
     procedure SetDrawableImage(const Value: TDrawableImage);
     procedure SetSmoothScaling(const Value: boolean);
@@ -134,7 +134,7 @@
     { Reserved for parent UI control to listen for changes. }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
-    { Image contents, or @nil if none. You can set it by setting @link(URL),
+    { Image contents, or @nil if none. You can set it by setting @link(Url),
       or by setting this property directly,
       or by setting @link(DrawableImage).
 
@@ -156,7 +156,7 @@
     { Whether the memory management of assigned @link(Image) is automatic.
       See @link(Image) documentation for details.
 
-      Note that setting @link(URL) changes @link(Image),
+      Note that setting @link(Url) changes @link(Image),
       and changes OwnsImage unconditionally to @true.
 
       Note that setting @link(DrawableImage) changes @link(Image) too,
@@ -167,7 +167,7 @@
       Always @link(TDrawableImage.Image) equals our @link(Image).
 
       Usually you do not want to change this property.
-      You can change @link(URL), or @link(Image), and the drawable
+      You can change @link(Url), or @link(Image), and the drawable
       image will reflect this.
       But there are good use-cases to change the @link(DrawableImage)
       directly: e.g. you can use fast image-to-image
@@ -293,7 +293,7 @@
 
       Changing this also changes @link(Image) and @link(DrawableImage).
       @link(OwnsDrawableImage) and @link(OwnsImage) always change to @true. }
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
 
     { How to treat alpha channel of the assigned image.
       By default, this is acAuto, which means that image contents
@@ -314,15 +314,15 @@
       (e.g. by using @link(TDrawableImage.RenderToImageBegin)),
       or you will change all shared images.
 
-      Note that if you assign @link(DrawableImage) (instead of @link(URL))
+      Note that if you assign @link(DrawableImage) (instead of @link(Url))
       and we should free it ourselves (because @link(OwnsDrawableImage))
       then we assume it was @italic(not) loaded through our internal cache.
 
-      Note that if you assign @link(Image) (instead of @link(URL))
+      Note that if you assign @link(Image) (instead of @link(Url))
       then we assume it was @italic(not) loaded through our internal cache.
       (We make sure to detach the TDrawableImage from cache too, in this case.)
 
-      Changing this property reloads the image (if some @link(URL) was set). }
+      Changing this property reloads the image (if some @link(Url) was set). }
     property Cache: Boolean read FCache write SetCache default true;
 
     { Is the image scaling mode smooth (bilinear filtering)
@@ -421,7 +421,7 @@ begin
     FDrawableImage := nil;
 end;
 
-procedure TCastleImagePersistent.SetURL(const Value: string);
+procedure TCastleImagePersistent.SetUrl(const Value: String);
 
   function GetScaleFromUrl: Single;
   var
@@ -430,7 +430,7 @@ procedure TCastleImagePersistent.SetURL(const Value: string);
     Scale: Single;
   begin
     Result := 1;
-    BaseName := DeleteURIExt(ExtractURIName(URL));
+    BaseName := DeleteURIExt(ExtractURIName(Url));
     if (Length(BaseName) >= 4) and // BaseName must look like at least '?@4x'
        (BaseName[Length(BaseName)] = 'x') then
     begin
@@ -443,12 +443,12 @@ procedure TCastleImagePersistent.SetURL(const Value: string);
   end;
 
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
     { We deliberately change URL even when loading image could fail.
       This way URL property is always correctly deserialized in CGE editor,
       even when loading the image failed. }
-    FURL := Value;
+    FUrl := Value;
     FScaleFromUrl := GetScaleFromUrl;
 
     FreeDrawableImage;
@@ -478,7 +478,7 @@ begin
           if CastleDesignMode then
           begin
             WritelnWarning('TCastleImagePersistent', 'Failed to load image "%s": %s',
-              [URIDisplay(Value), ExceptMessage(E)]);
+              [UriDisplay(Value), ExceptMessage(E)]);
             CreateDrawableImage;
             Exit;
           end else
@@ -496,17 +496,17 @@ end;
 
 procedure TCastleImagePersistent.SetCache(const Value: Boolean);
 var
-  OldURL: String;
+  OldUrl: String;
 begin
   if FCache <> Value then
   begin
     FCache := Value;
-    if URL <> '' then
+    if Url <> '' then
     begin
       // free and reload the image, following new Cache value
-      OldURL := URL;
-      URL := '';
-      URL := OldURL;
+      OldUrl := Url;
+      Url := '';
+      Url := OldUrl;
       DoChange; // this possibly changed rendered contents
     end;
   end;

@@ -28,7 +28,7 @@ function LoadImageAsNode(const Stream: TStream; const BaseUrl, MimeType: String)
 
 implementation
 
-uses Generics.Collections, CastleImages, CastleLog, CastleURIUtils, CastleStringUtils,
+uses Generics.Collections, CastleImages, CastleLog, CastleUriUtils, CastleStringUtils,
   CastleTextureImages, CastleVectors;
 
 type
@@ -225,7 +225,7 @@ begin
 
   FImage := LoadEncodedImage(Stream, MimeType, []);
   FBaseUrl := BaseUrl;
-  FDisplayUrl := URIDisplay(FBaseUrl);
+  FDisplayUrl := UriDisplay(FBaseUrl);
 
   SetLength(FCoordArray, 4);
   SetLength(FTexCoordArray, 4);

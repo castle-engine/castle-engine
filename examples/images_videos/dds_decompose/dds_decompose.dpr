@@ -18,7 +18,7 @@
 program dds_decompose;
 
 uses SysUtils, CastleUtils, CastleImages, CastleInternalCompositeImage, CastleLog,
-  CastleStringUtils, CastleParameters, CastleURIUtils, CastleApplicationProperties;
+  CastleStringUtils, CastleParameters, CastleUriUtils, CastleApplicationProperties;
 
 var
   SaveDecomposed: boolean = true;

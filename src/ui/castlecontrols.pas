@@ -24,7 +24,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleTimeUtils, CastleInternalRichText, CastleGLUtils,
-  CastleURIUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils,
+  CastleUriUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils,
   CastleRenderContext;
 
 type
@@ -59,9 +59,9 @@ type
 
 implementation
 
-uses Math, CastleTextureFont_DjvSans_20,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleTextureFont_DejaVuSans_10, CastleTextureImages,
+uses Math, CastleTextureFont_DefaultUi,
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
+  CastleTextureImages,
   CastleApplicationProperties, CastleMessaging, CastleComponentSerialize,
   CastleUnicode, CastleRenderOptions;
 

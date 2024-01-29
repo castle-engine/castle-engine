@@ -73,7 +73,7 @@
   { Series of line segments in 2D. }
   TPolyline2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_polyline2d.inc}
@@ -181,7 +181,7 @@ var
   C: TCoordinateNode;
   LineSet: TLineSetNode absolute Result;
   I: Integer;
-  AngleSin, AngleCos: Float;
+  AngleSin, AngleCos: Single;
 begin
   LineSet := TLineSetNode.Create(X3DName, BaseUrl);
   try
@@ -312,7 +312,7 @@ end;
 
 { TPolyline2DNode ------------------------------------------------------------ }
 
-constructor TPolyline2DNode.Create(const AX3DName, ABaseUrl: string);
+constructor TPolyline2DNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
   FdLineSegments.AddAlternativeName('point', 2);

@@ -16,6 +16,8 @@
 { Load 3D models in the STL format (@link(LoadSTL)). }
 unit X3DLoadInternalSTL;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes,
@@ -59,9 +61,9 @@ var
 
   { Read a word expecting the ExpectedValue. Returns @true if found expected,
     otherwise returns @false (and the warning is already emitted). }
-  function ReadExpect(const ExpectedValue: string): boolean;
+  function ReadExpect(const ExpectedValue: String): boolean;
   var
-    S: string;
+    S: String;
   begin
     S := TextReader.Read;
     Result := S = ExpectedValue;
@@ -75,7 +77,7 @@ var
   end;
 
 var
-  S: string;
+  S: String;
   NormalVector: TVector3;
   Triangle: TTriangle3;
   I: Integer;

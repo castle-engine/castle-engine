@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2018-2023 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
@@ -22,7 +22,7 @@ uses SysUtils, Classes, Math,
   CastleScene, CastleSceneCore, CastleControls, CastleLog,
   CastleFilesUtils, CastleColors, CastleUIControls, X3DLoad, CastleUtils,
   CastleApplicationProperties, CastleVectors, CastleCameras, CastleViewport,
-  CastleURIUtils, X3DNodes, CastleTextureImages;
+  CastleUriUtils, X3DNodes, CastleTextureImages;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -66,7 +66,7 @@ var
 
 implementation
 
-uses CastleWindow, CastleComponentSerialize;
+uses CastleWindow, CastleComponentSerialize, CastleRenderOptions;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -128,8 +128,19 @@ begin
     camera to the scene unscaled size }
   Scene.Scale := Vector3(1.0, 1.0, 1.0);
   Scene.Load(Url);
+
+  { Set blending sort following "NavigationInfo.blendingSort" info from scene.
+    This means we use 2D sorting e.g. for Spine models by default. }
+  if (Scene.NavigationInfoStack.Top <> nil) and
+     (Scene.NavigationInfoStack.Top.BlendingSort <> sortAuto) then
+    Viewport.BlendingSort := Scene.NavigationInfoStack.Top.BlendingSort
+  else
+    Viewport.BlendingSort := sortAuto;
+
   Viewport.AssignDefaultCamera;
+
   CreateAnimationsButtons;
+
   { Update scale for current SliderScale value }
   ChangedScale(nil);
 end;
@@ -192,13 +203,13 @@ end;
 
 procedure TViewMain.ClickButtonOpenDialog(Sender: TObject);
 var
-  Url: string;
+  Url: String;
 begin
   Url := Scene.Url;
   if Application.MainWindow.FileDialog('Open model', Url, true, LoadScene_FileFilters) then
   begin
     { In case of Starling add current settings }
-    if URIMimeType(Url) = 'application/x-starling-sprite-sheet' then
+    if UriMimeType(Url) = 'application/x-starling-sprite-sheet' then
       OpenScene(Url + CurrentUIStarlingSettingsToAnchor)
     else
       OpenScene(Url);
@@ -264,7 +275,7 @@ begin
     without reloading the model. }
 
   { Check last loaded model was Starling }
-  if URIMimeType(URIDeleteAnchor(Scene.URL)) <> 'application/x-starling-sprite-sheet' then
+  if UriMimeType(URIDeleteAnchor(Scene.URL)) <> 'application/x-starling-sprite-sheet' then
     Exit;
 
   { Get latest animation }

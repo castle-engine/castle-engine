@@ -61,21 +61,21 @@
       we must initially just allow all children, otherwise valid prototypes
       with SFNode/MFNode would cause warnings when parsing. }
     constructor CreateUndefined(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string); override;
+      const AExposed: boolean; const AName: String); override;
     constructor Create(const AParentNode: TX3DNode;
-      const AExposed: boolean; const AName: string;
+      const AExposed: boolean; const AName: String;
       const AAllowedChildrenClasses: array of TX3DNodeClass;
       const AValue: TX3DNode = nil); overload;
     { Constructor that takes a list of allowed children classes.
       Note that we copy the contents of AAllowedChildrenClasses,
       not the reference. }
     constructor Create(const AParentNode: TX3DNode;
-      const AExposed: boolean; const AName: string;
+      const AExposed: boolean; const AName: String;
       const AAllowedChildrenClasses: TX3DNodeClassesList;
       const AValue: TX3DNode = nil); overload;
     { Constructor that allows as children any implementor of given functionality. }
     constructor Create(const AParentNode: TX3DNode;
-      const AExposed: boolean; const AName: string;
+      const AExposed: boolean; const AName: String;
       const AnAllowedChildrenFunctionality: TNodeFunctionalityClass;
       const AValue: TX3DNode = nil); overload;
     destructor Destroy; override;
@@ -105,7 +105,7 @@
 
     property Value: TX3DNode read FValue write SetValue;
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
+    procedure ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader); override;
     procedure ParseXMLElement(Element: TDOMElement; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
@@ -128,8 +128,8 @@
       so it's more comfortable. }
     property ParentNode: TX3DNode read FParentNode;
 
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
 
     { Checks is the Child allowed as a value of this SFNode,
       and makes WritelnWarning if not.
@@ -233,7 +233,7 @@
 { TSFNode --------------------------------------------------------------------- }
 
 constructor TSFNode.CreateUndefined(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string);
+  const AExposed: boolean; const AName: String);
 begin
   inherited;
   Value := nil;
@@ -246,11 +246,11 @@ begin
 end;
 
 constructor TSFNode.Create(const AParentNode: TX3DNode;
-  const AExposed: boolean; const AName: string;
+  const AExposed: boolean; const AName: String;
   const AAllowedChildrenClasses: array of TX3DNodeClass;
   const AValue: TX3DNode);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   { FParentNode is just a copy of inherited (TX3DFieldOrEvent) FParentNode,
     but casted to TX3DNode }
@@ -266,7 +266,7 @@ begin
 end;
 
 constructor TSFNode.Create(const AParentNode: TX3DNode;
-  const AExposed: boolean; const AName: string;
+  const AExposed: boolean; const AName: String;
   const AAllowedChildrenClasses: TX3DNodeClassesList;
   const AValue: TX3DNode);
 begin
@@ -278,11 +278,11 @@ begin
 end;
 
 constructor TSFNode.Create(const AParentNode: TX3DNode;
-  const AExposed: boolean; const AName: string;
+  const AExposed: boolean; const AName: String;
   const AnAllowedChildrenFunctionality: TNodeFunctionalityClass;
   const AValue: TX3DNode);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
 
   { FParentNode is just a copy of inherited (TX3DFieldOrEvent) FParentNode,
     but casted to TX3DNode }
@@ -326,7 +326,7 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TX3DNode);
 
   procedure ChildNotAllowed;
   var
-    S: string;
+    S: String;
   begin
     S := Format('Node "%s" is not allowed in the field "%s"',
       [Child.X3DType, X3DName]);
@@ -386,7 +386,7 @@ begin
   end;
 end;
 
-procedure TSFNode.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
+procedure TSFNode.ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader);
 const
   SNull = 'NULL';
 var
@@ -429,7 +429,7 @@ procedure TSFNode.ParseXMLElement(Element: TDOMElement; Reader: TX3DReader);
 var
   Child: TX3DNode;
   I: TXMLElementIterator;
-  ContainerFieldDummy: string;
+  ContainerFieldDummy: String;
   UsingNodeCycle: Boolean;
 begin
   I := Element.ChildrenIterator;
@@ -623,7 +623,7 @@ begin
   FDefaultValueExists := AValue;
 end;
 
-class function TSFNode.X3DType: string;
+class function TSFNode.X3DType: String;
 begin
   Result := 'SFNode';
 end;
@@ -640,7 +640,7 @@ begin
     Result := nil;
 end;
 
-class function TSFNode.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFNode.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFNodeEvent.Create(AParentNode, AName, AInEvent);
 end;

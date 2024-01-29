@@ -331,6 +331,29 @@ pack_platform_dir ()
        "${TEMP_PATH_CGE}"bin-to-keep
   fi
 
+  # On Linux compile also Qt5 editor version.
+  #
+  # But do not do this on Raspberry Pi (Arm), as it fails at linking
+  # (too old libqt5-pas-dev on Raspbian, it seems)
+  # with
+  # /usr/bin/ld: /home/jenkins/.lazarus/lib/LazOpenGLContext/lib/arm-linux/qt5/qlclopenglwidget.o: in function `TQTOPENGLWIDGET__EVENTFILTER':
+  # /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:106: undefined reference to `QLCLOpenGLWidget_Create'
+  # /usr/bin/ld: /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:104: undefined reference to `QLCLOpenGLWidget_InheritedPaintGL'
+  # /usr/bin/ld: /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:105: undefined reference to `QLCLOpenGLWidget_override_paintGL'
+  # /usr/bin/ld: /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:106: undefined reference to `QLCLOpenGLWidget_override_paintGL'
+  #
+  # Same with Lazarus 3.0.0 on Raspberry Pi 64-bit,
+  # /usr/bin/ld: /home/michalis/installed/fpc_lazarus/fpc3.2.3-lazarus3.0.0/src/lazarus/3.0.0/lcl/units/aarch64-linux/qt5/qtint.o: in function `CREATE':
+  # /home/michalis/installed/fpc_lazarus/fpc3.2.3-lazarus3.0.0/src/lazarus/3.0.0/lcl/interfaces//qt5/qtobject.inc:44: undefined reference to `QGuiApplication_setFallbackSessionManagementEnabled'
+  # /usr/bin/ld: /home/michalis/installed/fpc_lazarus/fpc3.2.3-lazarus3.0.0/src/lazarus/3.0.0/lcl/units/aarch64-linux/qt5/qtobjects.o: in function `ENDX11SELECTIONLOCK':
+  # /home/michalis/installed/fpc_lazarus/fpc3.2.3-lazarus3.0.0/src/lazarus/3.0.0/lcl/interfaces//qt5/qtobjects.pas:3873: undefined reference to `QTimer_singleShot3'
+  #
+  if [ "$OS" '=' 'linux' -a "${CPU}" '!=' 'arm' -a "${CPU}" '!=' 'aarch64' ]; then
+    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi --widgetset=qt5
+    cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
+       "${TEMP_PATH_CGE}"bin-to-keep/castle-editor-qt5
+  fi
+
   # Add DLLs on Windows
   case "$OS" in
     win32|win64)
@@ -429,7 +452,9 @@ pack_windows_installer ()
 # Main body
 
 detect_platform
-check_fpc_version
+if [ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]; then
+  check_fpc_version
+fi
 prepare_build_tool
 calculate_cge_version
 if [ -n "${1:-}" ]; then

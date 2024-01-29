@@ -23,6 +23,8 @@ lib/
 *.rsm
 *.local
 __recovery
+*.deployproj
+*.delphilsp.json
 
 # Other backups
 *.blend1
@@ -89,6 +91,7 @@ castle-game-engine-*.fpm
 /examples/creature_behaviors/creature_behaviors
 /examples/curves/deprecated_space_filling_curve/draw_space_filling_curve
 /examples/curves/use_designed_curve/use_designed_curve
+/examples/delphi/fmx/CastleFmx
 /examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
 /examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/eye_of_beholder/eye_of_beholder
@@ -134,6 +137,7 @@ castle-game-engine-*.fpm
 /examples/mobile/drawing_toy/drawing_toy
 /examples/mobile/on_screen_keyboard/on_screen_keyboard
 /examples/mobile/simple_3d_demo/simple_3d_demo
+/examples/mobile/two_cars/two_cars
 /examples/viewport_and_scenes/shadows/shadows
 /examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/shadow_volumes_whole_scene_manifold
 /examples/viewport_and_scenes/bump_mapping/bump_mapping
@@ -252,7 +256,7 @@ castle-game-engine-*.fpm
 /tools/castle-curves/castle-curves
 /tools/castle-engine
 /tools/image-to-pascal/image-to-pascal
-/tools/internal/check_lazarus_packages/check_lazarus_packages
+/tools/internal/check_packages/check_packages
 /tools/internal/check_units_dependencies/check_one_unit_dependencies
 /tools/internal/fpc-cge/fpc-cge
 /tools/internal/generate-persistent-vectors/generate-persistent-vectors

@@ -1,61 +1,59 @@
 object Main: TMain
   Left = 366
-  Height = 742
+  Height = 636
   Top = 169
-  Width = 1259
+  Width = 1079
   HorzScrollBar.Page = 770
   VertScrollBar.Page = 496
   Caption = 'Test Sound Source Allocation'
-  ClientHeight = 742
-  ClientWidth = 1259
-  DesignTimePPI = 140
+  ClientHeight = 636
+  ClientWidth = 1079
+  DesignTimePPI = 120
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.8.0.6'
+  LCLVersion = '2.2.2.0'
   object PanelLists: TPanel
     AnchorSideTop.Control = PanelSourcePlaying
     AnchorSideTop.Side = asrBottom
-    Left = 7
-    Height = 411
-    Top = 330
-    Width = 1243
+    Left = 6
+    Height = 378
+    Top = 257
+    Width = 1065
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Top = 7
-    ClientHeight = 411
-    ClientWidth = 1243
+    BorderSpacing.Top = 6
+    ClientHeight = 378
+    ClientWidth = 1065
     ParentFont = False
     TabOrder = 0
     object Label2: TLabel
       Left = 3
-      Height = 27
+      Height = 20
       Top = 0
-      Width = 225
+      Width = 165
       Caption = 'Allocated Sound Sources'
       ParentColor = False
       ParentFont = False
     end
     object ListAllocatedSources: TListBox
-      Left = 7
-      Height = 371
-      Top = 27
-      Width = 1222
+      Left = 6
+      Height = 344
+      Top = 23
+      Width = 1047
       Anchors = [akTop, akLeft, akRight, akBottom]
       ItemHeight = 0
       ParentFont = False
       ScrollWidth = 1220
       TabOrder = 0
-      TopIndex = -1
     end
     object CheckKeepRefreshingUsed: TCheckBox
       AnchorSideLeft.Control = ListAllocatedSources
       AnchorSideLeft.Side = asrBottom
-      Left = 926
-      Height = 31
+      Left = 825
+      Height = 24
       Top = 0
-      Width = 303
+      Width = 228
       Anchors = [akTop, akRight]
-      BorderSpacing.Left = 9
+      BorderSpacing.Left = 8
       Caption = 'Automatically Keep Refreshing'
       Checked = True
       ParentFont = False
@@ -66,30 +64,30 @@ object Main: TMain
   object PanelAllocatorLimits: TPanel
     AnchorSideTop.Control = LabelDescription
     AnchorSideTop.Side = asrBottom
-    Left = 7
-    Height = 73
-    Top = 117
-    Width = 1243
+    Left = 6
+    Height = 60
+    Top = 88
+    Width = 1065
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
-    ClientHeight = 73
-    ClientWidth = 1243
+    ClientHeight = 60
+    ClientWidth = 1065
     ParentFont = False
     TabOrder = 1
     object LabelMaxAllocatedSources: TLabel
       Left = 1
-      Height = 27
-      Top = 35
-      Width = 212
+      Height = 20
+      Top = 30
+      Width = 154
       Caption = 'Max allocated sources :'
       ParentColor = False
       ParentFont = False
     end
     object LabelMinAllocatedSources: TLabel
       Left = 3
-      Height = 27
+      Height = 20
       Top = 1
-      Width = 208
+      Width = 151
       Caption = 'Min allocated sources :'
       ParentColor = False
       ParentFont = False
@@ -97,12 +95,12 @@ object Main: TMain
     object ButtonApplyAllocatorLimits: TButton
       AnchorSideLeft.Control = SpinEditMaxAllocatedSources
       AnchorSideLeft.Side = asrBottom
-      Left = 263
-      Height = 45
-      Top = 27
-      Width = 306
+      Left = 198
+      Height = 36
+      Top = 23
+      Width = 243
       AutoSize = True
-      BorderSpacing.Left = 7
+      BorderSpacing.Left = 6
       BorderSpacing.InnerBorder = 3
       Caption = 'Set Min / Max allocated sources'
       OnClick = ButtonApplyAllocatorLimitsClick
@@ -112,10 +110,10 @@ object Main: TMain
     object SpinEditMaxAllocatedSources: TSpinEdit
       AnchorSideLeft.Control = LabelMaxAllocatedSources
       AnchorSideLeft.Side = asrBottom
-      Left = 213
-      Height = 37
-      Top = 35
-      Width = 43
+      Left = 155
+      Height = 28
+      Top = 30
+      Width = 37
       MaxValue = 1000
       MinValue = 1
       ParentFont = False
@@ -125,10 +123,10 @@ object Main: TMain
     object SpinEditMinAllocatedSources: TSpinEdit
       AnchorSideLeft.Control = LabelMinAllocatedSources
       AnchorSideLeft.Side = asrBottom
-      Left = 211
-      Height = 37
+      Left = 154
+      Height = 28
       Top = 1
-      Width = 43
+      Width = 37
       MaxValue = 1000
       MinValue = 1
       ParentFont = False
@@ -139,23 +137,23 @@ object Main: TMain
   object PanelSourcePlaying: TPanel
     AnchorSideTop.Control = PanelAllocatorLimits
     AnchorSideTop.Side = asrBottom
-    Left = 7
-    Height = 133
-    Top = 190
-    Width = 1243
+    Left = 6
+    Height = 103
+    Top = 148
+    Width = 1065
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
-    BorderSpacing.InnerBorder = 4
-    ClientHeight = 133
-    ClientWidth = 1243
+    BorderSpacing.InnerBorder = 3
+    ClientHeight = 103
+    ClientWidth = 1065
     ParentFont = False
     TabOrder = 2
     object LabelSourceImportance: TLabel
-      Left = 5
-      Height = 27
-      Top = 11
-      Width = 183
-      BorderSpacing.Left = 4
+      Left = 4
+      Height = 20
+      Top = 9
+      Width = 132
+      BorderSpacing.Left = 3
       Caption = 'Source importance :'
       ParentColor = False
       ParentFont = False
@@ -163,10 +161,10 @@ object Main: TMain
     object Label3: TLabel
       AnchorSideTop.Control = FileNameEditSound
       AnchorSideTop.Side = asrCenter
-      Left = 5
-      Height = 27
-      Top = 47
-      Width = 154
+      Left = 4
+      Height = 20
+      Top = 36
+      Width = 111
       Caption = 'Sound filename :'
       ParentColor = False
       ParentFont = False
@@ -176,15 +174,15 @@ object Main: TMain
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = SpinEditSourceImportance
       AnchorSideTop.Side = asrBottom
-      Left = 159
-      Height = 37
-      Top = 42
-      Width = 247
+      Left = 115
+      Height = 28
+      Top = 32
+      Width = 212
       FileName = 'tone.wav'
       DialogOptions = []
       FilterIndex = 0
       HideDirectories = False
-      ButtonWidth = 20
+      ButtonWidth = 17
       NumGlyphs = 1
       MaxLength = 0
       ParentFont = False
@@ -194,11 +192,11 @@ object Main: TMain
     object SpinEditSourceImportance: TSpinEdit
       AnchorSideLeft.Control = LabelSourceImportance
       AnchorSideLeft.Side = asrBottom
-      Left = 188
-      Height = 37
-      Top = 5
-      Width = 43
-      BorderSpacing.Top = 4
+      Left = 136
+      Height = 28
+      Top = 4
+      Width = 37
+      BorderSpacing.Top = 3
       MaxValue = 1000
       MinValue = -1000
       ParentFont = False
@@ -207,10 +205,10 @@ object Main: TMain
     object ButtonAllocateAndPlay: TButton
       AnchorSideTop.Control = FileNameEditSound
       AnchorSideTop.Side = asrBottom
-      Left = 5
-      Height = 45
-      Top = 79
-      Width = 120
+      Left = 4
+      Height = 36
+      Top = 60
+      Width = 105
       AutoSize = True
       BorderSpacing.InnerBorder = 3
       Caption = 'Play Sound'
@@ -221,11 +219,11 @@ object Main: TMain
     object CheckBoxPlayLooping: TCheckBox
       AnchorSideLeft.Control = SpinEditSourceImportance
       AnchorSideLeft.Side = asrBottom
-      Left = 238
-      Height = 31
-      Top = 5
-      Width = 137
-      BorderSpacing.Left = 7
+      Left = 179
+      Height = 24
+      Top = 4
+      Width = 107
+      BorderSpacing.Left = 6
       Caption = 'Play looping'
       ParentFont = False
       TabOrder = 3
@@ -234,10 +232,10 @@ object Main: TMain
   object LabelDescription: TLabel
     AnchorSideTop.Control = LabelTitle
     AnchorSideTop.Side = asrBottom
-    Left = 7
-    Height = 81
-    Top = 36
-    Width = 1194
+    Left = 6
+    Height = 60
+    Top = 28
+    Width = 1023
     Anchors = [akTop, akLeft, akRight]
     Caption = 'Press "Play sound" a couple of times, and note that multiple sound sources will be intelligently allocated.'#10'- The sources are managed based on their Importance.  When there are no more free slots, the least important sound is released.'#10'- Test with your own, longer sounds too, so that you can see many sounds playing at once.'
     ParentColor = False
@@ -245,10 +243,10 @@ object Main: TMain
     WordWrap = True
   end
   object LabelTitle: TLabel
-    Left = 7
-    Height = 27
-    Top = 9
-    Width = 279
+    Left = 6
+    Height = 20
+    Top = 8
+    Width = 203
     Caption = 'Test Sound Source Allocation'
     Font.Style = [fsBold]
     ParentColor = False
@@ -258,17 +256,17 @@ object Main: TMain
     Enabled = False
     Interval = 10
     OnTimer = TimerToDisplaySoundsTimer
-    left = 584
-    top = 528
+    Left = 501
+    Top = 453
   end
   object ApplicationProperties1: TApplicationProperties
-    left = 992
-    top = 520
+    Left = 850
+    Top = 446
   end
   object TimerToRefreshUsedSounds: TTimer
     Interval = 1
     OnTimer = TimerToRefreshUsedSoundsTimer
-    left = 256
-    top = 560
+    Left = 219
+    Top = 480
   end
 end

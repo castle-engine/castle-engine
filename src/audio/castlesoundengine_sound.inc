@@ -39,7 +39,7 @@
     procedure ExecuteAll(const Sender: TCastleSound; const Change: TSoundChange);
   end;
 
-  { Sound that can be loaded from URL (possibly reusing a cache,
+  { Sound that can be loaded from Url (possibly reusing a cache,
     possibly using streaming) and played.
 
     Aside from sound file (also called "sound buffer" or "audio clip" in various APIs)
@@ -58,7 +58,7 @@
     or call @link(TCastleSoundSource.Play). }
   TCastleSound = class(TCastleComponent)
   strict private
-    FURL: string;
+    FUrl: String;
     FBuffer: TInternalSoundBuffer;
     FStream: Boolean;
     FVolume: Single;
@@ -69,7 +69,7 @@
     FReferenceDistance, FMaxDistance: Single;
     FChangeNotifications: TCastleSoundChangeEventList;
     procedure SetStream(const Value: Boolean);
-    procedure SetURL(const Value: String);
+    procedure SetUrl(const Value: String);
     procedure SetVolume(const Value: Single);
     procedure SetPitch(const Value: Single);
     procedure SetMinGain(const Value: Single);
@@ -127,26 +127,26 @@
     property MaxGain: Single read FMaxGain write SetMaxGain {$ifdef FPC}default 1.0; platform { this feature is only available with OpenAL sound backend }{$endif};
 
     { Duration of the sound, in seconds. -1 if not loaded yet.
-      The sound is loaded once you set @link(URL) and don't get any loading exceptions. }
+      The sound is loaded once you set @link(Url) and don't get any loading exceptions. }
     function Duration: Single;
 
     { Sound data format (disregarding compression on top of it), for informational purposes.
       Undefined if not loaded yet.
-      The sound is loaded once you set @link(URL) and don't get any loading exceptions. }
+      The sound is loaded once you set @link(Url) and don't get any loading exceptions. }
     function DataFormat: TSoundDataFormat;
 
     { Frequency (sample rate) of the loaded sound file.
       0 if not loaded yet.
-      The sound is loaded once you set @link(URL) and don't get any loading exceptions. }
-    function Frequency: LongWord;
+      The sound is loaded once you set @link(Url) and don't get any loading exceptions. }
+    function Frequency: Cardinal;
   published
     { URL of the sound file.
       Set this to load a new sound buffer, you can set to '' to clear the sound buffer.
 
       If you plan to change @link(Stream), note that it is best to do it before
-      setting @link(URL). Changing @link(Stream) while @link(URL) is already set
+      setting @link(Url). Changing @link(Stream) while @link(Url) is already set
       means that the sound is reloaded. }
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
 
     { Play sound using streaming. This means that the sound is gradually decompressed in memory,
       which means that loading time is much smaller,
@@ -156,7 +156,7 @@
       See also @link(TSoundLoading) for details.
 
       If you plan to change @link(Stream), note that it is best to do it before
-      setting @link(URL). Changing @link(Stream) while @link(URL) is already set
+      setting @link(Url). Changing @link(Stream) while @link(Url) is already set
       means that the sound is reloaded. }
     property Stream: Boolean read FStream write SetStream default false;
 
@@ -286,7 +286,7 @@ end;
 
 function TCastleSound.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'URL') or
+  if (PropertyName = 'Url') or
      (PropertyName = 'Stream') or
      (PropertyName = 'Volume') or
      (PropertyName = 'Pitch') or
@@ -313,21 +313,19 @@ begin
     {$warnings on}
   end;
 
-  if URL <> '' then
+  if Url <> '' then
   begin
     if Stream then
       SoundLoading := slStreaming
     else
       SoundLoading := slComplete;
-    {$warnings off} // using deprecated that should be internal
     { Using ExceptionOnError = false. Because
       - The programs can generally tolerate missing sound files, and continue just fine.
       - Error at OggVorbis reading may be caused by
         EOggVorbisMissingLibraryError, and we try to gracefully react to missing
         libraries, as it is easy to miss installation of some libs on some systems
         (like Linux) or package with appropriate DLLs (like Windows). }
-    FBuffer := SoundEngine.LoadBuffer(URL, SoundLoading, false);
-    {$warnings on}
+    FBuffer := SoundEngine.LoadBuffer(Url, SoundLoading, false);
     DoChange(scAfterBufferCreated);
   end;
 end;
@@ -348,11 +346,11 @@ begin
   end;
 end;
 
-procedure TCastleSound.SetURL(const Value: String);
+procedure TCastleSound.SetUrl(const Value: String);
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
-    FURL := Value;
+    FUrl := Value;
     if not IsLoading then
       ReloadBuffer;
   end;
@@ -361,7 +359,7 @@ end;
 procedure TCastleSound.LoadFromStream(const AStream: TStream; const MimeType: String);
 begin
   // TODO: unoptimal implementation, we should pass TStream downward, not base64-encode it
-  URL := StreamToDataUri(AStream, MimeType);
+  Url := StreamToDataUri(AStream, MimeType);
 end;
 
 procedure TCastleSound.SetVolume(const Value: Single);
@@ -459,7 +457,7 @@ begin
     Result := Default(TSoundDataFormat); // whatever, just not memory garbage
 end;
 
-function TCastleSound.Frequency: LongWord;
+function TCastleSound.Frequency: Cardinal;
 begin
   if FBuffer <> nil then
     Result := FBuffer.Frequency

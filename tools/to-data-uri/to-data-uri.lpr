@@ -29,7 +29,7 @@
   See documentation of CastleDownload.Download function for details. }
 
 uses SysUtils, Classes, Base64, CastleParameters, CastleDownload,
-  CastleURIUtils, CastleInternalDataUri, CastleClassUtils;
+  CastleUriUtils, CastleInternalDataUri, CastleClassUtils;
 var
   MimeType: string;
   Stream: TStream;

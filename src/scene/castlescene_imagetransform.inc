@@ -212,7 +212,7 @@ begin
   FShapeNode.Geometry := FIndexedTriangleSetNode;
   { Render will change to true once some image is loaded.
     This way we avoid rendering FCoordinateNode with zero contents. }
-  FShapeNode.Render := false;
+  FShapeNode.Visible := false;
 
   FRootNode := TX3DRootNode.Create;
   FRootNode.AddChildren(FShapeNode);
@@ -254,7 +254,7 @@ var
 begin
   FTextureNode.IsTextureLoaded := true;
   { Render is true if and only if FCoordinateNode contains useful content (not just zeros) }
-  FShapeNode.Render := FTextureNode.IsTextureImage;
+  FShapeNode.Visible := FTextureNode.IsTextureImage;
   if FTextureNode.IsTextureImage then
   begin
     W := FTextureNode.TextureImage.Width;

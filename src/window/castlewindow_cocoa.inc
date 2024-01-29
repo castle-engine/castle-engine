@@ -103,6 +103,9 @@ private
     const AlertStyle: NSAlertStyle;
     const ButtonCaptions: array of String;
     const ButtonResults: array of NSInteger): NSInteger;
+
+  { Set Cocoa cursor following our FCursor value. }
+  procedure UpdateCursor;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -620,18 +623,19 @@ begin
   inherited viewDidMoveToWindow;
 
   if openGLContext = nil then
-    begin
-      openGLContext := NSOpenGLContext.alloc.initWithFormat_shareContext(defaultPixelFormat, nil);
-      if openGLContext = nil then
-        raise EInternalError.Create('invalid NSOpenGLContext');
-      openGLContext.makeCurrentContext;
-      openGLContext.setView(self);
+  begin
+    openGLContext := NSOpenGLContext.alloc.initWithFormat_shareContext(defaultPixelFormat, nil);
+    if openGLContext = nil then
+      raise EInternalError.Create('invalid NSOpenGLContext');
+    openGLContext.makeCurrentContext;
+    openGLContext.setView(self);
 
-      openGLContext.setValues_forParameter_fixed(@swapInterval, NSOpenGLCPSwapInterval);
+    openGLContext.setValues_forParameter_fixed(@swapInterval, NSOpenGLCPSwapInterval);
 
-      if not isOpaque then
-        openGLContext.setValues_forParameter_fixed(@opacity, NSOpenGLCPSurfaceOpacity);
-    end;
+    if not isOpaque then
+      openGLContext.setValues_forParameter_fixed(@opacity, NSOpenGLCPSurfaceOpacity);
+  end;
+
   if window = nil then
     openGLContext.clearDrawable;
 end;
@@ -823,6 +827,33 @@ procedure TCastleWindow.SwapBuffers;
 begin
   ref.contentView.display;
   glcontext.flushBuffer;
+
+  { Without this workaround:
+
+    For unknown reason, changing title on Cocoa resets the cursor to arrow.
+    So change it back, if FCursor requires non-standard look.
+
+    Testcase: view3dscene open
+    demo-models/sensors_pointing_device/touch_sensor_tests.x3dv ,
+    hover with mouse over pointing device sensor -- the cursor should remain
+    "hand", not be reset to "arrow". Note that view3dscene uses
+    "Window.FpsShowOnCaption := true;" so indeed it changes caption every second.
+
+    Some other report:
+    https://stackoverflow.com/questions/52379148/cocoa-api-keeps-resetting-our-nscursor
+    (no solution there).
+
+    Doing UpdateCursor at the end of SetCaption unfortunately
+    doesn't fix the issue.
+
+    We do it only when FCursor is non-standard to avoid hyphothetical performance
+    cost (due to doing NSCursor.xxx.set_ call each frame) in the most common
+    situation (when Cursor is left as default), but actually tests show that
+    it is not costly at all, and without the test "if not (FCursor..."
+    the performance on macOS is the same.
+  }
+  if not (FCursor in [mcDefault, mcNone, mcForceNone, mcStandard]) then
+    UpdateCursor;
 end;
 
 { TODO:
@@ -955,58 +986,63 @@ begin
   glcontext.makeCurrentContext;
 end;
 
-procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindow.UpdateCursor;
 var
   WantsCursorHidden: Boolean;
+begin
+  if not Closed then
+  begin
+    { To implement mcNone, mcForceNone we need to hide/unhide the cursor.
+      The calls to hide/unhide in Cocoa must be balanced, following docs,
+      so we use CursorHidden to know when they are actually necessary to call. }
+    WantsCursorHidden := FCursor in [mcNone, mcForceNone];
+    if Application.CursorHidden <> WantsCursorHidden then
+    begin
+      Application.CursorHidden := WantsCursorHidden;
+      // TODO: hiding cursor doesn't work for unknown reason
+      if Application.CursorHidden then
+        NSCursor.hide()
+      else
+        NSCursor.unhide();
+    end;
+
+    // Set Cocoa (global) cursor, see https://developer.apple.com/documentation/appkit/nscursor
+    case FCursor of
+      mcDefault, mcStandard:
+        NSCursor.arrowCursor.set_;
+      mcNone, mcForceNone:
+        { do nothing here, without any warning };
+      mcText:
+        NSCursor.IBeamCursor.set_;
+      mcHand:
+        NSCursor.openHandCursor.set_;
+      mcResizeHorizontal:
+        NSCursor.resizeLeftRightCursor.set_;
+      mcResizeVertical:
+        NSCursor.resizeUpDownCursor.set_;
+      mcResizeLeft:
+        NSCursor.resizeLeftCursor.set_;
+      mcResizeRight:
+        NSCursor.resizeRightCursor.set_;
+      mcResizeTop:
+        NSCursor.resizeUpCursor.set_;
+      mcResizeBottom:
+        NSCursor.resizeDownCursor.set_;
+      else
+        begin
+          NSCursor.arrowCursor.set_;
+          WritelnWarning('Cursor %d not implemented on Cocoa', [Ord(FCursor)]);
+        end;
+    end;
+  end;
+end;
+
+procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
     FCursor := Value;
-    if not Closed then
-    begin
-      { To implement mcNone, mcForceNone we need to hide/unhide the cursor.
-        The calls to hide/unhide in Cocoa must be balanced, following docs,
-        so we use CursorHidden to know when they are actually necessary to call. }
-      WantsCursorHidden := Value in [mcNone, mcForceNone];
-      if Application.CursorHidden <> WantsCursorHidden then
-      begin
-        Application.CursorHidden := WantsCursorHidden;
-        // TODO: hiding cursor doesn't work for unknown reason
-        if Application.CursorHidden then
-          NSCursor.hide()
-        else
-          NSCursor.unhide();
-      end;
-
-      // Set Cocoa (global) cursor, see https://developer.apple.com/documentation/appkit/nscursor
-      case Value of
-        mcDefault:
-          NSCursor.arrowCursor.set_;
-        mcNone, mcForceNone:
-          { do nothing here, without any warning };
-        mcText:
-          NSCursor.IBeamCursor.set_;
-        mcHand:
-          NSCursor.openHandCursor.set_;
-        mcResizeHorizontal:
-          NSCursor.resizeLeftRightCursor.set_;
-        mcResizeVertical:
-          NSCursor.resizeUpDownCursor.set_;
-        mcResizeLeft:
-          NSCursor.resizeLeftCursor.set_;
-        mcResizeRight:
-          NSCursor.resizeRightCursor.set_;
-        mcResizeTop:
-          NSCursor.resizeUpCursor.set_;
-        mcResizeBottom:
-          NSCursor.resizeDownCursor.set_;
-        else
-          begin
-            NSCursor.arrowCursor.set_;
-            WritelnWarning('Cursor %d not implemented on Cocoa', [Ord(Value)]);
-          end;
-      end;
-    end;
+    UpdateCursor;
   end;
 end;
 
@@ -1057,6 +1093,10 @@ begin
     end else
       FFullScreenBackend := FFullScreenWanted;
   end;
+end;
+
+procedure TCastleWindow.BackendInsideUpdate;
+begin
 end;
 
 { TCastleApplication ---------------------------------------------------------- }
@@ -1184,9 +1224,8 @@ begin
   while ProcessMessage(true, true) do ;
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  Terminate; // set Terminated := true
 end;
 
 function TCastleApplication.ScreenWidth: integer;

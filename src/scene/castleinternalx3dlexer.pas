@@ -1043,15 +1043,15 @@ end;
 
 function TX3DLexer.DescribeToken: string;
 begin
- result := X3DTokenNames[Token];
- case Token of
-  vtKeyword: result := result +' "' +X3DKeywordsName[TokenKeyword]+'"';
-  vtName: result := '"' +TokenName+'"';
-  vtFloat: result := result +' ' +FloatToStrDot(TokenFloat);
-  vtInteger: result := result +' ' +IntToStr(TokenInteger);
-  vtString: result := result+' "'+TokenString+'"';
-  else ;
- end;
+  Result := X3DTokenNames[Token];
+  case Token of
+    vtKeyword: Result := Result +' "' + X3DKeywordsName[TokenKeyword] +'"';
+    vtName: Result := 'identifier (unquoted in X3D file) "' + TokenName +'"';
+    vtFloat: Result := Result +' ' + FloatToStrDot(TokenFloat);
+    vtInteger: Result := Result +' ' + IntToStr(TokenInteger);
+    vtString: Result := Result +' "' + TokenString + '"';
+    else ;
+  end;
 end;
 
 procedure TX3DLexer.CheckTokenIs(Tok: TX3DToken);

@@ -28,7 +28,8 @@ unit CastleComponentSerialize;
 
 interface
 
-uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo;
+uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo,
+  CastleClassUtils;
 
 type
   EInvalidComponentFile = class(Exception);
@@ -113,25 +114,87 @@ type
     function FindRequiredComponent(const AName: String): TComponent;
   end;
 
-  { Load the serialized component once, instantiate it many times. }
-  TSerializedComponent = class
+  { Load a serialized component (from a design file, like .castle-user-interface,
+    .castle-transform, .castle-component) and instantiate it multiple times.
+
+    Set @link(Url) or call @link(LoadFromStream) to load the design.
+
+    Then instantiate it (multiple times if needed)
+    using @link(ComponentLoad). }
+  TCastleComponentFactory = class(TCastleComponent)
   strict private
     FUrl, FTranslationGroupName: String;
     JsonObject: TJsonObject;
+    procedure SetUrl(const Value: String);
   private
-    function InternalComponentLoad(const Owner: TComponent;
+    function InternalComponentLoad(const InstanceOwner: TComponent;
       const LoadInfo: TInternalComponentLoadInfo): TComponent;
   public
-    constructor Create(const AUrl: String);
-    constructor CreateFromString(const Contents: String);
+    { Main constructor.
+      Does not load anything immediately.
+      Set @link(Url) or call @link(LoadFromStream) to load component. }
+    constructor Create(AOwner: TComponent); overload; override;
+
+    // Avoid Delphi warnings about constructor hiding.
+    // In the long-run, these deprecated constructors should be removed,
+    // once everyone got chance to migrate.
+    {$warnings off}
+    constructor Create(const AUrl: String); overload;
+      deprecated 'use Create(AOwner) overload, then set Url to load';
+    constructor Create(const Contents: TStream; const ATranslationGroupName: String); overload;
+      deprecated 'use Create(AOwner) overload, then LoadFromStream';
+    {$warnings on}
+
     destructor Destroy; override;
 
+    { Load design from given URL.
+      Set to '' to clear the loaded component.
+
+      If you set up localization (see https://castle-engine.io/manual_text.php#section_localization_gettext ),
+      then upon loading, the design will be automatically localized using
+      the translation group derived from URL base name. E.g. loading
+      @code("castle-data:/foo/my_design.castle-user-interface") will use translation
+      group @code("my_design"). }
+    property Url: String read FUrl write SetUrl;
+
+    { Load design from given TStream.
+
+      If you set up localization (see https://castle-engine.io/manual_text.php#section_localization_gettext ),
+      then upon loading, the design will be automatically localized using
+      the translation group specified.
+      Just leave ATranslationGroupName = '' to not localize.
+
+      This @link(Url) value is unchanged by this. In most common case,
+      you don't really care about the @link(Url) value of this component,
+      if you load the contents from TStream. }
+    procedure LoadFromStream(const Contents: TStream; const ATranslationGroupName: String);
+
+    { Load given component as a template.
+      Effectively every TCastleComponentFactory.ComponentLoad
+      will create a deep clone of Template.
+
+      This is a way to clone ("deep copy") any TComponent using
+      serialization + deserialization underneath. Template is converted to
+      the JSON classes (though not JSON string)
+      and then deserialized back to a new component.
+      It is not the most efficient way to clone (since the intermeiate JSON
+      representation is created; though note that we don't save / parse
+      JSON as a string). But it is absolutely general and works out-of-the-box
+      on any TComponent, just like our serialization/deserialization. }
+    procedure LoadFromComponent(const Template: TComponent);
+
     { Instantiate component.
-      Using this is equivalent to using global
+      Using this is similar to using global
       @link(CastleComponentSerialize.ComponentLoad),
-      but it is much faster if you want to instantiate the same file many times. }
-    function ComponentLoad(const Owner: TComponent): TComponent;
+      but it is much faster if you want to instantiate the same file many times.
+
+      Newly created component will be owned by InstanceOwner.
+      Do not confuse this with the owner of this TCastleComponentFactory
+      -- which may be the same or different component. }
+    function ComponentLoad(const InstanceOwner: TComponent): TComponent;
   end;
+
+  TSerializedComponent = TCastleComponentFactory deprecated 'use TCastleComponentFactory';
 
   { Internal, used by TranslateAllDesigns. @exclude }
   TInternalTranslateDesignCallback = procedure (const C: TComponent; const GroupName: String);
@@ -179,11 +242,61 @@ var
 }
 procedure InternalAssignUsingSerialization(const Destination, Source: TComponent);
 
+{ Create a clone ("deep copy") of given component.
+  Works out-of-the-box on any TComponent,
+  just like our serialization / deserialization system, copying the "published"
+  members of the component.
+
+  Copies the given component, as well as anything that our serialization
+  system considers to be contained within it. Like TCastleTransform children,
+  TCastleTransform behaviors, TCastleUserInterface children, non-visual components
+  in @link(TCastleComponent.NonVisualComponents).
+
+  The new component hierarchy will have all new components owned by
+  the NewComponentOwner.
+
+  This is similar to TCastleFactoryComponent.LoadFromComponent
+  followed by the TCastleFactoryComponent.ComponentLoad, but it is easier
+  to use if you only want to create a single clone of the component.
+  If you want to create multiple clones, better use TCastleFactoryComponent,
+  as then you can call TCastleFactoryComponent.LoadFromComponent once,
+  and call TCastleFactoryComponent.ComponentLoad multiple times -- this will
+  be more efficient. Like this:
+
+  @longCode(#
+    // unoptimal
+    NewComponent1 := ComponentClone(Template, NewComponentOwner);
+    NewComponent2 := ComponentClone(Template, NewComponentOwner);
+    NewComponent3 := ComponentClone(Template, NewComponentOwner);
+
+    // equivalent, but more efficient
+    Factory := TCastleFactoryComponent.Create(nil);
+    try
+      Factory.LoadFromComponent(Template);
+      NewComponent1 := Factory.ComponentLoad(NewComponentOwner);
+      NewComponent2 := Factory.ComponentLoad(NewComponentOwner);
+      NewComponent3 := Factory.ComponentLoad(NewComponentOwner);
+    finally FreeAndNil(Factory) end;
+  #)
+
+  This is a way to clone ("deep copy") any TComponent using
+  serialization + deserialization underneath. Template is converted to
+  the JSON classes (though not JSON string)
+  and then deserialized back to a new component.
+  It is not the most efficient way to clone (since the intermeiate JSON
+  representation is created; though note that we don't save / parse
+  JSON as a string). But it is absolutely general and works out-of-the-box
+  on any TComponent. }
+function ComponentClone(const C: TComponent; const NewComponentOwner: TComponent): TComponent;
+
 implementation
 
 uses JsonParser, RtlConsts, StrUtils,
-  CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
-  CastleURIUtils, CastleVectors, CastleColors, CastleInternalRttiUtils;
+  CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils,
+  CastleUriUtils, CastleVectors, CastleColors, CastleInternalRttiUtils,
+  CastleDownload;
+
+function ComponentToJson(const C: TComponent): TJsonObject; forward;
 
 { component registration ----------------------------------------------------- }
 
@@ -798,6 +911,8 @@ begin
   FDeStreamer.AfterReadObject := {$ifdef FPC}@{$endif}AfterReadObject;
   FDeStreamer.OnRestoreProperty := {$ifdef FPC}@{$endif}RestoreProperty;
   FDeStreamer.OnGetObject := {$ifdef FPC}@{$endif}ReaderGetObject;
+  // read property like Url (TCastleScene.Url) from URL
+  FDeStreamer.Options := FDeStreamer.Options + [jdoCaseInsensitive];
 
   ResolveObjectProperties := TResolveObjectPropertyList.Create(true);
 
@@ -818,20 +933,61 @@ begin
   Result := FDeStreamer;
 end;
 
-{ TSerializedComponent ------------------------------------------------------- }
+{ TCastleComponentFactory ------------------------------------------------------- }
 
-constructor TSerializedComponent.Create(const AUrl: String);
+constructor TCastleComponentFactory.Create(AOwner: TComponent);
 begin
-  FUrl := AUrl;
-  FTranslationGroupName := DeleteURIExt(ExtractURIName(FUrl));
-  CreateFromString(FileToString(AUrl));
+  inherited;
 end;
 
-constructor TSerializedComponent.CreateFromString(const Contents: String);
+constructor TCastleComponentFactory.Create(const AUrl: String);
+begin
+  Create(nil);
+  Url := AUrl;
+end;
+
+constructor TCastleComponentFactory.Create(const Contents: TStream;
+  const ATranslationGroupName: String);
+begin
+  Create(nil);
+  LoadFromStream(Contents, ATranslationGroupName);
+end;
+
+destructor TCastleComponentFactory.Destroy;
+begin
+  FreeAndNil(JsonObject);
+  inherited;
+end;
+
+procedure TCastleComponentFactory.SetUrl(const Value: String);
+var
+  Contents: TStream;
+begin
+  if FUrl <> Value then
+  begin
+    FUrl := Value;
+
+    // free previously loaded, if any
+    FreeAndNil(JsonObject);
+    FTranslationGroupName := '';
+
+    // load new, if set
+    if Value <> '' then
+    begin
+      Contents := Download(Value);
+      try
+        LoadFromStream(Contents, DeleteURIExt(ExtractURIName(Value)));
+      finally FreeAndNil(Contents) end;
+    end;
+  end;
+end;
+
+procedure TCastleComponentFactory.LoadFromStream(const Contents: TStream;
+  const ATranslationGroupName: String);
 var
   JsonData: TJsonData;
 begin
-  inherited Create;
+  FTranslationGroupName := ATranslationGroupName;
 
   JsonData := GetJson(Contents, true);
   if not (JsonData is TJsonObject) then
@@ -839,29 +995,29 @@ begin
   JsonObject := JsonData as TJsonObject;
 end;
 
-destructor TSerializedComponent.Destroy;
+procedure TCastleComponentFactory.LoadFromComponent(const Template: TComponent);
 begin
-  FreeAndNil(JsonObject);
-  inherited;
+  FTranslationGroupName := ''; // set it, like other LoadFrom* methods do
+  JsonObject := ComponentToJson(Template);
 end;
 
-function TSerializedComponent.ComponentLoad(const Owner: TComponent): TComponent;
+function TCastleComponentFactory.ComponentLoad(const InstanceOwner: TComponent): TComponent;
 begin
-  Result := InternalComponentLoad(Owner, nil);
+  Result := InternalComponentLoad(InstanceOwner, nil);
 end;
 
-function TSerializedComponent.InternalComponentLoad(const Owner: TComponent;
+function TCastleComponentFactory.InternalComponentLoad(const InstanceOwner: TComponent;
   const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
   Reader: TCastleJsonReader;
 begin
   Reader := TCastleJsonReader.Create;
   try
-    Reader.FOwner := Owner;
+    Reader.FOwner := InstanceOwner;
     Reader.LoadInfo := LoadInfo;
 
     { create Result with appropriate class }
-    Result := CreateComponentFromJson(JsonObject, Owner, LoadInfo);
+    Result := CreateComponentFromJson(JsonObject, InstanceOwner, LoadInfo);
 
     { read Result contents from JSON }
     Reader.DeStreamer.JsonToObject(JsonObject, Result);
@@ -875,6 +1031,8 @@ begin
   end;
 end;
 
+{ routines ----------------------------------------------------------------- }
+
 function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
 begin
   Result := InternalStringToComponent(Contents, Owner, nil);
@@ -884,18 +1042,23 @@ function InternalStringToComponent(const Contents: String;
   const Owner: TComponent;
   const LoadInfo: TInternalComponentLoadInfo): TComponent;
 var
-  SerializedComponent: TSerializedComponent;
+  Factory: TCastleComponentFactory;
+  ContentsStringStream: TStringStream;
 begin
-  SerializedComponent := TSerializedComponent.CreateFromString(Contents);
+  ContentsStringStream := TStringStream.Create(Contents);
   try
-    Result := SerializedComponent.InternalComponentLoad(Owner, LoadInfo);
-  finally FreeAndNil(SerializedComponent) end;
+    Factory := TCastleComponentFactory.Create(nil);
+    try
+      Factory.LoadFromStream(ContentsStringStream, '');
+      Result := Factory.InternalComponentLoad(Owner, LoadInfo);
+    finally FreeAndNil(Factory) end;
+  finally FreeAndNil(ContentsStringStream) end;
 end;
 
 function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
 
-{ We could use StringToComponent now, but then TSerializedComponent
-  would not know Url, so TSerializedComponent.FTranslationGroupName
+{ We could use StringToComponent now, but then TCastleComponentFactory
+  would not know Url, so TCastleComponentFactory.FTranslationGroupName
   would be empty and TranslateAllDesigns would not work.
 
 begin
@@ -903,12 +1066,24 @@ begin
 end;}
 
 var
-  SerializedComponent: TSerializedComponent;
+  Factory: TCastleComponentFactory;
 begin
-  SerializedComponent := TSerializedComponent.Create(Url);
+  Factory := TCastleComponentFactory.Create(nil);
   try
-    Result := SerializedComponent.ComponentLoad(Owner);
-  finally FreeAndNil(SerializedComponent) end;
+    Factory.Url := Url;
+    Result := Factory.ComponentLoad(Owner);
+  finally FreeAndNil(Factory) end;
+end;
+
+function ComponentClone(const C: TComponent; const NewComponentOwner: TComponent): TComponent;
+var
+  Factory: TCastleComponentFactory;
+begin
+  Factory := TCastleComponentFactory.Create(nil);
+  try
+    Factory.LoadFromComponent(C);
+    Result := Factory.ComponentLoad(NewComponentOwner);
+  finally FreeAndNil(Factory) end;
 end;
 
 { saving to JSON ------------------------------------------------------------- }
@@ -1213,18 +1388,24 @@ begin
   end;
 end;
 
-function ComponentToString(const C: TComponent): String;
+function ComponentToJson(const C: TComponent): TJsonObject;
 var
-  Json: TJsonObject;
   Writer: TCastleJsonWriter;
 begin
   Writer := TCastleJsonWriter.Create;
   try
-    Json := Writer.Streamer.ObjectToJson(C);
-    try
-      Result := Json.FormatJson;
-    finally FreeAndNil(Json) end;
+    Result := Writer.Streamer.ObjectToJson(C);
   finally FreeAndNil(Writer) end;
+end;
+
+function ComponentToString(const C: TComponent): String;
+var
+  Json: TJsonObject;
+begin
+  Json := ComponentToJson(C);
+  try
+    Result := Json.FormatJson;
+  finally FreeAndNil(Json) end;
 end;
 
 procedure ComponentSave(const C: TComponent; const Url: String);

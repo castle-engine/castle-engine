@@ -21,7 +21,7 @@ unit CastleViewport;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, X3DNodes, CastleInternalBaseTriangleOctree, CastleScene,
   CastleSceneCore, CastleCameras, CastleRenderOptions,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
@@ -549,7 +549,7 @@ type
     { Constructor that disables special design-mode viewport camera/navigation.
       Useful in editor.
       @exclude }
-    constructor InternalCreateNonDesign(AOwner: TComponent);
+    constructor InternalCreateNonDesign(AOwner: TComponent; const Ignored: Integer);
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
@@ -687,7 +687,7 @@ type
 
           By default our visible Z range is [-1500, 500],
           because this sets ProjectionNear to -1000, ProjectionFar to 1000,
-          and camera default depth (@code(Camera.Position.Z)) is 500.
+          and camera default depth (@code(Camera.Translation.Z)) is 500.
           This was chosen to be comfortable for all cases -- you can
           keep camera Z unchanged and comfortably position things around [-500, 500],
           or set camera Z to zero and then comfortably position things around [-1000, 1000].
@@ -889,7 +889,8 @@ type
       Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload; virtual;
 
     { Current components (TCastleTransform hierarchy) pointed by the mouse cursor
-      position.
+      position. This is the @italic(first) object being hit by the ray from camera
+      through the mouse cursor position.
 
       Automatically updated to always reflect the current mouse position.
       May be @nil if nothing is hit.
@@ -902,7 +903,8 @@ type
     property MouseRayHit: TRayCollision read GetMouseRayHit;
 
     { Current TCastleTransform pointed by the mouse cursor
-      position.
+      position. This is the @italic(first) object being hit by the ray from camera
+      through the mouse cursor position.
 
       Automatically updated to always reflect the current mouse position.
       May be @nil if nothing is hit.
@@ -912,8 +914,7 @@ type
       we automatically use viewport center as the "mouse cursor position".
 
       @seealso MouseRayHit
-      @seealso TRayCollision.Transform
-    }
+      @seealso TRayCollision.Transform }
     function TransformUnderMouse: TCastleTransform;
 
     { Do not collide with this object when moving by @link(Navigation).
@@ -1326,7 +1327,7 @@ implementation
 uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleTextureImages,
-  CastleInternalSettings, CastleXMLUtils, CastleURIUtils, CastleInternalRenderer,
+  CastleInternalSettings, CastleXmlUtils, CastleUriUtils, CastleInternalRenderer,
   CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
 
 {$define read_implementation}
@@ -1478,7 +1479,7 @@ begin
   begin
     { We need to use TCastleCamera.InternalCreateNonDesign,
       otherwise InternalDesignCamera would be visible in preview of other camera. }
-    InternalDesignCamera := TCastleCamera.InternalCreateNonDesign(Self);
+    InternalDesignCamera := TCastleCamera.InternalCreateNonDesign(Self, 0);
     InternalDesignCamera.SetTransient;
     // this somewhat replicates what happens at SetCamera
     InternalDesignCamera.InternalOnCameraChanged := {$ifdef FPC}@{$endif} InternalCameraChanged;
@@ -1530,7 +1531,7 @@ begin
   CommonCreate(AOwner, CastleDesignMode);
 end;
 
-constructor TCastleViewport.InternalCreateNonDesign(AOwner: TComponent);
+constructor TCastleViewport.InternalCreateNonDesign(AOwner: TComponent; const Ignored: Integer);
 begin
   CommonCreate(AOwner, false);
 end;
@@ -1581,7 +1582,7 @@ begin
     - or replace existing camera. }
   Assert(Camera = nil);
 
-  NewCamera := TCastleCamera.InternalCreateNonDesign(Self);
+  NewCamera := TCastleCamera.InternalCreateNonDesign(Self, 0);
   Camera := NewCamera;
   Items.Add(NewCamera);
 end;
@@ -1872,7 +1873,7 @@ begin
   if Container = nil then
     Result := FullSize
   else
-    Result := RenderRect.Round.Equals(Container.Rect);
+    Result := RenderRect.Round.Equals(Container.PixelsRect);
 end;
 
 function TCastleViewport.GetNavigation: TCastleNavigation;
@@ -2242,9 +2243,6 @@ var
   M: TMatrix4;
 begin
   EnsureCameraDetected;
-
-  { We need to know container size now. }
-  Check(ContainerSizeKnown, ClassName + ' did not receive "Resize" event yet, cannnot apply projection. This usually means you try to call "Render" method with a container that does not yet have an open context.');
 
   Viewport := RenderRect.Round;
   RenderContext.Viewport := Viewport;
@@ -3540,16 +3538,6 @@ begin
 
   { call TCastleScreenEffects.PrepareResources. }
   inherited PrepareResources;
-
-  if ContainerSizeKnown then
-  begin
-    { TODO: This is possibly not necessary now.
-
-      It used to be necessary, to update MainScene.BackgroundSkySphereRadius,
-      and in effect make preparation of "prBackground" useful.
-      But we removed the need for MainScene.BackgroundSkySphereRadius. }
-    ApplyProjection;
-  end;
 
   {$warnings off} // using deprecated, this should be internal
   Item.PrepareResources(Options, PrepareParams);

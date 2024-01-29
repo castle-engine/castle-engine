@@ -112,7 +112,12 @@ type
 
   { 3rd-person camera navigation.
     Create an instance of this and assign it to @link(TCastleViewport.Navigation) to use.
-    Be sure to also assign @link(Avatar).
+    Be sure to also assign @link(Avatar) if you want to
+    automatically run proper animations on the avatar (alternatively,
+    you can leave @link(Avatar) as @nil and override the @link(SetAnimation) method).
+    You have to assign at least one of @link(Avatar) or @link(AvatarHierarchy),
+    otherwise this navigation doesn't affect anything.
+    (you only need to assign one of them for the navigation component to do the work).
     Call @link(Init) once the parameters that determine initial camera location are all set.
 
     Turn on @link(TCastleMouseLookNavigation.MouseLook MouseLook) to allow user to move
@@ -361,14 +366,25 @@ type
     property CameraFollows: Boolean read FCameraFollows write SetCameraFollows default true;
 
     { Avatar scene, that is animated, moved and rotated when this navigation changes.
-      This navigation component will just call @code(Avatar.AutoAnimation := 'xxx') when necessary.
-      Currently we require the following animations to exist: walk, idle.
+      This navigation component will just call @code(Avatar.AutoAnimation := 'xxx')
+      when necessary.
+
+      We will use animation names configured using properties like
+      @link(AnimationWalk), @link(AnimationIdle) and other `AnimationXxx`.
+      By default they are just equal to simple names @code('walk'), @code('idle')
+      and such, but you can change @link(AnimationWalk), @link(AnimationIdle)
+      if your model exposes different animation names.
 
       When AvatarHierarchy is @nil, then @name is directly moved and rotated
       to move avatar.
-      Otherwise, AvatarHierarchy is moved, and @name should be inside AvatarHierarchy.
 
-      This scene should be part of @link(TCastleViewport.Items)
+      Otherwise (when AvatarHierarchy is assigned),
+      then AvatarHierarchy is moved, and @name should be inside AvatarHierarchy.
+      In this case, the only purpose of @name is to let navigation
+      automatically adjust animations. But you can leave @name unassigned,
+      and override @link(SetAnimation) to do this.
+
+      This scene assigned here should be part of @link(TCastleViewport.Items)
       to make this navigation work, in particular when you call @link(Init). }
     property Avatar: TCastleScene read FAvatar write SetAvatar;
 
@@ -377,7 +393,8 @@ type
       When this is non-nil, then we only move and rotate this AvatarHierarchy.
 
       If @link(AvatarHierarchy) is non-nil, then it should contain
-      @link(Avatar) as a child. @link(AvatarHierarchy) can even be equal to @link(Avatar)
+      @link(Avatar) (if it is assigned)
+      as a child. @link(AvatarHierarchy) can even be equal to @link(Avatar)
       (it is equivalent to just leaving @link(AvatarHierarchy) as @nil).
 
       This object should be part of @link(TCastleViewport.Items)
@@ -879,7 +896,7 @@ var
     DistanceToAvatarTarget := Clamped(DistanceToAvatarTarget + DistanceChange,
       MinDistanceToAvatarTarget, MaxDistanceToAvatarTarget);
 
-    { The actual change in Camera.Position, caused by changing DistanceToAvatarTarget,
+    { The actual change in Camera.Translation, caused by changing DistanceToAvatarTarget,
       will be done smoothly in UpdateCamera. }
   end;
 

@@ -15,7 +15,7 @@ unit hq2x;
 interface
 
 type
-  hq2xnumber = Longword;
+  hq2xnumber = UInt32;
   phq2xnumber=^hq2xnumber;
 
 procedure hq2x_32(Input, Output: Pointer; XResolution, YResolution, Bpl: hq2xnumber);
@@ -125,7 +125,7 @@ begin
   // These lines are not crucial but may help in debugging
   FillChar(W, SizeOf(W), 0);
   FillChar(C, SizeOf(C), 0);
-  
+
   // See hq2x.cpp for C Source
   for J := 0 to YResolution - 1 do
   begin

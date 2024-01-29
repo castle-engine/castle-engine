@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,16 +13,40 @@
   ----------------------------------------------------------------------------
 }
 
-{ Delphi XML classes.
-  This unit is compatible with a subset of FPC DOM unit.
+{ Classes to access XML from Delphi.
 
-  Note that reading XML in Delphi depends on Windows-only MSXML,
-  you can download it from
-  https://www.microsoft.com/en-us/download/details.aspx?id=3988 .
-}
+  The API of this unit is deliberately compatible with (a subset of) FPC DOM
+  unit, so you can just do "uses DOM" in both FPC and Delphi code
+  and operate on XML with the same API.
+  Underneath we use Delphi XML / DOM API based on interfaces
+  ( https://docwiki.embarcadero.com/RADStudio/Sydney/en/Using_the_Document_Object_Model ). }
 unit DOM;
 
 {$I castleconf.inc}
+
+{ Delphi XML can be supported by various vendors.
+  See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Using_the_Document_Object_Model .
+
+  The default:
+  - on Windows is MSXML
+    (in some older versions you had to download it from
+    https://www.microsoft.com/en-us/download/details.aspx?id=3988 ).
+  - On other platforms, despite the Delphi docs (which say that XML will just
+    not work without selecting other vendor) it seems some other vendor is
+    automatically picked.
+    TODO: which one? Omni?
+
+  Define this symbol to explicitly select OmniXML vendor on all platform.
+  OmniXML is:
+  - cross-platform
+  - open-source
+    https://code.google.com/archive/p/omnixml/
+    https://github.com/mremec/omnixml/
+    (though it is at this point just included in Delphi, so you don't need to care)
+  - doesn't cause a crash when CastleConfig is finalized from C++ Builder
+    (testcase: examples/delphi/cpp_builder/window/)
+}
+{$define CASTLE_XML_OMNI}
 
 interface
 
@@ -103,8 +127,8 @@ type
     Nodes: TObjectList;
     InternalList: IXMLNodeList;
 
-    function GetItem(const I: LongWord): TDOMNode;
-    function GetLength: LongWord;
+    function GetItem(const I: Cardinal): TDOMNode;
+    function GetLength: Cardinal;
   private
     function InternalRemove(const Name: String): TDOMNode;
   public
@@ -112,8 +136,8 @@ type
     destructor Destroy;override;
     function GetNamedItem(Name: String): TDOMNode;
 
-    property Item[const Index: LongWord]: TDOMNode read GetItem; default;
-    property Length: LongWord read GetLength;
+    property Item[const Index: Cardinal]: TDOMNode read GetItem; default;
+    property Length: Cardinal read GetLength;
     procedure InvalidateMap;
   end;
 
@@ -127,14 +151,13 @@ type
     FOwnerDocument: TDOMDocument;
     InternalNode: IXMLNode;
     FParentNode: TDOMNode;
-    function GetNodeName: String;
-
   strict private
     FChildNodes: TDOMNodeList;
     function GetNodeValue: String;
     procedure SetNodeValue(const Value: String);
     function  GetFirstChild: TDOMNode; virtual;
   protected
+    function GetNodeName: String;
     procedure InvalidateParent;
     function GetAttributes: TDOMNamedNodeMap; virtual;
     function GetParentNode: TDOMNode; virtual;
@@ -167,16 +190,16 @@ type
     FOwnerDocument: TDOMDocument;
     InternalList: IXMLNodeList;
     Nodes: TObjectList;
-    function GetCount: LongWord;
-    function GetItem(const I: LongWord): TDOMNode;
+    function GetCount: Cardinal;
+    function GetItem(const I: Cardinal): TDOMNode;
   private
     procedure RemoveNode(const Child: TDOMNode);
   public
     constructor Create(const ANode: TDOMNode);
     destructor Destroy; override;
-    property Item[const I: LongWord]: TDOMNode read GetItem; default;
-    property Count: LongWord read GetCount;
-    property Length: LongWord read GetCount;
+    property Item[const I: Cardinal]: TDOMNode read GetItem; default;
+    property Count: Cardinal read GetCount;
+    property Length: Cardinal read GetCount;
   end;
 
   TDOMElement = class(TDOMNode)
@@ -186,6 +209,8 @@ type
     function GetAttributes: TDOMNamedNodeMap; override;
 
   public
+    destructor Destroy; override;
+
     { Read from Element attribute value and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. Value is a "var", not "out" param,
@@ -252,8 +277,13 @@ type
 
 implementation
 
-{$ifdef MSWINDOWS}
-uses ComObj, Xml.Win.msxmldom;
+{$ifdef CASTLE_XML_OMNI}
+uses Xml.omnixmldom, Xml.xmldom;
+{$else}
+  // otherwise we use default MSXML on Windows, which requires some adjustments
+  {$ifdef MSWINDOWS}
+  uses ComObj, Xml.Win.msxmldom;
+  {$endif}
 {$endif}
 
 { TDOMNodeList --------------------------------------------------------------- }
@@ -263,6 +293,9 @@ begin
   inherited Create;
   FOwnerDocument := ANode.OwnerDocument;
   InternalList := ANode.InternalNode.ChildNodes;
+
+  { We pass OwnsChildren=false parameter to TObjectList.Create,
+    because we use TComponent ownership mechanism to free TXMLNode instances. }
   Nodes := TObjectList.Create(false);
 end;
 
@@ -272,12 +305,12 @@ begin
   inherited;
 end;
 
-function TDOMNodeList.GetCount: LongWord;
+function TDOMNodeList.GetCount: Cardinal;
 begin
   Result := InternalList.Count;
 end;
 
-function TDOMNodeList.GetItem(const I: LongWord): TDOMNode;
+function TDOMNodeList.GetItem(const I: Cardinal): TDOMNode;
 var
   NewNode: TDOMNode;
 begin
@@ -466,6 +499,12 @@ end;
 
 { TDOMElement ---------------------------------------------------------------- }
 
+destructor TDOMElement.Destroy;
+begin
+  FreeAndNil(FAttributes);
+  inherited;
+end;
+
 procedure TDOMElement.AppendChild(const Child: TDOMNode);
 begin
   InternalNode.ChildNodes.Add(Child.InternalNode);
@@ -565,16 +604,28 @@ begin
 end;
 
 constructor TDOMDocument.Create;
+var
+  InternalDocumentNonRef: XMLDoc.TXMLDocument;
 begin
   inherited Create(nil);
 
+  { MSXML special tweak:
+    This needs to be called before using COM interfaces with MSXML.
+    It seems other XML vendors like OmniXML do not require it. }
+  {$ifndef CASTLE_XML_OMNI}
   {$ifdef MSWINDOWS}
   { This needs to be called before using COM interfaces with MSXML. }
   CoInitializeEx(nil, 0);
   {$endif}
+  {$endif}
 
-  InternalDocument := XMLDoc.TXMLDocument.Create(Self);
-  InternalDocument.Active := true;
+  InternalDocumentNonRef := XMLDoc.TXMLDocument.Create(Self);
+  {$ifdef CASTLE_XML_OMNI}
+  InternalDocumentNonRef.DOMVendor := GetDOMVendor(sOmniXmlVendor);
+  {$endif}
+  InternalDocumentNonRef.Active := true;
+  InternalDocument := InternalDocumentNonRef; // assign to interface, it is ref-counted from now on
+
   FDocumentElement := nil;
 end;
 
@@ -591,6 +642,9 @@ end;
 
 destructor TDOMDocument.Destroy;
 begin
+  { Note that we do nothing with InternalDocument,
+    it's a COM interface and should be ref-counted.
+    No need for "InternalDocument := nil;". }
   inherited;
 end;
 
@@ -634,16 +688,18 @@ begin
   FOwnerDocument := FOwnerNode.FOwnerDocument;
   InternalList := FOwnerNode.InternalNode.AttributeNodes;
 
+  { We pass OwnsChildren=false parameter to TObjectList.Create,
+    because we use TComponent ownership mechanism to free TXMLNode instances. }
   Nodes := TObjectList.Create(false);
 end;
 
 destructor TDOMNamedNodeMap.Destroy;
 begin
-
+  FreeAndNil(Nodes);
   inherited;
 end;
 
-function TDOMNamedNodeMap.GetItem(const I: LongWord): TDOMNode;
+function TDOMNamedNodeMap.GetItem(const I: Cardinal): TDOMNode;
 var
   NewNode: TDOMNode;
 begin
@@ -667,7 +723,7 @@ begin
   Result := Nodes[Integer(I)] as TDOMNode;
 end;
 
-function TDOMNamedNodeMap.GetLength: LongWord;
+function TDOMNamedNodeMap.GetLength: Cardinal;
 begin
   Result := InternalList.Count;
 end;
@@ -728,9 +784,51 @@ begin
 end;
 
 initialization
+  {$ifdef CASTLE_XML_OMNI}
+  (*In the past we changed DefaultDOMVendor, but this was more invasive,
+    as it affects XML implementation used by Delphi IDE (since this unit
+    is also in a design-time package).
+
+    It caused occasional issues when trying to save / open a project in Delphi IDE,
+    about "document encoding",
+    with Delphi IDE stacktrace like this:
+
+      [6FBD3F97]{xmlrtl290.bpl} Xml.XMLDoc.TXMLDocument.LoadData (Line 2557, "Xml.XMLDoc.pas" + 11) + $26
+      [7168A1C4]{rtl290.bpl  } System.@CheckAutoResult (Line 40283, "System.pas" + 4) + $6
+      [6FBD3F97]{xmlrtl290.bpl} Xml.XMLDoc.TXMLDocument.LoadData (Line 2557, "Xml.XMLDoc.pas" + 11) + $26
+      [6FBD3E53]{xmlrtl290.bpl} Xml.XMLDoc.TXMLDocument.SetActive (Line 2523, "Xml.XMLDoc.pas" + 13) + $7
+      [67E70559]{profiledeployide290.bpl} DeploymentImpl.TDeploymentStorageManager.ReadDefaultDeployment (Line 1802, "DeploymentImpl.pas" + 47) + $7
+      [67E6C40D]{profiledeployide290.bpl} DeploymentImpl.TDeploymentModuleHandler.EnsureDefaultDeployment (Line 651, "DeploymentImpl.pas" + 13) + $1A
+      [67E6D5C5]{profiledeployide290.bpl} DeploymentImpl.TDeploymentModuleHandler.GetFiles (Line 909, "DeploymentImpl.pas" + 1) + $2
+      [67E6D420]{profiledeployide290.bpl} DeploymentImpl.TDeploymentModuleHandler.GetSortedFiles (Line 865, "DeploymentImpl.pas" + 1) + $2
+      [67E71758]{profiledeployide290.bpl} DeploymentImpl.TDeploymentStorageManager.Write (Line 1962, "DeploymentImpl.pas" + 9) + $8
+      [67E72B37]{profiledeployide290.bpl} DeploymentImpl.TDeploymentStorageManager.ProjectSaving (Line 2153, "DeploymentImpl.pas" + 3) + $11
+      [6F162850]{coreide290.bpl} ProjectFileUtils.CallProjectFileStorage (Line 562, "ProjectFileUtils.pas" + 14) + $B
+      [6F163D55]{coreide290.bpl} ProjectFileUtils.NotifyProjectStorageSaving (Line 844, "ProjectFileUtils.pas" + 4) + $67
+      [6F0C67F5]{coreide290.bpl} ProjectModule.TBaseProject.NotifyProjectStorageSaving (Line 2028, "ProjectModule.pas" + 3) + $23
+      [6F0C6B5A]{coreide290.bpl} ProjectModule.TCustomProject.Save (Line 2108, "ProjectModule.pas" + 20) + $3
+      [6F029C25]{coreide290.bpl} ProjectGroup.SaveProjects (Line 2022, "ProjectGroup.pas" + 68) + $1E
+      [6F029EB4]{coreide290.bpl} ProjectGroup.TProjectGroup.Save (Line 2058, "ProjectGroup.pas" + 2) + $1
+      [6F02DBF9]{coreide290.bpl} ProjectGroup.TProjectGroupWrapper.Save (Line 3357, "ProjectGroup.pas" + 2) + $7
+      [00C28263]{bds.exe     } AppMain.TAppBuilder.CanCloseProjectGroup + $4F
+      ....
+
+    The testcase was not 100% confirmed, but it seems that changing package settings
+    from AllProjects group, then trying to open a different project (like fps_game),
+    saying "Yes" to save the AllProjects changes, was causing errors.
+
+    Now we do a safer approach: never change global DefaultDOMVendor,
+    instead we'll set TXMLDocument.DOMVendor after TXMLDocument creation.
+  *)
+  //DefaultDOMVendor := sOmniXmlVendor;
+
+  {$else}
+  {$ifdef MSWINDOWS}
   { Reading X3D XML fails without this.
     See https://bobsotherblog.wordpress.com/2013/09/19/fixing-dtd-is-prohibited-error-in-delphi/
     https://docwiki.embarcadero.com/Libraries/Sydney/en/Xml.Win.msxmldom.MSXML6_ProhibitDTD }
   Xml.Win.msxmldom.MSXMLDOMDocumentFactory.AddDOMProperty('ProhibitDTD', False);
+  {$endif}
+  {$endif}
 end.
 

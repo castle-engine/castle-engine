@@ -397,7 +397,7 @@ type
       Must be lowercase.
 
       This is used e.g. to construct file filters in open/save dialogs.
-      Together with MimeTypes it is also used by URIMimeType to map
+      Together with MimeTypes it is also used by UriMimeType to map
       file extension into a MIME type. An extension matching one of Exts
       values implicates the default MIME type for this format (MimeTypes[1]).
 
@@ -681,11 +681,11 @@ begin
     Result := TRGBImage;
 end;
 
-function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const Url: String): TCastleImageClass;
 var
   Format: TImageFormat;
 begin
-  if not MimeTypeToImageFormat(URIMimeType(URL), false, true, Format) then
+  if not MimeTypeToImageFormat(UriMimeType(Url), false, true, Format) then
     Exit(TRGBImage);
   Result := ImageClassBestForSavingToFormatCore(Format);
 end;

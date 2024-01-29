@@ -125,7 +125,7 @@ type
       but you must manually take care to free (or pass elsewhere)
       the TAnimation.KeyNodes contents, or just call @link(TAnimationList.FreeKeyNodesContents).)
     }
-    class function LoadAnimFramesToKeyNodes(const URL: string): TAnimationList; overload;
+    class function LoadAnimFramesToKeyNodes(const Url: String): TAnimationList; overload;
     class function LoadAnimFramesToKeyNodes(const Stream: TStream; const BaseUrl: String): TAnimationList; overload;
 
     { From key nodes, create a series of baked nodes (with final
@@ -181,8 +181,8 @@ type
 implementation
 
 uses SysUtils, XMLRead, DOM, Math,
-  CastleLog, X3DFields, CastleXMLUtils, CastleFilesUtils, CastleVectors,
-  CastleDownload, CastleURIUtils, X3DLoad, CastleClassUtils, X3DLoadInternalUtils;
+  CastleLog, X3DFields, CastleXmlUtils, CastleFilesUtils, CastleVectors,
+  CastleDownload, CastleUriUtils, X3DLoad, CastleClassUtils, X3DLoadInternalUtils;
 
 { EModelsStructureDifferent -------------------------------------------------- }
 
@@ -754,13 +754,13 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TAnimationList;
+class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Url: String): TAnimationList;
 var
   Stream: TStream;
 begin
-  Stream := Download(URL);
+  Stream := Download(Url);
   try
-    Result := LoadAnimFramesToKeyNodes(Stream, URL);
+    Result := LoadAnimFramesToKeyNodes(Stream, Url);
   finally FreeAndNil(Stream) end;
 end;
 
@@ -787,12 +787,12 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream;
     DefaultLoop = false;
     DefaultBackwards = false;
   var
-    AbsoluteBaseUrl: string;
+    AbsoluteBaseUrl: String;
     FrameElement: TDOMElement;
     Children: TXMLElementIterator;
     I: Integer;
     FrameTime: Single;
-    FrameURL, MimeType: string;
+    FrameUrl, MimeType: string;
     NewNode: TX3DRootNode;
     Attr: TDOMAttr;
     FrameBoxCenter, FrameBoxSize: TVector3;
@@ -851,13 +851,13 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream;
             raise Exception.Create('Frames within <animation> element must be specified in an increasing time order');
           Result.KeyTimes.Add(FrameTime);
 
-          if FrameElement.AttributeString('url', FrameURL) or
-             FrameElement.AttributeString('file_name', FrameURL) then
+          if FrameElement.AttributeString('url', FrameUrl) or
+             FrameElement.AttributeString('file_name', FrameUrl) then
           begin
-            { Make FrameURL absolute, treating it as relative vs
+            { Make FrameUrl absolute, treating it as relative vs
               AbsoluteBaseUrl }
-            FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
-            NewNode := LoadNode(FrameURL);
+            FrameUrl := CombineURI(AbsoluteBaseUrl, FrameUrl);
+            NewNode := LoadNode(FrameUrl);
           end else
           begin
             MimeType := FrameElement.AttributeStringDef('mime_type', '');
@@ -928,7 +928,7 @@ end;
 
 class function TNodeInterpolator.LoadSequenceToX3D(const BakedAnimations: TBakedAnimationList): TX3DRootNode;
 var
-  BaseUrl: string;
+  BaseUrl: String;
 
   { For VRML 1.0, wrap the contents in SeparateGroup. Prevents leaking
     transformations between switch node children (testcase:

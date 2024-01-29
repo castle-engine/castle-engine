@@ -133,7 +133,7 @@ end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): boolean;
 var
-  URL: string;
+  Url: String;
 begin
   Result := inherited;
 
@@ -149,9 +149,9 @@ begin
             not CurrentLocation.RenderInternalModel;
         keyF5:
           begin
-            URL := Container.SaveScreenToDefaultFile;
-            if URL <> '' then
-              Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
+            Url := Container.SaveScreenToDefaultFile;
+            if Url <> '' then
+              Notifications.Show(Format('Saved screenshot to "%s"', [Url]));
           end;
       end;
     itMouseButton:

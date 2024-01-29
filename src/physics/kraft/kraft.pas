@@ -1,4 +1,4 @@
-(****************************************************************************** 
+(******************************************************************************
  *                            KRAFT PHYSICS ENGINE                            *
  ******************************************************************************
  *                        Version 2019-08-26-10-17-0000                       *
@@ -79,8 +79,6 @@ unit kraft;
   {$endif}
  {$endif}
 {$else} // Delphi
- {$hints off} // added by CGE
- {$warn SYMBOL_PLATFORM off} // added by CGE
  {$define LITTLE_ENDIAN}
  {$ifndef cpu64}
   {$define cpu32}
@@ -92,7 +90,7 @@ unit kraft;
  {$ifdef conditionalexpressions}
   {$if CompilerVersion>=24.0}
    {$legacyifend on}
-  {$ifend} 
+  {$ifend}
  {$endif}
  {$ifdef ver180}
   {$define caninline}
@@ -122,31 +120,6 @@ unit kraft;
 {$booleval off}
 {$typeinfo on}
 
-{ Workaround FPC 3.3.1 errors:
-
-  - Reproduced with revision 47824 compilation error, on Darwin (not recorded CPU).
-  - Reproduced also with FPC 3.3.1 revision 48998 with Android/Arm and Android/Aarrch64.
-
-  The errors mention invalid assembler syntax.
-  E.g. Android/Aarrch64 output:
-
-    kraft.s: Assembler messages:
-    kraft.s:86936: Error: operand mismatch -- `fadd d0,s0,s1'
-    kraft.s:86936: Info:    did you mean this?
-    kraft.s:86936: Info:    	fadd s0,s0,s1
-    kraft.s:86936: Info:    other valid variant(s):
-    kraft.s:86936: Info:    	fadd d0,d0,d1
-    kraft.s:86938: Error: operand mismatch -- `fadd d0,d0,s1'
-    kraft.s:86938: Info:    did you mean this?
-    kraft.s:86938: Info:    	fadd d0,d0,d1
-    kraft.s:86938: Info:    other valid variant(s):
-    kraft.s:86938: Info:    	fadd s0,s0,s1
-    kraft.pas(33101) Error: Error while assembling exitcode 1
-}
-{$if defined(FPC) and defined(VER3_3) and (defined(DARWIN) or defined(CPUARM) or defined(CPUAARCH64))}
-  {$undef caninline}
-{$ifend}
-
 {-$define UseMoreCollisionGroups}
 
 {$define UseTriangleMeshFullPerturbation}
@@ -159,25 +132,15 @@ unit kraft;
  {$define NonSIMD}
 {$endif}
 
-{ CGE: Define NonSIMD. Without this symbol, Kraft uses some i386-only assembler,
-  that causes crashes (access violation at TRigidBody.SynchronizeFromKraft
-  when doing "FLinearVelocity := VectorFromKraft(FKraftBody.LinearVelocity)"). 
-  Testcase:
+{ Apply some Castle Game Engine compilation defines.
 
-    castle-engine --os=win32 --cpu=i386 compile --mode=debug
-    wine ./*.exe
-
-  on all physics examples it seems,
-
-    examples/physics/physics_2d_game_sopwith
-    examples/physics/physics_3d_game
-    examples/platformer
-
-  With at least FPC 3.2.0 (but did not check other FPC versions).
-  As this is an i386-specific optimization only (and our focus is on 64-bit platforms
-  as these are, and will be, majority) so disabling it is not a problem in practice
-  anyway. }
-{$define NonSIMD}
+  This may change state of symbols:
+  - caninline
+  - NonSIMD
+  so include it *after* Kraft code above (potentially) defined them,
+  and *before* these symbols are acted upon.
+  This way castlekraft.inc can "override" what Kraft is doing. }
+{$I castlekraft.inc}
 
 {$ifdef NonSIMD}
  {$undef CPU386ASMForSinglePrecision}
@@ -186,18 +149,12 @@ unit kraft;
  {$ifdef cpu386}
   {$if not (defined(Darwin) or defined(CompileForWithPIC))}
    {$define CPU386ASMForSinglePrecision}
-  {$ifend}	
+  {$ifend}
  {$endif}
  {$undef SIMD}
  {$ifdef CPU386ASMForSinglePrecision}
   {$define SIMD}
  {$endif}
-{$endif}
-
-{ CGE: Avoid FPC note: "nested procedures" not yet supported inside inline procedure/function
-  TODO: submit to Kraft. }
-{$ifdef FPC}
-  {$notes off}
 {$endif}
 
 interface
@@ -214,7 +171,10 @@ uses {$ifdef windows}
         linux,
        {$ifend}
       {$else}
-       SDL,
+       // Use CGE cross-platform routines for time, instead of relying on SDL.
+       // SDL,
+       CastleTimeUtils,
+       {$define USE_CASTLE_TIME_UTILS}
       {$endif}
      {$endif}
      {$ifdef DebugDraw}
@@ -232,6 +192,28 @@ uses {$ifdef windows}
      PasMP,
 {$endif}
      Math;
+
+{ CGE: Delphi on Linux doesn't define
+  - TFPUPrecisionMode, SetPrecisionMode
+  - TFPUExceptionMask, SetFPUExceptionMask }
+{$if defined(FPC) or defined(MSWINDOWS)}
+  {$define HAS_FPU_TYPES}
+{$ifend}
+
+{ Delphi on non-Windows redefines LongInt/LongWord in a way inconsistent
+  with Delphi/Windows or FPC.
+  Make Kraft use expected type sizes.
+  We don't just search + replace this in Kraft sources, to ease upgrading
+  Kraft in the future.
+  See https://castle-engine.io/coding_conventions#no_longint_longword .
+  This seems already handled better in recent Kraft,
+  https://github.com/BeRo1985/kraft/blob/master/src/kraft.pas ,
+  that avoids LongInt/LongWord just like CGE. }
+{$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+type
+  LongInt = Integer;
+  LongWord = Cardinal;
+{$ifend}
 
 const EPSILON={$ifdef UseDouble}1e-14{$else}1e-5{$endif}; // actually {$ifdef UseDouble}1e-16{$else}1e-7{$endif}; but we are conservative here
 
@@ -265,9 +247,11 @@ const EPSILON={$ifdef UseDouble}1e-14{$else}1e-5{$endif}; // actually {$ifdef Us
 
       TimeOfImpactSphericalExpansionRadius=1e-5;
 
+      {$ifdef HAS_FPU_TYPES}
       PhysicsFPUPrecisionMode:TFPUPrecisionMode={$ifdef cpu386}pmExtended{$else}{$ifdef cpux64}pmExtended{$else}pmDouble{$endif}{$endif};
 
       PhysicsFPUExceptionMask:TFPUExceptionMask=[exInvalidOp,exDenormalized,exZeroDivide,exOverflow,exUnderflow,exPrecision];
+      {$endif}
 
       KRAFT_QUICKHULL_FACE_MARK_VISIBLE=1;
       KRAFT_QUICKHULL_FACE_MARK_NON_CONVEX=2;
@@ -1014,7 +998,7 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftConvexHullEdges=array of TKraftConvexHullEdge;
 
      TKraftConvexHull=class(TPersistent)
-      private              
+      private
 
        fPhysics:TKraft;
 
@@ -1738,7 +1722,7 @@ type PKraftForceMode=^TKraftForceMode;
        procedure MoveFromFreeList;
        procedure Query;
        procedure Update;
-       
+
      end;
 
      PKraftMeshContactPairHashTableBucket=^TKraftMeshContactPairHashTableBucket;
@@ -2300,7 +2284,7 @@ type PKraftForceMode=^TKraftForceMode;
        fCountChildren:longint;
 
       public
-      
+
        constructor Create(const APhysics:TKraft);
        destructor Destroy; override;
 
@@ -2753,7 +2737,7 @@ type PKraftForceMode=^TKraftForceMode;
       Normal:TKraftVector3;
       Centers:array[0..1] of TKraftVector3;
       LostSpeculativeBounce:single;
-      SpeculativeVelocity:single;      
+      SpeculativeVelocity:single;
       WorldInverseInertiaTensors:array[0..1] of TKraftMatrix3x3;
       NormalMass:TKraftScalar;
       TangentMass:array[0..1] of TKraftScalar;
@@ -3467,7 +3451,7 @@ procedure Vector3Normalize(var v:TKraftVector3);
 procedure Vector3NormalizeEx(var v:TKraftVector3);
 function Vector3SafeNorm(const v:TKraftVector3):TKraftVector3;
 function Vector3Norm(const v:TKraftVector3):TKraftVector3;
-function Vector3NormEx(const v:TKraftVector3):TKraftVector3; 
+function Vector3NormEx(const v:TKraftVector3):TKraftVector3;
 procedure Vector3RotateX(var v:TKraftVector3;a:TKraftScalar);
 procedure Vector3RotateY(var v:TKraftVector3;a:TKraftScalar);
 procedure Vector3RotateZ(var v:TKraftVector3;a:TKraftScalar);
@@ -4247,7 +4231,7 @@ begin
  end;
 end;
 
-{$ifdef SIMD}      
+{$ifdef SIMD}
 function Vector3Flip(const v:TKraftVector3):TKraftVector3;
 begin
  result.x:=v.x;
@@ -6209,7 +6193,7 @@ begin
 {$endif}
  m1:=t;
 end;
-          
+
 function Matrix3x3TermAdd(const m1,m2:TKraftMatrix3x3):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
 begin
  result[0,0]:=m1[0,0]+m2[0,0];
@@ -6770,7 +6754,7 @@ var m:TKraftMatrix4x4;
 begin
  m:=Matrix4x4Identity;
  CosinusAngle:=cos(Angle);
- SinusAngle:=sin(Angle);    
+ SinusAngle:=sin(Angle);
  m[0,0]:=CosinusAngle+((1-CosinusAngle)*Axis.x*Axis.x);
  m[1,0]:=((1-CosinusAngle)*Axis.x*Axis.y)-(Axis.z*SinusAngle);
  m[2,0]:=((1-CosinusAngle)*Axis.x*Axis.z)+(Axis.y*SinusAngle);
@@ -7488,7 +7472,7 @@ begin
   end;
  end;
 end;
-                      
+
 function Matrix4x4LengthSquared(const m:TKraftMatrix4x4):TKraftScalar;
 begin
  result:=Vector4LengthSquared(PKraftVector4(pointer(@m[0,0]))^)+
@@ -8243,7 +8227,7 @@ begin
  result[3,1]:=(Top+Bottom)/tmb;
  result[3,2]:=zNear/fmn;
  result[3,3]:=1.0;
-end;            
+end;
 
 function Matrix4x4OrthoOffCenterRH(Left,Right,Bottom,Top,zNear,zFar:TKraftScalar):TKraftMatrix4x4;
 var rml,tmb,fmn:TKraftScalar;
@@ -8519,7 +8503,7 @@ begin
  result:=sqrt(sqr(AQuaternion.x)+sqr(AQuaternion.y)+sqr(AQuaternion.z)+sqr(AQuaternion.w));
 end;
 {$endif}
-                            
+
 function QuaternionLengthSquared(const AQuaternion:TKraftQuaternion):TKraftScalar; {$ifdef CPU386ASMForSinglePrecision}assembler;
 asm
  movups xmm0,dqword ptr [AQuaternion]
@@ -8710,7 +8694,7 @@ end;
 {$endif}
 
 function QuaternionScalarMul(const q:TKraftQuaternion;const s:TKraftScalar):TKraftQuaternion; {$ifdef CPU386ASMForSinglePrecision}assembler;
-asm                    
+asm
  movups xmm0,dqword ptr [q]
  movss xmm1,dword ptr [s]
  shufps xmm1,xmm1,$00
@@ -9373,7 +9357,7 @@ begin
 // result:=(AABB.Max.x-AABB.Min.x)+(AABB.Max.y-AABB.Min.y)+(AABB.Max.z-AABB.Min.z); // Manhattan distance
  result:=(AABB.Max.x-AABB.Min.x)*(AABB.Max.y-AABB.Min.y)*(AABB.Max.z-AABB.Min.z); // Volume
 end;
-                    
+
 function AABBCombine(const AABB,WithAABB:TKraftAABB):TKraftAABB; {$ifdef caninline}inline;{$endif}
 begin
  result.Min.x:=Min(AABB.Min.x,WithAABB.Min.x);
@@ -10301,7 +10285,7 @@ begin
 	ClosestPoint:=Triangle.Points[1]; // closest point is vertex B
 	exit;
  end;
-                                  
+
  w:=(d1*d4)-(d3*d2);
  if (w<=0.0) and (d1>=0.0) and (d3<=0.0) then begin
  	// closest point is along edge 1-2
@@ -10464,7 +10448,10 @@ constructor TKraftHighResolutionTimer.Create(FrameRate:longint=60);
 begin
  inherited Create;
  fFrequencyShift:=0;
-{$if defined(windows)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+ // Copied from TimerFrequency constant in CastleTimeUtils
+ fFrequency:= 1000000;
+{$elseif defined(windows)}
  if QueryPerformanceFrequency(fFrequency) then begin
   while (fFrequency and $ffffffffe0000000)<>0 do begin
    fFrequency:=fFrequency shr 1;
@@ -10499,7 +10486,9 @@ begin
 end;
 
 function TKraftHighResolutionTimer.GetTime:int64;
-{$if defined(linux) or defined(android)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+// nothing needed to be declared
+{$elseif defined(linux) or defined(android)}
 var NowTimeSpec:TimeSpec;
     ia,ib:int64;
 {$elseif defined(unix)}
@@ -10508,7 +10497,9 @@ var tv:timeval;
     ia,ib:int64;
 {$ifend}
 begin
-{$if defined(windows)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+ result:=Timer.InternalValue;
+{$elseif defined(windows)}
  if not QueryPerformanceCounter(result) then begin
   result:=timeGetTime;
  end;
@@ -10542,7 +10533,11 @@ var EndTime,NowTime{$ifdef unix},SleepTime{$endif}:int64;
 {$endif}
 begin
  if Delay>0 then begin
-{$if defined(windows)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+  { We don't have in CGE own Sleep, we found that SysUtils.Sleep
+    works OK everywhere. }
+  SysUtils.Sleep(Delay);
+{$elseif defined(windows)}
   NowTime:=GetTime;
   EndTime:=NowTime+Delay;
   while (NowTime+fTwoMillisecondsInterval)<EndTime do begin
@@ -10843,19 +10838,41 @@ end;
 {$else}
 function InterlockedDecrement(var Target:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
- result:=Windows.InterlockedDecrement(Target);
+ result:=
+   {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+   AtomicDecrement
+   {$else}
+   Windows.InterlockedDecrement
+   {$ifend}
+   (Target);
 end;
 
 function InterlockedIncrement(var Target:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
- result:=Windows.InterlockedIncrement(Target);
+ result:=
+   {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+   AtomicIncrement
+   {$else}
+   Windows.InterlockedIncrement
+   {$ifend}
+   (Target);
 end;
 
 function InterlockedExchange(var Target:longint;Source:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
- result:=Windows.InterlockedExchange(Target,Source);
+ result:=
+   {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+   AtomicExchange
+   {$else}
+   Windows.InterlockedExchange
+   {$ifend}
+   (Target,Source);
 end;
 
+{$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+// No implementation of InterlockedExchangeAdd or InterlockedCompareExchange,
+// ... but actually nothing in Kraft uses this.
+{$else}
 function InterlockedExchangeAdd(var Target:longint;Source:longint):longint; {$ifdef caninline}inline;{$endif}
 begin
  result:=Windows.InterlockedExchangeAdd(Target,Source);
@@ -10865,6 +10882,8 @@ function InterlockedCompareExchange(var Target:longint;NewValue,Comperand:longin
 begin
  result:=Windows.InterlockedCompareExchange(Target,NewValue,Comperand);
 end;
+{$ifend}
+
 {$endif}
 {$else}
 function InterlockedDecrement(var Target:longint):longint; {$ifdef caninline}inline;{$endif}
@@ -11845,7 +11864,7 @@ begin
     end;
    end;
   until false;
-  
+
  end;
 
 end;
@@ -13821,7 +13840,7 @@ function ConvexHullVectorDot(const v1,v2:TConvexHullVector):double;
 begin
  result:=(v1.x*v2.x)+(v1.y*v2.y)+(v1.z*v2.z);
 end;
-             
+
 function ConvexHullVectorNormalize(const v:TConvexHullVector):TConvexHullVector;
 var l:double;
 begin
@@ -15667,7 +15686,7 @@ begin
  result:=0;
 
  Discarded.Clear;
- 
+
  Discarded.Add(oppFace);
  inc(result);
  oppFace.fMark:=KRAFT_QUICKHULL_FACE_MARK_NON_DELETED;
@@ -15689,7 +15708,7 @@ begin
   hedgeAdjNext:=hedgeAdjNext.fNext;
  end;
 
- hedge:=hedgeOppNext;       
+ hedge:=hedgeOppNext;
  while hedge<>hedgeOppPrev.fNext do begin
   hedge.fFace:=self;
   hedge:=hedge.fNext;
@@ -16028,7 +16047,7 @@ begin
    MaxVector.z:=Point.z;
    fMaxVertices[2]:=Vertex;
   end;
- end;                                                                  
+ end;
  fCharLength:=Max(Max(MaxVector.x-MinVector.x,MaxVector.y-MinVector.y),MaxVector.z-MinVector.z);
  if fExplicitTolerance<0.0 then begin
   fTolerance:=(3.0*DOUBLE_PREC)*(Max(abs(MaxVector.x),abs(MinVector.x))+Max(abs(MaxVector.y),abs(MinVector.y))+Max(abs(MaxVector.z),abs(MinVector.z)));
@@ -16036,7 +16055,7 @@ begin
   fTolerance:=fExplicitTolerance;
  end;
 end;
-                    
+
 procedure TKraftQuickHull.CreateInitialSimplex;
 const ModuloThree:array[0..5] of longint=(0,1,2,0,1,2);
 var MaxIndex,Index,OtherIndex:longint;
@@ -16069,7 +16088,7 @@ begin
  // set third vertex to be the vertex farthest from the line between v0 and v1
  u01.Sub(Vertices[1].Point,Vertices[0].Point);
  u01.Normalize;
-   
+
  MaxSquared:=0.0;
  for Index:=0 to fCountPoints-1 do begin
   Diff02.Sub(TKraftQuickHullVertex(fPointBuffer[Index]).Point,Vertices[0].Point);
@@ -16224,7 +16243,7 @@ begin
  fFaces.Add(Face);
  Face.fhe0.fPrevious.SetOpposite(he.fOpposite);
  result:=Face.fhe0;
-end;                            
+end;
 
 procedure TKraftQuickHull.AddNewFaces(const NewFaces:TKraftQuickHullFaceList;const EyeVertex:TKraftQuickHullVertex;const Horizon:TList);
 var Index:longint;
@@ -16262,7 +16281,7 @@ begin
  Convex:=true;
  repeat
   oppFace:=hedge.OppositeFace;
-  Merge:=false;          
+  Merge:=false;
   if MergeType=KRAFT_QUICKHULL_MERGE_TYPE_NONCONVEX then begin
    // merge faces if they are definitively non-convex
    if (OppFaceDistance(hedge)>(-fTolerance)) or (OppFaceDistance(hedge.fOpposite)>(-fTolerance)) then begin
@@ -17769,7 +17788,7 @@ begin
  fCountSkipListNodes:=0;
 
  fDoubleSided:=true;
- 
+
  if assigned(fPhysics.fMeshLast) then begin
   fPhysics.fMeshLast.fNext:=self;
   fPrevious:=fPhysics.fMeshLast;
@@ -18639,7 +18658,7 @@ begin
         fNodes[Index].Children[1]:=Node^.Children[1];
         fNodes[Index].TriangleIndex:=Node^.TriangleIndex;
         fNodes[Index].AABB:=Node^.AABB;
-       end;          
+       end;
        fCountSkipListNodes:=0;
        Stack[0]:=Root;
        Stack[1]:=0;
@@ -19992,7 +20011,7 @@ begin
 end;
 
 procedure TKraftShapeBox.CalculateMassData;
-begin                                                   
+begin
  fMassData.Volume:=fExtents.x*fExtents.y*fExtents.z;
  fMassData.Mass:=fMassData.Volume*fDensity;
  fMassData.Inertia[0,0]:=((sqr(fExtents.y)+sqr(fExtents.z))*fMassData.Mass)/12.0;
@@ -21304,7 +21323,7 @@ var OldManifoldCountContacts:longint;
                              GJK.ClosestPoints[1],
                              ShapeA.fRadius,
                              0.0,
-                             CreateFeatureID(-2),  
+                             CreateFeatureID(-2),
                              false);
    end;
 
@@ -21619,7 +21638,7 @@ var OldManifoldCountContacts:longint;
     if SquaredDistance<SquaredRadiiWithTolerance then begin
      AddImplicitContact(ClosestPointA,ClosestPointB,RadiusA,RadiusB,CreateFeatureID(1),false);
     end;
-    
+
    end;
 
   end;
@@ -21675,7 +21694,7 @@ var OldManifoldCountContacts:longint;
   GJK.UseRadii:=false;
 
   GJK.Run;
-                                
+
   if (GJK.Distance>0.0) and not GJK.Failed then begin
 
    // Shallow contact
@@ -21804,7 +21823,7 @@ var OldManifoldCountContacts:longint;
     end;
 
    end;
-         
+
    if (MaxEdgeIndex>=0) and (MaxEdgeSeparation>(MaxFaceSeparation+0.05)) then begin
     Edge:=@ShapeB.fConvexHull.fEdges[MaxEdgeIndex];
     if GetEdgeContact(ClosestPoints[0],
@@ -22794,7 +22813,7 @@ var OldManifoldCountContacts:longint;
      end;
      dec(Manifold.CountContacts);
     end else begin
-     inc(Index);                                 
+     inc(Index);
     end;
    end;
 
@@ -22807,7 +22826,7 @@ var OldManifoldCountContacts:longint;
   end else begin
    Manifold.ContactManifoldType:=kcmtUnknown;
   end;
-  
+
  end;
  procedure FindSpeculativeContacts(ShapeA,ShapeB:TKraftShape);
  var Index:longint;
@@ -22993,7 +23012,7 @@ begin
 
    Manifold.ContactManifoldType:=kcmtUnknown;
    Manifold.CountContacts:=0;
-    
+
   end else begin
 
    HasContact:=Manifold.CountContacts>0;
@@ -23043,7 +23062,7 @@ begin
     end;
    end;
 
-  end; 
+  end;
 
  end;
 
@@ -23328,7 +23347,7 @@ begin
  FillChar(fConvexMeshTriangleContactPairHashTable,SizeOf(TKraftContactPairHashTable),AnsiChar(#0));
 
  FillChar(fMeshContactPairHashTable,SizeOf(TKraftMeshContactPairHashTable),AnsiChar(#0));
- 
+
 end;
 
 destructor TKraftContactManager.Destroy;
@@ -23410,7 +23429,7 @@ begin
    ContactPair:=ContactPair^.Next;
   end;
  end;
-end;            
+end;
 
 procedure TKraftContactManager.AddConvexContact(const ARigidBodyA,ARigidBodyB:TKraftRigidBody;const AShapeA,AShapeB:TKraftShape;const AElementIndex:longint=-1;const AMeshContactPair:TKraftMeshContactPair=nil);
 var i:longint;
@@ -23512,7 +23531,7 @@ begin
   ARigidBodyB.fContactPairEdgeLast^.Next:=@ContactPair^.Edges[1];
  end else begin
   ContactPair^.Edges[1].Previous:=nil;
-  ARigidBodyB.fContactPairEdgeFirst:=@ContactPair^.Edges[1];                                  
+  ARigidBodyB.fContactPairEdgeFirst:=@ContactPair^.Edges[1];
  end;
  ContactPair^.Edges[1].Next:=nil;
  ARigidBodyB.fContactPairEdgeLast:=@ContactPair^.Edges[1];
@@ -23999,7 +24018,7 @@ begin
   if kcfColliding in ContactPair^.Flags then begin
 
    ContactManifold:=@ContactPair^.Manifold;
-                                                              
+
    ContactPair^.GetSolverContactManifold(SolverContactManifold,ContactPair^.RigidBodies[0].fWorldTransform,ContactPair^.RigidBodies[1].fWorldTransform,kcpcmmBaumgarte);
 
    for i:=0 to ContactManifold^.CountContacts-1 do begin
@@ -24009,7 +24028,7 @@ begin
     Contact:=@ContactManifold.Contacts[i];
 
     f:=(1024-Min(Max(Contact^.WarmStartState,0),1024))/1024.0;
-                                                  
+
     if ContactPair^.Manifold.ContactManifoldType=kcmtSPECULATIVE then begin
 
      if krbfAwake in ContactPair^.Shapes[0].fRigidBody.fFlags then begin
@@ -24161,7 +24180,7 @@ begin
    end;
   end;
 
-  Contacts[2]:=nil;              
+  Contacts[2]:=nil;
   MaxArea:=0.0;
   for Index:=0 to ACountInputContacts-1 do begin
    Contact:=@AInputContacts^[Index];
@@ -24302,7 +24321,7 @@ begin
    SetLength(fContactPairs[ThreadIndex],0);
   end;
   fCountContactPairs[ThreadIndex]:=0;
-  
+
  end;
 
  fStaticMoveBuffer:=nil;
@@ -24734,7 +24753,7 @@ begin
  fAngularVelocityAdditionalDamp:=0.01;
  fLinearVelocityAdditionalDampThresholdSqr:=0.01;
  fAngularVelocityAdditionalDampThresholdSqr:=0.01;
- 
+
  fForce:=Vector3Origin;
  fTorque:=Vector3Origin;
 
@@ -25251,7 +25270,7 @@ begin
     ) then begin
   ConstraintEdge:=fConstraintEdgeFirst;
   while assigned(ConstraintEdge) do begin
-   Constraint:=ConstraintEdge^.Constraint;     
+   Constraint:=ConstraintEdge^.Constraint;
    if (assigned(Constraint) and not (kcfCollideConnected in Constraint.fFlags)) and (ConstraintEdge^.OtherRigidBody=OtherRigidBody) then begin
     result:=false;
     exit;
@@ -26115,7 +26134,7 @@ begin
  AbsolutePosition:=Vector3Add(cA^,fRelativePosition);
 
  fWorldPoint:=Vector3Add(AbsolutePosition,Vector3ScalarMul(fWorldPlane.Normal,-PlaneVectorDistance(fWorldPlane,AbsolutePosition)));
-                         
+
  if fDoubleSidedWorldPlane then begin
 
   fmU:=Vector3Sub(fWorldPoint,AbsolutePosition);
@@ -26286,7 +26305,7 @@ begin
   end else begin
    fAccumulatedImpulse:=fAccumulatedImpulse+Impulse;
   end;
-  
+
   P:=Vector3ScalarMul(fmU,Impulse);
 
   Vector3DirectSub(vA^,Vector3Mul(P,Vector3ScalarMul(fSolverLinearFactor^,fInverseMass)));
@@ -26353,7 +26372,7 @@ function TKraftConstraintJointWorldPlaneDistance.GetAnchor:TKraftVector3;
 begin
  result:=Vector3TermMatrixMul(fLocalAnchor,fRigidBodies[0].fWorldTransform);
 end;
-                                         
+
 function TKraftConstraintJointWorldPlaneDistance.GetReactionForce(const InverseDeltaTime:TKraftScalar):TKraftVector3;
 begin
  result:=Vector3ScalarMul(fmU,fAccumulatedImpulse*InverseDeltaTime);
@@ -26762,7 +26781,7 @@ begin
    fAccumulatedImpulse:=0.0;
 
   end;
- 
+
  end else begin
 
   fmU:=Vector3Origin;
@@ -27218,7 +27237,7 @@ destructor TKraftConstraintJointBallSocket.Destroy;
 begin
  inherited Destroy;
 end;
-                                                   
+
 procedure TKraftConstraintJointBallSocket.InitializeConstraintsAndWarmStart(const Island:TKraftIsland;const TimeStep:TKraftTimeStep);
 var cA,vA,wA,cB,vB,wB:PKraftVector3;
     qA,qB:PKraftQuaternion;
@@ -28061,7 +28080,7 @@ begin
  Vector3DirectAdd(wB^,Vector3TermMatrixMul(Vector3Cross(fRelativePositions[1],Impulse),fWorldInverseInertiaTensors[1]));
 
  (**** Rotation ****)
-       
+
  JvRotation.x:=(Vector3Dot(fB2CrossA1,wB^)-Vector3Dot(fB2CrossA1,wA^))+fBiasRotation.x;
  JvRotation.y:=(Vector3Dot(fC2CrossA1,wB^)-Vector3Dot(fC2CrossA1,wA^))+fBiasRotation.y;
 
@@ -28231,7 +28250,7 @@ begin
   QuaternionDirectSpin(qB^,Vector3TermMatrixMul(Impulse,fWorldInverseInertiaTensors[1]),1.0);
 
   (**** Limits ****)
- 
+
   if fLimitState then begin
    if fIsLowerLimitViolated then begin
     ImpulseLower:=fInverseMassMatrixLimitMotor*(-LowerLimitError);
@@ -28252,7 +28271,7 @@ begin
  end else begin
 
   result:=true;
-  
+
  end;
 
 end;
@@ -28886,7 +28905,7 @@ begin
   result:=true;
 
  end;
- 
+
 end;
 
 function TKraftConstraintJointSlider.GetAnchorA:TKraftVector3;
@@ -29145,7 +29164,7 @@ begin
 
   VelocityState^.LostSpeculativeBounce:=ContactPair^.Manifold.LostSpeculativeBounce;
   ContactPair^.Manifold.LostSpeculativeBounce:=0;
-    
+
   for ContactIndex:=0 to ContactPair^.Manifold.CountContacts-1 do begin
 
    Contact:=@ContactPair^.Manifold.Contacts[ContactIndex];
@@ -29303,7 +29322,7 @@ begin
      ContactPoint^.TangentMass[TangentIndex]:=1.0/TangentMass;
     end else begin
      ContactPoint^.TangentMass[TangentIndex]:=0.0;
-    end;    
+    end;
    end;
 
    if fPositionCorrectionMode=kpcmBaumgarte then begin
@@ -29339,7 +29358,7 @@ begin
   IndexB:=SpeculativeContactState^.Indices[1];
 
   iA:=@SpeculativeContactState^.WorldInverseInertiaTensors[0];
-  iB:=@SpeculativeContactState^.WorldInverseInertiaTensors[1];            
+  iB:=@SpeculativeContactState^.WorldInverseInertiaTensors[1];
 
   mA:=SpeculativeContactState^.InverseMasses[0];
   mB:=SpeculativeContactState^.InverseMasses[1];
@@ -29712,7 +29731,7 @@ begin
     K:=mA+mB+Vector3Dot(rnA,Vector3TermMatrixMul(rnA,iA^))+Vector3Dot(rnB,Vector3TermMatrixMul(rnB,iB^));
 
     if K>0.0 then begin
-     Impulse:=-(C/K);   
+     Impulse:=-(C/K);
     end else begin
      Impulse:=0.0;
     end;
@@ -29856,7 +29875,7 @@ begin
  end else begin
 
   result:=true;
-  
+
  end;
 
 end;
@@ -30151,7 +30170,7 @@ begin
      Vector3Scale(GyroscopicForce,RigidBody.fMaximalGyroscopicForce/Vector3Length(GyroscopicForce));
     end;
     RigidBody.fTorque:=Vector3Add(RigidBody.fTorque,GyroscopicForce);
-   end;       
+   end;
 
    // Integrate linear velocity
    RigidBody.fLinearVelocity:=Vector3Add(RigidBody.fLinearVelocity,VEctor3Mul(RigidBody.fForce,Vector3ScalarMul(RigidBody.fLinearFactor,RigidBody.InverseMass*TimeStep.DeltaTime)));
@@ -30444,7 +30463,7 @@ begin
 
  // Don't store the TOI contact forces for warm starting
  // because they can be quite large.
-                       
+
  for Index:=0 to fCountRigidBodies-1 do begin
 
   RigidBody:=fRigidBodies[Index];
@@ -30525,8 +30544,10 @@ end;
 procedure TKraftJobThread.Execute;
 var JobIndex:longint;
 begin
+ {$ifdef HAS_FPU_TYPES}
  SetPrecisionMode(PhysicsFPUPrecisionMode);
  SetExceptionMask(PhysicsFPUExceptionMask);
+ {$endif}
  SIMDSetOurFlags;
  InterlockedIncrement(fJobManager.fCountAliveThreads);
  while not (Terminated or fJobManager.fThreadsTerminated) do begin
@@ -30564,7 +30585,9 @@ begin
  fOnProcessJob:=nil;
  for Index:=0 to fCountThreads-1 do begin
   fThreads[Index]:=TKraftJobThread.Create(fPhysics,self,Index);
+  {$if defined(FPC) or defined(MSWINDOWS)}
   fThreads[Index].Priority:=tpHigher;
+  {$ifend}
  end;
 end;
 
@@ -31096,7 +31119,7 @@ begin
    Island.AddRigidBody(CurrentRigidBody);
 
    // Awaken all bodies connected to the island
-   CurrentRigidBody.SetToAwake;  
+   CurrentRigidBody.SetToAwake;
 
    // Do not search across static bodies to keep island formations as small as possible, however the static
    // body itself should be apart of the island in order to properly represent a full contact
@@ -31279,7 +31302,7 @@ begin
  LastLambda:=Lambda;
 
  GJKCachedSimplex.Count:=0;
- 
+
  GJK.CachedSimplex:=@GJKCachedSimplex;
  GJK.Simplex.Count:=0;
  GJK.Shapes[0]:=Shapes[0];
@@ -31344,7 +31367,7 @@ begin
  end;
 
 end;
-  
+
 // Bilateral advancement
 function TKraft.GetBilateralAdvancementTimeOfImpact(const ShapeA:TKraftShape;const SweepA:TKraftSweep;const ShapeB:TKraftShape;const ShapeBTriangleIndex:longint;const SweepB:TKraftSweep;const TimeStep:TKraftTimeStep;const ThreadIndex:longint;var Beta:TKraftScalar):boolean;
 const sfmNONE=0;
@@ -31440,7 +31463,7 @@ begin
  Target:=Max(fLinearSlop,TotalRadius-(3.0*fLinearSlop));
 
  Tolerance:=fLinearSlop*0.25;
- 
+
  GJKCachedSimplex.Count:=0;
 
  GJK.CachedSimplex:=@GJKCachedSimplex;
@@ -32300,8 +32323,10 @@ end;
 procedure TKraft.Step(const ADeltaTime:TKraftScalar=0);
 var RigidBody:TKraftRigidBody;
     Constraint,NextConstraint:TKraftConstraint;
+    {$ifdef HAS_FPU_TYPES}
     OldFPUPrecisionMode:TFPUPrecisionMode;
     OldFPUExceptionMask:TFPUExceptionMask;
+    {$endif}
     OldSIMDFlags:longword;
     StartTime:int64;
     TimeStep:TKraftTimeStep;
@@ -32323,7 +32348,7 @@ begin
   TimeStep.InverseDeltaTime:=1.0;
  end else begin
   TimeStep.InverseDeltaTime:=1.0/TimeStep.DeltaTime;
- end;                     
+ end;
  TimeStep.DeltaTimeRatio:=fLastInverseDeltaTime*TimeStep.DeltaTime;
  TimeStep.WarmStarting:=fWarmStarting;
 
@@ -32331,6 +32356,7 @@ begin
  fContactManager.fCountDebugClipVertexLists:=0;
 {$endif}
 
+ {$ifdef HAS_FPU_TYPES}
  OldFPUPrecisionMode:=GetPrecisionMode;
  if OldFPUPrecisionMode<>PhysicsFPUPrecisionMode then begin
   SetPrecisionMode(PhysicsFPUPrecisionMode);
@@ -32340,6 +32366,7 @@ begin
  if OldFPUExceptionMask<>PhysicsFPUExceptionMask then begin
   SetExceptionMask(PhysicsFPUExceptionMask);
  end;
+ {$endif}
 
  OldSIMDFlags:=SIMDGetFlags;
 
@@ -32415,6 +32442,7 @@ begin
 
  SIMDSetFlags(OldSIMDFlags);
 
+ {$ifdef HAS_FPU_TYPES}
  if OldFPUExceptionMask<>PhysicsFPUExceptionMask then begin
   SetExceptionMask(OldFPUExceptionMask);
  end;
@@ -32422,6 +32450,7 @@ begin
  if OldFPUPrecisionMode<>PhysicsFPUPrecisionMode then begin
   SetPrecisionMode(OldFPUPrecisionMode);
  end;
+ {$endif}
 
  fTotalTime:=fHighResolutionTimer.GetTime-fTotalTime;
 

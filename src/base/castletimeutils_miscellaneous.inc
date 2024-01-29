@@ -113,7 +113,7 @@ begin
   if SecondTimeMinusDelay < 0 then
   begin
     // detected Windows with 32-bit GetTickCount, it just wrapped, fix
-    SecondTimeMinusDelay := SecondTimeMinusDelay + High(LongWord);
+    SecondTimeMinusDelay := SecondTimeMinusDelay + High(UInt32);
     result := (FirstTime > SecondTime) and (FirstTime <= SecondTimeMinusDelay);
   end else
     result := FirstTime <= SecondTimeMinusDelay;
@@ -128,7 +128,7 @@ begin
 
  if FirstTime <= SecondTime then
   result := SecondTime-FirstTime else
-  result := High(LongWord) -FirstTime +SecondTime;
+  result := High(UInt32) -FirstTime +SecondTime;
 }
 end;
 

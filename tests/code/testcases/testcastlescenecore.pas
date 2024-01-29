@@ -20,8 +20,8 @@ unit TestCastleSceneCore;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, CastleSceneCore, X3DNodes;
+  Classes, SysUtils,
+  CastleTester, CastleSceneCore, X3DNodes;
 
 type
   TTestSceneCore = class(TCastleTestCase)
@@ -75,7 +75,7 @@ implementation
 uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
-  CastleURIUtils, CastleColors;
+  CastleUriUtils, CastleColors;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -514,7 +514,7 @@ begin
     Scene.Load(Url);
     if not WarningFlag then
       Fail(Format('Expected to get some warning during loading of "%s"',
-        [URIDisplay(Url)]));
+        [UriDisplay(Url)]));
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningFlag);
   end;

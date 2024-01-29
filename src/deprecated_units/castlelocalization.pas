@@ -83,13 +83,13 @@ type
   TCastleLocalization = class (TComponent)
   protected
     FLanguageDictionary: TLanguageDictionary;
-    FLanguageURL: String;
+    FLanguageUrl: String;
     FFileLoaderDictionary: TFileLoaderDictionary;
     FLocalizationIDList: TLocalizationIDList;
     FOnUpdateLocalizationEventList: TOnUpdateLocalizationEventList;
     FOnLocalizationUpdatedEventList: TOnLocalizationUpdatedEventList;
     function Get(AKey: String): String;
-    procedure LoadLanguage(const ALanguageURL: String);
+    procedure LoadLanguage(const ALanguageUrl: String);
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function AddOrSet(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent; const ALocalizationID: String): Boolean; overload; inline;
     procedure RemoveFromUpdateList(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent); inline;
@@ -111,7 +111,7 @@ type
   public
     property Items[AKey: String]: String read Get; default;
     { The URL to the language file that shall be loaded for localization. }
-    property LanguageURL: String read FLanguageURL write LoadLanguage;
+    property LanguageUrl: String read FLanguageUrl write LoadLanguage;
     { A list (dictionary) of file loaders.
       You can use this to add custom file loader for new file extensions or overwrite existing ones to change the file format. }
     property FileLoader: TFileLoaderDictionary read FFileLoaderDictionary;
@@ -133,7 +133,7 @@ implementation
 {$warnings off} // using deprecated unit here
 uses
   SysUtils,
-  CastleURIUtils, CastleUtils, CastleDownload,
+  CastleUriUtils, CastleUtils, CastleDownload,
   CastleLocalizationFileLoader;
 {$warnings on}
 
@@ -177,7 +177,7 @@ begin
     Result := AKey; //When no translation is found, return the key.
 end;
 
-procedure TCastleLocalization.LoadLanguage(const ALanguageURL: String);
+procedure TCastleLocalization.LoadLanguage(const ALanguageUrl: String);
 var
   FileLoaderAction: TFileLoaderAction;
   Stream: TStream;
@@ -185,17 +185,17 @@ var
   OnUpdateLocalizationEvent: TOnUpdateLocalizationEvent;
   OnLocalizationUpdatedEvent: TOnLocalizationUpdatedEvent;
 begin
-  if FLanguageURL = ALanguageURL then Exit;
-  FLanguageURL := ALanguageURL;
+  if FLanguageUrl = ALanguageUrl then Exit;
+  FLanguageUrl := ALanguageUrl;
 
   FLanguageDictionary.Clear;
 
-  if ALanguageURL = '' then Exit; //If there's no language XML file, then that's it, no more localization.
+  if ALanguageUrl = '' then Exit; //If there's no language XML file, then that's it, no more localization.
 
-  FFileLoaderDictionary.TryGetValue(ExtractFileExt(ALanguageURL), FileLoaderAction);
+  FFileLoaderDictionary.TryGetValue(ExtractFileExt(ALanguageUrl), FileLoaderAction);
   Check(Assigned(FileLoaderAction), 'There is no file loader associated with the extension of the given file.');
 
-  Stream := Download(AbsoluteURI(ALanguageURL));
+  Stream := Download(AbsoluteURI(ALanguageUrl));
   try
     FileLoaderAction(Stream, FLanguageDictionary);
   finally

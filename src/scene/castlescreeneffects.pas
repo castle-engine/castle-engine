@@ -21,7 +21,7 @@ unit CastleScreenEffects;
 interface
 
 uses SysUtils, Classes,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleGLShaders, CastleUIControls, X3DNodes, CastleGLImages,
   CastleRectangles, CastleScene, CastleTransform, CastleCameras, CastleGLUtils,
   CastleRenderOptions, CastleInternalRenderer;

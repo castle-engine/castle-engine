@@ -396,7 +396,7 @@ const
     and radius of given circle of sky sphere. }
   procedure StackCircleCalc(const Angle: Single; out Y, Radius: Single);
   var
-    S, C: Extended;
+    S, C: Single;
   begin
     SinCos(Angle, S, C);
     Radius := S * SkySphereRadius;
@@ -418,7 +418,7 @@ const
 
   function CirclePoint(const Y, Radius: Single; const SliceIndex: Integer): TVector3;
   var
-    S, C: Extended;
+    S, C: Single;
   begin
     SinCos(SliceIndex * 2 * Pi / Slices, S, C);
     Result := Vector3(S * Radius, Y, C * Radius);

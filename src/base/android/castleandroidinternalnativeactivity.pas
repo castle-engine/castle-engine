@@ -66,10 +66,10 @@ type
     (**
      * The platform's SDK version code.
       *)
-    sdkVersion : longword;
+    sdkVersion : UInt32;
     {$ifdef CPU64}
     { Padding, to match structure layout on 64-bit CPU (Aarch64). }
-    padding : longword;
+    padding : UInt32;
     {$endif}
     (**
      * This is the native instance of the application.  It is not used by

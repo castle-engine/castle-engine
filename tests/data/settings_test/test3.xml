@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  Test that we can read CastleSettings.xml, see
+  https://castle-engine.io/manual_castle_settings.php .
+-->
+
+<castle_settings>
+  <ui_scaling
+    mode="ExplicitScale"
+  />
+  <default_font>
+    <regular
+        url="castle-data:/settings_test/fonts/DejaVuSans.ttf"
+        size="25"
+    />
+    <bold
+        url="castle-data:/settings_test/fonts/DejaVuSans-Bold.ttf"
+        size="25"
+    />
+    <italic
+        url="castle-data:/settings_test/fonts/DejaVuSans-Oblique.ttf"
+        size="25"
+    />
+    <bold_italic
+        url="castle-data:/settings_test/fonts/DejaVuSans-BoldOblique.ttf"
+        size="25"
+    />
+  </default_font>
+  <warmup_cache>
+    <image_ui url="castle-data:/settings_test/images/test_texture.png" />
+    <scene url="castle-data:/settings_test/scenes/dragon.json" />
+    <scene url="castle-data:/settings_test/scenes/knight.gltf" />
+  </warmup_cache>
+</castle_settings>

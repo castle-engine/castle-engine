@@ -6,7 +6,7 @@
 # Allow calling this script from tools/build-tool/ subdirectory of CGE.
 # It will just cd to the top-level CGE directory (necessary as castle-fpc.cfg
 # contains paths relative to it).
-if (Test-Path castle-engine.lpr) {
+if (Test-Path castle-engine.dpr) {
   cd ../..
 }
 
@@ -22,4 +22,4 @@ fpc `
   -Futools/common-code/ `
   -Futools/build-tool/code/ `
   -Futools/build-tool/embedded_images/ `
-  tools/build-tool/castle-engine.lpr
+  tools/build-tool/castle-engine.dpr

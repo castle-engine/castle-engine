@@ -144,7 +144,7 @@
       FTexture: TGLTextureId;
       FImage: TEncodedImage;
       FOwnsImage: boolean;
-      FURL: String;
+      FUrl: String;
       FRepeatS, FRepeatT: Boolean;
 
       FRenderToImage: TGLRenderToTexture;
@@ -165,7 +165,7 @@
     procedure SetCenterY(const Value: Single);
     procedure SetRepeatS(const Value: Boolean);
     procedure SetRepeatT(const Value: Boolean);
-    procedure SetURL(const Value: String);
+    procedure SetUrl(const Value: String);
     procedure SetColor(const Value: TCastleColor);
     procedure SetRotation(const Value: Single);
     procedure SetRotationCenter(const Value: TVector2);
@@ -252,7 +252,7 @@
 
     { Load image from disk, and prepare for drawing.
 
-      @param(AURL URL (or filename) from which to load the image.
+      @param(AUrl URL (or filename) from which to load the image.
         Often you want to use here castle-data:/ protocol to load application data,
         like:
 
@@ -268,12 +268,12 @@
         property. But each change has a small cost, so it's more efficient
         to just set the initial value correctly.)
     }
-    constructor Create(const AURL: string;
+    constructor Create(const AUrl: String;
       const ASmoothScaling: boolean = true); overload;
 
     { Load image from disk, and prepare for drawing.
 
-      @param(AURL URL (or filename) from which to load the image.
+      @param(AUrl URL (or filename) from which to load the image.
         Usually you want to use here URL starting with the "castle-data:" protocol,
         to load an image from application data, like this:
 
@@ -307,7 +307,7 @@
       @raises(EImageClassNotSupportedForOpenGL When image class is not supported
         by OpenGL.)
     }
-    constructor Create(const AURL: string;
+    constructor Create(const AUrl: String;
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
@@ -315,7 +315,7 @@
 
     { Load image from disk, and prepare for drawing.
 
-      @param(AURL URL (or filename) from which to load the image.
+      @param(AUrl URL (or filename) from which to load the image.
         Often you want to pass here the result ot ApplicationData
         function, like:
 
@@ -342,7 +342,7 @@
         property. But each change has a small cost, so it's more efficient
         to just set the initial value correctly.)
     }
-    constructor Create(const AURL: string;
+    constructor Create(const AUrl: String;
       const LoadAsClass: array of TEncodedImageClass;
       const ASmoothScaling: boolean); overload;
 
@@ -712,7 +712,7 @@
 
     { URL of currently loaded image.
       Non-empty only if the image was loaded from URL. }
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
 
     { Repeat or clamp texture in S (width) or T (height) dimensions.
       @groupBegin }
@@ -779,13 +779,13 @@ begin
     {$ifdef FPC}@{$endif} GLContextCloseEvent);
 end;
 
-constructor TDrawableImage.Create(const AURL: string;
+constructor TDrawableImage.Create(const AUrl: String;
   const ASmoothScaling: boolean);
 begin
-  Create(AURL, [], ASmoothScaling);
+  Create(AUrl, [], ASmoothScaling);
 end;
 
-constructor TDrawableImage.Create(const AURL: string;
+constructor TDrawableImage.Create(const AUrl: String;
   const LoadAsClass: array of TEncodedImageClass;
   const ResizeToX, ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation);
@@ -793,24 +793,24 @@ var
   NewImage: TCastleImage;
 begin
   if High(LoadAsClass) = -1 then
-    NewImage := LoadImage(AURL, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation)
+    NewImage := LoadImage(AUrl, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation)
   else
-    NewImage := LoadImage(AURL, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
-  FURL := AURL;
+    NewImage := LoadImage(AUrl, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
+  FUrl := AUrl;
   Create(NewImage, { ASmoothScaling } true, { AOwnsImage } true);
 end;
 
-constructor TDrawableImage.Create(const AURL: string;
+constructor TDrawableImage.Create(const AUrl: String;
   const LoadAsClass: array of TEncodedImageClass;
   const ASmoothScaling: boolean);
 var
   NewImage: TEncodedImage;
 begin
   if High(LoadAsClass) = -1 then
-    NewImage := LoadEncodedImage(AURL, PixelsImageClasses)
+    NewImage := LoadEncodedImage(AUrl, PixelsImageClasses)
   else
-    NewImage := LoadEncodedImage(AURL, LoadAsClass);
-  FURL := AURL;
+    NewImage := LoadEncodedImage(AUrl, LoadAsClass);
+  FUrl := AUrl;
   Create(NewImage, ASmoothScaling, { AOwnsImage } true);
 end;
 
@@ -1304,7 +1304,7 @@ begin
       { TODO: Clip not implemented in this case yet.
         Need to transform ClipLine into screen coordinates, then do
       glEnable(GL_CLIP_PLANE0);
-      glClipPlane(GL_CLIP_PLANE0, Vector4Double(
+      CastleGlClipPlane(GL_CLIP_PLANE0, Vector4Double(
         FScreenClipLine[0], FScreenClipLine[1], 0, FScreenClipLine[2]));
       }
     end;
@@ -1757,22 +1757,22 @@ begin
   end;
 end;
 
-procedure TDrawableImage.SetURL(const Value: String);
+procedure TDrawableImage.SetUrl(const Value: String);
 var
   NewImage: TEncodedImage;
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
     if Value = '' then
     begin
-      // following CGE conventions, we allow to set URL to '' to clear loaded contentds
+      // following CGE conventions, we allow to set Url to '' to clear loaded contentds
       Load(nil);
-      FURL := Value;
+      FUrl := Value;
       FOwnsImage := true;
     end else
     begin
       NewImage := LoadEncodedImage(Value); // make exception from loading before changing URL
-      FURL := Value;
+      FUrl := Value;
       Load(NewImage);
       FOwnsImage := true; // change it after Load(), so that Load frees previous image if needed
     end;

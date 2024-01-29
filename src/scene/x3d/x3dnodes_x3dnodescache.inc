@@ -109,7 +109,7 @@ begin
     Inc(C.References);
 
     if Log then
-      WritelnLog('++', 'Node %s : %d', [URIDisplay(URL), C.References]);
+      WritelnLog('++', 'Node %s : %d', [UriDisplay(URL), C.References]);
 
     Exit(C.Node);
   end;
@@ -142,7 +142,7 @@ begin
   C.Node := Result;
 
   if Log then
-    WritelnLog('++', 'Node %s : %d', [URIDisplay(URL), 1]);
+    WritelnLog('++', 'Node %s : %d', [UriDisplay(URL), 1]);
 end;
 
 function TX3DNodesCache.IsCached(const URL: String): Boolean;
@@ -171,7 +171,7 @@ begin
       [PointerToStr(Node)]);
 
   if Log then
-    WritelnLog('--', 'Node %s : %d', [URIDisplay(C.URL), C.References - 1]);
+    WritelnLog('--', 'Node %s : %d', [UriDisplay(C.URL), C.References - 1]);
 
   Node := nil;
 

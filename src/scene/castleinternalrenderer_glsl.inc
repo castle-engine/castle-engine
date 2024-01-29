@@ -47,7 +47,7 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
     { If TextureNode <> @nil and is a texture node, prepare it.
       Returns bound texture number (or -1 if failed).
       You should set shader uniform value to this number. }
-    function BindSingleTexture(TextureNode: TX3DNode): LongInt;
+    function BindSingleTexture(TextureNode: TX3DNode): Integer;
     begin
       Result := -1;
       if (TextureNode <> nil) and

@@ -21,7 +21,7 @@
   TTextureImageCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
-    FullUrl: string;
+    FullUrl: String;
     FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
@@ -35,7 +35,7 @@
   TTextureVideoCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
-    FullUrl: string;
+    FullUrl: String;
     FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
@@ -49,7 +49,7 @@
   TTextureCubeMapCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
-    FullUrl: string;
+    FullUrl: String;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     References: Cardinal;
@@ -60,7 +60,7 @@
   TTexture3DCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
-    FullUrl: string;
+    FullUrl: String;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap3D;
@@ -74,7 +74,7 @@
   TTextureDepthOrFloatCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
-    FullUrl: string;
+    FullUrl: String;
     Wrap: TTextureWrap2D;
     References: Cardinal;
     GLName: TGLuint;

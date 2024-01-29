@@ -1030,7 +1030,7 @@ function RotatePointAroundAxisRad(const Angle: Single; const Point: TVector3;
   const Axis: TVector3): TVector3;
 var
   X, Y, Z, L: Single;
-  SinAngle, CosAngle: Float;
+  SinAngle, CosAngle: Single;
 begin
   SinCos(Angle, SinAngle, CosAngle);
 
@@ -2651,7 +2651,6 @@ function RotationMatrixRad(const AngleRad: Single;
   const Axis: TVector3): TMatrix4;
 var
   NormAxis: TVector3;
-  AngleSin, AngleCos: Float;
   AxisLen, S, C: Single;
 begin
   // NormAxis := Axis.Normalize;
@@ -2670,10 +2669,11 @@ begin
   NormAxis.Y := Axis.Y * AxisLen;
   NormAxis.Z := Axis.Z * AxisLen;
 
-  SinCos(AngleRad, AngleSin, AngleCos);
-  { convert Float to Single once }
-  S := AngleSin;
-  C := AngleCos;
+  { Using SinCos that returns 2x Single (not 2x Float),
+    available in both FPC and Delphi now
+    ( https://gitlab.com/freepascal.org/fpc/source/-/issues/22663 ,
+    https://gitlab.com/freepascal.org/fpc/source/-/commit/1da4c0c3ce617e14fd6cdaaa660c2d8e43b56e20 ) }
+  SinCos(AngleRad, S, C);
 
   Result := VectorMultTransposedSameVector(NormAxis);
 
@@ -2722,7 +2722,6 @@ procedure RotationMatricesRad(const AngleRad: Single;
 var
   NormAxis: TVector3;
   V: Single;
-  AngleSin, AngleCos: Float;
   AxisLen, S, C: Single;
 begin
   // NormAxis := Axis.Normalize;
@@ -2745,10 +2744,11 @@ begin
   NormAxis.Y := Axis.Y * AxisLen;
   NormAxis.Z := Axis.Z * AxisLen;
 
-  SinCos(AngleRad, AngleSin, AngleCos);
-  { convert Float to Single once }
-  S := AngleSin;
-  C := AngleCos;
+  { Using SinCos that returns 2x Single (not 2x Float),
+    available in both FPC and Delphi now
+    ( https://gitlab.com/freepascal.org/fpc/source/-/issues/22663 ,
+    https://gitlab.com/freepascal.org/fpc/source/-/commit/1da4c0c3ce617e14fd6cdaaa660c2d8e43b56e20 ) }
+  SinCos(AngleRad, S, C);
 
   Matrix := VectorMultTransposedSameVector(NormAxis);
 
@@ -2807,13 +2807,14 @@ end;
 
 function RotatePoint2D(const Point: TVector2; const AngleRad: Single): TVector2;
 var
-  AngleSin, AngleCos: Float;
   S, C: Single;
 begin
-  SinCos(AngleRad, AngleSin, AngleCos);
-  { convert Float to Single once }
-  S := AngleSin;
-  C := AngleCos;
+  { Using SinCos that returns 2x Single (not 2x Float),
+    available in both FPC and Delphi now
+    ( https://gitlab.com/freepascal.org/fpc/source/-/issues/22663 ,
+    https://gitlab.com/freepascal.org/fpc/source/-/commit/1da4c0c3ce617e14fd6cdaaa660c2d8e43b56e20 ) }
+  SinCos(AngleRad, S, C);
+
   Result.X := Point.X * C - Point.Y * S;
   Result.Y := Point.X * S + Point.Y * C;
 end;

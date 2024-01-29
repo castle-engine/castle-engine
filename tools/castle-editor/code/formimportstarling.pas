@@ -45,7 +45,7 @@ implementation
 
 uses
   Math,
-  CastleURIUtils;
+  CastleUriUtils;
 
 {$R *.lfm}
 

@@ -13,7 +13,8 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 >
   <compiler_options detect_memory_leaks="true">
     <defines>
-      <define>CASTLE_TESTER</define>
+      <!-- nothing necessary now -->
+      <!--define>....</define-->
     </defines>
     <search_paths>
       <path value="code/" />
@@ -26,8 +27,10 @@ See https://castle-engine.io/project_manifest for documentation of this file.
         Hide warnings about deprecated stuff.
         In tests, we often deliberately test deprecated API, to make sure it still works.
       -->
-      <option>-vm05075</option>
-      <option>-vm05066</option>
+      <option>-vm5043</option> <!-- Symbol "$1" is deprecated -->
+      <option>-vm5066</option> <!-- Symbol "$1" is deprecated: "$2" -->
+      <option>-vm5074</option> <!-- Unit "$1" is deprecated -->
+      <option>-vm5075</option> <!-- Unit "$1" is deprecated: "$2" -->
     </custom_options>
   </compiler_options>
 </project>

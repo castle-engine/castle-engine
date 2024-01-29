@@ -82,7 +82,7 @@
   public
     InternalWasVisibleFrameId: TFrameId;
 
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
 
@@ -133,6 +133,11 @@
     function WasVisible: Boolean;
 
   {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
+
+  public
+    { @deprecated Deprecated name for @link(Visible). }
+    property Render: Boolean read GetVisible write SetVisible default true;
+      {$ifdef FPC}deprecated 'use Visible';{$endif}
   end;
 
   TFillPropertiesNode = class;
@@ -368,7 +373,7 @@
     var
       FMaterialInfo: TMyUnlitMaterialInfo;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
     function MaterialInfo: TMaterialInfo; override;
 
@@ -438,13 +443,15 @@ const
     'NONE'
   );
 
-constructor TAbstractShapeNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractShapeNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FdBboxCenter.ChangeAlways := chBBox;
   FdBboxSize.ChangeAlways := chBBox;
   FdAppearance.ChangeAlways := chEverything;
   FdGeometry.ChangeAlways := chEverything;
+  // Older name for this field, specific to CGE and InstantReality
+  FdVisible.AddAlternativeName('render', 0);
 end;
 
 procedure TAbstractShapeNode.SetAppearanceBefore(const Sender: TSFNode; const NewNode: TX3DNode);
@@ -773,7 +780,7 @@ function TAppearanceNode.InternalMaterialProperty: TMaterialProperty;
 
   function TryUrl(const Url: TMFString): TMaterialProperty;
   var
-    TextureUrl: string;
+    TextureUrl: String;
   begin
     Result := nil;
     if Url.Count <> 0 then
@@ -1277,7 +1284,7 @@ end;
 
 { TUnlitMaterialNode ------------------------------------------------------ }
 
-constructor TUnlitMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TUnlitMaterialNode.Create(const AX3DName: string; const ABaseUrl: String);
 begin
   inherited;
   // default is different

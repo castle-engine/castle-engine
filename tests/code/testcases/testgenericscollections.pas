@@ -23,11 +23,11 @@ unit TestGenericsCollections;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  {$else}CastleTester,{$endif} Generics.Collections;
+  Classes, SysUtils, Generics.Collections,
+  CastleTester;
 
 type
-  TTestGenericsCollections = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestGenericsCollections = class(TCastleTestCase)
     procedure Test1;
     procedure TestFreeingManually;
     procedure TestAddingLists;

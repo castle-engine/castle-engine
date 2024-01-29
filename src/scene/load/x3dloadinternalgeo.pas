@@ -30,7 +30,7 @@ function LoadGEO(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 implementation
 
 uses CastleVectors, CastleUtils, CastleLog,
-  CastleClassUtils, CastleDownload, CastleURIUtils,
+  CastleClassUtils, CastleDownload, CastleUriUtils,
   CastleFilesUtils, CastleStringUtils, X3DLoadInternalUtils;
 
 { TObject3DGEO ---------------------------------------------------------------- }

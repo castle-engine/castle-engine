@@ -138,7 +138,7 @@ uses
   SysUtils, Math, Generics.Defaults,
   CastleTransform, CastleColors, CastleRectangles, CastleUtils,
   CastleRenderOptions, CastleControls, CastleStringUtils,
-  CastleImages, CastleURIUtils;
+  CastleImages, CastleUriUtils;
 
 { TUnicodeCharEqualityComparer ----------------------------------------------- }
 
@@ -296,7 +296,7 @@ var
       end;
 
       WritelnLog('Tiled', 'Added spacing to tileset image "%s", new margin %d, new spacing %d, old size %d x %d -> new size %d x %d', [
-        URIDisplay(AURL),
+        UriDisplay(AURL),
         NewMargin,
         NewSpacing,
         Tileset.Image.Width,

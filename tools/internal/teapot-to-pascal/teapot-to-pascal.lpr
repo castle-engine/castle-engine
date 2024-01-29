@@ -52,7 +52,7 @@ var
     end;
     Writeln(');');
 
-    Writeln('Teapot' + PascalName + 'CoordIndex: array [0..', IFS.FdCoordIndex.Count - 1, '] of LongInt = (');
+    Writeln('Teapot' + PascalName + 'CoordIndex: array [0..', IFS.FdCoordIndex.Count - 1, '] of Int32 = (');
     for I := 0 to IFS.FdCoordIndex.Count - 1 do
     begin
       Write(IFS.FdCoordIndex.Items[I]);

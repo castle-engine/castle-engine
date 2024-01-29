@@ -6,9 +6,11 @@
 -->
 
 <castle_settings>
-  <ui_scaling
+  <!--ui_scaling
     mode="EncloseReferenceSize"
     reference_width="1600"
     reference_height="900"
-  />
+  /-->
+  <!-- DpiScale matches more what FMX is doing, so it looks better -->
+  <ui_scaling mode="DpiScale" />
 </castle_settings>

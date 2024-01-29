@@ -53,7 +53,7 @@
 
       @exclude }
     property InternalRendererResource: TInternalRendererResource
-      read FInternalRendererResource write FInternalRendererResource;
+      read FInternalRendererResource write SetInternalRendererResource;
 
     { Free InternalRendererResource, if any. }
     procedure InternalRendererResourceFree;
@@ -122,7 +122,7 @@
     procedure SetIsTextureLoaded(Value: boolean);
     procedure FreeAndNilTextureData;
   strict protected
-    FTextureUsedFullUrl: string;
+    FTextureUsedFullUrl: String;
 
     { Loads texture data (image or video file).
 
@@ -161,7 +161,7 @@
 
     function AlphaChannelData: TAlphaChannel; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     { TextureImage, TextureComposite and TextureVideo contain actual texture data.
@@ -234,7 +234,7 @@
       In case of data: URLs, this doesn't contain actual data (it would
       be too long then, and TextureUsedFullUrl is mainly for showing to the
       user), it's cutted. }
-    property TextureUsedFullUrl: string read FTextureUsedFullUrl;
+    property TextureUsedFullUrl: String read FTextureUsedFullUrl;
 
   {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
   end;
@@ -507,7 +507,7 @@ end;
 
 { TAbstractTexture2DNode ----------------------------------------------------------- }
 
-constructor TAbstractTexture2DNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractTexture2DNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   UsedCache := nil;
@@ -673,14 +673,14 @@ begin
            not BlenderRelativePath(FdUrl.Items[I]) then
           WritelnWarning('VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
             [FdUrl.Items[I]]));
-        FTextureUsedFullUrl := URIDisplay(FullUrl);
+        FTextureUsedFullUrl := UriDisplay(FullUrl);
         Success := true;
         Break;
       except
         on E: Exception do
           { Silence the Exception, continue trying to load more textures. }
           ErrorMessage := ErrorMessage + NL + '  ' + Format(SLoadError,
-            [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]);
+            [E.ClassName, 'texture', UriDisplay(FullUrl), E.Message]);
       end;
     end;
 
@@ -792,7 +792,7 @@ procedure TMovieTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   WasCacheUsed := true;
   FTextureUsedFullUrl := '';
@@ -815,7 +815,7 @@ begin
       on E: Exception do
         { Remember that WritelnWarning *may* raise an exception. }
         WritelnWarning('Video', Format(SLoadError,
-          [E.ClassName, 'video', URIDisplay(FullUrl), E.Message]));
+          [E.ClassName, 'video', UriDisplay(FullUrl), E.Message]));
     end;
   end;
 end;
