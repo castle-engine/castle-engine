@@ -156,7 +156,8 @@ var
   StandardUnitsPaths: String;
 begin
   case OutputKey of
-    'fpc-exe': Writeln(FindExeFpcCompiler(false));
+    'fpc-exe':
+      Writeln(FindExeFpcCompiler(false));
     'fpc-standard-units-paths':
     begin
       FindExeFpcCompiler(false, StandardUnitsPaths);
