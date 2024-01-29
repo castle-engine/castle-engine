@@ -153,15 +153,15 @@ end;
 
 procedure DoOutputEnvironment(const OutputKey: String);
 var
-  StandardUnitsPaths: String;
+  StandardUnitsPath: String;
 begin
   case OutputKey of
     'fpc-exe':
       Writeln(FindExeFpcCompiler(false));
-    'fpc-standard-units-paths':
+    'fpc-standard-units-path':
     begin
-      FindExeFpcCompiler(false, StandardUnitsPaths);
-      Writeln(StandardUnitsPaths);
+      FindExeFpcCompiler(false, StandardUnitsPath);
+      Writeln(StandardUnitsPath);
     end
     else raise Exception.CreateFmt('Unsupported output key: "%s"', [OutputKey]);
   end;
