@@ -189,6 +189,7 @@ begin
             '    Output some environment information (independent of any project).' + NL +
             '    Next parameter determines the information:' + NL +
             '      fpc-exe' + NL +
+            '      fpc-standard-units-path' + NL +
             NL+
             'cache' +NL+
             '    Create cache to speed up future compilations.' + NL +
