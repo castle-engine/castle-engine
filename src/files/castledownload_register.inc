@@ -39,7 +39,7 @@ type
     ForceSynchronous: Boolean;
     HttpMethod: THttpMethod;
     HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
-    HttpBody: TStream;
+    HttpRequestBody: TMemoryStream;
     { @groupEnd }
 
     { Fields that should be updated during downloading.

@@ -59,7 +59,7 @@ type
   public
     { Set these before Execute }
     HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
-    HttpBody: TStream;
+    HttpRequestBody: TStream;
     Url: String;
     HttpMethod: THttpMethod;
     SynchronizationCS: TCriticalSection;
@@ -204,6 +204,12 @@ begin
 end;
 
 procedure TFpHttpClientJob.Execute;
+
+  function UseHttpRequestBody: Boolean;
+  begin
+    Result := (HttpRequestBody <> nil) and (HttpRequestBody.Size <> 0);
+  end;
+
 var
   Client: TCastleFpHttpClient;
   I: Integer;
@@ -235,10 +241,11 @@ begin
       FinalUrl := Url;
 
       try
-        if (HttpMethod in [hmPost, hmPut]) and (HttpBody <> nil) then
+        if UseHttpRequestBody then
         begin
+          Assert(HttpRequestBody <> nil);
           MemStream := TMemoryStream.Create;
-          MemStream.CopyFrom(HttpBody, 0);
+          MemStream.CopyFrom(HttpRequestBody, 0);
           MemStream.Seek(0, soFromBeginning); // client does not always rewind the stream before send
           Client.RequestBody := MemStream; // we own stream, and free it, the client is not touching it
         end;
@@ -246,7 +253,7 @@ begin
         case HttpMethod of
           hmGet: Client.Get(Url, Contents);
           hmPost:
-            if (HttpPostData <> nil) and (HttpBody = nil) then
+            if (HttpPostData <> nil) and (not UseHttpRequestBody) then
               Client.FormPost(Url, HttpPostData, Contents)
             else
               Client.Post(Url, Contents);
@@ -328,7 +335,7 @@ procedure TFpHttpClientReader.Start;
     Job.SynchronizationCS := SynchronizationCS;
     Job.HttpMethod := HttpMethod;
     Job.HttpPostData := HttpPostData;
-    Job.HttpBody := HttpBody;
+    Job.HttpRequestBody := HttpRequestBody;
     Job.HttpHeadersKeys := HttpHeadersKeys;
     Job.HttpHeadersValues := HttpHeadersValues;
   end;

@@ -144,6 +144,7 @@ castle-game-engine-*.fpm
 /examples/network/asynchronous_download/asynchronous_download
 /examples/network/castle_download/castle_download
 /examples/network/custom_url_handler/read_game_data_from_zip
+/examples/network/put_data/put_data
 /examples/network/remote_logging/remote_logging
 /examples/network/tcp_connection/client/client
 /examples/network/tcp_connection/server/server

@@ -81,7 +81,7 @@ type
     UpdateInitialized: Boolean;
     FHttpPostData: TStringList;
     FHttpHeadersKeys, FHttpHeadersValues: TStringList;
-    FHttpBody: TStream;
+    FHttpRequestBody: TMemoryStream;
     FHttpResponseCode: Integer;
     FHttpResponseHeaders: TStrings;
     procedure SetUrl(const Value: String);
@@ -203,23 +203,39 @@ type
     function HttpPostData: TStrings;
     function PostData: TStrings; deprecated 'use HttpPostData';
 
-    { Request body to send when HttpMethod is hmPost/hmPut.
-      Would overrule HttpPostData for Post requests, because both of them could not be used at the same time.
-      Initially empty(nil).
-      For some requests you may want to add http headers like Content-Type etc.
-      Use TStream.CopyFrom method to set the contents of the request body, like
+    { Request body to send along with the request.
+      Most useful with PUT (to send data to save on the server side).
+      May also be useful with POST (only when the HttpPostData key-value is not
+      flexible enough) or other requests.
 
-      @longCode(#
-        StringStream := TStringStream.Create(SomeRequestBodyAsString);
-        try
-          Download.HttpBody.CopyFrom(StringStream, 0); // copy contents, 
-          //as for asynchronous calls you would be unable to free StringStream properly
-        finally
-          FreeAndNil(StringStream);
-        end;
-      #)
+      You can use various @code(TStream) methods to set the stream,
+      like @code(TStream.CopyFrom). The CastleClassUtils also has various
+      helpers for stream, e.g. to write a String (AnsiString, UTF-8 encoding)
+      to a stream use @code(WriteStr(Download.HttpRequestBody, 'My content')).
+
+      Example usage:
+
+      @includeCode(../../examples/network/put_data/put_data.dpr)
+
+      Note: For some requests you may want to add HTTP headers like Content-Type etc.
+      Do this using @link(HttpHeader).
+
+      In case of POST requests, when this stream has non-empty contents
+      (stream size > 0), it overrules the HttpPostData. That is,
+      HttpPostData is completely ignored in this case.
+      Reason: Internally, HttpPostData is just an alternative way to set
+      HttpRequestBody.
+      TODO: We may change this behavior in the future, to make it such that
+      using HttpPostData will automatically override HttpPostData.
+      For now, @italic(never use both HttpPostData and HttpRequestBody
+      at the same time.)
+
+      TODO: For now this is supported only when using FPC (not Delphi)
+      and only on desktop platforms (not mobile). It should be trivial to
+      make it work in other cases too, just let us know
+      ( https://castle-engine.io/talk.php ).
     }
-    function HttpBody: TStream;
+    function HttpRequestBody: TMemoryStream;
 
     { Add additional HTTP headers, e.g. User-Agent. }
     procedure HttpHeader(const AKey, AValue: String);
@@ -265,7 +281,7 @@ begin
   FreeAndNil(FHttpResponseHeaders);
   FreeAndNil(FHttpHeadersKeys);
   FreeAndNil(FHttpHeadersValues);
-  FreeAndNil(FHttpBody);
+  FreeAndNil(FHttpRequestBody);
   inherited;
 end;
 
@@ -437,7 +453,7 @@ begin
         this way it may remain nil and not waste memory
         in case user didn't touch HttpPostData. }
       Reader.HttpPostData := FHttpPostData;
-      Reader.HttpBody := FHttpBody;
+      Reader.HttpRequestBody := FHttpRequestBody;
       Reader.HttpHeadersKeys := FHttpHeadersKeys;
       Reader.HttpHeadersValues := FHttpHeadersValues;
       Reader.Start;
@@ -599,12 +615,12 @@ begin
   Result := FHttpPostData;
 end;
 
-function TCastleDownload.HttpBody: TStream;
+function TCastleDownload.HttpRequestBody: TMemoryStream;
 begin
-  // FHttpBody is created on-demand, because it is often not needed
-  if FHttpBody = nil then
-    FHttpBody := TStringStream.Create;
-  Result := FHttpBody;
+  // FHttpRequestBody is created on-demand, because it is often not needed
+  if FHttpRequestBody = nil then
+    FHttpRequestBody := TMemoryStream.Create;
+  Result := FHttpRequestBody;
 end;
 
 procedure TCastleDownload.HttpHeader(const AKey, AValue: String);
