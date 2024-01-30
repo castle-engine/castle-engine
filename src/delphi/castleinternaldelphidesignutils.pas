@@ -94,14 +94,23 @@ begin
 
   CgeMenu := TMenuItem.Create(Self);
   CgeMenu.Caption := 'Castle Game Engine';
-  CgeMenu.Add(ChangeEnginePathMenu);
-  CgeMenu.Add(OpenEditorMenu);
-  CgeMenu.Add(AddPathsMenu);
-  CgeMenu.Add(RemovePathsMenu);
+  CgeMenu.Name := 'CastleGameEngineMenu';
+//  CgeMenu.Add(ChangeEnginePathMenu);
+//  CgeMenu.Add(OpenEditorMenu);
+//  CgeMenu.Add(AddPathsMenu);
+//  CgeMenu.Add(RemovePathsMenu);
 
   // Use hardcoded 'ToolsMenu', this is good acoording to
   // https://docwiki.embarcadero.com/RADStudio/Athens/en/Adding_an_Item_to_the_Main_Menu_of_the_IDE
   Services.AddActionMenu('ToolsMenu', nil, CgeMenu, true, true);
+
+  { We can add submenu items using CgeMenu.Add (see above) or by adding
+    using Services.AddActionMenu.
+    There doesn't seem to be any difference. }
+  Services.AddActionMenu('CastleGameEngineMenu', nil, ChangeEnginePathMenu, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', nil, OpenEditorMenu, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', nil, AddPathsMenu, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', nil, RemovePathsMenu, true, true);
 end;
 
 destructor TCastleDelphiIdeIntegration.Destroy;
@@ -165,13 +174,14 @@ var
 
 procedure Register;
 begin
-  OnGetDesignTimeProjectPath := GetProjectPath;
-
-  if DelphiIdeIntegration = nil then
-    DelphiIdeIntegration := TCastleDelphiIdeIntegration.Create(nil);
 end;
 
 initialization
+  { Do this in initialization, not in Register,
+    as Register doesn't run on Delphi restart.
+    TODO: Hm, but this also doesn't run on Delphi restart.}
+  OnGetDesignTimeProjectPath := GetProjectPath;
+  DelphiIdeIntegration := TCastleDelphiIdeIntegration.Create(nil);
 finalization
   // When unloading the package, make sure to remove menu item
   FreeAndNil(DelphiIdeIntegration);
