@@ -1,19 +1,29 @@
 {
-  Castle Game Engine minimal fork of dglOpenGL from
-  https://bitbucket.org/saschawillems/dglopengl
-  to use cross-platform CastleDynLib for library loading.
+  OpenGL API.
 
-  Goal: Make dglOpenGL cross-platform with all compilers,
-  e.g. to add support for Delphi on Linux (missing in original dglOpenGL).
-  To do this, we replace library loading code in dglOpenGL
-  (that in some cases was using system-specific stuff, like dlopen on Linux)
-  with our own CastleDynLib unit.
-  CastleDynLib already abstracts dynamic library loading on all platforms
-  and compilers interesting for CGE.
-  This also makes the code a bit simpler, CastleDynLib already does some
-  platform-specific ifdefs.
+  This is Castle Game Engine fork of dglOpenGL
+  (from https://bitbucket.org/saschawillems/dglopengl ).
+  Goal: Make dglOpenGL work with all compilers and all platforms,
 
-  Since the header exposes OpenGL 4.6,
+  - dglOpenGL original platforms and compilers, plus:
+  - Delphi on Linux
+  - FPC on FreeBSD
+
+  To do this, we:
+
+  - Replace original dglOpenGL library loading code
+    (that in some cases was using system-specific stuff, like dlopen on Linux)
+    with our own CastleDynLib unit.
+    CastleDynLib already abstracts dynamic library loading on all platforms
+    and compilers interesting for CGE.
+    This also makes the code a bit simpler, CastleDynLib already does some
+    platform-specific ifdefs.
+
+  - Replace DGL_LINUX with more general DGL_GLX applicable
+    to FreeBSD and Linux alike.
+
+  Maintaining compatibility with upstream dglOpenGL is not a practical concern
+  now, since the header exposes OpenGL 4.6,
   and there will likely be no new OpenGL API
   (Khronos focuses on Vulkan now, https://en.wikipedia.org/wiki/OpenGL )
   it is unlikely that this header will need to be updated in the future.
@@ -43,6 +53,7 @@
         - (Win32) Delphi 6 and up
         - (Win32, Win64) Delphi XE2
         - (Win32, Win64, Linux, MacOSX) FreePascal (1.9.3 and up)
+        - See above for compilers/platforms added by Castle Game Engine fork
 
 ==============================================================================
 
@@ -64,10 +75,17 @@
        Additional thanks:
            sigsegv (libdl.so)
 
+       Castle Game Engine modifications:
+         - Michalis Kamburelis - https://castle-engine.io/
+
 ==============================================================================
 
   You may retrieve the latest version of this file at the Delphi OpenGL
-  Community home page, located at http://www.delphigl.com/
+  Community home page, located at http://www.delphigl.com/ .
+
+  Castle Game Engine fork is part of CGE https://castle-engine.io/ ,
+  direct link:
+  https://github.com/castle-engine/castle-engine/blob/master/src/base_rendering/dglopengl/castlegl.pas .
 
   This Source Code Form is subject to the terms of the Mozilla Public License,
   v. 2.0. If a copy of the MPL was not distributed with this file,
@@ -187,9 +205,12 @@ interface
   {$DEFINE DGL_WIN}
 {$ENDIF}
 
-// detecting Linux
-{$IFDEF linux}          // Linux
-  {$DEFINE DGL_LINUX}
+// detecting platforms with glX (Linux, FreeBSD) (on any compiler)
+{$IFDEF LINUX}
+  {$DEFINE DGL_GLX}
+{$ENDIF}
+{$IFDEF FREEBSD}
+  {$DEFINE DGL_GLX}
 {$ENDIF}
 
 {$IFDEF DARWIN}  // Mac OS X and FPC
@@ -206,7 +227,7 @@ uses
   SysUtils
   {$IFDEF DGL_WIN}, Windows{$ENDIF}
   {$IFDEF DGL_64BIT} ,math {$ENDIF}
-  {$ifdef FPC} {$IFDEF DGL_LINUX}, X, XLib, XUtil{$ENDIF} {$endif}
+  {$ifdef FPC} {$IFDEF DGL_GLX}, X, XLib, XUtil{$ENDIF} {$endif}
   , CastleDynLib
   ;
 
@@ -359,7 +380,7 @@ type
 
 
   // GLX
-  {$IFDEF DGL_LINUX}
+  {$IFDEF DGL_GLX}
     {$ifndef FPC}
     TXID = Pointer;
     PDisplay = Pointer;
@@ -11315,7 +11336,7 @@ type
   TglAddSwapHintRectWIN = procedure(x: GLint; y: GLint; width: GLsizei; height: GLsizei); stdcall;
 {$ENDIF}
 
-{$IFDEF DGL_LINUX}
+{$IFDEF DGL_GLX}
   TglXChooseVisual = function(dpy: PDisplay; screen: GLint; attribList: PGLint): PXVisualInfo; cdecl;
   TglXCopyContext = procedure(dpy: PDisplay; src: GLXContext; dst: GLXContext; mask: GLuint); cdecl;
   TglXCreateContext = function(dpy: PDisplay; vis: PXVisualInfo; shareList: GLXContext; direct: GLboolean): GLXContext; cdecl;
@@ -14750,7 +14771,7 @@ var
   glAddSwapHintRectWIN: TglAddSwapHintRectWIN;
 {$ENDIF}
 
-{$IFDEF DGL_LINUX}
+{$IFDEF DGL_GLX}
   glXChooseVisual: TglXChooseVisual;
   glXCopyContext: TglXCopyContext;
   glXCreateContext: TglXCreateContext;
@@ -14903,7 +14924,7 @@ const
 
 function InitOpenGL(LibName: String = OPENGL_LIBNAME; GLULibName: String = GLU_LIBNAME): Boolean;
 
-function dglGetProcAddress(const ProcNameStr: String; LibHandle: TDynLib = nil {$IFDEF DGL_LINUX}; ForceDLSym: Boolean = False{$ENDIF}): Pointer;
+function dglGetProcAddress(const ProcNameStr: String; LibHandle: TDynLib = nil {$IFDEF DGL_GLX}; ForceDLSym: Boolean = False{$ENDIF}): Pointer;
 function dglCheckExtension(Extension: AnsiString): Boolean;
 
 procedure ReadExtensions;
@@ -15211,7 +15232,7 @@ end;
   {$hints off}  // don't warn that "Result := nil" is unused, we want it to be safe on all platforms
 {$endif}
 
-function dglGetProcAddress(const ProcNameStr: String; LibHandle: TDynLib = nil {$IFDEF DGL_LINUX}; ForceDLSym: Boolean = False{$ENDIF}): Pointer;
+function dglGetProcAddress(const ProcNameStr: String; LibHandle: TDynLib = nil {$IFDEF DGL_GLX}; ForceDLSym: Boolean = False{$ENDIF}): Pointer;
 
   function SymbolFromLibHandle: Pointer;
   begin
@@ -15234,16 +15255,15 @@ begin
   if LibHandle = nil then
     LibHandle := GL_LibHandle;
 
-  {$IFDEF DGL_WIN}
+  {$if defined(DGL_WIN)}
     Result := SymbolFromLibHandle;
     if result <> nil then
       exit;
 
     if Addr(wglGetProcAddress) <> nil then
       Result := wglGetProcAddress(PAnsiChar(ProcName));
-  {$ENDIF}
 
-  {$IFDEF DGL_LINUX}
+  {$elseif defined(DGL_GLX)}
     if not ForceDLSym then begin
       if Addr(glXGetProcAddress) <> nil then
         Result := glXGetProcAddress(PAnsiChar(ProcName));
@@ -15259,11 +15279,10 @@ begin
     end;
 
     Result := SymbolFromLibHandle;
-  {$ENDIF}
 
-  {$IFDEF DGL_MAC}
+  {$else}
     Result := SymbolFromLibHandle;
-  {$ENDIF}
+  {$endif}
 end;
 
 {$ifndef FPC}
@@ -15380,7 +15399,7 @@ begin
       wglUseFontOutlines := dglGetProcAddress('wglUseFontOutlinesA');
     {$ENDIF}
 
-    {$IFDEF DGL_LINUX}
+    {$IFDEF DGL_GLX}
       // GLX_VERSION_1_4 (needs to be first)
       glXGetProcAddress := dglGetProcAddress('glXGetProcAddress', nil, True);
 
@@ -15454,57 +15473,57 @@ begin
   // load GLU functions
   if GLU_LibHandle <> nil then begin
     // GLU ========================================================================
-    gluBeginCurve := dglGetProcAddress('gluBeginCurve', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluBeginPolygon := dglGetProcAddress('gluBeginPolygon', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluBeginSurface := dglGetProcAddress('gluBeginSurface', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluBeginTrim := dglGetProcAddress('gluBeginTrim', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluBuild1DMipmaps := dglGetProcAddress('gluBuild1DMipmaps', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluBuild2DMipmaps := dglGetProcAddress('gluBuild2DMipmaps', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluCylinder := dglGetProcAddress('gluCylinder', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluDeleteNurbsRenderer := dglGetProcAddress('gluDeleteNurbsRenderer', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluDeleteQuadric := dglGetProcAddress('gluDeleteQuadric', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluDeleteTess := dglGetProcAddress('gluDeleteTess', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluDisk := dglGetProcAddress('gluDisk', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluEndCurve := dglGetProcAddress('gluEndCurve', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluEndPolygon := dglGetProcAddress('gluEndPolygon', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluEndSurface := dglGetProcAddress('gluEndSurface', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluEndTrim := dglGetProcAddress('gluEndTrim', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluErrorString := dglGetProcAddress('gluErrorString', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluGetNurbsProperty := dglGetProcAddress('gluGetNurbsProperty', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluGetString := dglGetProcAddress('gluGetString', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluGetTessProperty := dglGetProcAddress('gluGetTessProperty', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluLoadSamplingMatrices := dglGetProcAddress('gluLoadSamplingMatrices', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluLookAt := dglGetProcAddress('gluLookAt', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluNewNurbsRenderer := dglGetProcAddress('gluNewNurbsRenderer', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluNewQuadric := dglGetProcAddress('gluNewQuadric', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluNewTess := dglGetProcAddress('gluNewTess', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluNextContour := dglGetProcAddress('gluNextContour', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluNurbsCallback := dglGetProcAddress('gluNurbsCallback', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluNurbsCurve := dglGetProcAddress('gluNurbsCurve', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluNurbsProperty := dglGetProcAddress('gluNurbsProperty', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluNurbsSurface := dglGetProcAddress('gluNurbsSurface', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluOrtho2D := dglGetProcAddress('gluOrtho2D', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluPartialDisk := dglGetProcAddress('gluPartialDisk', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluPerspective := dglGetProcAddress('gluPerspective', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluPickMatrix := dglGetProcAddress('gluPickMatrix', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluProject := dglGetProcAddress('gluProject', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluPwlCurve := dglGetProcAddress('gluPwlCurve', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluQuadricCallback := dglGetProcAddress('gluQuadricCallback', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluQuadricDrawStyle := dglGetProcAddress('gluQuadricDrawStyle', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluQuadricNormals := dglGetProcAddress('gluQuadricNormals', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluQuadricOrientation := dglGetProcAddress('gluQuadricOrientation', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluQuadricTexture := dglGetProcAddress('gluQuadricTexture', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluScaleImage := dglGetProcAddress('gluScaleImage', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluSphere := dglGetProcAddress('gluSphere', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluTessBeginContour := dglGetProcAddress('gluTessBeginContour', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluTessBeginPolygon := dglGetProcAddress('gluTessBeginPolygon', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluTessCallback := dglGetProcAddress('gluTessCallback', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluTessEndContour := dglGetProcAddress('gluTessEndContour', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluTessEndPolygon := dglGetProcAddress('gluTessEndPolygon', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluTessNormal := dglGetProcAddress('gluTessNormal', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluTessProperty := dglGetProcAddress('gluTessProperty', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluTessVertex := dglGetProcAddress('gluTessVertex', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
-    gluUnProject := dglGetProcAddress('gluUnProject', GLU_LibHandle {$IFDEF DGL_LINUX}, True{$ENDIF});
+    gluBeginCurve := dglGetProcAddress('gluBeginCurve', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluBeginPolygon := dglGetProcAddress('gluBeginPolygon', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluBeginSurface := dglGetProcAddress('gluBeginSurface', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluBeginTrim := dglGetProcAddress('gluBeginTrim', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluBuild1DMipmaps := dglGetProcAddress('gluBuild1DMipmaps', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluBuild2DMipmaps := dglGetProcAddress('gluBuild2DMipmaps', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluCylinder := dglGetProcAddress('gluCylinder', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluDeleteNurbsRenderer := dglGetProcAddress('gluDeleteNurbsRenderer', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluDeleteQuadric := dglGetProcAddress('gluDeleteQuadric', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluDeleteTess := dglGetProcAddress('gluDeleteTess', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluDisk := dglGetProcAddress('gluDisk', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluEndCurve := dglGetProcAddress('gluEndCurve', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluEndPolygon := dglGetProcAddress('gluEndPolygon', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluEndSurface := dglGetProcAddress('gluEndSurface', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluEndTrim := dglGetProcAddress('gluEndTrim', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluErrorString := dglGetProcAddress('gluErrorString', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluGetNurbsProperty := dglGetProcAddress('gluGetNurbsProperty', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluGetString := dglGetProcAddress('gluGetString', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluGetTessProperty := dglGetProcAddress('gluGetTessProperty', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluLoadSamplingMatrices := dglGetProcAddress('gluLoadSamplingMatrices', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluLookAt := dglGetProcAddress('gluLookAt', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluNewNurbsRenderer := dglGetProcAddress('gluNewNurbsRenderer', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluNewQuadric := dglGetProcAddress('gluNewQuadric', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluNewTess := dglGetProcAddress('gluNewTess', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluNextContour := dglGetProcAddress('gluNextContour', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluNurbsCallback := dglGetProcAddress('gluNurbsCallback', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluNurbsCurve := dglGetProcAddress('gluNurbsCurve', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluNurbsProperty := dglGetProcAddress('gluNurbsProperty', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluNurbsSurface := dglGetProcAddress('gluNurbsSurface', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluOrtho2D := dglGetProcAddress('gluOrtho2D', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluPartialDisk := dglGetProcAddress('gluPartialDisk', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluPerspective := dglGetProcAddress('gluPerspective', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluPickMatrix := dglGetProcAddress('gluPickMatrix', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluProject := dglGetProcAddress('gluProject', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluPwlCurve := dglGetProcAddress('gluPwlCurve', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluQuadricCallback := dglGetProcAddress('gluQuadricCallback', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluQuadricDrawStyle := dglGetProcAddress('gluQuadricDrawStyle', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluQuadricNormals := dglGetProcAddress('gluQuadricNormals', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluQuadricOrientation := dglGetProcAddress('gluQuadricOrientation', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluQuadricTexture := dglGetProcAddress('gluQuadricTexture', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluScaleImage := dglGetProcAddress('gluScaleImage', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluSphere := dglGetProcAddress('gluSphere', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluTessBeginContour := dglGetProcAddress('gluTessBeginContour', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluTessBeginPolygon := dglGetProcAddress('gluTessBeginPolygon', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluTessCallback := dglGetProcAddress('gluTessCallback', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluTessEndContour := dglGetProcAddress('gluTessEndContour', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluTessEndPolygon := dglGetProcAddress('gluTessEndPolygon', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluTessNormal := dglGetProcAddress('gluTessNormal', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluTessProperty := dglGetProcAddress('gluTessProperty', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluTessVertex := dglGetProcAddress('gluTessVertex', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
+    gluUnProject := dglGetProcAddress('gluUnProject', GLU_LibHandle {$IFDEF DGL_GLX}, True{$ENDIF});
   end;
 end;
 
@@ -20444,7 +20463,7 @@ begin
   WIN_swap_hint := Int_CheckExtension(Buffer, 'WIN_swap_hint');
   {$ENDIF}
 
-  {$IFDEF DGL_LINUX}
+  {$IFDEF DGL_GLX}
   // GLX
   GLX_ARB_multisample := Int_CheckExtension(Buffer, 'GLX_ARB_multisample');
   GLX_ARB_fbconfig_float := Int_CheckExtension(Buffer, 'GLX_ARB_fbconfig_float');
