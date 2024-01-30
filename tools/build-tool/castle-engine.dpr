@@ -182,6 +182,7 @@ begin
             '      executable-name' + NL +
             '      name' + NL +
             '      pascal-name' + NL +
+            '      search-paths' + NL +
             '      version' + NL +
             '      version-code' + NL +
             NL+
