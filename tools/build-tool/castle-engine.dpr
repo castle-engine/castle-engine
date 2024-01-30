@@ -179,9 +179,10 @@ begin
             'output' +NL+
             '    Output some project information (from the manifest).' + NL +
             '    Next parameter determines the information:' + NL +
+            '      executable-name' + NL +
             '      name' + NL +
             '      pascal-name' + NL +
-            '      executable-name' + NL +
+            '      search-paths' + NL +
             '      version' + NL +
             '      version-code' + NL +
             NL+
