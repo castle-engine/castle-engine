@@ -585,7 +585,7 @@ begin
   {$ifdef USE_DGL}
   // Do it to initialize glGetString before dglOpenGL
   if GL_LibHandle = nil then
-  	InitOpenGL;
+    InitOpenGL;
   ReadOpenGLCore;
   Assert(Assigned(glGetString));
   {$endif}
