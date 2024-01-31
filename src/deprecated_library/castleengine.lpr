@@ -138,7 +138,7 @@ begin
 
     Crosshair := TCrosshairManager.Create;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Open: ' + ExceptMessage(E));
   end;
 end;
 
@@ -153,8 +153,9 @@ begin
 
     CGEApp_Close(QuitWhenNoOpenWindows);
     FreeAndNil(Window);
+    MainScene := nil;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Close: ' + ExceptMessage(E));
   end;
 end;
 
@@ -166,7 +167,7 @@ begin
     sText := GLInformationString;
     StrPLCopy(szBuffer, sText, nBufSize-1);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_GetOpenGLInformation: ' + ExceptMessage(E));
   end;
 end;
 
@@ -176,7 +177,7 @@ begin
     if not CGE_VerifyWindow('CGE_Resize') then exit;
     CGEApp_Resize(uiViewWidth, uiViewHeight, 0);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Resize: ' + ExceptMessage(E));
   end;
 end;
 
@@ -186,7 +187,7 @@ begin
     if not CGE_VerifyWindow('CGE_Render') then exit;
     CGEApp_Render;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Render: ' + ExceptMessage(E));
   end;
 end;
 
@@ -209,7 +210,7 @@ begin
     // restore hidden controls
     TouchNavigation.Exists := true;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SaveScreenshotToFile: ' + ExceptMessage(E));
   end;
 end;
 
@@ -260,7 +261,7 @@ begin
 
     CGEApp_Update;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Update: ' + ExceptMessage(E));
   end;
 end;
 
@@ -270,7 +271,7 @@ begin
     if not CGE_VerifyWindow('CGE_MouseDown') then exit;
     CGEApp_MouseDown(X, Y, bLeftBtn, FingerIndex);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_MouseDown: ' + ExceptMessage(E));
   end;
 end;
 
@@ -280,7 +281,7 @@ begin
     if not CGE_VerifyWindow('CGE_Motion') then exit;
     CGEApp_Motion(X, Y, FingerIndex);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Motion: ' + ExceptMessage(E));
   end;
 end;
 
@@ -291,7 +292,7 @@ begin
     if not CGE_VerifyWindow('CGE_MouseUp') then exit;
     CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex, TrackReleased);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_MouseUp: ' + ExceptMessage(E));
   end;
 end;
 
@@ -304,7 +305,7 @@ begin
     // undefined, and also --- pinch is not really a mouse wheel)
     Window.LibraryMouseWheel(zDelta/120, bVertical);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_MouseWheel: ' + ExceptMessage(E));
   end;
 end;
 
@@ -314,7 +315,7 @@ begin
     if not CGE_VerifyWindow('CGE_KeyDown') then exit;
     CGEApp_KeyDown(eKey);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_KeyDown: ' + ExceptMessage(E));
   end;
 end;
 
@@ -324,7 +325,7 @@ begin
     if not CGE_VerifyWindow('CGE_KeyUp') then exit;
     CGEApp_KeyUp(eKey);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_KeyUp: ' + ExceptMessage(E));
   end;
 end;
 
@@ -350,7 +351,7 @@ begin
     Viewport.AssignDefaultCamera;
     Viewport.AssignDefaultNavigation;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_LoadSceneFromFile: ' + ExceptMessage(E));
   end;
 end;
 
@@ -367,7 +368,7 @@ begin
   except
     on E: TObject do
     begin
-      WritelnLog('Window', ExceptMessage(E));
+      WritelnLog('Window', 'CGE_GetViewpointsCount: ' + ExceptMessage(E));
       Result := 0;
     end;
   end;
@@ -383,7 +384,7 @@ begin
     sName := MainScene.GetViewpointName(iViewpointIdx);
     StrPLCopy(szName, sName, nBufSize-1);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_GetViewpointName: ' + ExceptMessage(E));
   end;
 end;
 
@@ -394,7 +395,7 @@ begin
 
     MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_MoveToViewpoint: ' + ExceptMessage(E));
   end;
 end;
 
@@ -407,7 +408,7 @@ begin
       MainScene.AddViewpointFromNavigation(
         Viewport.Navigation, StrPas(PChar(szName)));
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_AddViewpointFromCurrentView: ' + ExceptMessage(E));
   end;
 end;
 
@@ -423,7 +424,7 @@ begin
     pfYMin^ := BBox.Data[0].Y; pfYMax^ := BBox.Data[1].Y;
     pfZMin^ := BBox.Data[0].Z; pfZMax^ := BBox.Data[1].Z;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_GetBoundingBox: ' + ExceptMessage(E));
   end;
 end;
 
@@ -442,7 +443,7 @@ begin
     pfUpX^ := Up.X; pfUpY^ := Up.Y; pfUpZ^ := Up.Z;
     pfGravX^ := GravityUp.X; pfGravY^ := GravityUp.Y; pfGravZ^ := GravityUp.Z;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_GetViewCoords: ' + ExceptMessage(E));
   end;
 end;
 
@@ -465,7 +466,7 @@ begin
       Viewport.Camera.SetWorldView(Pos, Dir, Up);
     Viewport.Camera.GravityUp := GravityUp;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_MoveViewToCoords: ' + ExceptMessage(E));
   end;
 end;
 
@@ -486,7 +487,7 @@ begin
   except
     on E: TObject do
     begin
-      WritelnLog('Window', ExceptMessage(E));
+      WritelnLog('Window', 'CGE_GetNavigationType: ' + ExceptMessage(E));
       Result := -1;
     end;
   end;
@@ -510,7 +511,7 @@ begin
     end;
     Viewport.NavigationType := aNavType;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNavigationType: ' + ExceptMessage(E));
   end;
 end;
 
@@ -542,7 +543,7 @@ begin
   try
     TouchNavigation.TouchInterface := cgehelper_TouchInterfaceFromConst(eMode);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetTouchInterface: ' + ExceptMessage(E));
   end;
 end;
 
@@ -551,7 +552,7 @@ begin
   try
     TouchNavigation.AutoTouchInterface := bAutomaticTouchInterface;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetUserInterface: ' + ExceptMessage(E));
   end;
 end;
 
@@ -564,7 +565,7 @@ begin
     DummyRemoveType := rtNone;
     Viewport.Camera.Update(fTimeS, DummyRemoveType);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_IncreaseSceneTime: ' + ExceptMessage(E));
   end;
 end;
 
@@ -649,7 +650,7 @@ begin
           end;
     end;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetVariableInt: ' + ExceptMessage(E));
   end;
 end;
 
@@ -746,7 +747,7 @@ begin
       else Result := -1; // unsupported variable
     end;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_GetVariableInt: ' + ExceptMessage(E));
   end;
 end;
 
@@ -796,7 +797,7 @@ begin
       TSFBool(aField).Send(fVal1 <> 0.0);
 
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue: ' + ExceptMessage(E));
   end;
 end;
 
