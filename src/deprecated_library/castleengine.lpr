@@ -36,7 +36,7 @@ library castleengine;
 uses CTypes, Math, SysUtils, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
-  CastleBoxes, CastleControls, CastleApplicationProperties,
+  CastleBoxes, CastleControls, CastleInputs, CastleApplicationProperties,
   CastleWindow, CastleViewport, CastleScene, CastleTransform;
 
 type
@@ -467,6 +467,90 @@ begin
     Viewport.Camera.GravityUp := GravityUp;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_MoveViewToCoords: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNavigationInputShortcut(eInput, eKey1, eKey2,
+                               eMouseButton, eMouseWheel: cInt32); cdecl;
+var
+  Nav: TCastleNavigation;
+  WalkNavigation: TCastleWalkNavigation;
+  ExamineNavigation: TCastleExamineNavigation;
+  InputShortcut: TInputShortcut;
+  InKey1: TKey;
+  InKey2: TKey = keyNone;
+  InKeyString: String = '';
+  InMouseButtonUse: boolean;
+  InMouseButton: TCastleMouseButton;
+  InMouseWheel: TMouseWheelDirection;
+begin
+  try
+    if not CGE_VerifyWindow('CGE_SetCameraInputShortcut') then exit;
+
+    InKey1 := TKey(eKey1);
+    InKey2 := TKey(eKey2);
+    InMouseButtonUse := (eMouseButton <> 0);
+    case eMouseButton of
+      0: InMouseButton := buttonLeft;
+      1: InMouseButton := buttonLeft;
+      2: InMouseButton := buttonMiddle;
+      3: InMouseButton := buttonRight;
+      4: InMouseButton := buttonExtra1;
+      5: InMouseButton := buttonExtra2;
+    end;
+    case eMouseWheel of
+      0: InMouseWheel := mwNone;
+      1: InMouseWheel := mwUp;
+      2: InMouseWheel := mwDown;
+      3: InMouseWheel := mwLeft;
+      4: InMouseWheel := mwRight;
+    end;
+
+    InputShortcut := nil;
+    Nav := Viewport.Navigation;
+    if Nav is TCastleWalkNavigation then
+    begin
+      WalkNavigation := TCastleWalkNavigation(Nav);
+      case eInput of
+        1: InputShortcut := WalkNavigation.Input_ZoomIn;
+        2: InputShortcut := WalkNavigation.Input_ZoomOut;
+        11: InputShortcut := WalkNavigation.Input_Forward;
+        12: InputShortcut := WalkNavigation.Input_Backward;
+        13: InputShortcut := WalkNavigation.Input_LeftRotate;
+        14: InputShortcut := WalkNavigation.Input_RightRotate;
+        15: InputShortcut := WalkNavigation.Input_LeftStrafe;
+        16: InputShortcut := WalkNavigation.Input_RightStrafe;
+        17: InputShortcut := WalkNavigation.Input_UpRotate;
+        18: InputShortcut := WalkNavigation.Input_DownRotate;
+        19: InputShortcut := WalkNavigation.Input_IncreasePreferredHeight;
+        20: InputShortcut := WalkNavigation.Input_DecreasePreferredHeight;
+        21: InputShortcut := WalkNavigation.Input_GravityUp;
+        22: InputShortcut := WalkNavigation.Input_Run;
+        23: InputShortcut := WalkNavigation.Input_MoveSpeedInc;
+        24: InputShortcut := WalkNavigation.Input_MoveSpeedDec;
+        25: InputShortcut := WalkNavigation.Input_Jump;
+        26: InputShortcut := WalkNavigation.Input_Crouch;
+        else raise EInternalError.CreateFmt('CGE_SetCameraInputShortcut: Invalid input type %d for walk navigation', [eInput]);
+      end;
+      if InputShortcut <> nil then
+        InputShortcut.Assign(InKey1, InKey2, InKeyString, InMouseButtonUse, InMouseButton, InMouseWheel);
+    end
+    else if Nav is TCastleExamineNavigation then
+    begin
+      ExamineNavigation := TCastleExamineNavigation(Nav);
+      case eInput of
+        1: InputShortcut := ExamineNavigation.Input_ZoomIn;
+        2: InputShortcut := ExamineNavigation.Input_ZoomOut;
+        31: InputShortcut := ExamineNavigation.Input_Rotate;
+        32: InputShortcut := ExamineNavigation.Input_Move;
+        33: InputShortcut := ExamineNavigation.Input_Zoom;
+        else raise EInternalError.CreateFmt('CGE_SetCameraInputShortcut: Invalid input type %d for examine navigation', [eInput]);
+      end;
+      if InputShortcut <> nil then
+        InputShortcut.Assign(InKey1, InKey2, InKeyString, InMouseButtonUse, InMouseButton, InMouseWheel);
+    end;
+  except
+    on E: TObject do WritelnLog('Window', 'CGE_SetCameraInputShortcut: ' + ExceptMessage(E));
   end;
 end;
 
