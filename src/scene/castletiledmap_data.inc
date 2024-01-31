@@ -1,4 +1,4 @@
-﻿{%MainUnit castletiledmap.pas}
+{%MainUnit castletiledmap.pas}
 {
   Copyright 2015-2021 Tomasz Wojtyś, Michalis Kamburelis.
 
@@ -952,7 +952,7 @@ begin
   begin
     FVisible := Value;
     if Assigned(SwitchNode) then
-      SwitchNode.WhichChoice := Ord(Value) - 1;
+      SwitchNode.WhichChoice := Iff(Value, 0, -1);
   end;
 end;
 

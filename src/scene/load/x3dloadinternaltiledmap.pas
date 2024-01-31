@@ -1,4 +1,4 @@
-﻿{
+{
   Copyright 2020-2023 Matthias J. Molski, Michalis Kamburelis, Freedomax.
 
   This file is part of "Castle Game Engine".
@@ -402,7 +402,7 @@ begin
     // Create an intermediate switch node to enable showing/hiding of the layer via the Exists-property.
     SwitchNode := TSwitchNode.Create;
     SwitchNode.AddChildren(LayerNode);
-    SwitchNode.WhichChoice := Ord(Layer.Visible) - 1;
+    SwitchNode.WhichChoice := Iff(Layer.Visible, 0, -1);
     Layer.SwitchNode := SwitchNode;
 
     if Layer is TCastleTiledMapData.TObjectGroupLayer then
