@@ -1,4 +1,4 @@
-{%MainUnit castletiledmap.pas}
+﻿{%MainUnit castletiledmap.pas}
 {
   Copyright 2015-2021 Tomasz Wojtyś, Michalis Kamburelis.
 
@@ -157,13 +157,23 @@ type
         Width: Integer;
         { The height of the object group in tiles. Meaningless. }
         Height: Integer;
-        { Used by the Exists-property to show/hide the layer. Not a part of the file format.}
+        { Used by the Exists-property to show/hide the layer.
+          Not a part of the file format.
+
+          TODO: Maybe rename this to RenderData,
+          consistent with other such data in this file.
+          Possibly do this at new Tiled layers API work:
+          https://castle-engine.io/roadmap#tiled_layers . }
         SwitchNode: TSwitchNode;
         constructor Create;
         destructor Destroy; override;
         { OffsetX and OffsetY packed in a vector. }
         function Offset: TVector2;
-        { Hides or shows the layer. Not a part of the file format }
+        { Hides or shows the layer. Not a part of the file format.
+
+          TODO:
+          This property should move to a different class, TCastleTiledMap.TLayer.
+          See https://castle-engine.io/roadmap#tiled_layers }
         property Exists: Boolean read FVisible write SetExists;
         { Whether the layer is shown or hidden. Defaults to true. Use the Exists-property to
           change the visibility during runtime. }

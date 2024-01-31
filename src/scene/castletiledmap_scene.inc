@@ -138,8 +138,17 @@ type
 
       Note that changing this when map is loaded reloads it,
       and automatically starts animations.
-      You can stop them with @link(StopAnimations). }
-    property Layers: TLayers read FLayers write SetLayers default AllLayers; {$ifdef FPC} deprecated 'use Data.Layers[].Exists()'; {$endif}
+      You can stop them with @link(StopAnimations).
+
+      TODO:
+      There is an alternative way to hide/show layers: you can read/write
+      @code(MyMap.Data.Layers[<layer-index>].Exists) property.
+      However, we do not encourage using the @code(Data) property now,
+      and we plan to add a better layer API,
+      see https://castle-engine.io/roadmap#tiled_layers .
+      So eventually, we want to allow just using @code(MyMap.Layers[<layer-index>].Exists)
+      to hide/show layers. }
+    property Layers: TLayers read FLayers write SetLayers default AllLayers;
   end;
 
 {$endif read_interface}
