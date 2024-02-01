@@ -48,6 +48,10 @@ xcuserdata
 /.jenkins
 AndroidSigningProperties.txt
 
+# Visual Studio stuff
+.vs/
+*.vcxproj.user
+
 # cge build tool stuff
 castle-engine-output
 # Already included by *.res above
@@ -92,6 +96,11 @@ castle-game-engine-*.fpm
 /examples/curves/deprecated_space_filling_curve/draw_space_filling_curve
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/delphi/fmx/CastleFmx
+/examples/deprecated_library/build-qt_library_tester-*
+/examples/deprecated_library/cpp_winapi_library_tester/Debug
+/examples/deprecated_library/cpp_winapi_library_tester/Release
+/examples/deprecated_library/cpp_winapi_library_tester/x64
+/examples/deprecated_library/lazarus_library_tester/*.app
 /examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
 /examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/eye_of_beholder/eye_of_beholder
@@ -117,8 +126,6 @@ castle-game-engine-*.fpm
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
 /examples/isometric_game/isometric_game
 /examples/isometric_game_3d/isometric_game_3d
-/examples/deprecated_library/build-qt_library_tester-*
-/examples/deprecated_library/lazarus_library_tester/*.app
 /examples/deprecated_to_upgrade/isometric_game/isometric_game
 /examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
