@@ -841,22 +841,15 @@ begin
 end;
 
 function ApiReferenceUrl: String;
-// TODO: Make it possible to set from preferences, or make it just the default behavior?
-{.$define CASTLE_PREFER_OFFLINE_API_DOCS}
-
-{$ifdef CASTLE_PREFER_OFFLINE_API_DOCS}
 var
   LocalDocsPath: String;
-{$endif}
 begin
-  {$ifdef CASTLE_PREFER_OFFLINE_API_DOCS}
   if CastleEnginePath <> '' then
   begin
     LocalDocsPath := CastleEnginePath + 'doc' + PathDelim + 'reference' + PathDelim;
     if DirectoryExists(LocalDocsPath) then
       Exit(FilenameToUriSafe(LocalDocsPath));
   end;
-  {$endif}
 
   Result := 'https://castle-engine.io/apidoc/html/';
 end;
