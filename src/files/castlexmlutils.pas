@@ -142,13 +142,41 @@ type
 
     { Read from Element attribute value as color and returns @true,
       or (if there is no such attribute) returns @false
-      and does not modify Value. }
-    function AttributeColor(const AttrName: String; var Value: TCastleColor): boolean; overload;
+      and does not modify Value.
+
+      This can read a color value in any of these formats:
+
+      @unorderedList(
+        @item(Hexadecimal format, like set by @link(AttributeColorSet).)
+
+        @item(4D vector format, with 4 vector components in range 0..1,
+          separated by whitespace.
+          Like set by @link(AttributeSet AttributeSet(TVector4)) overload.)
+      )
+
+      In effect, you can write TCastleColor values to XML using
+      @link(AttributeSet) or @link(AttributeColorSet), they both can be read back
+      using this method. }
+    function AttributeColor(const AttrName: String; var Value: TCastleColor): Boolean; overload;
 
     { Read from Element attribute value as RGB color and returns @true,
       or (if there is no such attribute) returns @false
-      and does not modify Value. }
-    function AttributeColorRGB(const AttrName: String; var Value: TCastleColorRGB): boolean; overload;
+      and does not modify Value.
+
+      This can read a color value in any of these formats:
+
+      @unorderedList(
+        @item(Hexadecimal format, like set by @link(AttributeColorSet).)
+
+        @item(3D vector format, with 3 vector components in range 0..1,
+          separated by whitespace.
+          Like set by @link(AttributeSet AttributeSet(TVector3)) overload.)
+      )
+
+      In effect, you can write TCastleColorRGB values to XML using
+      @link(AttributeSet) or @link(AttributeColorSet), they both can be read back
+      using this method. }
+    function AttributeColorRGB(const AttrName: String; var Value: TCastleColorRGB): Boolean; overload;
 
     { Read from Element attribute as a 2D vector (2 floats), and returns @true,
       or (if there is no such attribute) returns @false
@@ -363,6 +391,14 @@ type
     { Set the attribute as TVector4,
       such that it's readable back by @link(AttributeVector4) and @link(AttributeVector4Def). }
     procedure AttributeSet(const AttrName: String; const Value: TVector4); overload;
+
+    { Set the attribute as TCastleColor converted to HEX string,
+      such that it's readable back by @link(AttributeColor) and @link(AttributeColorDef). }
+    procedure AttributeColorSet(const AttrName: String; const Value: TCastleColor); overload;
+
+    { Set the attribute as TCastleColorRGB converted to HEX string,
+      such that it's readable back by @link(AttributeColorRGB) and @link(AttributeColorRGBDef). }
+    procedure AttributeColorSet(const AttrName: String; const Value: TCastleColorRGB); overload;
 
     { Other methods ---------------------------------------------------------- }
 
@@ -653,7 +689,7 @@ procedure UrlWriteXML(Doc: TXMLDocument; const Url: String; const BlowFishKeyPhr
 implementation
 
 uses Classes, XMLRead, XMLWrite, {$ifdef FPC} BlowFish, {$endif}
-  CastleUriUtils, CastleClassUtils, CastleInternalFileMonitor;
+  CastleUriUtils, CastleClassUtils, CastleInternalFileMonitor, CastleStringUtils;
 
 { TDOMNodeHelper ------------------------------------------------------------- }
 
@@ -784,23 +820,33 @@ begin
 end;
 
 function TDOMElementHelper.AttributeColor(
-  const AttrName: String; var Value: TCastleColor): boolean;
+  const AttrName: String; var Value: TCastleColor): Boolean;
 var
   ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := HexToColor(ValueStr);
+  begin
+    if CountTokens(ValueStr) = 4 then
+      Value := Vector4FromStr(ValueStr)
+    else
+      Value := HexToColor(ValueStr);
+  end;
 end;
 
 function TDOMElementHelper.AttributeColorRGB(
-  const AttrName: String; var Value: TCastleColorRGB): boolean;
+  const AttrName: String; var Value: TCastleColorRGB): Boolean;
 var
   ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := HexToColorRGB(ValueStr);
+  begin
+    if CountTokens(ValueStr) = 3 then
+      Value := Vector3FromStr(ValueStr)
+    else
+      Value := HexToColorRGB(ValueStr);
+  end;
 end;
 
 function TDOMElementHelper.AttributeVector2(
@@ -1053,6 +1099,18 @@ end;
 procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: TVector4);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
+end;
+
+procedure TDOMElementHelper.AttributeColorSet(const AttrName: String;
+  const Value: TCastleColor);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(ColorToHex(Value)));
+end;
+
+procedure TDOMElementHelper.AttributeColorSet(const AttrName: String;
+  const Value: TCastleColorRGB);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(ColorRGBToHex(Value)));
 end;
 
 { ------------------------------------------------------------------------
