@@ -135,7 +135,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         else
             WaitMessage();
     }
-    return msg.wParam;
+    return (int)msg.wParam;
 }
 
 //-----------------------------------------------------------------------------
@@ -209,6 +209,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             break;
 
         case 'e':
+            CGE_SetNavigationType(ecgenavExamine);
+            break;
+
+        case 'o':
             {
                 int nVal = CGE_GetVariableInt(ecgevarEffectSSAO);
                 if (nVal < 0) nVal = 0;
