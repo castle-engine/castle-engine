@@ -1605,13 +1605,19 @@ begin
   IsToken := false;
   for I := 1 to Length(S) do
   begin
-    if IsToken and CharInSet(S[I], TokenDelims) then
-      IsToken := false
-    else
-    if not IsToken and not CharInSet(S[I], TokenDelims) then
+    if IsToken then
     begin
-      IsToken := true;
-      Inc(Result);
+      { Inside token? Then detect token end. }
+      if CharInSet(S[I], TokenDelims) then
+        IsToken := false;
+    end else
+    begin
+      { Not inside token? Then detect token begin. }
+      if not CharInSet(S[I], TokenDelims) then
+      begin
+        IsToken := true;
+        Inc(Result);
+      end;
     end;
   end;
 end;
