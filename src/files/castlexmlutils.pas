@@ -142,12 +142,40 @@ type
 
     { Read from Element attribute value as color and returns @true,
       or (if there is no such attribute) returns @false
-      and does not modify Value. }
+      and does not modify Value.
+
+      This can read a color value in any of these formats:
+
+      @unorderedList(
+        @item(Hexadecimal format, like set by @link(AttributeColorSet).)
+
+        @item(4D vector format, with 4 vector components in range 0..1,
+          separated by whitespace.
+          Like set by @link(AttributeSet AttributeSet(TVector4)) overload.)
+      )
+
+      In effect, you can write TCastleColor values to XML using
+      @link(AttributeSet) or @link(AttributeColorSet), they both can be read back
+      using this method. }
     function AttributeColor(const AttrName: String; var Value: TCastleColor): Boolean; overload;
 
     { Read from Element attribute value as RGB color and returns @true,
       or (if there is no such attribute) returns @false
-      and does not modify Value. }
+      and does not modify Value.
+
+      This can read a color value in any of these formats:
+
+      @unorderedList(
+        @item(Hexadecimal format, like set by @link(AttributeColorSet).)
+
+        @item(3D vector format, with 3 vector components in range 0..1,
+          separated by whitespace.
+          Like set by @link(AttributeSet AttributeSet(TVector3)) overload.)
+      )
+
+      In effect, you can write TCastleColorRGB values to XML using
+      @link(AttributeSet) or @link(AttributeColorSet), they both can be read back
+      using this method. }
     function AttributeColorRGB(const AttrName: String; var Value: TCastleColorRGB): Boolean; overload;
 
     { Read from Element attribute as a 2D vector (2 floats), and returns @true,
