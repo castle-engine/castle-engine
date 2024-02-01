@@ -50,14 +50,14 @@ type
       public
         PlayingSound: TCastlePlayingSound;
         constructor Create(const AOwner: TComponent; const APlayingSound: TCastlePlayingSound;
-          const UiTemplate: TSerializedComponent;
+          const UiFactory: TCastleComponentFactory;
           const GroupPlayingSounds: TCastleVerticalGroup); reintroduce;
       end;
 
       TPlayingSoundUiOwnerList = {$ifdef FPC}specialize{$endif} TObjectList<TPlayingSoundUiOwner>;
 
     var
-      PlayingSoundUiTemplate: TSerializedComponent;
+      PlayingSoundUiFactory: TCastleComponentFactory;
       PlayingSoundUiOwners: TPlayingSoundUiOwnerList;
     procedure ClickExit(Sender: TObject);
     procedure ClickPlayBuffer(Sender: TObject);
@@ -108,7 +108,7 @@ end;
 
 constructor TViewMain.TPlayingSoundUiOwner.Create(const AOwner: TComponent;
   const APlayingSound: TCastlePlayingSound;
-  const UiTemplate: TSerializedComponent;
+  const UiFactory: TCastleComponentFactory;
   const GroupPlayingSounds: TCastleVerticalGroup);
 var
   Ui: TCastleUserInterface;
@@ -119,7 +119,7 @@ begin
   PlayingSound := APlayingSound;
 
   // use Self as Owner of Ui, so below we just call Self.FindRequiredComponent
-  Ui := UiTemplate.UserInterfaceLoad(Self);
+  Ui := UiFactory.UserInterfaceLoad(Self);
   GroupPlayingSounds.InsertFront(Ui);
 
   LabelSoundName := FindRequiredComponent('LabelSoundName') as TCastleLabel;
@@ -211,13 +211,13 @@ begin
   AddSoundBufferButton('castle-data:/sounds/stereo_test.wav');
   AddSoundBufferButton('castle-data:/sounds/temple_adam_goh-44000Hz-16bit-mono.ogg');
 
-  PlayingSoundUiTemplate := TSerializedComponent.Create('castle-data:/part_playing_sound.castle-user-interface');
+  PlayingSoundUiFactory := TCastleComponentFactory.Create(FreeAtStop);
+  PlayingSoundUiFactory.Url := 'castle-data:/part_playing_sound.castle-user-interface';
 end;
 
 procedure TViewMain.Stop;
 begin
   FreeAndNil(PlayingSoundUiOwners);
-  FreeAndNil(PlayingSoundUiTemplate);
   inherited;
 end;
 
@@ -247,7 +247,7 @@ begin
   SoundEngine.Play(PlayingSound);
 
   PlayingSoundUiOwner := TPlayingSoundUiOwner.Create(FreeAtStop, PlayingSound,
-    PlayingSoundUiTemplate, GroupPlayingSounds);
+    PlayingSoundUiFactory, GroupPlayingSounds);
   PlayingSoundUiOwners.Add(PlayingSoundUiOwner);
 end;
 
