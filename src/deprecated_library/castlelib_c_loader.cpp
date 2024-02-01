@@ -180,7 +180,7 @@ void CGE_LoadLibrary()
     pfrd_CGE_GetBoundingBox = (PFNRD_CGE_GetBoundingBox)cge_GetProc(hCgeDll, "CGE_GetBoundingBox");
     pfrd_CGE_GetViewCoords = (PFNRD_CGE_GetViewCoords)cge_GetProc(hCgeDll, "CGE_GetViewCoords");
     pfrd_CGE_MoveViewToCoords = (PFNRD_CGE_MoveViewToCoords)cge_GetProc(hCgeDll, "CGE_MoveViewToCoords");
-    pfrd_CGE_SetNavigationInputShortcut = (PFNRD_CGE_SetNavigationInputShortcut)cge_GetProc(hCgeDll, "SetNavigationInputShortcut");
+    pfrd_CGE_SetNavigationInputShortcut = (PFNRD_CGE_SetNavigationInputShortcut)cge_GetProc(hCgeDll, "CGE_SetNavigationInputShortcut");
     pfrd_CGE_GetNavigationType = (PFNRD_CGE_GetNavigationType)cge_GetProc(hCgeDll, "CGE_GetNavigationType");
     pfrd_CGE_SetNavigationType = (PFNRD_CGE_SetNavigationType)cge_GetProc(hCgeDll, "CGE_SetNavigationType");
     pfrd_CGE_SetTouchInterface = (PFNRD_CGE_SetTouchInterface)cge_GetProc(hCgeDll, "CGE_SetTouchInterface");

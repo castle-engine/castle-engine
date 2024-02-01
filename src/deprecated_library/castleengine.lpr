@@ -946,6 +946,7 @@ exports
   CGE_KeyDown,
   CGE_KeyUp,
   CGE_LoadSceneFromFile,
+  CGE_SetNavigationInputShortcut,
   CGE_GetNavigationType,
   CGE_SetNavigationType,
   CGE_GetViewpointsCount,
