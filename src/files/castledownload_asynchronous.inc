@@ -21,15 +21,13 @@ type
 
   TDownloadFinishedEvent = procedure (const Sender: TCastleDownload; var FreeSender: Boolean) of object;
 
-  { Download an URL asynchronously, without blocking the application.
+  { Download an URL (possibly making an HTTP(S) request) asynchronously,
+    without blocking the application.
     You can register a callback @link(OnFinish) or watch
     when the @link(Status) property changes from dsDownloading to dsError or dsSuccess
     to detect when this finished downloading.
 
-    See the example
-    https://github.com/castle-engine/castle-engine/blob/master/examples/network/asynchronous_download/ .
-
-    Features:
+    @italic(Features:)
 
     @unorderedList(
       @item(The download can be observed (looking at @link(Status), @link(DownloadedBytes), @link(TotalBytes)).)
@@ -38,8 +36,38 @@ type
 
       @item(We can read MIME type from server (can be used throughout our engine to designate file type).)
 
-      @item(For downloading over HTTP, this is a way to make a full-featured HTTP(S) web request. You can specify HttpMethod, like GET, POST, PUT etc. For POST, you can provide form data as PostData. Arbitrary HTTP headers can be specified using AddHeader.)
+      @item(For downloading (making a request) using HTTP, this is a handful of additional features, to support downloading from modern web servers and using REST APIs:
+
+      @unorderedList(
+        @item(First of all, we support both HTTP and HTTPS on all platforms and compilers, through various backend (FpHttpClient, Indy, Delphi Net Client).)
+
+        @item(You can provide arbitrary HTTP headers using @link(HttpHeader). For example, various REST APIs require you to provide some key to authenticate through a custom HTTP header.)
+
+        @item(You can specify any @link(HttpMethod), like GET, POST, PUT and more. Default is naturally GET which is the standard method to just download the data.)
+
+        @item(For HTTP POST method, you can provide form data as @link(HttpPostData).)
+
+        @item(You can provide input data for any request using @link(HttpRequestBody). The most common use case is to provide a body for PUT requests, but it can be used for any request, e.g. to provide POST body overriding the @link(HttpPostData).)
+
+        @item(Once the download finishes, you can read @link(HttpResponseCode) and @link(HttpResponseHeaders).)
+
+        @item(By default, we follow HTTP/HTTPS redirects.)
+      )
     )
+
+    @italic(See examples:)
+
+    @unorderedList(
+      @item(@url(https://github.com/castle-engine/castle-engine/blob/master/examples/network/asynchronous_download/ asynchronous_download) to download resources asynchronously, downloading a few URLs and at the same time displaying an animation and progress bar.)
+
+      @item(@url(https://github.com/castle-engine/castle-engine/blob/master/examples/network/remote_logging/ remote_logging) to send logs to a remote server, using HTTP POST.)
+
+      @item(@url(https://github.com/castle-engine/castle-engine/tree/master/examples/network/put_data/ put_data to send HTTP PUT request.)
+
+      @item(And other examples in @url(https://github.com/castle-engine/castle-engine/tree/master/examples/network examples/network) subdirectory.)
+    )
+
+    @italic(Usage:)
 
     The download starts when you call @link(Start).
     Be sure to configure the properties, including @link(OnFinish),
