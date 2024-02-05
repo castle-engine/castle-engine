@@ -488,7 +488,7 @@ var
 
   procedure AddMacOSOptions;
   begin
-    if (Options.OS = darwin) and (Options.CPU = X86_64) then
+    if (Options.OS = darwin) and ((Options.CPU = X86_64) or (Options.CPU = Aarch64)) then
     begin
       // Lazarus passes such options to compile with Cocoa, so we do too. Do not seem necessary in practice.
       FpcOptions.Add('-k-framework');
@@ -1073,7 +1073,7 @@ begin
       - 2 times (for both Debug/Release, I would need a copy DebugMacOS and ReleaseMacOS)
       - and require it in all user projects (this is not acceptable).
     }
-    if (Options.OS = darwin) and (Options.CPU = X86_64) then
+    if (Options.OS = darwin) and ((Options.CPU = X86_64) or (Options.CPU = Aarch64)) then
       LazbuildOptions.Add('--widgetset=cocoa');
     LazbuildOptions.Add(LazarusProjectFile);
 
