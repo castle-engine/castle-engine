@@ -227,6 +227,8 @@ function StringToOS(const S : String) : TOS;
 var
   I : Integer;
 begin
+  if SameText(S, 'macos') then
+    Exit(Darwin);
   I := GetEnumValue(TypeInfo(TOS), S);
   if I = -1 then
     raise Exception.CreateFmt(SErrInvalidOS, [S]);
@@ -310,7 +312,7 @@ begin
     begin
       case OS of
         macosclassic: Extra := ' (classic MacOS, that ended with MacOS 9)';
-        darwin: Extra := ' (modern macOS 10.x, caled also Mac OS X)';
+        darwin: Extra := ' (or macos; modern macOS 10.x+, called also Mac OS X)';
         else Extra := '';
       end;
       Description := Description + '  ' + OSToString(OS) + Extra + NL;

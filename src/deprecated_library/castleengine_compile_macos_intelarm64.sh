@@ -12,7 +12,7 @@ mv libcastleengine.dylib libcastleengine.x86_64.dylib
 
 # Compile aarch64 slice
 castle-engine simple-compile \
-  --os=darwin --cpu=aarch64 \
+  --os=macos --cpu=aarch64 \
   --compiler-option=-fPIC \
   --compiler-option=-dCASTLE_WINDOW_LIBRARY \
   --verbose \
