@@ -5,8 +5,10 @@ set -eu
 # Compile the library as universal binary for macOS (x86_64 and arm64 slices).
 # ----------------------------------------------------------------------------
 
-# Compile x86_64 slice
+# Compile x86_64 slice, Apple Notarization requires at least SDK 10.9, so we set it here for fpc
+export MACOSX_DEPLOYMENT_TARGET=10.9.0
 bash castleengine_compile.sh
+unset MACOSX_DEPLOYMENT_TARGET
 
 mv libcastleengine.dylib libcastleengine.x86_64.dylib
 
