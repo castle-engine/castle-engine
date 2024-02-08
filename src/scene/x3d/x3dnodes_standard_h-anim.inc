@@ -155,6 +155,9 @@
     @bold(This note is not (yet) implemented in Castle Game Engine).
     We parse it, but we don't act on the information in any way. }
   THAnimMotionNode = class(TAbstractChildNode)
+  protected
+    function DefaultContainerFieldInContext(const Version: TX3DVersion;
+      const ParentNode: TX3DNode): String; override;
   {$I auto_generated_node_helpers/x3dnodes_hanimmotion.inc}
   end;
 
@@ -529,6 +532,17 @@ end;
 function THAnimJointNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
+end;
+
+{ THAnimMotionNode ----------------------------------------------------------- }
+
+function THAnimMotionNode.DefaultContainerFieldInContext(
+  const Version: TX3DVersion; const ParentNode: TX3DNode): String;
+begin
+  if ParentNode is THAnimHumanoidNode then // also checks ParentNode <> nil
+    Result := 'motions'
+  else
+    Result := 'children';
 end;
 
 { THAnimSegmentNode.THAnimSegmentNodeTransformFunctionality ---------------------------------------- }

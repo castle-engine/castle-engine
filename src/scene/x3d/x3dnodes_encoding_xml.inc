@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -319,7 +319,8 @@ begin
       (see demo_models/x3d/container_field_def_use.x3d).
       Each USE occurrence must specify suitable containerField or use class default. }
     if Result <> nil then
-      ContainerField := Result.DefaultContainerFieldInContext(Reader.Version)
+      ContainerField := Result.DefaultContainerFieldInContext(
+        Reader.Version, Reader.ParentNode as TX3DNode)
     else
       ContainerField := ''; { will not be used anyway }
     Element.AttributeString(SAttrContainerField, ContainerField);
@@ -339,7 +340,7 @@ end;
 
 { This parses a sequence of X3D statements: any number of nodes,
   (external) protypes, routes.
-  This is good to use to parse whole VRML file (when FileTopLevel = true),
+  This is good to use to parse whole X3D file (when FileTopLevel = true),
   or a (non-external) prototype content (when FileTopLevel = false).
 
   It's somewhat similar to classic ParseStatements.

@@ -29,6 +29,12 @@ X3DInfoNode : X3DChildNode {
 # following X3D spec, metadata may have metadata too.
 #
 # Note that we rename X3DMetadataObject -> X3DMetadataNode, makes it a natural class.
+#
+# default-container-field below for this node is actually ignored
+# when reading / writing X3D. We use instead
+# TAbstractMetadataNode.DefaultContainerFieldInContext
+# to account for the fact that X3D 3 and 4 changed it,
+# see https://github.com/castle-engine/view3dscene/issues/78 .
 
 X3DMetadataNode : X3DNode {
   default-container-field: metadata

@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -157,8 +157,11 @@
     procedure AddFunctionality(const F: TNodeFunctionality);
 
     { Use this instead of DefaultContainerField to account that containerField
-      may change depending on X3D version. }
-    function DefaultContainerFieldInContext(const Version: TX3DVersion): String; virtual;
+      may change depending on X3D version (like containerField of metadata nodes,
+      changed between X3D 3 and 4) or parent node (like containerField of
+      HAnimMotion). ParentNode may be @nil when it is at root. }
+    function DefaultContainerFieldInContext(
+      const Version: TX3DVersion; const ParentNode: TX3DNode): String; virtual;
   protected
     { Are VRML 1.0 children allowed.
       This condition is checked in VRML1ChildAdd, so it's strictly
@@ -1794,8 +1797,13 @@ var
   Handled: boolean;
   Position: Integer;
   ChildNode: TX3DNode;
+  SavedParentNode: TX3DNode;
 begin
   VRML1ChildrenClear;
+
+  // modify Reader.ParentNode to let DefaultContainerFieldInContext have this knowledge
+  SavedParentNode := Reader.ParentNode as TX3DNode;
+  Reader.ParentNode := Self;
 
   Position := 0;
 
@@ -1832,6 +1840,8 @@ begin
   FBaseUrl := Reader.BaseUrl;
 
   ParseAfter(Reader);
+
+  Reader.ParentNode := SavedParentNode;
 end;
 
 function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
@@ -2240,7 +2250,13 @@ var
           [X3DType]));
   end;
 
+var
+  SavedParentNode: TX3DNode;
 begin
+  // modify Reader.ParentNode to let DefaultContainerFieldInContext have this knowledge
+  SavedParentNode := Reader.ParentNode as TX3DNode;
+  Reader.ParentNode := Self;
+
   Position := 0;
   { The order below is important: first parse XML attributes,
     then elements, since VRML DEF mechanism says that DEF order
@@ -2252,6 +2268,8 @@ begin
   ParseXMLCdata;
 
   ParseAfter(Reader);
+
+  Reader.ParentNode := SavedParentNode;
 end;
 
 procedure TX3DNode.ParseAfter(Reader: TX3DReaderNames);
@@ -2849,13 +2867,20 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
     ElementName: string;
     ProtoInstance: boolean;
     NodeFields, ProtoFields: TCastleStringList;
+    SavedParentNode: TX3DNode;
   begin
     { Knowing CurrentContainerField and DefaultContainerField,
       we can always correctly set containerField= ourselves. }
     if (CurrentContainerField <> '') and
-       (CurrentContainerField <> DefaultContainerFieldInContext(Writer.Version)) then
-      WriteContainerField := ' containerField=' + StringToX3DXml(CurrentContainerField) else
+       (CurrentContainerField <>
+        DefaultContainerFieldInContext(Writer.Version, Writer.ParentNode as TX3DNode)) then
+      WriteContainerField := ' containerField=' + StringToX3DXml(CurrentContainerField)
+    else
       WriteContainerField := '';
+
+    // modify Reader.ParentNode to let DefaultContainerFieldInContext have this knowledge
+    SavedParentNode := Writer.ParentNode as TX3DNode;
+    Writer.ParentNode := Self;
 
     { For XML encoding, TX3DPrototypeNode is saved a little specially. }
     ProtoInstance := Self is TX3DPrototypeNode;
@@ -2961,6 +2986,8 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
 
       (Writer as TX3DWriterNames).NodeNames.Bind(Self, true);
     end;
+
+    Writer.ParentNode := SavedParentNode;
   end;
 
 begin
@@ -3646,7 +3673,8 @@ begin
   end;
 end;
 
-function TX3DNode.DefaultContainerFieldInContext(const Version: TX3DVersion): String;
+function TX3DNode.DefaultContainerFieldInContext(
+  const Version: TX3DVersion; const ParentNode: TX3DNode): String;
 begin
   Result := DefaultContainerField;
 end;
