@@ -567,16 +567,8 @@ begin
   { X3D 4.0 changed the containerField for MetadataXxx nodes,
     see https://github.com/castle-engine/view3dscene/issues/78 . }
   if Version.Major >= 4 then
-  begin
-    Result := 'value';
-    if not (ParentNode is TAbstractMetadataNode) then
-    begin
-      WritelnWarning('X3D', 'Using default containerField="value" for node %s, but the parent of this node is not a metadata node.' + NL +
-        '  This is possibly a mistake made during upgrading this model from X3D 3 to X3D 4. In X3D 4, the containerField of metadata nodes changed, you need to adjust containerField of metadata nodes -- they are required in diffent situations than in X3D 3.', [
-        NiceName
-      ]);
-    end;
-  end else
+    Result := 'value'
+  else
     Result := 'metadata';
 end;
 
