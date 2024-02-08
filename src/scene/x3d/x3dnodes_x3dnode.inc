@@ -155,6 +155,10 @@
     { Register new TNodeFunctionality instance to be returned by @link(Functionality),
       and automatically freed when this node is freed. }
     procedure AddFunctionality(const F: TNodeFunctionality);
+
+    { Use this instead of DefaultContainerField to account that containerField
+      may change depending on X3D version. }
+    function DefaultContainerFieldInContext(const Version: TX3DVersion): String; virtual;
   protected
     { Are VRML 1.0 children allowed.
       This condition is checked in VRML1ChildAdd, so it's strictly
@@ -2849,7 +2853,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
     { Knowing CurrentContainerField and DefaultContainerField,
       we can always correctly set containerField= ourselves. }
     if (CurrentContainerField <> '') and
-       (CurrentContainerField <> DefaultContainerField) then
+       (CurrentContainerField <> DefaultContainerFieldInContext(Writer.Version)) then
       WriteContainerField := ' containerField=' + StringToX3DXml(CurrentContainerField) else
       WriteContainerField := '';
 
@@ -3640,6 +3644,11 @@ begin
     WritelnWarning(NiceName, Message);
     WarningDone := true;
   end;
+end;
+
+function TX3DNode.DefaultContainerFieldInContext(const Version: TX3DVersion): String;
+begin
+  Result := DefaultContainerField;
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

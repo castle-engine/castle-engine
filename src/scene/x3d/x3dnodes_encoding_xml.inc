@@ -309,7 +309,7 @@ begin
 
     { calculate ContainerField.
 
-      Note that we do not diffentiate here between the case of <USE>
+      Note that we do not differentiate here between the case of <USE>
       element and real node element --- because that's the intention
       of X3D specification, in both situations element may have
       containerField attribute.
@@ -319,7 +319,8 @@ begin
       (see demo_models/x3d/container_field_def_use.x3d).
       Each USE occurrence must specify suitable containerField or use class default. }
     if Result <> nil then
-      ContainerField := Result.DefaultContainerField else
+      ContainerField := Result.DefaultContainerFieldInContext(Reader.Version)
+    else
       ContainerField := ''; { will not be used anyway }
     Element.AttributeString(SAttrContainerField, ContainerField);
 
