@@ -181,7 +181,7 @@ initialization
     as Register doesn't run on Delphi restart.
     TODO: Hm, but this also doesn't run on Delphi restart.}
   OnGetDesignTimeProjectPath := GetProjectPath;
-  DelphiIdeIntegration := TCastleDelphiIdeIntegration.Create(nil);
+  //DelphiIdeIntegration := TCastleDelphiIdeIntegration.Create(nil);
 finalization
   // When unloading the package, make sure to remove menu item
   FreeAndNil(DelphiIdeIntegration);
