@@ -50,6 +50,11 @@ implementation
 }
 
 uses SysUtils, Classes,
+  { In practice, this unit is Windows-only, just like Delphi IDE.
+    But we make some effort to use only cross-platform API,
+    and put platform-specific API under $ifdef, in the hope to use
+    in a cross-platform IDE some day. }
+  {$ifdef MSWINDOWS} Windows, ShellApi, {$endif}
   ToolsAPI, // design-time only unit
   Vcl.Menus, Vcl.Dialogs, Vcl.FileCtrl,
   CastleInternalDelphiUtils, CastleConfig, CastleApplicationProperties,
@@ -57,6 +62,9 @@ uses SysUtils, Classes,
 
 function GetProjectPath: String;
 begin
+  if GetActiveProject = nil then
+    raise Exception.Create('No active Delphi project');
+
   Result := ExtractFilePath(GetActiveProject.FileName);
 end;
 
@@ -215,6 +223,7 @@ begin
   begin
     FEnginePath := Value;
     UserConfig.SetDeleteValue('engine_path', FEnginePath, '');
+    UserConfig.Save;
   end;
 end;
 
@@ -257,9 +266,61 @@ begin
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickOpenEditor(Sender: TObject);
+
+  { Run process.
+    @param(Parameters Can specify multiple parameters,
+      suffering from the same weirdness as underlying Windows API
+      -- instead of taking a list of String,
+      all parameters are specified as one long String with parameters
+      separated by spaces and optionally surrounded by double quotes.) }
+  procedure ExecuteProcess(const ExeName, Parameters, WorkingDirectory: String);
+  {$ifdef MSWINDOWS}
+  var
+    ShExecInfo: TShellExecuteInfo;
+    Service: IOTAServices;
+  begin
+    if not FileExists(ExeName) then
+      raise Exception.CreateFmt('File to execute not found: "%s"', [ExeName]);
+
+    Service := BorlandIDEServices as IOTAServices;
+
+    FillChar(ShExecInfo, SizeOf(ShExecInfo), 0);
+    ShExecInfo.cbSize := SizeOf(ShExecInfo);
+    ShExecInfo.Wnd := Service.GetParentHandle;
+    ShExecInfo.lpVerb := 'open';
+    ShExecInfo.lpFile := PWideChar(ExeName);
+    ShExecInfo.lpParameters := PWideChar(Parameters);
+    ShExecInfo.lpDirectory := PWideChar(WorkingDirectory);
+    ShExecInfo.nShow := SW_SHOWNORMAL;
+    if not ShellExecuteEx(@ShExecInfo) then
+      RaiseLastOSError;
+  {$else}
+  begin
+    raise Exception.Create('Executing process not implemented on this platform');
+  {$endif}
+  end;
+
+var
+  ExeName, Proj, ProjManifest: String;
 begin
-  ShowMessage('TODO: Not implemented yet');
-  Exit;
+  // if this does not look like CGE project, abort before even asking for CGE location - this is less confusing
+  Proj := GetProjectPath;
+  ProjManifest := InclPathDelim(Proj) + 'CastleEngineManifest.xml';
+  if not FileExists(ProjManifest) then
+    raise Exception.CreateFmt('Missing CastleEngineManifest.xml, this does not look like a Castle Game Engine project: %s', [
+      Proj
+    ]);
+
+  // prompt to choose engine path, if not already chosen
+  if EnginePath = '' then
+    ClickChangeEnginePath(nil);
+
+  // if engire path chosen, run editor
+  if EnginePath <> '' then
+  begin
+    ExeName := InclPathDelim(EnginePath) + 'bin' + PathDelim + 'castle-editor' + ExeExtension;
+    ExecuteProcess(ExeName, '"' + ProjManifest + '"', Proj);
+  end;
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickAddPaths(Sender: TObject);
