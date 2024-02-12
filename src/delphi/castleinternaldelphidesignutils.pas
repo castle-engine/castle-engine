@@ -14,13 +14,16 @@
 }
 
 { Utilities for Delphi (both VCL and FMX), only design-time.
-  At registration, this sets OnGetDesignTimeProjectPath so that other code
-  (design-time or not only design-time) can use it, if assigned. }
+
+  - Sets OnGetDesignTimeProjectPath so that other code
+    (design-time or not only design-time) can use it, if assigned.
+
+  - Sets up Delphi IDE menu items to configure project for Castle Game Engine. }
 unit CastleInternalDelphiDesignUtils;
 
 interface
 
-procedure Register;
+//procedure Register;
 
 implementation
 
@@ -41,6 +44,9 @@ implementation
 
   See sources, e.g.
   C:\Program Files (x86)\Embarcadero\Studio\22.0\source\ToolsAPI\ToolsAPI.pas
+
+  See tests in
+  https://github.com/michaliskambi/delphi-test-package-design-features
 }
 
 uses SysUtils, Classes,
@@ -58,6 +64,7 @@ end;
 type
   TCastleDelphiIdeIntegration = class(TComponent)
   strict private
+    CgeMenu, ChangeEnginePathMenu, OpenEditorMenu, AddPathsMenu, RemovePathsMenu: TMenuItem;
     procedure ClickChangeEnginePath(Sender: TObject);
     procedure ClickOpenEditor(Sender: TObject);
     procedure ClickAddPaths(Sender: TObject);
@@ -70,9 +77,8 @@ type
 constructor TCastleDelphiIdeIntegration.Create(AOwner: TComponent);
 var
   Services: INTAServices;
-  CgeMenu, ChangeEnginePathMenu, OpenEditorMenu, AddPathsMenu, RemovePathsMenu: TMenuItem;
 begin
-  inherited ;
+  inherited;
   Services := BorlandIDEServices as INTAServices;
 
   ChangeEnginePathMenu := TMenuItem.Create(Self);
@@ -100,9 +106,22 @@ begin
 //  CgeMenu.Add(AddPathsMenu);
 //  CgeMenu.Add(RemovePathsMenu);
 
-  // Use hardcoded 'ToolsMenu', this is good acoording to
-  // https://docwiki.embarcadero.com/RADStudio/Athens/en/Adding_an_Item_to_the_Main_Menu_of_the_IDE
-  Services.AddActionMenu('ToolsMenu', nil, CgeMenu, true, true);
+  { Use hardcoded menu item name, like
+    - ToolsToolsItem ("Configure Tools")
+    - ToolsMenu ("Tools" from main menu)
+    - ViewTranslationManagerMenu ("Translation Manager")
+    This is the proper approach, acoording to
+    https://docwiki.embarcadero.com/RADStudio/Athens/en/Adding_an_Item_to_the_Main_Menu_of_the_IDE .
+
+    Note: Do not add menu items after "Configure Tools" (name 'ToolsToolsItem').
+    These will be removed when Delphi IDE is started, and replaced with
+    menu items that correspond to stuff confiured in "Configure Tools".
+    E.g. this will not work reliably, stuff will disappear after Delphi restart:
+
+      Services.AddActionMenu('ToolsToolsItem', nil, CgeMenu, true, true);
+
+    So a custom "Tools" submenu should be added before "Configure Tools". }
+  Services.AddActionMenu('ViewTranslationManagerMenu', nil, CgeMenu, true, false);
 
   { We can add submenu items using CgeMenu.Add (see above) or by adding
     using Services.AddActionMenu.
@@ -115,16 +134,42 @@ end;
 
 destructor TCastleDelphiIdeIntegration.Destroy;
 begin
-  // will automatically free menu items owned by this
+  { Note: It seems that CgeMenu is not removed from ToolsMenu automatically when
+    TTestDelphiIdeIntegration instance is destroyed,
+    even when CgeMenu is owned by TTestDelphiIdeIntegration (was created as
+    "CgeMenu := TMenuItem.Create(Self)").
+    Freing it explicitly here works.
+
+    Note that we shouldn't free subitems like ChangeEnginePathMenu,
+    they will be freed automatically
+    (trying to free them would result in invalid pointer exceptions).
+
+    Why? It seems Delphi IDE does something funny and changes ownership
+    of items added using Services.AddActionMenu -- so they are owned by their parents
+    effectively?
+
+    We create them all now with Owner=nil, to avoid confusion.
+  }
+
+  FreeAndNil(CgeMenu);
+  // FreeAndNil(ChangeEnginePathMenu);
+  // FreeAndNil(OpenEditorMenu);
+  // FreeAndNil(AddPathsMenu);
+  // FreeAndNil(RemovePathsMenu);
+
   inherited;
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickChangeEnginePath(Sender: TObject);
 begin
+  ShowMessage('TODO: Not implemented yet');
+  Exit;
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickOpenEditor(Sender: TObject);
 begin
+  ShowMessage('TODO: Not implemented yet');
+  Exit;
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickAddPaths(Sender: TObject);
@@ -134,7 +179,8 @@ var
   Report: TStringList;
   ReportFileName, ValueStr: String;
 begin
-  ShowMessage('hello from menu item');
+  ShowMessage('TODO: Not implemented yet');
+  Exit;
 
   Report := TStringList.Create;
   try
@@ -165,6 +211,8 @@ end;
 
 procedure TCastleDelphiIdeIntegration.ClickRemovePaths(Sender: TObject);
 begin
+  ShowMessage('TODO: Not implemented yet');
+  Exit;
 end;
 
 { initialization / finalization ---------------------------------------------- }
@@ -172,17 +220,23 @@ end;
 var
   DelphiIdeIntegration: TCastleDelphiIdeIntegration;
 
-procedure Register;
-begin
-end;
+// procedure Register;
+// begin
+// end;
 
 initialization
-  { Do this in initialization, not in Register,
-    as Register doesn't run on Delphi restart.
-    TODO: Hm, but this also doesn't run on Delphi restart.}
+  { It seems it doesn't matter do we put this in Register or unit initialization.
+    Sample on
+    https://docwiki.embarcadero.com/CodeExamples/Athens/en/Third-Party_Help_Menu_Item_(Delphi)
+    does this in unit initilization / finalization, so we follow it, }
   OnGetDesignTimeProjectPath := GetProjectPath;
-  //DelphiIdeIntegration := TCastleDelphiIdeIntegration.Create(nil);
+  DelphiIdeIntegration := TCastleDelphiIdeIntegration.Create(nil);
+
+  // Does not seem necessary in practice, so not doing this.
+  { Without this, package is loaded (and so menu items added) only once
+    CGE component is accessed. }
+  // ForceDemandLoadState(dlDisable);
 finalization
-  // When unloading the package, make sure to remove menu item
+  // When unloading the package, make sure to remove menu items
   FreeAndNil(DelphiIdeIntegration);
 end.
