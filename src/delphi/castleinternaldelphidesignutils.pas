@@ -51,8 +51,9 @@ implementation
 
 uses SysUtils, Classes,
   ToolsAPI, // design-time only unit
-  Vcl.Menus, Vcl.Dialogs,
-  CastleInternalDelphiUtils;
+  Vcl.Menus, Vcl.Dialogs, Vcl.FileCtrl,
+  CastleInternalDelphiUtils, CastleConfig, CastleApplicationProperties,
+  CastleUtils;
 
 function GetProjectPath: String;
 begin
@@ -64,7 +65,17 @@ end;
 type
   TCastleDelphiIdeIntegration = class(TComponent)
   strict private
+    FEnginePath: String;
+    FEnginePathInitialized: Boolean;
     CgeMenu, ChangeEnginePathMenu, OpenEditorMenu, AddPathsMenu, RemovePathsMenu: TMenuItem;
+
+    procedure EnsureConfigInitialized;
+
+    function GetEnginePath: String;
+    procedure SetEnginePath(const Value: String);
+    property EnginePath: String read GetEnginePath write SetEnginePath;
+
+    { Menu item handlers. }
     procedure ClickChangeEnginePath(Sender: TObject);
     procedure ClickOpenEditor(Sender: TObject);
     procedure ClickAddPaths(Sender: TObject);
@@ -160,10 +171,89 @@ begin
   inherited;
 end;
 
-procedure TCastleDelphiIdeIntegration.ClickChangeEnginePath(Sender: TObject);
+procedure TCastleDelphiIdeIntegration.EnsureConfigInitialized;
 begin
-  ShowMessage('TODO: Not implemented yet');
-  Exit;
+  { Read our config file on demand.
+
+      Reason: for robustness: in initialization / finalization of this unit,
+      we try to do as little as possible, because this happens when Delphi IDE
+      starts / stops, and any errors are hard to debug there
+      (hard to even pinpoint "this is CGE code fault").
+      We prefer to do all possible work in response to use clicking
+      on CGE menu items.
+
+    We store our config in CGE UserConfig.
+    We do not use registry and Delphi GetBaseRegistryKey.
+
+      Reason: It is actually nice that CGE config is cross-Delphi-version.
+      And this way we can read it easily from other CGE code,
+      if it will ever be needed (but we don't plan to need it -- CGE
+      path set in Delphi should be independent from everything else,
+      to be simple).
+  }
+  if not FEnginePathInitialized then
+  begin
+    FEnginePathInitialized := true;
+    ApplicationProperties.ApplicationName := 'delphi_ide_with_castle_game_engine';
+    UserConfig.Load;
+    FEnginePath := UserConfig.GetValue('engine_path', '');
+  end;
+  Assert(FEnginePathInitialized);
+end;
+
+function TCastleDelphiIdeIntegration.GetEnginePath: String;
+begin
+  EnsureConfigInitialized;
+  Result := FEnginePath;
+end;
+
+procedure TCastleDelphiIdeIntegration.SetEnginePath(const Value: String);
+begin
+  // make sure we initialized UserConfig
+  EnsureConfigInitialized;
+  if FEnginePath <> Value then
+  begin
+    FEnginePath := Value;
+    UserConfig.SetDeleteValue('engine_path', FEnginePath, '');
+  end;
+end;
+
+procedure TCastleDelphiIdeIntegration.ClickChangeEnginePath(Sender: TObject);
+var
+  S: String;
+  Directories: TArray<string>;
+begin
+  S := EnginePath;
+
+  { Note: Delphi has 3 SelectDirectory overloads with vastly different UI,
+    see http://docwiki.embarcadero.com/Libraries/Sydney/en/Vcl.FileCtrl.SelectDirectory . }
+
+  { Do not use this style: Looks really dated.
+  if SelectDirectory(S, [], 0) then
+    EnginePath := S;
+  }
+
+  { Do not use this style:
+
+    The validation message is bad UX, main Delphi IDE form is then
+    shown, but modal form to choose another directory blocks it.
+    Maybe it is better if one passes non-nil Parent (last parameter),
+    but we don't have it, we only have Services.GetParentHandle:HWND.
+    (from IOTAServices)
+
+  if SelectDirectory('Castle Game Engine Path', '', S,
+      [sdShowEdit, sdNewUI, sdValidateDir], nil) then
+  }
+
+  if SelectDirectory('', Directories, [], 'Castle Game Engine Path') then
+  begin
+    S := Directories[0];
+    if not SysUtils.DirectoryExists(S) then
+      raise Exception.CreateFmt('Directory "%s" does not exist', [S]);
+    if not SysUtils.DirectoryExists(InclPathDelim(S) + 'src') then
+      raise Exception.CreateFmt('Directory "%s" does not look like CGE root directory, missing "src" subdirectory', [S]);
+    EnginePath := S;
+  end;
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickOpenEditor(Sender: TObject);
