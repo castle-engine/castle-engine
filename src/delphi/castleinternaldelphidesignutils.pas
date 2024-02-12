@@ -58,7 +58,7 @@ uses SysUtils, Classes,
   ToolsAPI, // design-time only unit
   Vcl.Menus, Vcl.Dialogs, Vcl.FileCtrl,
   CastleInternalDelphiUtils, CastleConfig, CastleApplicationProperties,
-  CastleUtils;
+  CastleUtils, CastleInternalTools, CastleStringUtils;
 
 function GetProjectPath: String;
 begin
@@ -82,6 +82,14 @@ type
     function GetEnginePath: String;
     procedure SetEnginePath(const Value: String);
     property EnginePath: String read GetEnginePath write SetEnginePath;
+
+    { Does given project source dir (absolute or relative to GetProjectPath)
+      is equal to EngineSrcDir (relative to CGE src/).
+      Tolerates various ways how the paths can be written,
+      to avoid adding duplicates (in ClickAddPaths)
+      and to remove correctly (in ClickRemovePaths). }
+    function ProjectDirIsEngineDir(
+      const ProjectSrcDir, EngineSrcDir, EngineRelativeToProject: String): Boolean;
 
     { Menu item handlers. }
     procedure ClickChangeEnginePath(Sender: TObject);
@@ -323,47 +331,148 @@ begin
   end;
 end;
 
+function TCastleDelphiIdeIntegration.ProjectDirIsEngineDir(
+  const ProjectSrcDir, EngineSrcDir, EngineRelativeToProject: String): Boolean;
+
+  { Normalize directory: only slashes (no \), and not ending with / or \. }
+  function NormalizePath(const S: String): String;
+  begin
+    Result := ExclPathDelim(S);
+    Result := SReplaceChars(Result, '\', '/');
+  end;
+
+var
+  ProjectSrcDirNormalized: String;
+begin
+  ProjectSrcDirNormalized := NormalizePath(ProjectSrcDir);
+  Result :=
+    SameFileName(ProjectSrcDirNormalized, NormalizePath(InclPathDelim(EnginePath) + 'src' + PathDelim + EngineSrcDir)) or
+    SameFileName(ProjectSrcDirNormalized, NormalizePath(InclPathDelim(EngineRelativeToProject) + 'src' + PathDelim + EngineSrcDir));
+end;
+
 procedure TCastleDelphiIdeIntegration.ClickAddPaths(Sender: TObject);
 var
-  OptionName: TOTAOptionName;
-  ProjectOptions: IOTAProjectOptions;
-  Report: TStringList;
-  ReportFileName, ValueStr: String;
-begin
-  ShowMessage('TODO: Not implemented yet');
-  Exit;
+  AddedCount: Cardinal;
 
-  Report := TStringList.Create;
-  try
-    ProjectOptions := GetActiveProject.ProjectOptions;
-
-    for OptionName in ProjectOptions.GetOptionNames do
+  { Add EngineSrcDir (relative to CGE src/) to project source paths, unless
+    it is there already. }
+  procedure AddEngineSrcDir(const EngineSrcDir: String; const ProjectSrcDirs: TStringList;
+    const EngineRelativeToProject: String);
+  var
+    HasEngineSrcDir: Boolean;
+    ProjectSrcDir, NewDir: String;
+  begin
+    HasEngineSrcDir := false;
+    for ProjectSrcDir in ProjectSrcDirs do
+      if ProjectDirIsEngineDir(ProjectSrcDir, EngineSrcDir,
+           EngineRelativeToProject) then
+        HasEngineSrcDir := true;
+    if not HasEngineSrcDir then
     begin
-      try
-        ValueStr := ProjectOptions.Values[OptionName.Name];
-      except
-        ValueStr := 'Error reading as String';
-      end;
-      Report.Append(Format('%s: %s', [
-        OptionName.Name,
-        ValueStr
-      ]));
+      NewDir := InclPathDelim(EnginePath) + 'src' + PathDelim + EngineSrcDir;
+      { Use platform-specific path delimiter consistently, to look nice.
+        Do not use /, since Delphi IDE uses \ in project options by convention,
+        so we want our paths to look consistent. }
+      NewDir := SReplaceChars(NewDir, '/', PathDelim);
+      ProjectSrcDirs.Add(NewDir);
+      Inc(AddedCount);
     end;
+  end;
 
-    ReportFileName := 'd:/cygwin64/tmp/' + IntToStr(Random(100000));
-    Report.SaveToFile(ReportFileName);
+var
+  EngineSrcDir, EngineRelativeToProject: String;
+  ProjectSrcDirs: TStringList;
+begin
+  if GetActiveProject = nil then
+    raise Exception.Create('No active Delphi project');
 
-    ShowMessage(Format('Found %d options, saved to %s', [
-      Length(ProjectOptions.GetOptionNames),
-      ReportFileName
-    ]));
-  finally FreeAndNil(Report) end;
+  // prompt to choose engine path, if not already chosen
+  if EnginePath = '' then
+    ClickChangeEnginePath(nil);
+
+  if EnginePath <> '' then
+  begin
+    ProjectSrcDirs := TStringList.Create;
+    try
+      ProjectSrcDirs.Delimiter := ';';
+      ProjectSrcDirs.DelimitedText  := GetActiveProject.ProjectOptions.Values['SrcDir'];
+      { calculate it once, otherwise every ProjectDirIsEngineDir would need to do this }
+      EngineRelativeToProject := ExtractRelativePath(GetProjectPath, EnginePath);
+      AddedCount := 0;
+
+      for EngineSrcDir in EnginePaths do
+        AddEngineSrcDir(EngineSrcDir, ProjectSrcDirs, EngineRelativeToProject);
+      for EngineSrcDir in EnginePathsDelphi do
+        AddEngineSrcDir(EngineSrcDir, ProjectSrcDirs, EngineRelativeToProject);
+
+      if AddedCount <> 0 then
+      begin
+        GetActiveProject.ProjectOptions.Values['SrcDir'] := ProjectSrcDirs.DelimitedText;
+        ShowMessageFmt('Added %d paths to the project source directories', [AddedCount]);
+      end else
+        ShowMessage('No paths added, the project already uses the engine correctly');
+    finally FreeAndNil(ProjectSrcDirs) end;
+  end;
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickRemovePaths(Sender: TObject);
+
+  { Is project source path equivalent to some engine standard dir. }
+  function ProjectDirIsSomeEngineDir(const ProjectSrcDir, EngineRelativeToProject: String): Boolean;
+  var
+    EngineSrcDir: String;
+  begin
+    for EngineSrcDir in EnginePaths do
+      if ProjectDirIsEngineDir(ProjectSrcDir, EngineSrcDir, EngineRelativeToProject) then
+        Exit(true);
+    for EngineSrcDir in EnginePathsDelphi do
+      if ProjectDirIsEngineDir(ProjectSrcDir, EngineSrcDir, EngineRelativeToProject) then
+        Exit(true);
+    Result := false;
+  end;
+
+var
+  RemovedCount: Cardinal;
+  EngineRelativeToProject: String;
+  ProjectSrcDirs: TStringList;
+  I: Integer;
 begin
-  ShowMessage('TODO: Not implemented yet');
-  Exit;
+  if GetActiveProject = nil then
+    raise Exception.Create('No active Delphi project');
+
+  // prompt to choose engine path, if not already chosen
+  if EnginePath = '' then
+    ClickChangeEnginePath(nil);
+
+  if EnginePath <> '' then
+  begin
+    ProjectSrcDirs := TStringList.Create;
+    try
+      ProjectSrcDirs.Delimiter := ';';
+      ProjectSrcDirs.DelimitedText  := GetActiveProject.ProjectOptions.Values['SrcDir'];
+      { calculate it once, otherwise every ProjectDirIsEngineDir would need to do this }
+      EngineRelativeToProject := ExtractRelativePath(GetProjectPath, EnginePath);
+      RemovedCount := 0;
+
+      I := 0;
+      while I < ProjectSrcDirs.Count do
+      begin
+        if ProjectDirIsSomeEngineDir(ProjectSrcDirs[I], EngineRelativeToProject) then
+        begin
+          ProjectSrcDirs.Delete(I);
+          Inc(RemovedCount);
+        end else
+          Inc(I);
+      end;
+
+      if RemovedCount <> 0 then
+      begin
+        GetActiveProject.ProjectOptions.Values['SrcDir'] := ProjectSrcDirs.DelimitedText;
+        ShowMessageFmt('Removed %d paths from the project source directories', [RemovedCount]);
+      end else
+        ShowMessage('No paths removed, the project did not use the engine');
+    finally FreeAndNil(ProjectSrcDirs) end;
+  end;
 end;
 
 { initialization / finalization ---------------------------------------------- }
