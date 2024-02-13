@@ -345,9 +345,11 @@ begin
   Proj := GetProjectPath;
   ProjManifest := InclPathDelim(Proj) + 'CastleEngineManifest.xml';
   if not FileExists(ProjManifest) then
-    raise Exception.CreateFmt('Missing CastleEngineManifest.xml, this does not look like a Castle Game Engine project: %s', [
-      Proj
-    ]);
+    raise Exception.CreateFmt('Missing CastleEngineManifest.xml.' + NL + NL +
+      'To open project using Castle Game Engine editor, it needs to have CastleEngineManifest.xml file. See the https://castle-engine.io/control_on_form for details.' + NL + NL +
+      'Project path: %s', [
+        Proj
+      ]);
 
   // prompt to choose engine path, if not already chosen
   if EnginePath = '' then
