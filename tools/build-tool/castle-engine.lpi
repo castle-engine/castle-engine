@@ -11,6 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InIDEConfig"/>
+      <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
     <BuildModes Count="1">

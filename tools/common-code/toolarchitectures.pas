@@ -33,6 +33,8 @@ type
     targetIOS,
     { Target all relevant Android combinations of OS/CPU. }
     targetAndroid,
+    { Target all relevant macOS combinations of OS/CPU. }
+    targetMacOS,
     { Build an application for Nintendo Switch. }
     targetNintendoSwitch
   );
@@ -236,7 +238,7 @@ begin
 end;
 
 const
-  TargetNames: array [TTarget] of string = ('custom', 'ios', 'android', 'nintendo-switch');
+  TargetNames: array [TTarget] of string = ('custom', 'ios', 'android', 'macos', 'nintendo-switch');
 
 function TargetToString(const Target : TTarget): string;
 begin
@@ -274,6 +276,8 @@ begin
     '- "ios": Build for all the platforms necessary for iOS applications. This includes both 32-bit and 64-bit iOS devices and iPhoneSimulator.' +NL+
     NL +
     '- "android": Build for all the platforms necessary for Android applications. This includes both 32-bit and 64-bit Android devices.' +NL+
+    NL +
+    '- "macos": Build a universal executable or library for macos. This includes both Intel 64-bit and ARM 64-bit binary.' +NL+
     NL +
     '- "nintendo-switch": Build an application for Nintendo Switch.' +NL+
     '');
