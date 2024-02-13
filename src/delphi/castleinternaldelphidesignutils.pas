@@ -71,6 +71,14 @@ begin
   Result := ExtractFilePath(GetActiveProject.FileName);
 end;
 
+{ Get the current project CastleEngineManifest.xml filename,
+  but *without yet checking does it actually exist (so it may not be a CGE project at all).
+  Exception if no project is open now. }
+function GetPotentialProjectCastleManifest: String;
+begin
+  Result := InclPathDelim(GetProjectPath) + 'CastleEngineManifest.xml';
+end;
+
 { Run a process.
   Does not wait for process to finish,
   does not capture any process output (stdout, stderr),
@@ -117,6 +125,39 @@ begin
 {$endif}
 end;
 
+{ TCompileNotifier ----------------------------------------------------------- }
+
+type
+  TProjectCompileFinishedEvent = procedure(
+    const Project: IOTAProject; const Result: TOTACompileResult) of object;
+
+  TCompileNotifier = class(TComponent, IOTACompileNotifier)
+  public
+    OnProjectCompileFinished: TProjectCompileFinishedEvent;
+    procedure ProjectCompileStarted(const Project: IOTAProject; Mode: TOTACompileMode);
+    procedure ProjectCompileFinished(const Project: IOTAProject; Result: TOTACompileResult);
+    procedure ProjectGroupCompileStarted(Mode: TOTACompileMode);
+    procedure ProjectGroupCompileFinished(Result: TOTACompileResult);
+  end;
+
+procedure TCompileNotifier.ProjectCompileStarted(const Project: IOTAProject; Mode: TOTACompileMode);
+begin
+end;
+
+procedure TCompileNotifier.ProjectCompileFinished(const Project: IOTAProject; Result: TOTACompileResult);
+begin
+  if Assigned(OnProjectCompileFinished) then
+    OnProjectCompileFinished(Project, Result);
+end;
+
+procedure TCompileNotifier.ProjectGroupCompileStarted(Mode: TOTACompileMode);
+begin
+end;
+
+procedure TCompileNotifier.ProjectGroupCompileFinished(Result: TOTACompileResult);
+begin
+end;
+
 { TCastleDelphiIdeIntegration ----------------------------------------------- }
 
 type
@@ -130,11 +171,18 @@ type
     ActionSetEnginePath, ActionOpenEditor, ActionAddPaths, ActionRemovePaths,
       ActionWebsite, ActionApiReference, ActionDonate: TAction;
 
+    CompileNotifier: TCompileNotifier;
+    CompileNotifierIndexInitialized: Boolean;
+    CompileNotifierIndex: Integer;
+
     procedure EnsureConfigInitialized;
 
     function GetEnginePath: String;
     procedure SetEnginePath(const Value: String);
     property EnginePath: String read GetEnginePath write SetEnginePath;
+
+    procedure ProjectCompileFinished(const Project: IOTAProject;
+      const Result: TOTACompileResult);
 
     { Does given project source dir (absolute or relative to GetProjectPath)
       is equal to EngineSrcDir (relative to CGE src/).
@@ -159,100 +207,140 @@ type
   end;
 
 constructor TCastleDelphiIdeIntegration.Create(AOwner: TComponent);
-var
-  Services: INTAServices;
-  MenuSeparator: TMenuItem;
+
+  procedure InitializeMenu;
+  var
+    Services: INTAServices;
+    MenuSeparator: TMenuItem;
+  begin
+    if not Supports(BorlandIDEServices, INTAServices, Services) then
+      Exit;
+
+    ActionSetEnginePath := TAction.Create(Self);
+    ActionSetEnginePath.Caption := 'Set Engine Path...';
+    ActionSetEnginePath.OnExecute := ClickSetEnginePath;
+    MenuSetEnginePath := TMenuItem.Create(Self);
+    MenuSetEnginePath.Action := ActionSetEnginePath;
+
+    ActionOpenEditor := TAction.Create(Self);
+    ActionOpenEditor.Caption := 'Open Editor';
+    ActionOpenEditor.OnExecute := ClickOpenEditor;
+    ActionOpenEditor.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
+    MenuOpenEditor := TMenuItem.Create(Self);
+    MenuOpenEditor.Action := ActionOpenEditor;
+
+    ActionAddPaths := TAction.Create(Self);
+    ActionAddPaths.Caption := 'Configure Currrent Project to Use Engine';
+    ActionAddPaths.OnExecute := ClickAddPaths;
+    ActionAddPaths.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
+    MenuAddPaths := TMenuItem.Create(Self);
+    MenuAddPaths.Action := ActionAddPaths;
+
+    ActionRemovePaths := TAction.Create(Self);
+    ActionRemovePaths.Caption := 'Remove Engine Configuration from the Currrent Project';
+    ActionRemovePaths.OnExecute := ClickRemovePaths;
+    ActionRemovePaths.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
+    MenuRemovePaths := TMenuItem.Create(Self);
+    MenuRemovePaths.Action := ActionRemovePaths;
+
+    MenuSeparator := TMenuItem.Create(Self);
+    MenuSeparator.Caption := '-';
+
+    ActionWebsite := TAction.Create(Self);
+    ActionWebsite.Caption := 'Documentation';
+    ActionWebsite.OnExecute := ClickWebsite;
+    MenuWebsite := TMenuItem.Create(Self);
+    MenuWebsite.Action := ActionWebsite;
+
+    ActionApiReference := TAction.Create(Self);
+    ActionApiReference.Caption := 'API Reference';
+    ActionApiReference.OnExecute := ClickApiReference;
+    MenuApiReference := TMenuItem.Create(Self);
+    MenuApiReference.Action := ActionApiReference;
+
+    ActionDonate := TAction.Create(Self);
+    ActionDonate.Caption := 'Support us on Patreon';
+    ActionDonate.OnExecute := ClickDonate;
+    MenuDonate := TMenuItem.Create(Self);
+    MenuDonate.Action := ActionDonate;
+
+    MenuEngineRoot := TMenuItem.Create(Self);
+    MenuEngineRoot.Caption := 'Castle Game Engine';
+    MenuEngineRoot.Name := 'CastleGameEngineMenu';
+
+    { Use hardcoded menu item name, like
+      - ToolsToolsItem ("Configure Tools")
+      - ToolsMenu ("Tools" from main menu)
+      - ViewTranslationManagerMenu ("Translation Manager")
+      This is the proper approach, acoording to
+      https://docwiki.embarcadero.com/RADStudio/Athens/en/Adding_an_Item_to_the_Main_Menu_of_the_IDE .
+
+      Note: Do not add menu items after "Configure Tools" (name 'ToolsToolsItem').
+      These will be removed when Delphi IDE is started, and replaced with
+      menu items that correspond to stuff confiured in "Configure Tools".
+      E.g. this will not work reliably, stuff will disappear after Delphi restart:
+
+        Services.AddActionMenu('ToolsToolsItem', nil, MenuEngineRoot, true, true);
+
+      So a custom "Tools" submenu should be added before "Configure Tools". }
+    Services.AddActionMenu('ViewTranslationManagerMenu', nil, MenuEngineRoot, true, false);
+
+    { We can add submenu items using MenuEngineRoot.Add (see above) or by adding
+      using Services.AddActionMenu.
+      There doesn't seem to be any difference. }
+    // MenuEngineRoot.Add(MenuSetEnginePath);
+    // MenuEngineRoot.Add(MenuOpenEditor);
+    // MenuEngineRoot.Add(MenuAddPaths);
+    // MenuEngineRoot.Add(MenuRemovePaths);
+    Services.AddActionMenu('CastleGameEngineMenu', ActionSetEnginePath, MenuSetEnginePath, true, true);
+    Services.AddActionMenu('CastleGameEngineMenu', ActionOpenEditor, MenuOpenEditor, true, true);
+    Services.AddActionMenu('CastleGameEngineMenu', ActionAddPaths, MenuAddPaths, true, true);
+    Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePaths, MenuRemovePaths, true, true);
+    Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator, true, true);
+    Services.AddActionMenu('CastleGameEngineMenu', ActionWebsite, MenuWebsite, true, true);
+    Services.AddActionMenu('CastleGameEngineMenu', ActionApiReference, MenuApiReference, true, true);
+    Services.AddActionMenu('CastleGameEngineMenu', ActionDonate, MenuDonate, true, true);
+  end;
+
+  procedure InitializeCompileNotification;
+  var
+    Services: IOTACompileServices;
+  begin
+    if not Supports(BorlandIDEServices, IOTACompileServices, Services) then
+      Exit;
+
+    CompileNotifier := TCompileNotifier.Create(Self);
+    CompileNotifier.OnProjectCompileFinished := ProjectCompileFinished;
+    CompileNotifierIndex := Services.AddNotifier(CompileNotifier);
+    CompileNotifierIndexInitialized := true;
+  end;
+
 begin
   inherited;
-  Services := BorlandIDEServices as INTAServices;
-
-  ActionSetEnginePath := TAction.Create(Self);
-  ActionSetEnginePath.Caption := 'Set Engine Path...';
-  ActionSetEnginePath.OnExecute := ClickSetEnginePath;
-  MenuSetEnginePath := TMenuItem.Create(Self);
-  MenuSetEnginePath.Action := ActionSetEnginePath;
-
-  ActionOpenEditor := TAction.Create(Self);
-  ActionOpenEditor.Caption := 'Open Editor';
-  ActionOpenEditor.OnExecute := ClickOpenEditor;
-  ActionOpenEditor.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
-  MenuOpenEditor := TMenuItem.Create(Self);
-  MenuOpenEditor.Action := ActionOpenEditor;
-
-  ActionAddPaths := TAction.Create(Self);
-  ActionAddPaths.Caption := 'Configure Currrent Project to Use Engine';
-  ActionAddPaths.OnExecute := ClickAddPaths;
-  ActionAddPaths.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
-  MenuAddPaths := TMenuItem.Create(Self);
-  MenuAddPaths.Action := ActionAddPaths;
-
-  ActionRemovePaths := TAction.Create(Self);
-  ActionRemovePaths.Caption := 'Remove Engine Configuration from the Currrent Project';
-  ActionRemovePaths.OnExecute := ClickRemovePaths;
-  ActionRemovePaths.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
-  MenuRemovePaths := TMenuItem.Create(Self);
-  MenuRemovePaths.Action := ActionRemovePaths;
-
-  MenuSeparator := TMenuItem.Create(Self);
-  MenuSeparator.Caption := '-';
-
-  ActionWebsite := TAction.Create(Self);
-  ActionWebsite.Caption := 'Documentation';
-  ActionWebsite.OnExecute := ClickWebsite;
-  MenuWebsite := TMenuItem.Create(Self);
-  MenuWebsite.Action := ActionWebsite;
-
-  ActionApiReference := TAction.Create(Self);
-  ActionApiReference.Caption := 'API Reference';
-  ActionApiReference.OnExecute := ClickApiReference;
-  MenuApiReference := TMenuItem.Create(Self);
-  MenuApiReference.Action := ActionApiReference;
-
-  ActionDonate := TAction.Create(Self);
-  ActionDonate.Caption := 'Support us on Patreon';
-  ActionDonate.OnExecute := ClickDonate;
-  MenuDonate := TMenuItem.Create(Self);
-  MenuDonate.Action := ActionDonate;
-
-  MenuEngineRoot := TMenuItem.Create(Self);
-  MenuEngineRoot.Caption := 'Castle Game Engine';
-  MenuEngineRoot.Name := 'CastleGameEngineMenu';
-
-  { Use hardcoded menu item name, like
-    - ToolsToolsItem ("Configure Tools")
-    - ToolsMenu ("Tools" from main menu)
-    - ViewTranslationManagerMenu ("Translation Manager")
-    This is the proper approach, acoording to
-    https://docwiki.embarcadero.com/RADStudio/Athens/en/Adding_an_Item_to_the_Main_Menu_of_the_IDE .
-
-    Note: Do not add menu items after "Configure Tools" (name 'ToolsToolsItem').
-    These will be removed when Delphi IDE is started, and replaced with
-    menu items that correspond to stuff confiured in "Configure Tools".
-    E.g. this will not work reliably, stuff will disappear after Delphi restart:
-
-      Services.AddActionMenu('ToolsToolsItem', nil, MenuEngineRoot, true, true);
-
-    So a custom "Tools" submenu should be added before "Configure Tools". }
-  Services.AddActionMenu('ViewTranslationManagerMenu', nil, MenuEngineRoot, true, false);
-
-  { We can add submenu items using MenuEngineRoot.Add (see above) or by adding
-    using Services.AddActionMenu.
-    There doesn't seem to be any difference. }
-  // MenuEngineRoot.Add(MenuSetEnginePath);
-  // MenuEngineRoot.Add(MenuOpenEditor);
-  // MenuEngineRoot.Add(MenuAddPaths);
-  // MenuEngineRoot.Add(MenuRemovePaths);
-  Services.AddActionMenu('CastleGameEngineMenu', ActionSetEnginePath, MenuSetEnginePath, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', ActionOpenEditor, MenuOpenEditor, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', ActionAddPaths, MenuAddPaths, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePaths, MenuRemovePaths, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', ActionWebsite, MenuWebsite, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', ActionApiReference, MenuApiReference, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', ActionDonate, MenuDonate, true, true);
+  InitializeMenu;
+  InitializeCompileNotification;
 end;
 
 destructor TCastleDelphiIdeIntegration.Destroy;
+
+  procedure FinalizeCompileNotification;
+  var
+    Services: IOTACompileServices;
+  begin
+    if not Supports(BorlandIDEServices, IOTACompileServices, Services) then
+      Exit;
+
+    if CompileNotifierIndexInitialized then
+    begin
+      CompileNotifierIndexInitialized := false;
+      Services.RemoveNotifier(CompileNotifierIndex);
+    end;
+
+    { Note that we don't free CompileNotifier,
+      and our code works regardless of if Services.RemoveNotifier frees it or not.
+      CompileNotifier is owned by this component. }
+  end;
+
 begin
   { Note: It seems that MenuEngineRoot is not removed from ToolsMenu automatically when
     TTestDelphiIdeIntegration instance is destroyed,
@@ -276,6 +364,8 @@ begin
   // FreeAndNil(MenuOpenEditor);
   // FreeAndNil(MenuAddPaths);
   // FreeAndNil(MenuRemovePaths);
+
+  FinalizeCompileNotification;
 
   inherited;
 end;
@@ -386,7 +476,7 @@ var
 begin
   // if this does not look like CGE project, abort before even asking for CGE location - this is less confusing
   Proj := GetProjectPath;
-  ProjManifest := InclPathDelim(Proj) + 'CastleEngineManifest.xml';
+  ProjManifest := GetPotentialProjectCastleManifest;
   if not FileExists(ProjManifest) then
     raise Exception.CreateFmt('Missing CastleEngineManifest.xml.' + NL + NL +
       'To open project using Castle Game Engine editor, it needs to have CastleEngineManifest.xml file. See the https://castle-engine.io/control_on_form for details.' + NL + NL +
@@ -569,6 +659,30 @@ end;
 procedure TCastleDelphiIdeIntegration.ClickDonate(Sender: TObject);
 begin
   OpenUrl('https://patreon.com/castleengine/');
+end;
+
+procedure TCastleDelphiIdeIntegration.ProjectCompileFinished(const Project: IOTAProject;
+  const Result: TOTACompileResult);
+var
+  MessageServices: IOTAMessageServices;
+  ProjManifest: String;
+  LineRef: Pointer;
+begin
+  if Result = crOTASucceeded then
+  begin
+    if not Supports(BorlandIDEServices, IOTAMessageServices, MessageServices) then
+      Exit;
+
+    // don't do anything on non-CGE projects
+    ProjManifest := GetPotentialProjectCastleManifest;
+    if not FileExists(ProjManifest) then
+      Exit;
+
+    // MessageServices.AddTitleMessage('[castle-engine] Deploying library libexample1.dll alongside the executable');
+    // MessageServices.AddTitleMessage('[castle-engine] Deploying library libexample2.dll alongside the executable');
+    // MessageServices.AddToolMessage('libexample1.dll', 'Deploying library alongside the executable', 'castle-engine', -1, -1, nil, LineRef, nil);
+    // MessageServices.AddToolMessage('libexample2.dll', 'Deploying library alongside the executable', 'castle-engine', -1, -1, nil, LineRef, nil);
+  end;
 end;
 
 { initialization / finalization ---------------------------------------------- }
