@@ -58,14 +58,63 @@ uses SysUtils, Classes,
   ToolsAPI, // design-time only unit
   Vcl.Menus, Vcl.Dialogs, Vcl.FileCtrl, Vcl.ActnList,
   CastleInternalDelphiUtils, CastleConfig, CastleApplicationProperties,
-  CastleUtils, CastleInternalTools, CastleStringUtils;
+  CastleUtils, CastleInternalTools, CastleStringUtils, CastleOpenDocument;
 
+{ Utilities ------------------------------------------------------------------ }
+
+{ Current Delphi project path, exception if no project is open now. }
 function GetProjectPath: String;
 begin
   if GetActiveProject = nil then
     raise Exception.Create('No active Delphi project');
 
   Result := ExtractFilePath(GetActiveProject.FileName);
+end;
+
+{ Run a process.
+  Does not wait for process to finish,
+  does not capture any process output (stdout, stderr),
+  does not pass anything to process input.
+
+  @param(ExeName Executable filename.
+    Make it always an absolute path, though it actually supports now
+    also filenames relative to current working dir.)
+
+  @param(Parameters Parameters to pass.
+
+    Can specify multiple parameters,
+    but for now suffering from the same weirdness as underlying Windows API
+    -- instead of taking a list of String,
+    all parameters are specified as one long String with parameters
+    separated by spaces and optionally surrounded by double quotes.)
+
+  @param(WorkingDirectory Working directory for the process.)
+}
+procedure ExecuteProcess(const ExeName, Parameters, WorkingDirectory: String);
+{$ifdef MSWINDOWS}
+var
+  ShExecInfo: TShellExecuteInfo;
+  Service: IOTAServices;
+begin
+  if not FileExists(ExeName) then
+    raise Exception.CreateFmt('File to execute not found: "%s"', [ExeName]);
+
+  Service := BorlandIDEServices as IOTAServices;
+
+  FillChar(ShExecInfo, SizeOf(ShExecInfo), 0);
+  ShExecInfo.cbSize := SizeOf(ShExecInfo);
+  ShExecInfo.Wnd := Service.GetParentHandle;
+  ShExecInfo.lpVerb := 'open';
+  ShExecInfo.lpFile := PWideChar(ExeName);
+  ShExecInfo.lpParameters := PWideChar(Parameters);
+  ShExecInfo.lpDirectory := PWideChar(WorkingDirectory);
+  ShExecInfo.nShow := SW_SHOWNORMAL;
+  if not ShellExecuteEx(@ShExecInfo) then
+    RaiseLastOSError;
+{$else}
+begin
+  raise Exception.Create('Executing process not implemented on this platform');
+{$endif}
 end;
 
 { TCastleDelphiIdeIntegration ----------------------------------------------- }
@@ -75,8 +124,11 @@ type
   strict private
     FEnginePath: String;
     FEnginePathInitialized: Boolean;
-    CgeMenu, SetEnginePathMenu, OpenEditorMenu, AddPathsMenu, RemovePathsMenu: TMenuItem;
-    SetEnginePathAction, OpenEditorAction, AddPathsAction, RemovePathsAction: TAction;
+    MenuEngineRoot,
+      MenuSetEnginePath, MenuOpenEditor, MenuAddPaths, MenuRemovePaths,
+      MenuWebsite, MenuApiReference, MenuDonate: TMenuItem;
+    ActionSetEnginePath, ActionOpenEditor, ActionAddPaths, ActionRemovePaths,
+      ActionWebsite, ActionApiReference, ActionDonate: TAction;
 
     procedure EnsureConfigInitialized;
 
@@ -97,6 +149,9 @@ type
     procedure ClickOpenEditor(Sender: TObject);
     procedure ClickAddPaths(Sender: TObject);
     procedure ClickRemovePaths(Sender: TObject);
+    procedure ClickWebsite(Sender: TObject);
+    procedure ClickApiReference(Sender: TObject);
+    procedure ClickDonate(Sender: TObject);
     procedure UpdateEnabledIfProjectAndCgeInitialized(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -110,44 +165,57 @@ begin
   inherited;
   Services := BorlandIDEServices as INTAServices;
 
-  SetEnginePathAction := TAction.Create(Self);
-  SetEnginePathAction.Caption := 'Set Engine Path...';
-  SetEnginePathAction.OnExecute := ClickSetEnginePath;
+  ActionSetEnginePath := TAction.Create(Self);
+  ActionSetEnginePath.Caption := 'Set Engine Path...';
+  ActionSetEnginePath.OnExecute := ClickSetEnginePath;
+  MenuSetEnginePath := TMenuItem.Create(Self);
+  MenuSetEnginePath.Action := ActionSetEnginePath;
 
-  SetEnginePathMenu := TMenuItem.Create(Self);
-  SetEnginePathMenu.Action := SetEnginePathAction;
+  ActionOpenEditor := TAction.Create(Self);
+  ActionOpenEditor.Caption := 'Open Editor';
+  ActionOpenEditor.OnExecute := ClickOpenEditor;
+  ActionOpenEditor.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
+  MenuOpenEditor := TMenuItem.Create(Self);
+  MenuOpenEditor.Action := ActionOpenEditor;
 
-  OpenEditorAction := TAction.Create(Self);
-  OpenEditorAction.Caption := 'Open Editor';
-  OpenEditorAction.OnExecute := ClickOpenEditor;
-  OpenEditorAction.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
+  ActionAddPaths := TAction.Create(Self);
+  ActionAddPaths.Caption := 'Configure Currrent Project to Use Engine';
+  ActionAddPaths.OnExecute := ClickAddPaths;
+  ActionAddPaths.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
+  MenuAddPaths := TMenuItem.Create(Self);
+  MenuAddPaths.Action := ActionAddPaths;
 
-  OpenEditorMenu := TMenuItem.Create(Self);
-  OpenEditorMenu.Action := OpenEditorAction;
+  ActionRemovePaths := TAction.Create(Self);
+  ActionRemovePaths.Caption := 'Remove Engine Configuration from the Currrent Project';
+  ActionRemovePaths.OnExecute := ClickRemovePaths;
+  ActionRemovePaths.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
+  MenuRemovePaths := TMenuItem.Create(Self);
+  MenuRemovePaths.Action := ActionRemovePaths;
 
-  AddPathsAction := TAction.Create(Self);
-  AddPathsAction.Caption := 'Configure Currrent Project to Use Engine';
-  AddPathsAction.OnExecute := ClickAddPaths;
-  AddPathsAction.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
+  MenuSeparator := TMenuItem.Create(Self);
+  MenuSeparator.Caption := '-';
 
-  AddPathsMenu := TMenuItem.Create(Self);
-  AddPathsMenu.Action := AddPathsAction;
+  ActionWebsite := TAction.Create(Self);
+  ActionWebsite.Caption := 'Open Website';
+  ActionWebsite.OnExecute := ClickWebsite;
+  MenuWebsite := TMenuItem.Create(Self);
+  MenuWebsite.Action := ActionWebsite;
 
-  RemovePathsAction := TAction.Create(Self);
-  RemovePathsAction.Caption := 'Remove Engine Configuration from the Currrent Project';
-  RemovePathsAction.OnExecute := ClickRemovePaths;
-  RemovePathsAction.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
+  ActionApiReference := TAction.Create(Self);
+  ActionApiReference.Caption := 'Open API Reference';
+  ActionApiReference.OnExecute := ClickApiReference;
+  MenuApiReference := TMenuItem.Create(Self);
+  MenuApiReference.Action := ActionApiReference;
 
-  RemovePathsMenu := TMenuItem.Create(Self);
-  RemovePathsMenu.Action := RemovePathsAction;
+  ActionDonate := TAction.Create(Self);
+  ActionDonate.Caption := 'Support us on Patreon';
+  ActionDonate.OnExecute := ClickDonate;
+  MenuDonate := TMenuItem.Create(Self);
+  MenuDonate.Action := ActionDonate;
 
-  CgeMenu := TMenuItem.Create(Self);
-  CgeMenu.Caption := 'Castle Game Engine';
-  CgeMenu.Name := 'CastleGameEngineMenu';
-//  CgeMenu.Add(SetEnginePathMenu);
-//  CgeMenu.Add(OpenEditorMenu);
-//  CgeMenu.Add(AddPathsMenu);
-//  CgeMenu.Add(RemovePathsMenu);
+  MenuEngineRoot := TMenuItem.Create(Self);
+  MenuEngineRoot.Caption := 'Castle Game Engine';
+  MenuEngineRoot.Name := 'CastleGameEngineMenu';
 
   { Use hardcoded menu item name, like
     - ToolsToolsItem ("Configure Tools")
@@ -161,29 +229,34 @@ begin
     menu items that correspond to stuff confiured in "Configure Tools".
     E.g. this will not work reliably, stuff will disappear after Delphi restart:
 
-      Services.AddActionMenu('ToolsToolsItem', nil, CgeMenu, true, true);
+      Services.AddActionMenu('ToolsToolsItem', nil, MenuEngineRoot, true, true);
 
     So a custom "Tools" submenu should be added before "Configure Tools". }
-  Services.AddActionMenu('ViewTranslationManagerMenu', nil, CgeMenu, true, false);
+  Services.AddActionMenu('ViewTranslationManagerMenu', nil, MenuEngineRoot, true, false);
 
-  { We can add submenu items using CgeMenu.Add (see above) or by adding
+  { We can add submenu items using MenuEngineRoot.Add (see above) or by adding
     using Services.AddActionMenu.
     There doesn't seem to be any difference. }
-  Services.AddActionMenu('CastleGameEngineMenu', SetEnginePathAction, SetEnginePathMenu, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', OpenEditorAction, OpenEditorMenu, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', AddPathsAction, AddPathsMenu, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', RemovePathsAction, RemovePathsMenu, true, true);
+  // MenuEngineRoot.Add(MenuSetEnginePath);
+  // MenuEngineRoot.Add(MenuOpenEditor);
+  // MenuEngineRoot.Add(MenuAddPaths);
+  // MenuEngineRoot.Add(MenuRemovePaths);
+  Services.AddActionMenu('CastleGameEngineMenu', ActionSetEnginePath, MenuSetEnginePath, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', ActionOpenEditor, MenuOpenEditor, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', ActionAddPaths, MenuAddPaths, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePaths, MenuRemovePaths, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator, true, true);
 end;
 
 destructor TCastleDelphiIdeIntegration.Destroy;
 begin
-  { Note: It seems that CgeMenu is not removed from ToolsMenu automatically when
+  { Note: It seems that MenuEngineRoot is not removed from ToolsMenu automatically when
     TTestDelphiIdeIntegration instance is destroyed,
-    even when CgeMenu is owned by TTestDelphiIdeIntegration (was created as
-    "CgeMenu := TMenuItem.Create(Self)").
+    even when MenuEngineRoot is owned by TTestDelphiIdeIntegration (was created as
+    "MenuEngineRoot := TMenuItem.Create(Self)").
     Freing it explicitly here works.
 
-    Note that we shouldn't free subitems like SetEnginePathMenu,
+    Note that we shouldn't free subitems like MenuSetEnginePath,
     they will be freed automatically
     (trying to free them would result in invalid pointer exceptions).
 
@@ -194,11 +267,11 @@ begin
     We create them all now with Owner=nil, to avoid confusion.
   }
 
-  FreeAndNil(CgeMenu);
-  // FreeAndNil(SetEnginePathMenu);
-  // FreeAndNil(OpenEditorMenu);
-  // FreeAndNil(AddPathsMenu);
-  // FreeAndNil(RemovePathsMenu);
+  FreeAndNil(MenuEngineRoot);
+  // FreeAndNil(MenuSetEnginePath);
+  // FreeAndNil(MenuOpenEditor);
+  // FreeAndNil(MenuAddPaths);
+  // FreeAndNil(MenuRemovePaths);
 
   inherited;
 end;
@@ -304,40 +377,6 @@ begin
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickOpenEditor(Sender: TObject);
-
-  { Run process.
-    @param(Parameters Can specify multiple parameters,
-      suffering from the same weirdness as underlying Windows API
-      -- instead of taking a list of String,
-      all parameters are specified as one long String with parameters
-      separated by spaces and optionally surrounded by double quotes.) }
-  procedure ExecuteProcess(const ExeName, Parameters, WorkingDirectory: String);
-  {$ifdef MSWINDOWS}
-  var
-    ShExecInfo: TShellExecuteInfo;
-    Service: IOTAServices;
-  begin
-    if not FileExists(ExeName) then
-      raise Exception.CreateFmt('File to execute not found: "%s"', [ExeName]);
-
-    Service := BorlandIDEServices as IOTAServices;
-
-    FillChar(ShExecInfo, SizeOf(ShExecInfo), 0);
-    ShExecInfo.cbSize := SizeOf(ShExecInfo);
-    ShExecInfo.Wnd := Service.GetParentHandle;
-    ShExecInfo.lpVerb := 'open';
-    ShExecInfo.lpFile := PWideChar(ExeName);
-    ShExecInfo.lpParameters := PWideChar(Parameters);
-    ShExecInfo.lpDirectory := PWideChar(WorkingDirectory);
-    ShExecInfo.nShow := SW_SHOWNORMAL;
-    if not ShellExecuteEx(@ShExecInfo) then
-      RaiseLastOSError;
-  {$else}
-  begin
-    raise Exception.Create('Executing process not implemented on this platform');
-  {$endif}
-  end;
-
 var
   ExeName, Proj, ProjManifest: String;
 begin
@@ -505,6 +544,27 @@ begin
         ShowMessage('No paths removed, the project did not use the engine');
     finally FreeAndNil(ProjectSrcDirs) end;
   end;
+end;
+
+procedure TCastleDelphiIdeIntegration.ClickWebsite(Sender: TObject);
+begin
+  OpenUrl('https://castle-engine.io/');
+end;
+
+procedure TCastleDelphiIdeIntegration.ClickApiReference(Sender: TObject);
+
+  function ApiReferenceUrl: String;
+  begin
+    Result := ApiReferenceUrlCore(EnginePath);
+  end;
+
+begin
+  OpenUrl(ApiReferenceUrl + 'index.html');
+end;
+
+procedure TCastleDelphiIdeIntegration.ClickDonate(Sender: TObject);
+begin
+  OpenUrl('https://patreon.com/castleengine/');
 end;
 
 { initialization / finalization ---------------------------------------------- }
