@@ -75,8 +75,8 @@ type
   strict private
     FEnginePath: String;
     FEnginePathInitialized: Boolean;
-    CgeMenu, ChangeEnginePathMenu, OpenEditorMenu, AddPathsMenu, RemovePathsMenu: TMenuItem;
-    ChangeEnginePathAction, OpenEditorAction, AddPathsAction, RemovePathsAction: TAction;
+    CgeMenu, SetEnginePathMenu, OpenEditorMenu, AddPathsMenu, RemovePathsMenu: TMenuItem;
+    SetEnginePathAction, OpenEditorAction, AddPathsAction, RemovePathsAction: TAction;
 
     procedure EnsureConfigInitialized;
 
@@ -93,7 +93,7 @@ type
       const ProjectSrcDir, EngineSrcDir, EngineRelativeToProject: String): Boolean;
 
     { Action event handlers }
-    procedure ClickChangeEnginePath(Sender: TObject);
+    procedure ClickSetEnginePath(Sender: TObject);
     procedure ClickOpenEditor(Sender: TObject);
     procedure ClickAddPaths(Sender: TObject);
     procedure ClickRemovePaths(Sender: TObject);
@@ -110,12 +110,12 @@ begin
   inherited;
   Services := BorlandIDEServices as INTAServices;
 
-  ChangeEnginePathAction := TAction.Create(Self);
-  ChangeEnginePathAction.Caption := 'Change Engine Path...';
-  ChangeEnginePathAction.OnExecute := ClickChangeEnginePath;
+  SetEnginePathAction := TAction.Create(Self);
+  SetEnginePathAction.Caption := 'Set Engine Path...';
+  SetEnginePathAction.OnExecute := ClickSetEnginePath;
 
-  ChangeEnginePathMenu := TMenuItem.Create(Self);
-  ChangeEnginePathMenu.Action := ChangeEnginePathAction;
+  SetEnginePathMenu := TMenuItem.Create(Self);
+  SetEnginePathMenu.Action := SetEnginePathAction;
 
   OpenEditorAction := TAction.Create(Self);
   OpenEditorAction.Caption := 'Open Editor';
@@ -144,7 +144,7 @@ begin
   CgeMenu := TMenuItem.Create(Self);
   CgeMenu.Caption := 'Castle Game Engine';
   CgeMenu.Name := 'CastleGameEngineMenu';
-//  CgeMenu.Add(ChangeEnginePathMenu);
+//  CgeMenu.Add(SetEnginePathMenu);
 //  CgeMenu.Add(OpenEditorMenu);
 //  CgeMenu.Add(AddPathsMenu);
 //  CgeMenu.Add(RemovePathsMenu);
@@ -169,7 +169,7 @@ begin
   { We can add submenu items using CgeMenu.Add (see above) or by adding
     using Services.AddActionMenu.
     There doesn't seem to be any difference. }
-  Services.AddActionMenu('CastleGameEngineMenu', ChangeEnginePathAction, ChangeEnginePathMenu, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', SetEnginePathAction, SetEnginePathMenu, true, true);
   Services.AddActionMenu('CastleGameEngineMenu', OpenEditorAction, OpenEditorMenu, true, true);
   Services.AddActionMenu('CastleGameEngineMenu', AddPathsAction, AddPathsMenu, true, true);
   Services.AddActionMenu('CastleGameEngineMenu', RemovePathsAction, RemovePathsMenu, true, true);
@@ -183,7 +183,7 @@ begin
     "CgeMenu := TMenuItem.Create(Self)").
     Freing it explicitly here works.
 
-    Note that we shouldn't free subitems like ChangeEnginePathMenu,
+    Note that we shouldn't free subitems like SetEnginePathMenu,
     they will be freed automatically
     (trying to free them would result in invalid pointer exceptions).
 
@@ -195,7 +195,7 @@ begin
   }
 
   FreeAndNil(CgeMenu);
-  // FreeAndNil(ChangeEnginePathMenu);
+  // FreeAndNil(SetEnginePathMenu);
   // FreeAndNil(OpenEditorMenu);
   // FreeAndNil(AddPathsMenu);
   // FreeAndNil(RemovePathsMenu);
@@ -265,7 +265,7 @@ begin
   end;
 end;
 
-procedure TCastleDelphiIdeIntegration.ClickChangeEnginePath(Sender: TObject);
+procedure TCastleDelphiIdeIntegration.ClickSetEnginePath(Sender: TObject);
 var
   S: String;
   Directories: TArray<string>;
@@ -353,7 +353,7 @@ begin
 
   // prompt to choose engine path, if not already chosen
   if EnginePath = '' then
-    ClickChangeEnginePath(nil);
+    ClickSetEnginePath(nil);
 
   // if engire path chosen, run editor
   if EnginePath <> '' then
@@ -420,7 +420,7 @@ begin
 
   // prompt to choose engine path, if not already chosen
   if EnginePath = '' then
-    ClickChangeEnginePath(nil);
+    ClickSetEnginePath(nil);
 
   if EnginePath <> '' then
   begin
@@ -474,7 +474,7 @@ begin
 
   // prompt to choose engine path, if not already chosen
   if EnginePath = '' then
-    ClickChangeEnginePath(nil);
+    ClickSetEnginePath(nil);
 
   if EnginePath <> '' then
   begin
