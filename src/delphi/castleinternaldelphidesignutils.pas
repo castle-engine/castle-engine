@@ -161,6 +161,7 @@ type
 constructor TCastleDelphiIdeIntegration.Create(AOwner: TComponent);
 var
   Services: INTAServices;
+  MenuSeparator: TMenuItem;
 begin
   inherited;
   Services := BorlandIDEServices as INTAServices;
@@ -196,13 +197,13 @@ begin
   MenuSeparator.Caption := '-';
 
   ActionWebsite := TAction.Create(Self);
-  ActionWebsite.Caption := 'Open Website';
+  ActionWebsite.Caption := 'Documentation';
   ActionWebsite.OnExecute := ClickWebsite;
   MenuWebsite := TMenuItem.Create(Self);
   MenuWebsite.Action := ActionWebsite;
 
   ActionApiReference := TAction.Create(Self);
-  ActionApiReference.Caption := 'Open API Reference';
+  ActionApiReference.Caption := 'API Reference';
   ActionApiReference.OnExecute := ClickApiReference;
   MenuApiReference := TMenuItem.Create(Self);
   MenuApiReference.Action := ActionApiReference;
@@ -246,6 +247,9 @@ begin
   Services.AddActionMenu('CastleGameEngineMenu', ActionAddPaths, MenuAddPaths, true, true);
   Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePaths, MenuRemovePaths, true, true);
   Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', ActionWebsite, MenuWebsite, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', ActionApiReference, MenuApiReference, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', ActionDonate, MenuDonate, true, true);
 end;
 
 destructor TCastleDelphiIdeIntegration.Destroy;
