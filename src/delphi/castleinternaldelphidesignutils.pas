@@ -56,7 +56,7 @@ uses SysUtils, Classes,
     in a cross-platform IDE some day. }
   {$ifdef MSWINDOWS} Windows, ShellApi, {$endif}
   ToolsAPI, // design-time only unit
-  Vcl.Menus, Vcl.Dialogs, Vcl.FileCtrl,
+  Vcl.Menus, Vcl.Dialogs, Vcl.FileCtrl, Vcl.ActnList,
   CastleInternalDelphiUtils, CastleConfig, CastleApplicationProperties,
   CastleUtils, CastleInternalTools, CastleStringUtils;
 
@@ -76,6 +76,7 @@ type
     FEnginePath: String;
     FEnginePathInitialized: Boolean;
     CgeMenu, ChangeEnginePathMenu, OpenEditorMenu, AddPathsMenu, RemovePathsMenu: TMenuItem;
+    ChangeEnginePathAction, OpenEditorAction, AddPathsAction, RemovePathsAction: TAction;
 
     procedure EnsureConfigInitialized;
 
@@ -91,11 +92,12 @@ type
     function ProjectDirIsEngineDir(
       const ProjectSrcDir, EngineSrcDir, EngineRelativeToProject: String): Boolean;
 
-    { Menu item handlers. }
+    { Action event handlers }
     procedure ClickChangeEnginePath(Sender: TObject);
     procedure ClickOpenEditor(Sender: TObject);
     procedure ClickAddPaths(Sender: TObject);
     procedure ClickRemovePaths(Sender: TObject);
+    procedure UpdateEnabledIfProjectAndCgeInitialized(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -108,22 +110,36 @@ begin
   inherited;
   Services := BorlandIDEServices as INTAServices;
 
+  ChangeEnginePathAction := TAction.Create(Self);
+  ChangeEnginePathAction.Caption := 'Change Engine Path...';
+  ChangeEnginePathAction.OnExecute := ClickChangeEnginePath;
+
   ChangeEnginePathMenu := TMenuItem.Create(Self);
-  ChangeEnginePathMenu.Caption := 'Change Engine Path...';
-  // Configure the path of Castle Game Engine (should have subdirectories like src, examples).
-  ChangeEnginePathMenu.OnClick := ClickChangeEnginePath;
+  ChangeEnginePathMenu.Action := ChangeEnginePathAction;
+
+  OpenEditorAction := TAction.Create(Self);
+  OpenEditorAction.Caption := 'Open Editor';
+  OpenEditorAction.OnExecute := ClickOpenEditor;
+  OpenEditorAction.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
 
   OpenEditorMenu := TMenuItem.Create(Self);
-  OpenEditorMenu.Caption := 'Open Editor';
-  OpenEditorMenu.OnClick := ClickOpenEditor;
+  OpenEditorMenu.Action := OpenEditorAction;
+
+  AddPathsAction := TAction.Create(Self);
+  AddPathsAction.Caption := 'Configure Currrent Project to Use Engine';
+  AddPathsAction.OnExecute := ClickAddPaths;
+  AddPathsAction.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
 
   AddPathsMenu := TMenuItem.Create(Self);
-  AddPathsMenu.Caption := 'Configure Currrent Project to Use Engine';
-  AddPathsMenu.OnClick := ClickAddPaths;
+  AddPathsMenu.Action := AddPathsAction;
+
+  RemovePathsAction := TAction.Create(Self);
+  RemovePathsAction.Caption := 'Remove Engine Configuration from the Currrent Project';
+  RemovePathsAction.OnExecute := ClickRemovePaths;
+  RemovePathsAction.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
 
   RemovePathsMenu := TMenuItem.Create(Self);
-  RemovePathsMenu.Caption := 'Remove Engine Configuration from the Currrent Project';
-  RemovePathsMenu.OnClick := ClickRemovePaths;
+  RemovePathsMenu.Action := RemovePathsAction;
 
   CgeMenu := TMenuItem.Create(Self);
   CgeMenu.Caption := 'Castle Game Engine';
@@ -153,10 +169,10 @@ begin
   { We can add submenu items using CgeMenu.Add (see above) or by adding
     using Services.AddActionMenu.
     There doesn't seem to be any difference. }
-  Services.AddActionMenu('CastleGameEngineMenu', nil, ChangeEnginePathMenu, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', nil, OpenEditorMenu, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', nil, AddPathsMenu, true, true);
-  Services.AddActionMenu('CastleGameEngineMenu', nil, RemovePathsMenu, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', ChangeEnginePathAction, ChangeEnginePathMenu, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', OpenEditorAction, OpenEditorMenu, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', AddPathsAction, AddPathsMenu, true, true);
+  Services.AddActionMenu('CastleGameEngineMenu', RemovePathsAction, RemovePathsMenu, true, true);
 end;
 
 destructor TCastleDelphiIdeIntegration.Destroy;
@@ -187,6 +203,13 @@ begin
   inherited;
 end;
 
+procedure TCastleDelphiIdeIntegration.UpdateEnabledIfProjectAndCgeInitialized(Sender: TObject);
+begin
+  (Sender as TAction).Enabled :=
+    (GetActiveProject <> nil) and
+    (EnginePath <> '');
+end;
+
 procedure TCastleDelphiIdeIntegration.EnsureConfigInitialized;
 begin
   { Read our config file on demand.
@@ -197,6 +220,13 @@ begin
       (hard to even pinpoint "this is CGE code fault").
       We prefer to do all possible work in response to use clicking
       on CGE menu items.
+
+      Note: Since the introduction of UpdateEnabledIfProjectAndCgeInitialized,
+      this is somewhat pointless: UpdateEnabledIfProjectAndCgeInitialized will
+      read EnginePath as soon as any project is opened.
+      And we decided to go with it: the UX improvement thanks
+      to UpdateEnabledIfProjectAndCgeInitialized (clearly communicates
+      that engine path must be set) is worth it.
 
     We store our config in CGE UserConfig.
     We do not use registry and Delphi GetBaseRegistryKey.
