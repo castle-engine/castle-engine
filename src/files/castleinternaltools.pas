@@ -115,6 +115,28 @@ const
 TODO: project dependencies and a way to add DLLs to EXE
 }
 
+{ API reference (online or offline).
+  EnginePath is the path to the engine root directory,
+  or '' if not known. }
+function ApiReferenceUrlCore(const EnginePath: String): String;
+
 implementation
+
+uses SysUtils,
+  CastleUriUtils;
+
+function ApiReferenceUrlCore(const EnginePath: String): String;
+var
+  LocalDocsPath: String;
+begin
+  if EnginePath <> '' then
+  begin
+    LocalDocsPath := EnginePath + 'doc' + PathDelim + 'reference' + PathDelim;
+    if DirectoryExists(LocalDocsPath) then
+      Exit(FilenameToUriSafe(LocalDocsPath));
+  end;
+
+  Result := 'https://castle-engine.io/apidoc/html/';
+end;
 
 end.

@@ -408,7 +408,7 @@
         <DCCReference Include="..\..\src\base_rendering\castleinternalegl.pas"/>
         <DCCReference Include="..\..\src\base_rendering\dglopengl\castlegl.pas"/>
         <DCCReference Include="..\..\src\files\castleinternalurlutils.pas"/>
-        <DCCReference Include="..\..\src\base\castleinternaltools.pas"/>
+        <DCCReference Include="..\..\src\files\castleinternaltools.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
