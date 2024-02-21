@@ -790,29 +790,41 @@ end;
 
 procedure TCastleDelphiIdeIntegration.ClickRemovePathsGlobal(Sender: TObject);
 var
-  Services: IOTAServices;
-  EnvironmentOptions: IOTAEnvironmentOptions;
-  RemovedCount: Cardinal;
+  RemovedCount, NewRemovedCount, PlatformsCount: Cardinal;
   Paths: String;
+  Reg: TRegistry;
 begin
   if EnginePath = '' then
     raise Exception.Create('Engine path not set');
 
-  if not Supports(BorlandIDEServices, IOTAServices, Services) then
-    raise Exception.Create('Cannot access IOTAServices');
+  RemovedCount := 0;
+  PlatformsCount := 0;
+  Reg := TRegistry.Create;
+  try
+    for var PlatformName in GetAllPlatforms do
+    begin
+      if OpenRegistryForPlatform(Reg, PlatformName) then
+      begin
+        Inc(PlatformsCount);
+        Paths := Reg.ReadString(RegSearchPath);
+        NewRemovedCount := RemovePaths(Paths, '');
+        if NewRemovedCount <> 0 then
+        begin
+          Reg.WriteString(RegSearchPath, Paths);
+          Inc(RemovedCount, NewRemovedCount);
+        end;
+      end;
+    end;
+  finally FreeAndNil(Reg) end;
 
-  EnvironmentOptions := Services.GetEnvironmentOptions;
-  if EnvironmentOptions = nil then
-    raise Exception.Create('Cannot access IOTAEnvironmentOptions');
-
-  Paths := EnvironmentOptions.Values['LibraryPath'];
-  RemovedCount := RemovePaths(Paths, '');
   if RemovedCount <> 0 then
   begin
-    EnvironmentOptions.Values['LibraryPath'] := Paths;
-    ShowMessageFmt('Removed %d paths from the Delphi IDE "Library Paths"', [RemovedCount]);
+    ShowMessageFmt('Removed paths from the Delphi IDE "Library Path" (%d platforms, total %d paths removed).' + NL + NL + 'Restart the Delphi IDE now to use the new settings.', [
+      PlatformsCount,
+      RemovedCount
+    ]);
   end else
-    ShowMessage('No paths removed, Delphi IDE did not use the engine');
+    ShowMessage('No paths removed, Delphi IDE did not use the engine.');
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickWebsite(Sender: TObject);
