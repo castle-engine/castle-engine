@@ -28,7 +28,8 @@ unit CastleInternalTools;
 
 interface
 
-uses Classes;
+uses Classes, Dom,
+  CastleFindFiles;
 
 const
   { Paths with units and include files that are for all OSes and all compilers.
@@ -129,10 +130,34 @@ type
     some DLLs, on other platforms we're fine with just using system libraries. }
   TDeployFilesPlatform = (dpWin32, dpWin64);
 
-{ Add deploy files (.dll on Windows) based on given platform and project
-  dependencies. The resulting filenames are relative to build tool's data. }
-procedure DeployFiles(const DeployPlatform: TDeployFilesPlatform;
-  const Dependencies: TDependencies; const Files: TStrings);
+  { Managing project dependencies: reading from manifest, guessing based on data etc. }
+  TProjectDependencies = class
+  strict private
+    FDependencies: TDependencies;
+    procedure AddDependencyFromFoundDataFile(
+      const FileInfo: TFileInfo; var StopSearch: Boolean);
+  public
+    property Dependencies: TDependencies read FDependencies write FDependencies;
+
+    { Add to Dependencies values from CastleEngineManifest.xml file. }
+    procedure ReadFromManifest(const Doc: TXmlDocument);
+
+    { Add to Dependencies values that are implied by other values.
+      E.g. using libpng requires using also zlib. }
+    procedure CloseDependencies;
+
+    { Add to Dependencies values implied by some data files.
+      E.g. if data has .png file, then we add depPng. }
+    procedure GuessDependencies(const ProjectDataPath: String);
+
+    { Add deploy files (.dll on Windows) to Files, based on given platform and project
+      dependencies. The resulting filenames are relative to build tool's data. }
+    procedure DeployFiles(const DeployPlatform: TDeployFilesPlatform;
+      const Files: TStrings);
+  end;
+
+function DependencyToString(const D: TDependency): String;
+function StringToDependency(const S: String): TDependency;
 
 { API reference (online or offline).
   EnginePath is the path to the engine root directory,
@@ -141,8 +166,8 @@ function ApiReferenceUrlCore(const EnginePath: String): String;
 
 implementation
 
-uses SysUtils,
-  CastleUriUtils;
+uses SysUtils, StrUtils,
+  CastleUriUtils, CastleXmlUtils, CastleStringUtils, CastleLog;
 
 function ApiReferenceUrlCore(const EnginePath: String): String;
 var
@@ -158,8 +183,115 @@ begin
   Result := 'https://castle-engine.io/apidoc/html/';
 end;
 
-procedure DeployFiles(const DeployPlatform: TDeployFilesPlatform;
-  const Dependencies: TDependencies; const Files: TStrings);
+const
+  DependencyNames: array [TDependency] of string =
+  ('Freetype', 'Zlib', 'Png', 'Sound', 'OggVorbis', 'Https');
+
+function DependencyToString(const D: TDependency): String;
+begin
+  Result := DependencyNames[D];
+end;
+
+function StringToDependency(const S: String): TDependency;
+begin
+  for Result := Low(TDependency) to High(TDependency) do
+    if AnsiSameText(DependencyNames[Result], S) then
+      Exit;
+  raise Exception.CreateFmt('Invalid dependency name "%s"', [S]);
+end;
+
+{ TProjectDependencies ------------------------------------------------------- }
+
+procedure TProjectDependencies.ReadFromManifest(const Doc: TXmlDocument);
+var
+  Element, ChildElement: TDOMElement;
+  ChildElements: TXMLElementIterator;
+begin
+  Element := Doc.DocumentElement.ChildElement('dependencies', false);
+  if Element <> nil then
+  begin
+    ChildElements := Element.ChildrenIterator('dependency');
+    try
+      while ChildElements.GetNext do
+      begin
+        ChildElement := ChildElements.Current;
+        Include(FDependencies,
+          StringToDependency(ChildElement.AttributeString('name')));
+      end;
+    finally FreeAndNil(ChildElements) end;
+  end;
+end;
+
+procedure TProjectDependencies.CloseDependencies;
+
+  procedure DependenciesClosure(const Dep, DepRequirement: TDependency);
+  begin
+    if (Dep in Dependencies) and not (DepRequirement in Dependencies) then
+    begin
+      WritelnLog('Automatically adding "' + DependencyToString(DepRequirement) +
+        '" to dependencies because it is a prerequisite of existing dependency "'
+        + DependencyToString(Dep) + '"');
+      Include(FDependencies, DepRequirement);
+    end;
+  end;
+
+begin
+  DependenciesClosure(depPng, depZlib);
+  DependenciesClosure(depFreetype, depZlib);
+  DependenciesClosure(depOggVorbis, depSound);
+end;
+
+procedure TProjectDependencies.AddDependencyFromFoundDataFile(
+  const FileInfo: TFileInfo; var StopSearch: Boolean);
+
+  procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
+  begin
+    if not (Dependency in Dependencies) then
+    begin
+      WritelnLog('Automatically adding "' + DependencyToString(Dependency) +
+        '" to dependencies because data contains file: ' + FileInfo.Url);
+      Include(FDependencies, Dependency);
+    end;
+  end;
+
+const
+  { Ignore case on all platforms, to e.g. add freetype DLL when file FOO.TTF
+    is present in data, even on case-sensitive filesystems. }
+  IgnoreCase = true;
+begin
+  if IsWild(FileInfo.Name, '*.ttf', IgnoreCase) or
+     IsWild(FileInfo.Name, '*.otf', IgnoreCase) then
+    AddDependency(depFreetype, FileInfo);
+  if IsWild(FileInfo.Name, '*.gz' , IgnoreCase) then
+    AddDependency(depZlib, FileInfo);
+  if IsWild(FileInfo.Name, '*.png', IgnoreCase) then
+    AddDependency(depPng, FileInfo);
+  if IsWild(FileInfo.Name, '*.wav', IgnoreCase) then
+    AddDependency(depSound, FileInfo);
+  if IsWild(FileInfo.Name, '*.ogg', IgnoreCase) then
+    AddDependency(depOggVorbis, FileInfo);
+end;
+
+procedure TProjectDependencies.GuessDependencies(const ProjectDataPath: String);
+begin
+  { Note: Instead of one FindFiles call, this could also be implemented by a series
+    of FindFirstFileIgnoreCase calls, like
+
+      if FindFirstFileIgnoreCase(DataPath, '*.ttf' , false, [ffRecursive], FileInfo) or
+      if FindFirstFileIgnoreCase(DataPath, '*.otf' , false, [ffRecursive], FileInfo) then
+        AddDependency(depFreetype, FileInfo);
+      if FindFirstFileIgnoreCase(DataPath, '*.gz' , false, [ffRecursive], FileInfo) then
+        AddDependency(depZlib, FileInfo);
+
+    But this would be inefficient. Each FindFirstFileIgnoreCase effectively again
+    enumerates all files in data. }
+
+  FindFiles(ProjectDataPath, '*', false,
+    {$ifdef FPC}@{$endif} AddDependencyFromFoundDataFile, [ffRecursive]);
+end;
+
+procedure TProjectDependencies.DeployFiles(const DeployPlatform: TDeployFilesPlatform;
+  const Files: TStrings);
 var
   Prefix: String;
 begin

@@ -59,11 +59,13 @@ uses SysUtils, Classes,
   Vcl.Menus, Vcl.Dialogs, Vcl.FileCtrl, Vcl.ActnList,
   CastleInternalDelphiUtils, CastleConfig, CastleApplicationProperties,
   CastleUtils, CastleInternalTools, CastleStringUtils, CastleOpenDocument,
-  Dom, CastleXmlUtils, CastleUriUtils;
+  Dom, CastleXmlUtils, CastleUriUtils, CastleFilesUtils;
 
 { Utilities ------------------------------------------------------------------ }
 
-{ Current Delphi project path, exception if no project is open now. }
+{ Current Delphi project path.
+  Ends with path delimiter.
+  Exception if no project is open now. }
 function GetProjectPath: String;
 begin
   if GetActiveProject = nil then
@@ -126,6 +128,26 @@ begin
 {$endif}
 end;
 
+{ Like ExtractFilePath, but honors both / and PathDelim, just like Windows does.
+  Delphi's ExtractFilePath doesn't stop at / (slash), although it is accepted
+  as a path delimiter on all platforms, including Windows. }
+function RobustExtractFilePath(const S: String): String;
+begin
+  if '/' <> PathDelim then
+    Result := SReplaceChars(S, '/', PathDelim);
+  Result := ExtractFilePath(Result);
+end;
+
+{ Like ExtractFileName, but honors both / and PathDelim, just like Windows does.
+  Delphi's ExtractFileName doesn't stop at / (slash), although it is accepted
+  as a path delimiter on all platforms, including Windows. }
+function RobustExtractFileName(const S: String): String;
+begin
+  if '/' <> PathDelim then
+    Result := SReplaceChars(S, '/', PathDelim);
+  Result := ExtractFileName(Result);
+end;
+
 { TCompileNotifier ----------------------------------------------------------- }
 
 type
@@ -184,6 +206,11 @@ type
 
     function GetEnginePath: String;
     procedure SetEnginePath(const Value: String);
+
+    { Engine path, as provided by user.
+      This may but doesn't have to end with path delimiter,
+      it depends on what user provided. So be safe when using it,
+      e.g. InclPathDelim(EnginePath) + 'something'. }
     property EnginePath: String read GetEnginePath write SetEnginePath;
 
     procedure ProjectCompileFinished(const Project: IOTAProject;
@@ -546,7 +573,10 @@ begin
   if EnginePath <> '' then
   begin
     ExeName := InclPathDelim(EnginePath) + 'bin' + PathDelim + 'castle-editor' + ExeExtension;
-    ExecuteProcess(ExeName, '"' + ProjManifest + '"', Proj);
+    { Note: Do not use Proj as editor working directory,
+      as then editor on Windows could use DLLs from the project dir,
+      locking them -- so e.g. "clean" from editor then cannot remove DLLs. }
+    ExecuteProcess(ExeName, '"' + ProjManifest + '"', RobustExtractFilePath(ExeName));
   end;
 end;
 
@@ -852,23 +882,33 @@ end;
 procedure TCastleDelphiIdeIntegration.ProjectCompileFinished(const Project: IOTAProject;
   const Result: TOTACompileResult);
 
-  function GetDependenciesFromManifest(const ManifestFile: String): TDependencies;
+  procedure ReadDependenciesFromManifest(const ProjectDependencies: TProjectDependencies;
+    const ManifestFile: String);
   var
     Doc: TXmlDocument;
   begin
     Doc := UrlReadXml(FilenameToUriSafe(ManifestFile));
     try
-      // TODO read manifest, along with guessing and closure
-      Result := [depPng, depHttps];
+      ProjectDependencies.ReadFromManifest(Doc);
     finally FreeAndNil(Doc) end;
   end;
 
 var
   MessageServices: IOTAMessageServices;
-  ProjManifest: String;
-  LineRef: Pointer;
+
+  procedure RegularMessage(const S: String);
+  var
+    LineRef: Pointer;
+  begin
+    LineRef := nil; // just secure, to avoid passing something undefined to AddToolMessage
+    MessageServices.AddToolMessage('', S,
+        'castle-engine', -1, -1, nil, LineRef, nil);
+  end;
+
+var
+  ProjManifest, SourceFile, DestFile, DeployTargetPath: String;
   Files: TStringList;
-  Dependencies: TDependencies;
+  ProjectDependencies: TProjectDependencies;
 begin
   if Result = crOTASucceeded then
   begin
@@ -880,31 +920,49 @@ begin
     if not FileExists(ProjManifest) then
       Exit;
 
-    Dependencies := GetDependenciesFromManifest(ProjManifest);
-
-    Files := TStringList.Create;
+    ProjectDependencies := TProjectDependencies.Create;
     try
-      if Project.CurrentPlatform = cWin32Platform then
-        DeployFiles(dpWin32, Dependencies, Files);
-      if Project.CurrentPlatform = cWin64Platform then
-        DeployFiles(dpWin32, Dependencies, Files);
+      ReadDependenciesFromManifest(ProjectDependencies, ProjManifest);
+      if SysUtils.DirectoryExists(GetProjectPath + 'data') then
+        ProjectDependencies.GuessDependencies(GetProjectPath + 'data');
+      ProjectDependencies.CloseDependencies;
 
-      if Files.Count <> 0 then
-      begin
-        MessageServices.AddTitleMessage(Format('[castle-engine] Deploying %d libraries alongside the executable', [
-          Files.Count
-        ]));
-        if EnginePath = '' then
-          MessageServices.AddTitleMessage('[castle-engine] Engine path not set, cannot deploy libraries')
-        else
-          for var FileToDeploy in Files do
+      Files := TStringList.Create;
+      try
+        if Project.CurrentPlatform = cWin32Platform then
+          ProjectDependencies.DeployFiles(dpWin32, Files);
+        if Project.CurrentPlatform = cWin64Platform then
+          ProjectDependencies.DeployFiles(dpWin64, Files);
+
+        if Files.Count <> 0 then
+        begin
+          MessageServices.AddTitleMessage(Format('[castle-engine] Deploying %d libraries alongside the executable', [
+            Files.Count
+          ]));
+          if EnginePath = '' then
+            MessageServices.AddTitleMessage('[castle-engine] Engine path not set, cannot deploy libraries')
+          else
           begin
-            // TODO: actually deploy the file
-            LineRef := nil; // just secure, to avoid passing something undefined to AddToolMessage
-            MessageServices.AddToolMessage(FileToDeploy, 'Deploying library alongside the executable', 'castle-engine', -1, -1, nil, LineRef, nil);
+            DeployTargetPath := RobustExtractFilePath(Project.ProjectOptions.TargetName);
+            for var FileToDeploy in Files do
+            begin
+              SourceFile := InclPathDelim(EnginePath) + 'tools' + PathDelim + 'build-tool' +
+                PathDelim + 'data' + PathDelim + FileToDeploy;
+              DestFile := DeployTargetPath + RobustExtractFileName(FileToDeploy);
+              try
+                CheckCopyFile(SourceFile, DestFile);
+                RegularMessage('Deploying library "' + FileToDeploy + '"');
+              except
+                { The error may happen e.g. because the EXE is running,
+                  so make sure to have nice message in this case. }
+                on E: Exception do
+                  RegularMessage('Error deploying library "' + FileToDeploy + '": ' + E.Message);
+              end;
+            end;
           end;
-      end;
-    finally FreeAndNil(Files) end;
+        end;
+      finally FreeAndNil(Files) end;
+    finally FreeAndNil(ProjectDependencies) end;
   end;
 end;
 

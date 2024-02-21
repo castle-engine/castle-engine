@@ -295,7 +295,7 @@ end;
 
 { List filenames of external libraries used by the Dependencies, on given OS/CPU. }
 procedure ExternalLibraries(const OS: TOS; const CPU: TCPU;
-  const Dependencies: TDependencies; const List: TStrings;
+  const ProjectDependencies: TProjectDependencies; const List: TStrings;
   const CheckFilesExistence: Boolean = true);
 
   { Path to the external library in data/external_libraries/ .
@@ -324,8 +324,8 @@ begin
   Files := TStringList.Create;
   try
     case OS of
-      win32: DeployFiles(dpWin32, Dependencies, Files);
-      win64: DeployFiles(dpWin64, Dependencies, Files);
+      win32: ProjectDependencies.DeployFiles(dpWin32, Files);
+      win64: ProjectDependencies.DeployFiles(dpWin64, Files);
       else ; { no need to do anything on other OSes }
     end;
 
@@ -458,7 +458,7 @@ procedure TCastleProject.DoCompile(const OverrideCompiler: TCompiler; const Targ
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(OS, CPU, Dependencies, List);
+      ExternalLibraries(OS, CPU, Manifest.ProjectDependencies, List);
       for FileName in List do
       begin
         OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
@@ -686,7 +686,7 @@ var
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(OS, CPU, Dependencies, List);
+      ExternalLibraries(OS, CPU, Manifest.ProjectDependencies, List);
       for FileName in List do
         Pack.Add(FileName, ExtractFileName(FileName));
     finally FreeAndNil(List) end;
@@ -1252,7 +1252,7 @@ procedure TCastleProject.DoClean;
     try
       { CheckFilesExistence parameter for ExternalLibraries may be false.
         This way you can run "castle-engine clean" without setting $CASTLE_ENGINE_PATH . }
-      ExternalLibraries(OS, CPU, Dependencies, List, false);
+      ExternalLibraries(OS, CPU, Manifest.ProjectDependencies, List, false);
       for FileName in List do
       begin
         OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
@@ -1466,27 +1466,32 @@ procedure TCastleProject.DoEditorRun(const WaitForProcessId: TProcessId);
   var
     List: TCastleStringList;
     OutputFile, FileName: String;
+    EditorProjectDependencies: TProjectDependencies;
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(DefaultOS, DefaultCPU, [
-        // to read fonts
-        depFreetype,
-        // to read PNG
-        depZlib, depPng,
-        // to play sound
-        depSound,
-        // to read OggVorbis
-        depOggVorbis,
-        // not used now by the editor -- but likely will be used in the future, e.g. to check for new version by HTTPS query.
-        depHttps
-      ], List);
-      for FileName in List do
-      begin
-        OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
-        WritelnVerbose('Copying library to ' + OutputFile);
-        CheckCopyFile(FileName, OutputFile);
-      end;
+      EditorProjectDependencies := TProjectDependencies.Create;
+      try
+        EditorProjectDependencies.Dependencies := [
+          // to read fonts
+          depFreetype,
+          // to read PNG
+          depZlib, depPng,
+          // to play sound
+          depSound,
+          // to read OggVorbis
+          depOggVorbis,
+          // not used now by the editor -- but likely will be used in the future, e.g. to check for new version by HTTPS query.
+          depHttps
+        ];
+        ExternalLibraries(DefaultOS, DefaultCPU, EditorProjectDependencies, List);
+        for FileName in List do
+        begin
+          OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
+          WritelnVerbose('Copying library to ' + OutputFile);
+          CheckCopyFile(FileName, OutputFile);
+        end;
+      finally FreeAndNil(EditorProjectDependencies) end;
     finally FreeAndNil(List) end;
   end;
 
