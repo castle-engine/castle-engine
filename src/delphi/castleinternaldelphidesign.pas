@@ -192,11 +192,11 @@ type
       MenuSetEnginePath, MenuOpenEditor,
       MenuAddPathsProject, MenuRemovePathsProject,
       MenuAddPathsGlobal, MenuRemovePathsGlobal,
-      MenuWebsite, MenuApiReference, MenuDonate: TMenuItem;
+      MenuWebsite, MenuDelphiDocs, MenuApiReference, MenuDonate: TMenuItem;
     ActionSetEnginePath, ActionOpenEditor,
       ActionAddPathsProject, ActionRemovePathsProject,
       ActionAddPathsGlobal, ActionRemovePathsGlobal,
-      ActionWebsite, ActionApiReference, ActionDonate: TAction;
+      ActionWebsite, ActionDelphiDocs, ActionApiReference, ActionDonate: TAction;
 
     CompileNotifier: TCompileNotifier;
     CompileNotifierIndexInitialized: Boolean;
@@ -257,6 +257,7 @@ type
     procedure ClickAddPathsGlobal(Sender: TObject);
     procedure ClickRemovePathsGlobal(Sender: TObject);
     procedure ClickWebsite(Sender: TObject);
+    procedure ClickDelphiDocs(Sender: TObject);
     procedure ClickApiReference(Sender: TObject);
     procedure ClickDonate(Sender: TObject);
     procedure UpdateEnabledIfProjectAndCgeInitialized(Sender: TObject);
@@ -327,10 +328,16 @@ constructor TCastleDelphiIdeIntegration.Create(AOwner: TComponent);
     MenuSeparator3.Caption := '-';
 
     ActionWebsite := TAction.Create(Self);
-    ActionWebsite.Caption := 'Documentation';
+    ActionWebsite.Caption := 'Engine Documentation';
     ActionWebsite.OnExecute := ClickWebsite;
     MenuWebsite := TMenuItem.Create(Self);
     MenuWebsite.Action := ActionWebsite;
+
+    ActionDelphiDocs := TAction.Create(Self);
+    ActionDelphiDocs.Caption := 'Documentation of Delphi Integration';
+    ActionDelphiDocs.OnExecute := ClickDelphiDocs;
+    MenuDelphiDocs := TMenuItem.Create(Self);
+    MenuDelphiDocs.Action := ActionDelphiDocs;
 
     ActionApiReference := TAction.Create(Self);
     ActionApiReference.Caption := 'API Reference';
@@ -378,6 +385,7 @@ constructor TCastleDelphiIdeIntegration.Create(AOwner: TComponent);
     Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePathsProject, MenuRemovePathsProject, true, true);
     Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator3, true, true);
     Services.AddActionMenu('CastleGameEngineMenu', ActionWebsite, MenuWebsite, true, true);
+    Services.AddActionMenu('CastleGameEngineMenu', ActionDelphiDocs, MenuDelphiDocs, true, true);
     Services.AddActionMenu('CastleGameEngineMenu', ActionApiReference, MenuApiReference, true, true);
     Services.AddActionMenu('CastleGameEngineMenu', ActionDonate, MenuDonate, true, true);
   end;
@@ -861,6 +869,11 @@ end;
 procedure TCastleDelphiIdeIntegration.ClickWebsite(Sender: TObject);
 begin
   OpenUrl('https://castle-engine.io/');
+end;
+
+procedure TCastleDelphiIdeIntegration.ClickDelphiDocs(Sender: TObject);
+begin
+  OpenUrl('https://castle-engine.io/delphi_packages');
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickApiReference(Sender: TObject);
