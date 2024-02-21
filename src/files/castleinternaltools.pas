@@ -21,12 +21,14 @@
     @item(CGE build tool, in tools/build-tool/)
 
     @item(Delphi design-time functionality, in castle_engine_design.dpk,
-      in unit CastleInternalDelphiDesignUtils.)
+      in unit CastleInternalDelphiDesign.)
   )
 }
 unit CastleInternalTools;
 
 interface
+
+uses Classes;
 
 const
   { Paths with units and include files that are for all OSes and all compilers.
@@ -111,9 +113,26 @@ const
     'vampyre_imaginglib/src/Extensions/LibTiff/Compiled'
   );
 
-{
-TODO: project dependencies and a way to add DLLs to EXE
-}
+type
+  { CGE project dependencies. }
+  TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
+  TDependencies = set of TDependency;
+
+  { Platforms where we make effort to copy extra files alongside the EXE
+    ("deploy").
+    This is done when building a CGE project
+    using build tool ("castle-engine compile")
+    or in Delphi IDE (with our CastleInternalDelphiDesign feature).
+
+    TODO: In the future, we could use TOS and TCPU and make it general.
+    For now, this is practically only used by Windows platforms that need
+    some DLLs, on other platforms we're fine with just using system libraries. }
+  TDeployFilesPlatform = (dpWin32, dpWin64);
+
+{ Add deploy files (.dll on Windows) based on given platform and project
+  dependencies. The resulting filenames are relative to build tool's data. }
+procedure DeployFiles(const DeployPlatform: TDeployFilesPlatform;
+  const Dependencies: TDependencies; const Files: TStrings);
 
 { API reference (online or offline).
   EnginePath is the path to the engine root directory,
@@ -137,6 +156,82 @@ begin
   end;
 
   Result := 'https://castle-engine.io/apidoc/html/';
+end;
+
+procedure DeployFiles(const DeployPlatform: TDeployFilesPlatform;
+  const Dependencies: TDependencies; const Files: TStrings);
+var
+  Prefix: String;
+begin
+  case DeployPlatform of
+    dpWin32:
+      begin
+        { Matches CPUToString(CPU) + '-' + OSToString(OS) for win32. }
+        Prefix := 'external_libraries/i386-win32/';
+
+        if depFreetype in Dependencies then
+        begin
+          Files.Add(Prefix + 'freetype.dll');
+          Files.Add(Prefix + 'vcruntime140.dll');
+        end;
+        if depZlib in Dependencies then
+          Files.Add(Prefix + 'zlib1.dll');
+        if depPng in Dependencies then
+          Files.Add(Prefix + 'libpng12.dll');
+        if depSound in Dependencies then
+        begin
+          Files.Add(Prefix + 'OpenAL32.dll');
+          Files.Add(Prefix + 'wrap_oal.dll');
+        end;
+        if depOggVorbis in Dependencies then
+        begin
+          Files.Add(Prefix + 'ogg.dll');
+          Files.Add(Prefix + 'vorbis.dll');
+          Files.Add(Prefix + 'vorbisenc.dll');
+          Files.Add(Prefix + 'vorbisfile.dll');
+          Files.Add(Prefix + 'msvcr120.dll');
+        end;
+        if depHttps in Dependencies then
+        begin
+          Files.Add(Prefix + 'openssl/libeay32.dll');
+          Files.Add(Prefix + 'openssl/ssleay32.dll');
+        end;
+      end;
+
+    dpWin64:
+      begin
+        { Matches CPUToString(CPU) + '-' + OSToString(OS) for win32. }
+        Prefix := 'external_libraries/x86_64-win64/';
+
+        if depFreetype in Dependencies then
+        begin
+          Files.Add(Prefix + 'freetype.dll');
+          Files.Add(Prefix + 'vcruntime140.dll');
+        end;
+        if depZlib in Dependencies then
+          Files.Add(Prefix + 'zlib1.dll');
+        if depPng in Dependencies then
+          Files.Add(Prefix + 'libpng14-14.dll');
+        if depSound in Dependencies then
+        begin
+          Files.Add(Prefix + 'OpenAL32.dll');
+          Files.Add(Prefix + 'wrap_oal.dll');
+        end;
+        if depOggVorbis in Dependencies then
+        begin
+          Files.Add(Prefix + 'libogg.dll');
+          Files.Add(Prefix + 'libvorbis.dll');
+          { Files.Add(Prefix + 'vorbisenc.dll'); not present? }
+          Files.Add(Prefix + 'vorbisfile.dll');
+          Files.Add(Prefix + 'msvcr120.dll');
+        end;
+        if depHttps in Dependencies then
+        begin
+          Files.Add(Prefix + 'openssl/libeay32.dll');
+          Files.Add(Prefix + 'openssl/ssleay32.dll');
+        end;
+      end;
+  end;
 end;
 
 end.

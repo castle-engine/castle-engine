@@ -588,7 +588,7 @@ begin
       // 'src/deprecated_units/'
     ],
     [
-      'src/delphi/castleinternaldelphidesignutils.pas',
+      'src/delphi/castleinternaldelphidesign.pas',
       'src/base/android/',
       'src/files/indy/',
 
@@ -635,7 +635,7 @@ begin
   Package := TDelphiPackage.Create(CgePathExpanded + 'packages/delphi/castle_engine_design.dpk');
   try
     Package.CheckFiles([
-      'src/delphi/castleinternaldelphidesignutils.pas'
+      'src/delphi/castleinternaldelphidesign.pas'
     ],
     [ ],
     [ ]);

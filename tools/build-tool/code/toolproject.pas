@@ -21,7 +21,7 @@ unit ToolProject;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleFindFiles, CastleStringUtils, CastleUtils,
+  CastleFindFiles, CastleStringUtils, CastleUtils, CastleInternalTools,
   ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes,
   ToolPackage, ToolManifest, ToolProcess, ToolPackageFormat;
 
@@ -268,7 +268,7 @@ implementation
 uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM, Process,
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
-  CastleTimeUtils, CastleInternalTools,
+  CastleTimeUtils,
   ToolResources, ToolAndroid, ToolMacOS,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
@@ -306,7 +306,7 @@ procedure ExternalLibraries(const OS: TOS; const CPU: TCPU;
   var
     LibraryUrl: String;
   begin
-    LibraryUrl := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
+    LibraryUrl := ApplicationData(LibraryName);
     Result := UriToFilenameSafe(LibraryUrl);
     if CheckFilesExistence and (not RegularFileExists(Result)) then
       raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
@@ -317,71 +317,21 @@ procedure ExternalLibraries(const OS: TOS; const CPU: TCPU;
     List.Add(ExternalLibraryPath(OS, CPU, LibraryName));
   end;
 
+var
+  Files: TStringList;
+  F: String;
 begin
-  case OS of
-    win32:
-      begin
-        if depFreetype in Dependencies then
-        begin
-          AddExternalLibrary('freetype.dll');
-          AddExternalLibrary('vcruntime140.dll');
-        end;
-        if depZlib in Dependencies then
-          AddExternalLibrary('zlib1.dll');
-        if depPng in Dependencies then
-          AddExternalLibrary('libpng12.dll');
-        if depSound in Dependencies then
-        begin
-          AddExternalLibrary('OpenAL32.dll');
-          AddExternalLibrary('wrap_oal.dll');
-        end;
-        if depOggVorbis in Dependencies then
-        begin
-          AddExternalLibrary('ogg.dll');
-          AddExternalLibrary('vorbis.dll');
-          AddExternalLibrary('vorbisenc.dll');
-          AddExternalLibrary('vorbisfile.dll');
-          AddExternalLibrary('msvcr120.dll');
-        end;
-        if depHttps in Dependencies then
-        begin
-          AddExternalLibrary('openssl/libeay32.dll');
-          AddExternalLibrary('openssl/ssleay32.dll');
-        end;
-      end;
+  Files := TStringList.Create;
+  try
+    case OS of
+      win32: DeployFiles(dpWin32, Dependencies, Files);
+      win64: DeployFiles(dpWin64, Dependencies, Files);
+      else ; { no need to do anything on other OSes }
+    end;
 
-    win64:
-      begin
-        if depFreetype in Dependencies then
-        begin
-          AddExternalLibrary('freetype.dll');
-          AddExternalLibrary('vcruntime140.dll');
-        end;
-        if depZlib in Dependencies then
-          AddExternalLibrary('zlib1.dll');
-        if depPng in Dependencies then
-          AddExternalLibrary('libpng14-14.dll');
-        if depSound in Dependencies then
-        begin
-          AddExternalLibrary('OpenAL32.dll');
-          AddExternalLibrary('wrap_oal.dll');
-        end;
-        if depOggVorbis in Dependencies then
-        begin
-          AddExternalLibrary('libogg.dll');
-          AddExternalLibrary('libvorbis.dll');
-          { AddExternalLibrary('vorbisenc.dll'); not present? }
-          AddExternalLibrary('vorbisfile.dll');
-          AddExternalLibrary('msvcr120.dll');
-        end;
-        if depHttps in Dependencies then
-        begin
-          AddExternalLibrary('openssl/libeay32.dll');
-          AddExternalLibrary('openssl/ssleay32.dll');
-        end;
-      end;
-    else ; { no need to do anything on other OSes }
-  end;
+    for F in Files do
+      AddExternalLibrary(F);
+  finally FreeAndNil(Files) end;
 end;
 
 { TCastleProject ------------------------------------------------------------- }

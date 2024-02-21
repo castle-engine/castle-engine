@@ -56,9 +56,8 @@ procedure RunAndroid(const Project: TCastleProject);
 implementation
 
 uses SysUtils, DOM, XMLWrite,
-  // TODO: Should not be needed after https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
-  {$IFDEF UNIX}BaseUnix, {$ENDIF}
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleInternalTools,
   ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
   ToolServicesOperations;
 

@@ -38,6 +38,6 @@ requires
   castle_engine_fmx;
 
 contains
-  castleinternaldelphidesignutils in '..\..\src\delphi\castleinternaldelphidesignutils.pas';
+  castleinternaldelphidesign in '..\..\src\delphi\castleinternaldelphidesign.pas';
 
 end.

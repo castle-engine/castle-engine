@@ -19,7 +19,7 @@
     (design-time or not only design-time) can use it, if assigned.
 
   - Sets up Delphi IDE menu items to configure project for Castle Game Engine. }
-unit CastleInternalDelphiDesignUtils;
+unit CastleInternalDelphiDesign;
 
 interface
 
@@ -58,7 +58,8 @@ uses SysUtils, Classes,
   ToolsAPI, PlatformConst, // design-time only unit
   Vcl.Menus, Vcl.Dialogs, Vcl.FileCtrl, Vcl.ActnList,
   CastleInternalDelphiUtils, CastleConfig, CastleApplicationProperties,
-  CastleUtils, CastleInternalTools, CastleStringUtils, CastleOpenDocument;
+  CastleUtils, CastleInternalTools, CastleStringUtils, CastleOpenDocument,
+  Dom, CastleXmlUtils, CastleUriUtils;
 
 { Utilities ------------------------------------------------------------------ }
 
@@ -850,10 +851,24 @@ end;
 
 procedure TCastleDelphiIdeIntegration.ProjectCompileFinished(const Project: IOTAProject;
   const Result: TOTACompileResult);
+
+  function GetDependenciesFromManifest(const ManifestFile: String): TDependencies;
+  var
+    Doc: TXmlDocument;
+  begin
+    Doc := UrlReadXml(FilenameToUriSafe(ManifestFile));
+    try
+      // TODO read manifest, along with guessing and closure
+      Result := [depPng, depHttps];
+    finally FreeAndNil(Doc) end;
+  end;
+
 var
   MessageServices: IOTAMessageServices;
   ProjManifest: String;
   LineRef: Pointer;
+  Files: TStringList;
+  Dependencies: TDependencies;
 begin
   if Result = crOTASucceeded then
   begin
@@ -865,10 +880,31 @@ begin
     if not FileExists(ProjManifest) then
       Exit;
 
-    // MessageServices.AddTitleMessage('[castle-engine] Deploying library libexample1.dll alongside the executable');
-    // MessageServices.AddTitleMessage('[castle-engine] Deploying library libexample2.dll alongside the executable');
-    // MessageServices.AddToolMessage('libexample1.dll', 'Deploying library alongside the executable', 'castle-engine', -1, -1, nil, LineRef, nil);
-    // MessageServices.AddToolMessage('libexample2.dll', 'Deploying library alongside the executable', 'castle-engine', -1, -1, nil, LineRef, nil);
+    Dependencies := GetDependenciesFromManifest(ProjManifest);
+
+    Files := TStringList.Create;
+    try
+      if Project.CurrentPlatform = cWin32Platform then
+        DeployFiles(dpWin32, Dependencies, Files);
+      if Project.CurrentPlatform = cWin64Platform then
+        DeployFiles(dpWin32, Dependencies, Files);
+
+      if Files.Count <> 0 then
+      begin
+        MessageServices.AddTitleMessage(Format('[castle-engine] Deploying %d libraries alongside the executable', [
+          Files.Count
+        ]));
+        if EnginePath = '' then
+          MessageServices.AddTitleMessage('[castle-engine] Engine path not set, cannot deploy libraries')
+        else
+          for var FileToDeploy in Files do
+          begin
+            // TODO: actually deploy the file
+            LineRef := nil; // just secure, to avoid passing something undefined to AddToolMessage
+            MessageServices.AddToolMessage(FileToDeploy, 'Deploying library alongside the executable', 'castle-engine', -1, -1, nil, LineRef, nil);
+          end;
+      end;
+    finally FreeAndNil(Files) end;
   end;
 end;
 

@@ -23,13 +23,11 @@ interface
 
 uses DOM, Classes, Generics.Collections,
   CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles, CastleColors,
+  CastleInternalTools,
   ToolServices, ToolAssocDocTypes;
 
 type
   TCompiler = (coAutodetect, coFpc, coDelphi);
-
-  TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
-  TDependencies = set of TDependency;
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
