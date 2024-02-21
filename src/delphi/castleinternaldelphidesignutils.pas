@@ -264,8 +264,25 @@ constructor TCastleDelphiIdeIntegration.Create(AOwner: TComponent);
     MenuSeparator1 := TMenuItem.Create(Self);
     MenuSeparator1.Caption := '-';
 
+    ActionAddPathsGlobal := TAction.Create(Self);
+    ActionAddPathsGlobal.Caption := 'Configure Delphi to Use Engine';
+    ActionAddPathsGlobal.OnExecute := ClickAddPathsGlobal;
+    ActionAddPathsGlobal.OnUpdate := UpdateEnabledIfCgeInitialized;
+    MenuAddPathsGlobal := TMenuItem.Create(Self);
+    MenuAddPathsGlobal.Action := ActionAddPathsGlobal;
+
+    ActionRemovePathsGlobal := TAction.Create(Self);
+    ActionRemovePathsGlobal.Caption := 'Remove Engine Configuration from Delphi';
+    ActionRemovePathsGlobal.OnExecute := ClickRemovePathsGlobal;
+    ActionRemovePathsGlobal.OnUpdate := UpdateEnabledIfCgeInitialized;
+    MenuRemovePathsGlobal := TMenuItem.Create(Self);
+    MenuRemovePathsGlobal.Action := ActionRemovePathsGlobal;
+
+    MenuSeparator2 := TMenuItem.Create(Self);
+    MenuSeparator2.Caption := '-';
+
     ActionAddPathsProject := TAction.Create(Self);
-    ActionAddPathsProject.Caption := 'Configure Current Project to Use Engine';
+    ActionAddPathsProject.Caption := 'Configure Only Current Project (for Current Platform and Debug/Release Config) to Use Engine';
     ActionAddPathsProject.OnExecute := ClickAddPathsProject;
     ActionAddPathsProject.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
     MenuAddPathsProject := TMenuItem.Create(Self);
@@ -277,23 +294,6 @@ constructor TCastleDelphiIdeIntegration.Create(AOwner: TComponent);
     ActionRemovePathsProject.OnUpdate := UpdateEnabledIfProjectAndCgeInitialized;
     MenuRemovePathsProject := TMenuItem.Create(Self);
     MenuRemovePathsProject.Action := ActionRemovePathsProject;
-
-    MenuSeparator2 := TMenuItem.Create(Self);
-    MenuSeparator2.Caption := '-';
-
-    ActionAddPathsGlobal := TAction.Create(Self);
-    ActionAddPathsGlobal.Caption := 'Configure Delphi IDE to Use Engine';
-    ActionAddPathsGlobal.OnExecute := ClickAddPathsGlobal;
-    ActionAddPathsGlobal.OnUpdate := UpdateEnabledIfCgeInitialized;
-    MenuAddPathsGlobal := TMenuItem.Create(Self);
-    MenuAddPathsGlobal.Action := ActionAddPathsGlobal;
-
-    ActionRemovePathsGlobal := TAction.Create(Self);
-    ActionRemovePathsGlobal.Caption := 'Remove Engine Configuration from the Delphi IDE';
-    ActionRemovePathsGlobal.OnExecute := ClickRemovePathsGlobal;
-    ActionRemovePathsGlobal.OnUpdate := UpdateEnabledIfCgeInitialized;
-    MenuRemovePathsGlobal := TMenuItem.Create(Self);
-    MenuRemovePathsGlobal.Action := ActionRemovePathsGlobal;
 
     MenuSeparator3 := TMenuItem.Create(Self);
     MenuSeparator3.Caption := '-';
@@ -343,11 +343,11 @@ constructor TCastleDelphiIdeIntegration.Create(AOwner: TComponent);
     Services.AddActionMenu('CastleGameEngineMenu', ActionSetEnginePath, MenuSetEnginePath, true, true);
     Services.AddActionMenu('CastleGameEngineMenu', ActionOpenEditor, MenuOpenEditor, true, true);
     Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator1, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', ActionAddPathsProject, MenuAddPathsProject, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePathsProject, MenuRemovePathsProject, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator2, true, true);
     Services.AddActionMenu('CastleGameEngineMenu', ActionAddPathsGlobal, MenuAddPathsGlobal, true, true);
     Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePathsGlobal, MenuRemovePathsGlobal, true, true);
+    Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator2, true, true);
+    Services.AddActionMenu('CastleGameEngineMenu', ActionAddPathsProject, MenuAddPathsProject, true, true);
+    Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePathsProject, MenuRemovePathsProject, true, true);
     Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator3, true, true);
     Services.AddActionMenu('CastleGameEngineMenu', ActionWebsite, MenuWebsite, true, true);
     Services.AddActionMenu('CastleGameEngineMenu', ActionApiReference, MenuApiReference, true, true);
@@ -780,12 +780,12 @@ begin
 
   if AddedCount <> 0 then
   begin
-    ShowMessageFmt('Added paths to the Delphi IDE "Library Path" (%d platforms, total %d paths added).' + NL + NL + 'Restart the Delphi IDE now to use the new settings.', [
+    ShowMessageFmt('Added paths to the Delphi "Library Path" (%d platforms, total %d paths added).' + NL + NL + 'Restart the Delphi IDE now to use the new settings.', [
       PlatformsCount,
       AddedCount
     ]);
   end else
-    ShowMessage('No paths added, Delphi IDE already refers to the engine correctly.');
+    ShowMessage('No paths added, Delphi already refers to the engine correctly.');
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickRemovePathsGlobal(Sender: TObject);
@@ -819,12 +819,12 @@ begin
 
   if RemovedCount <> 0 then
   begin
-    ShowMessageFmt('Removed paths from the Delphi IDE "Library Path" (%d platforms, total %d paths removed).' + NL + NL + 'Restart the Delphi IDE now to use the new settings.', [
+    ShowMessageFmt('Removed paths from the Delphi "Library Path" (%d platforms, total %d paths removed).' + NL + NL + 'Restart the Delphi IDE now to use the new settings.', [
       PlatformsCount,
       RemovedCount
     ]);
   end else
-    ShowMessage('No paths removed, Delphi IDE did not use the engine.');
+    ShowMessage('No paths removed, Delphi did not use the engine.');
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickWebsite(Sender: TObject);
