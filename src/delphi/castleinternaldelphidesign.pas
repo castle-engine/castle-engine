@@ -216,38 +216,24 @@ type
     procedure ProjectCompileFinished(const Project: IOTAProject;
       const Result: TOTACompileResult);
 
-    { Does given source dir (absolute or relative to current project)
-      is equal to EngineSrcDir (relative to CGE src/).
-
-      The SrcDir may be relative to the project directory
-      only if EngineRelativeToProject <> ''.
-      And in this case, EngineRelativeToProject is the relative path
-      from project to EnginePath.
+    { Does given source dir (assumed to be absolute, for relative we'll always
+      answer "false") is equal to EngineSrcDir (relative to CGE src/).
 
       Tolerates various ways how the paths can be written,
       to avoid adding duplicates (in ClickAddPaths*)
       and to remove correctly (in ClickRemovePaths*). }
     function DirIsEngineDir(
-      const SrcDir, EngineSrcDir, EngineRelativeToProject: String): Boolean;
+      const SrcDir, EngineSrcDir: String): Boolean;
 
     { Add CGE paths to the semicolon-separated paths in Paths.
-
       Paths may be absolute.
-
-      Moreover, only EngineRelativeToProject <> '',
-      Paths may be relative to the project directory.
-      EngineRelativeToProject in this case is the relative path
-      from current project to the EnginePath.
-
       Returns number of paths added. }
-    function AddPaths(var Paths: String;
-      const EngineRelativeToProject: String): Cardinal;
+    function AddPaths(var Paths: String): Cardinal;
 
     { Remove CGE paths from the semicolon-separated paths in Paths.
       See AddPaths for details.
       Returns number of paths removed. }
-    function RemovePaths(var Paths: String;
-      const EngineRelativeToProject: String): Cardinal;
+    function RemovePaths(var Paths: String): Cardinal;
 
     { Action event handlers }
     procedure ClickSetEnginePath(Sender: TObject);
@@ -589,7 +575,7 @@ begin
 end;
 
 function TCastleDelphiIdeIntegration.DirIsEngineDir(
-  const SrcDir, EngineSrcDir, EngineRelativeToProject: String): Boolean;
+  const SrcDir, EngineSrcDir: String): Boolean;
 
   { Normalize directory: only slashes (no \), and not ending with / or \. }
   function NormalizePath(const S: String): String;
@@ -602,18 +588,15 @@ var
   SrcDirNormalized: String;
 begin
   SrcDirNormalized := NormalizePath(SrcDir);
-  Result :=
-    SameFileName(SrcDirNormalized, NormalizePath(InclPathDelim(EnginePath) + 'src' + PathDelim + EngineSrcDir)) or
-    ( (EngineRelativeToProject <> '') and
-      SameFileName(SrcDirNormalized, NormalizePath(InclPathDelim(EngineRelativeToProject) + 'src' + PathDelim + EngineSrcDir))
-    );
+  Result := SameFileName(SrcDirNormalized,
+    NormalizePath(InclPathDelim(EnginePath) + 'src' + PathDelim + EngineSrcDir));
 end;
 
-function TCastleDelphiIdeIntegration.AddPaths(var Paths: String;
-  const EngineRelativeToProject: String): Cardinal;
+function TCastleDelphiIdeIntegration.AddPaths(var Paths: String): Cardinal;
 
   { Add EngineSrcDir (relative to CGE src/) to
-    SrcDirs (absolute or relative to project),
+    SrcDirs (absolute or relative to project, though we just ignore relative ones
+    when comparing),
     unless it is there already. }
   procedure AddEngineSrcDir(const EngineSrcDir: String; const SrcDirs: TStringList);
   var
@@ -622,7 +605,7 @@ function TCastleDelphiIdeIntegration.AddPaths(var Paths: String;
   begin
     HasEngineSrcDir := false;
     for SrcDir in SrcDirs do
-      if DirIsEngineDir(SrcDir, EngineSrcDir, EngineRelativeToProject) then
+      if DirIsEngineDir(SrcDir, EngineSrcDir) then
         HasEngineSrcDir := true;
     if not HasEngineSrcDir then
     begin
@@ -656,8 +639,7 @@ begin
   finally FreeAndNil(SrcDirs) end;
 end;
 
-function TCastleDelphiIdeIntegration.RemovePaths(var Paths: String;
-  const EngineRelativeToProject: String): Cardinal;
+function TCastleDelphiIdeIntegration.RemovePaths(var Paths: String): Cardinal;
 
   { Is source path equivalent to some engine standard dir. }
   function DirIsSomeEngineDir(const SrcDir: String): Boolean;
@@ -665,10 +647,10 @@ function TCastleDelphiIdeIntegration.RemovePaths(var Paths: String;
     EngineSrcDir: String;
   begin
     for EngineSrcDir in EnginePaths do
-      if DirIsEngineDir(SrcDir, EngineSrcDir, EngineRelativeToProject) then
+      if DirIsEngineDir(SrcDir, EngineSrcDir) then
         Exit(true);
     for EngineSrcDir in EnginePathsDelphi do
-      if DirIsEngineDir(SrcDir, EngineSrcDir, EngineRelativeToProject) then
+      if DirIsEngineDir(SrcDir, EngineSrcDir) then
         Exit(true);
     Result := false;
   end;
@@ -702,16 +684,15 @@ end;
 procedure TCastleDelphiIdeIntegration.ClickAddPathsProject(Sender: TObject);
 var
   AddedCount: Cardinal;
-  EngineRelativeToProject, Paths: String;
+  Paths: String;
 begin
   if GetActiveProject = nil then
     raise Exception.Create('No active Delphi project');
   if EnginePath = '' then
     raise Exception.Create('Engine path not set');
 
-  EngineRelativeToProject := ExtractRelativePath(GetProjectPath, EnginePath);
   Paths := GetActiveProject.ProjectOptions.Values['SrcDir'];
-  AddedCount := AddPaths(Paths, EngineRelativeToProject);
+  AddedCount := AddPaths(Paths);
   if AddedCount <> 0 then
   begin
     GetActiveProject.ProjectOptions.Values['SrcDir'] := Paths;
@@ -723,16 +704,15 @@ end;
 procedure TCastleDelphiIdeIntegration.ClickRemovePathsProject(Sender: TObject);
 var
   RemovedCount: Cardinal;
-  EngineRelativeToProject, Paths: String;
+  Paths: String;
 begin
   if GetActiveProject = nil then
     raise Exception.Create('No active Delphi project');
   if EnginePath = '' then
     raise Exception.Create('Engine path not set');
 
-  EngineRelativeToProject := ExtractRelativePath(GetProjectPath, EnginePath);
   Paths := GetActiveProject.ProjectOptions.Values['SrcDir'];
-  RemovedCount := RemovePaths(Paths, EngineRelativeToProject);
+  RemovedCount := RemovePaths(Paths);
   if RemovedCount <> 0 then
   begin
     GetActiveProject.ProjectOptions.Values['SrcDir'] := Paths;
@@ -807,7 +787,7 @@ begin
       begin
         Inc(PlatformsCount);
         Paths := Reg.ReadString(RegSearchPath);
-        NewAddedCount := AddPaths(Paths, '');
+        NewAddedCount := AddPaths(Paths);
         if NewAddedCount <> 0 then
         begin
           Reg.WriteString(RegSearchPath, Paths);
@@ -846,7 +826,7 @@ begin
       begin
         Inc(PlatformsCount);
         Paths := Reg.ReadString(RegSearchPath);
-        NewRemovedCount := RemovePaths(Paths, '');
+        NewRemovedCount := RemovePaths(Paths);
         if NewRemovedCount <> 0 then
         begin
           Reg.WriteString(RegSearchPath, Paths);
