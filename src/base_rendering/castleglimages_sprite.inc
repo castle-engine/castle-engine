@@ -385,12 +385,16 @@
       read FSmoothScalingSafeBorder write FSmoothScalingSafeBorder
       default false;
 
-  { Unfortunately deprecating it makes unavoidable warnings from TSpriteList
-    specialization, and we cannot hide them putting $warnings off/on around it. }
-  end {deprecated 'load sprite sheets to TCastleScene from .castle-sprite-sheet format'};
+  end deprecated 'load sprite sheets to TCastleScene from .castle-sprite-sheet format';
 
+  { Unfortunately deprecating TSprite makes unavoidable warnings from TSpriteList
+    specialization, and we cannot hide them putting $warnings off/on around it.
+
+    It has been documented as deprecated for a long time now,
+    we can remove it now.
+  }
   { List of sprites. }
-  TSpriteList = {$ifdef FPC}specialize{$endif} TObjectList<TSprite>;
+  //TSpriteList = {$ifdef FPC}specialize{$endif} TObjectList<TSprite>;
 
 {$endif read_interface_type}
 
