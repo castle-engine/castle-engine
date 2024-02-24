@@ -1,4 +1,4 @@
-﻿{%MainUnit castleglimages.pas}
+{%MainUnit castleglimages.pas}
 {
   Copyright 2015-2018 Tomasz Wojtyś, Michalis Kamburelis.
 
