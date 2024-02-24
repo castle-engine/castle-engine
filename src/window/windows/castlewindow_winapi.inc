@@ -1788,7 +1788,7 @@ type
         https://stackoverflow.com/questions/374446/is-widestring-identical-to-string-in-delphi-2009
         https://docwiki.embarcadero.com/RADStudio/Sydney/en/String_Types_(Delphi)
         https://forum.lazarus.freepascal.org/index.php?topic=22464.0 }
-      TClipboardChar = UnicodeChar;
+      TClipboardChar = WideChar; // UnicodeChar is only defined by FPC
       TClipboardString = UnicodeString;
     function GetAsText: String; override;
     procedure SetAsText(const Value: String); override;
