@@ -10,6 +10,49 @@ See https://castle-engine.io/units_map about CGE subdirectories.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
+## Adjusting the tool for your own projects
+
+While this is an internal CGE tool, it could be useful for other projects as well. The tool can be compiled with both <em>FPC</em> and <em>Delphi</em> (and regardless of the compiler, it can check both <em>Lazarus</em> and <em>Delphi</em> packages).
+
+The core part happens in the main program, that defines what packages to check are requirements to watch:
+
+```delphi
+Package := TLazarusPackage.Create('foo.lpk');
+try
+  Package.CheckFiles([
+    'src/required_units/', // dir
+    'src/specific_required_unit.pas', // file
+    'src/required*.pas' // files, as mask
+  ],
+  [
+    'src/required_units/exceptions_to_not_include/', // dir
+    'src/required_units/specific_exception_to_not_include.pas' // file
+  ],
+  [
+    'src/optional_units/', // dir
+    'src/specific_optional_unit.pas' // file
+  ]);
+finally FreeAndNil(Package) end;
+
+Package := TDelphiPackage.Create('bar.dpk');
+try
+  Package.CheckFiles([
+    'src/required_units/', // dir
+    'src/specific_required_unit.pas' // file
+  ],
+  [
+    'src/required_units/exceptions_to_not_include/', // dir
+    'src/required_units/specific_exception_to_not_include.pas'
+  ],
+  [
+    'src/optional_units/', // dir
+    'src/specific_optional_unit.pas' // file
+  ]);
+finally FreeAndNil(Package) end;
+```
+
+You may be able to just copy this project, and adjust the main piece to check your own packages.
+
 ## Building
 
 Compile by:
