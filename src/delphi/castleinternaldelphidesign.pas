@@ -56,7 +56,7 @@ uses SysUtils, Classes,
     in a cross-platform IDE some day. }
   {$ifdef MSWINDOWS} Windows, ShellApi, Registry, {$endif}
   ToolsAPI, PlatformConst, // design-time only unit
-  Vcl.Menus, Vcl.Dialogs, Vcl.FileCtrl, Vcl.ActnList,
+  Vcl.Menus, Vcl.Dialogs, Vcl.FileCtrl, Vcl.ActnList, Vcl.Controls,
   CastleInternalDelphiUtils, CastleConfig, CastleApplicationProperties,
   CastleUtils, CastleInternalTools, CastleStringUtils, CastleOpenDocument,
   Dom, CastleXmlUtils, CastleUriUtils, CastleFilesUtils;
@@ -546,32 +546,45 @@ begin
 end;
 
 procedure TCastleDelphiIdeIntegration.ClickOpenEditor(Sender: TObject);
+const
+  ManifestTemplate =
+    '<?xml version="1.0" encoding="utf-8"?>' + NL +
+    '<project name="${PROJECT_NAME}"' + NL +
+    '  standalone_source="${PROJECT_NAME}.dpr"' + NL +
+    '  compiler="delphi"' + NL +
+    '>' + NL +
+    '</project>' + NL;
 var
-  ExeName, Proj, ProjManifest: String;
+  ExeName, Proj, ProjManifest, ProposedProjectName, ManifestContents: String;
 begin
-  // if this does not look like CGE project, abort before even asking for CGE location - this is less confusing
   Proj := GetProjectPath;
+  Assert(GetActiveProject <> nil); // otherwise GetProjectPath would raise exception
+
+  if EnginePath = '' then // this action should ctually be disabled in such case
+    Exit;
+
   ProjManifest := GetPotentialProjectCastleManifest;
   if not FileExists(ProjManifest) then
-    raise Exception.CreateFmt('Missing CastleEngineManifest.xml.' + NL + NL +
-      'To open project using Castle Game Engine editor, it needs to have CastleEngineManifest.xml file. See the https://castle-engine.io/control_on_form for details.' + NL + NL +
-      'Project path: %s', [
-        Proj
-      ]);
-
-  // prompt to choose engine path, if not already chosen
-  if EnginePath = '' then
-    ClickSetEnginePath(nil);
-
-  // if engire path chosen, run editor
-  if EnginePath <> '' then
   begin
-    ExeName := InclPathDelim(EnginePath) + 'bin' + PathDelim + 'castle-editor' + ExeExtension;
-    { Note: Do not use Proj as editor working directory,
-      as then editor on Windows could use DLLs from the project dir,
-      locking them -- so e.g. "clean" from editor then cannot remove DLLs. }
-    ExecuteProcess(ExeName, '"' + ProjManifest + '"', RobustExtractFilePath(ExeName));
+    ProposedProjectName := ChangeFileExt(RobustExtractFileName(GetActiveProject.ProjectOptions.TargetName), '');
+    if MessageDlg(Format(
+      'To open project using Castle Game Engine editor, it needs to have CastleEngineManifest.xml file. See the https://castle-engine.io/control_on_form for details.' + NL +
+      NL +
+      'Create a simplest CastleEngineManifest.xml for a project named "%s" with Delphi as default compiler?', [
+        ProposedProjectName
+      ]), mtInformation, [mbOK, mbCancel], 0) <> mrOK then
+      Exit;
+
+    // auto-create simple manifest, just like https://castle-engine.io/control_on_form#_opening_the_project_in_cge_editor proposes
+    ManifestContents := StringReplace(ManifestTemplate, '${PROJECT_NAME}', ProposedProjectName, [rfReplaceAll]);
+    StringToFile(FilenameToUriSafe(ProjManifest), AnsiString(ManifestContents));
   end;
+
+  ExeName := InclPathDelim(EnginePath) + 'bin' + PathDelim + 'castle-editor' + ExeExtension;
+  { Note: Do not use Proj as editor working directory,
+    as then editor on Windows could use DLLs from the project dir,
+    locking them -- so e.g. "clean" from editor then cannot remove DLLs. }
+  ExecuteProcess(ExeName, '"' + ProjManifest + '"', RobustExtractFilePath(ExeName));
 end;
 
 function TCastleDelphiIdeIntegration.DirIsEngineDir(
