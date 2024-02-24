@@ -1,4 +1,4 @@
-{%MainUnit castleglimages.pas}
+﻿{%MainUnit castleglimages.pas}
 {
   Copyright 2015-2018 Tomasz Wojtyś, Michalis Kamburelis.
 
@@ -165,7 +165,8 @@
       if you call @link(Update). }
     procedure Stop;
 
-    procedure Pause; deprecated 'use Stop';
+    // For Delphi, deprecated on method is not allowed if we want to later deprecate a class
+    procedure Pause; {$ifdef FPC}deprecated 'use Stop';{$endif}
 
     { Draw the sprite.
 
@@ -334,7 +335,8 @@
     function AddAnimation(const AAnimation: TSpriteAnimation): Integer; overload;
     function AddAnimation(const AnimationFrames: array of Cardinal): Integer; overload;
     function AddSpriteAnimation(const AnimationFrames: array of TSpriteAnimationFrame): Integer;
-      deprecated 'use AddAnimation';
+      // For Delphi, deprecated on method is not allowed if we want to later deprecate a class
+      {$ifdef FPC}deprecated 'use AddAnimation';{$endif}
     { @groupEnd }
 
     { Switch to the animation with index AAnimIndex.
