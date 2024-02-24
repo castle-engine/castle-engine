@@ -188,7 +188,7 @@ interface
   {$DEFINE DGL_64BIT}
 {$ENDIF}
 // Delphi
-{$IFDEF WIN64}
+{$IFDEF CPU64BITS}
   {$DEFINE DGL_64BIT}
 {$ENDIF}
 
