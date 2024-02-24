@@ -309,6 +309,18 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
   procedure CreateFiles(
     const FinalUnitRelative, FinalDesignRelative: String;
     const FinalUnitAbsolute, FinalDesignAbsolute: String);
+
+    { Like StringtoFile, but makes sure the directory of FileName exists,
+      creating it if necessary.
+      This extra comfort sometimes makes sense, e.g. when using "New View"
+      on new project that has no "data" or "code" directory,
+      because someone created new project in Delphi, not in CGE editor. }
+    procedure StringToFileAutoDir(const Filename, Contents: String);
+    begin
+      ForceDirectories(ExtractFileDir(Filename));
+      StringToFile(Filename, Contents);
+    end;
+
   var
     Macros: TStringStringMap;
     TemplateSource, Contents, ViewVariableName: String;
@@ -340,7 +352,7 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
             Macros.Add('${VIEW_VARIABLE_NAME}', ViewVariableName);
             Macros.Add('${DESIGN_FILE_URL}', MaybeUseDataProtocol(FilenameToUriSafe(FinalDesignAbsolute)));
 
-            StringToFile(FinalDesignAbsolute, FileToString(
+            StringToFileAutoDir(FinalDesignAbsolute, FileToString(
               InternalCastleDesignData + 'templates/newunitview.castle-user-interface'));
             FCreatedDesignRelative := FinalDesignRelative;
             FCreatedDesignAbsolute := FinalDesignAbsolute;
@@ -359,7 +371,7 @@ procedure TNewUnitForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 
       Contents := FileToString(InternalCastleDesignData + 'templates/' + TemplateSource);
       Contents := SReplacePatterns(Contents, Macros, false);
-      StringToFile(FinalUnitAbsolute, Contents);
+      StringToFileAutoDir(FinalUnitAbsolute, Contents);
       FCreatedUnitRelative := FinalUnitRelative;
       FCreatedUnitAbsolute := FinalUnitAbsolute;
     finally FreeAndNil(Macros) end;
@@ -435,10 +447,10 @@ end;
 procedure TNewUnitForm.GetFinalFilenames(
   out FinalUnitRelative, FinalDesignRelative: String);
 begin
-  FinalUnitRelative := EditUnitDir.Text + LowerCase(EditUnitName.Text) + '.pas';
+  FinalUnitRelative := CombinePaths(EditUnitDir.Text, LowerCase(EditUnitName.Text) + '.pas');
 
   if UnitType = utView then
-    FinalDesignRelative := EditDesignDir.Text + LowerCase(EditUnitName.Text) + '.castle-user-interface'
+    FinalDesignRelative := CombinePaths(EditDesignDir.Text, LowerCase(EditUnitName.Text) + '.castle-user-interface')
   else
     FinalDesignRelative := '';
 end;

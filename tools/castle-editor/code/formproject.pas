@@ -1499,7 +1499,7 @@ begin
     ListOpenExistingViewRefresh;
     CheckNewUnitOnSearchPath;
     ProposeToOpenNewFile;
-    RefreshFiles(rfFilesInCurrentDir);
+    RefreshFiles(rfEverything); // NewUnitForm maybe created dirs
   end;
 end;
 
