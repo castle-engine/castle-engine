@@ -428,6 +428,7 @@ type
       This will get fixed one day --- TCastleImage.Draw just needs to support scaling.
     }
     property TargetImage: TCastleImage read FTargetImage write FTargetImage;
+      {$ifdef FPC} deprecated 'use TDrawableImage for drawing; in particular use RenderToImageBegin/End and between them render font with TargetImage=nil';{$endif}
 
     { Add notification when FontSizesChanged occurs. }
     procedure AddFontSizeChangeNotification(const Notify: TNotifyEvent);

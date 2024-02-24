@@ -818,11 +818,14 @@ type
       @groupBegin }
     procedure DrawFrom(Source: TCastleImage; const X, Y: Integer;
       const Mode: TDrawMode = dmBlend); overload;
+      deprecated 'use TDrawableImage for drawing; in particular use TDrawableImage.DrawFrom to draw image on image, use TDrawableImage.Alpha/BlendingSourceFactor/BlendingDestinationFactor to control blending';
     procedure DrawFrom(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode = dmBlend); overload;
+      deprecated 'use TDrawableImage for drawing; in particular use TDrawableImage.DrawFrom to draw image on image, use TDrawableImage.Alpha/BlendingSourceFactor/BlendingDestinationFactor to control blending';
     procedure DrawTo(Destination: TCastleImage; const X, Y: Integer;
       const Mode: TDrawMode = dmBlend);
+      deprecated 'use TDrawableImage for drawing; in particular use TDrawableImage.DrawFrom to draw image on image, use TDrawableImage.Alpha/BlendingSourceFactor/BlendingDestinationFactor to control blending';
     { @groupEnd }
 
     { Draw the Source image on this image,
@@ -859,6 +862,7 @@ type
       const Source: TCastleImage; const SourceCorners: TVector4Integer;
       const DrawMode: TDrawMode;
       const Interpolation: TResizeInterpolation = riBilinear);
+      deprecated 'use TDrawableImage for drawing; in particular use TDrawableImage.RenderToImageBegin/End and inside it draw one image on another using e.g. TDrawableImage.Draw3x3';
 
     { Makes linear interpolation of colors from this image and the SecondImage.
       Intuitively, every pixel in new image is set to
@@ -939,16 +943,22 @@ type
       @groupBegin }
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); virtual;
+      deprecated 'use TDrawableImage for drawing; in particular use TDrawableImage.RenderToImageBegin/End and inside it draw ellipse using DrawCircle';
     procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+      deprecated 'use TDrawableImage for drawing; in particular use TDrawableImage.RenderToImageBegin/End and inside it draw ellipse using DrawCircle';
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); virtual;
+      deprecated 'use TDrawableImage for drawing; in particular use TDrawableImage.RenderToImageBegin/End and inside it draw rectangle using DrawRectangle';
     procedure Rectangle(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+      deprecated 'use TDrawableImage for drawing; in particular use TDrawableImage.RenderToImageBegin/End and inside it draw rectangle using DrawRectangle';
     procedure Line(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+      deprecated 'use TDrawableImage for drawing; in particular use TDrawableImage.RenderToImageBegin/End and inside it draw line using DrawPrimitive2D';
     procedure FloodFill(const x, y: integer; const aColor: TCastleColor;
       const aThreshold: single = 0);
+      deprecated 'use TDrawableImage for drawing; in particular use TDrawableImage.RenderToImageBegin/End and flood fill by multiple passes of a specialized shader in TDrawableImage.CustomShader; ask on forums for details';
     { @groupEnd }
   end;
 
