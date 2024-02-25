@@ -786,6 +786,7 @@ var
   AddedCount, NewAddedCount, PlatformsCount: Cardinal;
   Paths: String;
   Reg: TRegistry;
+  PlatformName: String;
 begin
   if EnginePath = '' then
     raise Exception.Create('Engine path not set');
@@ -794,7 +795,7 @@ begin
   PlatformsCount := 0;
   Reg := TRegistry.Create;
   try
-    for var PlatformName in GetAllPlatforms do
+    for PlatformName in GetAllPlatforms do
     begin
       if OpenRegistryForPlatform(Reg, PlatformName) then
       begin
@@ -825,6 +826,7 @@ var
   RemovedCount, NewRemovedCount, PlatformsCount: Cardinal;
   Paths: String;
   Reg: TRegistry;
+  PlatformName: String;
 begin
   if EnginePath = '' then
     raise Exception.Create('Engine path not set');
@@ -833,7 +835,7 @@ begin
   PlatformsCount := 0;
   Reg := TRegistry.Create;
   try
-    for var PlatformName in GetAllPlatforms do
+    for PlatformName in GetAllPlatforms do
     begin
       if OpenRegistryForPlatform(Reg, PlatformName) then
       begin
@@ -914,6 +916,7 @@ var
 var
   ProjManifest, SourceFile, DestFile, DeployTargetPath: String;
   Files: TStringList;
+  FileToDeploy: String;
   ProjectDependencies: TProjectDependencies;
 begin
   if Result = crOTASucceeded then
@@ -950,7 +953,7 @@ begin
           else
           begin
             DeployTargetPath := RobustExtractFilePath(Project.ProjectOptions.TargetName);
-            for var FileToDeploy in Files do
+            for FileToDeploy in Files do
             begin
               SourceFile := InclPathDelim(EnginePath) + 'tools' + PathDelim + 'build-tool' +
                 PathDelim + 'data' + PathDelim + FileToDeploy;
