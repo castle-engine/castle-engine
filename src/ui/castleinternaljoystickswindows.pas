@@ -137,7 +137,10 @@ type
 implementation
 
 uses
-  SysUtils, CastleLog, Math;
+  SysUtils, Math,
+  CastleLog,
+  { Needed to have PUInt32 defined for Delphi 10.2 }
+  CastleUtils;
 
 procedure TWindowsJoysticksBackend.Initialize(const List: TJoystickList);
 var
