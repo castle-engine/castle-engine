@@ -1,0 +1,105 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to test CGE with Delphi 10.2.
+# Using self-hosted runner with Delphi 10.2 installed.
+# ----------------------------------------------------------------------------
+
+name: Delphi 10.2 Test
+on: [push, pull_request]
+
+# defaults:
+#   run:
+#     shell: bash
+
+jobs:
+  delphi_10_2_test:
+    name: Delphi 10.2 Test (Job)
+    runs-on: delphi_10_2
+    steps:
+      - uses: actions/checkout@v4
+      # Check versions (and availability) of our requirements early.
+      # Note that we need FPC for Delphi test too, since our internal tools are compiled with FPC.
+      # Note: We want GNU make on PATH, not Embarcadero make
+      - name: Info
+        run: |
+          fpc -iV
+          lazbuild --version
+          make --version
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Tools
+        run: |
+          rm -Rf installed/
+          mkdir -p installed/
+          make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
+      - name: Check Old Delphi-Specific AutoTests (Win64)
+        run: |
+          cd 'tests/delphi_tests/'
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine clean
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine run
+      - name: Check Old Delphi-Specific AutoTests (Win32)
+        run: |
+          cd 'tests/delphi_tests/'
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine clean
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine compile --compiler=delphi --os=win32 --cpu=i386
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine run
+      - name: Check AutoTests (Win64)
+        run: |
+          cd 'tests/'
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine clean
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine run
+      - name: Check AutoTests (Win32)
+        run: |
+          cd 'tests/'
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine clean
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine compile --compiler=delphi --os=win32 --cpu=i386
+          ${CASTLE_ENGINE_PATH}/installed/castle-engine run
+
+# TODO: restore rest from Jenkinsfile
+              # stage('(Delphi) Build Templates (Win64)') {
+              #   steps {
+              #     sh 'make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win64 --cpu=x86_64"'
+              #   }
+              # }
+              # stage('(Delphi) Build Templates (Win32)') {
+              #   steps {
+              #     sh 'make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win32 --cpu=i386"'
+              #   }
+              # }
+              # stage('(Delphi) Build Examples (Win64)') {
+              #   when { not { expression { return params.jenkins_fast } } }
+              #   steps {
+              #     sh 'make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win64 --cpu=x86_64"'
+              #   }
+              # }
+              # stage('(Delphi) Build Examples (Win32)') {
+              #   when { not { expression { return params.jenkins_fast } } }
+              #   steps {
+              #     sh 'make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386"'
+              #   }
+              # }
+              # stage('(Delphi) Build Delphi-specific Examples (Win64)') {
+              #   steps {
+              #     dir ('examples/delphi/vcl') {
+              #       sh 'castle-engine clean'
+              #       sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64'
+              #     }
+              #     dir ('examples/delphi/fmx') {
+              #       sh 'castle-engine clean'
+              #       sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64'
+              #     }
+              #   }
+              # }
+              # stage('(Delphi) Build Delphi-specific Examples (Win32)') {
+              #   steps {
+              #     dir ('examples/delphi/vcl') {
+              #       sh 'castle-engine clean'
+              #       sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
+              #     }
+              #     dir ('examples/delphi/fmx') {
+              #       sh 'castle-engine clean'
+              #       sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
+              #     }
+              #   }
+              # }
