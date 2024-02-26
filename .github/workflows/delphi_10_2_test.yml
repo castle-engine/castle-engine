@@ -6,9 +6,16 @@
 name: Delphi 10.2 Test
 on: [push, pull_request]
 
-# defaults:
-#   run:
-#     shell: bash
+
+# Using Cygwin's bash, to avoid issues with PowerShell not having enough
+# permissions to execute scripts (.ps1) created temporarily by GH Acions:
+# https://github.com/actions/runner/issues/686 .
+# There are other solutions, but just using bash is the simplest,
+# as we already do this for most of our CI jobs, even on Windows,
+# since bash works great and allows for cross-platform scripts.
+defaults:
+  run:
+    shell: bash
 
 jobs:
   delphi_10_2_test:
