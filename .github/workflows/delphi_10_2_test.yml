@@ -26,14 +26,28 @@ jobs:
     runs-on: [self-hosted, delphi_10_2]
     steps:
       - uses: actions/checkout@v4
+
+      # We want to provide multi-line script file,
+      # which isn't easy with GH Actions + Windows it seems.
+      # With PowerShell, it fails because of https://github.com/actions/runner/issues/686
+      # With bash, it fails because of line endings -- GH Actions create temp scripts with CRLF.
+      # Using ">" and && as workaround -- this is effectively a single line for shell. Hm, but also seems to fail?
+      # Try igncr from
+      # https://github.com/actions/runner/issues/912
+      # https://stackoverflow.com/questions/35869168/cygwin-why-we-required-export-shellopts-set-o-igncr
+      # https://github.com/microsoft/WSL/issues/5032
+      - name: Fix bash multi-line scripts in this job
+        run: echo "SHELLOPTS=igncr" >> $GITHUB_ENV
+
       # Check versions (and availability) of our requirements early.
       # Note that we need FPC for Delphi test too, since our internal tools are compiled with FPC.
       # Note: We want GNU make on PATH, not Embarcadero make
       - name: Info
-        run: >
-          fpc -iV && \
-          lazbuild --version && \
+        run: |
+          fpc -iV
+          lazbuild --version
           make --version
+
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools
