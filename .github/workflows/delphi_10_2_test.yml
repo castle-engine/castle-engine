@@ -20,10 +20,12 @@ defaults:
 jobs:
   delphi_10_2_test:
     name: Delphi 10.2 Test (Job)
+
     # Note: This is a self-hosted runner in organization,
     # and supposed to be used by public CGE repo.
     # It has to be enabled following https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/managing-access-to-self-hosted-runners-using-groups .
     runs-on: [self-hosted, delphi_10_2]
+
     steps:
       - uses: actions/checkout@v4
 
@@ -31,8 +33,8 @@ jobs:
       # which isn't easy with GH Actions + Windows it seems.
       # With PowerShell, it fails because of https://github.com/actions/runner/issues/686
       # With bash, it fails because of line endings -- GH Actions create temp scripts with CRLF.
-      # Using ">" and && as workaround -- this is effectively a single line for shell. Hm, but also seems to fail?
-      # Try igncr from
+      # Using ">" and && as workaround -- this is effectively a single line for shell. Hm, but also seems to fail, weird error about lazbuild.
+      # The igncr works best:
       # https://github.com/actions/runner/issues/912
       # https://stackoverflow.com/questions/35869168/cygwin-why-we-required-export-shellopts-set-o-igncr
       # https://github.com/microsoft/WSL/issues/5032
@@ -41,44 +43,52 @@ jobs:
 
       # Check versions (and availability) of our requirements early.
       # Note that we need FPC for Delphi test too, since our internal tools are compiled with FPC.
-      # Note: We want GNU make on PATH, not Embarcadero make
+      # Note: We want GNU make on PATH, not Embarcadero make.
       - name: Info
         run: |
           fpc -iV
           lazbuild --version
           make --version
 
-      - name: Set environment
+      - name: Set environment - CASTLE_ENGINE_PATH
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-      - name: Build Tools
+
+      # We need CGE build tool to run Delphi from command-line.
+      # Slower version:
+      #make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
+      - name: Build Build Tool
         run: |
           rm -Rf installed/
-          mkdir -p installed/
-          make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
+          mkdir -p installed/bin/
+          tools/build-tool/castle-engine_compile.sh
+          cp tools/build-tool/castle-engine.exe installed/bin/
+
+      - name: Set environment - BUILD_TOOL
+        run: echo "BUILD_TOOL=${CASTLE_ENGINE_PATH}/installed/bin/castle-engine.exe" >> $GITHUB_ENV
       - name: Check Old Delphi-Specific AutoTests (Win64)
         run: |
           cd 'tests/delphi_tests/'
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine clean
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine run
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
+          ${BUILD_TOOL} run
       - name: Check Old Delphi-Specific AutoTests (Win32)
         run: |
           cd 'tests/delphi_tests/'
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine clean
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine compile --compiler=delphi --os=win32 --cpu=i386
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine run
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
+          ${BUILD_TOOL} run
       - name: Check AutoTests (Win64)
         run: |
           cd 'tests/'
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine clean
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine run
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
+          ${BUILD_TOOL} run
       - name: Check AutoTests (Win32)
         run: |
           cd 'tests/'
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine clean
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine compile --compiler=delphi --os=win32 --cpu=i386
-          ${CASTLE_ENGINE_PATH}/installed/castle-engine run
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
+          ${BUILD_TOOL} run
 
 # TODO: restore rest from Jenkinsfile
               # stage('(Delphi) Build Templates (Win64)') {
