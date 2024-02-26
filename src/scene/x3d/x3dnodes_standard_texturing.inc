@@ -713,6 +713,8 @@ end;
 
 procedure TImageTextureNode.LoadFromImage(const Image: TEncodedImage;
   const TakeImageOwnership: Boolean; const UpdateUrl: String);
+var
+  SavedChanged: TX3DChange;
 begin
   FreeAndNilTextureData;
 
@@ -737,7 +739,18 @@ begin
   end;
 
   if Scene <> nil then
+  begin
+    { Call InternalChangedField(FdUrl) to update rendering resources
+      determined by the new TImageTextureNode.TextureImage.
+      But use special mode, chTextureRendererProperties,
+      instead of default chTextureImage, because chTextureImage unloads
+      image (set IsTextureLoaded:=false) which would reject the image contents
+      we just loaded. }
+    SavedChanged := FdUrl.ChangeAlways;
+    FdUrl.ChangeAlways := chTextureRendererProperties;
     Scene.InternalChangedField(FdUrl);
+    FdUrl.ChangeAlways := SavedChanged;
+  end;
 end;
 
 { TMovieTextureNode ---------------------------------------------------------- }
