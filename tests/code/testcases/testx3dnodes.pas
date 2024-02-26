@@ -107,6 +107,7 @@ type
     procedure TestConversionDot;
     procedure TestWarningUnquotedIdentifier;
     procedure TestConversionPrecision;
+    procedure TestInlineShaderCode;
   end;
 
 implementation
@@ -2574,6 +2575,36 @@ begin
     'castle-data:/test_conversion_precision_output_3.x3d',
     'model/x3d+xml'
   );
+end;
+
+procedure TTestX3DNodes.TestInlineShaderCode;
+const
+  CorrectShaderCode = NL +
+    '        uniform sampler2D mask_texture;' + NL +
+    '' + NL +
+    '        void PLUG_texture_color(inout vec4 texture_color, const in sampler2D texture_in, const in vec4 tex_coord)' + NL +
+    '        {' + NL +
+    '          // For debugging, use this line to confirm that mask_texture is good.' + NL +
+    '          // texture_color = texture2D(mask_texture, tex_coord.st);' + NL +
+    '' + NL +
+    '          /* The mask_texture is grayscale, we could access any (r,g,b) channel,' + NL +
+    '             they all are equal. */' + NL +
+    '          float alpha = texture2D(mask_texture, tex_coord.st).r;' + NL +
+    '          texture_color = vec4(texture_color.xyz, alpha);' + NL +
+    '        }';
+var
+  Root: TX3DRootNode;
+  EffectPart: TEffectPartNode;
+begin
+  Root := LoadNode('castle-data:/inline_shader_code.x3dv');
+  try
+    EffectPart := Root.FindNode(TEffectPartNode, 'MyPartWithInlineCode') as TEffectPartNode;
+    AssertEquals(
+      // use SDeleteChars to normalize newlines to Unix style for comparison
+      SDeleteChars(CorrectShaderCode, [#13]),
+      SDeleteChars(EffectPart.Contents, [#13])
+    );
+  finally FreeAndNil(Root) end;
 end;
 
 initialization
