@@ -13,7 +13,8 @@ on: [push, pull_request]
 jobs:
   delphi_10_2_test:
     name: Delphi 10.2 Test (Job)
-    runs-on: delphi102
+    #runs-on: delphi102
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
       # Check versions (and availability) of our requirements early.
