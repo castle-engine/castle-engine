@@ -30,10 +30,10 @@ jobs:
       # Note that we need FPC for Delphi test too, since our internal tools are compiled with FPC.
       # Note: We want GNU make on PATH, not Embarcadero make
       - name: Info
-        run: |
-          "fpc -iV"
-          "lazbuild --version"
-          "make --version"
+        run: >
+          fpc -iV && \
+          lazbuild --version && \
+          make --version
       - name: Set environment
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build Tools
