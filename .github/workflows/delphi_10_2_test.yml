@@ -13,8 +13,10 @@ on: [push, pull_request]
 jobs:
   delphi_10_2_test:
     name: Delphi 10.2 Test (Job)
-    #runs-on: delphi102
-    runs-on: self-hosted
+    # Note: This is a self-hosted runner in organization,
+    # and supposed to be used by public CGE repo.
+    # It has to be enabled following https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/managing-access-to-self-hosted-runners-using-groups .
+    runs-on: [self-hosted,delphi_10_2]
     steps:
       - uses: actions/checkout@v4
       # Check versions (and availability) of our requirements early.
