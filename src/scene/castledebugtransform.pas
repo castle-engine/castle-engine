@@ -204,8 +204,8 @@ type
 
     @unorderedList(
       @item(@link(TCastleTransform.Middle))
-      @item(@link(TCastleTransform.Sphere), which is most usually determined by
-        @link(TCastleTransform.CollisionSphereRadius) property)
+      @item(@link(TCastleTransform.Sphere), that is usually determined by
+        the @link(TCastleTransform.CollisionSphereRadius) property)
       @item(@link(TCastleTransform.Direction))
     ) }
   TDebugTransform = class(TDebugTransformBox)
