@@ -137,7 +137,7 @@
     The full description is that this is a list, from the innermost TCastleTransform
     that was hit by the ray,
     to the root of the TCastleTransform tree.
-    The @link(First) item is the collision information
+    The @code(First) item is the collision information
     with the final TCastleTransform. The rest of items are parent,
     grandparent etc. of this TCastleTransform object
     (so it is a path within @link(TCastleViewport.Items) hierarchy tree).
