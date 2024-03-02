@@ -463,8 +463,11 @@ type
 {$ENDIF}
 
 type
-{$IFDEF FPC}
   {$IFDEF DGL_WIN}
+  // Note that only FPC and C++ Builder need PWGLSwap definition here.
+  // Delphi could rely on definition from Windows.
+  // For consistency, let's define it everywhere.
+
     PWGLSwap = ^TWGLSwap;
     {$EXTERNALSYM _WGLSWAP}
       _WGLSWAP = packed record
@@ -477,7 +480,6 @@ type
     WGLSWAP = _WGLSWAP;
 
   {$ENDIF}
-{$ENDIF}
 
   // GLU types
   TGLUNurbs = record
