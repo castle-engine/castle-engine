@@ -22,9 +22,15 @@
   TPhysicsRayCastResult = record
     { Other fields are guaranteed to be all zero if Hit = @false. }
     Hit: Boolean;
+    { Hit TCastleTransform instance, if any.
+      Always @nil if nothing was hit. }
     Transform: TCastleTransform;
-    { Distance from ray origin to the hit point. }
+    { Distance from ray origin to the hit point.
+      Always 0 if nothing was hit.
+      Distance from the ray origin to the hit point, in the coordinate system of TODO. }
     Distance: Single;
+    { Hit point, and the normal vector at this point of the collider.
+      TODO: In the coordinate system of Transform parent? Or world space? }
     Point, Normal: TVector3;
   end;
 
