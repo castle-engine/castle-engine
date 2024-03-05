@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,18 +36,18 @@
     procedure SetParticleLifetime(const Value: Single);
     function GetParticleSize: TVector2;
     procedure SetParticleSize(const Value: TVector2);
-    function GetColorRamp: TAbstractColorNode;
-    procedure SetColorRamp(const Value: TAbstractColorNode);
+    function GetColor: TAbstractColorNode;
+    procedure SetColor(const Value: TAbstractColorNode);
     function GetEmitter: TAbstractParticleEmitterNode;
     procedure SetEmitter(const Value: TAbstractParticleEmitterNode);
     function GetGeometryType: TParticlesGeometry;
     procedure SetGeometryType(const Value: TParticlesGeometry);
-    function GetTexCoordRamp: TTextureCoordinateNode;
-    procedure SetTexCoordRamp(const Value: TTextureCoordinateNode);
+    function GetTexCoord: TTextureCoordinateNode;
+    procedure SetTexCoord(const Value: TTextureCoordinateNode);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCreateParticles: TSFBool;
     { Internal wrapper for property @code(CreateParticles). This wrapper API may change, we advise to access simpler @code(CreateParticles) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -89,11 +89,11 @@
     {  }
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
-    strict private FFdColorRamp: TSFNode;
-    { Internal wrapper for property @code(ColorRamp). This wrapper API may change, we advise to access simpler @code(ColorRamp) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdColorRamp: TSFNode read FFdColorRamp;
+    strict private FFdColor: TSFNode;
+    { Internal wrapper for property @code(Color). This wrapper API may change, we advise to access simpler @code(Color) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdColor: TSFNode read FFdColor;
     {  }
-    property ColorRamp: TAbstractColorNode read GetColorRamp write SetColorRamp;
+    property Color: TAbstractColorNode read GetColor write SetColor;
 
     strict private FFdColorKey: TMFFloat;
     { Internal wrapper for property @code(ColorKey). This wrapper API may change, we advise to access simpler @code(ColorKey) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -121,11 +121,11 @@
     {  }
     procedure SetPhysics(const Value: array of TAbstractParticlePhysicsModelNode);
 
-    strict private FFdTexCoordRamp: TSFNode;
-    { Internal wrapper for property @code(TexCoordRamp). This wrapper API may change, we advise to access simpler @code(TexCoordRamp) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdTexCoordRamp: TSFNode read FFdTexCoordRamp;
+    strict private FFdTexCoord: TSFNode;
+    { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdTexCoord: TSFNode read FFdTexCoord;
     {  }
-    property TexCoordRamp: TTextureCoordinateNode read GetTexCoordRamp write SetTexCoordRamp;
+    property TexCoord: TTextureCoordinateNode read GetTexCoord write SetTexCoord;
 
     strict private FFdTexCoordKey: TMFFloat;
     { Internal wrapper for property @code(TexCoordKey). This wrapper API may change, we advise to access simpler @code(TexCoordKey) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -201,17 +201,17 @@ begin
   FdParticleSize.Send(Value);
 end;
 
-function TParticleSystemNode.GetColorRamp: TAbstractColorNode;
+function TParticleSystemNode.GetColor: TAbstractColorNode;
 begin
-  if FdColorRamp.Value is TAbstractColorNode then
-    Result := TAbstractColorNode(FdColorRamp.Value)
+  if FdColor.Value is TAbstractColorNode then
+    Result := TAbstractColorNode(FdColor.Value)
   else
     Result := nil;
 end;
 
-procedure TParticleSystemNode.SetColorRamp(const Value: TAbstractColorNode);
+procedure TParticleSystemNode.SetColor(const Value: TAbstractColorNode);
 begin
-  FdColorRamp.Send(Value);
+  FdColor.Send(Value);
 end;
 
 procedure TParticleSystemNode.SetColorKey(const Value: array of Single);
@@ -259,17 +259,17 @@ begin
   FdPhysics.Send(A);
 end;
 
-function TParticleSystemNode.GetTexCoordRamp: TTextureCoordinateNode;
+function TParticleSystemNode.GetTexCoord: TTextureCoordinateNode;
 begin
-  if FdTexCoordRamp.Value is TTextureCoordinateNode then
-    Result := TTextureCoordinateNode(FdTexCoordRamp.Value)
+  if FdTexCoord.Value is TTextureCoordinateNode then
+    Result := TTextureCoordinateNode(FdTexCoord.Value)
   else
     Result := nil;
 end;
 
-procedure TParticleSystemNode.SetTexCoordRamp(const Value: TTextureCoordinateNode);
+procedure TParticleSystemNode.SetTexCoord(const Value: TTextureCoordinateNode);
 begin
-  FdTexCoordRamp.Send(Value);
+  FdTexCoord.Send(Value);
 end;
 
 procedure TParticleSystemNode.SetTexCoordKey(const Value: array of Single);
@@ -321,9 +321,9 @@ begin
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
   AddEvent(FEventIsActive);
 
-  FFdColorRamp := TSFNode.Create(Self, False, 'colorRamp', [TAbstractColorNode]);
-   FdColorRamp.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdColorRamp);
+  FFdColor := TSFNode.Create(Self, False, 'color', [TAbstractColorNode]);
+   FdColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdColor);
 
   FFdColorKey := TMFFloat.Create(Self, False, 'colorKey', []);
    FdColorKey.ChangeAlways := chVisibleNonGeometry;
@@ -341,9 +341,9 @@ begin
    FdPhysics.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdPhysics);
 
-  FFdTexCoordRamp := TSFNode.Create(Self, False, 'texCoordRamp', [TTextureCoordinateNode]);
-   FdTexCoordRamp.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdTexCoordRamp);
+  FFdTexCoord := TSFNode.Create(Self, False, 'texCoord', [TTextureCoordinateNode]);
+   FdTexCoord.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTexCoord);
 
   FFdTexCoordKey := TMFFloat.Create(Self, False, 'texCoordKey', []);
    FdTexCoordKey.ChangeAlways := chVisibleNonGeometry;
