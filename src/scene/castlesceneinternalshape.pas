@@ -212,7 +212,8 @@ end;
 function TGLShape.UnprepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 begin
   Result := nil; // let EnumerateTextures to enumerate all textures
-  TTextureResources.Unprepare(Texture);
+  if not (Texture is TInternalCachedPixelTextureNode) then
+    TTextureResources.Unprepare(Texture);
 end;
 
 function TGLShape.PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;

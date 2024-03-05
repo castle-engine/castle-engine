@@ -391,6 +391,13 @@
   {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
   end;
 
+  { This class only means that this instance of texture should not be unprepared
+    when TCastleScene is destroyed and TGLShape.UnprepareTexture() removes all
+    textures because it can be sused in many TCastleScenes }
+  TInternalCachedPixelTextureNode = class(TPixelTextureNode)
+
+  end;
+
   { 2D texture coordinates used by vertex-based geometry nodes. }
   TTextureCoordinateNode = class(TAbstractSingleTextureCoordinateNode)
   {$I auto_generated_node_helpers/x3dnodes_texturecoordinate.inc}
