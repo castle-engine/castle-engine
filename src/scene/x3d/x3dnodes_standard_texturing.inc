@@ -393,7 +393,7 @@
 
   { This class only means that this instance of texture should not be unprepared
     when TCastleScene is destroyed and TGLShape.UnprepareTexture() removes all
-    textures because it can be sused in many TCastleScenes }
+    textures because it can be used in many TCastleScenes }
   TInternalCachedPixelTextureNode = class(TPixelTextureNode)
 
   end;
