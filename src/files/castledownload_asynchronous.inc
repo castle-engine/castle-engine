@@ -132,6 +132,7 @@ type
       So never access our own fields / virtual methods after calling this. }
     procedure DoFinish; virtual;
   public
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Get the data. This starts downloading.
@@ -292,6 +293,12 @@ type
 {$endif}
 
 {$ifdef read_implementation}
+
+constructor TCastleDownload.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FOwnsContents := true;
+end;
 
 destructor TCastleDownload.Destroy;
 begin
