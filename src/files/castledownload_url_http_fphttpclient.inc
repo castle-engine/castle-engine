@@ -200,6 +200,8 @@ destructor TFpHttpClientJob.Destroy;
 begin
   FreeAndNil(Contents);
   FreeAndNil(HttpResponseHeaders);
+  if (ParentThread <> nil) and (ParentThread.FreeOnTerminate) then
+    FreeAndNil(SynchronizationCS);
   inherited;
 end;
 
