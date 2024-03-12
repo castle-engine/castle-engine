@@ -105,7 +105,7 @@ type
       TCleaningThread = class(TThread)
       private
         ThreadToWaitTo: TFpHttpClientThread;
-          SynchronizationCS: TCriticalSection;
+        SynchronizationCS: TCriticalSection;
       public
         constructor Create(const AThreadToWaitTo: TFpHttpClientThread;
           const ASynchronizationCS: TCriticalSection); reintroduce;
