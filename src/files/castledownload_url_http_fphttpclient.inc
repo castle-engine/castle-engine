@@ -100,15 +100,50 @@ type
   { TUrlAsynchronousReader descendant that implements http(s) downloading. }
   TFpHttpClientReader = class(TUrlAsynchronousReader)
   strict private
-    Thread: TFpHttpClientThread;
-    SynchronizationCS: TCriticalSection;
-    { Synchronize one last time from Job, when it finished work in Execute. }
-    procedure SynchronizeFromFinishedJob(const Job: TFpHttpClientJob);
+    type
+      { Thread that cleans downloading thread and critical section. }
+      TCleaningThread = class(TThread)
+      private
+        ThreadToWaitTo: TFpHttpClientThread;
+          SynchronizationCS: TCriticalSection;
+      public
+        constructor Create(const AThreadToWaitTo: TFpHttpClientThread;
+          const ASynchronizationCS: TCriticalSection); reintroduce;
+        procedure Execute; override;
+      end;
+
+    var
+      { Thread that downloads using FpHttpClient. }
+      Thread: TFpHttpClientThread;
+      SynchronizationCS: TCriticalSection;
+
+      { Synchronize one last time from Job, when it finished work in Execute. }
+      procedure SynchronizeFromFinishedJob(const Job: TFpHttpClientJob);
   public
     procedure Start; override;
     destructor Destroy; override;
     procedure Update; override;
   end;
+
+{ TFpHttpClientReader.TCleaningThread ----------------------------------------- }
+
+constructor TFpHttpClientReader.TCleaningThread.Create(
+  const AThreadToWaitTo: TFpHttpClientThread;
+  const ASynchronizationCS: TCriticalSection);
+begin
+  inherited Create(true);
+  FreeOnTerminate := true;
+  ThreadToWaitTo := AThreadToWaitTo;
+  SynchronizationCS := ASynchronizationCS;
+end;
+
+procedure TFpHttpClientReader.TCleaningThread.Execute;
+begin
+  ThreadToWaitTo.Terminate;
+  ThreadToWaitTo.WaitFor;
+  FreeAndNil(ThreadToWaitTo);
+  FreeAndNil(SynchronizationCS);
+end;
 
 { TCastleFpHttpClient ---------------------------------------------------------- }
 
@@ -409,10 +444,27 @@ begin
   end;
 end;
 
+
 destructor TFpHttpClientReader.Destroy;
+var
+  CleaningThread: TCleaningThread;
 begin
   if Thread <> nil then
   begin
+    { Because Michalis wrote that a regular WaitFor sometimes causes a delay,
+      I came up with a funny trick: we create another thread that is
+      FreeOnTerminate and pass it the thread and the critical section
+      to delete safety. }
+    {$define CASTLE_SAFE_DOWNLOAD_INTERRUPTION_CLEANING_THREAD}
+    {$ifdef CASTLE_SAFE_DOWNLOAD_INTERRUPTION_CLEANING_THREAD}
+    WritelnLog('Network', 'Interrupting download in-progress of "%s"', [UriDisplay(Url)]);
+    CleaningThread := TCleaningThread.Create(Thread, SynchronizationCS);
+    { Cleaning thread get ownership of the thread and critical section. }
+    Thread := nil;
+    SynchronizationCS := nil;
+    CleaningThread.Start;
+    {$else}
+
     Thread.Terminate;
 
     {.$define CASTLE_SAFE_DOWNLOAD_INTERRUPTION}
@@ -447,6 +499,7 @@ begin
       SynchronizationCS := nil; // do not free it here, let Thread use it
     end else
       FreeAndNil(Thread);
+    {$endif}
     {$endif}
   end;
 
