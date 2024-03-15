@@ -986,6 +986,36 @@ type
     function InternalNavigationHeight(const Sender: TCastleNavigation;
       const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
+
+    { Check what is hit by a ray determined by the current camera and pointing device
+      (mouse, touch) position.
+
+      Note: This is just a shortcut to determine a ray using @link(PositionToRay)
+      and then checking collision with the world using TODO.
+      You can use these methods separately if you need more control.
+
+      @param(UsePhysicsColliders
+
+        If @true, then we use physics colliders
+        to determine the collision, which are descendants of @link(TCastleCollider)
+        added as behaviors to parent @link(TCastleTransform) instances.
+
+        If @false, then we use our built-in collision resolution,
+        which looks at all @link(TCastleScene) instances with @link(TCastleTransform.Pickable)
+        and treats them either as a precise set of triangles
+        (when @link(TCastleScene.PreciseCollisions) = @true)
+        or their bounding box
+        (when @link(TCastleScene.PreciseCollisions) = @false, default).
+        See TODO for more information about the old collision resolution.
+
+        We encourage to use physics colliders, i.e. UsePhysicsColliders = @true,
+        since it gives you more control (what and how collides )and better
+        performance. But it requires that you set up @link(TCastleCollider)
+        instances. In contrast, UsePhysicsColliders = @false works more "out of the box".
+      )
+    }
+    function PointingDeviceHit(const UsePhysicsColliders: Boolean;
+      const PhysicsLayers: TPhysicsLayers = AllLayers): TRayCastResult;
   published
     { Transformations and scenes visible in this viewport.
       You should add here your @link(TCastleTransform) and @link(TCastleScene)
@@ -2127,6 +2157,46 @@ begin
     Result := MouseRayHit.First.Triangle
   else
     Result := nil;
+end;
+
+function TCastleViewport.PointingDeviceHit(const UsePhysicsColliders: Boolean;
+  const PhysicsLayers: TPhysicsLayers = AllLayers): TRayCastResult;
+var
+  MousePosition: TVector2;
+  RayOrigin, RayDirection: TVector3;
+  RayColllision: TRayCollision;
+  RayColllisionNode: TRayCollisionNode;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+
+  { TODO: Move to UpdateMouseRayHit, under the same conditions,
+    and cached -- along with UsePhysicsColliders, PhysicsLayers result. }
+  if GetMousePosition(MousePosition) and (Items <> nil) then
+  begin
+    PositionToRay(MousePosition, true, RayOrigin, RayDirection);
+    if UsePhysicsColliders then
+      Result := Items.PhysicsRayCast(RayOrigin, RayDirection, MaxSingle,
+        nil, PhysicsLayers)
+    else
+    begin
+      RayColllision := CameraRayCollision(RayOrigin, RayDirection);
+      if RayColllision <> nil then
+      begin
+        if RayColllision.Info(RayColllisionNode) then
+        begin
+          Result.Hit := true;
+          Result.Distance := RayColllision.Distance;
+          Result.Transform := RayColllisionNode.Item;
+          Result.Point := RayColllisionNode.Item.LocalToWorld(RayColllisionNode.Point);
+          { It would be better to do this:
+          //Result.Normal := RayColllisionNode.Item.LocalToWorldDirection(RayColllisionNode.Normal);
+            but TRayCollisionNode doesn't have this information.
+            TODO: But we could extract it from Triangle? }
+          Result.Normal := -RayDirection;
+        end;
+      end;
+    end;
+  end;
 end;
 
 procedure TCastleViewport.Update(const SecondsPassed: Single;

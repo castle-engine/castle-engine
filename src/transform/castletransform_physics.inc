@@ -17,6 +17,41 @@
 { Physics. Integrates TCastleTransform with Kraft physics engine. }
 
 {$ifdef read_interface}
+  { Result of ray cast, that describes what is hit by a ray in a viewport.
+
+    Routines that return this record include
+    @link(TCastleViewport.PointingDeviceHit),
+    @link(TCastleAbstractRootTransform.PhysicsRayCast) and
+    @link(TCastleRigidBody.PhysicsRayCast). }
+  TRayCastResult = record
+    { Other fields are guaranteed to be all zero if Hit = @false. }
+    Hit: Boolean;
+
+    { Hit TCastleTransform instance, if any.
+      Always @nil if nothing was hit. }
+    Transform: TCastleTransform;
+
+    { Distance from ray origin to the hit point.
+      Always 0 if nothing was hit.
+
+      Expressed in the world coordinate system, i.e. in the coordinates
+      seen by @link(TCastleViewport.Items).
+      Exception: When the TRayCastResult is returned by
+      @link(@link(TCastleRigidBody.PhysicsRayCast),
+      this is expressed in the local coordinate system of the rigid body. }
+    Distance: Single;
+
+    { Hit point, and the normal vector at this point of the collider.
+
+      Expressed in the world coordinate system, i.e. in the coordinates
+      seen by @link(TCastleViewport.Items).
+      Exception: When the TRayCastResult is returned by
+      @link(@link(TCastleRigidBody.PhysicsRayCast),
+      this is expressed in the local coordinate system of the rigid body. }
+    Point, Normal: TVector3;
+  end;
+
+  TPhysicsRayCastResult = TRayCastResult deprecated 'use TRayCastResult';
 
   { Information send along with TCollisionEvent event, like
     TCastleRigidBody.OnCollisionEnter, TCastleRigidBody.OnCollisionExit. }
@@ -25,9 +60,6 @@
     Transforms: array[0..1] of TCastleTransform;
     function OtherTransform: TCastleTransform;
   end;
-
-  TPhysicsLayer = 0..19;
-  TPhysicsLayers = set of TPhysicsLayer;
 
   TCastleLayerCollisions = class(TCastleComponent)
   strict private
@@ -874,9 +906,10 @@
       The @link(TCastleTransform.Pickable) is only taken into account by the routines
       of the old physics system
       (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
-      In the new system, a similar role will be filled by layers. }
+      In the new system, a similar role is filled by physics layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
-      const MaxDistance: Single = MaxSingle): TPhysicsRayCastResult;
+      const MaxDistance: Single = MaxSingle;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -3617,7 +3650,8 @@ begin
 end;
 
 function TCastleRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
-  const MaxDistance: Single): TPhysicsRayCastResult;
+  const MaxDistance: Single;
+  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
   MaxDistanceWorld: Single;
@@ -3649,7 +3683,7 @@ begin
   end;
 
   Result := FTransform.World.PhysicsRayCast(RayOriginWorld, RayDirectionWorld,
-    MaxDistanceWorld, Self);
+    MaxDistanceWorld, Self, CollisionLayers);
 
   if Result.Hit and (FTransform.Parent <> nil) then
   begin
@@ -3982,7 +4016,8 @@ end;
 
 function TCastleAbstractRootTransform.PhysicsRayCast(
   const RayOrigin, RayDirection: TVector3;
-  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody): TPhysicsRayCastResult;
+  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
+  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
 
   procedure Core;
   var
@@ -4005,7 +4040,9 @@ function TCastleAbstractRootTransform.PhysicsRayCast(
       // inputs
       VectorToKraft(RayOrigin), VectorToKraft(RayDirection), MaxDistance,
       // outputs
-      KraftShape, KraftDistance, KraftPoint, KraftNormal) then
+      KraftShape, KraftDistance, KraftPoint, KraftNormal,
+      // collisions layers
+      CollisionLayers) then
     begin
       Result.Hit := true;
       Result.Transform := TCastleRigidBody(KraftShape.RigidBody.UserData).FTransform;

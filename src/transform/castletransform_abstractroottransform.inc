@@ -17,23 +17,6 @@
 {$ifdef read_interface}
 
 //type
-  { Result of @link(TCastleAbstractRootTransform.PhysicsRayCast) and
-    @link(TCastleRigidBody.PhysicsRayCast). }
-  TPhysicsRayCastResult = record
-    { Other fields are guaranteed to be all zero if Hit = @false. }
-    Hit: Boolean;
-    { Hit TCastleTransform instance, if any.
-      Always @nil if nothing was hit. }
-    Transform: TCastleTransform;
-    { Distance from ray origin to the hit point.
-      Always 0 if nothing was hit.
-      Distance from the ray origin to the hit point, in the coordinate system of TODO. }
-    Distance: Single;
-    { Hit point, and the normal vector at this point of the collider.
-      TODO: In the coordinate system of Transform parent? Or world space? }
-    Point, Normal: TVector3;
-  end;
-
   { Root of transformations and scenes (tree of TCastleTransform and TCastleScene).
     This is the base abstract class, the non-abstract descendant is @link(TCastleRootTransform). }
   TCastleAbstractRootTransform = class(TCastleTransform)
@@ -280,10 +263,11 @@
       The @link(TCastleTransform.Pickable) is only taken into account by the routines
       of the old physics system
       (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
-      In the new system, a similar role will be filled by layers. }
+      In the new system, a similar role is filled by physics layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
-      const IgnoreBody: TCastleRigidBody = nil): TPhysicsRayCastResult;
+      const IgnoreBody: TCastleRigidBody = nil;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
 
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
