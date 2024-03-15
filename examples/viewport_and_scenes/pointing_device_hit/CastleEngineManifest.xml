@@ -8,7 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="pointing_device_hit"
   standalone_source="pointing_device_hit_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.pointingdevicehit"
+  qualified_name="io.castleengine.pointing.device.hit"
   caption="PointingDeviceHit demo"
 >
   <compiler_options>

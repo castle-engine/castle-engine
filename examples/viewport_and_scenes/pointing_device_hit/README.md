@@ -1,5 +1,7 @@
 # PointingDeviceHit demo
 
+Demonstrates how to use `TCastleViewport.PointingDeviceHit` to detect what is hit (3D point on some `TCastleTransform`) by the ray coming the mouse (or last touch) position.
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
