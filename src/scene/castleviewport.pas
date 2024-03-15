@@ -2175,13 +2175,14 @@ begin
   begin
     PositionToRay(MousePosition, true, RayOrigin, RayDirection);
     if UsePhysicsColliders then
+    begin
       Result := Items.PhysicsRayCast(RayOrigin, RayDirection, MaxSingle,
-        nil, PhysicsLayers)
-    else
+        nil, PhysicsLayers);
+    end else
     begin
       RayColllision := CameraRayCollision(RayOrigin, RayDirection);
       if RayColllision <> nil then
-      begin
+      try
         if RayColllision.Info(RayColllisionNode) then
         begin
           Result.Hit := true;
@@ -2194,7 +2195,7 @@ begin
             TODO: But we could extract it from Triangle? }
           Result.Normal := -RayDirection;
         end;
-      end;
+      finally FreeAndNil(RayColllision) end;
     end;
   end;
 end;
