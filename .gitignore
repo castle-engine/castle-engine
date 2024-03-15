@@ -220,6 +220,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/headlight/headlight
 /examples/viewport_and_scenes/listen_on_x3d_events/listen_on_x3d_events
 /examples/viewport_and_scenes/multiple_viewports/multiple_viewports
+/examples/viewport_and_scenes/pointing_device_hit/pointing_device_hit
 /examples/viewport_and_scenes/position_from_world/position_from_world
 /examples/viewport_and_scenes/render_3d_to_image/render_3d_to_image
 /examples/viewport_and_scenes/render_3d_to_texture_and_use_as_quad/render_3d_to_texture_and_use_as_quad
