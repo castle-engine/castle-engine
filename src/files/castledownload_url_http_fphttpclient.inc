@@ -59,6 +59,7 @@ type
   public
     { Set these before Execute }
     HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
+    HttpRequestBody: TStream;
     Url: String;
     HttpMethod: THttpMethod;
     SynchronizationCS: TCriticalSection;
@@ -203,10 +204,18 @@ begin
 end;
 
 procedure TFpHttpClientJob.Execute;
+
+  function UseHttpRequestBody: Boolean;
+  begin
+    Result := (HttpRequestBody <> nil) and (HttpRequestBody.Size <> 0);
+  end;
+
 var
   Client: TCastleFpHttpClient;
   I: Integer;
+  MemStream: TMemoryStream;
 begin
+  MemStream := nil; // to have later FreeAndNil(MemStream) safely
   try
     Client := TCastleFpHttpClient.Create(nil);
     try
@@ -215,7 +224,7 @@ begin
       Client.SynchronizationCS := SynchronizationCS;
       Client.Contents := Contents;
       Client.AllowRedirect := true;
-      Client.MimeTypeFromUrl := URIMimeType(Url);
+      Client.MimeTypeFromUrl := UriMimeType(Url);
       // Client is used only once, so KeepConnection not necessary
       {$ifndef VER3_0_2}
       Client.KeepConnection := false;
@@ -233,10 +242,19 @@ begin
       FinalUrl := Url;
 
       try
+        if UseHttpRequestBody then
+        begin
+          Assert(HttpRequestBody <> nil);
+          MemStream := TMemoryStream.Create;
+          MemStream.CopyFrom(HttpRequestBody, 0);
+          MemStream.Seek(0, soFromBeginning); // client does not always rewind the stream before send
+          Client.RequestBody := MemStream; // we own stream, and free it, the client is not touching it
+        end;
+
         case HttpMethod of
           hmGet: Client.Get(Url, Contents);
           hmPost:
-            if HttpPostData <> nil then
+            if (HttpPostData <> nil) and (not UseHttpRequestBody) then
               Client.FormPost(Url, HttpPostData, Contents)
             else
               Client.Post(Url, Contents);
@@ -261,7 +279,10 @@ begin
         So we check it manually here. }
       if HttpResponseCode <> 200 then
         raise EHTTPClient.CreateFmt('Unexpected response status code: %d', [HttpResponseCode]);
-    finally FreeAndNil(Client) end;
+    finally
+      FreeAndNil(MemStream);
+      FreeAndNil(Client);
+    end;
 
     Contents.Position := 0; { rewind for easy reading }
 
@@ -270,7 +291,7 @@ begin
     on E: TObject do
     begin
       Success := false;
-      ErrorMessage := Format('Error when downloading "%s": ', [URIDisplay(Url)]) + ExceptMessage(E);
+      ErrorMessage := Format('Error when downloading "%s": ', [UriDisplay(Url)]) + ExceptMessage(E);
 
       {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)}
       if (E is ESocketError) and (URIProtocol(Url) = 'https') then
@@ -315,6 +336,7 @@ procedure TFpHttpClientReader.Start;
     Job.SynchronizationCS := SynchronizationCS;
     Job.HttpMethod := HttpMethod;
     Job.HttpPostData := HttpPostData;
+    Job.HttpRequestBody := HttpRequestBody;
     Job.HttpHeadersKeys := HttpHeadersKeys;
     Job.HttpHeadersValues := HttpHeadersValues;
   end;
@@ -362,7 +384,7 @@ begin
   end;
 
   CheckFileAccessSafe(Url);
-  WritelnLog('Network', 'Downloading "%s"', [URIDisplay(Url)]);
+  WritelnLog('Network', 'Downloading "%s"', [UriDisplay(Url)]);
 
   SynchronizationCS := TCriticalSection.Create;
 
@@ -393,7 +415,7 @@ begin
 
     {.$define CASTLE_SAFE_DOWNLOAD_INTERRUPTION}
     {$ifdef CASTLE_SAFE_DOWNLOAD_INTERRUPTION}
-    WritelnLog('Network', 'Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
+    WritelnLog('Network', 'Interrupting download in-progress of "%s"', [UriDisplay(Url)]);
     Thread.WaitFor;
     FreeAndNil(Thread);
 
@@ -417,7 +439,7 @@ begin
         before thread Execute processed HttpPostData and HttpHeadersKeys/Values,
         as they may become invalid when owning TCastleDownload it freed.
       }
-      WritelnLog('Network', 'Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
+      WritelnLog('Network', 'Interrupting download in-progress of "%s"', [UriDisplay(Url)]);
       Thread.FreeOnTerminate := true;
       Thread := nil;
       SynchronizationCS := nil; // do not free it here, let Thread use it

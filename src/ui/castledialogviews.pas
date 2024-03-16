@@ -113,17 +113,17 @@ type
       FPopOnAnswered: boolean;
       FDialog: TDialog; // non-nil only between Start and Stop
       FUnusedSaveScreen: TCastleImage;
-    function GetCaption: string;
-    procedure SetCaption(const Value: string);
-    function GetInputText: string;
-    procedure SetInputText(const Value: string);
+    function GetCaption: String;
+    procedure SetCaption(const Value: String);
+    function GetInputText: String;
+    procedure SetInputText(const Value: String);
   protected
     type
       TButtonArray = array of TCastleButton;
     procedure InitializeButtons(var Buttons: TButtonArray); virtual;
     function DrawInputText: boolean; virtual;
     procedure DoAnswered;
-    property InputText: string read GetInputText write SetInputText;
+    property InputText: String read GetInputText write SetInputText;
   public
     const
       DefaultAlignment = hpLeft;
@@ -163,7 +163,7 @@ type
         ViewDialogOK.Caption := 'First line' + LineEnding + 'Second line';
       #)
     }
-    property Caption: string read GetCaption write SetCaption stored false;
+    property Caption: String read GetCaption write SetCaption stored false;
 
     { Horizontal alignment of the text. }
     property Alignment: THorizontalPosition
@@ -270,8 +270,8 @@ type
     FAnswerCancelled: boolean;
     procedure ButtonOKClick(Sender: TObject);
     procedure ButtonCancelClick(Sender: TObject);
-    function GetAnswer: string;
-    procedure SetAnswer(const Value: string);
+    function GetAnswer: String;
+    procedure SetAnswer(const Value: String);
   protected
     procedure InitializeButtons(var Buttons: TViewDialog.TButtonArray); override;
     function DrawInputText: boolean; override;
@@ -299,7 +299,7 @@ type
     { The user input. May be set before starting the view.
       After the view stopped, if @link(Answered), then this contains user answer.
       You should ignore it if @link(AnswerCancelled). }
-    property Answer: string read GetAnswer write SetAnswer;
+    property Answer: String read GetAnswer write SetAnswer;
   end;
 
   { Ask user a press any key, and return this key.
@@ -369,22 +369,22 @@ begin
   inherited;
 end;
 
-function TViewDialog.GetCaption: string;
+function TViewDialog.GetCaption: String;
 begin
   Result := TrimEndingNewline(Text.Text);
 end;
 
-procedure TViewDialog.SetCaption(const Value: string);
+procedure TViewDialog.SetCaption(const Value: String);
 begin
   Text.Text := Value;
 end;
 
-function TViewDialog.GetInputText: string;
+function TViewDialog.GetInputText: String;
 begin
   Result := FDialog.InputText;
 end;
 
-procedure TViewDialog.SetInputText(const Value: string);
+procedure TViewDialog.SetInputText(const Value: String);
 begin
   FDialog.InputText := Value;
 end;
@@ -707,12 +707,12 @@ begin
   Result := true;
 end;
 
-function TViewDialogInput.GetAnswer: string;
+function TViewDialogInput.GetAnswer: String;
 begin
   Result := InputText;
 end;
 
-procedure TViewDialogInput.SetAnswer(const Value: string);
+procedure TViewDialogInput.SetAnswer(const Value: String);
 begin
   InputText := Value;
 end;

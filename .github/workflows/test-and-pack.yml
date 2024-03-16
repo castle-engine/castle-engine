@@ -44,6 +44,8 @@ jobs:
         run: make clean tests
       - name: Build Using FpMake (FPC Stable)
         run: make clean test-fpmake
+      - name: Test CastleWindow backends (FPC Stable)
+        run: ./tools/internal/check_castle_window_backends_compilation
 
   test-fpc-stable-examples:
     name: Examples (FPC Stable)
@@ -95,6 +97,8 @@ jobs:
         run: make clean tests
       - name: Build Using FpMake (FPC 3.2.0)
         run: make clean test-fpmake
+      - name: Test CastleWindow backends (FPC 3.2.0)
+        run: ./tools/internal/check_castle_window_backends_compilation
 
   test-fpc-320-examples:
     name: Examples (FPC 3.2.0)
@@ -139,6 +143,8 @@ jobs:
       # TODO investigate and report.
       # - name: Build Using FpMake (FPC Latest Unstable)
       #   run: make clean test-fpmake
+      - name: Test CastleWindow backends (FPC Latest Unstable)
+        run: ./tools/internal/check_castle_window_backends_compilation
 
   test-fpc-latest-unstable-examples:
     name: Examples (FPC Latest Unstable)
@@ -198,7 +204,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install FPC+Lazarus
-        uses: gcarreno/setup-lazarus@v3.2.15
+        uses: gcarreno/setup-lazarus@v3.2.17
         with:
           lazarus-version: ${{ matrix.lazarus-versions }}
       - name: Install Ubuntu dependencies

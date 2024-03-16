@@ -2494,7 +2494,7 @@ var
         FDebugTransform.ChangedScene;
       end;
 
-      FDebugAlternativeTargetAxis.Render := HasAlternativeTarget;
+      FDebugAlternativeTargetAxis.Visible := HasAlternativeTarget;
       FDebugAlternativeTargetAxis.ScaleFromBox := BoundingBox;
       FDebugAlternativeTargetAxis.Position := AlternativeTarget;
 
@@ -2505,7 +2505,7 @@ var
         FDebugTransform.ChangedScene;
       end;
 
-      FDebugLastSensedEnemyAxis.Render := HasLastSensedEnemy;
+      FDebugLastSensedEnemyAxis.Visible := HasLastSensedEnemy;
       FDebugLastSensedEnemyAxis.ScaleFromBox := BoundingBox;
       FDebugLastSensedEnemyAxis.Position := LastSensedEnemy;
     end;

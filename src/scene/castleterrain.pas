@@ -231,7 +231,7 @@ type
     FXVariable, FYVariable: TCasScriptFloat;
     FFunction: TCasScriptExpression;
   public
-    constructor Create(const FunctionExpression: string); reintroduce;
+    constructor Create(const FunctionExpression: String); reintroduce;
     destructor Destroy; override;
     function Height(const Coord, TexCoord: TVector2): Single; override;
   end deprecated 'using CastleScript to define terrain is deprecated due to low usage';
@@ -743,7 +743,7 @@ implementation
 
 uses Math,
   CastleUtils, CastleScriptParser, CastleInternalNoise, CastleDownload, CastleLog,
-  CastleURIUtils, CastleComponentSerialize;
+  CastleUriUtils, CastleComponentSerialize;
 
 { TCastleTerrainData ------------------------------------------------------------------- }
 
@@ -1058,9 +1058,9 @@ begin
   inherited;
 end;
 
-procedure TCastleTerrainImage.SetUrl(const Value: string);
+procedure TCastleTerrainImage.SetUrl(const Value: String);
 
-  procedure LoadImage(const NewUrl: string);
+  procedure LoadImage(const NewUrl: String);
   var
     NewImage: TGrayscaleImage;
   begin
@@ -1088,7 +1088,7 @@ begin
         if CastleDesignMode then
         begin
           WritelnWarning('TCastleTerrainImage', 'Failed to load image "%s": %s', [
-            URIDisplay(Value),
+            UriDisplay(Value),
             ExceptMessage(E)
           ]);
         end else
@@ -1145,7 +1145,7 @@ end;
 
 { TTerrainCasScript -------------------------------------------------------- }
 
-constructor TTerrainCasScript.Create(const FunctionExpression: string);
+constructor TTerrainCasScript.Create(const FunctionExpression: String);
 begin
   inherited Create(nil);
 

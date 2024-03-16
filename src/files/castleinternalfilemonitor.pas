@@ -132,7 +132,7 @@ procedure TCastleFileMonitor.TFileInfo.UpdateLastModified(const CallChanged: Boo
 var
   NewLastModified: TDateTime;
 begin
-  if not FileAge(URIToFilenameSafe(Url), NewLastModified) then
+  if not FileAge(UriToFilenameSafe(Url), NewLastModified) then
   begin
     WritelnWarning('File Monitor', 'Cannot get last modified time of URL "' + Url + '", it will not be watched reliably');
     NewLastModified := 0;
@@ -171,7 +171,7 @@ begin
   Result := ResolveCastleDataURL(AbsoluteURI(Url));
 
   // only watch regular files
-  if URIToFilenameSafe(Result) = '' then
+  if UriToFilenameSafe(Result) = '' then
     Result := '';
 end;
 

@@ -63,7 +63,7 @@ type
     procedure UpdateWarning;
     { Open ProjectForm.
       ManifestUrl may be absolute or relative here. }
-    procedure ProjectOpen(ManifestUrl: string);
+    procedure ProjectOpen(ManifestUrl: String);
   public
 
   end;
@@ -75,7 +75,7 @@ implementation
 
 {$R *.lfm}
 
-uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils, CastleOpenDocument,
+uses CastleConfig, CastleLCLUtils, CastleUriUtils, CastleUtils, CastleOpenDocument,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils, CastleGLUtils,
   CastleApplicationProperties,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
@@ -84,7 +84,7 @@ uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils, CastleOpenDocume
 
 { TChooseProjectForm ------------------------------------------------------------- }
 
-procedure TChooseProjectForm.ProjectOpen(ManifestUrl: string);
+procedure TChooseProjectForm.ProjectOpen(ManifestUrl: String);
 begin
   ManifestUrl := AbsoluteURI(ManifestUrl);
 
@@ -146,7 +146,7 @@ begin
       // Create project dir
       ProjectDir := InclPathDelim(NewProjectForm.EditLocation.Text) +
         NewProjectForm.EditProjectName.Text;
-      ProjectDirUrl := FilenameToURISafe(InclPathDelim(ProjectDir));
+      ProjectDirUrl := FilenameToUriSafe(InclPathDelim(ProjectDir));
       if not ForceDirectories(ProjectDir) then
         raise Exception.CreateFmt('Cannot create directory "%s".', [ProjectDir]);
 
@@ -223,9 +223,9 @@ begin
     // show file URLs simpler, esp to avoid showing space as %20
     Url := SuffixRemove('/CastleEngineManifest.xml', Url, true);
     if URIProtocol(Url) = 'file' then
-      S := URIToFilenameSafeUTF8(Url)
+      S := UriToFilenameSafeUTF8(Url)
     else
-      S := URIDisplay(Url);
+      S := UriDisplay(Url);
     MenuItem.Caption := SQuoteLCLCaption(S + NotExistingSuffix);
 
     MenuItem.Tag := I;
@@ -238,7 +238,7 @@ end;
 
 procedure TChooseProjectForm.ButtonSupportUsClick(Sender: TObject);
 begin
-  OpenURL('https://patreon.com/castleengine/');
+  OpenUrl('https://patreon.com/castleengine/');
 end;
 
 procedure TChooseProjectForm.FormCreate(Sender: TObject);
@@ -366,7 +366,7 @@ begin
   if not (URIExists(Url) in [ueFile, ueUnknown]) then
   begin
     if YesNoBox(Format('Project file "%s" does not exist. Remove the project from the recent list?', [
-      URIDisplay(Url)
+      UriDisplay(Url)
     ])) then
     begin
       RecentProjects.Remove(Url);

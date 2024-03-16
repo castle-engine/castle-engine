@@ -49,14 +49,14 @@ function ResolveRelativeURI(const BaseUri, RelUri: WideString; out ResultUri: Wi
 {$ENDIF}
 function ResolveRelativeURI(const BaseUri, RelUri: AnsiString;  out ResultUri: AnsiString): Boolean; overload;
 
-function URIToFilename(const URI: string; out Filename: string): Boolean;
-function FilenameToURI(const Filename: string; Encode : Boolean = True): string;
+function UriToFilename(const URI: String; out Filename: String): Boolean;
+function FilenameToUri(const Filename: String; Encode : Boolean = True): String;
 
-function IsAbsoluteURI(const UriReference: string): Boolean;
+function IsAbsoluteURI(const UriReference: String): Boolean;
 
 implementation
 
-uses SysUtils, CastleURIUtils;
+uses SysUtils, CastleUriUtils;
 
 const
   GenDelims = [':', '/', '?', '#', '[', ']', '@'];
@@ -259,7 +259,7 @@ begin
     Result.Host := Authority;
 end;
 
-procedure RemoveDotSegments(var s: string);
+procedure RemoveDotSegments(var s: String);
 var
   Cur, Prev: Integer;
 begin
@@ -355,7 +355,7 @@ begin
     ResultURI := UTF8Decode(rslt);
 end;
 
-function URIToFilename(const URI: string; out Filename: string): Boolean;
+function UriToFilename(const URI: String; out Filename: String): Boolean;
 var
   U: TURI;
   I: Integer;
@@ -388,11 +388,11 @@ begin
   end;
 end;
 
-function FilenameToURI(const Filename: string; Encode : Boolean = True): string;
+function FilenameToUri(const Filename: String; Encode : Boolean = True): String;
 var
   I: Integer;
   IsAbsFilename: Boolean;
-  FilenamePart: string;
+  FilenamePart: String;
 begin
   IsAbsFilename := ((Filename <> '') and (Filename[1] = PathDelim)) or
     ((Length(Filename) > 2) and (Filename[1] in ['A'..'Z', 'a'..'z']) and (Filename[2] = ':'));
@@ -424,7 +424,7 @@ begin
 end;
 
 
-function IsAbsoluteURI(const UriReference: string): Boolean;
+function IsAbsoluteURI(const UriReference: String): Boolean;
 var
   I: Integer;
 begin

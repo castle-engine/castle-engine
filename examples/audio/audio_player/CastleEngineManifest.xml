@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="audio_player"
   lazarus_project="audio_player.lpi"
   build_using_lazbuild="true"
+  qualified_name="io.castleengine.audio.player"
 >
   <data exists="false"/>
 </project>

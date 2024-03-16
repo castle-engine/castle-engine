@@ -12,5 +12,6 @@
   lazarus_project="multiple_views.lpi"
   build_using_lazbuild="true"
   game_units="FormMain"
+  qualified_name="io.castleengine.multiple.views"
 >
 </project>

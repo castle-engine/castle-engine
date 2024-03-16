@@ -31,12 +31,12 @@ Q: Should I upgrade my code to just use URLs everywhere, that is:
 A: The short answer is "yes".
 
    If you have a filename, you can reliably convert it to an URI
-   using FilenameToURISafe(ExpandFileName(FileName)).
+   using FilenameToUriSafe(ExpandFileName(FileName)).
 
-   FilenameToURI and URIToFilename are inside URIParser unit, part of FPC,
-   but better use FilenameToURISafe and URIToFilenameSafe inside CastleURIUtils.
+   FilenameToUri and UriToFilename are inside URIParser unit, part of FPC,
+   but better use FilenameToUriSafe and UriToFilenameSafe inside CastleUriUtils.
 
-   Besides obvious benetifs of using URLs (you will be able
+   Besides obvious benefits of using URLs (you will be able
    to pull stuff from network using http protocol), there are some smaller
    advantages:
 
@@ -46,7 +46,7 @@ A: The short answer is "yes".
 
    - Because an URL could have some characters encoded.
      Inside an URI, "%25" means a "%" and "%4d" means "M".
-     URIToFilenameSafe and FilenameToURISafe handle
+     UriToFilenameSafe and FilenameToUriSafe handle
      the percent-encoding/decoding consistently.
 
    - For the future: right now, absolute filenames are never mistaken
@@ -83,7 +83,7 @@ A: URIProtocol is the judge.
      Relative filename or relative URI can always be differentiated
      by context.
 
-     (Athough the distinction doesn't really matter, since right now
+     (Although the distinction doesn't really matter, since right now
      nothing encodes/decodes any special chars inside URIs.
      Except possibly CombineURI (that uses ParseURI that calls EncodeURI
      that calls Escape) but CombineURI returns always an absolute URI
@@ -97,8 +97,8 @@ A: URIProtocol is the judge.
        This means that passing any filenames (absolute or relative) or
        absolute URIs to AbsoluteURI is a good way to convert them to URI.
        Although when you *know* that you have a filename (not URI),
-       it's better to use FilenameToURISafe(ExpandFileName(FileName))
-       (this avoids the ambigous relative filenames with colons problems).
+       it's better to use FilenameToUriSafe(ExpandFileName(FileName))
+       (this avoids the ambiguous relative filenames with colons problems).
 
      - CombineURI treats the 2nd parameter (Relative) as relative URIs,
        relative to the given base URI. All URLs present inside documents

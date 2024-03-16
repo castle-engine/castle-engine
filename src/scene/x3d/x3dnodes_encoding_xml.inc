@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,20 +28,20 @@ const
 
   Overloaded version that takes Stream as a parameter expects that
   reading the stream returns the uncompressed content (no longer gzip
-  compressed). This version also takes URL as a parameter,
+  compressed). This version also takes Url as a parameter,
   but it is not used to load contents (these are inside Stream),
   it it only used to resolve relative URLs inside content and for error messages.
 
   @exclude
 
   @groupBegin }
-function LoadX3DXml(const URL: string; const Gzipped: boolean): TX3DRootNode; overload; deprecated 'use LoadNode';
+function LoadX3DXml(const Url: String; const Gzipped: boolean): TX3DRootNode; overload; deprecated 'use LoadNode';
 
 { @exclude }
-function LoadX3DXmlInternal(const Stream: TStream; const BaseUrl: string): TX3DRootNode; overload;
+function LoadX3DXmlInternal(const Stream: TStream; const BaseUrl: String): TX3DRootNode; overload;
 
 { @exclude }
-function LoadX3DXmlInternal(const X3DElement: TDOMElement; const BaseUrl: string): TX3DRootNode; overload;
+function LoadX3DXmlInternal(const X3DElement: TDOMElement; const BaseUrl: String): TX3DRootNode; overload;
 
 { @groupEnd }
 
@@ -52,7 +52,7 @@ function LoadX3DXmlInternal(const X3DElement: TDOMElement; const BaseUrl: string
 { Like "Element.AttributeString(AttributeName, Value)",
   but also decoded the read string using DecodeX3DName. }
 function XMLAttributeX3DName(const Element: TDOMElement;
-  const AttributeName: String; var Value: string): Boolean;
+  const AttributeName: String; var Value: String): Boolean;
 begin
   Result := Element.AttributeString(AttributeName, Value);
   if Result then
@@ -68,10 +68,10 @@ const
   SAttrDEF = 'DEF';
 
 function ParseXMLNode(const Element: TDOMElement;
-  out ContainerField: string; const Reader: TX3DReaderNames;
+  out ContainerField: String; const Reader: TX3DReaderNames;
   const NilIfUnresolvedUSE: boolean): TX3DNode; overload; forward;
 function ParseXMLNode(const Element: TDOMElement;
-  out ContainerField: string; const Reader: TX3DReaderNames;
+  out ContainerField: String; const Reader: TX3DReaderNames;
   const NilIfUnresolvedUSE: Boolean;
   const AllowNodeCycle: Boolean; var UsingNodeCycle: Boolean): TX3DNode; overload; forward;
 function ParseStatements(Element: TDOMElement;
@@ -82,7 +82,7 @@ function ParseStatements(Element: TDOMElement;
   nodeField and protoField value. Returns @true if all Ok, otherwise
   returns @false. }
 function ParseConnectElement(Element: TDOMElement;
-  out NodeField, ProtoField: string): boolean;
+  out NodeField, ProtoField: String): boolean;
 begin
   Result := false;
 
@@ -111,7 +111,7 @@ procedure ParseISStatement(Node: TX3DNode; ISElement: TDOMElement;
   var PositionInParent: Integer);
 var
   I: TXMLElementIterator;
-  NodeField, ProtoField: string;
+  NodeField, ProtoField: String;
   NodeFieldOrEvent: TX3DFieldOrEvent;
 begin
   I := ISElement.ChildrenIterator;
@@ -158,18 +158,18 @@ end;
     be better.)
 *)
 function ParseXMLNode(const Element: TDOMElement;
-  out ContainerField: string; const Reader: TX3DReaderNames;
+  out ContainerField: String; const Reader: TX3DReaderNames;
   const NilIfUnresolvedUSE: Boolean;
   const AllowNodeCycle: Boolean; var UsingNodeCycle: Boolean): TX3DNode;
 
-  procedure ParseNamedNode(const NodeName: string);
+  procedure ParseNamedNode(const NodeName: String);
   var
     NodeClass: TX3DNodeClass;
-    X3DType: string;
-    ProtoName: string;
+    X3DType: String;
+    ProtoName: String;
     Proto: TX3DPrototypeBase;
     ProtoIter: TXMLElementIterator;
-    FieldActualValue, FieldName: string;
+    FieldActualValue, FieldName: String;
     FieldIndex: Integer;
     PositionInParent: Integer;
   begin
@@ -269,7 +269,7 @@ function ParseXMLNode(const Element: TDOMElement;
   end;
 
 var
-  NodeName, S: string;
+  NodeName, S: String;
   UsedNodeFinished: boolean;
 begin
   Result := nil;
@@ -309,7 +309,7 @@ begin
 
     { calculate ContainerField.
 
-      Note that we do not diffentiate here between the case of <USE>
+      Note that we do not differentiate here between the case of <USE>
       element and real node element --- because that's the intention
       of X3D specification, in both situations element may have
       containerField attribute.
@@ -319,7 +319,9 @@ begin
       (see demo_models/x3d/container_field_def_use.x3d).
       Each USE occurrence must specify suitable containerField or use class default. }
     if Result <> nil then
-      ContainerField := Result.DefaultContainerField else
+      ContainerField := Result.DefaultContainerFieldInContext(
+        Reader.Version, Reader.ParentNode as TX3DNode)
+    else
       ContainerField := ''; { will not be used anyway }
     Element.AttributeString(SAttrContainerField, ContainerField);
 
@@ -327,7 +329,7 @@ begin
 end;
 
 function ParseXMLNode(const Element: TDOMElement;
-  out ContainerField: string; const Reader: TX3DReaderNames;
+  out ContainerField: String; const Reader: TX3DReaderNames;
   const NilIfUnresolvedUSE: boolean): TX3DNode;
 var
   IgnoredUsingNodeCycle: Boolean;
@@ -338,7 +340,7 @@ end;
 
 { This parses a sequence of X3D statements: any number of nodes,
   (external) protypes, routes.
-  This is good to use to parse whole VRML file (when FileTopLevel = true),
+  This is good to use to parse whole X3D file (when FileTopLevel = true),
   or a (non-external) prototype content (when FileTopLevel = false).
 
   It's somewhat similar to classic ParseStatements.
@@ -360,7 +362,7 @@ var
 
   procedure ParseProfile;
   var
-    Profile: string;
+    Profile: String;
   begin
     { parse "profile" attribute }
     if X3DHeaderElement.AttributeString('profile', Profile) then
@@ -376,7 +378,7 @@ var
 
     procedure ParseMeta(Element: TDOMElement);
     var
-      MetaName, MetaContent: string;
+      MetaName, MetaContent: String;
     begin
       MetaName := '';
       MetaContent := '';
@@ -387,7 +389,7 @@ var
 
     procedure ParseComponent(Element: TDOMElement);
     var
-      ComponentName: string;
+      ComponentName: String;
       ComponentLevel: Integer;
     begin
       if Element.AttributeString('name', ComponentName) then
@@ -402,7 +404,7 @@ var
 
     procedure ParseUnit(Element: TDOMElement);
     var
-      Category, Name: string;
+      Category, Name: String;
       ConversionFactor: Float;
     begin
       if not Element.AttributeString('category', Category) then
@@ -502,7 +504,7 @@ var
     procedure ParseNodeStatement;
     var
       NewNode: TX3DNode;
-      ContainerFieldDummy: string;
+      ContainerFieldDummy: String;
     begin
       NewNode := ParseXMLNode(Element, ContainerFieldDummy, Reader, false);
       NewNode.PositionInParent := PositionInParent;
@@ -546,7 +548,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadX3DXml(const URL: string; const Gzipped: boolean): TX3DRootNode;
+function LoadX3DXml(const Url: String; const Gzipped: boolean): TX3DRootNode;
 var
   Stream: TStream;
   StreamOptions: TStreamOptions;
@@ -554,15 +556,15 @@ begin
   StreamOptions := [];
   if Gzipped then
     Include(StreamOptions, soGzip);
-  Stream := Download(URL, StreamOptions);
+  Stream := Download(Url, StreamOptions);
   try
-    Result := LoadX3DXmlInternal(Stream, AbsoluteURI(URL));
+    Result := LoadX3DXmlInternal(Stream, AbsoluteURI(Url));
   finally
     FreeAndNil(Stream);
   end;
 end;
 
-function LoadX3DXmlInternal(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
+function LoadX3DXmlInternal(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   Doc: TXMLDocument;
 begin
@@ -577,10 +579,10 @@ begin
   finally FreeAndNil(Doc); end;
 end;
 
-function LoadX3DXmlInternal(const X3DElement: TDOMElement; const BaseUrl: string): TX3DRootNode; overload;
+function LoadX3DXmlInternal(const X3DElement: TDOMElement; const BaseUrl: String): TX3DRootNode; overload;
 var
   SceneElement: TDOMElement;
-  VersionStr: string;
+  VersionStr: String;
   Version: TX3DVersion;
   { TODO: each USE must occur after it's DEF,
     does X3D XML encoding guarantee this? }

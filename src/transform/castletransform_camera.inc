@@ -300,7 +300,7 @@
 
     constructor Create(AOwner: TComponent); override;
     { @exclude Create camera that doesn't show any gizmo in CGE editor. }
-    constructor InternalCreateNonDesign(const AOwner: TComponent);
+    constructor InternalCreateNonDesign(const AOwner: TComponent; const Ignored: Integer);
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -670,7 +670,7 @@ begin
   CommonCreate(AOwner, CastleDesignMode);
 end;
 
-constructor TCastleCamera.InternalCreateNonDesign(const AOwner: TComponent);
+constructor TCastleCamera.InternalCreateNonDesign(const AOwner: TComponent; const Ignored: Integer);
 begin
   CommonCreate(AOwner, false);
 end;

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,7 +35,7 @@
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAddress: TSFString;
     { Internal wrapper for property @code(Address). This wrapper API may change, we advise to access simpler @code(Address) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -49,11 +49,11 @@
     {  }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
 
-    strict private FFdMapping: TMFNode;
-    { Internal wrapper for property @code(Mapping). This wrapper API may change, we advise to access simpler @code(Mapping) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
-    public property FdMapping: TMFNode read FFdMapping;
+    strict private FFdChildren: TMFNode;
+    { Internal wrapper for property @code(Children). This wrapper API may change, we advise to access simpler @code(Children) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdChildren: TMFNode read FFdChildren;
     {  }
-    procedure SetMapping(const Value: array of TDISEntityTypeMappingNode);
+    procedure SetChildren(const Value: array of TDISEntityTypeMappingNode);
 
     strict private FFdPort: TSFInt32;
     { Internal wrapper for property @code(Port). This wrapper API may change, we advise to access simpler @code(Port) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -101,7 +101,7 @@ begin
   FdApplicationID.Send(Value);
 end;
 
-procedure TDISEntityManagerNode.SetMapping(const Value: array of TDISEntityTypeMappingNode);
+procedure TDISEntityManagerNode.SetChildren(const Value: array of TDISEntityTypeMappingNode);
 var
   L: Integer;
   A: array of TX3DNode;
@@ -110,7 +110,7 @@ begin
   SetLength(A, L);
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TDISEntityTypeMappingNode));
-  FdMapping.Send(A);
+  FdChildren.Send(A);
 end;
 
 function TDISEntityManagerNode.GetPort: Integer;
@@ -150,9 +150,9 @@ begin
    FdApplicationID.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdApplicationID);
 
-  FFdMapping := TMFNode.Create(Self, True, 'mapping', [TDISEntityTypeMappingNode]);
-   FdMapping.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdMapping);
+  FFdChildren := TMFNode.Create(Self, True, 'children', [TDISEntityTypeMappingNode]);
+   FdChildren.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdChildren);
 
   FFdPort := TSFInt32.Create(Self, True, 'port', 0);
    FdPort.ChangeAlways := chVisibleNonGeometry;

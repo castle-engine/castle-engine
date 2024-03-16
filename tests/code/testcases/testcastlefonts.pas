@@ -18,8 +18,7 @@ unit TestCastleFonts;
 
 interface
 
-uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+uses CastleTester;
 
 type
   TTestCastleFonts = class(TCastleTestCase)
@@ -36,15 +35,8 @@ type
 
 implementation
 
-{$ifdef TEXT_RUNNER}
-  {$ifndef NO_WINDOW_SYSTEM}
-    {$define TEST_CASTLE_WINDOW}
-  {$endif}
-{$endif}
-
 uses SysUtils, Classes,
-  {$ifdef TEST_CASTLE_WINDOW} CastleWindow, {$endif}
-  CastleFonts, CastleTextureFont_Default3d_Sans, CastleLog,
+  CastleWindow, CastleFonts, CastleTextureFont_Default3d_Sans, CastleLog,
   Font_LatoRegular_300, CastleInternalFreeTypeH;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtml;
@@ -73,21 +65,20 @@ begin
 end;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtmlInWindow;
-{$ifdef TEST_CASTLE_WINDOW}
 var
   Window: TCastleWindow;
 begin
+  if not CanCreateWindowForTest then
+    Exit;
+
   // should work with OpenGL context too, actually it doesn't matter now
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     Window.Visible := false;
     Window.Open;
     TestMaxTextWidthHtml;
     Window.Close;
-  finally FreeAndNil(Window) end;
-{$else}
-begin
-{$endif}
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestCastleFonts.TestSizeFontFamily;
@@ -267,13 +258,6 @@ begin
     will know what's going on. }
   if not FreeTypeLibraryInitialized then
   begin
-    { TODO: Why doing
-        raise Exception.Create(...)
-      here, instead of Fail, does not report test as failed in castle_tester GUI?
-      Using "Fail" is OK, it's actually cleaner, but still raising exception
-      should also be reported.
-      Observed on Delphi 10.2.3 / Win64. }
-
     Fail('FreeType library not available, so TTestCastleFonts.TestSizeChangeNotificationFontFamily has to fail.'
       {$ifdef MSWINDOWS}
       + ' On Windows, be sure to place proper DLL files alongside EXE. It is easiest to build using CGE editor that will place proper DLLs automatically.'

@@ -84,7 +84,7 @@ procedure Save3D(Node: TX3DNode;
   Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload; deprecated 'use SaveNode';
 procedure Save3D(Node: TX3DNode;
-  const URL, Generator, Source: string;
+  const Url, Generator, Source: string;
   const Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload; deprecated 'use SaveNode';
 procedure Save3D(Node: TX3DNode;
@@ -92,11 +92,11 @@ procedure Save3D(Node: TX3DNode;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload; deprecated 'use SaveNode';
 procedure Save3D(Node: TX3DNode;
-  const URL, Generator, Source: string;
+  const Url, Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload; deprecated 'use SaveNode';
 procedure Save3D(Node: TX3DNode;
-  const URL: string;
+  const Url: String;
   const Generator: string = '';
   const Source: string = ''); overload; deprecated 'use SaveNode';
 { @groupEnd }
@@ -224,7 +224,7 @@ var
 
     procedure SaveComponents(Root: TX3DRootNode);
     var
-      ComponentLevel: {$ifdef FPC}TStringLongIntMap.TDictionaryPair{$else}TPair<string, LongInt>{$endif};
+      ComponentLevel: {$ifdef FPC}TStringIntegerMap.TDictionaryPair{$else}TPair<string, Integer>{$endif};
     begin
       for ComponentLevel in Root.Components do
         Writer.Writeln(Format('COMPONENT %s:%d',
@@ -314,7 +314,7 @@ var
 
     procedure SaveComponents(Root: TX3DRootNode);
     var
-      ComponentLevel: {$ifdef FPC}TStringLongIntMap.TDictionaryPair{$else}TPair<string, LongInt>{$endif};
+      ComponentLevel: {$ifdef FPC}TStringIntegerMap.TDictionaryPair{$else}TPair<string, Integer>{$endif};
     begin
       for ComponentLevel in Root.Components do
         Writer.WritelnIndent(Format('<component name=%s level="%d" />',
@@ -391,7 +391,7 @@ begin
 end;
 
 procedure Save3D(Node: TX3DNode;
-  const URL, Generator, Source: string; const Version: TX3DVersion;
+  const Url, Generator, Source: string; const Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
 var
@@ -401,11 +401,11 @@ var
 begin
   { calculate StreamOptions to include gzip compression when necessary }
   StreamOptions := [];
-  URIMimeType(URL, Gzipped);
+  UriMimeType(Url, Gzipped);
   if Gzipped then
     Include(StreamOptions, ssoGzip);
 
-  Stream := URLSaveStream(URL, StreamOptions);
+  Stream := UrlSaveStream(Url, StreamOptions);
   try
     {$warnings off} // using deprecated in deprecated
     Save3D(Node, Stream, Generator, Source, Version,
@@ -426,18 +426,18 @@ begin
 end;
 
 procedure Save3D(Node: TX3DNode;
-  const URL, Generator, Source: string;
+  const Url, Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
 begin
   {$warnings off} // using deprecated in deprecated
-  Save3D(Node, URL, Generator, Source, Save3DVersion(Node),
+  Save3D(Node, Url, Generator, Source, Save3DVersion(Node),
     Encoding, ForceConvertingToX3D);
   {$warnings on}
 end;
 
 procedure Save3D(Node: TX3DNode;
-  const URL: string;
+  const Url: String;
   const Generator: string = '';
   const Source: string = '');
 var
@@ -445,13 +445,13 @@ var
   Encoding: TX3DEncoding;
 begin
   { guess Encoding from URL }
-  Mime := URIMimeType(URL);
+  Mime := UriMimeType(Url);
   if (Mime = 'model/vrml') or
      (Mime = 'model/x3d+vrml') then
     Encoding := xeClassic else
     Encoding := xeXML;
   {$warnings off} // using deprecated in deprecated
-  Save3D(Node, URL, Generator, Source, Encoding);
+  Save3D(Node, Url, Generator, Source, Encoding);
   {$warnings on}
 end;
 

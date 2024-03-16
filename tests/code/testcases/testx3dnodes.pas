@@ -20,8 +20,8 @@ unit TestX3DNodes;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, CastleVectors, X3DNodes;
+  Classes, SysUtils,
+  CastleTester, CastleVectors, X3DNodes;
 
 type
   TTestX3DNodes = class(TCastleTestCase)
@@ -106,6 +106,8 @@ type
     procedure TestSolidField;
     procedure TestConversionDot;
     procedure TestWarningUnquotedIdentifier;
+    procedure TestConversionPrecision;
+    procedure TestInlineShaderCode;
   end;
 
 implementation
@@ -114,7 +116,7 @@ uses Generics.Collections, Math,
   CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
   X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime, CastleColors,
   CastleApplicationProperties, CastleTextureImages, CastleStringUtils,
-  CastleURIUtils, CastleInternalNodesUnsupported,
+  CastleUriUtils, CastleInternalNodesUnsupported, CastleLog,
   CastleTestUtils;
 
 { TNode* ------------------------------------------------------------ }
@@ -199,11 +201,11 @@ type
   end;
 
   TX3DTokenInfoList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DTokenInfo>)
-    procedure AssertEqual(const TestCase: {$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif}; SecondValue: TX3DTokenInfoList);
+    procedure AssertEqual(const TestCase: TCastleTestCase; SecondValue: TX3DTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;
 
-procedure TX3DTokenInfoList.AssertEqual(const TestCase: {$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif};
+procedure TX3DTokenInfoList.AssertEqual(const TestCase: TCastleTestCase;
   SecondValue: TX3DTokenInfoList);
 
   procedure AssertEqualTokens(const T1, T2: TX3DTokenInfo);
@@ -274,11 +276,11 @@ var
     Result.AString := Lexer.TokenString;
   end;
 
-  function LexerFromFile(const URL: string): TX3DLexer;
+  function LexerFromFile(const Url: String): TX3DLexer;
   var
     Stream: TStream;
   begin
-    Stream := Download(URL);
+    Stream := Download(Url);
     Result := TX3DLexer.Create(TBufferedReadStream.Create(Stream, true), true);
   end;
 
@@ -311,7 +313,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       First.ReadFromFile(FileName);
 
       Node := LoadX3DClassic(FileName, false);
-      NewFile := InclPathDelim({$ifndef CASTLE_TESTER}GetTempDir{$else}GetTempDirectory{$endif}) + 'test_castle_game_engine.x3dv';
+      NewFile := InclPathDelim(GetTempDirectory) + 'test_castle_game_engine.x3dv';
       Save3D(Node, NewFile, ApplicationName, '', xeClassic, false);
 
       Second := TX3DTokenInfoList.Create;
@@ -1127,6 +1129,8 @@ procedure TTestX3DNodes.TestTimeDependentFunctionality;
     begin
       B := F.IsActive;
       C := F.CycleInterval;
+      AssertFalse(B); // time-dependent node is not active before it is inserted into scene with ProcessEvents
+      WritelnLog('Default CycleInterval of %s is %f', [N.NiceName, C]);
     end;
   end;
 
@@ -2471,7 +2475,7 @@ procedure TTestX3DNodes.TestWarningUnquotedIdentifier;
 
 var
   S: TStringStream;
-  Node: TX3DRootNode;
+  //Node: TX3DRootNode;
 begin
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
@@ -2481,7 +2485,7 @@ begin
       'Shape { appearance Appearance { alphaMode OPAQUE } }');
     try
       try
-        Node := LoadNode(S, '', 'model/x3d+vrml');
+        {Node := }LoadNode(S, '', 'model/x3d+vrml');
         Fail('Should have made warning (in effect exception) about unquoted OPAQUE');
       except
         on E: Exception do
@@ -2495,6 +2499,112 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
+end;
+
+procedure TTestX3DNodes.TestConversionPrecision;
+
+  { Assert 2 strings are equal.
+    Ignore newline differences (Unix vs Windows line endings). }
+  procedure AssertEqualsIgnoreNewlines(const Expected, Actual: String);
+  begin
+    // debug
+    //StringToFile('tmp1.txt', SDeleteChars(Expected, [#13]));
+    //StringToFile('tmp2.txt', SDeleteChars(Actual, [#13]));
+
+    AssertEquals(
+      // Normalize both to Unix line endings
+      SDeleteChars(Expected, [#13]),
+      SDeleteChars(Actual, [#13])
+    );
+  end;
+
+  procedure TestSaveMakesExpectedResult(
+    const InputModel, OutputModelDefaultPrecision, OutputModelPrecision3: String;
+    const OutputMime: String);
+  var
+    Node: TX3DRootNode;
+    OutputStream: TStringStream;
+    SavedFloatOutputFormat: String;
+  begin
+    Node := LoadNode(InputModel);
+    try
+      OutputStream := TStringStream.Create('');
+      try
+        SaveNode(Node, OutputStream, OutputMime, '', '');
+        // useful to generate correct output (of course you have to manually check is it correct)
+        //StringToFile(OutputModelDefaultPrecision, OutputStream.DataString);
+        {
+        TODO: Commented out test now, doesn't pass, since various
+        FPC and Delphi versions have a bit different %g interpretation.
+        We should compare the output using regular expressions
+        and restore this test.
+
+        AssertEqualsIgnoreNewlines(
+          FileToString(OutputModelDefaultPrecision),
+          OutputStream.DataString);
+        }
+      finally FreeAndNil(OutputStream) end;
+
+      SavedFloatOutputFormat := FloatOutputFormat;
+      try
+        FloatOutputFormat := '%.3f';
+
+        OutputStream := TStringStream.Create('');
+        try
+          SaveNode(Node, OutputStream, OutputMime, '', '');
+          // useful to generate correct output (of course you have to manually check is it correct)
+          //StringToFile(OutputModelPrecision3, OutputStream.DataString);
+          AssertEqualsIgnoreNewlines(
+            FileToString(OutputModelPrecision3),
+            OutputStream.DataString);
+        finally FreeAndNil(OutputStream) end;
+      finally FloatOutputFormat := SavedFloatOutputFormat end;
+    finally FreeAndNil(Node) end;
+  end;
+
+begin
+  TestSaveMakesExpectedResult(
+    'castle-data:/test_conversion_precision.x3dv',
+    'castle-data:/test_conversion_precision_output_max.x3dv',
+    'castle-data:/test_conversion_precision_output_3.x3dv',
+    'model/x3d+vrml'
+  );
+  TestSaveMakesExpectedResult(
+    'castle-data:/test_conversion_precision.x3dv',
+    'castle-data:/test_conversion_precision_output_max.x3d',
+    'castle-data:/test_conversion_precision_output_3.x3d',
+    'model/x3d+xml'
+  );
+end;
+
+procedure TTestX3DNodes.TestInlineShaderCode;
+const
+  CorrectShaderCode = NL +
+    '        uniform sampler2D mask_texture;' + NL +
+    '' + NL +
+    '        void PLUG_texture_color(inout vec4 texture_color, const in sampler2D texture_in, const in vec4 tex_coord)' + NL +
+    '        {' + NL +
+    '          // For debugging, use this line to confirm that mask_texture is good.' + NL +
+    '          // texture_color = texture2D(mask_texture, tex_coord.st);' + NL +
+    '' + NL +
+    '          /* The mask_texture is grayscale, we could access any (r,g,b) channel,' + NL +
+    '             they all are equal. */' + NL +
+    '          float alpha = texture2D(mask_texture, tex_coord.st).r;' + NL +
+    '          texture_color = vec4(texture_color.xyz, alpha);' + NL +
+    '        }';
+var
+  Root: TX3DRootNode;
+  EffectPart: TEffectPartNode;
+begin
+  Root := LoadNode('castle-data:/inline_shader_code.x3dv');
+  try
+    EffectPart := Root.FindNode(TEffectPartNode, 'MyPartWithInlineCode') as TEffectPartNode;
+    AssertEquals(
+      // use SDeleteChars to normalize newlines to Unix style for comparison
+      SDeleteChars(CorrectShaderCode, [#13]),
+      SDeleteChars(EffectPart.Contents, [#13])
+    );
+  finally FreeAndNil(Root) end;
 end;
 
 initialization

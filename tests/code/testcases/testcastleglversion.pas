@@ -18,11 +18,10 @@ unit TestCastleGLVersion;
 
 interface
 
-uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry
-  {$else}CastleTester{$endif};
+uses CastleTester;
 
 type
-  TTestGLVersion = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestGLVersion = class(TCastleTestCase)
   published
     procedure Test1;
     procedure Test2;

@@ -76,11 +76,11 @@ begin
 
   CheckFileAccessSafe(Url);
   WritelnLog('Network', 'Download service started for "%s", id %d', [
-    URIDisplay(Url),
+    UriDisplay(Url),
     DownloadId
   ]);
 
-  MimeType := URIMimeType(Url);
+  MimeType := UriMimeType(Url);
 
   Messaging.OnReceive.Add({$ifdef FPC}@{$endif} HandleDownloadMessages);
   Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName, HttpPostDataStr]);
@@ -162,7 +162,7 @@ begin
   begin
     HttpResponseCode := StrToInt(Received[2]);
     // WritelnLog('Network', 'HTTP response for "%s" is %d: %s', [
-    //   URIDisplay(Url),
+    //   UriDisplay(Url),
     //   HttpResponseCode,
     //   Received[3]
     // ]);

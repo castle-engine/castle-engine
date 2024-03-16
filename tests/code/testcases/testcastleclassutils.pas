@@ -22,16 +22,15 @@ unit TestCastleClassUtils;
 
 interface
 
-uses Classes, SysUtils, Generics.Collections, {$ifndef CASTLE_TESTER}FpcUnit,
-  TestUtils, TestRegistry, CastleTestCase, {$else}CastleTester, {$endif}
-  CastleUtils, CastleClassUtils;
+uses Classes, SysUtils, Generics.Collections,
+  CastleTester, CastleUtils, CastleClassUtils;
 
 type
   TStreamFromStreamFunc = function(Stream: TStream): TPeekCharStream of object;
 
   TTestCastleClassUtils = class(TCastleTestCase)
   private
-    BufferSize: LongWord;
+    BufferSize: UInt32;
     function SimplePeekCharFromStream(Stream: TStream): TPeekCharStream;
     function BufferedReadStreamFromStream(Stream: TStream): TPeekCharStream;
     procedure TestIndirectReadStream(StreamFromStreamFunc: TStreamFromStreamFunc);
@@ -62,7 +61,7 @@ type
 implementation
 
 uses Generics.Defaults,
-  CastleStringUtils, CastleInternalUrlUtils;
+  CastleStringUtils, CastleInternalUrlUtils, CastleLog;
 
 { TFoo, TFoosList ------------------------------------------------------------ }
 

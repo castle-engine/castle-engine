@@ -96,7 +96,7 @@
       FDesignLoaded: TCastleUserInterface;
       FDesignLoadedOwner: TDesignOwner;
       FDesignPreload: Boolean;
-      FDesignPreloadedSerialized: TSerializedComponent;
+      FDesignPreloadedSerialized: TCastleComponentFactory;
       FDesignPreloaded: TCastleUserInterface;
       FDesignPreloadedOwner: TComponent;
 
@@ -516,20 +516,20 @@ begin
     raise Exception.Create('Assign Application.MainWindow (if you use CastleWindow) or TCastleControl.MainControl (if you use CastleControl) before starting TCastleView');
 end;
 
-{ TSerializedComponentHelper ------------------------------------------------- }
+{ TCastleComponentFactoryHelper ------------------------------------------------- }
 
 type
-  { Helper methods extending TSerializedComponent.
-    Do not use TSerializedComponentHelper from CastleViewport,
+  { Helper methods extending TCastleComponentFactory.
+    Do not use TCastleComponentFactoryHelper from CastleViewport,
     to not complicate unit dependencies. }
-  TSerializedComponentHelper = class helper for TSerializedComponent
+  TCastleComponentFactoryHelper = class helper for TCastleComponentFactory
     { Instantiate component.
       Using this is equivalent to using global @link(UserInterfaceLoad),
       but it is much faster if you want to instantiate the same file many times. }
     function UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
   end;
 
-function TSerializedComponentHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+function TCastleComponentFactoryHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
 begin
   Result := ComponentLoad(Owner) as TCastleUserInterface;
 end;
@@ -841,7 +841,8 @@ begin
   if DesignUrl <> '' then
   begin
     // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
-    FDesignPreloadedSerialized := TSerializedComponent.Create(DesignUrl);
+    FDesignPreloadedSerialized := TCastleComponentFactory.Create(nil);
+    FDesignPreloadedSerialized.Url :=DesignUrl;
     // load FDesignPreloaded to cache all that's possible,
     // like images used inside TCastleImageControl or TCastleScene.
     FDesignPreloadedOwner := TComponent.Create(nil);
@@ -921,17 +922,17 @@ end;
 
 function TCastleView.ContainerWidth: Cardinal;
 begin
-  Result := PredictedContainer.Width;
+  Result := PredictedContainer.PixelsWidth;
 end;
 
 function TCastleView.ContainerHeight: Cardinal;
 begin
-  Result := PredictedContainer.Height;
+  Result := PredictedContainer.PixelsHeight;
 end;
 
 function TCastleView.ContainerRect: TRectangle;
 begin
-  Result := PredictedContainer.Rect;
+  Result := PredictedContainer.PixelsRect;
 end;
 
 function TCastleView.ContainerSizeKnown: boolean;

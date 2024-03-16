@@ -94,7 +94,7 @@ begin
 
       if Log then
         WritelnLog('++', 'Font texture %s, blending %s : %d', [
-          URIDisplay(Image.URL),
+          UriDisplay(Image.URL),
           BoolToStr(Blending, true),
           C.References
         ]);
@@ -131,7 +131,7 @@ begin
 
   if Log then
     WritelnLog('++', 'Font texture %s, blending %s : %d', [
-      URIDisplay(Image.URL),
+      UriDisplay(Image.URL),
       BoolToStr(Blending, true),
       1
     ]);
@@ -152,7 +152,7 @@ begin
       if Log then
         {$warnings off} // using FontData, will be internal in the future
         WritelnLog('--', 'Font texture %s, blending %s : %d', [
-          URIDisplay(C.Font.FontData.Image.URL),
+          UriDisplay(C.Font.FontData.Image.URL),
           BoolToStr(C.Blending, true),
           C.References - 1
         ]);

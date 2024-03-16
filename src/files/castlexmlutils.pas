@@ -25,7 +25,7 @@
 
   @includeCode(../../examples/short_api_samples/xml_utils/mybookmarks.pas)
 }
-unit CastleXMLUtils;
+unit CastleXmlUtils;
 
 {$I castleconf.inc}
 
@@ -42,20 +42,20 @@ type
 
   TDOMNodeHelper = class helper for TDOMNode
   private
-    function GetNodeValue8: string;
-    procedure SetNodeValue8(const S: string);
+    function GetNodeValue8: String;
+    procedure SetNodeValue8(const S: String);
   public
     { Node name (attribute, element or such name).
 
       In FPC this is expressed as an 8-bit string (in UTF-8 encoding),
       contrary to the NodeName from FPC DOM unit that is a WideString (DOMString). }
-    function NodeName8: string;
+    function NodeName8: String;
 
     { Node value (like an attribute value).
 
       In FPC this is expressed as an 8-bit string (in UTF-8 encoding),
       contrary to the NodeValue from FPC DOM unit that is a WideString (DOMString). }
-    property NodeValue8: string read GetNodeValue8 write SetNodeValue8;
+    property NodeValue8: String read GetNodeValue8 write SetNodeValue8;
   end;
 
   TDOMCharacterDataHelper = class helper for TDOMCharacterData
@@ -63,7 +63,7 @@ type
 
       In FPC this is expressed as an 8-bit string (in UTF-8 encoding),
       contrary to the Data from FPC DOM unit that is a WideString (DOMString). }
-    function Data8: string;
+    function Data8: String;
   end;
 
   TDOMElementHelper = class helper for TDOMElement
@@ -81,7 +81,7 @@ type
 
       Note that the returned Value may be empty, even when this returns @true,
       if the value is explicitly set to empty in XML (by @code(xxx="") in XML). }
-    function AttributeString(const AttrName: string; var Value: string): boolean; overload;
+    function AttributeString(const AttrName: String; var Value: String): boolean; overload;
     {$endif}
 
     { Read from Element attribute value as URL and returns @true,
@@ -90,32 +90,32 @@ type
 
       Returned URL is always absolute. The value in file may be a relative URL,
       it is resolved with respect to BaseUrl, that must be absolute. }
-    function AttributeURL(const AttrName: string; const BaseUrl: string; var URL: string): boolean; overload;
+    function AttributeUrl(const AttrName: String; const BaseUrl: String; var Url: String): boolean; overload;
 
     { Read from Element attribute value as Cardinal and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeCardinal(const AttrName: string; var Value: Cardinal): boolean; overload;
+    function AttributeCardinal(const AttrName: String; var Value: Cardinal): boolean; overload;
 
     { Read from Element attribute value as Integer and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeInteger(const AttrName: string; var Value: Integer): boolean; overload;
+    function AttributeInteger(const AttrName: String; var Value: Integer): boolean; overload;
 
     { Read from Element attribute value as Int64 and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeInt64(const AttrName: string; var Value: Int64): boolean; overload;
+    function AttributeInt64(const AttrName: String; var Value: Int64): boolean; overload;
 
     { Read from Element attribute value as QWord and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeQWord(const AttrName: string; var Value: QWord): boolean; overload;
+    function AttributeQWord(const AttrName: String; var Value: QWord): boolean; overload;
 
     { Read from Element attribute value as Single and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeSingle(const AttrName: string; var Value: Single): boolean; overload;
+    function AttributeSingle(const AttrName: String; var Value: Single): boolean; overload;
 
     { Read from Element attribute value as Float and returns @true,
       or (if there is no such attribute) returns @false
@@ -126,7 +126,7 @@ type
       It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
       Use CastleScriptXML unit to introduce
       necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpression). }
-    function AttributeFloat(const AttrName: string; var Value: Float): boolean; overload;
+    function AttributeFloat(const AttrName: String; var Value: Float): boolean; overload;
 
     { Read from Element attribute value as Boolean and returns @true,
       or (if there is no such attribute) returns @false
@@ -138,38 +138,66 @@ type
       If attribute exists but it's value
       is not @code(true) or @code(false), then returns @false and doesn't
       modify Value paramater. So behaves just like the attribute didn't exist. }
-    function AttributeBoolean(const AttrName: string; var Value: boolean): boolean; overload;
+    function AttributeBoolean(const AttrName: String; var Value: boolean): boolean; overload;
 
     { Read from Element attribute value as color and returns @true,
       or (if there is no such attribute) returns @false
-      and does not modify Value. }
-    function AttributeColor(const AttrName: string; var Value: TCastleColor): boolean; overload;
+      and does not modify Value.
+
+      This can read a color value in any of these formats:
+
+      @unorderedList(
+        @item(Hexadecimal format, like set by @link(AttributeColorSet).)
+
+        @item(4D vector format, with 4 vector components in range 0..1,
+          separated by whitespace.
+          Like set by @link(AttributeSet AttributeSet(TVector4)) overload.)
+      )
+
+      In effect, you can write TCastleColor values to XML using
+      @link(AttributeSet) or @link(AttributeColorSet), they both can be read back
+      using this method. }
+    function AttributeColor(const AttrName: String; var Value: TCastleColor): Boolean; overload;
 
     { Read from Element attribute value as RGB color and returns @true,
       or (if there is no such attribute) returns @false
-      and does not modify Value. }
-    function AttributeColorRGB(const AttrName: string; var Value: TCastleColorRGB): boolean; overload;
+      and does not modify Value.
+
+      This can read a color value in any of these formats:
+
+      @unorderedList(
+        @item(Hexadecimal format, like set by @link(AttributeColorSet).)
+
+        @item(3D vector format, with 3 vector components in range 0..1,
+          separated by whitespace.
+          Like set by @link(AttributeSet AttributeSet(TVector3)) overload.)
+      )
+
+      In effect, you can write TCastleColorRGB values to XML using
+      @link(AttributeSet) or @link(AttributeColorSet), they both can be read back
+      using this method. }
+    function AttributeColorRGB(const AttrName: String; var Value: TCastleColorRGB): Boolean; overload;
 
     { Read from Element attribute as a 2D vector (2 floats), and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
-    function AttributeVector2(const AttrName: string; var Value: TVector2): boolean; overload;
+    function AttributeVector2(const AttrName: String; var Value: TVector2): boolean; overload;
 
     { Read from Element attribute as a 3D vector (3 floats), and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
-    function AttributeVector3(const AttrName: string; var Value: TVector3): boolean; overload;
+    function AttributeVector3(const AttrName: String; var Value: TVector3): boolean; overload;
 
     { Read from Element attribute as a 4D vector(4 floats, e.g. rotation), and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
-    function AttributeVector4(const AttrName: string; var Value: TVector4): boolean; overload;
+    function AttributeVector4(const AttrName: String; var Value: TVector4): boolean; overload;
 
     { ------------------------------------------------------------------------
       Get a required attribute, returns value (exception if not found). }
@@ -185,39 +213,39 @@ type
       exists, but it may still be empty.
 
       @raises EDOMAttributeMissing }
-    function AttributeString(const AttrName: string): string; overload;
+    function AttributeString(const AttrName: String): String; overload;
 
     { Retrieves from Element given attribute as an absolute URL,
       raises EDOMAttributeMissing if missing.
       Returned URL is always absolute. The value in file may be a relative URL,
       it is resolved with respect to BaseUrl, that must be absolute.
       @raises EDOMAttributeMissing }
-    function AttributeURL(const AttrName: string; const BaseUrl: string): string; overload;
+    function AttributeUrl(const AttrName: String; const BaseUrl: String): String; overload;
 
     { Retrieves from Element given attribute as a Cardinal,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
-    function AttributeCardinal(const AttrName: string): Cardinal; overload;
+    function AttributeCardinal(const AttrName: String): Cardinal; overload;
 
     { Retrieves from Element given attribute as an Integer,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
-    function AttributeInteger(const AttrName: string): Integer; overload;
+    function AttributeInteger(const AttrName: String): Integer; overload;
 
     { Retrieves from Element given attribute as an Int64,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
-    function AttributeInt64(const AttrName: string): Int64; overload;
+    function AttributeInt64(const AttrName: String): Int64; overload;
 
     { Retrieves from Element given attribute as an QWord,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
-    function AttributeQWord(const AttrName: string): QWord; overload;
+    function AttributeQWord(const AttrName: String): QWord; overload;
 
     { Retrieves from Element given attribute as a Single,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
-    function AttributeSingle(const AttrName: string): Single; overload;
+    function AttributeSingle(const AttrName: String): Single; overload;
 
     { Retrieves from Element given attribute as a Float,
       raises EDOMAttributeMissing if missing.
@@ -229,7 +257,7 @@ type
       necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpression).
 
       @raises EDOMAttributeMissing }
-    function AttributeFloat(const AttrName: string): Float; overload;
+    function AttributeFloat(const AttrName: String): Float; overload;
 
     { Retrieves from Element given attribute as a boolean,
       raises EDOMAttributeMissing if missing or has invalid value.
@@ -242,54 +270,54 @@ type
       So behaves just like the attribute didn't exist.
 
       @raises EDOMAttributeMissing }
-    function AttributeBoolean(const AttrName: string): boolean; overload;
+    function AttributeBoolean(const AttrName: String): boolean; overload;
 
     { Retrieves from Element given attribute as a color,
       raises EDOMAttributeMissing if missing or has invalid format.
       @raises EDOMAttributeMissing }
-    function AttributeColor(const AttrName: string): TCastleColor; overload;
+    function AttributeColor(const AttrName: String): TCastleColor; overload;
 
     { Retrieves from Element given attribute as an RGB color,
       raises EDOMAttributeMissing if missing or has invalid format.
       @raises EDOMAttributeMissing }
-    function AttributeColorRGB(const AttrName: string): TCastleColorRGB; overload;
+    function AttributeColorRGB(const AttrName: String): TCastleColorRGB; overload;
 
     { Retrieves from Element given attribute as a 2D vector (2 floats),
       raises EDOMAttributeMissing if missing or has invalid format.
       @raises EDOMAttributeMissing }
-    function AttributeVector2(const AttrName: string): TVector2; overload;
+    function AttributeVector2(const AttrName: String): TVector2; overload;
 
     { Retrieves from Element given attribute as a 3D vector (3 floats),
       raises EDOMAttributeMissing if missing or has invalid format.
       @raises EDOMAttributeMissing }
-    function AttributeVector3(const AttrName: string): TVector3; overload;
+    function AttributeVector3(const AttrName: String): TVector3; overload;
 
     { Retrieves from Element given attribute as a 4D vector (4 floats, e.g. rotation),
       raises EDOMAttributeMissing if missing or has invalid format.
       @raises EDOMAttributeMissing }
-    function AttributeVector4(const AttrName: string): TVector4; overload;
+    function AttributeVector4(const AttrName: String): TVector4; overload;
 
     { ------------------------------------------------------------------------
       Get an optional attribute, returns attribute or a default value. }
 
     { Retrieves from Element given attribute as a string, or a default value
       if the attribute was not explicitly given. }
-    function AttributeStringDef(const AttrName: string; const DefaultValue: string): string;
+    function AttributeStringDef(const AttrName: String; const DefaultValue: String): String;
 
     { Retrieves from Element given attribute as a Cardinal, or a default value. }
-    function AttributeCardinalDef(const AttrName: string; const DefaultValue: Cardinal): Cardinal;
+    function AttributeCardinalDef(const AttrName: String; const DefaultValue: Cardinal): Cardinal;
 
     { Retrieves from Element given attribute as an Integer, or a default value. }
-    function AttributeIntegerDef(const AttrName: string; const DefaultValue: Integer): Integer;
+    function AttributeIntegerDef(const AttrName: String; const DefaultValue: Integer): Integer;
 
     { Retrieves from Element given attribute as an Int64, or a default value. }
-    function AttributeInt64Def(const AttrName: string; const DefaultValue: Int64): Int64;
+    function AttributeInt64Def(const AttrName: String; const DefaultValue: Int64): Int64;
 
     { Retrieves from Element given attribute as an QWord, or a default value. }
-    function AttributeQWordDef(const AttrName: string; const DefaultValue: QWord): QWord;
+    function AttributeQWordDef(const AttrName: String; const DefaultValue: QWord): QWord;
 
     { Retrieves from Element given attribute as a Single, or a default value. }
-    function AttributeSingleDef(const AttrName: string; const DefaultValue: Single): Single;
+    function AttributeSingleDef(const AttrName: String; const DefaultValue: Single): Single;
 
     { Retrieves from Element given attribute as a Float, or a default value.
 
@@ -298,71 +326,79 @@ type
       It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
       Use CastleScriptXML unit to introduce
       necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpressionDef). }
-    function AttributeFloatDef(const AttrName: string; const DefaultValue: Float): Float;
+    function AttributeFloatDef(const AttrName: String; const DefaultValue: Float): Float;
 
     { Retrieves from Element given attribute as a boolean,
       returns a default value if missing or has invalid value. }
-    function AttributeBooleanDef(const AttrName: string; const DefaultValue: boolean): boolean;
+    function AttributeBooleanDef(const AttrName: String; const DefaultValue: boolean): boolean;
 
     { Retrieves from Element given attribute as a color, or a default value. }
-    function AttributeColorDef(const AttrName: string; const DefaultValue: TCastleColor): TCastleColor;
+    function AttributeColorDef(const AttrName: String; const DefaultValue: TCastleColor): TCastleColor;
 
     { Retrieves from Element given attribute as an RGB color, or a default value. }
-    function AttributeColorRGBDef(const AttrName: string; const DefaultValue: TCastleColorRGB): TCastleColorRGB;
+    function AttributeColorRGBDef(const AttrName: String; const DefaultValue: TCastleColorRGB): TCastleColorRGB;
 
     { Retrieves from Element given attribute as a 2D vector (2 floats), or a default value.
       @raises EConvertError If the value exists in XML, but has invalid format. }
-    function AttributeVector2Def(const AttrName: string; const DefaultValue: TVector2): TVector2;
+    function AttributeVector2Def(const AttrName: String; const DefaultValue: TVector2): TVector2;
 
     { Retrieves from Element given attribute as a 3D vector (3 floats), or a default value.
       @raises EConvertError If the value exists in XML, but has invalid format. }
-    function AttributeVector3Def(const AttrName: string; const DefaultValue: TVector3): TVector3;
+    function AttributeVector3Def(const AttrName: String; const DefaultValue: TVector3): TVector3;
 
     { Retrieves from Element given attribute as a 4D vector (4 floats), or a default value.
       @raises EConvertError If the value exists in XML, but has invalid format. }
-    function AttributeVector4Def(const AttrName: string; const DefaultValue: TVector4): TVector4;
+    function AttributeVector4Def(const AttrName: String; const DefaultValue: TVector4): TVector4;
 
     { Attribute setting ------------------------------------------------------ }
 
     { Set the attribute as string. Equivalent to standard SetAttribute in DOM unit,
       but provided here for consistency with other AttributeSet overloads. }
-    procedure AttributeSet(const AttrName: string; const Value: string); overload;
+    procedure AttributeSet(const AttrName: String; const Value: String); overload;
 
     { Set the attribute as boolean,
       such that it's readable back by @link(AttributeBoolean) and @link(AttributeBooleanDef). }
-    procedure AttributeSet(const AttrName: string; const Value: boolean); overload;
+    procedure AttributeSet(const AttrName: String; const Value: boolean); overload;
 
     { Set the attribute as Integer,
       such that it's readable back by @link(AttributeInteger) and @link(AttributeIntegerDef). }
-    procedure AttributeSet(const AttrName: string; const Value: Integer); overload;
+    procedure AttributeSet(const AttrName: String; const Value: Integer); overload;
 
     { Set the attribute as Int64,
       such that it's readable back by @link(AttributeInt64) and @link(AttributeInt64Def). }
-    procedure AttributeSet(const AttrName: string; const Value: Int64); overload;
+    procedure AttributeSet(const AttrName: String; const Value: Int64); overload;
 
     { Set the attribute as QWord,
       such that it's readable back by @link(AttributeQWord) and @link(AttributeQWordDef). }
-    procedure AttributeSet(const AttrName: string; const Value: QWord); overload;
+    procedure AttributeSet(const AttrName: String; const Value: QWord); overload;
 
     { Set the attribute as Cardinal,
       such that it's readable back by @link(AttributeCardinal) and @link(AttributeCardinalDef). }
-    procedure AttributeSet(const AttrName: string; const Value: Cardinal); overload;
+    procedure AttributeSet(const AttrName: String; const Value: Cardinal); overload;
 
     { Set the attribute as Single,
       such that it's readable back by @link(AttributeSingle) and @link(AttributeSingleDef). }
-    procedure AttributeSet(const AttrName: string; const Value: Single); overload;
+    procedure AttributeSet(const AttrName: String; const Value: Single); overload;
 
     { Set the attribute as TVector2,
       such that it's readable back by @link(AttributeVector2) and @link(AttributeVector2Def). }
-    procedure AttributeSet(const AttrName: string; const Value: TVector2); overload;
+    procedure AttributeSet(const AttrName: String; const Value: TVector2); overload;
 
     { Set the attribute as TVector3,
       such that it's readable back by @link(AttributeVector3) and @link(AttributeVector3Def). }
-    procedure AttributeSet(const AttrName: string; const Value: TVector3); overload;
+    procedure AttributeSet(const AttrName: String; const Value: TVector3); overload;
 
     { Set the attribute as TVector4,
       such that it's readable back by @link(AttributeVector4) and @link(AttributeVector4Def). }
-    procedure AttributeSet(const AttrName: string; const Value: TVector4); overload;
+    procedure AttributeSet(const AttrName: String; const Value: TVector4); overload;
+
+    { Set the attribute as TCastleColor converted to HEX string,
+      such that it's readable back by @link(AttributeColor) and @link(AttributeColorDef). }
+    procedure AttributeColorSet(const AttrName: String; const Value: TCastleColor); overload;
+
+    { Set the attribute as TCastleColorRGB converted to HEX string,
+      such that it's readable back by @link(AttributeColorRGB) and @link(AttributeColorRGBDef). }
+    procedure AttributeColorSet(const AttrName: String; const Value: TCastleColorRGB); overload;
 
     { Other methods ---------------------------------------------------------- }
 
@@ -389,13 +425,13 @@ type
 
       @raises(EDOMChildElementError
         If child not found (or found more than once), and Required = @true.)  }
-    function Child(const ChildName: string; const Required: boolean = true): TDOMElement;
+    function Child(const ChildName: String; const Required: boolean = true): TDOMElement;
 
     { Same as @link(Child). }
-    function ChildElement(const ChildName: string; const Required: boolean = true): TDOMElement;
+    function ChildElement(const ChildName: String; const Required: boolean = true): TDOMElement;
 
     { Create a new child element under this element, and return it. }
-    function CreateChild(const ChildName: string): TDOMElement;
+    function CreateChild(const ChildName: String): TDOMElement;
 
     { Iterator over all children elements. Use like this:
 
@@ -429,7 +465,7 @@ type
         finally FreeAndNil(I) end;
       end;
       #) }
-    function ChildrenIterator(const ChildName: string): TXMLElementIterator; overload;
+    function ChildrenIterator(const ChildName: String): TXMLElementIterator; overload;
 
     { The text data contained in this element.
 
@@ -439,12 +475,12 @@ type
 
       If there are no text data nodes, e.g. if the element is empty,
       it returns empty string without raising any error. }
-    function TextData: string;
+    function TextData: String;
 
     { Tag name (element name).
       Expressed as an 8-bit string (in UTF-8 encoding), contrary to the TagName
       from FPC DOM unit that is a WideString (DOMString). }
-    function TagName8: string;
+    function TagName8: String;
   end;
 
   { Iterate over all children elements of given XML element.
@@ -508,7 +544,7 @@ type
   private
     FTagName: DOMString;
   public
-    constructor Create(ParentElement: TDOMElement; const TagName: string);
+    constructor Create(ParentElement: TDOMElement; const TagName: String);
     function GetNext: boolean; override;
   end;
 
@@ -533,12 +569,12 @@ type
   private
     ChildNodes: TDOMNodeList;
     ChildIndex: Integer;
-    FCurrent: string;
+    FCurrent: String;
   public
     constructor Create(ParentElement: TDOMElement);
     destructor Destroy; override;
     function GetNext: boolean;
-    property Current: string read FCurrent;
+    property Current: String read FCurrent;
   end;
 
 { Retrieves from Element attribute Value and returns @true,
@@ -549,35 +585,35 @@ type
 
   @deprecated Deprecated, use Element.AttributeString instead. }
 function DOMGetAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: string): boolean;
+  const AttrName: String; var Value: String): boolean;
   deprecated 'use helper method AttributeString on TDOMElement';
 
 { Like DOMGetAttribute, but reads Cardinal value.
 
   @deprecated Deprecated, use Element.AttributeCardinal instead. }
 function DOMGetCardinalAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Cardinal): boolean;
+  const AttrName: String; var Value: Cardinal): boolean;
   deprecated 'use helper method AttributeCardinal on TDOMElement';
 
 { Like DOMGetAttribute, but reads Integer value.
 
   @deprecated Deprecated, use Element.AttributeInteger instead. }
 function DOMGetIntegerAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Integer): boolean;
+  const AttrName: String; var Value: Integer): boolean;
   deprecated 'use helper method AttributeInteger on TDOMElement';
 
 { Like DOMGetAttribute, but reads Single value.
 
   @deprecated Deprecated, use Element.AttributeSingle instead. }
 function DOMGetSingleAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Single): boolean;
+  const AttrName: String; var Value: Single): boolean;
   deprecated 'use helper method AttributeSingle on TDOMElement';
 
 { Like DOMGetAttribute, but reads Float value.
 
   @deprecated Deprecated, use Element.AttributeFloat instead. }
 function DOMGetFloatAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Float): boolean;
+  const AttrName: String; var Value: Float): boolean;
   deprecated 'use helper method AttributeFloat on TDOMElement';
 
 { Like DOMGetAttribute, but reads Boolean value.
@@ -591,7 +627,7 @@ function DOMGetFloatAttribute(const Element: TDOMElement;
 
   @deprecated Deprecated, use Element.AttributeBoolean instead. }
 function DOMGetBooleanAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: boolean): boolean;
+  const AttrName: String; var Value: boolean): boolean;
   deprecated 'use helper method AttributeBoolean on TDOMElement';
 
 { Returns the @italic(one and only) child element of this Element.
@@ -603,10 +639,10 @@ function DOMGetOneChildElement(const Element: TDOMElement): TDOMElement;
   deprecated 'This method did not prove to be of much use, and it only clutters the API. Don''t use, or show us a convincing usecase when this is sensible.';
 
 function DOMGetChildElement(const Element: TDOMElement;
-  const ChildName: string; RaiseOnError: boolean): TDOMElement;
+  const ChildName: String; RaiseOnError: boolean): TDOMElement;
   deprecated 'use TDOMElement helper called ChildElement';
 
-function DOMGetTextData(const Element: TDOMElement): string;
+function DOMGetTextData(const Element: TDOMElement): String;
   deprecated 'use TDOMElement helper called TextData';
 
 { Gets a child of Element named ChildName, and gets text data within
@@ -618,7 +654,7 @@ function DOMGetTextData(const Element: TDOMElement): string;
   @raises(EDOMChildElementError
     If child not found or found more than once and RaiseOnError) }
 function DOMGetTextChild(const Element: TDOMElement;
-  const ChildName: string): string;
+  const ChildName: String): String;
   deprecated 'This method did not prove to be of much use, and it only clutters the API. Don''t use, or show us a convincing usecase when this is sensible.';
 
 { If needed, free result of TDOMElement.ChildNodes.
@@ -639,42 +675,42 @@ procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
 { Replacements for standard ReadXMLFile and WriteXMLFile that operate on URLs.
   Optionally they can encrypt / decrypt content using BlowFish.
   @groupBegin }
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String); overload;
-function URLReadXML(const URL: String): TXMLDocument; overload;
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String); overload;
+procedure UrlReadXML(out Doc: TXMLDocument; const Url: String); overload;
+function UrlReadXML(const Url: String): TXMLDocument; overload;
+procedure UrlWriteXML(Doc: TXMLDocument; const Url: String); overload;
 
 {$ifdef FPC}
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string); overload;
-function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument; overload;
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string); overload;
+procedure UrlReadXML(out Doc: TXMLDocument; const Url: String; const BlowFishKeyPhrase: String); overload;
+function UrlReadXML(const Url: String; const BlowFishKeyPhrase: String): TXMLDocument; overload;
+procedure UrlWriteXML(Doc: TXMLDocument; const Url: String; const BlowFishKeyPhrase: String); overload;
 {$endif}
 { @groupEnd }
 
 implementation
 
 uses Classes, XMLRead, XMLWrite, {$ifdef FPC} BlowFish, {$endif}
-  CastleURIUtils, CastleClassUtils, CastleInternalFileMonitor;
+  CastleUriUtils, CastleClassUtils, CastleInternalFileMonitor, CastleStringUtils;
 
 { TDOMNodeHelper ------------------------------------------------------------- }
 
-function TDOMNodeHelper.NodeName8: string;
+function TDOMNodeHelper.NodeName8: String;
 begin
   Result := UTF8Encode(NodeName);
 end;
 
-function TDOMNodeHelper.GetNodeValue8: string;
+function TDOMNodeHelper.GetNodeValue8: String;
 begin
   Result := UTF8Encode(NodeValue);
 end;
 
-procedure TDOMNodeHelper.SetNodeValue8(const S: string);
+procedure TDOMNodeHelper.SetNodeValue8(const S: String);
 begin
   NodeValue := UTF8Decode(S);
 end;
 
 { TDOMCharacterDataHelper ---------------------------------------------------- }
 
-function TDOMCharacterDataHelper.Data8: string;
+function TDOMCharacterDataHelper.Data8: String;
 begin
   Result := UTF8Encode(Data);
 end;
@@ -684,7 +720,7 @@ end;
   Get an optional attribute to a "var" parameter, returns if found. }
 
 {$ifdef FPC}
-function TDOMElementHelper.AttributeString(const AttrName: string; var Value: string): boolean;
+function TDOMElementHelper.AttributeString(const AttrName: String; var Value: String): boolean;
 var
   AttrNode: TDOMNode;
 begin
@@ -699,18 +735,18 @@ begin
 end;
 {$endif}
 
-function TDOMElementHelper.AttributeURL(
-  const AttrName: string; const BaseUrl: string; var URL: string): boolean;
+function TDOMElementHelper.AttributeUrl(
+  const AttrName: String; const BaseUrl: String; var Url: String): boolean;
 begin
-  Result := AttributeString(AttrName, URL);
+  Result := AttributeString(AttrName, Url);
   if Result then
-    URL := CombineURI(BaseUrl, URL);
+    Url := CombineURI(BaseUrl, Url);
 end;
 
 function TDOMElementHelper.AttributeCardinal(
-  const AttrName: string; var Value: Cardinal): boolean;
+  const AttrName: String; var Value: Cardinal): boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
@@ -718,9 +754,9 @@ begin
 end;
 
 function TDOMElementHelper.AttributeInteger(
-  const AttrName: string; var Value: Integer): boolean;
+  const AttrName: String; var Value: Integer): boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
@@ -728,9 +764,9 @@ begin
 end;
 
 function TDOMElementHelper.AttributeInt64(
-  const AttrName: string; var Value: Int64): boolean;
+  const AttrName: String; var Value: Int64): boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
@@ -738,9 +774,9 @@ begin
 end;
 
 function TDOMElementHelper.AttributeQWord(
-  const AttrName: string; var Value: QWord): boolean;
+  const AttrName: String; var Value: QWord): boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
@@ -748,9 +784,9 @@ begin
 end;
 
 function TDOMElementHelper.AttributeSingle(
-  const AttrName: string; var Value: Single): boolean;
+  const AttrName: String; var Value: Single): boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
@@ -758,9 +794,9 @@ begin
 end;
 
 function TDOMElementHelper.AttributeFloat(
-  const AttrName: string; var Value: Float): boolean;
+  const AttrName: String; var Value: Float): boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
@@ -768,9 +804,9 @@ begin
 end;
 
 function TDOMElementHelper.AttributeBoolean(
-  const AttrName: string; var Value: boolean): boolean;
+  const AttrName: String; var Value: boolean): boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
@@ -784,29 +820,39 @@ begin
 end;
 
 function TDOMElementHelper.AttributeColor(
-  const AttrName: string; var Value: TCastleColor): boolean;
+  const AttrName: String; var Value: TCastleColor): Boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := HexToColor(ValueStr);
+  begin
+    if CountTokens(ValueStr) = 4 then
+      Value := Vector4FromStr(ValueStr)
+    else
+      Value := HexToColor(ValueStr);
+  end;
 end;
 
 function TDOMElementHelper.AttributeColorRGB(
-  const AttrName: string; var Value: TCastleColorRGB): boolean;
+  const AttrName: String; var Value: TCastleColorRGB): Boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := HexToColorRGB(ValueStr);
+  begin
+    if CountTokens(ValueStr) = 3 then
+      Value := Vector3FromStr(ValueStr)
+    else
+      Value := HexToColorRGB(ValueStr);
+  end;
 end;
 
 function TDOMElementHelper.AttributeVector2(
-  const AttrName: string; var Value: TVector2): boolean;
+  const AttrName: String; var Value: TVector2): boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
@@ -814,9 +860,9 @@ begin
 end;
 
 function TDOMElementHelper.AttributeVector3(
-  const AttrName: string; var Value: TVector3): boolean;
+  const AttrName: String; var Value: TVector3): boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
@@ -824,9 +870,9 @@ begin
 end;
 
 function TDOMElementHelper.AttributeVector4(
-  const AttrName: string; var Value: TVector4): boolean;
+  const AttrName: String; var Value: TVector4): boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
@@ -837,85 +883,85 @@ end;
   TDOMElementHelper:
   Get a required attribute, returns value (exception if not found). }
 
-function TDOMElementHelper.AttributeString(const AttrName: string): string;
+function TDOMElementHelper.AttributeString(const AttrName: String): String;
 begin
   if not AttributeString(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing required (string) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeURL(const AttrName: string; const BaseUrl: string): string;
+function TDOMElementHelper.AttributeUrl(const AttrName: String; const BaseUrl: String): String;
 begin
-  if not AttributeURL(AttrName, BaseUrl, Result) then
+  if not AttributeUrl(AttrName, BaseUrl, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing required (URL) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeCardinal(const AttrName: string): Cardinal;
+function TDOMElementHelper.AttributeCardinal(const AttrName: String): Cardinal;
 begin
   if not AttributeCardinal(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing required (unsigned integer) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeInteger(const AttrName: string): Integer;
+function TDOMElementHelper.AttributeInteger(const AttrName: String): Integer;
 begin
   if not AttributeInteger(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing required (integer) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeInt64(const AttrName: string): Int64;
+function TDOMElementHelper.AttributeInt64(const AttrName: String): Int64;
 begin
   if not AttributeInt64(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing required (64-bit integer) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeQWord(const AttrName: string): QWord;
+function TDOMElementHelper.AttributeQWord(const AttrName: String): QWord;
 begin
   if not AttributeQWord(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing required (unsigned 64-bit integer) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeSingle(const AttrName: string): Single;
+function TDOMElementHelper.AttributeSingle(const AttrName: String): Single;
 begin
   if not AttributeSingle(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing required (float) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeFloat(const AttrName: string): Float;
+function TDOMElementHelper.AttributeFloat(const AttrName: String): Float;
 begin
   if not AttributeFloat(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing required (float) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeBoolean(const AttrName: string): boolean;
+function TDOMElementHelper.AttributeBoolean(const AttrName: String): boolean;
 begin
   if not AttributeBoolean(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (boolean) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeColor(const AttrName: string): TCastleColor;
+function TDOMElementHelper.AttributeColor(const AttrName: String): TCastleColor;
 begin
   if not AttributeColor(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (color) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeColorRGB(const AttrName: string): TCastleColorRGB;
+function TDOMElementHelper.AttributeColorRGB(const AttrName: String): TCastleColorRGB;
 begin
   if not AttributeColorRGB(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (RGB color) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeVector2(const AttrName: string): TVector2;
+function TDOMElementHelper.AttributeVector2(const AttrName: String): TVector2;
 begin
   if not AttributeVector2(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (vector2) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeVector3(const AttrName: string): TVector3;
+function TDOMElementHelper.AttributeVector3(const AttrName: String): TVector3;
 begin
   if not AttributeVector3(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (vector3) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeVector4(const AttrName: string): TVector4;
+function TDOMElementHelper.AttributeVector4(const AttrName: String): TVector4;
 begin
   if not AttributeVector4(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (vector4) attribute "%s" on element "%s"', [AttrName, TagName]);
@@ -925,79 +971,79 @@ end;
   TDOMElementHelper:
   Get an optional attribute, returns attribute or a default value. }
 
-function TDOMElementHelper.AttributeStringDef(const AttrName: string; const DefaultValue: string): string;
+function TDOMElementHelper.AttributeStringDef(const AttrName: String; const DefaultValue: String): String;
 begin
   if not AttributeString(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeIntegerDef(const AttrName: string; const DefaultValue: Integer): Integer;
+function TDOMElementHelper.AttributeIntegerDef(const AttrName: String; const DefaultValue: Integer): Integer;
 begin
   if not AttributeInteger(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeInt64Def(const AttrName: string; const DefaultValue: Int64): Int64;
+function TDOMElementHelper.AttributeInt64Def(const AttrName: String; const DefaultValue: Int64): Int64;
 begin
   if not AttributeInt64(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeQWordDef(const AttrName: string; const DefaultValue: QWord): QWord;
+function TDOMElementHelper.AttributeQWordDef(const AttrName: String; const DefaultValue: QWord): QWord;
 begin
   if not AttributeQWord(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeCardinalDef(const AttrName: string; const DefaultValue: Cardinal): Cardinal;
+function TDOMElementHelper.AttributeCardinalDef(const AttrName: String; const DefaultValue: Cardinal): Cardinal;
 begin
   if not AttributeCardinal(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeSingleDef(const AttrName: string; const DefaultValue: Single): Single;
+function TDOMElementHelper.AttributeSingleDef(const AttrName: String; const DefaultValue: Single): Single;
 begin
   if not AttributeSingle(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeFloatDef(const AttrName: string; const DefaultValue: Float): Float;
+function TDOMElementHelper.AttributeFloatDef(const AttrName: String; const DefaultValue: Float): Float;
 begin
   if not AttributeFloat(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeBooleanDef(const AttrName: string; const DefaultValue: boolean): boolean;
+function TDOMElementHelper.AttributeBooleanDef(const AttrName: String; const DefaultValue: boolean): boolean;
 begin
   if not AttributeBoolean(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeColorDef(const AttrName: string; const DefaultValue: TCastleColor): TCastleColor;
+function TDOMElementHelper.AttributeColorDef(const AttrName: String; const DefaultValue: TCastleColor): TCastleColor;
 begin
   if not AttributeColor(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeColorRGBDef(const AttrName: string; const DefaultValue: TCastleColorRGB): TCastleColorRGB;
+function TDOMElementHelper.AttributeColorRGBDef(const AttrName: String; const DefaultValue: TCastleColorRGB): TCastleColorRGB;
 begin
   if not AttributeColorRGB(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeVector2Def(const AttrName: string; const DefaultValue: TVector2): TVector2;
+function TDOMElementHelper.AttributeVector2Def(const AttrName: String; const DefaultValue: TVector2): TVector2;
 begin
   if not AttributeVector2(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeVector3Def(const AttrName: string; const DefaultValue: TVector3): TVector3;
+function TDOMElementHelper.AttributeVector3Def(const AttrName: String; const DefaultValue: TVector3): TVector3;
 begin
   if not AttributeVector3(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeVector4Def(const AttrName: string; const DefaultValue: TVector4): TVector4;
+function TDOMElementHelper.AttributeVector4Def(const AttrName: String; const DefaultValue: TVector4): TVector4;
 begin
   if not AttributeVector4(AttrName, Result) then
     Result := DefaultValue;
@@ -1005,66 +1051,78 @@ end;
 
 { TDOMElementHelper: Attribute setting ------------------------------------------------------ }
 
-procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: string);
+procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: String);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value));
 end;
 
-procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: boolean);
+procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: boolean);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(BoolToStr(Value, true)));
 end;
 
-procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Integer);
+procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: Integer);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
 end;
 
-procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Int64);
+procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: Int64);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
 end;
 
-procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: QWord);
+procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: QWord);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
 end;
 
-procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Cardinal);
+procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: Cardinal);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
 end;
 
-procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Single);
+procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: Single);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(FloatToStrDot(Value)));
 end;
 
-procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: TVector2);
+procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: TVector2);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
 end;
 
-procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: TVector3);
+procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: TVector3);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
 end;
 
-procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: TVector4);
+procedure TDOMElementHelper.AttributeSet(const AttrName: String; const Value: TVector4);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
+end;
+
+procedure TDOMElementHelper.AttributeColorSet(const AttrName: String;
+  const Value: TCastleColor);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(ColorToHex(Value)));
+end;
+
+procedure TDOMElementHelper.AttributeColorSet(const AttrName: String;
+  const Value: TCastleColorRGB);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(ColorRGBToHex(Value)));
 end;
 
 { ------------------------------------------------------------------------
   TDOMElementHelper: Other methods. }
 
-function TDOMElementHelper.ChildElement(const ChildName: string;
+function TDOMElementHelper.ChildElement(const ChildName: String;
   const Required: boolean): TDOMElement;
 begin
   Result := Child(ChildName, Required);
 end;
 
-function TDOMElementHelper.Child(const ChildName: string;
+function TDOMElementHelper.Child(const ChildName: String;
   const Required: boolean): TDOMElement;
 var
   Children: TDOMNodeList;
@@ -1095,7 +1153,7 @@ begin
     raise EDOMChildElementError.CreateFmt('Child "%s" not found', [ChildName])
 end;
 
-function TDOMElementHelper.TextData: string;
+function TDOMElementHelper.TextData: String;
 
 {
   It concatenates all text data nodes that are direct children
@@ -1131,7 +1189,7 @@ begin
   end;
 end;
 
-function TDOMElementHelper.CreateChild(const ChildName: string): TDOMElement;
+function TDOMElementHelper.CreateChild(const ChildName: String): TDOMElement;
 begin
   Result := OwnerDocument.CreateElement(UTF8Decode(ChildName));
   AppendChild(Result);
@@ -1142,12 +1200,12 @@ begin
   Result := TXMLElementIterator.Create(Self);
 end;
 
-function TDOMElementHelper.ChildrenIterator(const ChildName: string): TXMLElementIterator;
+function TDOMElementHelper.ChildrenIterator(const ChildName: String): TXMLElementIterator;
 begin
   Result := TXMLElementFilteringIterator.Create(Self, ChildName);
 end;
 
-function TDOMElementHelper.TagName8: string;
+function TDOMElementHelper.TagName8: String;
 begin
   Result := UTF8Encode(TagName);
 end;
@@ -1197,7 +1255,7 @@ end;
 
 { TXMLElementFilteringIterator ----------------------------------------------- }
 
-constructor TXMLElementFilteringIterator.Create(ParentElement: TDOMElement; const TagName: string);
+constructor TXMLElementFilteringIterator.Create(ParentElement: TDOMElement; const TagName: String);
 begin
   inherited Create(ParentElement);
   FTagName := UTF8Decode(TagName);
@@ -1251,48 +1309,48 @@ end;
 { globals -------------------------------------------------------------------- }
 
 function DOMGetAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: string): boolean;
+  const AttrName: String; var Value: String): boolean;
 begin
   Result := Element.AttributeString(AttrName, Value);
 end;
 
 function DOMGetCardinalAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Cardinal): boolean;
+  const AttrName: String; var Value: Cardinal): boolean;
 begin
   Result := Element.AttributeCardinal(AttrName, Value);
 end;
 
 function DOMGetIntegerAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Integer): boolean;
+  const AttrName: String; var Value: Integer): boolean;
 begin
   Result := Element.AttributeInteger(AttrName, Value);
 end;
 
 function DOMGetSingleAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Single): boolean;
+  const AttrName: String; var Value: Single): boolean;
 begin
   Result := Element.AttributeSingle(AttrName, Value);
 end;
 
 function DOMGetFloatAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Float): boolean;
+  const AttrName: String; var Value: Float): boolean;
 begin
   Result := Element.AttributeFloat(AttrName, Value);
 end;
 
 function DOMGetBooleanAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: boolean): boolean;
+  const AttrName: String; var Value: boolean): boolean;
 begin
   Result := Element.AttributeBoolean(AttrName, Value);
 end;
 
 function DOMGetChildElement(const Element: TDOMElement;
-  const ChildName: string; RaiseOnError: boolean): TDOMElement;
+  const ChildName: String; RaiseOnError: boolean): TDOMElement;
 begin
   Result := Element.ChildElement(ChildName, RaiseOnError);
 end;
 
-function DOMGetTextData(const Element: TDOMElement): string;
+function DOMGetTextData(const Element: TDOMElement): String;
 begin
   Result := Element.TextData;
 end;
@@ -1322,7 +1380,7 @@ begin
 end;
 
 function DOMGetTextChild(const Element: TDOMElement;
-  const ChildName: string): string;
+  const ChildName: String): String;
 begin
   Result := Element.ChildElement(ChildName).TextData;
 end;
@@ -1336,16 +1394,16 @@ end;
 
 {$ifdef FPC}
 
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
+procedure UrlReadXML(out Doc: TXMLDocument; const Url: String; const BlowFishKeyPhrase: String);
 var
   Stream: TStream;
   DecryptStream: TBlowFishDecryptStream;
   DecryptedCorrectStream: TStringStream;
   L: Integer;
-  DecryptedContent: string;
+  DecryptedContent: String;
 begin
   Doc := nil; // clean "out" param at start, just like ReadXMLFile
-  Stream := Download(URL, []);
+  Stream := Download(Url, []);
   try
     DecryptStream := TBlowFishDecryptStream.Create(BlowFishKeyPhrase, Stream);
     try
@@ -1364,7 +1422,7 @@ begin
           // on EXMLReadError, improve exception message and reraise
           on E: EXMLReadError do
           begin
-            E.Message := E.Message + ' (in file "' + URIDisplay(URL) + '", encrypted)';
+            E.Message := E.Message + ' (in file "' + UriDisplay(Url) + '", encrypted)';
             raise;
           end;
         end;
@@ -1375,7 +1433,7 @@ end;
 
 {$endif}
 
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
+procedure UrlReadXML(out Doc: TXMLDocument; const Url: String);
 var
   Stream: TStream;
   StreamOptions: TStreamOptions;
@@ -1385,11 +1443,11 @@ begin
 
   //guess gzipped based on file extension
   StreamOptions := [];
-  URIMimeType(URL, Gzipped);
+  UriMimeType(Url, Gzipped);
   if Gzipped then
     Include(StreamOptions, soGzip);
 
-  Stream := Download(URL, StreamOptions);
+  Stream := Download(Url, StreamOptions);
   try
     try
       ReadXMLFile(Doc, Stream);
@@ -1397,37 +1455,37 @@ begin
       // on EXMLReadError, improve exception message and reraise
       on E: EXMLReadError do
       begin
-        E.Message := E.Message + ' (in file "' + URIDisplay(URL) + '")';
+        E.Message := E.Message + ' (in file "' + UriDisplay(Url) + '")';
         raise;
       end;
     end;
   finally FreeAndNil(Stream) end;
 end;
 
-function URLReadXML(const URL: String): TXMLDocument;
+function UrlReadXML(const Url: String): TXMLDocument;
 begin
   try
-    // URLReadXML and ReadXMLFile nil the parameter when there's no need to free it
-    URLReadXML(Result, URL);     //this one will automatically take care of gzipping
+    // UrlReadXML and ReadXMLFile nil the parameter when there's no need to free it
+    UrlReadXML(Result, Url);     //this one will automatically take care of gzipping
   except FreeAndNil(Result); raise; end;
 end;
 
 {$ifdef FPC}
 
-function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument;
+function UrlReadXML(const Url: String; const BlowFishKeyPhrase: String): TXMLDocument;
 begin
   try
-    // URLReadXML and ReadXMLFile nil the parameter when there's no need to free it
-    URLReadXML(Result, URL, BlowFishKeyPhrase);
+    // UrlReadXML and ReadXMLFile nil the parameter when there's no need to free it
+    UrlReadXML(Result, Url, BlowFishKeyPhrase);
   except FreeAndNil(Result); raise; end;
 end;
 
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
+procedure UrlWriteXML(Doc: TXMLDocument; const Url: String; const BlowFishKeyPhrase: String);
 var
   Stream: TStream;
   EncryptStream: TBlowFishEncryptStream;
 begin
-  Stream := URLSaveStream(URL);
+  Stream := UrlSaveStream(Url);
   try
     EncryptStream := TBlowFishEncryptStream.Create(BlowFishKeyPhrase, Stream);
     try
@@ -1438,7 +1496,7 @@ end;
 
 {$endif}
 
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
+procedure UrlWriteXML(Doc: TXMLDocument; const Url: String);
 var
   Stream: TStream;
   StreamOptions: TSaveStreamOptions;
@@ -1446,18 +1504,18 @@ var
 begin
   //guess gzipped based on file extension
   StreamOptions := [];
-  URIMimeType(URL, Gzipped);
+  UriMimeType(Url, Gzipped);
   if Gzipped then
     Include(StreamOptions, ssoGzip);
 
-  Stream := URLSaveStream(URL, StreamOptions);
+  Stream := UrlSaveStream(Url, StreamOptions);
   try
     WriteXMLFile(Doc, Stream);
   finally FreeAndNil(Stream) end;
 
   { Caused e.g. by saving sprite sheet file using CGE editor,
     calling FileMonitor to refresh scenes using it. }
-  FileMonitor.Changed(URL);
+  FileMonitor.Changed(Url);
 end;
 
 end.

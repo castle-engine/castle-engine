@@ -21,15 +21,13 @@ type
 
   TDownloadFinishedEvent = procedure (const Sender: TCastleDownload; var FreeSender: Boolean) of object;
 
-  { Download an URL asynchronously, without blocking the application.
+  { Download an URL (possibly making an HTTP(S) request) asynchronously,
+    without blocking the application.
     You can register a callback @link(OnFinish) or watch
     when the @link(Status) property changes from dsDownloading to dsError or dsSuccess
     to detect when this finished downloading.
 
-    See the example
-    https://github.com/castle-engine/castle-engine/blob/master/examples/network/asynchronous_download/ .
-
-    Features:
+    @italic(Features:)
 
     @unorderedList(
       @item(The download can be observed (looking at @link(Status), @link(DownloadedBytes), @link(TotalBytes)).)
@@ -38,8 +36,39 @@ type
 
       @item(We can read MIME type from server (can be used throughout our engine to designate file type).)
 
-      @item(For downloading over HTTP, this is a way to make a full-featured HTTP(S) web request. You can specify HttpMethod, like GET, POST, PUT etc. For POST, you can provide form data as PostData. Arbitrary HTTP headers can be specified using AddHeader.)
+      @item(For downloading (making a request) using HTTP, this is a handful of additional features, to support downloading from modern web servers and using REST APIs:
+
+        @unorderedList(
+          @item(First of all, we support both HTTP and HTTPS on all platforms and compilers, through various backend (FpHttpClient, Indy, Delphi Net Client).)
+
+          @item(You can provide arbitrary HTTP headers using @link(HttpHeader). For example, various REST APIs require you to provide some key to authenticate through a custom HTTP header.)
+
+          @item(You can specify any @link(HttpMethod), like GET, POST, PUT and more. Default is naturally GET which is the standard method to just download the data.)
+
+          @item(For HTTP POST method, you can provide form data as @link(HttpPostData).)
+
+          @item(You can provide input data for any request using @link(HttpRequestBody). The most common use case is to provide a body for PUT requests, but it can be used for any request, e.g. to provide POST body overriding the @link(HttpPostData).)
+
+          @item(Once the download finishes, you can read @link(HttpResponseCode) and @link(HttpResponseHeaders).)
+
+          @item(By default, we follow HTTP/HTTPS redirects.)
+        )
+      )
     )
+
+    @italic(See examples:)
+
+    @unorderedList(
+      @item(@url(https://github.com/castle-engine/castle-engine/blob/master/examples/network/asynchronous_download/ asynchronous_download) to download resources asynchronously, downloading a few URLs and at the same time displaying an animation and progress bar.)
+
+      @item(@url(https://github.com/castle-engine/castle-engine/blob/master/examples/network/remote_logging/ remote_logging) to send logs to a remote server, using HTTP POST.)
+
+      @item(@url(https://github.com/castle-engine/castle-engine/tree/master/examples/network/put_data/ put_data) to send HTTP PUT request.)
+
+      @item(And other examples in @url(https://github.com/castle-engine/castle-engine/tree/master/examples/network examples/network) subdirectory.)
+    )
+
+    @italic(Usage:)
 
     The download starts when you call @link(Start).
     Be sure to configure the properties, including @link(OnFinish),
@@ -81,6 +110,7 @@ type
     UpdateInitialized: Boolean;
     FHttpPostData: TStringList;
     FHttpHeadersKeys, FHttpHeadersValues: TStringList;
+    FHttpRequestBody: TMemoryStream;
     FHttpResponseCode: Integer;
     FHttpResponseHeaders: TStrings;
     procedure SetUrl(const Value: String);
@@ -202,6 +232,40 @@ type
     function HttpPostData: TStrings;
     function PostData: TStrings; deprecated 'use HttpPostData';
 
+    { Request body to send along with the request.
+      Most useful with PUT (to send data to save on the server side).
+      May also be useful with POST (only when the HttpPostData key-value is not
+      flexible enough) or other requests.
+
+      You can use various @code(TStream) methods to set the stream,
+      like @code(TStream.CopyFrom). The CastleClassUtils also has various
+      helpers for stream, e.g. to write a String (AnsiString, UTF-8 encoding)
+      to a stream use @code(WriteStr(Download.HttpRequestBody, 'My content')).
+
+      Example usage:
+
+      @includeCode(../../examples/network/put_data/put_data.dpr)
+
+      Note: For some requests you may want to add HTTP headers like Content-Type etc.
+      Do this using @link(HttpHeader).
+
+      In case of POST requests, when this stream has non-empty contents
+      (stream size > 0), it overrules the HttpPostData. That is,
+      HttpPostData is completely ignored in this case.
+      Reason: Internally, HttpPostData is just an alternative way to set
+      HttpRequestBody.
+      TODO: We may change this behavior in the future, to make it such that
+      using HttpPostData will automatically override HttpPostData.
+      For now, @italic(never use both HttpPostData and HttpRequestBody
+      at the same time.)
+
+      TODO: For now this is supported only when using FPC (not Delphi)
+      and only on desktop platforms (not mobile). It should be trivial to
+      make it work in other cases too, just let us know
+      ( https://castle-engine.io/talk.php ).
+    }
+    function HttpRequestBody: TMemoryStream;
+
     { Add additional HTTP headers, e.g. User-Agent. }
     procedure HttpHeader(const AKey, AValue: String);
     procedure AddHeader(const AKey, AValue: String); deprecated 'use HttpHeader';
@@ -246,6 +310,7 @@ begin
   FreeAndNil(FHttpResponseHeaders);
   FreeAndNil(FHttpHeadersKeys);
   FreeAndNil(FHttpHeadersValues);
+  FreeAndNil(FHttpRequestBody);
   inherited;
 end;
 
@@ -362,7 +427,7 @@ procedure TCastleDownload.Start;
       on E: TObject do
       begin
         FStatus := dsError;
-        FErrorMessage := Format('Error when downloading "%s": ', [URIDisplay(Url)]) +
+        FErrorMessage := Format('Error when downloading "%s": ', [UriDisplay(Url)]) +
           ExceptMessage(E);
         {$if defined(VER3_2) and defined(DARWIN) and not defined(CASTLE_IOS)}
         if (E is ESocketError) and (URIProtocol(RealUrl) = 'https') then
@@ -402,7 +467,7 @@ begin
     FFinalUrl := Url;
 
   if LogAllLoading then
-    WritelnLog('Loading', 'Loading "%s"', [URIDisplay(FFinalUrl)]);
+    WritelnLog('Loading', 'Loading "%s"', [UriDisplay(FFinalUrl)]);
 
   RegisteredProtocol := RegisteredProtocols.Find(P);
   if RegisteredProtocol <> nil then
@@ -417,6 +482,7 @@ begin
         this way it may remain nil and not waste memory
         in case user didn't touch HttpPostData. }
       Reader.HttpPostData := FHttpPostData;
+      Reader.HttpRequestBody := FHttpRequestBody;
       Reader.HttpHeadersKeys := FHttpHeadersKeys;
       Reader.HttpHeadersValues := FHttpHeadersValues;
       Reader.Start;
@@ -576,6 +642,14 @@ begin
   if FHttpPostData = nil then
     FHttpPostData := TStringList.Create;
   Result := FHttpPostData;
+end;
+
+function TCastleDownload.HttpRequestBody: TMemoryStream;
+begin
+  // FHttpRequestBody is created on-demand, because it is often not needed
+  if FHttpRequestBody = nil then
+    FHttpRequestBody := TMemoryStream.Create;
+  Result := FHttpRequestBody;
 end;
 
 procedure TCastleDownload.HttpHeader(const AKey, AValue: String);

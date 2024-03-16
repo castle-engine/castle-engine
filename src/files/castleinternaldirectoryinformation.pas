@@ -50,7 +50,7 @@ type
       strict private
         procedure AddEntry(const FileInfo: TFileInfo; var StopSearch: boolean);
       private
-        procedure Generate(const PathURL: String);
+        procedure Generate(const PathUrl: String);
         procedure LoadFromFile(const Element: TDOMElement); override;
         procedure SaveToFile(const ParentElement: TDOMElement); override;
         procedure Sum(var DirsCount, FilesCount, FilesSize: QWord); override;
@@ -77,15 +77,15 @@ type
       RootDirectory: TDirectory;
 
     destructor Destroy; override;
-    procedure Generate(const PathURL: String);
-    procedure LoadFromFile(const URL: String);
-    procedure SaveToFile(const URL: String);
+    procedure Generate(const PathUrl: String);
+    procedure LoadFromFile(const Url: String);
+    procedure SaveToFile(const Url: String);
     procedure Sum(out DirsCount, FilesCount, FilesSize: QWord);
 
     { Find entry (file or directory) designated by given relative URL,
       like 'subdir1/subdir2/my_file.txt'.
       @nil if not found. }
-    function FindEntry(const URL: String): TEntry;
+    function FindEntry(const Url: String): TEntry;
   end;
 
 var
@@ -98,7 +98,7 @@ function DataDirectoryInformation: TDirectoryInformation;
 implementation
 
 uses SysUtils,
-  CastleXMLUtils, CastleURIUtils, CastleStringUtils, CastleLog;
+  CastleXmlUtils, CastleUriUtils, CastleStringUtils, CastleLog;
 
 { TDirectory ----------------------------------------------------------------- }
 
@@ -112,7 +112,7 @@ begin
   if FileInfo.Directory then
   begin
     D := TDirectory.Create;
-    D.Generate(FileInfo.URL);
+    D.Generate(FileInfo.Url);
     Directories.Add(D);
     E := D;
   end else
@@ -125,11 +125,11 @@ begin
   E.Name := FileInfo.Name;
 end;
 
-procedure TDirectoryInformation.TDirectory.Generate(const PathURL: String);
+procedure TDirectoryInformation.TDirectory.Generate(const PathUrl: String);
 begin
   Directories.Clear;
   Files.Clear;
-  FindFiles(PathURL, '*', true, {$ifdef FPC}@{$endif} AddEntry, []);
+  FindFiles(PathUrl, '*', true, {$ifdef FPC}@{$endif} AddEntry, []);
 end;
 
 constructor TDirectoryInformation.TDirectory.Create;
@@ -247,7 +247,7 @@ begin
   inherited;
 end;
 
-procedure TDirectoryInformation.Generate(const PathURL: String);
+procedure TDirectoryInformation.Generate(const PathUrl: String);
 begin
   FreeAndNil(RootDirectory);
   RootDirectory := TDirectory.Create;
@@ -255,18 +255,18 @@ begin
 
   Inc(DisableDataDirectoryInformation);
   try
-    RootDirectory.Generate(PathURL);
+    RootDirectory.Generate(PathUrl);
   finally Dec(DisableDataDirectoryInformation) end;
 end;
 
-procedure TDirectoryInformation.LoadFromFile(const URL: String);
+procedure TDirectoryInformation.LoadFromFile(const Url: String);
 var
   Doc: TXMLDocument;
   DirectoryElement: TDOMElement;
 begin
   FreeAndNil(RootDirectory);
 
-  Doc := URLReadXML(URL);
+  Doc := UrlReadXML(Url);
 
   if Doc.DocumentElement.TagName <> 'directory_information' then
     raise Exception.Create('Cannot load TDirectoryInformation from file, XML root element must be <directory_information>');
@@ -276,7 +276,7 @@ begin
   RootDirectory.LoadFromFile(DirectoryElement);
 end;
 
-procedure TDirectoryInformation.SaveToFile(const URL: String);
+procedure TDirectoryInformation.SaveToFile(const Url: String);
 var
   Doc: TXMLDocument;
   RootElement: TDOMElement;
@@ -301,7 +301,7 @@ begin
 
   RootDirectory.SaveToFile(RootElement);
 
-  URLWriteXML(Doc, URL);
+  UrlWriteXML(Doc, Url);
 end;
 
 procedure TDirectoryInformation.Sum(out DirsCount, FilesCount, FilesSize: QWord);
@@ -313,7 +313,7 @@ begin
     RootDirectory.Sum(DirsCount, FilesCount, FilesSize);
 end;
 
-function TDirectoryInformation.FindEntry(const URL: String): TEntry;
+function TDirectoryInformation.FindEntry(const Url: String): TEntry;
 var
   SeekPos: Integer;
   Token: String;
@@ -325,7 +325,7 @@ begin
   Result := RootDirectory;
   repeat
     // although URL should only contain /, we tolerate here Windows \ also
-    Token := NextToken(URL, SeekPos, ['/', '\']);
+    Token := NextToken(Url, SeekPos, ['/', '\']);
     if Token = '' then Break;
 
     if Result is TFile then
@@ -346,11 +346,11 @@ var
 
 procedure InitializeDataDirectoryInformation;
 var
-  DataInfoURL, DataInfoProtocol: String;
+  DataInfoUrl, DataInfoProtocol: String;
   DirsCount, FilesCount, FilesSize: QWord;
 begin
-  DataInfoURL := ResolveCastleDataURL('castle-data:/auto_generated/CastleDataInformation.xml');
-  DataInfoProtocol := URIProtocol(DataInfoURL);
+  DataInfoUrl := ResolveCastleDataUrl('castle-data:/auto_generated/CastleDataInformation.xml');
+  DataInfoProtocol := URIProtocol(DataInfoUrl);
 
   if (DataInfoProtocol = 'file') or
      (DataInfoProtocol = 'castle-nx-contents') or
@@ -361,20 +361,20 @@ begin
       has reliable URIFileExists implementation: check by URIFileExists. }
     Inc(DisableDataDirectoryInformation);
     try
-      if URIFileExists(DataInfoURL) then
+      if URIFileExists(DataInfoUrl) then
       begin
         FDataDirectoryInformation := TDirectoryInformation.Create;
-        FDataDirectoryInformation.LoadFromFile(DataInfoURL);
+        FDataDirectoryInformation.LoadFromFile(DataInfoUrl);
       end else
         FDataDirectoryInformation := nil;
     finally Dec(DisableDataDirectoryInformation) end;
   end else
   begin
     { With other protocols, the only way is to try opening
-      DataInfoURL and see whether there's exception. }
+      DataInfoUrl and see whether there's exception. }
     FDataDirectoryInformation := TDirectoryInformation.Create;
     try
-      FDataDirectoryInformation.LoadFromFile(DataInfoURL);
+      FDataDirectoryInformation.LoadFromFile(DataInfoUrl);
     except
       on E: Exception do
       begin

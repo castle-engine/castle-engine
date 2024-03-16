@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- castle-engine tool can be compiled by itself :) -->
-<project name="castle-engine" standalone_source="castle-engine.lpr">
+<project name="castle-engine"
+  standalone_source="castle-engine.dpr"
+  qualified_name="io.castleengine.build.tool"
+>
   <icons>
     <icon path="icon.ico"/>
   </icons>

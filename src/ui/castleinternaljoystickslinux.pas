@@ -29,7 +29,7 @@ uses BaseUnix,
 
 type
   TLinuxJsEvent = record
-    time   : LongWord; // event timestamp in milliseconds
+    time   : UInt32; // event timestamp in milliseconds
     value  : SmallInt; // value
     EventType  : Byte;     // event type
     number : Byte;     // axis/button number

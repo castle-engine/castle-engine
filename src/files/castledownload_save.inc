@@ -17,7 +17,7 @@
 {$ifdef read_interface}
 
 type
-  { Options for the @link(URLSaveStream) function. }
+  { Options for the @link(UrlSaveStream) function. }
   TSaveStreamOption = (
     { Filter the contents through gzip compression. }
     ssoGzip
@@ -76,25 +76,25 @@ type
     (instead of catching and re-raising).
     So be ready that this function may raise @italic(any) Exception class.)
 }
-function URLSaveStream(const URL: string; const Options: TSaveStreamOptions = []): TStream;
+function UrlSaveStream(const Url: String; const Options: TSaveStreamOptions = []): TStream;
 
 {$endif}
 
 {$ifdef read_implementation}
 
-function URLSaveStream(const URL: string; const Options: TSaveStreamOptions): TStream;
+function UrlSaveStream(const Url: String; const Options: TSaveStreamOptions): TStream;
 var
   P: String;
   RegisteredProtocol: TRegisteredProtocol;
   UnderlyingStream: TStream;
 begin
-  P := URIProtocol(URL);
+  P := URIProtocol(Url);
 
   { Handle early castle-data:, protocol to access application data,
     https://castle-engine.io/manual_data_directory.php }
   if P = 'castle-data' then
   begin
-    Result := URLSaveStream(ResolveCastleDataURL(URL), Options);
+    Result := UrlSaveStream(ResolveCastleDataUrl(Url), Options);
     Exit;
   end;
 
@@ -103,7 +103,7 @@ begin
   begin
     if Assigned(RegisteredProtocol.WriteEvent) then
     begin
-      UnderlyingStream := RegisteredProtocol.WriteEvent(URL);
+      UnderlyingStream := RegisteredProtocol.WriteEvent(Url);
       // Compress using gzip, if requested in Options
       if ssoGzip in Options then
         Result := TGZFileStream.Create(UnderlyingStream, true)

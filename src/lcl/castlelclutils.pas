@@ -39,15 +39,19 @@ uses Dialogs, Classes, Controls, LCLType, Graphics, EditBtn,
 
   @groupBegin }
 procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TFileDialog; const AllFields: boolean = true);
+  const Dialog: TFileDialog; const AllFields: boolean = true);
 procedure FileFiltersToDialog(const FileFilters: string;
   const Edit: TFileNameEdit; const AllFields: boolean = true);
+procedure FileFiltersToDialog(FFList: TFileFilterList;
+  const Dialog: TFileDialog; const AllFields: boolean = true);
+
 procedure FileFiltersToDialog(const FileFilters: string;
   out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
-procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TFileDialog; const AllFields: boolean = true);
+  deprecated 'use TFileFilterList.LclFmxFiltersFromString';
+
 procedure FileFiltersToDialog(FFList: TFileFilterList;
   out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
+  deprecated 'use TFileFilterList.LclFmxFilters';
 { @groupEnd }
 
 { Make each '&' inside string '&&', this way the string will not contain
@@ -67,36 +71,36 @@ procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
 
 { Convert Key (Lazarus key code) to Castle Game Engine TKey.
   Returns keyNone if not possible. }
-function KeyLCLToCastle(const Key: Word; const Shift: TShiftState): TKey;
+function KeyToCastle(const Key: Word; const Shift: TShiftState): TKey;
 
 { Convert TKey and/or character code into Lazarus key code (VK_xxx)
   and shift state.
-  Sets LazKey to VK_UNKNOWN (zero) when conversion not possible
+  Sets KeyCode to VK_UNKNOWN (zero) when conversion not possible
   (or when Key = keyNone and KeyString = '').
 
   @groupBegin }
-procedure KeyCastleToLCL(const Key: TKey; const KeyString: String;
-  out LazKey: Word; out Shift: TShiftState);
-procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
+procedure KeyFromCastle(const Key: TKey; const KeyString: String;
+  out KeyCode: Word; out Shift: TShiftState);
+procedure KeyFromCastle(const Key: TKey; KeyString: String;
   const Modifiers: TModifierKeys;
-  out LazKey: Word; out Shift: TShiftState);
+  out KeyCode: Word; out Shift: TShiftState);
 { @groupEnd }
 
 { Convert Lazarus TMouseButton value to Castle Game Engine
   TCastleMouseButton. }
-function MouseButtonLCLToCastle(
+function MouseButtonToCastle(
   const MouseButton: TMouseButton;
   out MyMouseButton: TCastleMouseButton): boolean;
 
 { Convert CGE to LCL cursor type. }
-function CursorCastleToLCL(const Cursor: TMouseCursor): TCursor;
+function CursorFromCastle(const Cursor: TMouseCursor): TCursor;
 
 { Not necessary.
   Converts between Lazarus String encoding for filenames (which is UTF-8)
   and CGE encoding for filenames (which is also UTF-8).
   So this in practice does nothing. }
-function FilenameToURISafeUTF8(const FileName: string): string;
-function URIToFilenameSafeUTF8(const URL: string): string;
+function FilenameToUriSafeUTF8(const FileName: string): string;
+function UriToFilenameSafeUTF8(const Url: String): string;
 
 { Convert LCL color values to CGE colors (vectors). }
 function ColorToVector3(const Color: TColor): TVector3;
@@ -157,15 +161,15 @@ type
 implementation
 
 uses SysUtils, FileUtil, LazUTF8, LCLProc,
-  CastleClassUtils, CastleStringUtils, CastleURIUtils, CastleLog;
+  CastleClassUtils, CastleStringUtils, CastleUriUtils, CastleLog;
 
 procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TFileDialog; const AllFields: boolean);
+  const Dialog: TFileDialog; const AllFields: boolean);
 var
   LCLFilter: string;
   LCLFilterIndex: Integer;
 begin
-  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
+  TFileFilterList.LclFmxFiltersFromString(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
   Dialog.Filter := LCLFilter;
   Dialog.FilterIndex := LCLFilterIndex;
 end;
@@ -176,75 +180,34 @@ var
   LCLFilter: string;
   LCLFilterIndex: Integer;
 begin
-  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
+  TFileFilterList.LclFmxFiltersFromString(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
   Edit.Filter := LCLFilter;
   Edit.FilterIndex := LCLFilterIndex;
 end;
 
-procedure FileFiltersToDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean);
-var
-  FFList: TFileFilterList;
-begin
-  FFList := TFileFilterList.Create(true);
-  try
-    FFList.AddFiltersFromString(FileFilters);
-    FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex, AllFields);
-  finally FreeAndNil(FFList) end;
-end;
-
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TFileDialog; const AllFields: boolean);
+  const Dialog: TFileDialog; const AllFields: boolean);
 var
   LCLFilter: string;
   LCLFilterIndex: Integer;
 begin
-  FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex, AllFields);
+  FFList.LclFmxFilters(LCLFilter, LCLFilterIndex, AllFields);
   Dialog.Filter := LCLFilter;
   Dialog.FilterIndex := LCLFilterIndex;
 end;
 
-procedure FileFiltersToDialog(FFList: TFileFilterList;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean);
-var
-  Filter: TFileFilter;
-  I, J: Integer;
+procedure FileFiltersToDialog(const FileFilters: string;
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
 begin
-  LCLFilter := '';
+  TFileFilterList.LclFmxFiltersFromString(FileFilters,
+    LCLFilter, LCLFilterIndex, AllFields);
+end;
 
-  { initialize LCLFilterIndex.
-    Will be corrected for AllFields=false case, and will be incremented
-    (because LCL FilterIndex counts from 1) later. }
-
-  LCLFilterIndex := FFList.DefaultFilter;
-
-  for I := 0 to FFList.Count - 1 do
-  begin
-    Filter := FFList[I];
-    if (not AllFields) and IsPrefix('All ', Filter.Name) then
-    begin
-      { then we don't want to add this to LCLFilter.
-        We also need to fix LCLFilterIndex, to shift it. }
-      if I = FFList.DefaultFilter then
-        LCLFilterIndex := 0 else
-      if I < FFList.DefaultFilter then
-        Dec(LCLFilterIndex);
-      Continue;
-    end;
-
-    LCLFilter += Filter.Name + '|';
-
-    for J := 0 to Filter.Patterns.Count - 1 do
-    begin
-      if J <> 0 then LCLFilter += ';';
-      LCLFilter += Filter.Patterns[J];
-    end;
-
-    LCLFilter += '|';
-  end;
-
-  { LCL FilterIndex counts from 1. }
-  Inc(LCLFilterIndex);
+procedure FileFiltersToDialog(FFList: TFileFilterList;
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
+begin
+  FFList.LclFmxFilters(
+    LCLFilter, LCLFilterIndex, AllFields);
 end;
 
 function SQuoteLCLCaption(const S: string): string;
@@ -262,20 +225,20 @@ end;
 procedure FileFiltersToOpenDialog(const FileFilters: string;
   out LCLFilter: string; out LCLFilterIndex: Integer);
 begin
-  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex);
+  TFileFilterList.LclFmxFiltersFromString(FileFilters, LCLFilter, LCLFilterIndex);
 end;
 
 procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
   out LCLFilter: string; out LCLFilterIndex: Integer);
 begin
-  FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex);
+  FFList.LclFmxFilters(LCLFilter, LCLFilterIndex);
 end;
 
 const
   { Ctrl key on most systems, Command key on macOS. }
   ssCtrlOrCommand = {$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif};
 
-function KeyLCLToCastle(const Key: Word; const Shift: TShiftState): TKey;
+function KeyToCastle(const Key: Word; const Shift: TShiftState): TKey;
 begin
   Result := keyNone;
   case Key of
@@ -334,15 +297,15 @@ begin
   end;
 end;
 
-procedure KeyCastleToLCL(const Key: TKey; const KeyString: String;
-  out LazKey: Word; out Shift: TShiftState);
+procedure KeyFromCastle(const Key: TKey; const KeyString: String;
+  out KeyCode: Word; out Shift: TShiftState);
 begin
-  KeyCastleToLCL(Key, KeyString, [], LazKey, Shift);
+  KeyFromCastle(Key, KeyString, [], KeyCode, Shift);
 end;
 
-procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
+procedure KeyFromCastle(const Key: TKey; KeyString: String;
   const Modifiers: TModifierKeys;
-  out LazKey: Word; out Shift: TShiftState);
+  out KeyCode: Word; out Shift: TShiftState);
 var
   KeyChar: Char;
 begin
@@ -351,55 +314,55 @@ begin
     KeyString := '';
 
   Shift := [];
-  LazKey := VK_UNKNOWN;
+  KeyCode := VK_UNKNOWN;
   case Key of
-    keyBackSpace:        LazKey := VK_BACK;
-    keyTab:              LazKey := VK_TAB;
-    keyEnter:            LazKey := VK_RETURN;
-    keyShift:            LazKey := VK_SHIFT;
-    keyCtrl:             LazKey := VK_CONTROL;
-    keyAlt:              LazKey := VK_MENU;
-    keyEscape:           LazKey := VK_ESCAPE;
-    keySpace:            LazKey := VK_SPACE;
-    keyPageUp:           LazKey := VK_PRIOR;
-    keyPageDown:         LazKey := VK_NEXT;
-    keyEnd:              LazKey := VK_END;
-    keyHome:             LazKey := VK_HOME;
-    keyArrowLeft:        LazKey := VK_LEFT;
-    keyArrowUp:          LazKey := VK_UP;
-    keyArrowRight:       LazKey := VK_RIGHT;
-    keyArrowDown:        LazKey := VK_DOWN;
-    keyInsert:           LazKey := VK_INSERT;
-    keyDelete:           LazKey := VK_DELETE;
-    keyNumpadPlus:       LazKey := VK_ADD;
-    keyNumpadMinus:      LazKey := VK_SUBTRACT;
-    keyPrintScreen:      LazKey := VK_SNAPSHOT;
-    keyNumLock:          LazKey := VK_NUMLOCK;
-    keyScrollLock:       LazKey := VK_SCROLL;
-    keyCapsLock:         LazKey := VK_CAPITAL;
-    keyPause:            LazKey := VK_PAUSE;
-    keyComma:            LazKey := VK_OEM_COMMA;
-    keyPeriod:           LazKey := VK_OEM_PERIOD;
-    keyNumpad0:          LazKey := VK_NUMPAD0;
-    keyNumpad1:          LazKey := VK_NUMPAD1;
-    keyNumpad2:          LazKey := VK_NUMPAD2;
-    keyNumpad3:          LazKey := VK_NUMPAD3;
-    keyNumpad4:          LazKey := VK_NUMPAD4;
-    keyNumpad5:          LazKey := VK_NUMPAD5;
-    keyNumpad6:          LazKey := VK_NUMPAD6;
-    keyNumpad7:          LazKey := VK_NUMPAD7;
-    keyNumpad8:          LazKey := VK_NUMPAD8;
-    keyNumpad9:          LazKey := VK_NUMPAD9;
-    keyNumpadBegin:      LazKey := VK_CLEAR;
-    keyNumpadMultiply:   LazKey := VK_MULTIPLY;
-    keyNumpadDivide:     LazKey := VK_DIVIDE;
-    keyMinus:            LazKey := VK_OEM_MINUS;
-    keyEqual:            LazKey := VK_OEM_PLUS;
+    keyBackSpace:        KeyCode := VK_BACK;
+    keyTab:              KeyCode := VK_TAB;
+    keyEnter:            KeyCode := VK_RETURN;
+    keyShift:            KeyCode := VK_SHIFT;
+    keyCtrl:             KeyCode := VK_CONTROL;
+    keyAlt:              KeyCode := VK_MENU;
+    keyEscape:           KeyCode := VK_ESCAPE;
+    keySpace:            KeyCode := VK_SPACE;
+    keyPageUp:           KeyCode := VK_PRIOR;
+    keyPageDown:         KeyCode := VK_NEXT;
+    keyEnd:              KeyCode := VK_END;
+    keyHome:             KeyCode := VK_HOME;
+    keyArrowLeft:        KeyCode := VK_LEFT;
+    keyArrowUp:          KeyCode := VK_UP;
+    keyArrowRight:       KeyCode := VK_RIGHT;
+    keyArrowDown:        KeyCode := VK_DOWN;
+    keyInsert:           KeyCode := VK_INSERT;
+    keyDelete:           KeyCode := VK_DELETE;
+    keyNumpadPlus:       KeyCode := VK_ADD;
+    keyNumpadMinus:      KeyCode := VK_SUBTRACT;
+    keyPrintScreen:      KeyCode := VK_SNAPSHOT;
+    keyNumLock:          KeyCode := VK_NUMLOCK;
+    keyScrollLock:       KeyCode := VK_SCROLL;
+    keyCapsLock:         KeyCode := VK_CAPITAL;
+    keyPause:            KeyCode := VK_PAUSE;
+    keyComma:            KeyCode := VK_OEM_COMMA;
+    keyPeriod:           KeyCode := VK_OEM_PERIOD;
+    keyNumpad0:          KeyCode := VK_NUMPAD0;
+    keyNumpad1:          KeyCode := VK_NUMPAD1;
+    keyNumpad2:          KeyCode := VK_NUMPAD2;
+    keyNumpad3:          KeyCode := VK_NUMPAD3;
+    keyNumpad4:          KeyCode := VK_NUMPAD4;
+    keyNumpad5:          KeyCode := VK_NUMPAD5;
+    keyNumpad6:          KeyCode := VK_NUMPAD6;
+    keyNumpad7:          KeyCode := VK_NUMPAD7;
+    keyNumpad8:          KeyCode := VK_NUMPAD8;
+    keyNumpad9:          KeyCode := VK_NUMPAD9;
+    keyNumpadBegin:      KeyCode := VK_CLEAR;
+    keyNumpadMultiply:   KeyCode := VK_MULTIPLY;
+    keyNumpadDivide:     KeyCode := VK_DIVIDE;
+    keyMinus:            KeyCode := VK_OEM_MINUS;
+    keyEqual:            KeyCode := VK_OEM_PLUS;
 
     { TKey ranges }
-    key0 ..key9  : LazKey := Ord('0') + Ord(Key) - Ord(key0);
-    keyA ..keyZ  : LazKey := Ord('A') + Ord(Key) - Ord(keyA);
-    keyF1..keyF12: LazKey :=    VK_F1 + Ord(Key) - Ord(keyF1);
+    key0 ..key9  : KeyCode := Ord('0') + Ord(Key) - Ord(key0);
+    keyA ..keyZ  : KeyCode := Ord('A') + Ord(Key) - Ord(keyA);
+    keyF1..keyF12: KeyCode :=    VK_F1 + Ord(Key) - Ord(keyF1);
 
     else
       if Length(KeyString) = 1 then
@@ -408,28 +371,28 @@ begin
         case KeyChar of
           { follow TMenuItem.Key docs: when Key is keyNone, only KeyChar indicates
             CharBackSpace / CharTab / CharEnter, convert them to Ctrl+xxx shortcuts }
-          //CharBackSpace:              LazKey := VK_BACK;
-          //CharTab:                    LazKey := VK_TAB;
-          //CharEnter:                  LazKey := VK_RETURN;
-          CharEscape:                 LazKey := VK_ESCAPE;
-          ' ':                        LazKey := VK_SPACE;
-          CharDelete:                 LazKey := VK_DELETE;
-          '+':                        LazKey := VK_ADD;
-          '-':                        LazKey := VK_SUBTRACT;
-          ',':                        LazKey := VK_OEM_COMMA;
-          '.':                        LazKey := VK_OEM_PERIOD;
-          '*':                        LazKey := VK_MULTIPLY;
-          '/':                        LazKey := VK_DIVIDE;
-          '=':                        LazKey := VK_OEM_PLUS;
+          //CharBackSpace:              KeyCode := VK_BACK;
+          //CharTab:                    KeyCode := VK_TAB;
+          //CharEnter:                  KeyCode := VK_RETURN;
+          CharEscape:                 KeyCode := VK_ESCAPE;
+          ' ':                        KeyCode := VK_SPACE;
+          CharDelete:                 KeyCode := VK_DELETE;
+          '+':                        KeyCode := VK_ADD;
+          '-':                        KeyCode := VK_SUBTRACT;
+          ',':                        KeyCode := VK_OEM_COMMA;
+          '.':                        KeyCode := VK_OEM_PERIOD;
+          '*':                        KeyCode := VK_MULTIPLY;
+          '/':                        KeyCode := VK_DIVIDE;
+          '=':                        KeyCode := VK_OEM_PLUS;
 
           { Char ranges }
-          '0' .. '9' : LazKey := Ord(KeyChar);
+          '0' .. '9' : KeyCode := Ord(KeyChar);
           { for latter: uppercase letters are VK_xxx codes }
-          'A' .. 'Z' : begin LazKey := Ord(KeyChar); Shift := [ssShift]; end;
-          'a' .. 'z' : begin LazKey := Ord(UpCase(KeyChar)); end;
+          'A' .. 'Z' : begin KeyCode := Ord(KeyChar); Shift := [ssShift]; end;
+          'a' .. 'z' : begin KeyCode := Ord(UpCase(KeyChar)); end;
           CtrlA .. CtrlZ:
             begin
-              LazKey := Ord('A') + Ord(KeyChar) - Ord(CtrlA);
+              KeyCode := Ord('A') + Ord(KeyChar) - Ord(CtrlA);
               Shift := [ssCtrlOrCommand];
             end;
         end;
@@ -444,7 +407,7 @@ begin
     Shift += [ssAlt];
 end;
 
-function MouseButtonLCLToCastle(
+function MouseButtonToCastle(
   const MouseButton: Controls.TMouseButton;
   out MyMouseButton: TCastleMouseButton): boolean;
 begin
@@ -461,7 +424,7 @@ begin
   end;
 end;
 
-function CursorCastleToLCL(const Cursor: TMouseCursor): TCursor;
+function CursorFromCastle(const Cursor: TMouseCursor): TCursor;
 const
   Map: array [TMouseCursor] of TCursor =
   ( crDefault, //< mcDefault
@@ -487,14 +450,14 @@ begin
   Result := Map[Cursor];
 end;
 
-function FilenameToURISafeUTF8(const FileName: string): string;
+function FilenameToUriSafeUTF8(const FileName: string): string;
 begin
-  Result := FilenameToURISafe(UTF8ToSys(FileName));
+  Result := FilenameToUriSafe(UTF8ToSys(FileName));
 end;
 
-function URIToFilenameSafeUTF8(const URL: string): string;
+function UriToFilenameSafeUTF8(const Url: String): string;
 begin
-  Result := SysToUTF8(URIToFilenameSafe(URL));
+  Result := SysToUTF8(UriToFilenameSafe(Url));
 end;
 
 function ColorToVector3(const Color: TColor): TVector3;
@@ -504,7 +467,7 @@ end;
 
 function ColorToVector3Byte(const Color: TColor): TVector3Byte;
 var
-  Col: LongInt;
+  Col: Integer;
 begin
   Col := ColorToRGB(Color);
   RedGreenBlue(Col, Result.X, Result.Y, Result.Z);
@@ -565,7 +528,7 @@ begin
     if ssShift in FUnfinishedKeyDownShift then Include(Modifiers, mkShift);
     if ssAlt   in FUnfinishedKeyDownShift then Include(Modifiers, mkAlt);
     if ssCtrl  in FUnfinishedKeyDownShift then Include(Modifiers, mkCtrl);
-    Key := KeyLCLToCastle(FUnfinishedKeyDownKey, FUnfinishedKeyDownShift);
+    Key := KeyToCastle(FUnfinishedKeyDownKey, FUnfinishedKeyDownShift);
   end;
 
   if FUnfinishedKeyPress then

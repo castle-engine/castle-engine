@@ -422,7 +422,7 @@ procedure TViewMain.Start;
   end;
 
 var
-  ModelURL: String;
+  ModelUrl: String;
 begin
   inherited;
 
@@ -438,9 +438,9 @@ begin
 
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
-    ModelURL := Parameters[1]
+    ModelUrl := Parameters[1]
   else
-    ModelURL :=
+    ModelUrl :=
       //'castle-data:/chinchilla_awakens.x3dv';
       //'castle-data:/simplico.wrl';
       //'castle-data:/ultra_simplico_human.wrl';
@@ -455,7 +455,7 @@ begin
 
   { initialize Scene }
   Scene := TCastleScene.Create(Application);
-  Scene.Load(ModelURL);
+  Scene.Load(ModelUrl);
   Scene.PreciseCollisions := true;
   Scene.OnGeometryChanged := {$ifdef FPC}@{$endif} SceneGeometryChanged;
   Scene.ProcessEvents := true; { allow Scene animation }

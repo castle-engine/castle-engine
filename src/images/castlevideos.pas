@@ -159,7 +159,7 @@ type
       If one of them is non-zero, the appropriate video size (width and/or
       height) will be resized. Resizing quality is controlled by
       Interpolation parameter. }
-    procedure LoadFromFile(const URL: string;
+    procedure LoadFromFile(const Url: String;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
       const Interpolation: TResizeInterpolation = riBilinear;
@@ -169,7 +169,7 @@ type
 
       Handled formats: just like LoadFromFile. Also, just like LoadFromFile,
       we need ffmpeg on $PATH to save to any single-file movie format. }
-    procedure SaveToFile(const URL: string);
+    procedure SaveToFile(const Url: String);
 
     procedure Resize(const ResizeToX, ResizeToY: Cardinal;
       const Interpolation: TResizeInterpolation = riBilinear);
@@ -317,7 +317,7 @@ type
     type
       TCachedVideo = class
         References: Cardinal;
-        URL: string;
+        Url: String;
         LoadOptions: TLoadImageOptions;
         Video: TVideo;
         AlphaChannel: TAlphaChannel;
@@ -335,7 +335,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Video_IncReference(const URL: string;
+    function Video_IncReference(const Url: String;
       out AlphaChannel: TAlphaChannel;
       const LoadOptions: TLoadImageOptions = []): TVideo;
     procedure Video_DecReference(var Video: TVideo);
@@ -408,10 +408,12 @@ const
 
 implementation
 
-uses Classes, {$ifndef FPC} Windows, ShellApi, {$endif} Math,
+uses Classes,
+  {$ifndef FPC} {$ifdef MSWINDOWS} Windows, ShellApi, {$endif} {$endif}
+  Math,
   CastleClassUtils, CastleUtils, CastleStringUtils,
   CastleLog, CastleFilesUtils, CastleTextureImages,
-  CastleDownload, CastleURIUtils, CastleFindFiles;
+  CastleDownload, CastleUriUtils, CastleFindFiles;
 
 { TVideo --------------------------------------------------------------------- }
 
@@ -515,37 +517,37 @@ begin
     FItems[I].Resize(ResizeToX, ResizeToY, Interpolation);
 end;
 
-procedure TVideo.LoadFromFile(const URL: string;
+procedure TVideo.LoadFromFile(const Url: String;
   const ResizeToX: Cardinal = 0;
   const ResizeToY: Cardinal = 0;
   const Interpolation: TResizeInterpolation = riBilinear;
   const LoadOptions: TLoadImageOptions = []);
 
-  function LoadSingleImage(const URL: string): TCastleImage;
+  function LoadSingleImage(const Url: String): TCastleImage;
   begin
-    Result := CastleImages.LoadImage(URL, TextureImageClasses,
+    Result := CastleImages.LoadImage(Url, TextureImageClasses,
       ResizeToX, ResizeToY, Interpolation, LoadOptions);
   end;
 
   { Load from an image sequence (possibly just a single image).
     When RemoveLoadedTempImages, we will remove the loaded image files,
     in this case the URL @italic(must) be a filename. }
-  procedure LoadFromImages(const URL: string;
+  procedure LoadFromImages(const Url: String;
     RemoveLoadedTempImages: boolean);
 
     { Load movie frame number Index. Returns if success. }
     function LoadFrame(const Index: Cardinal): boolean;
     var
-      URLComplete: string;
+      UrlComplete: string;
       NewItem: TCastleImage;
     begin
-      URLComplete := FormatNameCounter(URL, Index, false);
+      UrlComplete := FormatNameCounter(Url, Index, false);
 
       try
         { LoadImage will raise an exception
           for invalid / not existing / not readable image file / url.
           Don't increase FItems before NewItem is successfully loaded. }
-        NewItem := LoadSingleImage(URLComplete);
+        NewItem := LoadSingleImage(UrlComplete);
       except
         Exit(false);
       end;
@@ -554,7 +556,7 @@ procedure TVideo.LoadFromFile(const URL: string;
       FItems[High(FItems)] := NewItem;
 
       if RemoveLoadedTempImages then
-        CheckDeleteFile(URLComplete, true);
+        CheckDeleteFile(UrlComplete, true);
 
       Result := true;
     end;
@@ -563,7 +565,7 @@ procedure TVideo.LoadFromFile(const URL: string;
     Index, ReplacementsDone: Cardinal;
     SingleFrame: TCastleImage;
   begin
-    FormatNameCounter(URL, 0, false, ReplacementsDone);
+    FormatNameCounter(Url, 0, false, ReplacementsDone);
     if ReplacementsDone > 0 then
     begin
       { Try to load frame 0. Ignore failure (it means movie starts at frame 1). }
@@ -576,23 +578,23 @@ procedure TVideo.LoadFromFile(const URL: string;
 
       if Length(FItems) = 0 then
         raise ECannotOpenFirstVideoFrame.CreateFmt('First video image ("%s" or "%s") cannot be loaded (not found, or not supported image format). Cannot load the video',
-          [FormatNameCounter(URL, 0, false),
-           FormatNameCounter(URL, 1, false)]);
+          [FormatNameCounter(Url, 0, false),
+           FormatNameCounter(Url, 1, false)]);
     end else
     begin
-      SingleFrame := LoadSingleImage(URL);
+      SingleFrame := LoadSingleImage(Url);
       SetLength(FItems, 1);
       FItems[0] := SingleFrame;
 
       { when RemoveLoadedTempImages, we know URL is a filename and can be safely
         passed to CheckDeleteFile }
       if RemoveLoadedTempImages then
-        CheckDeleteFile(URL, true);
+        CheckDeleteFile(Url, true);
     end;
   end;
 
   { Load a single video file from an URL. }
-  procedure LoadFromFfmpeg(const URL: string);
+  procedure LoadFromFfmpeg(const Url: String);
   var
     MovieFileName: string;
     MovieFileNameTemporary: boolean;
@@ -607,7 +609,7 @@ procedure TVideo.LoadFromFile(const URL: string;
     FfmpegTemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
     OurTemporaryImagesPattern := TemporaryImagesPrefix + '@counter(1).png';
 
-    MovieFileName := URIToFilenameSafe(URL);
+    MovieFileName := UriToFilenameSafe(Url);
     MovieFileNameTemporary := false;
 
     { If URL isn't a local file (maybe it's http, maybe data URI) then
@@ -622,7 +624,7 @@ procedure TVideo.LoadFromFile(const URL: string;
     begin
       MovieFileName := GetTempFileNameCheck;
       MovieFileNameTemporary := true;
-      S := Download(URL);
+      S := Download(Url);
       try
         StreamSaveToFile(S, MovieFileName);
       finally FreeAndNil(S) end;
@@ -643,29 +645,29 @@ procedure TVideo.LoadFromFile(const URL: string;
 begin
   Close;
 
-  if FfmpegVideoMimeType(URIMimeType(URL), true) then
-    LoadFromFfmpeg(URL)
+  if FfmpegVideoMimeType(UriMimeType(Url), true) then
+    LoadFromFfmpeg(Url)
   else
-    LoadFromImages(URL, false);
+    LoadFromImages(Url, false);
 
   FLoaded := true;
 end;
 
-procedure TVideo.SaveToFile(const URL: string);
+procedure TVideo.SaveToFile(const Url: String);
 
-  procedure SaveToImages(const URL: string);
+  procedure SaveToImages(const Url: String);
   var
     Index, ReplacementsDone: Cardinal;
     S: string;
   begin
-    FormatNameCounter(URL, 0, true, ReplacementsDone);
+    FormatNameCounter(Url, 0, true, ReplacementsDone);
     if ReplacementsDone > 0 then
     begin
       { Note that Index is 1-based, that's how FormatNameCounter
         works for LoadFromFile and ffmpeg, so also here. }
       for Index := 1 to Count do
       begin
-        S := FormatNameCounter(URL, Index, true);
+        S := FormatNameCounter(Url, Index, true);
         SaveImage(FItems[Index - 1], S);
       end;
     end else
@@ -673,9 +675,9 @@ procedure TVideo.SaveToFile(const URL: string);
       { single image file --- suitable only if video has exactly one frame }
       if Count <> 1 then
         raise Exception.CreateFmt('Single image URL detected ("%s"), but saved video doesn''t have exactly one frame (it has %d frames). Cannot save',
-          [URIDisplay(URL), Count]);
+          [UriDisplay(Url), Count]);
 
-      SaveImage(FItems[0], URL);
+      SaveImage(FItems[0], Url);
     end;
   end;
 
@@ -730,10 +732,10 @@ procedure TVideo.SaveToFile(const URL: string);
       WritelnLog(Executable + ' -f image2 -i "' + TemporaryImagesPattern +
         '" -y -qscale 1 "' + FileName + '"');
 
-      {$ifdef FPC}
+      {$if defined(FPC)}
       ExecuteProcess(Executable,
         ['-f', 'image2', '-i', TemporaryImagesPattern, '-y', '-qscale', '1', FileName]);
-      {$else}
+      {$elseif defined(MSWINDOWS)}
       ShellExecute(
         0,
         'open',
@@ -741,6 +743,8 @@ procedure TVideo.SaveToFile(const URL: string);
         PChar('-f image2 -i ' + TemporaryImagesPattern + '-y -qscale 1 ' + FileName),
         nil,
         SW_SHOW);
+      {$else}
+      raise Exception.Create('TODO: Executing ffmpeg on Delphi/non-Windows not implemented');
       {$endif}
 
       RemoveTemporaryImages(TemporaryImagesPattern);
@@ -750,9 +754,9 @@ procedure TVideo.SaveToFile(const URL: string);
 begin
   Assert(Loaded);
 
-  if FfmpegVideoMimeType(URIMimeType(URL), false) then
-    SaveToFfmpeg(URL) else
-    SaveToImages(URIToFilenameSafe(URL));
+  if FfmpegVideoMimeType(UriMimeType(Url), false) then
+    SaveToFfmpeg(Url) else
+    SaveToImages(UriToFilenameSafe(Url));
 end;
 
 function TVideo.Width: Cardinal;
@@ -854,7 +858,7 @@ begin
   inherited;
 end;
 
-function TVideosCache.Video_IncReference(const URL: string;
+function TVideosCache.Video_IncReference(const Url: String;
   out AlphaChannel: TAlphaChannel;
   const LoadOptions: TLoadImageOptions): TVideo;
 var
@@ -866,14 +870,14 @@ begin
   for I := 0 to CachedVideos.Count - 1 do
   begin
     C := CachedVideos[I];
-    if (C.URL = URL) and
+    if (C.Url = Url) and
        (C.LoadOptions = LoadOptions) then
     begin
       Inc(C.References);
       AlphaChannel := C.AlphaChannel;
 
       if LogVideosCache then
-        WritelnLog('++', 'Video %s : %d', [URIDisplay(URL), C.References]);
+        WritelnLog('++', 'Video %s : %d', [UriDisplay(Url), C.References]);
 
       Exit(C.Video);
     end;
@@ -889,7 +893,7 @@ begin
 
   Result := TVideo.Create;
   try
-    Result.LoadFromFile(URL, 0, 0, riBilinear, LoadOptions);
+    Result.LoadFromFile(Url, 0, 0, riBilinear, LoadOptions);
   except
     FreeAndNil(Result);
     raise;
@@ -898,7 +902,7 @@ begin
   C := TCachedVideo.Create;
   CachedVideos.Add(C);
   C.References := 1;
-  C.URL := URL;
+  C.Url := Url;
   C.LoadOptions := LoadOptions;
   C.Video := Result;
   C.AlphaChannel := Result.AlphaChannel;
@@ -907,7 +911,7 @@ begin
   if LogVideosCache then
   begin
     S := Format('Video %s : 1. Loading time: %f',
-      [URIDisplay(URL), ProcessTimerSeconds(ProcessTimer, Start)]);
+      [UriDisplay(Url), ProcessTimerSeconds(ProcessTimer, Start)]);
     if AlphaChannel <> acNone then
       S := S + '. Detected as simple yes/no ("test") alpha channel: ' +
            BoolToStr(AlphaChannel = acTest, true);
@@ -926,7 +930,7 @@ begin
     if C.Video = Video then
     begin
       if LogVideosCache then
-        WritelnLog('--', 'Video %s : %d', [C.URL, C.References - 1]);
+        WritelnLog('--', 'Video %s : %d', [C.Url, C.References - 1]);
 
       Video := nil;
 
@@ -1016,9 +1020,10 @@ begin
       S := S + Parameter;
   end;
   WritelnLog(S);
-  {$ifdef FPC}
+
+  {$if defined(FPC)}
     ExecuteProcess(Executable, Parameters);
-  {$else}
+  {$elseif defined(MSWINDOWS)}
     ShellExecute(
       0,
       'open',
@@ -1026,6 +1031,8 @@ begin
       PChar(S),
       nil,
       SW_SHOW);
+  {$else}
+  raise Exception.Create('TODO: Executing ffmpeg on Delphi/non-Windows not implemented');
   {$endif}
 end;
 

@@ -60,7 +60,7 @@ var
 
 implementation
 
-uses CastleUtils, CastleVectors, CastleLCLUtils, CastleURIUtils,
+uses CastleUtils, CastleVectors, CastleLCLUtils, CastleUriUtils,
   CastleApplicationProperties,
   FormSoundEngineInfo;
 
@@ -141,7 +141,7 @@ begin
     LabelSoundInfo.Caption := Format('Sound File:' + NL +
       '%s' + NL +
       'Duration: %f', [
-      URIDisplay(PlayingSound.Sound.URL),
+      UriDisplay(PlayingSound.Sound.Url),
       PlayingSound.Sound.Duration
     ]);
     TrackOffset.Min := 0;

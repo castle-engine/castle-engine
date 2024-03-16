@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,7 +22,7 @@ interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   Dialogs, Contnrs,
-  CastleStringUtils,
+  CastleStringUtils, CastleInternalTools,
   ToolArchitectures, ToolManifest, ToolProcess;
 
 type
@@ -697,6 +697,7 @@ begin
           end;
         end;
       okError: C.Brush.Color := clRed;
+      else ; // no need to customize font/brush otherwise
     end;
   end else
   begin
@@ -840,24 +841,8 @@ begin
 end;
 
 function ApiReferenceUrl: String;
-// TODO: Make it possible to set from preferences, or make it just the default behavior?
-{.$define CASTLE_PREFER_OFFLINE_API_DOCS}
-
-{$ifdef CASTLE_PREFER_OFFLINE_API_DOCS}
-var
-  LocalDocsPath: String;
-{$endif}
 begin
-  {$ifdef CASTLE_PREFER_OFFLINE_API_DOCS}
-  if CastleEnginePath <> '' then
-  begin
-    LocalDocsPath := CastleEnginePath + 'doc' + PathDelim + 'reference' + PathDelim;
-    if DirectoryExists(LocalDocsPath) then
-      Exit(FilenameToURISafe(LocalDocsPath));
-  end;
-  {$endif}
-
-  Result := 'https://castle-engine.io/apidoc/html/';
+  Result := ApiReferenceUrlCore(CastleEnginePath);
 end;
 
 function ApiReference(const PropertyObject: TObject;

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -61,7 +61,7 @@
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAxis1Angle: TSFFloat;
     { Internal wrapper for property @code(Axis1Angle). This wrapper API may change, we advise to access simpler @code(Axis1Angle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }

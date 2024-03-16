@@ -48,7 +48,7 @@ type
 
     var
       RatAngle: Single;
-      TntTemplate: TSerializedComponent;
+      TntFactory: TCastleComponentFactory;
       Tnts: TComponentList;
 
     procedure NewTnt(const Y: Single);
@@ -88,7 +88,9 @@ begin
 
   { initialize Tnt }
   Tnts := TComponentList.Create(false);
-  TntTemplate := TSerializedComponent.Create('castle-data:/extra_objects/tnt_final.castle-transform');
+
+  TntFactory := TCastleComponentFactory.Create(FreeAtStop);
+  TntFactory.Url := 'castle-data:/extra_objects/tnt_final.castle-transform';
   while Tnts.Count < InitialTntsCount do
     NewTnt(0.0);
 
@@ -97,7 +99,6 @@ end;
 
 procedure TViewMain.Stop;
 begin
-  FreeAndNil(TntTemplate);
   FreeAndNil(Tnts);
   inherited;
 end;
@@ -108,7 +109,7 @@ var
   Tnt: TCastleTransform;
   LevelBox: TBox3D;
 begin
-  Tnt := TntTemplate.TransformLoad(FreeAtStop);
+  Tnt := TntFactory.TransformLoad(FreeAtStop);
   TntExtent := Tnt.BoundingBox.MaxSize / 2;
   LevelBox := SceneLevel.BoundingBox;
   Tnt.Translation := Vector3(

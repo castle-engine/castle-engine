@@ -29,7 +29,7 @@ set -euo pipefail
 #
 
 # Allow calling this script from it's dir.
-if [ -f castle-engine.lpr ]; then cd ../../; fi
+if [ -f castle-engine.dpr ]; then cd ../../; fi
 
 mkdir -p tools/build-tool/castle-engine-output/build-tool-compilation
 
@@ -42,7 +42,7 @@ COMPILE_OPTIONS='-dRELEASE
   -Futools/build-tool/code/
   -Futools/build-tool/embedded_images/'
 
-if ! fpc ${COMPILE_OPTIONS} ${CASTLE_FPC_OPTIONS:-} tools/build-tool/castle-engine.lpr | tee tools/build-tool/castle-engine-output/build-tool-compilation/output.txt; then
+if ! fpc ${COMPILE_OPTIONS} ${CASTLE_FPC_OPTIONS:-} tools/build-tool/castle-engine.dpr | tee tools/build-tool/castle-engine-output/build-tool-compilation/output.txt; then
   if grep -F 'Fatal: Internal error' tools/build-tool/castle-engine-output/build-tool-compilation/output.txt; then
     echo '-------------------------------------------------------------'
     echo 'It seems FPC crashed. If you can reproduce this problem, please report it to http://bugs.freepascal.org/ ! We want to help FPC developers to fix this problem, and the only way to do it is to report it. If you need help creating a good bugreport, speak up on the FPC mailing list or Castle Game Engine forum.'
@@ -50,7 +50,7 @@ if ! fpc ${COMPILE_OPTIONS} ${CASTLE_FPC_OPTIONS:-} tools/build-tool/castle-engi
     echo "As a workaround, right now we'll clean everything and try compiling again."
     echo '-------------------------------------------------------------'
     rm -Rf tools/build-tool/castle-engine-output/build-tool-compilation/*
-    fpc ${COMPILE_OPTIONS} ${CASTLE_FPC_OPTIONS:-} tools/build-tool/castle-engine.lpr
+    fpc ${COMPILE_OPTIONS} ${CASTLE_FPC_OPTIONS:-} tools/build-tool/castle-engine.dpr
   else
     exit 1
   fi

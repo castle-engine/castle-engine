@@ -30,7 +30,7 @@ implementation
 
 uses Generics.Collections, Math,
   CastleUtils, CastleClassUtils, CastleVectors, X3DCameraUtils,
-  X3DLoadInternalUtils, CastleLog, CastleDownload, CastleURIUtils,
+  X3DLoadInternalUtils, CastleLog, CastleDownload, CastleUriUtils,
   CastleStreamUtils;
 
 { 3DS reading mostly based on spec from
@@ -75,7 +75,7 @@ type
 
   TMaterialMap3ds = record
     Exists: boolean;
-    MapURL: string;
+    MapUrl: String;
     Scale, Offset: TVector2;
   end;
 
@@ -246,7 +246,7 @@ type
     Materials: TMaterial3dsList;
     { @groupEnd }
     { Autodesk version used to create this 3DS. }
-    Version: LongWord;
+    Version: UInt32;
     constructor Create(const Stream: TStream);
     destructor Destroy; override;
   end;
@@ -349,7 +349,7 @@ const
 type
   TChunkHeader = packed record
     Id: Word;
-    Len: LongWord;
+    Len: UInt32;
     procedure ReadFromStream(const Stream: TStream);
   end;
 
@@ -509,7 +509,7 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
   function ReadMaterialMap(EndPos: Int64): TMaterialMap3ds;
   const
     InitialExistingMatMap: TMaterialMap3ds =
-    (Exists: true; MapURL: ''; Scale: (X: 1; Y: 1); Offset: (X: 0; Y: 0));
+    (Exists: true; MapUrl: ''; Scale: (X: 1; Y: 1); Offset: (X: 0; Y: 0));
   var
     h: TChunkHeader;
     hEnd: Int64;
@@ -522,7 +522,7 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
       h.ReadFromStream(Stream);
       hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
       case h.id of
-        CHUNK_MAP_FILE: Result.MapURL := StreamReadZeroEndString(Stream);
+        CHUNK_MAP_FILE: Result.MapUrl := StreamReadZeroEndString(Stream);
         CHUNK_MAP_USCALE: Stream.ReadLE(Result.Scale.X);
         CHUNK_MAP_VSCALE: Stream.ReadLE(Result.Scale.Y);
         CHUNK_MAP_UOFFSET: Stream.ReadLE(Result.Offset.X);
@@ -1055,7 +1055,7 @@ var
     if Material.TextureMap1.Exists then
     begin
       Tex := TImageTextureNode.Create('', BaseUrl);
-      Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMap1.MapURL)]);
+      Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMap1.MapUrl)]);
       Result.Texture := Tex;
 
       TexTransform := TTextureTransformNode.Create('', BaseUrl);
@@ -1065,7 +1065,7 @@ var
       if Material.TextureMapBump.Exists then
       begin
         Tex := TImageTextureNode.Create('', BaseUrl);
-        Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMapBump.MapURL)]);
+        Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMapBump.MapUrl)]);
         Result.NormalMap := Tex;
 
         { We don't have separate TextureTransform for bump map.

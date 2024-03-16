@@ -276,11 +276,75 @@ pipeline {
                 sh 'make clean test-fpmake'
               }
             }
-
             stage('(RPi) Pack Release') {
               steps {
                 sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
                 sh './tools/internal/pack_release/pack_release.sh linux arm'
+                archiveArtifacts artifacts: 'castle-engine*.zip'
+              }
+            }
+          }
+        }
+        stage('Raspberry Pi (64-bit)') {
+          /* To not overload the slower RPi, use it only with master. */
+          when { branch "master" }
+          agent {
+            label 'raspberry-pi-64-cge-builder'
+          }
+          environment {
+            /* Used by CGE build tool ("castle-engine").
+               Define env based on another env variable.
+               According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+               this should be supported. */
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+            PATH = "${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/"
+            // We need to use FPC 3.2.3 for packing
+            CASTLE_PACK_DISABLE_FPC_VERSION_CHECK = "true"
+          }
+          stages {
+            stage('(RPi64) Info') {
+              steps {
+                // check versions (and availability) of our requirements early
+                sh 'fpc -iV'
+                sh 'lazbuild --version'
+                sh 'make --version'
+              }
+            }
+            stage('(RPi64) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(RPi64) Build Tools') {
+              steps {
+                sh 'rm -Rf installed/'
+                sh 'mkdir -p installed/'
+                sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+              }
+            }
+            stage('(RPi64) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(RPi64) Build And Run Auto-Tests') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make tests'
+              }
+            }
+            stage('(RPi64) Build Using FpMake') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make clean test-fpmake'
+              }
+            }
+
+            stage('(RPi64) Pack Release') {
+              steps {
+                sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
+                sh './tools/internal/pack_release/pack_release.sh linux aarch64'
                 archiveArtifacts artifacts: 'castle-engine*.zip'
               }
             }
@@ -507,7 +571,7 @@ pipeline {
                 sh 'cp tools/build-tool/castle-engine.exe ${CASTLE_ENGINE_PATH}/installed/bin/'
               }
             }
-            stage('(Delphi) Check AutoTests (Win64)') {
+            stage('(Delphi) Check Delphi AutoTests (Win64)') {
               steps {
                 dir ('tests/delphi_tests/') {
                   sh 'castle-engine clean'
@@ -516,7 +580,7 @@ pipeline {
                 }
               }
             }
-            stage('(Delphi) Check AutoTests (Win32)') {
+            stage('(Delphi) Check Delphi AutoTests (Win32)') {
               steps {
                 dir ('tests/delphi_tests/') {
                   sh 'castle-engine clean'
@@ -525,21 +589,21 @@ pipeline {
                 }
               }
             }
-            stage('(Delphi) Check AutoTests with NO_WINDOW_SYSTEM (Win64)') {
+            stage('(Delphi) Check AutoTests (Win64)') {
               steps {
                 dir ('tests/') {
                   sh 'castle-engine clean'
-                  sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64 --compiler-option=-dNO_WINDOW_SYSTEM'
-                  sh 'castle-engine run -- --console'
+                  sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64'
+                  sh 'castle-engine run -- --console --no-window-create'
                 }
               }
             }
-            stage('(Delphi) Check AutoTests with NO_WINDOW_SYSTEM (Win32)') {
+            stage('(Delphi) Check AutoTests (Win32)') {
               steps {
                 dir ('tests/') {
                   sh 'castle-engine clean'
-                  sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386 --compiler-option=-dNO_WINDOW_SYSTEM'
-                  sh 'castle-engine run -- --console'
+                  sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
+                  sh 'castle-engine run -- --console --no-window-create'
                 }
               }
             }

@@ -141,6 +141,9 @@ procedure TForm1.FormCreate(Sender: TObject);
 var
   UiTest: TUiTest;
 begin
+  // Call this to have UI scaling, same as in editor
+  CastleControl.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
   InitializeLog;
 
   UiTest := TUiTest.Create(Self);

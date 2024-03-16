@@ -13,7 +13,7 @@ TEMPLATE = app
 
 DEFINES += QT_BUILD=1
 
-QMAKE_CXXFLAGS += "-Wno-unused-parameter"
+!msvc: QMAKE_CXXFLAGS += "-Wno-unused-parameter"
 
 SOURCES += main.cpp\
         mainwindow.cpp \

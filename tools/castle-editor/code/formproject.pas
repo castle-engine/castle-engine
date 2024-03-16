@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,7 +16,7 @@
 { Project form (@link(TProjectForm)). }
 unit FormProject;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 { Hack to use OpenDocument instead of RunCommandNoWait to execute Delphi.
   This assumes that Delphi is associated on your system with Pascal files.
@@ -605,7 +605,7 @@ implementation
 {$warnings off} // using deprecated Castle2DSceneManager to keep it registered
 
 uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
-  CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
+  CastleXmlUtils, CastleLCLUtils, CastleOpenDocument, CastleUriUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
   CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
@@ -651,7 +651,7 @@ end;
 
 procedure TProjectForm.MenuItemReferenceClick(Sender: TObject);
 begin
-  OpenURL(ApiReferenceUrl + 'index.html');
+  OpenUrl(ApiReferenceUrl + 'index.html');
 end;
 
 procedure TProjectForm.MenuItemModeReleaseClick(Sender: TObject);
@@ -667,7 +667,7 @@ begin
   Url := ApiReferenceUrl + 'index.html';
   if Design <> nil then
     Design.CurrentComponentApiUrl(Url);
-  OpenURL(Url);
+  OpenUrl(Url);
 end;
 
 procedure TProjectForm.MenuItemRefreshDirClick(Sender: TObject);
@@ -750,12 +750,12 @@ end;
 
 procedure TProjectForm.MenuItemSupportClick(Sender: TObject);
 begin
-  OpenURL('https://patreon.com/castleengine/');
+  OpenUrl('https://patreon.com/castleengine/');
 end;
 
 procedure TProjectForm.MenuItemCgeWwwClick(Sender: TObject);
 begin
-  OpenURL('https://castle-engine.io/');
+  OpenUrl('https://castle-engine.io/');
 end;
 
 procedure TProjectForm.MenuItemAboutClick(Sender: TObject);
@@ -1377,7 +1377,7 @@ procedure TProjectForm.ActionEditAssociatedUnitExecute(Sender: TObject);
 var
   AUnitName, UnitFileNameAbsolute: String;
 begin
-  AUnitName := DeleteURIExt(ExtractURIName(Design.DesignUrl));
+  AUnitName := DeleteUriExt(ExtractUriName(Design.DesignUrl));
   UnitFileNameAbsolute := Manifest.SearchPascalUnit(AUnitName);
   if UnitFileNameAbsolute <> '' then
     OpenPascal(UnitFileNameAbsolute)
@@ -1499,7 +1499,7 @@ begin
     ListOpenExistingViewRefresh;
     CheckNewUnitOnSearchPath;
     ProposeToOpenNewFile;
-    RefreshFiles(rfFilesInCurrentDir);
+    RefreshFiles(rfEverything); // NewUnitForm maybe created dirs
   end;
 end;
 
@@ -1542,10 +1542,10 @@ begin
   if not Docking then Exit;
   URLFileName := ApplicationConfig(DockLayoutFileName);
   { Try to load default layout if user layout is not exist }
-  if not URIFileExists(URLFileName) then
+  if not UriFileExists(URLFileName) then
     URLFileName := InternalCastleDesignData + 'layouts/' + DockLayoutFileNameDefault;
   try
-    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
+    XMLConfig := TXMLConfigStorage.Create(UriToFilenameSafe(URLFileName), True);
     try
       DockMaster.LoadLayoutFromConfig(XMLConfig, True);
     finally
@@ -1570,7 +1570,7 @@ var
 begin
   if not Docking then Exit;
   try
-    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)), false);
+    XMLConfig := TXMLConfigStorage.Create(UriToFilenameSafe(ApplicationConfig(DockLayoutFileName)), false);
     try
       DockMaster.SaveLayoutToConfig(XMLConfig);
       XMLConfig.WriteToDisk;
@@ -1738,7 +1738,7 @@ var
 begin
   DesignObserver := TFreeNotificationObserver.Create(Self);
   DesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif} DesignObserverFreeNotification;
-  EnableDocking := URIFileExists(ApplicationConfig('enable-docking.txt'));
+  EnableDocking := UriFileExists(ApplicationConfig('enable-docking.txt'));
   MenuItemWindow.SetEnabledVisible(EnableDocking);
   Docking := EnableDocking and UserConfig.GetValue('ProjectForm_Docking', false);
   OutputList := TOutputList.Create(ListOutput);
@@ -1950,6 +1950,7 @@ begin
             PageControlBottom.Height := NewControlHeight;
           end;
         end;
+      else ; // do not restore other state, like wsMinimized
     end;
   end;
 end;
@@ -1961,7 +1962,7 @@ begin
   if ListOpenExistingView.ItemIndex <> -1 then
   begin
     DesignFileName := ListOpenExistingViewStr[ListOpenExistingView.ItemIndex];
-    DesignUrl := FilenameToURISafe(DesignFileName);
+    DesignUrl := FilenameToUriSafe(DesignFileName);
     ProposeOpenDesign(DesignUrl);
   end;
 end;
@@ -2130,8 +2131,8 @@ var
 begin
   { Simply remove the dock ui config file in order to restore default settings }
   DockLayoutUrl := ApplicationConfig(DockLayoutFileName);
-  if URIFileExists(DockLayoutUrl) then
-    CheckDeleteFile(URIToFilenameSafe(DockLayoutUrl));
+  if UriFileExists(DockLayoutUrl) then
+    CheckDeleteFile(UriToFilenameSafe(DockLayoutUrl));
   LoadDockLayout;
 end;
 
@@ -2288,7 +2289,7 @@ end;
 
 procedure TProjectForm.MenuItemManualClick(Sender: TObject);
 begin
-  OpenURL('https://castle-engine.io/manual_intro.php');
+  OpenUrl('https://castle-engine.io/manual_intro.php');
 end;
 
 procedure TProjectForm.MenuItemModeDebugClick(Sender: TObject);
@@ -2323,8 +2324,8 @@ begin
     This also avoids finding stuff in castle-engine-output, which is possible,
     e.g. after "castle-engine package --target=android" the castle-engine-output contains
     some temporary data with copies of design files -- and we *do not* want to show them here. }
-  ProjectDataUrl := CombineURI(ProjectPathUrl, 'data/');
-  if URIExists(ProjectDataUrl) <> ueNotExists then
+  ProjectDataUrl := CombineUri(ProjectPathUrl, 'data/');
+  if UriExists(ProjectDataUrl) <> ueNotExists then
   begin
     FindFiles(ProjectDataUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
     // support deprecated names
@@ -2733,7 +2734,7 @@ begin
   if ShellListView1.Selected <> nil then
   begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
-    SelectedURL := FilenameToURISafe(SelectedFileName);
+    SelectedURL := FilenameToUriSafe(SelectedFileName);
 
     { Check for images first because TCastleScene can now load images. }
     if LoadImage_FileFilters.Matches(SelectedURL) then
@@ -3100,7 +3101,7 @@ begin
       Exit;
     end;
 
-    SelectedURL := FilenameToURISafe(SelectedFileName);
+    SelectedURL := FilenameToUriSafe(SelectedFileName);
     Ext := ExtractFileExt(SelectedFileName);
 
     { Check for images first because TCastleScene can now load images. }
@@ -3111,7 +3112,7 @@ begin
     end;
 
     { Check for Castle Sprite Sheets, to open them in sprite editor }
-    if (URIMimeType(SelectedURL) = 'application/x-castle-sprite-sheet') then
+    if (UriMimeType(SelectedURL) = 'application/x-castle-sprite-sheet') then
     begin
       if SpriteSheetEditorForm = nil then
         SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
@@ -3184,7 +3185,9 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
     case BuildMode of
       bmDebug  : ModeString := '--mode=debug';
       bmRelease: ModeString := '--mode=release';
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('BuildMode?');
+      {$endif}
     end;
     Params.Add(ModeString);
   end;
@@ -3454,11 +3457,11 @@ begin
 
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }
-  ApplicationDataOverride := CombineURI(ProjectPathUrl, 'data/');
+  ApplicationDataOverride := CombineUri(ProjectPathUrl, 'data/');
 
   { adjust some InitialDir values to make open dialogs natural }
-  OpenDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
-  SaveDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+  OpenDesignDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
+  SaveDesignDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
   OpenPascalUnitDialog.InitialDir := ProjectPath;
 
   ShellTreeView1.Root := ProjectPath;
@@ -3537,6 +3540,7 @@ begin
           ShellTreeView1.Refresh(nil);
           ShellTreeView1.Path := TreeViewPath;
         end;
+      else ; // no need to do for others
     end;
 
     ShellListView1.SelectedFileNameInRoot := SavedSelectedFileNameInRoot;
@@ -3584,7 +3588,7 @@ begin
   begin
     if Design.AddImported(AddUrl) = nil then
       ErrorBox(Format('Coult not import "%s". Make sure the current design has a viewport selected', [
-        URIDisplay(AddUrl)
+        UriDisplay(AddUrl)
       ]));
   end;
 end;

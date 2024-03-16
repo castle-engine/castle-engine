@@ -24,13 +24,13 @@ type
 
       The meaning (and default behavior) of optional AEncoding
       is the same as for TStrings.LoadFromFile and TStrings.LoadFromStream. }
-    procedure LoadFromURL(const URL: string); overload;
-    procedure LoadFromURL(const URL: string; const AEncoding: TEncoding); overload;
+    procedure LoadFromUrl(const Url: String); overload;
+    procedure LoadFromUrl(const Url: String; const AEncoding: TEncoding); overload;
 
     { Save the contents to URL.
       Uses standard SaveToStream combined with
-      Castle Game Engine @link(URLSaveStream) to save the contents. }
-    procedure SaveToURL(const URL: string);
+      Castle Game Engine @link(UrlSaveStream) to save the contents. }
+    procedure SaveToUrl(const Url: String);
   end;
 
 {$endif}
@@ -39,31 +39,31 @@ type
 
 { TStringsHelper ---------------------------------------------------------- }
 
-procedure TStringsHelper.LoadFromURL(const URL: string);
+procedure TStringsHelper.LoadFromUrl(const Url: String);
 var
   Stream: TStream;
 begin
-  Stream := Download(URL);
+  Stream := Download(Url);
   try
     LoadFromStream(Stream);
   finally FreeAndNil(Stream) end;
 end;
 
-procedure TStringsHelper.LoadFromURL(const URL: string; const AEncoding: TEncoding);
+procedure TStringsHelper.LoadFromUrl(const Url: String; const AEncoding: TEncoding);
 var
   Stream: TStream;
 begin
-  Stream := Download(URL);
+  Stream := Download(Url);
   try
     LoadFromStream(Stream {$ifndef VER3_0}, AEncoding {$endif});
   finally FreeAndNil(Stream) end;
 end;
 
-procedure TStringsHelper.SaveToURL(const URL: string);
+procedure TStringsHelper.SaveToUrl(const Url: String);
 var
   Stream: TStream;
 begin
-  Stream := URLSaveStream(URL);
+  Stream := UrlSaveStream(Url);
   try
     SaveToStream(Stream);
   finally FreeAndNil(Stream) end;

@@ -37,14 +37,15 @@ type
     FGeometry: TLineSetNode;
     FCoord: TCoordinateNode;
     FTransform: TTransformNode;
-    function GetRender: boolean;
-    procedure SetRender(const Value: boolean);
+    function GetVisible: boolean;
+    procedure SetVisible(const Value: boolean);
     procedure SetPosition(const Value: TVector3);
     procedure SetScaleFromBox(const Value: TBox3D);
   public
     constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
     property Root: TTransformNode read FTransform;
-    property Render: boolean read GetRender write SetRender;
+    property Visible: boolean read GetVisible write SetVisible;
+    property Render: Boolean read GetVisible write SetVisible; {$ifdef FPC} deprecated 'use Visible'; {$endif}
     property Position: TVector3 {read GetPosition} {} write SetPosition;
     property ScaleFromBox: TBox3D {read GetScale} {} write SetScaleFromBox;
   end;
@@ -96,14 +97,15 @@ type
     FTransform: TTransformNode;
     FShape: TShapeNode;
     FGeometry: TSphereNode;
-    function GetRender: boolean;
-    procedure SetRender(const Value: boolean);
+    function GetVisible: boolean;
+    procedure SetVisible(const Value: boolean);
     procedure SetPosition(const Value: TVector3);
     procedure SetRadius(const Value: Single);
   public
     constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
     property Root: TTransformNode read FTransform;
-    property Render: boolean read GetRender write SetRender;
+    property Visible: boolean read GetVisible write SetVisible;
+    property Render: Boolean read GetVisible write SetVisible; {$ifdef FPC} deprecated 'use Visible'; {$endif}
     property Position: TVector3 {read GetPosition} {} write SetPosition;
     property Radius: Single {read GetRadius} {} write SetRadius;
   end;
@@ -124,14 +126,15 @@ type
     procedure SetOrigin(const Value: TVector3);
     procedure SetDirection(const Value: TVector3);
     procedure UpdateGeometry;
-    function GetRender: boolean;
-    procedure SetRender(const Value: boolean);
+    function GetVisible: boolean;
+    procedure SetVisible(const Value: boolean);
   public
     constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
     property Root: TTransformNode read FTransform;
     property Origin: TVector3 read FOrigin write SetOrigin;
     property Direction: TVector3 read FDirection write SetDirection;
-    property Render: boolean read GetRender write SetRender;
+    property Visible: boolean read GetVisible write SetVisible;
+    property Render: Boolean read GetVisible write SetVisible; {$ifdef FPC} deprecated 'use Visible'; {$endif}
   end;
 
   { Visualization of a bounding volume of a TCastleTransform instance.
@@ -193,11 +196,18 @@ type
   end;
 
   { Like TDebugTransformBox, but visualizes also additional properties.
+    This is useful to visualize typical properties of TCastleTransform
+    that represents a creature: things that determine how the creature is moving,
+    if you use methods like @link(TCastleTransform.MoveAllowed).
 
     Adds visualization of:
-    - TCastleTransform.Middle
-    - TCastleTransform.Sphere
-    - TCastleTransform.Direction }
+
+    @unorderedList(
+      @item(@link(TCastleTransform.Middle))
+      @item(@link(TCastleTransform.Sphere), that is usually determined by
+        the @link(TCastleTransform.CollisionSphereRadius) property)
+      @item(@link(TCastleTransform.Direction))
+    ) }
   TDebugTransform = class(TDebugTransformBox)
   strict private
     FDirectionArrow: TDebugArrow;
@@ -247,14 +257,14 @@ begin
   FTransform.AddChildren(FShape);
 end;
 
-function TDebugAxis.GetRender: boolean;
+function TDebugAxis.GetVisible: boolean;
 begin
-  Result := FShape.Render;
+  Result := FShape.Visible;
 end;
 
-procedure TDebugAxis.SetRender(const Value: boolean);
+procedure TDebugAxis.SetVisible(const Value: boolean);
 begin
-  FShape.Render := Value;
+  FShape.Visible := Value;
 end;
 
 procedure TDebugAxis.SetPosition(const Value: TVector3);
@@ -307,8 +317,8 @@ end;
 
 procedure TDebugBox.SetBox(const Value: TBox3D);
 begin
-  FShape.Render := not Value.IsEmpty;
-  if FShape.Render then
+  FShape.Visible := not Value.IsEmpty;
+  if FShape.Visible then
   begin
     FGeometry.Size := Value.Size;
     FTransform.Translation := Value.Center;
@@ -352,14 +362,14 @@ begin
   FTransform.AddChildren(FShape);
 end;
 
-function TDebugSphere.GetRender: boolean;
+function TDebugSphere.GetVisible: boolean;
 begin
-  Result := FShape.Render;
+  Result := FShape.Visible;
 end;
 
-procedure TDebugSphere.SetRender(const Value: boolean);
+procedure TDebugSphere.SetVisible(const Value: boolean);
 begin
-  FShape.Render := Value;
+  FShape.Visible := Value;
 end;
 
 procedure TDebugSphere.SetPosition(const Value: TVector3);
@@ -445,14 +455,14 @@ begin
   ]);
 end;
 
-function TDebugArrow.GetRender: boolean;
+function TDebugArrow.GetVisible: boolean;
 begin
-  Result := FShape.Render;
+  Result := FShape.Visible;
 end;
 
-procedure TDebugArrow.SetRender(const Value: boolean);
+procedure TDebugArrow.SetVisible(const Value: boolean);
 begin
-  FShape.Render := Value;
+  FShape.Visible := Value;
 end;
 
 { TDebugTransform.TInternalScene ---------------------------------------------------- }
@@ -635,22 +645,22 @@ end;
 procedure TDebugTransform.Update;
 var
   R: Single;
-  Visible: Boolean;
+  NewVisible: Boolean;
 begin
   inherited;
 
-  Visible := Parent.World <> nil;
+  NewVisible := Parent.World <> nil;
 
   // when Parent.World = nil then Parent.Middle and Parent.PreferredHeight cannot be calculated
-  FSphere.Render := Visible;
-  FDirectionArrow.Render := Visible;
-  FMiddleAxis.Render := Visible;
+  FSphere.Visible := NewVisible;
+  FDirectionArrow.Visible := NewVisible;
+  FMiddleAxis.Visible := NewVisible;
 
-  if Visible then
+  if NewVisible then
   begin
     // show FParent.Sphere
-    FSphere.Render := Parent.Sphere(R);
-    if FSphere.Render then
+    FSphere.Visible := Parent.Sphere(R);
+    if FSphere.Visible then
     begin
       FSphere.Position := Parent.Middle;
       FSphere.Radius := R;

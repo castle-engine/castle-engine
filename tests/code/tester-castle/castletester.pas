@@ -1,5 +1,5 @@
-{
-  Copyright 2022-2022 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
+﻿{
+  Copyright 2022-2023 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,8 +20,13 @@ unit CastleTester;
 
 interface
 
+// FPC: Do not warn that Rtti is experimental
+{$ifdef FPC} {$warnings off} {$endif}
+
 uses SysUtils, Classes, Generics.Collections, Rtti, CastleVectors, CastleBoxes,
   CastleFrustum, CastleImages, CastleRectangles, CastleWindow, CastleViewport;
+
+{$ifdef FPC} {$warnings on} {$endif}
 
 const
   { Epsilon used by default when compating Single (Single-precision float values).
@@ -38,15 +43,20 @@ type
 
   EAssertionFailedError = class(Exception);
 
-  TNotifyAssertFail = procedure (const TestName, Msg: String) of object;
+  TNotifyTestFail = procedure (const TestName, Msg: String) of object;
   TNotifyTestExecuted = procedure (const Name: String) of object;
   TNotifyTestCaseExecuted = procedure (const Name: String) of object;
   TNotifyTestCountChanged = procedure (const TestCount: Integer) of object;
 
   TCastleTester = class;
-  TCastleTestCase = class;
 
-  {$M+} // Generate type info
+  { Generate type info for TCastleTestCase and descendants.
+    Delphi expects the forward class declaration to have the same $M state
+    as an actual class declaration. }
+  {$M+}
+  TCastleTestCase = class;
+  {$M-}
+
   TCastleTest = class
   strict private
     FTestCase: TCastleTestCase;
@@ -77,16 +87,18 @@ type
     property Enabled: Boolean read FEnabled write SetEnabled;
   end;
 
+  {$M+} // Generate type info for TCastleTestCase and descendants
   TCastleTestCase = class
   strict private
     FName: String;
+    SavedApplicationMainWindow: TCastleWindow;
 
     { Object list for tests }
     FTestList: {$ifdef FPC}specialize{$endif} TObjectList<TCastleTest>;
 
     function GetTest(const Index: Integer): TCastleTest;
   private
-    FNotifyAssertFail: TNotifyAssertFail;
+    FNotifyTestFail: TNotifyTestFail;
     FCurrentTestName: String;
 
     FWindowForTest: TCastleWindow;
@@ -221,10 +233,17 @@ type
     procedure OnWarningRaiseException(const Category, S: string);
 
     { Create TCastleWindow for test purposes.
-      It will be automatically freed when test method ends but if you need you
-      can also call DestroyWindowForTest explicitly. }
+
+      Only one such window may exist at given time,
+      it is also automatically set as Application.MainWindow. }
     function CreateWindowForTest: TCastleWindow;
-    procedure DestroyWindowForTest;
+
+    { Destroy TCastleWindow created by CreateWindowForTest.
+      This method also checks Window value and sets it to @nil.
+
+      It is often not necessary to actually use it,
+      because the window will be automatically freed when test method ends anyway. }
+    procedure DestroyWindowForTest(var Window: TCastleWindow);
 
     { If you need a TCastleViewport for testing, you can use this one.
       This viewport is automatically cleaned when test method ends. }
@@ -235,14 +254,16 @@ type
       {$ifdef FPC}const AMethodPointer: CodePointer{$else}
       const ARttiMethod: TRttiMethod{$endif}): TCastleTest;
 
-    function IsConsoleMode: Boolean;
-
     { Does the current platform allow to create new TCastleWindow during tests.
-      This applies to calling CreateWindowForTest as well as to explicit
-      "TCastleWindow.Create" calls.
 
-      This is false on mobile.
-      On non-mobile, it is true both in console and non-console mode. }
+      In case you do manually TCastleWindow.Create call,
+      you should also honour this method, do not create TCastleWindow instance
+      when this is @false. Abort the test (without any failure) in this case.
+
+      All test windows should be created using CreateWindowForTest now,
+      and CreateWindowForTest will actually raise exception if this is true.
+
+      This is @false on mobile or when run with --no-window-create . }
     function CanCreateWindowForTest: Boolean;
 
     { Clears test list }
@@ -284,7 +305,7 @@ type
     FTestPassedCount: Integer;
     FTestFailedCount: Integer;
 
-    procedure SetNotifyAssertFail(const ANotifyAssertFail: TNotifyAssertFail);
+    procedure SetNotifyTestFail(const ANotifyTestFail: TNotifyTestFail);
 
     { Scans test case using RTTI }
     procedure ScanTestCase(TestCase: TCastleTestCase);
@@ -300,7 +321,7 @@ type
     { Callbacks to change UI }
     FNotifyTestExecuted: TNotifyTestExecuted;
     FNotifyTestCaseExecuted: TNotifyTestCaseExecuted;
-    FNotifyAssertFail: TNotifyAssertFail;
+    FNotifyTestFail: TNotifyTestFail;
     FNotifyTestCountChanged: TNotifyTestCountChanged;
     FNotifyTestPassedChanged: TNotifyTestCountChanged;
     FNotifyTestFailedChanged: TNotifyTestCountChanged;
@@ -331,9 +352,13 @@ type
 
     function EnabledTestCount: Integer;
 
-    function IsConsoleMode: Boolean;
+    { Stop testing on first fail or run all tests.
 
-    { Stop testing on first fail or run all tests }
+      This also means that unhandled exception is just "let through",
+      which is nice to let FPC print backtrace of exception to console,
+      if outside code will just let unhandled exception to break the program.
+
+      Default @true is suitable for console version. }
     property StopOnFirstFail: Boolean read FStopOnFirstFail
       write FStopOnFirstFail default true;
 
@@ -350,8 +375,8 @@ type
       read FNotifyTestCaseExecuted write FNotifyTestCaseExecuted;
 
     { Callback after test fail }
-    property NotifyAssertFail: TNotifyAssertFail read FNotifyAssertFail
-      write SetNotifyAssertFail;
+    property NotifyTestFail: TNotifyTestFail read FNotifyTestFail
+      write SetNotifyTestFail;
 
     { Callback after test count changed }
     property NotifyTestCountChanged: TNotifyTestCountChanged
@@ -368,15 +393,20 @@ type
     { Callback after enabled test count changed }
     property NotifyEnabledTestCountChanged: TNotifyEvent
       read FNotifyEnabledTestCountChanged write FNotifyEnabledTestCountChanged;
+
+    { Set Enabled of all tests, to reflect whether they match Filter.
+      Filter can use wildcards (* and ?) and is compared with
+      the test GetFullName.
+      See ../../README.md for detailed description and examples. }
+    procedure EnableFilter(const Filter: String);
   end;
 
-  procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
+procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
 
 implementation
 
-{ TCastleTester }
-
-uses CastleLog, TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} CastleUtils;
+uses TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} StrUtils,
+  CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters;
 
 var
   FRegisteredTestCaseList: {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>;
@@ -400,7 +430,7 @@ end;
 procedure TCastleTester.AddTestCase(const TestCase: TCastleTestCase);
 begin
   FTestCaseList.Add(TestCase);
-  TestCase.FNotifyAssertFail := FNotifyAssertFail;
+  TestCase.FNotifyTestFail := FNotifyTestFail;
   TestCase.FCastleTester := Self;
 end;
 
@@ -480,6 +510,8 @@ begin
 end;
 
 procedure TCastleTester.RunTest(Test: TCastleTest);
+var
+  FailMsg: String;
 begin
   // raise Exception.Create('Test Return Adress') at {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
   if not Test.Enabled then
@@ -497,15 +529,45 @@ begin
       Test.TearDown;
     end;
   except
-    on E: EAssertionFailedError do
+    { Notes:
+
+      - We don't treat EAssertionFailedError
+        any differently from other exceptions here.
+
+        (EAssertionFailedError is raised by our Fail
+        and our AssertXxx methods; *not* raised by standard Pascal Assert.)
+
+        Reason: When the test raises (and doesn't catch) any exception
+        (explicitly like "raise ..", or because of check failed
+        e.g. range check error, or because of standard Pascal Assert failed)
+        it should be reported as a failure, just like a failure in our Fail
+        or AssertXxx.
+
+        Trying to differentiate between EAssertionFailedError and others
+        actually caused bugs in display of castle-tester in the past.
+        It seems simpler and more consistent to treat all exceptions the same.
+
+      - We capture all TObject exceptions here, not just Exception,
+        to be sure to really catch everything. Though I know of no real-life
+        cases when something in standard Pascal libraries raises an exception
+        that is not Exception.
+    }
+    on E: TObject do
     begin
+      // call FNotifyTestFail
+      if Assigned(FNotifyTestFail) then
+      begin
+        if E is Exception then
+          FailMsg := Exception(E).Message
+        else
+          FailMsg := ''; // exception class not Exception, no better message
+        FNotifyTestFail(Test.GetFullName, FailMsg);
+      end;
+
+      // handle TestFailedCount
       TestFailedCount := TestFailedCount + 1;
-      if FStopOnFirstFail then
-        raise;
-    end;
-    on E: Exception do
-    begin
-      // TODO: warnning here when we don't stop on first Exception.
+
+      // handle FStopOnFirstFail
       if FStopOnFirstFail then
         raise;
     end;
@@ -529,6 +591,14 @@ begin
 end;
 
 procedure TCastleTester.ScanTestCase(TestCase: TCastleTestCase);
+
+  function TestMethod(const MethodName: String): Boolean;
+  begin
+    Result := IsPrefix('test', MethodName, true) and
+      { Avoid adding internal method TestCount }
+      not SameText(MethodName, 'TestCount');
+  end;
+
 var
   {$ifdef FPC}
   MethodList: TStringList;
@@ -545,7 +615,7 @@ begin
 
     for AMethodName in MethodList do
     begin
-      if (pos('TEST', UpperCase(AMethodName)) = 1) then
+      if TestMethod(AMethodName) then
         TestCase.AddTest(AMethodName, TestCase.MethodAddress(AMethodName));
     end;
 
@@ -559,7 +629,7 @@ begin
   begin
     if (RttiMethod.MethodKind in [mkProcedure, mkFunction]) and
       (Length(RttiMethod.GetParameters) = 0) and
-      (pos('TEST', UpperCase(RttiMethod.Name)) = 1) then
+      TestMethod(RttiMethod.Name) then
     begin
       TestCase.AddTest(RttiMethod.Name, RttiMethod);
     end;
@@ -567,18 +637,18 @@ begin
   {$endif}
 end;
 
-procedure TCastleTester.SetNotifyAssertFail(
-  const ANotifyAssertFail: TNotifyAssertFail);
+procedure TCastleTester.SetNotifyTestFail(
+  const ANotifyTestFail: TNotifyTestFail);
 var
   TestCase: TCastleTestCase;
 begin
-  if @FNotifyAssertFail = @ANotifyAssertFail then
+  if @FNotifyTestFail = @ANotifyTestFail then
     Exit;
 
-  FNotifyAssertFail := ANotifyAssertFail;
+  FNotifyTestFail := ANotifyTestFail;
   for TestCase in FTestCaseList do
   begin
-    TestCase.FNotifyAssertFail := ANotifyAssertFail;
+    TestCase.FNotifyTestFail := ANotifyTestFail;
   end;
 end;
 
@@ -621,9 +691,18 @@ begin
   end;
 end;
 
-function TCastleTester.IsConsoleMode: Boolean;
+procedure TCastleTester.EnableFilter(const Filter: String);
+var
+  TestCase: TCastleTestCase;
+  Test: TCastleTest;
+  I: Integer;
 begin
-  Result := FUIWindow = nil;
+  for TestCase in FTestCaseList do
+    for I := 0 to TestCase.TestCount - 1 do
+    begin
+      Test := TestCase.Test[I];
+      Test.Enabled := IsWild(Test.GetFullName, Filter, true);
+    end;
 end;
 
 { TCastleTestCase }
@@ -774,9 +853,9 @@ begin
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
   try
-    AssertEquals(Expected.ZFarInfinity, Actual.ZFarInfinity);
+    AssertEquals(Expected.FarInfinity, Actual.FarInfinity);
 
-    if Expected.ZFarInfinity then
+    if Expected.FarInfinity then
     begin
       for I := Low(I) to Pred(High(I)) do
         AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], Epsilon);
@@ -1138,29 +1217,35 @@ begin
   FWindowForTest := nil;
 end;
 
-function TCastleTestCase.CreateWindowForTest: TCastleWindow;
-begin
-  FWindowForTest := TCastleWindow.Create(nil);
-  if IsConsoleMode then
-  begin
-    Application.MainWindow := FWindowForTest;
-  end;
-  Result := FWindowForTest;
-end;
-
 destructor TCastleTestCase.Destroy;
 begin
   FreeAndNil(FTestList);
   inherited;
 end;
 
-procedure TCastleTestCase.DestroyWindowForTest;
+function TCastleTestCase.CreateWindowForTest: TCastleWindow;
 begin
+  if FWindowForTest <> nil then
+    raise Exception.Create('CreateWindowForTest called twice without DestroyWindowForTest');
+  if not CanCreateWindowForTest then
+    raise Exception.Create('CreateWindowForTest called when CanCreateWindowForTest = false');
+
+  FWindowForTest := TCastleWindow.Create(nil);
+  SavedApplicationMainWindow := Application.MainWindow;
+  Application.MainWindow := FWindowForTest;
+  Result := FWindowForTest;
+end;
+
+procedure TCastleTestCase.DestroyWindowForTest(var Window: TCastleWindow);
+begin
+  if FWindowForTest = nil then
+    raise Exception.Create('DestroyWindowForTest called without CreateWindowForTest');
+
+  Assert(FWindowForTest = Window);
+  Window := nil;
+
   FreeAndNil(FWindowForTest);
-  if IsConsoleMode then
-  begin
-    Application.MainWindow := nil;
-  end;
+  Application.MainWindow := SavedApplicationMainWindow;
 end;
 
 function TCastleTestCase.EnabledTestCount: Integer;
@@ -1178,9 +1263,6 @@ end;
 
 procedure TCastleTestCase.Fail(const Msg: String; const AddrOfError: Pointer);
 begin
-  if Assigned(FNotifyAssertFail) then
-    FNotifyAssertFail(CurrentTestName, Msg);
-
   if Assigned(AddrOfError) then
     raise EAssertionFailedError.Create(Msg) at AddrOfError
   else
@@ -1217,16 +1299,17 @@ begin
 end;
 }
 
-function TCastleTestCase.IsConsoleMode: Boolean;
-begin
-  Result := FCastleTester.IsConsoleMode;
-end;
-
 function TCastleTestCase.CanCreateWindowForTest: Boolean;
 begin
   Result :=
-    {$if defined(ANDROID) or defined(iPHONESIM) or defined(iOS)} false
-    {$else} true
+    {$if defined(ANDROID) or
+         defined(iPHONESIM) or
+         defined(iOS) or
+         defined(CASTLE_NINTENDO_SWITCH)}
+      // On these platforms, we cannot create a window, so we cannot test
+      false
+    {$else}
+      not ParamNoWindowCreate
     {$endif};
 end;
 
@@ -1361,8 +1444,9 @@ var
   Method: TMethod;
 type
   TCastleTestFunc = procedure() of object;
-
 {$endif}
+var
+  DummyWindowForTest: TCastleWindow;
 begin
   FTestCase.FCurrentTestName := GetFullName;
   try
@@ -1374,9 +1458,13 @@ begin
     FRttiMethod.Invoke(FTestCase, []);
     {$endif}
   finally
-    { Some tests need a new window after running test we check should it be
-      freed }
-    FTestCase.DestroyWindowForTest;
+    { Automatically free window created by CreateWindowForTest. }
+    if FTestCase.FWindowForTest <> nil then
+    begin
+      { Use DummyWindowForTest that will be set to nil by DestroyWindowForTest. }
+      DummyWindowForTest := FTestCase.FWindowForTest;
+      FTestCase.DestroyWindowForTest(DummyWindowForTest);
+    end;
   end;
 end;
 
@@ -1403,8 +1491,6 @@ end;
 
 initialization
   FRegisteredTestCaseList := {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>.Create;
-
 finalization
   FreeAndNil(FRegisteredTestCaseList);
-
 end.

@@ -56,9 +56,8 @@ procedure RunAndroid(const Project: TCastleProject);
 implementation
 
 uses SysUtils, DOM, XMLWrite,
-  // TODO: Should not be needed after https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
-  {$IFDEF UNIX}BaseUnix, {$ENDIF}
-  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleInternalTools,
   ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
   ToolServicesOperations;
 
@@ -208,7 +207,7 @@ var
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileName));
     if not RegularFileExists(AndroidProjectPath + FileName) then
-      SaveImage(Image, FilenameToURISafe(AndroidProjectPath + FileName))
+      SaveImage(Image, FilenameToUriSafe(AndroidProjectPath + FileName))
     else
       WritelnWarning('Android', 'Android package file specified by multiple services: ' + FileName);
   end;
@@ -524,31 +523,9 @@ var
         Args.Add('-Pandroid.injected.signing.key.alias=' + KeyAlias);
         Args.Add('-Pandroid.injected.signing.key.password=' + KeyAliasPassword);
       end;
+
       {$ifdef MSWINDOWS}
-      try
-        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
-      finally
-        { Gradle deamon is automatically initialized since Gradle version 3.0
-          (see https://docs.gradle.org/current/userguide/gradle_daemon.html)
-          but it prevents removing the castle-engine-output/android/project/ .
-          E.g. you cannot run "castle-engine package --os=android --cpu=arm"
-          again in the same directory, because it cannot remove the
-          "castle-engine-output/android/project/" at the beginning.
-
-          It seems the current directory of Java (Gradle) process is inside
-          castle-engine-output/android/project/, and Windows doesn't allow to remove such
-          directory. Doing "rm -Rf castle-engine-output/android/project/" (rm.exe from Cygwin)
-          also fails with
-
-            rm: cannot remove 'castle-engine-output/android/project/': Device or resource busy
-
-          This may be related to
-          https://discuss.gradle.org/t/the-gradle-daemon-prevents-a-clean/2473/13
-
-          The solution for now is to kill the daemon afterwards. }
-        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', ['--stop']);
-      end;
-
+      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
       {$else}
       if RegularFileExists(AndroidProjectPath + 'gradlew') then
       begin

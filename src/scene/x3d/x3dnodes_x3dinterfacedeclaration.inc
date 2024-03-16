@@ -147,15 +147,15 @@
   public
     { Find field or event with given Name.
       @nil if not found. }
-    function TryFindName(const Name: string): TX3DFieldOrEvent;
+    function TryFindName(const Name: String): TX3DFieldOrEvent;
 
     { Find field with given Name.
       @nil if not found. }
-    function TryFindFieldName(const Name: string): TX3DField;
+    function TryFindFieldName(const Name: String): TX3DField;
 
     { Find event with given Name.
       @nil if not found. }
-    function TryFindEventName(const Name: string): TX3DEvent;
+    function TryFindEventName(const Name: String): TX3DEvent;
   end;
 
 {$endif read_interface}
@@ -205,10 +205,10 @@ end;
 procedure TX3DInterfaceDeclaration.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames;
   FieldValue, IsClauseAllowed: boolean);
 var
-  X3DType: string;
+  X3DType: String;
   Access: TX3DAccessType;
   FieldType: TX3DFieldClass;
-  ParsedName: string;
+  ParsedName: String;
 begin
   { clear instance before parsing }
   FieldOrEvent.Free;
@@ -277,10 +277,10 @@ procedure TX3DInterfaceDeclaration.ParseXML(
 var
   Access: TX3DAccessType;
   AccessIndex: Integer;
-  AccessName: string;
-  FieldX3DType: string;
+  AccessName: String;
+  FieldX3DType: String;
   FieldType: TX3DFieldClass;
-  ParsedName, FieldActualValue: string;
+  ParsedName, FieldActualValue: String;
 begin
   { clear instance before parsing }
   FieldOrEvent.Free;
@@ -431,7 +431,7 @@ end;
 procedure TX3DInterfaceDeclaration.IDeclSaveToStream(
   Writer: TX3DWriter; FieldValue: boolean);
 
-  function ATName(const AccessType: TX3DAccessType): string;
+  function ATName(const AccessType: TX3DAccessType): String;
   const
     Names: array
       [ boolean { is it X3D or XML encoding ? },
@@ -444,7 +444,7 @@ procedure TX3DInterfaceDeclaration.IDeclSaveToStream(
   end;
 
 var
-  N: string;
+  N: String;
 begin
   N := FieldOrEvent.NameForVersion(Writer.Version);
 
@@ -588,7 +588,7 @@ end;
 { TX3DInterfaceDeclarationList --------------------------------------------- }
 
 function TX3DInterfaceDeclarationList.TryFindName(
-  const Name: string): TX3DFieldOrEvent;
+  const Name: String): TX3DFieldOrEvent;
 var
   I: Integer;
 begin
@@ -601,7 +601,7 @@ begin
   Result := nil;
 end;
 
-function TX3DInterfaceDeclarationList.TryFindFieldName(const Name: string): TX3DField;
+function TX3DInterfaceDeclarationList.TryFindFieldName(const Name: String): TX3DField;
 var
   I: Integer;
 begin
@@ -615,7 +615,7 @@ begin
   Result := nil;
 end;
 
-function TX3DInterfaceDeclarationList.TryFindEventName(const Name: string): TX3DEvent;
+function TX3DInterfaceDeclarationList.TryFindEventName(const Name: String): TX3DEvent;
 var
   I: Integer;
 begin

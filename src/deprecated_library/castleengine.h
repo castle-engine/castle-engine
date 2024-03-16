@@ -230,6 +230,53 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
   kcge_Period      = 190,
 };
 
+enum ECgeMouseButton
+{
+  ecgemouseButtonNone   = 0,  
+  ecgemouseButtonLeft   = 1,  
+  ecgemouseButtonMiddle = 2,  
+  ecgemouseButtonRight  = 3,  
+  ecgemouseButtonExtra1 = 4,  
+  ecgemouseButtonExtra2 = 5,  
+};
+
+enum ECgeMouseWheelDirection
+{
+  ecgemouseWheelNone    = 0,  
+  ecgemouseWheelUp      = 1,  
+  ecgemouseWheelDown    = 2,  
+  ecgemouseWheelLeft    = 3,  
+  ecgemouseWheelRight   = 4,  
+};
+
+enum ECgeNavigationInput
+{
+  // common for all navigation types
+  ecgeinputZoomIn       = 1,
+  ecgeinputZoomOut      = 2,
+  // for walk navigation
+  ecgeinputForward      = 11,
+  ecgeinputBackward     = 12,
+  ecgeinputLeftRotate   = 13,
+  ecgeinputRightRotate  = 14,
+  ecgeinputLeftStrafe   = 15,
+  ecgeinputRightStrafe  = 16,
+  ecgeinputUpRotate     = 17,
+  ecgeinputDownRotate   = 18,
+  ecgeinputIncreasePreferredHeight = 19,
+  ecgeinputDecreasePreferredHeight = 20,
+  ecgeinputGravityUp    = 21,
+  ecgeinputRun          = 22,
+  ecgeinputMoveSpeedInc = 23,
+  ecgeinputMoveSpeedDec = 24,
+  ecgeinputJump         = 25,
+  ecgeinputCrouch       = 26,
+  // for examine navigation
+  ecgeinputExRotate     = 31,
+  ecgeinputExMove       = 32,
+  ecgeinputExZoom       = 33,
+};
+
 typedef int (CDECL *TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
 
 
@@ -274,6 +321,11 @@ extern void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float
                               float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
 extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ,
                                  float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ, bool bAnimated);
+
+extern void CGE_SetNavigationInputShortcut(int /*ECgeNavigationInput*/ eInput,
+                              int /*ECgeKey*/ eKey1, int /*ECgeKey*/ eKey2 /* = kcge_None */,
+                              int /*ECgeMouseButton*/ eMouseButton /* = ecgemouseButtonNone */,
+                              int /*ECgeMouseWheelDirection*/ eMouseWheel /* = ecgemouseWheelNone */); // set input controls for camera; parameters correspond to TInputShortcut.Assign
 
 extern int CGE_GetNavigationType(void);
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);

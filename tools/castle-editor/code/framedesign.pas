@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,7 +17,7 @@
   a xxx.castle-user-interface, xxx.castle-transform, xxx.castle-component file. }
 unit FrameDesign;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 interface
 
@@ -698,7 +698,7 @@ uses
   { CGE units }
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
-  CastleURIUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
+  CastleUriUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
   CastleInternalUrlUtils,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
@@ -726,7 +726,7 @@ const
 function ParentRenderRect(const UI: TCastleUserInterface): TFloatRectangle;
 begin
   if UI.Parent = nil then
-    Result := FloatRectangle(UI.Container.Rect)
+    Result := FloatRectangle(UI.Container.PixelsRect)
   else
     Result := UI.Parent.RenderRect;
 end;
@@ -1473,9 +1473,9 @@ procedure TDesignFrame.TDesignerLayer.Render;
       Rect.Anchor(hpLeft, Max(0, UIRect.Left));
       Rect.Anchor(vpBottom, UIRect.Top);
 
-      if Rect.RenderRect.Top > Rect.Container.Height then
+      if Rect.RenderRect.Top > Rect.Container.PixelsHeight then
         // put Rect inside UI, otherwise it would be offscreen
-        Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
+        Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.PixelsHeight, UIRect.Top));
     end else
       Rect.Exists := false;
   end;
@@ -1647,7 +1647,7 @@ begin
   VisualizeTransformSelected.OnParentModified := @GizmoHasModifiedParent;
   VisualizeTransformSelected.OnGizmoStopDrag := @GizmoStopDrag;
 
-  SaveDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+  SaveDesignDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
 
   TabInfo.TabVisible := false;
 
@@ -2028,7 +2028,7 @@ begin
   NewDesignOwner := TComponent.Create(Self);
 
   try
-    Mime := URIMimeType(NewDesignUrl);
+    Mime := UriMimeType(NewDesignUrl);
     if Mime = 'text/x-castle-user-interface' then
       NewDesignRoot := UserInterfaceLoad(NewDesignUrl, NewDesignOwner)
     else
@@ -2045,7 +2045,7 @@ begin
       that has TCastleTransform inside. UserInterfaceLoad makes EInvalidCast. }
     on E: Exception do
     begin
-      E.Message := 'Error when loading ' + URIDisplay(NewDesignUrl) + ': ' + E.Message;
+      E.Message := 'Error when loading ' + UriDisplay(NewDesignUrl) + ': ' + E.Message;
       raise;
     end;
   end;
@@ -2063,7 +2063,7 @@ var
 begin
   // calculate DesignName
   if DesignUrl <> '' then
-    DesignName := ExtractURIName(DesignUrl)
+    DesignName := ExtractUriName(DesignUrl)
   else
   if DesignRoot is TCastleTransform then
     DesignName := 'New Transform'
@@ -3069,7 +3069,7 @@ procedure TDesignFrame.CastleControlOpen(Sender: TObject);
     SettingsUrl: String;
   begin
     SettingsUrl := 'castle-data:/CastleSettings.xml';
-    if URIFileExists(SettingsUrl) then
+    if UriFileExists(SettingsUrl) then
     try
       CastleControl.Container.LoadSettings(SettingsUrl);
     except
@@ -3439,7 +3439,7 @@ begin
   if SourceShellList.Selected <> nil then
   begin
     SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
-    SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+    SelectedUrl := MaybeUseDataProtocol(FilenameToUriSafe(SelectedFileName));
 
     if LoadImage_FileFilters.Matches(SelectedUrl) then
     begin
@@ -3471,7 +3471,7 @@ begin
   if SourceShellList.Selected <> nil then
   begin
     SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
-    SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+    SelectedUrl := MaybeUseDataProtocol(FilenameToUriSafe(SelectedFileName));
     Result := AddComponentFromUrl(SelectedUrl, ParentComponent);
   end;
 end;
@@ -3560,7 +3560,7 @@ begin
     e.g. project top-level instead of "data".
     This is likely a mistake, and want to communicate to user why. }
   if (Result <> nil) and
-     (URIProtocol(AddUrl) = 'file') then
+     (UriProtocol(AddUrl) = 'file') then
     WarningBox(Format('Added component has URL pointing to a local filename: "%s".' + NL +
       NL +
       'This will likely not work when you open the project on another computer.' + NL +
@@ -3594,7 +3594,7 @@ begin
 
   if ParentComponent = nil then
     raise Exception.CreateFmt('Cannot add imported component "%s".' + NL + NL + 'First select a valid parent in the design, usually a TCastleViewport or TCastleTransform.', [
-      URIDisplay(AddUrl)
+      UriDisplay(AddUrl)
     ]);
 
   Result := AddComponentFromUrl(AddUrl, ParentComponent);
@@ -3700,13 +3700,18 @@ begin
       { Hide editing transformation of TCastleAbstractRootTransform,
         as it makes very unintuitive behavior because desing-time camera is also
         a child of it, so e.g. moving Viewport.Items seems to do nothing
-        (TODO: but it breaks you mouse look works -- it should not). }
+        (TODO: but it breaks how mouse look works -- it should not;
+        but still we'd hide these properties anyway, even once we fix mouse look
+        in this case). }
       if (Instance is TCastleAbstractRootTransform) and
          ( (PropertyName = 'CenterPersistent') or
            (PropertyName = 'ScaleOrientationPersistent') or
            (PropertyName = 'RotationPersistent') or
            (PropertyName = 'ScalePersistent') or
-           (PropertyName = 'TranslationPersistent') ) then
+           (PropertyName = 'TranslationPersistent') or
+           (PropertyName = 'DirectionPersistent') or
+           (PropertyName = 'UpPersistent')
+         ) then
         Exit;
 
       if FilterBySection and (Instance is TCastleComponent) then
@@ -5260,6 +5265,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
         Exit(true);
       PotentialChildNode := PotentialChildNode.Parent;
     end;
+
+    Result := false;
   end;
 
   procedure MoveUserInterface(const Src, Dst: TCastleUserInterface);
@@ -5299,7 +5306,9 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             MoveOnlyTreeNodes(Src, Dst);
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+      {$endif}
     end;
     ValidateHierarchy;
   end;
@@ -5350,7 +5359,9 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             MoveOnlyTreeNodes(Src, Dst);
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+      {$endif}
     end;
     ValidateHierarchy;
   end;
@@ -5637,6 +5648,7 @@ begin
            (Node.Data <> nil) then
           DrawTreeNodeClassName(TObject(Node.Data).ClassName);
       end;
+    else ; // nothing to do otherwise
   end;
 end;
 

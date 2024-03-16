@@ -30,7 +30,7 @@ function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 implementation
 
 uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
-  CastleClassUtils, CastleDownload, CastleURIUtils, CastleLog,
+  CastleClassUtils, CastleDownload, CastleUriUtils, CastleLog,
   CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages, CastleVideos, CastleTimeUtils, CastleTransform,
   CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors,
@@ -114,7 +114,7 @@ type
     to load URI using our CastleDownload, thus supporting all our URLs. }
   TMyGltfDocument = class(TPasGLTF.TDocument)
   strict private
-    function CastleGetUri(const aURI: TPasGLTFUTF8String): TStream;
+    function CastleGetUri(const aUri: TPasGLTFUTF8String): TStream;
   public
     constructor Create(const Stream: TStream; const BaseUrl: String); reintroduce;
   end;
@@ -126,17 +126,17 @@ begin
   { The interpretation of RootPath lies on our side, in GetUri implementation.
     Just use it to store BaseUrl then. }
   RootPath := BaseUrl;
-  GetURI := {$ifdef FPC}@{$endif}CastleGetUri;
+  GetUri := {$ifdef FPC}@{$endif}CastleGetUri;
 
   LoadFromStream(Stream);
 end;
 
-function TMyGltfDocument.CastleGetUri(const aURI: TPasGLTFUTF8String): TStream;
+function TMyGltfDocument.CastleGetUri(const aUri: TPasGLTFUTF8String): TStream;
 begin
   { Resolve and open URI using our CGE functions.
-    Without this, TPasGLTF.TDocument.DefaultGetURI would always use TFileStream.Create,
+    Without this, TPasGLTF.TDocument.DefaultGetUri would always use TFileStream.Create,
     and not work e.g. with Android assets. }
-  Result := Download(CombineURI(RootPath, aURI));
+  Result := Download(CombineUri(RootPath, aUri));
 end;
 
 { TGltfAppearanceNode -------------------------------------------------------- }
@@ -1191,19 +1191,19 @@ var
         if Between(GltfTexture.Source, 0, Document.Images.Count - 1) then
         begin
           GltfImage := Document.Images[GltfTexture.Source];
-          if GltfImage.URI <> '' then
+          if GltfImage.Uri <> '' then
           begin
-            if FfmpegVideoMimeType(URIMimeType(GltfImage.URI), false) then
+            if FfmpegVideoMimeType(UriMimeType(GltfImage.Uri), false) then
             begin
               Texture := TMovieTextureNode.Create('', BaseUrl);
-              TMovieTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.URI)]);
+              TMovieTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.Uri)]);
               if CastleX3dExtensions then
                 TMovieTextureNode(Texture).FlipVertically := true;
               TMovieTextureNode(Texture).Loop := true;
             end else
             begin
               Texture := TImageTextureNode.Create('', BaseUrl);
-              TImageTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.URI)]);
+              TImageTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.Uri)]);
 
               { glTF specification defines (0,0) texture coord to be
                 at top-left corner, while X3D and OpenGL and OpenGLES expect it be
@@ -1538,7 +1538,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.Items.L[0], SizeOf(LongInt) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(Int32) * Len);
     end;
   end;
 

@@ -23,7 +23,7 @@ uses SysUtils, Classes, Math,
   CastleWindow, CastleImages, CastleGLUtils, CastleLog, CastleRenderOptions,
   CastleUtils, CastleMessages, CastleCurves, CastleVectors, CastleFonts,
   CastleKeysMouse, CastleParameters, CastleClassUtils, CastleRectangles,
-  CastleFilesUtils, CastleStringUtils, CastleColors, CastleURIUtils,
+  CastleFilesUtils, CastleStringUtils, CastleColors, CastleUriUtils,
   CastleUIControls, CastleControls, CastleGLImages, CastleOpenDocument,
   CastleApplicationProperties, CastleRenderContext;
 
@@ -55,7 +55,7 @@ var
   { Just an indication of from what URL we loaded these Curves /
     where we saved them last time / etc.
     Set only using SetCurvesURL. }
-  CurvesURL: string;
+  CurvesUrl: String;
 
   ColorConvexHull: TCastleColor;
   ColorCurveSelected: TCastleColor;
@@ -63,14 +63,14 @@ var
   ColorPointSelected: TCastleColor;
 
   BackgroundImage: TDrawableImage;
-  BackgroundImageURL: string;
+  BackgroundImageUrl: String;
 
   SceneZoom: Single = 1;
   SceneMove: TVector2;
 
 const
-  CurvesToolURL = 'https://castle-engine.io/curves_tool';
-  DonateURL = 'https://castle-engine.io/donate.php';
+  CurvesToolUrl = 'https://castle-engine.io/curves_tool';
+  DonateUrl = 'https://castle-engine.io/donate.php';
 
   PointSize = 10;
 
@@ -95,9 +95,9 @@ begin
   SelectedChanged;
 end;
 
-procedure SetCurvesURL(const Value: string);
+procedure SetCurvesUrl(const Value: String);
 begin
-  CurvesURL := Value;
+  CurvesUrl := Value;
   Window.Caption := Value + ' - Curves plotting';
 end;
 
@@ -111,20 +111,20 @@ const
   SErrSelectCurve = 'You must select some curve.';
   SErrSelectPiecewiseCubicBezierCurve = 'You must select a Piecewise Cubic Bezier curve.';
 
-procedure LoadCurves(const NewURL: string);
+procedure LoadCurves(const NewUrl: String);
 var
-  ErrMessage: string;
+  ErrMessage: String;
   NewCurves: TCurveList;
   I: Integer;
 begin
   NewCurves := nil;
   try
     NewCurves := TCurveList.Create(false);
-    NewCurves.LoadFromFile(NewURL);
+    NewCurves.LoadFromFile(NewUrl);
   except
     on E: Exception do
     begin
-      ErrMessage := 'Error while loading file "' + NewURL + '" : ' + E.Message;
+      ErrMessage := 'Error while loading file "' + NewUrl + '" : ' + E.Message;
       if Window.Closed then
         WritelnWarning('Loading', ErrMessage) else
         MessageOK(Window, ErrMessage);
@@ -143,7 +143,7 @@ begin
   FreeAndNil(NewCurves);
 
   { select stuff after Curves is updated }
-  SetCurvesURL(NewURL);
+  SetCurvesUrl(NewUrl);
   if Curves.Count <> 0 then { select first curve, if available }
     SetSelectedCurve(0) else
     SetSelectedCurve(-1);
@@ -161,7 +161,7 @@ type
 
 procedure TStatusText.Update(const SecondsPassed: Single; var HandleInput: boolean);
 
-  function IntToStrOrNone(i: Integer): string;
+  function IntToStrOrNone(i: Integer): String;
   begin
     if i <> -1 then Result := IntToStr(i) else Result := 'none';
   end;
@@ -543,9 +543,9 @@ procedure MenuClick(Container: TCastleContainer; MenuItem: TMenuItem);
 
   procedure OpenFile;
   var
-    S: string;
+    S: String;
   begin
-    S := CurvesURL;
+    S := CurvesUrl;
     if Window.FileDialog('Open curves from XML file', S, true,
       'All Files|*|*XML files|*.xml') then
       LoadCurves(S);
@@ -553,11 +553,11 @@ procedure MenuClick(Container: TCastleContainer; MenuItem: TMenuItem);
 
   procedure SaveFile;
   var
-    S: string;
+    S: String;
     NewCurves: TCurveList;
     I: Integer;
   begin
-    s := CurvesURL;
+    s := CurvesUrl;
     if Window.FileDialog('Save curves to XML file', s, false,
       'All Files|*|*XML files|*.xml') then
     begin
@@ -568,7 +568,7 @@ procedure MenuClick(Container: TCastleContainer; MenuItem: TMenuItem);
         NewCurves.SaveToFile(S);
       finally FreeAndNil(NewCurves) end;
 
-      SetCurvesURL(S);
+      SetCurvesUrl(S);
     end;
   end;
 
@@ -591,7 +591,7 @@ procedure MenuClick(Container: TCastleContainer; MenuItem: TMenuItem);
   end;
 
 var
-  S: string;
+  S: String;
 begin
   case MenuItem.IntData of
     4:  OpenFile;
@@ -600,13 +600,13 @@ begin
     10: Window.Close;
 
     201: begin
-           S := BackgroundImageURL;
+           S := BackgroundImageUrl;
            if Window.FileDialog('Open background image', S, true,
              LoadImage_FileFilters) then
            begin
-             BackgroundImageURL := S;
+             BackgroundImageUrl := S;
              FreeAndNil(BackgroundImage);
-             BackgroundImage := TDrawableImage.Create(BackgroundImageURL);
+             BackgroundImage := TDrawableImage.Create(BackgroundImageUrl);
            end;
          end;
     202: FreeAndNil(BackgroundImage);
@@ -641,16 +641,16 @@ begin
     408: DeleteSelectedPoint;
     409: DeleteSelectedCurve;
 
-    1010:if not OpenURL(CurvesToolURL) then
-           Window.MessageOk(SCannotOpenURL, mtError);
-    1020:if not OpenURL(DonateURL) then
-           Window.MessageOk(SCannotOpenURL, mtError);
+    1010:if not OpenUrl(CurvesToolUrl) then
+           Window.MessageOk(SCannotOpenUrl, mtError);
+    1020:if not OpenUrl(DonateUrl) then
+           Window.MessageOk(SCannotOpenUrl, mtError);
     1030:begin
            MessageOk(Window,
              'castle-curves: curves editor for Castle Game Engine.' +nl+
              'Version ' + ApplicationProperties.Version + '.' + NL +
              NL +
-             CurvesToolURL + NL +
+             CurvesToolUrl + NL +
              NL +
              'Compiled with ' + SCompilerDescription + '.' + NL +
              'Platform: ' + SPlatformDescription + '.');
@@ -736,7 +736,7 @@ const
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of
     0:begin
@@ -775,8 +775,8 @@ begin
 
   if URIFileExists('castle-data:/grid.png') then
   begin
-    BackgroundImageURL := 'castle-data:/grid.png';
-    BackgroundImage := TDrawableImage.Create(BackgroundImageURL);
+    BackgroundImageUrl := 'castle-data:/grid.png';
+    BackgroundImage := TDrawableImage.Create(BackgroundImageUrl);
   end;
 
   Curves := TControlPointsCurveList.Create(true);
@@ -791,10 +791,10 @@ begin
 
   Window.Controls.InsertBack(TCurvesDisplay.Create(Window));
 
-  { SetCurvesURL also initializes Window.Caption }
+  { SetCurvesUrl also initializes Window.Caption }
   if Parameters.High = 1 then
     LoadCurves(Parameters[1]) else
-    SetCurvesURL('my_curves.xml');
+    SetCurvesUrl('my_curves.xml');
 
   Window.OnPress := @Press;
   Window.OnRelease := @Release;

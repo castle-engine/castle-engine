@@ -210,7 +210,7 @@ begin
     on E: TObject do
     begin
       Success := false;
-      ErrorMessage := Format('Exception when downloading "%s": ', [URIDisplay(Url)]) + ExceptMessage(E);
+      ErrorMessage := Format('Exception when downloading "%s": ', [UriDisplay(Url)]) + ExceptMessage(E);
     end;
   end;
 end;
@@ -295,12 +295,12 @@ procedure TIndyReader.Start;
 
     // set initial values, thread may update them later
     Thread.FinalUrl := Url; // will be updated on each redirect
-    Thread.MimeType := URIMimeType(Url); // will be updated from HTTP headers
+    Thread.MimeType := UriMimeType(Url); // will be updated from HTTP headers
   end;
 
 begin
   inherited;
-  WritelnLog('Network', 'Downloading "%s"', [URIDisplay(Url)]);
+  WritelnLog('Network', 'Downloading "%s"', [UriDisplay(Url)]);
   SynchronizationCS := TCriticalSection.Create;
   Thread := TIndyReaderThread.Create;
   InitializeThread(Thread);
@@ -318,7 +318,7 @@ begin
       testcase: examples/network/remote_logging/ . }
     if not Thread.Finished then
     begin
-      WritelnLog('Network', 'Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
+      WritelnLog('Network', 'Interrupting download in-progress of "%s"', [UriDisplay(Url)]);
       Thread.WaitFor;
     end;
     FreeAndNil(Thread);

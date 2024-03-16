@@ -330,22 +330,36 @@ begin
 end;
 
 initialization
-  { Below needs to be done for OpenAL to work.
+  { SetExceptionMask needs to be done for
 
-    Note that the GL unit in FPC already does this,
-    but it is still important for applications that don't use OpenGL
-    (but use OpenAL), like
+    - OpenAL
+
+      Testcase are applications that use OpenAL but not OpenGL:
       examples/audio/simplest_play_sound/
       examples/audio/audio_player/
 
-    Otherwise simplest_play_sound on Linux/x86_64 always exits with
-    An unhandled exception occurred at $00007FC4771DF69B:
-    EInvalidOp: Invalid floating point operation
-      $00007FC4771DF69B
+      Otherwse simplest_play_sound on Linux/x86_64 always exits with:
+      An unhandled exception occurred at $00007FC4771DF69B:
+      EInvalidOp: Invalid floating point operation
+        $00007FC4771DF69B
+
+    - OpenGL
+
+      OpenGL implementations are known to cause floating-point exceptions
+      that just have to be ignored.
+      Though the GL unit in FPC already do this,
+      and dglOpenGL already does this.
+
+    - CastleScript (tested by autotests).
+
+    Confirmed by tests to be needed when
+    - defined(CPUI386)
+    - or defined(CPUX86_64)
+    - or defined(CPUAARCH64)
+    Actually FPC Math now defines SetExceptionMask for all platforms,
+    so we just use it always.
   }
-  {$if defined(cpui386) or defined(cpux86_64)}
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
-  {$endif}
 
   {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
   OpenALInitialization;

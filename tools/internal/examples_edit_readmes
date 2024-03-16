@@ -1,0 +1,22 @@
+#!/bin/bash
+set -eu
+
+# ----------------------------------------------------------------------------
+# Batch edit the README files of examples.
+#
+# Before running, edit the examples_edit_readmes_helper to determine
+# what is actually changed to what in README files of examples.
+# There are various examples.
+# ----------------------------------------------------------------------------
+
+FIND='find'
+if which cygpath.exe > /dev/null; then
+  FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
+fi
+
+"${FIND}" \
+  "${CASTLE_ENGINE_PATH}/examples/" \
+  '(' -iname CastleEngineManifest.xml ')' -and \
+  '(' -not -iwholename '*/delphi/*' ')' -and \
+  '(' -execdir "${CASTLE_ENGINE_PATH}/tools/internal/examples_edit_readmes_helper" ';' ')'
+

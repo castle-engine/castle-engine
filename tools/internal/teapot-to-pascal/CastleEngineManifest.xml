@@ -5,6 +5,9 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="teapot-to-pascal" standalone_source="teapot-to-pascal.lpr">
+<project name="teapot-to-pascal"
+  standalone_source="teapot-to-pascal.lpr"
+  qualified_name="io.castleengine.teapot.to.pascal"
+>
   <data exists="false" />
 </project>

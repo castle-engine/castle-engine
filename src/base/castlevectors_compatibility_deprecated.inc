@@ -89,8 +89,6 @@ type
   TMatrix3SingleList = TMatrix3List deprecated;
   TMatrix4SingleList = TMatrix4List deprecated;
 
-  TVector3LongInt = TVector3Integer deprecated;
-
   PVector2Single = PVector2 deprecated;
   PVector3Single = PVector3 deprecated;
   PVector4Single = PVector4 deprecated;
@@ -98,8 +96,6 @@ type
   PMatrix2Single = PMatrix2 deprecated;
   PMatrix3Single = PMatrix3 deprecated;
   PMatrix4Single = PMatrix4 deprecated;
-
-  PVector3LongInt = PVector3Integer deprecated;
 
 { Construct an initialized TVector2 value. }
 function Vector2Single(const X, Y: Single): TVector2; overload; deprecated 'use Vector2';

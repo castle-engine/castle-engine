@@ -36,7 +36,7 @@ uses SysUtils, Classes, Math, StrUtils, Generics.Collections,
   CastleInternalOpenAL, CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
-  CastleInternalALUtils, CastleInternalEFX, CastleLog, CastleUtils, CastleURIUtils;
+  CastleInternalALUtils, CastleInternalEFX, CastleLog, CastleUtils, CastleUriUtils;
 
 { sound backend classes interface -------------------------------------------- }
 
@@ -223,7 +223,7 @@ begin
     TStreamedSoundFile inside Buffer.ReadStreamConfigFromTemp
     in some situations).
   }
-  StreamedFile := TStreamedSoundFile.Create(Buffer.URL);
+  StreamedFile := TStreamedSoundFile.Create(Buffer.Url);
   Buffer.ReadStreamConfig(StreamedFile);
 
   alCreateBuffers(StreamBuffersCount, @ALBuffers[Low(ALBuffers)]);
@@ -475,7 +475,7 @@ begin
   if FSpatial and
      (FBuffer.DataFormat in [sfStereo8, sfStereo16]) then
     WritelnWarning('Stereo sound files are *never* played as spatial by OpenAL. Convert sound file "%s" to mono (e.g. by Audacity or SOX).', [
-      URIDisplay(FBuffer.URL)
+      UriDisplay(FBuffer.Url)
     ]);
 
   if FBuffer is TOpenALStreamBufferBackend then
@@ -688,8 +688,8 @@ begin
         on E: ESoundFileError do
         begin
           WritelnWarning('Sound', Format('Sound file "%s" cannot be loaded (with streaming): %s', [
-            // Do not use FBuffer.URL, as TOpenALStreaming.Destroy set FBuffer to nil
-            URIDisplay(StreamBuffer.URL),
+            // Do not use FBuffer.Url, as TOpenALStreaming.Destroy set FBuffer to nil
+            UriDisplay(StreamBuffer.Url),
             E.Message
           ]));
 

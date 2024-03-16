@@ -26,7 +26,7 @@
     forced by user (using window manager, not F11) really cleanly.
 }
 
-{$ifdef OpenGLES}
+{$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_glx.inc}
@@ -130,7 +130,7 @@ private
   { Used by SetCursor, each item may be nil if not initialized. }
   Cursors: array [TMouseCursor] of PGdkCursor;
 
-  FXDisplayName: string;
+  FXDisplayName: String;
 
   InitializeXDisplayDone: boolean;
 
@@ -161,7 +161,7 @@ public
 
     Note that this is exposed by GTK even for non-XWindows platforms,
     but I don't know what it does there. }
-  property XDisplayName: string read FXDisplayName write FXDisplayName;
+  property XDisplayName: String read FXDisplayName write FXDisplayName;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -438,7 +438,7 @@ function signal_key_press_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
 var
   Key: TKey;
-  KeyString: string;
+  KeyString: String;
 SIGNAL_WINDOW_BEGIN
   case Event^.KeyVal of
     GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, true);
@@ -761,7 +761,7 @@ begin
   end;
 end;
 
-procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then
@@ -845,12 +845,12 @@ const
         NewDpi := gdk_screen_width() / (ScreenWidthMM / 25.4);
     end;
     Container.Dpi := NewDpi;
-    // Too verbose by default, UpdateUIScale will show it if UIScaling is usDpiScale.
+    // Too verbose by default, TCastleContainer.InternalCalculateUIScale will log it if UIScaling is usDpiScale.
     // WritelnLog('GTK', 'Dots (pixels) per inch is %f (%f * default %f)',
     //   [NewDpi, NewDpi / DefaultDpi, DefaultDpi]);
   end;
 
-{$ifndef OpenGLES}
+{$ifndef USE_EGL}
 var
   GdkVisual: PGdkVisual;
   GdkColormap: PGdkColormap;
@@ -870,10 +870,10 @@ begin
   gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
   gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
 
+  {$ifndef USE_EGL}
   { Create XVisual }
-  ContextCreateBegin;
+  ContextCreateEarly;
 
-  {$ifndef OpenGLES}
   { Create GdkColormap using XVisual }
   GdkVisual := gdk_x11_screen_lookup_visual(Application.XScreenGdk, XVisual^.VisualId);
   GdkColormap := gdk_colormap_new(GdkVisual, gfalse);
@@ -887,17 +887,18 @@ begin
   // Cleanup after gtk_widget_push_colormap called above
   gtk_widget_pop_colormap();
 
-  {$ifndef OpenGLES}
-  { We should pass WindowXID to be correct.
-    But:
-    - it is not ready yet (widget is not realized, and calling WindowXID
-      would just cause warning
-      "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
-    - it is actually not used by castlewindow_glx.inc now.
+  {$ifndef USE_EGL}
+  { Note that we don't have, and also don't need, WindowXID now.
 
-    So, as a quick solution, we pass 0.
+    That's because widget is not realized, and calling WindowXID
+    would just cause warning
+    "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
+
+    Luckily, TGLContextGlx doesn't require WindowXID.
+    And not defined USE_EGL -> implies we use TGLContextGlx now,
+    as GTK backend supports only glX or EGL.
   }
-  ContextCreateEnd({ WindowXID } 0);
+  ContextCreate;
   {$endif}
 
   gtk_widget_show(GTK_WIDGET(GLAreaGtk));
@@ -1032,12 +1033,14 @@ begin
     gtk_widget_realize(GTK_WIDGET(GLAreaGtk));
   end;
 
-  {$ifdef OpenGLES}
-  { In case of EGL (OpenGLES) we really need WindowXID.
+  {$ifdef USE_EGL}
+  { In case of EGL we really need WindowXID.
     So we cannot use previous workaround, instead we wait for a good time
     to get WindowXID, when widget is realized.
     TODO: Should we just do it with glX version too? }
-  ContextCreateEnd(WindowXID);
+  { TODO: WindowXID is only with X, so for now CASTLE_WINDOW_GTK_2
+    cannot work with non-Unix (like Windows). }
+  ContextCreate(WindowXID);
   {$endif}
 
   { From this point I require that WindowGtk is realized (has associated
@@ -1083,6 +1086,8 @@ begin
     if Visible then
       gtk_widget_hide(GTK_WIDGET(WindowGtk));
 
+    ContextDestroy;
+
     { Doing here
         gtk_widget_unref(GTK_WIDGET(WindowGtk));
       instead of gtk_widget_destroy causes
@@ -1100,6 +1105,10 @@ begin
       toplevel windows and do some other needed by GTK+ things). }
     gtk_widget_destroy(GTK_WIDGET(WindowGtk));
     WindowGtk := nil;
+
+    {$ifndef USE_EGL}
+    ContextDestroyLate;
+    {$endif}
   end;
 end;
 
@@ -1239,7 +1248,7 @@ begin
          (gtk_micro_version >= Micro) ));
 end;
 
-function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindow.BackendFileDialog(const Title: String; var FileName: String;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
 { FileChooser is available only in GTK >= 2.4.
@@ -1280,7 +1289,7 @@ var
   OkButtonText: PChar;
   Dialog: PGtkFileChooserDialog;
   CFileName: PChar;
-  ExpandedFileName, Dir: string;
+  ExpandedFileName, Dir: String;
 begin
   if OpenDialog then
   begin
@@ -1447,10 +1456,10 @@ const
     Ord(GTK_MESSAGE_ERROR),
     { GTK_MESSAGE_OTHER, missing from FPC bindings } 4 );
 
-procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindow.MessageOK(const S: String; const MessageType: TWindowMessageType);
 var
   Dialog: PGtkMessageDialog;
-  SNew: string;
+  SNew: String;
 begin
   SNew := SUnformattable(S); // gtk_message_dialog_new formats argument using printf, prevent it
   Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk, 0,
@@ -1460,10 +1469,10 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-function TCastleWindow.MessageYesNo(const S: string; const MessageType: TWindowMessageType): boolean;
+function TCastleWindow.MessageYesNo(const S: String; const MessageType: TWindowMessageType): boolean;
 var
   Dialog: PGtkMessageDialog;
-  SNew: string;
+  SNew: String;
 begin
   SNew := SUnformattable(S); // gtk_message_dialog_new formats argument using printf, prevent it
   Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk, 0,
@@ -1488,6 +1497,10 @@ begin
   end;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TGTKClipboard ----------------------------------------------------------- }
 
 { TODO: Shouldn't we convert here UTF8<->system, like in LCL backend?
@@ -1505,11 +1518,11 @@ end;
 type
   TGTKClipboard = class(TCastleClipboard)
   protected
-    function GetAsText: string; override;
-    procedure SetAsText(const Value: string); override;
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
   end;
 
-function TGTKClipboard.GetAsText: string;
+function TGTKClipboard.GetAsText: String;
 var
   C: PGtkClipboard;
 begin
@@ -1517,7 +1530,7 @@ begin
   Result := gtk_clipboard_wait_for_text(C);
 end;
 
-procedure TGTKClipboard.SetAsText(const Value: string);
+procedure TGTKClipboard.SetAsText(const Value: String);
 var
   C: PGtkClipboard;
 begin
@@ -1685,20 +1698,17 @@ begin
     DoLimitFPS;
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
- if gtk_main_level() > 0 then gtk_main_quit();
+  { TODO: This implementation (doing gtk_main_quit)
+    is now likely unnecessary.
 
- { Tracking "Terminated" is needed, gtk_main_quit is not enough --- see
-   comments in ProcessMessage implementation.
+    We call gtk_main_quit only to exit from gtk_main --- but we do not use
+    gtk_main anymore to implement our loop.
+    We implement loop simply by calling ProcessMessage. }
 
-   Actually, we call gtk_main_quit
-   only to exit from gtk_main --- if we would not use gtk_main
-   (but e.g. implement Loop simply by calling ProcessMessage,
-   which is entirely possible), then calling gtk_main_quit
-   would not be needed at all. }
-
- Terminate; // set Terminated := true
+  if gtk_main_level() > 0 then
+    gtk_main_quit();
 end;
 
 procedure TCastleApplication.CreateBackend;
@@ -1760,7 +1770,7 @@ begin
   Result := 0;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'GTK+';
 end;

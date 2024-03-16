@@ -339,6 +339,9 @@ examples:
 # - build tool is already build, in $(BUILD_TOOL)
 # - doesn't deal with template tests
 # - only searches examples/ subdir
+#
+# TODO: We don't automatically build examples/delphi/cpp_builder,
+# our build tool doesn't support C++ Builder compilation now.
 .PHONY: examples-delphi
 examples-delphi:
 	"$(FIND)" ./examples/ \
@@ -349,6 +352,7 @@ examples-delphi:
 	  '(' -path ./examples/deprecated_random_generator -prune ')' -o \
 	  '(' -path ./examples/deprecated_library -prune ')' -o \
 	  '(' -path ./examples/lazarus -prune ')' -o \
+	  '(' -path ./examples/delphi/cpp_builder -prune ')' -o \
 	  '(' -iname CastleEngineManifest.xml -print ')' > \
 	  /tmp/cge-delphi-projects.txt
 	echo 'Found projects: '`wc -l < /tmp/cge-delphi-projects.txt`
@@ -423,6 +427,7 @@ clean: cleanexamples
 			   -iname '*.dbg' -or \
 	                   -iname '*.dcu' -or \
 			   -iname '*.dpu' -or \
+			   -iname '*.bpi' -or \
 			   -iname '*.dproj.local' -or \
 			   -iname '*.identcache' -or \
 			   -iname '*.rsm' -or \
@@ -495,29 +500,29 @@ cleanall: cleanmore
 .PHONY: tests
 tests:
 	tools/build-tool/castle-engine_compile.sh
-# Build and run check_lazarus_packages
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ clean
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ --mode=debug compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ run -- ../../../
+# Build and run check_packages
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ --mode=debug compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ run -- ../../../
 # Conserve disk space for GH actions
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_lazarus_packages/ clean
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tools/internal/check_packages/ clean
 # Run in debug mode
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
 # Run in debug mode, testing DecimalSeparator = comma
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_TEST_DECIMAL_SEPARATOR_COMMA compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dCASTLE_TEST_DECIMAL_SEPARATOR_COMMA compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
 # Run in debug mode without LibPng
 # (useful to test image processing, e.g. TTestImages.TestLoadImage, without libpng, which matters for mobile now)
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=debug --compiler-option=-dCASTLE_DISABLE_LIBPNG compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
 # Run in release mode, since all tests must pass the same when optimizations are enabled
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=release --compiler-option=-dNO_WINDOW_SYSTEM compile
-	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ --mode=release compile
+	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ run -- --console --no-window-create
 # Conserve disk space for GH actions
 	$(BUILD_TOOL) $(CASTLE_ENGINE_TOOL_OPTIONS) --project tests/ clean
 # Run tests in tools/build-tool/tests

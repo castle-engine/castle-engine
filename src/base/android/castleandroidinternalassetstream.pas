@@ -107,7 +107,7 @@ begin
   { Take only the least-significant 32 bits of result, because
     on some Androids the higher 32-bits are nonsense (Sony Ericsson,
     Android 2.3.4, WT191l). }
-  Result := Result and Int64(High(LongWord));
+  Result := Result and Int64(High(UInt32));
 end;
 
 function TReadAssetStream.GetPosition: Int64;

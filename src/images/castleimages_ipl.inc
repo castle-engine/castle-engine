@@ -38,7 +38,7 @@ var
   IPLVersion: string;
   IPLFormat: byte;
   IPLTypeFlag: Word;
-  IPLWidth, IPLHeight: LongWord;
+  IPLWidth, IPLHeight: UInt32;
   i, j: Integer;
   IPLPixel: Word;
   imgPixel: PVector3Byte;

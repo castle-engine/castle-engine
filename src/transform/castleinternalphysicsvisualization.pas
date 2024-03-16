@@ -16,6 +16,8 @@
 { Visualization of physics stuff. }
 unit CastleInternalPhysicsVisualization;
 
+{$I castleconf.inc}
+
 interface
 
 uses

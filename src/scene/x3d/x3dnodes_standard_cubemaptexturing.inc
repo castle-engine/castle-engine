@@ -191,7 +191,7 @@ end;
 function TImageCubeMapTextureNode.LoadImage: TCompositeImage;
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   Result := TCompositeImage.Create;
   try

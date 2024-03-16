@@ -39,6 +39,7 @@ type
     ForceSynchronous: Boolean;
     HttpMethod: THttpMethod;
     HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
+    HttpRequestBody: TMemoryStream;
     { @groupEnd }
 
     { Fields that should be updated during downloading.
@@ -80,11 +81,11 @@ type
   { Event called when @link(Download) function wants to download URL with this protocol.
     Use with @link(RegisterUrlProtocol). }
   TUrlReadEvent = function (
-    const Url: string; out MimeType: string): TStream of object;
+    const Url: String; out MimeType: string): TStream of object;
 
   { Event called when @link(URLSaveStream) function wants to save URL with this protocol.
     Use with @link(RegisterUrlProtocol). }
-  TUrlWriteEvent = function(const Url: string): TStream of object;
+  TUrlWriteEvent = function(const Url: String): TStream of object;
 
   EProtocolAlreadyRegistered = class(Exception);
 
@@ -138,9 +139,9 @@ end;
 { registering URL protocols -------------------------------------------------- }
 
 type
-  { Event called when @link(URIMimeType) function wants to get MIME type from given URL.
+  { Event called when @link(UriMimeType) function wants to get MIME type from given URL.
     Use with @link(RegisterUrlProtocol). }
-  TUrlMimeTypeEvent = function(const Url: string; out Gzipped: Boolean): String of object;
+  TUrlMimeTypeEvent = function(const Url: String; out Gzipped: Boolean): String of object;
 
   TRegisteredProtocol = class
     Protocol: String;
@@ -151,8 +152,9 @@ type
   end;
 
   TRegisteredProtocols = class({$ifdef FPC}specialize{$endif} TObjectList<TRegisteredProtocol>)
-    { @nil if not found. }
-    function Find(const Protocol: String): TRegisteredProtocol;
+    { Find TRegisteredProtocol with given Protocol, case-insensitive.
+      Returns TRegisteredProtocol, or @nil if not found. }
+    function Find(Protocol: String): TRegisteredProtocol;
 
     procedure Add(const Protocol: String;
       const ReadEvent: TUrlReadEvent;
@@ -161,8 +163,11 @@ type
       const MimeTypeEvent: TUrlMimeTypeEvent); reintroduce;
   end;
 
-function TRegisteredProtocols.Find(const Protocol: String): TRegisteredProtocol;
+function TRegisteredProtocols.Find(Protocol: String): TRegisteredProtocol;
 begin
+  // to compare ignoring case, entries on TRegisteredProtocol.Protocol are already lower-cased
+  Protocol := LowerCase(Protocol);
+
   for Result in Self do
     if Result.Protocol = Protocol then
       Exit;
@@ -184,7 +189,8 @@ begin
      (not URIValidProtocol(Protocol)) then
     raise Exception.CreateFmt('URL protocol name "%s" is invalid (see URIValidProtocol for the requirements on protocol name)', [Protocol]);
   P := TRegisteredProtocol.Create;
-  P.Protocol := Protocol;
+  // lowercase Protocol, to later compare in TRegisteredProtocols.Find ignoring case
+  P.Protocol := LowerCase(Protocol);
   P.ReadEvent := ReadEvent;
   P.WriteEvent := WriteEvent;
   P.AsynchronousReader := AsynchronousReader;

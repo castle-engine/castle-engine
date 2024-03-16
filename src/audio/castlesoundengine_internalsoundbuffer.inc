@@ -30,13 +30,13 @@
 
     This is internal now. Use TCastleSound to load a sound comfortably,
     it hides dealing with TInternalSoundBuffer from you (and TCastleSound has more properties,
-    and allows to change TCastleSound.URL / TCastleSound.Stream at any point).
+    and allows to change TCastleSound.Url / TCastleSound.Stream at any point).
 
     @exclude
   }
   TInternalSoundBuffer = class
   private
-    FURL: string;
+    FUrl: String;
     FSoundLoading: TSoundLoading;
     References: Cardinal;
     Backend: TSoundBufferBackend;
@@ -54,7 +54,7 @@
     { Absolute sound file URL.
       Never empty (do not create TInternalSoundBuffer instances for invalid / empty URL,
       like the ones that can be created by TRepoSoundEngine for not defined sounds.) }
-    property URL: string read FURL;
+    property Url: String read FUrl;
 
     { Data format (bits per sample, stereo or mono) of the loaded sound file.
       Typical applications don't need this value, this is just an information
@@ -66,7 +66,7 @@
       Typical applications don't need this value, this is just an information
       about the loaded sound file.
       Undefined if backend is not loaded. }
-    function Frequency: LongWord;
+    function Frequency: Cardinal;
   end;
 
   TSoundBuffer = TInternalSoundBuffer deprecated 'use TInternalSoundBuffer';
@@ -93,7 +93,7 @@ begin
     Result := Default(TSoundDataFormat);
 end;
 
-function TInternalSoundBuffer.Frequency: LongWord;
+function TInternalSoundBuffer.Frequency: Cardinal;
 begin
   if BackendIsOpen then
     Result := Backend.Frequency
@@ -113,8 +113,8 @@ procedure TInternalSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
 
   procedure OpenCore;
   begin
-    FURL := URL;
-    Backend.ContextOpen(URL);
+    FUrl := Url;
+    Backend.ContextOpen(Url);
     BackendIsOpen := true;
   end;
 
@@ -132,7 +132,7 @@ begin
     on E: Exception do
     begin
       WritelnWarning('Sound', Format('Sound file "%s" cannot be loaded: %s',
-        [URIDisplay(URL), E.Message]));
+        [UriDisplay(Url), E.Message]));
     end;
   end;
 end;

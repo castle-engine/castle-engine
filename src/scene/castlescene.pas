@@ -29,7 +29,7 @@ unit CastleScene;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils, CastleFonts,
   CastleUtils, CastleSceneCore, CastleInternalBackgroundRenderer,
   CastleGLUtils, CastleInternalShapeOctree, CastleInternalGLShadowVolumes, X3DFields,
@@ -496,7 +496,7 @@ implementation
 
 uses Math,
   CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
-  CastleShapeInternalRenderShadowVolumes, CastleURIUtils, CastleProjection,
+  CastleShapeInternalRenderShadowVolumes, CastleUriUtils, CastleProjection,
   CastleComponentSerialize, CastleRenderContext, CastleFilesUtils,
   CastleInternalGLUtils, CastleInternalRenderer, X3DCameraUtils;
 
@@ -946,7 +946,7 @@ begin
   if not ApplicationProperties.IsGLContextOpen then
   begin
     WritelnLog('PrepareResources', 'Rendering context not available, skipping preparing TCastleScene rendering resources for "%s"', [
-      URIDisplay(URL)
+      UriDisplay(URL)
     ]);
     Exit;
   end;
@@ -1564,7 +1564,8 @@ begin
     if Params.Frustum = nil then
       LocalRenderOutside(nil, Params)
     else
-    if (InternalOctreeRendering <> nil) and ShapeFrustumCulling then
+    if (InternalOctreeRendering <> nil) and
+       ShapeFrustumCulling then
     begin
       { Check above ShapeFrustumCulling, since the InternalOctreeRendering
         does per-shape frustum culling automatically, even before

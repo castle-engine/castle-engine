@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install FPC+Lazarus
-        uses: gcarreno/setup-lazarus@v3.2.15
+        uses: gcarreno/setup-lazarus@v3.2.17
         with:
           lazarus-version: ${{ matrix.lazarus-versions }}
           # Cache makes Windows jobs fail (they timeout),
@@ -55,5 +55,5 @@ jobs:
         run: ./tools/build-tool/castle-engine compile --project ./examples/fps_game/
       - name: Run Autotests
         run: |
-          ./tools/build-tool/castle-engine --project ./tests/ compile --mode=debug --compiler-option=-dNO_WINDOW_SYSTEM
-          ./tools/build-tool/castle-engine --project ./tests/ run -- --console
+          ./tools/build-tool/castle-engine --project ./tests/ compile --mode=debug
+          ./tools/build-tool/castle-engine --project ./tests/ run -- --console --no-window-create

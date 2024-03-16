@@ -266,9 +266,9 @@ type
     UseFilter: Boolean;
     constructor Create(ANode: TDOMNode; AFilter: DOMString);
     function GetCount: LongInt;
-    function GetItem(index: LongWord): TDOMNode;
+    function GetItem(index: UInt32): TDOMNode;
   public
-    property Item[index: LongWord]: TDOMNode read GetItem;
+    property Item[index: UInt32]: TDOMNode read GetItem;
     property Count: LongInt read GetCount;
   end;
 
@@ -280,8 +280,8 @@ type
   TDOMNamedNodeMap = class(TList)
   protected
     OwnerDocument: TDOMDocument;
-    function GetItem(index: LongWord): TDOMNode;
-    procedure SetItem(index: LongWord; AItem: TDOMNode);
+    function GetItem(index: UInt32): TDOMNode;
+    procedure SetItem(index: UInt32; AItem: TDOMNode);
     function GetLength: LongInt;
 
     constructor Create(AOwner: TDOMDocument);
@@ -289,7 +289,7 @@ type
     function GetNamedItem(const name: DOMString): TDOMNode;
     function SetNamedItem(arg: TDOMNode): TDOMNode;
     function RemoveNamedItem(const name: DOMString): TDOMNode;
-    property Item[index: LongWord]: TDOMNode read GetItem write SetItem; default;
+    property Item[index: UInt32]: TDOMNode read GetItem write SetItem; default;
     property Length: LongInt read GetLength;
   end;
 
@@ -304,11 +304,11 @@ type
   public
     property Data: DOMString read FNodeValue;
     property Length: LongInt read GetLength;
-    function SubstringData(offset, count: LongWord): DOMString;
+    function SubstringData(offset, count: UInt32): DOMString;
     procedure AppendData(const arg: DOMString);
-    procedure InsertData(offset: LongWord; const arg: DOMString);
-    procedure DeleteData(offset, count: LongWord);
-    procedure ReplaceData(offset, count: LongWord; const arg: DOMString);
+    procedure InsertData(offset: UInt32; const arg: DOMString);
+    procedure DeleteData(offset, count: UInt32);
+    procedure ReplaceData(offset, count: UInt32; const arg: DOMString);
   end;
 
 
@@ -445,7 +445,7 @@ type
   public
     function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
       overload; override;
-    function SplitText(offset: LongWord): TDOMText;
+    function SplitText(offset: UInt32): TDOMText;
   end;
 
 
@@ -889,7 +889,7 @@ begin
   end;
 end;
 
-function TDOMNodeList.GetItem(index: LongWord): TDOMNode;
+function TDOMNodeList.GetItem(index: UInt32): TDOMNode;
 var
   child: TDOMNode;
 begin
@@ -921,12 +921,12 @@ begin
   OwnerDocument := AOwner;
 end;
 
-function TDOMNamedNodeMap.GetItem(index: LongWord): TDOMNode;
+function TDOMNamedNodeMap.GetItem(index: UInt32): TDOMNode;
 begin
   Result := TDOMNode(Items[index]);
 end;
 
-procedure TDOMNamedNodeMap.SetItem(index: LongWord; AItem: TDOMNode);
+procedure TDOMNamedNodeMap.SetItem(index: UInt32; AItem: TDOMNode);
 begin
   Items[index] := AItem;
 end;
@@ -998,7 +998,7 @@ begin
   Result := system.Length(FNodeValue);
 end;
 
-function TDOMCharacterData.SubstringData(offset, count: LongWord): DOMString;
+function TDOMCharacterData.SubstringData(offset, count: UInt32): DOMString;
 begin
   if (offset < 0) or (offset > Length) or (count < 0) then
     raise EDOMIndexSize.Create('CharacterData.SubstringData');
@@ -1010,7 +1010,7 @@ begin
   FNodeValue := FNodeValue + arg;
 end;
 
-procedure TDOMCharacterData.InsertData(offset: LongWord; const arg: DOMString);
+procedure TDOMCharacterData.InsertData(offset: UInt32; const arg: DOMString);
 begin
   if (offset < 0) or (offset > Length) then
     raise EDOMIndexSize.Create('CharacterData.InsertData');
@@ -1019,7 +1019,7 @@ begin
     Copy(FNodeValue, offset + 1, Length);
 end;
 
-procedure TDOMCharacterData.DeleteData(offset, count: LongWord);
+procedure TDOMCharacterData.DeleteData(offset, count: UInt32);
 begin
   if (offset < 0) or (offset > Length) or (count < 0) then
     raise EDOMIndexSize.Create('CharacterData.DeleteData');
@@ -1028,7 +1028,7 @@ begin
     Copy(FNodeValue, offset + count + 1, Length);
 end;
 
-procedure TDOMCharacterData.ReplaceData(offset, count: LongWord; const arg: DOMString);
+procedure TDOMCharacterData.ReplaceData(offset, count: UInt32; const arg: DOMString);
 begin
   DeleteData(offset, count);
   InsertData(offset, arg);
@@ -1389,7 +1389,7 @@ begin
   Result.FNodeValue := FNodeValue;
 end;
 
-function TDOMText.SplitText(offset: LongWord): TDOMText;
+function TDOMText.SplitText(offset: UInt32): TDOMText;
 begin
   if offset > Length then
     raise EDOMIndexSize.Create('Text.SplitText');

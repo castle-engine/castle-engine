@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2023 Michalis Kamburelis.
+  Copyright 2021-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,13 +23,11 @@ interface
 
 uses DOM, Classes, Generics.Collections,
   CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles, CastleColors,
+  CastleInternalTools,
   ToolServices, ToolAssocDocTypes;
 
 type
   TCompiler = (coAutodetect, coFpc, coDelphi);
-
-  TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
-  TDependencies = set of TDependency;
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
@@ -38,14 +36,14 @@ type
     AppName: String;
     constructor Create(const ALanguage, AAppName: String);
   end;
-  TLocalizedAppNameList = specialize TObjectList<TLocalizedAppName>;
+  TLocalizedAppNameList = {$ifdef FPC}specialize{$endif} TObjectList<TLocalizedAppName>;
 
   TIncludePath = class
     Path: String;
     Recursive: Boolean;
     ExecutablePermission: Boolean;
   end;
-  TIncludePathList = specialize TObjectList<TIncludePath>;
+  TIncludePathList = {$ifdef FPC}specialize{$endif} TObjectList<TIncludePath>;
 
   TProjectVersion = class(TComponent)
   public
@@ -60,13 +58,13 @@ type
 
   TImageFileNames = class(TCastleStringList)
   private
-    FBaseUrl: string;
+    FBaseUrl: String;
   public
-    property BaseUrl: string read FBaseUrl write FBaseUrl;
+    property BaseUrl: String read FBaseUrl write FBaseUrl;
     { Find image with given extension, or '' if not found.
       Note that the returned image filename is relative to project path,
       usually you should process it like @code(IconPath := CombinePaths(Project.Path, IconPath)). }
-    function FindExtension(const Extensions: array of string): string;
+    function FindExtension(const Extensions: array of string): String;
     { Find and read an image format that we can process with our CastleImages.
       Try to read it to a class that supports nice-quality resizing (TResizeInterpolationFpImage).
       @nil if not found. }
@@ -110,13 +108,12 @@ type
 
     var
       OwnerComponent: TComponent;
-      FDependencies: TDependencies;
-      FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
-      FIOSOverrideQualifiedName: string;
+      FName, FExecutableName, FQualifiedName, FAuthor, FCaption: String;
+      FIOSOverrideQualifiedName: String;
       FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
       FUsesNonExemptEncryption: boolean;
       FDataExists: Boolean;
-      FPath, FPathUrl, FDataPath: string;
+      FPath, FPathUrl, FDataPath: String;
       FIncludePaths: TIncludePathList;
       FExcludePaths: TCastleStringList;
       FExtraCompilerOptions, FExtraCompilerOptionsAbsolute: TCastleStringList;
@@ -124,11 +121,11 @@ type
       FIcons, FLaunchImages: TImageFileNames;
       FLaunchImageStoryboard: TLaunchImageStoryboard;
       FSearchPaths, FLibraryPaths: TStringList;
-      FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
+      FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: String;
       FCompiler: TCompiler;
       FLazarusProject, FDelphiProject: String;
       FBuildUsingLazbuild: Boolean;
-      FGameUnits, FEditorUnits: string;
+      FGameUnits, FEditorUnits: String;
       FVersion: TProjectVersion;
       FFullscreenImmersive: boolean;
       FScreenOrientation: TScreenOrientation;
@@ -136,7 +133,7 @@ type
       FAndroidServices, FIOSServices: TServiceList;
       FAssociateDocumentTypes: TAssociatedDocTypeList;
       FLocalizedAppNames: TLocalizedAppNameList;
-      FIOSTeam: string;
+      FIOSTeam: String;
       FindPascalFilesResult: TStringList; // valid only during FindPascalFilesCallback
       FDebianMenuSection: String;
       FDebianControlSection: String;
@@ -144,10 +141,11 @@ type
       FFreeDesktopComment: String;
       FDetectMemoryLeaks: Boolean;
       FMacAppBundle: Boolean;
+      FProjectDependencies: TProjectDependencies;
 
     function DefaultQualifiedName(const AName: String): String;
-    procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
-    procedure CheckValidQualifiedName(const OptionName: string; const QualifiedName: string);
+    procedure CheckMatches(const Name, Value: String; const AllowedChars: TSetOfChars);
+    procedure CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
     { Change compiler option @xxx to use absolute paths.
       Important for "castle-engine editor" where ExtraCompilerOptionsAbsolute is inserted
       into lpk, but lpk is in a different directory.
@@ -159,7 +157,6 @@ type
     procedure CreateFinish;
     procedure FindPascalFilesCallback(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure SetBaseUrl(const Value: String);
-    procedure AddDependencyFromFoundDataFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   public
     const
       { Android SDK versions.
@@ -178,10 +175,10 @@ type
     { Load manifest file.
       @param APath Project path, must be absolute.
       @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
-    constructor CreateFromUrl(const APath, ManifestUrl: String);
+    constructor CreateFromUrl(const APath, ManifestUrl: String); overload;
     { Load manifest file.
       @param ManifestUrl Full URL to CastleEngineManifest.xml, must be absolute. }
-    constructor CreateFromUrl(const ManifestUrl: String);
+    constructor CreateFromUrl(const ManifestUrl: String); overload;
     { Guess values for the manifest.
       @param APath Project path, must be absolute.
       @param AStandaloneSource Guessed StandaloneSource value. Project Name will be derived from it too. }
@@ -200,9 +197,14 @@ type
     property BuildUsingLazbuild: Boolean read FBuildUsingLazbuild;
     property GameUnits: String read FGameUnits;
     property EditorUnits: String read FEditorUnits;
-    property QualifiedName: string read FQualifiedName;
-    property Dependencies: TDependencies read FDependencies;
-    property Name: string read FName;
+    property QualifiedName: String read FQualifiedName;
+    { Dependencies of this project.
+      Read-only from the outside, do not call any methods that modify
+      the contents of it. }
+    property ProjectDependencies: TProjectDependencies read FProjectDependencies;
+    { Shortcut for ProjectDependencies.Dependencies. }
+    function Dependencies: TDependencies;
+    property Name: String read FName;
     { Project path. Absolute.
       Always ends with path delimiter, like a slash or backslash. }
     property Path: String read FPath;
@@ -212,10 +214,10 @@ type
     { Project data path. Absolute.
       Always ends with path delimiter, like a slash or backslash.
       Should be ignored if not @link(DataExists). }
-    property DataPath: string read FDataPath;
-    property Caption: string read FCaption;
-    property Author: string read FAuthor;
-    property ExecutableName: string read FExecutableName;
+    property DataPath: String read FDataPath;
+    property Caption: String read FCaption;
+    property Author: String read FAuthor;
+    property ExecutableName: String read FExecutableName;
     property FullscreenImmersive: boolean read FFullscreenImmersive;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property Icons: TImageFileNames read FIcons;
@@ -234,7 +236,7 @@ type
     property Defines: TCastleStringList read FDefines;
 
     { iOS-specific things }
-    property IOSOverrideQualifiedName: string read FIOSOverrideQualifiedName;
+    property IOSOverrideQualifiedName: String read FIOSOverrideQualifiedName;
     property IOSOverrideVersion: TProjectVersion read FIOSOverrideVersion; //< nil if not overridden, should use FVersion then
     property UsesNonExemptEncryption: boolean read FUsesNonExemptEncryption;
     property IOSServices: TServiceList read FIOSServices;
@@ -249,22 +251,22 @@ type
     { Standalone source specified in CastleEngineManifest.xml.
       Most build tool code should use TCastleProject.StandaloneSourceFile instead,
       that can optionally auto-create the source file. }
-    property StandaloneSource: string read FStandaloneSource;
+    property StandaloneSource: String read FStandaloneSource;
 
     { Android source specified in CastleEngineManifest.xml.
       Most build tool code should use TCastleProject.AndroidSourceFile instead,
       that can optionally auto-create Android source file. }
-    property AndroidSource: string read FAndroidSource;
+    property AndroidSource: String read FAndroidSource;
 
     { iOS source specified in CastleEngineManifest.xml.
       Most build tool code should use TCastleProject.IOSSourceFile instead,
       that can optionally auto-create iOS source file. }
-    property IOSSource: string read FIOSSource;
+    property IOSSource: String read FIOSSource;
 
     { Plugin source specified in CastleEngineManifest.xml.
       Most build tool code should use TCastleProject.PluginSourceFile instead,
       that can optionally auto-create the source file. }
-    property PluginSource: string read FPluginSource;
+    property PluginSource: String read FPluginSource;
 
     { Debian-specific section name, for Debian control file.
       See https://www.debian.org/doc/debian-policy/ch-archive.html#s-subsections
@@ -320,11 +322,8 @@ type
 function CompilerToString(const C: TCompiler): String;
 function StringToCompiler(const S: String): TCompiler;
 
-function DependencyToString(const D: TDependency): string;
-function StringToDependency(const S: string): TDependency;
-
-function ScreenOrientationToString(const O: TScreenOrientation): string;
-function StringToScreenOrientation(const S: string): TScreenOrientation;
+function ScreenOrientationToString(const O: TScreenOrientation): String;
+function StringToScreenOrientation(const S: String): TScreenOrientation;
 
 const
   DefaultCompiler = coAutodetect;
@@ -332,7 +331,7 @@ const
 implementation
 
 uses SysUtils, Math, StrUtils,
-  CastleXMLUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
+  CastleXmlUtils, CastleFilesUtils, CastleLog, CastleUriUtils,
   ToolCommonUtils;
 
 function CompilerToString(const C: TCompiler): String;
@@ -373,7 +372,7 @@ end;
 
 { TImageFileNames ------------------------------------------------------------- }
 
-function TImageFileNames.FindExtension(const Extensions: array of string): string;
+function TImageFileNames.FindExtension(const Extensions: array of string): String;
 var
   I, J: Integer;
 begin
@@ -387,14 +386,14 @@ end;
 function TImageFileNames.FindReadable: TCastleImage;
 var
   I: Integer;
-  MimeType, URL: string;
+  MimeType, Url: String;
 begin
   for I := 0 to Count - 1 do
   begin
-    URL := CombineURI(BaseUrl, Strings[I]);
-    MimeType := URIMimeType(URL);
+    Url := CombineUri(BaseUrl, Strings[I]);
+    MimeType := UriMimeType(Url);
     if (MimeType <> '') and IsImageMimeType(MimeType, true, false) then
-      Exit(LoadImage(URL, [TRGBImage, TRGBAlphaImage]));
+      Exit(LoadImage(Url, [TRGBImage, TRGBAlphaImage]));
   end;
   Result := nil;
 end;
@@ -437,6 +436,7 @@ begin
   FAndroidServices := TServiceList.Create(true);
   FIOSServices := TServiceList.Create(true);
   FAssociateDocumentTypes := TAssociatedDocTypeList.Create;
+  FProjectDependencies := TProjectDependencies.Create;
 
   { set defaults (only on fields that are not already in good default state after construction) }
   FDataExists := DefaultDataExists;
@@ -449,7 +449,7 @@ begin
   FMacAppBundle := DefaultMacAppBundle;
 
   FPath := InclPathDelim(APath);
-  FPathUrl := FilenameToURISafe(FPath);
+  FPathUrl := FilenameToUriSafe(FPath);
   FDataPath := InclPathDelim(FPath + DataName);
 end;
 
@@ -469,7 +469,7 @@ begin
   FVersion := TProjectVersion.Create(OwnerComponent);
   FVersion.Code := DefautVersionCode;
   FVersion.DisplayValue := DefautVersionDisplayValue;
-  SetBaseUrl(FilenameToURISafe(InclPathDelim(GetCurrentDir)));
+  SetBaseUrl(FilenameToUriSafe(InclPathDelim(GetCurrentDir)));
 
   CreateFinish;
 end;
@@ -499,7 +499,7 @@ constructor TCastleManifest.CreateFromUrl(const APath, ManifestUrl: String);
 
 var
   Doc: TXMLDocument;
-  AndroidProjectTypeStr: string;
+  AndroidProjectTypeStr: String;
   ChildElements: TXMLElementIterator;
   Element, ChildElement: TDOMElement;
   NewCompilerOption, DefaultLazarusProject, DefaultDelphiProject, NewSearchPath: String;
@@ -508,7 +508,7 @@ begin
   Create(APath);
   SetBaseUrl(ManifestUrl);
 
-  Doc := URLReadXML(ManifestURL);
+  Doc := UrlReadXML(ManifestUrl);
   try
     Check(Doc.DocumentElement.TagName = 'project',
       'Root node of CastleEngineManifest.xml must be <project>');
@@ -551,19 +551,7 @@ begin
       FVersion.DisplayValue := DefautVersionDisplayValue;
     end;
 
-    Element := Doc.DocumentElement.ChildElement('dependencies', false);
-    if Element <> nil then
-    begin
-      ChildElements := Element.ChildrenIterator('dependency');
-      try
-        while ChildElements.GetNext do
-        begin
-          ChildElement := ChildElements.Current;
-          Include(FDependencies,
-            StringToDependency(ChildElement.AttributeString('name')));
-        end;
-      finally FreeAndNil(ChildElements) end;
-    end;
+    ProjectDependencies.ReadFromManifest(Doc);
 
     Element := Doc.DocumentElement.ChildElement('package', false);
     if Element <> nil then
@@ -788,11 +776,12 @@ end;
 
 constructor TCastleManifest.CreateFromUrl(const ManifestUrl: String);
 begin
-  CreateFromUrl(ExtractFilePath(URIToFilenameSafe(ManifestUrl)), ManifestUrl);
+  CreateFromUrl(ExtractFilePath(UriToFilenameSafe(ManifestUrl)), ManifestUrl);
 end;
 
 destructor TCastleManifest.Destroy;
 begin
+  FreeAndNil(FProjectDependencies);
   FreeAndNil(OwnerComponent);
   FreeAndNil(FIncludePaths);
   FreeAndNil(FExcludePaths);
@@ -826,7 +815,7 @@ begin
     Result := 'com.mycompany.' + Result;
 end;
 
-procedure TCastleManifest.CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
+procedure TCastleManifest.CheckMatches(const Name, Value: String; const AllowedChars: TSetOfChars);
 var
   I: Integer;
 begin
@@ -836,7 +825,7 @@ begin
         [Name, Value, SReadableForm(Value[I])]);
 end;
 
-procedure TCastleManifest.CheckValidQualifiedName(const OptionName: string; const QualifiedName: string);
+procedure TCastleManifest.CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
 var
   Components: TStringList;
   I: Integer;
@@ -889,36 +878,6 @@ begin
     Result := '@' + CombinePaths(Path, SEnding(Result, 2));
 end;
 
-procedure TCastleManifest.AddDependencyFromFoundDataFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
-
-  procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
-  begin
-    if not (Dependency in Dependencies) then
-    begin
-      WritelnLog('Automatically adding "' + DependencyToString(Dependency) +
-        '" to dependencies because data contains file: ' + FileInfo.URL);
-      Include(FDependencies, Dependency);
-    end;
-  end;
-
-const
-  { Ignore case on all platforms, to e.g. add freetype DLL when file FOO.TTF
-    is present in data, even on case-sensitive filesystems. }
-  IgnoreCase = true;
-begin
-  if IsWild(FileInfo.Name, '*.ttf', IgnoreCase) or
-     IsWild(FileInfo.Name, '*.otf', IgnoreCase) then
-    AddDependency(depFreetype, FileInfo);
-  if IsWild(FileInfo.Name, '*.gz' , IgnoreCase) then
-    AddDependency(depZlib, FileInfo);
-  if IsWild(FileInfo.Name, '*.png', IgnoreCase) then
-    AddDependency(depPng, FileInfo);
-  if IsWild(FileInfo.Name, '*.wav', IgnoreCase) then
-    AddDependency(depSound, FileInfo);
-  if IsWild(FileInfo.Name, '*.ogg', IgnoreCase) then
-    AddDependency(depOggVorbis, FileInfo);
-end;
-
 procedure TCastleManifest.CreateFinish;
 
   { If DataExists, check whether DataPath really exists.
@@ -944,46 +903,6 @@ procedure TCastleManifest.CreateFinish;
     end;
   end;
 
-  procedure GuessDependencies;
-  begin
-    if DataExists then
-    begin
-      { Note: Instead of one FindFiles call, this could also be implemented by a series
-        of FindFirstFileIgnoreCase calls, like
-
-          if FindFirstFileIgnoreCase(DataPath, '*.ttf' , false, [ffRecursive], FileInfo) or
-          if FindFirstFileIgnoreCase(DataPath, '*.otf' , false, [ffRecursive], FileInfo) then
-            AddDependency(depFreetype, FileInfo);
-          if FindFirstFileIgnoreCase(DataPath, '*.gz' , false, [ffRecursive], FileInfo) then
-            AddDependency(depZlib, FileInfo);
-
-        But this would be inefficient. Each FindFirstFileIgnoreCase effectively again
-        enumerates all files in data. }
-
-      FindFiles(DataPath, '*', false,
-        {$ifdef FPC}@{$endif} AddDependencyFromFoundDataFile, [ffRecursive]);
-    end;
-  end;
-
-  procedure CloseDependencies;
-
-    procedure DependenciesClosure(const Dep, DepRequirement: TDependency);
-    begin
-      if (Dep in Dependencies) and not (DepRequirement in Dependencies) then
-      begin
-        WritelnLog('Automatically adding "' + DependencyToString(DepRequirement) +
-          '" to dependencies because it is a prerequisite of existing dependency "'
-          + DependencyToString(Dep) + '"');
-        Include(FDependencies, DepRequirement);
-      end;
-    end;
-
-  begin
-    DependenciesClosure(depPng, depZlib);
-    DependenciesClosure(depFreetype, depZlib);
-    DependenciesClosure(depOggVorbis, depSound);
-  end;
-
   { Check correctness. }
   procedure CheckManifestCorrect;
   begin
@@ -1005,9 +924,20 @@ procedure TCastleManifest.CreateFinish;
 begin
   Version.InitializeItems;
   CheckDataExists;
-  GuessDependencies; // depends on FDataExists finalized, so must be after CheckDataExists
-  CloseDependencies; // must be after GuessDependencies, to close also guesses dependencies
+
+  // depends on FDataExists finalized, so must be after CheckDataExists
+  if DataExists then
+    FProjectDependencies.GuessDependencies(DataPath);
+
+  // must be after GuessDependencies, to close also guessed dependencies
+  FProjectDependencies.CloseDependencies;
+
   CheckManifestCorrect; // must be at end, to validate all
+end;
+
+function TCastleManifest.Dependencies: TDependencies;
+begin
+  Result := FProjectDependencies.Dependencies;
 end;
 
 {
@@ -1139,32 +1069,15 @@ end;
 { globals -------------------------------------------------------------------- }
 
 const
-  DependencyNames: array [TDependency] of string =
-  ('Freetype', 'Zlib', 'Png', 'Sound', 'OggVorbis', 'Https');
-
-function DependencyToString(const D: TDependency): string;
-begin
-  Result := DependencyNames[D];
-end;
-
-function StringToDependency(const S: string): TDependency;
-begin
-  for Result in TDependency do
-    if AnsiSameText(DependencyNames[Result], S) then
-      Exit;
-  raise Exception.CreateFmt('Invalid dependency name "%s"', [S]);
-end;
-
-const
   ScreenOrientationNames: array [TScreenOrientation] of string =
   ('any', 'landscape', 'portrait');
 
-function ScreenOrientationToString(const O: TScreenOrientation): string;
+function ScreenOrientationToString(const O: TScreenOrientation): String;
 begin
   Result := ScreenOrientationNames[O];
 end;
 
-function StringToScreenOrientation(const S: string): TScreenOrientation;
+function StringToScreenOrientation(const S: String): TScreenOrientation;
 begin
   for Result in TScreenOrientation do
     if AnsiSameText(ScreenOrientationNames[Result], S) then

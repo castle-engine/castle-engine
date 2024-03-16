@@ -20,11 +20,11 @@ unit TestCastleScene;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry
-    {$else}CastleTester{$endif};
+  Classes, SysUtils,
+  CastleTester;
 
 type
-  TTestScene = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestScene = class(TCastleTestCase)
   published
     procedure TestScene;
     procedure TestSpatialUpgrade;

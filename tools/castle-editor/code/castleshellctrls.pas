@@ -52,20 +52,20 @@ type
   TCustomCastleShellTreeView = class(TCustomTreeView)
   private
     FObjectTypes: TObjectTypes;
-    FRoot: string;
+    FRoot: String;
     FShellListView: TCustomCastleShellListView;
     FFileSortType: TFileSortType;
     FInitialRoot: String;
-    FExcludeMask: string;
+    FExcludeMask: String;
     FExcludedCount: Cardinal;
     { Setters and getters }
-    function GetPath: string;
+    function GetPath: String;
     procedure SetFileSortType(const AValue: TFileSortType);
     procedure SetObjectTypes(AValue: TObjectTypes);
-    procedure SetPath(AValue: string);
-    procedure SetRoot(const AValue: string);
+    procedure SetPath(AValue: String);
+    procedure SetRoot(const AValue: String);
     procedure SetShellListView(const Value: TCustomCastleShellListView);
-    procedure SetExcludeMask(const AValue: string);
+    procedure SetExcludeMask(const AValue: String);
     procedure RefreshContents;
     procedure ExcludedCountChanged;
   protected
@@ -74,7 +74,7 @@ type
     function CreateNode: TTreeNode; override;
     { Other methods specific to Lazarus }
     function  PopulateTreeNodeWithFiles(
-      ANode: TTreeNode; ANodePath: string): Boolean;
+      ANode: TTreeNode; ANodePath: String): Boolean;
     procedure DoSelectionChanged; override;
     function CanExpand(Node: TTreeNode): Boolean; override;
   public
@@ -83,15 +83,15 @@ type
     destructor Destroy; override;
 
     { Methods specific to Lazarus - useful for other classes }
-    class function  GetBasePath: string;
-    function  GetRootPath: string;
-    class procedure GetFilesInDir(const ABaseDir: string;
-      const AMask, AExcludeMask: string;
+    class function  GetBasePath: String;
+    function  GetRootPath: String;
+    class procedure GetFilesInDir(const ABaseDir: String;
+      const AMask, AExcludeMask: String;
       const AObjectTypes: TObjectTypes;
       const AResult: TStrings; const AFileSortType: TFileSortType;
       out ExcludedCount: Cardinal);
     { Other methods specific to Lazarus }
-    function  GetPathFromNode(ANode: TTreeNode): string;
+    function  GetPathFromNode(ANode: TTreeNode): String;
     procedure PopulateWithBaseFiles;
     procedure Refresh(ANode: TTreeNode); overload;
 
@@ -99,9 +99,9 @@ type
     property ObjectTypes: TObjectTypes read FObjectTypes write SetObjectTypes;
     property ShellListView: TCustomCastleShellListView read FShellListView write SetShellListView;
     property FileSortType: TFileSortType read FFileSortType write SetFileSortType;
-    property Root: string read FRoot write SetRoot;
-    property Path: string read GetPath write SetPath;
-    property ExcludeMask: string read FExcludeMask write SetExcludeMask;
+    property Root: String read FRoot write SetRoot;
+    property Path: String read GetPath write SetPath;
+    property ExcludeMask: String read FExcludeMask write SetExcludeMask;
 
     { Protected properties which users may want to access, see bug 15374 }
     property Items;
@@ -204,19 +204,19 @@ type
 
   TCustomCastleShellListView = class(TCustomListView)
   private
-    FMask, FExcludeMask: string;
+    FMask, FExcludeMask: String;
     FObjectTypes: TObjectTypes;
-    FRoot: string;
+    FRoot: String;
     FShellTreeView: TCustomCastleShellTreeView;
     FOnFileAdded: TCSLVFileAddedEvent;
     FFileSortType: TFileSortType;
     FExcludedCount: Cardinal;
     { Setters and getters }
     procedure SetFileSortType(AValue: TFileSortType);
-    procedure SetMask(const AValue: string);
-    procedure SetExcludeMask(const AValue: string);
+    procedure SetMask(const AValue: String);
+    procedure SetExcludeMask(const AValue: String);
     procedure SetShellTreeView(const Value: TCustomCastleShellTreeView);
-    procedure SetRoot(const Value: string);
+    procedure SetRoot(const Value: String);
     procedure ExcludedCountChanged;
     function GetSelectedFileNameInRoot: String;
     procedure SetSelectedFileNameInRoot(const Value: String);
@@ -230,13 +230,13 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     { Methods specific to Lazarus }
-    function GetPathFromItem(ANode: TListItem; const Absolute: Boolean = true): string;
+    function GetPathFromItem(ANode: TListItem; const Absolute: Boolean = true): String;
     procedure RefreshContents;
     { Properties }
-    property Mask: string read FMask write SetMask;
-    property ExcludeMask: string read FExcludeMask write SetExcludeMask;
+    property Mask: String read FMask write SetMask;
+    property ExcludeMask: String read FExcludeMask write SetExcludeMask;
     property ObjectTypes: TObjectTypes read FObjectTypes write FObjectTypes;
-    property Root: string read FRoot write SetRoot;
+    property Root: String read FRoot write SetRoot;
     property ShellTreeView: TCustomCastleShellTreeView read FShellTreeView write SetShellTreeView;
     property FileSortType: TFileSortType read FFileSortType write SetFileSortType;
     { Protected properties which users may want to access, see bug 15374 }
@@ -479,7 +479,7 @@ begin
     Value.ShellTreeView := Self;
 end;
 
-procedure TCustomCastleShellTreeView.SetExcludeMask(const AValue: string);
+procedure TCustomCastleShellTreeView.SetExcludeMask(const AValue: String);
 begin
   if FExcludeMask = AValue then Exit;
   FExcludeMask := AValue;
@@ -536,7 +536,7 @@ begin
     Raise EShellCtrl.Create(sShellTreeViewIncorrectNodeType);
 end;
 
-procedure TCustomCastleShellTreeView.SetRoot(const AValue: string);
+procedure TCustomCastleShellTreeView.SetRoot(const AValue: String);
 var
   RootNode: TTreeNode;
 begin
@@ -698,15 +698,15 @@ end;
   Don't add a final ; after the last mask.
 }
 class procedure TCustomCastleShellTreeView.GetFilesInDir(
-  const ABaseDir: string; const AMask, AExcludeMask: string;
+  const ABaseDir: String; const AMask, AExcludeMask: String;
   const AObjectTypes: TObjectTypes; const AResult: TStrings;
   const AFileSortType: TFileSortType; out ExcludedCount: Cardinal);
 var
   DirInfo: TSearchRec;
   FindResult: Integer;
   IsDirectory, IsValidDirectory, IsHidden, AddFile: Boolean;
-  SearchStr: string;
-  MaskStr: string;
+  SearchStr: String;
+  MaskStr: String;
   Files: TList;
   FileItem: TFileItem;
   i: Integer;
@@ -714,7 +714,7 @@ var
   //FileTree: TStringList;
   ShortFilename: AnsiString;
   {$if defined(windows) and not defined(wince)}
-  ErrMode : LongWord;
+  ErrMode : UInt32;
   {$endif}
 begin
   ExcludedCount := 0;
@@ -819,6 +819,7 @@ begin
   if Assigned(Files) then begin
 
     case AFileSortType of
+      fstNone: ; // do no sorting
       fstAlphabet:     Files.Sort(@FilesSortAlphabet);
       fstFoldersFirst: Files.Sort(@FilesSortFoldersFirst);
     end;
@@ -844,7 +845,7 @@ begin
   {$endif}
 end;
 
-class function TCustomCastleShellTreeView.GetBasePath: string;
+class function TCustomCastleShellTreeView.GetBasePath: String;
 begin
   {$if defined(windows) and not defined(wince)}
   Result := '';
@@ -860,7 +861,7 @@ begin
   {$endif}
 end;
 
-function TCustomCastleShellTreeView.GetRootPath: string;
+function TCustomCastleShellTreeView.GetRootPath: String;
 begin
   if FRoot <> '' then
     Result := FRoot
@@ -872,7 +873,7 @@ end;
 
 { Returns true if at least one item was added, false otherwise }
 function TCustomCastleShellTreeView.PopulateTreeNodeWithFiles(
-  ANode: TTreeNode; ANodePath: string): Boolean;
+  ANode: TTreeNode; ANodePath: String): Boolean;
 var
   i: Integer;
   Files: TStringList;
@@ -942,7 +943,7 @@ end;
 procedure TCustomCastleShellTreeView.PopulateWithBaseFiles;
 {$if defined(windows) and not defined(wince)}
 var
-  r: LongWord;
+  r: UInt32;
   Drives: array[0..128] of char;
   pDrive: PChar;
   NewNode: TTreeNode;
@@ -1022,7 +1023,7 @@ begin
   end;
 end;
 
-function TCustomCastleShellTreeView.GetPathFromNode(ANode: TTreeNode): string;
+function TCustomCastleShellTreeView.GetPathFromNode(ANode: TTreeNode): String;
 begin
   if Assigned(ANode) then
   begin
@@ -1081,7 +1082,7 @@ begin
   end;
 end;
 
-function TCustomCastleShellTreeView.GetPath: string;
+function TCustomCastleShellTreeView.GetPath: String;
 begin
   Result := GetPathFromNode(Selected);
 end;
@@ -1094,7 +1095,7 @@ SetPath: Path can be
   - Self.Root (which takes precedence over)
   - Current directory
 }
-procedure TCustomCastleShellTreeView.SetPath(AValue: string);
+procedure TCustomCastleShellTreeView.SetPath(AValue: String);
 var
   sl: TStringList;
   Node: TTreeNode;
@@ -1409,7 +1410,7 @@ begin
 
 end;
 
-procedure TCustomCastleShellListView.SetMask(const AValue: string);
+procedure TCustomCastleShellListView.SetMask(const AValue: String);
 begin
   if AValue <> FMask then
   begin
@@ -1427,7 +1428,7 @@ begin
   end;
 end;
 
-procedure TCustomCastleShellListView.SetExcludeMask(const AValue: string);
+procedure TCustomCastleShellListView.SetExcludeMask(const AValue: String);
 begin
   if AValue <> FExcludeMask then
   begin
@@ -1436,7 +1437,7 @@ begin
   end;
 end;
 
-procedure TCustomCastleShellListView.SetRoot(const Value: string);
+procedure TCustomCastleShellListView.SetRoot(const Value: String);
 begin
   if FRoot <> Value then
   begin
@@ -1491,7 +1492,7 @@ var
   i: Integer;
   Files: TStringList;
   NewItem: TListItem;
-  CurFileName, CurFilePath: string;
+  CurFileName, CurFilePath: String;
   CurFileSize: Int64;
 begin
   // avoids crashes in the IDE by not populating during design
@@ -1580,7 +1581,7 @@ begin
   {$endif}
 end;
 
-function TCustomCastleShellListView.GetPathFromItem(ANode: TListItem; const Absolute: Boolean): string;
+function TCustomCastleShellListView.GetPathFromItem(ANode: TListItem; const Absolute: Boolean): String;
 var
   FileName: String;
 begin

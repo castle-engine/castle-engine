@@ -41,7 +41,7 @@ type
   private
     FLogicClass: TLevelLogicClass;
     FName: string;
-    FSceneURL: string;
+    FSceneUrl: String;
     FTitle: string;
     FTitleHint: string;
     FNumber: Integer;
@@ -57,7 +57,7 @@ type
       to allow the particular level logic (TLevelLogic descendant)
       to read some level-logic-specific variables from it. }
     Document: TXMLDocument;
-    DocumentBaseURL: string;
+    DocumentBaseUrl: String;
     LevelResources: T3DResourceList;
     procedure LoadFromDocument;
   protected
@@ -108,11 +108,11 @@ type
       scripts and such. Although level logic (TLevelLogic descendant determined
       by LevelClass) may also add any number of additional objects
       (TCastleTransform instances) to the world. }
-    property SceneURL: string read FSceneURL write FSceneURL;
+    property SceneUrl: String read FSceneUrl write FSceneUrl;
 
     {$ifdef FPC}
-    { @deprecated Deprecated name for SceneURL. }
-    property SceneFileName: string read FSceneURL write FSceneURL; deprecated;
+    { @deprecated Deprecated name for SceneUrl. }
+    property SceneFileName: string read FSceneUrl write FSceneUrl; deprecated;
     {$endif}
 
     { Nice name of the level for user. This should be user-friendly,
@@ -288,7 +288,7 @@ type
       The given XML file must have <level> root element and be written
       according to
       https://castle-engine.io/creating_data_levels.php .  }
-    procedure AddFromFile(const URL: string);
+    procedure AddFromFile(const Url: String);
 
     { Sort by @link(TLevelInfo.Number).
       Done automatically at the end of @link(LoadFromFiles),
@@ -560,10 +560,10 @@ type
         @item Free texture data, since they will not be needed anymore
       )
       @groupBegin }
-    function LoadLevelScene(const URL: string;
+    function LoadLevelScene(const Url: String;
       const PrepareForCollisions: boolean;
       const SceneClass: TCastleSceneClass): TCastleScene; overload; deprecated 'create and prepare TCastleScene instance directly';
-    function LoadLevelScene(const URL: string;
+    function LoadLevelScene(const Url: String;
       const PrepareForCollisions: boolean): TCastleScene; overload; deprecated 'create and prepare TCastleScene instance directly';
     { @groupEnd }
 
@@ -600,7 +600,7 @@ type
         An XML tree of level.xml file. You can read it
         however you want, to handle additional attributes in level.xml.
         You can use standard FPC DOM unit and classes,
-        and add a handful of simple comfortable routines in CastleXMLUtils unit,
+        and add a handful of simple comfortable routines in CastleXmlUtils unit,
         for example you can use this to read a string attribute:
 
         @longCode(#
@@ -655,8 +655,8 @@ implementation
 
 uses SysUtils, Generics.Defaults, Math,
   CastleGLUtils, CastleFilesUtils, CastleStringUtils,
-  CastleGLImages, CastleUIControls, XMLRead, CastleXMLUtils, CastleLog,
-  X3DCameraUtils, CastleGLVersion, CastleURIUtils, CastleDownload, CastleThirdPersonNavigation;
+  CastleGLImages, CastleUIControls, XMLRead, CastleXmlUtils, CastleLog,
+  X3DCameraUtils, CastleGLVersion, CastleUriUtils, CastleDownload, CastleThirdPersonNavigation;
 
 { globals -------------------------------------------------------------------- }
 
@@ -710,7 +710,7 @@ begin
        { check LevelResourcesPrepared, to avoid calling
          Info.LevelResources.Release when Info.LevelResources.Prepare
          was not called (which may happen if there was an exception if LoadCore
-         at MainScene.Load(SceneURL). }
+         at MainScene.Load(SceneUrl). }
        LevelResourcesPrepared and
        { check "Resources <> nil" is a hack to avoid calling Release
          on T3DResource when all T3DResource were already freed in CastleResources
@@ -1023,7 +1023,7 @@ begin
 
     Items.MainScene := TCastleScene.Create(Self);
     Inc(Items.MainScene.InternalDirty);
-    Items.MainScene.Load(Info.SceneURL);
+    Items.MainScene.Load(Info.SceneUrl);
 
     { Scene must be the first one on Items, this way Items.MoveCollision will
       use Scene for wall-sliding (see TCastleTransform.LocalMoveCollision implementation). }
@@ -1130,11 +1130,8 @@ begin
     if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
       Include(Options, prShadowVolume);
 
-    {$warnings off} // using deprecated in deprecated unit
-    Items.MainScene.PrepareResources(Options, false, Viewport.PrepareParams);
-
+    Viewport.PrepareResources(Items.MainScene, Options);
     Items.MainScene.FreeResources([frTextureDataInNodes]);
-    {$warnings on}
 
     Progress.Step;
   finally
@@ -1496,14 +1493,14 @@ begin
 end;
 
 function TLevelLogic.LoadLevelScene(
-  const URL: string;
+  const Url: String;
   const PrepareForCollisions: boolean;
   const SceneClass: TCastleSceneClass): TCastleScene;
 var
   Options: TPrepareResourcesOptions;
 begin
   Result := SceneClass.Create(Self);
-  Result.Load(URL);
+  Result.Load(Url);
 
   { calculate Options for PrepareResources }
   Options := [prRenderSelf, prBoundingBox { always needed }];
@@ -1523,11 +1520,11 @@ begin
 end;
 
 function TLevelLogic.LoadLevelScene(
-  const URL: string;
+  const Url: String;
   const PrepareForCollisions: boolean): TCastleScene;
 begin
   {$warnings off} // using deprecated in deprecated
-  Result := LoadLevelScene(URL, PrepareForCollisions, TCastleScene);
+  Result := LoadLevelScene(Url, PrepareForCollisions, TCastleScene);
   {$warnings on}
 end;
 
@@ -1597,7 +1594,7 @@ procedure TLevelInfo.LoadFromDocument;
 const
   DefaultPlaceholderReferenceDirection: TVector3 = (X: 1; Y: 0; Z: 0);
 var
-  LoadingImageURL: string;
+  LoadingImageUrl: String;
   SoundName: string;
   PlaceholdersKey: string;
   S: string;
@@ -1606,16 +1603,16 @@ begin
 
   if Element.TagName <> 'level' then
     raise Exception.CreateFmt('Root node of level.xml file must be <level>, but is "%s", in "%s"',
-      [Element.TagName, DocumentBaseURL]);
+      [Element.TagName, DocumentBaseUrl]);
 
   { Required attributes }
 
   if not Element.AttributeString('name', FName) then
     MissingRequiredAttribute('name');
 
-  if not Element.AttributeString('scene', FSceneURL) then
+  if not Element.AttributeString('scene', FSceneUrl) then
     MissingRequiredAttribute('scene');
-  SceneURL := CombineURI(DocumentBaseURL, SceneURL);
+  SceneUrl := CombineURI(DocumentBaseUrl, SceneUrl);
 
   if not Element.AttributeString('title', FTitle) then
     MissingRequiredAttribute('title');
@@ -1642,10 +1639,10 @@ begin
     PlaceholderName := PlaceholderNames[PlaceholdersKey];
 
   FreeAndNil(FLoadingImage); { make sure LoadingImage is clear first }
-  if Element.AttributeString('loading_image', LoadingImageURL) then
+  if Element.AttributeString('loading_image', LoadingImageUrl) then
   begin
-    LoadingImageURL := CombineURI(DocumentBaseURL, LoadingImageURL);
-    LoadingImage := LoadImage(LoadingImageURL, [TRGBImage]) as TRGBImage;
+    LoadingImageUrl := CombineURI(DocumentBaseUrl, LoadingImageUrl);
+    LoadingImage := LoadImage(LoadingImageUrl, [TRGBImage]) as TRGBImage;
   end;
 
   if (not Element.AttributeSingle('loading_bar_y_position',
@@ -1715,10 +1712,10 @@ end;
 
 procedure TLevelInfoList.AddFromInfo(const Info: TFileInfo; var StopSearch: boolean);
 begin
-  AddFromFile(Info.URL);
+  AddFromFile(Info.Url);
 end;
 
-procedure TLevelInfoList.AddFromFile(const URL: string);
+procedure TLevelInfoList.AddFromFile(const Url: String);
 var
   NewLevelInfo: TLevelInfo;
 begin
@@ -1726,8 +1723,8 @@ begin
   Add(NewLevelInfo);
   NewLevelInfo.Played := false;
 
-  URLReadXML(NewLevelInfo.Document, URL);
-  NewLevelInfo.DocumentBaseURL := URL;
+  UrlReadXML(NewLevelInfo.Document, Url);
+  NewLevelInfo.DocumentBaseUrl := Url;
   NewLevelInfo.LoadFromDocument;
 end;
 

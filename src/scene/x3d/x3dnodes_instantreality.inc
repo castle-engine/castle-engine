@@ -41,7 +41,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
   {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
@@ -54,7 +54,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function TexCoordField: TSFNode; override;
     function AutoGenerate3DTexCoords: boolean; override;
@@ -71,7 +71,7 @@
     procedure EventWriteReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
   {$I auto_generated_node_helpers/x3dnodes_logger.inc}
   end;
@@ -133,7 +133,7 @@
     procedure EventResetReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_toggler.inc}
   end;
 
@@ -261,7 +261,7 @@ begin
   Result := ntcTransform;
 end;
 
-constructor TTeapotNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TTeapotNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FdSize.ChangeAlways := chGeometry;
@@ -276,9 +276,9 @@ const
   // auto_generated_teapot/teapot.inc.
   {
   TeapotCoord: array [0..0] of TVector3 = ((X: 0; Y: 0; Z: 0));
-  TeapotCoordIndex: array [0..0] of LongInt = (0);
+  TeapotCoordIndex: array [0..0] of Int32 = (0);
   TeapotManifoldCoord: array [0..0] of TVector3 = ((X: 0; Y: 0; Z: 0));
-  TeapotManifoldCoordIndex: array [0..0] of LongInt = (0);
+  TeapotManifoldCoordIndex: array [0..0] of Int32 = (0);
   }
   {$I auto_generated_teapot/teapot.inc}
 var

@@ -141,12 +141,13 @@ type
   {$endif}
 
   { Abstract class for an image with unspecified, possibly compressed,
-    memory format. The idea is that both uncompressed images (TCastleImage)
-    and images compressed for GPU (TGPUCompressedImage) are derived from this class. }
+    memory format. Both uncompressed images (TCastleImage)
+    and images compressed for GPU (TGPUCompressedImage) are derived from this
+    base class. }
   TEncodedImage = class
   private
     FWidth, FHeight, FDepth: Cardinal;
-    FURL: string;
+    FUrl: String;
     procedure NotImplemented(const AMethodName: string);
   {$ifdef FPC}
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); virtual;
@@ -156,20 +157,51 @@ type
       It's always freed and nil'ed in destructor. }
     FRawPixels: Pointer;
   public
-    { URL from which this image was loaded, if any. }
-    property URL: string read FURL write FURL;
+    { Url from which this image was loaded, if any. }
+    property Url: String read FUrl write FUrl;
 
     destructor Destroy; override;
 
     property Width: Cardinal read FWidth;
     property Height: Cardinal read FHeight;
+
+    { Depth of the image.
+      For 2D images (most common) this is just 1.
+
+      All images in CastleImages can be potentially 3D, which means they
+      can have Depth > 1.
+      A 3D image is just a 3-dimensional array of pixels,
+      and you can use it e.g. as a texture with 3D texture coordinates.
+      A sample use-cases for 3D textures are:
+
+      @unorderedList(
+        @item(Generated colors of some material that you can imagine as
+          a 3D volume, like a volume of wood or marble. This is nice to apply
+          on any complicated 3D shape, because the necessary
+          3D texture coordinates are trivial,
+          since 3D position of a point on the shape
+          can be used as a reasonable 3D texture coordinate.)
+        @item(Medical data, some scans are 3D.)
+        @item(Noise (like Perlin noise) used for various
+          effects in shaders.)
+        @item(Specialized noise, e.g. a volume of smoke, or a volume of clouds.)
+      )
+    }
     property Depth: Cardinal read FDepth;
 
+    { Image data. The layout of this memory is defined by descendants.
+      For example, for TCastleImage it's a simple array of pixels
+      (see TCastleImage docs for exact description of the memory layout),
+      for TGPUCompressedImage it's a compressed data for GPU.
+
+      Note that this may be @nil, if Width * Height * Depth = 0.
+      In this case, IsEmpty returns @true. }
     property RawPixels: Pointer read FRawPixels;
 
     { Size of image contents in bytes. }
     function Size: Cardinal; virtual; abstract;
 
+    { Get a 3D vector with @link(Width), @link(Height), @link(Depth). }
     function Dimensions: TVector3Cardinal;
 
     { Is an image empty.
@@ -436,6 +468,15 @@ type
 
     function GetColors(const X, Y, Z: Integer): TCastleColor; virtual;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); virtual;
+
+    { Assign properties (other than @link(Url), sizes and pixel contents).
+
+      Used when creating a copy like @link(MakeCopy), @link(MakeRotated),
+      @link(MakeResized) and so on.
+      This is not used by @link(Assign), so @link(Assign) implementation
+      overrides must make sure to do the same thing (or call AssignProperties
+      in descendants). }
+    procedure AssignProperties(const Source: TCastleImage); virtual;
   public
     { Constructor without parameters creates image with Width = Height = Depth = 0
       and RawPixels = nil, so IsEmpty will return @true. }
@@ -1425,6 +1466,7 @@ type
       const Mode: TDrawMode); override;
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
+    procedure AssignProperties(const Source: TCastleImage); override;
   public
     constructor Create; overload; override;
 
@@ -1640,7 +1682,7 @@ function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
 { @groupEnd }
 
 { Guess MIME type from image extension. Empty string if cannot guess. }
-function ImageExtToMimeType(Ext: string): string; deprecated 'use URIMimeType';
+function ImageExtToMimeType(Ext: string): string; deprecated 'use UriMimeType';
 
 { loading image -------------------------------------------------------------- }
 
@@ -1742,11 +1784,11 @@ function LoadImage(Stream: TStream; const MimeType: string;
   const AllowedImageClasses: array of TEncodedImageClass)
   :TCastleImage; overload;
 
-function LoadImage(const URL: string): TCastleImage; overload;
-function LoadImage(const URL: string;
+function LoadImage(const Url: String): TCastleImage; overload;
+function LoadImage(const Url: String;
   const AllowedImageClasses: array of TEncodedImageClass)
   :TCastleImage; overload;
-function LoadImage(const URL: string;
+function LoadImage(const Url: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation = riBilinear;
@@ -1766,9 +1808,9 @@ function LoadEncodedImage(Stream: TStream; const MimeType: string;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = [])
   :TEncodedImage; overload;
-function LoadEncodedImage(const URL: string;
+function LoadEncodedImage(const Url: String;
   const Options: TLoadImageOptions = []): TEncodedImage; overload;
-function LoadEncodedImage(URL: string;
+function LoadEncodedImage(Url: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = [])
   :TEncodedImage; overload;
@@ -1784,7 +1826,7 @@ type
   or just a normal filename.
 
   File format is determined by looking at URL (guessing MIME type using
-  URIMimeType), or given explicitly as MimeType,
+  UriMimeType), or given explicitly as MimeType,
   or just given explicitly as Format parameter.
 
   Image class does @bold(not)
@@ -1812,7 +1854,7 @@ type
 
   @groupBegin }
 procedure SaveImage(const Img: TEncodedImage; const MimeType: string; Stream: TStream); overload;
-procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
+procedure SaveImage(const Img: TEncodedImage; const Url: String); overload;
 { @groupEnd }
 
 { Other TCastleImage processing ---------------------------------------------------- }
@@ -1825,7 +1867,7 @@ procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
   by guessing based on file extension.
 
   @groupBegin }
-function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const Url: String): TCastleImageClass;
   deprecated 'implement this logic yourself; the fact that this may return TRGBImage, disregarging possible alpha, is misleading';
 { @groupEnd }
 
@@ -1947,7 +1989,7 @@ function StringToTextureCompression(const S: string): TTextureCompression;
 
 type
   { Listener type for @link(AddLoadImageListener). }
-  TLoadImageEvent = procedure (var ImageUrl: string) of object;
+  TLoadImageEvent = procedure (var ImageUrl: String) of object;
 
 var
   { Is the value of @link(SupportedTextureCompression) determined
@@ -1978,10 +2020,10 @@ var
   from TCastleScene and so on.
 
   @longCode(#
-    uses ..., CastleURIUtils, CastleGLUtils, CastleLog, CastleStringUtils,
+    uses ..., CastleUriUtils, CastleGLUtils, CastleLog, CastleStringUtils,
       CastleFilesUtils;
 
-    procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
+    procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: String);
     begin
       if IsPrefix('castle-data:/animation/dragon/', ImageUrl) then
       begin
@@ -2010,7 +2052,7 @@ procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
 
 { Process URL through events registered by @link(AddLoadImageListener).
   This is used internally by the engine. }
-function ProcessImageUrl(const URL: string): string;
+function ProcessImageUrl(const Url: String): string;
 
 { @exclude }
 function InternalDetectClassPNG(const Stream: TStream): TEncodedImageClass;
@@ -2028,8 +2070,8 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
     ImagingExtFileFormats,
   {$endif}
   CastleInternalZLib, CastleStringUtils, CastleFilesUtils, CastleLog, CastleDynLib,
-  CastleInternalCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils,
-  CastleStreamUtils;
+  CastleInternalCompositeImage, CastleDownload, CastleUriUtils, CastleTimeUtils,
+  CastleStreamUtils, CastleInternalDataCompression;
 
 { parts ---------------------------------------------------------------------- }
 
@@ -2353,6 +2395,7 @@ begin
     try
       // since we request our own class as output, CreateFromFpImage must return some TCastleImage
       Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]) as TCastleImage;
+      Result.AssignProperties(Self);
     finally FreeAndNil(NewFpImage) end;
     {$else FPC}
     WritelnWarning('Resizing with interpolation %d not supported with Delphi, falling back to bilinear', [
@@ -2368,12 +2411,13 @@ begin
 
     Result := TCastleImageClass(ClassType).Create(ResizeWidth, ResizeHeight);
     try
-      Result.FURL := URL;
+      Result.FUrl := Url;
       if not IsEmpty then
         InternalResize(PixelSize,
                  RawPixels,        Rect,        Width,        Height,
           Result.RawPixels, Result.Rect, Result.Width, Result.Height,
           Interpolation, {$ifdef FPC}@{$endif} MixColors);
+      Result.AssignProperties(Self)
     except Result.Free; raise end;
   end;
 end;
@@ -2465,10 +2509,11 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     Result := TCastleImageClass(ClassType).Create(Height, Width);
     { It is nice to keep URL meaningful,
       shown e.g. for rotated cubemap sides loaded to OpenGL, in TextureProfiler. }
-    Result.URL := URL + '[rotated]';
+    Result.Url := Url + '[rotated]';
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Y, Width - 1 - X)^, PixelSize);
+    Result.AssignProperties(Self);
   end;
 
   procedure Rotate180;
@@ -2476,10 +2521,11 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     X, Y: Integer;
   begin
     Result := TCastleImageClass(ClassType).Create(Width, Height);
-    Result.URL := URL + '[rotated]';
+    Result.Url := Url + '[rotated]';
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Width - 1 - X, Height - 1 - Y)^, PixelSize);
+    Result.AssignProperties(Self);
   end;
 
   procedure Rotate270;
@@ -2487,10 +2533,11 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     X, Y: Integer;
   begin
     Result := TCastleImageClass(ClassType).Create(Height, Width);
-    Result.URL := URL + '[rotated]';
+    Result.Url := Url + '[rotated]';
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Height - 1 - Y, X)^, PixelSize);
+    Result.AssignProperties(Self);
   end;
 
 begin
@@ -2504,6 +2551,11 @@ begin
     3: Rotate270;
     else Result := MakeCopy; // else Angle = 0
   end;
+end;
+
+procedure TCastleImage.AssignProperties(const Source: TCastleImage);
+begin
+  // No need to do anything in TCastleImage
 end;
 
 procedure TCastleImage.Rotate(const Angle: Integer);
@@ -2580,6 +2632,8 @@ begin
         Move(PixelPtr(0, j mod Height)^,
              Result.PixelPtr(i * Width, j)^,
              PixelSize * Width );
+
+    Result.AssignProperties(Self);
   except Result.Free; raise end;
 end;
 
@@ -2596,6 +2650,7 @@ begin
   try
     for Y := 0 to ExtractHeight - 1 do
       Move(PixelPtr(x0, y + y0)^, Result.RowPtr(y)^, PixelSize * ExtractWidth);
+    Result.AssignProperties(Self);
   except Result.Free; raise end;
 end;
 
@@ -2751,63 +2806,152 @@ end;
 
 procedure TCastleImage.SaveToPascalCode(const ImageName: string;
   var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
-var
-  NameWidth, NameHeight, NameDepth, NamePixels: string;
-  pb: PByte;
-  I: Integer;
-begin
-  { calculate Name* variables }
-  NameWidth := ImageName + 'Width';
-  NameHeight := ImageName + 'Height';
-  NameDepth := ImageName + 'Depth';
-  NamePixels := ImageName + 'Pixels';
 
+  { Add to Pascal code in Builder a constant that defines an array of bytes,
+    with name from NameChannelData, with contents from ChannelData. }
+  procedure AddChannelData(const ChannelData: TMemoryStream;
+    const NameChannelData: String; const Builder: TStringBuilder);
+  var
+    PB: PByte;
+    I: Integer;
+  begin
+    Builder.Append(
+      '  ' + NameChannelData +
+      ': array[0 .. ' + IntToStr(ChannelData.Size) + ' - 1] of Byte = (' + NL +
+      '    ');
+    PB := PByte(ChannelData.Memory);
+    for I := 1 to ChannelData.Size do
+    begin
+      Builder.Append(Format('%4d', [PB^]));
+      if I < ChannelData.Size then
+        Builder.Append(',');
+      if (I mod 12) = 0 then
+        Builder.Append(NL + '    ')
+      else
+        Builder.Append(' ');
+      Inc(PB);
+    end;
+    Builder.Append(NL + '  );' + NL);
+  end;
+
+var
+  NameChannelData: String;
+  CodeImplementationBuilder: TStringBuilder;
+  Split: TChannelsSplit;
+  ChannelCompressed: TMemoryStream;
+  Channel: Integer;
+  TotalCompressedSize: Int64;
+begin
   CodeInterface := CodeInterface +
     'function ' +ImageName+ ': ' +ClassName+ ';' +nl + nl;
 
-  CodeImplementation := CodeImplementation +
-    'var' + NL +
-    '  F' +ImageName+ ': ' +ClassName+ ';' + NL +
-    'const' + NL +
-    '  ' +NameWidth+ ' = ' +IntToStr(Width)+ ';' + NL +
-    '  ' +NameHeight+ ' = ' +IntToStr(Height)+ ';' + NL +
-    '  ' +NameDepth+ ' = ' +IntToStr(Depth)+ ';' + NL +
-    '  ' +NamePixels+ ': array[0 .. '
-      +NameWidth+ ' * '
-      +NameHeight+ ' * '
-      +NameDepth+ ' * '
-      +IntToStr(PixelSize) + ' - 1] of Byte = (' + NL +
-    '    ';
+  CodeImplementationBuilder := TStringBuilder.Create;
+  CodeImplementationBuilder.Append(
+    SReplacePatterns(
+      'var' + NL +
+      '  F${IMAGE_NAME}: ${IMAGE_CLASS};' + NL +
+      'const' + NL +
+      '  ${IMAGE_NAME}Width = ' +IntToStr(Width)+ ';' + NL +
+      '  ${IMAGE_NAME}Height = ' +IntToStr(Height)+ ';' + NL +
+      '  ${IMAGE_NAME}Depth = ' +IntToStr(Depth)+ ';' + NL +
+      NL,
+      [
+        '${IMAGE_NAME}',
+        '${IMAGE_CLASS}'
+      ], [
+        ImageName,
+        ClassName
+      ], { ignore case when replacing } false)
+  );
 
-  pb := PByte(RawPixels);
-  for I := 1 to Size - 1 do
-  begin
-    CodeImplementation := CodeImplementation + Format('%4d,', [pb^]);
-    if (i mod 12) = 0 then
-    begin
-      CodeImplementation := CodeImplementation + NL + '    ';
-    end else
-      CodeImplementation := CodeImplementation + ' ';
-    Inc(pb);
-  end;
-  CodeImplementation := CodeImplementation +
-    Format('%4d);', [pb^]) + NL +
+  // add compressed data for all channels
+  TotalCompressedSize := 0;
+  Split := DataChannelsSplit(RawPixels, Size, PixelSize);
+  try
+    ChannelCompressed := TMemoryStream.Create;
+    try
+      for Channel := 0 to PixelSize - 1 do
+      begin
+        // reset ChannelCompressed contents
+        ChannelCompressed.Size := 0;
+        ChannelCompressed.Position := 0;
+
+        // generate ChannelCompressed contents
+        RleCompress(Split.Data[Channel], Split.DataSize, ChannelCompressed);
+
+        // write ChannelCompressed to CodeImplementationBuilder
+        NameChannelData := ImageName + 'ChannelData' + IntToStr(Channel);
+        AddChannelData(ChannelCompressed, NameChannelData, CodeImplementationBuilder);
+
+        // update stats
+        TotalCompressedSize := TotalCompressedSize + ChannelCompressed.Size;
+      end;
+    finally FreeAndNil(ChannelCompressed) end;
+  finally FreeAndNil(Split) end;
+  WritelnLog('Compress', 'Compressed size of ' +ImageName+ ' is ' +IntToStr(TotalCompressedSize)+ ' bytes, achieving compression ratio (lower the better) %f', [
+    TotalCompressedSize / Size
+  ]);
+
+  // add code to decompress data and combine channels when the generated Pascal code is used
+  CodeImplementationBuilder.Append(
+    SReplacePatterns(
     NL +
-    'function ' +ImageName+ ': ' +ClassName+ ';' + NL +
+    'function ${IMAGE_NAME}: ${IMAGE_CLASS};' + NL +
+    'var' + NL +
+    '  Split: TChannelsSplit;' + NL +
     'begin' + NL +
-    '  if F' +ImageName + ' = nil then' + NL +
+    '  if F${IMAGE_NAME} = nil then' + NL +
     '  begin' + NL +
-    '    F' +ImageName+ ' := ' +ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ', ' +NameDepth+ ');' + NL +
-    '    Move(' +NamePixels+ ', F' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' + NL +
-    '    F' +ImageName+ '.URL := ''embedded-image:/' +ImageName+ ''';' + NL +
-    '  end;' + NL +
-    '  Result := F' +ImageName+ ';' + NL +
-    'end;' + NL +
-    NL +
-    '';
+    '    F${IMAGE_NAME} := ${IMAGE_CLASS}.Create(${IMAGE_NAME}Width, ${IMAGE_NAME}Height, ${IMAGE_NAME}Depth);' + NL +
+    '    Split := TChannelsSplit.Create;' + NL +
+    '    try' + NL +
+    '      SetLength(Split.Data, F${IMAGE_NAME}.PixelSize);' + NL +
+    '      Split.DataSize := F${IMAGE_NAME}.Size div F${IMAGE_NAME}.PixelSize;' + NL +
+    '      Split.DataAllocate;' + NL,
+    [
+      '${IMAGE_NAME}',
+      '${IMAGE_CLASS}'
+    ], [
+      ImageName,
+      ClassName
+    ], { ignore case when replacing } false));
+
+  for Channel := 0 to PixelSize - 1 do
+  begin
+    NameChannelData := ImageName + 'ChannelData' + IntToStr(Channel);
+    CodeImplementationBuilder.Append(
+      SReplacePatterns(
+        '      RleDecompress(@${CHANNEL_DATA}, SizeOf(${CHANNEL_DATA}), Split.Data[${CHANNEL}], Split.DataSize);' + NL,
+        [
+          '${CHANNEL_DATA}',
+          '${CHANNEL}'
+        ], [
+          NameChannelData,
+          IntToStr(Channel)
+        ], { ignore case when replacing } false));
+  end;
+
+  CodeImplementationBuilder.Append(
+    SReplacePatterns(
+      '      DataChannelsCombine(F${IMAGE_NAME}.RawPixels, F${IMAGE_NAME}.Size,' + NL +
+      '        F${IMAGE_NAME}.PixelSize, Split);' + NL +
+      '      Split.DataFree;' + NL +
+      '    finally FreeAndNil(Split) end;' + NL +
+      '    F${IMAGE_NAME}.Url := ''embedded-image:/${IMAGE_NAME}'';' + NL +
+      '  end;' + NL +
+      '  Result := F${IMAGE_NAME};' + NL +
+      'end;' + NL +
+      NL,
+      [
+        '${IMAGE_NAME}'
+      ], [
+        ImageName
+      ], { ignore case when replacing } false));
+  CodeImplementation := CodeImplementation +
+    CodeImplementationBuilder.ToString;
 
   CodeFinalization := CodeFinalization +
-    '  FreeAndNil(F' +ImageName+ ');' +nl;
+    '  FreeAndNil(F' + ImageName + ');' +nl;
 end;
 
 procedure TCastleImage.AlphaBleed(const ProgressTitle: string);
@@ -3044,7 +3188,7 @@ end;
 function TGPUCompressedImage.Decompress: TCastleImage;
 begin
   WritelnLog('Decompressing GPU-compressed "%s", this is usually a waste of time for normal games that should load textures in format (compressed or not) suitable for current GPU', [
-    URL
+    Url
   ]);
   if Assigned(DecompressTexture) then
     Result := DecompressTexture(Self)
@@ -3062,7 +3206,7 @@ begin
   Result := TGPUCompressedImage.Create(Width, Height, Depth, Compression);
   Assert(Result.Size = Size);
   Move(RawPixels^, Result.RawPixels^, Size);
-  Result.URL := URL;
+  Result.Url := Url;
 end;
 
 { TCastleImageClass and arrays of TCastleImageClasses ----------------------------- }
@@ -3413,7 +3557,7 @@ end;
 
 procedure TRGBAlphaImage.Clear(const Pixel: TVector4Byte);
 begin
-  FillDWord(RawPixels^, Width*Height, LongWord(Pixel));
+  FillDWord(RawPixels^, Width*Height, UInt32(Pixel));
 end;
 
 procedure TRGBAlphaImage.ClearAlpha(const Alpha: Byte);
@@ -3431,7 +3575,7 @@ end;
 
 function TRGBAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
 begin
-  Result := IsMemDWordFilled(RawPixels^, Width * Height * Depth, LongWord(Pixel));
+  Result := IsMemDWordFilled(RawPixels^, Width * Height * Depth, UInt32(Pixel));
 end;
 
 procedure TRGBAlphaImage.TransformRGB(const Matrix: TMatrix3);
@@ -4016,9 +4160,9 @@ var
   Pixel: PByte;
 begin
   Pixel := PixelPtr(X, Y, Z);
-  Result.X := Pixel^;
-  Result.Y := Pixel^;
-  Result.Z := Pixel^;
+  Result.X := Pixel^ / 255;
+  Result.Y := Pixel^ / 255;
+  Result.Z := Pixel^ / 255;
   Result.W := 1.0;
 end;
 
@@ -4034,6 +4178,23 @@ procedure TGrayscaleImage.SetColorWhenTreatedAsAlpha(const Value: TVector3Byte);
 begin
   FColorWhenTreatedAsAlpha := Value;
   FGrayscaleColorWhenTreatedAsAlpha := GrayscaleValue(Value);
+end;
+
+procedure TGrayscaleImage.AssignProperties(const Source: TCastleImage);
+begin
+  inherited;
+
+  { Copying these properties between TGrayscaleImage->TGrayscaleImage
+    is important, e.g. when old OpenGLs need to resize font texture
+    (to be power of 2) we have to copy the TreatAsAlpha value,
+    to render font properly with alpha blending.
+  }
+  if Source is TGrayscaleImage then
+  begin
+    FTreatAsAlpha := TGrayscaleImage(Source).TreatAsAlpha;
+    FColorWhenTreatedAsAlpha := TGrayscaleImage(Source).ColorWhenTreatedAsAlpha;
+    FGrayscaleColorWhenTreatedAsAlpha := TGrayscaleImage(Source).GrayscaleColorWhenTreatedAsAlpha;
+  end;
 end;
 
 { TGrayscaleAlphaImage ------------------------------------------------------------ }
@@ -4201,7 +4362,7 @@ var
 begin
   Pixel := PixelPtr(X, Y, Z);
   Pixel^.X := Clamped(Round(GrayscaleValue(C) * 255), Low(Byte), High(Byte));
-  Pixel^.Y := Clamped(Round(C.W         * 255), Low(Byte), High(Byte));
+  Pixel^.Y := Clamped(Round(C.W               * 255), Low(Byte), High(Byte));
 end;
 
 function TGrayscaleAlphaImage.ToGrayscaleImage: TGrayscaleImage;
@@ -4313,15 +4474,15 @@ end;
 type
   { List of TLoadImageEvent methods. }
   TLoadImageEventList = class({$ifdef FPC}specialize{$endif} TList<TLoadImageEvent>)
-    procedure Execute(var URL: string);
+    procedure Execute(var Url: String);
   end;
 
-procedure TLoadImageEventList.Execute(var URL: string);
+procedure TLoadImageEventList.Execute(var Url: String);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I](URL);
+    Items[I](Url);
 end;
 
 var
@@ -4502,7 +4663,7 @@ begin
     raise EImageFormatNotSupported.Create('Unrecognized image MIME type: "'+MimeType+'"');
 end;
 
-function LoadEncodedImage(URL: string;
+function LoadEncodedImage(Url: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = []): TEncodedImage;
 const
@@ -4513,28 +4674,28 @@ var
   TimeStart: TCastleProfilerTime;
 begin
   F := nil;
-  TimeStart := Profiler.Start('Loading "' + URIDisplay(URL) + '" (CastleImages)');
+  TimeStart := Profiler.Start('Loading "' + UriDisplay(Url) + '" (CastleImages)');
   try
     try
-      LoadImageEvents.Execute(URL);
-      F := Download(URL, [soForceMemoryStream], MimeType);
+      LoadImageEvents.Execute(Url);
+      F := Download(Url, [soForceMemoryStream], MimeType);
       Result := LoadEncodedImage(F, MimeType, AllowedImageClasses, Options);
-      Result.FURL := URL;
+      Result.FUrl := Url;
     except
       { capture some exceptions to add URL to exception message }
       on E: EReadError do // maybe be raised by Download
       begin
-        E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
+        E.Message := Format(SLoadError, [UriDisplay(Url), E.Message]);
         raise;
       end;
       on E: EImageLoadError do
       begin
-        E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
+        E.Message := Format(SLoadError, [UriDisplay(Url), E.Message]);
         raise;
       end;
       on E: EImageFormatNotSupported do
       begin
-        E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
+        E.Message := Format(SLoadError, [UriDisplay(Url), E.Message]);
         raise;
       end;
     end;
@@ -4544,10 +4705,10 @@ begin
   end;
 end;
 
-function LoadEncodedImage(const URL: string;
+function LoadEncodedImage(const Url: String;
   const Options: TLoadImageOptions = []): TEncodedImage;
 begin
-  Result := LoadEncodedImage(URL, [], Options);
+  Result := LoadEncodedImage(Url, [], Options);
 end;
 
 { LoadImage ------------------------------------------------------------------ }
@@ -4574,30 +4735,30 @@ begin
   Result := TCastleImage(E);
 end;
 
-function LoadImage(const URL: string;
+function LoadImage(const Url: String;
   const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
 var
   E: TEncodedImage;
 begin
-  E := LoadEncodedImage(URL, AllowedImageClasses);
+  E := LoadEncodedImage(Url, AllowedImageClasses);
   if not (E is TCastleImage) then
     raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
-      [URIDisplay(URL)]);
+      [UriDisplay(Url)]);
   Result := TCastleImage(E);
 end;
 
-function LoadImage(const URL: string): TCastleImage;
+function LoadImage(const Url: String): TCastleImage;
 var
   E: TEncodedImage;
 begin
-  E := LoadEncodedImage(URL);
+  E := LoadEncodedImage(Url);
   if not (E is TCastleImage) then
     raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
-      [URIDisplay(URL)]);
+      [UriDisplay(Url)]);
   Result := TCastleImage(E);
 end;
 
-function LoadImage(const URL: string;
+function LoadImage(const Url: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation = riBilinear;
@@ -4605,10 +4766,10 @@ function LoadImage(const URL: string;
 var
   E: TEncodedImage;
 begin
-  E := LoadEncodedImage(URL, AllowedImageClasses, Options);
+  E := LoadEncodedImage(Url, AllowedImageClasses, Options);
   if not (E is TCastleImage) then
     raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
-      [URIDisplay(URL)]);
+      [UriDisplay(Url)]);
   Result := TCastleImage(E);
   Result.Resize(ResizeWidth, ResizeHeight, Interpolation);
 end;
@@ -4682,7 +4843,7 @@ begin
   SaveImage(Img, Format, Stream);
 end;
 
-procedure SaveImage(const Img: TEncodedImage; const URL: string);
+procedure SaveImage(const Img: TEncodedImage; const Url: String);
 var
   Stream: TStream;
   Format: TImageFormat;
@@ -4690,12 +4851,12 @@ var
 begin
   { Do not call SaveImage with MimeType: string parameter, instead calculate
     Format here. This way we can make better error messaage. }
-  MimeType := URIMimeType(URL);
+  MimeType := UriMimeType(Url);
   if not MimeTypeToImageFormat(MimeType, false, true, Format) then
     raise EImageSaveError.CreateFmt('Unknown image MIME type "%s", cannot save URL "%s". Make sure the filename/URL you want to save has one of the recognized extensions',
-      [MimeType, URL]);
+      [MimeType, Url]);
 
-  Stream := URLSaveStream(URL);
+  Stream := UrlSaveStream(Url);
   try
     SaveImage(Img, Format, Stream);
   finally FreeAndNil(Stream) end;
@@ -4769,9 +4930,9 @@ begin
   LoadImageEvents.Remove(Event);
 end;
 
-function ProcessImageUrl(const URL: string): string;
+function ProcessImageUrl(const Url: String): string;
 begin
-  Result := URL;
+  Result := Url;
   LoadImageEvents.Execute(Result);
 end;
 

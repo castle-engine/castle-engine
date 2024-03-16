@@ -41,7 +41,7 @@ type
         NumberOfArrayElements,
         NumberOfFaces,
         NumberOfMipmapLevels,
-        BytesOfKeyValueData: LongWord;
+        BytesOfKeyValueData: UInt32;
       end;
     const
       // See /usr/include/GL/gl.h , /usr/include/GL/glext.h
@@ -86,7 +86,7 @@ type
       RowsTopToBottom, SlicesFrontToBack: boolean;
 
     procedure ReadKeyValues(const Stream: TStream);
-    procedure ReadOrientation(const Value: string);
+    procedure ReadOrientation(const Value: String);
 
     { The KTX specification says
       "Uncompressed texture data matches a GL_UNPACK_ALIGNMENT of 4." }
@@ -112,7 +112,7 @@ type
     procedure ReadFloatImage(const Stream: TStream; const W, H, D: Cardinal);
     procedure ReadCompressed(const Stream: TStream; const Compression: TTextureCompression; const W, H, D: Cardinal);
   public
-    procedure LoadFromStream(const Stream: TStream; const URL: string); override;
+    procedure LoadFromStream(const Stream: TStream; const Url: String); override;
   end;
 
 function TKTXHandler.TargetY(const Y: Integer; const H: Cardinal): Integer;
@@ -336,7 +336,7 @@ begin
   finally FreeAndNil(Floats) end;
 end;
 
-procedure TKTXHandler.ReadOrientation(const Value: string);
+procedure TKTXHandler.ReadOrientation(const Value: String);
 begin
   if (Value = 'S=r,T=d') or
      (Value = 'S=r,T=d,R=o') then
@@ -373,7 +373,7 @@ end;
 
 procedure TKTXHandler.ReadKeyValues(const Stream: TStream);
 var
-  RemainingToRead, KeyAndValueByteSize, ValuePadding: LongWord;
+  RemainingToRead, KeyAndValueByteSize, ValuePadding: UInt32;
   KeyAndValue: array of AnsiChar;
   Key, Value: AnsiString;
 begin
@@ -631,12 +631,12 @@ begin
   end;
 end;
 
-procedure TKTXHandler.LoadFromStream(const Stream: TStream; const URL: string);
+procedure TKTXHandler.LoadFromStream(const Stream: TStream; const Url: String);
 
   procedure ReadMipmapLevel(const W, H, D: Cardinal);
   var
     I: Integer;
-    ImageSize: LongWord;
+    ImageSize: UInt32;
   begin
     Stream.ReadBuffer(ImageSize, SizeOf(ImageSize));
     if SwapEndianness then

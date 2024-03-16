@@ -28,12 +28,12 @@ type
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
         { The name of the property. }
-        Name: string;
+        Name: String;
         { The value of the property. }
-        Value: string;
+        Value: String;
         { The type of the property. Can be string (default), int, float, bool, color
           or file (since 0.16, with color and file added in 0.17). }
-        AType: string;
+        AType: String;
       end;
 
       { List of properties. }
@@ -67,10 +67,10 @@ type
       public
         { Used for embedded images, in combination with a data child element.
           Valid values are file extensions like png, gif, jpg, bmp, etc. (since 0.9) }
-        Format: string;
+        Format: String;
         { The reference to the tileset image file (Tiled supports most common
           image formats). }
-        URL: string;
+        Url: String;
         { Defines a specific color that is treated as transparent. }
         Trans: TCastleColorRGB;
         { The image width in pixels (optional, used for tile index correction when
@@ -99,9 +99,9 @@ type
           Can not be changed in Tiled Qt. (since Tiled 0.11) }
         Id: Integer;
         { The name of the object. An arbitrary string. }
-        Name: string;
+        Name: String;
         { The type of the object. An arbitrary string. }
-        Type_: string;
+        Type_: String;
         { The x coordinate of the object in pixels. }
         X: Single;
         { The y coordinate of the object in pixels. }
@@ -131,14 +131,20 @@ type
 
       TLayer = class
       private
+        FVisible: Boolean;
         procedure Load(const Element: TDOMElement; const BaseUrl: String); virtual;
+        procedure SetExists(const Value: Boolean);
       public
+        { Unique ID of the layer. Defaults to 0.}
+        Id: Cardinal;
         { The name of the layer. }
-        Name: string;
+        Name: String;
+        { The class of the layer (since 1.9, defaults to ''). }
+        &Class: String;
         { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
         Opacity: Single;
-        { Whether the layer is shown or hidden. Defaults to true. }
-        Visible: Boolean;
+        { Whether the layer is locked or unlocked. Defaults to false. }
+        Locked: Boolean;
         { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
         OffsetX: Single;
         { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
@@ -151,10 +157,27 @@ type
         Width: Integer;
         { The height of the object group in tiles. Meaningless. }
         Height: Integer;
+        { Used by the Exists-property to show/hide the layer.
+          Not a part of the file format.
+
+          TODO: Maybe rename this to RenderData,
+          consistent with other such data in this file.
+          Possibly do this at new Tiled layers API work:
+          https://castle-engine.io/roadmap#tiled_layers . }
+        SwitchNode: TSwitchNode;
         constructor Create;
         destructor Destroy; override;
         { OffsetX and OffsetY packed in a vector. }
         function Offset: TVector2;
+        { Hides or shows the layer. Not a part of the file format.
+
+          TODO:
+          This property should move to a different class, TCastleTiledMap.TLayer.
+          See https://castle-engine.io/roadmap#tiled_layers }
+        property Exists: Boolean read FVisible write SetExists;
+        { Whether the layer is shown or hidden. Defaults to true. Use the Exists-property to
+          change the visibility during runtime. }
+        property Visible: Boolean read FVisible;
       end;
 
       TObjectGroupLayer = class(TLayer)
@@ -207,6 +230,9 @@ type
       public
         { The local tile ID within its tileset. }
         Id: Cardinal;
+        { The class of the tile. Is inherited by tile objects. (since 1.0, defaults to '',
+          was saved as class in 1.9) }
+        &Type: String;
         { Defines the terrain type of each corner of the tile, given as
           comma-separated indexes in the terrain types array in the order top-left,
           top-right, bottom-left, bottom-right. Leaving out a value means that corner
@@ -232,7 +258,7 @@ type
 
       TTerrain = class
         { The name of the terrain type. }
-        Name: string;
+        Name: String;
         { The local tile-id of the tile that represents the terrain visually. }
         Tile: Cardinal;
         Properties: TPropertyList;
@@ -255,9 +281,9 @@ type
           <tileset> element described here. (There is the firstgid attribute missing
           and this source attribute is also not there. These two attributes
           are kept in the TMX map, since they are map specific.) }
-        URL: string;
+        Url: String;
         { The name of this tileset. }
-        Name: string;
+        Name: String;
         { The (maximum) width of the tiles in this tileset. }
         TileWidth: Cardinal;
         { The (maximum) height of the tiles in this tileset. }
@@ -302,7 +328,7 @@ type
   strict private
     { Map stuff. }
     { The TMX format version, generally 1.0. }
-    FVersion: string;
+    FVersion: String;
     FOrientation: TMapOrientation;
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -313,14 +339,14 @@ type
     FStaggerIndex: TStaggerIndex;
     FBackgroundColor: TCastleColor;
     FRenderOrder: TMapRenderOrder;
-    FBaseUrl: string;
+    FBaseUrl: String;
     FTilesets: TTilesetList;
     FProperties: TPropertyList;
     FLayers: TLayerList;
     { Load TMX file from stream. }
     procedure LoadTMXFile(const Stream: TStream; const ABaseUrl: String); overload;
     { Load TMX file by URL. }
-    procedure LoadTMXFile(const AURL: String); overload;
+    procedure LoadTMXFile(const AUrl: String); overload;
     { Load TMX file internally from XMLDocument instance. }
     procedure LoadTMXFileInternal(const Doc: TXMLDocument);
   public
@@ -354,9 +380,9 @@ type
       maps at the moment) }
     property RenderOrder: TMapRenderOrder read FRenderOrder;
     { Constructor.
-      @param(AURL URL to Tiled (TMX) file.) }
+      @param(AUrl URL to Tiled (TMX) file.) }
     constructor Create(const Stream: TStream; const ABaseUrl: String); overload;
-    constructor Create(const AURL: string); overload;
+    constructor Create(const AUrl: String); overload;
     destructor Destroy; override;
 
     { Is the given tile number valid.
@@ -481,7 +507,7 @@ procedure TCastleTiledMapData.TData.Load(const Element: TDOMElement; const BaseU
     Decoder: TBase64DecodingStream;
     Decompressor: TStream;
     Buffer: array[0..BufferSize-1] of Cardinal;
-    DataCount, DataLength: Longint;
+    DataCount, DataLength: Int64;
   begin
     Decoder := TBase64DecodingStream.Create(TStringStream.Create(Element.TextData));
     try
@@ -538,7 +564,7 @@ procedure TCastleTiledMapData.TData.Load(const Element: TDOMElement; const BaseU
   end;
 
 var
-  TmpStr: string;
+  TmpStr: String;
 begin
   Encoding := etNone;
   Compression := ctNone;
@@ -585,18 +611,18 @@ const
   DefaultTrans: TCastleColorRGB = (X: 1.0; Y: 0.0; Z: 1.0); {Fuchsia}
 var
   I: TXMLElementIterator;
-  TmpStr, URLPrefix: string;
+  TmpStr, UrlPrefix: String;
 begin
   if Element.AttributeString('format', TmpStr) then
     Format := TmpStr;
   if Element.AttributeString('source', TmpStr) then
   begin
-    URLPrefix := CombineURI(BaseUrl, TmpStr);
+    UrlPrefix := CombineUri(BaseUrl, TmpStr);
     { Tiled allows loading images ignoring the '.png' suffix }
-    if (ExtractFileExt(TmpStr) = '') and not URIFileExists(URLPrefix) then
-      URL := URLPrefix + '.png'
+    if (ExtractFileExt(TmpStr) = '') and not UriFileExists(UrlPrefix) then
+      Url := UrlPrefix + '.png'
     else
-      URL := URLPrefix;
+      Url := UrlPrefix;
   end;
   if Element.AttributeString('trans', TmpStr) then
     Trans := TiledToColorRGB(TmpStr)
@@ -629,14 +655,14 @@ begin
   begin
     { Note: While we could store Image to use it loader, e.g.
 
-        TilesetTextureNode.LoadFromImage(Tileset.Image, false, Tileset.Image.URL);
+        TilesetTextureNode.LoadFromImage(Tileset.Image, false, Tileset.Image.Url);
 
       ... but this would be an optimization that complicates code for a seldom use-case
       (because new Tiled files should include size).
       So we don't do it, and just load + free image only to read size. }
 
     WritelnLog('Determining image size by loading it. It is more efficient to store image size in TMX file.');
-    ImageData := LoadEncodedImage(URL);
+    ImageData := LoadEncodedImage(Url);
     try
       Width := ImageData.Width;
       Height := ImageData.Height;
@@ -648,7 +674,7 @@ end;
 
 procedure TCastleTiledMapData.TFrame.Load(const Element: TDOMElement; const BaseUrl: String);
 var
-  TmpStr: string;
+  TmpStr: String;
 begin
   if Element.AttributeString('tileid', TmpStr) then
     TileId := StrToInt(TmpStr);
@@ -702,11 +728,13 @@ end;
 procedure TCastleTiledMapData.TTile.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
-  TmpStr, LowerTagName: string;
+  TmpStr, LowerTagName: String;
   SPosition: Integer;
 begin
   if Element.AttributeString('id', TmpStr) then
     Id := StrToInt(TmpStr);
+  &Type := Element.AttributeStringDef('type', '');
+
   if Element.AttributeString('terrain', TmpStr) then
   begin
     SPosition := 1;
@@ -760,7 +788,7 @@ end;
 procedure TCastleTiledMapData.TTiledObject.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
-  TmpStr: string;
+  TmpStr: String;
 
   function ReadVector(const S: String): TVector2;
   var
@@ -777,7 +805,7 @@ var
       raise Exception.CreateFmt('Unexpected vector format in Tiled map: %s', [S]);
   end;
 
-  procedure ReadPoints(const PointsString: string; var PointsList: TVector2List);
+  procedure ReadPoints(const PointsString: String; var PointsList: TVector2List);
   var
     SeekPos: Integer;
     Token: String;
@@ -878,21 +906,30 @@ end;
 procedure TCastleTiledMapData.TLayer.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
-  TmpStr, LowerTagName: string;
+  TmpStr, LowerTagName: String;
 begin
   Opacity := 1;
-  Visible := True;
+  FVisible := true;
   OffsetX := 0;
   OffsetY := 0;
+  Locked := False;
   if Element.AttributeString('color', TmpStr) then
     Color := TiledToColorRGB(TmpStr)
   else
     Color := BlackRGB; // Default layer color in Tiled editor if no color is set.
+
+  if Element.AttributeString('id', TmpStr) then
+    Id := StrToInt(TmpStr);
   Name := Element.AttributeStringDef('name', '');
+  &Class := Element.AttributeStringDef('class', '');
+
   if Element.AttributeString('opacity', TmpStr) then
     Opacity := StrToFloatDot(TmpStr);
   if Element.AttributeStringDef('visible', '1') = '0' then
-    Visible := false;
+    FVisible := false;
+  if Element.AttributeStringDef('locked', '') = '1' then
+    Locked := True;
+
   OffsetX := Element.AttributeSingleDef('offsetx', 0);
   OffsetY := Element.AttributeSingleDef('offsety', 0);
 
@@ -919,6 +956,16 @@ begin
   Result := Vector2(OffsetX, OffsetY);
 end;
 
+procedure TCastleTiledMapData.TLayer.SetExists(const Value: Boolean);
+begin
+  if FVisible <> Value then
+  begin
+    FVisible := Value;
+    if Assigned(SwitchNode) then
+      SwitchNode.WhichChoice := Iff(Value, 0, -1);
+  end;
+end;
+
 { TObjectGroupLayer ---------------------------------------------------------- }
 
 constructor TCastleTiledMapData.TObjectGroupLayer.Create;
@@ -937,7 +984,7 @@ procedure TCastleTiledMapData.TObjectGroupLayer.Load(const Element: TDOMElement;
 var
   I: TXMLElementIterator;
   NewObject: TTiledObject;
-  TmpStr: string;
+  TmpStr: String;
 begin
   inherited;
 
@@ -1016,15 +1063,15 @@ end;
 procedure TCastleTiledMapData.TTileset.Load(const Element: TDOMElement; const BaseUrl: String);
 
   { TSX file loading. }
-  procedure LoadTilesetFromURL;
+  procedure LoadTilesetFromUrl;
   var
     Doc: TXMLDocument;
   begin
-    Doc := URLReadXML(URL);
+    Doc := UrlReadXML(Url);
     try
       Check(LowerCase(Doc.DocumentElement.TagName) = 'tileset',
         'Root element of TSX file must be <tileset>');
-      Load(Doc.DocumentElement, URL);
+      Load(Doc.DocumentElement, Url);
     finally
       FreeAndNil(Doc);
     end;
@@ -1082,7 +1129,7 @@ procedure TCastleTiledMapData.TTileset.Load(const Element: TDOMElement; const Ba
 var
   I: TXMLElementIterator;
   NewTile: TTile;
-  TmpStr, LowerTagName: string;
+  TmpStr, LowerTagName: String;
 begin
   TileOffset := TVector2Integer.Zero;
   Spacing := 0;
@@ -1102,8 +1149,8 @@ begin
 
   if Element.AttributeString('source', TmpStr) then
   begin
-    URL := CombineURI(BaseUrl, TmpStr);
-    LoadTilesetFromURL;
+    Url := CombineUri(BaseUrl, TmpStr);
+    LoadTilesetFromUrl;
     Exit;
   end;
   if Element.AttributeString('name', TmpStr) then
@@ -1177,11 +1224,11 @@ begin
   finally FreeAndNil(Doc) end;
 end;
 
-procedure TCastleTiledMapData.LoadTMXFile(const AURL: String);
+procedure TCastleTiledMapData.LoadTMXFile(const AUrl: String);
 var
   Doc: TXMLDocument;
 begin
-  Doc := URLReadXML(AURL);
+  Doc := UrlReadXML(AUrl);
   try
     LoadTMXFileInternal(Doc);
   finally FreeAndNil(Doc) end;
@@ -1189,7 +1236,7 @@ end;
 
 procedure TCastleTiledMapData.LoadTMXFileInternal(const Doc: TXMLDocument);
 var
-  TmpStr, LowerTagName: string;
+  TmpStr, LowerTagName: String;
   I: TXMLElementIterator;
   NewLayer: TLayer;
   NewTileset: TTileset;
@@ -1312,20 +1359,20 @@ begin
   LoadTMXFile(Stream, ABaseUrl);
 end;
 
-constructor TCastleTiledMapData.Create(const AURL: string);
+constructor TCastleTiledMapData.Create(const AUrl: String);
 var
   StreamOptions: TStreamOptions;
   Gzipped: boolean;
   Stream: TStream;
 begin
-  // calculate Stream from AURL, automatically gunzip if extension says it
+  // calculate Stream from AUrl, automatically gunzip if extension says it
   StreamOptions := [];
-  URIMimeType(AURL, Gzipped);
+  UriMimeType(AUrl, Gzipped);
   if Gzipped then
     Include(StreamOptions, soGzip);
-  Stream := Download(AURL, StreamOptions);
+  Stream := Download(AUrl, StreamOptions);
   try
-    Create(Stream, AURL);
+    Create(Stream, AUrl);
   finally FreeAndNil(Stream) end;
 end;
 
