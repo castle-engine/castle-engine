@@ -255,7 +255,7 @@ type
       Reason: Internally, HttpPostData is just an alternative way to set
       HttpRequestBody.
       TODO: We may change this behavior in the future, to make it such that
-      using HttpPostData will automatically override HttpPostData.
+      using HttpRequestBody will automatically override HttpPostData.
       For now, @italic(never use both HttpPostData and HttpRequestBody
       at the same time.)
 

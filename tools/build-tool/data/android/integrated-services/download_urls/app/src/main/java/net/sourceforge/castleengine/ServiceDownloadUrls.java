@@ -53,8 +53,8 @@ public class ServiceDownloadUrls extends ServiceAbstract
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 5 && parts[0].equals("download-url")) {
-            downloadDataFromUrl(Integer.parseInt(parts[1]), parts[2], parts[3], parts[4]);
+        if (parts.length == 6 && parts[0].equals("download-url")) {
+            downloadDataFromUrl(Integer.parseInt(parts[1]), parts[2], parts[3], parts[4], parts[5]);
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("download-interrupt")) {
@@ -94,7 +94,8 @@ public class ServiceDownloadUrls extends ServiceAbstract
     private void downloadDataFromUrl(final int downloadId,
       final String urlToDownload,
       final String httpMethod,
-      final String httpPostData)
+      final String httpRequestBody,
+      final String httpHeaders)
     {
         final String downloadIdStr = Integer.toString(downloadId);
         final URL url;
@@ -113,10 +114,20 @@ public class ServiceDownloadUrls extends ServiceAbstract
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod(httpMethod);
 
-                    if (httpPostData.length() != 0) {
+                    if (httpRequestBody.length() != 0) {
                         connection.setDoOutput(true);
-                        byte[] httpPostDataBytes = httpPostData.getBytes("utf-8");
-                        connection.getOutputStream().write(httpPostDataBytes, 0, httpPostDataBytes.length);
+                        byte[] httpRequestBodyBytes = httpRequestBody.getBytes("utf-8");
+                        connection.getOutputStream().write(httpRequestBodyBytes, 0, httpRequestBodyBytes.length);
+                    }
+                    
+                    if (httpHeaders.length() != 0) {
+                        String[] headers = httpHeaders.split("\n");
+                        for (String header : headers) {
+                            String[] headerParts = header.split(":");
+                            if (headerParts.length == 2) {
+                                connection.setRequestProperty(headerParts[0], headerParts[1]);
+                            }
+                        }
                     }
 
                     InputStream inStream = connection.getInputStream();
