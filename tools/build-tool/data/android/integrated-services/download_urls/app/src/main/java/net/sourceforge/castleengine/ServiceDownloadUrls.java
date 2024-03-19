@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.HttpURLConnection;
@@ -111,15 +113,11 @@ public class ServiceDownloadUrls extends ServiceAbstract
             @Override
             public void run(){
                 try {
+                    // https://docs.oracle.com/javase/8/docs/api/java/net/URLConnection.html
+                    // https://docs.oracle.com/javase/8/docs/api/java/net/HttpURLConnection.html
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setRequestMethod(httpMethod);
 
-                    if (httpRequestBody.length() != 0) {
-                        connection.setDoOutput(true);
-                        byte[] httpRequestBodyBytes = httpRequestBody.getBytes("utf-8");
-                        connection.getOutputStream().write(httpRequestBodyBytes, 0, httpRequestBodyBytes.length);
-                    }
-                    
+                    connection.setRequestMethod(httpMethod);
                     if (httpHeaders.length() != 0) {
                         String[] headers = httpHeaders.split("\n");
                         for (String header : headers) {
@@ -130,13 +128,27 @@ public class ServiceDownloadUrls extends ServiceAbstract
                         }
                     }
 
-                    InputStream inStream = connection.getInputStream();
+                    if (httpRequestBody.length() != 0) {
+                        connection.setDoOutput(true);
+                        // TODO: we need to consider a way to deal with binary data
+                        byte[] httpRequestBodyBytes = httpRequestBody.getBytes("utf-8");
+                        connection.getOutputStream().write(httpRequestBodyBytes, 0, httpRequestBodyBytes.length);
+                    }
 
+                    // not necessary, as Response/Stream methods call it internally, just to separate set up from parse
+                    connection.connect(); 
+                    
+                    int responseCode = connection.getResponseCode();
                     messageSendFromThread(new String[]{"download-response-code", downloadIdStr,
-                        Integer.toString(connection.getResponseCode()),
-                        connection.getResponseMessage()
+                        Integer.toString(responseCode), connection.getResponseMessage()
                     });
 
+                    InputStream inStream = null;
+                    if (responseCode < 400)
+                        inStream = connection.getInputStream();
+                    else
+                        inStream = connection.getErrorStream();
+                    
                     Map<String,List<String>> httpResponseHeaders = connection.getHeaderFields();
                     sendResponseHeaders(httpResponseHeaders, downloadIdStr);
 
@@ -167,11 +179,18 @@ public class ServiceDownloadUrls extends ServiceAbstract
                     messageSendFromThread(new String[]{"download-success", downloadIdStr});
                 }
                 catch (Exception e) {
-                    logError(CATEGORY, "downloadDataFromUrl exception: " + e.getMessage());
+                    logError(CATEGORY, "downloadDataFromUrl exception: " + PrintStackTrace(e));
                     messageSendFromThread(new String[]{"download-error", downloadIdStr, e.getMessage()});
                 }
             }
         });
         thread.start();
+    }
+    
+    private String PrintStackTrace(Exception ex)
+    {
+        StringWriter errors = new StringWriter();
+        ex.printStackTrace(new PrintWriter(errors));
+        return errors.toString();
     }
 }

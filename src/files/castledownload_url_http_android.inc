@@ -70,18 +70,16 @@ procedure THttpAndroidReader.Start;
       Result := '';
   end;
 
-  function DataStr: String;
+  function HttpHeadersStr: String;
   var
     SL: TStringList;
     I: Integer;
-
   begin
     if HttpHeadersKeys = nil then
-      Exit('');    
+      Exit('');
     Assert((HttpHeadersKeys <> nil) = (HttpHeadersValues <> nil));
     Assert(HttpHeadersKeys.Count = HttpHeadersValues.Count);
     SL := TStringList.Create;
-    SL.Delimiter := ' ';
     try
       for I := 0 to HttpHeadersKeys.Count - 1 do
         SL.Append(HttpHeadersKeys[I] + ':' + HttpHeadersValues[I]);
@@ -192,11 +190,6 @@ begin
     // ]);
     Result := true;
   end;
-
-  { TODO:
-    - HttpHeadersKeys, HttpHeadersValues not handled
-      use URLConnection API (setRequestProperty), https://docs.oracle.com/javase/7/docs/api/java/net/URLConnection.html
-  }
 end;
 
 destructor THttpAndroidReader.Destroy;
