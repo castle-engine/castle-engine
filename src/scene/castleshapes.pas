@@ -1262,6 +1262,29 @@ begin
         [ClassName, Node.NiceName]);
       Exit;
     end;
+
+    { TODO: Node.InternalSceneShape may be TGLShape here,
+      see testcase from "DirectionalLight crash in CGE" from Jan Adamec.
+
+      As a temporary workaround,
+      instead of failing assertion "Assert(Node.InternalSceneShape is TShapeTreeList);"
+      or crashing at reading "TShapeTreeList(Node.InternalSceneShape).Count",
+      detect it and behave gracefully for now.
+
+      This should be investigated and fixed properly.
+      But also, processing of CastleInternalShadowMaps, which is likely
+      the fault of this, is doomed to be removed in favor of different
+      shadow maps application for
+      https://github.com/castle-engine/castle-engine/issues/284 anyway.
+    }
+    if not (Node.InternalSceneShape is TShapeTreeList) then
+    begin
+      WritelnWarning('TODO: Calling %s.UnAssociateNode on X3D node that is associated with something unexpected: %s.',
+        [ClassName, Node.NiceName]);
+      Node.InternalSceneShape := nil;
+      Exit;
+    end;
+
     Assert(Node.InternalSceneShape is TShapeTreeList);
     if TShapeTreeList(Node.InternalSceneShape).Count = 1 then
     begin
