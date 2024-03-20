@@ -125,19 +125,22 @@
     property MetadataDouble[const Key: String]: Double read GetMetadataDouble write SetMetadataDouble;
     property MetadataDoubleArray[const Key: String; const Index: Cardinal]: Double read GetMetadataDoubleArray write SetMetadataDoubleArray;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dnode.inc}
   end;
 
   { Basis for all metadata nodes. }
   TAbstractMetadataNode = class(TAbstractNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dmetadatanode.inc}
+  protected
+    function DefaultContainerFieldInContext(const Version: TX3DVersion;
+      const ParentNode: TX3DNode): String; override;
+  {$I auto_generated_node_helpers/x3dnodes_x3dmetadatanode.inc}
   end;
 
   { Abstract node type that indicates that the node may be used as
     a child of a grouping node,
     e.g. inside @link(TAbstractGroupingNode.FdChildren). }
   TAbstractChildNode = class(TAbstractNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dchildnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dchildnode.inc}
   end;
 
   { Abstract base type for all bindable children nodes. }
@@ -556,6 +559,17 @@ end;
 procedure TAbstractNode.SetMetadataDouble(const Key: String; const Value: Double);
 begin
   MetadataDoubleArray[Key, 0] := Value;
+end;
+
+function TAbstractMetadataNode.DefaultContainerFieldInContext(
+  const Version: TX3DVersion; const ParentNode: TX3DNode): String;
+begin
+  { X3D 4.0 changed the containerField for MetadataXxx nodes,
+    see https://github.com/castle-engine/view3dscene/issues/78 . }
+  if Version.Major >= 4 then
+    Result := 'value'
+  else
+    Result := 'metadata';
 end;
 
 { TAbstractBindableNode ------------------------------------------------------ }

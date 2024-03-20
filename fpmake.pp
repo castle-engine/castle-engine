@@ -283,7 +283,6 @@ begin
     P.Targets.AddUnit('castleinternalclassutils.pas');
     P.Targets.AddUnit('castleinternalgzio.pas');
     P.Targets.AddUnit('castleinternalrttiutils.pas');
-    P.Targets.AddUnit('castleinternaltools.pas');
     P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castleinternalzstream.pas');
     P.Targets.AddUnit('castlelog.pas');
@@ -389,6 +388,7 @@ begin
     P.Targets.AddUnit('castlefindfiles.pas');
     P.Targets.AddUnit('castleinternaldirectoryinformation.pas');
     P.Targets.AddUnit('castleinternalfilemonitor.pas');
+    P.Targets.AddUnit('castleinternaltools.pas');
     P.Targets.AddUnit('castlelocalizationgettext.pas');
     P.Targets.AddUnit('castlerecentfiles.pas');
     P.Targets.AddUnit('castleuriutils.pas');

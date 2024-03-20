@@ -80,7 +80,7 @@ Platforms:
 
 - The `castle_engine_design` package _"Target platforms"_ must be only Win32. Because `designide` package is only for Windows 32-bit, just like Delphi IDE.
 
-    And `designide` includes unit `ToolsAPI` which is in turn used by `CastleInternalDelphiDesignUtils` unit.
+    And `designide` includes unit `ToolsAPI` which is in turn used by `CastleInternalDelphiDesign` unit.
 
 - Note about Win32 vs Win64: We generally recommend to build your Windows applications for 64-bit, as this is what users expect nowadays. But we fully support both 32-bit and 64-bit Windows versions, with any compiler.
 

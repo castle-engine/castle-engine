@@ -1772,9 +1772,24 @@ type
   TWinApiClipboard = class(TCastleClipboard)
   protected
     const
-      // Use 16-bit CF_UNICODETEXT with Delphi 16-bit String,
-      // use 8-bit CF_TEXT with FPC 8-bit String.
-      StringClipboardFormat = {$ifdef FPC} CF_TEXT {$else} CF_UNICODETEXT {$endif};
+      { We use CF_UNICODETEXT (16-bit Unicode) with both FPC and Delphi.
+        On Delphi, it matches default String type.
+        On FPC, it matches UTF-16 UnicodeString type.
+
+        We never use CF_TEXT (8-bit ANSI), even with FPC, as it has ANSI encoding
+        while we want UTF-8. }
+      StringClipboardFormat = CF_UNICODETEXT;
+    type
+      { Matching above CF_UNICODETEXT, we use 16-bit UnicodeString and
+        matching UnicodeChar to deal with clipboard on both FPC and Delphi.
+
+        Note: We don't use WideString, UnicodeString is "ref-counted 16-bit String
+        equivalent to 8-bit AnsiString",
+        https://stackoverflow.com/questions/374446/is-widestring-identical-to-string-in-delphi-2009
+        https://docwiki.embarcadero.com/RADStudio/Sydney/en/String_Types_(Delphi)
+        https://forum.lazarus.freepascal.org/index.php?topic=22464.0 }
+      TClipboardChar = WideChar; // UnicodeChar is only defined by FPC
+      TClipboardString = UnicodeString;
     function GetAsText: String; override;
     procedure SetAsText(const Value: String); override;
   end;
@@ -1784,8 +1799,10 @@ var
   DataHandle: Windows.HGLOBAL;
   Data: Pointer;
   ByteSize, CharSize: Integer;
+  ResultUnicode: TClipboardString;
 begin
   Result := '';
+
   if IsClipboardFormatAvailable(StringClipboardFormat) then
   begin
     if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
@@ -1794,11 +1811,9 @@ begin
       if DataHandle = 0 then Exit;
 
       ByteSize := Windows.GlobalSize(DataHandle);
-      CharSize := ByteSize div SizeOf(Char);
-      {$warnings off} // ignore warning "unreachable code" with FPC, where SizeOf(Char) = 1
-      if ByteSize mod SizeOf(Char) <> 0 then
-        WritelnWarning('WinAPI', 'Clipboard data size is not a multiple of SizeOf(Char)');
-      {$warnings on}
+      CharSize := ByteSize div SizeOf(TClipboardChar);
+      if ByteSize mod SizeOf(TClipboardChar) <> 0 then
+        WritelnWarning('WinAPI', 'Clipboard data size is not a multiple of SizeOf(TClipboardChar)');
 
       if CharSize > 1 then
       begin
@@ -1806,8 +1821,9 @@ begin
         Assert(CharSize > 0);
         Data := Windows.GlobalLock(DataHandle);
         try
-          SetLength(Result, CharSize);
-          Move(Data^, Result[1], ByteSize);
+          SetLength(ResultUnicode, CharSize);
+          Move(Data^, ResultUnicode[1], ByteSize);
+          Result := ResultUnicode;
         finally Windows.GlobalUnlock(DataHandle) end;
       end;
     finally Windows.CloseClipboard end;
@@ -1819,6 +1835,7 @@ var
   DataHandle : Windows.HGLOBAL;
   Data: Pointer;
   ByteSize, CharSize: Integer;
+  ValueUnicode: TClipboardString;
 begin
   if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
   try
@@ -1826,15 +1843,17 @@ begin
 
     if Value <> '' then
     begin
-      CharSize := Length(Value) + 1; // copy to Windows with trailing #0
-      ByteSize := CharSize * SizeOf(Char);
+      ValueUnicode := Value;
+
+      CharSize := Length(ValueUnicode) + 1; // copy to Windows with trailing #0
+      ByteSize := CharSize * SizeOf(TClipboardChar);
 
       DataHandle := Windows.GlobalAlloc(Windows.GMEM_MOVEABLE, ByteSize);
       if DataHandle = 0 then Exit;
 
       Data := GlobalLock(DataHandle);
       try
-        Move(Value[1], Data^, ByteSize);
+        Move(ValueUnicode[1], Data^, ByteSize);
       finally Windows.GlobalUnlock(DataHandle) end;
       Windows.SetClipboardData(StringClipboardFormat, DataHandle);
     end;

@@ -322,7 +322,7 @@ contains
   castleinternalegl in '..\..\src\base_rendering\castleinternalegl.pas',
   castlegl in '..\..\src\base_rendering\dglopengl\castlegl.pas',
   castleinternalurlutils in '..\..\src\files\castleinternalurlutils.pas',
-  castleinternaltools in '..\..\src\base\castleinternaltools.pas';
+  castleinternaltools in '..\..\src\files\castleinternaltools.pas';
 
 end.
 

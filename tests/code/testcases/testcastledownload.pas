@@ -27,6 +27,7 @@ type
   published
     procedure TestLocalChars;
     procedure TestTextReader;
+    procedure TestRegisteredProtocolNotCaseSensitive;
   end;
 
 implementation
@@ -175,6 +176,25 @@ begin
     AssertSameValue(8, Y);
     AssertSameValue(9, Z);
   finally FreeAndNil(T) end;
+end;
+
+procedure TTestDownload.TestRegisteredProtocolNotCaseSensitive;
+begin
+  AssertFalse(RegisteredUrlProtocol('my-test-proto'));
+  AssertFalse(RegisteredUrlProtocol('MY-test-PROTO'));
+  AssertFalse(RegisteredUrlProtocol('my-Test-proto'));
+
+  RegisterUrlProtocol('my-Test-proto', nil, nil);
+
+  AssertTrue(RegisteredUrlProtocol('my-test-proto'));
+  AssertTrue(RegisteredUrlProtocol('MY-test-PROTO'));
+  AssertTrue(RegisteredUrlProtocol('my-Test-proto'));
+
+  UnregisterUrlProtocol('My-Test-protO'); // different case when registered, no problem
+
+  AssertFalse(RegisteredUrlProtocol('my-test-proto'));
+  AssertFalse(RegisteredUrlProtocol('MY-test-PROTO'));
+  AssertFalse(RegisteredUrlProtocol('my-Test-proto'));
 end;
 
 initialization

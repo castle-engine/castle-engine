@@ -1059,12 +1059,29 @@ begin
 end;
 
 procedure TCastleConfig.Load(const AUrl: String);
+
+  procedure BackupCorruptedUserConfig(const AUrl: String);
+  var
+    CurrentFileName, NewFileName: String;
+  begin
+    CurrentFileName := UriToFilenameSafe(AUrl);
+    if (CurrentFileName <> '') and RegularFileExists(CurrentFileName) then
+    begin
+      NewFileName := FileNameAutoInc(CurrentFileName, '.corrupted.%d');
+      if RenameFile(CurrentFileName, NewFileName) then
+        WritelnLog('UserConfig', 'Renamed corrupted user config file "' + CurrentFileName + '" to "' + NewFileName + '"')
+      else
+        WritelnWarning('UserConfig', 'Cannot rename corrupted user config file "' + CurrentFileName + '" to "' + NewFileName + '"');
+    end;
+  end;
+
 begin
   try
     Url := AUrl; // use ancestor method to load
   except
     on E: Exception do
     begin
+      BackupCorruptedUserConfig(AUrl);
       WritelnWarning('UserConfig', 'User config in "' + AUrl + '" corrupted (will load defaults): ' + E.Message);
       LoadEmpty(AUrl);
       Exit;

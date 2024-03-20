@@ -3700,13 +3700,18 @@ begin
       { Hide editing transformation of TCastleAbstractRootTransform,
         as it makes very unintuitive behavior because desing-time camera is also
         a child of it, so e.g. moving Viewport.Items seems to do nothing
-        (TODO: but it breaks you mouse look works -- it should not). }
+        (TODO: but it breaks how mouse look works -- it should not;
+        but still we'd hide these properties anyway, even once we fix mouse look
+        in this case). }
       if (Instance is TCastleAbstractRootTransform) and
          ( (PropertyName = 'CenterPersistent') or
            (PropertyName = 'ScaleOrientationPersistent') or
            (PropertyName = 'RotationPersistent') or
            (PropertyName = 'ScalePersistent') or
-           (PropertyName = 'TranslationPersistent') ) then
+           (PropertyName = 'TranslationPersistent') or
+           (PropertyName = 'DirectionPersistent') or
+           (PropertyName = 'UpPersistent')
+         ) then
         Exit;
 
       if FilterBySection and (Instance is TCastleComponent) then

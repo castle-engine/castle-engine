@@ -165,7 +165,8 @@
       if you call @link(Update). }
     procedure Stop;
 
-    procedure Pause; deprecated 'use Stop';
+    // For Delphi, deprecated on method is not allowed if we want to later deprecate a class
+    procedure Pause; {$ifdef FPC}deprecated 'use Stop';{$endif}
 
     { Draw the sprite.
 
@@ -334,7 +335,8 @@
     function AddAnimation(const AAnimation: TSpriteAnimation): Integer; overload;
     function AddAnimation(const AnimationFrames: array of Cardinal): Integer; overload;
     function AddSpriteAnimation(const AnimationFrames: array of TSpriteAnimationFrame): Integer;
-      deprecated 'use AddAnimation';
+      // For Delphi, deprecated on method is not allowed if we want to later deprecate a class
+      {$ifdef FPC}deprecated 'use AddAnimation';{$endif}
     { @groupEnd }
 
     { Switch to the animation with index AAnimIndex.
@@ -385,12 +387,16 @@
       read FSmoothScalingSafeBorder write FSmoothScalingSafeBorder
       default false;
 
-  { Unfortunately deprecating it makes unavoidable warnings from TSpriteList
-    specialization, and we cannot hide them putting $warnings off/on around it. }
-  end {deprecated 'load sprite sheets to TCastleScene from .castle-sprite-sheet format'};
+  end deprecated 'load sprite sheets to TCastleScene from .castle-sprite-sheet format';
 
+  { Unfortunately deprecating TSprite makes unavoidable warnings from TSpriteList
+    specialization, and we cannot hide them putting $warnings off/on around it.
+
+    It has been documented as deprecated for a long time now,
+    we can remove it now.
+  }
   { List of sprites. }
-  TSpriteList = {$ifdef FPC}specialize{$endif} TObjectList<TSprite>;
+  //TSpriteList = {$ifdef FPC}specialize{$endif} TObjectList<TSprite>;
 
 {$endif read_interface_type}
 

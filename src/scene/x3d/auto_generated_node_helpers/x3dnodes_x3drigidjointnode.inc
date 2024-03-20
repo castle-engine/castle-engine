@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,7 +31,7 @@
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdBody1: TSFNode;
     { Internal wrapper for property @code(Body1). This wrapper API may change, we advise to access simpler @code(Body1) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }

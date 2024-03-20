@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -181,6 +181,8 @@
 
   { Monitors the progress and success of downloading URL elements over a network. }
   TLoadSensorNode = class(TAbstractNetworkSensorNode)
+  public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_loadsensor.inc}
   end;
 
@@ -578,6 +580,14 @@ begin
       EventChildren.Send(ChildrenToSend, Scene.NextEventTime);
     finally FreeAndNil(ChildrenToSend) end;
   end;
+end;
+
+{ TLoadSensorNode ------------------------------------------------------------  }
+
+constructor TLoadSensorNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FdWatchList.AddAlternativeName('children', 4);
 end;
 
 procedure RegisterNetworkingNodes;

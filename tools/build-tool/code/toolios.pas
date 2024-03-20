@@ -422,7 +422,14 @@ var
   procedure GenerateCocoaPods;
   begin
     if UsesCocoaPods then
-      RunCommandSimple(XcodeProject, 'pod', ['install']);
+    begin
+      { If current binary architecture is x86_64, use CocoaPods native binaries
+        also with x86_64 architecture. }
+      if DefaultCPU = x86_64 then
+        RunCommandSimple(XcodeProject, 'arch', ['-x86_64', 'pod', 'install'])
+      else
+        RunCommandSimple(XcodeProject, 'pod', ['install']);
+    end;
   end;
 
 begin

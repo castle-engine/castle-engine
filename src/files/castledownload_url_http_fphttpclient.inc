@@ -215,6 +215,7 @@ var
   I: Integer;
   MemStream: TMemoryStream;
 begin
+  MemStream := nil; // to have later FreeAndNil(MemStream) safely
   try
     Client := TCastleFpHttpClient.Create(nil);
     try

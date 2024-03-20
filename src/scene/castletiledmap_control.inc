@@ -334,7 +334,9 @@ end;
 procedure TCastleTiledMapControl.LoadTilesetsImages;
 var
   Tileset: TCastleTiledMapData.TTileset;
+  {$warnings off} // using deprecated in deprecated
   Spr: TSprite;
+  {$warnings on}
 begin
   if Map <> nil then
     for Tileset in Map.Tilesets do
@@ -344,10 +346,12 @@ begin
         WriteLnWarning('Empty Tileset');
         Continue;
       end;
+      {$warnings off} // using deprecated in deprecated
       Spr := TSprite.Create(
         Tileset.Image.Url, Tileset.TileCount,
         Tileset.Columns, Tileset.TileCount div Tileset.Columns,
         SmoothScaling, false);
+      {$warnings on}
       { Note that we use here Tileset.TileWidth/Height,
         which may difer from Map.TileWidth/Height.
         This is important in case of e.g. "perspective_walls.tmx" test
@@ -416,7 +420,9 @@ var
     if Map.TileRenderData(Vector2Integer(X, Y), Layer,
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
+      {$warnings off} // using deprecated in deprecated
       Result := Tileset.RendererData as TSprite;
+      {$warnings on}
       if Result = nil then Exit;
 
       Result.Frame := Frame;
@@ -438,7 +444,9 @@ var
 
   procedure RenderTile(const Layer: TCastleTiledMapData.TLayer; const X, Y: Integer);
   var
+    {$warnings off} // using deprecated in deprecated
     Spr: TSprite;
+    {$warnings on}
     SpriteRenderRect: TFloatRectangle;
   begin
     Spr := TileSprite(Layer, X, Y);
@@ -529,7 +537,9 @@ procedure TCastleTiledMapControl.SetSmoothScaling(const Value: Boolean);
     if Map <> nil then
       for Tileset in Map.Tilesets do
         if Tileset.RendererData <> nil then
+          {$warnings off} // using deprecated in deprecated
           (Tileset.RendererData as TSprite).SmoothScaling := SmoothScaling;
+          {$warnings on}
   end;
 
 begin
@@ -550,8 +560,10 @@ procedure TCastleTiledMapControl.SetSmoothScalingSafeBorder(const Value: Boolean
     if Map <> nil then
       for Tileset in Map.Tilesets do
         if Tileset.RendererData <> nil then
+          {$warnings off} // using deprecated in deprecated
           (Tileset.RendererData as TSprite).SmoothScalingSafeBorder :=
             SmoothScalingSafeBorder;
+          {$warnings off} // using deprecated in deprecated
   end;
 
 begin

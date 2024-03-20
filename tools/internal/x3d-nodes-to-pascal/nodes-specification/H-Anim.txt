@@ -104,6 +104,13 @@ HAnimJoint : X3DGroupingNode {
     range: (-Inf,Inf)
 }
 
+# Note: default-container-field for HAnimMotion
+# (not specified, but inherited from X3DChildNode) is ignored
+# when reading / writing X3D. We use instead
+# THAnimMotionNode.DefaultContainerFieldInContext
+# to account for the fact that containerField depends on parent,
+# see https://github.com/castle-engine/view3dscene/issues/69 .
+
 HAnimMotion : X3DChildNode {
   SFBool   [in]     next
   SFBool   [in]     previous

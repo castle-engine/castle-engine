@@ -651,7 +651,7 @@ end;
 
 procedure TProjectForm.MenuItemReferenceClick(Sender: TObject);
 begin
-  OpenURL(ApiReferenceUrl + 'index.html');
+  OpenUrl(ApiReferenceUrl + 'index.html');
 end;
 
 procedure TProjectForm.MenuItemModeReleaseClick(Sender: TObject);
@@ -667,7 +667,7 @@ begin
   Url := ApiReferenceUrl + 'index.html';
   if Design <> nil then
     Design.CurrentComponentApiUrl(Url);
-  OpenURL(Url);
+  OpenUrl(Url);
 end;
 
 procedure TProjectForm.MenuItemRefreshDirClick(Sender: TObject);
@@ -750,12 +750,12 @@ end;
 
 procedure TProjectForm.MenuItemSupportClick(Sender: TObject);
 begin
-  OpenURL('https://patreon.com/castleengine/');
+  OpenUrl('https://patreon.com/castleengine/');
 end;
 
 procedure TProjectForm.MenuItemCgeWwwClick(Sender: TObject);
 begin
-  OpenURL('https://castle-engine.io/');
+  OpenUrl('https://castle-engine.io/');
 end;
 
 procedure TProjectForm.MenuItemAboutClick(Sender: TObject);
@@ -1499,7 +1499,7 @@ begin
     ListOpenExistingViewRefresh;
     CheckNewUnitOnSearchPath;
     ProposeToOpenNewFile;
-    RefreshFiles(rfFilesInCurrentDir);
+    RefreshFiles(rfEverything); // NewUnitForm maybe created dirs
   end;
 end;
 
@@ -2289,7 +2289,7 @@ end;
 
 procedure TProjectForm.MenuItemManualClick(Sender: TObject);
 begin
-  OpenURL('https://castle-engine.io/manual_intro.php');
+  OpenUrl('https://castle-engine.io/manual_intro.php');
 end;
 
 procedure TProjectForm.MenuItemModeDebugClick(Sender: TObject);

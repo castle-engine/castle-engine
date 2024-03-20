@@ -119,6 +119,7 @@ if (( $# == 0 )); then
               '(' -iwholename '*/castlegles.pas' ')' -or \
               '(' -iname 'x3dloadinternal*.pas' ')' -or \
               '(' -iname 'castleinternal*.pas' ')' -or \
+              '(' -iname 'fmx.castleinternal*.pas' ')' -or \
               '(' -iname 'castleshapeinternal*.pas' ')' -or \
               '(' -iname 'kraft.pas' ')' -or \
               '(' -iname 'dglopengl*.pas' ')' -or \

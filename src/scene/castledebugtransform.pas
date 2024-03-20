@@ -196,11 +196,18 @@ type
   end;
 
   { Like TDebugTransformBox, but visualizes also additional properties.
+    This is useful to visualize typical properties of TCastleTransform
+    that represents a creature: things that determine how the creature is moving,
+    if you use methods like @link(TCastleTransform.MoveAllowed).
 
     Adds visualization of:
-    - TCastleTransform.Middle
-    - TCastleTransform.Sphere
-    - TCastleTransform.Direction }
+
+    @unorderedList(
+      @item(@link(TCastleTransform.Middle))
+      @item(@link(TCastleTransform.Sphere), that is usually determined by
+        the @link(TCastleTransform.CollisionSphereRadius) property)
+      @item(@link(TCastleTransform.Direction))
+    ) }
   TDebugTransform = class(TDebugTransformBox)
   strict private
     FDirectionArrow: TDebugArrow;

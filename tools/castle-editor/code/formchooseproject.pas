@@ -238,7 +238,7 @@ end;
 
 procedure TChooseProjectForm.ButtonSupportUsClick(Sender: TObject);
 begin
-  OpenURL('https://patreon.com/castleengine/');
+  OpenUrl('https://patreon.com/castleengine/');
 end;
 
 procedure TChooseProjectForm.FormCreate(Sender: TObject);

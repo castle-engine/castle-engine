@@ -22,7 +22,7 @@ interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   Dialogs, Contnrs,
-  CastleStringUtils,
+  CastleStringUtils, CastleInternalTools,
   ToolArchitectures, ToolManifest, ToolProcess;
 
 type
@@ -841,17 +841,8 @@ begin
 end;
 
 function ApiReferenceUrl: String;
-var
-  LocalDocsPath: String;
 begin
-  if CastleEnginePath <> '' then
-  begin
-    LocalDocsPath := CastleEnginePath + 'doc' + PathDelim + 'reference' + PathDelim;
-    if DirectoryExists(LocalDocsPath) then
-      Exit(FilenameToUriSafe(LocalDocsPath));
-  end;
-
-  Result := 'https://castle-engine.io/apidoc/html/';
+  Result := ApiReferenceUrlCore(CastleEnginePath);
 end;
 
 function ApiReference(const PropertyObject: TObject;
