@@ -22,6 +22,21 @@
 // type - don't add type Delphi can't parse that correctly
   TGLRenderToTexture = class;
 
+  { Statistics to measure TDrawableImage rendering impact.
+    Cleared at every TCastleContainer.EventRender start. }
+  TDrawableImageRenderStatistics = record
+    { How many times TDrawableImage.Draw was called (regardless of the Count argument). }
+    ImageDraws: Cardinal;
+
+    { Draw calls done, in case of OpenGL this literally counts the number of calls
+      to glDrawElements and glDrawArrays. }
+    DrawCalls: Cardinal;
+
+    { Present the statistics information as a string (without any newlines).
+      Display it e.g. by assigning to TCastleLabel.Caption. }
+    function ToString: String;
+  end;
+
   { Image that can be drawn.
     This image can be drawn in various rendering methods and events,
     e.g. inside overridden @link(TCastleUserInterface.Render) or from events
@@ -202,6 +217,9 @@
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
   public
+    class var
+      Statistics: TDrawableImageRenderStatistics;
+
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
@@ -1048,6 +1066,8 @@ end;
 procedure TDrawableImage.Draw(
   ScreenRects, ImageRects: PFloatRectangleArray; Count: Integer);
 begin
+  Inc(Statistics.ImageDraws);
+
   if BatchingLevel <> 0 then
   begin
     if (BatchingLastImage <> nil) and (BatchingLastImage <> Self) then
@@ -1310,6 +1330,8 @@ begin
     end;
     {$endif not OpenGLES}
   end;
+
+  Inc(Statistics.DrawCalls);
 
   if Count <> 1 then
   begin
@@ -1919,5 +1941,14 @@ begin
     BatchingLastImage := nil;
   end;
 end;
+
+function TDrawableImageRenderStatistics.ToString: String;
+begin
+  Result := Format('Draw calls: %d, Image draws: %d', [
+    DrawCalls,
+    ImageDraws
+  ]);
+end;
+
 
 {$endif read_implementation}

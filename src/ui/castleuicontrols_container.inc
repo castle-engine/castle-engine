@@ -177,6 +177,26 @@
       move mouse around, and press "5" (this does "MousePosition := window middle"). }
     function SettingMousePositionCausesMotion: Boolean; virtual;
   public
+    var
+      { Optimize rendering of user interface.
+        This activates batching of TDrawableImage around whole rendering.
+
+        Note 1: Experimental: The automatic TDrawableImage batching is smart,
+        it will batch TDrawableImage when it doesn't change the rendering result,
+        so it should be safe to just enable always.
+        But this is experimental now -- needs more testing.
+
+        Note 2: Limits: We only batch when really the same
+        TDrawableImage is rendered multiple times in a row, with the same parameters.
+        This works e.g. if you have multiple TCastleImageControl with the same
+        image (by default, TCastleImageControl, even TCastleImagePersistent underneath,
+        does caching so same image URL -> same TDrawableImage instance).
+
+        Observe TDrawableImage.Statistics.ToString to know what / how much
+        you gain by this.
+        See example examples/user_interface/ui_batching/ . }
+      InternalUserInterfaceBatching: Boolean;
+
     const
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
 
@@ -1917,26 +1937,40 @@ begin
 end;
 
 procedure TCastleContainer.EventRender;
-var
-  I: Integer;
+
+  procedure RenderCore;
+  var
+    I: Integer;
+  begin
+    { draw controls in "to" order, back to front }
+    for I := 0 to Controls.Count - 1 do
+      Controls[I].InternalRecursiveRender(PixelsRect);
+
+    if FTooltipParent <> nil then
+    begin
+      RenderControlPrepare(PixelsRect);
+      {$warnings off} // using deprecated to keep it working, also to enable TCastleUserInterfaceFont to display tooltip
+      FTooltipParent.TooltipRender(FTooltipPosition);
+      {$warnings on}
+    end;
+
+    RenderControlPrepare(PixelsRect);
+    if Assigned(OnRender) then OnRender(Self);
+  end;
+
 begin
   if BackgroundEnable then
     RenderContext.Clear([cbColor], BackgroundColor);
 
-  { draw controls in "to" order, back to front }
-  for I := 0 to Controls.Count - 1 do
-    Controls[I].InternalRecursiveRender(PixelsRect);
+  FillChar(TDrawableImage.Statistics, SizeOf(TDrawableImage.Statistics), #0);
 
-  if FTooltipParent <> nil then
+  if InternalUserInterfaceBatching then
   begin
-    RenderControlPrepare(PixelsRect);
-    {$warnings off} // using deprecated to keep it working, also to enable TCastleUserInterfaceFont to display tooltip
-    FTooltipParent.TooltipRender(FTooltipPosition);
-    {$warnings on}
-  end;
-
-  RenderControlPrepare(PixelsRect);
-  if Assigned(OnRender) then OnRender(Self);
+    TDrawableImage.BatchingBegin;
+    RenderCore;
+    TDrawableImage.BatchingEnd;
+  end else
+    RenderCore;
 end;
 
 procedure TCastleContainer.RenderControl(const Control: TCastleUserInterface;
