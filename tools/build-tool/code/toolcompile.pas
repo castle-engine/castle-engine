@@ -685,7 +685,8 @@ begin
           FpcOptions.Add('-dDEBUG');
           { Disable -Ct (Stack checking) added to fpc.cfg in default
             fpcupdeluxe installation when DEBUG is defined.
-            Because it crashes when application is run on iPhone. }
+            Because it crashes when application is run on iPhone,
+            at least with FPC 3.2.2. }
           if IsIOS then
             FpcOptions.Add('-Ct-');
         end;
