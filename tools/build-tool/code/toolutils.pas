@@ -402,6 +402,13 @@ begin
           ExtractRelativePath(DirectoryParentPath, FileInfo.AbsoluteName));
       end;
     finally FreeAndNil(FilesList) end;
+
+    { Store filenames using UTF-8 in zip,
+      see https://wiki.lazarus.freepascal.org/paszlib#TZipper }
+    {$ifndef VER3_0} // only for FPC >= 3.2.0
+    Zipper.UseLanguageEncoding := true;
+    {$endif}
+
     Zipper.ZipAllFiles;
   finally FreeAndNil(Zipper) end;
 end;
