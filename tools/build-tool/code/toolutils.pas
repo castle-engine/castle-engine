@@ -380,7 +380,9 @@ procedure ZipDirectory(const ZipFileName: String; Directory: String);
     DirectoryParentPath := ExtractFilePath(Directory);
 
     // be sure to first delete target zip, otherwise zip command will add to existing file
-    CheckDeleteFile(ZipFileName);
+    if FileExists(ZipFileName) then
+      CheckDeleteFile(ZipFileName);
+
     RunCommandSimple(DirectoryParentPath, 'zip',
       ['-q', '-r', ZipFileName, DirectoryName]);
   end;
