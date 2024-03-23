@@ -1,4 +1,8 @@
-# My New Project
+# User Interface Batching
+
+You can easily increase UI rendering performance in some cases by activating `Container.UserInterfaceBatching`. You can measure the gain by displaying `TDrawableImage.Statistics.ToString`. This example shows this in action.
+
+![Screenshot](screenshot.png)
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
