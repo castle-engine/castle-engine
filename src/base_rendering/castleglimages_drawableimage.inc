@@ -250,8 +250,17 @@
     class procedure BatchingEnd;
 
     { If we are during batching, then flush the pending drawing now.
-      You should never need to call this, unless you do direct rendering outside of TDrawableImage
-      or DrawPrimitive2D (and friends in CastleGLUtils). }
+
+      You should never need to call this, unless you do direct rendering
+      that is not
+
+      @unorderedList(
+        @itemSpacing compact
+        @item using TDrawableImage
+        @item using DrawPrimitive2D (and friends in CastleGLUtils),
+        @item using TCastleScreenEffect, TCasleViewport rendering.
+      )
+    }
     class procedure BatchingFlush;
 
     { Prepare image for drawing.
@@ -1065,6 +1074,10 @@ end;
 
 procedure TDrawableImage.Draw(
   ScreenRects, ImageRects: PFloatRectangleArray; Count: Integer);
+var
+  { Must be PFloatRectangle, not PFloatRectangleArray,
+    because we will increment them to advance to next. }
+  SrPtr, IrPtr: PFloatRectangle;
 begin
   Inc(Statistics.ImageDraws);
 
@@ -1081,12 +1094,14 @@ begin
     // add to last batch
     if BatchingLastImage = Self then
     begin
+      SrPtr := PFloatRectangle(ScreenRects);
+      IrPtr := PFloatRectangle(ImageRects);
       while Count > 0 do
       begin
-        BatchingLastScreenRects.Add(ScreenRects^[0]);
-        BatchingLastImageRects.Add(ImageRects^[0]);
-        Inc(ScreenRects);
-        Inc(ImageRects);
+        BatchingLastScreenRects.Add(SrPtr^);
+        BatchingLastImageRects.Add(IrPtr^);
+        Inc(SrPtr);
+        Inc(IrPtr);
         Dec(Count);
       end;
     end;
