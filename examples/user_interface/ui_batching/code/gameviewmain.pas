@@ -59,16 +59,16 @@ procedure TViewMain.Start;
 begin
   inherited;
 
-  { Make initial state of InternalBatchUserInterface
+  { Make initial state of UserInterfaceBatching
     matching CheckboxBatchUi.Checked initially. }
-  Container.InternalUserInterfaceBatching := CheckboxBatchUi.Checked;
+  Container.UserInterfaceBatching := CheckboxBatchUi.Checked;
 
   CheckboxBatchUi.OnChange := {$ifdef FPC}@{$endif} CheckboxBatchUiChange;
 end;
 
 procedure TViewMain.CheckboxBatchUiChange(Sender: TObject);
 begin
-  Container.InternalUserInterfaceBatching := CheckboxBatchUi.Checked;
+  Container.UserInterfaceBatching := CheckboxBatchUi.Checked;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

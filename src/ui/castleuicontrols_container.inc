@@ -179,23 +179,42 @@
   public
     var
       { Optimize rendering of user interface.
-        This activates batching of TDrawableImage around whole rendering.
+        This activates batching of TDrawableImage around whole rendering,
+        and TDrawableImage is used for most UI rendering (labels, images).
 
-        Note 1: Experimental: The automatic TDrawableImage batching is smart,
-        it will batch TDrawableImage when it doesn't change the rendering result,
-        so it should be safe to just enable always.
-        But this is experimental now -- needs more testing.
+        Where it works, where it doesn't:
+        The automatic batching offered by @link(TDrawableImage.BatchingBegin)
+        and @link(TDrawableImage.BatchingEnd) gives a benefit
+        when the same TDrawableImage is rendered multiple times in a row,
+        with the same parameters. Consider these examples:
 
-        Note 2: Limits: We only batch when really the same
-        TDrawableImage is rendered multiple times in a row, with the same parameters.
-        This works e.g. if you have multiple TCastleImageControl with the same
-        image (by default, TCastleImageControl, even TCastleImagePersistent underneath,
-        does caching so same image URL -> same TDrawableImage instance).
+        @unorderedList(
+          @item(The batching helps if you have multiple TCastleImageControl
+            (rendered one after another) with the same image.
 
-        Observe TDrawableImage.Statistics.ToString to know what / how much
-        you gain by this.
-        See example examples/user_interface/ui_batching/ . }
-      InternalUserInterfaceBatching: Boolean;
+            Note that by default TCastleImageControl
+            (actually TCastleImagePersistent underneath)
+            does caching so same image URL -> same TDrawableImage instance.
+            This is good for batching.
+          )
+
+          @item(The batching helps if you have multiple TCastleLabel instances
+            rendered one after another,
+            and/or they have multiline text,
+            all using the same font.
+          )
+
+          @item(The batching @italic(will not help) for typical TCastleButton,
+            as a button is typically some image (background) + some text,
+            so the TDrawableImage drawn switches between background / text,
+            and nothing gets batched.
+          )
+        )
+
+        Observe @code(TDrawableImage.Statistics.ToString) to actually measure
+        how much you gain by this.
+        See example @code(examples/user_interface/ui_batching/). }
+      UserInterfaceBatching: Boolean;
 
     const
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
@@ -1964,7 +1983,7 @@ begin
 
   FillChar(TDrawableImage.Statistics, SizeOf(TDrawableImage.Statistics), #0);
 
-  if InternalUserInterfaceBatching then
+  if UserInterfaceBatching then
   begin
     TDrawableImage.BatchingBegin;
     RenderCore;

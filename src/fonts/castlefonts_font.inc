@@ -310,7 +310,7 @@ begin
     - makes unnnecessary OpenGL calls to toggle texture filtering back and forth,
       slowing down rendering
     - prevents labels batching when using TDrawableImage.BatchingBegin/End,
-      Container.InternalUserInterfaceBatching
+      Container.UserInterfaceBatching
   }
 end;
 
