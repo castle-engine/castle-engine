@@ -391,10 +391,11 @@
   {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
   end;
 
-  { This class only means that this instance of texture should not be unprepared
-    when TCastleScene is destroyed and TGLShape.UnprepareTexture() removes all
-    textures because it can be used in many TCastleScenes }
-  TInternalCachedPixelTextureNode = class(TPixelTextureNode)
+  { Internal TPixelTextureNode descendant for nodes that may be used
+    by many scenes at once (right now this just means: FontTexture),
+    Such nodes need special protection to not free their rendering resources
+    too early (e.g. when TCastleScene using them is destroyed). }
+  TInternalReusedPixelTextureNode = class(TPixelTextureNode)
 
   end;
 
