@@ -370,6 +370,21 @@ begin
 end;
 
 procedure ZipDirectory(const ZipFileName: String; Directory: String);
+
+  procedure ZipUsingExternalApplication;
+  var
+    DirectoryParentPath, DirectoryName: String;
+  begin
+    Directory := ExclPathDelim(Directory);
+    DirectoryName := ExtractFileName(Directory);
+    DirectoryParentPath := ExtractFilePath(Directory);
+
+    // be sure to first delete target zip, otherwise zip command will add to existing file
+    CheckDeleteFile(ZipFileName);
+    RunCommandSimple(DirectoryParentPath, 'zip',
+      ['-q', '-r', ZipFileName, DirectoryName]);
+  end;
+
 var
   Zipper: TZipper;
   FilesList: TFileInfoList;
@@ -377,6 +392,29 @@ var
   DirectoryParentPath: String;
   ExpandedZipFileName: String;
 begin
+  { On macOS, FPC Zipper seems not able to preserve "executable" bit when packing.
+    Observed with FPC 3.2.2, Darwin/x86_64.
+
+    What is weird is that Zipper used on Linux/x86_64 with the same FPC version
+    3.2.2 preserves executable permissions fine.
+    And the Zipper code doesn't seem to do anything Linux/Darwin specific,
+    there are only general "UNIX" defines,
+    and I (Michalis) didn't even find where it actually scans file permissions
+    for executable bit.
+    But evidently it fails on Darwin.
+
+    I double-checked the problem is indeed at zipping.
+    - Input files to zip have executable permissions OK (our packaging
+      preserves executable bit when copying the executable to temp dir OK).
+    - It is a problem of zipping, not of unzipping. Copying the zip made
+      on macOS to another system confirms that files inside lack executable
+      permission.
+  }
+  {$ifdef DARWIN}
+  ZipUsingExternalApplication;
+  Exit;
+  {$endif}
+
   ExpandedZipFileName := ExpandFileName(ZipFileName);
 
   Zipper := TZipper.Create;
