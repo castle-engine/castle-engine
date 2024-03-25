@@ -177,6 +177,45 @@
       move mouse around, and press "5" (this does "MousePosition := window middle"). }
     function SettingMousePositionCausesMotion: Boolean; virtual;
   public
+    var
+      { Optimize rendering of user interface.
+        This activates batching of TDrawableImage around whole rendering,
+        and TDrawableImage is used for most UI rendering (labels, images).
+
+        Where it works, where it doesn't:
+        The automatic batching offered by @link(TDrawableImage.BatchingBegin)
+        and @link(TDrawableImage.BatchingEnd) gives a benefit
+        when the same TDrawableImage is rendered multiple times in a row,
+        with the same parameters. Consider these examples:
+
+        @unorderedList(
+          @item(The batching helps if you have multiple TCastleImageControl
+            (rendered one after another) with the same image.
+
+            Note that by default TCastleImageControl
+            (actually TCastleImagePersistent underneath)
+            does caching so same image URL -> same TDrawableImage instance.
+            This is good for batching.
+          )
+
+          @item(The batching helps if you have multiple TCastleLabel instances
+            rendered one after another,
+            and/or they have multiline text,
+            all using the same font.
+          )
+
+          @item(The batching @italic(will not help) for typical TCastleButton,
+            as a button is typically some image (background) + some text,
+            so the TDrawableImage drawn switches between background / text,
+            and nothing gets batched.
+          )
+        )
+
+        Observe @code(TDrawableImage.Statistics.ToString) to actually measure
+        how much you gain by this.
+        See example @code(examples/user_interface/ui_batching/). }
+      UserInterfaceBatching: Boolean;
+
     const
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
 
@@ -1917,26 +1956,40 @@ begin
 end;
 
 procedure TCastleContainer.EventRender;
-var
-  I: Integer;
+
+  procedure RenderCore;
+  var
+    I: Integer;
+  begin
+    { draw controls in "to" order, back to front }
+    for I := 0 to Controls.Count - 1 do
+      Controls[I].InternalRecursiveRender(PixelsRect);
+
+    if FTooltipParent <> nil then
+    begin
+      RenderControlPrepare(PixelsRect);
+      {$warnings off} // using deprecated to keep it working, also to enable TCastleUserInterfaceFont to display tooltip
+      FTooltipParent.TooltipRender(FTooltipPosition);
+      {$warnings on}
+    end;
+
+    RenderControlPrepare(PixelsRect);
+    if Assigned(OnRender) then OnRender(Self);
+  end;
+
 begin
   if BackgroundEnable then
     RenderContext.Clear([cbColor], BackgroundColor);
 
-  { draw controls in "to" order, back to front }
-  for I := 0 to Controls.Count - 1 do
-    Controls[I].InternalRecursiveRender(PixelsRect);
+  FillChar(TDrawableImage.Statistics, SizeOf(TDrawableImage.Statistics), #0);
 
-  if FTooltipParent <> nil then
+  if UserInterfaceBatching then
   begin
-    RenderControlPrepare(PixelsRect);
-    {$warnings off} // using deprecated to keep it working, also to enable TCastleUserInterfaceFont to display tooltip
-    FTooltipParent.TooltipRender(FTooltipPosition);
-    {$warnings on}
-  end;
-
-  RenderControlPrepare(PixelsRect);
-  if Assigned(OnRender) then OnRender(Self);
+    TDrawableImage.BatchingBegin;
+    RenderCore;
+    TDrawableImage.BatchingEnd;
+  end else
+    RenderCore;
 end;
 
 procedure TCastleContainer.RenderControl(const Control: TCastleUserInterface;

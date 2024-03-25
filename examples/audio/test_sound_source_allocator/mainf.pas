@@ -15,6 +15,7 @@ type
     ApplicationProperties1: TApplicationProperties;
     ButtonAllocateAndPlay: TButton;
     ButtonApplyAllocatorLimits: TButton;
+    ButtonApplyAllocatorLimitsDefault: TButton;
     CheckKeepRefreshingUsed: TCheckBox;
     CheckBoxPlayLooping: TCheckBox;
     FileNameEditSound: TFileNameEdit;
@@ -37,6 +38,7 @@ type
     TimerToDisplaySounds: TTimer;
     procedure ButtonAllocateAndPlayClick(Sender: TObject);
     procedure ButtonApplyAllocatorLimitsClick(Sender: TObject);
+    procedure ButtonApplyAllocatorLimitsDefaultClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure TimerToDisplaySoundsTimer(Sender: TObject);
     procedure TimerToRefreshUsedSoundsTimer(Sender: TObject);
@@ -54,6 +56,10 @@ uses CastleVectors, CastleUtils, CastleStringUtils, CastleApplicationProperties,
 
 procedure TMain.FormCreate(Sender: TObject);
 begin
+  ButtonApplyAllocatorLimitsDefault.Caption:= Format('Set Min / Max allocated sources to Defaults (%d / %d)', [
+    TSoundAllocator.DefaultMinAllocatedSources,
+    TSoundAllocator.DefaultMaxAllocatedSources
+  ]);
   SoundEngine.MinAllocatedSources := SpinEditMinAllocatedSources.Value;
   SoundEngine.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
   SoundEngine.ContextOpen;
@@ -65,6 +71,13 @@ procedure TMain.ButtonApplyAllocatorLimitsClick(Sender: TObject);
 begin
   SoundEngine.MinAllocatedSources := SpinEditMinAllocatedSources.Value;
   SoundEngine.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
+end;
+
+procedure TMain.ButtonApplyAllocatorLimitsDefaultClick(Sender: TObject);
+begin
+  SpinEditMinAllocatedSources.Value := TSoundAllocator.DefaultMinAllocatedSources;
+  SpinEditMaxAllocatedSources.Value := TSoundAllocator.DefaultMaxAllocatedSources;
+  ButtonApplyAllocatorLimitsClick(nil);
 end;
 
 procedure TMain.ButtonAllocateAndPlayClick(Sender: TObject);

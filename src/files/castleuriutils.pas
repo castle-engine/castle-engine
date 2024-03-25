@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2023 Michalis Kamburelis.
+  Copyright 2007-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1103,7 +1103,7 @@ end;
 function UriCaption(const Uri: String): string;
 begin
   if Uri = '' then
-    Result := '' 
+    Result := ''
   else
     Result := UriDisplay(AbsoluteUri(Uri), true);
 end;

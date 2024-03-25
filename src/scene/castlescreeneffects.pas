@@ -542,6 +542,11 @@ var
 
 begin
   inherited;
+
+  { Whether we have to render screen effects or not (regular TCastleViewport items),
+    break TDrawableImage batching as we no longer draw only images. }
+  TDrawableImage.BatchingFlush;
+
   CheckScreenEffects;
   if RenderScreenEffects then
     BeginRenderingToTexture;

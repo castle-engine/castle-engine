@@ -255,10 +255,26 @@ type
 
 constructor TCastleDelphiIdeIntegration.Create(AOwner: TComponent);
 
+  { Check menu item with given name exists. }
+  function MenuItemExists(MenuItems: TMenuItem; const SearchName: String): Boolean;
+  var
+    I: Integer;
+    Mi: TMenuItem;
+  begin
+    for I := 0 To MenuItems.Count - 1 do
+    begin
+      Mi := MenuItems[I];
+      if (Mi.Name = SearchName) or MenuItemExists(Mi, SearchName) then
+        Exit(true);
+    end;
+    Result := false;
+  end;
+
   procedure InitializeMenu;
   var
     Services: INTAServices;
     MenuSeparator1, MenuSeparator2, MenuSeparator3: TMenuItem;
+    PreviousSiblingMenuItemName: String;
   begin
     if not Supports(BorlandIDEServices, INTAServices, Services) then
       Exit;
@@ -356,24 +372,49 @@ constructor TCastleDelphiIdeIntegration.Create(AOwner: TComponent);
         Services.AddActionMenu('ToolsToolsItem', nil, MenuEngineRoot, true, true);
 
       So a custom "Tools" submenu should be added before "Configure Tools". }
-    Services.AddActionMenu('ViewTranslationManagerMenu', nil, MenuEngineRoot, true, false);
+    PreviousSiblingMenuItemName := 'ViewTranslationManagerMenu';
+    if not MenuItemExists(Services.MainMenu.Items, PreviousSiblingMenuItemName) then
+    begin
+      { Delphi 10.2.3 and 11.3 have 'ViewTranslationManagerMenu'.
+        Delphi 12.0 does not.
+        Use 'CustomToolsItem' there. }
+      PreviousSiblingMenuItemName := 'CustomToolsItem';
+      { Some additional fallbacks, just to be safer for the future,
+        and eventually to make a good error message. }
+      if not MenuItemExists(Services.MainMenu.Items, PreviousSiblingMenuItemName) then
+      begin
+        PreviousSiblingMenuItemName := 'ToolsOptionsItem';
+        if not MenuItemExists(Services.MainMenu.Items, PreviousSiblingMenuItemName) then
+        begin
+          raise Exception.Create('Cannot find a reasonable sibling menu item for "Castle Game Engine" menu. Please report a bug to the CGE developers, making a note of your Delphi IDE version and possible custom plugings.');
+        end;
+      end;
+    end;
 
-    { We can add submenu items using MenuEngineRoot.Add,
-      like " MenuEngineRoot.Add(MenuSetEnginePath);",
-      or by adding using Services.AddActionMenu. }
-    Services.AddActionMenu('CastleGameEngineMenu', ActionSetEnginePath, MenuSetEnginePath, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', ActionOpenEditor, MenuOpenEditor, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator1, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', ActionAddPathsGlobal, MenuAddPathsGlobal, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePathsGlobal, MenuRemovePathsGlobal, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator2, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', ActionAddPathsProject, MenuAddPathsProject, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePathsProject, MenuRemovePathsProject, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator3, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', ActionWebsite, MenuWebsite, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', ActionDelphiDocs, MenuDelphiDocs, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', ActionApiReference, MenuApiReference, true, true);
-    Services.AddActionMenu('CastleGameEngineMenu', ActionDonate, MenuDonate, true, true);
+    { ToolsAPI comments recommend to wrap menu udpates in MenuBegin/EndUpdate.
+      No noticeable effect observed, but makes sense, let's follow the recommendation. }
+    Services.MenuBeginUpdate;
+    try
+      Services.AddActionMenu(PreviousSiblingMenuItemName, nil, MenuEngineRoot, true, false);
+
+      { We can add submenu items using MenuEngineRoot.Add,
+        like " MenuEngineRoot.Add(MenuSetEnginePath);",
+        or by adding using Services.AddActionMenu. }
+      Services.AddActionMenu('CastleGameEngineMenu', ActionSetEnginePath, MenuSetEnginePath, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', ActionOpenEditor, MenuOpenEditor, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator1, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', ActionAddPathsGlobal, MenuAddPathsGlobal, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePathsGlobal, MenuRemovePathsGlobal, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator2, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', ActionAddPathsProject, MenuAddPathsProject, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', ActionRemovePathsProject, MenuRemovePathsProject, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', nil, MenuSeparator3, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', ActionWebsite, MenuWebsite, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', ActionDelphiDocs, MenuDelphiDocs, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', ActionApiReference, MenuApiReference, true, true);
+      Services.AddActionMenu('CastleGameEngineMenu', ActionDonate, MenuDonate, true, true);
+
+    finally Services.MenuEndUpdate end;
   end;
 
   procedure InitializeCompileNotification;

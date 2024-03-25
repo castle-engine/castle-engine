@@ -38,20 +38,21 @@ type
 
       @item(For downloading (making a request) using HTTP, this is a handful of additional features, to support downloading from modern web servers and using REST APIs:
 
-      @unorderedList(
-        @item(First of all, we support both HTTP and HTTPS on all platforms and compilers, through various backend (FpHttpClient, Indy, Delphi Net Client).)
+        @unorderedList(
+          @item(First of all, we support both HTTP and HTTPS on all platforms and compilers, through various backend (FpHttpClient, Indy, Delphi Net Client).)
 
-        @item(You can provide arbitrary HTTP headers using @link(HttpHeader). For example, various REST APIs require you to provide some key to authenticate through a custom HTTP header.)
+          @item(You can provide arbitrary HTTP headers using @link(HttpHeader). For example, various REST APIs require you to provide some key to authenticate through a custom HTTP header.)
 
-        @item(You can specify any @link(HttpMethod), like GET, POST, PUT and more. Default is naturally GET which is the standard method to just download the data.)
+          @item(You can specify any @link(HttpMethod), like GET, POST, PUT and more. Default is naturally GET which is the standard method to just download the data.)
 
-        @item(For HTTP POST method, you can provide form data as @link(HttpPostData).)
+          @item(For HTTP POST method, you can provide form data as @link(HttpPostData).)
 
-        @item(You can provide input data for any request using @link(HttpRequestBody). The most common use case is to provide a body for PUT requests, but it can be used for any request, e.g. to provide POST body overriding the @link(HttpPostData).)
+          @item(You can provide input data for any request using @link(HttpRequestBody). The most common use case is to provide a body for PUT requests, but it can be used for any request, e.g. to provide POST body overriding the @link(HttpPostData).)
 
-        @item(Once the download finishes, you can read @link(HttpResponseCode) and @link(HttpResponseHeaders).)
+          @item(Once the download finishes, you can read @link(HttpResponseCode) and @link(HttpResponseHeaders).)
 
-        @item(By default, we follow HTTP/HTTPS redirects.)
+          @item(By default, we follow HTTP/HTTPS redirects.)
+        )
       )
     )
 
@@ -62,7 +63,7 @@ type
 
       @item(@url(https://github.com/castle-engine/castle-engine/blob/master/examples/network/remote_logging/ remote_logging) to send logs to a remote server, using HTTP POST.)
 
-      @item(@url(https://github.com/castle-engine/castle-engine/tree/master/examples/network/put_data/ put_data to send HTTP PUT request.)
+      @item(@url(https://github.com/castle-engine/castle-engine/tree/master/examples/network/put_data/ put_data) to send HTTP PUT request.)
 
       @item(And other examples in @url(https://github.com/castle-engine/castle-engine/tree/master/examples/network examples/network) subdirectory.)
     )

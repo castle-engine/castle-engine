@@ -22,6 +22,21 @@
 // type - don't add type Delphi can't parse that correctly
   TGLRenderToTexture = class;
 
+  { Statistics to measure TDrawableImage rendering impact.
+    Cleared at every TCastleContainer.EventRender start. }
+  TDrawableImageRenderStatistics = record
+    { How many times TDrawableImage.Draw was called (regardless of the Count argument). }
+    ImageDraws: Cardinal;
+
+    { Draw calls done, in case of OpenGL this literally counts the number of calls
+      to glDrawElements and glDrawArrays. }
+    DrawCalls: Cardinal;
+
+    { Present the statistics information as a string (without any newlines).
+      Display it e.g. by assigning to TCastleLabel.Caption. }
+    function ToString: String;
+  end;
+
   { Image that can be drawn.
     This image can be drawn in various rendering methods and events,
     e.g. inside overridden @link(TCastleUserInterface.Render) or from events
@@ -202,6 +217,9 @@
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
   public
+    class var
+      Statistics: TDrawableImageRenderStatistics;
+
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
@@ -232,8 +250,17 @@
     class procedure BatchingEnd;
 
     { If we are during batching, then flush the pending drawing now.
-      You should never need to call this, unless you do direct rendering outside of TDrawableImage
-      or DrawPrimitive2D (and friends in CastleGLUtils). }
+
+      You should never need to call this, unless you do direct rendering
+      that is not
+
+      @unorderedList(
+        @itemSpacing compact
+        @item using TDrawableImage
+        @item using DrawPrimitive2D (and friends in CastleGLUtils),
+        @item using TCastleScreenEffect, TCasleViewport rendering.
+      )
+    }
     class procedure BatchingFlush;
 
     { Prepare image for drawing.
@@ -1047,7 +1074,13 @@ end;
 
 procedure TDrawableImage.Draw(
   ScreenRects, ImageRects: PFloatRectangleArray; Count: Integer);
+var
+  { Must be PFloatRectangle, not PFloatRectangleArray,
+    because we will increment them to advance to next. }
+  SrPtr, IrPtr: PFloatRectangle;
 begin
+  Inc(Statistics.ImageDraws);
+
   if BatchingLevel <> 0 then
   begin
     if (BatchingLastImage <> nil) and (BatchingLastImage <> Self) then
@@ -1061,12 +1094,14 @@ begin
     // add to last batch
     if BatchingLastImage = Self then
     begin
+      SrPtr := PFloatRectangle(ScreenRects);
+      IrPtr := PFloatRectangle(ImageRects);
       while Count > 0 do
       begin
-        BatchingLastScreenRects.Add(ScreenRects^[0]);
-        BatchingLastImageRects.Add(ImageRects^[0]);
-        Inc(ScreenRects);
-        Inc(ImageRects);
+        BatchingLastScreenRects.Add(SrPtr^);
+        BatchingLastImageRects.Add(IrPtr^);
+        Inc(SrPtr);
+        Inc(IrPtr);
         Dec(Count);
       end;
     end;
@@ -1310,6 +1345,8 @@ begin
     end;
     {$endif not OpenGLES}
   end;
+
+  Inc(Statistics.DrawCalls);
 
   if Count <> 1 then
   begin
@@ -1918,6 +1955,14 @@ begin
     BatchingLastImageRects.Clear;
     BatchingLastImage := nil;
   end;
+end;
+
+function TDrawableImageRenderStatistics.ToString: String;
+begin
+  Result := Format('Draw calls: %d, Image draws: %d', [
+    DrawCalls,
+    ImageDraws
+  ]);
 end;
 
 {$endif read_implementation}

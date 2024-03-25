@@ -391,6 +391,14 @@
   {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
   end;
 
+  { Internal TPixelTextureNode descendant for nodes that may be used
+    by many scenes at once (right now this just means: FontTexture),
+    Such nodes need special protection to not free their rendering resources
+    too early (e.g. when TCastleScene using them is destroyed). }
+  TInternalReusedPixelTextureNode = class(TPixelTextureNode)
+
+  end;
+
   { 2D texture coordinates used by vertex-based geometry nodes. }
   TTextureCoordinateNode = class(TAbstractSingleTextureCoordinateNode)
   {$I auto_generated_node_helpers/x3dnodes_texturecoordinate.inc}
@@ -713,6 +721,8 @@ end;
 
 procedure TImageTextureNode.LoadFromImage(const Image: TEncodedImage;
   const TakeImageOwnership: Boolean; const UpdateUrl: String);
+var
+  SavedChanged: TX3DChange;
 begin
   FreeAndNilTextureData;
 
@@ -737,7 +747,18 @@ begin
   end;
 
   if Scene <> nil then
+  begin
+    { Call InternalChangedField(FdUrl) to update rendering resources
+      determined by the new TImageTextureNode.TextureImage.
+      But use special mode, chTextureRendererProperties,
+      instead of default chTextureImage, because chTextureImage unloads
+      image (set IsTextureLoaded:=false) which would reject the image contents
+      we just loaded. }
+    SavedChanged := FdUrl.ChangeAlways;
+    FdUrl.ChangeAlways := chTextureRendererProperties;
     Scene.InternalChangedField(FdUrl);
+    FdUrl.ChangeAlways := SavedChanged;
+  end;
 end;
 
 { TMovieTextureNode ---------------------------------------------------------- }
