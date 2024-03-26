@@ -21,7 +21,7 @@ interface
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleTimeUtils,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleScene,
-  X3DNodes;
+  X3DNodes, X3DFields;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -29,9 +29,11 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    LabelFps, LabelMeshInfo: TCastleLabel;
+    LabelFps: TCastleLabel;
+    LabelMeshInfo: TCastleLabel;
     MainScene: TCastleScene;
     CheckboxWireframe: TCastleCheckbox;
+    CheckboxShader: TCastleCheckbox;
   private
     const
       GridWidth = 100;
@@ -39,11 +41,14 @@ type
     var
       CoordinateNode: TCoordinateNode;
       Time: TFloatTime;
+      EffectAnimateMesh: TEffectNode;
+      EffectAnimateMeshTime: TSFTime;
     { Update CoordinateNode vertexes by CoordinateNode.SetPoint,
       which can be called every frame and the new coordinates are efficiently
       updated on the mesh. }
     procedure UpdateCoordinateNode;
     procedure WireframeChange(Sender: TObject);
+    procedure ShaderChange(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -56,7 +61,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleUtils;
+  CastleUtils, CastleRenderOptions;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -78,9 +83,18 @@ begin
     for X := 0 to GridWidth do
       for Z := 0 to GridHeight do
       begin
-        // the numbers below are nothing special, just chosen experimentally
-        H := ( Sin((X + Time * 20.0) * 0.5) +
-               Sin((Z + Time * 15.0) * 0.3) ) * 0.5;
+        if CheckboxShader.Checked then
+        begin
+          { When using shaders, the H value doens't matter for display.
+            Our shader will calculate the vertex Y.
+            But it matters for collision detection, so we set it to 0. }
+          H := 0;
+        end else
+        begin
+          // the numbers below are nothing special, just chosen experimentally
+          H := ( Sin((X + Time * 20.0) * 0.5) +
+                 Sin((Z + Time * 15.0) * 0.3) ) * 0.5;
+        end;
         Vertexes[(GridWidth + 1) * Z + X] := Vector3(X, H, Z);
       end;
     CoordinateNode.SetPoint(Vertexes);
@@ -88,6 +102,43 @@ begin
 end;
 
 procedure TViewMain.Start;
+
+  { Add shader effect to Appearance, to be able to animate assosiated shape
+    using shaders.
+    These nodes are only useful when CheckboxShader.Checked.
+    By default they do nothing because we set EffectAnimateMesh.Enabled := false. }
+  procedure AddShaderEffect(const Appearance: TAppearanceNode);
+  var
+    EffectVertexShaderPart: TEffectPartNode;
+  begin
+    { Effect is a container for
+      - shader source code (vertex, geometry, fragment shaders -- though
+        here we will use only vertex shader)
+      - associated "uniforms" (variables that you can set from Pascal code
+        and are accessible in the shader code).
+
+      Effect can be enabled / disabled, and added to particular X3D appearance,
+      or to a group of nodes.
+
+      For more about shader effects :
+      - https://castle-engine.io/compositing_shaders.php
+      - https://castle-engine.io/compositing_shaders_doc/html/
+      - Another example: examples/viewport_and_scenes/shader_effects/ }
+
+    EffectAnimateMesh := TEffectNode.Create;
+    EffectAnimateMesh.Language := slGLSL;
+    EffectAnimateMesh.Enabled := false; // initially disabled
+
+    EffectAnimateMeshTime := TSFTime.Create(EffectAnimateMesh, true, 'time', Time);
+    EffectAnimateMesh.AddCustomField(EffectAnimateMeshTime);
+
+    EffectVertexShaderPart := TEffectPartNode.Create;
+    EffectVertexShaderPart.ShaderType := stVertex;
+    EffectVertexShaderPart.SetUrl(['castle-data:/animate_mesh.vs']);
+    EffectAnimateMesh.SetParts([EffectVertexShaderPart]);
+
+    Appearance.SetEffects([EffectAnimateMesh]);
+  end;
 
   { Create X3D nodes that define a grid.
 
@@ -138,6 +189,9 @@ procedure TViewMain.Start;
     RootNode := TX3DRootNode.Create;
     RootNode.AddChildren(Shape);
 
+    // Adds nodes useful only when CheckboxShader.Checked
+    AddShaderEffect(Appearance);
+
     MainScene.Load(RootNode, true);
     MainScene.Translation := Vector3(-GridWidth / 2, 0, -GridHeight / 2);
 
@@ -149,6 +203,7 @@ begin
   inherited;
 
   CheckboxWireframe.OnChange := {$ifdef FPC}@{$endif} WireframeChange;
+  CheckboxShader.OnChange := {$ifdef FPC}@{$endif} ShaderChange;
 
   BuildMainScene;
 
@@ -168,7 +223,20 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   Time := Time + SecondsPassed;
-  UpdateCoordinateNode;
+
+  if CheckboxShader.Checked then
+  begin
+    { Set the uniform variable "time" accessed by GLSL. }
+    EffectAnimateMeshTime.Send(Time);
+  end else
+  begin
+    { This is called only when CheckboxShader.Checked = false.
+      When the vertexes are calculated by the shader, there's no point in doing
+      UpdateCoordinateNode every frame, there's no point in doing
+      "CoordinateNode.SetPoint " every frame. The mesh stays unmodified from the
+      point of view of the CGE data structures. }
+    UpdateCoordinateNode;
+  end;
 end;
 
 procedure TViewMain.WireframeChange(Sender: TObject);
@@ -177,6 +245,22 @@ begin
     MainScene.RenderOptions.WireframeEffect := weSolidWireframe
   else
     MainScene.RenderOptions.WireframeEffect := weNormal;
+end;
+
+procedure TViewMain.ShaderChange(Sender: TObject);
+begin
+  EffectAnimateMesh.Enabled := CheckboxShader.Checked;
+
+  if CheckboxShader.Checked then
+  begin
+    { When checkbox changed from "no shader" to "shader",
+      call UpdateCoordinateNode once, to make the ground flat
+      (all vertexes at height = 0) from the perspective of the CGE data structures.
+      Only GPU will calculate the actual height of the vertexes. }
+    UpdateCoordinateNode;
+    { Set the initial value for uniform variable "time" accessed by GLSL. }
+    EffectAnimateMeshTime.Send(Time);
+  end;
 end;
 
 end.
