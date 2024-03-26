@@ -12,9 +12,15 @@ This example demonstrates how to dynamically (as often as possible, to reflect e
 
     The advantage is that this is *even faster* because the Pascal code does almost nothing -- we just pass the new `Time` value to the shader. The per-vertex calculation is done by GPU, and GPUs are ridiculously fast at this.
 
+    On one test system:
+
+    - The first approach (TCoordinateNode.SetPoint) was able to handle 100 x 100 grid with 60 FPS. But once grid size increased to 200 x 200 it dropped to 18 FPS.
+
+    - And yet the shader approach could handle 1000 x 1000 grid with 60 FPS. (Beyond that initialization was too long, due to RAM consumption; but if we'd defeat it, maybe it would still animate smooth?).
+
     The disadvantage is that _Castle Game Engine_ is not aware of the calculated vertex positions (they remain only on GPU). So e.g. any raycasts or other collision queries will treat this mesh as if it was in the original position (flat plane in this example).
 
-    An additional potential disadvantage is that you need to learn _shading language_, more specifically [OpenGL Shading Language (GLSL)](https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language). There's a small piece of GLSL code in TODO.
+    An additional potential disadvantage is that you need to learn _shading language_, more specifically [OpenGL Shading Language (GLSL)](https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language). There's a small piece of GLSL code in `data/animate_mesh.vs`.
 
 I encourage you to experiment with this example and try to stress-test it. It should handle very large values of `GridWidth` and `GridHeight`.
 
