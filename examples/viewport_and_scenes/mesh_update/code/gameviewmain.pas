@@ -29,13 +29,13 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    LabelFps: TCastleLabel;
+    LabelFps, LabelMeshInfo: TCastleLabel;
     MainScene: TCastleScene;
     CheckboxWireframe: TCastleCheckbox;
   private
     const
-      GridWidth = 10;
-      GridHeight = 10;
+      GridWidth = 100;
+      GridHeight = 100;
     var
       CoordinateNode: TCoordinateNode;
       Time: TFloatTime;
@@ -70,6 +70,7 @@ procedure TViewMain.UpdateCoordinateNode;
 var
   Vertexes: TVector3List;
   X, Z: Integer;
+  H: Single;
 begin
   Vertexes := TVector3List.Create;
   try
@@ -77,64 +78,86 @@ begin
     for X := 0 to GridWidth do
       for Z := 0 to GridHeight do
       begin
-        Vertexes[(GridWidth + 1) * Z + X] := Vector3(X,
-          // the numbers below are nothing special, just chosen experimentally
-          ( Sin((X + Time * 2) * 5) +
-            Sin((Z + Time * 1.5) * 3) ) * 0.25,
-          Z);
+        // the numbers below are nothing special, just chosen experimentally
+        H := ( Sin((X + Time * 20.0) * 0.5) +
+               Sin((Z + Time * 15.0) * 0.3) ) * 0.5;
+        Vertexes[(GridWidth + 1) * Z + X] := Vector3(X, H, Z);
       end;
     CoordinateNode.SetPoint(Vertexes);
   finally FreeAndNil(Vertexes) end;
 end;
 
 procedure TViewMain.Start;
-var
-  RootNode: TX3DRootNode;
-  Triangles: TIndexedTriangleSetNode;
-  Indexes: TInt32List;
-  Material: TPhysicalMaterialNode;
-  Appearance: TAppearanceNode;
-  Shape: TShapeNode;
-  X, Z: Integer;
+
+  { Create X3D nodes that define a grid.
+
+    In particular initialize CoordinateNode that can be later updated
+    as often as we want by "CoordinateNode.SetPoint"
+    (done from our method "UpdateCoordinateNode"). }
+  procedure BuildMainScene;
+  var
+    RootNode: TX3DRootNode;
+    Triangles: TIndexedTriangleSetNode;
+    Indexes: TInt32List;
+    Material: TPhysicalMaterialNode;
+    Appearance: TAppearanceNode;
+    Shape: TShapeNode;
+    X, Z: Integer;
+  begin
+    CoordinateNode := TCoordinateNode.Create;
+    UpdateCoordinateNode;
+
+    { Define triangles to form a grid.
+      We have GridWidth * GridHeight quads, each split into 2 triangles. }
+    Indexes := TInt32List.Create;
+    for X := 1 to GridWidth do
+      for Z := 1 to GridHeight do
+      begin
+        Indexes.Add((GridWidth + 1) * Z + X);
+        Indexes.Add((GridWidth + 1) * (Z - 1) + X);
+        Indexes.Add((GridWidth + 1) * (Z - 1) + X - 1);
+
+        Indexes.Add((GridWidth + 1) * Z + X);
+        Indexes.Add((GridWidth + 1) * (Z - 1) + X - 1);
+        Indexes.Add((GridWidth + 1) * Z + X - 1);
+      end;
+
+    Triangles := TIndexedTriangleSetNode.Create;
+    Triangles.Coord := CoordinateNode;
+    Triangles.SetIndex(Indexes);
+
+    Material := TPhysicalMaterialNode.Create;
+
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+
+    Shape := TShapeNode.Create;
+    Shape.Geometry := Triangles;
+    Shape.Appearance := Appearance;
+
+    RootNode := TX3DRootNode.Create;
+    RootNode.AddChildren(Shape);
+
+    MainScene.Load(RootNode, true);
+    MainScene.Translation := Vector3(-GridWidth / 2, 0, -GridHeight / 2);
+
+    Assert(MainScene.TrianglesCount = Indexes.Count div 3);
+    Assert(MainScene.TrianglesCount = GridWidth * GridHeight * 2);
+  end;
+
 begin
   inherited;
 
   CheckboxWireframe.OnChange := {$ifdef FPC}@{$endif} WireframeChange;
 
-  CoordinateNode := TCoordinateNode.Create;
-  UpdateCoordinateNode;
+  BuildMainScene;
 
-  Indexes := TInt32List.Create;
-  for X := 1 to GridWidth do
-    for Z := 1 to GridHeight do
-    begin
-      Indexes.Add((GridWidth + 1) * Z + X);
-      Indexes.Add((GridWidth + 1) * (Z - 1) + X);
-      Indexes.Add((GridWidth + 1) * (Z - 1) + X - 1);
-
-      Indexes.Add((GridWidth + 1) * Z + X);
-      Indexes.Add((GridWidth + 1) * (Z - 1) + X - 1);
-      Indexes.Add((GridWidth + 1) * Z + X - 1);
-    end;
-
-  Triangles := TIndexedTriangleSetNode.Create;
-  Triangles.Coord := CoordinateNode;
-  Triangles.SetIndex(Indexes);
-
-  Material := TPhysicalMaterialNode.Create;
-
-  Appearance := TAppearanceNode.Create;
-  Appearance.Material := Material;
-
-  Shape := TShapeNode.Create;
-  Shape.Geometry := Triangles;
-  Shape.Appearance := Appearance;
-
-  RootNode := TX3DRootNode.Create;
-  RootNode.AddChildren(Shape);
-
-  MainScene.Load(RootNode, true);
-  MainScene.Translation := Vector3(-GridWidth / 2, 0, -GridHeight / 2);
+  // show triangles count
+  LabelMeshInfo.Caption := Format('Grid size %d x %d, triangles: %d', [
+    GridWidth,
+    GridHeight,
+    MainScene.TrianglesCount
+  ]);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);

@@ -1,8 +1,22 @@
 # Dynamically Update Mesh
 
-You can update the mesh coordinates often, even every frame, using `TCoordinateNode.SetPoint`. This example demonstrates how to do it.
+This example demonstrates how to dynamically (as often as possible, to reflect e.g. time passing by) update the mesh of a 3D object, while still being efficient. There are 2 approaches:
 
-Note: Alternative approach (not shown in this example) for a mesh that changes every frame is to use a vertex shader, in which case the changes to vertex positions are only calculated on the GPU. See https://castle-engine.io/compositing_shaders.php on how to use shaders with CGE.
+1. Call `TCoordinateNode.SetPoint` as often as you want, e.g. from view's `Update` method.
+
+    In this example, every `TViewMain.Update` increases `Time` and then calls `TViewMain.UpdateCoordinateNode`. The `TViewMain.UpdateCoordinateNode` updates the coordinates of the 3D object, the `Time` affects the waves shape.
+
+    The point here is that `TCoordinateNode.SetPoint` is very efficient. It only updates the necessary rendering resource (VBO contents in OpenGL) and doesn't do any unnecessary work (doesn't rebuild anything, doesn't recreate any resource from scratch).
+
+2. Use shaders. You can use our [shader effects](https://castle-engine.io/compositing_shaders.php) to add a _vertex shader_ that changes the position of each vertex right when it's supposed to be displayed.
+
+    The advantage is that this is *even faster* because the Pascal code does almost nothing -- we just pass the new `Time` value to the shader. The per-vertex calculation is done by GPU, and GPUs are ridiculously fast at this.
+
+    The disadvantage is that _Castle Game Engine_ is not aware of the calculated vertex positions (they remain only on GPU). So e.g. any raycasts or other collision queries will treat this mesh as if it was in the original position (flat plane in this example).
+
+    An additional potential disadvantage is that you need to learn _shading language_, more specifically [OpenGL Shading Language (GLSL)](https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language). There's a small piece of GLSL code in TODO.
+
+I encourage you to experiment with this example and try to stress-test it. It should handle very large values of `GridWidth` and `GridHeight`.
 
 ![screenshot](screenshot.png)
 
