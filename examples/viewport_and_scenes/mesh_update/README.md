@@ -2,6 +2,8 @@
 
 You can update the mesh coordinates often, even every frame, using `TCoordinateNode.SetPoint`. This example demonstrates how to do it.
 
+Note: Alternative approach (not shown in this example) for a mesh that changes every frame is to use a vertex shader, in which case the changes to vertex positions are only calculated on the GPU. See https://castle-engine.io/compositing_shaders.php on how to use shaders with CGE.
+
 ![screenshot](screenshot.png)
 
 Using [Castle Game Engine](https://castle-engine.io/).
