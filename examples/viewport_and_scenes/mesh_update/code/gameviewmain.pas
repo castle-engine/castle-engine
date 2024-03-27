@@ -127,7 +127,7 @@ procedure TViewMain.Start;
 
     EffectAnimateMesh := TEffectNode.Create;
     EffectAnimateMesh.Language := slGLSL;
-    EffectAnimateMesh.Enabled := false; // initially disabled
+    EffectAnimateMesh.Enabled := CheckboxShader.Checked; // initially disabled
 
     EffectAnimateMeshTime := TSFTime.Create(EffectAnimateMesh, true, 'time', Time);
     EffectAnimateMesh.AddCustomField(EffectAnimateMeshTime);
