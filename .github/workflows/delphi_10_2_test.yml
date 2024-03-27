@@ -49,7 +49,7 @@ jobs:
 
       # Check versions (and availability) of our requirements early.
       # Note that we need FPC for Delphi test too, since our internal tools are compiled with FPC.
-      # Note: We want GNU make on PATH, not Embarcadero make.
+      # Note: We want GNU make from Cygwin/Mingw on PATH, not Embarcadero make, not outdated make in FPC (3.8 that fails to handle $$ in make test-editor-templates).
       - name: Info
         run: |
           fpc -iV
