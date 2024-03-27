@@ -60,12 +60,34 @@ procedure THttpAndroidReader.Start;
     end;
   end;
 
-  function HttpPostDataStr: String;
+  function HttpRequestBodyStr: String;
   begin
-    if HttpPostData <> nil then
+    if HttpRequestBody <> nil then
+      Result := StreamToString(HttpRequestBody)
+    else if HttpPostData <> nil then
       Result := HttpPostData.Text
     else
       Result := '';
+  end;
+
+  function HttpHeadersStr: String;
+  var
+    SL: TStringList;
+    I: Integer;
+  begin
+    if HttpHeadersKeys = nil then
+      Exit('');
+    Assert((HttpHeadersKeys <> nil) = (HttpHeadersValues <> nil));
+    Assert(HttpHeadersKeys.Count = HttpHeadersValues.Count);
+    SL := TStringList.Create;
+    try
+      for I := 0 to HttpHeadersKeys.Count - 1 do
+        SL.Append(HttpHeadersKeys[I] + ':' + HttpHeadersValues[I]);
+      Result := SL.Text;
+      WritelnLog('Network', 'request %s', [Result]);
+    finally
+      FreeAndNil(SL);
+    end;
   end;
 
 begin
@@ -83,7 +105,7 @@ begin
   MimeType := UriMimeType(Url);
 
   Messaging.OnReceive.Add({$ifdef FPC}@{$endif} HandleDownloadMessages);
-  Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName, HttpPostDataStr]);
+  Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName, HttpRequestBodyStr, HttpHeadersStr]);
   Contents := TMemoryStream.Create;
 
   HttpResponseHeaders := TStringList.Create;
@@ -168,11 +190,6 @@ begin
     // ]);
     Result := true;
   end;
-
-  { TODO:
-    - HttpHeadersKeys, HttpHeadersValues not handled
-      use URLConnection API (setRequestProperty), https://docs.oracle.com/javase/7/docs/api/java/net/URLConnection.html
-  }
 end;
 
 destructor THttpAndroidReader.Destroy;
