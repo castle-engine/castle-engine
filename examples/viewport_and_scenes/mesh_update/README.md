@@ -16,7 +16,9 @@ This example demonstrates how to dynamically (as often as possible, to reflect e
 
     - The first approach (TCoordinateNode.SetPoint) was able to handle 100 x 100 grid with 60 FPS. But once grid size increased to 200 x 200 it dropped to 18 FPS.
 
-    - And yet the shader approach could handle 1000 x 1000 grid with 60 FPS. (Beyond that initialization was too long, due to RAM consumption; but if we'd defeat it, maybe it would still animate smooth?).
+    - And the shader approach could handle 1000 x 1000 grid with 60 FPS. At 2000 x 2000 grid it dropped to 20 FPS. So, it's 100x more performant, if you look at the number of triangles it can handle while still maintaining 60 FPS!
+
+    Note: For stress-testing, consider setting initial `CheckboxShader.Checked` in design to `true`, to start with more performing version immediately.
 
     The disadvantage is that _Castle Game Engine_ is not aware of the calculated vertex positions (they remain only on GPU). So e.g. any raycasts or other collision queries will treat this mesh as if it was in the original position (flat plane in this example).
 
