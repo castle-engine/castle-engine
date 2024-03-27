@@ -55,6 +55,8 @@ jobs:
           fpc -iV
           lazbuild --version
           make --version
+          sed --version
+          cygpath --version
 
       - name: Set environment - CASTLE_ENGINE_PATH
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -70,7 +72,7 @@ jobs:
           cp tools/build-tool/castle-engine.exe installed/bin/
 
       - name: Set environment - BUILD_TOOL
-        run: echo "BUILD_TOOL=${CASTLE_ENGINE_PATH}/installed/bin/castle-engine.exe" >> $GITHUB_ENV
+        run: echo "BUILD_TOOL=`cygpath --mixed \"${CASTLE_ENGINE_PATH}\"/installed/bin/castle-engine.exe`" >> $GITHUB_ENV
       - name: Check Old Delphi-Specific AutoTests (Win64)
         run: |
           cd 'tests/delphi_tests/'
