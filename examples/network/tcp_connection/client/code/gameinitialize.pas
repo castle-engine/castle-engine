@@ -99,6 +99,7 @@ begin
   SendEdit := TCastleEdit.Create(Application);
   SendEdit.Anchor(hpMiddle);
   SendEdit.Anchor(vpTop, -310);
+  SendEdit.AutoOnScreenKeyboard := true;
   Window.Controls.InsertFront(SendEdit);
 
   MyButton := TCastleButton.Create(Application);
@@ -159,7 +160,7 @@ end;
 
 procedure TClient.Send (const AMessage: String);
 begin
-  FClient.Send(SendEdit.Text);
+  FClient.Send(AMessage);
 end;
 
 procedure TEventsHandler.CreateClick(Sender: TObject);
