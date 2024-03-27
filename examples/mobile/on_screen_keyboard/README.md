@@ -5,6 +5,12 @@ This is an example of using the on-screen keyboard on Android:
 - tap edit to show the keyboard
 - third edit shows password mode
 
+To make the `TCastleEdit` receive focus and open on-screen keyboard correctly in your applications:
+
+- Use `<service name="keyboard" />` in the `CastleEngineManifest.xml`
+- Set `AutoOnScreenKeyboard` to `true` on the `TCastleEdit` instance (you can set it from the editor, or from code).
+- If you want to focus the edit before user touches it, do it by `Edit1.Focused := true`
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
