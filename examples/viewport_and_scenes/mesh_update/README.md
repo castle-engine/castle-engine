@@ -14,9 +14,13 @@ This example demonstrates how to dynamically (as often as possible, to reflect e
 
     On one test system:
 
-    - The first approach (TCoordinateNode.SetPoint) was able to handle 100 x 100 grid with 60 FPS. But once grid size increased to 200 x 200 it dropped to 18 FPS.
+    - The first approach (TCoordinateNode.SetPoint) was able to handle 100 x 100 grid with 60 FPS. But once grid size increased to 200 x 200 it dropped to 18 FPS (in debug) or 38 FPS (in release).
+
+      Note that changing the height calculation (to avoid `Sin` in Pascal) does not significantly change these measurements. The `Sin`, and in general how the `H` is calculated in Pascal, is not a bottleneck.
 
     - And the shader approach could handle 1000 x 1000 grid with 60 FPS. At 2000 x 2000 grid it dropped to 20 FPS. So, it's 100x more performant, if you look at the number of triangles it can handle while still maintaining 60 FPS!
+
+      Note that changing the height calculation (to avoid `sin` in GLSL) does not significantly change this. Neither does _debug_ vs _release_ build (which makes sense, since the speed of Pascal code cannot be the bottleneck here).
 
     Note: For stress-testing, consider setting initial `CheckboxShader.Checked` in design to `true`, to start with more performing version immediately.
 
