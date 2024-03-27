@@ -24,6 +24,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   <android>
     <services>
       <service name="client_server" />
+      <service name="keyboard" />
     </services>
   </android>
 </project>
