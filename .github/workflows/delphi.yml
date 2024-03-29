@@ -1,9 +1,9 @@
 # ----------------------------------------------------------------------------
-# GitHub Action workflow to test CGE with Delphi 10.2.
-# Using self-hosted runner with Delphi 10.2 installed.
+# GitHub Action workflow to test CGE with Delphi on self-hosted runners.
+# Using self-hosted runners with Delphis installed.
 # ----------------------------------------------------------------------------
 
-name: Delphi 10.2 Test
+name: Delphi Test
 on: [push, pull_request]
 
 # Using Cygwin's bash, to avoid issues with PowerShell not having enough
@@ -17,13 +17,16 @@ defaults:
     shell: bash
 
 jobs:
-  delphi_10_2_test:
-    name: Delphi 10.2 Test (Job)
+  delphi_test:
+    name: Delphi Test (Job)
+    strategy:
+      matrix:
+        host-label: [delphi_10_2, delphi_11_3]
 
     # Note: This is a self-hosted runner in organization,
     # and supposed to be used by public CGE repo.
     # It has to be enabled following https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/managing-access-to-self-hosted-runners-using-groups .
-    runs-on: [self-hosted, delphi_10_2]
+    runs-on: ${{ matrix.host-label }}
 
     steps:
       - uses: actions/checkout@v4
