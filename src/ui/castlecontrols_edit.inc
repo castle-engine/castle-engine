@@ -140,7 +140,19 @@
       deprecated 'use Container.ForceCaptureInput instead of this';
     {$endif}
 
-    { When true, it shows the software keyboard on Android. }
+    { Shows the software (on-screen) keyboard on mobile devices automatically
+      when the edit box gets focused.
+
+      For now, this only works on Android (not iOS yet -- see
+      https://github.com/castle-engine/castle-engine/issues/554).
+
+      This requires adding @code(<service name="keyboard" />)
+      to the Android services in @code(CastleEngineManifest.xml).
+      See example
+      @url(https://github.com/castle-engine/castle-engine/tree/master/examples/mobile/on_screen_keyboard examples/mobile/on_screen_keyboard)
+      and the @url(https://castle-engine.io/android_services Android service) documentation
+      for @url(https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/android/integrated-services/keyboard/README.adoc keyboard)
+      service. }
     property AutoOnScreenKeyboard: Boolean
       read FAutoOnScreenKeyboard write FAutoOnScreenKeyboard
       default DefaultAutoOnScreenKeyboard;

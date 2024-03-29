@@ -348,11 +348,19 @@ pack_platform_dir ()
   # /usr/bin/ld: /home/michalis/installed/fpc_lazarus/fpc3.2.3-lazarus3.0.0/src/lazarus/3.0.0/lcl/units/aarch64-linux/qt5/qtobjects.o: in function `ENDX11SELECTIONLOCK':
   # /home/michalis/installed/fpc_lazarus/fpc3.2.3-lazarus3.0.0/src/lazarus/3.0.0/lcl/interfaces//qt5/qtobjects.pas:3873: undefined reference to `QTimer_singleShot3'
   #
-  if [ "$OS" '=' 'linux' -a "${CPU}" '!=' 'arm' -a "${CPU}" '!=' 'aarch64' ]; then
-    lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi --widgetset=qt5
-    cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
-       "${TEMP_PATH_CGE}"bin-to-keep/castle-editor-qt5
-  fi
+  # 2024-03-27: Disable building castle-editor-qt5, because Lazarus 3.2 is not compatible
+  # with libqt5pas in Debian.
+  # We could update libqt5pas using https://github.com/davidbannon/libqt5pas/releases ,
+  # but this is pointless if it will fail for users anyway.
+  # See also
+  # https://github.com/gcarreno/setup-lazarus?tab=readme-ov-file
+  # https://forum.lazarus.freepascal.org/index.php/topic,65619.msg500216.html#msg500216
+  #
+  # if [ "$OS" '=' 'linux' -a "${CPU}" '!=' 'arm' -a "${CPU}" '!=' 'aarch64' ]; then
+  #   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi --widgetset=qt5
+  #   cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
+  #      "${TEMP_PATH_CGE}"bin-to-keep/castle-editor-qt5
+  # fi
 
   # Add DLLs on Windows
   case "$OS" in

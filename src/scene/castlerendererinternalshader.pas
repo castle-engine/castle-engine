@@ -2159,8 +2159,11 @@ const
       repeat
         Inc(P);
       until (P > Length(PlugValue)) or (not CharInSet(PlugValue[P], IdentifierChars));
-      { There must be a whitespace or ( after PLUG_xxx }
-      if (P > Length(PlugValue)) or (not CharInSet(PlugValue[P], (WhiteSpaces + ['(']))) then
+      { Skip whitespace after PLUG_xxx and before "(". }
+      while (P <= Length(PlugValue)) and CharInSet(PlugValue[P], WhiteSpaces) do
+        Inc(P);
+      { There must be "(" now }
+      if (P > Length(PlugValue)) or (PlugValue[P] <> '(') then
         Continue;
 
       Result := CopyPos(PlugValue, PBegin, P - 1);

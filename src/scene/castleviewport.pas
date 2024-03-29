@@ -167,6 +167,7 @@ type
       FOcclusionSort: TShapeSort;
       FBlendingSort: TShapeSort;
       FOnCustomShapeSort: TShapeSortEvent;
+      FUpdateSoundListener: Boolean;
 
       ShapesCollector: TShapesCollector;
       ShapesRenderer: TShapesRenderer;
@@ -1290,6 +1291,20 @@ type
     property OnCustomShapeSort: TShapeSortEvent
       read FOnCustomShapeSort write FOnCustomShapeSort;
 
+    { Should the sound listener (that determines how the sounds are heard)
+      be updated to reflect this viewport's active camera.
+      This is @true by default, so that 3D sound "just works" out-of-the-box
+      when you have 3D sounds in the TCastleViewport.
+      However, if you use @url(https://castle-engine.io/multiple_viewports_to_display_one_world multiple viewports)
+      to display the same world from multiple cameras,
+      you should set this to @false for all but one viewport.
+
+      Active camera comes from @code(Items.MainCamera) and should match
+      @link(Camera) in all normal circumstances, if you haven't customized
+      @code(Items.MainCamera) manually. }
+    property UpdateSoundListener: Boolean
+      read FUpdateSoundListener write FUpdateSoundListener default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -1427,6 +1442,7 @@ begin
   InternalDistortViewAspect := 1;
   ShapesCollector := TShapesCollector.Create;
   ShapesRenderer := TShapesRenderer.Create;
+  FUpdateSoundListener := true;
 
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
@@ -3851,7 +3867,8 @@ begin
       Inc(Items.InternalVisibleNonGeometryStateId);
 
     SenderCamera.GetView(Pos, Dir, Up);
-    SoundEngine.InternalUpdateListener(Pos, Dir, Up);
+    if UpdateSoundListener then
+      SoundEngine.InternalUpdateListener(Pos, Dir, Up);
   end;
 
   if Assigned(OnCameraChanged) then
