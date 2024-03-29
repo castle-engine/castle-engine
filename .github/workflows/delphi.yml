@@ -112,19 +112,19 @@ jobs:
         run: |
           cd examples/delphi/vcl
           ${BUILD_TOOL} clean
-          castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64
+          ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
           cd ../../..
           cd examples/delphi/fmx
-          ${BUILD_TOOL} castle-engine clean
+          ${BUILD_TOOL} clean
           ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
           cd ../../..
       - name: Build Delphi-specific Examples (Win32)
         run: |
           cd examples/delphi/vcl
           ${BUILD_TOOL} clean
-          castle-engine compile --compiler=delphi --os=win32 --cpu=i386
+          ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
           cd ../../..
           cd examples/delphi/fmx
-          ${BUILD_TOOL} castle-engine clean
+          ${BUILD_TOOL} clean
           ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
           cd ../../..
