@@ -21,7 +21,11 @@ jobs:
     name: Delphi Test (Job)
     strategy:
       matrix:
-        host-label: [delphi_10_2, delphi_11_3]
+        host-label: [
+        # runner with Delphi 10.2 temporarily offline.
+        #  delphi_10_2,
+          delphi_11_3
+        ]
 
     # Note: This is a self-hosted runner in organization,
     # and supposed to be used by public CGE repo.
