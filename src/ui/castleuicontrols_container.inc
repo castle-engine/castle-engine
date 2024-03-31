@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -57,6 +57,7 @@
       The values in this map are never nil. }
     FCaptureInput: TFingerIndexCaptureMap;
     FForceCaptureInput: TCastleUserInterface;
+    FForceCaptureInputObserver: TFreeNotificationObserver;
     FTooltipDelay: Single;
     FTooltipDistance: Cardinal;
     FTooltipPosition: TVector2;
@@ -116,6 +117,7 @@
     procedure SetInspectorKey(const Value: TKey);
     { Create / destroy FInspector. }
     procedure ToggleInspector;
+    procedure ForceCaptureInputFreeNotification(const Sender: TFreeNotificationObserver);
   private
     FViewStack: TCastleViewList;
     FDisableStackChange: Cardinal;
@@ -903,6 +905,8 @@ begin
   FContext := TRenderContext.Create(nil);
   FBackgroundEnable := true;
   FBackgroundColor := DefaultBackgroundColor;
+  FForceCaptureInputObserver := TFreeNotificationObserver.Create(Self);
+  FForceCaptureInputObserver.OnFreeNotification := {$ifdef FPC}@{$endif} ForceCaptureInputFreeNotification;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -940,14 +944,6 @@ end;
 procedure TCastleContainer.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
-
-  { Note: do not move niling FForceCaptureInput to DetachNotification,
-    as we don't want to nil the public property too eagerly, the value
-    of ForceCaptureInput should remain stable. }
-  if (Operation = opRemove) and (AComponent = FForceCaptureInput) then
-    { set to nil by SetForceCaptureInput to clean nicely }
-    ForceCaptureInput := nil;
-
   if (Operation = opRemove) and (AComponent is TCastleUserInterface) then
     DetachNotification(TCastleUserInterface(AComponent));
 end;
@@ -956,12 +952,14 @@ procedure TCastleContainer.SetForceCaptureInput(const Value: TCastleUserInterfac
 begin
   if FForceCaptureInput <> Value then
   begin
-    if FForceCaptureInput <> nil then
-      FForceCaptureInput.RemoveFreeNotification(Self);
     FForceCaptureInput := Value;
-    if FForceCaptureInput <> nil then
-      FForceCaptureInput.FreeNotification(Self);
+    FForceCaptureInputObserver.Observed := Value;
   end;
+end;
+
+procedure TCastleContainer.ForceCaptureInputFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  ForceCaptureInput := nil;
 end;
 
 procedure TCastleContainer.DetachNotification(const C: TCastleUserInterface);
