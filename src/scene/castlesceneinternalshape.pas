@@ -212,7 +212,22 @@ end;
 function TGLShape.UnprepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 begin
   Result := nil; // let EnumerateTextures to enumerate all textures
-  TTextureResources.Unprepare(Texture);
+
+  { Do not call TTextureResources.Unprepare
+    (which would do Texture.InternalRendererResourceFree in the end)
+    when Texture is TInternalReusedPixelTextureNode,
+    since this texture may be reused by other scenes.
+
+    Testcase:
+    - create in editor viewport, add TCastleText
+    - add another TCastleText
+    - remove one (any one) TCastleText --
+      the other TCastleText display will be broken
+      if condition "if not (Texture is TInternalReusedPixelTextureNode) then"
+      below gets removed.
+  }
+  if not (Texture is TInternalReusedPixelTextureNode) then
+    TTextureResources.Unprepare(Texture);
 end;
 
 function TGLShape.PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;

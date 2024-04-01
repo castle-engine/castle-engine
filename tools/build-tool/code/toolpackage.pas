@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -111,6 +111,12 @@ procedure TPackageDirectory.Make(const PackageOutputPath: String;
 var
   FullPackageFileName: String;
 
+  { Run zip/tar.gz/other command that makes archive called PackageFileName
+    (should be a filename, without directory part, like 'myproject.zip' or 'myproject.tar.gz')
+    in current directory, wherever it is run (we will run it in a temp directory).
+
+    We will move the resulting file to FullPackageFileName
+    (which should be absolute filename now). }
   procedure PackageCommand(const PackagingExeName: String; const PackagingParameters: array of String);
   var
     ProcessOutput, CommandExe: String;
@@ -153,7 +159,10 @@ begin
 
   { Do the package-format-specific job. }
   case PackageFormat of
-    pfZip      : PackageCommand('zip', ['-q', '-r', PackageFileName, TopDirectoryName]);
+    pfZip      :
+      //PackageCommand('zip', ['-q', '-r', PackageFileName, TopDirectoryName]);
+      // Better use internal zip, that doesn't require any tool installed:
+      ZipDirectory(FullPackageFileName, Path);
     pfTarGz    : PackageCommand('tar', ['czf', PackageFileName, TopDirectoryName]);
     pfDirectory:
       begin

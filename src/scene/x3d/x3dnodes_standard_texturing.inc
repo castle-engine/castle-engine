@@ -391,6 +391,14 @@
   {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
   end;
 
+  { Internal TPixelTextureNode descendant for nodes that may be used
+    by many scenes at once (right now this just means: FontTexture),
+    Such nodes need special protection to not free their rendering resources
+    too early (e.g. when TCastleScene using them is destroyed). }
+  TInternalReusedPixelTextureNode = class(TPixelTextureNode)
+
+  end;
+
   { 2D texture coordinates used by vertex-based geometry nodes. }
   TTextureCoordinateNode = class(TAbstractSingleTextureCoordinateNode)
   {$I auto_generated_node_helpers/x3dnodes_texturecoordinate.inc}

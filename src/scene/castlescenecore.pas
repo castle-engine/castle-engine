@@ -3268,9 +3268,9 @@ begin
   { This also deinitializes script nodes. }
   ProcessEvents := false;
 
-  { Unregisted self from FileMonitor. }
+  { Unregister self from FileMonitor. }
   if FUrlWatched then
-    FileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
+    TCastleFileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
 
   FreeAndNil(FExposeTransforms);
   FreeAndNil(FExposedTransforms);
@@ -8632,7 +8632,7 @@ begin
   if FUrl <> NewUrl then
   begin
     if FUrlWatched then
-      FileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
+      TCastleFileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
     FUrl := NewUrl;
     FUrlWatched := FileMonitor.Watch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
   end;

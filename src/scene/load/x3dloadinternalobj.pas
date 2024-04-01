@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,7 +22,7 @@ unit X3DLoadInternalOBJ;
 
 interface
 
-uses SysUtils, Classes,
+uses Math, SysUtils, Classes,
   X3DNodes;
 
 var
@@ -34,7 +34,7 @@ implementation
 
 uses Generics.Collections,
   CastleStringUtils, CastleFilesUtils, CastleLog, CastleVectors, CastleUtils,
-  CastleClassUtils, X3DLoadInternalUtils, CastleUriUtils,
+  CastleClassUtils, X3DLoadInternalUtils, CastleUriUtils, CastleColors,
   CastleDownload;
 
 { TWavefrontTexture ---------------------------------------------------------- }
@@ -237,6 +237,9 @@ type
 
     FFaces: TWavefrontFaceList;
     FMaterials: TWavefrontMaterialList;
+
+    WarningPerVertexColorDone: Boolean;
+    WarningNanDone: Boolean;
   public
     Coord: TCoordinateNode;
     TexCoord: TTextureCoordinateNode;
@@ -445,15 +448,29 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
       ReadIndices(NextVertex);
   end;
 
-  function ReadTexCoordFromOBJLine(const line: string): TVector2;
+  function StrToFloatDotSafeNan(const S: String): Single;
+  begin
+    if SameText(S, 'nan') then
+    begin
+      if not WarningNanDone then
+      begin
+        WritelnWarning('Wavefront OBJ', 'Ignoring invalid "NaN" values in OBJ file');
+        WarningNanDone := true;
+      end;
+      Result := 0.0;
+    end else
+      Result := StrToFloatDot(S);
+  end;
+
+  function TexCoordFromObjStr(const line: string): TVector2;
   var
     SeekPos: integer;
   begin
     SeekPos := 1;
-    result.X := StrToFloatDot(NextToken(line, SeekPos));
-    result.Y := StrToFloatDot(NextToken(line, SeekPos));
-    { nie uzywamy DeFormat - bo tex coord w OBJ moze byc 3d (z trzema
-      parametrami) a my uzywamy i tak tylko dwoch pierwszych }
+    result.X := StrToFloatDotSafeNan(NextToken(line, SeekPos));
+    result.Y := StrToFloatDotSafeNan(NextToken(line, SeekPos));
+    { Note that additional numbers on this line
+      (possible in case of 3D tex coords) are ignored. }
   end;
 
   { Reads single line from Wavefront OBJ or materials file.
@@ -591,6 +608,68 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
     finally FreeAndNil(F) end;
   end;
 
+  { Read vertex position from "v" line in OBJ.
+    See https://en.wikipedia.org/wiki/Wavefront_.obj_file , it can have
+    - 3 components (x, y, z)
+    - 4 components (x, y, z, w)
+    - 6 components (x, y, z, r, g, b) }
+  function PositionFromObjStr(const S: String): TVector3;
+  var
+    SPosition: Integer;
+    Vector: array [4..7] of String;
+    Color: TCastleColorRGB;
+    W: Single;
+    I: Integer;
+  begin
+    SPosition := 1;
+    Result.X := StrToFloatDot(NextToken(S, SPosition));
+    Result.Y := StrToFloatDot(NextToken(S, SPosition));
+    Result.Z := StrToFloatDot(NextToken(S, SPosition));
+
+    { Account for additional components }
+    for I := 4 to 7 do
+      Vector[I] := NextToken(S, SPosition);
+
+    { 7 components (or more) -> error, too much }
+    if Vector[7] <> '' then
+      raise EConvertError.Create('Expected end of data when reading vector from string');
+
+    { 6 components, so "x y z r g b".
+      Testcase: banner.obj from https://kenney.nl/assets/mini-arena }
+    if Vector[6] <> '' then
+    begin
+      Color.X := StrToFloatDot(Vector[4]);
+      Color.Y := StrToFloatDot(Vector[5]);
+      Color.Z := StrToFloatDot(Vector[6]);
+      if not TCastleColorRGB.Equals(Color, WhiteRGB) then
+      begin
+        if not WarningPerVertexColorDone then
+        begin
+          WritelnWarning('Wavefront OBJ', 'Ignoring color components of vertex position, not supported');
+          WarningPerVertexColorDone := true;
+        end;
+      end;
+      Exit;
+    end;
+
+    { 5 components are not valid }
+    if Vector[5] <> '' then
+      raise EConvertError.Create('Unexpected 5 components in vertex position');
+
+    { 4 components, so "x y z w" }
+    if Vector[4] <> '' then
+    begin
+      W := StrToFloatDot(Vector[4]);
+      if not IsZero(W) then
+        Result := Result / W
+      else
+        raise EConvertError.Create('Expected W <> 0 in 4 components vertex position');
+      Exit;
+    end;
+
+    { If we got here, then we have 3 components, so "x y z", all good. }
+  end;
+
 var
   F: TTextReader;
   LineTok, LineAfterMarker: string;
@@ -623,8 +702,8 @@ begin
 
       { specialized token line parsing }
       case ArrayPosText(lineTok, ['v', 'vt', 'f', 'vn', 'g', 'mtllib', 'usemtl']) of
-        0: Verts.Add(Vector3FromStr(lineAfterMarker));
-        1: TexCoords.Add(ReadTexCoordFromOBJLine(lineAfterMarker));
+        0: Verts.Add(PositionFromObjStr(lineAfterMarker));
+        1: TexCoords.Add(TexCoordFromObjStr(lineAfterMarker));
         2: ReadFacesFromOBJLine(lineAfterMarker, UsedMaterial);
         3: Normals.Add(Vector3FromStr(lineAfterMarker));
         4: {GroupName := LineAfterMarker};
