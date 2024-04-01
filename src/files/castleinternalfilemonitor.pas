@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,6 +75,12 @@ type
       making URL absolute, and not using castle-data://.
       Returns '' if cannot be watched. }
     function UrlToWatch(const Url: String): String;
+
+    { Stop watching given URL for changes.
+      Makes a warning if it was not watched.
+      This is private -- external code should use
+      "class procedure Unwatch". }
+    procedure UnwatchCore(const Url: String; const Notify: TNotifyEvent);
   public
     constructor Create;
     destructor Destroy; override;
@@ -85,9 +91,18 @@ type
       when you're done with this URL. }
     function Watch(const Url: String; const Notify: TNotifyEvent): Boolean;
 
-    { Stop watching given URL for changes.
-      Makes a warning if it was not watched. }
-    procedure Unwatch(const Url: String; const Notify: TNotifyEvent);
+    { Stop watching given URL for changes, for singleton @link(FileMonitor).
+      Makes a warning if it was not watched.
+
+      This is a class method, and it is hardcoded that it works
+      on singleton @link(FileMonitor) in this unit.
+      Though this is inconsistent with other methods in this clas,
+      but it is safer: This way external code is secured in case
+      it will call "unwatch" after finalization of this unit is done,
+      at which point the @link(FileMonitor) has been freed and shall not be
+      recreated.
+      This class method handles this internally and gracefully. }
+    class procedure Unwatch(const Url: String; const Notify: TNotifyEvent);
 
     { Scan watched files for changes to their last-modified time,
       and base on this possibly fire some notifications.
@@ -113,6 +128,9 @@ function FileMonitor: TCastleFileMonitor;
 implementation
 
 uses CastleUriUtils, CastleUtils, CastleLog;
+
+var
+  FFinalizationDone: Boolean;
 
 { TFileInfo -------------------------------------------------------------- }
 
@@ -195,7 +213,7 @@ begin
   end;
 end;
 
-procedure TCastleFileMonitor.Unwatch(const Url: String; const Notify: TNotifyEvent);
+procedure TCastleFileMonitor.UnwatchCore(const Url: String; const Notify: TNotifyEvent);
 var
   UrlWatch: String;
   FileInfo: TFileInfo;
@@ -232,6 +250,21 @@ begin
   end;
 end;
 
+class procedure TCastleFileMonitor.Unwatch(
+  const Url: String; const Notify: TNotifyEvent);
+begin
+  if FFinalizationDone then
+  begin
+    { Note that we haven't actually experienced this situation in the real code
+      of editor (though at one point we thought we do, but it was a different problem).
+      But this code and log remains, in case it will appear one day. }
+    WritelnLog('File Monitor', 'Unwatching URL "' + Url + '" after finalization of this unit is done, this is normal -> ignoring');
+  end else
+  begin
+    FileMonitor.UnwatchCore(Url, Notify);
+  end;
+end;
+
 { global -------------------------------------------------------------------- }
 
 var
@@ -239,6 +272,12 @@ var
 
 function FileMonitor: TCastleFileMonitor;
 begin
+  if FFinalizationDone then
+  begin
+    WritelnWarning('Accessing FileMonitor singleton after finalization of this unit is done.' +
+      ' We create a new instance, empty, that will leak.' +
+      ' You should avoid this situation, following the pattern of class method "TCastleFileMonitor.Unwatch".');
+  end;
   if FFileMonitor = nil then
     FFileMonitor := TCastleFileMonitor.Create;
   Result := FFileMonitor;
@@ -247,4 +286,5 @@ end;
 initialization
 finalization
   FreeAndNil(FFileMonitor);
+  FFinalizationDone := true;
 end.
