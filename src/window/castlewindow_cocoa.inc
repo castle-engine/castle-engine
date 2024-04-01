@@ -742,6 +742,7 @@ begin
   { Make TGLFeatures.Create use a path that avoids accessing deprecated glGetString(GL_EXTENSIONS).
 
     TODO: This should not be necessary, we should not change RequestCapabilities here.
+    It used to be a necessary hack with FPC GLExt unit:
     But FPC GLExt unit will by default access deprecated glGetString(GL_EXTENSIONS),
     this is for now the simplest way to prevent it. }
   TGLFeatures.RequestCapabilities := rcForceModern;

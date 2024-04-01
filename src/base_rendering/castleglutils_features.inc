@@ -74,7 +74,7 @@ type
       with deprecated functionality removed (just like rcForceModern)
       and only fallback on non-modern context if that is not possible.
       For now, rcAutomatic still initializes context with compatibility entry points
-      too, although it will not use them.
+      too, although it will not use them if the resulting context is modern.
       We use flag rcForceModern to test whether the "modern (core) context with
       deprecated stuff removed" is worth the hassle, i.e. is there a practical benefit
       (measurable speedup / functionality boost) of not having compatibility entry points. }
@@ -90,7 +90,9 @@ type
       We will keep OpenGL API usage at 1.x, for large things (no shaders,
       no VBO) and small things (like querying OpenGL extensions).
       The goal is to really simulate ancient GPU, before shaders were part
-      of the OpenGL standard. }
+      of the OpenGL standard.
+
+      Not possible on OpenGLES, where CGE always uses modern shader pipeline. }
     rcForceFixedFunction,
 
     { Force initializing modern OpenGL context, with deprecated functionality
@@ -112,15 +114,7 @@ type
 
       The specifics what it does:
       We try to initialize "core" profile of OpenGL version 3.3
-      (TGLFeatures.ModernVersionMajor, TGLFeatures.ModernVersionMinor).
-
-      TODO: On macOS, we will also request forward-compatible context.
-      See https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types ,
-      https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL) .
-
-      TODO: For now, this only really affects context creation on glX,
-      on other platforms we just check that we got context with
-      EnableFixedFunction = false. }
+      (TGLFeatures.ModernVersionMajor, TGLFeatures.ModernVersionMinor). }
     rcForceModern
   );
 
@@ -1221,7 +1215,9 @@ begin
   // RequestCapabilities = rcForceFixedFunction overrides above detection
   if RequestCapabilities = rcForceFixedFunction then
   begin
-    {$ifndef OpenGLES}
+    {$ifdef OpenGLES}
+    raise Exception.Create('Requested deprecated fixed-function approach, but this is an OpenGLES >= 2.0 context. Cannot use fixed-function.');
+    {$else}
     if Version_3_1 and not HasExtension('GL_ARB_compatibility') then
       raise Exception.Create('Requested deprecated fixed-function approach, but this is a modern context without compatibility (ARB_compatibility). Cannot use fixed-function.');
     {$endif}
