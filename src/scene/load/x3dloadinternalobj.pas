@@ -239,6 +239,7 @@ type
     FMaterials: TWavefrontMaterialList;
 
     WarningPerVertexColorDone: Boolean;
+    WarningNanDone: Boolean;
   public
     Coord: TCoordinateNode;
     TexCoord: TTextureCoordinateNode;
@@ -447,15 +448,29 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
       ReadIndices(NextVertex);
   end;
 
-  function ReadTexCoordFromOBJLine(const line: string): TVector2;
+  function StrToFloatDotSafeNan(const S: String): Single;
+  begin
+    if SameText(S, 'nan') then
+    begin
+      if not WarningNanDone then
+      begin
+        WritelnWarning('Wavefront OBJ', 'Ignoring invalid "NaN" values in OBJ file');
+        WarningNanDone := true;
+      end;
+      Result := 0.0;
+    end else
+      Result := StrToFloatDot(S);
+  end;
+
+  function TexCoordFromObjStr(const line: string): TVector2;
   var
     SeekPos: integer;
   begin
     SeekPos := 1;
-    result.X := StrToFloatDot(NextToken(line, SeekPos));
-    result.Y := StrToFloatDot(NextToken(line, SeekPos));
-    { nie uzywamy DeFormat - bo tex coord w OBJ moze byc 3d (z trzema
-      parametrami) a my uzywamy i tak tylko dwoch pierwszych }
+    result.X := StrToFloatDotSafeNan(NextToken(line, SeekPos));
+    result.Y := StrToFloatDotSafeNan(NextToken(line, SeekPos));
+    { Note that additional numbers on this line
+      (possible in case of 3D tex coords) are ignored. }
   end;
 
   { Reads single line from Wavefront OBJ or materials file.
@@ -598,7 +613,7 @@ constructor TObject3DOBJ.Create(const Stream: TStream; const BaseUrl: String);
     - 3 components (x, y, z)
     - 4 components (x, y, z, w)
     - 6 components (x, y, z, r, g, b) }
-  function VectorFromObjStr(const S: String): TVector3;
+  function PositionFromObjStr(const S: String): TVector3;
   var
     SPosition: Integer;
     Vector: array [4..7] of String;
@@ -687,8 +702,8 @@ begin
 
       { specialized token line parsing }
       case ArrayPosText(lineTok, ['v', 'vt', 'f', 'vn', 'g', 'mtllib', 'usemtl']) of
-        0: Verts.Add(VectorFromObjStr(lineAfterMarker));
-        1: TexCoords.Add(ReadTexCoordFromOBJLine(lineAfterMarker));
+        0: Verts.Add(PositionFromObjStr(lineAfterMarker));
+        1: TexCoords.Add(TexCoordFromObjStr(lineAfterMarker));
         2: ReadFacesFromOBJLine(lineAfterMarker, UsedMaterial);
         3: Normals.Add(Vector3FromStr(lineAfterMarker));
         4: {GroupName := LineAfterMarker};
