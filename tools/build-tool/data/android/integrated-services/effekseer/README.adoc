@@ -1,6 +1,6 @@
 ## libeffekseer (special effects library) for Android
 
-This service adds the `Eeffekseer` library to the Android project, which allows CGE to use particle based eyecandy in effekseer enabled projects.
+This service adds the `Effekseer` library to the Android project, which allows CGE to use particle based eyecandy in effekseer enabled projects.
 
 You can request this service explicitly in link:https://castle-engine.io/project_manifest[CastleEngineManifest.xml]. You can request it only for Android:
 
@@ -13,18 +13,6 @@ You can request this service explicitly in link:https://castle-engine.io/project
       <service name="effekseer" />
     </services>
   </android>
-</project>
-----
-
-Or you can request the equivalent on all platforms using `dependencies`:
-
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8"?>
-<project name="..." game_units="...">
-  <dependencies>
-    <dependency name="effekseer" />
-  </dependencies>
 </project>
 ----
 
