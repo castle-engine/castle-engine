@@ -881,6 +881,8 @@ div.download .download_platform {
   margin: 0.5em;
 }
 
+div.download span.download_details { font-size: smaller; }
+
 .centered-download-wrapper .btn-primary {
   padding-left: 4em;
   padding-right: 4em;
