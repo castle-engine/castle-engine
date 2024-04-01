@@ -221,7 +221,7 @@
         See example @code(examples/user_interface/ui_batching/). }
       UserInterfaceBatching: Boolean;
 
-    FNewMotionMousePosition: TVector2; // new position from window
+      FNewMotionMousePosition: TVector2; // new position from window
     const
       DefaultBackgroundColor: TVector4 = (X: 0.1; Y: 0.1; Z: 0.1; W: 1);
 
