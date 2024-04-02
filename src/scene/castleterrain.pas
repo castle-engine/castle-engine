@@ -187,6 +187,9 @@ type
     that is: both MinLevel<MaxLevel and MinLevel>MaxLevel are valid.
 
     When image is not loaded, it behaves like all the image intensities are 0.5. }
+
+  { TCastleTerrainImage }
+
   TCastleTerrainImage = class(TCastleTerrainData)
   strict private
     { FImage = nil and FUrl = '' when not loaded. }
@@ -200,6 +203,9 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function Height(const Coord, TexCoord: TVector2): Single; override;
+    procedure SetHeight(const Coord, TexCoord: TVector2; NewValue: Byte);
+    procedure RaiseHeight(const TexCoord: TVector2; const AddValue: Byte);
+    procedure LowerHeight(const TexCoord: TVector2; const SubstractValue: Byte);
     function PropertySections(const PropertyName: String): TPropertySections; override;
   published
     { Image URL. Empty string means that no image is loaded. }
@@ -670,6 +676,9 @@ type
       It can be used to display a terrain noise matching neighboring terrain
       noise. }
     property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
+
+    procedure RaiseTerrain(const Coord: TVector3; const Value: Integer);
+    procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
@@ -1113,6 +1122,63 @@ begin
   end else
     Intensity := 0.5;
   Result := Lerp(Intensity, MinLevel, MaxLevel);
+end;
+
+procedure TCastleTerrainImage.SetHeight(const Coord, TexCoord: TVector2;
+  NewValue: Byte);
+var
+  PX, PY: Integer;
+begin
+  if FImage <> nil then
+  begin
+    PX := Floor((TexCoord.X + 50) / 100 * FImage.Width );
+    PY := Floor((TexCoord.Y + 50) / 100 * FImage.Height);
+    ClampVar(PX, 0, FImage.Width  - 1);
+    ClampVar(PY, 0, FImage.Height - 1);
+    FImage.PixelPtr(PX, PY)^:= NewValue;
+    DoChange;
+    WritelnLog('Changed ' + IntToStr(PX) + ', ' + IntToStr(PX) + ' z ' + IntToStr(FImage.PixelPtr(PX, PY)^) + ' na ' + IntToStr(FImage.PixelPtr(PX, PY)^));
+  end;
+end;
+
+procedure TCastleTerrainImage.RaiseHeight(const TexCoord: TVector2;
+  const AddValue: Byte);
+var
+  PX, PY: Integer;
+begin
+  if FImage <> nil then
+  begin
+    PX := Floor(TexCoord.X * FImage.Width );
+    PY := Floor(TexCoord.Y * FImage.Height);
+    ClampVar(PX, 0, FImage.Width  - 1);
+    ClampVar(PY, 0, FImage.Height - 1);
+    if FImage.PixelPtr(PX, PY)^ < 255 then
+    begin
+      FImage.PixelPtr(PX, PY)^:= Min(FImage.PixelPtr(PX, PY)^ + AddValue, 255);
+      DoChange;
+      WritelnLog('Changed ' + IntToStr(PX) + ', ' + IntToStr(PX) + ' new value ' + IntToStr(FImage.PixelPtr(PX, PY)^));
+    end;
+  end;
+end;
+
+procedure TCastleTerrainImage.LowerHeight(const TexCoord: TVector2;
+  const SubstractValue: Byte);
+var
+  PX, PY: Integer;
+begin
+  if FImage <> nil then
+  begin
+    PX := Floor(TexCoord.X * FImage.Width );
+    PY := Floor(TexCoord.Y * FImage.Height);
+    ClampVar(PX, 0, FImage.Width  - 1);
+    ClampVar(PY, 0, FImage.Height - 1);
+    if FImage.PixelPtr(PX, PY)^ > 0 then
+    begin
+      FImage.PixelPtr(PX, PY)^:= Max(FImage.PixelPtr(PX, PY)^ - SubstractValue, 0);
+      DoChange;
+      WritelnLog('Changed ' + IntToStr(PX) + ', ' + IntToStr(PX) + ' new value ' + IntToStr(FImage.PixelPtr(PX, PY)^));
+    end;
+  end;
 end;
 
 procedure TCastleTerrainImage.SetMinLevel(const Value: Single);
@@ -2060,6 +2126,53 @@ end;
 procedure TCastleTerrain.ColliderMesh(const TriangleEvent: TTriangleEvent);
 begin
   Scene.ColliderMesh(TriangleEvent);
+end;
+
+procedure TCastleTerrain.RaiseTerrain(const Coord: TVector3; const Value: Integer);
+var
+  TerrainImage: TCastleTerrainImage;
+  LocalCoord: TVector3;
+  TexCoord: TVector2;
+begin
+  if Data = nil then
+    Exit;
+
+  if Data is TCastleTerrainImage then
+  begin
+     TerrainImage := Data as TCastleTerrainImage;
+     LocalCoord := OutsideToLocal(Coord);
+     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
+     TexCoord.X := MapRangeTo01(LocalCoord.X + FSize.X/2, 0, FSize.X);
+     TexCoord.Y := MapRangeTo01(LocalCoord.Z + FSize.Y/2, 0, FSize.Y);
+     TexCoord.Y := 1 - TexCoord.Y;
+
+     WritelnLog('TexCoord: ' + TexCoord.ToString);
+     TerrainImage.RaiseHeight(TexCoord, Value);
+  end;
+end;
+
+procedure TCastleTerrain.LowerTerrain(const Coord: TVector3;
+  const Value: Integer);
+var
+  TerrainImage: TCastleTerrainImage;
+  LocalCoord: TVector3;
+  TexCoord: TVector2;
+begin
+  if Data = nil then
+    Exit;
+
+  if Data is TCastleTerrainImage then
+  begin
+     TerrainImage := Data as TCastleTerrainImage;
+     LocalCoord := OutsideToLocal(Coord);
+     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
+     TexCoord.X := MapRangeTo01(LocalCoord.X + FSize.X/2, 0, FSize.X);
+     TexCoord.Y := MapRangeTo01(LocalCoord.Z + FSize.Y/2, 0, FSize.Y);
+     TexCoord.Y := 1 - TexCoord.Y;
+
+     WritelnLog('TexCoord: ' + TexCoord.ToString);
+     TerrainImage.LowerHeight(TexCoord, Value);
+  end;
 end;
 
 {$define read_implementation_methods}
