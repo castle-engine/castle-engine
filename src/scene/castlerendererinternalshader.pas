@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -724,6 +724,14 @@ type
   Accepts Node = @nil too. }
 function UniformMissingFromNode(const Node: TX3DNode): TUniformMissing;
 
+{ Find PLUG_xxx function inside PlugValue.
+  Returns xxx (the part after PLUG_),
+  and DeclaredParameters (of this plug function). Or '' if not found.
+
+  This is public in this unit for the sake of testing. }
+function FindPlugName(const PlugValue: String;
+  out DeclaredParameters: String): String;
+
 implementation
 
 uses SysUtils, StrUtils,
@@ -809,6 +817,54 @@ begin
     if S[P] = ')' then
       Dec(ParenLevel);
   until ParenLevel = 0;
+end;
+
+function FindPlugName(const PlugValue: String;
+  out DeclaredParameters: String): String;
+const
+  PlugPrefix = 'PLUG_';
+  IdentifierChars = ['0'..'9', 'a'..'z', 'A'..'Z', '_'];
+var
+  P, PBegin, DPBegin, DPEnd, SearchStart: Integer;
+begin
+  SearchStart := 1;
+  repeat
+    P := PosEx(PlugPrefix, PlugValue, SearchStart);
+    if P = 0 then Exit('');
+
+    { if code below will decide that it's an incorrect PLUG_ definition,
+      it will do Continue, and we will search again from the next position. }
+    SearchStart := P + Length(PlugPrefix);
+
+    { There must be whitespace before PLUG_ }
+    if (P > 1) and (not CharInSet(PlugValue[P - 1], WhiteSpaces)) then Continue;
+    P := P + Length(PlugPrefix);
+    PBegin := P;
+    { There must be at least one identifier char after PLUG_ }
+    if (P > Length(PlugValue)) or
+        (not CharInSet(PlugValue[P], IdentifierChars)) then Continue;
+    repeat
+      Inc(P);
+    until (P > Length(PlugValue)) or (not CharInSet(PlugValue[P], IdentifierChars));
+    { Skip whitespace after PLUG_xxx and before "(". }
+    while (P <= Length(PlugValue)) and CharInSet(PlugValue[P], WhiteSpaces) do
+      Inc(P);
+    { There must be "(" now }
+    if (P > Length(PlugValue)) or (PlugValue[P] <> '(') then
+      Continue;
+
+    // Trim needed, because P may include some trailing whitespace
+    Result := Trim(CopyPos(PlugValue, PBegin, P - 1));
+
+    DPBegin := P - 1;
+    if not MoveToOpeningParen(PlugValue, DPBegin) then Continue;
+    DPEnd := DPBegin;
+    if not MoveToMatchingParen(PlugValue, DPEnd) then Continue;
+
+    DeclaredParameters := CopyPos(PlugValue, DPBegin, DPEnd);
+    { if you managed to get here, then we have correct Result and DeclaredParameters }
+    Exit;
+  until false;
 end;
 
 { In OpenGL, each part (separate compilation) has to declare it's variables
@@ -2127,57 +2183,6 @@ end;
 
 procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: String;
   CompleteCode: TShaderSource; const ForwardDeclareInFinalShader: boolean);
-const
-  PlugPrefix = 'PLUG_';
-
-  { Find PLUG_xxx function inside PlugValue.
-    Returns xxx (the part after PLUG_),
-    and DeclaredParameters (or this plug function). Or '' if not found. }
-  function FindPlugName(const PlugValue: String;
-    out DeclaredParameters: String): String;
-  const
-    IdentifierChars = ['0'..'9', 'a'..'z', 'A'..'Z', '_'];
-  var
-    P, PBegin, DPBegin, DPEnd, SearchStart: Integer;
-  begin
-    SearchStart := 1;
-    repeat
-      P := PosEx(PlugPrefix, PlugValue, SearchStart);
-      if P = 0 then Exit('');
-
-      { if code below will decide that it's an incorrect PLUG_ definition,
-        it will do Continue, and we will search again from the next position. }
-      SearchStart := P + Length(PlugPrefix);
-
-      { There must be whitespace before PLUG_ }
-      if (P > 1) and (not CharInSet(PlugValue[P - 1], WhiteSpaces)) then Continue;
-      P := P + Length(PlugPrefix);
-      PBegin := P;
-      { There must be at least one identifier char after PLUG_ }
-      if (P > Length(PlugValue)) or
-         (not CharInSet(PlugValue[P], IdentifierChars)) then Continue;
-      repeat
-        Inc(P);
-      until (P > Length(PlugValue)) or (not CharInSet(PlugValue[P], IdentifierChars));
-      { Skip whitespace after PLUG_xxx and before "(". }
-      while (P <= Length(PlugValue)) and CharInSet(PlugValue[P], WhiteSpaces) do
-        Inc(P);
-      { There must be "(" now }
-      if (P > Length(PlugValue)) or (PlugValue[P] <> '(') then
-        Continue;
-
-      Result := CopyPos(PlugValue, PBegin, P - 1);
-
-      DPBegin := P - 1;
-      if not MoveToOpeningParen(PlugValue, DPBegin) then Continue;
-      DPEnd := DPBegin;
-      if not MoveToMatchingParen(PlugValue, DPEnd) then Continue;
-
-      DeclaredParameters := CopyPos(PlugValue, DPBegin, DPEnd);
-      { if you managed to get here, then we have correct Result and DeclaredParameters }
-      Exit;
-    until false;
-  end;
 
   function FindPlugOccurrence(const CommentBegin, Code: String;
     const CodeSearchBegin: Integer; out PBegin, PEnd: Integer): boolean;

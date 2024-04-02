@@ -1836,7 +1836,6 @@ begin
   UserConfig.SetValue('ProjectForm_Docking', WantedDocking);
   FormHide(Self); //to save config properly
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
-  ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
   FreeAndNil(Manifest);
@@ -1849,6 +1848,26 @@ begin
   FreeAndNil(DesignWarningsForm);
   FreeAndNil(PlatformsInfo);
   FreeAndNil(ListOpenExistingViewStr);
+  FreeAndNil(Design);
+
+  { It is important to reset ApplicationDataOverride
+    *after* FreeAndNil(Design), which in turn freed components like
+    TCastleScene that possibly interacted with FileMonitor.
+
+    That's because TCastleScene doing FileMonitor.Watch of
+    e.g. "castle-data:/soldier.gltf" with one ApplicationDataOverride value,
+    and then doing Unwatch on the same "castle-data:/soldier.gltf"
+    but *after* ApplicationDataOverride changed,
+    is effectively talking about 2 different files.
+
+    And FileMonitor detects it, as it remembers "final" URLs,
+    with castle-data resolved (and that's good).
+
+    Testcase: Open 3D FPS game template (it has 4 soldiers),
+    open play view,
+    close the editor with Alt + F4.
+    There should be no warnings that we "cannot unwatch .../soldier.gltf" }
+  ApplicationDataOverride := '';
 end;
 
 procedure TProjectForm.DesignObserverFreeNotification(const Sender: TFreeNotificationObserver);

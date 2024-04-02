@@ -219,6 +219,7 @@ begin
     P.Targets.AddUnit('castletransform.pas');
     P.Targets.AddUnit('castletriangles.pas');
     P.Targets.AddUnit('castletriangulate.pas');
+    P.Targets.AddUnit('castleinternalphysicsvisualization.pas');
 
     P.SourcePath.Add('src/audio');
     P.Targets.AddUnit('castleinternalsoundfile.pas');
@@ -454,6 +455,7 @@ begin
     P.Targets.AddUnit('castleinternalnormals.pas');
     P.Targets.AddUnit('castleinternalrenderer.pas');
     P.Targets.AddUnit('castleinternalshadowmaps.pas');
+    P.Targets.AddUnit('castleinternalshapesrenderer.pas');
     P.Targets.AddUnit('castleinternalshapeoctree.pas');
     P.Targets.AddUnit('castleinternalspritesheet.pas');
     P.Targets.AddUnit('castleinternaltriangleoctree.pas');
@@ -484,6 +486,7 @@ begin
     P.SourcePath.Add('src/scene/x3d');
     P.Targets.AddUnit('x3dnodes.pas');
     P.Targets.AddUnit('x3dfields.pas');
+    P.Targets.AddUnit('castleinternalnodesunsupported.pas');
 
     P.SourcePath.Add('src/scene/load');
     P.Targets.AddUnit('castleloadgltf.pas');
