@@ -42,6 +42,18 @@ begin
     '}', DeclaredParameters);
   AssertEquals('main_texture_apply', PlugName);
   AssertEquals('( inout vec4 fcol, const in vec3 unused )', DeclaredParameters);
+
+  PlugName := FindPlugName(NL +
+    'void PLUG_main_texture_apply( inout vec4 fcol, const in vec3 unused )' + NL +
+    '{' + NL +
+    '}', DeclaredParameters);
+  AssertEquals('main_texture_apply', PlugName);
+  AssertEquals('( inout vec4 fcol, const in vec3 unused )', DeclaredParameters);
+
+  // Make sure PLUG_xxx not followed by ( is not recognized
+  PlugName := FindPlugName(NL +
+    '/* void PLUG_main_texture_apply bla blah */', DeclaredParameters);
+  AssertEquals('', PlugName);
 end;
 
 initialization
