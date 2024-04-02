@@ -7,9 +7,9 @@
       "$$ClassName" : "TCastleRectangleControl",
       "ColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
-        "Blue" : 1.1764705926179886E-001,
-        "Green" : 0.0000000000000000E+000,
-        "Red" : 0.0000000000000000E+000
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 1.3725490868091583E-001,
+        "Red" : 1.1764705926179886E-001
       },
       "FullSize" : true,
       "Name" : "RectangleControl1"
@@ -56,7 +56,7 @@
           "FontSize" : 4.0000000000000000E+001,
           "Name" : "LabelCaption",
           "Text" : [
-            "TCP Server"
+            "TCP Client"
           ],
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
@@ -85,6 +85,40 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
+          "Name" : "LabelHostname",
+          "Text" : [
+            "Hostname:"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -1.7400000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleEdit",
+          "CaptureAllInput" : false,
+          "Name" : "EditHostname",
+          "Text" : "localhost",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -2.0600000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "Width" : 2.0000000000000000E+002
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
           "Name" : "LabelPort",
           "Text" : [
             "Port:"
@@ -92,7 +126,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -1.7400000000000000E+002
+            "Y" : -2.4700000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -105,7 +139,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -2.0600000000000000E+002
+            "Y" : -2.7900000000000000E+002
           },
           "Value" : 10244,
           "VerticalAnchorParent" : "vpTop",
@@ -114,7 +148,7 @@
         },
         {
           "$$ClassName" : "TCastleButton",
-          "Caption" : "Create Server",
+          "Caption" : "Create Client",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
@@ -130,11 +164,11 @@
           "Image" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
-          "Name" : "ButtonCreateServer",
+          "Name" : "ButtonCreateClient",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -2.4700000000000000E+002
+            "Y" : -3.2000000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -145,7 +179,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -2.9600000000000000E+002
+            "Y" : -3.6900000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -157,7 +191,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.0600000000000000E+002
+            "Y" : -4.7900000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
@@ -165,7 +199,7 @@
         },
         {
           "$$ClassName" : "TCastleButton",
-          "Caption" : "Send To All Clients",
+          "Caption" : "Send To Server",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
@@ -186,18 +220,19 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.4700000000000000E+002
+            "Y" : -5.2000000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
         },
         {
           "$$ClassName" : "TCastleUserInterface",
+          "Height" : 6.0000000000000000E+001,
           "Name" : "Spacer3",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.9600000000000000E+002
+            "Y" : -5.6900000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -212,12 +247,12 @@
           },
           "Name" : "LabelMessage",
           "Text" : [
-            "Last Message From Clients:"
+            "Last Message From Server:"
           ],
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -6.0600000000000000E+002
+            "Y" : -6.3900000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -236,7 +271,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -6.3800000000000000E+002
+            "Y" : -6.7100000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"

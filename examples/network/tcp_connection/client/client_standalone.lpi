@@ -21,9 +21,9 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
-        <Filename Value="client.dpr"/>
+        <Filename Value="client_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -36,6 +36,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameinitialize"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="code/gameviewmain.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameviewmain"/>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -44,8 +49,8 @@
       <Filename Value="client"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="code/;your/path/to/Indy10/Core;your/path/to/Indy10/System"/>
-      <OtherUnitFiles Value="code/;your/path/to/Indy10/Core;your/path/to/Indy10/System"/>
+      <IncludeFiles Value="code/"/>
+      <OtherUnitFiles Value="code/"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
       <Libraries Value="" />
     </SearchPaths>

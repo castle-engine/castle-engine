@@ -20,7 +20,7 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleUIControls, CastleControls,
-  CastleKeysMouse, CastleClientServer, CastleNotifications;
+  CastleKeysMouse, CastleNotifications, CastleClientServer;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -29,17 +29,18 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
+    EditHostname: TCastleEdit;
     EditPort: TCastleIntegerEdit;
-    ButtonCreateServer: TCastleButton;
+    ButtonCreateClient: TCastleButton;
     EditSend: TCastleEdit;
     ButtonSend: TCastleButton;
     LabelMessageContents: TCastleLabel;
     Notifications: TCastleNotifications;
   private
-    FServer: TCastleTCPServer;
-    procedure HandleConnected(AClient: TClientConnection);
-    procedure HandleDisconnected(AClient: TClientConnection);
-    procedure HandleMessageReceived(const AMessage: String; AClient: TClientConnection);
+    FClient: TCastleTCPClient;
+    procedure HandleConnected;
+    procedure HandleDisconnected;
+    procedure HandleMessageReceived(const AMessage: String);
     procedure ClickCreate(Sender: TObject);
     procedure ClickSend(Sender: TObject);
   public
@@ -68,17 +69,18 @@ procedure TViewMain.Start;
 begin
   inherited;
 
-  ButtonCreateServer.OnClick := {$ifdef FPC}@{$endif} ClickCreate;
+  ButtonCreateClient.OnClick := {$ifdef FPC}@{$endif} ClickCreate;
   ButtonSend.OnClick := {$ifdef FPC}@{$endif} ClickSend;
 
   { Makes on-screen keyboard appear on mobile automatically }
+  EditHostname.AutoOnScreenKeyboard := true;
   EditPort.AutoOnScreenKeyboard := true;
   EditSend.AutoOnScreenKeyboard := true;
 end;
 
 procedure TViewMain.Stop;
 begin
-  FreeAndNil(FServer);
+  FreeAndNil(FClient);
   inherited;
 end;
 
@@ -90,40 +92,41 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-procedure TViewMain.HandleConnected(AClient: TClientConnection);
+procedure TViewMain.HandleConnected;
 begin
-  Notifications.Show('Client connected');
+  Notifications.Show('Connected to server');
 end;
 
-procedure TViewMain.HandleDisconnected(AClient: TClientConnection);
+procedure TViewMain.HandleDisconnected;
 begin
-  Notifications.Show('Client disconnected');
+  Notifications.Show('Disconnected from server');
 end;
 
-procedure TViewMain.HandleMessageReceived(const AMessage: String; AClient: TClientConnection);
+procedure TViewMain.HandleMessageReceived(const AMessage: String);
 begin
-  Notifications.Show('Message from client: ' + AMessage);
+  Notifications.Show('Received message: ' + AMessage);
   LabelMessageContents.Caption := AMessage;
 end;
 
 procedure TViewMain.ClickCreate(Sender: TObject);
 begin
-  FServer := TCastleTCPServer.Create;
-  FServer.Port := EditPort.Value;
+  FClient := TCastleTCPClient.Create;
+  FClient.Hostname := EditHostname.Text;
+  FClient.Port := EditPort.Value;
 
-  FServer.OnConnected := {$ifdef FPC}@{$endif} HandleConnected;
-  FServer.OnDisconnected := {$ifdef FPC}@{$endif} HandleDisconnected;
-  FServer.OnMessageReceived := {$ifdef FPC}@{$endif} HandleMessageReceived;
+  FClient.OnConnected := {$ifdef FPC}@{$endif} HandleConnected;
+  FClient.OnDisconnected := {$ifdef FPC}@{$endif} HandleDisconnected;
+  FClient.OnMessageReceived := {$ifdef FPC}@{$endif} HandleMessageReceived;
 
-  FServer.Start;
+  FClient.Connect;
 
-  ButtonCreateServer.Enabled := false;
+  ButtonCreateClient.Enabled := false;
   ButtonSend.Enabled := true;
 end;
 
 procedure TViewMain.ClickSend(Sender: TObject);
 begin
-  FServer.SendToAll(EditSend.Text);
+  FClient.Send(EditSend.Text);
 end;
 
 end.

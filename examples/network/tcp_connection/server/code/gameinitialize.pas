@@ -84,7 +84,8 @@ initialization
     Note that some platforms (like mobile) ignore these window sizes.
   }
 
-  { Portrait-like aspect ratio, similar to mobile portrait mode. }
+  { Special code in client / server examples:
+    Portrait-like aspect ratio, similar to mobile portrait mode. }
   Window.Width := Application.ScreenWidth div 3;
   Window.Height := Application.ScreenHeight * 3 div 4;
 
