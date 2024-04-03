@@ -1,5 +1,5 @@
 {
-  Copyright 2018 Benedikt Magnus.
+  Copyright 2018-2024 Benedikt Magnus, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -391,6 +391,12 @@ uses
   begin
     FClient.Connect;
     FClient.IOHandler.ReadTimeout := 100;
+    {$ifdef FPC}
+    { Change to use IndyTextEncoding_UTF8,
+      see TCastleTCPServer.ServerOnConnect for explanation. }
+    FClient.IOHandler.DefStringEncoding := IndyTextEncoding_UTF8;
+    FClient.IOHandler.DefAnsiEncoding := IndyTextEncoding_UTF8;
+    {$endif}
 
     if Assigned(FOnConnected) then
       Queue(FOnConnected);
@@ -580,6 +586,24 @@ end;
     FClientConnectionsList.Add(AContext);
 
     AContext.Connection.IOHandler.ReadTimeout := 100;
+    {$ifdef FPC}
+    { Change to use IndyTextEncoding_UTF8, to enable sending/receiving
+      UTF-8 encoded strings in FPC (as just String = AnsiString).
+
+      FPC Indy from http://packages.lazarus-ide.org/Indy10.zip has by default
+
+        DefStringEncoding = IndyTextEncoding_ASCII
+        DefAnsiEncoding = IndyTextEncoding_OSDefault
+
+      We need to change both DefAnsiEncoding (seems to matter to send them OK)
+      and DefStringEncoding (seems to matter to receive the non-ASCII chars OK).
+      Without any change, sending non-ASCII characters encoded in UTF-8
+      is silently ignored (whole message was ignored).
+      Reproduced on at least Linux and FreeBSD with FPC 3.2.2
+      (see https://github.com/castle-engine/castle-engine/issues/590). }
+    AContext.Connection.IOHandler.DefStringEncoding := IndyTextEncoding_UTF8;
+    AContext.Connection.IOHandler.DefAnsiEncoding := IndyTextEncoding_UTF8;
+    {$endif}
 
     if Assigned(FOnConnected) then
       TThread.Queue(nil, {$ifdef FPC}@{$endif} ServerOnClientConnected);
