@@ -72,7 +72,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -6.4000000000000000E+001
+            "Y" : -6.3999996185302734E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -99,6 +99,7 @@
         },
         {
           "$$ClassName" : "TCastleIntegerEdit",
+          "AutoOnScreenKeyboard" : true,
           "CaptureAllInput" : false,
           "Min" : 1,
           "Name" : "EditPort",
@@ -152,6 +153,7 @@
         },
         {
           "$$ClassName" : "TCastleEdit",
+          "AutoOnScreenKeyboard" : true,
           "CaptureAllInput" : false,
           "Name" : "EditSend",
           "TranslationPersistent" : {

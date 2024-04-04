@@ -67,13 +67,8 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-
   ButtonCreateServer.OnClick := {$ifdef FPC}@{$endif} ClickCreate;
   ButtonSend.OnClick := {$ifdef FPC}@{$endif} ClickSend;
-
-  { Makes on-screen keyboard appear on mobile automatically }
-  EditPort.AutoOnScreenKeyboard := true;
-  EditSend.AutoOnScreenKeyboard := true;
 end;
 
 procedure TViewMain.Stop;
