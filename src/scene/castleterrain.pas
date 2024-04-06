@@ -86,6 +86,11 @@ uses SysUtils, Classes,
   CastleColors, CastleTriangles;
 
 type
+  TCastleTerrainMode = (
+    ctmMesh, // build mesh from image
+    ctmShader // simple mesh modified by vertex shader
+  );
+
   { Terrain (height map) data that can be used for @link(TCastleTerrain.Data). }
   TCastleTerrainData = class(TCastleComponent)
   strict private
@@ -588,6 +593,11 @@ type
     FSubdivisions: TVector2;
     FPreciseCollisions: Boolean;
     FUpdateGeometryWhenLoaded: Boolean;
+
+    FMode: TCastleTerrainMode;
+    FEffectTextureHeightField: TSFNode;
+    FShaderHeightTexture: TImageTextureNode;
+
     function GetRenderOptions: TCastleRenderOptions;
     function GetLayer(const Index: Integer): TCastleTerrainLayer;
     procedure DataFreeNotification(const Sender: TFreeNotificationObserver);
@@ -679,6 +689,8 @@ type
 
     procedure RaiseTerrain(const Coord: TVector3; const Value: Integer);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
+
+    property Mode: TCastleTerrainMode read FMode write FMode;
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
@@ -1764,7 +1776,7 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
     { If no light sources are present, it is normal that almost all uniforms
       in this effect do not exist -- because they affect only
       the TPhysicalMaterialNode.BaseTexture, which is meaningless when no light shines. }
-    Effect.UniformMissing := umIgnore;
+    Effect.UniformMissing := umWarning;
     Appearance.SetEffects([Effect]);
 
     UvScaleField := TSFVec4f.Create(Effect, true, 'uv_scale', Vector4(
@@ -1796,6 +1808,7 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
 
     Effect.AddCustomField(TSFFloat.Create(Effect, true, 'layers_influence', FLayersInfluence));
     Effect.AddCustomField(TSFFloat.Create(Effect, true, 'steep_emphasize', FSteepEmphasize));
+    Effect.AddCustomField(TSFVec2f.Create(Effect, true, 'terrain_size', FSize));
 
     { initialize 2 EffectPart nodes (one for vertex shader, one for fragment shader) }
     FragmentPart := TEffectPartNode.Create;
@@ -1804,7 +1817,15 @@ constructor TCastleTerrain.Create(AOwner: TComponent);
 
     VertexPart := TEffectPartNode.Create;
     VertexPart.ShaderType := stVertex;
-    VertexPart.Contents := {$I terrain.vs.inc};
+    case FMode of
+      ctmShader:
+      begin
+        VertexPart.Contents := {$I terrain2.vs.inc};
+      end;
+      ctmMesh:
+        VertexPart.Contents := {$I terrain.vs.inc};
+    end;
+
 
     Effect.SetParts([FragmentPart, VertexPart]);
 
@@ -1817,6 +1838,7 @@ var
 begin
   inherited;
 
+  FMode := ctmShader;
   FTriangulate := true;
   FSubdivisions := Vector2(DefaultSubdivisions, DefaultSubdivisions);
   FSize := Vector2(DefaultSize, DefaultSize);
@@ -1932,6 +1954,54 @@ procedure TCastleTerrain.UpdateGeometry;
       C.InternalTransformChanged(Self);
   end;
 
+  function CreateTerrainIndexedTriangleNode(const Subdivisions: TVector2;
+    const InputRange, OutputRange: TFloatRectangle;
+    const Appearance: TAppearanceNode): TAbstractChildNode; overload;
+  var
+    Transform: TTransformNode;
+    Shape: TShapeNode;
+    Grid: TElevationGridNode;
+    SubdivisionsX, SubdivisionsZ: Cardinal;
+    DataTerrainImage: TCastleTerrainImage;
+  begin
+    SubdivisionsX := Round(Subdivisions.X);
+    SubdivisionsZ := Round(Subdivisions.Y);
+
+    Transform := TTransformNode.Create;
+    Transform.ClearChildren;
+    Transform.Translation := Vector3(OutputRange.Left, 0, OutputRange.Bottom);
+
+    Shape := TShapeNode.Create;
+
+    Grid := TElevationGridNode.Create;
+    Shape.FdGeometry.Value := Grid;
+    Grid.FdCreaseAngle.Value := 4; { > pi, to be perfectly smooth }
+    Grid.FdXDimension.Value := SubdivisionsX;
+    Grid.FdZDimension.Value := SubdivisionsZ;
+    Grid.FdXSpacing.Value := OutputRange.Width  / (SubdivisionsX - 1);
+    Grid.FdZSpacing.Value := OutputRange.Height / (SubdivisionsZ - 1);
+    Grid.FdHeight.Items.Count := SubdivisionsX * SubdivisionsZ;
+
+    Shape.Appearance := Appearance;
+
+    if FEffectTextureHeightField = nil then
+    begin
+      DataTerrainImage := FData as TCastleTerrainImage;
+      if DataTerrainImage <> nil then
+      begin
+        FShaderHeightTexture := TImageTextureNode.Create;
+        WritelnLog(DataTerrainImage.Url);
+        FShaderHeightTexture.SetUrl([DataTerrainImage.Url]);
+        FEffectTextureHeightField := TSFNode.Create(Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture);
+        Effect.AddCustomField(FEffectTextureHeightField);
+      end;
+    end;
+
+    // at the end, as this may cause Scene.ChangedAll
+    Transform.AddChildren(Shape);
+    Result := Transform;
+  end;
+
 var
   Root: TX3DRootNode;
   InputRange, OutputRange: TFloatRectangle;
@@ -1949,38 +2019,53 @@ begin
   InputRange := OutputRange;
   InputRange.LeftBottom := InputRange.LeftBottom + QueryOffset;
 
-  if Data <> nil then
-  begin
-    if TerrainNode = nil then
+  case FMode of
+  ctmMesh:
     begin
-      if Triangulate then
-        TerrainNode := Data.CreateTriangulatedNode(Subdivisions, InputRange, OutputRange, Appearance)
-      else
-        TerrainNode := Data.CreateNode(Subdivisions, InputRange, OutputRange, Appearance);
+      if Data <> nil then
+      begin
+        if TerrainNode = nil then
+        begin
+          if Triangulate then
+            TerrainNode := Data.CreateTriangulatedNode(Subdivisions, InputRange, OutputRange, Appearance)
+          else
+            TerrainNode := Data.CreateNode(Subdivisions, InputRange, OutputRange, Appearance);
+          Root := TX3DRootNode.Create;
+          Root.AddChildren(TerrainNode);
+          Scene.Load(Root, true);
+        end else
+        begin
+          if Triangulate then
+            Data.UpdateTriangulatedNode(TerrainNode, Subdivisions, InputRange, OutputRange)
+          else
+            Data.UpdateNode(TerrainNode, Subdivisions, InputRange, OutputRange);
+        end;
+      end else
+      begin
+        { When Data is empty, show a simple quad to visualize Size of the terrain. }
+        Root := TX3DRootNode.Create;
+        Root.AddChildren(CreateQuadShape(OutputRange));
+        Scene.Load(Root, true);
+        { Do not let subsequent calls to use TerrainNode as it was destroyed
+          by Scene.Load above.
+          Testcase: create TCastleTerrain and TCastleTerrainImage,
+          assign TCastleTerrain.Data to TCastleTerrainImage, to nil, again to TCastleTerrainImage. }
+        TerrainNode := nil;
+      end;
+
+      UpdateCollider;
+    end;
+  ctmShader:
+    begin
       Root := TX3DRootNode.Create;
+      TerrainNode := CreateTerrainIndexedTriangleNode(Subdivisions, InputRange, OutputRange, Appearance);
       Root.AddChildren(TerrainNode);
       Scene.Load(Root, true);
-    end else
-    begin
-      if Triangulate then
-        Data.UpdateTriangulatedNode(TerrainNode, Subdivisions, InputRange, OutputRange)
-      else
-        Data.UpdateNode(TerrainNode, Subdivisions, InputRange, OutputRange);
+      Scene.RenderOptions.WireframeEffect := weSolidWireframe;
+      //Scene.GLContextClose;
     end;
-  end else
-  begin
-    { When Data is empty, show a simple quad to visualize Size of the terrain. }
-    Root := TX3DRootNode.Create;
-    Root.AddChildren(CreateQuadShape(OutputRange));
-    Scene.Load(Root, true);
-    { Do not let subsequent calls to use TerrainNode as it was destroyed
-      by Scene.Load above.
-      Testcase: create TCastleTerrain and TCastleTerrainImage,
-      assign TCastleTerrain.Data to TCastleTerrainImage, to nil, again to TCastleTerrainImage. }
-    TerrainNode := nil;
   end;
 
-  UpdateCollider;
 end;
 
 function TCastleTerrain.GetLayer(const Index: Integer): TCastleTerrainLayer;
