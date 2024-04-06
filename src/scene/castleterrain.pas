@@ -212,6 +212,7 @@ type
     procedure RaiseHeight(const TexCoord: TVector2; const AddValue: Byte);
     procedure LowerHeight(const TexCoord: TVector2; const SubstractValue: Byte);
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    property Image: TGrayscaleImage read FImage;
   published
     { Image URL. Empty string means that no image is loaded. }
     property Url: String read FUrl write SetUrl;
@@ -1995,6 +1996,16 @@ procedure TCastleTerrain.UpdateGeometry;
         FEffectTextureHeightField := TSFNode.Create(Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture);
         Effect.AddCustomField(FEffectTextureHeightField);
       end;
+    end else
+    begin
+      DataTerrainImage := FData as TCastleTerrainImage;
+      if DataTerrainImage <> nil then
+      begin
+        FShaderHeightTexture := TImageTextureNode.Create;
+        FShaderHeightTexture.LoadFromImage(DataTerrainImage.Image, false, '');
+        FEffectTextureHeightField.Send(FShaderHeightTexture);
+      end;
+
     end;
 
     // at the end, as this may cause Scene.ChangedAll
