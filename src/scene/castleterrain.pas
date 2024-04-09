@@ -597,7 +597,8 @@ type
 
     FMode: TCastleTerrainMode;
     FEffectTextureHeightField: TSFNode;
-    FShaderHeightTexture: TImageTextureNode;
+    FShaderHeightTexture1: TImageTextureNode;
+    FShaderHeightTexture2: TImageTextureNode;
 
     function GetRenderOptions: TCastleRenderOptions;
     function GetLayer(const Index: Integer): TCastleTerrainLayer;
@@ -689,6 +690,7 @@ type
     property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
 
     procedure RaiseTerrain(const Coord: TVector3; const Value: Integer);
+    procedure RaiseTerrainShader(const Coord: TVector3; const Value: Integer; const BrushUrl: String);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
 
     property Mode: TCastleTerrainMode read FMode write FMode;
@@ -765,7 +767,7 @@ implementation
 
 uses Math,
   CastleUtils, CastleScriptParser, CastleInternalNoise, CastleDownload, CastleLog,
-  CastleUriUtils, CastleComponentSerialize;
+  CastleUriUtils, CastleComponentSerialize, CastleGLImages, CastleInternalRenderer, CastleGL;
 
 { TCastleTerrainData ------------------------------------------------------------------- }
 
@@ -1881,6 +1883,8 @@ begin
   {$undef read_implementation_destructor}
   inherited;
 
+  FShaderHeightTexture1.KeepExistingEnd;
+  FShaderHeightTexture2.KeepExistingEnd;
   { Avoid Appearance having invalid reference in Appearance.Scene.
     Note that Scene was freed in "inherited" above,
     but Appearance.Scene may not have been cleared,
@@ -1990,10 +1994,14 @@ procedure TCastleTerrain.UpdateGeometry;
       DataTerrainImage := FData as TCastleTerrainImage;
       if DataTerrainImage <> nil then
       begin
-        FShaderHeightTexture := TImageTextureNode.Create;
+        FShaderHeightTexture1 := TImageTextureNode.Create;
+        FShaderHeightTexture1.KeepExistingBegin;
+        FShaderHeightTexture2 := TImageTextureNode.Create;
+        FShaderHeightTexture2.KeepExistingBegin;
         WritelnLog(DataTerrainImage.Url);
-        FShaderHeightTexture.SetUrl([DataTerrainImage.Url]);
-        FEffectTextureHeightField := TSFNode.Create(Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture);
+        FShaderHeightTexture1.SetUrl([DataTerrainImage.Url]);
+        FShaderHeightTexture2.SetUrl([DataTerrainImage.Url]);
+        FEffectTextureHeightField := TSFNode.Create(Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture1);
         Effect.AddCustomField(FEffectTextureHeightField);
       end;
     end else
@@ -2001,9 +2009,14 @@ procedure TCastleTerrain.UpdateGeometry;
       DataTerrainImage := FData as TCastleTerrainImage;
       if DataTerrainImage <> nil then
       begin
-        FShaderHeightTexture := TImageTextureNode.Create;
-        FShaderHeightTexture.LoadFromImage(DataTerrainImage.Image, false, '');
-        FEffectTextureHeightField.Send(FShaderHeightTexture);
+        if FEffectTextureHeightField.Value = FShaderHeightTexture1 then
+          FEffectTextureHeightField.Send(FShaderHeightTexture2)
+        else
+          FEffectTextureHeightField.Send(FShaderHeightTexture1);
+
+        {FShaderHeightTexture1 := TImageTextureNode.Create;
+        FShaderHeightTexture1.LoadFromImage(DataTerrainImage.Image, false, '');
+        FEffectTextureHeightField.Send(FShaderHeightTexture1);}
       end;
 
     end;
@@ -2245,6 +2258,78 @@ begin
      WritelnLog('TexCoord: ' + TexCoord.ToString);
      TerrainImage.RaiseHeight(TexCoord, Value);
   end;
+end;
+
+procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
+  const Value: Integer; const BrushUrl: String);
+var
+  RenderToTexture: TGLRenderToTexture;
+  Brush: TDrawableImage;
+  TargetTexture: TImageTextureNode;
+  SourceTexture: TImageTextureNode;
+  LocalCoord: TVector3;
+  TexX, TexY: Single;
+  PX, PY: Integer;
+  TextureWidth, TExtureHeight : Integer;
+
+  function GetCurrentlyUsedTexture: TImageTextureNode;
+  begin
+    Result := TImageTextureNode(FEffectTextureHeightField.Value);
+  end;
+
+  function GetTargetTexture: TImageTextureNode;
+  begin
+    if FEffectTextureHeightField.Value = FShaderHeightTexture1 then
+      Result := FShaderHeightTexture2
+    else
+      Result := FShaderHeightTexture1;
+  end;
+
+begin
+  SourceTexture := GetCurrentlyUsedTexture;
+  TargetTexture := GetTargetTexture;
+  TextureWidth := SourceTexture.TextureImage.Width;
+  TextureHeight := SourceTexture.TextureImage.Height;
+  RenderToTexture := TGLRenderToTexture.Create(TextureWidth, TExtureHeight);
+  try
+    RenderToTexture.Buffer := tbColor;
+
+    if TargetTexture.InternalRendererResource = nil then
+      TTextureResources.Prepare(RenderOptions, TargetTexture);
+    if TargetTexture.InternalRendererResource = nil then
+    begin
+      WritelnLog('Texture not ready');
+      Exit;
+    end;
+
+    RenderToTexture.SetTexture(TImageTextureResource(TargetTexture.InternalRendererResource).GLName, GL_TEXTURE_2D);
+    RenderToTexture.GLContextOpen;
+    RenderToTexture.RenderBegin;
+
+    Brush := TDrawableImage.Create(BrushUrl);
+
+    // map to 0 - 1 range of texture.
+    LocalCoord := OutsideToLocal(Coord);
+    WritelnLog('LocalCoord: ' + LocalCoord.ToString);
+    TexX := MapRangeTo01(LocalCoord.X + FSize.X/2, 0, FSize.X);
+    TexY := MapRangeTo01(LocalCoord.Z + FSize.Y/2, 0, FSize.Y);
+    TexY := 1 - TexY;
+    WritelnLog('Texture Map coords: ' + FloatToStr(TexX) + ', ' + FloatToStr(TexY));
+
+    // map to pixels
+    PX := Floor(TexX * TextureWidth );
+    PY := Floor(TexY * TextureHeight);
+    ClampVar(PX, 0, TextureWidth  - 1);
+    ClampVar(PY, 0, TextureHeight - 1);
+
+    WritelnLog('Height Map coords: ' + IntToStr(PX) + ', ' + IntToStr(PY));
+    Brush.Draw(PX - Brush.Width / 2, PY - Brush.Height / 2);
+
+    RenderToTexture.RenderEnd;
+  finally
+    FreeAndNil(RenderToTexture);
+  end;
+  UpdateGeometry;
 end;
 
 procedure TCastleTerrain.LowerTerrain(const Coord: TVector3;
