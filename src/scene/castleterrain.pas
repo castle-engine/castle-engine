@@ -2004,6 +2004,7 @@ procedure TCastleTerrain.UpdateGeometry;
         FEffectTextureHeightField := TSFNode.Create(Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture1);
         Effect.AddCustomField(FEffectTextureHeightField);
       end;
+    end;
 
     // at the end, as this may cause Scene.ChangedAll
     Transform.AddChildren(Shape);
@@ -2293,18 +2294,22 @@ begin
     RenderToTexture.RenderBegin;
 
 
-    // not working becouse we have changes only on gpu side
+    // not working because we have changes only on gpu side
     //Source := TDrawableImage.Create(SourceTexture.TextureImage, true, false);
 
     Image := TRGBAlphaImage.Create(TextureWidth, TExtureHeight);
-    SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
-
-    Source := TDrawableImage.Create(Image, false, false);
     try
-      //Source.Draw(0,0, TextureWidth, TExtureHeight);
-      Source.Draw(0,0);
+      SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
+
+      Source := TDrawableImage.Create(Image, false, false);
+      try
+        //Source.Draw(0,0, TextureWidth, TExtureHeight);
+        Source.Draw(0,0);
+      finally
+        FreeAndNil(Source);
+      end;
     finally
-      FreeAndNil(Source);
+      FreeAndNil(Image);
     end;
 
     Brush := TDrawableImage.Create(BrushUrl);
