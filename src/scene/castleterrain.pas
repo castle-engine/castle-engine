@@ -2009,10 +2009,10 @@ procedure TCastleTerrain.UpdateGeometry;
       DataTerrainImage := FData as TCastleTerrainImage;
       if DataTerrainImage <> nil then
       begin
-        if FEffectTextureHeightField.Value = FShaderHeightTexture1 then
+        {if FEffectTextureHeightField.Value = FShaderHeightTexture1 then
           FEffectTextureHeightField.Send(FShaderHeightTexture2)
         else
-          FEffectTextureHeightField.Send(FShaderHeightTexture1);
+          FEffectTextureHeightField.Send(FShaderHeightTexture1);}
 
         {FShaderHeightTexture1 := TImageTextureNode.Create;
         FShaderHeightTexture1.LoadFromImage(DataTerrainImage.Image, false, '');
@@ -2264,6 +2264,7 @@ procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
   const Value: Integer; const BrushUrl: String);
 var
   RenderToTexture: TGLRenderToTexture;
+  Source: TDrawableImage;
   Brush: TDrawableImage;
   TargetTexture: TImageTextureNode;
   SourceTexture: TImageTextureNode;
@@ -2271,6 +2272,7 @@ var
   TexX, TexY: Single;
   PX, PY: Integer;
   TextureWidth, TExtureHeight : Integer;
+  Image: TCastleImage;
 
   function GetCurrentlyUsedTexture: TImageTextureNode;
   begin
@@ -2301,10 +2303,25 @@ begin
       WritelnLog('Texture not ready');
       Exit;
     end;
-
     RenderToTexture.SetTexture(TImageTextureResource(TargetTexture.InternalRendererResource).GLName, GL_TEXTURE_2D);
+    WritelnLog(IntTOStr(TImageTextureResource(TargetTexture.InternalRendererResource).GLName));
     RenderToTexture.GLContextOpen;
     RenderToTexture.RenderBegin;
+
+
+    // not working becouse we have changes only on gpu side
+    //Source := TDrawableImage.Create(SourceTexture.TextureImage, true, false);
+
+    Image := TRGBAlphaImage.Create(TextureWidth, TExtureHeight);
+    SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
+
+    Source := TDrawableImage.Create(Image, false, false);
+    try
+      //Source.Draw(0,0, TextureWidth, TExtureHeight);
+      Source.Draw(0,0);
+    finally
+      FreeAndNil(Source);
+    end;
 
     Brush := TDrawableImage.Create(BrushUrl);
     try
@@ -2334,7 +2351,7 @@ begin
   finally
     FreeAndNil(RenderToTexture);
   end;
-  UpdateGeometry;
+  FEffectTextureHeightField.Send(TargetTexture);
 end;
 
 procedure TCastleTerrain.LowerTerrain(const Coord: TVector3;
