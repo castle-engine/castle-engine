@@ -2004,22 +2004,6 @@ procedure TCastleTerrain.UpdateGeometry;
         FEffectTextureHeightField := TSFNode.Create(Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture1);
         Effect.AddCustomField(FEffectTextureHeightField);
       end;
-    end else
-    begin
-      DataTerrainImage := FData as TCastleTerrainImage;
-      if DataTerrainImage <> nil then
-      begin
-        {if FEffectTextureHeightField.Value = FShaderHeightTexture1 then
-          FEffectTextureHeightField.Send(FShaderHeightTexture2)
-        else
-          FEffectTextureHeightField.Send(FShaderHeightTexture1);}
-
-        {FShaderHeightTexture1 := TImageTextureNode.Create;
-        FShaderHeightTexture1.LoadFromImage(DataTerrainImage.Image, false, '');
-        FEffectTextureHeightField.Send(FShaderHeightTexture1);}
-      end;
-
-    end;
 
     // at the end, as this may cause Scene.ChangedAll
     Transform.AddChildren(Shape);
