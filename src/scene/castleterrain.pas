@@ -2307,6 +2307,7 @@ begin
     RenderToTexture.RenderBegin;
 
     Brush := TDrawableImage.Create(BrushUrl);
+    try
 
     // map to 0 - 1 range of texture.
     LocalCoord := OutsideToLocal(Coord);
@@ -2324,6 +2325,10 @@ begin
 
     WritelnLog('Height Map coords: ' + IntToStr(PX) + ', ' + IntToStr(PY));
     Brush.Draw(PX - Brush.Width / 2, PY - Brush.Height / 2);
+
+    finally
+      FreeAndNil(Brush);
+    end;
 
     RenderToTexture.RenderEnd;
   finally
