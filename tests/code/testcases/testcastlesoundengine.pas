@@ -139,6 +139,15 @@ begin
     finally FreeAndNil(Stream) end;
     AssertSameValue(1.46, Sound.Duration, 0.01);
   finally FreeAndNil(Sound) end;
+
+  Sound := TCastleSound.Create(nil);
+  try
+    Stream := Download('castle-data:/game/alien_sudden_pain.wav', []);
+    try
+      Sound.LoadFromStream(Stream, 'audio/wav');
+    finally FreeAndNil(Stream) end;
+    AssertSameValue(1.46, Sound.Duration, 0.01);
+  finally FreeAndNil(Sound) end;
 end;
 
 initialization

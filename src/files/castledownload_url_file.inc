@@ -191,7 +191,7 @@ begin
   if Ext = '.mp3' then Result := 'audio/mpeg' else
   if Ext = '.ogg' then Result := 'audio/ogg' else
   if Ext = '.oga' then Result := 'audio/ogg' else
-  if Ext = '.wav' then Result := 'audio/x-wav' else
+  if Ext = '.wav' then Result := 'audio/wav' else
   if Ext = '.mid' then Result := 'audio/midi' else
   if Ext = '.midi' then Result := 'audio/midi' else
   if Ext = '.au' then Result := 'audio/basic' else
