@@ -88,7 +88,8 @@ begin
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption :=
     'FPS: ' + Container.Fps.ToString + NL +
-    'Connected: ' + BoolToStr((FServer <> nil) and FServer.IsConnected, true);
+    'Server Created: ' + BoolToStr(FServer <> nil, true) + NL +
+    'Any Client Connected: ' + BoolToStr((FServer <> nil) and FServer.IsConnected, true);
 
   ButtonCreateServer.Enabled := FServer = nil;
   ButtonDestroyServer.Enabled := FServer <> nil;
