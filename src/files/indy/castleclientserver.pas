@@ -374,7 +374,6 @@ uses
 
     FMessageList := TSynchronisedStringList.Create;
 
-    FreeOnTerminate := true;
     inherited Create(false);
   end;
 
@@ -691,8 +690,15 @@ end;
 destructor TCastleTCPClient.Destroy;
 begin
   {$ifndef ANDROID}
+  if FClientThread <> nil then
+  begin
     FClientThread.FreeClientOnTerminate := true;
+    FClient := nil; // will be freed because of FClientThread.FreeClientOnTerminate
+
+    FClientThread.FreeOnTerminate := true;
     FClientThread.Terminate;
+    FClientThread := nil; // will free itself because FreeOnTerminate = true, so don't keep reference to it
+  end;
   {$endif}
 
   inherited;
@@ -719,7 +725,9 @@ begin
   {$ifdef ANDROID}
     FTCPConnectionService.Close;
   {$else}
+    FClientThread.FreeOnTerminate := true;
     FClientThread.Terminate;
+    FClientThread := nil; // will free itself because FreeOnTerminate = true, so don't keep reference to it
   {$endif}
 end;
 
