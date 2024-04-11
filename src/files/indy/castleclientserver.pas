@@ -348,8 +348,15 @@ uses
   end;
 
   function TAndroidTCPConnectionService.IsConnected: Boolean;
+  var
+    B: Boolean;
   begin
-    Result := IsConnected(TClientConnection.Create('client'));
+    Result := false;
+    if FIsActive then
+      // is there any pair in FConnectedDictionary with value = true (connected)?
+      for B in FConnectedDictionary.Values do
+        if B then
+          Exit(true);
   end;
 
   function TAndroidTCPConnectionService.IsConnected(AClient: TClientConnection): Boolean;
