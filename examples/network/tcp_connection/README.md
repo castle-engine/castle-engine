@@ -34,5 +34,6 @@ Remember to enable server access in the firewall, if you have one. Windows autom
 
 ## Screenshots
 
+![2 Clients and 1 Server](server_and_2_clients.png)
 ![Server on Windows](server_windows.png)
 ![Client on Android](client_android.jpg)
