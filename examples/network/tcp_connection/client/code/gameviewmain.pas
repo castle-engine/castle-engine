@@ -32,6 +32,7 @@ type
     EditHostname: TCastleEdit;
     EditPort: TCastleIntegerEdit;
     ButtonCreateClient: TCastleButton;
+    ButtonDestroyClient: TCastleButton;
     EditSend: TCastleEdit;
     ButtonSend: TCastleButton;
     LabelMessageContents: TCastleLabel;
@@ -41,7 +42,8 @@ type
     procedure HandleConnected;
     procedure HandleDisconnected;
     procedure HandleMessageReceived(const AMessage: String);
-    procedure ClickCreate(Sender: TObject);
+    procedure ClickCreateClient(Sender: TObject);
+    procedure ClickDestroyClient(Sender: TObject);
     procedure ClickSend(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -55,7 +57,8 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  CastleUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -68,7 +71,8 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-  ButtonCreateClient.OnClick := {$ifdef FPC}@{$endif} ClickCreate;
+  ButtonCreateClient.OnClick := {$ifdef FPC}@{$endif} ClickCreateClient;
+  ButtonDestroyClient.OnClick := {$ifdef FPC}@{$endif} ClickDestroyClient;
   ButtonSend.OnClick := {$ifdef FPC}@{$endif} ClickSend;
 end;
 
@@ -83,7 +87,14 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
-  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  LabelFps.Caption :=
+    'FPS: ' + Container.Fps.ToString + NL +
+    'Client Created: ' + BoolToStr(FClient <> nil, true) + NL +
+    'Connected To Server: ' + BoolToStr((FClient <> nil) and FClient.IsConnected, true);
+
+  ButtonCreateClient.Enabled := FClient = nil;
+  ButtonDestroyClient.Enabled := FClient <> nil;
+  ButtonSend.Enabled := FClient <> nil;
 end;
 
 procedure TViewMain.HandleConnected;
@@ -102,7 +113,7 @@ begin
   LabelMessageContents.Caption := AMessage;
 end;
 
-procedure TViewMain.ClickCreate(Sender: TObject);
+procedure TViewMain.ClickCreateClient(Sender: TObject);
 begin
   FClient := TCastleTCPClient.Create;
   FClient.Hostname := EditHostname.Text;
@@ -113,9 +124,15 @@ begin
   FClient.OnMessageReceived := {$ifdef FPC}@{$endif} HandleMessageReceived;
 
   FClient.Connect;
+end;
 
-  ButtonCreateClient.Enabled := false;
-  ButtonSend.Enabled := true;
+procedure TViewMain.ClickDestroyClient(Sender: TObject);
+begin
+  if FClient <> nil then
+  begin
+    FClient.Disconnect;
+    FreeAndNil(FClient);
+  end;
 end;
 
 procedure TViewMain.ClickSend(Sender: TObject);

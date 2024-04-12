@@ -1823,7 +1823,7 @@ begin
         try
           SetLength(ResultUnicode, CharSize);
           Move(Data^, ResultUnicode[1], ByteSize);
-          Result := ResultUnicode;
+          Result := Utf16ToString(ResultUnicode);
         finally Windows.GlobalUnlock(DataHandle) end;
       end;
     finally Windows.CloseClipboard end;
@@ -1843,7 +1843,7 @@ begin
 
     if Value <> '' then
     begin
-      ValueUnicode := Value;
+      ValueUnicode := StringToUtf16(Value);
 
       CharSize := Length(ValueUnicode) + 1; // copy to Windows with trailing #0
       ByteSize := CharSize * SizeOf(TClipboardChar);

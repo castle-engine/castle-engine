@@ -31,6 +31,7 @@ type
     LabelFps: TCastleLabel;
     EditPort: TCastleIntegerEdit;
     ButtonCreateServer: TCastleButton;
+    ButtonDestroyServer: TCastleButton;
     EditSend: TCastleEdit;
     ButtonSend: TCastleButton;
     LabelMessageContents: TCastleLabel;
@@ -40,7 +41,8 @@ type
     procedure HandleConnected(AClient: TClientConnection);
     procedure HandleDisconnected(AClient: TClientConnection);
     procedure HandleMessageReceived(const AMessage: String; AClient: TClientConnection);
-    procedure ClickCreate(Sender: TObject);
+    procedure ClickCreateServer(Sender: TObject);
+    procedure ClickDestroyServer(Sender: TObject);
     procedure ClickSend(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -54,7 +56,8 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  CastleUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -67,7 +70,8 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-  ButtonCreateServer.OnClick := {$ifdef FPC}@{$endif} ClickCreate;
+  ButtonCreateServer.OnClick := {$ifdef FPC}@{$endif} ClickCreateServer;
+  ButtonDestroyServer.OnClick := {$ifdef FPC}@{$endif} ClickDestroyServer;
   ButtonSend.OnClick := {$ifdef FPC}@{$endif} ClickSend;
 end;
 
@@ -82,7 +86,14 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
-  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  LabelFps.Caption :=
+    'FPS: ' + Container.Fps.ToString + NL +
+    'Server Created: ' + BoolToStr(FServer <> nil, true) + NL +
+    'Any Client Connected: ' + BoolToStr((FServer <> nil) and FServer.IsConnected, true);
+
+  ButtonCreateServer.Enabled := FServer = nil;
+  ButtonDestroyServer.Enabled := FServer <> nil;
+  ButtonSend.Enabled := FServer <> nil;
 end;
 
 procedure TViewMain.HandleConnected(AClient: TClientConnection);
@@ -101,7 +112,7 @@ begin
   LabelMessageContents.Caption := AMessage;
 end;
 
-procedure TViewMain.ClickCreate(Sender: TObject);
+procedure TViewMain.ClickCreateServer(Sender: TObject);
 begin
   FServer := TCastleTCPServer.Create;
   FServer.Port := EditPort.Value;
@@ -111,9 +122,15 @@ begin
   FServer.OnMessageReceived := {$ifdef FPC}@{$endif} HandleMessageReceived;
 
   FServer.Start;
+end;
 
-  ButtonCreateServer.Enabled := false;
-  ButtonSend.Enabled := true;
+procedure TViewMain.ClickDestroyServer(Sender: TObject);
+begin
+  if FServer <> nil then
+  begin
+    FServer.Stop;
+    FreeAndNil(FServer);
+  end;
 end;
 
 procedure TViewMain.ClickSend(Sender: TObject);
