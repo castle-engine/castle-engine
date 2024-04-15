@@ -345,16 +345,8 @@ var
   SynchronousJob: TFpHttpClientJob;
 begin
   inherited;
-
-  { The main purpose of this is to disable Download from blocking.
-    Additionally, it also disables TCastleDownload from "downgrading" to blocking,
-    when OS doesn't support threads. }
-  if ForceSynchronous and (not EnableBlockingDownloads) then
-  begin
-    Status := dsError;
-    ErrorMessage := 'Downloading network resources (from "http" or "https"  protocols) is not enabled. Set global EnableBlockingDownloads:=true to enable.';
+  if not CheckNetworkAccess then
     Exit;
-  end;
 
   if URIProtocol(Url) = 'https' then
   begin

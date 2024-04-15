@@ -70,6 +70,8 @@ procedure THttpAndroidReader.Start;
 
 begin
   inherited;
+  if not CheckNetworkAccess then
+    Exit;
 
   DownloadId := NextDownloadId;
   Inc(NextDownloadId);

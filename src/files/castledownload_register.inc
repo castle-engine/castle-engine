@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,6 +32,23 @@ type
     If you just want to download asynchronously from standard URLs,
     like file or http, then use TCastleDownload class. }
   TUrlAsynchronousReader = class
+  protected
+    { Call this from @link(Start) overrides in descendants that access the network.
+      Call this after they called "inherited Start" which may change ForceSynchronous.
+
+      This returns @false if
+
+      - It seems that we do synchronous download
+        (maybe because we are called from Download(),
+        or maybe we don't have thread support).
+
+      - And EnableBlockingDownloads is @false.
+
+      IOW, this makes sure we honor EnableBlockingDownloads.
+
+      When it sets @false, it also sets Status and ErrorMessage.
+      The caller @link(Start) should just Exit if this returns @false. }
+    function CheckNetworkAccess: Boolean;
   public
     { Fields set before Start is called. Should not be modified by this instance after Start.
       @groupBegin }
@@ -130,6 +147,21 @@ begin
   {$ifndef CASTLE_SUPPORTS_THREADING}
   ForceSynchronous := true;
   {$endif}
+end;
+
+function TUrlAsynchronousReader.CheckNetworkAccess: Boolean;
+begin
+  Result := true;
+
+  { The main purpose of this is to disable Download from blocking.
+    Additionally, it also disables TCastleDownload from "downgrading" to blocking,
+    when OS doesn't support threads. }
+  if ForceSynchronous and (not EnableBlockingDownloads) then
+  begin
+    Status := dsError;
+    ErrorMessage := 'Downloading network resources (from "http" or "https"  protocols) is not enabled. Set global EnableBlockingDownloads:=true to enable.';
+    Exit(false);
+  end;
 end;
 
 procedure TUrlAsynchronousReader.Update;
