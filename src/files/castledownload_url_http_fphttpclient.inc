@@ -84,6 +84,9 @@ type
     HttpResponseHeaders: TStrings;
     FinalUrl: String;
 
+    { Free SynchronizationCS in destructor. }
+    OwnsSynchronizationCS: Boolean;
+
     constructor Create;
     destructor Destroy; override;
     procedure Execute;
@@ -100,50 +103,15 @@ type
   { TUrlAsynchronousReader descendant that implements http(s) downloading. }
   TFpHttpClientReader = class(TUrlAsynchronousReader)
   strict private
-    type
-      { Thread that cleans downloading thread and critical section. }
-      TCleaningThread = class(TThread)
-      private
-        ThreadToWaitTo: TFpHttpClientThread;
-        SynchronizationCS: TCriticalSection;
-      public
-        constructor Create(const AThreadToWaitTo: TFpHttpClientThread;
-          const ASynchronizationCS: TCriticalSection); reintroduce;
-        procedure Execute; override;
-      end;
-
-    var
-      { Thread that downloads using FpHttpClient. }
-      Thread: TFpHttpClientThread;
-      SynchronizationCS: TCriticalSection;
-
-      { Synchronize one last time from Job, when it finished work in Execute. }
-      procedure SynchronizeFromFinishedJob(const Job: TFpHttpClientJob);
+    Thread: TFpHttpClientThread;
+    SynchronizationCS: TCriticalSection;
+    { Synchronize one last time from Job, when it finished work in Execute. }
+    procedure SynchronizeFromFinishedJob(const Job: TFpHttpClientJob);
   public
     procedure Start; override;
     destructor Destroy; override;
     procedure Update; override;
   end;
-
-{ TFpHttpClientReader.TCleaningThread ----------------------------------------- }
-
-constructor TFpHttpClientReader.TCleaningThread.Create(
-  const AThreadToWaitTo: TFpHttpClientThread;
-  const ASynchronizationCS: TCriticalSection);
-begin
-  inherited Create(true);
-  FreeOnTerminate := true;
-  ThreadToWaitTo := AThreadToWaitTo;
-  SynchronizationCS := ASynchronizationCS;
-end;
-
-procedure TFpHttpClientReader.TCleaningThread.Execute;
-begin
-  ThreadToWaitTo.Terminate;
-  ThreadToWaitTo.WaitFor;
-  FreeAndNil(ThreadToWaitTo);
-  FreeAndNil(SynchronizationCS);
-end;
 
 { TCastleFpHttpClient ---------------------------------------------------------- }
 
@@ -235,7 +203,7 @@ destructor TFpHttpClientJob.Destroy;
 begin
   FreeAndNil(Contents);
   FreeAndNil(HttpResponseHeaders);
-  if (ParentThread <> nil) and (ParentThread.FreeOnTerminate) then
+  if OwnsSynchronizationCS then
     FreeAndNil(SynchronizationCS);
   inherited;
 end;
@@ -444,27 +412,10 @@ begin
   end;
 end;
 
-
 destructor TFpHttpClientReader.Destroy;
-var
-  CleaningThread: TCleaningThread;
 begin
   if Thread <> nil then
   begin
-    { Because Michalis wrote that a regular WaitFor sometimes causes a delay,
-      I came up with a funny trick: we create another thread that is
-      FreeOnTerminate and pass it the thread and the critical section
-      to delete safety. }
-    {$define CASTLE_SAFE_DOWNLOAD_INTERRUPTION_CLEANING_THREAD}
-    {$ifdef CASTLE_SAFE_DOWNLOAD_INTERRUPTION_CLEANING_THREAD}
-    WritelnLog('Network', 'Interrupting download in-progress of "%s"', [UriDisplay(Url)]);
-    CleaningThread := TCleaningThread.Create(Thread, SynchronizationCS);
-    { Cleaning thread get ownership of the thread and critical section. }
-    Thread := nil;
-    SynchronizationCS := nil;
-    CleaningThread.Start;
-    {$else}
-
     Thread.Terminate;
 
     {.$define CASTLE_SAFE_DOWNLOAD_INTERRUPTION}
@@ -484,22 +435,20 @@ begin
         We cannot fix it by doing "Thread.FreeOnTerminate := true" earlier,
         because then we have a race, and "Thread" reference may no longer be used.
 
-        A potential fix is in CASTLE_SAFE_DOWNLOAD_INTERRUPTION but this:
-        1. would cause short delay when interrupting downloads
-        2. doesn't work to prevent visible mem leak in examples/network/asynchronous_download/
-           (but that leak seems unrelated? it occurs even if nothing was interrupted?)
+        A potential fix is in CASTLE_SAFE_DOWNLOAD_INTERRUPTION but this
+        could cause short delay when interrupting downloads.
 
         TODO: This is actually dangerous if the interruption will happen
         before thread Execute processed HttpPostData and HttpHeadersKeys/Values,
         as they may become invalid when owning TCastleDownload it freed.
       }
       WritelnLog('Network', 'Interrupting download in-progress of "%s"', [UriDisplay(Url)]);
+      Thread.Job.OwnsSynchronizationCS := true;
       Thread.FreeOnTerminate := true;
       Thread := nil;
-      SynchronizationCS := nil; // do not free it here, let Thread use it
+      SynchronizationCS := nil; // do not free it here, let Thread use it, let Thread.Job free it
     end else
       FreeAndNil(Thread);
-    {$endif}
     {$endif}
   end;
 
