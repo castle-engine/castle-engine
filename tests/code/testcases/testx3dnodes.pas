@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestX3DNodes" -*-
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -108,6 +108,7 @@ type
     procedure TestWarningUnquotedIdentifier;
     procedure TestConversionPrecision;
     procedure TestInlineShaderCode;
+    procedure TestOpenInvalidIndexes;
   end;
 
 implementation
@@ -2605,6 +2606,19 @@ begin
       SDeleteChars(EffectPart.Contents, [#13])
     );
   finally FreeAndNil(Root) end;
+end;
+
+procedure TTestX3DNodes.TestOpenInvalidIndexes;
+var
+  Node: TX3DRootNode;
+begin
+  try
+    Node := LoadNode('castle-data:/invalid_indexes/castle.gltf');
+    FreeAndNil(Node);
+    Fail('Should raise exception EInvalidGeometryIndex');
+  except
+    on E: EInvalidGeometryIndex do ;
+  end;
 end;
 
 initialization
