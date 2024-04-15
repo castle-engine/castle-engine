@@ -314,11 +314,15 @@
   {$I auto_generated_node_helpers/x3dnodes_physicalmaterial.inc}
   end;
 
+  EInvalidGeometryIndex = class(Exception);
+
   { Shape is a rendered object in the world, with an appearance and geometry. }
   TShapeNode = class(TAbstractShapeNode)
   public
     { Generate tangent vectors on geometry if they are
-      (1) necessary and (2) possible to generate and (3) not present yet. }
+      (1) necessary and (2) possible to generate and (3) not present yet.
+
+      @raises EInvalidGeometryIndex If the indexes in geometry are invalid. }
     procedure GenerateTangents;
 
   {$I auto_generated_node_helpers/x3dnodes_shape.inc}
@@ -1101,6 +1105,17 @@ procedure TShapeNode.GenerateTangents;
       Index0 := TriangleIndexes[I    ];
       Index1 := TriangleIndexes[I + 1];
       Index2 := TriangleIndexes[I + 2];
+
+      if (Index0 >= CoordsCount) or
+         (Index1 >= CoordsCount) or
+         (Index2 >= CoordsCount) then
+        raise EInvalidGeometryIndex.CreateFmt('Invalid index in geometry: %d, %d, %d, but count is %d', [
+          Index0,
+          Index1,
+          Index2,
+          CoordsCount
+        ]);
+
       TriangleCoord.Data[0] := Coords.L[Index0];
       TriangleCoord.Data[1] := Coords.L[Index1];
       TriangleCoord.Data[2] := Coords.L[Index2];
@@ -1169,16 +1184,22 @@ begin
         if CoordsCount <> TexCoords.Count then
           Exit;
 
+        // TODO: for now we can do this only for IndexedTriangleSet
+        if not (Geometry is TIndexedTriangleSetNode) then
+          Exit;
+
         { calculate Tangents }
         Tangent := TTangentNode.Create;
         Tangents := Tangent.FdVector.Items;
         Tangents.Count := CoordsCount;
 
-        // TODO: for now we can do this only for IndexedTriangleSet
-        if not (Geometry is TIndexedTriangleSetNode) then
-          Exit;
-
-        GenerateTangentsCore(CoordsCount, Coords, Normals, TexCoords, Tangents);
+        try
+          GenerateTangentsCore(CoordsCount, Coords, Normals, TexCoords, Tangents);
+        except
+          // in case EInvalidGeometryIndex is raised, do not leak Tangent
+          FreeAndNil(Tangent);
+          raise;
+        end;
 
         { assign this at the end, just in case it will cause TCastleSceneCore processing on change }
         TAbstractComposedGeometryNode(Geometry).Tangent := Tangent;

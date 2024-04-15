@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1796,122 +1796,139 @@ var
       end;
     end;
 
-    // read indexes
-    IndexField := Geometry.CoordIndexField;
-    if IndexField <> nil then
-    begin
-      Assert(Primitive.Indices <> -1);
-      AccessorToInt32(Primitive.Indices, IndexField, false);
-    end;
+    Appearance := nil; // may be used in "except" clause, so make sure it is defined
 
-    // parse attributes (initializing Coord, TexCoord and other such nodes)
-    // TODO: ForVertex true for all, or just for POSITION?
-    for AttributeName in Primitive.Attributes.Keys do
-    begin
-      if (AttributeName = 'POSITION') and (Geometry.CoordField <> nil) then
+    try
+
+      // read indexes
+      IndexField := Geometry.CoordIndexField;
+      if IndexField <> nil then
       begin
-        Coord := TCoordinateNode.Create;
-        AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
-        Geometry.CoordField.Value := Coord;
-        Shape.BBox := TBox3D.FromPoints(Coord.FdPoint.Items);
-        { Do special fix for line strip and line loop: glTF specifies just one strip/loop,
-          put it in VertexCount. }
-        if (Geometry is TLineSetNode) and
-           (TLineSetNode(Geometry).Mode in [lmStrip, lmLoop]) then
-          TLineSetNode(Geometry).SetVertexCount([Coord.FdPoint.Count]);
-      end else
-      if IsPrefix('TEXCOORD_', AttributeName, false) and (Geometry.TexCoordField <> nil) then
+        Assert(Primitive.Indices <> -1);
+        AccessorToInt32(Primitive.Indices, IndexField, false);
+      end;
+
+      // parse attributes (initializing Coord, TexCoord and other such nodes)
+      // TODO: ForVertex true for all, or just for POSITION?
+      for AttributeName in Primitive.Attributes.Keys do
       begin
-        TexCoord := TTextureCoordinateNode.Create;
-        TexCoord.Mapping := AttributeName;
-        AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
-        { We prefer to flip the texture, using TImageTextureNode.FlipVertically,
-          and not make a (slower) flipping of texture coordinates.
-          But when CastleX3dExtensions = false, we have no other choice right now but to flip them. }
-        if not CastleX3dExtensions then
-          FlipTextureCoordinates(TexCoord.FdPoint.Items);
-        SetMultiTextureCoordinate(Geometry, TexCoord);
-      end else
-      if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then
-      begin
-        Normal := TNormalNode.Create;
-        AccessorToVector3(Primitive.Attributes[AttributeName], Normal.FdVector, false);
-        TAbstractComposedGeometryNode(Geometry).FdNormal.Value := Normal;
-      end else
-      if (AttributeName = 'COLOR_0') and (Geometry.ColorField <> nil) then
-      begin
-        ColorAccessor := GetAccessor(Primitive.Attributes[AttributeName]);
-        if ColorAccessor.Type_ = TPasGLTF.TAccessor.TType.Vec4 then
+        if (AttributeName = 'POSITION') and (Geometry.CoordField <> nil) then
         begin
-          ColorRGBA := TColorRGBANode.Create;
-          ColorRGBA.Mode := cmModulate;
-          AccessorToVector4(Primitive.Attributes[AttributeName], ColorRGBA.FdColor, false);
-          Geometry.ColorField.Value := ColorRGBA;
+          Coord := TCoordinateNode.Create;
+          AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
+          Geometry.CoordField.Value := Coord;
+          Shape.BBox := TBox3D.FromPoints(Coord.FdPoint.Items);
+          { Do special fix for line strip and line loop: glTF specifies just one strip/loop,
+            put it in VertexCount. }
+          if (Geometry is TLineSetNode) and
+            (TLineSetNode(Geometry).Mode in [lmStrip, lmLoop]) then
+            TLineSetNode(Geometry).SetVertexCount([Coord.FdPoint.Count]);
         end else
+        if IsPrefix('TEXCOORD_', AttributeName, false) and (Geometry.TexCoordField <> nil) then
         begin
-          Color := TColorNode.Create;
-          Color.Mode := cmModulate;
-          AccessorToVector3(Primitive.Attributes[AttributeName], Color.FdColor, false);
-          Geometry.ColorField.Value := Color;
-        end;
-      end else
-      if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
-      begin
-        if CastleX3dExtensions then
+          TexCoord := TTextureCoordinateNode.Create;
+          TexCoord.Mapping := AttributeName;
+          AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
+          { We prefer to flip the texture, using TImageTextureNode.FlipVertically,
+            and not make a (slower) flipping of texture coordinates.
+            But when CastleX3dExtensions = false, we have no other choice right now but to flip them. }
+          if not CastleX3dExtensions then
+            FlipTextureCoordinates(TexCoord.FdPoint.Items);
+          SetMultiTextureCoordinate(Geometry, TexCoord);
+        end else
+        if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then
         begin
-          Tangent := TTangentNode.Create;
-          Tangent4D := TVector4List.Create;
-          try
-            AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
-            Tangent.SetVector4D(Tangent4D);
-          finally FreeAndNil(Tangent4D) end;
-          TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
-        end;
-      end else
-      if (AttributeName = 'JOINTS_0') then
+          Normal := TNormalNode.Create;
+          AccessorToVector3(Primitive.Attributes[AttributeName], Normal.FdVector, false);
+          TAbstractComposedGeometryNode(Geometry).FdNormal.Value := Normal;
+        end else
+        if (AttributeName = 'COLOR_0') and (Geometry.ColorField <> nil) then
+        begin
+          ColorAccessor := GetAccessor(Primitive.Attributes[AttributeName]);
+          if ColorAccessor.Type_ = TPasGLTF.TAccessor.TType.Vec4 then
+          begin
+            ColorRGBA := TColorRGBANode.Create;
+            ColorRGBA.Mode := cmModulate;
+            AccessorToVector4(Primitive.Attributes[AttributeName], ColorRGBA.FdColor, false);
+            Geometry.ColorField.Value := ColorRGBA;
+          end else
+          begin
+            Color := TColorNode.Create;
+            Color.Mode := cmModulate;
+            AccessorToVector3(Primitive.Attributes[AttributeName], Color.FdColor, false);
+            Geometry.ColorField.Value := Color;
+          end;
+        end else
+        if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
+        begin
+          if CastleX3dExtensions then
+          begin
+            Tangent := TTangentNode.Create;
+            Tangent4D := TVector4List.Create;
+            try
+              AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
+              Tangent.SetVector4D(Tangent4D);
+            finally FreeAndNil(Tangent4D) end;
+            TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
+          end;
+        end else
+        if (AttributeName = 'JOINTS_0') then
+        begin
+          Geometry.InternalSkinJoints := TVector4IntegerList.Create;
+          AccessorToVector4Integer(Primitive.Attributes[AttributeName], Geometry.InternalSkinJoints, false);
+        end else
+        if (AttributeName = 'WEIGHTS_0') then
+        begin
+          Geometry.InternalSkinWeights := TVector4List.Create;
+          AccessorToVector4(Primitive.Attributes[AttributeName], Geometry.InternalSkinWeights, false);
+        end else
+          WritelnLog('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
+      end;
+
+      // determine Appearance
+      if Between(Primitive.Material, 0, Appearances.Count - 1) then
+        Appearance := Appearances[Primitive.Material] as TGltfAppearanceNode
+      else
       begin
-        Geometry.InternalSkinJoints := TVector4IntegerList.Create;
-        AccessorToVector4Integer(Primitive.Attributes[AttributeName], Geometry.InternalSkinJoints, false);
-      end else
-      if (AttributeName = 'WEIGHTS_0') then
-      begin
-        Geometry.InternalSkinWeights := TVector4List.Create;
-        AccessorToVector4(Primitive.Attributes[AttributeName], Geometry.InternalSkinWeights, false);
-      end else
-        WritelnLog('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
+        Appearance := DefaultAppearance;
+        if Primitive.Material <> -1 then
+          WritelnWarning('glTF', 'Primitive specifies invalid material index %d',
+            [Primitive.Material]);
+      end;
+      Appearance.Used := true;
+      Appearance.UsedAsLit := Appearance.UsedAsLit or PossiblyLitGeometry(Geometry);
+      Shape.Appearance := Appearance;
+
+      // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
+      Geometry.Solid := not Appearance.DoubleSided;
+
+      if CastleX3dExtensions then
+        Shape.GenerateTangents;
+
+      MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
+      if MetadataCollision = 'none' then
+        Shape.Collision := scNone
+      else
+      if MetadataCollision = 'box' then
+        Shape.Collision := scBox
+      else
+      if (MetadataCollision = '') or (MetadataCollision = 'default') then
+        Shape.Collision := scDefault
+      else
+        WritelnWarning('Invalid value for "CastleCollision" custom property, ignoring: %s', [MetadataCollision]);
+
+    except
+      { Free Shape, to not leak memory in case e.g. GenerateTangents
+        raises exception.
+        Protect Shape.Appearance from being freed, as it's shared in Appearances
+        array. }
+      if Appearance <> nil then
+        Appearance.KeepExistingBegin;
+      FreeAndNil(Shape);
+      if Appearance <> nil then
+        Appearance.KeepExistingEnd;
+      raise;
     end;
-
-    // determine Appearance
-    if Between(Primitive.Material, 0, Appearances.Count - 1) then
-      Appearance := Appearances[Primitive.Material] as TGltfAppearanceNode
-    else
-    begin
-      Appearance := DefaultAppearance;
-      if Primitive.Material <> -1 then
-        WritelnWarning('glTF', 'Primitive specifies invalid material index %d',
-          [Primitive.Material]);
-    end;
-    Appearance.Used := true;
-    Appearance.UsedAsLit := Appearance.UsedAsLit or PossiblyLitGeometry(Geometry);
-    Shape.Appearance := Appearance;
-
-    // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
-    Geometry.Solid := not Appearance.DoubleSided;
-
-    if CastleX3dExtensions then
-      Shape.GenerateTangents;
-
-    MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
-    if MetadataCollision = 'none' then
-      Shape.Collision := scNone
-    else
-    if MetadataCollision = 'box' then
-      Shape.Collision := scBox
-    else
-    if (MetadataCollision = '') or (MetadataCollision = 'default') then
-      Shape.Collision := scDefault
-    else
-      WritelnWarning('Invalid value for "CastleCollision" custom property, ignoring: %s', [MetadataCollision]);
 
     // add to X3D
     ParentGroup.AddChildren(Shape);
