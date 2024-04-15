@@ -197,7 +197,7 @@ type
       and still keep the stream reference.
       It is your responsibility then to keep and free the @link(Contents)
       stream whenever you want. }
-    property OwnsContents: boolean read FOwnsContents write FOwnsContents;
+    property OwnsContents: boolean read FOwnsContents write FOwnsContents default true;
 
     { How many bytes were downloaded.
       Together with @link(TotalBytes), you can use it e.g. to show a progress bar
