@@ -132,6 +132,7 @@ type
       So never access our own fields / virtual methods after calling this. }
     procedure DoFinish; virtual;
   public
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Get the data. This starts downloading.
@@ -196,7 +197,7 @@ type
       and still keep the stream reference.
       It is your responsibility then to keep and free the @link(Contents)
       stream whenever you want. }
-    property OwnsContents: boolean read FOwnsContents write FOwnsContents;
+    property OwnsContents: boolean read FOwnsContents write FOwnsContents default true;
 
     { How many bytes were downloaded.
       Together with @link(TotalBytes), you can use it e.g. to show a progress bar
@@ -292,6 +293,12 @@ type
 {$endif}
 
 {$ifdef read_implementation}
+
+constructor TCastleDownload.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FOwnsContents := true;
+end;
 
 destructor TCastleDownload.Destroy;
 begin
