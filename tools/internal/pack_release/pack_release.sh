@@ -178,8 +178,8 @@ add_external_tool ()
   shift 2
 
   TOOL_BRANCH_NAME='master'
-  # Temporary, may be useful again in future: use view3dscene from another branch, to compile with this CGE branch
-  # if [ "${GITHUB_NAME}" = 'view3dscene' ]; then
+  # Temporary, may be useful again in future: use castle-model-viewer from another branch, to compile with this CGE branch
+  # if [ "${GITHUB_NAME}" = 'castle-model-viewer' ]; then
   #   TOOL_BRANCH_NAME='shapes-rendering-2'
   # fi
 
@@ -206,6 +206,11 @@ add_external_tool ()
   else
     castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
     mv "${EXE_NAME}" "${OUTPUT_BIN}"
+
+    if [ "${GITHUB_NAME}" = 'castle-model-viewer' ]; then
+      castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile --manifest-name=CastleEngineManifest.converter.xml
+      mv "${EXE_NAME}" "${OUTPUT_BIN}"
+    fi
   fi
 }
 
@@ -385,8 +390,8 @@ pack_platform_dir ()
   rm -Rf doc/pasdoc/cache/ pasdoc/ pasdoc-*.zip pasdoc-*.tar.gz
 
   # Add tools
-  add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
-  add_external_tool castle-view-image castle-view-image"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool castle-model-viewer castle-model-viewer"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool castle-image-viewer castle-image-viewer"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
   add_external_tool pascal-language-server server/pasls"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
   # Add bundled tools (FPC)

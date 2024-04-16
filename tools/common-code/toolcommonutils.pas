@@ -189,7 +189,7 @@ begin
       Exit;
 
     { Look for exe wrapped in macOS application bundle,
-      necessary to find view3dscene, castle-view-image in CGE bin. }
+      necessary to find castle-model-viewer, castle-image-viewer in CGE bin. }
     {$ifdef DARWIN}
     Result := CastleEnginePath + 'bin' + PathDelim +
       ExeName + '.app' + PathDelim +
