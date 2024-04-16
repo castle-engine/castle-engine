@@ -209,7 +209,7 @@ add_external_tool ()
 
     if [ "${GITHUB_NAME}" = 'castle-model-viewer' ]; then
       castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile --manifest-name=CastleEngineManifest.converter.xml
-      mv "${EXE_NAME}" "${OUTPUT_BIN}"
+      mv castle-model-converter"${EXE_EXTENSION}" "${OUTPUT_BIN}"
     fi
   fi
 }
