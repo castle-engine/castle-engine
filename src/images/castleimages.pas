@@ -41,9 +41,9 @@
   or an image with data compressed for GPU (@link(TGPUCompressedImage)).
 
   When reading and writing image files, we understand various image
-  formats. See castle-view-image documentation
-  ( https://castle-engine.io/castle-view-image.php )
-  for a current list of supported image formats.
+  formats. See
+  @url(https://castle-engine.io/image-viewer Castle Image Viewer)
+  documentation for a current list of supported image formats.
 
   The basic loading and saving procedures are LoadImage and SaveImage.
   Example usage:
