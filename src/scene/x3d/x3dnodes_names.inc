@@ -186,8 +186,13 @@ begin
          (not (P^.Node is TX3DPrototypeNode)) and
          (not (Node is TX3DPrototypeNode)) then
       begin
-        WritelnWarning('Node name "%s" used multiple times for different nodes. This is not allowed in X3D. (It is allowed in VRML, but we advise to upgrade all VRML models to X3D.)', [
-          BindToName
+        WritelnWarning('Node name "%s" used multiple times for different nodes (%s and %s). This is not allowed in X3D.' + NL +
+        '  Common reasons:' + NL +
+        '  1. You imported glTF model with non-unique names. While this is valid in glTF, we recommend to prepare glTF models with unique names for everything.' + NL +
+        '  2. You have a VRML model with non-unique names. While this is valid in VRML, we recommend to upgrade all VRML models to X3D and make names unique.', [
+          BindToName,
+          P^.Node.X3DType,
+          Node.X3DType
         ]);
       end;
     end else
