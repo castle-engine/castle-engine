@@ -705,6 +705,10 @@ begin
     FClientThread.FreeOnTerminate := true;
     FClientThread.Terminate;
     FClientThread := nil; // will free itself because FreeOnTerminate = true, so don't keep reference to it
+  end else
+  begin
+    { If no FClientThread, free FClient ourselves. }
+    FreeAndNil(FClient);
   end;
   {$endif}
 
