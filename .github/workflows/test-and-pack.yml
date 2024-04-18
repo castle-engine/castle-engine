@@ -8,7 +8,10 @@
 # ----------------------------------------------------------------------------
 
 name: Test and Pack
-on: [push, pull_request]
+
+# Called by everything.yml
+on: [workflow_call]
+#on: [push, pull_request]
 
 defaults:
   run:
