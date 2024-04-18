@@ -2,23 +2,44 @@
 
 ## Information
 
-Both glTF and X3D allow (optionally) to assing string names to various things in models. Like transformations, meshes, materials.
+Various model formats (this document focuses on glTF, X3D, VRML) allow (optionally) to assing string names to various things in models. Like transformations, meshes, materials, animations. The name can be set in 3D authoring tools like Blender.
 
-- In case of glTF, the names are within type-specific lists (because glTF has lists of materials, list of meshes etc.) but even within one type names are not guaranteed to be unique.
+These names are very useful in certain use-cases. They allow to find (from code) a particular thing present in the model, by name. E.g.
 
-    And across types, names are definitely not unique. E.g. Blender exporter can easily just set equal name for glTF node, mesh, material, image... Causing name clashes.
+- Find a given material to modify it from code.
 
-- In case of X3D and VRML:
+    ```delphi
+    MyMaterial := Scene.Node(TPhysicalMaterialNode, 'MyMaterial') as TPhysicalMaterialNode;
+    MyMaterial.BaseColor := Vector3(1, 1, 0);
+    ```
 
-    In X3D, spec says that node names should be unique in their namespace.
+- Run animation by name.
 
-    In VRML 97, it was explicitly allowed to have non-unique names. The last one wins.
+    ```delphi
+    Scene.PlayAnimation('MyAnimation', { loop } true);
+    ```
+
+## Are the names unique?
+
+- In case of glTF, the names are within type-specific lists (because glTF has lists of materials, list of meshes etc.).
+
+    But even within one type (like "material names") names are not guaranteed to be unique. The index of the thing (like a material index in the materials list) is the only way to uniquely identify it.
+
+    And across types (e.g. between materials and textures), names are definitely not unique, and it is commonly used. E.g. Blender exporter can easily just set equal name for glTF node, mesh, material, image... Causing name clashes.
+
+    So "non-unique names" are not only valid, but even common situation in glTF. Materials, meshes easily have non-unique names. Animations too (see e.g. Quaternius monsters).
+
+- In case of X3D: Spec says that node names should be unique in their namespace.
+
+- In case of VRML 97: It is explicitly allowed to have non-unique names. The last one wins.
 
 - Moreover, in CGE, we merge some X3D namespaces. That is, our `TCastleScene.Node`, `TX3DNode.FindNode` methods do not take some X3D namespaces (like `Inline` and prototypes) into account (because in many cases it would be extra complication that is not necessary) and they just search the whole X3D node graph.
 
+   So we can have non-unique names considered by `TCastleScene.Node`, even when reading valid X3D when all names are unique in one namespace.
+
 ## So node name clashes can and certainly will happen. What to do?
 
-- I considered and rejected the idea of prexifing various glTF names with types, like `Group.X3DName := 'Mesh_' + Mesh.Name`. While it helps to avoid name clashes, but
+- We considered and rejected the idea of prexifing various glTF names with types, like `Group.X3DName := 'Mesh_' + Mesh.Name`. While it helps to avoid name clashes, but
 
     - It does not eliminate the possibility of name clashes anyway, above information describes many ways name clases could happen anyway.
 
@@ -44,7 +65,9 @@ Both glTF and X3D allow (optionally) to assing string names to various things in
 
       From POV of X3D author: Having unreliable suffixes like `_2`, `_3` is better than nothing. For X3D author. See `x3d-tests/gltf_inlined/avocado_and_exports/avocado_imported.x3dv` testcase.
 
-      For Pascal author: More flexible API like `Scene.Node(TAbstractMaterialNode, 'Foo')` is the future. Name clashes can happen anyway, glTF and X3D and CGE allow them in various situations. Better to accept them,
+      From POV of someone doing conversion to X3D, using castle-model-converter or online version on https://castle-engine.io/convert.php : Also having unreliable suffixes like `_2`, `_3` is better than nothing. Valid input (valid glTF with non-unique names) should result in valid output (valid X3D with unique names).
+
+      For Pascal author: More flexible API like `Scene.Node(TAbstractMaterialNode, 'Foo')` is the future. Name clashes can happen anyway, glTF and X3D and CGE allow them in various situations. Better to accept them.
 
       Decision: Don't do this. Unreliable suffixes `_2`, `_3` are not that helpful.
 
