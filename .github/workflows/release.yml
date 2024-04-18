@@ -4,11 +4,14 @@
 
 name: Release
 
+# Trigger when other workflows have completed.
 on:
   workflow_run:
     workflows: ["Delphi Test", "Test and Pack", "Quick Test"]
     types:
       - completed
+    # Limit to master branch.
+    branches: [master]
 
 defaults:
   run:
@@ -18,6 +21,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # Only run if all previous workflows succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
     # TODO: This will likely fail, as you cannot share artifacts between workflows?
     #
