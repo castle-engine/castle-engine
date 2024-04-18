@@ -1799,6 +1799,10 @@ var
     Appearance := nil; // may be used in "except" clause, so make sure it is defined
 
     try
+      { We need to name shape nodes, to later have unique names for interpolators. }
+      Shape.X3DName :=
+        { mesh name } ParentGroup.X3DName +
+        { primitive index } '_Primitive' + IntToStr(ParentGroup.FdChildren.Count);
 
       // read indexes
       IndexField := Geometry.CoordIndexField;
@@ -1940,16 +1944,30 @@ var
   var
     Primitive: TPasGLTF.TMesh.TPrimitive;
     Group: TGroupNode;
+    I: Integer;
   begin
     Group := TGroupNode.Create;
     Group.X3DName := Mesh.Name;
+    { Assign name to more easily recognize this in X3D output,
+      and to have unique names for TShapeNode,
+      which implies unique names for animations.
+      Testcase: Quaternius monster glTF models,
+      https://quaternius.com/packs/ultimatemonsters.html ,
+      convert Bunny.gltf to X3D.
+      Should not make any warning. }
+    if Group.X3DName = '' then
+      Group.X3DName := 'Mesh' + IntToStr(ParentGroup.FdChildren.Count);
+
     ParentGroup.AddChildren(Group);
     ExportNodes.Add(Group);
 
     ReadMetadata(Mesh.Extras, Group);
 
-    for Primitive in Mesh.Primitives do
+    for I := 0 to Mesh.Primitives.Count - 1 do
+    begin
+      Primitive := Mesh.Primitives[I];
       ReadPrimitive(Primitive, Group);
+    end;
   end;
 
   procedure ReadMesh(const MeshIndex: Integer;
@@ -2457,7 +2475,8 @@ var
     BBox.ToCenterSize(Center, Size);
 
     ValueTrigger := TValueTriggerNode.Create;
-    ValueTrigger.X3DName := 'ValueTrigger_setBBox_' + TimeSensor.X3DName;
+    ValueTrigger.X3DName := 'ValueTrigger_setBBox_' +
+      TimeSensor.X3DName + '_' + Shape.X3DName;
     ParentGroup.AddChildren(ValueTrigger);
     ParentGroup.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
 
@@ -2501,6 +2520,7 @@ var
     OriginalNormals, AnimatedNormals: TVector3List;
     OriginalTangents, AnimatedTangents: TVector3List;
     MemoryTaken: Int64;
+    InterpolatorNameSuffix: String;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
@@ -2572,8 +2592,13 @@ var
 
     for Anim in Animations do
     begin
+      InterpolatorNameSuffix :=
+        'SkinInterpolator_'
+        + Anim.TimeSensor.X3DName + '_'
+        + Shape.X3DName;
+
       CoordInterpolator := TCoordinateInterpolatorNode.Create;
-      CoordInterpolator.X3DName := 'SkinCoordInterpolator_' + Anim.TimeSensor.X3DName;
+      CoordInterpolator.X3DName := 'Coord' + InterpolatorNameSuffix;
       GatherAnimationKeysToSample(CoordInterpolator.FdKey.Items, Anim.Interpolators);
       { Assign count, avoids later reallocating memory when adding vectors (slow),
         and avoids Capacity >> Count (wasted memory).
@@ -2590,7 +2615,7 @@ var
       if Normal <> nil then
       begin
         NormalInterpolator := TCoordinateInterpolatorNode.Create;
-        NormalInterpolator.X3DName := 'SkinNormalInterpolator_' + Anim.TimeSensor.X3DName;
+        NormalInterpolator.X3DName := 'Normal' + InterpolatorNameSuffix;
         //GatherAnimationKeysToSample(NormalInterpolator.FdKey.Items, Anim.Interpolators);
         // faster:
         NormalInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
@@ -2612,7 +2637,7 @@ var
       if Tangent <> nil then
       begin
         TangentInterpolator := TCoordinateInterpolatorNode.Create;
-        TangentInterpolator.X3DName := 'SkinTangentInterpolator_' + Anim.TimeSensor.X3DName;
+        TangentInterpolator.X3DName := 'Tangent' + InterpolatorNameSuffix;
         //GatherAnimationKeysToSample(TangentInterpolator.FdKey.Items, Anim.Interpolators);
         // faster:
         TangentInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
