@@ -30,9 +30,16 @@ jobs:
     # - other, including download using cli: https://stackoverflow.com/questions/60355925/share-artifacts-between-workflows-github-actions
     - name: Download packaged releases
       uses: actions/download-artifact@v4
+    # We use automatic GITHUB_TOKEN secret provided by GitHub, see
+    # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
+    # https://docs.github.com/en/github-cli/github-cli/about-github-cli
     - name: GH CLI status
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: gh auth status
     - name: GH CLI test
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: gh release list --repo castle-engine/castle-engine
 
 # TODO: Finish uploading release
