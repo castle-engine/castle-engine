@@ -24,18 +24,23 @@ jobs:
     # Only run if all previous workflows succeeded
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-    # TODO: This will likely fail, as you cannot share artifacts between workflows?
-    #
-    # See
-    # https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts#sharing-data-between-workflow-runs
-    #
-    # Solutions:
-    # - best, official https://github.com/actions/download-artifact?tab=readme-ov-file#download-artifacts-from-other-workflow-runs-or-repositories
-    # - alt: https://github.com/dawidd6/action-download-artifact
-    # - other, including download using cli: https://stackoverflow.com/questions/60355925/share-artifacts-between-workflows-github-actions
+
     - name: Download packaged releases
       uses: actions/download-artifact@v4
-    # We use automatic GITHUB_TOKEN secret provided by GitHub, see
+      # By default we you cannot share artifacts between workflows.
+      #
+      # See
+      # https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts#sharing-data-between-workflow-runs
+      #
+      # Solutions:
+      # - best, official https://github.com/actions/download-artifact?tab=readme-ov-file#download-artifacts-from-other-workflow-runs-or-repositories
+      # - alt: https://github.com/dawidd6/action-download-artifact
+      # - other, including download using cli: https://stackoverflow.com/questions/60355925/share-artifacts-between-workflows-github-actions
+      with:
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    # We use automatic GITHUB_TOKEN secret provided by GitHub with GH CLI, see
     # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
     # https://docs.github.com/en/github-cli/github-cli/about-github-cli
     - name: GH CLI status
