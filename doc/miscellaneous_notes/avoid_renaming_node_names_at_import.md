@@ -27,7 +27,7 @@ These names are very useful in certain use-cases. They allow to find (from code)
 
     And across types (e.g. between materials and textures), names are definitely not unique, and it is commonly used. E.g. Blender exporter can easily just set equal name for glTF node, mesh, material, image... Causing name clashes.
 
-    So "non-unique names" are not only valid, but even common situation in glTF. Materials, meshes easily have non-unique names. Animations too (see e.g. Quaternius monsters).
+    So "non-unique names" are not only valid, but even common situation in glTF. Materials, meshes easily have non-unique names.
 
 - In case of X3D: Spec says that node names should be unique in their namespace.
 
@@ -67,7 +67,12 @@ These names are very useful in certain use-cases. They allow to find (from code)
 
       From POV of someone doing conversion to X3D, using castle-model-converter or online version on https://castle-engine.io/convert.php : Also having unreliable suffixes like `_2`, `_3` is better than nothing. Valid input (valid glTF with non-unique names) should result in valid output (valid X3D with unique names).
 
-      For Pascal author: More flexible API like `Scene.Node(TAbstractMaterialNode, 'Foo')` is the future. Name clashes can happen anyway, glTF and X3D and CGE allow them in various situations. Better to accept them.
+      For Pascal author: More flexible API like `Scene.Node(TAbstractMaterialNode, 'Foo')` is the future. Name clashes can happen anyway, glTF and X3D and CGE allow them in various situations. Better to accept them. Accepting this allows to have name clash in glTF, and from Pascal still access both versions:
+
+      ```delphi
+      MaterialFoo := Scene.Node(TPhysicalMaterialNode, 'Foo');
+      MeshFoo := Scene.Node(TGroupNode, 'Foo');
+      ```
 
       Decision: Don't do this. Unreliable suffixes `_2`, `_3` are not that helpful.
 
@@ -92,3 +97,15 @@ These names are very useful in certain use-cases. They allow to find (from code)
     In light of the above argumentation, for now we just "live with this problem". It's more important to have a good Pascal API to access stuff, that allows to use in CGE the same names as you set in Blender (and if you make non-unique names, you can deal with them by searching for name+type, or of course by correcting the input model to have unique names).
 
     Adding prefixes/suffixes wasn't a satisfactory solution, since users didn't know about these prefixes/suffixes (and for users, the order in which we added `_2`, `_3`... was also unclear). Even adding them only at saving was problematic -- because then "load glTF" resulted in different in-memory graph than "load glTF, save to X3D, load X3D".
+
+## We still "invent" names if none provided on input
+
+Note that above doesn't change the fact we _may invent a name, when it is necessary, and input didn't have any name_.
+
+E.g.
+
+- glTF meshes are sometimes unnamed,
+
+- and glTF primitives are always unnamed (they are just part of a mesh, can be referred to by mesh + primitive index).
+
+But we need names for them, to name relevant interpolator nodes and be able to save them. So we make sure that each mesh has a name (if not given, we use names like `Mesh0`, `Mesh1` etc.). And each primitive has a name, like `Mesh0_Primitive0`, `Mesh0_Primitive1` or `MyMeshName_Primitive0`, `MyMeshName_Primitive1`.
