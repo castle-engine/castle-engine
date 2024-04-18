@@ -1,0 +1,38 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to release CGE build on GitHub.
+# ----------------------------------------------------------------------------
+
+name: Release
+
+on:
+  workflow_run:
+    workflows: [Delphi Test, Test and Pack]
+    types:
+      - completed
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    # TODO: This will likely fail, as you cannot share artifacts between workflows?
+    #
+    # See
+    # https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts#sharing-data-between-workflow-runs
+    #
+    # Solutions:
+    # - best, official https://github.com/actions/download-artifact?tab=readme-ov-file#download-artifacts-from-other-workflow-runs-or-repositories
+    # - alt: https://github.com/dawidd6/action-download-artifact
+    # - other, including download using cli: https://stackoverflow.com/questions/60355925/share-artifacts-between-workflows-github-actions
+    - name: Download packaged releases
+      uses: actions/download-artifact@v4
+    - name: GH CLI status
+      run: gh auth status
+    - name: GH CLI test
+      run: gh release list --repo castle-engine/castle-engine
+
+# TODO: Finish uploading release
