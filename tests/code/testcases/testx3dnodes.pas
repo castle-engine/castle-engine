@@ -109,6 +109,7 @@ type
     procedure TestConversionPrecision;
     procedure TestInlineShaderCode;
     procedure TestOpenInvalidIndexes;
+    procedure TestGltfConversion;
   end;
 
 implementation
@@ -2618,6 +2619,25 @@ begin
     Fail('Should raise exception EInvalidGeometryIndex');
   except
     on E: EInvalidGeometryIndex do ;
+  end;
+end;
+
+procedure TTestX3DNodes.TestGltfConversion;
+var
+  Node: TX3DRootNode;
+  OutputStream: TMemoryStream;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    Node := LoadNode('castle-data:/quaternius/Bunny.gltf');
+    try
+      OutputStream := TMemoryStream.Create;
+      try
+        SaveNode(Node, OutputStream, 'model/x3d+vrml');
+      finally FreeAndNil(OutputStream) end;
+    finally FreeAndNil(Node) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
 end;
 
