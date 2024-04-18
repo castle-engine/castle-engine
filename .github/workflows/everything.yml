@@ -26,7 +26,7 @@ jobs:
 
   release:
     name: Release
-    needs: [test_and_pack, delphi, quick_test]
+    needs: [quick_test, test_and_pack, delphi, raspberry_pi]
     runs-on: ubuntu-latest
     steps:
 
