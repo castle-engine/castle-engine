@@ -3,12 +3,13 @@
 # ----------------------------------------------------------------------------
 
 name: Release
+on: [push, pull_request]
 
-on:
-  workflow_run:
-    workflows: [Delphi Test, Test and Pack]
-    types:
-      - completed
+# on:
+#   workflow_run:
+#     workflows: ["Delphi Test", "Test and Pack"]
+#     types:
+#       - completed
 
 defaults:
   run:
@@ -28,8 +29,8 @@ jobs:
     # - best, official https://github.com/actions/download-artifact?tab=readme-ov-file#download-artifacts-from-other-workflow-runs-or-repositories
     # - alt: https://github.com/dawidd6/action-download-artifact
     # - other, including download using cli: https://stackoverflow.com/questions/60355925/share-artifacts-between-workflows-github-actions
-    - name: Download packaged releases
-      uses: actions/download-artifact@v4
+    # - name: Download packaged releases
+    #   uses: actions/download-artifact@v4
     # We use automatic GITHUB_TOKEN secret provided by GitHub, see
     # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
     # https://docs.github.com/en/github-cli/github-cli/about-github-cli
