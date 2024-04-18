@@ -19,7 +19,7 @@ jobs:
     name: Test and Pack
     strategy:
       matrix:
-        runner: [raspberry-pi-64,raspberry-pi-32]
+        runner: [raspberry_pi_64,raspberry_pi_32]
     runs-on: ${{ matrix.runner }}
     steps:
     - uses: actions/checkout@v4
@@ -28,13 +28,13 @@ jobs:
     - name: Set environment PATH
       run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
     - name: Set environment CASTLE_CPU (64)
-      if: matrix.runner == 'raspberry-pi-64'
+      if: matrix.runner == 'raspberry_pi_64'
       run: echo "CASTLE_CPU=aarch64" >> $GITHUB_ENV
     - name: Set environment CASTLE_CPU (32)
-      if: matrix.runner == 'raspberry-pi-32'
+      if: matrix.runner == 'raspberry_pi_32'
       run: echo "CASTLE_CPU=arm" >> $GITHUB_ENV
     - name: Disable FPC version check (RPi 64)
-      if: matrix.runner == 'raspberry-pi-64'
+      if: matrix.runner == 'raspberry_pi_64'
       run: echo "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true" >> $GITHUB_ENV
 
     # check versions (and availability) of our requirements early
