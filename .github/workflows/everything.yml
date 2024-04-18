@@ -19,6 +19,10 @@ jobs:
     uses: ./.github/workflows/test-and-pack.yml
   delphi:
     uses: ./.github/workflows/delphi.yml
+  raspberry_pi:
+    # To not overload the slower RPi, use it only with master
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/raspberry-pi.yml
 
   release:
     name: Release
