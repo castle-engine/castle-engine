@@ -29,10 +29,14 @@ jobs:
     name: Test and Pack
     strategy:
       matrix:
-        runner: [raspberry_pi_64,raspberry_pi_32,macos_x64]
+        runner: [macos_x64]
+        # To not overload the slower RPi, use it only with master
+        include:
+          - if: ${{ github.ref == 'refs/heads/master' }}
+            runner: raspberry_pi_64
+          - if: ${{ github.ref == 'refs/heads/master' }}
+            runner: raspberry_pi_32
     runs-on: ${{ matrix.runner }}
-    # To not overload the slower RPi, use it only with master
-    if : ${{ github.ref == 'refs/heads/master' || (matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' ) }}
     steps:
     - uses: actions/checkout@v4
     - name: Set environment CASTLE_ENGINE_PATH
