@@ -113,8 +113,7 @@ end;
   so you would actually use @code('castle-data:/my_model.x3d') URL instead
   of @code('my_model.x3d').
 }
-function LoadNode(const Url: String;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; overload;
+function LoadNode(const Url: String): TX3DRootNode; overload;
 
 { Load a scene as X3D node from TStream.
 
@@ -143,12 +142,10 @@ function LoadNode(const Url: String;
   The overloaded LoadNode without explicit TStream accounts for gzip-compressed streams
   in some cases.
 }
-function LoadNode(const Stream: TStream; BaseUrl: String; const MimeType: String;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; overload;
+function LoadNode(const Stream: TStream; BaseUrl: String; const MimeType: String): TX3DRootNode; overload;
 
 function Load3D(const Url: String;
-  const AllowStdIn: boolean = false;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; deprecated 'use LoadNode, and note it has one less parameter (AllowStdIn is not implemented anymore)';
+  const AllowStdIn: boolean = false): TX3DRootNode; deprecated 'use LoadNode, and note it has one less parameter (AllowStdIn is not implemented anymore)';
 
 const
   SaveX3D_FileFilters =
@@ -300,8 +297,7 @@ begin
   finally FreeAndNil(Animations) end;
 end;
 
-function LoadNode(const Url: String;
-  const NilOnUnrecognizedFormat: boolean): TX3DRootNode;
+function LoadNode(const Url: String): TX3DRootNode;
 var
   MimeType, UrlWithoutAnchor: string;
 
@@ -326,7 +322,7 @@ var
 
     Stream := Download(UrlWithoutAnchor, DownloadOptions);
     try
-      Result := LoadNode(Stream, Url, MimeType, NilOnUnrecognizedFormat);
+      Result := LoadNode(Stream, Url, MimeType);
     finally FreeAndNil(Stream) end;
   end;
 
@@ -378,8 +374,7 @@ begin
 end;
 
 function LoadNode(const Stream: TStream;
-  BaseUrl: String; const MimeType: String;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;
+  BaseUrl: String; const MimeType: String): TX3DRootNode;
 
   function LoadAnimFrames(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
   var
@@ -476,12 +471,10 @@ begin
   if IsImageMimeType(MimeType, true, false) then
     Result := LoadImageAsNode(Stream, BaseUrl, MimeType)
   else
-
-  if NilOnUnrecognizedFormat then
-    Result := nil
-  else
+  begin
     raise Exception.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"',
       [MimeType, UriDisplay(BaseUrl)]);
+  end;
 
   if Result <> nil then
   begin
@@ -533,9 +526,9 @@ begin
 end;
 
 function Load3D(const Url: String;
-  const AllowStdIn, NilOnUnrecognizedFormat: boolean): TX3DRootNode;
+  const AllowStdIn: boolean): TX3DRootNode;
 begin
-  Result := LoadNode(Url, NilOnUnrecognizedFormat);
+  Result := LoadNode(Url);
 end;
 
 procedure Load3DSequence(const Url: String;
