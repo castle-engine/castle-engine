@@ -230,14 +230,16 @@ begin
     UrlWithoutViewpoint := Url;
     URIExtractAnchor(UrlWithoutViewpoint, NewViewpointName);
 
+    NewRootNode := nil;
+    NewViewpoint := nil;
+
     if UrlWithoutViewpoint = '' then
     begin
       { in this case, we have either a viewpoint in current 3D world, or nothing }
-      NewRootNode := nil;
 
       if NewViewpointName = '' then
       begin
-        NewViewpoint := nil;
+        Assert(NewViewpoint = nil); // already assigned NewViewpoint := nil above
         Exit(true);
       end else
       begin
@@ -246,7 +248,8 @@ begin
           NewViewpoint := CurrentRootNode.FindNode(TAbstractViewpointNode,
             NewViewpointName, [fnOnlyActive, fnNilOnMissing]) as TAbstractViewpointNode;
           if NewViewpoint <> nil then
-            Exit(true) else
+            Exit(true)
+          else
             ViewpointNameInvalid(NewViewpointName);
         end else
           ViewpointNameInvalid(NewViewpointName);
@@ -259,17 +262,20 @@ begin
 
     end else
     begin
-      { in this case, we have either a new 3D world, or a document }
+      { in this case (UrlWithoutViewpoint <> ''),
+        we have either a new X3D root node, or a document that isn't a model }
+
       UrlWithoutViewpoint := PathFromBaseUrl(UrlWithoutViewpoint);
       try
-        NewRootNode := LoadNode(UrlWithoutViewpoint, true);
-
-        if NewRootNode = nil then
+        if TFileFilterList.Matches(LoadScene_FileFilters, UrlWithoutViewpoint) then
         begin
-          { we have a document URL }
+          NewRootNode := LoadNode(UrlWithoutViewpoint);
+        end else
+        begin
+          { we have a document URL, Exit or Continue }
           if OpenURL(PathFromBaseUrl(Url)) then
           begin
-            NewViewpoint := nil;
+            Assert(NewViewpoint = nil); // already assigned NewViewpoint := nil earlier
             Exit(true);
           end else
           begin
@@ -288,6 +294,8 @@ begin
           Continue;
         end;
       end;
+
+      Assert(NewRootNode <> nil);
 
       if NewViewpointName = '' then
       begin

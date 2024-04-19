@@ -1,0 +1,74 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to
+# - test CGE compilation and automatic tests on Raspberry Pi
+# - pack CGE into zip
+# ----------------------------------------------------------------------------
+
+name: Raspberry Pi (Test and Pack)
+
+# Called by everything.yml
+on: [workflow_call]
+#on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test_and_pack:
+    name: Test and Pack
+    strategy:
+      matrix:
+        runner: [raspberry_pi_64,raspberry_pi_32]
+    runs-on: ${{ matrix.runner }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set environment CASTLE_ENGINE_PATH
+      run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+    - name: Set environment PATH
+      run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
+    - name: Set environment CASTLE_CPU (64)
+      if: matrix.runner == 'raspberry_pi_64'
+      run: echo "CASTLE_CPU=aarch64" >> $GITHUB_ENV
+    - name: Set environment CASTLE_CPU (32)
+      if: matrix.runner == 'raspberry_pi_32'
+      run: echo "CASTLE_CPU=arm" >> $GITHUB_ENV
+    - name: Disable FPC version check (RPi 64)
+      if: matrix.runner == 'raspberry_pi_64'
+      run: echo "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true" >> $GITHUB_ENV
+
+    # check versions (and availability) of our requirements early
+
+    - name: (Info) FPC version
+      run: fpc -iV
+    - name: (Info) Lazarus version
+      run: lazbuild --version
+    - name: (Info) Make version
+      run: make --version
+
+    - name: Build Tools
+      run: |
+        rm -Rf installed/
+        mkdir -p installed/
+        make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
+
+    # Too slow on RPi
+    # - name: Build Examples
+    #   run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
+    - name: Build And Run Auto-Tests
+      run: make tests
+    # Unsure, but possibly too slow on RPi
+    # - name: Build Using FpMake
+    #   run: make clean test-fpmake
+
+    - name: Pack Release
+      run: |
+        rm -f castle-engine*.zip # remove previous artifacts
+        ./tools/internal/pack_release/pack_release.sh linux ${CASTLE_CPU}
+
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.runner }}-release
+        path: "castle-engine*.zip"
+        if-no-files-found: error

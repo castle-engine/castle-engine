@@ -37,10 +37,15 @@ uses CastleInternalDataCompression, CastleLog, CastleStringUtils, CastleImages;
 
 { Like CompareMem, but slower,
   and when the memory is different, log the difference:
-  position and the 2 different bytes. }
-function CompareMemDebug(const P1, P2: Pointer; const Size: Int64): Boolean;
+  position and the 2 different bytes.
+
+  Note: Size and I are Integer, not Int64.
+  This is good enough for current purposes.
+  And iterating with In64 doesn't compile with FPC 3.2.2 on Linux/Arm (32-bit)
+  now (Raspberry Pi). }
+function CompareMemDebug(const P1, P2: Pointer; const Size: Integer): Boolean;
 var
-  I: Int64;
+  I: Integer;
   P1B, P2B: PByte;
 begin
   Result := true;

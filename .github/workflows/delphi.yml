@@ -4,7 +4,10 @@
 # ----------------------------------------------------------------------------
 
 name: Delphi Test
-on: [push, pull_request]
+
+# Called by everything.yml
+on: [workflow_call]
+#on: [push, pull_request]
 
 # Using Cygwin's bash, to avoid issues with PowerShell not having enough
 # permissions to execute scripts (.ps1) created temporarily by GH Acions:

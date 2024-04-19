@@ -256,7 +256,7 @@ uses Math, StrUtils, URIParser,
   CastleFilesUtils, CastleUriUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleInternalDataUri, CastleDownload,
   CastleInternalNurbs, CastleQuaternions, CastleXmlUtils, CastleOpenDocument,
-  CastleSoundBase, CastleTriangles, X3DLoadInternalUtils,
+  CastleSoundBase, CastleTriangles, X3DLoadInternalUtils, CastleFileFilters,
   CastleApplicationProperties, CastleInternalNodesUnsupported;
 
 {$define read_implementation}
