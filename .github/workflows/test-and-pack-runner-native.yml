@@ -1,0 +1,106 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to
+#
+# - test CGE compilation and automatic tests
+# - pack CGE into zip
+#
+# on some platforms for which
+#
+# - we don't use Docker
+# - we don't use cross-compilation from other platform
+# - we just use a runner with the given platform.
+#
+# Right now these are all self-hosted runners and we even assume they already
+# have proper FPC and Lazarus installed already.
+# ----------------------------------------------------------------------------
+
+name: Test and Pack (Runner Native)
+
+# Called by everything.yml
+on: [workflow_call]
+#on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test_and_pack:
+    name: Test and Pack
+    strategy:
+      matrix:
+        runner: [raspberry_pi_64,raspberry_pi_32,macos_x64]
+    runs-on: ${{ matrix.runner }}
+    # To not overload the slower RPi, use it only with master
+    if : ${{ github.ref == 'refs/heads/master' || (matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' ) }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set environment CASTLE_ENGINE_PATH
+      run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+    - name: Set environment PATH
+      run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
+    - name: Set environment FPC_OS
+      run: echo "FPC_OS="`fpc -iTO` >> $GITHUB_ENV
+    - name: Set environment FPC_CPU
+      run: echo "FPC_CPU="`fpc -iTP` >> $GITHUB_ENV
+    - name: Disable FPC version check (RPi 64)
+      if: matrix.runner == 'raspberry_pi_64'
+      run: echo "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true" >> $GITHUB_ENV
+
+    # check versions (and availability) of our requirements early
+
+    - name: (Info) FPC version
+      run: fpc -iV
+    - name: (Info) Lazarus version
+      run: lazbuild --version
+    - name: (Info) Make version
+      run: make --version
+
+    - name: Build Tools
+      run: |
+        rm -Rf installed/
+        mkdir -p installed/
+        make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
+
+    - name: Build Examples
+      # Too slow on RPi
+      if : ${{ matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' }}
+      run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
+
+    - name: Build And Run Auto-Tests
+      run: make tests
+
+    - name: Build Using FpMake
+      # Too slow on RPi
+      # On macOS: we don't have fpmake "opengl" package ok after installing on macOS using fpcupdeluxe?
+      # So this never executes now...
+      if : ${{ matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' && matrix.runner != 'macos_x64'}}
+      run: make clean test-fpmake
+
+    - name: Build Lazarus Packages
+      run: |
+        lazbuild packages/castle_base.lpk
+        lazbuild packages/castle_window.lpk
+        lazbuild packages/castle_components.lpk
+        lazbuild packages/castle_editor_components.lpk
+        lazbuild packages/alternative_castle_window_based_on_lcl.lpk
+
+    - name: Build and Install PasDoc
+      run: |
+        wget https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip --output-document pasdoc-master.zip
+        unzip pasdoc-master.zip
+        cd pasdoc-master
+        make
+        mv bin/pasdoc ${CASTLE_ENGINE_PATH}/installed/bin/
+
+    - name: Pack Release
+      run: |
+        rm -f castle-engine*.zip # remove previous artifacts
+        ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
+
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.runner }}-release
+        path: "castle-engine*.zip"
+        if-no-files-found: error
