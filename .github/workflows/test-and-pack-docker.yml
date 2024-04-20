@@ -7,7 +7,7 @@
 # See https://docs.github.com/en/actions for docs.
 # ----------------------------------------------------------------------------
 
-name: Test and Pack
+name: Test And Pack (Docker)
 
 # Called by everything.yml
 on: [workflow_call]
@@ -18,16 +18,6 @@ defaults:
     shell: bash
 
 jobs:
-  test-compiler-independent:
-    name: Compiler-Independent Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set environment
-        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-      - name: Shell Tests
-        run: ./tools/internal/cge_shell_tests
-
   test-fpc-stable:
     name: Base Tests (FPC Stable)
     runs-on: ubuntu-latest
@@ -182,58 +172,6 @@ jobs:
       - name: Build Examples Using Lazarus (FPC Latest Unstable)
         run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
-  test-everything:
-    name: All Tests (without Docker)
-    strategy:
-      matrix:
-        # TODO: windows-latest fails with:
-        #    tools/build-tool/castle-engine_compile.sh
-        #    Windows Subsystem for Linux has no installed distributions.
-        # https://github.com/castle-engine/castle-engine/runs/6219455015?check_suite_focus=true
-        #
-        # Not using macos-latest as it randomly fails because of timeouts
-        # (e.g. https://github.com/castle-engine/castle-engine/actions/runs/2771175624 )
-        # Looks like GH hosted macOS runner is just too busy.
-        operating-system: [ubuntu-latest]
-
-        # Older Lazarus versions are with unsupported FPC,
-        # see https://github.com/marketplace/actions/setup-lazarus-environment .
-        #
-        # lazbuild from Lazarus 2.0.10 or 2.0.12 may crash, so don't test.
-        # See e.g. https://github.com/castle-engine/castle-engine/runs/7275163005?check_suite_focus=true#step:8:4698
-        # - EAccessViolation from lazbuild (not FPC).
-        lazarus-versions: [stable, 2.2.0]
-    runs-on: ${{ matrix.operating-system }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install FPC+Lazarus
-        uses: gcarreno/setup-lazarus@v3.2.17
-        with:
-          lazarus-version: ${{ matrix.lazarus-versions }}
-      - name: Install Ubuntu dependencies
-        if: ${{ matrix.operating-system == 'ubuntu-latest' }}
-        run: sudo apt-get --no-install-recommends -y install libgl-dev
-      - name: Install macOS dependencies
-        if: ${{ matrix.operating-system == 'macos-latest' }}
-        run: brew install gnu-sed coreutils
-      - name: Set environment
-        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-      # Enable compilation of LCL applications on new macOS with old Lazarus 2.0.x. Thankfully in Lazarus >= 2.2 this is no longer necessary.
-      - name: Set environment on macOS
-        if: ${{ matrix.operating-system == 'macos-latest' && matrix.lazarus-versions == '2.0.12' }}
-        run: echo "CASTLE_LAZBUILD_OPTIONS=--widgetset=cocoa" >> $GITHUB_ENV
-      - name: Build Tools
-        run: make clean default
-      - name: Build And Run Auto-Tests
-        run: make clean tests
-      # TODO: Set FPCDIR to make it possible to use fpmake in GH actions
-      # - name: Build Using FpMake
-      #   run: make clean test-fpmake
-      - name: Build Examples
-        run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
-      - name: Build Examples Using Lazarus
-        run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
-
   pack:
     name: Pack to zip
     runs-on: ubuntu-latest
@@ -249,6 +187,6 @@ jobs:
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-and-linux-release
+          name: windows-and-linux-release-from-docker
           path: "castle-engine*.zip"
           if-no-files-found: error

@@ -8,10 +8,7 @@
 #
 # - we don't use Docker
 # - we don't use cross-compilation from other platform
-# - we just use a runner with the given platform.
-#
-# Right now these are all self-hosted runners and we even assume they already
-# have proper FPC and Lazarus installed already.
+# - we just use a runner with the given platform - self-hosted or GH hosted.
 # ----------------------------------------------------------------------------
 
 name: Test and Pack (Runner Native)
@@ -29,7 +26,17 @@ jobs:
     name: Test and Pack
     strategy:
       matrix:
-        runner: [macos_x64]
+
+        # TODO: Fix for windows-latest (GH hosted), now fails with:
+        #    tools/build-tool/castle-engine_compile.sh
+        #    Windows Subsystem for Linux has no installed distributions.
+        # https://github.com/castle-engine/castle-engine/runs/6219455015?check_suite_focus=true
+        #
+        # TODO: Fix for macos-latest: it randomly fails because of timeouts
+        # (e.g. https://github.com/castle-engine/castle-engine/actions/runs/2771175624 )
+        # Looks like GH hosted macOS runner is just too busy.
+
+        runner: [macos_x64, ubuntu-latest]
         # To not overload the slower RPi, use it only with master
         include:
           - if: ${{ github.ref == 'refs/heads/master' }}
@@ -39,6 +46,20 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
     - uses: actions/checkout@v4
+
+    - name: Install FPC+Lazarus
+      # On GH hosted runners, install FPC+Lazarus
+      if: ${{ matrix.runner == 'ubuntu-latest' }}
+      uses: gcarreno/setup-lazarus@v3.2.17
+      with:
+        lazarus-version: stable
+    - name: Install Ubuntu dependencies
+      if: ${{ matrix.runner == 'ubuntu-latest' }}
+      run: sudo apt-get --no-install-recommends -y install libgl-dev
+    - name: Install macOS dependencies
+      if: ${{ matrix.runner == 'macos-latest' }}
+      run: brew install gnu-sed coreutils
+
     - name: Set environment CASTLE_ENGINE_PATH
       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
     - name: Set environment PATH
@@ -48,7 +69,7 @@ jobs:
     - name: Set environment FPC_CPU
       run: echo "FPC_CPU="`fpc -iTP` >> $GITHUB_ENV
     - name: Disable FPC version check (RPi 64)
-      if: matrix.runner == 'raspberry_pi_64'
+      if: ${{ matrix.runner == 'raspberry_pi_64' }}
       run: echo "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true" >> $GITHUB_ENV
 
     # check versions (and availability) of our requirements early
