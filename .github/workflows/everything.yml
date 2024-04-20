@@ -43,6 +43,8 @@ jobs:
 
     - name: Download packaged releases
       uses: actions/download-artifact@v4
+    - name: List downloaded files
+      run: ls -R
 
     # We use automatic GITHUB_TOKEN secret provided by GitHub with GH CLI, see
     # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
