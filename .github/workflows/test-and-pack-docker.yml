@@ -190,6 +190,8 @@ jobs:
         with:
           repository: "castle-engine/cge-fpc"
           latest: true
+          # Docs suggest we need a wildcard to get all files: https://github.com/marketplace/actions/release-downloader
+          fileName: "*"
       - name: Pack With Bundled FPC for Win64/x86_64
         run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh win64 x86_64
       - name: Pack With Bundled FPC for Linux/x86_64
