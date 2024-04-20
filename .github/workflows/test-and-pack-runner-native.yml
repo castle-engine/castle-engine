@@ -36,7 +36,7 @@ jobs:
         # (e.g. https://github.com/castle-engine/castle-engine/actions/runs/2771175624 )
         # Looks like GH hosted macOS runner is just too busy.
 
-        runner: [macos_x64, ubuntu-latest]
+        runner: [macos_x64, ubuntu-latest, windows-latest, macos-latest]
         # To not overload the slower RPi, use it only with master
         include:
           - if: ${{ github.ref == 'refs/heads/master' }}
@@ -123,9 +123,25 @@ jobs:
         rm -f castle-engine*.zip # remove previous artifacts
         ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
 
+    - name: Install InnoSetup
+      if: ${{ matrix.runner == 'windows-latest' }}
+      run: choco install innosetup
+    - name: Download bundled FPC
+      if: ${{ matrix.runner == 'windows-latest' }}
+      uses: robinraju/release-downloader@v1.10
+      with:
+        repository: "castle-engine/cge-fpc"
+        latest: true
+        fileName: "fpc-win64-x86_64.zip"
+    - name: Pack Release (Windows Installer, Bundled FPC)
+      if: ${{ matrix.runner == 'windows-latest' }}
+      run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer
+
     - name: Archive Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.runner }}-release
-        path: "castle-engine*.zip"
+        path: |
+          "castle-engine*.zip"
+          "castle-engine-setup-*.exe"
         if-no-files-found: error
