@@ -49,7 +49,7 @@ jobs:
 
     - name: Install FPC+Lazarus
       # On GH hosted runners, install FPC+Lazarus
-      if: ${{ matrix.runner == 'ubuntu-latest' }}
+      if: ${{ matrix.runner == 'ubuntu-latest' || matrix.runner == 'macos-latest' || matrix.runner == 'windows-latest'}}
       uses: gcarreno/setup-lazarus@v3.2.17
       with:
         lazarus-version: stable
