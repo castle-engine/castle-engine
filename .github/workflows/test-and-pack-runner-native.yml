@@ -59,6 +59,11 @@ jobs:
     - name: Install macOS dependencies
       if: ${{ matrix.runner == 'macos-latest' }}
       run: brew install gnu-sed coreutils
+    - name: Install Windows dependencies
+      if: ${{ matrix.runner == 'windows-latest' }}
+      # We need latest GNU sed for "make test-editor-templates" to work.
+      # We need Inno Setup for creating Windows installer.
+      run: choco install sed innosetup
 
     - name: Set environment CASTLE_ENGINE_PATH
       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -123,9 +128,6 @@ jobs:
         rm -f castle-engine*.zip # remove previous artifacts
         ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
 
-    - name: Install InnoSetup
-      if: ${{ matrix.runner == 'windows-latest' }}
-      run: choco install innosetup
     - name: Download bundled FPC
       if: ${{ matrix.runner == 'windows-latest' }}
       uses: robinraju/release-downloader@v1.10
