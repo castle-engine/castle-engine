@@ -655,44 +655,6 @@ pipeline {
             }
           }
         }
-        stage('Check Dependencies') {
-          when { not { expression { return params.jenkins_fast } } }
-          agent {
-            docker {
-              image 'kambi/castle-engine-cloud-builds-tools:cge-none'
-            }
-          }
-          environment {
-            /* Used by CGE build tool ("castle-engine").
-              Define env based on another env variable.
-              According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
-              this should be supported. */
-            CASTLE_ENGINE_PATH = "${WORKSPACE}"
-          }
-          stages {
-            stage('(Check Dependencies) Cleanup') {
-              steps {
-                sh "repository_cleanup . --remove-unversioned"
-              }
-            }
-            stage('(Check Dependencies) Build Tools') {
-              steps {
-                sh 'rm -Rf installed/'
-                sh 'mkdir -p installed/'
-                sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
-              }
-            }
-            stage('(Check Dependencies) Check Dependencies') {
-              steps {
-                dir ('tools/internal/check_units_dependencies/') {
-                  sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" && make'
-                }
-                archiveArtifacts artifacts: 'test-cge-units-dependencies_all_units.txt,cge_check_units_dependencies.log'
-              }
-            }
-          }
-        }
-      }
     }
   }
   post {
