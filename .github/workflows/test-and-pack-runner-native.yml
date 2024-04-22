@@ -50,7 +50,7 @@ jobs:
 
     - name: Install FPC+Lazarus
       # On GH hosted runners, install FPC+Lazarus
-      if: ${{ matrix.runner == 'ubuntu-latest' || matrix.runner == 'macos-latest' || matrix.runner == 'windows-latest'}}
+      if: ${{ matrix.runner == 'ubuntu-latest' || matrix.runner == 'macos-latest' || matrix.runner == 'macos-12' || matrix.runner == 'windows-latest'}}
       uses: gcarreno/setup-lazarus@v3.2.17
       with:
         lazarus-version: stable
@@ -58,7 +58,7 @@ jobs:
       if: ${{ matrix.runner == 'ubuntu-latest' }}
       run: sudo apt-get --no-install-recommends -y install libgl-dev
     - name: Install macOS dependencies
-      if: ${{ matrix.runner == 'macos-latest' }}
+      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-12' }}
       run: brew install gnu-sed coreutils
     - name: Install Windows dependencies
       if: ${{ matrix.runner == 'windows-latest' }}
