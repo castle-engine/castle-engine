@@ -1,8 +1,11 @@
 # ----------------------------------------------------------------------------
 # GitHub Action workflow to
-# - test CGE compilation and automatic tests
-# - pack CGE into zip
-# Uses CGE Docker image https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
+#
+# - test CGE compilation and automatic tests (using various FPC versions available in Docker)
+# - pack CGE into zip (using only stable FPC, since our pack_release checks it)
+#
+# Uses CGE Docker image https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/
+# inside GH hosted runner.
 #
 # See https://docs.github.com/en/actions for docs.
 # ----------------------------------------------------------------------------
@@ -108,6 +111,7 @@ jobs:
 
       - name: Build Examples Using Lazarus (FPC / Lazarus Stable)
         run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
+
 
   pack:
     name: Pack to zip
