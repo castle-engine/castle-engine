@@ -83,7 +83,7 @@ interface
 uses SysUtils, Classes,
   CastleClassUtils, CastleScript, CastleImages, X3DNodes, CastleVectors,
   CastleRectangles, CastleTransform, CastleScene, X3DFields, CastleRenderOptions,
-  CastleColors, CastleTriangles, CastleViewport, CastleUIControls;
+  CastleColors, CastleTriangles, CastleViewport, CastleUIControls, CastleGLImages;
 
 type
   TCastleTerrainMode = (
@@ -613,7 +613,12 @@ type
     { Regenerate geometry (vertexes, normals etc.) to show the current Data
       with current parameters. }
     procedure UpdateGeometry;
+    { Create edit mode viewport with texture based on deep copy of TextureNode
+      when we create viewport. TODO: check TextureNode size and update texture
+      when needed }
     procedure PrepareEditModeViewport(const TextureNode: TImageTextureNode);
+    function ShareOpenGLTextureToEditModeViewport(const TextureNode: TImageTextureNode): TGLTextureId;
+    procedure ResetOpenGLTextureInEditModeViewport(const PreviousGLTextureId: TGLTextureId);
 
     procedure SetData(const Value: TCastleTerrainData);
     procedure SetTriangulate(const Value: Boolean);
@@ -773,7 +778,7 @@ implementation
 
 uses Math,
   CastleUtils, CastleScriptParser, CastleInternalNoise, CastleDownload, CastleLog,
-  CastleUriUtils, CastleComponentSerialize, CastleGLImages, CastleInternalRenderer,
+  CastleUriUtils, CastleComponentSerialize, CastleInternalRenderer,
   CastleGL, CastleProjection;
 
 { TCastleTerrainData ------------------------------------------------------------------- }
@@ -2208,13 +2213,36 @@ begin
 
 
   //FEditModeApperance.Texture := TextureNode;
-  TextureId := TImageTextureResource(TextureNode.InternalRendererResource).GLName;
+  ///TextureId := TImageTextureResource(TextureNode.InternalRendererResource).GLName;
+
+  ///if FEditModeApperance.Texture.InternalRendererResource = nil then
+    ///TTextureResources.Prepare(RenderOptions, FEditModeApperance.Texture);
+
+  ///TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).InternalSetGLName(TextureId);
+end;
+
+function TCastleTerrain.ShareOpenGLTextureToEditModeViewport(
+  const TextureNode: TImageTextureNode): TGLTextureId;
+var
+  TextureNodeTextureId: TGLTextureId;
+begin
+  TextureNodeTextureId := TImageTextureResource(TextureNode.InternalRendererResource).GLName;
 
   if FEditModeApperance.Texture.InternalRendererResource = nil then
     TTextureResources.Prepare(RenderOptions, FEditModeApperance.Texture);
 
-  TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).InternalSetGLName(TextureId);
+  Result := TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).GLName;
 
+  TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).InternalSetGLName(TextureNodeTextureId);
+end;
+
+procedure TCastleTerrain.ResetOpenGLTextureInEditModeViewport(
+  const PreviousGLTextureId: TGLTextureId);
+begin
+  if FEditModeApperance.Texture.InternalRendererResource = nil then
+    Exit;
+
+  TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).InternalSetGLName(PreviousGLTextureId);
 end;
 
 
@@ -2400,6 +2428,7 @@ var
   TextureWidth, TExtureHeight : Integer;
   Image: TCastleImage;
   ViewportRect: TRectangle;
+  PreviousTextureId: TGLTextureId;
 
   function GetCurrentlyUsedTexture: TImageTextureNode;
   begin
@@ -2457,13 +2486,18 @@ begin
     //PrepareEditModeViewport(FShaderHeightTexture1);
     //PrepareEditModeViewport(FShaderHeightTexture3);
     PrepareEditModeViewport(SourceTexture);
-    ViewportRect := Rectangle(0, 0, 64, 64);
-    if GetMainContainer.Controls.IndexOf(FEditModeSourceViewport) = -1 then
-      GetMainContainer.Controls.InsertFront(FEditModeSourceViewport);
-    GetMainContainer.RenderControl(FEditModeSourceViewport, ViewportRect);
-    FEditModeSourceViewport.EnableUIScaling := false;
+    PreviousTextureId := ShareOpenGLTextureToEditModeViewport(SourceTexture);
+    try
+      ViewportRect := Rectangle(0, 0, 64, 64);
+      if GetMainContainer.Controls.IndexOf(FEditModeSourceViewport) = -1 then
+        GetMainContainer.Controls.InsertFront(FEditModeSourceViewport);
+      GetMainContainer.RenderControl(FEditModeSourceViewport, ViewportRect);
+      FEditModeSourceViewport.EnableUIScaling := false;
 
-    //GetMainContainer.Controls.Remove(FEditModeSourceViewport);
+      //GetMainContainer.Controls.Remove(FEditModeSourceViewport);
+    finally
+      ResetOpenGLTextureInEditModeViewport(PreviousTextureId);
+    end;
 
     Brush := TDrawableImage.Create(BrushUrl);
     try
