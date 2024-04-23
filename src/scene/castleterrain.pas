@@ -617,7 +617,11 @@ type
       when we create viewport. TODO: check TextureNode size and update texture
       when needed }
     procedure PrepareEditModeViewport(const TextureNode: TImageTextureNode);
+    { Allows you to draw with another texture using its id. You need to call
+      ResetOpenGLTextureInEditModeViewport after drawing }
     function ShareOpenGLTextureToEditModeViewport(const TextureNode: TImageTextureNode): TGLTextureId;
+    { Resets texture id to given one, should use id from
+      ShareOpenGLTextureToEditModeViewport result }
     procedure ResetOpenGLTextureInEditModeViewport(const PreviousGLTextureId: TGLTextureId);
 
     procedure SetData(const Value: TCastleTerrainData);
