@@ -245,6 +245,7 @@
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
     function GLName: TGLTextureId; override;
+    procedure InternalSetGLName(AGLName: TGLTextureId);
   end;
 
   { Renderer resource for TMovieTextureNode. }
@@ -1022,6 +1023,11 @@ end;
 function TImageTextureResource.GLName: TGLTextureId;
 begin
   Result := FGLName;
+end;
+
+procedure TImageTextureResource.InternalSetGLName(AGLName: TGLTextureId);
+begin
+  FGLName := AGLName;
 end;
 
 { TMovieTextureResource -------------------------------------------------------- }

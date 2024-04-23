@@ -83,7 +83,7 @@ interface
 uses SysUtils, Classes,
   CastleClassUtils, CastleScript, CastleImages, X3DNodes, CastleVectors,
   CastleRectangles, CastleTransform, CastleScene, X3DFields, CastleRenderOptions,
-  CastleColors, CastleTriangles;
+  CastleColors, CastleTriangles, CastleViewport, CastleUIControls;
 
 type
   TCastleTerrainMode = (
@@ -599,6 +599,11 @@ type
     FEffectTextureHeightField: TSFNode;
     FShaderHeightTexture1: TImageTextureNode;
     FShaderHeightTexture2: TImageTextureNode;
+    FShaderHeightTexture3: TImageTextureNode;
+    FEditModeSourceViewport: TCastleViewport;
+    FEditModeHeightTextureScene: TCastleScene;
+    FEditModeApperance: TAppearanceNode;
+    FTempContainer: TCastleContainer;
 
     function GetRenderOptions: TCastleRenderOptions;
     function GetLayer(const Index: Integer): TCastleTerrainLayer;
@@ -608,6 +613,7 @@ type
     { Regenerate geometry (vertexes, normals etc.) to show the current Data
       with current parameters. }
     procedure UpdateGeometry;
+    procedure PrepareEditModeViewport(const TextureNode: TImageTextureNode);
 
     procedure SetData(const Value: TCastleTerrainData);
     procedure SetTriangulate(const Value: Boolean);
@@ -767,7 +773,8 @@ implementation
 
 uses Math,
   CastleUtils, CastleScriptParser, CastleInternalNoise, CastleDownload, CastleLog,
-  CastleUriUtils, CastleComponentSerialize, CastleGLImages, CastleInternalRenderer, CastleGL;
+  CastleUriUtils, CastleComponentSerialize, CastleGLImages, CastleInternalRenderer,
+  CastleGL, CastleProjection;
 
 { TCastleTerrainData ------------------------------------------------------------------- }
 
@@ -1998,9 +2005,12 @@ procedure TCastleTerrain.UpdateGeometry;
         FShaderHeightTexture1.KeepExistingBegin;
         FShaderHeightTexture2 := TImageTextureNode.Create;
         FShaderHeightTexture2.KeepExistingBegin;
+        FShaderHeightTexture3 := TImageTextureNode.Create;
+        FShaderHeightTexture3.KeepExistingBegin;
         WritelnLog(DataTerrainImage.Url);
         FShaderHeightTexture1.SetUrl([DataTerrainImage.Url]);
-        FShaderHeightTexture2.SetUrl([DataTerrainImage.Url]);
+        FShaderHeightTexture2.SetUrl(['/home/and3md/fpc/testy/cge/teren1/data/teren2.png']);
+        FShaderHeightTexture3.SetUrl(['/home/and3md/fpc/testy/cge/teren1/data/teren2.png']);
         FEffectTextureHeightField := TSFNode.Create(Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture1);
         Effect.AddCustomField(FEffectTextureHeightField);
       end;
@@ -2076,6 +2086,137 @@ begin
   end;
 
 end;
+
+procedure TCastleTerrain.PrepareEditModeViewport(const TextureNode: TImageTextureNode);
+var
+  QuadSet: TQuadSetNode;
+ // IndexedTriangleSetNode: TIndexedTriangleSetNode;
+ // Indexes: TInt32List;
+
+  Coord: TCoordinateNode;
+  TexCoord: TTextureCoordinateNode;
+  Shape: TShapeNode;
+  Root: TX3DRootNode;
+  Material: TUnlitMaterialNode;
+  Camera: TCastleCamera;
+  TextureProperties: TTexturePropertiesNode;
+  TextureId: TGLTextureId;
+begin
+
+  if FEditModeSourceViewport = nil then
+  begin
+    FEditModeSourceViewport := TCastleViewport.Create(Self);
+
+    Coord := TCoordinateNode.Create;
+    Coord.SetPoint([
+          Vector3(0, 64, 0),
+          Vector3(0, 0, 0),
+          Vector3(64.0, 0, 0),
+          Vector3(64, 64, 0)
+        ]);
+
+    TexCoord := TTextureCoordinateNode.Create;
+    TexCoord.SetPoint([Vector2(0, 1), Vector2(0, 0), Vector2(1, 0), Vector2(1, 1)]);
+
+    QuadSet := TQuadSetNode.CreateWithShape(Shape);
+    QuadSet.Coord := Coord;
+    QuadSet.TexCoord := TexCoord;
+    QuadSet.Solid := false;
+
+    {Coord.SetPoint([
+      Vector3(-32, -32, 0),
+      Vector3(32, -32, 0),
+      Vector3(32, 32, 0),
+      Vector3(-32, 32, 0)
+    ]);
+    IndexedTriangleSetNode := TIndexedTriangleSetNode.CreateWithShape(Shape);
+    Indexes := TInt32List.Create;
+    Indexes.Add(0);
+    Indexes.Add(1);
+    Indexes.Add(2);
+
+    Indexes.Add(0);
+    Indexes.Add(2);
+    Indexes.Add(3);
+    TexCoord := TTextureCoordinateNode.Create;
+    TexCoord.SetPoint([
+      Vector2(0,0),
+      Vector2(1,0),
+      Vector2(1,1),
+      Vector2(0,1)
+    ]);
+
+    IndexedTriangleSetNode.Coord := Coord;
+    IndexedTriangleSetNode.SetIndex(Indexes);
+    IndexedTriangleSetNode.TexCoord := TexCoord;
+    IndexedTriangleSetNode.Solid := false; }
+
+{    TextureProperties := TTexturePropertiesNode.Create;
+    TextureProperties.GuiTexture := true;
+    TextureProperties.BoundaryModeS := bmClampToEdge;
+    TextureProperties.BoundaryModeT := bmClampToEdge;
+    TextureNode.TextureProperties := TextureProperties;}
+
+
+    FEditModeApperance := TAppearanceNode.Create;
+
+    //FEditModeApperance.Texture := TextureNode;
+    Material := TUnlitMaterialNode.Create;
+    Material.EmissiveColor := Vector3(1,1,1);
+
+    FEditModeApperance.Material := Material;
+    FEditModeApperance.Texture := TImageTextureNode(TextureNode.DeepCopy);
+
+    Shape.Appearance := FEditModeApperance;
+
+    Root := TX3DRootNode.Create;
+    Root.AddChildren(Shape);
+
+    FEditModeHeightTextureScene := TCastleScene.Create(FEditModeSourceViewport);
+    FEditModeHeightTextureScene.Load(Root, true);
+    //FEditModeHeightTextureScene.URL := '/home/and3md/fpc/testy/cge/teren1/data/teren2.png';
+
+    //FEditModeHeightTextureScene.Save('/home/and3md/fpc/testy/cge/teren1/data/x3d.x3d');
+
+    FEditModeSourceViewport.Items.Add(FEditModeHeightTextureScene);
+
+    Camera := TCastleCamera.Create(FEditModeHeightTextureScene);
+    FEditModeSourceViewport.Items.Add(Camera);
+    Camera.ProjectionType := ptOrthographic;
+    Camera.Orthographic.Width := 64;
+    Camera.Orthographic.Height := 64;
+    Camera.Orthographic.Origin := Vector2(0, 0);
+    //Camera.Orthographic.Origin := Vector2(0.5, 0.5);
+    Camera.Direction := Vector3(0, 0, -1);
+    Camera.Translation := Vector3(0,0, 500);
+
+    FEditModeSourceViewport.Camera := Camera;
+    FEditModeSourceViewport.Width := 64;
+    FEditModeSourceViewport.Height := 64;
+
+    //FEditModeSourceViewport.BackgroundColor := Vector4(1,1,1,1);
+
+    //FTempContainer := TCastleContainer.Create(FEditModeSourceViewport);
+    //FTempContainer.InsertComponent();
+  end;
+  //FEditModeApperance.Texture := TAbstractTextureNode(TextureNode.DeepCopy);
+{  TextureProperties := TTexturePropertiesNode.Create;
+  TextureProperties.GuiTexture := true;
+  TextureProperties.BoundaryModeS := bmClampToEdge;
+  TextureProperties.BoundaryModeT := bmClampToEdge;
+  TextureNode.TextureProperties := TextureProperties;}
+
+
+  //FEditModeApperance.Texture := TextureNode;
+  TextureId := TImageTextureResource(TextureNode.InternalRendererResource).GLName;
+
+  if FEditModeApperance.Texture.InternalRendererResource = nil then
+    TTextureResources.Prepare(RenderOptions, FEditModeApperance.Texture);
+
+  TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).InternalSetGLName(TextureId);
+
+end;
+
 
 function TCastleTerrain.GetLayer(const Index: Integer): TCastleTerrainLayer;
 begin
@@ -2258,6 +2399,7 @@ var
   PX, PY: Integer;
   TextureWidth, TExtureHeight : Integer;
   Image: TCastleImage;
+  ViewportRect: TRectangle;
 
   function GetCurrentlyUsedTexture: TImageTextureNode;
   begin
@@ -2297,7 +2439,7 @@ begin
     // not working because we have changes only on gpu side
     //Source := TDrawableImage.Create(SourceTexture.TextureImage, true, false);
 
-    Image := TRGBAlphaImage.Create(TextureWidth, TExtureHeight);
+    {Image := TRGBAlphaImage.Create(TextureWidth, TExtureHeight);
     try
       SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
 
@@ -2310,7 +2452,18 @@ begin
       end;
     finally
       FreeAndNil(Image);
-    end;
+    end;}
+
+    //PrepareEditModeViewport(FShaderHeightTexture1);
+    //PrepareEditModeViewport(FShaderHeightTexture3);
+    PrepareEditModeViewport(SourceTexture);
+    ViewportRect := Rectangle(0, 0, 64, 64);
+    if GetMainContainer.Controls.IndexOf(FEditModeSourceViewport) = -1 then
+      GetMainContainer.Controls.InsertFront(FEditModeSourceViewport);
+    GetMainContainer.RenderControl(FEditModeSourceViewport, ViewportRect);
+    FEditModeSourceViewport.EnableUIScaling := false;
+
+    //GetMainContainer.Controls.Remove(FEditModeSourceViewport);
 
     Brush := TDrawableImage.Create(BrushUrl);
     try
