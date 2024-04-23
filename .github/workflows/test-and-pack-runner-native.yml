@@ -67,14 +67,20 @@ jobs:
       #   Note: Inno Setup seems already available on windows-latest.
       #   For future-proof, just keep it declared here.
       run: choco install sed innosetup
+    - name: Set environment PATH_SEPARATOR (non-Windows)
+      if: ${{ matrix.runner != 'windows-latest' }}
+      run: echo "PATH_SEPARATOR=:" >> $GITHUB_ENV
+    - name: Set environment PATH_SEPARATOR (Windows)
+      if: ${{ matrix.runner == 'windows-latest' }}
+      run: echo "PATH_SEPARATOR=;" >> $GITHUB_ENV
     - name: Set environment PATH to include sed
       if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "PATH=${PATH}:C:/ProgramData/chocolatey/lib/sed/tools/" >> $GITHUB_ENV
+      run: echo "PATH=C:/ProgramData/chocolatey/lib/sed/tools/${PATH_SEPARATOR}${PATH}" >> $GITHUB_ENV
 
     - name: Set environment CASTLE_ENGINE_PATH
       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
     - name: Set environment PATH to include cge installed/bin/
-      run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
+      run: echo "PATH=${PATH}${PATH_SEPARATOR}${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
     - name: Set environment FPC_OS
       run: echo "FPC_OS="`fpc -iTO` >> $GITHUB_ENV
     - name: Set environment FPC_CPU
@@ -91,6 +97,8 @@ jobs:
       run: lazbuild --version
     - name: (Info) Make version
       run: make --version
+    - name: (Info) Sed version
+      run: sed --version
     # Make sure we got GNU Make, not Embarcadero make.
     # This is important, as Delphi installer inserts Embarcadero make into PATH,
     # earlier than Cygwin's. It has to be corrected after installation.
