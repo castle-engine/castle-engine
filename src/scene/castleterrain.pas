@@ -2099,19 +2099,15 @@ end;
 procedure TCastleTerrain.PrepareEditModeViewport(const TextureNode: TImageTextureNode);
 var
   QuadSet: TQuadSetNode;
- // IndexedTriangleSetNode: TIndexedTriangleSetNode;
- // Indexes: TInt32List;
-
   Coord: TCoordinateNode;
   TexCoord: TTextureCoordinateNode;
+  //TextureProperties: TTexturePropertiesNode;
   Shape: TShapeNode;
   Root: TX3DRootNode;
   Material: TUnlitMaterialNode;
-  Camera: TCastleCamera;
-  TextureProperties: TTexturePropertiesNode;
-  TextureId: TGLTextureId;
-begin
 
+  Camera: TCastleCamera;
+begin
   if FEditModeSourceViewport = nil then
   begin
     FEditModeSourceViewport := TCastleViewport.Create(Self);
@@ -2132,44 +2128,14 @@ begin
     QuadSet.TexCoord := TexCoord;
     QuadSet.Solid := false;
 
-    {Coord.SetPoint([
-      Vector3(-32, -32, 0),
-      Vector3(32, -32, 0),
-      Vector3(32, 32, 0),
-      Vector3(-32, 32, 0)
-    ]);
-    IndexedTriangleSetNode := TIndexedTriangleSetNode.CreateWithShape(Shape);
-    Indexes := TInt32List.Create;
-    Indexes.Add(0);
-    Indexes.Add(1);
-    Indexes.Add(2);
-
-    Indexes.Add(0);
-    Indexes.Add(2);
-    Indexes.Add(3);
-    TexCoord := TTextureCoordinateNode.Create;
-    TexCoord.SetPoint([
-      Vector2(0,0),
-      Vector2(1,0),
-      Vector2(1,1),
-      Vector2(0,1)
-    ]);
-
-    IndexedTriangleSetNode.Coord := Coord;
-    IndexedTriangleSetNode.SetIndex(Indexes);
-    IndexedTriangleSetNode.TexCoord := TexCoord;
-    IndexedTriangleSetNode.Solid := false; }
-
-{    TextureProperties := TTexturePropertiesNode.Create;
+    { TextureProperties := TTexturePropertiesNode.Create;
     TextureProperties.GuiTexture := true;
     TextureProperties.BoundaryModeS := bmClampToEdge;
     TextureProperties.BoundaryModeT := bmClampToEdge;
-    TextureNode.TextureProperties := TextureProperties;}
-
+    TextureNode.TextureProperties := TextureProperties; }
 
     FEditModeApperance := TAppearanceNode.Create;
 
-    //FEditModeApperance.Texture := TextureNode;
     Material := TUnlitMaterialNode.Create;
     Material.EmissiveColor := Vector3(1,1,1);
 
@@ -2183,46 +2149,21 @@ begin
 
     FEditModeHeightTextureScene := TCastleScene.Create(FEditModeSourceViewport);
     FEditModeHeightTextureScene.Load(Root, true);
-    //FEditModeHeightTextureScene.URL := '/home/and3md/fpc/testy/cge/teren1/data/teren2.png';
-
-    //FEditModeHeightTextureScene.Save('/home/and3md/fpc/testy/cge/teren1/data/x3d.x3d');
 
     FEditModeSourceViewport.Items.Add(FEditModeHeightTextureScene);
-
     Camera := TCastleCamera.Create(FEditModeHeightTextureScene);
     FEditModeSourceViewport.Items.Add(Camera);
     Camera.ProjectionType := ptOrthographic;
     Camera.Orthographic.Width := 64;
     Camera.Orthographic.Height := 64;
     Camera.Orthographic.Origin := Vector2(0, 0);
-    //Camera.Orthographic.Origin := Vector2(0.5, 0.5);
     Camera.Direction := Vector3(0, 0, -1);
     Camera.Translation := Vector3(0,0, 500);
 
     FEditModeSourceViewport.Camera := Camera;
     FEditModeSourceViewport.Width := 64;
     FEditModeSourceViewport.Height := 64;
-
-    //FEditModeSourceViewport.BackgroundColor := Vector4(1,1,1,1);
-
-    //FTempContainer := TCastleContainer.Create(FEditModeSourceViewport);
-    //FTempContainer.InsertComponent();
   end;
-  //FEditModeApperance.Texture := TAbstractTextureNode(TextureNode.DeepCopy);
-{  TextureProperties := TTexturePropertiesNode.Create;
-  TextureProperties.GuiTexture := true;
-  TextureProperties.BoundaryModeS := bmClampToEdge;
-  TextureProperties.BoundaryModeT := bmClampToEdge;
-  TextureNode.TextureProperties := TextureProperties;}
-
-
-  //FEditModeApperance.Texture := TextureNode;
-  ///TextureId := TImageTextureResource(TextureNode.InternalRendererResource).GLName;
-
-  ///if FEditModeApperance.Texture.InternalRendererResource = nil then
-    ///TTextureResources.Prepare(RenderOptions, FEditModeApperance.Texture);
-
-  ///TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).InternalSetGLName(TextureId);
 end;
 
 function TCastleTerrain.ShareOpenGLTextureToEditModeViewport(
