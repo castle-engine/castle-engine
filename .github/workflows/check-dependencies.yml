@@ -35,12 +35,13 @@ jobs:
         run: |
           cd tools/internal/check_units_dependencies/
           make
+          ls -R
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: check_dependencies log
           path: |
-              "test-cge-units-dependencies_all_units.txt"
-              "cge_check_units_dependencies.log"
+            test-cge-units-dependencies_all_units.txt
+            cge_check_units_dependencies.log
           if-no-files-found: error
