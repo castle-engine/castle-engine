@@ -8,7 +8,10 @@
 # ----------------------------------------------------------------------------
 
 name: Test and Pack
-on: [push, pull_request]
+
+# Called by everything.yml
+on: [workflow_call]
+#on: [push, pull_request]
 
 defaults:
   run:
@@ -243,3 +246,9 @@ jobs:
         run: rm -f castle-engine*.zip
       - name: Pack
         run: ./tools/internal/pack_release/pack_release.sh
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-and-linux-release
+          path: "castle-engine*.zip"
+          if-no-files-found: error

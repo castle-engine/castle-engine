@@ -13,20 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Grab the data from command-line parameter,
-  and output data URI encoding it. Useful to encode images, sounds,
-  3D models, whatever as data URI.
-  See http://en.wikipedia.org/wiki/Data_URI_scheme for description of data URIs.
-
-  Command-line parameter is used with our Download routine, so:
-  - it may be a filename
-  - it may be an URL: a file URL, http URL (will be automatically downloaded)
-    or even another data URI.
-
-  Mime type (necessary to output nice data URI) is also detected by our
-  Download routine. For http, it may be returned by http server.
-  For file, it's guessed based on file extension.
-  See documentation of CastleDownload.Download function for details. }
+{ Convert any file to data URI scheme.
+  See README.md for details. }
 
 uses SysUtils, Classes, Base64, CastleParameters, CastleDownload,
   CastleUriUtils, CastleInternalDataUri, CastleClassUtils;

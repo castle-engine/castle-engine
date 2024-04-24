@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1796,122 +1796,143 @@ var
       end;
     end;
 
-    // read indexes
-    IndexField := Geometry.CoordIndexField;
-    if IndexField <> nil then
-    begin
-      Assert(Primitive.Indices <> -1);
-      AccessorToInt32(Primitive.Indices, IndexField, false);
-    end;
+    Appearance := nil; // may be used in "except" clause, so make sure it is defined
 
-    // parse attributes (initializing Coord, TexCoord and other such nodes)
-    // TODO: ForVertex true for all, or just for POSITION?
-    for AttributeName in Primitive.Attributes.Keys do
-    begin
-      if (AttributeName = 'POSITION') and (Geometry.CoordField <> nil) then
+    try
+      { We need to name shape nodes, to later have unique names for interpolators. }
+      Shape.X3DName :=
+        { mesh name } ParentGroup.X3DName +
+        { primitive index } '_Primitive' + IntToStr(ParentGroup.FdChildren.Count);
+
+      // read indexes
+      IndexField := Geometry.CoordIndexField;
+      if IndexField <> nil then
       begin
-        Coord := TCoordinateNode.Create;
-        AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
-        Geometry.CoordField.Value := Coord;
-        Shape.BBox := TBox3D.FromPoints(Coord.FdPoint.Items);
-        { Do special fix for line strip and line loop: glTF specifies just one strip/loop,
-          put it in VertexCount. }
-        if (Geometry is TLineSetNode) and
-           (TLineSetNode(Geometry).Mode in [lmStrip, lmLoop]) then
-          TLineSetNode(Geometry).SetVertexCount([Coord.FdPoint.Count]);
-      end else
-      if IsPrefix('TEXCOORD_', AttributeName, false) and (Geometry.TexCoordField <> nil) then
+        Assert(Primitive.Indices <> -1);
+        AccessorToInt32(Primitive.Indices, IndexField, false);
+      end;
+
+      // parse attributes (initializing Coord, TexCoord and other such nodes)
+      // TODO: ForVertex true for all, or just for POSITION?
+      for AttributeName in Primitive.Attributes.Keys do
       begin
-        TexCoord := TTextureCoordinateNode.Create;
-        TexCoord.Mapping := AttributeName;
-        AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
-        { We prefer to flip the texture, using TImageTextureNode.FlipVertically,
-          and not make a (slower) flipping of texture coordinates.
-          But when CastleX3dExtensions = false, we have no other choice right now but to flip them. }
-        if not CastleX3dExtensions then
-          FlipTextureCoordinates(TexCoord.FdPoint.Items);
-        SetMultiTextureCoordinate(Geometry, TexCoord);
-      end else
-      if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then
-      begin
-        Normal := TNormalNode.Create;
-        AccessorToVector3(Primitive.Attributes[AttributeName], Normal.FdVector, false);
-        TAbstractComposedGeometryNode(Geometry).FdNormal.Value := Normal;
-      end else
-      if (AttributeName = 'COLOR_0') and (Geometry.ColorField <> nil) then
-      begin
-        ColorAccessor := GetAccessor(Primitive.Attributes[AttributeName]);
-        if ColorAccessor.Type_ = TPasGLTF.TAccessor.TType.Vec4 then
+        if (AttributeName = 'POSITION') and (Geometry.CoordField <> nil) then
         begin
-          ColorRGBA := TColorRGBANode.Create;
-          ColorRGBA.Mode := cmModulate;
-          AccessorToVector4(Primitive.Attributes[AttributeName], ColorRGBA.FdColor, false);
-          Geometry.ColorField.Value := ColorRGBA;
+          Coord := TCoordinateNode.Create;
+          AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
+          Geometry.CoordField.Value := Coord;
+          Shape.BBox := TBox3D.FromPoints(Coord.FdPoint.Items);
+          { Do special fix for line strip and line loop: glTF specifies just one strip/loop,
+            put it in VertexCount. }
+          if (Geometry is TLineSetNode) and
+            (TLineSetNode(Geometry).Mode in [lmStrip, lmLoop]) then
+            TLineSetNode(Geometry).SetVertexCount([Coord.FdPoint.Count]);
         end else
+        if IsPrefix('TEXCOORD_', AttributeName, false) and (Geometry.TexCoordField <> nil) then
         begin
-          Color := TColorNode.Create;
-          Color.Mode := cmModulate;
-          AccessorToVector3(Primitive.Attributes[AttributeName], Color.FdColor, false);
-          Geometry.ColorField.Value := Color;
-        end;
-      end else
-      if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
-      begin
-        if CastleX3dExtensions then
+          TexCoord := TTextureCoordinateNode.Create;
+          TexCoord.Mapping := AttributeName;
+          AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
+          { We prefer to flip the texture, using TImageTextureNode.FlipVertically,
+            and not make a (slower) flipping of texture coordinates.
+            But when CastleX3dExtensions = false, we have no other choice right now but to flip them. }
+          if not CastleX3dExtensions then
+            FlipTextureCoordinates(TexCoord.FdPoint.Items);
+          SetMultiTextureCoordinate(Geometry, TexCoord);
+        end else
+        if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then
         begin
-          Tangent := TTangentNode.Create;
-          Tangent4D := TVector4List.Create;
-          try
-            AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
-            Tangent.SetVector4D(Tangent4D);
-          finally FreeAndNil(Tangent4D) end;
-          TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
-        end;
-      end else
-      if (AttributeName = 'JOINTS_0') then
+          Normal := TNormalNode.Create;
+          AccessorToVector3(Primitive.Attributes[AttributeName], Normal.FdVector, false);
+          TAbstractComposedGeometryNode(Geometry).FdNormal.Value := Normal;
+        end else
+        if (AttributeName = 'COLOR_0') and (Geometry.ColorField <> nil) then
+        begin
+          ColorAccessor := GetAccessor(Primitive.Attributes[AttributeName]);
+          if ColorAccessor.Type_ = TPasGLTF.TAccessor.TType.Vec4 then
+          begin
+            ColorRGBA := TColorRGBANode.Create;
+            ColorRGBA.Mode := cmModulate;
+            AccessorToVector4(Primitive.Attributes[AttributeName], ColorRGBA.FdColor, false);
+            Geometry.ColorField.Value := ColorRGBA;
+          end else
+          begin
+            Color := TColorNode.Create;
+            Color.Mode := cmModulate;
+            AccessorToVector3(Primitive.Attributes[AttributeName], Color.FdColor, false);
+            Geometry.ColorField.Value := Color;
+          end;
+        end else
+        if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
+        begin
+          if CastleX3dExtensions then
+          begin
+            Tangent := TTangentNode.Create;
+            Tangent4D := TVector4List.Create;
+            try
+              AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
+              Tangent.SetVector4D(Tangent4D);
+            finally FreeAndNil(Tangent4D) end;
+            TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
+          end;
+        end else
+        if (AttributeName = 'JOINTS_0') then
+        begin
+          Geometry.InternalSkinJoints := TVector4IntegerList.Create;
+          AccessorToVector4Integer(Primitive.Attributes[AttributeName], Geometry.InternalSkinJoints, false);
+        end else
+        if (AttributeName = 'WEIGHTS_0') then
+        begin
+          Geometry.InternalSkinWeights := TVector4List.Create;
+          AccessorToVector4(Primitive.Attributes[AttributeName], Geometry.InternalSkinWeights, false);
+        end else
+          WritelnLog('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
+      end;
+
+      // determine Appearance
+      if Between(Primitive.Material, 0, Appearances.Count - 1) then
+        Appearance := Appearances[Primitive.Material] as TGltfAppearanceNode
+      else
       begin
-        Geometry.InternalSkinJoints := TVector4IntegerList.Create;
-        AccessorToVector4Integer(Primitive.Attributes[AttributeName], Geometry.InternalSkinJoints, false);
-      end else
-      if (AttributeName = 'WEIGHTS_0') then
-      begin
-        Geometry.InternalSkinWeights := TVector4List.Create;
-        AccessorToVector4(Primitive.Attributes[AttributeName], Geometry.InternalSkinWeights, false);
-      end else
-        WritelnLog('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
+        Appearance := DefaultAppearance;
+        if Primitive.Material <> -1 then
+          WritelnWarning('glTF', 'Primitive specifies invalid material index %d',
+            [Primitive.Material]);
+      end;
+      Appearance.Used := true;
+      Appearance.UsedAsLit := Appearance.UsedAsLit or PossiblyLitGeometry(Geometry);
+      Shape.Appearance := Appearance;
+
+      // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
+      Geometry.Solid := not Appearance.DoubleSided;
+
+      if CastleX3dExtensions then
+        Shape.GenerateTangents;
+
+      MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
+      if MetadataCollision = 'none' then
+        Shape.Collision := scNone
+      else
+      if MetadataCollision = 'box' then
+        Shape.Collision := scBox
+      else
+      if (MetadataCollision = '') or (MetadataCollision = 'default') then
+        Shape.Collision := scDefault
+      else
+        WritelnWarning('Invalid value for "CastleCollision" custom property, ignoring: %s', [MetadataCollision]);
+
+    except
+      { Free Shape, to not leak memory in case e.g. GenerateTangents
+        raises exception.
+        Protect Shape.Appearance from being freed, as it's shared in Appearances
+        array. }
+      if Appearance <> nil then
+        Appearance.KeepExistingBegin;
+      FreeAndNil(Shape);
+      if Appearance <> nil then
+        Appearance.KeepExistingEnd;
+      raise;
     end;
-
-    // determine Appearance
-    if Between(Primitive.Material, 0, Appearances.Count - 1) then
-      Appearance := Appearances[Primitive.Material] as TGltfAppearanceNode
-    else
-    begin
-      Appearance := DefaultAppearance;
-      if Primitive.Material <> -1 then
-        WritelnWarning('glTF', 'Primitive specifies invalid material index %d',
-          [Primitive.Material]);
-    end;
-    Appearance.Used := true;
-    Appearance.UsedAsLit := Appearance.UsedAsLit or PossiblyLitGeometry(Geometry);
-    Shape.Appearance := Appearance;
-
-    // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
-    Geometry.Solid := not Appearance.DoubleSided;
-
-    if CastleX3dExtensions then
-      Shape.GenerateTangents;
-
-    MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
-    if MetadataCollision = 'none' then
-      Shape.Collision := scNone
-    else
-    if MetadataCollision = 'box' then
-      Shape.Collision := scBox
-    else
-    if (MetadataCollision = '') or (MetadataCollision = 'default') then
-      Shape.Collision := scDefault
-    else
-      WritelnWarning('Invalid value for "CastleCollision" custom property, ignoring: %s', [MetadataCollision]);
 
     // add to X3D
     ParentGroup.AddChildren(Shape);
@@ -1923,16 +1944,30 @@ var
   var
     Primitive: TPasGLTF.TMesh.TPrimitive;
     Group: TGroupNode;
+    I: Integer;
   begin
     Group := TGroupNode.Create;
     Group.X3DName := Mesh.Name;
+    { Assign name to more easily recognize this in X3D output,
+      and to have unique names for TShapeNode,
+      which implies unique names for animations.
+      Testcase: Quaternius monster glTF models,
+      https://quaternius.com/packs/ultimatemonsters.html ,
+      convert Bunny.gltf to X3D.
+      Should not make any warning. }
+    if Group.X3DName = '' then
+      Group.X3DName := 'Mesh' + IntToStr(ParentGroup.FdChildren.Count);
+
     ParentGroup.AddChildren(Group);
     ExportNodes.Add(Group);
 
     ReadMetadata(Mesh.Extras, Group);
 
-    for Primitive in Mesh.Primitives do
+    for I := 0 to Mesh.Primitives.Count - 1 do
+    begin
+      Primitive := Mesh.Primitives[I];
       ReadPrimitive(Primitive, Group);
+    end;
   end;
 
   procedure ReadMesh(const MeshIndex: Integer;
@@ -2440,7 +2475,8 @@ var
     BBox.ToCenterSize(Center, Size);
 
     ValueTrigger := TValueTriggerNode.Create;
-    ValueTrigger.X3DName := 'ValueTrigger_setBBox_' + TimeSensor.X3DName;
+    ValueTrigger.X3DName := 'ValueTrigger_setBBox_' +
+      TimeSensor.X3DName + '_' + Shape.X3DName;
     ParentGroup.AddChildren(ValueTrigger);
     ParentGroup.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
 
@@ -2484,6 +2520,7 @@ var
     OriginalNormals, AnimatedNormals: TVector3List;
     OriginalTangents, AnimatedTangents: TVector3List;
     MemoryTaken: Int64;
+    InterpolatorNameSuffix: String;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
@@ -2555,8 +2592,13 @@ var
 
     for Anim in Animations do
     begin
+      InterpolatorNameSuffix :=
+        'SkinInterpolator_'
+        + Anim.TimeSensor.X3DName + '_'
+        + Shape.X3DName;
+
       CoordInterpolator := TCoordinateInterpolatorNode.Create;
-      CoordInterpolator.X3DName := 'SkinCoordInterpolator_' + Anim.TimeSensor.X3DName;
+      CoordInterpolator.X3DName := 'Coord' + InterpolatorNameSuffix;
       GatherAnimationKeysToSample(CoordInterpolator.FdKey.Items, Anim.Interpolators);
       { Assign count, avoids later reallocating memory when adding vectors (slow),
         and avoids Capacity >> Count (wasted memory).
@@ -2573,7 +2615,7 @@ var
       if Normal <> nil then
       begin
         NormalInterpolator := TCoordinateInterpolatorNode.Create;
-        NormalInterpolator.X3DName := 'SkinNormalInterpolator_' + Anim.TimeSensor.X3DName;
+        NormalInterpolator.X3DName := 'Normal' + InterpolatorNameSuffix;
         //GatherAnimationKeysToSample(NormalInterpolator.FdKey.Items, Anim.Interpolators);
         // faster:
         NormalInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
@@ -2595,7 +2637,7 @@ var
       if Tangent <> nil then
       begin
         TangentInterpolator := TCoordinateInterpolatorNode.Create;
-        TangentInterpolator.X3DName := 'SkinTangentInterpolator_' + Anim.TimeSensor.X3DName;
+        TangentInterpolator.X3DName := 'Tangent' + InterpolatorNameSuffix;
         //GatherAnimationKeysToSample(TangentInterpolator.FdKey.Items, Anim.Interpolators);
         // faster:
         TangentInterpolator.FdKey.Assign(CoordInterpolator.FdKey);

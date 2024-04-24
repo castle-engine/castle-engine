@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestX3DNodes" -*-
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -108,6 +108,8 @@ type
     procedure TestWarningUnquotedIdentifier;
     procedure TestConversionPrecision;
     procedure TestInlineShaderCode;
+    procedure TestOpenInvalidIndexes;
+    procedure TestGltfConversion;
   end;
 
 implementation
@@ -2605,6 +2607,38 @@ begin
       SDeleteChars(EffectPart.Contents, [#13])
     );
   finally FreeAndNil(Root) end;
+end;
+
+procedure TTestX3DNodes.TestOpenInvalidIndexes;
+var
+  Node: TX3DRootNode;
+begin
+  try
+    Node := LoadNode('castle-data:/invalid_indexes/castle.gltf');
+    FreeAndNil(Node);
+    Fail('Should raise exception EInvalidGeometryIndex');
+  except
+    on E: EInvalidGeometryIndex do ;
+  end;
+end;
+
+procedure TTestX3DNodes.TestGltfConversion;
+var
+  Node: TX3DRootNode;
+  OutputStream: TMemoryStream;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    Node := LoadNode('castle-data:/quaternius/Bunny.gltf');
+    try
+      OutputStream := TMemoryStream.Create;
+      try
+        SaveNode(Node, OutputStream, 'model/x3d+vrml');
+      finally FreeAndNil(OutputStream) end;
+    finally FreeAndNil(Node) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
 end;
 
 initialization

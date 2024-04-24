@@ -300,6 +300,9 @@ procedure TIndyReader.Start;
 
 begin
   inherited;
+  if not CheckNetworkAccess then
+    Exit;
+
   WritelnLog('Network', 'Downloading "%s"', [UriDisplay(Url)]);
   SynchronizationCS := TCriticalSection.Create;
   Thread := TIndyReaderThread.Create;

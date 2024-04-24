@@ -542,7 +542,7 @@ begin
 
                 SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
                 DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
-                AddExternalLibraries(ExtractFilePath(DestExe));
+                AddExternalLibraries(OutputPath);
                 if not SameFileName(SourceExe, DestExe) then
                 begin
                   { move exe to top-level (in case MainSource is in subdirectory

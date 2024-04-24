@@ -59,6 +59,7 @@ uses
   TestX3DNodes,
   TestX3DNodesOptimizedProxy,
   TestX3DNodesNurbs,
+  TestCastleRendererInternalShader,
   TestCastleScene,
   TestCastleSceneCore,
   TestCastleSceneManager,
