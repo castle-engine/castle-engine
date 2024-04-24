@@ -38,12 +38,22 @@ jobs:
         # Using macos-12 as last Intel-based mac.
 
         runner: [macos_x64, ubuntu-latest, windows-latest, macos-12]
-        # To not overload the slower RPi, use it only with master
         include:
+          # To not overload the slower RPi, use it only with master
           - if: ${{ github.ref == 'refs/heads/master' }}
             runner: raspberry_pi_64
           - if: ${{ github.ref == 'refs/heads/master' }}
             runner: raspberry_pi_32
+          # Add is_macos variable to later easily check.
+          # Default is false, and then we override it to true for macos runners.
+          - is_macos: false
+          - runner: macos_x64
+            is_macos: true
+          - runner: macos-12
+            is_macos: true
+          # Uncomment this once we reeanable macos-latest
+          # - runner: macos-latest
+          #   is_macos: true
     runs-on: ${{ matrix.runner }}
     steps:
     - uses: actions/checkout@v4
@@ -58,7 +68,7 @@ jobs:
       if: ${{ matrix.runner == 'ubuntu-latest' }}
       run: sudo apt-get --no-install-recommends -y install libgl-dev
     - name: Install macOS dependencies
-      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-12' }}
+      if: ${{ matrix.is_macos }}
       run: brew install gnu-sed coreutils
     - name: Install Windows dependencies
       if: ${{ matrix.runner == 'windows-latest' }}
@@ -98,10 +108,10 @@ jobs:
     - name: (Info) Make version
       run: make --version
     - name: (Info) Sed version (macOS)
-      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-12' }}
+      if: ${{ matrix.is_macos }}
       run: gsed --version
     - name: (Info) Sed version (non-macOS)
-      if: ${{ ! (matrix.runner == 'macos-latest' || matrix.runner == 'macos-12') }}
+      if: ${{ !matrix.is_macos }}
       run: sed --version
     # Make sure we got GNU Make, not Embarcadero make.
     # This is important, as Delphi installer inserts Embarcadero make into PATH,
