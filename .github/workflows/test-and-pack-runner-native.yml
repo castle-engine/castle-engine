@@ -67,8 +67,9 @@ jobs:
     - name: Install Ubuntu dependencies
       if: ${{ matrix.runner == 'ubuntu-latest' }}
       run: sudo apt-get --no-install-recommends -y install libgl-dev
-    - name: Install macOS dependencies
-      if: ${{ matrix.is_macos }}
+    - name: Install macOS dependencies (non GH hosted macs)
+      # We do this only on GH hosted macs, not on our macos_x64, because on our mac: 1. this is already installed, 2. jenkins user doesn't have permissions to install more.
+      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-12'}}
       run: brew install gnu-sed coreutils
     - name: Install Windows dependencies
       if: ${{ matrix.runner == 'windows-latest' }}
