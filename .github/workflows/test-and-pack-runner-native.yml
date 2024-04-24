@@ -97,7 +97,11 @@ jobs:
       run: lazbuild --version
     - name: (Info) Make version
       run: make --version
-    - name: (Info) Sed version
+    - name: (Info) Sed version (macOS)
+      if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-12' }}
+      run: gsed --version
+    - name: (Info) Sed version (non-macOS)
+      if: ${{ ! (matrix.runner == 'macos-latest' || matrix.runner == 'macos-12') }}
       run: sed --version
     # Make sure we got GNU Make, not Embarcadero make.
     # This is important, as Delphi installer inserts Embarcadero make into PATH,
