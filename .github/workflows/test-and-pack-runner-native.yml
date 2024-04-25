@@ -87,7 +87,9 @@ jobs:
       run: echo "PATH_SEPARATOR=;" >> $GITHUB_ENV
     - name: Set environment PATH to include sed and make first (before old make from FPC)
       if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "PATH=${ChocolateyInstall}/bin${PATH_SEPARATOR}${PATH}" >> $GITHUB_ENV
+      run: |
+        echo "PATH=${ChocolateyInstall}/lib/make/tools/${PATH_SEPARATOR}${PATH}" >> $GITHUB_ENV
+        echo "PATH=${ChocolateyInstall}/lib/sed/tools/${PATH_SEPARATOR}${PATH}" >> $GITHUB_ENV
 
     - name: Set environment CASTLE_ENGINE_PATH
       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
