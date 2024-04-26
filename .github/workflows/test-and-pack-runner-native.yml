@@ -73,28 +73,15 @@ jobs:
       run: brew install gnu-sed coreutils
     - name: Install Windows dependencies
       if: ${{ matrix.runner == 'windows-latest' }}
-      # We need latest GNU sed and make for "make test-editor-templates" to work.
-      #   TODO: possibly upgrading sed was not necessary, make was only crucial, check.
       # We need Inno Setup for creating Windows installer.
       #   Note: Inno Setup seems already available on windows-latest.
       #   For future-proof, just keep it declared here.
-      run: choco install sed innosetup make
-    - name: Set environment PATH_SEPARATOR (non-Windows)
-      if: ${{ matrix.runner != 'windows-latest' }}
-      run: echo "PATH_SEPARATOR=:" >> $GITHUB_ENV
-    - name: Set environment PATH_SEPARATOR (Windows)
-      if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "PATH_SEPARATOR=;" >> $GITHUB_ENV
-    - name: Set environment PATH to include sed and make first (before old make from FPC)
-      if: ${{ matrix.runner == 'windows-latest' }}
-      run: |
-        echo "PATH=${ChocolateyInstall}/lib/make/tools/${PATH_SEPARATOR}${PATH}" >> $GITHUB_ENV
-        echo "PATH=${ChocolateyInstall}/lib/sed/tools/${PATH_SEPARATOR}${PATH}" >> $GITHUB_ENV
+      run: choco install innosetup
 
     - name: Set environment CASTLE_ENGINE_PATH
       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
     - name: Set environment PATH to include cge installed/bin/
-      run: echo "PATH=${PATH}${PATH_SEPARATOR}${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
+      run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
     - name: Set environment FPC_OS
       run: echo "FPC_OS="`fpc -iTO` >> $GITHUB_ENV
     - name: Set environment FPC_CPU
