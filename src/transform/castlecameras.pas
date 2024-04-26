@@ -365,6 +365,7 @@ type
       FPinchGestureRecognizer: TCastlePinchPanGestureRecognizer;
       FCenterOfRotation: TVector3;
       FAutoCenterOfRotation: Boolean;
+      FZoomSpeed: Single;
 
       FInputs_Move: T3BoolInputs;
       FInputs_Rotate: T3BoolInputs;
@@ -418,6 +419,7 @@ type
     const
       DefaultRotationAccelerationSpeed = 5.0;
       DefaultRotationSpeed = 2.0;
+      DefaultZoomSpeed = 1.0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -565,6 +567,12 @@ type
     { 3D point around which we rotate, in world coordinates.
       This is used only when AutoCenterOfRotation = @false. }
     property CenterOfRotation: TVector3 read FCenterOfRotation write FCenterOfRotation;
+
+    { Speed to change the Zoom, when ZoomEnabled = @true. }
+    property ZoomSpeed: Single
+      read FZoomSpeed
+      write FZoomSpeed
+      {$ifdef FPC}default DefaultZoomSpeed{$endif};
   published
     { Enable rotating the camera around the model by user input.
       When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
@@ -1893,6 +1901,7 @@ begin
   FPinchGestureRecognizer.OnGestureChanged := {$ifdef FPC}@{$endif}OnGestureRecognized;
   FExactMovement := true;
   FAutoCenterOfRotation := true;
+  FZoomSpeed := DefaultZoomSpeed;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -2178,12 +2187,12 @@ begin
   begin
     if Input_ScaleLarger.IsPressed(Container) then
     begin
-      Zoom(KeyZoomSpeed * SecondsPassed);
+      Zoom(KeyZoomSpeed * SecondsPassed * ZoomSpeed);
       HandleInput := false;
     end;
     if Input_ScaleSmaller.IsPressed(Container) then
     begin
-      Zoom(-KeyZoomSpeed * SecondsPassed);
+      Zoom(-KeyZoomSpeed * SecondsPassed * ZoomSpeed);
       HandleInput := false;
     end;
   end;
@@ -2231,7 +2240,7 @@ begin
     Translation := Translation + Vector3(0, Size * Y * MoveSize, 0);
 
   if Abs(Z) > 5 then   { backward / forward }
-    Zoom(Z * MoveSize * 30 / 2);
+    Zoom(Z * MoveSize * 30 / 2 * ZoomSpeed);
 end;
 
 function TCastleExamineNavigation.SensorRotation(const X, Y, Z, Angle: Double;
@@ -2562,7 +2571,7 @@ begin
 
   if ZoomEnabled and Input_Zoom.IsPressed(Container.Pressed, Container.MousePressed) then
   begin
-    if Zoom((Event.OldPosition[1] - Event.Position[1]) * 30 / (2 * MoveDivConst)) then
+    if Zoom((Event.OldPosition[1] - Event.Position[1]) * 30 / (2 * MoveDivConst) * ZoomSpeed) then
       Result := true;
   end;
 
@@ -2601,7 +2610,7 @@ begin
       ZoomScale := 1
     else
       ZoomScale := 3;
-    Zoom(Factor * ZoomScale);
+    Zoom(Factor * ZoomScale * ZoomSpeed);
   end;
 
   if MoveEnabled and (not GoodModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
