@@ -244,10 +244,20 @@ EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
 
 # Test compiling single CGE editor template.
 # Requires EDITOR_TEMPLATE_PATH to be defined.
+#
+# Note: Using standalone_source=.xxx. instead of standalone_source="xxx"
+# to workaround weird bug in make 3.8 on Windows from MinGW (distributed
+# with FPC 3.2.2 so it's easy for us to use, even by accident).
+# This version of make, upon seeing standalone_source="xxx",
+# was adding extra backslashes to the arguments visible by sed.
+# So it was passing parameter like s|standalone_source=\${XmlQuote(PROJECT_PASCAL_NAME)}_standalone.dpr\||
+# which was making sed fail with invalid expression.
+# This is fixed in make 4.x on Windows from Cygwin
+# (unsure if 3.8 - > 4.x was the change that fixed it, or MinGW -> Cygwin).
 .PHONY: test-editor-template
 test-editor-template:
 	$(SED) --in-place=.backup \
-	  -e 's|standalone_source="$${XmlQuote(PROJECT_PASCAL_NAME)}_standalone.dpr"||' \
+	  -e 's|standalone_source=.$${XmlQuote(PROJECT_PASCAL_NAME)}_standalone.dpr.||' \
 	  -e 's|$${XmlQuote(PROJECT_QUALIFIED_NAME)}|test.project.castle.engine.io|' \
 	  -e 's|$${XmlQuote(PROJECT_CAPTION)}|Test Template Project Caption|' \
 	  -e 's|$${XmlQuote(PROJECT_NAME)}|test_template_project_name|' \
