@@ -77,7 +77,7 @@ implementation
 
 uses CastleConfig, CastleLCLUtils, CastleUriUtils, CastleUtils, CastleOpenDocument,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils, CastleGLUtils,
-  CastleApplicationProperties,
+  CastleApplicationProperties, CastleInternalTools,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
   ToolCompilerInfo, ToolFpcVersion, ToolManifest, ToolCommonUtils,
   FormProject, FormNewUnit;
@@ -134,7 +134,8 @@ end;
 
 procedure TChooseProjectForm.ButtonNewClick(Sender: TObject);
 var
-  ProjectDir, ProjectDirUrl, ManifestUrl, TemplateName: String;
+  ManifestUrl, TemplateName, ProjectDirUrl: String;
+  Options: TProjectCreationOptions;
 begin
   Hide;
 
@@ -143,13 +144,6 @@ begin
     UseEditorApplicationData; // we use our castle-data:/xxx to copy template
 
     try
-      // Create project dir
-      ProjectDir := InclPathDelim(NewProjectForm.EditLocation.Text) +
-        NewProjectForm.EditProjectName.Text;
-      ProjectDirUrl := FilenameToUriSafe(InclPathDelim(ProjectDir));
-      if not ForceDirectories(ProjectDir) then
-        raise Exception.CreateFmt('Cannot create directory "%s".', [ProjectDir]);
-
       // Calculate TemplateName
       if NewProjectForm.ButtonTemplateEmpty.Down then
         TemplateName := 'empty'
@@ -165,11 +159,14 @@ begin
       else
         raise EInternalError.Create('Unknown project template selected');
 
-      // Fill project dir
-      CopyTemplate(ProjectDirUrl, TemplateName,
-        NewProjectForm.EditProjectName.Text,
-        NewProjectForm.EditProjectCaption.Text,
-        NewProjectForm.EditStateName.Text);
+      // Fill Options
+      Options.ParentDir := NewProjectForm.EditLocation.Text;
+      Options.TemplateName := TemplateName;
+      Options.ProjectName := NewProjectForm.EditProjectName.Text;
+      Options.ProjectCaption := NewProjectForm.EditProjectCaption.Text;
+      Options.MainView := NewProjectForm.EditStateName.Text;
+
+      ProjectCreateFromTemplate(CastleEnginePath, Options, ProjectDirUrl);
       GenerateProgramWithBuildTool(ProjectDirUrl);
 
       // Open new project
