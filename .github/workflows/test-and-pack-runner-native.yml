@@ -93,11 +93,11 @@ jobs:
     # It looks like MSys "bash" has code to understand drive letter : in a PATH,
     # but "find" doesn't.
     - name: Set environment PATH to include cge installed/bin/ (non-Windows)
-      if: ${{ ! matrix.runner == 'windows-latest' }}
-      run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
+      if: ${{ matrix.runner != 'windows-latest' }}
+      run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/:${GITHUB_WORKSPACE}/pasdoc/bin/" >> $GITHUB_ENV
     - name: Set environment PATH to include cge installed/bin/ (Windows)
       if: ${{ matrix.runner == 'windows-latest' }}
-      run: echo "PATH=${PATH}:`cygpath --unix ${CASTLE_ENGINE_PATH}/installed/bin/`" >> $GITHUB_ENV
+      run: echo "PATH=${PATH}:`cygpath --unix ${CASTLE_ENGINE_PATH}/installed/bin/`:`cygpath --unix ${GITHUB_WORKSPACE}/pasdoc/bin/`" >> $GITHUB_ENV
 
     - name: Set environment FPC_OS
       run: echo "FPC_OS="`fpc -iTO` >> $GITHUB_ENV
@@ -163,9 +163,9 @@ jobs:
       run: |
         wget https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip --output-document pasdoc-master.zip
         unzip pasdoc-master.zip
-        cd pasdoc-master
+        mv pasdoc-master pasdoc
+        cd pasdoc
         make
-        mv bin/pasdoc ${CASTLE_ENGINE_PATH}/installed/bin/
 
     - name: Pack Release
       run: |
