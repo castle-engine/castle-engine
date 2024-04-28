@@ -154,6 +154,12 @@ jobs:
       run: |
         rm -f castle-engine*.zip # remove previous artifacts
         ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
+    - name: Archive Artifacts (zip)
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.runner }}-release
+        path: "castle-engine*.zip"
+        if-no-files-found: error
 
     - name: Download bundled FPC
       if: ${{ matrix.runner == 'windows-latest' }}
@@ -165,12 +171,10 @@ jobs:
     - name: Pack Release (Windows Installer, Bundled FPC)
       if: ${{ matrix.runner == 'windows-latest' }}
       run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer
-
-    - name: Archive Artifacts
+    - name: Archive Artifacts (exe)
+      if: ${{ matrix.runner == 'windows-latest' }}
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.runner }}-release
-        path: |
-          "castle-engine*.zip"
-          "castle-engine-setup-*.exe"
+        path: "castle-engine-setup-*.exe"
         if-no-files-found: error
