@@ -93,8 +93,10 @@ jobs:
     # It looks like MSys "bash" has code to understand drive letter : in a PATH,
     # but "find" doesn't.
     - name: Set environment PATH to include cge installed/bin/ (non-Windows)
+      if: ${{ ! matrix.runner == 'windows-latest' }}
       run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
     - name: Set environment PATH to include cge installed/bin/ (Windows)
+      if: ${{ matrix.runner == 'windows-latest' }}
       run: echo "PATH=${PATH}:`cygpath --unix ${CASTLE_ENGINE_PATH}/installed/bin/`" >> $GITHUB_ENV
 
     - name: Set environment FPC_OS
