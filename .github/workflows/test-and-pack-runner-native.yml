@@ -81,8 +81,22 @@ jobs:
 
     - name: Set environment CASTLE_ENGINE_PATH
       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-    - name: Set environment PATH to include cge installed/bin/
+
+    # Even on Windows, in GH hosted runner,
+    # PATH (at least within bash -- this is MSys bash) is separated by :.
+    # So the same path separator works for all platforms.
+    # However, for Windows, we have to convert native Windows path to MSys,
+    # otherwise path like "D:\a\castle-engine\castle-engine/installed/bin/"
+    # would mean that "D" relative path is present in PATH, which would make
+    # /bin/find later fail ("""The relative path 'D' is included in the PATH environment variable, which is insecure in combination with the -execdir action of find.  Please remove that entry from $PATH""")
+    # even though the path seems to work fine for other tools.
+    # It looks like MSys "bash" has code to understand drive letter : in a PATH,
+    # but "find" doesn't.
+    - name: Set environment PATH to include cge installed/bin/ (non-Windows)
       run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
+    - name: Set environment PATH to include cge installed/bin/ (Windows)
+      run: echo "PATH=${PATH}:`cygpath --unix ${CASTLE_ENGINE_PATH}/installed/bin/`" >> $GITHUB_ENV
+
     - name: Set environment FPC_OS
       run: echo "FPC_OS="`fpc -iTO` >> $GITHUB_ENV
     - name: Set environment FPC_CPU
