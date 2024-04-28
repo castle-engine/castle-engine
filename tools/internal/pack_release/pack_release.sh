@@ -86,7 +86,12 @@ detect_platform ()
   SED='sed'
 
   if which cygpath.exe > /dev/null; then
-    MAKE='/bin/make' # On Cygwin, make sure to use Cygwin's make, not the one from Embarcadero
+    # Earlier: We did:
+    # MAKE='/bin/make' # On Cygwin, make sure to use Cygwin's make, not the one from Embarcadero
+    # Later: We assume on Windows that "make" on $PATH is a reasonable choice,
+    # not from Embarcadero. That's because on GH hosted runner, "make" it from
+    # MinGW, not Cygwin.
+
     FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
   fi
 
