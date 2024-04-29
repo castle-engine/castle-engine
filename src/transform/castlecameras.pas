@@ -2116,7 +2116,7 @@ begin
 
   if RotationEnabled and (not FRotationsAnim.IsPerfectlyZero) then
   begin
-    RotChange := SecondsPassed;
+    RotChange := SecondsPassed * RotationSpeed;
 
     if FRotationsAnim[0] <> 0 then
       V.Rotations := QuatFromAxisAngle(TVector3.One[0],
@@ -2262,7 +2262,7 @@ begin
   Result := true;
 
   Moved := false;
-  RotationSize := SecondsPassed * Angle;
+  RotationSize := SecondsPassed * Angle * RotationSpeed;
   V := ExamineVectors;
 
   if Abs(X) > 0.4 then      { tilt forward / backward}
@@ -2444,14 +2444,14 @@ var
     if (not ContainerSizeKnown) then
     {$warnings on}
     begin
-      V.Rotations := XYRotation(1);
+      V.Rotations := XYRotation(RotationSpeed);
     end else
     if Turntable then
     begin
       //Result := XYRotation(0.5); // this matches the rotation speed of ntExamine
       { Do one turn around Y axis by dragging from one viewport side to another
         (so it does not depend on viewport size)  }
-      V.Rotations := XYRotation(2 * Pi * MoveDivConst / Container.PixelsWidth);
+      V.Rotations := XYRotation(2 * Pi * MoveDivConst / Container.PixelsWidth * RotationSpeed);
     end else
     begin
       { When the cursor is close to the window edge, make rotation around Z axis.
@@ -2478,7 +2478,7 @@ var
       ZRotRatio := Min(1.0, Sqrt(Sqr((AvgX - W2) / W2) + Sqr((AvgY - H2) / H2)));
       V.Rotations :=
         QuatFromAxisAngle(Vector3(0, 0, -1), ZRotRatio * ZRotAngle) *
-        XYRotation(1 - ZRotRatio);
+        XYRotation((1 - ZRotRatio) * RotationSpeed);
     end;
 
     ExamineVectors := V;
