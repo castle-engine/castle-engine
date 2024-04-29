@@ -64,6 +64,7 @@ type
     ButtonClearTranslation: TButton;
     ButtonPlayStop: TSpeedButton;
     ButtonApiReferenceForCurrent: TSpeedButton;
+    EditFindInHierarchy: TEdit;
     LabelPhysics: TLabel;
     LabelPlayStop: TLabel;
     LabelViewport: TLabel;
@@ -155,6 +156,7 @@ type
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
+    procedure EditFindInHierarchyChange(Sender: TObject);
     procedure FrameResize(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemCutClick(Sender: TObject);
@@ -273,6 +275,7 @@ type
       // Last selected components (with AutoSelectParents=true)
       LastSelected: TComponentList;
       FShowColliders: Boolean;
+      FindActive: Boolean;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -684,6 +687,11 @@ type
     { Saves some editor data in subcomponent of Application for property
       editors }
     procedure UpdateEditorDataForPropertyEditors;
+
+    { Toggle whether the edit box to find component by name exists. }
+    procedure FindToggle;
+    { Find next, if find is active. }
+    procedure FindNext;
   end;
 
 implementation
@@ -1678,6 +1686,9 @@ begin
   FTransformDesigningObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TransformDesigningFreeNotification;
   *)
   UpdateEditorDataForPropertyEditors;
+
+  FindActive := false;
+  SetEnabledVisible(EditFindInHierarchy, FindActive);
 end;
 
 destructor TDesignFrame.Destroy;
@@ -6316,6 +6327,114 @@ end;
 procedure TDesignFrame.FocusDesign;
 begin
   CastleControl.SetFocus;
+end;
+
+procedure TDesignFrame.FindToggle;
+begin
+  FindActive := not FindActive;
+  SetEnabledVisible(EditFindInHierarchy, FindActive);
+  if FindActive then
+  begin
+    EditFindInHierarchy.Text := ''; // clear edit when showing it
+    // Note: SetFocus must be done after making it enabled, otherwise exception is raised
+    EditFindInHierarchy.SetFocus;
+  end;
+end;
+
+procedure TDesignFrame.EditFindInHierarchyChange(Sender: TObject);
+var
+  LowerFindText: String;
+  TreeNode: TTreeNode;
+  C: TComponent;
+begin
+  if FindActive and (EditFindInHierarchy.Text <> '') then
+  begin
+    LowerFindText := LowerCase(EditFindInHierarchy.Text);
+
+    TreeNode := ControlsTree.Items.GetFirstNode;
+    while TreeNode <> nil do
+    begin
+      C := SelectedFromNode(TreeNode, false);
+      if (C <> nil) and (Pos(LowerFindText, LowerCase(C.Name)) <> 0) then
+      begin
+        SelectedComponent := C;
+        Exit;
+      end;
+      TreeNode := TreeNode.GetNext;
+    end;
+
+    Beep; // nothing found
+  end;
+end;
+
+procedure TDesignFrame.FindNext;
+var
+  LowerFindText: String;
+  TreeNode: TTreeNode;
+  Sel, C: TComponent;
+  SeenSelection: Boolean;
+begin
+  if FindActive and (EditFindInHierarchy.Text <> '') then
+  begin
+    if SelectedComponent = nil then
+    begin
+      { try to find first match }
+      EditFindInHierarchyChange(nil)
+    end else
+    begin
+      Sel := GetSelectedComponent(false);
+      LowerFindText := LowerCase(EditFindInHierarchy.Text);
+
+      // first pass: go to selected component, find first match after it
+      SeenSelection := false;
+
+      TreeNode := ControlsTree.Items.GetFirstNode;
+      while TreeNode <> nil do
+      begin
+        C := SelectedFromNode(TreeNode, false);
+
+        if SeenSelection and
+           (C <> nil) and
+           (Pos(LowerFindText, LowerCase(C.Name)) <> 0) then
+        begin
+          SelectedComponent := C;
+          Exit;
+        end;
+        if C = Sel then
+          SeenSelection := true;
+
+        TreeNode := TreeNode.GetNext;
+      end;
+
+      // no match found after selected component, search from the beginning
+
+      if not SeenSelection then
+      begin
+        WritelnWarning('Not found SelectedComponent %s among tree nodes, something is wrong', [Sel.Name]);
+        Exit;
+      end;
+
+      TreeNode := ControlsTree.Items.GetFirstNode;
+      while TreeNode <> nil do
+      begin
+        C := SelectedFromNode(TreeNode, false);
+
+        if C = Sel then
+        begin
+          // we reached selection again, so no next match found
+          Exit;
+        end;
+
+        if (C <> nil) and (Pos(LowerFindText, LowerCase(C.Name)) <> 0) then
+        begin
+          SelectedComponent := C;
+          Exit;
+        end;
+
+        TreeNode := TreeNode.GetNext;
+      end;
+    end;
+  end;
 end;
 
 initialization
