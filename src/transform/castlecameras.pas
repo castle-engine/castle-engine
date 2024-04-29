@@ -415,6 +415,8 @@ type
     procedure SetMouseButtonMove(const Value: TCastleMouseButton);
     function GetMouseButtonZoom: TCastleMouseButton;
     procedure SetMouseButtonZoom(const Value: TCastleMouseButton);
+  protected
+    function Zoom(const Factor: Single): Boolean; override;
   public
     const
       DefaultRotationAccelerationSpeed = 5.0;
@@ -2069,6 +2071,11 @@ begin
   );
 end;
 
+function TCastleExamineNavigation.Zoom(const Factor: Single): Boolean;
+begin
+  Result := inherited Zoom(Factor * ZoomSpeed);
+end;
+
 procedure TCastleExamineNavigation.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 var
@@ -2187,12 +2194,12 @@ begin
   begin
     if Input_ScaleLarger.IsPressed(Container) then
     begin
-      Zoom(KeyZoomSpeed * SecondsPassed * ZoomSpeed);
+      Zoom(KeyZoomSpeed * SecondsPassed);
       HandleInput := false;
     end;
     if Input_ScaleSmaller.IsPressed(Container) then
     begin
-      Zoom(-KeyZoomSpeed * SecondsPassed * ZoomSpeed);
+      Zoom(-KeyZoomSpeed * SecondsPassed);
       HandleInput := false;
     end;
   end;
@@ -2240,7 +2247,7 @@ begin
     Translation := Translation + Vector3(0, Size * Y * MoveSize, 0);
 
   if Abs(Z) > 5 then   { backward / forward }
-    Zoom(Z * MoveSize * 30 / 2 * ZoomSpeed);
+    Zoom(Z * MoveSize * 30 / 2);
 end;
 
 function TCastleExamineNavigation.SensorRotation(const X, Y, Z, Angle: Double;
@@ -2571,7 +2578,7 @@ begin
 
   if ZoomEnabled and Input_Zoom.IsPressed(Container.Pressed, Container.MousePressed) then
   begin
-    if Zoom((Event.OldPosition[1] - Event.Position[1]) * 30 / (2 * MoveDivConst) * ZoomSpeed) then
+    if Zoom((Event.OldPosition[1] - Event.Position[1]) * 30 / (2 * MoveDivConst)) then
       Result := true;
   end;
 
@@ -2610,7 +2617,7 @@ begin
       ZoomScale := 1
     else
       ZoomScale := 3;
-    Zoom(Factor * ZoomScale * ZoomSpeed);
+    Zoom(Factor * ZoomScale);
   end;
 
   if MoveEnabled and (not GoodModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
