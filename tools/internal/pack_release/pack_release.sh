@@ -86,13 +86,28 @@ detect_platform ()
   SED='sed'
 
   if which cygpath.exe > /dev/null; then
-    # Earlier: We did:
-    # MAKE='/bin/make' # On Cygwin, make sure to use Cygwin's make, not the one from Embarcadero
-    # Later: We assume on Windows that "make" on $PATH is a reasonable choice,
-    # not from Embarcadero. That's because on GH hosted runner, "make" it from
-    # MinGW, not Cygwin.
 
-    FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
+    # If we're inside Cygwin/MinGW (despite the name, cygpath also is in MinGW,
+    # and this is the case on GH hosted runner), then we want to use Cygwin/MinGW
+    # tools. They will call bash properly, and our "make" must be able to call
+    # e.g. "tools/build-tool/castle-engine_compile.sh".
+    #
+    # We don't want to use Embarcadero's make (we need GNU make).
+    #
+    # we don't want to use FPC make (FPC on Windows is distributed with GNU make
+    # from MinGW, but it doesn't call bash on Windows, since it's not complete
+    # MSys).
+
+    if [ -f /bin/make ]; then
+      MAKE='/bin/make'
+    else
+      if which mingw32-make > /dev/null; then
+        MAKE='mingw32-make'
+      fi
+    fi
+
+    # On Cygwin/MinGW, make sure to use Cygwin/MinGW's find, not the one from Windows
+    FIND='/bin/find'
   fi
 
   if [ "`uname -s`" '=' 'FreeBSD' ]; then
