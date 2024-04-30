@@ -636,7 +636,7 @@ type
 
     procedure PrepareEditModeBrushShader(const Brush: TDrawableImage;
       const BrushShape: TCastleTerrainBrush;
-      const Strength, MaxHeight: Byte);
+      const Strength, BrushMaxHeight: Byte);
 
     procedure SetData(const Value: TCastleTerrainData);
     procedure SetTriangulate(const Value: Boolean);
@@ -723,7 +723,7 @@ type
     { Raises the terrain at a specified coordinate with, a specified strength
       and maximum height. Changing the maximum height from 255 to a lower value
       may result in lowering the higher terrain. }
-    procedure RaiseTerrainShader(const Coord: TVector3; const Strength: Byte; const MaxHeight: Byte = 255);
+    procedure RaiseTerrainShader(const Coord: TVector3; const Strength: Byte; const BrushMaxHeight: Byte = 255);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
 
     property Mode: TCastleTerrainMode read FMode write FMode;
@@ -2210,7 +2210,7 @@ begin
 end;
 
 procedure TCastleTerrain.PrepareEditModeBrushShader(const Brush: TDrawableImage;
-  const BrushShape: TCastleTerrainBrush; const Strength, MaxHeight: Byte);
+  const BrushShape: TCastleTerrainBrush; const Strength, BrushMaxHeight: Byte);
 begin
   if FEditModeBrushShader = nil then
   begin
@@ -2265,7 +2265,7 @@ begin
   end;
   FEditModeBrushShader.Uniform('brush_shape').SetValue(Integer(BrushShape));
   FEditModeBrushShader.Uniform('strength').SetValue(Strength / 255);
-  FEditModeBrushShader.Uniform('max_terrain_height').SetValue(MaxHeight / 255);
+  FEditModeBrushShader.Uniform('max_terrain_height').SetValue(BrushMaxHeight / 255);
 
   Brush.CustomShader := FEditModeBrushShader;
 end;
@@ -2440,7 +2440,7 @@ begin
 end;
 
 procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
-  const Strength: Byte; const MaxHeight: Byte);
+  const Strength: Byte; const BrushMaxHeight: Byte);
 var
   RenderToTexture: TGLRenderToTexture;
   Source: TDrawableImage;
@@ -2527,7 +2527,7 @@ begin
     Image := TRGBAlphaImage.Create(FEditModeBrushSize, FEditModeBrushSize);
     Brush := TDrawableImage.Create(Image, false, true);
     try
-    PrepareEditModeBrushShader(Brush, ctbCircleWithAlphaStrengthDistanceFromCenter, Strength, MaxHeight);
+    PrepareEditModeBrushShader(Brush, ctbCircleWithAlphaStrengthDistanceFromCenter, Strength, BrushMaxHeight);
     // map to 0 - 1 range of texture.
     LocalCoord := OutsideToLocal(Coord);
     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
