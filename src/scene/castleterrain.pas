@@ -2240,10 +2240,10 @@ begin
       '    gl_FragColor = texture2D(image_texture, tex_coord_frag);' + NL +
       '    break;' + NL +
       '  case 1:' + NL + // return white square texture
-      '    gl_FragColor = vec4(1.0);' + NL +
+      '    gl_FragColor = vec4(max_terrain_height);' + NL +
       '    break;' + NL +
       '  case 2:' + NL + // return white square texture with alpha using strength
-      '    gl_FragColor = vec4(vec3(1.0), strength);' + NL +
+      '    gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
       '    break;' + NL +
       '  case 3: {' + NL + // circle with alpha based on distance from center and strength
       '    //vec2 pixelCoord = gl_FragCoord.xy;' + NL +
@@ -2252,10 +2252,9 @@ begin
       '    vec2 center = vec2(3.0, 3.0);' + NL +
       '    float distance = length(pixelCoord - center);' + NL +
       '    if (distance <= radius) {' + NL +
-      '       gl_FragColor = vec4(vec3(1.0), strength * (1 - distance / radius) );' + NL +
+      '       gl_FragColor = vec4(vec3(max_terrain_height), strength * (1 - distance / radius) );' + NL +
       '     } else ' + NL +
-      '       discard;' + NL +
-      '    gl_FragColor = vec4(vec3(1.0), strength);' + NL +
+      '       gl_FragColor = vec4(0.0);' + NL +
       '    break;' + NL +
       '  }' + NL +
       '  } //switch end' + NL +
