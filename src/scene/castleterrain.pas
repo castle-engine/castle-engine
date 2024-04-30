@@ -2250,6 +2250,21 @@ begin
       '  case 2:' + NL + // return square texture with alpha using strength
       '    gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
       '    break;' + NL +
+      '  case 4: {' + NL + // cbtCircle - circle with alpha based on strength
+      '    if (brush_size < 2) {' + NL +
+      '      gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
+      '      return;  ' + NL +
+      '    } ' + NL +
+      '    vec2 pixelCoord = vec2(brush_size, brush_size) * tex_coord_frag;' + NL +
+      '    float radius = brush_size / 2;' + NL +
+      '    vec2 center = vec2(brush_size / 2, brush_size / 2);' + NL +
+      '    float distance = length(pixelCoord - center);' + NL +
+      '    if (distance <= radius) {' + NL +
+      '       gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
+      '     } else ' + NL +
+      '       gl_FragColor = vec4(0.0);' + NL +
+      '    break;' + NL +
+      '    } ' + NL +
       '  case 5: {' + NL + // cbtCone - circle with alpha based on distance from center and strength
       '    if (brush_size < 2) {' + NL +
       '      gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
