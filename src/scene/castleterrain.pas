@@ -719,7 +719,7 @@ type
     property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
 
     procedure RaiseTerrain(const Coord: TVector3; const Value: Integer);
-    procedure RaiseTerrainShader(const Coord: TVector3; const Value: Byte);
+    procedure RaiseTerrainShader(const Coord: TVector3; const Strength: Byte);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
 
     property Mode: TCastleTerrainMode read FMode write FMode;
@@ -2433,7 +2433,7 @@ begin
 end;
 
 procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
-  const Value: Byte);
+  const Strength: Byte);
 var
   RenderToTexture: TGLRenderToTexture;
   Source: TDrawableImage;
@@ -2520,7 +2520,7 @@ begin
     Image := TRGBAlphaImage.Create(FEditModeBrushSize, FEditModeBrushSize);
     Brush := TDrawableImage.Create(Image, false, true);
     try
-    PrepareEditModeBrushShader(Brush, ctbWhiteCircleWithAlphaStrengthDistanceFromCenter, Value);
+    PrepareEditModeBrushShader(Brush, ctbCircleWithAlphaStrengthDistanceFromCenter, Strength);
     // map to 0 - 1 range of texture.
     LocalCoord := OutsideToLocal(Coord);
     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
