@@ -92,6 +92,12 @@ type
     ctmShader // simple mesh modified by vertex shader
   );
 
+  TCastleTerrainBrush = (
+    ctbWhiteSquare = 1, // white square for testing purposes
+    ctbWhiteSquareWithAlphaStrength = 2, // white square texture with alpha using strength
+    ctbWhiteCircleWithAlphaStrengthDistanceFromCenter = 3 // circle with alpha based on distance from center and strength
+  );
+
   { Terrain (height map) data that can be used for @link(TCastleTerrain.Data). }
   TCastleTerrainData = class(TCastleComponent)
   strict private
@@ -628,7 +634,9 @@ type
       ShareOpenGLTextureToEditModeViewport result }
     procedure ResetOpenGLTextureInEditModeViewport(const PreviousGLTextureId: TGLTextureId);
 
-    procedure PrepareEditModeBrushShader(const Brush: TDrawableImage; const Strength: Byte);
+    procedure PrepareEditModeBrushShader(const Brush: TDrawableImage;
+      const BrushShape: TCastleTerrainBrush;
+      const Strength: Byte);
 
     procedure SetData(const Value: TCastleTerrainData);
     procedure SetTriangulate(const Value: Boolean);
@@ -2197,7 +2205,8 @@ begin
   TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).InternalSetGLName(PreviousGLTextureId);
 end;
 
-procedure TCastleTerrain.PrepareEditModeBrushShader(const Brush: TDrawableImage; const Strength: Byte);
+procedure TCastleTerrain.PrepareEditModeBrushShader(const Brush: TDrawableImage;
+  const BrushShape: TCastleTerrainBrush; const Strength: Byte);
 begin
   if FEditModeBrushShader = nil then
   begin
@@ -2217,15 +2226,15 @@ begin
       'varying vec2 tex_coord_frag;' + NL +
       'uniform sampler2D image_texture;' + NL +
       'uniform vec2 viewport_size;' + NL +
-      'uniform int algo;' + NL + // brush shape
+      'uniform int brush_shape;' + NL + // brush shape
       'uniform float strength;' + NL + // strength used for alpha channel (how strong the uplifi is)
       'void main(void)' + NL +
       '{' + NL +
-      '  switch (algo) {' + NL +
+      '  switch (brush_shape) {' + NL +
       '  case 0:' + NL + // simply use the texture - needed to compile shader
       '    gl_FragColor = texture2D(image_texture, tex_coord_frag);' + NL +
       '    break;' + NL +
-      '  case 1:' + NL + // return white texture
+      '  case 1:' + NL + // return white square texture
       '    gl_FragColor = vec4(1.0);' + NL +
       '    break;' + NL +
       '  case 2:' + NL + // return white square texture with alpha using strength
@@ -2249,7 +2258,7 @@ begin
     );
     FEditModeBrushShader.Link;
   end;
-  FEditModeBrushShader.Uniform('algo').SetValue(3);
+  FEditModeBrushShader.Uniform('brush_shape').SetValue(Integer(BrushShape));
   FEditModeBrushShader.Uniform('strength').SetValue(Strength / 255);
   Brush.CustomShader := FEditModeBrushShader;
 end;
@@ -2511,7 +2520,7 @@ begin
     Image := TRGBAlphaImage.Create(FEditModeBrushSize, FEditModeBrushSize);
     Brush := TDrawableImage.Create(Image, false, true);
     try
-    PrepareEditModeBrushShader(Brush, Value);
+    PrepareEditModeBrushShader(Brush, ctbWhiteCircleWithAlphaStrengthDistanceFromCenter, Value);
     // map to 0 - 1 range of texture.
     LocalCoord := OutsideToLocal(Coord);
     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
