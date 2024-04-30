@@ -83,7 +83,8 @@ interface
 uses SysUtils, Classes,
   CastleClassUtils, CastleScript, CastleImages, X3DNodes, CastleVectors,
   CastleRectangles, CastleTransform, CastleScene, X3DFields, CastleRenderOptions,
-  CastleColors, CastleTriangles, CastleViewport, CastleUIControls, CastleGLImages;
+  CastleColors, CastleTriangles, CastleViewport, CastleUIControls,
+  CastleGLImages, CastleGLShaders;
 
 type
   TCastleTerrainMode = (
@@ -604,6 +605,10 @@ type
     FEditModeHeightTextureScene: TCastleScene;
     FEditModeApperance: TAppearanceNode;
     FTempContainer: TCastleContainer;
+    FEditModeBrush: TDrawableImage;
+    FEditModeBrushSize: Integer;
+    FEditModeBrushStrength: Single; // controls alpha channel
+    FEditModeBrushShader: TGLSLProgram;
 
     function GetRenderOptions: TCastleRenderOptions;
     function GetLayer(const Index: Integer): TCastleTerrainLayer;
@@ -623,6 +628,8 @@ type
     { Resets texture id to given one, should use id from
       ShareOpenGLTextureToEditModeViewport result }
     procedure ResetOpenGLTextureInEditModeViewport(const PreviousGLTextureId: TGLTextureId);
+
+    procedure PrepareEditModeBrushShader(const Brush: TDrawableImage);
 
     procedure SetData(const Value: TCastleTerrainData);
     procedure SetTriangulate(const Value: Boolean);
@@ -1858,6 +1865,8 @@ begin
   inherited;
 
   FMode := ctmShader;
+  FEditModeBrushSize := 6;
+  FEditModeBrushStrength := 0.1;
   FTriangulate := true;
   FSubdivisions := Vector2(DefaultSubdivisions, DefaultSubdivisions);
   FSize := Vector2(DefaultSize, DefaultSize);
@@ -2190,6 +2199,63 @@ begin
   TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).InternalSetGLName(PreviousGLTextureId);
 end;
 
+procedure TCastleTerrain.PrepareEditModeBrushShader(const Brush: TDrawableImage);
+begin
+  if FEditModeBrushShader = nil then
+  begin
+    FEditModeBrushShader := TGLSLProgram.Create;
+    FEditModeBrushShader.AttachVertexShader(
+      'attribute vec2 vertex;' + NL +
+      'attribute vec2 tex_coord;' + NL +
+      'uniform vec2 viewport_size;' + NL +
+      'varying vec2 tex_coord_frag;' + NL +
+      'void main(void)' + NL +
+      '{' + NL +
+      '  gl_Position = vec4(vertex * 2.0 / viewport_size - vec2(1.0), 0.0, 1.0);' + NL +
+      '  tex_coord_frag = tex_coord;' + NL +
+      '}'
+    );
+    FEditModeBrushShader.AttachFragmentShader(
+      'varying vec2 tex_coord_frag;' + NL +
+      'uniform sampler2D image_texture;' + NL +
+      'uniform vec2 viewport_size;' + NL +
+      'uniform int algo;' + NL +
+      'uniform float strength;' + NL +
+      'void main(void)' + NL +
+      '{' + NL +
+      '  switch (algo) {' + NL +
+      '  case 0:' + NL + // simply use the texture - needed to compile shader
+      '    gl_FragColor = texture2D(image_texture, tex_coord_frag);' + NL +
+      '    break;' + NL +
+      '  case 1:' + NL + // return white texture
+      '    gl_FragColor = vec4(1.0);' + NL +
+      '    break;' + NL +
+      '  case 2:' + NL + // return white texture with alpha using strength
+      '    gl_FragColor = vec4(vec3(1.0), strength);' + NL +
+      '    break;' + NL +
+      '  case 3: {' + NL +
+      '    //vec2 pixelCoord = gl_FragCoord.xy;' + NL +
+      '    vec2 pixelCoord = vec2(6.0, 6.0) * tex_coord_frag;' + NL +
+      '    float radius = 2.0;' + NL +
+      '    vec2 center = vec2(3.0, 3.0);' + NL +
+      '    float distance = length(pixelCoord - center);' + NL +
+      '    if (distance <= radius) {' + NL +
+      '       gl_FragColor = vec4(vec3(1.0), strength * distance );' + NL +
+      '     } else ' + NL +
+      '       discard;' + NL +
+      '    gl_FragColor = vec4(vec3(1.0), strength);' + NL +
+      '    break;' + NL +
+      '  }' + NL +
+      '  }' + NL +
+      '}'
+    );
+    FEditModeBrushShader.Link;
+    FEditModeBrushShader.Uniform('algo').SetValue(3);
+    FEditModeBrushShader.Uniform('strength').SetValue(FEditModeBrushStrength);
+  end;
+  Brush.CustomShader := FEditModeBrushShader;
+end;
+
 
 function TCastleTerrain.GetLayer(const Index: Integer): TCastleTerrainLayer;
 begin
@@ -2446,7 +2512,7 @@ begin
 
     Brush := TDrawableImage.Create(BrushUrl);
     try
-
+    PrepareEditModeBrushShader(Brush);
     // map to 0 - 1 range of texture.
     LocalCoord := OutsideToLocal(Coord);
     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
