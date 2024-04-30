@@ -712,7 +712,7 @@ type
     property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
 
     procedure RaiseTerrain(const Coord: TVector3; const Value: Integer);
-    procedure RaiseTerrainShader(const Coord: TVector3; const Value: Integer; const BrushUrl: String);
+    procedure RaiseTerrainShader(const Coord: TVector3; const Value: Integer);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
 
     property Mode: TCastleTerrainMode read FMode write FMode;
@@ -2426,7 +2426,7 @@ begin
 end;
 
 procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
-  const Value: Integer; const BrushUrl: String);
+  const Value: Integer);
 var
   RenderToTexture: TGLRenderToTexture;
   Source: TDrawableImage;
@@ -2510,7 +2510,8 @@ begin
       ResetOpenGLTextureInEditModeViewport(PreviousTextureId);
     end;
 
-    Brush := TDrawableImage.Create(BrushUrl);
+    Image := TRGBAlphaImage.Create(FEditModeBrushSize, FEditModeBrushSize);
+    Brush := TDrawableImage.Create(Image, false, true);
     try
     PrepareEditModeBrushShader(Brush);
     // map to 0 - 1 range of texture.
