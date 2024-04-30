@@ -2219,8 +2219,8 @@ begin
       'varying vec2 tex_coord_frag;' + NL +
       'uniform sampler2D image_texture;' + NL +
       'uniform vec2 viewport_size;' + NL +
-      'uniform int algo;' + NL +
-      'uniform float strength;' + NL +
+      'uniform int algo;' + NL + // brush shape
+      'uniform float strength;' + NL + // strength used for alpha channel (how strong the uplifi is)
       'void main(void)' + NL +
       '{' + NL +
       '  switch (algo) {' + NL +
@@ -2230,10 +2230,10 @@ begin
       '  case 1:' + NL + // return white texture
       '    gl_FragColor = vec4(1.0);' + NL +
       '    break;' + NL +
-      '  case 2:' + NL + // return white texture with alpha using strength
+      '  case 2:' + NL + // return white square texture with alpha using strength
       '    gl_FragColor = vec4(vec3(1.0), strength);' + NL +
       '    break;' + NL +
-      '  case 3: {' + NL +
+      '  case 3: {' + NL + // circle with alpha based on distance from center and strength
       '    //vec2 pixelCoord = gl_FragCoord.xy;' + NL +
       '    vec2 pixelCoord = vec2(6.0, 6.0) * tex_coord_frag;' + NL +
       '    float radius = 2.0;' + NL +
@@ -2246,8 +2246,8 @@ begin
       '    gl_FragColor = vec4(vec3(1.0), strength);' + NL +
       '    break;' + NL +
       '  }' + NL +
-      '  }' + NL +
-      '}'
+      '  } //switch end' + NL +
+      '} // main end'
     );
     FEditModeBrushShader.Link;
     FEditModeBrushShader.Uniform('algo').SetValue(3);
