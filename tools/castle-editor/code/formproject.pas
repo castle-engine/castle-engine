@@ -43,6 +43,8 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionFindNext: TAction;
+    ActionFindToggle: TAction;
     ActionImportSketchfab: TAction;
     ActionShowStatistics: TAction;
     ActionRunParameterCapabilitiesForceFixedFunction: TAction;
@@ -109,6 +111,9 @@ type
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
     MenuItem15: TMenuItem;
+    MenuItem19: TMenuItem;
+    MenuItem43: TMenuItem;
+    Separator14: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
     MenuItem24: TMenuItem;
@@ -328,6 +333,8 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionFindNextExecute(Sender: TObject);
+    procedure ActionFindToggleExecute(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
     procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
@@ -986,6 +993,22 @@ begin
   ImportSketchfabForm.OnCanAddImported := @CanAddImported;
   ImportSketchfabForm.OnAddImported := @AddImported;
   ImportSketchfabForm.Show;
+end;
+
+procedure TProjectForm.ActionFindNextExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.FindNext;
+end;
+
+procedure TProjectForm.ActionFindToggleExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+
+  // TODO: Make it a checked action, toggle checked state,
+  // synchronize with design (also when it's closed).
+
+  Design.FindToggle;
 end;
 
 procedure TProjectForm.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
@@ -2395,6 +2418,8 @@ begin
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
   ActionShowStatistics.Enabled := Design <> nil;
+  ActionFindToggle.Enabled := Design <> nil;
+  ActionFindNext.Enabled := Design <> nil;
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
