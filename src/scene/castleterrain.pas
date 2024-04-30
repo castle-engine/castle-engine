@@ -93,9 +93,13 @@ type
   );
 
   TCastleTerrainBrush = (
-    ctbSquare = 1, // square for testing purposes
-    ctbSquareWithAlphaStrength = 2, // square texture with alpha using strength
-    ctbCircleWithAlphaStrengthDistanceFromCenter = 3 // circle with alpha based on distance from center and strength
+    ctbFixedSquare = 1, // white square for testing purposes
+    ctbSquare = 2, // square texture with alpha using strength
+    ctbPyramid = 3, // square texture with alpha based on distance from center and strength
+    ctbCircle = 4, // circle texture with alpha using strength
+    ctbCone = 5, // circle with alpha based on distance from center and strength
+    ctbRing = 6 // volcano like brush?
+
   );
 
   { Terrain (height map) data that can be used for @link(TCastleTerrain.Data). }
@@ -722,7 +726,8 @@ type
     { Raises the terrain at a specified coordinate with, a specified size, strength
       and maximum height. Changing the maximum height from 255 to a lower value
       may result in lowering the higher terrain. }
-    procedure RaiseTerrainShader(const Coord: TVector3; const BrushSize: Integer;
+    procedure RaiseTerrainShader(const Coord: TVector3;
+      const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
       const Strength: Byte; const BrushMaxHeight: Byte = 255);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
 
@@ -2239,13 +2244,13 @@ begin
       '  case 0:' + NL + // simply use the texture - needed to compile shader
       '    gl_FragColor = texture2D(image_texture, tex_coord_frag);' + NL +
       '    break;' + NL +
-      '  case 1:' + NL + // return white square texture
+      '  case 1:' + NL + // return square texture
       '    gl_FragColor = vec4(max_terrain_height);' + NL +
       '    break;' + NL +
-      '  case 2:' + NL + // return white square texture with alpha using strength
+      '  case 2:' + NL + // return square texture with alpha using strength
       '    gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
       '    break;' + NL +
-      '  case 3: {' + NL + // circle with alpha based on distance from center and strength
+      '  case 5: {' + NL + // cbtCone - circle with alpha based on distance from center and strength
       '    if (brush_size < 2) {' + NL +
       '      gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
       '      return;  ' + NL +
@@ -2442,7 +2447,8 @@ begin
   end;
 end;
 
-procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3; const BrushSize: Integer;
+procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
+  const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
   const Strength: Byte; const BrushMaxHeight: Byte);
 var
   RenderToTexture: TGLRenderToTexture;
@@ -2530,10 +2536,11 @@ begin
       ResetOpenGLTextureInEditModeViewport(PreviousTextureId);
     end;
 
+    // TODO: don't do that every time
     Image := TRGBAlphaImage.Create(BrushSize, BrushSize);
     Brush := TDrawableImage.Create(Image, false, true);
     try
-    PrepareEditModeBrushShader(Brush, ctbCircleWithAlphaStrengthDistanceFromCenter,
+    PrepareEditModeBrushShader(Brush, BrushShape,
       BrushSize, Strength, BrushMaxHeight);
 
     // map to 0 - 1 range of texture.
