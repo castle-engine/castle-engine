@@ -2245,7 +2245,7 @@ begin
       '    gl_FragColor = texture2D(image_texture, tex_coord_frag);' + NL +
       '    break;' + NL +
       '  case 1:' + NL + // return square texture
-      '    gl_FragColor = vec4(max_terrain_height);' + NL +
+      '    gl_FragColor = vec4(vec3(max_terrain_height), 1.0);' + NL +
       '    break;' + NL +
       '  case 2:' + NL + // return square texture with alpha using strength
       '    gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
