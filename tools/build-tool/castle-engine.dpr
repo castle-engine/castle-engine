@@ -406,7 +406,9 @@ begin
     DoOutputEnvironment(Parameters[2]);
   end else
   begin
-    if (Command <> 'run') and (Command <> 'output') then
+    if (Command <> 'run') and // allows any number of params
+       (Command <> 'compile-run') and // allows any number of params
+       (Command <> 'output') then // check params count by Parameters.CheckHigh on its own
       Parameters.CheckHigh(1);
     Project := TCastleProject.Create;
     try
