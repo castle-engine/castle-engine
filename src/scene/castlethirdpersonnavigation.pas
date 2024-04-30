@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -803,7 +803,7 @@ begin
       end;
       CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
       FixCameraForCollisions(CameraPos, CameraDir);
-      Camera.SetView(CameraPos, CameraDir, CameraUp);
+      Camera.SetWorldView(CameraPos, CameraDir, CameraUp);
     end;
 
     SetAnimation([AnimationIdle]);
@@ -1371,7 +1371,8 @@ var
   end;
   {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
 
-  { Make camera follow the A.Translation.
+  { Make camera follow the A translation (in world-space,
+    so also account for parents' translations).
     Following the character also makes sure that camera stays updated
     (keeps DistanceToAvatarTarget)
     when the avatar is being moved by other routines (e.g. because A.Gravity is working).
@@ -1381,7 +1382,7 @@ var
 
     Does not follow the perfect location instantly,
     which makes a nice effect when character is moving fast.
-    It's inportant to avoid sudden camera moves on sudden avatar moves,
+    It's important to avoid sudden camera moves on sudden avatar moves,
     e.g. changing Y when going up/down stairs. }
   procedure UpdateCamera;
   var
@@ -1393,7 +1394,7 @@ var
 
     TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
 
-    Camera.GetView(CameraPos, CameraDir, CameraUp);
+    Camera.GetWorldView(CameraPos, CameraDir, CameraUp);
 
     { We use CameraDirToTarget, not CameraDir, because (since we update with delay)
       camera may look at a slightly shifted point.
@@ -1418,7 +1419,7 @@ var
         CameraPos := TargetWorldPos - CameraDir * MaxDistance;
     end;
 
-    Camera.SetView(CameraPos, CameraDir, CameraUp);
+    Camera.SetWorldView(CameraPos, CameraDir, CameraUp);
   end;
 
   { Rotate avatar if needed by AimAvatar.

@@ -1,12 +1,12 @@
 object ProjectForm: TProjectForm
   Left = 646
-  Height = 678
+  Height = 708
   Top = 234
-  Width = 1235
+  Width = 1184
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 648
-  ClientWidth = 1235
-  DesignTimePPI = 120
+  ClientHeight = 708
+  ClientWidth = 1184
+  DesignTimePPI = 115
   KeyPreview = True
   Menu = MainMenu1
   OnChangeBounds = FormChangeBounds
@@ -19,12 +19,12 @@ object ProjectForm: TProjectForm
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.2.2.0'
+  LCLVersion = '3.0.0.3'
   object PageControlBottom: TPageControl
     Left = 0
-    Height = 224
-    Top = 424
-    Width = 1235
+    Height = 215
+    Top = 493
+    Width = 1184
     ActivePage = TabOutput
     Align = alBottom
     ParentFont = False
@@ -32,48 +32,48 @@ object ProjectForm: TProjectForm
     TabOrder = 2
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 188
-      ClientWidth = 1225
+      ClientHeight = 180
+      ClientWidth = 1174
       ParentFont = False
       object SplitterBetweenFiles: TSplitter
         Left = 0
-        Height = 188
+        Height = 180
         Top = 0
         Width = 5
       end
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 188
-      ClientWidth = 1225
+      ClientHeight = 180
+      ClientWidth = 1174
       ParentFont = False
       object ListOutput: TListBox
         Left = 0
-        Height = 188
+        Height = 180
         Top = 0
-        Width = 1225
+        Width = 1174
         Align = alClient
-        ItemHeight = 21
-        OnDblClick = ListOutputDblClick
+        ItemHeight = 20
         ParentFont = False
         PopupMenu = OutputPopup
         ScrollWidth = 902
         Style = lbOwnerDrawFixed
         TabOrder = 0
         TopIndex = -1
+        OnDblClick = ListOutputDblClick
       end
     end
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
-      ClientHeight = 188
-      ClientWidth = 1225
+      ClientHeight = 180
+      ClientWidth = 1174
       ParentFont = False
       TabVisible = False
       object ListWarnings: TListBox
         Left = 0
-        Height = 187
+        Height = 179
         Top = 1
-        Width = 1225
+        Width = 1174
         Align = alClient
         ItemHeight = 0
         ParentFont = False
@@ -86,7 +86,7 @@ object ProjectForm: TProjectForm
         Left = 0
         Height = 1
         Top = 0
-        Width = 1225
+        Width = 1174
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
@@ -99,37 +99,37 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 418
-    Width = 1235
+    Top = 487
+    Width = 1184
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 418
+    Height = 487
     Top = 0
-    Width = 1235
+    Width = 1184
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 418
-    ClientWidth = 1235
+    ClientHeight = 487
+    ClientWidth = 1184
     ParentFont = False
     TabOrder = 0
     object PanelNoDesign: TPanel
       Left = 0
-      Height = 418
+      Height = 487
       Top = 0
-      Width = 1235
+      Width = 1184
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 418
-      ClientWidth = 1235
+      ClientHeight = 487
+      ClientWidth = 1184
       TabOrder = 0
       object PanelNoDesignTop: TPanel
         Left = 5
-        Height = 66
+        Height = 65
         Top = 5
-        Width = 1225
+        Width = 1174
         Align = alTop
         AutoSize = True
         BorderSpacing.Around = 5
@@ -137,18 +137,18 @@ object ProjectForm: TProjectForm
         ChildSizing.HorizontalSpacing = 5
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 100
-        ClientHeight = 66
-        ClientWidth = 1225
+        ClientHeight = 65
+        ClientWidth = 1174
         TabOrder = 0
         object BitBtnNewView: TBitBtn
           Left = 0
-          Height = 66
+          Height = 65
           Top = 0
-          Width = 157
+          Width = 150
           Action = ActionNewUnitView
           AutoSize = True
           Caption = 'New View...'
-          Constraints.MinWidth = 157
+          Constraints.MinWidth = 150
           GlyphShowMode = gsmAlways
           Layout = blGlyphTop
           Images = Icons.ToolbarIcons
@@ -156,14 +156,14 @@ object ProjectForm: TProjectForm
           TabOrder = 0
         end
         object BitBtnPlayStop: TBitBtn
-          Left = 162
-          Height = 66
+          Left = 155
+          Height = 65
           Top = 0
-          Width = 188
+          Width = 180
           Action = ActionPlayStop
           AutoSize = True
           Caption = 'Build and Run'
-          Constraints.MinWidth = 188
+          Constraints.MinWidth = 180
           GlyphShowMode = gsmAlways
           Layout = blGlyphTop
           Images = Icons.ToolbarIcons
@@ -173,19 +173,19 @@ object ProjectForm: TProjectForm
       end
       object PanelOpenExistingView: TPanel
         Left = 0
-        Height = 342
-        Top = 76
-        Width = 1235
+        Height = 412
+        Top = 75
+        Width = 1184
         Align = alClient
         BevelOuter = bvNone
-        ClientHeight = 342
-        ClientWidth = 1235
+        ClientHeight = 412
+        ClientWidth = 1184
         TabOrder = 1
         object LabelOpenExistingView: TLabel
           Left = 10
-          Height = 22
+          Height = 21
           Top = 10
-          Width = 1225
+          Width = 1174
           Align = alTop
           BorderSpacing.Left = 10
           BorderSpacing.Top = 10
@@ -194,27 +194,27 @@ object ProjectForm: TProjectForm
         end
         object ListOpenExistingView: TListView
           Left = 10
-          Height = 290
-          Top = 42
-          Width = 1215
+          Height = 361
+          Top = 41
+          Width = 1164
           Align = alClient
           AutoSortIndicator = True
           AutoWidthLastColumn = True
           BorderSpacing.Around = 10
-          Columns = <
+          Columns = <          
             item
               AutoSize = True
               Caption = 'Name'
-              MinWidth = 209
-              Width = 209
-            end
+              MinWidth = 200
+              Width = 200
+            end          
             item
               Caption = 'File'
-              Width = 626
-            end
+              Width = 600
+            end          
             item
               Caption = 'Last Modified'
-              Width = 378
+              Width = 362
               SortIndicator = siDescending
             end>
           RowSelect = True
@@ -228,8 +228,8 @@ object ProjectForm: TProjectForm
     end
   end
   object MainMenu1: TMainMenu
-    Left = 442
-    Top = 551
+    Left = 424
+    Top = 528
     object MenuItemFile: TMenuItem
       Caption = '&Project'
       object MenuItemRestartRebuildEditor: TMenuItem
@@ -361,6 +361,15 @@ object ProjectForm: TProjectForm
       end
       object MenuItem21: TMenuItem
         Action = ActionComponentSaveSelected
+      end
+      object Separator14: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem43: TMenuItem
+        Action = ActionFindToggle
+      end
+      object MenuItem19: TMenuItem
+        Action = ActionFindNext
       end
       object MenuSeparator6123: TMenuItem
         Caption = '-'
@@ -804,27 +813,27 @@ object ProjectForm: TProjectForm
   end
   object ProcessUpdateTimer: TTimer
     OnTimer = ProcessUpdateTimerTimer
-    Left = 985
-    Top = 568
+    Left = 944
+    Top = 544
   end
   object SaveDesignDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
     Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     AdviceDataDirectory = True
-    Left = 643
-    Top = 543
+    Left = 616
+    Top = 520
   end
   object OpenDesignDialog: TCastleOpenDialog
     Filter = 'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|All Files|*'
     AdviceDataDirectory = True
-    Left = 634
-    Top = 484
+    Left = 608
+    Top = 464
   end
   object ShellListPopupMenu: TPopupMenu
     OnPopup = ShellListPopupMenuPopup
-    Left = 109
-    Top = 476
+    Left = 104
+    Top = 456
     object MenuItemOpenDefault: TMenuItem
       Caption = 'Open'
       Default = True
@@ -878,8 +887,8 @@ object ProjectForm: TProjectForm
     end
   end
   object ShellTreePopupMenu: TPopupMenu
-    Left = 100
-    Top = 559
+    Left = 96
+    Top = 536
     object MenuItemShellTreeOpenDir: TMenuItem
       Caption = 'Open in File Manager'
       OnClick = MenuItemShellTreeOpenDirClick
@@ -895,8 +904,8 @@ object ProjectForm: TProjectForm
   object ShellIcons: TImageList
     Height = 24
     Width = 24
-    Left = 309
-    Top = 559
+    Left = 296
+    Top = 536
     Bitmap = {
       4C7A010000001800000018000000860000000000000078DA63601816801D88BB
       80F81910FFC7824F02310705E677E13017197750603ECCDD5658E4CC81F80F14
@@ -909,13 +918,13 @@ object ProjectForm: TProjectForm
     OnActivate = ApplicationProperties1Activate
     OnDeactivate = ApplicationProperties1Deactivate
     OnException = ApplicationProperties1Exception
-    Left = 1002
-    Top = 493
+    Left = 960
+    Top = 472
   end
   object ActionList: TActionList
     Images = Icons.ToolbarIcons
-    Left = 818
-    Top = 484
+    Left = 784
+    Top = 464
     object ActionNewSpriteSheet: TAction
       Category = 'Data'
       Caption = 'New Sprite Sheet...'
@@ -1360,15 +1369,27 @@ object ProjectForm: TProjectForm
       Caption = 'Import from Sketchfab...'
       OnExecute = ActionImportSketchfabExecute
     end
+    object ActionFindToggle: TAction
+      Category = 'Edit'
+      Caption = 'Find'
+      OnExecute = ActionFindToggleExecute
+      ShortCut = 16454
+    end
+    object ActionFindNext: TAction
+      Category = 'Edit'
+      Caption = 'Find Next'
+      OnExecute = ActionFindNextExecute
+      ShortCut = 114
+    end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
-    Left = 818
-    Top = 559
+    Left = 784
+    Top = 536
   end
   object OutputPopup: TPopupMenu
     OnPopup = ShellListPopupMenuPopup
-    Left = 301
-    Top = 484
+    Left = 288
+    Top = 464
     object MenuItemOutputClean: TMenuItem
       Action = ActionOutputClean
     end
@@ -1383,8 +1404,8 @@ object ProjectForm: TProjectForm
     end
   end
   object WarningsPopup: TPopupMenu
-    Left = 442
-    Top = 484
+    Left = 424
+    Top = 464
     object MenuItem22: TMenuItem
       Action = ActionWarningsClean
     end

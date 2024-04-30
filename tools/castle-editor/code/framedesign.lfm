@@ -9,8 +9,8 @@ object DesignFrame: TDesignFrame
   OnResize = FrameResize
   ParentFont = False
   TabOrder = 0
-  DesignLeft = 403
-  DesignTop = 237
+  DesignLeft = 659
+  DesignTop = 283
   object SplitterLeft: TSplitter
     Left = 255
     Height = 522
@@ -104,9 +104,9 @@ object DesignFrame: TDesignFrame
               Width = 294
               BorderSpacing.Top = 8
               Caption = 'Anchor to the same side of Parent'
-              OnChange = CheckParentSelfAnchorsEqualChange
               ParentFont = False
               TabOrder = 0
+              OnChange = CheckParentSelfAnchorsEqualChange
             end
             inline SelfAnchorsFrame: TAnchorsFrame
               AnchorSideLeft.Control = CheckParentSelfAnchorsEqual
@@ -257,9 +257,9 @@ object DesignFrame: TDesignFrame
               Width = 170
               AutoSize = True
               Caption = 'Move to the anchor'
-              OnClick = ButtonClearTranslationClick
               ParentFont = False
               TabOrder = 3
+              OnClick = ButtonClearTranslationClick
             end
             object LabelSizeInfo: TLabel
               AnchorSideLeft.Control = ButtonClearTranslation
@@ -304,9 +304,9 @@ object DesignFrame: TDesignFrame
               Width = 188
               AutoSize = True
               Caption = 'Reset Transformation'
-              OnClick = ButtonResetTransformationClick
               ParentFont = False
               TabOrder = 0
+              OnClick = ButtonResetTransformationClick
             end
           end
         end
@@ -397,9 +397,9 @@ object DesignFrame: TDesignFrame
     TabOrder = 3
     object ControlsTree: TTreeView
       Left = 0
-      Height = 491
+      Height = 453
       Hint = 'Select a component.'#10'Hold "Ctrl" or "Shift" to select multiple components.'#10#10'Drag the component to move it to the front, back or change the parent.'#10'Hold "Ctrl" when dropping to not preserve the world transformation when changing parent.'
-      Top = 31
+      Top = 69
       Width = 255
       Align = alClient
       DragMode = dmAutomatic
@@ -432,6 +432,18 @@ object DesignFrame: TDesignFrame
       Caption = 'Hierarchy'
       ParentColor = False
       ParentFont = False
+    end
+    object EditFindInHierarchy: TEdit
+      Left = 0
+      Height = 38
+      Top = 31
+      Width = 255
+      Align = alTop
+      Enabled = False
+      TabOrder = 1
+      TextHint = 'Find...'
+      Visible = False
+      OnChange = EditFindInHierarchyChange
     end
   end
   object PanelMiddle: TPanel
