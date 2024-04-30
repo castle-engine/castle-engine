@@ -607,7 +607,6 @@ type
     FTempContainer: TCastleContainer;
     FEditModeBrush: TDrawableImage;
     FEditModeBrushSize: Integer;
-    FEditModeBrushStrength: Single; // controls alpha channel
     FEditModeBrushShader: TGLSLProgram;
 
     function GetRenderOptions: TCastleRenderOptions;
@@ -629,7 +628,7 @@ type
       ShareOpenGLTextureToEditModeViewport result }
     procedure ResetOpenGLTextureInEditModeViewport(const PreviousGLTextureId: TGLTextureId);
 
-    procedure PrepareEditModeBrushShader(const Brush: TDrawableImage);
+    procedure PrepareEditModeBrushShader(const Brush: TDrawableImage; const Strength: Byte);
 
     procedure SetData(const Value: TCastleTerrainData);
     procedure SetTriangulate(const Value: Boolean);
@@ -712,7 +711,7 @@ type
     property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
 
     procedure RaiseTerrain(const Coord: TVector3; const Value: Integer);
-    procedure RaiseTerrainShader(const Coord: TVector3; const Value: Integer);
+    procedure RaiseTerrainShader(const Coord: TVector3; const Value: Byte);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
 
     property Mode: TCastleTerrainMode read FMode write FMode;
@@ -1866,7 +1865,6 @@ begin
 
   FMode := ctmShader;
   FEditModeBrushSize := 6;
-  FEditModeBrushStrength := 0.1;
   FTriangulate := true;
   FSubdivisions := Vector2(DefaultSubdivisions, DefaultSubdivisions);
   FSize := Vector2(DefaultSize, DefaultSize);
@@ -2199,7 +2197,7 @@ begin
   TImageTextureResource(FEditModeApperance.Texture.InternalRendererResource).InternalSetGLName(PreviousGLTextureId);
 end;
 
-procedure TCastleTerrain.PrepareEditModeBrushShader(const Brush: TDrawableImage);
+procedure TCastleTerrain.PrepareEditModeBrushShader(const Brush: TDrawableImage; const Strength: Byte);
 begin
   if FEditModeBrushShader = nil then
   begin
@@ -2250,9 +2248,9 @@ begin
       '} // main end'
     );
     FEditModeBrushShader.Link;
-    FEditModeBrushShader.Uniform('algo').SetValue(3);
-    FEditModeBrushShader.Uniform('strength').SetValue(FEditModeBrushStrength);
   end;
+  FEditModeBrushShader.Uniform('algo').SetValue(3);
+  FEditModeBrushShader.Uniform('strength').SetValue(Strength / 255);
   Brush.CustomShader := FEditModeBrushShader;
 end;
 
@@ -2426,7 +2424,7 @@ begin
 end;
 
 procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
-  const Value: Integer);
+  const Value: Byte);
 var
   RenderToTexture: TGLRenderToTexture;
   Source: TDrawableImage;
@@ -2513,7 +2511,7 @@ begin
     Image := TRGBAlphaImage.Create(FEditModeBrushSize, FEditModeBrushSize);
     Brush := TDrawableImage.Create(Image, false, true);
     try
-    PrepareEditModeBrushShader(Brush);
+    PrepareEditModeBrushShader(Brush, Value);
     // map to 0 - 1 range of texture.
     LocalCoord := OutsideToLocal(Coord);
     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
