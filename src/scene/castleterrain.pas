@@ -612,7 +612,6 @@ type
     FEditModeApperance: TAppearanceNode;
     FTempContainer: TCastleContainer;
     FEditModeBrush: TDrawableImage;
-    FEditModeBrushSize: Integer;
     FEditModeBrushShader: TGLSLProgram;
 
     function GetRenderOptions: TCastleRenderOptions;
@@ -635,7 +634,7 @@ type
     procedure ResetOpenGLTextureInEditModeViewport(const PreviousGLTextureId: TGLTextureId);
 
     procedure PrepareEditModeBrushShader(const Brush: TDrawableImage;
-      const BrushShape: TCastleTerrainBrush;
+      const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
       const Strength, BrushMaxHeight: Byte);
 
     procedure SetData(const Value: TCastleTerrainData);
@@ -720,10 +719,11 @@ type
 
     procedure RaiseTerrain(const Coord: TVector3; const Value: Integer);
 
-    { Raises the terrain at a specified coordinate with, a specified strength
+    { Raises the terrain at a specified coordinate with, a specified size, strength
       and maximum height. Changing the maximum height from 255 to a lower value
       may result in lowering the higher terrain. }
-    procedure RaiseTerrainShader(const Coord: TVector3; const Strength: Byte; const BrushMaxHeight: Byte = 255);
+    procedure RaiseTerrainShader(const Coord: TVector3; const BrushSize: Integer;
+      const Strength: Byte; const BrushMaxHeight: Byte = 255);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
 
     property Mode: TCastleTerrainMode read FMode write FMode;
@@ -1876,7 +1876,6 @@ begin
   inherited;
 
   FMode := ctmShader;
-  FEditModeBrushSize := 6;
   FTriangulate := true;
   FSubdivisions := Vector2(DefaultSubdivisions, DefaultSubdivisions);
   FSize := Vector2(DefaultSize, DefaultSize);
@@ -2210,7 +2209,7 @@ begin
 end;
 
 procedure TCastleTerrain.PrepareEditModeBrushShader(const Brush: TDrawableImage;
-  const BrushShape: TCastleTerrainBrush; const Strength, BrushMaxHeight: Byte);
+  const BrushShape: TCastleTerrainBrush; const BrushSize: Integer; const Strength, BrushMaxHeight: Byte);
 begin
   if FEditModeBrushShader = nil then
   begin
@@ -2231,8 +2230,9 @@ begin
       'uniform sampler2D image_texture;' + NL +
       'uniform vec2 viewport_size;' + NL +
       'uniform int brush_shape;' + NL + // brush shape
-      'uniform float strength;' + NL + // strength used for alpha channel (how strong the uplifi is)
+      'uniform float strength;' + NL + // strength used for alpha channel (how strong is the terrain height change)
       'uniform float max_terrain_height;' + NL +
+      'uniform int brush_size;' + NL +
       'void main(void)' + NL +
       '{' + NL +
       '  switch (brush_shape) {' + NL +
@@ -2246,10 +2246,13 @@ begin
       '    gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
       '    break;' + NL +
       '  case 3: {' + NL + // circle with alpha based on distance from center and strength
-      '    //vec2 pixelCoord = gl_FragCoord.xy;' + NL +
-      '    vec2 pixelCoord = vec2(6.0, 6.0) * tex_coord_frag;' + NL +
-      '    float radius = 2.0;' + NL +
-      '    vec2 center = vec2(3.0, 3.0);' + NL +
+      '    if (brush_size < 2) {' + NL +
+      '      gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
+      '      return;  ' + NL +
+      '    } ' + NL +
+      '    vec2 pixelCoord = vec2(brush_size, brush_size) * tex_coord_frag;' + NL +
+      '    float radius = brush_size / 2;' + NL +
+      '    vec2 center = vec2(brush_size / 2, brush_size / 2);' + NL +
       '    float distance = length(pixelCoord - center);' + NL +
       '    if (distance <= radius) {' + NL +
       '       gl_FragColor = vec4(vec3(max_terrain_height), strength * (1 - distance / radius) );' + NL +
@@ -2265,6 +2268,7 @@ begin
   FEditModeBrushShader.Uniform('brush_shape').SetValue(Integer(BrushShape));
   FEditModeBrushShader.Uniform('strength').SetValue(Strength / 255);
   FEditModeBrushShader.Uniform('max_terrain_height').SetValue(BrushMaxHeight / 255);
+  FEditModeBrushShader.Uniform('brush_size').SetValue(BrushSize);
 
   Brush.CustomShader := FEditModeBrushShader;
 end;
@@ -2438,7 +2442,7 @@ begin
   end;
 end;
 
-procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
+procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3; const BrushSize: Integer;
   const Strength: Byte; const BrushMaxHeight: Byte);
 var
   RenderToTexture: TGLRenderToTexture;
@@ -2468,6 +2472,9 @@ var
   end;
 
 begin
+  if BrushSize = 0 then
+    Exit;
+
   SourceTexture := GetCurrentlyUsedTexture;
   TargetTexture := GetTargetTexture;
   TextureWidth := SourceTexture.TextureImage.Width;
@@ -2523,10 +2530,12 @@ begin
       ResetOpenGLTextureInEditModeViewport(PreviousTextureId);
     end;
 
-    Image := TRGBAlphaImage.Create(FEditModeBrushSize, FEditModeBrushSize);
+    Image := TRGBAlphaImage.Create(BrushSize, BrushSize);
     Brush := TDrawableImage.Create(Image, false, true);
     try
-    PrepareEditModeBrushShader(Brush, ctbCircleWithAlphaStrengthDistanceFromCenter, Strength, BrushMaxHeight);
+    PrepareEditModeBrushShader(Brush, ctbCircleWithAlphaStrengthDistanceFromCenter,
+      BrushSize, Strength, BrushMaxHeight);
+
     // map to 0 - 1 range of texture.
     LocalCoord := OutsideToLocal(Coord);
     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
