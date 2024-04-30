@@ -2237,6 +2237,7 @@ begin
       'uniform int brush_shape;' + NL + // brush shape
       'uniform float strength;' + NL + // strength used for alpha channel (how strong is the terrain height change)
       'uniform float max_terrain_height;' + NL +
+      'uniform float ring_thickness;' + NL +
       'uniform int brush_size;' + NL +
       'void main(void)' + NL +
       '{' + NL +
@@ -2280,6 +2281,21 @@ begin
       '       gl_FragColor = vec4(0.0);' + NL +
       '    break;' + NL +
       '  }' + NL +
+      '  case 6: {' + NL + // cbtRing - circle with alpha based on strength
+      '    if (brush_size < 2) {' + NL +
+      '      gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
+      '      return;  ' + NL +
+      '    } ' + NL +
+      '    vec2 pixelCoord = vec2(brush_size, brush_size) * tex_coord_frag;' + NL +
+      '    float radius = brush_size / 2;' + NL +
+      '    vec2 center = vec2(brush_size / 2, brush_size / 2);' + NL +
+      '    float distance = length(pixelCoord - center);' + NL +
+      '    if ((distance <= radius) && (distance > radius - ring_thickness)) {' + NL +
+      '       gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
+      '     } else ' + NL +
+      '       gl_FragColor = vec4(0.0);' + NL +
+      '    break;' + NL +
+      '  }' + NL +
       '  } //switch end' + NL +
       '} // main end'
     );
@@ -2289,6 +2305,7 @@ begin
   FEditModeBrushShader.Uniform('strength').SetValue(Strength / 255);
   FEditModeBrushShader.Uniform('max_terrain_height').SetValue(BrushMaxHeight / 255);
   FEditModeBrushShader.Uniform('brush_size').SetValue(BrushSize);
+  FEditModeBrushShader.Uniform('ring_thickness').SetValue(1.0);
 
   Brush.CustomShader := FEditModeBrushShader;
 end;
