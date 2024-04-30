@@ -93,9 +93,9 @@ type
   );
 
   TCastleTerrainBrush = (
-    ctbWhiteSquare = 1, // white square for testing purposes
-    ctbWhiteSquareWithAlphaStrength = 2, // white square texture with alpha using strength
-    ctbWhiteCircleWithAlphaStrengthDistanceFromCenter = 3 // circle with alpha based on distance from center and strength
+    ctbSquare = 1, // white square for testing purposes
+    ctbSquareWithAlphaStrength = 2, // white square texture with alpha using strength
+    ctbCircleWithAlphaStrengthDistanceFromCenter = 3 // circle with alpha based on distance from center and strength
   );
 
   { Terrain (height map) data that can be used for @link(TCastleTerrain.Data). }
