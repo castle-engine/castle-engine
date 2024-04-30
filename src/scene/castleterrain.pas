@@ -2240,7 +2240,7 @@ begin
       '    vec2 center = vec2(3.0, 3.0);' + NL +
       '    float distance = length(pixelCoord - center);' + NL +
       '    if (distance <= radius) {' + NL +
-      '       gl_FragColor = vec4(vec3(1.0), strength * distance );' + NL +
+      '       gl_FragColor = vec4(vec3(1.0), strength * (1 - distance / radius) );' + NL +
       '     } else ' + NL +
       '       discard;' + NL +
       '    gl_FragColor = vec4(vec3(1.0), strength);' + NL +
