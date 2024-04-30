@@ -93,8 +93,8 @@ type
   );
 
   TCastleTerrainBrush = (
-    ctbSquare = 1, // white square for testing purposes
-    ctbSquareWithAlphaStrength = 2, // white square texture with alpha using strength
+    ctbSquare = 1, // square for testing purposes
+    ctbSquareWithAlphaStrength = 2, // square texture with alpha using strength
     ctbCircleWithAlphaStrengthDistanceFromCenter = 3 // circle with alpha based on distance from center and strength
   );
 
@@ -636,7 +636,7 @@ type
 
     procedure PrepareEditModeBrushShader(const Brush: TDrawableImage;
       const BrushShape: TCastleTerrainBrush;
-      const Strength: Byte);
+      const Strength, MaxHeight: Byte);
 
     procedure SetData(const Value: TCastleTerrainData);
     procedure SetTriangulate(const Value: Boolean);
@@ -719,7 +719,11 @@ type
     property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
 
     procedure RaiseTerrain(const Coord: TVector3; const Value: Integer);
-    procedure RaiseTerrainShader(const Coord: TVector3; const Strength: Byte);
+
+    { Raises the terrain at a specified coordinate with, a specified strength
+      and maximum height. Changing the maximum height from 255 to a lower value
+      may result in lowering the higher terrain. }
+    procedure RaiseTerrainShader(const Coord: TVector3; const Strength: Byte; const MaxHeight: Byte = 255);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
 
     property Mode: TCastleTerrainMode read FMode write FMode;
@@ -2206,7 +2210,7 @@ begin
 end;
 
 procedure TCastleTerrain.PrepareEditModeBrushShader(const Brush: TDrawableImage;
-  const BrushShape: TCastleTerrainBrush; const Strength: Byte);
+  const BrushShape: TCastleTerrainBrush; const Strength, MaxHeight: Byte);
 begin
   if FEditModeBrushShader = nil then
   begin
@@ -2228,6 +2232,7 @@ begin
       'uniform vec2 viewport_size;' + NL +
       'uniform int brush_shape;' + NL + // brush shape
       'uniform float strength;' + NL + // strength used for alpha channel (how strong the uplifi is)
+      'uniform float max_terrain_height;' + NL +
       'void main(void)' + NL +
       '{' + NL +
       '  switch (brush_shape) {' + NL +
@@ -2260,6 +2265,8 @@ begin
   end;
   FEditModeBrushShader.Uniform('brush_shape').SetValue(Integer(BrushShape));
   FEditModeBrushShader.Uniform('strength').SetValue(Strength / 255);
+  FEditModeBrushShader.Uniform('max_terrain_height').SetValue(MaxHeight / 255);
+
   Brush.CustomShader := FEditModeBrushShader;
 end;
 
@@ -2433,7 +2440,7 @@ begin
 end;
 
 procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
-  const Strength: Byte);
+  const Strength: Byte; const MaxHeight: Byte);
 var
   RenderToTexture: TGLRenderToTexture;
   Source: TDrawableImage;
@@ -2520,7 +2527,7 @@ begin
     Image := TRGBAlphaImage.Create(FEditModeBrushSize, FEditModeBrushSize);
     Brush := TDrawableImage.Create(Image, false, true);
     try
-    PrepareEditModeBrushShader(Brush, ctbCircleWithAlphaStrengthDistanceFromCenter, Strength);
+    PrepareEditModeBrushShader(Brush, ctbCircleWithAlphaStrengthDistanceFromCenter, Strength, MaxHeight);
     // map to 0 - 1 range of texture.
     LocalCoord := OutsideToLocal(Coord);
     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
