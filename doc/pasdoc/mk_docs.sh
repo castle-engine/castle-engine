@@ -26,7 +26,8 @@ set -o pipefail
 # for all units takes a while.
 
 # "os-native path" in this file means "under Windows it must
-# *not* be Cygwin's POSIX path, because I pass it to pasdoc as filename".
+# *not* be Cygwin/MinGW/MSys/Git-for-Windows POSIX path,
+# because I pass it to pasdoc as filename".
 
 # TARGET_OS is windows lub unix.
 # This says which subdirectories of sources are meaningfull
@@ -36,11 +37,13 @@ TARGET_OS=unix
 
 CASTLE_ENGINE_UNITS_PATH=../../src/
 
-# Autodetect if we're under Cygwin
-if uname | grep --quiet -i cygwin; then
-  KAMBI_IS_CYGWIN='t'
+# Autodetect if we're under Cygwin/MinGW/MSys/Git-for-Windows --
+# so paths from Unix tools (like pwd) need conversion to Windows-native.
+#if uname | grep --quiet -i cygwin; then # not good, does not detect MinGW/MSys
+if which cygpath > /dev/null; then
+  CYGWIN_OR_SIMILAR='t'
 else
-  KAMBI_IS_CYGWIN=''
+  CYGWIN_OR_SIMILAR=''
 fi
 
 PASDOC_FORMAT="$1"
@@ -48,12 +51,12 @@ shift 1
 
 # calculate OUTPUT_PATH (os-native path)
 OUTPUT_PATH=`pwd`/
-if [ -n "$KAMBI_IS_CYGWIN" ]; then
+if [ -n "$CYGWIN_OR_SIMILAR" ]; then
   OUTPUT_PATH="`cygpath --windows \"$OUTPUT_PATH\"`"
 fi
 
 FIND='find'
-if [ -n "$KAMBI_IS_CYGWIN" ]; then
+if [ -n "$CYGWIN_OR_SIMILAR" ]; then
   FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
 fi
 
@@ -77,7 +80,7 @@ cd "$CASTLE_ENGINE_UNITS_PATH"
 
 # calculate TMP_PAS_LIST (os-native path)
 TMP_PAS_LIST=/tmp/mk_docs_list
-if [ -n "$KAMBI_IS_CYGWIN" ]; then
+if [ -n "$CYGWIN_OR_SIMILAR" ]; then
   TMP_PAS_LIST="`cygpath --windows \"$TMP_PAS_LIST\"`"
 fi
 
