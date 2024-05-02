@@ -79,8 +79,9 @@ jobs:
       # We need Inno Setup for creating Windows installer.
       #   Note: Inno Setup seems already available on windows-latest.
       #   For future-proof, just keep it declared here.
-      # wget to later get pasdoc
-      run: choco install innosetup wget
+      # wget to later get pasdoc.
+      # zip is used by pack_release.
+      run: choco install innosetup wget zip
 
     - name: Windows force Git Bash
       if: ${{ matrix.runner == 'windows-latest' }}
