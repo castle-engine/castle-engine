@@ -52,7 +52,7 @@ if which cygpath.exe > /dev/null; then
   OUTPUT_DIRECTORY="`cygpath --mixed \"${OUTPUT_DIRECTORY}\"`"
 fi
 
-VERBOSE=false
+VERBOSE=true
 
 ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 
@@ -118,6 +118,11 @@ detect_platform ()
   if [ "`uname -s`" '=' 'Darwin' ]; then
     SED='gsed'
   fi
+
+  # for debugging, output versions of tools
+  echo "Using make: ${MAKE}" `${MAKE} --version | head -n 1`
+  echo "Using find: ${FIND}" `${FIND} --version | head -n 1`
+  echo "Using sed: ${SED}" `${SED} --version | head -n 1`
 }
 
 # Compile build tool, put it on $PATH
