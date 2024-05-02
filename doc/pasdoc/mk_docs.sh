@@ -200,18 +200,23 @@ pasdoc \
   --html-body-begin ../doc/pasdoc/html-parts/body-begin.html \
   --html-body-end ../doc/pasdoc/html-parts/body-end.html \
   --css ../doc/pasdoc/html-parts/cge-pasdoc.css \
-  $FORMAT_OPTIONS \
-  | \
-  grep --ignore-case --invert-match --fixed-strings \
-    --regexp='Tag "groupbegin" is not implemented yet, ignoring' \
-    --regexp='Tag "groupend" is not implemented yet, ignoring' \
-    --regexp='Could not resolve link "EConvertError"' \
-    --regexp='Could not resolve link "EReadError"' \
-    --regexp='Could not resolve link "Exception"' \
-    --regexp='Could not resolve link "EOSError"' \
-    --regexp='Could not resolve link "EInvalidArgument"' \
-    --regexp='Could not resolve link "EFOpenError"' \
-    --regexp='Could not resolve link "EStreamError"'
+  $FORMAT_OPTIONS
+
+  # TODO: Commented out grep filtering -- fails with "Disk Full" on GH Actions,
+  # seems some problem with pipes.
+  #
+  #  \
+  # | \
+  # grep --ignore-case --invert-match --fixed-strings \
+  #   --regexp='Tag "groupbegin" is not implemented yet, ignoring' \
+  #   --regexp='Tag "groupend" is not implemented yet, ignoring' \
+  #   --regexp='Could not resolve link "EConvertError"' \
+  #   --regexp='Could not resolve link "EReadError"' \
+  #   --regexp='Could not resolve link "Exception"' \
+  #   --regexp='Could not resolve link "EOSError"' \
+  #   --regexp='Could not resolve link "EInvalidArgument"' \
+  #   --regexp='Could not resolve link "EFOpenError"' \
+  #   --regexp='Could not resolve link "EStreamError"'
 
 # Not anymore:
 # We hide protected members, for now. Makes a cleaner documentation,
