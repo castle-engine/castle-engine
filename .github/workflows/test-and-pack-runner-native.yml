@@ -82,6 +82,10 @@ jobs:
       # wget to later get pasdoc
       run: choco install innosetup wget
 
+    - name: Windows force Git Bash
+      if: ${{ matrix.runner == 'windows-latest' }}
+      run: echo "WINDOWS_FORCE_GIT_BASH=true" >> $GITHUB_ENV
+
     - name: Set environment CASTLE_ENGINE_PATH
       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
 
