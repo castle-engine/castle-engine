@@ -94,9 +94,8 @@ detect_platform ()
     #
     # We don't want to use Embarcadero's make (we need GNU make).
     #
-    # we don't want to use FPC make (FPC on Windows is distributed with GNU make
-    # from MinGW, but it doesn't call bash on Windows, since it's not complete
-    # MSys).
+    # we don't want to use FPC make (FPC on Windows is distributed with
+    # GNU make 3.8, from MinGW).
 
     if [ -f /bin/make ]; then
       MAKE='/bin/make'
