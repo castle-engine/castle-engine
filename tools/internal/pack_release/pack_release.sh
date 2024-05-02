@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
 
 # ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
@@ -450,7 +450,10 @@ pack_platform_zip ()
   rm -f "${ARCHIVE_NAME}"
   zip -r "${ARCHIVE_NAME}" castle_game_engine/
   mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
+  # seems to sometimes fail with "rm: fts_read failed: No such file or directory" on GH hosted windows runner
+  set +e
   rm -Rf "${TEMP_PATH}"
+  set -e
 }
 
 # Prepare Windows installer with precompiled CGE.
