@@ -119,9 +119,16 @@ jobs:
     # We don't want this. Our scripts are prepared to call `cygpath` to deal
     # with path conversion problems explicitly. It is much much more reliable,
     # and it is explicit -- easy to debug.
-    - name: Disable broken MSYS2 paths conversion
+    - name: Disable broken MSys2 paths conversion
       if: ${{ matrix.runner == 'windows-latest' }}
       run: echo "MSYS2_ENV_CONV_EXCL='*'" >> $GITHUB_ENV
+    # Git For Windows has a different name for this:
+    # https://stackoverflow.com/questions/7250130/how-to-stop-mingw-and-msys-from-mangling-path-names-given-at-the-command-line
+    # https://github.com/git-for-windows/git/issues/577
+    # https://github.com/git-for-windows/msys2-runtime/pull/11
+    - name: Disable broken Git For Windows MSys paths conversion
+      if: ${{ matrix.runner == 'windows-latest' }}
+      run: echo "MSYS_NO_PATHCONV=1" >> $GITHUB_ENV
 
     - name: Set environment CASTLE_ENGINE_PATH
       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
