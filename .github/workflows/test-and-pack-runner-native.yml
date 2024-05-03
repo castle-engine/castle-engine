@@ -87,6 +87,42 @@ jobs:
       if: ${{ matrix.runner == 'windows-latest' }}
       run: echo "WINDOWS_FORCE_GIT_BASH=true" >> $GITHUB_ENV
 
+    # MSys2 does something quite unexpected by default: it autoconverts
+    # any parameter that looks like Unix path to Windows path.
+    # See https://www.msys2.org/docs/filesystem-paths/ .
+    #
+    # This does result in weird problems when calling iscc.
+    # It seems (reported in bash through "set -x") it's calling something
+    # sensible, like this
+    #
+    #   iscc
+    #     'D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss'
+    #     /OD:/a/castle-engine/castle-engine
+    #     /Fcastle-engine-setup-7.0-alpha.snapshot
+    #     /DMyAppSrcDir=C:/Users/RUNNER~1/AppData/Local/Temp/castle-engine-release-1378/castle_game_engine
+    #     /DMyAppVersion=7.0-alpha.snapshot
+    #
+    # (see iscc command-line docs). But in reality, it is passing (detected by
+    # our https://github.com/michaliskambi/report-params/ ) these nonsense
+    # parameters:
+    #
+    #   iscc
+    #     D:\a\castle-engine\castle-engine/tools/internal/pack_release/cge-windows-setup.iss
+    #     C:\Program Files\Git\OD;A:\castle-engine\castle-engine
+    #     C:/Program Files/Git/Fcastle-engine-setup-7.0-alpha.snapshot
+    #     C:\Program Files\Git\DMyAppSrcDir=C;C:\Program Files\Git\Users\RUNNER~1\AppData\Local\Temp\castle-engine-release-1378\castle_game_engine
+    #     C:/Program Files/Git/DMyAppVersion=7.0-alpha.snapshot
+    #
+    # As you see, it added "C:/Program Files/Git/" or "C:\Program Files\Git\" prefix
+    # in front of every parameter that started with /.
+    # This of course breaks iscc later.
+    # We don't want this. Our scripts are prepared to call `cygpath` to deal
+    # with path conversion problems explicitly. It is much much more reliable,
+    # and it is explicit -- easy to debug.
+    - name: Disable broken MSYS2 paths conversion
+      if: ${{ matrix.runner == 'windows-latest' }}
+      run: echo "MSYS2_ENV_CONV_EXCL='*'" >> $GITHUB_ENV
+
     - name: Set environment CASTLE_ENGINE_PATH
       run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
 
