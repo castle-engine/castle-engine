@@ -171,6 +171,7 @@ DATADIR=$(DATAROOTDIR)
 
 .PHONY: install
 install:
+	echo 'Installing tools to $(BINDIR)'
 	$(INSTALL) -d $(BINDIR)
 	$(INSTALL) tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
 	$(INSTALL) tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) $(BINDIR)
@@ -178,6 +179,7 @@ install:
 	$(INSTALL) tools/build-tool/castle-engine$(EXE_EXTENSION) $(BINDIR)
 	$(INSTALL) tools/to-data-uri/to-data-uri$(EXE_EXTENSION) $(BINDIR)
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
+	echo 'Installing data to $(DATADIR)/castle-engine/'
 	$(INSTALL) -d  $(DATADIR)
 	cd tools/build-tool/data/ && \
 	  "$(FIND)" . -type f -exec $(INSTALL) --mode 644 -D '{}' $(DATADIR)/castle-engine/'{}' ';'
