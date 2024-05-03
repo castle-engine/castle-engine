@@ -15,16 +15,20 @@ defaults:
 jobs:
   quick_test:
     uses: ./.github/workflows/quick-test.yml
-  test_and_pack:
-    uses: ./.github/workflows/test-and-pack.yml
+  test_and_pack_docker:
+    uses: ./.github/workflows/test-and-pack-docker.yml
   delphi:
     uses: ./.github/workflows/delphi.yml
   test_and_pack_runner_native:
     uses: ./.github/workflows/test-and-pack-runner-native.yml
+  test_shell:
+    uses: ./.github/workflows/test-shell.yml
+  check_dependencies:
+    uses: ./.github/workflows/check-dependencies.yml
 
   release:
     name: Release
-    needs: [quick_test, test_and_pack, delphi, test_and_pack_runner_native]
+    needs: [quick_test, test_and_pack_docker, delphi, test_and_pack_runner_native, test_shell, check_dependencies]
     runs-on: ubuntu-latest
     steps:
 
@@ -41,6 +45,8 @@ jobs:
 
     - name: Download packaged releases
       uses: actions/download-artifact@v4
+    - name: List downloaded files
+      run: ls -R
 
     # We use automatic GITHUB_TOKEN secret provided by GitHub with GH CLI, see
     # https://docs.github.com/en/actions/security-guides/automatic-token-authentication

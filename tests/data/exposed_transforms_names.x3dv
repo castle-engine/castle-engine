@@ -1,0 +1,17 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# -------------------------------------------------------------------------------
+# Test model for TTestSceneCore.TestExposedTransforms
+# -------------------------------------------------------------------------------
+
+DEF MyBoneName_123 Transform {
+  children Shape { geometry Box { } }
+}
+
+# The name below is equal to EncodeX3DName('MyBoneName with spaces'),
+# this is what we will generate e.g. for glTF file with node name
+# 'MyBoneName with spaces'.
+DEF CastleEncoded_MyBoneName$32$with$32$spaces Transform {
+  children Shape { geometry Box { } }
+}

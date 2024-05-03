@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
 
 # ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
@@ -52,7 +52,7 @@ if which cygpath.exe > /dev/null; then
   OUTPUT_DIRECTORY="`cygpath --mixed \"${OUTPUT_DIRECTORY}\"`"
 fi
 
-VERBOSE=false
+VERBOSE=true
 
 ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 
@@ -86,8 +86,27 @@ detect_platform ()
   SED='sed'
 
   if which cygpath.exe > /dev/null; then
-    MAKE='/bin/make' # On Cygwin, make sure to use Cygwin's make, not the one from Embarcadero
-    FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
+
+    # If we're inside Cygwin/MinGW (despite the name, cygpath also is in MinGW,
+    # and this is the case on GH hosted runner), then we want to use Cygwin/MinGW
+    # tools. They will call bash properly, and our "make" must be able to call
+    # e.g. "tools/build-tool/castle-engine_compile.sh".
+    #
+    # We don't want to use Embarcadero's make (we need GNU make).
+    #
+    # we don't want to use FPC make (FPC on Windows is distributed with
+    # GNU make 3.8, from MinGW).
+
+    if [ -f /bin/make ]; then
+      MAKE='/bin/make'
+    else
+      if which mingw32-make > /dev/null; then
+        MAKE='mingw32-make'
+      fi
+    fi
+
+    # On Cygwin/MinGW, make sure to use Cygwin/MinGW's find, not the one from Windows
+    FIND='/bin/find'
   fi
 
   if [ "`uname -s`" '=' 'FreeBSD' ]; then
@@ -98,6 +117,11 @@ detect_platform ()
   if [ "`uname -s`" '=' 'Darwin' ]; then
     SED='gsed'
   fi
+
+  # for debugging, output versions of tools
+  echo "Using make: ${MAKE}" `${MAKE} --version | head -n 1`
+  echo "Using find: ${FIND}" `${FIND} --version | head -n 1`
+  echo "Using sed: ${SED}" `${SED} --version | head -n 1`
 }
 
 # Compile build tool, put it on $PATH
@@ -426,7 +450,10 @@ pack_platform_zip ()
   rm -f "${ARCHIVE_NAME}"
   zip -r "${ARCHIVE_NAME}" castle_game_engine/
   mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
+  # seems to sometimes fail with "rm: fts_read failed: No such file or directory" on GH hosted windows runner
+  set +e
   rm -Rf "${TEMP_PATH}"
+  set -e
 }
 
 # Prepare Windows installer with precompiled CGE.
