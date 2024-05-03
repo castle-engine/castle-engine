@@ -236,13 +236,19 @@ jobs:
         repository: "castle-engine/cge-fpc"
         latest: true
         fileName: "fpc-win64-x86_64.zip"
-    - name: Pack Release (Windows Installer, Bundled FPC)
-      if: ${{ matrix.runner == 'windows-latest' }}
-      run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer
-    - name: Archive Artifacts (exe)
-      if: ${{ matrix.runner == 'windows-latest' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.runner }}-installer-release
-        path: "castle-engine-setup-*.exe"
-        if-no-files-found: error
+
+    # TODO:
+    # Weird errors:
+    #  Compressing: C:/Users/RUNNER~1/AppData/Local/Temp/castle-engine-release-597/castle_game_engine\tools\build-tool\data\D?acastle-enginecastle-engine\installed\share\castle-engine\android\integrated-services\admob\app\src\main\java\net\sourceforge\castleengine\MainActivity.java
+    # 2024-05-03T21:25:56.4136014Z Error in D:\a\castle-engine\castle-engine\tools\internal\pack_release\cge-windows-setup.iss: The system cannot find the path specified.
+    #
+    # - name: Pack Release (Windows Installer, Bundled FPC)
+    #   if: ${{ matrix.runner == 'windows-latest' }}
+    #   run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh windows_installer
+    # - name: Archive Artifacts (exe)
+    #   if: ${{ matrix.runner == 'windows-latest' }}
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: ${{ matrix.runner }}-installer-release
+    #     path: "castle-engine-setup-*.exe"
+    #     if-no-files-found: error
