@@ -243,6 +243,6 @@ jobs:
       if: ${{ matrix.runner == 'windows-latest' }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.runner }}-release
+        name: ${{ matrix.runner }}-installer-release
         path: "castle-engine-setup-*.exe"
         if-no-files-found: error
