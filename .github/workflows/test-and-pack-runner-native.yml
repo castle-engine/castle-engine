@@ -194,7 +194,6 @@ jobs:
         rm -Rf installed/
         mkdir -p installed/
         make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
-        ls -R ${CASTLE_ENGINE_PATH}/installed/
 
     - name: Build Examples
       # Too slow on RPi
