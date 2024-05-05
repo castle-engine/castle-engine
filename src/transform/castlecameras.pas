@@ -465,12 +465,6 @@ type
     { Continuous rotation animation, applied each Update to Rotations. }
     property RotationsAnim: TVector3 read FRotationsAnim write SetRotationsAnim;
 
-    { How fast user moves the scene by mouse/touch dragging. }
-    property DragMoveSpeed: Single read FDragMoveSpeed write FDragMoveSpeed {$ifdef FPC}default 1.0{$endif};
-
-    { How fast user moves the scene by pressing keys. }
-    property KeysMoveSpeed: Single read FKeysMoveSpeed write FKeysMoveSpeed {$ifdef FPC}default 1.0{$endif};
-
     {$ifdef FPC}
     property MoveAmount: TVector3 read GetTranslation write SetTranslation;
       deprecated 'use Translation';
@@ -553,28 +547,10 @@ type
       read GetMouseNavigation write SetMouseNavigation default true; deprecated;
     {$endif}
 
-    { Speed to change the rotation acceleration,
-      used when RotationAccelerate = @true. }
-    property RotationAccelerationSpeed: Single
-      read FRotationAccelerationSpeed
-      write FRotationAccelerationSpeed
-      {$ifdef FPC}default DefaultRotationAccelerationSpeed{$endif};
-
-    { Speed to change the rotation, used when RotationAccelerate = @false. }
-    property RotationSpeed: Single
-      read FRotationSpeed
-      write FRotationSpeed
-      {$ifdef FPC}default DefaultRotationSpeed{$endif};
-
     { 3D point around which we rotate, in world coordinates.
       This is used only when AutoCenterOfRotation = @false. }
     property CenterOfRotation: TVector3 read FCenterOfRotation write FCenterOfRotation;
 
-    { Speed to change the Zoom, when ZoomEnabled = @true. }
-    property ZoomSpeed: Single
-      read FZoomSpeed
-      write FZoomSpeed
-      {$ifdef FPC}default DefaultZoomSpeed{$endif};
   published
     { Enable rotating the camera around the model by user input.
       When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
@@ -606,6 +582,31 @@ type
     { Should we calculate center of rotation automatically (based on world bounding box)
       or use explicit @link(CenterOfRotation). }
     property AutoCenterOfRotation: Boolean read FAutoCenterOfRotation write FAutoCenterOfRotation default true;
+
+    { How fast user moves the scene by mouse/touch dragging. }
+    property DragMoveSpeed: Single read FDragMoveSpeed write FDragMoveSpeed {$ifdef FPC}default 1.0{$endif};
+
+    { How fast user moves the scene by pressing keys. }
+    property KeysMoveSpeed: Single read FKeysMoveSpeed write FKeysMoveSpeed {$ifdef FPC}default 1.0{$endif};
+
+    { Speed to change the rotation acceleration,
+      used when RotationAccelerate = @true. }
+    property RotationAccelerationSpeed: Single
+      read FRotationAccelerationSpeed
+      write FRotationAccelerationSpeed
+      {$ifdef FPC}default DefaultRotationAccelerationSpeed{$endif};
+
+    { Speed to change the rotation, used when RotationAccelerate = @false. }
+    property RotationSpeed: Single
+      read FRotationSpeed
+      write FRotationSpeed
+      {$ifdef FPC}default DefaultRotationSpeed{$endif};
+
+    { Speed to change the Zoom, when ZoomEnabled = @true. }
+    property ZoomSpeed: Single
+      read FZoomSpeed
+      write FZoomSpeed
+      {$ifdef FPC}default DefaultZoomSpeed{$endif};
   end;
 
   { Navigation most suitable for 2D viewports
