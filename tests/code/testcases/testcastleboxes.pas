@@ -701,9 +701,13 @@ begin
       begin
         WritelnWarning('TestBox3DTransform failed at test with RandomMatrix:' + NL +
           'Box: %s' + NL +
-          'Matrix: %s', [
+          'Matrix: %s' + NL +
+          'Resulting BoxTransformSlower: %s' + NL +
+          'Resulting Box.Transform: %s', [
           Box.ToString,
-          Matrix.ToString
+          Matrix.ToString,
+          BoxTransformSlower(Box, Matrix).ToString,
+          Box.Transform(Matrix).ToString
         ]);
         raise;
       end;

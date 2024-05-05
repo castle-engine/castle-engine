@@ -26,7 +26,8 @@ set -o pipefail
 # for all units takes a while.
 
 # "os-native path" in this file means "under Windows it must
-# *not* be Cygwin's POSIX path, because I pass it to pasdoc as filename".
+# *not* be Cygwin/MinGW/MSys/Git-for-Windows POSIX path,
+# because I pass it to pasdoc as filename".
 
 # TARGET_OS is windows lub unix.
 # This says which subdirectories of sources are meaningfull
@@ -36,11 +37,13 @@ TARGET_OS=unix
 
 CASTLE_ENGINE_UNITS_PATH=../../src/
 
-# Autodetect if we're under Cygwin
-if uname | grep --quiet -i cygwin; then
-  KAMBI_IS_CYGWIN='t'
+# Autodetect if we're under Cygwin/MinGW/MSys/Git-for-Windows --
+# so paths from Unix tools (like pwd) need conversion to Windows-native.
+#if uname | grep --quiet -i cygwin; then # not good, does not detect MinGW/MSys
+if which cygpath > /dev/null; then
+  CYGWIN_OR_SIMILAR='t'
 else
-  KAMBI_IS_CYGWIN=''
+  CYGWIN_OR_SIMILAR=''
 fi
 
 PASDOC_FORMAT="$1"
@@ -48,12 +51,12 @@ shift 1
 
 # calculate OUTPUT_PATH (os-native path)
 OUTPUT_PATH=`pwd`/
-if [ -n "$KAMBI_IS_CYGWIN" ]; then
+if [ -n "$CYGWIN_OR_SIMILAR" ]; then
   OUTPUT_PATH="`cygpath --windows \"$OUTPUT_PATH\"`"
 fi
 
 FIND='find'
-if [ -n "$KAMBI_IS_CYGWIN" ]; then
+if [ -n "$CYGWIN_OR_SIMILAR" ]; then
   FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
 fi
 
@@ -77,7 +80,7 @@ cd "$CASTLE_ENGINE_UNITS_PATH"
 
 # calculate TMP_PAS_LIST (os-native path)
 TMP_PAS_LIST=/tmp/mk_docs_list
-if [ -n "$KAMBI_IS_CYGWIN" ]; then
+if [ -n "$CYGWIN_OR_SIMILAR" ]; then
   TMP_PAS_LIST="`cygpath --windows \"$TMP_PAS_LIST\"`"
 fi
 
@@ -197,18 +200,23 @@ pasdoc \
   --html-body-begin ../doc/pasdoc/html-parts/body-begin.html \
   --html-body-end ../doc/pasdoc/html-parts/body-end.html \
   --css ../doc/pasdoc/html-parts/cge-pasdoc.css \
-  $FORMAT_OPTIONS \
-  | \
-  grep --ignore-case --invert-match --fixed-strings \
-    --regexp='Tag "groupbegin" is not implemented yet, ignoring' \
-    --regexp='Tag "groupend" is not implemented yet, ignoring' \
-    --regexp='Could not resolve link "EConvertError"' \
-    --regexp='Could not resolve link "EReadError"' \
-    --regexp='Could not resolve link "Exception"' \
-    --regexp='Could not resolve link "EOSError"' \
-    --regexp='Could not resolve link "EInvalidArgument"' \
-    --regexp='Could not resolve link "EFOpenError"' \
-    --regexp='Could not resolve link "EStreamError"'
+  $FORMAT_OPTIONS
+
+  # TODO: Commented out grep filtering -- fails with "Disk Full" on GH Actions,
+  # seems some problem with pipes.
+  #
+  #  \
+  # | \
+  # grep --ignore-case --invert-match --fixed-strings \
+  #   --regexp='Tag "groupbegin" is not implemented yet, ignoring' \
+  #   --regexp='Tag "groupend" is not implemented yet, ignoring' \
+  #   --regexp='Could not resolve link "EConvertError"' \
+  #   --regexp='Could not resolve link "EReadError"' \
+  #   --regexp='Could not resolve link "Exception"' \
+  #   --regexp='Could not resolve link "EOSError"' \
+  #   --regexp='Could not resolve link "EInvalidArgument"' \
+  #   --regexp='Could not resolve link "EFOpenError"' \
+  #   --regexp='Could not resolve link "EStreamError"'
 
 # Not anymore:
 # We hide protected members, for now. Makes a cleaner documentation,
