@@ -1,5 +1,23 @@
 # Main targets to gen final docs ----------------------------------------
 
+# Avoid using WSL bash on GH-hosted runner windows-latest,
+# by explicitly using GIT (MSys) bash.
+# Note: Setting SHELL doesn't help.
+#
+# This is a hack, after a long fight with it -- no idea why this specific
+# Makefile (but not others) seems to try to execute WSL bash in this sitiuation.
+# Various tests on GH hosted runner with this script and mingw32-make,
+# /c/mingw64/bin/make resulted in various weird errors
+# (like make segfaulting, or "cp" not finding a dir that "ls" shows exists...).
+# This seems like the most local workaround that reliably avoids the problem.
+ifdef WINDOWS_FORCE_GIT_BASH
+  $(info Detected OS: Windows, using Git bash as SHELL)
+  #BASH:=gitbash # not found
+  BASH:="C:/Program Files/Git/bin/bash.exe"
+else
+  BASH:=bash
+endif
+
 .PHONY: default html pdf latex php
 
 # html is shown on https://castle-engine.io/apidoc/html/
@@ -14,7 +32,7 @@ default: html
 # cloned and placed as a sibling to castle-engine, in ../../../cge-www/
 
 html:
-	./mk_docs.sh html
+	$(BASH) ./mk_docs.sh html
 # For quick testing of docs look (CSS etc.), you can run this instead
 #	./mk_docs.sh html base/castleutils.pas
 	rm -Rf ../reference/
@@ -32,7 +50,7 @@ pdf: latex/docs.pdf
 # Helpful targets to gen docs ----------------------------------------
 
 latex/docs.tex:
-	./mk_docs.sh latex
+	$(BASH) ./mk_docs.sh latex
 
 TEX_BATCH_OPTS := --file-line-error-style -interaction=nonstopmode
 
@@ -52,7 +70,7 @@ latex/docs.pdf: latex/docs.tex
 # Generate PHP map, copy it to cge-www repo (you should commit it there).
 .PHONY: php
 php:
-	./mk_docs.sh php
+	$(BASH) ./mk_docs.sh php
 	cp -f php/docs.php ../../../cge-www/htdocs/apidoc_map_latest.php
 
 # Cleaning ------------------------------------------------------------

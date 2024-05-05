@@ -1021,9 +1021,26 @@ begin
   Result := RotatePointAroundAxisRad(DegToRad(Angle), Point, Axis);
 end;
 
-procedure WarningZeroVectorNonZeroAngle;
+procedure WarningZeroVectorNonZeroAngle(const Axis: TVector3; const Angle: Single);
 begin
-  WritelnWarning('RotatePointAroundAxisRad called with rotation Axis = zero but non-zero rotation Angle, this is invalid');
+  WritelnWarning('RotatePointAroundAxisRad called with rotation Axis = zero (%s) but non-zero rotation Angle (%g), this is invalid', [
+    Axis.ToRawString,
+    Angle
+  ]);
+end;
+
+procedure WarningZeroVectorNonZeroAngle90(const Axis: TVector3);
+begin
+  WritelnWarning('RotatePointAroundAxis90 called with rotation Axis = zero (%s) but non-zero rotation Angle (90, implied by name), this is invalid', [
+    Axis.ToRawString
+  ]);
+end;
+
+procedure WarningZeroVectorNonZeroAngleMinus90(const Axis: TVector3);
+begin
+  WritelnWarning('RotatePointAroundAxisMinus90 called with rotation Axis = zero (%s) but non-zero rotation Angle (-90, implied by name), this is invalid', [
+    Axis.ToRawString
+  ]);
 end;
 
 function RotatePointAroundAxisRad(const Angle: Single; const Point: TVector3;
@@ -1047,7 +1064,7 @@ begin
     { In case vector has zero length (so it's just zero),
       the Angle must be zero, and we can exit early. }
     if Angle <> 0 then
-      WarningZeroVectorNonZeroAngle;
+      WarningZeroVectorNonZeroAngle(Axis, Angle);
     Exit(Point);
   end;
 
@@ -1081,7 +1098,7 @@ begin
     Z := Axis.Z * L;
   end else
   begin
-    WarningZeroVectorNonZeroAngle;
+    WarningZeroVectorNonZeroAngle90(Axis);
     Exit(Point);
   end;
 
@@ -1115,7 +1132,7 @@ begin
     Z := Axis.Z * L;
   end else
   begin
-    WarningZeroVectorNonZeroAngle;
+    WarningZeroVectorNonZeroAngleMinus90(Axis);
     Exit(Point);
   end;
 
