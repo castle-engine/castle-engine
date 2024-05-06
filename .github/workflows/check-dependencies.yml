@@ -40,7 +40,7 @@ jobs:
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: check_dependencies log
+          name: check_dependencies_log
           path: |
             test-cge-units-dependencies_all_units.txt
             cge_check_units_dependencies.log

@@ -110,15 +110,28 @@ type
     {$endif}
   );
 
+  TCastleThirdPersonNavigation = class;
+
+  TCastleThirdPersonNavigationAnimationEvent = procedure (
+    const Sender: TCastleThirdPersonNavigation;
+    const AnimationNames: array of String) of object;
+
   { 3rd-person camera navigation.
-    Create an instance of this and assign it to @link(TCastleViewport.Navigation) to use.
-    Be sure to also assign @link(Avatar) if you want to
-    automatically run proper animations on the avatar (alternatively,
-    you can leave @link(Avatar) as @nil and override the @link(SetAnimation) method).
+
+    Create an instance of this and put as TCastleViewport child to use.
+
+    Assign @link(Avatar) to automatically run proper animations on the avatar
+    defined as a single TCastleScene.
+    Alternatively, assign @link(AvatarHierarchy), and leave @link(Avatar) as @nil,
+    and assign the @link(OnAnimation) event to do whatever is necessary
+    to visualize proper animation of the avatar -- this makes sense esp.
+    if your avatar is composed from multiple TCastleScene instances.
     You have to assign at least one of @link(Avatar) or @link(AvatarHierarchy),
     otherwise this navigation doesn't affect anything.
-    (you only need to assign one of them for the navigation component to do the work).
-    Call @link(Init) once the parameters that determine initial camera location are all set.
+    and you only need to assign one of them for the navigation component to do the work.
+
+    Call @link(Init) once the parameters that determine initial camera location
+    are all set.
 
     Turn on @link(TCastleMouseLookNavigation.MouseLook MouseLook) to allow user to move
     the mouse to orbit with the camera around the avatar.
@@ -184,6 +197,7 @@ type
     WarningDonePhysicsNotNecessary,
       WarningDoneRigidBodyNecessary,
       WarningDoneColliderNecessary: Boolean;
+    FOnAnimation: TCastleThirdPersonNavigationAnimationEvent;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
@@ -250,8 +264,9 @@ type
       in case some animations are not available in the scene.
       This is checked using @link(TCastleSceneCore.HasAnimation Avatar.HasAnimation).
 
-      This method is virtual so you can override it in descendants to apply
-      the animation in any way, e.g. to a hierarchy of scenes composed from MD3
+      To apply animations in custom way, either override this method,
+      or assign event to @link(OnAnimation).
+      E.g. you can animate a hierarchy of scenes composed from MD3
       pieces. When overriding this, you don't need to call @code(inherited).
       If you override this to apply the animation to something else than @link(Avatar),
       then it may even be reasonable to leave @link(Avatar) as @nil,
@@ -543,6 +558,36 @@ type
     }
     property ChangeTransformation: TChangeTransformation read FChangeTransformation write FChangeTransformation
       default ctAuto;
+
+    { Update the animation displayed by the current avatar.
+
+      See @link(SetAnimation) for details.
+
+      Assigning event to this makes sense if your avatar is composed from
+      multiple TCastleScene instances.
+      This may be called very often, to update animation every frame,
+      so do call @code(SubScene.PlayAnimation) from here.
+      Rather, set @code(SubScene.AutoAnimation) to not restart the animation
+      if it's already running. For example:
+
+      @longCode(#
+      procedure TViewMain.NavigationSetAnimation(const Sender: TCastleThirdPersonNavigation;
+        const AnimationNames: array of String);
+      begin
+        if AnimationNames[0] = 'idle' then
+        begin
+          SceneLegs.AutoAnimation := 'legs_idle';
+          SceneTorso.AutoAnimation := 'torso_idle';
+        end else
+        begin
+          SceneLegs.AutoAnimation := 'legs_walk';
+          SceneTorso.AutoAnimation := 'torso_walk';
+        end'
+      end;
+      #)
+    }
+    property OnAnimation: TCastleThirdPersonNavigationAnimationEvent
+      read FOnAnimation write FOnAnimation;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc}
@@ -940,6 +985,9 @@ begin
         WritelnWarning('Further warnings about avatar animations will not be done, to not flood the log, until you assign new Avatar value');
     end;
   end;
+
+  if Assigned(OnAnimation) then
+    OnAnimation(Self, AnimationNames)
 end;
 
 procedure TCastleThirdPersonNavigation.Update(const SecondsPassed: Single;
