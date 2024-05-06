@@ -99,7 +99,8 @@ uses
   TestCastleWindow,
   TestCastleOpeningAndRendering3D,
   TestCastleWindowOpen,
-  TestCastleInternalEgl;
+  TestCastleInternalEgl,
+  TestCastleInternalTools;
 
 var
   ConsoleTester: TCastleConsoleTester;
