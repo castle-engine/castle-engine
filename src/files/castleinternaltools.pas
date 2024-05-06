@@ -516,7 +516,7 @@ begin
       CopyProcess.ProjectDirUrl := ProjectDirUrl;
       CopyProcess.Macros := Macros;
       CopyProcess.MainView := Options.MainView;
-      FindFiles(TemplateUrl, '*', true, @CopyProcess.FoundFile, [ffRecursive]);
+      FindFiles(TemplateUrl, '*', true, {$ifdef FPC}@{$endif} CopyProcess.FoundFile, [ffRecursive]);
     finally FreeAndNil(CopyProcess) end;
   finally FreeAndNil(Macros) end;
 end;
