@@ -2241,16 +2241,6 @@ begin
       'uniform float ring_thickness;' + NL +
       'uniform int brush_size;' + NL +
       ' ' + NL +
-      'mat2 rotation2d(float radAngle) {' + NL +
-      '  float s = sin(radAngle);' + NL +
-      '  float c = cos(radAngle);' + NL +
-      '  return mat2(c, -s, s, c);' + NL +
-      '}' + NL +
-      ' ' + NL +
-      'float map(float value, float min1, float max1, float min2, float max2) {'  + NL +
-      '  return min2 + (value - min1) * (max2 - min2) / (max1 - min1);'  + NL +
-      '} ' + NL +
-      ' ' + NL +
       'void main(void)' + NL +
       '{' + NL +
       '  switch (brush_shape) {' + NL +
@@ -2269,20 +2259,12 @@ begin
       '      return;  ' + NL +
       '    } ' + NL +
       '    vec2 pixelCoord = (tex_coord_frag * vec2(brush_size, brush_size));'  + NL +
-//      '    vec2 pixelCoord = rotation2d(3.1415 / 4.) * tex_coord_frag * vec2(brush_size, brush_size);'  + NL +
-      //'    vec2 pixelCoord = vec2(brush_size, brush_size) * tex_coord_frag;'  + NL +
       '    vec2 center = vec2(brush_size / 2, brush_size / 2);' + NL +
       '    float distance_x = abs((pixelCoord.x  + pixelCoord.y) - (center.x + center.y));' + NL +
-      '    //float distance_x = abs(pixelCoord.x - center.x);' + NL +
-      '    float distance_y = abs(pixelCoord.y - center.y);' + NL +
       '    vec4 col = vec4(vec3(max_terrain_height), strength * (1 - distance_x/(center.x/2)));' + NL +
-      //'    vec4 col = vec4(0);' + NL +
-      '     distance_x = abs((pixelCoord.x  - pixelCoord.y) - (center.x - center.y));' + NL +
-      '     col += vec4(vec3(max_terrain_height), strength * (1 - distance_x/(center.x/2)));' + NL +
+      '    distance_x = abs((pixelCoord.x  - pixelCoord.y) - (center.x - center.y));' + NL +
+      '    col += vec4(vec3(max_terrain_height), strength * (1 - distance_x/(center.x/2)));' + NL +
       '    gl_FragColor = col;' + NL +
-      '    //gl_FragColor = vec4(vec3(max_terrain_height), strength * (1 - distance_x/(center.x/2)));' + NL +
-      '    //gl_FragColor = vec4(vec3(max_terrain_height), ((strength / 2 ) * (1 - distance_x/center.x*3)) + ((strength / 2 ) * (1 - distance_y/center.y*3)) );' + NL +
-      '    //float distance = length(pixelCoord - center);'  + NL +
       '    break;'  + NL +
       '  }' + NL +
       '  case 4: {' + NL + // cbtCircle - circle with alpha based on strength
