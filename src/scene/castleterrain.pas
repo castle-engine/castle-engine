@@ -98,8 +98,8 @@ type
     ctbPyramid = 3, // square texture with alpha based on distance from center and strength
     ctbCircle = 4, // circle texture with alpha using strength
     ctbCone = 5, // circle with alpha based on distance from center and strength
-    ctbRing = 6 // volcano like brush?
-
+    ctbRing = 6, // volcano like brush?
+    ctbLyingCylinder = 7 // horizontal cylinder
   );
 
   { Terrain (height map) data that can be used for @link(TCastleTerrain.Data). }
@@ -2329,6 +2329,17 @@ begin
       '     } else ' + NL +
       '       gl_FragColor = vec4(0.0);' + NL +
       '    break;' + NL +
+      '  }' + NL +
+      '  case 7: {' + NL + // cbtLyingCilinder -
+      '    if (brush_size < 2) {' + NL +
+      '      gl_FragColor = vec4(vec3(max_terrain_height), strength);' + NL +
+      '      return;  ' + NL +
+      '    } ' + NL +
+      '    vec2 pixelCoord = (tex_coord_frag * vec2(brush_size, brush_size));'  + NL +
+      '    vec2 center = vec2(brush_size / 2, brush_size / 2);' + NL +
+      '    float distance_x = abs(pixelCoord.x - center.x);' + NL +
+      '    gl_FragColor = vec4(vec3(max_terrain_height), strength * (1 - distance_x/(center.x/2)));' + NL +
+      '    break;'  + NL +
       '  }' + NL +
       '  } //switch end' + NL +
       '} // main end'
