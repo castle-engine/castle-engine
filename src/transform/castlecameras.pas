@@ -365,6 +365,7 @@ type
       FPinchGestureRecognizer: TCastlePinchPanGestureRecognizer;
       FCenterOfRotation: TVector3;
       FAutoCenterOfRotation: Boolean;
+      FZoomSpeed: Single;
 
       FInputs_Move: T3BoolInputs;
       FInputs_Rotate: T3BoolInputs;
@@ -414,10 +415,13 @@ type
     procedure SetMouseButtonMove(const Value: TCastleMouseButton);
     function GetMouseButtonZoom: TCastleMouseButton;
     procedure SetMouseButtonZoom(const Value: TCastleMouseButton);
+  protected
+    function Zoom(const Factor: Single): Boolean; override;
   public
     const
       DefaultRotationAccelerationSpeed = 5.0;
       DefaultRotationSpeed = 2.0;
+      DefaultZoomSpeed = 1.0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -460,12 +464,6 @@ type
 
     { Continuous rotation animation, applied each Update to Rotations. }
     property RotationsAnim: TVector3 read FRotationsAnim write SetRotationsAnim;
-
-    { How fast user moves the scene by mouse/touch dragging. }
-    property DragMoveSpeed: Single read FDragMoveSpeed write FDragMoveSpeed {$ifdef FPC}default 1.0{$endif};
-
-    { How fast user moves the scene by pressing keys. }
-    property KeysMoveSpeed: Single read FKeysMoveSpeed write FKeysMoveSpeed {$ifdef FPC}default 1.0{$endif};
 
     {$ifdef FPC}
     property MoveAmount: TVector3 read GetTranslation write SetTranslation;
@@ -549,22 +547,10 @@ type
       read GetMouseNavigation write SetMouseNavigation default true; deprecated;
     {$endif}
 
-    { Speed to change the rotation acceleration,
-      used when RotationAccelerate = @true. }
-    property RotationAccelerationSpeed: Single
-      read FRotationAccelerationSpeed
-      write FRotationAccelerationSpeed
-      {$ifdef FPC}default DefaultRotationAccelerationSpeed{$endif};
-
-    { Speed to change the rotation, used when RotationAccelerate = @false. }
-    property RotationSpeed: Single
-      read FRotationSpeed
-      write FRotationSpeed
-      {$ifdef FPC}default DefaultRotationSpeed{$endif};
-
     { 3D point around which we rotate, in world coordinates.
       This is used only when AutoCenterOfRotation = @false. }
     property CenterOfRotation: TVector3 read FCenterOfRotation write FCenterOfRotation;
+
   published
     { Enable rotating the camera around the model by user input.
       When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
@@ -596,6 +582,31 @@ type
     { Should we calculate center of rotation automatically (based on world bounding box)
       or use explicit @link(CenterOfRotation). }
     property AutoCenterOfRotation: Boolean read FAutoCenterOfRotation write FAutoCenterOfRotation default true;
+
+    { How fast user moves the scene by mouse/touch dragging. }
+    property DragMoveSpeed: Single read FDragMoveSpeed write FDragMoveSpeed {$ifdef FPC}default 1.0{$endif};
+
+    { How fast user moves the scene by pressing keys. }
+    property KeysMoveSpeed: Single read FKeysMoveSpeed write FKeysMoveSpeed {$ifdef FPC}default 1.0{$endif};
+
+    { Speed to change the rotation acceleration,
+      used when RotationAccelerate = @true. }
+    property RotationAccelerationSpeed: Single
+      read FRotationAccelerationSpeed
+      write FRotationAccelerationSpeed
+      {$ifdef FPC}default DefaultRotationAccelerationSpeed{$endif};
+
+    { Speed to change the rotation, used when RotationAccelerate = @false. }
+    property RotationSpeed: Single
+      read FRotationSpeed
+      write FRotationSpeed
+      {$ifdef FPC}default DefaultRotationSpeed{$endif};
+
+    { Speed to change the Zoom, when ZoomEnabled = @true. }
+    property ZoomSpeed: Single
+      read FZoomSpeed
+      write FZoomSpeed
+      {$ifdef FPC}default DefaultZoomSpeed{$endif};
   end;
 
   { Navigation most suitable for 2D viewports
@@ -1893,6 +1904,7 @@ begin
   FPinchGestureRecognizer.OnGestureChanged := {$ifdef FPC}@{$endif}OnGestureRecognized;
   FExactMovement := true;
   FAutoCenterOfRotation := true;
+  FZoomSpeed := DefaultZoomSpeed;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -2060,6 +2072,11 @@ begin
   );
 end;
 
+function TCastleExamineNavigation.Zoom(const Factor: Single): Boolean;
+begin
+  Result := inherited Zoom(Factor * ZoomSpeed);
+end;
+
 procedure TCastleExamineNavigation.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 var
@@ -2100,7 +2117,7 @@ begin
 
   if RotationEnabled and (not FRotationsAnim.IsPerfectlyZero) then
   begin
-    RotChange := SecondsPassed;
+    RotChange := SecondsPassed * RotationSpeed;
 
     if FRotationsAnim[0] <> 0 then
       V.Rotations := QuatFromAxisAngle(TVector3.One[0],
@@ -2246,7 +2263,7 @@ begin
   Result := true;
 
   Moved := false;
-  RotationSize := SecondsPassed * Angle;
+  RotationSize := SecondsPassed * Angle * RotationSpeed;
   V := ExamineVectors;
 
   if Abs(X) > 0.4 then      { tilt forward / backward}
@@ -2428,14 +2445,14 @@ var
     if (not ContainerSizeKnown) then
     {$warnings on}
     begin
-      V.Rotations := XYRotation(1);
+      V.Rotations := XYRotation(RotationSpeed);
     end else
     if Turntable then
     begin
       //Result := XYRotation(0.5); // this matches the rotation speed of ntExamine
       { Do one turn around Y axis by dragging from one viewport side to another
         (so it does not depend on viewport size)  }
-      V.Rotations := XYRotation(2 * Pi * MoveDivConst / Container.PixelsWidth);
+      V.Rotations := XYRotation(2 * Pi * MoveDivConst / Container.PixelsWidth * RotationSpeed);
     end else
     begin
       { When the cursor is close to the window edge, make rotation around Z axis.
@@ -2462,7 +2479,7 @@ var
       ZRotRatio := Min(1.0, Sqrt(Sqr((AvgX - W2) / W2) + Sqr((AvgY - H2) / H2)));
       V.Rotations :=
         QuatFromAxisAngle(Vector3(0, 0, -1), ZRotRatio * ZRotAngle) *
-        XYRotation(1 - ZRotRatio);
+        XYRotation((1 - ZRotRatio) * RotationSpeed);
     end;
 
     ExamineVectors := V;
