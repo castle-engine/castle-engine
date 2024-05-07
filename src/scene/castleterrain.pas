@@ -2673,6 +2673,9 @@ begin
   if FMode <> ctmShader then
     Exit;
 
+  if FShaderHeightTexture1 = nil or FShaderHeightTexture2 = nil then
+    Exit;
+
   CurrentShaderTextureNode := TImageTextureNode(FEffectTextureHeightField.Value);
   SrcWidth := CurrentShaderTextureNode.TextureImage.Width;
   SrcHeight := CurrentShaderTextureNode.TextureImage.Height;
