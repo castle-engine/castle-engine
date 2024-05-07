@@ -1,6 +1,6 @@
 {%MainUnit castleimages.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -71,9 +71,7 @@ type
       However, you can also load/convert such image format
       to normal 8-bits image formats (like TRGBImage),
       if you're Ok with losing some of the precision. }
-    ifRGBE,
-
-    ifIPL
+    ifRGBE
 
     {$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
     ,
@@ -142,9 +140,6 @@ function LoadPCX(const Stream: TStream;
 
 { Load PNM image (PNM, PGM, PBM, PPM). }
 function LoadPNM(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
-
-function LoadIPL(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Load RGBE image. }
@@ -549,15 +544,6 @@ const
       ExtsCount: 3; Exts: ('rgbe', 'pic', 'hdr', '');
       Load: {$ifdef FPC}@{$endif}LoadRGBE;
       Save: {$ifdef FPC}@{$endif}SaveRGBE; SavedClasses: scRGB_RGBFloat;
-      DetectClass: nil;
-    ),
-    ( FormatName: 'IPLab image';
-      MimeTypesCount: 1;
-      { IPL MIME type invented by Michalis, to make it unique to communicate image format for LoadImage } { }
-      MimeTypes: ('image/x-ipl', '', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('ipl', '', '', '');
-      Load: {$ifdef FPC}@{$endif}LoadIPL;
-      Save: nil; SavedClasses: scRGB;
       DetectClass: nil;
     )
 

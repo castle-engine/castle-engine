@@ -2085,7 +2085,6 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
 {$I castleimages_loading_saving_func.inc}
 {$I castleimages_vcl_imaging.inc}
 {$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
-{$I castleimages_ipl.inc}
 {$I castleimages_composite.inc}
 {$I castleimages_assign.inc}
 
