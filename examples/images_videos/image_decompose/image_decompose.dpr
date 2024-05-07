@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Read DDS and decompose multiple images into a number of simple images.
+{ Read KTX or DDS and decompose multiple images into a number of simple images.
   See README.md for details. }
-program dds_decompose;
+program image_decompose;
 
 uses SysUtils, CastleUtils, CastleImages, CastleInternalCompositeImage, CastleLog,
   CastleStringUtils, CastleParameters, CastleUriUtils, CastleApplicationProperties;
@@ -49,7 +49,7 @@ begin
   try
     Composite.LoadFromFile(Parameters[1]);
     Composite.Flatten3d;
-    Writeln('Composite (DDS, KTX...) loaded:', nl,
+    Writeln('Composite image loaded:', nl,
       '  Width x Height x Depth: ', Composite.Width, ' x ', Composite.Height, ' x ', Composite.Depth, nl,
       '  Type: ', CompositeTypeToString[Composite.CompositeType], nl,
       '  Mipmaps: ', Composite.Mipmaps, nl,

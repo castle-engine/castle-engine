@@ -1,16 +1,17 @@
-# Read DDS and decompose multiple images
+# Read KTX or DDS and decompose multiple images
 
-Read DDS and decompose multiple images into a number of simple images.
-Reads DDS file $1, outputs some information about it,
-and (if not --no-save) saves a sequence of PNG files xxx-yyy.png
-(where xxx comes
-from the basename of $1, and yyy is the consecutive number from 0,
-and the files are saved in $1 directory).
+Read KTX or DDS and decompose into a number of simple images (PNG).
+
+- Reads file given as a command-line argument,
+- outputs some information about it,
+- and saves a sequence of PNG files `xxx-yyy.png` where `xxx` comes from the basename of $1, and `yyy` is the consecutive number from 0.
+
+The PNG files are saved in the same directory as input KTX / DDS. Use `--no-save` option to not save files (it then only outputs information).
 
 Try
 
 ```
-./dds_decompose data/marble_with_colored_mipmaps.dds
+./image_decompose data/marble_with_colored_mipmaps.dds
 ```
 
 Using [Castle Game Engine](https://castle-engine.io/).

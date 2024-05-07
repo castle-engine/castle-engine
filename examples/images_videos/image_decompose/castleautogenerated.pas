@@ -21,8 +21,8 @@ implementation
 uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
-  ApplicationProperties.ApplicationName := 'dds_decompose';
-  ApplicationProperties.Caption := 'dds_decompose';
+  ApplicationProperties.ApplicationName := 'image_decompose';
+  ApplicationProperties.Caption := 'image_decompose';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then
