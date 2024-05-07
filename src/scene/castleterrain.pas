@@ -610,7 +610,6 @@ type
     FEffectTextureHeightField: TSFNode;
     FShaderHeightTexture1: TImageTextureNode;
     FShaderHeightTexture2: TImageTextureNode;
-    FShaderHeightTexture3: TImageTextureNode;
     FEditModeSourceViewport: TCastleViewport;
     FEditModeHeightTextureScene: TCastleScene;
     FEditModeApperance: TAppearanceNode;
@@ -2038,12 +2037,9 @@ procedure TCastleTerrain.UpdateGeometry;
         FShaderHeightTexture1.KeepExistingBegin;
         FShaderHeightTexture2 := TImageTextureNode.Create;
         FShaderHeightTexture2.KeepExistingBegin;
-        FShaderHeightTexture3 := TImageTextureNode.Create;
-        FShaderHeightTexture3.KeepExistingBegin;
         WritelnLog(DataTerrainImage.Url);
         FShaderHeightTexture1.SetUrl([DataTerrainImage.Url]);
         FShaderHeightTexture2.SetUrl(['/home/and3md/fpc/testy/cge/teren1/data/teren2.png']);
-        FShaderHeightTexture3.SetUrl(['/home/and3md/fpc/testy/cge/teren1/data/teren2.png']);
         FEffectTextureHeightField := TSFNode.Create(Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture1);
         Effect.AddCustomField(FEffectTextureHeightField);
       end;
@@ -2582,8 +2578,6 @@ begin
       FreeAndNil(Image);
     end;}
 
-    //PrepareEditModeViewport(FShaderHeightTexture1);
-    //PrepareEditModeViewport(FShaderHeightTexture3);
     PrepareEditModeViewport(SourceTexture);
     PreviousTextureId := ShareOpenGLTextureToEditModeViewport(SourceTexture);
     try
