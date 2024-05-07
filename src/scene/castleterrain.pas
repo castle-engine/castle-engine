@@ -639,7 +639,7 @@ type
 
     procedure PrepareEditModeBrushShader(const Brush: TDrawableImage;
       const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
-      const Strength, BrushMaxHeight: Byte);
+      const Strength, BrushMaxHeight: Byte; const RingThickness: Single);
 
     procedure SetData(const Value: TCastleTerrainData);
     procedure SetTriangulate(const Value: Boolean);
@@ -728,7 +728,8 @@ type
       may result in lowering the higher terrain. }
     procedure RaiseTerrainShader(const Coord: TVector3;
       const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
-      const Strength: Byte; const BrushMaxHeight: Byte = 255);
+      const Strength: Byte; const BrushMaxHeight: Byte = 255;
+      const RingThickness: Single = 1.0);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
 
     property Mode: TCastleTerrainMode read FMode write FMode;
@@ -2214,7 +2215,8 @@ begin
 end;
 
 procedure TCastleTerrain.PrepareEditModeBrushShader(const Brush: TDrawableImage;
-  const BrushShape: TCastleTerrainBrush; const BrushSize: Integer; const Strength, BrushMaxHeight: Byte);
+  const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
+  const Strength, BrushMaxHeight: Byte; const RingThickness: Single);
 begin
   if FEditModeBrushShader = nil then
   begin
@@ -2332,7 +2334,7 @@ begin
   FEditModeBrushShader.Uniform('strength').SetValue(Strength / 255);
   FEditModeBrushShader.Uniform('max_terrain_height').SetValue(BrushMaxHeight / 255);
   FEditModeBrushShader.Uniform('brush_size').SetValue(BrushSize);
-  FEditModeBrushShader.Uniform('ring_thickness').SetValue(1.0);
+  FEditModeBrushShader.Uniform('ring_thickness').SetValue(RingThickness);
 
   Brush.CustomShader := FEditModeBrushShader;
 end;
@@ -2508,7 +2510,7 @@ end;
 
 procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
   const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
-  const Strength: Byte; const BrushMaxHeight: Byte);
+  const Strength: Byte; const BrushMaxHeight: Byte; const RingThickness: Single);
 var
   RenderToTexture: TGLRenderToTexture;
   Source: TDrawableImage;
@@ -2600,7 +2602,7 @@ begin
     Brush := TDrawableImage.Create(Image, false, true);
     try
     PrepareEditModeBrushShader(Brush, BrushShape,
-      BrushSize, Strength, BrushMaxHeight);
+      BrushSize, Strength, BrushMaxHeight, RingThickness);
 
     // map to 0 - 1 range of texture.
     LocalCoord := OutsideToLocal(Coord);
