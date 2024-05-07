@@ -728,7 +728,7 @@ type
       may result in lowering the higher terrain. }
     procedure RaiseTerrainShader(const Coord: TVector3;
       const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
-      const Strength: Byte; const BrushMaxHeight: Byte = 255;
+      const Strength: Byte; const BrushRotation: Single = 0; const BrushMaxHeight: Byte = 255;
       const RingBrushThickness: Single = 1.0);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
 
@@ -2510,7 +2510,8 @@ end;
 
 procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
   const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
-  const Strength: Byte; const BrushMaxHeight: Byte; const RingBrushThickness: Single);
+  const Strength: Byte; const BrushRotation: Single;
+  const BrushMaxHeight: Byte; const RingBrushThickness: Single);
 var
   RenderToTexture: TGLRenderToTexture;
   Source: TDrawableImage;
@@ -2604,6 +2605,7 @@ begin
     PrepareEditModeBrushShader(Brush, BrushShape,
       BrushSize, Strength, BrushMaxHeight, RingBrushThickness);
 
+    Brush.Rotation := BrushRotation;
     // map to 0 - 1 range of texture.
     LocalCoord := OutsideToLocal(Coord);
     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
