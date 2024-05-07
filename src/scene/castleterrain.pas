@@ -616,6 +616,7 @@ type
     FTempContainer: TCastleContainer;
     FEditModeBrush: TDrawableImage;
     FEditModeBrushShader: TGLSLProgram;
+    FEditModeHeightMapSize: TVector2Integer;
 
     function GetRenderOptions: TCastleRenderOptions;
     function GetLayer(const Index: Integer): TCastleTerrainLayer;
@@ -650,6 +651,7 @@ type
     procedure SetLayersInfluence(const Value: Single);
     procedure SetSteepEmphasize(const Value: Single);
     procedure SetPreciseCollisions(const Value: Boolean);
+
   private
     Scene: TCastleScene;
     UvScaleField, MetallicField, RoughnessField: TSFVec4f;
@@ -730,6 +732,9 @@ type
       const Strength: Byte; const BrushRotation: Single = 0; const BrushMaxHeight: Byte = 255;
       const RingBrushThickness: Single = 1.0);
     procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
+
+    procedure SetEditModeHeightMapSize(const NewSize: TVector2Integer);
+    function GetEditModeHeightMapSize: TVector2Integer;
 
     property Mode: TCastleTerrainMode read FMode write FMode;
   published
@@ -2650,6 +2655,45 @@ begin
      WritelnLog('TexCoord: ' + TexCoord.ToString);
      TerrainImage.LowerHeight(TexCoord, Value);
   end;
+end;
+
+procedure TCastleTerrain.SetEditModeHeightMapSize(const NewSize: TVector2Integer
+  );
+var
+  SrcImage: TCastleImage;
+  Image: TRGBAlphaImage;
+  CurrentShaderTextureNode: TImageTextureNode;
+  SrcWidth, SrcHeight : Integer;
+begin
+  if FEditModeHeightMapSize.Equals(FEditModeHeightMapSize, NewSize) then
+    Exit;
+
+  FEditModeHeightMapSize := NewSize;
+
+  if FMode <> ctmShader then
+    Exit;
+
+  CurrentShaderTextureNode := TImageTextureNode(FEffectTextureHeightField.Value);
+  SrcWidth := CurrentShaderTextureNode.TextureImage.Width;
+  SrcHeight := CurrentShaderTextureNode.TextureImage.Height;
+
+  SrcImage := TRGBAlphaImage.Create(SrcWidth, SrcHeight);
+  try
+    SaveTextureContents(SrcImage, TImageTextureResource(CurrentShaderTextureNode.InternalRendererResource).GLName);
+
+    Image := TRGBAlphaImage.Create(NewSize.X, NewSize.Y);
+    Image.DrawFrom(SrcImage, 0, 0, 0, 0, Min(SrcWidth, NewSize.X), Min(SrcHeight, NewSize.Y));
+
+    FShaderHeightTexture1.LoadFromImage(Image.CreateCopy, true, '');
+    FShaderHeightTexture2.LoadFromImage(Image, true, '');
+  finally
+    FreeAndNil(SrcImage);
+  end;
+end;
+
+function TCastleTerrain.GetEditModeHeightMapSize: TVector2Integer;
+begin
+  Result := FEditModeHeightMapSize;
 end;
 
 {$define read_implementation_methods}
