@@ -11,7 +11,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="dds_decompose"/>
+      <Title Value="image_decompose"/>
     </General>
     <RequiredPackages Count="2">
       <Item1>
@@ -23,7 +23,7 @@
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
-        <Filename Value="dds_decompose.dpr"/>
+        <Filename Value="image_decompose.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
@@ -36,7 +36,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="dds_decompose"/>
+      <Filename Value="image_decompose"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value=""/>

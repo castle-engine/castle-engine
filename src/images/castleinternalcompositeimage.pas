@@ -84,8 +84,7 @@ type
         which means that one axis seems reverted when you want OpenGL right-handed
         coord system (like
         OpenGL, see http://opengl.org/registry/specs/ARB/texture_cube_map.txt).
-        See [https://castle-engine.io/x3d_implementation_status.php#section_dds]
-        for more. }
+        See https://castle-engine.io/dds for more. }
       TDDSCubeMapSide = (
         dcsPositiveX,
         dcsNegativeX,

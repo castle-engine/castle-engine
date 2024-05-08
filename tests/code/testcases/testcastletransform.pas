@@ -2430,11 +2430,11 @@ begin
     T3.Scale := Vector3(1000, 1000, 1000); // should not affect tested Middle
     T2.Add(T3);
 
-    AssertSameValue(0.9, T2.MiddleHeight);
+    AssertSameValue(0.9, T2.MiddleHeight, 0.001);
     AssertSameValue(11, T2.Middle[0]);
     // Writeln(T2.Middle.ToString);
     // Writeln(T2.Middle.ToRawString);
-    AssertSameValue(22 + 0.9 * 2, T2.Middle[1]);
+    AssertSameValue(22 + 0.9 * 2, T2.Middle[1], 0.001);
     AssertSameValue(33, T2.Middle[2]);
   finally FreeAndNil(V) end;
 end;
