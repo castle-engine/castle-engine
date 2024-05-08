@@ -116,7 +116,7 @@ type
     const Sender: TCastleThirdPersonNavigation;
     const AnimationNames: array of String) of object;
 
-  { 3rd-person camera navigation.
+  (* 3rd-person (with visible avatar) navigation.
 
     Create an instance of this and put as TCastleViewport child to use.
 
@@ -145,9 +145,71 @@ type
 
     Using the mouse wheel you can get closer / further to the avatar.
 
+    The implementation relies on the @link(TCastleTransform.Direction)
+    and @link(TCastleTransform.Up) vectors being useful, i.e. they should
+    point in the direction of the avatar and up.
+    This works out-of-the-box if your model orientation follows glTF standard,
+    up in +Y and direction in +Z (see DefaultOrientation, otUpYDirectionZ).
+    Customize @link(TCastleTransform.Orientation) to make these vectors
+    work if your avatar has non-standard orientation.
+
+    The navigation will honor @url(https://castle-engine.io/physics physics)
+    if you have configured rigid body and collider components on the avatar.
+    Otherwise, we use "old simple physics" documented on
+    https://castle-engine.io/physics#_old_system_for_collisions_and_gravity .
+    Right now, the "old simple physics" may be actually simpler to control.
+    To make them work:
+
+    @unorderedList(
+      @item(Do not attach TCastleRigidBody and TCastleCollider to the avatar.)
+      @item(Set @link(TCastleScene.PreciseCollisions) to @true on level scenes.)
+      @item(Set @link(MiddleHeight) and @link(CollisionSphereRadius) to indicate
+        sphere around the avatar to resolve collisions.
+        Use @link(TDebugTransform) to visualize this.)
+      @item(SeT @link(GrowSpeed) and @link(FallSpeed) to allow avatar
+        to fall down and climb stairs / hills.)
+    )
+
+    This is an example @code(Start) view method implementation
+    to setup the navigation:
+
+    @longCode(#
+    procedure TViewMain.Start;
+    var
+      DebugAvatar: TDebugTransform;
+    begin
+      inherited;
+
+      { Uncomment and adjust if your avatar has different direction / up
+        than standard in glTF.
+        This is critical to make camera orbiting around and movement of avatar
+        to follow proper direction and up. }
+      // AvatarTransform.Orientation := ot...;
+
+      ThirdPersonNavigation.MouseLook := true;
+
+      { Configure parameters to move nicely using old simple physics,
+        see examples/third_person_navigation for comments.
+        Use these if you decide to move using "direct" method
+        (when AvatarTransform.ChangeTransform = ctDirect,
+        or when AvatarTransform.ChangeTransform = ctAuto and
+        AvatarTransform has no rigid body and collider). }
+      AvatarTransform.MiddleHeight := 0.9;
+      AvatarTransform.CollisionSphereRadius := 0.5;
+      AvatarTransform.GrowSpeed := 10.0;
+      AvatarTransform.FallSpeed := 10.0;
+
+      ThirdPersonNavigation.Init;
+
+      DebugAvatar := TDebugTransform.Create(FreeAtStop);
+      DebugAvatar.Parent := AvatarTransform;
+      DebugAvatar.Exists := true;
+    end;
+    #)
+
     See also the news post with demo movie about this component:
     https://castle-engine.io/wp/2020/06/29/third-person-navigation-with-avatar-component-in-castle-game-engine/
-  }
+  *)
   TCastleThirdPersonNavigation = class(TCastleMouseLookNavigation)
   strict private
     FAvatar: TCastleScene;
