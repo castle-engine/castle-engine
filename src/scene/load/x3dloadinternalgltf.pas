@@ -2892,9 +2892,9 @@ begin
       FixAppearances;
 
       // read animations
-      // for Animation in Document.Animations do
-      //   ReadAnimation(Animation, Result);
-      // ReadSkins(Result);
+      for Animation in Document.Animations do
+        ReadAnimation(Animation, Result);
+      ReadSkins(Result);
       DoExportNodes;
     finally
       FreeAndNil(JointMatrix);
