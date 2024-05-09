@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -274,7 +274,7 @@ begin
     Inc(Buffer);
     while
       (I <= SourceSize) and
-      (PByte(PtrUInt(Buffer + 1))^ = ChunkByte) and
+      (Buffer^ = ChunkByte) and
       (ChunkSize < MaxChunkLength) do
     begin
       Inc(I);
