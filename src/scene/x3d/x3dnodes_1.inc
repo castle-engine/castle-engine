@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -217,11 +217,12 @@
         procedure SetDiffuseColor(const Value: TVector3); override;
         function GetSpecularColor: TVector3; override;
         procedure SetSpecularColor(const Value: TVector3); override;
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TMaterialNode_1; const Index: Integer);
 
         function AmbientColor: TVector3; override;
-        function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
         function Transparency: Single; override;
@@ -848,7 +849,7 @@ begin
   FNode.FdSpecularColor.Send([Value]);
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.EmissiveColor: TVector3;
+function TMaterialNode_1.TMaterialInfo_1.GetEmissiveColor: TVector3;
 var
   A: TVector3List;
 begin
@@ -857,6 +858,11 @@ begin
     Result := TPhongMaterialInfo.DefaultEmissiveColor
   else
     Result := A.L[Min(FIndex, A.Count - 1)];
+end;
+
+procedure TMaterialNode_1.TMaterialInfo_1.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.FdEmissiveColor.Send([Value]);
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.Shininess: Single;
