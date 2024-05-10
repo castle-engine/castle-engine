@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2022-2023 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
+  Copyright 2022-2024 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -210,7 +210,7 @@ type
     procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D;
       const Epsilon: Double; AddrOfError: Pointer = nil); overload;
 
-    procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage;
+    procedure AssertImagesEqual(const Expected, Actual: TCastleImage;
       AddrOfError: Pointer = nil);
 
     procedure AssertRectsEqual(const Expected, Actual: TRectangle;
@@ -403,19 +403,52 @@ type
 
 procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
 
+{ Like CompareMem, but slower,
+  and when the memory is different, log the difference:
+  position and the 2 different bytes.
+
+  Note: Size and I are Integer, not Int64.
+  This is good enough for current purposes, and it's easier for implementation
+  (iterating with In64 doesn't compile with FPC 3.2.2 on Linux/Arm (32-bit)
+  now (Raspberry Pi).) }
+function CompareMemDebug(const P1, P2: Pointer; const Size: Integer): Boolean;
+
 implementation
 
 uses TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} StrUtils,
   CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters;
 
+{ routines ------------------------------------------------------------------- }
+
 var
   FRegisteredTestCaseList: {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>;
-
 
 procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
 begin
   FRegisteredTestCaseList.Add(CastleTestCaseClass);
 end;
+
+function CompareMemDebug(const P1, P2: Pointer; const Size: Integer): Boolean;
+var
+  I: Integer;
+  P1B, P2B: PByte;
+begin
+  Result := true;
+  P1B := P1;
+  P2B := P2;
+  for I := 0 to Size - 1 do
+  begin
+    if P1B^ <> P2B^ then
+    begin
+      WritelnLog('Difference at %d: %d <> %d', [I, P1B^, P2B^]);
+      Exit(false);
+    end;
+    Inc(P1B);
+    Inc(P2B);
+  end;
+end;
+
+{ TCastleTester -------------------------------------------------------------- }
 
 procedure TCastleTester.AddRegisteredTestCases;
 var
@@ -821,27 +854,19 @@ begin
   AssertFrustumEquals(Expected, Actual, SingleEpsilon, AddrOfError);
 end;
 
-procedure TCastleTestCase.AssertImagesEqual(const Expected,
-  Actual: TRGBAlphaImage; AddrOfError: Pointer);
-var
-  ExpectedPtr, ActualPtr: PVector4Byte;
-  I: Integer;
+procedure TCastleTestCase.AssertImagesEqual(
+  const Expected, Actual: TCastleImage; AddrOfError: Pointer);
 begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  // Overloaded version with AErrorAddrs is missing for fpcunit AssertEquals
-  AssertEquals(Expected.Width, Actual.Width{, AErrorAddrs});
-  AssertEquals(Expected.Height, Actual.Height{, AErrorAddrs});
-  AssertEquals(Expected.Depth, Actual.Depth{, AErrorAddrs});
-  ExpectedPtr := Expected.Pixels;
-  ActualPtr := Actual.Pixels;
-  for I := 1 to Actual.Width * Actual.Height * Actual.Depth do
-  begin
-    AssertVectorEquals(ExpectedPtr^, ActualPtr^, AddrOfError);
-    Inc(ExpectedPtr);
-    Inc(ActualPtr);
-  end;
+  AssertEquals(Expected.Width, Actual.Width);
+  AssertEquals(Expected.Height, Actual.Height);
+  AssertEquals(Expected.Depth, Actual.Depth);
+  AssertEquals(Expected.Size, Actual.Size);
+
+  AssertTrue(CompareMemDebug(Expected.RawPixels, Actual.RawPixels, Expected.Size));
+  AssertTrue(CompareMem     (Expected.RawPixels, Actual.RawPixels, Expected.Size));
 end;
 
 procedure TCastleTestCase.AssertFrustumEquals(const Expected, Actual: TFrustum;

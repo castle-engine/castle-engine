@@ -231,11 +231,12 @@
         procedure SetDiffuseColor(const Value: TVector3); override;
         function GetSpecularColor: TVector3; override;
         procedure SetSpecularColor(const Value: TVector3); override;
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TMaterialNode);
 
         function AmbientColor: TVector3; override;
-        function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
         function Transparency: Single; override;
@@ -297,11 +298,14 @@
       TMyPhysicalMaterialInfo = class(TPhysicalMaterialInfo)
       strict private
         FNode: TPhysicalMaterialNode;
+      protected
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
+        function GetBaseColor: TVector3; override;
+        procedure SetBaseColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TPhysicalMaterialNode);
-        function EmissiveColor: TVector3; override;
         function Transparency: Single; override;
-        function BaseColor: TVector3; override;
         function Metallic: Single; override;
         function Roughness: Single; override;
       end;
@@ -345,11 +349,12 @@
         procedure SetDiffuseColor(const Value: TVector3); override;
         function GetSpecularColor: TVector3; override;
         procedure SetSpecularColor(const Value: TVector3); override;
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TTwoSidedMaterialNode);
 
         function AmbientColor: TVector3; override;
-        function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
         function Transparency: Single; override;
@@ -369,9 +374,11 @@
       TMyUnlitMaterialInfo = class(TUnlitMaterialInfo)
       strict private
         FNode: TUnlitMaterialNode;
+      protected
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TUnlitMaterialNode);
-        function EmissiveColor: TVector3; override;
         function Transparency: Single; override;
       end;
     var
@@ -937,9 +944,14 @@ begin
   FNode.SpecularColor := Value;
 end;
 
-function TMaterialNode.TMyMaterialInfo.EmissiveColor: TVector3;
+function TMaterialNode.TMyMaterialInfo.GetEmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveColor;
+end;
+
+procedure TMaterialNode.TMyMaterialInfo.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.EmissiveColor := Value;
 end;
 
 function TMaterialNode.TMyMaterialInfo.Shininess: Single;
@@ -1026,9 +1038,14 @@ begin
   FNode := ANode;
 end;
 
-function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.EmissiveColor: TVector3;
+function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.GetEmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveColor;
+end;
+
+procedure TPhysicalMaterialNode.TMyPhysicalMaterialInfo.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.EmissiveColor := Value;
 end;
 
 function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.Transparency: Single;
@@ -1036,9 +1053,14 @@ begin
   Result := FNode.Transparency;
 end;
 
-function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.BaseColor: TVector3;
+function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.GetBaseColor: TVector3;
 begin
   Result := FNode.BaseColor;
+end;
+
+procedure TPhysicalMaterialNode.TMyPhysicalMaterialInfo.SetBaseColor(const Value: TVector3);
+begin
+  FNode.BaseColor := Value;
 end;
 
 function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.Metallic: Single;
@@ -1250,9 +1272,14 @@ begin
   FNode.SpecularColor := Value;
 end;
 
-function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.EmissiveColor: TVector3;
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.GetEmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveColor;
+end;
+
+procedure TTwoSidedMaterialNode.TTwoSidedMaterialInfo.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.EmissiveColor := Value;
 end;
 
 function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.Shininess: Single;
@@ -1293,9 +1320,14 @@ begin
   FNode := ANode;
 end;
 
-function TUnlitMaterialNode.TMyUnlitMaterialInfo.EmissiveColor: TVector3;
+function TUnlitMaterialNode.TMyUnlitMaterialInfo.GetEmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveColor;
+end;
+
+procedure TUnlitMaterialNode.TMyUnlitMaterialInfo.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.EmissiveColor := Value;
 end;
 
 function TUnlitMaterialNode.TMyUnlitMaterialInfo.Transparency: Single;
