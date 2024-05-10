@@ -9,15 +9,13 @@ interface
 
 uses CastleImages;
 
-var
-  DefaultIcon: TRGBAlphaImage;
+function DefaultIcon: TRGBAlphaImage;
 
-var
-  DefaultIconSquare: TRGBImage;
+function DefaultIconSquare: TRGBImage;
 
 implementation
 
-uses SysUtils;
+uses SysUtils, CastleInternalDataCompression;
 
 { Actual image data is included from another file, with a deliberately
   non-Pascal file extension ".image_data". This way online code analysis
@@ -27,13 +25,7 @@ uses SysUtils;
 {$I toolembeddedimages.image_data}
 
 initialization
-  DefaultIcon := TRGBAlphaImage.Create(DefaultIconWidth, DefaultIconHeight, DefaultIconDepth);
-  Move(DefaultIconPixels, DefaultIcon.RawPixels^, SizeOf(DefaultIconPixels));
-  DefaultIcon.URL := 'embedded-image:/DefaultIcon';
-  DefaultIconSquare := TRGBImage.Create(DefaultIconSquareWidth, DefaultIconSquareHeight, DefaultIconSquareDepth);
-  Move(DefaultIconSquarePixels, DefaultIconSquare.RawPixels^, SizeOf(DefaultIconSquarePixels));
-  DefaultIconSquare.URL := 'embedded-image:/DefaultIconSquare';
 finalization
-  FreeAndNil(DefaultIcon);
-  FreeAndNil(DefaultIconSquare);
+  FreeAndNil(FDefaultIcon);
+  FreeAndNil(FDefaultIconSquare);
 end.
