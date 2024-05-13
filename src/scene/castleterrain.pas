@@ -2139,7 +2139,6 @@ var
   QuadSet: TQuadSetNode;
   Coord: TCoordinateNode;
   TexCoord: TTextureCoordinateNode;
-  //TextureProperties: TTexturePropertiesNode;
   Shape: TShapeNode;
   Root: TX3DRootNode;
   Material: TUnlitMaterialNode;
@@ -2183,12 +2182,6 @@ begin
     QuadSet.Coord := Coord;
     QuadSet.TexCoord := TexCoord;
     QuadSet.Solid := false;
-
-    { TextureProperties := TTexturePropertiesNode.Create;
-    TextureProperties.GuiTexture := true;
-    TextureProperties.BoundaryModeS := bmClampToEdge;
-    TextureProperties.BoundaryModeT := bmClampToEdge;
-    TextureNode.TextureProperties := TextureProperties; }
 
     FEditModeApperance := TAppearanceNode.Create;
 
