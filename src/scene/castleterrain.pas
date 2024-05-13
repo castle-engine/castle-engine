@@ -617,6 +617,7 @@ type
     FEditModeBrush: TDrawableImage;
     FEditModeBrushShader: TGLSLProgram;
     FEditModeHeightMapSize: TVector2Integer;
+    DebugImage: TGrayscaleImage;
 
     function GetRenderOptions: TCastleRenderOptions;
     function GetLayer(const Index: Integer): TCastleTerrainLayer;
@@ -2570,6 +2571,25 @@ var
       Result := FShaderHeightTexture1;
   end;
 
+  procedure DebugSaveImage;
+  begin
+    FreeAndNil(DebugImage);
+    DebugImage := TGrayscaleImage.Create(TextureWidth, TextureHeight);
+    SaveTextureContents(DebugImage, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
+  end;
+
+  procedure UpdateDebugImage;
+  var
+    TexNode: TImageTextureNode;
+  begin
+    if DebugImage <> nil then
+    begin
+      TexNode := TImageTextureNode.Create;
+      TexNode.LoadFromImage(DebugImage, false, '');
+      FEditModeApperance.Texture := TexNode;
+    end;
+  end;
+
 begin
   if BrushSize = 0 then
     Exit;
@@ -2621,10 +2641,13 @@ begin
         GetMainContainer.Controls.InsertFront(FEditModeSourceViewport);
       GetMainContainer.RenderControl(FEditModeSourceViewport, ViewportRect);
 
+      DebugSaveImage;
+
       //GetMainContainer.Controls.Remove(FEditModeSourceViewport);
     finally
       ResetOpenGLTextureInEditModeViewport(PreviousTextureId);
     end;
+    UpdateDebugImage;
 
     // TODO: don't do that every time
     Image := TRGBAlphaImage.Create(BrushSize, BrushSize);
