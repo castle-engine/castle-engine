@@ -2681,8 +2681,8 @@ end;
 procedure TCastleTerrain.SetEditModeHeightMapSize(const NewSize: TVector2Integer
   );
 var
-  SrcImage: TCastleImage;
-  Image: TRGBAlphaImage;
+  SrcImage: TGrayscaleImage;
+  Image: TGrayscaleImage;
   CurrentShaderTextureNode: TImageTextureNode;
   SrcWidth, SrcHeight : Integer;
 begin
@@ -2701,11 +2701,11 @@ begin
   SrcWidth := CurrentShaderTextureNode.TextureImage.Width;
   SrcHeight := CurrentShaderTextureNode.TextureImage.Height;
 
-  SrcImage := TRGBAlphaImage.Create(SrcWidth, SrcHeight);
+  SrcImage := TGrayscaleImage.Create(SrcWidth, SrcHeight);
   try
     SaveTextureContents(SrcImage, TImageTextureResource(CurrentShaderTextureNode.InternalRendererResource).GLName);
 
-    Image := TRGBAlphaImage.Create(NewSize.X, NewSize.Y);
+    Image := TGrayscaleImage.Create(NewSize.X, NewSize.Y);
     Image.DrawFrom(SrcImage, 0, 0, 0, 0, Min(SrcWidth, NewSize.X), Min(SrcHeight, NewSize.Y));
 
     FShaderHeightTexture1.LoadFromImage(Image.CreateCopy, true, '');
