@@ -2706,6 +2706,7 @@ begin
     SaveTextureContents(SrcImage, TImageTextureResource(CurrentShaderTextureNode.InternalRendererResource).GLName);
 
     Image := TGrayscaleImage.Create(NewSize.X, NewSize.Y);
+    Image.Clear(Vector4Byte(0,0,0,255));
     Image.DrawFrom(SrcImage, 0, 0, 0, 0, Min(SrcWidth, NewSize.X), Min(SrcHeight, NewSize.Y));
 
     FShaderHeightTexture1.LoadFromImage(Image.CreateCopy, true, '');
