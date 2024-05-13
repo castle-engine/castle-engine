@@ -2193,7 +2193,7 @@ begin
     FEditModeApperance := TAppearanceNode.Create;
 
     Material := TUnlitMaterialNode.Create;
-    Material.EmissiveColor := Vector3(1,1,1);
+    Material.EmissiveColor := Vector3(1, 1, 1);
 
     FEditModeApperance.Material := Material;
 
