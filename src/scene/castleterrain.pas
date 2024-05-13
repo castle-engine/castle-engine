@@ -626,9 +626,11 @@ type
     { Regenerate geometry (vertexes, normals etc.) to show the current Data
       with current parameters. }
     procedure UpdateGeometry;
-    { Create edit mode viewport with texture based on deep copy of TextureNode
-      when we create viewport. TODO: check TextureNode size and update texture
-      when needed }
+    { Create edit mode viewport with texture based on copy of TextureNode
+      when we create viewport. This texture content is not important,
+      only the size is used becouse we change OpenGL texture id before redering.
+
+      TODO: check TextureNode size and update texture when needed }
     procedure PrepareEditModeViewport(const TextureNode: TImageTextureNode);
     { Allows you to draw with another texture using its id. You need to call
       ResetOpenGLTextureInEditModeViewport after drawing }
