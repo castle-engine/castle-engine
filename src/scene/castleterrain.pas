@@ -2118,7 +2118,7 @@ begin
     end;
   ctmShader:
     begin
-      // maintain pointer to effect field node
+      // maintain pointer to effect field node - is recreated in CreateTerrainIndexedTriangleNode
       FEffectTextureHeightField := nil;
       if FEditModeSourceViewport <> nil then
       begin
