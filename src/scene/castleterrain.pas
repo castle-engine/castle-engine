@@ -2552,7 +2552,7 @@ var
   LocalCoord: TVector3;
   TexX, TexY: Single;
   PX, PY: Integer;
-  TextureWidth, TExtureHeight : Integer;
+  TextureWidth, TextureHeight : Integer;
   Image: TCastleImage;
   ViewportRect: TRectangle;
   PreviousTextureId: TGLTextureId;
@@ -2578,7 +2578,7 @@ begin
   TargetTexture := GetTargetTexture;
   TextureWidth := SourceTexture.TextureImage.Width;
   TextureHeight := SourceTexture.TextureImage.Height;
-  RenderToTexture := TGLRenderToTexture.Create(TextureWidth, TExtureHeight);
+  RenderToTexture := TGLRenderToTexture.Create(TextureWidth, TextureHeight);
   try
     RenderToTexture.Buffer := tbColor;
 
@@ -2598,13 +2598,13 @@ begin
     // not working because we have changes only on gpu side
     //Source := TDrawableImage.Create(SourceTexture.TextureImage, true, false);
 
-    {Image := TRGBAlphaImage.Create(TextureWidth, TExtureHeight);
+    {Image := TRGBAlphaImage.Create(TextureWidth, TextureHeight);
     try
       SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
 
       Source := TDrawableImage.Create(Image, false, false);
       try
-        //Source.Draw(0,0, TextureWidth, TExtureHeight);
+        //Source.Draw(0,0, TextureWidth, TextureHeight);
         Source.Draw(0,0);
       finally
         FreeAndNil(Source);
