@@ -2039,24 +2039,25 @@ procedure TCastleTerrain.UpdateGeometry;
 
     Shape.Appearance := Appearance;
 
+    if FShaderHeightTexture1 = nil then
+    begin
+      FShaderHeightTexture1 := TImageTextureNode.Create;
+      FShaderHeightTexture1.KeepExistingBegin;
+    end;
+    if FShaderHeightTexture2 = nil then
+    begin
+      FShaderHeightTexture2 := TImageTextureNode.Create;
+      FShaderHeightTexture2.KeepExistingBegin;
+    end;
+
+    LoadEditModeHeightMapFromData;
+
     if FEffectTextureHeightField = nil then
     begin
-      if FShaderHeightTexture1 = nil then
-      begin
-        FShaderHeightTexture1 := TImageTextureNode.Create;
-        FShaderHeightTexture1.KeepExistingBegin;
-      end;
-      if FShaderHeightTexture2 = nil then
-      begin
-        FShaderHeightTexture2 := TImageTextureNode.Create;
-        FShaderHeightTexture2.KeepExistingBegin;
-      end;
-
-      LoadEditModeHeightMapFromData;
-
       FEffectTextureHeightField := TSFNode.Create(Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture1);
       Effect.AddCustomField(FEffectTextureHeightField);
-    end;
+    end else
+      FEffectTextureHeightField.Send(FShaderHeightTexture1);
 
     // at the end, as this may cause Scene.ChangedAll
     Transform.AddChildren(Shape);
@@ -2118,8 +2119,6 @@ begin
     end;
   ctmShader:
     begin
-      // maintain pointer to effect field node - is recreated in CreateTerrainIndexedTriangleNode
-      FEffectTextureHeightField := nil;
       if FEditModeSourceViewport <> nil then
       begin
         FreeAndNil(FEditModeSourceViewport);
@@ -2731,7 +2730,7 @@ begin
   if DataTerrainImage <> nil then
   begin
     //FShaderHeightTexture1.SetUrl([DataTerrainImage.Url]);
-    WritelnLog('Image size ' + IntToStr(DataTerrainImage.Image.Width) + ' x ' + IntToStr(DataTerrainImage.Image.Height));
+    //WritelnLog('Image size ' + IntToStr(DataTerrainImage.Image.Width) + ' x ' + IntToStr(DataTerrainImage.Image.Height));
     FShaderHeightTexture1.LoadFromImage(DataTerrainImage.Image.MakeCopy, false, '');
     //FShaderHeightTexture2.SetUrl([DataTerrainImage.Url]);
     FShaderHeightTexture2.LoadFromImage(DataTerrainImage.Image.MakeCopy, false, '');
@@ -2742,7 +2741,6 @@ begin
     FShaderHeightTexture1.LoadFromImage(Image.MakeCopy, true, '');
     FShaderHeightTexture2.LoadFromImage(Image, true, '');
   end;
-
 end;
 
 {$define read_implementation_methods}
