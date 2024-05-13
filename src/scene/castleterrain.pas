@@ -2195,8 +2195,6 @@ begin
     TextureCopy.LoadFromImage(TextureNode.TextureImage, false, '');
     FEditModeApperance.Texture := TextureCopy;
 
-    //FEditModeApperance.Texture := TImageTextureNode(TextureNode.DeepCopy);
-
     Shape.Appearance := FEditModeApperance;
 
     Root := TX3DRootNode.Create;
