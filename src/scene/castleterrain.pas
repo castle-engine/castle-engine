@@ -2611,7 +2611,6 @@ begin
       if GetMainContainer.Controls.IndexOf(FEditModeSourceViewport) = -1 then
         GetMainContainer.Controls.InsertFront(FEditModeSourceViewport);
       GetMainContainer.RenderControl(FEditModeSourceViewport, ViewportRect);
-      FEditModeSourceViewport.EnableUIScaling := false;
 
       //GetMainContainer.Controls.Remove(FEditModeSourceViewport);
     finally
