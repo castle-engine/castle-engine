@@ -628,9 +628,7 @@ type
     procedure UpdateGeometry;
     { Create edit mode viewport with texture based on copy of TextureNode
       when we create viewport. This texture content is not important,
-      only the size is used becouse we change OpenGL texture id before redering.
-
-      TODO: check TextureNode size and update texture when needed }
+      only the size is used becouse we change OpenGL texture id before redering. }
     procedure PrepareEditModeViewport(const TextureNode: TImageTextureNode);
     { Allows you to draw with another texture using its id. You need to call
       ResetOpenGLTextureInEditModeViewport after drawing }
@@ -2146,19 +2144,36 @@ var
   Root: TX3DRootNode;
   Material: TUnlitMaterialNode;
   TextureCopy: TImageTextureNode;
+  TexWidth, TexHeight: Integer;
 
   Camera: TCastleCamera;
+
+  function TextureSizeChanged: Boolean;
+  begin
+    Result := ((TImageTextureNode(FEditModeApperance.Texture).TextureImage.Width <> TexWidth) or
+     (TImageTextureNode(FEditModeApperance.Texture).TextureImage.Height <> TexHeight));
+  end;
+
 begin
+  TexWidth := TextureNode.TextureImage.Width;
+  TexHeight := TextureNode.TextureImage.Height;
+
+  if (FEditModeSourceViewport <> nil) and TextureSizeChanged then
+  begin
+    FreeAndNil(FEditModeSourceViewport);
+    FEditModeApperance := nil;
+  end;
+
   if FEditModeSourceViewport = nil then
   begin
     FEditModeSourceViewport := TCastleViewport.Create(Self);
 
     Coord := TCoordinateNode.Create;
     Coord.SetPoint([
-          Vector3(0, 64, 0),
+          Vector3(0, TexHeight, 0),
           Vector3(0, 0, 0),
-          Vector3(64.0, 0, 0),
-          Vector3(64, 64, 0)
+          Vector3(TexWidth, 0, 0),
+          Vector3(TexWidth, TexHeight, 0)
         ]);
 
     TexCoord := TTextureCoordinateNode.Create;
@@ -2200,15 +2215,15 @@ begin
     Camera := TCastleCamera.Create(FEditModeHeightTextureScene);
     FEditModeSourceViewport.Items.Add(Camera);
     Camera.ProjectionType := ptOrthographic;
-    Camera.Orthographic.Width := 64;
-    Camera.Orthographic.Height := 64;
+    Camera.Orthographic.Width := TexWidth;
+    Camera.Orthographic.Height := TexHeight;
     Camera.Orthographic.Origin := Vector2(0, 0);
     Camera.Direction := Vector3(0, 0, -1);
     Camera.Translation := Vector3(0,0, 500);
 
     FEditModeSourceViewport.Camera := Camera;
-    FEditModeSourceViewport.Width := 64;
-    FEditModeSourceViewport.Height := 64;
+    FEditModeSourceViewport.Width := TexWidth;
+    FEditModeSourceViewport.Height := TexHeight;
     FEditModeSourceViewport.EnableUIScaling := false;
   end;
 end;
@@ -2608,7 +2623,7 @@ begin
     PrepareEditModeViewport(SourceTexture);
     PreviousTextureId := ShareOpenGLTextureToEditModeViewport(SourceTexture);
     try
-      ViewportRect := Rectangle(0, 0, 64, 64);
+      ViewportRect := Rectangle(0, 0, FEditModeHeightMapSize.X, FEditModeHeightMapSize.Y);
       if GetMainContainer.Controls.IndexOf(FEditModeSourceViewport) = -1 then
         GetMainContainer.Controls.InsertFront(FEditModeSourceViewport);
       GetMainContainer.RenderControl(FEditModeSourceViewport, ViewportRect);
