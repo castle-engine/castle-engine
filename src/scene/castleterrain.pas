@@ -736,6 +736,8 @@ type
     procedure SetEditModeHeightMapSize(const NewSize: TVector2Integer);
     function GetEditModeHeightMapSize: TVector2Integer;
 
+    procedure LoadEditModeHeightMapFromData;
+
     property Mode: TCastleTerrainMode read FMode write FMode;
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
@@ -1886,6 +1888,9 @@ begin
   inherited;
 
   FMode := ctmShader;
+  FEditModeHeightMapSize.X := 64;
+  FEditModeHeightMapSize.Y := 64;
+
   FTriangulate := true;
   FSubdivisions := Vector2(DefaultSubdivisions, DefaultSubdivisions);
   FSize := Vector2(DefaultSize, DefaultSize);
@@ -2011,7 +2016,6 @@ procedure TCastleTerrain.UpdateGeometry;
     Shape: TShapeNode;
     Grid: TElevationGridNode;
     SubdivisionsX, SubdivisionsZ: Cardinal;
-    DataTerrainImage: TCastleTerrainImage;
   begin
     SubdivisionsX := Round(Subdivisions.X);
     SubdivisionsZ := Round(Subdivisions.Y);
@@ -2035,19 +2039,21 @@ procedure TCastleTerrain.UpdateGeometry;
 
     if FEffectTextureHeightField = nil then
     begin
-      DataTerrainImage := FData as TCastleTerrainImage;
-      if DataTerrainImage <> nil then
+      if FShaderHeightTexture1 = nil then
       begin
         FShaderHeightTexture1 := TImageTextureNode.Create;
         FShaderHeightTexture1.KeepExistingBegin;
+      end;
+      if FShaderHeightTexture2 = nil then
+      begin
         FShaderHeightTexture2 := TImageTextureNode.Create;
         FShaderHeightTexture2.KeepExistingBegin;
-        WritelnLog(DataTerrainImage.Url);
-        FShaderHeightTexture1.SetUrl([DataTerrainImage.Url]);
-        FShaderHeightTexture2.SetUrl(['/home/and3md/fpc/testy/cge/teren1/data/teren2.png']);
-        FEffectTextureHeightField := TSFNode.Create(Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture1);
-        Effect.AddCustomField(FEffectTextureHeightField);
       end;
+
+      LoadEditModeHeightMapFromData;
+
+      FEffectTextureHeightField := TSFNode.Create(Effect, true, 'heightTexture', [TImageTextureNode], FShaderHeightTexture1);
+      Effect.AddCustomField(FEffectTextureHeightField);
     end;
 
     // at the end, as this may cause Scene.ChangedAll
@@ -2110,6 +2116,14 @@ begin
     end;
   ctmShader:
     begin
+      // maintain pointer to effect field node
+      FEffectTextureHeightField := nil;
+      if FEditModeSourceViewport <> nil then
+      begin
+        FreeAndNil(FEditModeSourceViewport);
+        FEditModeApperance := nil;
+      end;
+
       Root := TX3DRootNode.Create;
       TerrainNode := CreateTerrainIndexedTriangleNode(Subdivisions, InputRange, OutputRange, Appearance);
       Root.AddChildren(TerrainNode);
@@ -2130,6 +2144,7 @@ var
   Shape: TShapeNode;
   Root: TX3DRootNode;
   Material: TUnlitMaterialNode;
+  TextureCopy: TImageTextureNode;
 
   Camera: TCastleCamera;
 begin
@@ -2165,7 +2180,12 @@ begin
     Material.EmissiveColor := Vector3(1,1,1);
 
     FEditModeApperance.Material := Material;
-    FEditModeApperance.Texture := TImageTextureNode(TextureNode.DeepCopy);
+
+    TextureCopy := TImageTextureNode.Create;
+    TextureCopy.LoadFromImage(TextureNode.TextureImage, false, '');
+    FEditModeApperance.Texture := TextureCopy;
+
+    //FEditModeApperance.Texture := TImageTextureNode(TextureNode.DeepCopy);
 
     Shape.Appearance := FEditModeApperance;
 
@@ -2673,7 +2693,7 @@ begin
   if FMode <> ctmShader then
     Exit;
 
-  if FShaderHeightTexture1 = nil or FShaderHeightTexture2 = nil then
+  if (FShaderHeightTexture1 = nil) or (FShaderHeightTexture2 = nil) then
     Exit;
 
   CurrentShaderTextureNode := TImageTextureNode(FEffectTextureHeightField.Value);
@@ -2697,6 +2717,30 @@ end;
 function TCastleTerrain.GetEditModeHeightMapSize: TVector2Integer;
 begin
   Result := FEditModeHeightMapSize;
+end;
+
+procedure TCastleTerrain.LoadEditModeHeightMapFromData;
+var
+  DataTerrainImage: TCastleTerrainImage;
+  Image: TGrayscaleImage;
+begin
+  // TODO: terrain data layer flattening support
+  DataTerrainImage := FData as TCastleTerrainImage;
+  if DataTerrainImage <> nil then
+  begin
+    //FShaderHeightTexture1.SetUrl([DataTerrainImage.Url]);
+    WritelnLog('Image size ' + IntToStr(DataTerrainImage.Image.Width) + ' x ' + IntToStr(DataTerrainImage.Image.Height));
+    FShaderHeightTexture1.LoadFromImage(DataTerrainImage.Image.MakeCopy, false, '');
+    //FShaderHeightTexture2.SetUrl([DataTerrainImage.Url]);
+    FShaderHeightTexture2.LoadFromImage(DataTerrainImage.Image.MakeCopy, false, '');
+  end else
+  begin
+    Image := TGrayscaleImage.Create(FEditModeHeightMapSize.X, FEditModeHeightMapSize.Y);
+    Image.Clear(Vector4Byte(0,0,0,255));
+    FShaderHeightTexture1.LoadFromImage(Image.MakeCopy, true, '');
+    FShaderHeightTexture2.LoadFromImage(Image, true, '');
+  end;
+
 end;
 
 {$define read_implementation_methods}
