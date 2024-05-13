@@ -2208,6 +2208,7 @@ begin
     FEditModeSourceViewport.Camera := Camera;
     FEditModeSourceViewport.Width := 64;
     FEditModeSourceViewport.Height := 64;
+    FEditModeSourceViewport.EnableUIScaling := false;
   end;
 end;
 
