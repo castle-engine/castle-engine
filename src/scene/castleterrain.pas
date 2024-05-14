@@ -723,10 +723,12 @@ type
       noise. }
     property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
 
-    { Raises the terrain at a specified coordinate with, a specified size, strength
-      and maximum height. Changing the maximum height from 255 to a lower value
-      may result in lowering the higher terrain. }
-    procedure RaiseTerrainShader(const Coord: TVector3;
+    { Raises, loweres or levels the terrain at a specified coordinate with,
+      a specified size, strength and maximum height.
+
+      Changing the maximum height from 255 to 0 loweres terrain,
+      intermediate values levels terrain. }
+    procedure AlterTerrain(const Coord: TVector3;
       const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
       const Strength: Byte; const BrushRotation: Single = 0; const BrushMaxHeight: Byte = 255;
       const RingBrushThickness: Single = 1.0);
@@ -2512,7 +2514,7 @@ begin
   Scene.ColliderMesh(TriangleEvent);
 end;
 
-procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
+procedure TCastleTerrain.AlterTerrain(const Coord: TVector3;
   const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
   const Strength: Byte; const BrushRotation: Single;
   const BrushMaxHeight: Byte; const RingBrushThickness: Single);
