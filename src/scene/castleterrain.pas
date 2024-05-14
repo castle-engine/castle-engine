@@ -738,6 +738,9 @@ type
 
     procedure LoadEditModeHeightMapFromData;
 
+    { Returns terrain height in Coord }
+    function TerrainHeight(const Coord: TVector3): Byte;
+
     property Mode: TCastleTerrainMode read FMode write FMode;
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
@@ -2744,6 +2747,49 @@ begin
     Image.Clear(Vector4Byte(0,0,0,255));
     FShaderHeightTexture1.LoadFromImage(Image.MakeCopy, true, '');
     FShaderHeightTexture2.LoadFromImage(Image, true, '');
+  end;
+end;
+
+function TCastleTerrain.TerrainHeight(const Coord: TVector3): Byte;
+var
+  SourceTexture: TImageTextureNode;
+  LocalCoord: TVector3;
+  TexX, TexY: Single;
+  PX, PY: Integer;
+  TextureWidth, TextureHeight : Integer;
+  Image: TCastleImage;
+
+  function GetCurrentlyUsedTexture: TImageTextureNode;
+  begin
+    Result := TImageTextureNode(FEffectTextureHeightField.Value);
+  end;
+
+begin
+  SourceTexture := GetCurrentlyUsedTexture;
+
+  TextureWidth := SourceTexture.TextureImage.Width;
+  TextureHeight := SourceTexture.TextureImage.Height;
+
+  Image := TGrayscaleImage.Create(TextureWidth, TextureHeight);
+  try
+    SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
+
+    // map to 0 - 1 range of texture.
+    LocalCoord := OutsideToLocal(Coord);
+    TexX := MapRangeTo01(LocalCoord.X + FSize.X/2, 0, FSize.X);
+    TexY := MapRangeTo01(LocalCoord.Z + FSize.Y/2, 0, FSize.Y);
+    TexY := 1 - TexY;
+    // map to pixels
+    PX := Floor(TexX * TextureWidth );
+    PY := Floor(TexY * TextureHeight);
+    ClampVar(PX, 0, TextureWidth  - 1);
+    ClampVar(PY, 0, TextureHeight - 1);
+
+    Result := Byte(Image.PixelPtr(PX, PY)^);
+
+    WritelnLog('Terrain height for coords: ' + IntToStr(PX) + ', ' + IntToStr(PY) + ' is ' + IntToStr(Result));
+  finally
+    FreeAndNil(Image);
   end;
 end;
 
