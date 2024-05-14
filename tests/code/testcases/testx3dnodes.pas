@@ -316,7 +316,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
 
       Node := LoadX3DClassic(FileName, false);
       NewFile := InclPathDelim(GetTempDirectory) + 'test_castle_game_engine.x3dv';
-      Save3D(Node, NewFile, ApplicationName, '', xeClassic, false);
+      SaveNode(Node, NewFile, ApplicationName, '');
 
       Second := TX3DTokenInfoList.Create;
       Second.ReadFromFile(NewFile);
@@ -1310,7 +1310,7 @@ begin
     AssertTrue(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { save and load again }
-    Save3D(Node, TempStream, '', '', xeClassic, false);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
@@ -1343,7 +1343,7 @@ begin
 
     { save and load again. During Save3D tweak meta generator and source }
     TempStream.Position := 0;
-    Save3D(Node, TempStream, 'newgenerator', 'newsource', xeClassic, false);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', 'newgenerator', 'newsource');
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
@@ -1366,7 +1366,7 @@ begin
 
     { save and load again, this time going through XML }
     TempStream.Position := 0;
-    Save3D(Node, TempStream, '', '', xeXML, false);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DXmlStream(TempStream);
@@ -1414,7 +1414,7 @@ begin
     { save to XML }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeXML, true);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
 
     { check that loading it back results in 3.1 }
@@ -1427,7 +1427,7 @@ begin
     { save to clasic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, true);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
 
     { check that loading it back results in 3.1 }
@@ -1447,16 +1447,16 @@ begin
     { save to XML }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeXML, false);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
 
-    { check that loading it back results in 3.0
+    { check that loading it back results in X3D (4.0 now)
       (conversion was done, since this is XML) }
     TempStream.Position := 0;
     Node := LoadX3DXmlStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
-    AssertTrue(Node.ForceVersion.Major = 3);
-    AssertTrue(Node.ForceVersion.Minor = 0);
+    AssertEquals(4, Node.ForceVersion.Major);
+    AssertEquals(0, Node.ForceVersion.Minor);
     FreeAndNil(Node);
 
     { load VRML 2.0 }
@@ -1468,11 +1468,12 @@ begin
     { save to classic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, false);
+    SaveNode(Node, TempStream, 'model/vrml', '', '');
     FreeAndNil(Node);
 
     { check that loading it back results in 2.0
-      (conversion not done, since this is classic and conversion not forced) }
+      (conversion not done, since this is classic and conversion not forced
+      by MIME model/vrml) }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
@@ -1489,15 +1490,15 @@ begin
     { save to classic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, true);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
 
-    { check that loading it back results in 3.0
-      (conversion done, since forced = true) }
+    { check that loading it back results in X3D (4.0 now)
+      (conversion done, since MIME indicated X3D) }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
-    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Major = 4);
     AssertTrue(Node.ForceVersion.Minor = 0);
     FreeAndNil(Node);
   finally
@@ -1569,7 +1570,7 @@ begin
 
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, true);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
 
     //Writeln(StreamToString(TempStream)); // useful to debug
@@ -1580,7 +1581,7 @@ begin
 
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeXML, true);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
 
     //Writeln(StreamToString(TempStream)); // useful to debug

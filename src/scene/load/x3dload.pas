@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -148,12 +148,12 @@ function Load3D(const Url: String;
   const AllowStdIn: boolean = false): TX3DRootNode; deprecated 'use LoadNode, and note it has one less parameter (AllowStdIn is not implemented anymore)';
 
 const
-  SaveX3D_FileFilters =
+  SaveNode_FileFilters =
   'All files|*|' +
   '*X3D XML (*.x3d)|*.x3d|' +
-  'X3D XML (compressed) (*.x3dz, *.x3d.gz)|*.x3dz;*.x3d.gz|' +
-  'X3D classic (*.x3dv)|*.x3dv|' +
-  'X3D classic (compressed) (*.x3dvz, *.x3dv.gz)|*.x3dvz;*.x3dv.gz';
+  'X3D classic (*.x3dv)|*.x3dv';
+
+  SaveX3D_FileFilters = SaveNode_FileFilters deprecated 'use SaveNode_FileFilters';
 
 { File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
   Suitable for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
@@ -203,20 +203,22 @@ var
   BakedAnimationSmoothness: Single = DefaultBakedAnimationSmoothness;
 
 { Save model to a file.
-  Right now we only support saving to the X3D format,
-  in classic (MIME type 'model/x3d+vrml') or XML encoding (MIME type 'model/x3d+xml').
 
-  The overloaded version with explicit URL also automatically detects and handles
-  gzip compression of the resulting file.
+  See SaveNode_FileFilters for all model formats that we can save.
+
+  If you provide explicit URL, it determines the output format.
+  If you provide a Stream and MimeType, then MimeType determines the output format.
+  E.g. use MimeType = 'model/x3d+vrml' to X3D classic encoding,
+  or MimeType = 'model/x3d+xml' to X3D XML encoding.
 
   @param(Generator Optional name, or short description, of the application
     generating this file. This value is not interpreted in any way,
-    it is simply a "metadata" information we store in the resulting file.
+    it is simply a "metadata" information we may store in the resulting file.
   )
 
   @param(Source Optional name of the original file, if this file is a result of some
     conversion or transformation. This value is not interpreted in any way,
-    it is simply a "metadata" information we store in the resulting file.
+    it is simply a "metadata" information we may store in the resulting file.
   )
 }
 procedure SaveNode(const Node: TX3DNode;
@@ -600,27 +602,47 @@ procedure SaveNode(const Node: TX3DNode;
   const Url: String;
   const Generator: String;
   const Source: String);
+var
+  Stream: TStream;
 begin
-  {$warnings off} // using deprecated, it will be internal
-  Save3D(Node, Url, Generator, Source);
-  {$warnings on}
+  Stream := UrlSaveStream(Url);
+  try
+    SaveNode(Node, Stream, UriMimeType(Url), Generator, Source);
+  finally FreeAndNil(Stream) end;
 end;
 
 procedure SaveNode(const Node: TX3DNode;
   const Stream: TStream; const MimeType: String;
   const Generator: String;
   const Source: String);
-var
-  Encoding: TX3DEncoding;
 begin
+  // optionally call ForceSaveToX3D, when converting VRML (<= 2) -> X3D (>= 3)
+  if (Node is TX3DRootNode) and
+     ( (Node as TX3DRootNode).HasForceVersion ) and
+     ( (Node as TX3DRootNode).ForceVersion.Major <= 2 ) and
+     ( (MimeType = 'model/x3d+vrml') or (MimeType = 'model/x3d+xml') ) then
+    (Node as TX3DRootNode).ForceSaveAsX3D;
+
   if (MimeType = 'model/vrml') or
      (MimeType = 'model/x3d+vrml') then
-    Encoding := xeClassic
+    InternalSaveVrmlX3D(Node, Stream, Generator, Source, xeClassic)
   else
-    Encoding := xeXML;
-  {$warnings off} // using deprecated, it will be internal
-  Save3D(Node, Stream, Generator, Source, Encoding);
-  {$warnings on}
+
+  if (MimeType = 'model/x3d+xml') then
+    InternalSaveVrmlX3D(Node, Stream, Generator, Source, xeXML)
+  else
+
+  // TODO: STL save
+  // if MimeType = 'application/x-stl' then
+  //   SaveStl(Node, Stream)
+  // else
+  //
+  // TODO: glTF save
+  // if MimeType = 'model/gltf-binary' then
+  //   SaveGltf(Node, Stream)
+  // else
+
+    raise Exception.CreateFmt('Cannot save model format "%s"', [MimeType]);
 end;
 
 end.
