@@ -730,7 +730,6 @@ type
       const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
       const Strength: Byte; const BrushRotation: Single = 0; const BrushMaxHeight: Byte = 255;
       const RingBrushThickness: Single = 1.0);
-    procedure LowerTerrain(const Coord: TVector3; const Value: Integer);
 
     procedure SetEditModeHeightMapSize(const NewSize: TVector2Integer);
     function GetEditModeHeightMapSize: TVector2Integer;
@@ -2668,30 +2667,6 @@ begin
     FreeAndNil(RenderToTexture);
   end;
   FEffectTextureHeightField.Send(TargetTexture);
-end;
-
-procedure TCastleTerrain.LowerTerrain(const Coord: TVector3;
-  const Value: Integer);
-var
-  TerrainImage: TCastleTerrainImage;
-  LocalCoord: TVector3;
-  TexCoord: TVector2;
-begin
-  if Data = nil then
-    Exit;
-
-  if Data is TCastleTerrainImage then
-  begin
-     TerrainImage := Data as TCastleTerrainImage;
-     LocalCoord := OutsideToLocal(Coord);
-     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
-     TexCoord.X := MapRangeTo01(LocalCoord.X + FSize.X/2, 0, FSize.X);
-     TexCoord.Y := MapRangeTo01(LocalCoord.Z + FSize.Y/2, 0, FSize.Y);
-     TexCoord.Y := 1 - TexCoord.Y;
-
-     WritelnLog('TexCoord: ' + TexCoord.ToString);
-     TerrainImage.LowerHeight(TexCoord, Value);
-  end;
 end;
 
 procedure TCastleTerrain.SetEditModeHeightMapSize(const NewSize: TVector2Integer
