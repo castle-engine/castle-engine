@@ -2631,6 +2631,15 @@ begin
       FreeAndNil(Image);
     end;}
 
+    { After resize texture may be not ready (not Prepared in OpenGL). }
+    if SourceTexture.InternalRendererResource = nil then
+      TTextureResources.Prepare(RenderOptions, SourceTexture);
+    if SourceTexture.InternalRendererResource = nil then
+    begin
+      WritelnLog('Source texture not ready');
+      Exit;
+    end;
+
     PrepareEditModeViewport(SourceTexture);
     PreviousTextureId := ShareOpenGLTextureToEditModeViewport(SourceTexture);
     try
