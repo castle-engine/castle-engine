@@ -2787,7 +2787,7 @@ begin
 
     Result := Byte(Image.PixelPtr(PX, PY)^);
 
-    WritelnLog('Terrain height for coords: ' + IntToStr(PX) + ', ' + IntToStr(PY) + ' is ' + IntToStr(Result));
+    //WritelnLog('Terrain height for coords: ' + IntToStr(PX) + ', ' + IntToStr(PY) + ' is ' + IntToStr(Result));
   finally
     FreeAndNil(Image);
   end;
