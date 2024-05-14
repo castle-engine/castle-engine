@@ -723,8 +723,6 @@ type
       noise. }
     property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
 
-    procedure RaiseTerrain(const Coord: TVector3; const Value: Integer);
-
     { Raises the terrain at a specified coordinate with, a specified size, strength
       and maximum height. Changing the maximum height from 255 to a lower value
       may result in lowering the higher terrain. }
@@ -2515,29 +2513,6 @@ begin
   Scene.ColliderMesh(TriangleEvent);
 end;
 
-procedure TCastleTerrain.RaiseTerrain(const Coord: TVector3; const Value: Integer);
-var
-  TerrainImage: TCastleTerrainImage;
-  LocalCoord: TVector3;
-  TexCoord: TVector2;
-begin
-  if Data = nil then
-    Exit;
-
-  if Data is TCastleTerrainImage then
-  begin
-     TerrainImage := Data as TCastleTerrainImage;
-     LocalCoord := OutsideToLocal(Coord);
-     WritelnLog('LocalCoord: ' + LocalCoord.ToString);
-     TexCoord.X := MapRangeTo01(LocalCoord.X + FSize.X/2, 0, FSize.X);
-     TexCoord.Y := MapRangeTo01(LocalCoord.Z + FSize.Y/2, 0, FSize.Y);
-     TexCoord.Y := 1 - TexCoord.Y;
-
-     WritelnLog('TexCoord: ' + TexCoord.ToString);
-     TerrainImage.RaiseHeight(TexCoord, Value);
-  end;
-end;
-
 procedure TCastleTerrain.RaiseTerrainShader(const Coord: TVector3;
   const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
   const Strength: Byte; const BrushRotation: Single;
@@ -2593,7 +2568,9 @@ begin
     Exit;
 
   SourceTexture := GetCurrentlyUsedTexture;
+  WritelnLog('Source size ' + IntToStr( SourceTexture.TextureImage.Width));
   TargetTexture := GetTargetTexture;
+  WritelnLog('Target Texture size ' + IntToStr( TargetTexture.TextureImage.Width));
   TextureWidth := SourceTexture.TextureImage.Width;
   TextureHeight := SourceTexture.TextureImage.Height;
   RenderToTexture := TGLRenderToTexture.Create(TextureWidth, TextureHeight);
@@ -2643,6 +2620,7 @@ begin
     PrepareEditModeViewport(SourceTexture);
     PreviousTextureId := ShareOpenGLTextureToEditModeViewport(SourceTexture);
     try
+      WritelnLog('FEditModeHeightMapSize.X' + IntToStr(FEditModeHeightMapSize.X));
       ViewportRect := Rectangle(0, 0, FEditModeHeightMapSize.X, FEditModeHeightMapSize.Y);
       if GetMainContainer.Controls.IndexOf(FEditModeSourceViewport) = -1 then
         GetMainContainer.Controls.InsertFront(FEditModeSourceViewport);
