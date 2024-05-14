@@ -2757,6 +2757,8 @@ begin
         FShaderHeightTexture2 := TImageTextureNode.Create;
         FShaderHeightTexture2.KeepExistingBegin;
         FShaderHeightTexture2.LoadFromImage(Image, false, '');
+        if FShaderHeightTexture2.InternalRendererResource = nil then
+          TTextureResources.Prepare(RenderOptions, FShaderHeightTexture2);
         FEffectTextureHeightField.Send(FShaderHeightTexture2);
 
         FreeAndNil(FShaderHeightTexture1);
@@ -2769,6 +2771,8 @@ begin
         FShaderHeightTexture1 := TImageTextureNode.Create;
         FShaderHeightTexture1.KeepExistingBegin;
         FShaderHeightTexture1.LoadFromImage(Image, false, '');
+        if FShaderHeightTexture1.InternalRendererResource = nil then
+          TTextureResources.Prepare(RenderOptions, FShaderHeightTexture1);
         FEffectTextureHeightField.Send(FShaderHeightTexture1);
 
         FreeAndNil(FShaderHeightTexture2);
