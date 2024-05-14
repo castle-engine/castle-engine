@@ -2744,50 +2744,41 @@ begin
     SaveTextureContents(SrcImage, TImageTextureResource(CurrentShaderTextureNode.InternalRendererResource).GLName);
 
     Image := TGrayscaleImage.Create(NewSize.X, NewSize.Y);
-    Image.Clear(Vector4Byte(0,0,0,255));
-    Image.DrawFrom(SrcImage, 0, 0, 0, 0, Min(SrcWidth, NewSize.X), Min(SrcHeight, NewSize.Y));
+    try
+      Image.Clear(Vector4Byte(0,0,0,255));
+      Image.DrawFrom(SrcImage, 0, 0, 0, 0, Min(SrcWidth, NewSize.X), Min(SrcHeight, NewSize.Y));
 
-    { This looks silly but we can't just do LoadFromImage() because I get
-      very strange errors. And doing FreeAndNil on a texture that is pinned
-      to the effect ends with an exception. }
-    if FEffectTextureHeightField.Value = FShaderHeightTexture1 then
-    begin
-      FreeAndNil(FShaderHeightTexture2);
-      FShaderHeightTexture2 := TImageTextureNode.Create;
-      FShaderHeightTexture2.KeepExistingBegin;
-      FShaderHeightTexture2.LoadFromImage(Image, false, '');
-      FEffectTextureHeightField.Send(FShaderHeightTexture2);
+      { This looks silly but we can't just do LoadFromImage() because I get
+        very strange errors. And doing FreeAndNil on a texture that is pinned
+        to the effect ends with an exception. }
+      if FEffectTextureHeightField.Value = FShaderHeightTexture1 then
+      begin
+        FreeAndNil(FShaderHeightTexture2);
+        FShaderHeightTexture2 := TImageTextureNode.Create;
+        FShaderHeightTexture2.KeepExistingBegin;
+        FShaderHeightTexture2.LoadFromImage(Image, false, '');
+        FEffectTextureHeightField.Send(FShaderHeightTexture2);
 
-      FreeAndNil(FShaderHeightTexture1);
-      FShaderHeightTexture1 := TImageTextureNode.Create;
-      FShaderHeightTexture1.KeepExistingBegin;
-      FShaderHeightTexture1.LoadFromImage(Image, false, '');
-    end else
-    begin
-      FreeAndNil(FShaderHeightTexture1);
-      FShaderHeightTexture1 := TImageTextureNode.Create;
-      FShaderHeightTexture1.KeepExistingBegin;
-      FShaderHeightTexture1.LoadFromImage(Image, false, '');
-      FEffectTextureHeightField.Send(FShaderHeightTexture1);
+        FreeAndNil(FShaderHeightTexture1);
+        FShaderHeightTexture1 := TImageTextureNode.Create;
+        FShaderHeightTexture1.KeepExistingBegin;
+        FShaderHeightTexture1.LoadFromImage(Image, false, '');
+      end else
+      begin
+        FreeAndNil(FShaderHeightTexture1);
+        FShaderHeightTexture1 := TImageTextureNode.Create;
+        FShaderHeightTexture1.KeepExistingBegin;
+        FShaderHeightTexture1.LoadFromImage(Image, false, '');
+        FEffectTextureHeightField.Send(FShaderHeightTexture1);
 
-      FreeAndNil(FShaderHeightTexture2);
-      FShaderHeightTexture2 := TImageTextureNode.Create;
-      FShaderHeightTexture2.KeepExistingBegin;
-      FShaderHeightTexture2.LoadFromImage(Image, false, '');
+        FreeAndNil(FShaderHeightTexture2);
+        FShaderHeightTexture2 := TImageTextureNode.Create;
+        FShaderHeightTexture2.KeepExistingBegin;
+        FShaderHeightTexture2.LoadFromImage(Image, false, '');
+      end;
+    finally
+      FreeAndNil(Image);
     end;
-
-   { FreeAndNil(FShaderHeightTexture1);
-    FreeAndNil(FShaderHeightTexture2);
-
-    FShaderHeightTexture2 := TImageTextureNode.Create;
-    FShaderHeightTexture2.KeepExistingBegin;
-
-    FShaderHeightTexture1.LoadFromImage(Image.CreateCopy, true, '');
-    FShaderHeightTexture2.LoadFromImage(Image, true, '');
-    FEffectTextureHeightField.Send(FShaderHeightTexture1);
-    //FEffectTextureHeightField.Send(FShaderHeightTexture2);
-    }
-    FreeAndNil(Image);
   finally
     FreeAndNil(SrcImage);
   end;
