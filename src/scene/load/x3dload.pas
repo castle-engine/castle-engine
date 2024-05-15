@@ -149,9 +149,10 @@ function Load3D(const Url: String;
 
 const
   SaveNode_FileFilters =
-  'All files|*|' +
-  '*X3D XML (*.x3d)|*.x3d|' +
-  'X3D classic (*.x3dv)|*.x3dv';
+    'All files|*|' +
+    '*X3D XML (*.x3d)|*.x3d|' +
+    'X3D classic (*.x3dv)|*.x3dv|' +
+    'VRML (*.wrl)|*.wrl|';
 
   SaveX3D_FileFilters = SaveNode_FileFilters deprecated 'use SaveNode_FileFilters';
 

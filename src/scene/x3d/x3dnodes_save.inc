@@ -33,7 +33,7 @@
   This is internal, normal users should use @link(SaveNode). }
 procedure InternalSaveVrmlX3D(Node: TX3DNode;
   const Stream: TStream; const Generator, Source: string;
-  const Encoding: TX3DEncoding); deprecated 'use SaveNode';
+  const Encoding: TX3DEncoding);
 
 {$endif read_interface}
 
