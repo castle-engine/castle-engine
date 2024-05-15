@@ -304,7 +304,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
   procedure TestReadWrite(const FileName: string);
   var
     First, Second: TX3DTokenInfoList;
-    Node: TX3DNode;
+    Node: TX3DRootNode;
     NewFile: string;
   begin
     First := nil;
