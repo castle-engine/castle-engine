@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,11 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Loading scenes as X3D nodes.)
+{ @abstract(Loading and saving nodes.)
 
-  Every format except VRML/X3D is handled by converting it into X3D nodes graph.
-  This allows to use our great X3D renderer, tools, saving to X3D and such,
-  on every model.
+  Almost every format is handled by converting it into VRML / X3D nodes graph.
+  This allows to use nodes throughout the engine, for all rendering and processing.
 
   Basic guide for adding a new format:
 
@@ -33,11 +32,11 @@
       Each format has a file filter to specifically choose this format,
       and also is added to the "All Scenes" filter.)
 
-    @item(Enable view3dscene to associate with this file format on freedesktops
+    @item(Enable castle-model-viewer to associate with this file format on freedesktops
       (GNOME, and other following freedesktop.org specs). For this,
 
-      1. Update view3dscene MIME database.
-      Simply add appopriate element to ../../../view3dscene/freedesktop/view3dscene.xml.
+      1. Update castle-model-viewer MIME database.
+      Simply add appopriate element to ../../../castle-model-viewer/freedesktop/castle-model-viewer.xml.
       Format of that MIME xml file is self-explanatory.
       It's good idea to google first
       to search for standard MIME type for your model format (e.g. wikipedia
@@ -46,10 +45,10 @@
       name for your format.
 
       2. After adding to MIME database, you want to also add format to
-      ../../../view3dscene/freedesktop/view3dscene.desktop, to indicate that
-      view3dscene handles this MIME type.
+      ../../../castle-model-viewer/freedesktop/castle-model-viewer.desktop, to indicate that
+      castle-model-viewer handles this MIME type.
 
-      3. Finally, also add this to ../../../view3dscene/freedesktop/install_thumbnailer.sh,
+      3. Finally, also add this to ../../../castle-model-viewer/freedesktop/install_thumbnailer.sh,
       so that GNOME nautilus thumbnailers for this MIME types can be installed.)
 
     @item(You probably also want to extend documentation.
@@ -144,53 +143,17 @@ function LoadNode(const Url: String): TX3DRootNode; overload;
 }
 function LoadNode(const Stream: TStream; BaseUrl: String; const MimeType: String): TX3DRootNode; overload;
 
-function Load3D(const Url: String;
-  const AllowStdIn: boolean = false): TX3DRootNode; deprecated 'use LoadNode, and note it has one less parameter (AllowStdIn is not implemented anymore)';
-
 const
-  SaveX3D_FileFilters =
-  'All files|*|' +
-  '*X3D XML (*.x3d)|*.x3d|' +
-  'X3D XML (compressed) (*.x3dz, *.x3d.gz)|*.x3dz;*.x3d.gz|' +
-  'X3D classic (*.x3dv)|*.x3dv|' +
-  'X3D classic (compressed) (*.x3dvz, *.x3dv.gz)|*.x3dvz;*.x3dv.gz';
+  SaveNode_FileFilters =
+    'All files|*|' +
+    '*X3D XML (*.x3d)|*.x3d|' +
+    'X3D classic (*.x3dv)|*.x3dv|' +
+    'VRML (*.wrl)|*.wrl|' +
+    'STereo Lithography (*.stl)|*.stl';
 
 { File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
   Suitable for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
 function LoadScene_FileFilters: String;
-
-{ File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
-  Suitable for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
-function Load3D_FileFilters: String; deprecated 'use LoadScene_FileFilters';
-
-{ Load various model formats as animation expressed by VRML/X3D sequence.
-
-  For model formats that cannot express animations (like GEO or Wavefront OBJ)
-  or that express animations in a single file (like VRML/X3D >= 2.0)
-  we load them exactly like LoadNode, adding exactly one item
-  to KeyNodes.
-  So this function handles @italic(at least) the same model formats as LoadNode.
-
-  Additionally, we load castle-anim-frames and MD3 formats to a sequence of frames.
-
-  @param(KeyNodes Sequence of root nodes will be stored there.
-    Pass here some created and empty instance of TX3DNodeList.)
-
-  @param(KeyTimes Sequence of time values.
-    Pass here some created and empty instance of TSingleList.)
-}
-procedure Load3DSequence(
-  const Url: String;
-  const AllowStdIn: boolean;
-  const KeyNodes: TX3DNodeList;
-  const KeyTimes: TSingleList;
-  out ScenesPerTime: Cardinal;
-  out Epsilon: Single;
-  out TimeLoop, TimeBackwards: boolean); deprecated 'use LoadNode instead of Load3DSequence';
-
-{ File filters for files loaded by Load3DSequence, suitable
-  for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
-function Load3DSequence_FileFilters: String; deprecated 'use LoadScene_FileFilters, and use LoadNode instead of Load3DSequence';
 
 const
   DefaultBakedAnimationSmoothness = 1;
@@ -203,27 +166,29 @@ var
   BakedAnimationSmoothness: Single = DefaultBakedAnimationSmoothness;
 
 { Save model to a file.
-  Right now we only support saving to the X3D format,
-  in classic (MIME type 'model/x3d+vrml') or XML encoding (MIME type 'model/x3d+xml').
 
-  The overloaded version with explicit URL also automatically detects and handles
-  gzip compression of the resulting file.
+  See SaveNode_FileFilters for all model formats that we can save.
+
+  If you provide explicit URL, it determines the output format.
+  If you provide a Stream and MimeType, then MimeType determines the output format.
+  E.g. use MimeType = 'model/x3d+vrml' to X3D classic encoding,
+  or MimeType = 'model/x3d+xml' to X3D XML encoding.
 
   @param(Generator Optional name, or short description, of the application
     generating this file. This value is not interpreted in any way,
-    it is simply a "metadata" information we store in the resulting file.
+    it is simply a "metadata" information we may store in the resulting file.
   )
 
   @param(Source Optional name of the original file, if this file is a result of some
     conversion or transformation. This value is not interpreted in any way,
-    it is simply a "metadata" information we store in the resulting file.
+    it is simply a "metadata" information we may store in the resulting file.
   )
 }
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Url: String;
   const Generator: String = '';
   const Source: String = ''); overload;
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Stream: TStream; const MimeType: String;
   const Generator: String = '';
   const Source: String = ''); overload;
@@ -395,7 +360,7 @@ begin
     Otherwise "InclPathDelim(ExtractFilePath(UriToFilenameSafe('my_file.gtlf')))"
     would result in '/' (accidentally making all TPasGLTF.TImage.Uri values
     relative to root directory on Unix). This was reproducible doing
-    "view3dscene my_file.gtlf" on the command-line.
+    "castle-model-viewer my_file.gtlf" on the command-line.
 
     Also tovrmlx3d assumes that passing "stdin.x3dv" means that "stdin.x3dv"
     file is in current working dir. Using AbsoluteUri(BaseUrl) correctly
@@ -510,7 +475,7 @@ begin
     'Wavefront (*.obj)|*.obj|' +
     'Videoscape (*.geo)|*.geo|' +
     'Spine animation (*.json)|*.json|' +
-    'Standard Triangle Language (*.stl)|*.stl|' +
+    'STereo Lithography (*.stl)|*.stl|' +
     'Castle Sprite Sheet (*.castle-sprite-sheet)|*.castle-sprite-sheet|' +
     'Starling Sprite Sheet (*.starling-xml)|*.starling-xml|' +
     'Cocos2d Sprite Sheet (*.cocos2d-plist, *.plist)|*.cocos2d-plist;*.plist|' +
@@ -520,107 +485,49 @@ begin
     'Images |' + ImageExtensions;
 end;
 
-function Load3D_FileFilters: String;
-begin
-  Result := LoadScene_FileFilters;
-end;
-
-function Load3D(const Url: String;
-  const AllowStdIn: boolean): TX3DRootNode;
-begin
-  Result := LoadNode(Url);
-end;
-
-procedure Load3DSequence(const Url: String;
-  const AllowStdIn: boolean;
-  const KeyNodes: TX3DNodeList;
-  const KeyTimes: TSingleList;
-  out ScenesPerTime: Cardinal;
-  out Epsilon: Single;
-  out TimeLoop, TimeBackwards: boolean);
-
-  procedure LoadNodeAnimation(Animations: TNodeInterpolator.TAnimationList);
-  var
-    Animation: TNodeInterpolator.TAnimation;
-    I: Integer;
-  begin
-    { This obsolete routine just reads the 1st animation only.
-      There's no way to support multiple animations with this interface. }
-    Animation := Animations[0];
-
-    for I := 0 to Animation.KeyNodes.Count - 1 do
-      KeyNodes.Add(Animation.KeyNodes[I]);
-    for I := 0 to Animation.KeyTimes.Count - 1 do
-      KeyTimes.Add(Animation.KeyTimes[I]);
-    ScenesPerTime   := Animation.ScenesPerTime;
-    Epsilon         := Animation.Epsilon;
-    TimeLoop        := Animation.Loop;
-    TimeBackwards   := Animation.Backwards;
-
-    FreeAndNil(Animations);
-  end;
-
-  procedure LoadSingle(Node: TX3DNode);
-  begin
-    KeyNodes.Add(Node);
-    KeyTimes.Add(0); { One time value }
-    ScenesPerTime := 1;      { doesn't matter }
-    Epsilon := 0.0;  { doesn't matter }
-    TimeLoop := false;      { doesn't matter }
-    TimeBackwards := false; { doesn't matter }
-  end;
-
-var
-  MimeType: String;
-  AbsoluteBaseUrl: String;
-  Stream: TStream;
-begin
-  Assert(KeyTimes.Count = 0);
-  Assert(KeyNodes.Count = 0);
-
-  MimeType := UriMimeType(Url);
-
-  if MimeType = 'application/x-castle-anim-frames' then
-  begin
-    AbsoluteBaseUrl := AbsoluteUri(Url);
-    Stream := Download(Url);
-    try
-      LoadNodeAnimation(TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, AbsoluteBaseUrl));
-    finally FreeAndNil(Stream) end;
-  end else
-    LoadSingle(LoadNode(Url));
-end;
-
-function Load3DSequence_FileFilters: String;
-begin
-  Result := LoadScene_FileFilters;
-end;
-
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Url: String;
   const Generator: String;
   const Source: String);
+var
+  Stream: TStream;
 begin
-  {$warnings off} // using deprecated, it will be internal
-  Save3D(Node, Url, Generator, Source);
-  {$warnings on}
+  Stream := UrlSaveStream(Url);
+  try
+    SaveNode(Node, Stream, UriMimeType(Url), Generator, Source);
+  finally FreeAndNil(Stream) end;
 end;
 
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Stream: TStream; const MimeType: String;
   const Generator: String;
   const Source: String);
-var
-  Encoding: TX3DEncoding;
 begin
+  // optionally call ForceSaveToX3D, when converting VRML (<= 2) -> X3D (>= 3)
+  if Node.HasForceVersion and
+     (Node.ForceVersion.Major <= 2) and
+     ( (MimeType = 'model/x3d+vrml') or (MimeType = 'model/x3d+xml') ) then
+    Node.ForceSaveAsX3D;
+
   if (MimeType = 'model/vrml') or
      (MimeType = 'model/x3d+vrml') then
-    Encoding := xeClassic
+    InternalSaveVrmlX3D(Node, Stream, Generator, Source, xeClassic)
   else
-    Encoding := xeXML;
-  {$warnings off} // using deprecated, it will be internal
-  Save3D(Node, Stream, Generator, Source, Encoding);
-  {$warnings on}
+
+  if (MimeType = 'model/x3d+xml') then
+    InternalSaveVrmlX3D(Node, Stream, Generator, Source, xeXML)
+  else
+
+  if MimeType = 'application/x-stl' then
+    SaveStl(Node, Stream, Generator, Source)
+  else
+
+  // TODO: glTF save
+  // if MimeType = 'model/gltf-binary' then
+  //   SaveGltf(Node, Stream, Generator, Source)
+  // else
+
+    raise Exception.CreateFmt('Cannot save model format "%s"', [MimeType]);
 end;
 
 end.
