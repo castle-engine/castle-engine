@@ -222,11 +222,11 @@ var
     it is simply a "metadata" information we may store in the resulting file.
   )
 }
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Url: String;
   const Generator: String = '';
   const Source: String = ''); overload;
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Stream: TStream; const MimeType: String;
   const Generator: String = '';
   const Source: String = ''); overload;
@@ -599,7 +599,7 @@ begin
   Result := LoadScene_FileFilters;
 end;
 
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Url: String;
   const Generator: String;
   const Source: String);
@@ -612,17 +612,16 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Stream: TStream; const MimeType: String;
   const Generator: String;
   const Source: String);
 begin
   // optionally call ForceSaveToX3D, when converting VRML (<= 2) -> X3D (>= 3)
-  if (Node is TX3DRootNode) and
-     ( (Node as TX3DRootNode).HasForceVersion ) and
-     ( (Node as TX3DRootNode).ForceVersion.Major <= 2 ) and
+  if Node.HasForceVersion and
+     (Node.ForceVersion.Major <= 2) and
      ( (MimeType = 'model/x3d+vrml') or (MimeType = 'model/x3d+xml') ) then
-    (Node as TX3DRootNode).ForceSaveAsX3D;
+    Node.ForceSaveAsX3D;
 
   if (MimeType = 'model/vrml') or
      (MimeType = 'model/x3d+vrml') then
@@ -633,14 +632,13 @@ begin
     InternalSaveVrmlX3D(Node, Stream, Generator, Source, xeXML)
   else
 
-  // TODO: STL save
-  // if MimeType = 'application/x-stl' then
-  //   SaveStl(Node, Stream)
-  // else
-  //
+  if MimeType = 'application/x-stl' then
+    SaveStl(Node, Stream, Generator, Source)
+  else
+
   // TODO: glTF save
   // if MimeType = 'model/gltf-binary' then
-  //   SaveGltf(Node, Stream)
+  //   SaveGltf(Node, Stream, Generator, Source)
   // else
 
     raise Exception.CreateFmt('Cannot save model format "%s"', [MimeType]);
