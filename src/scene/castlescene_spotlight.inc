@@ -104,7 +104,7 @@ constructor TCastleSpotLight.Create(AOwner: TComponent);
   function BuildGizmo: TX3DRootNode;
   begin
     Result := TX3DRootNode.Create;
-    Result.AddChildren(Gizmo.LinesShape(FGizmoCoord, [2, 2, 2, 2]));
+    Result.AddChildren(Gizmo.LinesShape(FGizmoCoord));
     UpdateGizmoCoord;
   end;
 

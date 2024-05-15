@@ -13,7 +13,7 @@ type
   private
     FHint: array[TBrightnessMode] of string;
     function GetHint(AMode: TBrightnessMode): String;
-    procedure SetHint(AMode: TBrightnessMode; AText: String);
+    procedure SetMyHint(AMode: TBrightnessMode; AText: String);
   protected
     procedure CorrectCoords(var x, y: integer);
     procedure CreateWnd; override;
@@ -46,8 +46,8 @@ type
     property MaxValue default 255;
     property SelectedColor default clWhite;
     property MarkerStyle default msCircle;
-    property SLHintFormat: String index bmLuminance read GetHint write SetHint;
-    property SVHintFormat: String index bmValue read GetHint write SetHint;
+    property SLHintFormat: String index bmLuminance read GetHint write SetMyHint;
+    property SVHintFormat: String index bmValue read GetHint write SetMyHint;
     property OnChange;
   end;
 
@@ -166,7 +166,7 @@ begin
   HintFormat := FHint[AMode];
 end;
 
-procedure TSLColorPicker.SetHint(AMode: TBrightnessMode; AText: String);
+procedure TSLColorPicker.SetMyHint(AMode: TBrightnessMode; AText: String);
 begin
   FHint[AMode] := AText;
 end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,7 +42,7 @@ type
     FURIPrefix: string;
     FForceMemoryStream: boolean;
     procedure FreeStream;
-    procedure SetURI(const Value: string);
+    procedure SetURI(const Value: String);
   public
     destructor Destroy; override;
     class function IsDataURI(const URI: string; out Colon: Integer): boolean; overload;
@@ -95,10 +95,15 @@ type
     function ExtractStream: TStream;
   end;
 
+{ Return data URI String that corresponds to given Stream contents.
+  When loading, we rewind stream positon 0 zero,
+  and read the whole stream.) }
+function StreamToDataUri(const AStream: TStream; const MimeType: String): String;
+
 implementation
 
 uses Base64,
-  CastleURIUtils, CastleStringUtils, CastleClassUtils, CastleLog;
+  CastleUriUtils, CastleStringUtils, CastleClassUtils, CastleLog;
 
 { TODO: We treat non-base64 data verbatim, not interpreting %xx hex encoding
   inside. }
@@ -126,7 +131,7 @@ begin
   Result := URIProtocolIs(URI, 'data', Colon);
 end;
 
-procedure TDataURI.SetURI(const Value: string);
+procedure TDataURI.SetURI(const Value: String);
 var
   ValidMimeType, ValidCharset: string;
   ValidBase64: boolean;
@@ -229,12 +234,12 @@ begin
     begin
       Contents := SEnding(URI, StreamBegin);
 
-      { Note: loads a 16-bit String into TMemoryStream on Delphi.
-        This is what TNetEncoding.Base64.Decode expects. }
-      MemStream := MemoryStreamLoadFromDefaultString(Contents);
-
       if Base64 then
       begin
+        { Note: loads a 16-bit String into TMemoryStream on Delphi.
+          This is what TNetEncoding.Base64.Decode expects. }
+        MemStream := MemoryStreamLoadFromDefaultString(Contents);
+
         DecodingStream := TBase64DecodingStream.Create(MemStream, bdmMIME);
         DecodingStream.SourceOwner := true;
         if ForceMemoryStream then
@@ -245,7 +250,19 @@ begin
         end else
           FStream := DecodingStream;
       end else
+      begin
+        { In case of Delphi, using MemoryStreamLoadFromString below
+          converts now this 16-bit String into a 8-bit String.
+          This is necessary, as FileToString and ReadGrowingStreamToString
+          then treat the contents of stream as 8-bit String.
+          It may be converted back to 16-bit String later, when
+          e.g. ShaderLoadContents loads a data URI that is a shader source.
+
+          See https://github.com/castle-engine/castle-engine/issues/541
+          and TTestX3DNodes.TestInlineShaderCode autotest. }
+        MemStream := MemoryStreamLoadFromString(Contents);
         FStream := MemStream;
+      end;
     end;
     Result := FStream;
   end else
@@ -256,6 +273,24 @@ function TDataURI.ExtractStream: TStream;
 begin
   Result := Stream;
   FStream := nil;
+end;
+
+{ routines ------------------------------------------------------------------ }
+
+function StreamToDataUri(const AStream: TStream; const MimeType: String): String;
+var
+  Base64Encode: TBase64EncodingStream;
+  ResultStr: TStringStream;
+begin
+  ResultStr := TStringStream.Create;
+  try
+    WriteStr(ResultStr, 'data:' + MimeType + ';base64,');
+    Base64Encode := TBase64EncodingStream.Create(ResultStr);
+    try
+      Base64Encode.CopyFrom(AStream, 0);
+    finally FreeAndNil(Base64Encode) end;
+    Result := ResultStr.DataString;
+  finally FreeAndNil(ResultStr) end;
 end;
 
 end.

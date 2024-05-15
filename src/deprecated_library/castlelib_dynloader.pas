@@ -60,7 +60,7 @@ const
   ecgevarScenePaused     = 6;   // pause Viewport (int, 1 = on, 0 = off)
   ecgevarAutoRedisplay   = 7;   // automatically redraws the window all the time (int, 1 = on, 0 = off)
   ecgevarHeadlight       = 8;   // avatar's headlight (int, 1 = on, 0 = off)
-  ecgevarOcclusionQuery  = 9;   // occlusion query, ignored when hierarchical on (int, 1 = on, 0 = off)
+  ecgevarOcclusionCulling = 9;  // occlusion culling (int, 1 = on, 0 = off)
   ecgevarPhongShading    = 10;  // phong shading (int, 1 = on, 0 = off)
 
   // navigation types (ECgeNavigationType enum)
@@ -217,6 +217,44 @@ const
   kcge_Comma       = 188;
   kcge_Period      = 190;
 
+  // mouse button (ECgeMouseButton)
+  ecgemouseButtonNone   = 0;  
+  ecgemouseButtonLeft   = 1;  
+  ecgemouseButtonMiddle = 2;  
+  ecgemouseButtonRight  = 3;  
+  ecgemouseButtonExtra1 = 4;  
+  ecgemouseButtonExtra2 = 5;  
+
+  // mouse wheel direction (ECgeMouseWheelDirection)
+  ecgemouseWheelNone    = 0;  
+  ecgemouseWheelUp      = 1;  
+  ecgemouseWheelDown    = 2;  
+  ecgemouseWheelLeft    = 3;  
+  ecgemouseWheelRight   = 4;  
+
+  // camera input (ECgeNavigationInput)
+  ecgeinputZoomIn       = 1;
+  ecgeinputZoomOut      = 2;
+  ecgeinputForward      = 11;
+  ecgeinputBackward     = 12;
+  ecgeinputLeftRotate   = 13;
+  ecgeinputRightRotate  = 14;
+  ecgeinputLeftStrafe   = 15;
+  ecgeinputRightStrafe  = 16;
+  ecgeinputUpRotate     = 17;
+  ecgeinputDownRotate   = 18;
+  ecgeinputIncreasePreferredHeight = 19;
+  ecgeinputDecreasePreferredHeight = 20;
+  ecgeinputGravityUp    = 21;
+  ecgeinputRun          = 22;
+  ecgeinputMoveSpeedInc = 23;
+  ecgeinputMoveSpeedDec = 24;
+  ecgeinputJump         = 25;
+  ecgeinputCrouch       = 26;
+  ecgeinputExRotate     = 31;
+  ecgeinputExMove       = 32;
+  ecgeinputExZoom       = 33;
+
 type
   TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32; szParam: pcchar):cInt32; cdecl;
 
@@ -247,6 +285,7 @@ procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
 procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
                                fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat;
                                bAnimated: cBool); cdecl; external 'castleengine';
+procedure CGE_SetNavigationInputShortcut(eInput, eKey1, eKey2, eMouseButton, eMouseWheel: cInt32); cdecl; external 'castleengine';
 function CGE_GetNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetTouchInterface(eMode: cInt32); cdecl; external 'castleengine';

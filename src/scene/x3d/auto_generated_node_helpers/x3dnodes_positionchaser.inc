@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,8 +29,9 @@
     function GetInitialValue: TVector3;
     procedure SetInitialValue(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FEventSet_destination: TSFVec3fEvent;
     {  }
@@ -45,13 +46,13 @@
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
     strict private FFdInitialDestination: TSFVec3f;
-    { Internal wrapper for property @link(InitialDestination). This wrapper API may change, we advise to access simpler @link(InitialDestination) instead. }
+    { Internal wrapper for property @code(InitialDestination). This wrapper API may change, we advise to access simpler @code(InitialDestination) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInitialDestination: TSFVec3f read FFdInitialDestination;
     {  }
     property InitialDestination: TVector3 read GetInitialDestination write SetInitialDestination;
 
     strict private FFdInitialValue: TSFVec3f;
-    { Internal wrapper for property @link(InitialValue). This wrapper API may change, we advise to access simpler @link(InitialValue) instead. }
+    { Internal wrapper for property @code(InitialValue). This wrapper API may change, we advise to access simpler @code(InitialValue) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInitialValue: TSFVec3f read FFdInitialValue;
     {  }
     property InitialValue: TVector3 read GetInitialValue write SetInitialValue;

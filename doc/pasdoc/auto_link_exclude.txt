@@ -21,7 +21,11 @@ assign
 attenuation
 attribute
 attributes
+avatar
+avatars
 background
+behavior
+behaviors
 barycentric
 between
 bind
@@ -70,6 +74,7 @@ contents
 contribution
 controls
 convex
+corners
 coordinates
 count
 create
@@ -167,6 +172,7 @@ headlight
 height
 high
 history
+html
 humanoid
 hurt
 idft
@@ -308,6 +314,7 @@ rects
 red
 reference
 references
+region
 register
 registered
 release
@@ -340,6 +347,8 @@ send
 sending
 shader
 shaders
+shadow
+shadows
 shape
 shapes
 shininess
@@ -393,6 +402,7 @@ unprepare
 up
 update
 uri
+url
 used
 valid
 value
@@ -404,6 +414,8 @@ vertexes
 verts
 vibrate
 videos
+view
+views
 viewport
 viewports
 visible
@@ -413,6 +425,7 @@ water
 waypoints
 weights
 white
+whitespace
 whitespaces
 width
 window

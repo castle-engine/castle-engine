@@ -11643,6 +11643,7 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastle2DNavigation",
+          "Exists" : false,
           "Name" : "Navigation2D1"
         }
       ],
@@ -11811,7 +11812,7 @@
               "Name" : "ImageHitPoint2",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 5.4999996185302734E+001
+                "X" : 5.5000000000000000E+001
               },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -11825,7 +11826,7 @@
               "Name" : "ImageHitPoint3",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 1.0999999237060547E+002
+                "X" : 1.1000000000000000E+002
               },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -11839,7 +11840,7 @@
               "Name" : "ImageHitPoint4",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 1.6499998474121094E+002
+                "X" : 1.6500000000000000E+002
               },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -11852,7 +11853,7 @@
           "Spacing" : 1.0000000000000000E+001,
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "X" : 2.4799998474121094E+002
+            "X" : 2.4800001525878906E+002
           },
           "VerticalAnchorParent" : "vpMiddle",
           "VerticalAnchorSelf" : "vpMiddle",

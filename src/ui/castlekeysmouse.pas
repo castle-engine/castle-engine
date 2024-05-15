@@ -636,7 +636,7 @@ type
       the key is (still) pressed down.
       @groupBegin }
     Key: TKey;
-    KeyString: string;
+    KeyString: String;
     { @groupEnd }
 
     { ModifiersDown contains a set of modifier keys (i.e. Ctrl, Shift and Alt)

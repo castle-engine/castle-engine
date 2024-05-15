@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,39 +35,42 @@
     function GetSize: TVector3;
     procedure SetSize(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCenter: TSFVec3f;
-    { Internal wrapper for property @link(Center). This wrapper API may change, we advise to access simpler @link(Center) instead. }
+    { Internal wrapper for property @code(Center). This wrapper API may change, we advise to access simpler @code(Center) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCenter: TSFVec3f read FFdCenter;
     {  }
     property Center: TVector3 read GetCenter write SetCenter;
 
     strict private FFdChildren: TMFNode;
-    { Internal wrapper for property @link(Children). This wrapper API may change, we advise to access simpler @link(Children) instead. }
+    { Internal wrapper for property @code(Children). This wrapper API may change, we advise to access simpler @code(Children) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdChildren: TMFNode read FFdChildren;
+    {  }
+    procedure SetChildren(const Value: array of TX3DNode);
 
     strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDescription: TSFString read FFdDescription;
     {  }
     property Description: String read GetDescription write SetDescription;
 
     strict private FFdDisplayed: TSFBool;
-    { Internal wrapper for property @link(Displayed). This wrapper API may change, we advise to access simpler @link(Displayed) instead. }
+    { Internal wrapper for property @code(Displayed). This wrapper API may change, we advise to access simpler @code(Displayed) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDisplayed: TSFBool read FFdDisplayed;
     {  }
     property Displayed: Boolean read GetDisplayed write SetDisplayed;
 
     strict private FFdRetainUserOffsets: TSFBool;
-    { Internal wrapper for property @link(RetainUserOffsets). This wrapper API may change, we advise to access simpler @link(RetainUserOffsets) instead. }
+    { Internal wrapper for property @code(RetainUserOffsets). This wrapper API may change, we advise to access simpler @code(RetainUserOffsets) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
     {  }
     property RetainUserOffsets: Boolean read GetRetainUserOffsets write SetRetainUserOffsets;
 
     strict private FFdSize: TSFVec3f;
-    { Internal wrapper for property @link(Size). This wrapper API may change, we advise to access simpler @link(Size) instead. }
+    { Internal wrapper for property @code(Size). This wrapper API may change, we advise to access simpler @code(Size) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSize: TSFVec3f read FFdSize;
     {  }
     property Size: TVector3 read GetSize write SetSize;
@@ -86,6 +89,18 @@ end;
 procedure TViewpointGroupNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
+end;
+
+procedure TViewpointGroupNode.SetChildren(const Value: array of TX3DNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TX3DNode));
+  FdChildren.Send(A);
 end;
 
 function TViewpointGroupNode.GetDescription: String;

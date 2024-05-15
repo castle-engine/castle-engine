@@ -45,7 +45,7 @@ uses SysUtils,
 
 class procedure TTestFairy.InitializeRemoteLogging;
 begin
-  // While it would work on all platforms, it's pointless (not handled) on other than iOS plaforms
+  // While it would work on all platforms, it's pointless (not handled) on other than iOS platforms
   {$ifdef CASTLE_IOS}
   { In case logging started before TTestFairy.InitializeRemoteLogging was called,
     push to TestFairy some introductory messages. }

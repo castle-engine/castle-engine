@@ -88,9 +88,7 @@
       FCollides: Boolean;
       FPickable: Boolean;
       FVisible: Boolean;
-      FCursor: TMouseCursor;
       FCollidesWithMoving: Boolean;
-      FExcludeFromStatistics, FInternalExcludeFromParentBoundingVolume: Boolean;
       FWorld: TCastleAbstractRootTransform;
       { How many times this is a child in the FWorld, counting all possible paths in transformation tree. }
       FWorldReferences: Cardinal;
@@ -133,13 +131,15 @@
       FOnAddedBehaviorNotification: TCastleComponentNotification;
       FBeforeRemoveBehaviorNotification: TCastleComponentNotification;
 
+      // Always equal to FindBehaviors(TCastleRigidBody)
+      FCachedRigidBody: TCastleRigidBody;
+
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
     procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
     procedure SerializeBehaviorsAdd(const C: TComponent);
     procedure SerializeBehaviorsClear;
     procedure SerializeBehaviorsEnumerate(const Proc: TGetChildProc);
-    procedure SetCursor(const Value: TMouseCursor);
     procedure SetCenter(const Value: TVector3);
     procedure SetRotation(const Value: TVector4);
     procedure SetScale(const Value: TVector3);
@@ -147,8 +147,6 @@
     procedure SetTranslation(const Value: TVector3);
     function GetTranslationXY: TVector2;
     procedure SetTranslationXY(const Value: TVector2);
-    procedure SetRigidBody(const Value: TCastleRigidBody);
-    function GetRigidBody: TCastleRigidBody;
     function GetDirection: TVector3;
     function GetUp: TVector3;
     procedure SetDirection(const Value: TVector3);
@@ -180,6 +178,13 @@
     procedure UpdateExistsInRoot;
     { Never call ChangedTransform directly, always call this. }
     procedure ChangedTransformCore(const UpdatePhysicsTransform: Boolean = true);
+    function GetWorldViewRec: TViewVectors;
+    procedure SetWorldViewRec(const Value: TViewVectors);
+    procedure UpdateCachedBehaviors;
+    { Convert distance from the local coordinate system
+      to parent coordinate system
+      (in short: Result := Distance * AverageScale). }
+    function DistanceToParent(const Distance: Single): Single;
   private
     { "Meaningful" parent is a parent that competes to be a value of Parent.
       This allows to avoid TCastleTransformReference from being considered
@@ -196,6 +201,9 @@
       when it changes. They can register to those notifications. When list
       is not created that means no behaviors need those notifications. }
     FBehaviorsWorldChangeNotificationList: TCastleBehaviorList;
+
+    { Does any behavior on FBehaviors possibly override BeforeRender. }
+    FBehaviorsNeedBeforeRender: Boolean;
 
     { Update FWorld, FWorldReferences.
       This is recursively called on all children as well.
@@ -267,6 +275,9 @@
 
     { Call UpdateWorldScale on all colliders here and in children. }
     procedure UpdateCollidersWorldScale;
+
+    procedure SetParent(const Value: TCastleTransform);
+    procedure UpdateBehaviorsNeedBeforeRender;
   protected
     { Returns list of TCastleTransform to render. By default, it just returns @link(List). }
     function GetRenderList(const Params: TRenderParams): TCastleTransformList; virtual;
@@ -432,7 +443,7 @@
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
-    { Check collision with a ray, building a TRayCollision result.
+    { First object hit by the ray, as a TRayCollision.
       Returns a collision as TRayCollision instance, or @nil if no collision.
       Caller is responsible for freeing the returned TRayCollision instance.
 
@@ -592,13 +603,41 @@
         @exclude }
       InternalIgnoreParentScale: Boolean;
 
+      { Exclude this object's bounding volume
+        from parent bounding volume.
+
+        This should be always @false for non-debug scenes.
+        Changing this may cause rendering artifacts, things could
+        disappear when they should not.
+        Using this is reasonable only if you attach a debug geometry
+        to your scene, and you don't want to enlarge your bounding volume
+        (e.g. because this debug geometry visualizes something determined
+        by the bounding volume, and it would create a "feedback loop"
+        if the visualization itself would enlarge the bounding box). }
+      InternalExcludeFromParentBoundingVolume: Boolean;
+
+      { Results in more correct, but often unnecessary and time wasting operation:
+        changing this transformation also updates all children's rigid bodies
+        transformation in the physics engine.
+
+        This is important if you change transformation of some parent,
+        without directly changing the transformation of children,
+        but the children have rigid bodies attached. }
+      InternalMovesPhysicsBodies: Boolean;
+
+    { How many times this is a child in the FWorld,
+      counting all possible paths in transformation tree.
+      @exclude }
+    property InternalWorldReferences: Cardinal read FWorldReferences;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure BeforeDestruction;override;
+    procedure BeforeDestruction; override;
 
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure DesignerWarnings(const SList: TStrings); override;
     function GetEnumerator: TEnumerator;
 
     {$ifdef FPC}
@@ -606,7 +645,7 @@
     {$endif}
 
     { Does this transform have a collision mesh that TCastleMeshCollider can use.
-      Default implementaion returns @false. }
+      Default implementation returns @false. }
     function HasColliderMesh: Boolean; virtual;
 
     { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
@@ -633,14 +672,22 @@
 
     { Insert a child at a specific position on the children list.
 
-      Usually the order of children doesn't matter, so there's not much point
-      in using this method. You can as well use @link(Add).
-      In particular, for rendering opaque (3D or 2D objects) the front/back is decided by
-      the actual translation of the object in 3D, i.e. what is closer to the camera.
+      Note: Usually the order of children doesn't matter, so you can as well
+      add children at the end, using @link(Add).
+
+      In particular, when rendering opaque (3D or 2D) objects, the front/back
+      is decided by the actual translation of the object,
+      i.e. what is closer to the camera.
       (In a typical 2D setup, larger Z values mean "closer to the camera".)
       The position on the children list doesn't matter in this case.
 
-      However, the position matters in case of blending.
+      When rendering with blending, we recommend to use
+      @link(TCastleViewport.BlendingSort) to automatically use
+      proper order when rendering partially-transparent objects.
+      This will mean that the order of children really doesn't matter.
+
+      However, the position matters in case of blending,
+      if you set @link(TCastleViewport.BlendingSort) to sortNone.
       See https://castle-engine.io/blending .
       For correct blending, when you have multiple partially-transparent scenes,
       the partially-transparent objects must be sorted from back to front on the list.
@@ -650,11 +697,21 @@
 
     { Remove a child.
 
-      Note that adding and removing from the TCastleTransform hierarchy is guaranteed
+      Adding and removing from the TCastleTransform hierarchy is guaranteed
       to be fast, so you can do it even in the middle of the game.
       In particular calling @link(Remove) doesn't free rendering reasources
       of the removed scene,
-      so removing scene only to add it later to another TCastleViewport.Items is fast. }
+      So e.g. removing scene only to add it later to another
+      TCastleViewport.Items is fast.
+
+      Note that removing the child Item @italic(does not free the Item).
+      It merely makes the Item no longer be a child of this TCastleTransform,
+      so it will no longer be shown in the viewport.
+      If you want to free the item instance, you have to do it explicitly,
+      by @code(Item.Free) or @code(FreeAndNil(Item)).
+      Freed items are automatically removed from parent.
+      See also @url(https://castle-engine.io/castle_game_engine_for_unity_developers#_what_is_the_difference_between_owner_and_parent_in_cge
+      What is the difference between Owner and Parent in CGE?). }
     procedure Remove(const Item: TCastleTransform);
 
     { Use this to remove (and possibly free) the child, but not immediately.
@@ -680,7 +737,11 @@
       if it is freed. You only need to be careful in case you add the same TCastleTransform
       instance multiple times to the same parent
       (see https://castle-engine.io/viewport_and_scenes_from_code#_multiple_instances_of_the_same_scene )
-      as then each removal removes one instance (not all) of the child from parent. }
+      as then each removal removes one instance (not all) of the child from parent.
+
+      Note: When you want to free the Item (that is, FreeItem parameter is @true)
+      then it actually doesn't matter on what parent will you call this.
+      Freeing the Item will always remove it from all parents. }
     procedure RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
 
     { Remove a child, by index on the @link(Items) list. }
@@ -692,47 +753,78 @@
     { Count of current children, to iterate over @link(Items) from 0 to Count-1. }
     function Count: Integer;
 
-    { Remove all children TCastleTransform instances. }
+    { Remove all children TCastleTransform instances.
+
+      Note that removing the children using this method,
+      just like using @link(Remove), @italic(does not free the children).
+      It merely makes the children no longer be inside this TCastleTransform,
+      so they will no longer be shown in the viewport.
+      If you want to free the children,
+      you have to do it explicitly, calling
+      @code(Item.Free) or @code(FreeAndNil(Item)) for each child.
+      Freed items are automatically removed from parent.
+      See also @url(https://castle-engine.io/castle_game_engine_for_unity_developers#_what_is_the_difference_between_owner_and_parent_in_cge
+      What is the difference between Owner and Parent in CGE?). }
     procedure Clear;
 
     { Exchange position of 2 children TCastleTransform instances. }
     procedure Exchange(const Index1, Index2: Integer);
 
-    { Return parent TCastleTransform.
-      It ignores (never returns) parents caused by referencing transform in TCastleTransformReference.
-      If there is (or was, at some point) more than 1 parent (not counting parents
-      caused by TCastleTransformReference) then it may return nil, or any of the existing parents
-      -- it is undefined which exactly.
+    { Parent TCastleTransform.
 
-      In simple cases, one TCastleTransform is just a child of one other
-      TCastleTransform, and then this property returns this obvios parent.
+      In most cases, a TCastleTransform is just a child of one other
+      TCastleTransform, and then this property returns this natural parent.
 
-      In general, one TCastleTransform instance may be used
-      multiple times as a child of other TCastleTransform instances
-      (as long as they are all within the same TCastleViewport).
-      The parent TCastleTransform instances may include TCastleTransformReference
-      (this allows to create multiple references to one TCastleTransform from editor)
-      but in general any parents are allowed
-      (when you use code, you can just insert TCastleTransform as a child of other TCastleTransform,
-      without the need for TCastleTransformReference).
+      Returns @nil if TCastleTransform is not a child of any other TCastleTransform.
 
-      This property indicates the one parent that is @italic(not) TCastleTransformReference.
-      If there are multiple such parents (this is impossible at design-time in editor,
-      but it is possible at runtime if you add/remove TCastleTransform children by code)
-      then this returns @nil or any of existing parents.
+      Setting this property removes us from old parent,
+      and adds to the new one. The local transformation (translation, rotation, scale)
+      doesn't change, so changing parent may change the effective (world)
+      transformation of the object.
 
-      It is @nil if this is just the root transform, not added to any parent. }
-    property Parent: TCastleTransform read FParent;
+      In rare cases the child can have multiple parents. The behavior is then:
+
+      @unorderedList(
+        @item(
+          It ignores (never returns) parents caused by referencing transform in
+          TCastleTransformReference.)
+
+        @item(
+          If there is (or was, at some point) more than 1 parent (not counting parents
+          caused by TCastleTransformReference) then it may return nil, or any of
+          the existing parents -- it is undefined which exactly.
+
+          In general, one TCastleTransform instance may be used
+          multiple times as a child of other TCastleTransform instances
+          (as long as they are all within the same TCastleViewport).
+          The parent TCastleTransform instances may include TCastleTransformReference
+          (this allows to create multiple references to one TCastleTransform from editor)
+          but in general any parents are allowed
+          (when you use code, you can just insert TCastleTransform as a child of other TCastleTransform,
+          without the need for TCastleTransformReference).
+
+          This property indicates the one parent that is @italic(not) TCastleTransformReference.
+          If there are multiple such parents (this is impossible at design-time in editor,
+          but it is possible at runtime if you add/remove TCastleTransform children by code)
+          then this returns @nil or any of existing parents.
+        )
+
+        @item(
+          Setting is not allowed if child has (or ever had) multiple parents.
+          The behavior is undefined.
+        )
+      ) }
+    property Parent: TCastleTransform read FParent write SetParent;
 
     {$ifdef FPC}property UniqueParent: TCastleTransform read FParent; deprecated 'use Parent';{$endif}
 
     { Sort objects back-to-front @italic(right now)
-      following one of the blending sorting algorithms.
-      Only the immediate list items are reordered,
-      looking at their bounding boxes (the sorting is not recursive).
+      following the blending 2D sorting algorithm.
+      Only the immediate list items are reordered.
 
       Calling this method makes sense if you use
       @url(https://castle-engine.io/blending blending)
+      and set @link(TCastleViewport.BlendingSort) to sortNone,
       and multiple partially-transparent objects may
       be visible at the same place on the screen.
       Sorting avoids artifacts when rendering.
@@ -743,16 +835,7 @@
           of objects (with respect to the current camera) changes.
         )
         @item(
-          In 3D, it may make sense to call this method even every frame
-          (like in every @link(TCastleWindow.OnUpdate)).
-          Call it if you move or otherwise change the objects (changing their bounding boxes),
-          or if the CameraPosition may change. Note that CameraPosition is only
-          relevant if BlendingSort is one of the bs3D* options,
-          like bs3D, bs3DOrigin, bs3DGround.
-        )
-        @item(
-          In 2D, it is a bit simpler.
-          You typically need to call this only when some objects' Z value changed
+          In 2D, you typically need to call this only when some objects' Z value changed
           (making this object move behind / in front of some other object),
           or when new object is added.
           You don't need to call this method when camera changes or when object's XY position
@@ -762,25 +845,9 @@
 
       Note that this doesn't take care of sorting the shapes
       within the scenes. For this, you should set
-      @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
-      to a value like bs3D or bs3DOrigin or bs3DGround, to keep it sorted.
-      The bs3D is the default now (see @link(TCastleRenderOptions.DefaultBlendingSort)),
-      so you typically don't need to worry about it.
-
-      See the TBlendingSort documentation for the exact specification
-      of sorting algorithms. Using BlendingSort = bsNone does nothing.
-
-      @seealso SortBackToFront2D }
-    procedure SortBackToFront(const BlendingSort: TBlendingSort;
-      const CameraPosition: TVector3);
-
-    { Sort objects back-to-front @italic(right now)
-      following the 2D blending sorting algorithm.
-      See @link(SortBackToFront) for documentation, this method
-      is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)).
-
-      @seealso SortBackToFront }
+      @link(TCastleViewport.BlendingSort). }
     procedure SortBackToFront2D;
+      deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
 
     { Bounding box of this object, in the coordinate system of the parent transformation.
       This method takes into account current transformation
@@ -839,7 +906,7 @@
       It does shadow volumes culling inside (so ShadowVolumeRenderer should
       have FrustumCullingInit already initialized).
 
-      Params.Transform,InverseTransform,TransformIdentity describe the transformation,
+      Params.Transform/InverseTransform describe the transformation,
       just like for @link(Render). }
     procedure RenderShadowVolume(const Params: TRenderParams;
       const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
@@ -856,7 +923,10 @@
       e.g. at Application.OnInitialize or later.
       Calling this method before the rendering context is initialized
       (e.g. from initializaton section of some unit)
-      will have to skip some preparations, thus reducing the effectiveness of this method.
+      will have to skip some preparations, thus reducing the effectiveness
+      of this method. But it is allowed to call this at any time,
+      regardless of the context being initialized, just like e.g.
+      @link(TCastleContainer.LoadSettings) (which may call this, to warmup cache).
 
       This makes sure that appropriate methods execute as fast as possible.
       It's never required to call this method
@@ -877,14 +947,14 @@
         Rendering parameters to prepare for.
         It is used only if Options contains prRenderSelf or prRenderClones.
       )
+
+      TODO: It is not possible to call this now without TPrepareParams,
+      and to get params you need to access deprecated TCastleViewport.PrepareParams.
+      We advise to call TCastleViewport.PrepareResources instead.
+      We'd like to get rid of TPrepareParams eventually.
     }
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const Params: TPrepareParams); overload; virtual;
-
-    procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const Ignored: Boolean;
-      const Params: TPrepareParams); overload;
-      deprecated 'use PrepareResources(Options,Params) overload (remove the 2nd Boolean parameter)';
+      const Params: TPrepareParams); virtual;
 
     { Press and release events of key and mouse, passed only to instances that set ListenPressRelease.
       Return @true if you handled the event, and it should not be passed to other objects.
@@ -1010,9 +1080,6 @@
       @nil if we are not (yet) part of some hierarchy rooted in TCastleAbstractRootTransform. }
     property World: TCastleAbstractRootTransform read FWorld;
 
-    { Mouse cursor over this object. }
-    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
-
     { Called when rendering context is destroyed.
       This will be also automatically called from destructor.
       Object should clear here any resources that are connected to the rendering context. }
@@ -1055,6 +1122,8 @@
       bounding sphere around the object), and it may be used for some
       collisions instead of BoundingBox.
       See @link(CollidesWithMoving) and @link(MoveAllowed) for when it may happen.
+
+      Just like @link(Middle) and @link(CollisionSphereRadius), this is expressed in the parent coordinate system.
 
       Must return @false when not Exists (because we can't express
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
@@ -1263,20 +1332,6 @@
     function RayCast(const RayOrigin, RayDirection: TVector3;
       out Distance: Single): TCastleTransform; overload;
     { @groupEnd }
-
-    { Is this object's bounding volume (@link(BoundingBox))
-      included in parent bounding volume.
-      This should be always @true for non-debug scenes.
-      Violating this may cause rendering artifacts, things could
-      disappear when they should not.
-      Using this is reasonable only if you attach a debug geometry
-      to your scene, and you don't want to enlarge your bounding volume
-      (e.g. because this debug geometry visualizes something determined
-      by the bounding volume, and it would create a "feedback loop"
-      if the visualization itself would enlarge the bounding box). }
-    property InternalExcludeFromParentBoundingVolume: boolean
-      read FInternalExcludeFromParentBoundingVolume
-      write FInternalExcludeFromParentBoundingVolume;
 
     { Convert position between local and outside coordinate system.
       This is called OutsideToLocal, not WorldToLocal, because it only handles transformation
@@ -1549,10 +1604,33 @@
       Rotation is done around @link(Center).
 
       Set it like this:
+
       @longCode(#
         Scene.Rotation := Vector4(0, 0, 1, Pi / 10);
         Scene.Rotation := Scene.Rotation + Vector4(0, 0, 0, Pi / 10);
-      #) }
+      #)
+
+      To combine multiple rotations, you can use @italic(quaternion multiplication).
+      For example to combine a rotation around Y axis with rotation around Z axis,
+      you can do this:
+
+      @longCode(#
+      var
+        Q, Q1, Q2: TQuaternion;
+      begin
+        Q1 := QuatFromAxisAngle(Vector3(0, 1, 0), 0.123);
+        Q2 := QuatFromAxisAngle(Vector3(0, 0, 1), 0.456);
+        Q := Q1 * Q2;
+        MyTransform.Rotation := Q.ToAxisAngle;
+      end;
+      #)
+
+      Combining rotations this way is very flexible. You can combine
+      as many as you want, and it is clear (you define it yourself)
+      in which order each rotation is applied.
+      Note that you can also just nest one TCastleTransform within
+      another TCastleTransform, and set different rotations on each of them,
+      to also effectively combine the rotations. }
     property Rotation: TVector4 read FRotation write SetRotation;
 
     { Scale in 3D. Scaling is done around @link(Center)
@@ -1621,35 +1699,32 @@
       @link(Scale) to one. Also resets @link(ScaleOrientation). }
     procedure Identity;
 
-    { Participate in the physics simulation.
-      This makes this object collidable with other rigid bodies
-      and it allows to move and rotate because of gravity
+    { Current TCastleRigidBody behavior that determines do we
+      participate in the physics simulation.
+
+      This property is always exactly equivalent to using
+      @code(FindBehavior(TCastleRigidBody) as TCastleRigidBody).
+      It is just a more convenient (and marginally faster) way to access this
+      common behavior.
+
+      See @url(https://castle-engine.io/physics physics manual)
+      for an overview of using physics. You need to add both
+      TCastleRigidBody and TCastleCollider to make physics work.
+      Then this object is collidable with other rigid bodies,
+      it can move and rotate because of gravity
       or because of collisions with other objects
       (if @link(TCastleRigidBody.Dynamic) is @true).
 
-      Setting this property makes this object
-      a single rigid body for the physics engine.
-      Underneath, it just adds TCastleRigidBody to behaviors.
-
-      If this property is assigned and the @link(TCastleRigidBody.Dynamic) is @true
-      (and @link(TCastleRigidBody.Dynamic) is @true by default)
-      then this object is moved and rotated using the physics engine.
-      It will move because of gravity (if @link(TCastleRigidBody.Gravity),
-      also @true by default),
-      and because of collisions with other objects.
-
-      If you use deprecated TCollider:
-      The @link(TCastleRigidBody.Collider) property must be initialized
-      @italic(before) assigning the @link(TRigidBody) instance here.
-      So you must create a @link(TCollider) descendant, specyfying the given
-      @link(TRigidBody) as a parent.
+      It is not possible to set this property.
+      Instead use @link(AddBehavior)
+      to add an instance of TCastleRigidBody to the behaviors list.
+      If there was a previous TCastleRigidBody instance, you can decide what
+      to do with it, e.g. you can remove it using @link(RemoveBehavior).
 
       Note that an object can only be present once in the @link(World)
       to be a rigid body. Breaking this rule will cause the
-      @link(EMultipleReferencesInWorld) exception at an undefined time.
-    }
-    property RigidBody: TCastleRigidBody read GetRigidBody write SetRigidBody;
-      {$ifdef FPC}deprecated 'use AddBehavior (to set)/FindBehavior (to get)';{$endif}
+      @link(EMultipleReferencesInWorld) exception at an undefined time. }
+    property RigidBody: TCastleRigidBody read FCachedRigidBody;
 
     { @deprecated Deprecated name for Translation. }
     property Position: TVector3 read FTranslation write SetTranslation;
@@ -1739,6 +1814,20 @@
       Returned ADir and AUp are always orthogonal.
       Returned ADir and AUp are always normalized. }
     procedure GetWorldView(out APos, ADir, AUp: TVector3);
+
+    { Position, direction and up in world coordinates.
+
+      Returned TViewVectors.Direction and TViewVectors.Up are always orthogonal.
+      Returned TViewVectors.Dir and TViewVectors.Up are always normalized.
+
+      When setting, TViewVectors.Direction and TViewVectors.Up
+      do not need to be normalized. We will internally normalize them if necessary.
+
+      When setting, we will also automatically fix
+      TViewVectors.Direction and TViewVectors.Up to be orthogonal, if necessary:
+      we will adjust the up vector (preserving the given direction value). }
+    property WorldView: TViewVectors
+      read GetWorldViewRec write SetWorldViewRec;
 
     { Get position in world coordinates.
 
@@ -1961,14 +2050,12 @@
       @noAutoLinkHere }
     property Visible: boolean read FVisible write FVisible default true;
 
-    { Exclude from rendering statistics in
-      @link(TCastleViewport.Statistics). }
-    property ExcludeFromStatistics: boolean
-      read FExcludeFromStatistics write FExcludeFromStatistics default false;
-
     { When non-zero, we can approximate collisions with this object using a sphere
       in certain situations (@link(MoveAllowed), @link(Gravity)).
-      This usually makes dynamic objects, like player and creatures, collide better. }
+      This usually makes dynamic objects, like player and creatures, collide better.
+
+      Just like @link(Middle), this is expressed
+      in the parent coordinate system. }
     property CollisionSphereRadius: Single read FCollisionSphereRadius write FCollisionSphereRadius;
 
     { Does the object cast shadows.
@@ -2024,7 +2111,6 @@ begin
   FCollides := true;
   FPickable := true;
   FVisible := true;
-  FCursor := mcDefault;
   FList := TCastleTransformList.Create(false);
   FList.FOwner := Self; // get notified about add/release, assign children World, Parent
   FBehaviors := TComponentList.Create(false);
@@ -2086,7 +2172,7 @@ begin
   while FList.Count <> 0 do
   begin
     PreviousCount := FList.Count;
-    Remove(FList[0]);
+    Delete(0);
     if FList.Count >= PreviousCount then
     begin
       WritelnWarning('During TCastleTransform.BeforeDestruction, the number of children does not decrease -- this means that some TCastleTransform destructor adds new TCastleTransform instances. ' +
@@ -2128,16 +2214,6 @@ begin
       Inc(World.InternalVisibleGeometryStateId);
     if vcVisibleNonGeometry in Changes then
       Inc(World.InternalVisibleNonGeometryStateId);
-  end;
-end;
-
-procedure TCastleTransform.SetCursor(const Value: TMouseCursor);
-begin
-  if FCursor <> Value then
-  begin
-    FCursor := Value;
-    if (World <> nil) and Assigned(World.OnCursorChange) then
-      World.OnCursorChange(Self);
   end;
 end;
 
@@ -2547,15 +2623,11 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
-procedure TCastleTransform.SortBackToFront(const BlendingSort: TBlendingSort;
-  const CameraPosition: TVector3);
-begin
-  List.SortBackToFront(BlendingSort, CameraPosition);
-end;
-
 procedure TCastleTransform.SortBackToFront2D;
 begin
-  SortBackToFront(bs2D, TVector3.Zero);
+  {$warnings off} // using deprecated in deprecated
+  List.SortBackToFront2D;
+  {$warnings on}
 end;
 
 function TCastleTransform.LocalBoundingBox: TBox3D;
@@ -2569,16 +2641,7 @@ begin
       { Ignoring InternalExcludeFromParentBoundingVolume when
         InternalGizmoBoundingBox <> 0 is a hack,
         so that when TCastleViewport.ItemsWithGizmosBoundingBox is called,
-        then TGizmoScene box is taken into account.
-        Otherwise 2D projection in editor could cut off the TGizmoScene.
-
-        Testcase:
-        - 2d viewport
-        - add a few TCastleImageTransform with some image loaded with Z = -1000.
-        - add TCastleTransform with translation 0,0,0, select it
-        - -> the gizmo of it has to be visible, even though everything visible
-          (excluding gizmos) is at Z = -1000.
-      }
+        then all gizmos are taken into account. }
       if not (List[I].InternalExcludeFromParentBoundingVolume and
               (InternalGizmoBoundingBox = 0)) then
         Result.Include(List[I].BoundingBox);
@@ -2628,13 +2691,6 @@ begin
     RegisteredGLContextCloseListener := true;
     ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}GLContextCloseEvent);
   end;
-end;
-
-procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;
-  const Ignored: Boolean;
-  const Params: TPrepareParams);
-begin
-  PrepareResources(Options, Params);
 end;
 
 procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;
@@ -3007,7 +3063,7 @@ begin
     This matters, e.g. we activate FScene.ProcessEvents:=true
     in TCastleAbstractLight.Create, at which point FScene has a parent
     but the parent (TCastleAbstractLight instance) is not yet part of world.
-    SetProcessEvents calls GetCameraVectors that checks HasWorldTransform,
+    SetProcessEvents calls GetCameraLocal that checks HasWorldTransform,
     assuming that HasWorldTransform => implies World <> nil.
 
     TODO: maybe just "FWorld <> nil" should be enough? }
@@ -3212,11 +3268,29 @@ begin
 end;
 
 procedure TCastleTransform.Render(const Params: TRenderParams);
+
+  procedure BehaviorsBeforeRender(
+    const CameraView: TViewVectors;
+    const ParentWorldTransform, ParentWorldInverseTransform,
+          WorldTransform, WorldInverseTransform: TMatrix4);
+  var
+    I: Integer;
+    Beh: TCastleBehavior;
+  begin
+    for I := 0 to FBehaviors.Count - 1 do
+    begin
+      Beh := FBehaviors[I] as TCastleBehavior;
+      Beh.BeforeRender(CameraView,
+        ParentWorldTransform, ParentWorldInverseTransform,
+        WorldTransform, WorldInverseTransform);
+    end;
+  end;
+
 var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
   NewParamsTransformation: TTransformation;
-  OldParamsTransformIdentity, OldInMeaningfulParent: Boolean;
+  OldInMeaningfulParent: Boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
   HasSavedDepthRange: Boolean;
@@ -3230,23 +3304,17 @@ begin
     //((Parent = nil) or Parent.MeaningfulParent);
     MeaningfulParent;
 
-  HasSavedDepthRange := (RenderLayer <> rlParent) and
-    { Shadow maps require normal DepthRange,
-      don't mess with RenderContext.DepthRange in case when we render shadow maps. }
-    (not (Params.RenderingCamera.Target in [rtShadowMap, rtVarianceShadowMap]));
+  HasSavedDepthRange := RenderLayer <> rlParent;
   if HasSavedDepthRange then
   begin
     { The idea of using DepthRange for render layers is nice:
-      - you don't have to split rendering layers in passes,
-        you can render all objects in one pass,
-        just switching DepthRange as necessary.
-      - you can set DepthRange for 3D objects inside TCastleTransform,
-        like here TCastleTransform will just affect every child underneath.
-    }
-    SavedDepthRange := RenderContext.DepthRange;
+      you don't have to split rendering layers in passes,
+      you can render all objects in one pass,
+      just switching DepthRange as necessary. }
+    SavedDepthRange := Params.DepthRange;
     case RenderLayer of
-      rlFront: RenderContext.DepthRange := drNear;
-      rlBack : RenderContext.DepthRange := drFar;
+      rlFront: Params.DepthRange := drNear;
+      rlBack : Params.DepthRange := drFar;
       else ;
     end;
   end else
@@ -3257,12 +3325,16 @@ begin
     T := Translation;
     if FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
     begin
+      if FBehaviorsNeedBeforeRender then
+        BehaviorsBeforeRender(
+          Params.RenderingCamera.View,
+          Params.Transform^, Params.InverseTransform^,
+          Params.Transform^, Params.InverseTransform^);
       LocalRender(Params);
     end else
     begin
       //FrameProfiler.Start(fmRenderTransform);
 
-      OldParamsTransformIdentity := Params.TransformIdentity;
       OldParamsTransform         := Params.Transform;
       OldParamsInverseTransform  := Params.InverseTransform;
       OldFrustum                 := Params.Frustum;
@@ -3272,7 +3344,6 @@ begin
       NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
       NewFrustumValue                          := OldFrustum^;
 
-      Params.TransformIdentity := false;
       Params.Transform        := @NewParamsTransformation.Transform;
       Params.InverseTransform := @NewParamsTransformation.InverseTransform;
       Params.Frustum          := @NewFrustumValue;
@@ -3297,12 +3368,16 @@ begin
       end;
 
       //FrameProfiler.Stop(fmRenderTransform);
+      if FBehaviorsNeedBeforeRender then
+        BehaviorsBeforeRender(
+          Params.RenderingCamera.View,
+          OldParamsTransform^, OldParamsInverseTransform^,
+          Params.Transform^, Params.InverseTransform^);
       LocalRender(Params);
       //FrameProfiler.Start(fmRenderTransform);
 
       { Restore OldXxx values.
         They can be restored fast, thanks to using pointers to matrix/frustum. }
-      Params.TransformIdentity := OldParamsTransformIdentity;
       Params.Transform         := OldParamsTransform;
       Params.InverseTransform  := OldParamsInverseTransform;
       Params.Frustum           := OldFrustum;
@@ -3313,7 +3388,7 @@ begin
   Params.InMeaningfulParent := OldInMeaningfulParent;
 
   if HasSavedDepthRange then
-    RenderContext.DepthRange := SavedDepthRange;
+    Params.DepthRange := SavedDepthRange;
 end;
 
 procedure TCastleTransform.RenderShadowVolume(const Params: TRenderParams;
@@ -3322,7 +3397,6 @@ var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
   NewParamsTransformation: TTransformation;
-  OldParamsTransformIdentity: Boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
 begin
@@ -3334,7 +3408,6 @@ begin
   begin
     { TODO: This is a copy-paste of transformation algorithm from TCastleTransform.Render. }
 
-    OldParamsTransformIdentity := Params.TransformIdentity;
     OldParamsTransform         := Params.Transform;
     OldParamsInverseTransform  := Params.InverseTransform;
     OldFrustum                 := Params.Frustum;
@@ -3344,7 +3417,6 @@ begin
     NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
     NewFrustumValue                          := OldFrustum^;
 
-    Params.TransformIdentity := false;
     Params.Transform        := @NewParamsTransformation.Transform;
     Params.InverseTransform := @NewParamsTransformation.InverseTransform;
     Params.Frustum          := @NewFrustumValue;
@@ -3369,19 +3441,25 @@ begin
 
     { Restore OldXxx values.
       They can be restored fast, thanks to using pointers to matrix/frustum. }
-    Params.TransformIdentity := OldParamsTransformIdentity;
     Params.Transform         := OldParamsTransform;
     Params.InverseTransform  := OldParamsInverseTransform;
     Params.Frustum           := OldFrustum;
   end;
 end;
 
+{ Bottom value (0 or box bottom).
+  In the same coordinate system as given ModelBox. }
 function Bottom(const Gravity: boolean; const GravityCoordinate: Integer;
-  const BoundingBox: TBox3D): Single;
+  const ModelBox: TBox3D): Single;
 begin
   if Gravity then
     Result := 0 else
-    Result := BoundingBox.Data[0][GravityCoordinate];
+    Result := ModelBox.Data[0][GravityCoordinate];
+end;
+
+function TCastleTransform.DistanceToParent(const Distance: Single): Single;
+begin
+  Result := Distance * Abs(AverageScale);
 end;
 
 function TCastleTransform.Middle: TVector3;
@@ -3409,7 +3487,9 @@ begin
       Result.Data[GC] := Lerp(MiddleHeight, B.Data[0][GC], B.Data[1][GC]);
   }
   {$warnings off}
-  Result.Data[GC] := Result.Data[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
+  Result.Data[GC] := Result.Data[GC] +
+    DistanceToParent(Bottom(Gravity, GC, B)) +
+    PreferredHeight;
   {$warnings on}
 end;
 
@@ -3429,7 +3509,10 @@ begin
     Result := 0
   else
     {$warnings off} // using deprecated in deprecated
-    Result := MiddleHeight * (B.Data[1][GC] - Bottom(Gravity, GC, B));
+    Result := MiddleHeight *
+      DistanceToParent(
+        B.Data[1][GC] - Bottom(Gravity, GC, B)
+      );
     {$warnings on}
 
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
@@ -3599,8 +3682,24 @@ begin
 end;
 
 procedure TCastleTransform.ChangedTransformCore(const UpdatePhysicsTransform: Boolean);
-var
-  RBody: TCastleRigidBody;
+
+  procedure RecursiveRigidBodySetWorldTransformation(const Transform: TCastleTransform);
+  var
+    I: Integer;
+    RBody: TCastleRigidBody;
+  begin
+    RBody := Transform.RigidBody;
+    if (RBody <> nil) and
+       (not RBody.DuringSettingTransformationFromPhysicsEngine) then
+      RBody.SetWorldTransformation(Transform.WorldTransform);
+
+    { TODO: This is time-consuming for changing larger hierarchies.
+      We should avoid it somehow. }
+    if InternalMovesPhysicsBodies then
+      for I := 0 to Transform.List.Count - 1 do
+        RecursiveRigidBodySetWorldTransformation(Transform.List[I]);
+  end;
+
 begin
   FTransformationValid := false;
   FWorldTransformationValid := false;
@@ -3608,10 +3707,7 @@ begin
 
   if (FWorld <> nil) and (FWorld.EnablePhysics) and UpdatePhysicsTransform then
   begin
-    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-    if (RBody <> nil) and
-       (not RBody.DuringSettingTransformationFromPhysicsEngine) then
-      RBody.SetWorldTransformation(WorldTransform);
+    RecursiveRigidBodySetWorldTransformation(Self);
   end;
 
   ChangedTransform;
@@ -3693,7 +3789,9 @@ begin
     Result := [psLayout]
   else
   if ArrayContainsString(PropertyName, [
-       'RotationPersistent', 'ScalePersistent', 'TranslationPersistent'
+       'RotationPersistent', 'ScalePersistent', 'TranslationPersistent',
+       // Direction and Up expose also Rotation but in alternative way
+       'DirectionPersistent', 'UpPersistent'
      ]) then
     Result := [psBasic, psLayout]
   else
@@ -3871,6 +3969,16 @@ begin
   AUp := RotationToUp(R);
 end;
 
+function TCastleTransform.GetWorldViewRec: TViewVectors;
+begin
+  GetWorldView(Result.Translation, Result.Direction, Result.Up);
+end;
+
+procedure TCastleTransform.SetWorldViewRec(const Value: TViewVectors);
+begin
+  SetWorldView(Value.Translation, Value.Direction, Value.Up);
+end;
+
 function TCastleTransform.WorldTranslation: TVector3;
 begin
   Result := TranslationFromMatrix(WorldTransform);
@@ -4016,6 +4124,11 @@ begin
   Result := TCastleBehavior(FBehaviors[Index]);
 end;
 
+procedure TCastleTransform.UpdateCachedBehaviors;
+begin
+  FCachedRigidBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+end;
+
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
 var
   ReasonWhyCannot: String;
@@ -4055,6 +4168,9 @@ begin
         Behavior.WorldAfterAttach;
     end;
     NotifyBehaviorAdded(Behavior);
+
+    UpdateBehaviorsNeedBeforeRender;
+    UpdateCachedBehaviors;
   end;
 end;
 
@@ -4078,6 +4194,9 @@ begin
   Beh.ParentChanged; // call at end, when state is consistent
   {$warnings on}
   RemoveWorldChangeNotification(Beh);
+
+  UpdateBehaviorsNeedBeforeRender;
+  UpdateCachedBehaviors;
 end;
 
 procedure TCastleTransform.RemoveBehavior(const Behavior: TCastleBehavior);
@@ -4138,6 +4257,49 @@ begin
   end;
 end;
 
+var
+  { Must be an instance of exactly TCastleBehavior, not any descedant.
+    Used by CustomizedBeforeRender. }
+  InternalBehavior: TCastleBehavior;
+
+procedure TCastleTransform.UpdateBehaviorsNeedBeforeRender;
+
+  { Beh overriddes TCastleBehavior.BeforeRender.
+
+    Note: In general checking for such "is this method overridden" is dirty,
+    as not expected by developers. But in this case it's used only for optimization,
+    no functional change occurs: when FBehaviorsNeedBeforeRender is false
+    (which is often), we can avoid calling BehaviorBeforeRender at all. }
+  function CustomizedBeforeRender(const Beh: TCastleBehavior): Boolean;
+  type
+    TBeforeRenderEvent = procedure (
+      const CameraView: TViewVectors;
+      const ParentWorldTransform, ParentWorldInverseTransform,
+            WorldTransform, WorldInverseTransform: TMatrix4) of object;
+  var
+    CurMethod, NotOverriddedMethod: TBeforeRenderEvent;
+  begin
+    CurMethod := {$ifdef FPC}@{$endif} Beh.BeforeRender;
+    NotOverriddedMethod := {$ifdef FPC}@{$endif} InternalBehavior.BeforeRender;
+    Result := TMethod(CurMethod).Code <> TMethod(NotOverriddedMethod).Code;
+  end;
+
+var
+  I: Integer;
+  Beh: TCastleBehavior;
+begin
+  FBehaviorsNeedBeforeRender := false;
+  for I := 0 to FBehaviors.Count - 1 do
+  begin
+    Beh := FBehaviors[I] as TCastleBehavior;
+    if CustomizedBeforeRender(Beh) then
+    begin
+      FBehaviorsNeedBeforeRender := true;
+      Exit; // no point in checking the rest
+    end;
+  end;
+end;
+
 procedure TCastleTransform.PendingRemovals;
 var
   I: Integer;
@@ -4166,6 +4328,11 @@ end;
 
 procedure TCastleTransform.RemoveDelayed(const Item: TCastleTransform; const FreeItem: Boolean = false);
 begin
+  { Avoid crash in certain cases,
+    see https://forum.castle-engine.io/t/sigsegv-when-i-try-to-remove/859/8 }
+  if Item = Self then
+    raise Exception.Create('Cannot remove the object from itself using RemoveDelayed');
+
   if FreeItem then
   begin
     if FPendingToRemoveAndFree = nil then
@@ -4188,7 +4355,7 @@ begin
     FExists := Value;
     UpdateExistsInRoot;
 
-    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    RBody := RigidBody; // FindBehavior(TCastleRigidBody) as TCastleRigidBody; // use cached value
     if (RBody <> nil) and RBody.Exists then
     begin
       if FLastExistsChangeFrameId = TFramesPerSecond.FrameId then
@@ -4234,9 +4401,64 @@ begin
   { Update rigid body existence when ExistsInRoot changes }
   if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) then
   begin
-    RBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    RBody := RigidBody; // FindBehavior(TCastleRigidBody) as TCastleRigidBody; // use cached value
     if RBody <> nil then
       RBody.UpdateExist;
+  end;
+end;
+
+procedure TCastleTransform.SetParent(const Value: TCastleTransform);
+begin
+  if Parent <> Value then
+  begin
+    if Parent <> nil then
+      Parent.Remove(Self);
+    if Value <> nil then
+      Value.Add(Self);
+  end;
+end;
+
+procedure TCastleTransform.DesignerWarnings(const SList: TStrings);
+
+  { Scale is uniform (all 3 components are ~equal) and all components are > 0. }
+  function ScalePhysicsFriendly(const S: TVector3): Boolean;
+  begin
+    Result :=
+      (S.X > 0) and
+      (S.Y > 0) and
+      (S.Z > 0) and
+      SameValue(S.X, S.Y) and
+      SameValue(S.X, S.Z);
+  end;
+
+var
+  R, C: TCastleBehavior;
+begin
+  inherited;
+  R := RigidBody; // FindBehavior(TCastleRigidBody) as TCastleRigidBody; // use cached value
+  C := FindBehavior(TCastleCollider);
+
+  if (R <> nil) <> (C <> nil) then
+  begin
+
+    SList.Add('Both TCastleRigidBody and TCastleCollider behaviors are required for physics to affect this component.');
+  end;
+
+  if (R <> nil) and
+     (C <> nil) then
+  begin
+    { physics behaviors set up }
+    if not ScalePhysicsFriendly(Scale) then
+    begin
+      SList.Add('Physics engine only supports a uniform scale: all 3 scale components must be equal and posititive.');
+    end;
+  end else
+  begin
+    { physics behaviors not set up }
+    if FindBehavior(TCastleAbstractJoint) <> nil then
+    begin
+      SList.Add('Physics joint only works if also TCastleRigidBody and TCastleCollider behaviors are present.');
+    end;
   end;
 end;
 

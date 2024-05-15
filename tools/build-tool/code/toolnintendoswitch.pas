@@ -46,7 +46,7 @@ procedure PackageNintendoSwitch(const Project: TCastleProject);
 implementation
 
 uses SysUtils,
-  CastleFilesUtils, CastleURIUtils,
+  CastleFilesUtils, CastleUriUtils,
   ToolPackage;
 
 procedure NxNotSupported;

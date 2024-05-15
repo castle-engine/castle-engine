@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -536,20 +536,8 @@ type
     function OrthoProject(const Pos, Dir, Side, Up: TVector3): TFloatRectangle;
 
     { Compare two bounding boxes based
-      on their distance to the SortPosition point,
-      suitable for depth sorting in 3D.
-      Follows the algorithm documented at @link(bs3D).
-      Returns -1 if A < B, 1 if A > B, 0 if A = B.
-
-      Using this with a typical sorting function will result
-      in boxes back-to-front ordering, which means that the farthest
-      box will be first. }
-    class function CompareBackToFront3D(
-      const A, B: TBox3D; const SortPosition: TVector3): Integer; static;
-
-    { Compare two bounding boxes based
       on their Z coordinates, suitable for depth sorting in 2D.
-      Follows the algorithm documented at @link(bs2D).
+      Follows the algorithm documented at @link(sort2D).
       Returns -1 if A < B, 1 if A > B, 0 if A = B.
 
       Using this with a typical sorting function will result
@@ -557,6 +545,7 @@ type
       box will be first. }
     class function CompareBackToFront2D(
       const A, B: TBox3D): Integer; static;
+      deprecated 'rely on TCastleViewport.BlendingSort to sort shapes';
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const Box1, Box2: TBox3D): TBox3D;
     class operator {$ifdef FPC}+{$else}Add{$endif} (const B: TBox3D; const V: TVector3): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
@@ -2282,42 +2271,19 @@ begin
     Result := Result.Include(ProjectPoint(C[I]));
 end;
 
-class function TBox3D.CompareBackToFront3D(
-  const A, B: TBox3D; const SortPosition: TVector3): Integer;
-begin
-  { We always treat empty box as closer than non-empty.
-    And two empty boxes are always equal.
-
-    Remember that code below must make sure that Result = 0
-    for equal elements (Sort may depend on this). So A > B only when:
-    - A empty, and B non-empty
-    - both non-empty, and A closer }
-
-  if (not A.IsEmpty) and
-    ( B.IsEmpty or
-      ( PointsDistanceSqr(A.Center, SortPosition) >
-        PointsDistanceSqr(B.Center, SortPosition))) then
-    Result := -1
-  else
-  if (not B.IsEmpty) and
-    ( A.IsEmpty or
-      ( PointsDistanceSqr(B.Center, SortPosition) >
-        PointsDistanceSqr(A.Center, SortPosition))) then
-    Result :=  1
-  else
-    Result :=  0;
-end;
-
 class function TBox3D.CompareBackToFront2D(
   const A, B: TBox3D): Integer;
 begin
-  { Note that we ignore SortPosition, we do not look at distance between
-    SortPosition and A, we merely look at A.
+  { Note that we ignore camera position/direction for 2D comparison.
+    We merely look at Z coordinates.
     This way looking at 2D Spine scene from the other side is also Ok.
 
     For speed, we don't look at bounding box Middle, only at it's min point.
     The assumption here is that shape is 2D, so
-      BoundingBox.Data[0].Z = BoundingBox.Data[1].Z = BoundingBox.Center[2] . }
+      BoundingBox.Data[0].Z ~=
+      BoundingBox.Data[1].Z ~=
+      BoundingBox.Center.Z .
+  }
 
   if (not A.IsEmpty) and
     ( B.IsEmpty or

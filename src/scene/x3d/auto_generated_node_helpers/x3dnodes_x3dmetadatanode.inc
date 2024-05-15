@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,17 +29,18 @@
     function GetReference: String;
     procedure SetReference(const Value: String);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdName: TSFString;
-    { Internal wrapper for property @link(NameField). This wrapper API may change, we advise to access simpler @link(NameField) instead. }
+    { Internal wrapper for property @code(NameField). This wrapper API may change, we advise to access simpler @code(NameField) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdName: TSFString read FFdName;
     {  }
     property NameField: String read GetNameField write SetNameField;
 
     strict private FFdReference: TSFString;
-    { Internal wrapper for property @link(Reference). This wrapper API may change, we advise to access simpler @link(Reference) instead. }
+    { Internal wrapper for property @code(Reference). This wrapper API may change, we advise to access simpler @code(Reference) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdReference: TSFString read FFdReference;
     {  }
     property Reference: String read GetReference write SetReference;

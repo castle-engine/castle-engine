@@ -3,8 +3,12 @@
      by the build tool. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
-        <!-- For Google Games integration -->
+        <!-- For Google Play Games integration
+          See https://developers.google.com/games/services/android/quickstart
+        -->
         <meta-data android:name="com.google.android.gms.games.APP_ID"
-            android:value="@string/app_id" />
+          android:value="@string/app_id" />
+        <meta-data android:name="com.google.android.gms.version"
+          android:value="@integer/google_play_services_version"/>
     </application>
 </manifest>

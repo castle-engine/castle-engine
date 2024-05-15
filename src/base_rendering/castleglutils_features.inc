@@ -74,7 +74,7 @@ type
       with deprecated functionality removed (just like rcForceModern)
       and only fallback on non-modern context if that is not possible.
       For now, rcAutomatic still initializes context with compatibility entry points
-      too, although it will not use them.
+      too, although it will not use them if the resulting context is modern.
       We use flag rcForceModern to test whether the "modern (core) context with
       deprecated stuff removed" is worth the hassle, i.e. is there a practical benefit
       (measurable speedup / functionality boost) of not having compatibility entry points. }
@@ -90,7 +90,9 @@ type
       We will keep OpenGL API usage at 1.x, for large things (no shaders,
       no VBO) and small things (like querying OpenGL extensions).
       The goal is to really simulate ancient GPU, before shaders were part
-      of the OpenGL standard. }
+      of the OpenGL standard.
+
+      Not possible on OpenGLES, where CGE always uses modern shader pipeline. }
     rcForceFixedFunction,
 
     { Force initializing modern OpenGL context, with deprecated functionality
@@ -112,15 +114,7 @@ type
 
       The specifics what it does:
       We try to initialize "core" profile of OpenGL version 3.3
-      (TGLFeatures.ModernVersionMajor, TGLFeatures.ModernVersionMinor).
-
-      TODO: On macOS, we will also request forward-compatible context.
-      See https://www.khronos.org/opengl/wiki/OpenGL_Context#Context_types ,
-      https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL) .
-
-      TODO: For now, this only really affects context creation on glX,
-      on other platforms we just check that we got context with
-      EnableFixedFunction = false. }
+      (TGLFeatures.ModernVersionMajor, TGLFeatures.ModernVersionMinor). }
     rcForceModern
   );
 
@@ -582,6 +576,15 @@ function StrToCapabilities(const S: String): TGLRequestCapabilities;
 
 procedure GLInformationInitialize;
 begin
+  {$ifdef USE_DGL}
+  // Do it to initialize glGetString using dglOpenGL
+  if GL_LibHandle = nil then
+    InitOpenGL;
+  ReadOpenGLCore;
+  if not Assigned(glGetString) then
+    raise Exception.Create('Failed to load OpenGL library');
+  {$endif}
+
   FreeAndNil(GLVersion);
   GLVersion := TGLVersion.Create(
     PGLChar(glGetString(GL_VERSION)),
@@ -637,6 +640,15 @@ function TGLFeatures.HasExtension(const Extension: String): Boolean;
       start := terminator;
     end;
     Result := FALSE;
+  end;
+  {$endif}
+
+  {$ifdef USE_DGL}
+  function glext_ExtensionSupported(const extension: String;
+    { SearchIn ignored with dglOpenGL }
+    const searchIn: String): Boolean;
+  begin
+    Result := dglCheckExtension(Extension);
   end;
   {$endif}
 
@@ -755,12 +767,14 @@ begin
     WritelnLog(MessageWhole);
 end;
 
-{$ifndef OpenGLES}
-{ Workaround GLExt in FPC missing "extdecl" for these routines,
-  see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/381 }
-var
-  glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam: Pointer); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
-  glDebugMessageControl :procedure (source:GLenum; _type:GLenum; severity:GLenum; count:GLsizei; ids:PGLuint; enabled:GLboolean); {$ifdef windows}stdcall;{$else}cdecl;{$endif}
+{$ifdef USE_DGL}
+type
+  GLDEBUGPROC = TGLDEBUGPROC;
+
+function Load_GL_ARB_texture_multisample: Boolean;
+begin
+  Result := dglCheckExtension('GL_ARB_texture_multisample');
+end;
 {$endif}
 
 constructor TGLFeatures.Create;
@@ -778,89 +792,36 @@ constructor TGLFeatures.Create;
   begin
     if HasExtension('GL_KHR_debug') then
     begin
-      {$ifndef OpenGLES}
-      { Initialize manually to:
-        - Workaround that we cannot use Load_GL_Debug_output, as it uses deprecated
-          glGetString(GL_EXTENSIONS). So we initialize 2 entry points manually.
-        - Workaround that we define them in this unit, to have proper stdcall/cdecl,
-          see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/381 .
-        Note that we don't really use glDebugMessageControl now, but we load+check it too,
-        for consistency.
-        This is not necessary on OpenGLES, our CastleGLES just always loads all entry points now,
-        without even checking GL_KHR_debug. }
-      Pointer({$ifndef FPC}@{$endif} glDebugMessageCallback) := wglGetProcAddress('glDebugMessageCallback');
-      Pointer({$ifndef FPC}@{$endif} glDebugMessageControl) := wglGetProcAddress('glDebugMessageControl');
-      {$endif}
-
       if not Assigned(glDebugMessageCallback) then raise Exception.Create('glDebugMessageCallback missing');
       if not Assigned(glDebugMessageControl) then raise Exception.Create('glDebugMessageControl missing');
 
       glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
       glDebugMessageCallback(
-        {$ifndef FPC}GLDEBUGPROC(@CallbackGLDebug){$endif}
-        {$ifdef FPC}@CallbackGLDebug{$endif}, nil);
+        {$ifdef USE_DGL} GLDEBUGPROC(@CallbackGLDebug)
+        {$else} @CallbackGLDebug
+        {$endif}, nil);
       WritelnLog('OpenGL(ES) debugging enabled, expect extra log messages');
     end;
   end;
 
 {$ifndef OpenGLES}
 var
-  LoadExtensions: Boolean;
   ErrorCode: TGLenum;
 {$endif}
 begin
   inherited;
 
   {$ifndef OpenGLES}
-  { TODO: We cannot load extensions with rcForceModern, as FPC GLExt then uses
-    glGetString(GL_EXTENSIONS) which is not available.
-    With new OpenGL, one should use glGetStringi to enumerate over extensions,
-    see our HasExtension. }
-  LoadExtensions := RequestCapabilities <> rcForceModern;
-  {$endif}
+  { With dglOpenGL (our CastleGL) the Version_X_Y just reflect
+    whether GL_VERSION is at least X.Y.
 
-  {$ifndef OpenGLES}
-  {$ifdef FPC}
-  if RequestCapabilities = rcForceModern then
-  begin
-    { Do not load non-core OpenGL entry points in this case.
-      We define still all Version_X_Y booleans, because this is easier for
-      backward compatibility, as most code used them like "at least X.Y".
+    dglOpenGL doesn't have any function to check if all entry points
+    for X.Y are defined, it only has "Read_xxx" for 4.x stuff.
 
-      In the long run, we should probably just remove these Version_X_Y
-      with unclear meaning now -- since having core/forward-compatible context
-      means we may have version > X.Y, but still not have entry points for X.Y.
-    }
-    FVersion_1_2 := GLVersion.AtLeast(1, 2);
-    FVersion_1_3 := GLVersion.AtLeast(1, 3);
-    FVersion_1_4 := GLVersion.AtLeast(1, 4);
-    FVersion_1_5 := GLVersion.AtLeast(1, 5);
-    FVersion_2_0 := GLVersion.AtLeast(2, 0);
-    FVersion_2_1 := GLVersion.AtLeast(2, 1);
-    FVersion_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_version_3_0_CORE();
-    FVersion_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1_CORE();
-    FVersion_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2_CORE();
-    FVersion_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3_CORE();
-    FVersion_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0_CORE();
-  end else
-  begin
-    FVersion_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
-    FVersion_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
-    FVersion_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
-    FVersion_1_5 := GLVersion.AtLeast(1, 5) and Load_GL_version_1_5;
-    if RequestCapabilities <> rcForceFixedFunction then
-    begin
-      FVersion_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
-      FVersion_2_1 := GLVersion.AtLeast(2, 1) and Load_GL_version_2_1;
-      FVersion_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_version_3_0;
-      FVersion_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1;
-      FVersion_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2;
-      FVersion_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3;
-      FVersion_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0;
-    end;
-  end;
-  {$else}
-  // TODO: Delphi OpenGLext has only InitOpenGLext
+    The Version_X_Y are somewhat unclear anyway,
+    since having core/forward-compatible context
+    means we may have version > X.Y, but still not have entry points for X.Y.
+    In practice they are always used as "at least X.Y". }
   FVersion_1_2 := GLVersion.AtLeast(1, 2);
   FVersion_1_3 := GLVersion.AtLeast(1, 3);
   FVersion_1_4 := GLVersion.AtLeast(1, 4);
@@ -875,8 +836,8 @@ begin
     FVersion_3_3 := GLVersion.AtLeast(3, 3);
     FVersion_4_0 := GLVersion.AtLeast(4, 0);
   end;
-  InitOpenGLext; // TODO: check that later
-  {$endif}
+  ReadImplementationProperties;
+  ReadExtensions;
   {$else}
   FVersionES_2_0 := GLVersion.AtLeast(2, 0);
   FVersionES_3_0 := GLVersion.AtLeast(3, 0);
@@ -967,9 +928,7 @@ begin
 
   { calculate Framebuffer }
   FFramebuffer := {$ifdef OpenGLES} true // OpenGLES >= 2 includes FBO
-    { Note: Do not change Load_GL_ARB_framebuffer_object to HasExtension('GL_ARB_framebuffer_object')
-      here, as we need to load entry points (like glGenerateMipmap) in this case. }
-    {$else} Version_3_0 {$ifdef FPC} or (LoadExtensions and Load_GL_ARB_framebuffer_object) {$endif}
+    {$else} Version_3_0 or GL_ARB_framebuffer_object
     {$endif};
 
   if Framebuffer then
@@ -1010,8 +969,7 @@ begin
   FFBOMultiSampling := {$ifdef OpenGLES} false
     {$else}
     Framebuffer and
-    LoadExtensions and
-    Load_GL_ARB_texture_multisample and
+    GL_ARB_texture_multisample and
     (not GLVersion.BuggyFBOMultiSampling)
     {$endif};
 
@@ -1220,9 +1178,6 @@ begin
     {$else} Version_1_4 or HasExtension('GL_ARB_depth_texture')
     {$endif};
 
-  { ARB_shadow defines no new functions, so we don't need to load using this:
-      LoadExtensions and Load_GL_ARB_shadow;
-    and therefore it will work also with modern OpenGL where Load_GL_ARB_shadow is broken in GLExt. }
   FTextureDepthCompare :=
     { Note that we don't look at GL_EXT_shadow_samplers, we need GLSL "300 es" anyway
       to access shadow samplers from GLSL. }
@@ -1260,7 +1215,9 @@ begin
   // RequestCapabilities = rcForceFixedFunction overrides above detection
   if RequestCapabilities = rcForceFixedFunction then
   begin
-    {$ifndef OpenGLES}
+    {$ifdef OpenGLES}
+    raise Exception.Create('Requested deprecated fixed-function approach, but this is an OpenGLES >= 2.0 context. Cannot use fixed-function.');
+    {$else}
     if Version_3_1 and not HasExtension('GL_ARB_compatibility') then
       raise Exception.Create('Requested deprecated fixed-function approach, but this is a modern context without compatibility (ARB_compatibility). Cannot use fixed-function.');
     {$endif}

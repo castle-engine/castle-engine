@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,17 +29,18 @@
     function GetSpecularTexture: TAbstractEnvironmentTextureNode;
     procedure SetSpecularTexture(const Value: TAbstractEnvironmentTextureNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDiffuseTexture: TSFNode;
-    { Internal wrapper for property @link(DiffuseTexture). This wrapper API may change, we advise to access simpler @link(DiffuseTexture) instead. }
+    { Internal wrapper for property @code(DiffuseTexture). This wrapper API may change, we advise to access simpler @code(DiffuseTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
     {  }
     property DiffuseTexture: TAbstractEnvironmentTextureNode read GetDiffuseTexture write SetDiffuseTexture;
 
     strict private FFdSpecularTexture: TSFNode;
-    { Internal wrapper for property @link(SpecularTexture). This wrapper API may change, we advise to access simpler @link(SpecularTexture) instead. }
+    { Internal wrapper for property @code(SpecularTexture). This wrapper API may change, we advise to access simpler @code(SpecularTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSpecularTexture: TSFNode read FFdSpecularTexture;
     {  }
     property SpecularTexture: TAbstractEnvironmentTextureNode read GetSpecularTexture write SetSpecularTexture;

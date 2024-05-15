@@ -19,9 +19,8 @@ unit TestCastleTransform;
 interface
 
 uses
-  Classes, SysUtils, CastleBoxes,
-  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils,
+  CastleBoxes, CastleTester;
 
 type
   TTestCastleTransform = class(TCastleTestCase)
@@ -72,6 +71,7 @@ type
     procedure TestReparentBehavior;
     procedure TestRemoveParent;
     procedure TestLayersSetSize;
+    procedure TestMiddleAndScale;
   end;
 
 implementation
@@ -79,7 +79,8 @@ implementation
 uses Math, Contnrs,
   CastleVectors, CastleTransform, CastleViewport, CastleClassUtils, CastleUIControls,
   CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer,
-  CastleProjection, CastleStringUtils, CastleApplicationProperties, CastleUtils;
+  CastleProjection, CastleStringUtils, CastleApplicationProperties, CastleUtils,
+  X3DCameraUtils;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -1281,7 +1282,7 @@ var
   Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
   Body: TRigidBody;
-  Collider: TBoxCollider;
+  //Collider: TBoxCollider;
 begin
   try
     Viewport := TCastleViewport.Create(nil);
@@ -1290,13 +1291,13 @@ begin
 
       Body := TRigidBody.Create(Viewport.Items);
 
-      Collider := TBoxCollider.Create(Body);
+      {Collider := }TBoxCollider.Create(Body);
 
       // add to Viewport before setting Scene.RigidBody,
       // to provoke RigidBody.InitializeTransform to create all physics stuff
       Viewport.Items.Add(Scene);
 
-      Scene.RigidBody := Body;
+      Scene.AddBehavior(Body);
     finally FreeAndNil(Viewport) end;
 
     Fail('This should raise EPhysicsError, as TBoxCollider is empty');
@@ -1308,7 +1309,7 @@ var
   Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
   Body: TRigidBody;
-  Collider: TSphereCollider;
+  //Collider: TSphereCollider;
 begin
   //try
     Viewport := TCastleViewport.Create(nil);
@@ -1317,13 +1318,13 @@ begin
 
       Body := TRigidBody.Create(Viewport.Items);
 
-      Collider := TSphereCollider.Create(Body);
+      {Collider := }TSphereCollider.Create(Body);
 
       // add to Viewport before setting Scene.RigidBody,
       // to provoke RigidBody.InitializeTransform to create all physics stuff
       Viewport.Items.Add(Scene);
 
-      Scene.RigidBody := Body;
+      Scene.AddBehavior(Body);
     finally FreeAndNil(Viewport) end;
 
     // OK, this can work without error now,
@@ -1353,7 +1354,7 @@ begin
     // to provoke RigidBody.InitializeTransform to create all physics stuff
     Viewport.Items.Add(Scene);
 
-    Scene.RigidBody := Body;
+    Scene.AddBehavior(Body);
   finally FreeAndNil(Viewport) end;
 end;
 
@@ -1361,7 +1362,7 @@ procedure TTestCastleTransform.TestPass;
 var
   A: TInternalRenderingPass;
   B: TUserRenderingPass;
-  C: TInternalSceneRenderingPass;
+  C: TWireframeRenderingPass;
   P: TTotalRenderingPass;
 begin
   A := High(A);
@@ -1533,8 +1534,7 @@ end;
     try
       Params.RenderingCamera := TRenderingCamera.Create;
       try
-        Params.RenderingCamera.FromMatrix(TVector3.Zero,
-          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+        Params.RenderingCamera.FromViewVectors(DefaultX3DCameraView, TMatrix4.Identity);
         Params.RenderingCamera.Target := rtScreen;
         Params.Frustum := @Params.RenderingCamera.Frustum;
         T.Render(Params);
@@ -1926,11 +1926,11 @@ begin
   try
     C := V.Camera;
     C.ProjectionType := ptOrthographic;
-    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
-    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, {$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, {$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
     C.ProjectionType := ptPerspective;
-    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
-    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, {$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, false);
+    C.InternalProjection({$ifdef FPC}@{$endif} ReturnEmptyBox, {$ifdef FPC}@{$endif} ReturnEmptyBox, 800, 600, true);
   finally FreeAndNil(V) end;
 end;
 
@@ -2395,6 +2395,48 @@ procedure TTestCastleTransform.TestLayersSetSize;
 begin
   { TCastleLayerCollisions.CustomSerialization assumes this }
   AssertTrue(SizeOf(Int32) = SizeOf(TPhysicsLayers));
+end;
+
+procedure TTestCastleTransform.TestMiddleAndScale;
+var
+  T1, T2, T3: TCastleTransform;
+  B: TCastleBox;
+  V: TCastleViewport;
+begin
+  V := TCastleViewport.Create(nil);
+  try
+    B := TCastleBox.Create(V);
+    B.Size := Vector3(1, 1, 1);
+    B.Translation := Vector3(0.5, 0.5, 0.5);
+    AssertBoxesEqual(Box3D(
+      Vector3(0, 0, 0),
+      Vector3(1, 1, 1)), B.BoundingBox);
+
+    T1 := TCastleTransform.Create(V);
+    T1.Translation := Vector3(100, 200, 300); // should not affect tested Middle
+    T1.Scale := Vector3(10, 10, 10);
+    V.Items.Add(T1);
+
+    T2 := TCastleTransform.Create(V);
+    T2.Translation := Vector3(11, 22, 33); // affects tested Middle
+    T2.Scale := Vector3(2, 2, 2); // affects tested Middle
+    T2.MiddleHeight := 0.9;
+    T1.Add(T2);
+
+    T2.Add(B);
+
+    T3 := TCastleTransform.Create(V);
+    T3.Translation := Vector3(111111, 222222, 333333);
+    T3.Scale := Vector3(1000, 1000, 1000); // should not affect tested Middle
+    T2.Add(T3);
+
+    AssertSameValue(0.9, T2.MiddleHeight, 0.001);
+    AssertSameValue(11, T2.Middle[0]);
+    // Writeln(T2.Middle.ToString);
+    // Writeln(T2.Middle.ToRawString);
+    AssertSameValue(22 + 0.9 * 2, T2.Middle[1], 0.001);
+    AssertSameValue(33, T2.Middle[2]);
+  finally FreeAndNil(V) end;
 end;
 
 initialization

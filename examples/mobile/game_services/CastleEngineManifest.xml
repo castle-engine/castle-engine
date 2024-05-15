@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
+<project name="game_services_demo"
+  caption="Game Services Demo"
+  qualified_name="io.castleengine.mobile.game.services"
+  standalone_source="game_services_demo_standalone.dpr"
+  game_units="GameInitialize"
+  author="Castle Game Engine Developers"
+  screen_orientation="landscape"
+>
+  <version value="2.1" code="15" />
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+  <icons>
+    <icon path="promo-graphics/icon.png" />
+  </icons>
+  <package>
+    <include path="README.md" />
+  </package>
+  <android>
+    <services>
+      <service name="google_play_services" />
+      <service name="google_play_games">
+        <parameter key="app_id" value="333048023262" />
+      </service>
+    </services>
+  </android>
+  <ios>
+    <services>
+      <service name="apple_game_center" />
+    </services>
+  </ios>
+</project>

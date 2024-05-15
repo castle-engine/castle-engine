@@ -21,14 +21,16 @@ unit CastleViewport;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, X3DNodes, CastleInternalBaseTriangleOctree, CastleScene,
-  CastleSceneCore, CastleCameras,
+  CastleSceneCore, CastleCameras, CastleRenderOptions,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
-  CastleKeysMouse, CastleBoxes, CastleInternalBackgroundRenderer, CastleUtils, CastleClassUtils,
+  CastleKeysMouse, CastleBoxes, CastleInternalBackgroundRenderer, CastleUtils,
+  CastleClassUtils, CastleShapes,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleControls,
   CastleInputs, CastleRectangles, CastleColors, CastleComponentSerialize,
-  CastleProjection, CastleScreenEffects;
+  CastleProjection, CastleScreenEffects, CastleInternalShapesRenderer,
+  CastleInternalScreenEffects;
 
 type
   TCastleViewport = class;
@@ -138,6 +140,7 @@ type
       FOnBoundViewpointChanged: TNotifyEvent;
       FOnBoundNavigationInfoChanged: TNotifyEvent;
       FMouseRayHit: TRayCollision;
+      FMouseRayHitValid: Boolean;
       MouseRayOrigin, MouseRayDirection: TVector3;
       FAvoidNavigationCollisions: TCastleTransform;
       PrepareResourcesDone: Boolean;
@@ -159,6 +162,15 @@ type
       FInternalGridAxis: Boolean;
       FGizmoGridAxis: TInternalCastleEditorGizmo;
       FWarningZFarInfinityDone: Boolean;
+      FDynamicBatching: Boolean;
+      FOcclusionCulling: Boolean;
+      FOcclusionSort: TShapeSort;
+      FBlendingSort: TShapeSort;
+      FOnCustomShapeSort: TShapeSortEvent;
+      FUpdateSoundListener: Boolean;
+
+      ShapesCollector: TShapesCollector;
+      ShapesRenderer: TShapesRenderer;
 
     procedure CommonCreate(const AOwner: TComponent; const ADesignManipulation: Boolean);
     function FillsWholeContainer: boolean;
@@ -180,14 +192,33 @@ type
     procedure FogFreeNotification(const Sender: TFreeNotificationObserver);
     procedure SetInternalDesignNavigationType(const Value: TInternalDesignNavigationType);
     procedure SetInternalGridAxis(const Value: Boolean);
+    function GetMouseRayHit: TRayCollision;
 
     { Callbacks when MainCamera is notified that MainScene changes camera/navigation }
     procedure MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
     procedure MainSceneAndCamera_BoundViewpointVectorsChanged(Sender: TObject);
     procedure MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
 
+    { Change FMouseRayHit. Should be called only by
+
+      - GetMouseRayHit (when it's updated on-demand), with nil or non-nli,
+        that also sets FMouseRayHitValid = true
+
+      - or by ClearMouseRayHit (only with nil parameter in this case)
+        that also sets FMouseRayHitValid = false
+    }
     procedure SetMouseRayHit(const Value: TRayCollision);
+
+    { Sets FMouseRayHit to nil and FMouseRayHitValid to false.
+      Removes all free notifications for items in FMouseRayHit. }
+    procedure ClearMouseRayHit;
+
+    { Whether FMouseRayHit contains given Item.
+      This doesn't update FMouseRayHit if it is invalid right now,
+      so it is safer to use even during destruction.
+      And so it should be used only on some free notification. }
     function MouseRayHitContains(const Item: TCastleTransform): boolean;
+
     procedure SetAvoidNavigationCollisions(const Value: TCastleTransform);
 
     function GetNavigation: TCastleNavigation;
@@ -238,10 +269,13 @@ type
     procedure SetCamera(const Value: TCastleCamera);
     procedure CameraFreeNotification(const Sender: TFreeNotificationObserver);
     procedure ItemsFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SetDynamicBatching(const Value: Boolean);
+    procedure SetOcclusionCulling(const Value: Boolean);
   private
     var
       FProjection: TProjection;
       FSceneManager: TCastleSceneManager;
+      ItemsNodesFreeOccurred: Boolean;
 
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
@@ -249,7 +283,7 @@ type
     class procedure CreateComponentWithChildren2D(Sender: TObject);
     class procedure CreateComponentWithChildren3D(Sender: TObject);
 
-    procedure RecalculateCursor(Sender: TObject);
+    procedure ItemsNodesFree(Sender: TObject);
 
     { Bounding box of everything non-design.
       Similar to just using Items.BoundingBox, but
@@ -259,12 +293,42 @@ type
       2. ignores bbox at design-time of gizmos (lights, cameras, visualize transform).
       This is important to avoid AutoCamera at design-time to calculate something unexpected
       (move camera far away), because it would adjust to the camera and lights gizmo bbox
-      (see TTestCastleViewport.TestAutoCameraIgnoresGizmos). }
+      (see TTestCastleViewport.TestAutoCameraIgnoresGizmos).
+
+      Note: By default, what does Items.BoundingBox return wrt to gizmos?
+      When not called as ItemsBoundingBox or ItemsWithGizmosBoundingBox?
+      Answer: By default it doesn't count *some* gizmos pieces, the ones marked as
+      InternalExcludeFromParentBoundingVolume.
+      And TInternalCastleEditorGizmo uses InternalExcludeFromParentBoundingVolume
+      on a subset of its stuff, see TInternalCastleEditorGizmo.Create
+      implementation.
+      So e.g. Items.BoundingBox
+      - counts the gizmo invisible "select box"
+        inside TInternalCastleEditorGizmo,
+      - does not count specialized lights or cameras line visualizations
+        inside TInternalCastleEditorGizmo.
+        (they use InternalExcludeFromParentBoundingVolume=true).
+      - does not count to "visualize transform" gizmo (used in editor
+        to translate / rotate / scale).
+        (they use InternalExcludeFromParentBoundingVolume=true).
+    }
     function ItemsBoundingBox: TBox3D;
 
-    { Bounding box of everything, including design-time gizmos (because you also want to see
+    { Bounding box of everything, including design-time gizmos
+      (because you also want to see
       them accounted for in design-time ortho camera ProjectionNear/Far).
-      Similar to just usign Items.BoundingBox, but handles Items=nil case OK. }
+      Similar to just usign Items.BoundingBox, but handles Items=nil case OK.
+
+      Note: We need to use ItemsWithGizmosBoundingBox to auto-calculate
+      projection near/far, not merely ItemsBoundingBox.
+      Otherwise 2D projection in editor could cut off some gizmos.
+
+      Testcase:
+      - 2d viewport
+      - add a few TCastleImageTransform with some image loaded with Z = -1000.
+      - add TCastleTransform with translation 0,0,0, select it
+      - -> the gizmo of it has to be visible, even though everything visible
+        (excluding gizmos) is at Z = -1000. }
     function ItemsWithGizmosBoundingBox: TBox3D;
 
     { Set the projection parameters and matrix.
@@ -304,9 +368,6 @@ type
       to TCastleTransform instances in @link(Items).
       Depends that MouseRayHit, MouseRayOrigin, MouseRayDirection are already updated. }
     function PointingDeviceMove: boolean;
-
-    { Update MouseRayHit. }
-    procedure UpdateMouseRayHit;
   protected
     { @exclude }
     function InternalOverride2DProjectionSizing: TCastleUserInterface; virtual;
@@ -365,9 +426,8 @@ type
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
-    function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
-
-    function InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram; override;
+    function InternalExtraGetScreenEffects(
+      const Index: Integer): TGLSLProgram; override;
     function InternalExtraScreenEffectsCount: Integer; override;
     function InternalExtraScreenEffectsNeedDepth: Boolean; override;
 
@@ -490,7 +550,7 @@ type
     { Constructor that disables special design-mode viewport camera/navigation.
       Useful in editor.
       @exclude }
-    constructor InternalCreateNonDesign(AOwner: TComponent);
+    constructor InternalCreateNonDesign(AOwner: TComponent; const Ignored: Integer);
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
@@ -511,24 +571,6 @@ type
       This is automatically used at first rendering if @link(AutoCamera).
       You can also use it explicitly. }
     procedure AssignDefaultCamera; virtual;
-
-    { Screen effects are shaders that post-process the rendered screen.
-      If any screen effects are active, we will automatically render
-      screen to a temporary texture, processing it with
-      each shader.
-
-      By default, screen effects come from MainScene.ScreenEffects,
-      so the effects may be defined by VRML/X3D author using ScreenEffect
-      nodes (see docs: [https://castle-engine.io/x3d_extensions_screen_effects.php]).
-      Descendants may override GetScreenEffects, ScreenEffectsCount,
-      and ScreenEffectsNeedDepth to add screen effects by code.
-      Each viewport may have it's own, different screen effects.
-
-      @groupBegin }
-    property ScreenEffects [const Index: Integer]: TGLSLProgram read GetScreenEffects;
-    function ScreenEffectsCount: Integer; virtual;
-    function ScreenEffectsNeedDepth: boolean; virtual;
-    { @groupEnd }
 
     { Does the graphic card support our ScreenSpaceAmbientOcclusion shader.
       This does @italic(not) depend on the current state of
@@ -553,7 +595,7 @@ type
       and this method,
       it's usually easier to call @link(TCastleViewport.PrepareResources).
       Then the appropriate TPrepareParams will be passed automatically. }
-    function PrepareParams: TPrepareParams;
+    function PrepareParams: TPrepareParams; deprecated 'use TCastleViewport.PrepareResources to prepare transforms';
 
     function BaseLights: TLightInstancesList; deprecated 'this is internal info, you should not need this; use PrepareParams to get opaque information to pass to TCastleTransform.PrepareResources';
 
@@ -646,7 +688,7 @@ type
 
           By default our visible Z range is [-1500, 500],
           because this sets ProjectionNear to -1000, ProjectionFar to 1000,
-          and camera default depth (@code(Camera.Position.Z)) is 500.
+          and camera default depth (@code(Camera.Translation.Z)) is 500.
           This was chosen to be comfortable for all cases -- you can
           keep camera Z unchanged and comfortably position things around [-500, 500],
           or set camera Z to zero and then comfortably position things around [-1000, 1000].
@@ -847,24 +889,33 @@ type
     procedure PrepareResources(const Item: TCastleTransform;
       Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload; virtual;
 
-    { Current object (TCastleTransform hierarchy) under the mouse cursor.
-      Updated in every mouse move. May be @nil.
+    { Current components (TCastleTransform hierarchy) pointed by the mouse cursor
+      position. This is the @italic(first) object being hit by the ray from camera
+      through the mouse cursor position.
 
-      The returned list (if not @nil) contains TCastleTransform instances
-      that collided with the ray (from the deepest instance in the @link(Items) tree
-      to the root), along with some additional information.
-      See TRayCollision for details. }
-    property MouseRayHit: TRayCollision read FMouseRayHit;
+      Automatically updated to always reflect the current mouse position.
+      May be @nil if nothing is hit.
 
-    { Current object (TCastleTransform instance) under the mouse cursor.
+      The "mouse cursor position" on touch devices is just the last touch point.
+      When the navigation uses mouse look (like TCastleWalkNavigation.MouseLook),
+      we automatically use viewport center as the "mouse cursor position".
 
-      This corresponds to the first @italic(not hidden) instance on the MouseRayHit list.
-      This makes the behavior most intuitive: it returns the TCastleTransform
-      instance you have explicitly created, like TCastleScene, TCastlePlane or TCastleImageTransform.
-      It will not return hidden (with csTransient flag) scenes that are internal
-      e.g. inside TCastlePlane or TCastleImageTransform.
+      @seealso TransformUnderMouse }
+    property MouseRayHit: TRayCollision read GetMouseRayHit;
 
-      Updated in every mouse move. May be @nil. }
+    { Current TCastleTransform pointed by the mouse cursor
+      position. This is the @italic(first) object being hit by the ray from camera
+      through the mouse cursor position.
+
+      Automatically updated to always reflect the current mouse position.
+      May be @nil if nothing is hit.
+
+      The "mouse cursor position" on touch devices is just the last touch point.
+      When the navigation uses mouse look (like TCastleWalkNavigation.MouseLook),
+      we automatically use viewport center as the "mouse cursor position".
+
+      @seealso MouseRayHit
+      @seealso TRayCollision.Transform }
     function TransformUnderMouse: TCastleTransform;
 
     { Do not collide with this object when moving by @link(Navigation).
@@ -1165,6 +1216,95 @@ type
     property PreventInfiniteFallingDown: Boolean
       read FPreventInfiniteFallingDown write FPreventInfiniteFallingDown default false;
 
+    { Combine (right before rendering) multiple shapes with a similar appearance into one.
+      This can drastically reduce the number of "draw calls",
+      making rendering much faster.
+
+      To debug effectiveness of this, display @link(TCastleViewport.Statistics).
+      In CGE editor (at design-time), use menu item "Edit -> Show Statistics" (F8).
+      When dynamic batching works, the number of rendered shapes
+      and the number of "Draw Calls" should be much smaller. }
+    property DynamicBatching: Boolean
+      read FDynamicBatching write SetDynamicBatching default false;
+
+    { Use the occlusion culling to optimize the rendering.
+      The shapes obscured by other shapes will not be rendered.
+      This makes sense when in your view, many shapes are typically obscured by others.
+
+      See the https://castle-engine.io/occlusion_culling
+      for details how does this work.
+
+      To debug effectiveness of this, display @link(TCastleViewport.Statistics).
+      In CGE editor (at design-time), use menu item "Edit -> Show Statistics" (F8).
+      If you look closely at a wall that obscures many shapes behind it,
+      you should see the number of rendered shapes drop significantly
+      using occlusion culling.
+
+      This is ignored if GPU doesn't support the necessary functionality
+      (@link(TGLFeatures.OcclusionQuery)). }
+    property OcclusionCulling: boolean
+      read FOcclusionCulling write SetOcclusionCulling default false;
+
+    { Sort the opaque shapes when rendering, from front to back.
+      This may make a speedup when big shapes in front of camera obscure
+      many shapes behind.
+      This is only an optimization: regardless of the value of this,
+      rendering opaque objects will be always correct.
+      Different values of this properly may merely increase / decrease
+      rendering performance (frames per second).
+
+      In general this is an independent optimization from @link(OcclusionCulling),
+      albeit it makes sense in similar situations.
+
+      When combined with @link(OcclusionCulling), it makes occlusion culling
+      even more effective. Occlusion culling can reject more shapes,
+      because the things that obscure them are rendered earlier to the depth buffer.
+
+      See https://castle-engine.io/occlusion_culling#occlusion_sort for more details.
+
+      The default value, sortAuto, for now is equivalent to sortNone.
+      It may change in the future to perform sorting esp. when OcclusionCulling
+      is @true, as OcclusionCulling and sorting are a natural pair,
+      sorting make occlusion culling even more effective.
+    }
+    property OcclusionSort: TShapeSort
+      read FOcclusionSort write FOcclusionSort default sortAuto;
+
+    { Sort the blending (partially-transparent) shapes when rendering,
+      from back to front.
+
+      This makes blending correct when there are multiple partially-transparent
+      objects visible.
+      See @url(https://castle-engine.io/blending blending manual).
+      Invalid value of this may cause rendering artifacts when rendering
+      multiple partially-transparent objects.
+
+      The default value, sortAuto, automatically detects if camera
+      is 2D (orthographic, looking in -Z) and if yes, it behaves like sort2D.
+      Otherwise it behaves like sort3D. }
+    property BlendingSort: TShapeSort
+      read FBlendingSort write FBlendingSort default sortAuto;
+
+    { Used to sort shapes, if @link(TCastleViewport.BlendingSort) or
+      @link(TCastleViewport.OcclusionSort) indicate sortCustom.
+      See TShapeSortEvent for usage details and example. }
+    property OnCustomShapeSort: TShapeSortEvent
+      read FOnCustomShapeSort write FOnCustomShapeSort;
+
+    { Should the sound listener (that determines how the sounds are heard)
+      be updated to reflect this viewport's active camera.
+      This is @true by default, so that 3D sound "just works" out-of-the-box
+      when you have 3D sounds in the TCastleViewport.
+      However, if you use @url(https://castle-engine.io/multiple_viewports_to_display_one_world multiple viewports)
+      to display the same world from multiple cameras,
+      you should set this to @false for all but one viewport.
+
+      Active camera comes from @code(Items.MainCamera) and should match
+      @link(Camera) in all normal circumstances, if you haven't customized
+      @code(Items.MainCamera) manually. }
+    property UpdateSoundListener: Boolean
+      read FUpdateSoundListener write FUpdateSoundListener default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -1201,8 +1341,8 @@ implementation
 
 uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
-  CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
-  CastleInternalSettings, CastleXMLUtils, CastleURIUtils, CastleInternalRenderer,
+  CastleSoundEngine, CastleGLVersion, CastleTextureImages,
+  CastleInternalSettings, CastleXmlUtils, CastleUriUtils, CastleInternalRenderer,
   CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
 
 {$define read_implementation}
@@ -1300,11 +1440,14 @@ begin
   FClearDepth := true;
   InternalDistortFieldOfViewY := 1;
   InternalDistortViewAspect := 1;
+  ShapesCollector := TShapesCollector.Create;
+  ShapesRenderer := TShapesRenderer.Create;
+  FUpdateSoundListener := true;
 
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
-  FItems.OnCursorChange := {$ifdef FPC}@{$endif} RecalculateCursor;
+  FItems.InternalOnNodesFree := {$ifdef FPC}@{$endif} ItemsNodesFree;
 
   FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
   FCapturePointingDeviceObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CapturePointingDeviceFreeNotification;
@@ -1352,7 +1495,7 @@ begin
   begin
     { We need to use TCastleCamera.InternalCreateNonDesign,
       otherwise InternalDesignCamera would be visible in preview of other camera. }
-    InternalDesignCamera := TCastleCamera.InternalCreateNonDesign(Self);
+    InternalDesignCamera := TCastleCamera.InternalCreateNonDesign(Self, 0);
     InternalDesignCamera.SetTransient;
     // this somewhat replicates what happens at SetCamera
     InternalDesignCamera.InternalOnCameraChanged := {$ifdef FPC}@{$endif} InternalCameraChanged;
@@ -1404,7 +1547,7 @@ begin
   CommonCreate(AOwner, CastleDesignMode);
 end;
 
-constructor TCastleViewport.InternalCreateNonDesign(AOwner: TComponent);
+constructor TCastleViewport.InternalCreateNonDesign(AOwner: TComponent; const Ignored: Integer);
 begin
   CommonCreate(AOwner, false);
 end;
@@ -1455,7 +1598,7 @@ begin
     - or replace existing camera. }
   Assert(Camera = nil);
 
-  NewCamera := TCastleCamera.InternalCreateNonDesign(Self);
+  NewCamera := TCastleCamera.InternalCreateNonDesign(Self, 0);
   Camera := NewCamera;
   Items.Add(NewCamera);
 end;
@@ -1478,7 +1621,7 @@ begin
   Assert(Owner <> nil); // Use SetupDesignTimeCamera only on viewports with owner
 
   NewCamera := TCastleCamera.Create(Owner);
-  NewCamera.Name := InternalProposeName(TCastleCamera, Owner);
+  NewCamera.Name := ProposeComponentName(TCastleCamera, Owner);
   Camera := NewCamera;
   Assert(Camera = NewCamera);
 
@@ -1504,12 +1647,14 @@ begin
   {$endif}
 
   { unregister free notification from these objects }
-  SetMouseRayHit(nil);
+  ClearMouseRayHit;
   AvoidNavigationCollisions := nil;
 
   FreeAndNil(FRenderParams);
   FreeAndNil(FPrepareParams);
   FreeAndNil(FRenderWithoutScreenEffectsRenderingCamera);
+  FreeAndNil(ShapesCollector);
+  FreeAndNil(ShapesRenderer);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -1661,7 +1806,7 @@ begin
 
     if InternalDesignManipulation and (Camera.Name = 'Camera') and (Owner <> nil) then
     begin
-      Camera.Name := InternalProposeName(TCastleCamera, Owner);
+      Camera.Name := ProposeComponentName(TCastleCamera, Owner);
       WritelnLog('Camera in viewport "%s" renamed to "%s" to not conflict with other components', [
         Name,
         Camera.Name
@@ -1744,7 +1889,7 @@ begin
   if Container = nil then
     Result := FullSize
   else
-    Result := RenderRect.Round.Equals(Container.Rect);
+    Result := RenderRect.Round.Equals(Container.PixelsRect);
 end;
 
 function TCastleViewport.GetNavigation: TCastleNavigation;
@@ -1776,10 +1921,7 @@ begin
   begin
     if (AComponent is TCastleTransform) and
        MouseRayHitContains(TCastleTransform(AComponent)) then
-    begin
-      { MouseRayHit cannot be used in subsequent RecalculateCursor. }
-      SetMouseRayHit(nil);
-    end;
+      ClearMouseRayHit;
 
     if AComponent = FAvoidNavigationCollisions then
       AvoidNavigationCollisions := nil;
@@ -1793,11 +1935,12 @@ begin
   Result := inherited;
   if Result or Items.Paused then Exit;
 
-  { Make MouseRayHit valid, as our PointingDevicePress uses it.
+  { Call UpdateMouseRayHit at nearest moment.
+    As our PointingDevicePress (called below) uses it.
     Also this makes MouseRayHit valid during TCastleTransform.PointingDevicePress calls.
     Although implementors should rather use information passed
     as TCastleTransform.PointingDevicePress argument, not look at Viewport.MouseRayHit. }
-  UpdateMouseRayHit;
+  ClearMouseRayHit;
 
   LastPressEvent := Event;
 
@@ -1822,8 +1965,9 @@ begin
   Result := inherited;
   if Result or Items.Paused then Exit;
 
-  { Make MouseRayHit valid, as our PointingDeviceRelease uses it. }
-  UpdateMouseRayHit;
+  { Call UpdateMouseRayHit at nearest moment.
+    As our PointingDeviceRelease (called below) uses it. }
+  ClearMouseRayHit;
 
   if Items.InternalPressReleaseListeners <> nil then
     // use downto, to work in case some Release will remove transform from list
@@ -1904,101 +2048,92 @@ begin
     end;
     {$warnings on}
 
-    UpdateMouseRayHit;
-
     { Note: we ignore PointingDeviceMove result.
       Maybe we should use PointingDeviceMove result as our Motion result?
       Answer unknown. Historically we do not do this, and I found no practical
       use-case when it would be useful to do this. }
     PointingDeviceMove;
   end;
-
-  { update the cursor, since TCastleTransform object under the cursor possibly changed.
-
-    Accidentally, this also workarounds the problem of TCastleViewport:
-
-    When the TCastleTransform object has its Cursor value changed,
-    Items.OnCursorChange notify only 1st TCastleViewport that owned the Items.
-    The other viewports are not notified, as SetItems doesn't set
-    FItems.OnCursorChange (as we only have 1 OnCursorChange for now).
-
-    But thanks to doing RecalculateCursor below, this isn't
-    a problem, as we'll update cursor to follow TCastleTransform anyway,
-    as long as it changes only during mouse move. }
-  RecalculateCursor(Self);
 end;
 
-procedure TCastleViewport.UpdateMouseRayHit;
-var
-  MousePosition: TVector2;
-begin
-  if GetMousePosition(MousePosition) and
-     // PositionToRay assumes InternalCamera <> nil
-     (InternalCamera <> nil) and
-     // do not update MouseRayHit if camera doesn't exist
-     InternalCamera.ExistsInRoot then
-  begin
-    PositionToRay(MousePosition, true, MouseRayOrigin, MouseRayDirection);
+function TCastleViewport.GetMouseRayHit: TRayCollision;
 
-    { Update MouseRayHit.
-      We know that MouseRayDirection is normalized now, which is important
-      to get correct MouseRayHit.Distance. }
-    SetMouseRayHit(CameraRayCollision(MouseRayOrigin, MouseRayDirection));
+  procedure UpdateMouseRayHit;
+  var
+    MousePosition: TVector2;
+  begin
+    if { This may be called from destruction, testcase
+        TTestCastleWindow.TestViewportWithoutCamera with Delphi 12.
+        It shouldn't access then EffectiveWidth which runs some
+        TCastleUserInteface code that assumes that things are ready
+        (e.g. TBorder instance in TCastleUserInteface.Border is not nil). }
+      (not (csDestroying in ComponentState)) and
+      { Check conditions required by PositionToPrerequisites and PositionToRay to work.
+        This must be robust, as
+        (outdated reason:) it WAS called also from RecalculateCursor,
+        which is from TCastleTransformList.Notify. (when some transform gets removed). }
+      (EffectiveWidth <> 0) and
+      (EffectiveHeight <> 0) and
+      // calculate MousePosition
+      GetMousePosition(MousePosition) and
+      // PositionToRay assumes InternalCamera <> nil
+      (InternalCamera <> nil) and
+      // do not update MouseRayHit if camera doesn't exist
+      InternalCamera.ExistsInRoot then
+    begin
+      PositionToRay(MousePosition, true, MouseRayOrigin, MouseRayDirection);
+
+      { Update MouseRayHit.
+        We know that MouseRayDirection is normalized now, which is important
+        to get correct MouseRayHit.Distance. }
+      SetMouseRayHit(CameraRayCollision(MouseRayOrigin, MouseRayDirection));
+    end;
   end;
+
+begin
+  if not FMouseRayHitValid then
+  begin
+    UpdateMouseRayHit;
+    FMouseRayHitValid := true;
+  end;
+  Assert(FMouseRayHitValid);
+
+  Result := FMouseRayHit;
 end;
 
 function TCastleViewport.TransformUnderMouse: TCastleTransform;
 var
-  I: Integer;
+  R: TRayCollision;
 begin
-  if MouseRayHit <> nil then
-    for I := 0 to MouseRayHit.Count - 1 do
-    begin
-      Result := MouseRayHit[I].Item;
-      if not (csTransient in Result.ComponentStyle) then
-        Exit;
-    end;
-
-  // Return nil if all items on MouseRayHit list are csTransient, or MouseRayHit = nil
-  Result := nil;
+  R := MouseRayHit;
+  if R <> nil then
+    Result := R.Transform
+  else
+    Result := nil;
 end;
 
-procedure TCastleViewport.RecalculateCursor(Sender: TObject);
-var
-  T: TCastleTransform;
+procedure TCastleViewport.ItemsNodesFree(Sender: TObject);
 begin
-  if { Be prepared for Items=nil case, as it may happen e.g. at destruction. }
-     (Items = nil) or
-     { This may be called from
-       TCastleTransformList.Notify when removing stuff owned by other
-       stuff, in particular during our own destructor when FItems is freed
-       and we're in half-destructed state. }
-     (csDestroying in Items.ComponentState) or
-     { When Paused, then Press and Motion events are not passed to Navigation,
-       or to Items inside. So it's sensible that they also don't control the cursor
-       anymore.
-       In particular, it means cursor is no longer hidden by Navigation.MouseLook
-       when the Paused is switched to true. }
-     Items.Paused then
-  begin
-    Cursor := mcDefault;
-    Exit;
-  end;
+  { Reloading nodes by TCastleSceneCore.Load invalidates information
+    on FMouseRayHit, the TShape references are no longer valid.
 
-  { We show mouse cursor from top-most TCastleTransform.
-    This is sensible, if multiple TCastleTransform scenes obscure each other at the same
-    pixel --- the one "on the top" (visible by the player at that pixel)
-    determines the mouse cursor.
+    Testcase:
+    - (only reproducible on Windows for some reason, but in theory problem is cross-platform)
+    - open in view3dscene anchor_test.x3dv
+    - click on something, like "Key Sensor"
+    - without this fix, the next EventMotion causes crash as
+      TCastleSceneCore.PointingDeviceMove is run with TRayCollisionNode
+      containing invalid references.
 
-    We ignore Cursor value of other TCastleTransform along
-    the MouseRayHit list. Maybe we should browse Cursor values along the way,
-    and choose the first non-none? }
+    TODO: This is not a complete solution.
+    - What if Items are shared across few TCastleViewport?
+      Our Items.OnXxx do not link to viewport then, and should not be relied upon.
+  }
+  ClearMouseRayHit;
 
-  T := TransformUnderMouse;
-  if T <> nil then
-    Cursor := T.Cursor
-  else
-    Cursor := mcDefault;
+  { Signal to PointingDevicePressCore to not process further collision list.
+    TODO: why is this necessary? But anchor_test on view3dscene otherwise crashes. }
+  ItemsNodesFreeOccurred := true;
 end;
 
 function TCastleViewport.TriangleHit: PTriangle;
@@ -2074,6 +2209,17 @@ var
 begin
   inherited;
 
+  { We invalidate FMouseRayHit in every Update.
+    This way
+    - we will recalculate it also when mouse didn't move,
+      but something else moved "in front of the mouse cursor",
+      e.g. creature walked in front of us.
+    - we will recalculate it also when mouse moved but we didn't get
+      Motion event, because navigation class marked Motion as handled.
+      Fixes https://forum.castle-engine.io/t/mouserayhit-not-updating-while-dragging/844/4
+  }
+  ClearMouseRayHit;
+
   if Items.Paused then
     Exit;
 
@@ -2113,9 +2259,6 @@ var
   M: TMatrix4;
 begin
   EnsureCameraDetected;
-
-  { We need to know container size now. }
-  Check(ContainerSizeKnown, ClassName + ' did not receive "Resize" event yet, cannnot apply projection. This usually means you try to call "Render" method with a container that does not yet have an open context.');
 
   Viewport := RenderRect.Round;
   RenderContext.Viewport := Viewport;
@@ -2254,7 +2397,9 @@ begin
     Exit;
   end;
 
-  Result := InternalCamera.InternalProjection({$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox,
+  Result := InternalCamera.InternalProjection(
+    {$ifdef FPC}@{$endif} ItemsBoundingBox,
+    {$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox,
     ViewportWidth, ViewportHeight,
     InternalCamera = InternalDesignCamera);
 end;
@@ -2269,8 +2414,6 @@ function TCastleViewport.MainLightForShadowVolumes(out AMainLightPosition: TVect
     is undefined after returning @false. }
   function LightForShadowVolumesFromScene(const Scene: TCastleScene;
     out AMainLightPosition: TVector4): Boolean;
-  var
-    AMainLightPosition3D: PVector3;
   begin
     Result :=
       Scene.InternalMainLightForShadowVolumes(AMainLightPosition) and
@@ -2284,11 +2427,11 @@ function TCastleViewport.MainLightForShadowVolumes(out AMainLightPosition: TVect
     { Transform AMainLightPosition to world space. }
     if Result then
     begin
-      AMainLightPosition3D := PVector3(@AMainLightPosition);
       if AMainLightPosition.W = 0 then
-        AMainLightPosition3D^ := Scene.LocalToWorldDirection(AMainLightPosition3D^)
+        AMainLightPosition.XYZ := Scene.LocalToWorldDirection(AMainLightPosition.XYZ)
       else
-        AMainLightPosition3D^ := Scene.LocalToWorld(AMainLightPosition3D^);
+        AMainLightPosition := Vector4(
+          Scene.LocalToWorld(AMainLightPosition.XYZ / AMainLightPosition.W), 1.0);
     end;
   end;
 
@@ -2322,8 +2465,39 @@ begin
 end;
 
 procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
+
+  { Based on BlendingSort, determine
+    ShapesRenderer.BlendingSort, making sure that sortAuto is handled correctly.
+
+    Note: This is copy-pasted now to TestCastleViewport for testing. }
+  function EffectiveBlendingSort: TShapeSortNoAuto;
+  begin
+    if BlendingSort = sortAuto then
+    begin
+      if (Camera <> nil) and
+        (Camera.ProjectionType = ptOrthographic) and
+        (TVector3.Equals(Camera.Direction, DefaultCameraDirection)) then
+        Result := sort2D
+      else
+        Result := sort3D;
+    end else
+      Result := BlendingSort;
+  end;
+
+  { Based on OcclusionSort, determine
+    ShapesRenderer.OcclusionSort, making sure that sortAuto is handled correctly. }
+  function EffectiveOcclusionSort: TShapeSortNoAuto;
+  begin
+    if OcclusionSort = sortAuto then
+    begin
+      Result := sortNone;
+    end else
+      Result := OcclusionSort;
+  end;
+
 begin
-  TGLRenderer.ViewportRenderBegin;
+  ShapesCollector.Clear;
+  Assert(Params.Collector = ShapesCollector);
 
   {$warnings off} // keep deprecated working
   Render3D(Params);
@@ -2332,7 +2506,10 @@ begin
   Params.Frustum := @Params.RenderingCamera.Frustum;
   Items.Render(Params);
 
-  TGLRenderer.ViewportRenderEnd;
+  ShapesRenderer.OcclusionSort := EffectiveOcclusionSort;
+  ShapesRenderer.BlendingSort := EffectiveBlendingSort;
+  ShapesRenderer.OnCustomShapeSort := OnCustomShapeSort;
+  ShapesRenderer.Render(ShapesCollector, Params);
 end;
 
 procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
@@ -2424,35 +2601,39 @@ end;
 function TCastleViewport.PrepareParams: TPrepareParams;
 { Note: you cannot refer to PrepareParams inside
   the TCastleTransform.PrepareResources or TCastleTransform.Render implementation,
-  as they may change the referenced PrepareParams.InternalGlobalLights value.
+  as they may change the referenced PrepareParams.GlobalLights value.
 }
 begin
   { We just reuse FRenderParams.FGlobalLights below as a temporary
     TLightInstancesList that we already have created. }
 
-  { initialize FPrepareParams.InternalGlobalLights }
+  { initialize FPrepareParams.GlobalLights }
   FRenderParams.FGlobalLights.Clear;
   InitializeGlobalLights(FRenderParams.FGlobalLights);
-  FPrepareParams.InternalGlobalLights := FRenderParams.FGlobalLights;
+  FPrepareParams.GlobalLights := FRenderParams.FGlobalLights;
 
-  { initialize FPrepareParams.InternalGlobalFog }
+  { initialize FPrepareParams.GlobalFog }
   if Fog <> nil then
-    FPrepareParams.InternalGlobalFog := Fog.InternalFogNode
+    FPrepareParams.GlobalFog := Fog.InternalFogNode
   else
   {$warnings off} // using deprecated MainScene to keep it working
   if UseGlobalFog and
      (Items.MainScene <> nil) then
-    FPrepareParams.InternalGlobalFog := Items.MainScene.FogStack.Top
+    FPrepareParams.GlobalFog := Items.MainScene.FogStack.Top
   {$warnings on}
   else
-    FPrepareParams.InternalGlobalFog := nil;
+    FPrepareParams.GlobalFog := nil;
+
+  FPrepareParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
 
   Result := FPrepareParams;
 end;
 
 function TCastleViewport.BaseLights: TLightInstancesList;
 begin
-  Result := PrepareParams.InternalGlobalLights as TLightInstancesList;
+  {$warnings off} // using deprecated in deprecated, to keep it working
+  Result := PrepareParams.GlobalLights as TLightInstancesList;
+  {$warnings on}
 end;
 
 procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
@@ -2482,7 +2663,10 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
     { Initialize FShadowVolumeRenderer if needed, along with its OpenGL resources.
       This way we never even create FShadowVolumeRenderer if we will never render with shadow volumes. }
     if FShadowVolumeRenderer = nil then
+    begin
       FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
+      FShadowVolumeRenderer.PrepareRenderingResources;
+    end;
     FShadowVolumeRenderer.DebugRender := ShadowVolumesRender;
     FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
     FShadowVolumeRenderer.Render(Params,
@@ -2578,7 +2762,10 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
         {$endif}
       end;
       RenderingCamera.RotationOnly := true;
-      BackgroundRenderer.Render(RenderingCamera, BackgroundWireframe, RenderRect, FProjection);
+      { TODO: BackgroundRenderer should have its own ShapesRenderer,
+        ShapesCollector. }
+      BackgroundRenderer.Render(RenderingCamera, BackgroundWireframe,
+        RenderRect, FProjection, ShapesCollector, ShapesRenderer);
       RenderingCamera.RotationOnly := false;
     end;
   end;
@@ -2623,9 +2810,12 @@ begin
   { various FRenderParams initialization }
   FRenderParams.UserPass := CustomRenderingPass;
   FRenderParams.RenderingCamera := RenderingCamera;
+  FRenderParams.Collector := ShapesCollector;
+  FRenderParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
 
   { calculate FRenderParams.Projection*, simplified from just like CalculateProjection does }
-  FRenderParams.ProjectionBox := {$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox;
+  FRenderParams.ProjectionBoxWithoutGizmos := {$ifdef FPC}@{$endif} ItemsBoundingBox;
+  FRenderParams.ProjectionBoxWithGizmos := {$ifdef FPC}@{$endif} ItemsWithGizmosBoundingBox;
   FRenderParams.ProjectionViewportWidth := EffectiveWidthForChildren;
   FRenderParams.ProjectionViewportHeight := EffectiveHeightForChildren;
 
@@ -2656,13 +2846,9 @@ begin
   {$warnings on}
     FRenderParams.GlobalFog := nil;
 
-  if RenderingCamera.Target in [rtShadowMap, rtVarianceShadowMap] then
-    { When rendering shadows maps, we don't modify RenderContext.DepthRange
-      during rendering, it stays drFull. }
-    RenderContext.DepthRange := drFull
-  else
-    { In normal rendering, start with drBack, as this is the meaning of rlParent on Viewport.Items. }
-    RenderContext.DepthRange := drFar;
+  { Start with DefaultDepthRange,
+    as this is the meaning of rlParent on Viewport.Items. }
+  FRenderParams.DepthRange := DefaultDepthRange;
 
   RenderFromView3D(FRenderParams);
 end;
@@ -2752,21 +2938,6 @@ end;
 
 function TCastleViewport.InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
-  Result := GetScreenEffects(Index);
-end;
-
-function TCastleViewport.InternalExtraScreenEffectsCount: Integer;
-begin
-  Result := ScreenEffectsCount;
-end;
-
-function TCastleViewport.InternalExtraScreenEffectsNeedDepth: Boolean;
-begin
-  Result := ScreenEffectsNeedDepth;
-end;
-
-function TCastleViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
-begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
   if ScreenSpaceReflections then
@@ -2781,31 +2952,31 @@ begin
     if Index = 1 then
       Result := SSRShader
     else
-      Result := Items.MainScene.ScreenEffects(Index - 2);
+      Result := Items.MainScene.InternalScreenEffects(Index - 2);
   end else
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
   begin
     if Index = 0 then
       Result := SSAOShader
     else
-      Result := Items.MainScene.ScreenEffects(Index - 1);
+      Result := Items.MainScene.InternalScreenEffects(Index - 1);
   end else
   if ScreenSpaceReflections and (SSRShader <> nil) then
   begin
     if Index = 0 then
       Result := SSRShader
     else
-      Result := Items.MainScene.ScreenEffects(Index - 1);
+      Result := Items.MainScene.InternalScreenEffects(Index - 1);
   end else
   if Items.MainScene <> nil then
-    Result := Items.MainScene.ScreenEffects(Index)
+    Result := Items.MainScene.InternalScreenEffects(Index)
   else
     { no Index is valid, since ScreenEffectsCount = 0 in this class }
     Result := nil;
   {$warnings on}
 end;
 
-function TCastleViewport.ScreenEffectsCount: Integer;
+function TCastleViewport.InternalExtraScreenEffectsCount: Integer;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -2814,7 +2985,7 @@ begin
 
   {$warnings off} // using deprecated MainScene to keep it working
   if Items.MainScene <> nil then
-    Result := Items.MainScene.ScreenEffectsCount
+    Result := Items.MainScene.InternalScreenEffectsCount
   else
     Result := 0;
   {$warnings off}
@@ -2825,7 +2996,7 @@ begin
     Inc(Result);
 end;
 
-function TCastleViewport.ScreenEffectsNeedDepth: boolean;
+function TCastleViewport.InternalExtraScreenEffectsNeedDepth: Boolean;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -2838,7 +3009,7 @@ begin
     Exit(true);
   {$warnings off} // using deprecated MainScene to keep it working
   if Items.MainScene <> nil then
-    Result := Items.MainScene.ScreenEffectsNeedDepth
+    Result := Items.MainScene.InternalScreenEffectsNeedDepth
   else
   {$warnings on}
     Result := false;
@@ -2914,6 +3085,9 @@ begin
 
   FreeAndNil(SSAOShader);
   SSAOShaderInitialized := false;
+
+  if ShapesRenderer <> nil then
+    ShapesRenderer.GLContextClose;
 
   inherited;
 end;
@@ -3002,7 +3176,7 @@ begin
     { up } Vector3(0, 1, 0));
   Camera.GravityUp := Vector3(0, 1, 0);
   Camera.ProjectionType := ptOrthographic;
-  {$warnings off} // using deprecated MainScene to keep it working
+  {$warnings off} // using deprecated AutoCamera for backward compat, so that TCastleSceneManager.Setup2D does what it did
   AutoCamera := false;
   {$warnings on}
 end;
@@ -3224,7 +3398,6 @@ begin
     if (Value = nil) and not (csDestroying in ComponentState) then
     begin
       Value := TCastleRootTransform.Create(Self);
-      Value.OnCursorChange := {$ifdef FPC}@{$endif} RecalculateCursor;
     end;
 
     if InternalDesignManipulation then
@@ -3245,9 +3418,7 @@ begin
 
     LastVisibleStateIdForVisibleChange := 0;
 
-    { TODO: do the same thing we did when creating internal FItems:
-    FItems.OnCursorChange := @RecalculateCursor;
-
+    {
     // No need to change this, it's documented that MainCamera has to be manually managed if you reuse items
     // FItems.MainCamera := Camera;
     }
@@ -3278,8 +3449,24 @@ end;
 
 function TCastleViewport.MouseRayHitContains(const Item: TCastleTransform): boolean;
 begin
-  Result := (MouseRayHit <> nil) and
-            (MouseRayHit.IndexOfItem(Item) <> -1);
+  { Do not validate FMouseRayHit using UpdateMouseRayHit.
+    Fixes TTestCastleWindow.TestViewportWithoutCamera with Delphi 12.
+    Also this is more sensible and safer: this method is used
+    to check whether FMouseRayHit contains something,
+    it isn't expected it will actually query using raycast. }
+
+  { When FMouseRayHitValid=false then always FMouseRayHit=nil. }
+  Assert(FMouseRayHitValid or (FMouseRayHit = nil));
+
+  Result :=
+    (FMouseRayHit <> nil) and
+    (FMouseRayHit.IndexOfItem(Item) <> -1);
+end;
+
+procedure TCastleViewport.ClearMouseRayHit;
+begin
+  SetMouseRayHit(nil);
+  FMouseRayHitValid := false;
 end;
 
 procedure TCastleViewport.SetMouseRayHit(const Value: TRayCollision);
@@ -3289,8 +3476,7 @@ begin
   if FMouseRayHit <> Value then
   begin
     { Always keep FreeNotification on every 3D item inside MouseRayHit.
-      When it's destroyed, our MouseRayHit must be freed too,
-      it cannot be used in subsequent RecalculateCursor. }
+      When it's destroyed, our MouseRayHit must be freed too. }
 
     if FMouseRayHit <> nil then
     begin
@@ -3369,17 +3555,11 @@ begin
   { call TCastleScreenEffects.PrepareResources. }
   inherited PrepareResources;
 
-  if ContainerSizeKnown then
-  begin
-    { TODO: This is possibly not necessary now.
-
-      It used to be necessary, to update MainScene.BackgroundSkySphereRadius,
-      and in effect make preparation of "prBackground" useful.
-      But we removed the need for MainScene.BackgroundSkySphereRadius. }
-    ApplyProjection;
-  end;
-
+  {$warnings off} // using deprecated, this should be internal
   Item.PrepareResources(Options, PrepareParams);
+  {$warnings on}
+
+  ShapesRenderer.PrepareResources;
 end;
 
 procedure TCastleViewport.PrepareResources(
@@ -3482,7 +3662,10 @@ function TCastleViewport.PointingDevicePress: Boolean;
     if RayHit <> nil then
       for I := 0 to RayHit.Count - 1 do
       begin
+        ItemsNodesFreeOccurred := false;
         Result := CallPress(RayHit[I], Distance);
+        if ItemsNodesFreeOccurred then
+          Break;
         if Result then
         begin
           { This check avoids assigning to CapturePointingDevice something
@@ -3684,7 +3867,8 @@ begin
       Inc(Items.InternalVisibleNonGeometryStateId);
 
     SenderCamera.GetView(Pos, Dir, Up);
-    SoundEngine.InternalUpdateListener(Pos, Dir, Up);
+    if UpdateSoundListener then
+      SoundEngine.InternalUpdateListener(Pos, Dir, Up);
   end;
 
   if Assigned(OnCameraChanged) then
@@ -3858,7 +4042,7 @@ begin
     that you can see as a whole in initial view,
     allows to see screen corner - also has distance from edge. }
   Plane := TCastlePlane.Create(Owner);
-  Plane.Name := InternalProposeName(TCastlePlane, Owner);
+  Plane.Name := ProposeComponentName(TCastlePlane, Owner);
   Plane.Axis := 2;
   Plane.Size := Vector2(200, 200);
   Plane.Material := pmUnlit;
@@ -3905,7 +4089,7 @@ begin
     bright to make PBR colors visible (e.g. yellow sphere should visibly be really yellow),
     low above ground to see the attenuation on floor.  }
   Light := TCastlePointLight.Create(Owner);
-  Light.Name := InternalProposeName(TCastlePointLight, Owner);
+  Light.Name := ProposeComponentName(TCastlePointLight, Owner);
   Light.Translation := Vector3(4.00, 1.00, 1.00);
   Light.Intensity := 10;
   Items.Add(Light);
@@ -3914,7 +4098,7 @@ begin
     that you can see as a whole in initial view,
     serves as floor to place new 3D stuff }
   Plane := TCastlePlane.Create(Owner);
-  Plane.Name := InternalProposeName(TCastlePlane, Owner);
+  Plane.Name := ProposeComponentName(TCastlePlane, Owner);
   Plane.Size := Vector2(10, 10);
   Items.Add(Plane);
 
@@ -3932,7 +4116,7 @@ begin
   end;
 
   NewBackground := TCastleBackground.Create(Owner);
-  NewBackground.Name := InternalProposeName(TCastleBackground, Owner);
+  NewBackground.Name := ProposeComponentName(TCastleBackground, Owner);
   AddNonVisualComponent(NewBackground);
   Background := NewBackground;
 end;
@@ -3955,12 +4139,11 @@ end;
 
 function TCastleViewport.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Transparent') or
-     (PropertyName = 'Camera') or
-     (PropertyName = 'Navigation') or
-     (PropertyName = 'Background') or
-     (PropertyName = 'Fog') or
-     (PropertyName = 'BackgroundColorPersistent') then
+  if ArrayContainsString(PropertyName, [
+        'Transparent', 'Camera', 'Navigation', 'Background',
+        'Fog', 'BackgroundColorPersistent', 'DynamicBatching', 'Items',
+        'OcclusionSort', 'OcclusionCulling', 'BlendingSort'
+      ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -4050,6 +4233,26 @@ begin
     WritelnWarning('Viewport named "%s" uses AutoNavigation, this is no longer supported. Instead: 1. (Advised) Add explicit navigation instance to viewport. 2. (Eventually, a temporary solution) Use TCastleAutoNavigationViewport.', [
       Name
     ]);
+  end;
+end;
+
+procedure TCastleViewport.SetDynamicBatching(const Value: Boolean);
+begin
+  if FDynamicBatching <> Value then
+  begin
+    FDynamicBatching := Value;
+    if ShapesRenderer <> nil then
+      ShapesRenderer.DynamicBatching := Value;
+  end;
+end;
+
+procedure TCastleViewport.SetOcclusionCulling(const Value: Boolean);
+begin
+  if FOcclusionCulling <> Value then
+  begin
+    FOcclusionCulling := Value;
+    if ShapesRenderer <> nil then
+      ShapesRenderer.OcclusionCulling := Value;
   end;
 end;
 

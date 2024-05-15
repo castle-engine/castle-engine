@@ -1599,7 +1599,6 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebugCaptions.Collides := false;
       FDebugCaptions.Pickable := false;
       FDebugCaptions.CastShadows := false;
-      FDebugCaptions.ExcludeFromStatistics := true;
       FDebugCaptions.InternalExcludeFromParentBoundingVolume := true;
 
       Add(FDebugCaptions);
@@ -1611,8 +1610,8 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
     if RenderDebug then
     begin
       BBox := BoundingBox;
-      FDebugCaptionsShape.Render := not BBox.IsEmpty;
-      if FDebugCaptionsShape.Render then
+      FDebugCaptionsShape.Visible := not BBox.IsEmpty;
+      if FDebugCaptionsShape.Visible then
       begin
         H := BBox.Data[1].Data[World.GravityCoordinate];
         FDebugCaptionsFontStyle.Size := H / 8;
@@ -2495,7 +2494,7 @@ var
         FDebugTransform.ChangedScene;
       end;
 
-      FDebugAlternativeTargetAxis.Render := HasAlternativeTarget;
+      FDebugAlternativeTargetAxis.Visible := HasAlternativeTarget;
       FDebugAlternativeTargetAxis.ScaleFromBox := BoundingBox;
       FDebugAlternativeTargetAxis.Position := AlternativeTarget;
 
@@ -2506,7 +2505,7 @@ var
         FDebugTransform.ChangedScene;
       end;
 
-      FDebugLastSensedEnemyAxis.Render := HasLastSensedEnemy;
+      FDebugLastSensedEnemyAxis.Visible := HasLastSensedEnemy;
       FDebugLastSensedEnemyAxis.ScaleFromBox := BoundingBox;
       FDebugLastSensedEnemyAxis.Position := LastSensedEnemy;
     end;

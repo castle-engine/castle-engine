@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'server';
-  ApplicationProperties.Caption := 'Castle TCP server';
+  ApplicationProperties.Caption := 'TCP Server';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

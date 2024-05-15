@@ -39,8 +39,8 @@ procedure MergeBuildGradle(const Source, Destination: string;
 
 implementation
 
-uses Classes, XMLRead, XMLWrite,
-  CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
+uses Classes, StrUtils, XMLRead, XMLWrite,
+  CastleXmlUtils, CastleUriUtils, CastleFilesUtils;
 
 { globals -------------------------------------------------------------------- }
 
@@ -50,7 +50,7 @@ var
   StringStream: TStringStream;
 begin
   StringStream := TStringStream.Create(
-    ReplaceMacros(FileToString(FilenameToURISafe(FileName))));
+    ReplaceMacros(FileToString(FilenameToUriSafe(FileName))));
   try
     ReadXMLFile(Document, StringStream);
   finally FreeAndNil(StringStream) end;
@@ -207,8 +207,8 @@ begin
   // if Verbose then
   //   Writeln('Merging "', Source, '" into "', Destination, '"');
 
-  SourceContents := ReplaceMacros(FileToString(FilenameToURISafe(Source)));
-  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  SourceContents := ReplaceMacros(FileToString(FilenameToUriSafe(Source)));
+  DestinationContents := FileToString(FilenameToUriSafe(Destination));
   DestinationContents := DestinationContents + NL + SourceContents;
   StringToFile(Destination, DestinationContents);
 end;
@@ -224,8 +224,8 @@ begin
   // if Verbose then
   //   Writeln('Merging "', Source, '" into "', Destination, '"');
 
-  SourceContents := ReplaceMacros(FileToString(FilenameToURISafe(Source)));
-  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  SourceContents := ReplaceMacros(FileToString(FilenameToUriSafe(Source)));
+  DestinationContents := FileToString(FilenameToUriSafe(Destination));
   MarkerPos := Pos(InsertMarker, DestinationContents);
   if MarkerPos = 0 then
     raise ECannotMergeManifest.CreateFmt('Cannot find marker "%s" in MainActivity.java', [InsertMarker]);
@@ -240,7 +240,7 @@ var
   Doc: TXMLDocument;
 
   { Modify DestinationContents to add information specified in source XML file. }
-  procedure MergeItems(const ListElement, ChildElement, Marker: string);
+  procedure MergeItems(const ListElement, ChildElement, Marker: string; const Indent: Integer);
   var
     I: TXMLElementIterator;
     E: TDOMElement;
@@ -259,7 +259,7 @@ var
       try
         while I.GetNext do
         begin
-          Insert(NL + '    ' + I.Current.TextData, DestinationContents, MarkerPos);
+          Insert(NL + DupeString('    ', Indent) + I.Current.TextData, DestinationContents, MarkerPos);
         end;
       finally FreeAndNil(I) end;
     end;
@@ -269,8 +269,8 @@ var
   SourceContents: string;
   SStream: TStringStream;
 begin
-  SourceContents      := ReplaceMacros(FileToString(FilenameToURISafe(Source)));
-  DestinationContents := ReplaceMacros(FileToString(FilenameToURISafe(Destination)));
+  SourceContents      := ReplaceMacros(FileToString(FilenameToUriSafe(Source)));
+  DestinationContents := ReplaceMacros(FileToString(FilenameToUriSafe(Destination)));
 
   SStream := TStringStream.Create(SourceContents);
   try
@@ -278,9 +278,9 @@ begin
       ReadXMLFile(Doc, SStream); // ReadXMLFile within "try" clause, as it initializes Doc always
       if Doc.DocumentElement.TagName <> 'build_gradle_merge' then
         raise ECannotMergeBuildGradle.Create('The source file from which to merge build.gradle must be XML with root <build_gradle_merge>');
-      MergeItems('dependencies', 'dependency', '// MERGE-DEPENDENCIES');
-      MergeItems('plugins', 'plugin', '// MERGE-PLUGINS');
-      MergeItems('repositories', 'repository', '// MERGE-REPOSITORIES');
+      MergeItems('dependencies', 'dependency', '// MERGE-DEPENDENCIES', 1);
+      MergeItems('plugins', 'plugin', '// MERGE-PLUGINS', 1);
+      MergeItems('repositories', 'repository', '// MERGE-REPOSITORIES', 1);
     finally FreeAndNil(Doc) end;
   finally FreeAndNil(SStream) end;
 

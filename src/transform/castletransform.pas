@@ -48,7 +48,7 @@ type
 
 implementation
 
-uses CastleLog, CastleApplicationProperties, CastleURIUtils, CastleInternalRays,
+uses CastleLog, CastleApplicationProperties, CastleUriUtils, CastleInternalRays,
   CastleRenderContext,
   // TODO: this breaks unit dependencies, transform->scene
   X3DNodes, CastleScene, CastleInternalPhysicsVisualization;
@@ -146,4 +146,8 @@ initialization
   RegisterSerializableComponent(TCastleWorldPlaneDistanceJoint, ['Physics', 'Joint', 'World Plane Distance']);
   RegisterSerializableComponent(TCastleSliderJoint, ['Physics', 'Joint', 'Slider']);
   {$endif CASTLE_EXPERIMENTAL_JOINTS}
+
+  InternalBehavior := TCastleBehavior.Create(nil);
+finalization
+  FreeAndNil(InternalBehavior);
 end.

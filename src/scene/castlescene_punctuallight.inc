@@ -37,32 +37,18 @@ type
   published
     { Cast shadows from this light.
 
-      This simple property is @bold(experimental). Right now:
+      Right now this property activates
+      @url(https://castle-engine.io/shadow_volumes shadow volumes).
+      Please consult the @url(https://castle-engine.io/shadow_volumes shadow volumes documentation)
+      about important requirements of this technique,
+      namely: models that cast shadows must be 2-manifold.
+      Moreover, right now, only one light in the world can cast shadows using
+      shadow volumes.
 
-      @unorderedList(
-        @item(It only makes shadow volumes.
-          In the future we want to make shadow maps available through this property,
-          and actually default.
-
-          Note that shadow volumes only cast shadows from shapes that are 2-manifold.
-          See https://castle-engine.io/x3d_extensions_shadow_volumes.php .
-
-          TODO: Shadow maps do not yet work cross-scene.
-          See https://github.com/castle-engine/castle-engine/issues/284 .
-        )
-
-        @item(It only takes into account 1 light. Do not set this on more than 1 light,
-          it is undefined now which light we will choose (and in the future,
-          we may honor it on all lights -- with both shadow maps and shadow volumes;
-          shadow maps already honor multiple lights).
-        )
-
-        @item(It does not work on OpenGLES (mobile).
-
-          See PR https://github.com/castle-engine/castle-engine/pull/312 for (in progress) fix.
-        )
-      )
-    }
+      In the future we want to offer a choice between using
+      @url(https://castle-engine.io/shadow_volumes shadow volumes)
+      and
+      @url(https://castle-engine.io/x3d_extensions_shadow_maps.php shadow maps). }
     property Shadows: Boolean read FShadows write SetShadows default false;
   end;
 

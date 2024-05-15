@@ -31,6 +31,8 @@
 
 #ifdef QT_BUILD
   #include <QLibrary>
+  #include <QApplication>
+  #include <QMessageBox>
 #else          // suppose Windows build
   #include <windows.h>
 #endif
@@ -69,6 +71,8 @@ typedef void (CDECL *PFNRD_CGE_GetViewCoords)(float *pfPosX, float *pfPosY, floa
 typedef void (CDECL *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ,
                                                    float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ, bool bAnimated);
 
+typedef void (CDECL *PFNRD_CGE_SetNavigationInputShortcut)(int eInput, int eKey1, int eKey2, int eMouseButton, int eMouseWheel);
+
 typedef int (CDECL *PFNRD_CGE_GetNavigationType)();
 typedef void (CDECL *PFNRD_CGE_SetNavigationType)(int eNewType);
 typedef void (CDECL *PFNRD_CGE_SetTouchInterface)(int eMode);
@@ -105,6 +109,7 @@ PFNRD_CGE_AddViewpointFromCurrentView pfrd_CGE_AddViewpointFromCurrentView = NUL
 PFNRD_CGE_GetBoundingBox pfrd_CGE_GetBoundingBox = NULL;
 PFNRD_CGE_GetViewCoords pfrd_CGE_GetViewCoords = NULL;
 PFNRD_CGE_MoveViewToCoords pfrd_CGE_MoveViewToCoords = NULL;
+PFNRD_CGE_SetNavigationInputShortcut pfrd_CGE_SetNavigationInputShortcut = NULL;
 PFNRD_CGE_GetNavigationType pfrd_CGE_GetNavigationType = NULL;
 PFNRD_CGE_SetNavigationType pfrd_CGE_SetNavigationType = NULL;
 PFNRD_CGE_SetTouchInterface pfrd_CGE_SetTouchInterface = NULL;
@@ -118,7 +123,10 @@ PFNRD_CGE_IncreaseSceneTime pfrd_CGE_IncreaseSceneTime = NULL;
 //-----------------------------------------------------------------------------
 QFunctionPointer cge_GetProc(QLibrary &rCgeLib, const char *symbol)
 {
-    return rCgeLib.resolve(symbol);
+    QFunctionPointer f = rCgeLib.resolve(symbol);
+    if (f == nullptr)
+        QMessageBox::critical(NULL, "error - cannot load function", symbol);
+    return f;
 }
 #else
 FARPROC WINAPI cge_GetProc(HMODULE hCgeLib, const char *symbol)
@@ -130,11 +138,18 @@ FARPROC WINAPI cge_GetProc(HMODULE hCgeLib, const char *symbol)
 //-----------------------------------------------------------------------------
 void CGE_LoadLibrary()
 {
+    if (pfrd_CGE_Open != NULL)
+        return;
+
 #ifdef QT_BUILD
     QLibrary hCgeDll("castleengine");
     hCgeDll.load();
     if (!hCgeDll.isLoaded())
+    {
+        QString sErr = hCgeDll.errorString();
+        QMessageBox::critical(NULL, "error", sErr);
         return;
+    }
 #else
     HMODULE hCgeDll = LoadLibrary("castleengine.dll");
     if (hCgeDll==NULL)
@@ -165,6 +180,7 @@ void CGE_LoadLibrary()
     pfrd_CGE_GetBoundingBox = (PFNRD_CGE_GetBoundingBox)cge_GetProc(hCgeDll, "CGE_GetBoundingBox");
     pfrd_CGE_GetViewCoords = (PFNRD_CGE_GetViewCoords)cge_GetProc(hCgeDll, "CGE_GetViewCoords");
     pfrd_CGE_MoveViewToCoords = (PFNRD_CGE_MoveViewToCoords)cge_GetProc(hCgeDll, "CGE_MoveViewToCoords");
+    pfrd_CGE_SetNavigationInputShortcut = (PFNRD_CGE_SetNavigationInputShortcut)cge_GetProc(hCgeDll, "CGE_SetNavigationInputShortcut");
     pfrd_CGE_GetNavigationType = (PFNRD_CGE_GetNavigationType)cge_GetProc(hCgeDll, "CGE_GetNavigationType");
     pfrd_CGE_SetNavigationType = (PFNRD_CGE_SetNavigationType)cge_GetProc(hCgeDll, "CGE_SetNavigationType");
     pfrd_CGE_SetTouchInterface = (PFNRD_CGE_SetTouchInterface)cge_GetProc(hCgeDll, "CGE_SetTouchInterface");
@@ -245,6 +261,9 @@ void CGE_Update()
 		(*pfrd_CGE_Update)();
 }
 
+#ifdef MSVC
+#pragma optimize("", off)   // strangely MSVC calls pfrd_CGE_MouseDown always with left button in release ?!
+#endif
 //-----------------------------------------------------------------------------
 void CGE_MouseDown(int x, int y, bool bLeftBtn, int nFingerIdx)
 {
@@ -345,6 +364,13 @@ void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, fl
 {
 	if (pfrd_CGE_MoveViewToCoords!=NULL)
 		(*pfrd_CGE_MoveViewToCoords)(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ, fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ, bAnimated);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_SetNavigationInputShortcut(int eInput, int eKey1, int eKey2, int eMouseButton, int eMouseWheel)
+{
+	if (pfrd_CGE_SetNavigationInputShortcut!=NULL)
+		(*pfrd_CGE_SetNavigationInputShortcut)(eInput, eKey1, eKey2, eMouseButton, eMouseWheel);
 }
 
 //-----------------------------------------------------------------------------

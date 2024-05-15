@@ -28,14 +28,14 @@
 
 type
   TUrlCastleAndroidAssets = class
-    class function Read(const Url: string; out MimeType: string): TStream;
+    class function Read(const Url: String; out MimeType: string): TStream;
   end;
 
-class function TUrlCastleAndroidAssets.Read(const Url: string; out MimeType: string): TStream;
+class function TUrlCastleAndroidAssets.Read(const Url: String; out MimeType: string): TStream;
 begin
   CheckFileAccessSafe(Url);
   Result := TReadAssetStream.Create(URIToAssetPath(Url));
-  MimeType := URIMimeType(Url);
+  MimeType := UriMimeType(Url);
 end;
 
 {$endif ANDROID}

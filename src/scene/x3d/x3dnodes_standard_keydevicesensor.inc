@@ -18,21 +18,30 @@
   { Base type for all sensor node types that operate using key devices. }
   TAbstractKeyDeviceSensorNode = class(TAbstractSensorNode)
   public
-    { React to key down/up events.
+    { Send key down/up events.
 
-      This is used by TCastleSceneCore to communicate with this key sensor.
+      This is used internally by TCastleSceneCore to notify this key sensor
+      that it should generate proper X3D events.
 
       Semantics follow TInputPressRelease behavior for EventType = itKey.
-      This means that Key may be keyNone (if not
-      representable as TKey) and C may be #0 (if not representable as char),
-      but not both --- at least one of Key or C must contains something useful.
-      Also, key presses are affected
-      by the "key repeat" feature of the OS (windowing system actually), so when
-      user holds down a key --- we get many key down messages.
+      This means that
+
+      - Key may be keyNone (if not representable as TKey)
+
+      - KeyString may be '' (if not representable as String)
+
+      - But you cannot have both (Key=keyNone) and (KeyString='') at the same time.
+        At least one of them must contain something useful.
+
+      - key presses are affected
+        by the "key repeat" feature of the OS (windowing system actually), so when
+        user holds down a key --- we get many key down messages.
+
+      - KeyString is a UTF-8 encoded String representation of the key user pressed.
 
       @groupBegin }
-    procedure KeyDown(const Key: TKey; const C: Char; const Time: TX3DTime); virtual;
-    procedure KeyUp(const Key: TKey; const C: Char; const Time: TX3DTime); virtual;
+    procedure KeyDown(const Key: TKey; const KeyString: String; const Time: TX3DTime); virtual;
+    procedure KeyUp(const Key: TKey; const KeyString: String; const Time: TX3DTime); virtual;
     { @groupEnd }
 
     {$I auto_generated_node_helpers/x3dnodes_x3dkeydevicesensornode.inc}
@@ -43,8 +52,8 @@
   strict private
     AltKey, ControlKey, ShiftKey: boolean;
   public
-    procedure KeyDown(const Key: TKey; const C: Char; const Time: TX3DTime); override;
-    procedure KeyUp(const Key: TKey; const C: Char; const Time: TX3DTime); override;
+    procedure KeyDown(const Key: TKey; const KeyString: String; const Time: TX3DTime); override;
+    procedure KeyUp(const Key: TKey; const KeyString: String; const Time: TX3DTime); override;
   {$I auto_generated_node_helpers/x3dnodes_keysensor.inc}
   end;
 
@@ -55,7 +64,7 @@
     EnteredText: string;
     Active: boolean;
   public
-    procedure KeyDown(const Key: TKey; const C: Char; const Time: TX3DTime); override;
+    procedure KeyDown(const Key: TKey; const KeyString: String; const Time: TX3DTime); override;
   {$I auto_generated_node_helpers/x3dnodes_stringsensor.inc}
   end;
 
@@ -86,19 +95,19 @@ end;
 
 { TAbstractKeyDeviceSensorNode ----------------------------------------------- }
 
-procedure TAbstractKeyDeviceSensorNode.KeyDown(const Key: TKey; const C: Char; const Time: TX3DTime);
+procedure TAbstractKeyDeviceSensorNode.KeyDown(const Key: TKey; const KeyString: String; const Time: TX3DTime);
 begin
   { Nothing to do in this class. }
 end;
 
-procedure TAbstractKeyDeviceSensorNode.KeyUp(const Key: TKey; const C: Char; const Time: TX3DTime);
+procedure TAbstractKeyDeviceSensorNode.KeyUp(const Key: TKey; const KeyString: String; const Time: TX3DTime);
 begin
   { Nothing to do in this class. }
 end;
 
 { TKeySensorNode ------------------------------------------------------------- }
 
-procedure TKeySensorNode.KeyDown(const Key: TKey; const C: Char; const Time: TX3DTime);
+procedure TKeySensorNode.KeyDown(const Key: TKey; const KeyString: String; const Time: TX3DTime);
 
   procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TSFBoolEvent);
   begin
@@ -130,9 +139,9 @@ begin
       EventActionKeyPress.Send(ActionKey, Time);
       EventIsActive.Send(true, Time);
     end;
-    if C <> #0 then
+    if KeyString <> '' then
     begin
-      EventKeyPress.Send(C, Time);
+      EventKeyPress.Send(KeyString, Time);
       EventIsActive.Send(true, Time);
     end;
     case Key of
@@ -144,7 +153,7 @@ begin
   end;
 end;
 
-procedure TKeySensorNode.KeyUp(const Key: TKey; const C: Char; const Time: TX3DTime);
+procedure TKeySensorNode.KeyUp(const Key: TKey; const KeyString: String; const Time: TX3DTime);
 
   procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TSFBoolEvent);
   begin
@@ -166,9 +175,9 @@ begin
       EventActionKeyRelease.Send(ActionKey, Time);
       EventIsActive.Send(false, Time);
     end;
-    if C <> #0 then
+    if KeyString <> '' then
     begin
-      EventKeyRelease.Send(C, Time);
+      EventKeyRelease.Send(KeyString, Time);
       EventIsActive.Send(false, Time);
     end;
     case Key of
@@ -183,11 +192,11 @@ end;
 
 { TStringSensorNode ---------------------------------------------------------- }
 
-procedure TStringSensorNode.KeyDown(const Key: TKey; const C: Char; const Time: TX3DTime);
+procedure TStringSensorNode.KeyDown(const Key: TKey; const KeyString: String; const Time: TX3DTime);
 begin
   inherited;
 
-  if FdEnabled.Value and ( (C <> #0) or (Key in [keyBackSpace, keyEnter]) ) then
+  if FdEnabled.Value and ( (KeyString <> '') or (Key in [keyBackSpace, keyEnter]) ) then
   begin
     if not Active then
     begin
@@ -200,7 +209,7 @@ begin
       Same for CharEnter: it's also equal to Ctrl+M.
       And Ctrl+... may be often used by some menu items, see e.g. view3dscene. }
 
-    if (C = CharBackspace) or (Key = keyBackSpace) then
+    if (KeyString = CharBackspace) or (Key = keyBackSpace) then
     begin
       if FdDeletionAllowed.Value and (EnteredText <> '') then
       begin
@@ -208,7 +217,7 @@ begin
         EventEnteredText.Send(EnteredText, Time);
       end;
     end else
-    if (C = CharEnter) or (Key = keyEnter) then
+    if (KeyString = CharEnter) or (Key = keyEnter) then
     begin
       EventFinalText.Send(EnteredText, Time);
       { X3D spec says explicitly that in this case, enteredText event
@@ -218,7 +227,7 @@ begin
       EventIsActive.Send(Active, Time);
     end else
     begin
-      EnteredText := EnteredText + C;
+      EnteredText := EnteredText + KeyString;
       EventEnteredText.Send(EnteredText, Time);
     end;
   end;

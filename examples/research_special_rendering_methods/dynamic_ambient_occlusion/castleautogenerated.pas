@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'dynamic_ambient_occlusion';
-  ApplicationProperties.Caption := 'dynamic_ambient_occlusion';
+  ApplicationProperties.Caption := 'Dynamic Ambient Occlusion';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

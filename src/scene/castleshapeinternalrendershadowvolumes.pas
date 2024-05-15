@@ -67,7 +67,7 @@ type
 implementation
 
 uses SysUtils,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleGLUtils, CastleUtils, CastleShapes, CastleImages, CastleRenderContext;
 
 { Return vertex Original extruded into infinity, as seen from light
@@ -415,10 +415,11 @@ var
 begin
   Assert(ManifoldEdges <> nil);
 
-  { if the model is not perfect 2-manifold, do not render it's shadow volumes.
-    We still have here some code to handle BorderEdges, but in practice:
-    this just has no chance to work 100% reliably with BorderEdges.
-    See demo_models/shadow_volumes/not_manifold/README.txt }
+  { If the model is not perfect 2-manifold, do not render it's shadow volumes.
+    This is good default behavior, as shadow volumes on non-manifolds
+    make weird artifacts.
+
+    Developer can override it with WholeSceneManifold though. }
   if (BorderEdges.Count <> 0) and
      (not WholeSceneManifold) then
     Exit;
@@ -475,14 +476,9 @@ begin
     end;
 
     { For each border edge, always render it's shadow quad.
-      THIS CODE IS NEVER USED NOW (at the beginning of this method,
-      we exit if BorderEdges.Count <> 0). That's because rendering
-      the shadow quads from border edges doesn't solve the problem fully:
-      artifacts are still possible.
-
-      See http://http.developer.nvidia.com/GPUGems3/gpugems3_ch11.html
-      for more involved approach. Rendering shadow quads from border edges,
-      like below, is only part of the solution. }
+      This is used now only if WholeSceneManifold
+      (otherwise at the beginning of this method,
+      we exit if BorderEdges.Count <> 0). }
     BorderEdgesNow := BorderEdges;
     BorderEdgePtr := PBorderEdge(BorderEdgesNow.L);
     for I := 0 to BorderEdgesNow.Count - 1 do
@@ -502,8 +498,12 @@ begin
         in the direction of TriangleIndex, like 1, 0, Extruded0, Extruded1. }
       if PlaneSide0 then
         RenderShadowQuad_BorderEdge(BorderEdgePtr, 1, 0)
+      {
+      // Do not render shadow quad from other border edge, this would break rendering
+      // (testcase: examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/ ).
+      // The other shape, that shares this manifold edge, will render the corresponding shadow quad for it.
       else
-        RenderShadowQuad_BorderEdge(BorderEdgePtr, 0, 1);
+        RenderShadowQuad_BorderEdge(BorderEdgePtr, 0, 1)};
 
       Inc(BorderEdgePtr);
     end;

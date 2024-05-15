@@ -20,8 +20,7 @@ unit TestFPImage;
 interface
 
 uses
-  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  CastleTester;
 
 type
   TTestFPImage = class(TCastleTestCase)
@@ -32,7 +31,7 @@ type
 implementation
 
 uses Classes, FPImage, FPReadJPEG, SysUtils,
-  CastleVectors, CastleImages, CastleURIUtils;
+  CastleVectors, CastleImages, CastleUriUtils;
 
 procedure TTestFPImage.TestJPEG;
 
@@ -68,7 +67,7 @@ procedure TTestFPImage.TestJPEG;
 
 begin
   { Reading this image fails with FPImage under FPC <= 2.4.0 }
-  DoIt(URIToFilenameSafe('castle-data:/images/f023ours.jpg'), 512, 512);
+  DoIt(UriToFilenameSafe('castle-data:/images/f023ours.jpg'), 512, 512);
 end;
 
 initialization

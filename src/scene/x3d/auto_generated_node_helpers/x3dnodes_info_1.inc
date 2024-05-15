@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,12 +27,13 @@
     function GetText: String;
     procedure SetText(const Value: String);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdString: TSFString;
-    { Internal wrapper for property @link(Text). This wrapper API may change, we advise to access simpler @link(Text) instead. }
+    { Internal wrapper for property @code(Text). This wrapper API may change, we advise to access simpler @code(Text) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdString: TSFString read FFdString;
     {  }
     property Text: String read GetText write SetText;

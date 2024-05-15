@@ -314,8 +314,6 @@ begin
 end;
 
 procedure THSLColorPicker.HSPickerChange(Sender: TObject);
-var
-  c: TColor;
 begin
   FLVPicker.Lock;  // Lock the LVPicker to generate OnChange events here.
   try

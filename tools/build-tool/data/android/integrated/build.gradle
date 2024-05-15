@@ -2,7 +2,7 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         // This declares the "Android Gradle plugin" version
@@ -23,7 +23,10 @@ buildscript {
         // https://android.googlesource.com/platform/ndk/+/master/docs/BuildSystemMaintainers.md
         // ) and this breaks older Android Gradle plugin versions (at least 3.1.0-3.3.3)
         // with error message "NDK is missing a "platforms" directory.".
-        classpath 'com.android.tools.build:gradle:4.1.0'
+        //
+        // Later we needed to upgrade 4.1.0 -> 7.4.2 to use latest cmake,
+        // that has target_link_options .
+        classpath 'com.android.tools.build:gradle:8.1.0'
 
         // Do not change the line below, it is necessary for build.gradle merging to work.
         // MERGE-DEPENDENCIES
@@ -41,13 +44,17 @@ allprojects {
 
     repositories {
         google()
-        jcenter()
+        mavenCentral()
 
         // To be able to compile aar in libs/ , following
         // http://stackoverflow.com/questions/16682847/how-to-manually-include-external-aar-package-using-new-gradle-android-build-syst
+        // Commented out: we no longer need aar support for anything,
+        // and Android Gradle 7.4.2 warns that flatDir is deprecated.
+        /*
         flatDir {
             dirs 'libs'
         }
+        */
 
         // Do not change the line below, it is necessary for build.gradle merging to work.
         // MERGE-REPOSITORIES

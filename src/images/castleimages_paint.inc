@@ -616,11 +616,10 @@ begin
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      p := PixelPtr(Round(MinX - 1), iy);
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          inc(p);
+          p := PixelPtr(ix, iy);
 
           Alpha1 := p^.W / 255;
 
@@ -698,11 +697,10 @@ begin
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      p := PixelPtr(Round(MinX - 1), iy);
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          inc(p);
+          p := PixelPtr(ix, iy);
 
           Alpha1 := p^.Y / 255;
 
@@ -780,11 +778,10 @@ begin
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      p := PixelPtr(Round(MinX - 1), iy);
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          inc(p);
+          p := PixelPtr(ix, iy);
 
           {antialiasing}
           if ix < MinX then
@@ -856,11 +853,10 @@ begin
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      p := PixelPtr(Round(MinX - 1), iy);
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          inc(p);
+          p := PixelPtr(ix, iy);
 
           {antialiasing}
           if ix < MinX then

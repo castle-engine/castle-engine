@@ -194,19 +194,22 @@
       FSizeScale (set explicitly by user to tweak size). }
     procedure UpdateWorldScale;
 
-    function StoredWithAutoSize: Boolean;
-
     function WorldScaleScalar: Single;
 
     { Configure Sender (TCastleCollider) to have Mode2D. }
     class procedure CreateComponent2D(Sender: TObject);
   protected
+    { Use this for "stored" for properties that are auto-calculated when AutoSize. }
+    function StoredWithAutoSize: Boolean;
+
     { Total scale, accumulated from all parents TCastleTransform.Scale (converted to scalar
       following Mode2D) and collider SizeScale. }
     function TotalScale: Single;
 
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
+
+    procedure DeinitializePhysicsEngineObjects; virtual;
 
     { Notify associated TCastleRigidBody that Kraft shape needs to be recreated.
       This may in turn call TCastleCollider.InitializeKraft
@@ -582,8 +585,10 @@
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
+    procedure DeinitializePhysicsEngineObjects; override;
   public
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure DesignerWarnings(const SList: TStrings); override;
 
     procedure InternalTransformChanged(const TransformChanged: TCastleTransform); override;
 
@@ -837,7 +842,7 @@
     { Transformations that we collide with currently. }
     function GetCollidingTransforms: TCastleTransformList;
 
-    { Cast a ray using physics engine, see what is hit.
+    { First object hit by the ray, calculated using the physics engine.
 
       Returns the TPhysicsRayCastResult record.
       Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
@@ -1214,7 +1219,6 @@ begin
   Transform.Collides := false;
   Transform.Pickable := false;
   Transform.CastShadows := false;
-  Transform.ExcludeFromStatistics := true;
   Transform.InternalExcludeFromParentBoundingVolume := true;;
 end;
 
@@ -1512,7 +1516,12 @@ procedure TCastleCollider.UpdateVisualization;
 begin
   if FVisualizationParent <> nil then
   begin
-    FVisualizationParent.Translation := Translation;
+    { We need to multiply Translation * TotalScale,
+      testcases:
+      - "Show Colliders" on examples/physics/physics_test_scale_colliders/
+      - "Show Colliders" on TCastleBoxCollider with Size = (0.05 0.05 0.02)
+        and Translation = (0.00 0.02 0.00) }
+    FVisualizationParent.Translation := Translation * TotalScale;
     FVisualizationParent.Rotation := Rotation;
   end;
 end;
@@ -1892,7 +1901,7 @@ function TCastleCollider.PropertySections(
 begin
   if ArrayContainsString(PropertyName, [
      'Density', 'Friction', 'Mass', 'Restitution', 'SizeScale', 'LayerCollisions',
-     'LayerNames'
+     'LayerNames', 'RotationPersistent', 'TranslationPersistent'
      ]) then
     Result := [psBasic]
   else
@@ -1952,6 +1961,11 @@ begin
     // even when AutoSize=false, changing Mode2D changes how WorldScale is interpreted
     ShapeChangedNotifyRigidBody;
   end;
+end;
+
+procedure TCastleCollider.DeinitializePhysicsEngineObjects;
+begin
+  FreeAndNil(FKraftShape);
 end;
 
 class procedure TCastleCollider.CreateComponent2D(Sender: TObject);
@@ -2574,6 +2588,17 @@ begin
   Result := TKraftShapeMesh.Create(APhysics, ARigidBody, FKraftMesh);
 end;
 
+procedure TCastleMeshCollider.DeinitializePhysicsEngineObjects;
+begin
+  inherited;
+
+  { TKraftMesh needs to be freed explicitly, Kraft collider will not do it.
+    Testcase: Memory leak reported in
+    https://forum.castle-engine.io/t/was-how-to-call-terrain-updategeometry-now-running-out-of-memory-updating-geometry-50x/849/8
+  }
+  FreeAndNil(FKraftMesh);
+end;
+
 procedure TCastleMeshCollider.SetMesh(const AValue: TCastleTransform);
 begin
   if FMesh <> AValue then
@@ -2623,6 +2648,13 @@ begin
   inherited;
   if TransformChanged = Mesh then
     MeshChanged;
+end;
+
+procedure TCastleMeshCollider.DesignerWarnings(const SList: TStrings);
+begin
+  inherited;
+  if Mesh = nil then
+    SList.Add('Mesh is unassigned, TCastleMeshCollider effectively doesn''t work');
 end;
 
 { TCastleRigidBody ----------------------------------------------------------- }
@@ -2977,7 +3009,6 @@ begin
   { Collider.FKraftShape is owned by FKraftBody, it was automatically freed already }
   if Collider <> nil then
   begin
-
     Collider.FKraftShape := nil;
     FState := stateMissingCollider;
   end else
@@ -2987,9 +3018,11 @@ begin
     begin
       Assert(FKraftBody.ShapeCount = 1, 'More than one shape in rigid body.');
       Assert(FKraftBody.ShapeFirst = FCastleCollider.FKraftShape, 'Mixed kraft shapes');
-      FreeAndNil(FCastleCollider.FKraftShape);
+    end else
+    begin
+      Assert(FCastleCollider.FKraftShape = nil, 'FKraftBody.ShapeCount = 0 but FCastleCollider.FKraftShape <> nil.');
     end;
-    Assert(FCastleCollider.FKraftShape = nil, 'Mixed kraft shapes');
+    FCastleCollider.DeinitializePhysicsEngineObjects;
     FCastleCollider := nil;
     FState := stateMissingCollider;
   end;
@@ -3771,31 +3804,6 @@ end;
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
 {$undef read_implementation_methods}
-
-{ TCastleTransform ---------------------------------------------------------- }
-
-procedure TCastleTransform.SetRigidBody(const Value: TCastleRigidBody);
-var
-  OldRigidBody: TCastleRigidBody;
-begin
-  OldRigidBody := GetRigidBody;
-  if OldRigidBody = Value then
-     Exit;
-
-  if OldRigidBody <> nil then
-  begin
-    RemoveBehavior(OldRigidBody);
-    FreeAndNil(OldRigidBody);
-  end;
-
-  if Value <> nil then
-    AddBehavior(Value);
-end;
-
-function TCastleTransform.GetRigidBody: TCastleRigidBody;
-begin
-  Result := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-end;
 
 { TCastleAbstractRootTransform ------------------------------------------------------------------- }
 

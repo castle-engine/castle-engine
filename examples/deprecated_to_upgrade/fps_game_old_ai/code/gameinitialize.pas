@@ -229,7 +229,7 @@ end;
 
 procedure TButtons.ScreenshotButtonClick(Sender: TObject);
 var
-  URL: string;
+  Url: String;
 begin
   { Capture a screenshot straight to a file.
     There are more interesting things that you can do with a screenshot
@@ -238,10 +238,10 @@ begin
     You could also ask use to choose a file (e.g. by Window.FileDialog).
     But this is just a simple example, and this way we also have
     an opportunity to show how to use Notifications. }
-  URL := Window.Container.SaveScreenToDefaultFile;
-  if URL <> '' then
-    Notifications.Show('Saved screen to ' + URL);
-  // when URL = '' it means that recommended directory to store screenshots on this platform cannot be found
+  Url := Window.Container.SaveScreenToDefaultFile;
+  if Url <> '' then
+    Notifications.Show('Saved screen to ' + Url);
+  // when Url = '' it means that recommended directory to store screenshots on this platform cannot be found
 end;
 
 procedure TButtons.AddCreatureButtonClick(Sender: TObject);
@@ -316,10 +316,9 @@ procedure TPlayerHUD.Render;
         Gun.AmmoLoaded,
         GunResource.AttackAmmoCapacity
       ]);
-      GetUIFont.Print(10, ContainerHeight - 220, Green, AmmoStr);
+      FallbackFont.Print(10, ContainerHeight - 220, Green, AmmoStr);
     end;
   end;
-
 
 const
   InventoryImageSize = 128;
@@ -336,19 +335,19 @@ begin
   { Write text in the upper-left corner of the screen.
     The (0, 0) position is always bottom-left corner,
     (ContainerWidth, ContainerHeight) position is top-right corner.
-    You can take font measurements by UIFont.Height or UIFont.TextWidth
+    You can take font measurements by FallbackFont.Height or FallbackFont.TextWidth
     to adjust initial position as needed. }
-  Y := Y - (GetUIFont.Height + ControlsMargin);
-  GetUIFont.Print(ControlsMargin, Y, Yellow,
-    Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+  Y := Y - (FallbackFont.Height + ControlsMargin);
+  FallbackFont.Print(ControlsMargin, Y, Yellow,
+    FormatDot('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
   DisplayCurrentAmmo;
 
   { show FPS }
-  GetUIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
+  FallbackFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
     'FPS: ' + Window.Fps.ToString, hpRight, vpTop);
 
-  Y := Y - (GetUIFont.Height + InventoryImageSize);
+  Y := Y - (FallbackFont.Height + InventoryImageSize);
 
   { Mark currently chosen item. You can change currently selected item by
     Input_InventoryPrevious, Input_InventoryNext (by default: [ ] keys or mouse
@@ -379,7 +378,7 @@ begin
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S := S + Format(' (%d)', [Player.Inventory[I].Quantity]);
-    GetUIFont.Print(X, Y - GetUIFont.Height, Yellow, S);
+    FallbackFont.Print(X, Y - FallbackFont.Height, Yellow, S);
   end;
 
   { Simple color effects over the screen:
@@ -406,7 +405,6 @@ end;
 
 var
   PlayerHUD: TPlayerHUD;
-
 
 { Create player. Player implements:
   - inventory,
@@ -605,7 +603,7 @@ begin
   Level.Viewport := Viewport;
 
   { Load named sounds defined in sounds/index.xml }
-  SoundEngine.RepositoryURL := 'castle-data:/sounds/index.xml';
+  SoundEngine.RepositoryUrl := 'castle-data:/sounds/index.xml';
 
   { Change Theme image tiActiveFrame, used to draw rectangle under image }
   Theme.ImagesPersistent[tiActiveFrame].Url := 'castle-data:/box.png';

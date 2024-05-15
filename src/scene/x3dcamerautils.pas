@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,6 +41,13 @@ const
   DefaultX3DGravityUp      : TVector3 = (X: 0; Y: 1; Z: 0);
   { @groupEnd }
 
+  { Default camera position, direction, view in X3D. }
+  DefaultX3DCameraView: TViewVectors = (
+    Translation: (X: 0; Y: 0; Z: 10);
+    Direction:   (X: 0; Y: 0; Z: -1);
+    Up:          (X: 0; Y: 1; Z: 0)
+  );
+
 type
   { Utility class to set various viewpoint properties,
     and then generate given viewpoint node. }
@@ -52,6 +59,7 @@ type
     FPerspectiveFieldOfView: Single;
     FProjectionType: TProjectionType;
     FOrthographicFieldOfView: TFloatRectangle;
+    FAutoCenterOfRotation: Boolean;
   public
     const
       { Matches X3D default TViewpointNode.FieldOfView.
@@ -82,6 +90,11 @@ type
     { Center of rotation, as should be specified in viewpoint node.
       By default it is zero, just like @link(TAbstractViewpointNode.CenterOfRotation). }
     property CenterOfRotation: TVector3 read FCenterOfRotation write FCenterOfRotation;
+
+    { Automatically calculate center of rotation based on scene bounding box.
+      The default (@false) makes X3D default of @link(TAbstractViewpointNode.AutoCenterOfRotation). }
+    property AutoCenterOfRotation: Boolean
+      read FAutoCenterOfRotation write FAutoCenterOfRotation default false;
 
     { Perspective field of view, in radians. }
     property PerspectiveFieldOfView: Single read FPerspectiveFieldOfView write FPerspectiveFieldOfView
@@ -117,11 +130,11 @@ function MakeCameraStr(const Version: TX3DCameraVersion;
   const Position, Direction, Up, GravityUp: TVector3): string;
   deprecated 'use TMakeX3DViewpoint with its ToString method';
 function MakeCameraNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Position, Direction, Up, GravityUp: TVector3): TAbstractChildNode; overload;
   deprecated 'use TMakeX3DViewpoint with its ToNode method';
 function MakeCameraNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Position, Direction, Up, GravityUp: TVector3;
   out ViewpointNode: TAbstractViewpointNode): TAbstractChildNode; overload;
   deprecated 'use TMakeX3DViewpoint with its ToNode method';
@@ -129,13 +142,13 @@ function MakeCameraNode(const Version: TX3DCameraVersion;
 { Make camera node (like MakeCameraNode) that makes the whole box
   nicely visible (like CameraViewpointForWholeScene). }
 function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
   const WantedDirectionPositive, WantedUpPositive: boolean): TAbstractChildNode;
 
 function MakeCameraNavNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const NavigationType: string;
   const WalkSpeed, VisibilityLimit: Single; const AvatarSize: TVector3;
   const Headlight: boolean): TNavigationInfoNode;
@@ -143,7 +156,7 @@ function MakeCameraNavNode(const Version: TX3DCameraVersion;
 implementation
 
 uses SysUtils, Math,
-  CastleTransform;
+  CastleTransform, X3DFields;
 
 { TMakeX3DViewpoint ---------------------------------------------------------- }
 
@@ -286,6 +299,15 @@ begin
       else
         ExtraFields := ExtraFields + FormatDot('  fieldOfView %f', [PerspectiveFieldOfView]) + NL;
     end;
+    { As this is non-standard CGE field, it's especially important to
+      add it only when it's non-default. }
+    if AutoCenterOfRotation then
+    begin
+      if Xml then
+        ExtraFields := ExtraFields + '  autoCenterOfRotation="TRUE"' + NL
+      else
+        ExtraFields := ExtraFields + '  autoCenterOfRotation TRUE' + NL;
+    end;
   end;
 
   RotationVectorForGravity := TVector3.CrossProduct(DefaultX3DGravityUp, GravityUp);
@@ -304,7 +326,7 @@ begin
     AngleForGravity := AngleRadBetweenVectors(DefaultX3DGravityUp, GravityUp);
     S1 := Position.ToRawString;
     S2 := RotationVectorForGravity.ToRawString;
-    S3 := Format('%g', [AngleForGravity]);
+    S3 := FormatDot(FloatOutputFormat, [AngleForGravity]);
     { We want such that
         1. standard VRML/X3D dir/up vectors
         2. rotated by orientation
@@ -407,6 +429,7 @@ begin
   { add CenterOfRotation and FieldOfView to ViewpointNode }
   Assert(ViewpointNode <> nil);
   ViewpointNode.CenterOfRotation := CenterOfRotation;
+  ViewpointNode.AutoCenterOfRotation := AutoCenterOfRotation;
   if ViewpointNode is TViewpointNode then
     TViewpointNode(ViewpointNode).FieldOfView := PerspectiveFieldOfView;
   if ViewpointNode is TPerspectiveCameraNode_1 then
@@ -441,7 +464,7 @@ begin
 end;
 
 function MakeCameraNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Position, Direction, Up, GravityUp: TVector3;
   out ViewpointNode: TAbstractViewpointNode): TAbstractChildNode;
 var
@@ -463,7 +486,7 @@ begin
 end;
 
 function MakeCameraNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Position, Direction, Up, GravityUp: TVector3): TAbstractChildNode;
 var
   IgnoredViewpointNode: TAbstractViewpointNode;
@@ -475,23 +498,32 @@ begin
 end;
 
 function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
   const WantedDirectionPositive, WantedUpPositive: boolean): TAbstractChildNode;
 var
   Position, Direction, Up, GravityUp: TVector3;
+  ViewpointNode: TAbstractViewpointNode;
 begin
   CameraViewpointForWholeScene(Box, WantedDirection, WantedUp,
     WantedDirectionPositive, WantedUpPositive, Position, Direction, Up, GravityUp);
   {$warnings off} // TODO: fix using deprecated, actually CameraNodeForWholeScene should be reworked to be method of TMakeX3DViewpoint
   Result := MakeCameraNode(Version, BaseUrl,
-    Position, Direction, Up, GravityUp);
+    Position, Direction, Up, GravityUp, ViewpointNode);
+
+  // set useful CenterOfRotation or AutoCenterOfRotation
+  // option 1:
+  //ViewpointNode.AutoCenterOfRotation := false;
+  //ViewpointNode.CenterOfRotation := Box.Center;
+  // option 2:
+  // Better if scene may dynamically change to something drastically different.
+  ViewpointNode.AutoCenterOfRotation := true;
   {$warnings on}
 end;
 
 function MakeCameraNavNode(const Version: TX3DCameraVersion;
-  const BaseUrl: string;
+  const BaseUrl: String;
   const NavigationType: string;
   const WalkSpeed, VisibilityLimit: Single; const AvatarSize: TVector3;
   const Headlight: boolean): TNavigationInfoNode;

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -exuo pipefail
 
 # ----------------------------------------------------------------------------
 # Run some CGE tests that can be done from a shell, without the need for any FPC.
@@ -7,23 +7,47 @@ set -euo pipefail
 
 cd "$CASTLE_ENGINE_PATH"
 
-# Test we don't have any examples with invalid qualified_name in CastleEngineManifest.xml .
-#
-# The CGE examples should all have
-#   qualified_name="io.castleengine.xxx.yyy.zzz"
-# (xxx.yyy.zzz being application name split into words and separated by dots).
-# See https://castle-engine.io/coding_conventions#_examples .
+# Test we don't have any projects with invalid qualified_name
+# in CastleEngineManifest.xml .
 do_test_qualified_name ()
 {
-  if grep --exclude='*~' --exclude='cge_shell_tests' --recursive --fixed-strings 'qualified_name="com.mycompany'; then
-    exit 1
-  fi
-  if grep --exclude='*~' --exclude='cge_shell_tests' --recursive --fixed-strings 'qualified_name="net.sourceforge'; then
-    exit 1
-  fi
-  if grep --exclude='*~' --exclude='cge_shell_tests' --recursive --fixed-strings 'qualified_name="io.sourceforge'; then
-    exit 1
-  fi
+  # For all projects: make sure they don't contain invalid qualified_name
+  # (it is OK to not have qualified_name at all, for now, for tools).
+  find . -name CastleEngineManifest.xml | while read -r CGE_MANIFEST_FILENAME; do
+    echo "Checking no invalid qualified name: ${CGE_MANIFEST_FILENAME}"
+    if grep --fixed-strings 'qualified_name="com.mycompany' "${CGE_MANIFEST_FILENAME}"; then
+      exit 1
+    fi
+    if grep --fixed-strings 'qualified_name="net.sourceforge' "${CGE_MANIFEST_FILENAME}"; then
+      exit 1
+    fi
+    if grep --fixed-strings 'qualified_name="io.sourceforge' "${CGE_MANIFEST_FILENAME}"; then
+      exit 1
+    fi
+
+    set +e # ignore wc exit code (wc may return 1 if no lines)
+    LINES=`grep --fixed-strings 'qualified_name="' "${CGE_MANIFEST_FILENAME}" | wc -l`
+    set -e
+
+    if [ "$LINES" '!=' '1' -a "$LINES" '!=' '0' ]; then
+      echo "Error: ${CGE_MANIFEST_FILENAME} has > 1 line with qualified_name"
+      exit 1
+    fi
+  done
+
+  # For examples/ projects: make sure they contain valid qualified_name.
+  #
+  # The CGE examples should all have
+  #   qualified_name="io.castleengine.xxx.yyy.zzz"
+  # (xxx.yyy.zzz being application name split into words and separated by dots).
+  # See https://castle-engine.io/coding_conventions#_examples .
+  find examples/ -name CastleEngineManifest.xml | while read -r CGE_MANIFEST_FILENAME; do
+    echo "Checking only valid: ${CGE_MANIFEST_FILENAME}"
+    if ! grep --fixed-strings 'qualified_name="io.castleengine' "${CGE_MANIFEST_FILENAME}"; then
+      echo "Error: ${CGE_MANIFEST_FILENAME} should have qualified_name starting with io.castleengine"
+      exit 1
+    fi
+  done
 }
 
 # Test that examples have no leftover "public domain" header.
@@ -55,16 +79,79 @@ do_test_custom_editor_template_up_to_date ()
   rm -Rf tools/build-tool/data/custom_editor_template-temptest/
 }
 
-# Test running regenerate_auto_files_in_all_examples.sh makes no change.
+# Test running examples_regenerate_auto_files makes no change.
 do_test_examples_up_to_date ()
 {
-  cd examples/
-  ./regenerate_auto_files_in_all_examples.sh > /dev/null 2>&1
-  git diff -w --exit-code .
-  cd ../
+  ./tools/internal/examples_regenerate_auto_files
+  git diff -w --exit-code examples/
+}
+
+# Check that Delphi packages do not refer to VCL or FMX when they should not.
+do_test_packages_dependencies ()
+{
+  if grep --ignore-case 'vcl' packages/delphi/castle_engine.dpk; then
+    echo 'Error: packages/delphi/castle_engine.dpk should not depend on VCL'
+    exit 1
+  fi
+  if grep --ignore-case 'fmx' packages/delphi/castle_engine.dpk; then
+    echo 'Error: packages/delphi/castle_engine.dpk should not depend on FMX'
+    exit 1
+  fi
+
+  if grep --ignore-case 'vcl' packages/delphi/castle_engine_fmx.dpk; then
+    echo 'Error: packages/delphi/castle_engine_fmx.dpk should not depend on VCL'
+    exit 1
+  fi
+
+  if grep --ignore-case 'fmx' packages/delphi/castle_engine_vcl.dpk; then
+    echo 'Error: packages/delphi/castle_engine_vcl.dpk should not depend on FMX'
+    exit 1
+  fi
+}
+
+# Check that Delphi packages do not contain invalid DeployFile config,
+# pointing to absolute paths on specific disk (specific to given computer,
+# and Delphi version)
+# or relative (which are also wrong in this case, as we don't know Delphi BPL
+# location relative to the CGE).
+# They should instead point using env variables, defined by Delphi,
+# like `$(BDSCOMMONDIR)\Bpl\castle_engine_design.bpl` .
+# See packages/delphi/README.md .
+#
+# This intends to catch errors like this in DPROJ files:
+#
+#   <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl\castle_engine_design.bpl"  Configuration="Debug" Class="ProjectOutput">
+#
+# or
+#
+#   <DeployFile LocalName="..\..\..\..\..\Public\Documents\Embarcadero\Studio\23.0\Bpl\castle_engine_window.bpl" Configuration="Debug" Class="ProjectOutput">
+#
+# These should use
+#
+do_test_no_invalid_deploy_files ()
+{
+  if grep --ignore-case --fixed-strings '<DeployFile LocalName="c:' packages/delphi/*.dproj; then
+    echo 'Error: packages/delphi/*.dproj should not contain hardcoded absolute paths in DeployFile'
+    exit 1
+  fi
+  if grep --ignore-case --fixed-strings '<DeployFile LocalName="d:' packages/delphi/*.dproj; then
+    echo 'Error: packages/delphi/*.dproj should not contain hardcoded absolute paths in DeployFile'
+    exit 1
+  fi
+  if grep --ignore-case --fixed-strings '<DeployFile LocalName="e:' packages/delphi/*.dproj; then
+    echo 'Error: packages/delphi/*.dproj should not contain hardcoded absolute paths in DeployFile'
+    exit 1
+  fi
+
+  if grep --ignore-case --fixed-strings '<DeployFile LocalName="..' packages/delphi/*.dproj; then
+    echo 'Error: packages/delphi/*.dproj should not contain relative paths in DeployFile'
+    exit 1
+  fi
 }
 
 do_test_qualified_name
 do_test_examples_copyright
 do_test_custom_editor_template_up_to_date
 do_test_examples_up_to_date
+do_test_packages_dependencies
+do_test_no_invalid_deploy_files

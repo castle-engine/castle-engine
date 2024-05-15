@@ -1,0 +1,51 @@
+object ProgressForm: TProgressForm
+  Left = 792
+  Height = 119
+  Top = 444
+  Width = 542
+  BorderStyle = bsSingle
+  Caption = 'Progress'
+  ClientHeight = 119
+  ClientWidth = 542
+  DesignTimePPI = 120
+  Position = poMainFormCenter
+  ShowInTaskBar = stAlways
+  LCLVersion = '2.2.2.0'
+  object LabelInfo: TLabel
+    Left = 15
+    Height = 22
+    Top = 9
+    Width = 77
+    Caption = 'LabelInfo'
+    ParentColor = False
+  end
+  object ProgressBar1: TProgressBar
+    Left = 15
+    Height = 25
+    Top = 43
+    Width = 515
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 0
+  end
+  object ButtonCancel: TButton
+    Left = 461
+    Height = 38
+    Top = 74
+    Width = 69
+    Anchors = [akRight, akBottom]
+    AutoSize = True
+    Caption = 'Cancel'
+    OnClick = ButtonCancelClick
+    TabOrder = 1
+  end
+  object ApplicationProperties1: TApplicationProperties
+    Left = 200
+    Top = 24
+  end
+  object Timer1: TTimer
+    Interval = 50
+    OnTimer = Timer1Timer
+    Left = 302
+    Top = 20
+  end
+end

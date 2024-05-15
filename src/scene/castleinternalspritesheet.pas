@@ -388,7 +388,7 @@ implementation
 
 uses StrUtils, DOM, Math, XMLRead,
   CastleDownload, CastleFilesUtils, CastleLog, CastleStringUtils,
-  CastleTextureImages, CastleURIUtils, CastleUtils, CastleXMLUtils;
+  CastleTextureImages, CastleUriUtils, CastleUtils, CastleXmlUtils;
 
 type
   { Frame names in starling file can be named freely, but in the case of our loader,
@@ -486,8 +486,8 @@ type
     FShapeCoord: TCoordinateNode;
     FShapeTexCoord: TTextureCoordinateNode;
 
-    FCoordArray: array of TVector3;
-    FTexCoordArray: array of TVector2;
+    FCoordArray: array [0..3] of TVector3;
+    FTexCoordArray: array [0..3] of TVector2;
 
     TimeSensor: TTimeSensorNode;
     CoordInterp: TCoordinateInterpolatorNode;
@@ -534,13 +534,13 @@ var
   Shape: TShapeNode;
   Material: TUnlitMaterialNode;
   Appearance: TAppearanceNode;
-  Tri: TTriangleSetNode;
+  Tri: TIndexedTriangleSetNode;
   Tex: TAbstractTextureNode;
   TexProperties: TTexturePropertiesNode;
   FdUrl: String;
 begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
-  FRoot.Meta['source'] := ExtractURIName(FSpriteSheet.URL);
+  FRoot.Meta['source'] := ExtractUriName(FSpriteSheet.URL);
 
   Material := TUnlitMaterialNode.Create;
 
@@ -574,7 +574,7 @@ begin
     Tex := TImageTextureNode.Create;
     { Check is this file loaded from Starling in that case use LoadedAtlasPath }
     if FSpriteSheet.URL <> '' then
-      FdUrl := ExtractURIPath(FSpriteSheet.URL) + FSpriteSheet.RelativeAtlasPath
+      FdUrl := ExtractUriPath(FSpriteSheet.URL) + FSpriteSheet.RelativeAtlasPath
     else
       FdUrl := FSpriteSheet.LoadedAtlasPath;
 
@@ -586,26 +586,26 @@ begin
   end;
   Appearance.Texture := Tex;
 
-  Tri := TTriangleSetNode.Create;
+  //Tri := TTriangleSetNode.Create;
+  Tri := TIndexedTriangleSetNode.Create;
+  Tri.SetIndex([0, 1, 2, 0, 2, 3]);
   Tri.Solid := false;
 
-  FShapeCoord := TCoordinateNode.Create('coord');
+  FShapeCoord := TCoordinateNode.Create;
   FShapeCoord.SetPoint([
-      FCoordArray[0],
-      FCoordArray[1],
-      FCoordArray[2],
-      FCoordArray[3],
-      FCoordArray[4],
-      FCoordArray[5]]);
+    FCoordArray[0],
+    FCoordArray[1],
+    FCoordArray[2],
+    FCoordArray[3]
+  ]);
 
-  FShapeTexCoord := TTextureCoordinateNode.Create('texcoord');
+  FShapeTexCoord := TTextureCoordinateNode.Create;
   FShapeTexCoord.SetPoint([
-       FTexCoordArray[0],
-       FTexCoordArray[1],
-       FTexCoordArray[2],
-       FTexCoordArray[3],
-       FTexCoordArray[4],
-       FTexCoordArray[5]]);
+    FTexCoordArray[0],
+    FTexCoordArray[1],
+    FTexCoordArray[2],
+    FTexCoordArray[3]
+  ]);
 
   Tri.Coord := FShapeCoord;
   Tri.TexCoord := FShapeTexCoord;
@@ -665,9 +665,7 @@ procedure TCastleSpriteSheetX3DExporter.CalculateFrameCoords(
     FCoordArray[0] := Vector3(X1, Y1, 0);
     FCoordArray[1] := Vector3(X2, Y1, 0);
     FCoordArray[2] := Vector3(X2, Y2, 0);
-    FCoordArray[3] := Vector3(X1, Y1, 0);
-    FCoordArray[4] := Vector3(X2, Y2, 0);
-    FCoordArray[5] := Vector3(X1, Y2, 0);
+    FCoordArray[3] := Vector3(X1, Y2, 0);
   end;
 
   procedure AddTexCords(
@@ -687,9 +685,7 @@ procedure TCastleSpriteSheetX3DExporter.CalculateFrameCoords(
     FTexCoordArray[0] := Vector2(X1, Y1);
     FTexCoordArray[1] := Vector2(X2, Y1);
     FTexCoordArray[2] := Vector2(X2, Y2);
-    FTexCoordArray[3] := Vector2(X1, Y1);
-    FTexCoordArray[4] := Vector2(X2, Y2);
-    FTexCoordArray[5] := Vector2(X1, Y2);
+    FTexCoordArray[3] := Vector2(X1, Y2);
   end;
 
 begin
@@ -715,7 +711,7 @@ var
     every frame. In this case it can be simplified. }
   procedure OptimizeCoordInterp;
   const
-    PerFrameValues = 6;
+    PerFrameValues = 4;
   var
     Values: TVector3List;
     I: Integer;
@@ -787,8 +783,6 @@ constructor TCastleSpriteSheetX3DExporter.Create(
 begin
   inherited Create;
   FSpriteSheet := SpriteSheet;
-  SetLength(FCoordArray, 6);
-  SetLength(FTexCoordArray, 6);
 end;
 
 function TCastleSpriteSheetX3DExporter.ExportToX3D: TX3DRootNode;
@@ -1787,7 +1781,7 @@ var
   URLWithoutAnchor: String;
   Stream: TStream;
 begin
-  URLWithoutAnchor := URIDeleteAnchor(URL, true);
+  URLWithoutAnchor := UriDeleteAnchor(URL, true);
 
   Stream := Download(URLWithoutAnchor);
   try
@@ -1835,13 +1829,13 @@ begin
       we need generate new name. }
     if (FRelativeAtlasPath = '') or (AURL <> URL) then
     begin
-      FRelativeAtlasPath := DeleteURIExt(ExtractURIName(AURL)) + '.png';
+      FRelativeAtlasPath := DeleteUriExt(ExtractUriName(AURL)) + '.png';
     end;
-    AtlasURL := URIIncludeSlash(ExtractURIPath(AURL)) + FRelativeAtlasPath;
+    AtlasURL := UriIncludeSlash(ExtractUriPath(AURL)) + FRelativeAtlasPath;
 
     { Save image file }
     if FGeneratedAtlas = nil then
-      CheckCopyFile(URIToFilenameSafe(LoadedAtlasPath), URIToFilenameSafe(AtlasURL))
+      CheckCopyFile(UriToFilenameSafe(LoadedAtlasPath), UriToFilenameSafe(AtlasURL))
     else
       SaveImage(FGeneratedAtlas, AtlasURL);
 
@@ -2152,7 +2146,7 @@ begin
   begin
     SettingsMap := TStringStringMap.Create;
     try
-      URIGetSettingsFromAnchor(FBaseUrl, SettingsMap);
+      UriGetSettingsFromAnchor(FBaseUrl, SettingsMap);
       for Setting in SettingsMap do
       begin
         if LowerCase(Setting.Key) = 'fps' then
@@ -2185,7 +2179,7 @@ var
   Image: TCastleImage;
 begin
   FRelativeImagePath := AtlasNode.AttributeString('imagePath');
-  FAbsoluteImagePath := ExtractURIPath(URIDeleteAnchor(URL, true)) + FRelativeImagePath;
+  FAbsoluteImagePath := ExtractUriPath(UriDeleteAnchor(URL, true)) + FRelativeImagePath;
   { Some exporters like Free Texture Packer add width and height attributes.
     In this case we don't need load image to check them. }
   if AtlasNode.HasAttribute('width') and AtlasNode.HasAttribute('height') then
@@ -2286,9 +2280,9 @@ begin
   inherited Create;
   FStream := Stream;
   FBaseUrl := BaseUrl;
-  FDisplayURL := URIDisplay(FBaseUrl);
+  FDisplayURL := UriDisplay(FBaseUrl);
 
-  MimeType := URIMimeType(FBaseUrl);
+  MimeType := UriMimeType(FBaseUrl);
   FStarlingLoading :=
     (MimeType = 'application/x-starling-sprite-sheet') or
     (MimeType = 'application/xml');

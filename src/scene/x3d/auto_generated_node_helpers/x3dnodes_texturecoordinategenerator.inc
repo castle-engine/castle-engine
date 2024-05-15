@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,18 +26,21 @@
   strict private
     function GetMode: String;
     procedure SetMode(const Value: String);
+    function GetProjectedLight: TX3DNode;
+    procedure SetProjectedLight(const Value: TX3DNode);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdMode: TSFString;
-    { Internal wrapper for property @link(Mode). This wrapper API may change, we advise to access simpler @link(Mode) instead. }
+    { Internal wrapper for property @code(Mode). This wrapper API may change, we advise to access simpler @code(Mode) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMode: TSFString read FFdMode;
     {  }
     property Mode: String read GetMode write SetMode;
 
     strict private FFdParameter: TMFFloat;
-    { Internal wrapper for property @link(Parameter). This wrapper API may change, we advise to access simpler @link(Parameter) instead. }
+    { Internal wrapper for property @code(Parameter). This wrapper API may change, we advise to access simpler @code(Parameter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdParameter: TMFFloat read FFdParameter;
     {  }
     procedure SetParameter(const Value: array of Single); overload;
@@ -45,8 +48,10 @@
     procedure SetParameter(const Value: TSingleList); overload;
 
     strict private FFdProjectedLight: TSFNode;
-    { Internal wrapper for property @link(ProjectedLight). This wrapper API may change, we advise to access simpler @link(ProjectedLight) instead. }
+    { Internal wrapper for property @code(ProjectedLight). This wrapper API may change, we advise to access simpler @code(ProjectedLight) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdProjectedLight: TSFNode read FFdProjectedLight;
+    {  }
+    property ProjectedLight: TX3DNode read GetProjectedLight write SetProjectedLight;
 
 {$endif read_interface}
 
@@ -72,6 +77,19 @@ end;
 procedure TTextureCoordinateGeneratorNode.SetParameter(const Value: TSingleList);
 begin
   FdParameter.Send(Value);
+end;
+
+function TTextureCoordinateGeneratorNode.GetProjectedLight: TX3DNode;
+begin
+  if FdProjectedLight.Value is TX3DNode then
+    Result := TX3DNode(FdProjectedLight.Value)
+  else
+    Result := nil;
+end;
+
+procedure TTextureCoordinateGeneratorNode.SetProjectedLight(const Value: TX3DNode);
+begin
+  FdProjectedLight.Send(Value);
 end;
 
 class function TTextureCoordinateGeneratorNode.ClassX3DType: String;

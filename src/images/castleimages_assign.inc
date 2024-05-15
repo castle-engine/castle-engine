@@ -374,10 +374,8 @@ begin
   if Source is TGrayscaleImage then
   begin
     inherited;
-    { Copy additional properties. }
-    FTreatAsAlpha := TGrayscaleImage(Source).TreatAsAlpha;
-    FColorWhenTreatedAsAlpha := TGrayscaleImage(Source).ColorWhenTreatedAsAlpha;
-    FGrayscaleColorWhenTreatedAsAlpha := TGrayscaleImage(Source).GrayscaleColorWhenTreatedAsAlpha;
+    { Copy additional properties like TreatAsAlpha. }
+    AssignProperties(Source);
   end else
 
     inherited;

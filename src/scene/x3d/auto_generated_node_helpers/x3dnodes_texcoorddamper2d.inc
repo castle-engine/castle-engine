@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,8 +24,9 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FEventSet_destination: TMFVec2fEvent;
     {  }
@@ -40,7 +41,7 @@
     public property EventValue_changed: TMFVec2fEvent read FEventValue_changed;
 
     strict private FFdInitialDestination: TMFVec2f;
-    { Internal wrapper for property @link(InitialDestination). This wrapper API may change, we advise to access simpler @link(InitialDestination) instead. }
+    { Internal wrapper for property @code(InitialDestination). This wrapper API may change, we advise to access simpler @code(InitialDestination) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInitialDestination: TMFVec2f read FFdInitialDestination;
     {  }
     procedure SetInitialDestination(const Value: array of TVector2); overload;
@@ -48,7 +49,7 @@
     procedure SetInitialDestination(const Value: TVector2List); overload;
 
     strict private FFdInitialValue: TMFVec2f;
-    { Internal wrapper for property @link(InitialValue). This wrapper API may change, we advise to access simpler @link(InitialValue) instead. }
+    { Internal wrapper for property @code(InitialValue). This wrapper API may change, we advise to access simpler @code(InitialValue) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInitialValue: TMFVec2f read FFdInitialValue;
     {  }
     procedure SetInitialValue(const Value: array of TVector2); overload;

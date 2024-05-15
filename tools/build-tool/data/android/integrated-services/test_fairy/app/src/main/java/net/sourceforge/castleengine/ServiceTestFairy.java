@@ -33,7 +33,12 @@ public class ServiceTestFairy extends ServiceAbstract
     public ServiceTestFairy(MainActivity activity)
     {
         super(activity);
-        TestFairy.setServerEndpoint("https://${ANDROID.TEST_FAIRY.DOMAIN}.testfairy.com");
+
+        /* Do not specify domain anymore?
+           Free TestFairy users do not have a domain,
+           and it seems not necessary to specify it anyway. */
+        // TestFairy.setServerEndpoint("https://${ANDROID.TEST_FAIRY.DOMAIN}.testfairy.com");
+
         TestFairy.begin(activity, "${ANDROID.TEST_FAIRY.SDK_APP_TOKEN}");
     }
 

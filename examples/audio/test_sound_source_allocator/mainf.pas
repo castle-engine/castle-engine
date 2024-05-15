@@ -15,6 +15,7 @@ type
     ApplicationProperties1: TApplicationProperties;
     ButtonAllocateAndPlay: TButton;
     ButtonApplyAllocatorLimits: TButton;
+    ButtonApplyAllocatorLimitsDefault: TButton;
     CheckKeepRefreshingUsed: TCheckBox;
     CheckBoxPlayLooping: TCheckBox;
     FileNameEditSound: TFileNameEdit;
@@ -37,12 +38,10 @@ type
     TimerToDisplaySounds: TTimer;
     procedure ButtonAllocateAndPlayClick(Sender: TObject);
     procedure ButtonApplyAllocatorLimitsClick(Sender: TObject);
+    procedure ButtonApplyAllocatorLimitsDefaultClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure TimerToDisplaySoundsTimer(Sender: TObject);
     procedure TimerToRefreshUsedSoundsTimer(Sender: TObject);
-  private
-    procedure SourceRelease(Sender: TSound);
   public
     { public declarations }
   end;
@@ -55,23 +54,12 @@ implementation
 uses CastleVectors, CastleUtils, CastleStringUtils, CastleApplicationProperties,
   CastleLCLUtils;
 
-type
-  { Data associated with sounds.
-
-    TODO: we use TComponent freeing mechanism to keep all the TSoundData
-    instances cleaned, because we cannot depend that TSound.OnRelease
-    is reliably called always, even when TSound is destroyed.
-    But this is unoptimal, it would be better to make OnRelease more reliable. }
-
-  TSoundData = class(TComponent)
-  public
-    Buffer: TSoundBuffer;
-    FileName: string;
-    StartedTime: TTime;
-  end;
-
 procedure TMain.FormCreate(Sender: TObject);
 begin
+  ButtonApplyAllocatorLimitsDefault.Caption:= Format('Set Min / Max allocated sources to Defaults (%d / %d)', [
+    TSoundAllocator.DefaultMinAllocatedSources,
+    TSoundAllocator.DefaultMaxAllocatedSources
+  ]);
   SoundEngine.MinAllocatedSources := SpinEditMinAllocatedSources.Value;
   SoundEngine.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
   SoundEngine.ContextOpen;
@@ -85,68 +73,28 @@ begin
   SoundEngine.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
 end;
 
+procedure TMain.ButtonApplyAllocatorLimitsDefaultClick(Sender: TObject);
+begin
+  SpinEditMinAllocatedSources.Value := TSoundAllocator.DefaultMinAllocatedSources;
+  SpinEditMaxAllocatedSources.Value := TSoundAllocator.DefaultMaxAllocatedSources;
+  ButtonApplyAllocatorLimitsClick(nil);
+end;
+
 procedure TMain.ButtonAllocateAndPlayClick(Sender: TObject);
 var
-  UsedSource: TSound;
-  UserData: TSoundData;
-  Buffer: TSoundBuffer;
-  PlayParameters: TSoundParameters;
+  Sound: TCastleSound;
+  PlayingSound: TCastlePlayingSound;
 begin
-  Buffer := SoundEngine.LoadBuffer(FileNameEditSound.FileName);
+  Sound := TCastleSound.Create(Self);
+  Sound.Url := FileNameEditSound.FileName;
+  Sound.Priority := SpinEditSourceImportance.Value; // TODO: should be in 0..1 range
 
-  PlayParameters := TSoundParameters.Create;
-  try
-    PlayParameters.Buffer := Buffer;
-    PlayParameters.Importance := SpinEditSourceImportance.Value;
-    PlayParameters.Spatial := false;
-    PlayParameters.Looping := CheckBoxPlayLooping.Checked;
-    UsedSource := SoundEngine.PlaySound(PlayParameters);
-  finally FreeAndNil(PlayParameters) end;
+  PlayingSound := TCastlePlayingSound.Create(Self);
+  PlayingSound.Sound := Sound;
+  PlayingSound.Loop := CheckBoxPlayLooping.Checked;
+  PlayingSound.FreeOnStop := true;
 
-  if UsedSource <> nil then
-  begin
-    // Free previous UserData,
-    // as (it seems) the Release is sometimes not called
-    // (TODO: OnRelease should be more reliable in this case too)
-    UsedSource.UserData.Free;
-    UsedSource.UserData := nil;
-
-    UserData := TSoundData.Create(Self);
-    UserData.FileName := FileNameEditSound.FileName;
-    UserData.Buffer := Buffer;
-    UserData.StartedTime := Now;
-
-    UsedSource.UserData := UserData;
-  end;
-end;
-
-procedure TMain.FormDestroy(Sender: TObject);
-var
-  I: Integer;
-  SoundData: TSoundData;
-begin
-  if SoundEngine.InternalAllocatedSources <> nil then
-    for I := 0 to SoundEngine.InternalAllocatedSources.Count - 1 do
-    begin
-      SoundData := TSoundData(SoundEngine.InternalAllocatedSources[I].UserData);
-      if SoundData <> nil then
-      begin
-        { free the UserData, that keeps our TSoundData references }
-        SoundEngine.FreeBuffer(SoundData.Buffer);
-        SoundEngine.InternalAllocatedSources[I].UserData.Free;
-        SoundEngine.InternalAllocatedSources[I].UserData := nil;
-      end;
-    end;
-
-  SoundEngine.ContextClose;
-end;
-
-procedure TMain.SourceRelease(Sender: TSound);
-begin
-  Assert(Sender.UserData <> nil);
-  SoundEngine.FreeBuffer(TSoundData(Sender.UserData).Buffer);
-  Sender.UserData.Free;
-  Sender.UserData := nil;
+  SoundEngine.Play(PlayingSound);
 end;
 
 procedure TMain.TimerToDisplaySoundsTimer(Sender: TObject);
@@ -159,17 +107,10 @@ begin
   if SoundEngine.InternalAllocatedSources <> nil then
     for I := 0 to SoundEngine.InternalAllocatedSources.Count - 1 do
     begin
-      S := Format('%d: Sound source used: %5s',
-        [ I,
-          BoolToStr(SoundEngine.InternalAllocatedSources[I].Used, true) ]);
-      if SoundEngine.InternalAllocatedSources[I].Used then
-        S += Format(', started on %s, priority: %f, filename: %s',
-          [ FormatDateTime('tt', TSoundData(
-              SoundEngine.InternalAllocatedSources[I].UserData).StartedTime),
-            SoundEngine.InternalAllocatedSources[I].Priority,
-            TSoundData(SoundEngine.InternalAllocatedSources[I].
-              UserData).FileName
-          ]);
+      S := Format('%d: Sound source used: %5s', [
+        I,
+        BoolToStr(SoundEngine.InternalAllocatedSources[I].Used, true)
+      ]);
       ListAllocatedSources.Items.Append(S);
     end;
 end;

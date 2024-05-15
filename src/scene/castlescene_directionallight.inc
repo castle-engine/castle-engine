@@ -64,7 +64,7 @@ constructor TCastleDirectionalLight.Create(AOwner: TComponent);
   begin
     Result := TX3DRootNode.Create;
     Result.AddChildren(Gizmo.LinesShape([
-      CastleVectors.Vector3(0, 0, 0),
+      TVector3.Zero,
       DefaultCameraDirection * 10
     ]));
   end;

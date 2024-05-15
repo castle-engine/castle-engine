@@ -1,0 +1,15 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "UnitRoot",
+  "TranslationPersistent" : {
+    "$$ClassName" : "TCastleVector3Persistent",
+    "Z" : 5.0000000000000000E+002
+  },
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleImageTransform",
+      "Name" : "Background",
+      "Url" : "castle-data:/units/unit_selected_frame.png"
+    }
+  ]
+}

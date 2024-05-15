@@ -29,7 +29,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   CastleInternalBaseTriangleOctree, X3DFields, CastleInternalGeometryArrays,
   CastleTriangles, CastleImages, CastleInternalMaterialProperties,
-  CastleShapeInternalShadowVolumes, CastleRenderOptions;
+  CastleShapeInternalShadowVolumes, CastleRenderOptions, CastleTimeUtils;
 
 const
   { }
@@ -66,6 +66,67 @@ type
   TTestShapeVisibility = function (Shape: TShape): boolean of object;
 
   TShapesHash = QWord;
+
+  { Used for @link(TCastleViewport.OnCustomShapeSort).
+
+    When @link(TCastleViewport.OnCustomShapeSort) is assigned
+    and @link(TCastleViewport.BlendingSort) or
+    @link(TCastleViewport.OcclusionSort) indicate sortCustom,
+    this is used to sort shapes.
+
+    It should return value:
+
+    @unorderedList(
+      @item(< 0 if Shape1 is further from camera than Shape2)
+      @item(= 0 if Shape1 is at the same distance from camera than Shape2)
+      @item(> 0 if Shape1 is closer to camera than Shape2)
+    )
+
+    The RenderOptions1, RenderOptions2 specify the rendering options
+    for, respectively, Shape1 and Shape2.
+    Note that if @link(TCastleViewport.DynamicBatching) is used,
+    these shapes may not come from any particular scene,
+    so their @link(TShapeTree.ParentScene) may be @nil.
+    So you cannot rely on e.g. @code(Shape1.ParentScene.RenderOptions) to get
+    the same value as @code(RenderOptions1).
+
+    SceneTransform1, SceneTransform2 specify the shapes transformations.
+    Note that a shape, just like TCastleScene, may be present multiple times
+    in the same viewport (e.g. when you add the same TCastleScene instance
+    multiple times to @link(TCastleViewport.Items), or if you use
+    @link(TCastleTransformReference)). That's why SceneTransform1, SceneTransform2
+    are useful, as they refer to given shape instance, in a particular transformation.
+
+    A sample implementation, doing actually the same thing as standard sort3DOrigin,
+    may look like this:
+
+    @longCode(#
+    function TMyView.MyShapeSort(
+      const Camera: TViewVectors;
+      const Shape1, Shape2: TShape;
+      const RenderOptions1, RenderOptions2: TCastleRenderOptions;
+      const SceneTransform1, SceneTransform2: TMatrix4): Integer;
+    var
+      PointA, PointB: TVector3;
+    begin
+      PointA := (SceneTransform1 * Shape1.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+      PointB := (SceneTransform2 * Shape2.OriginalState.Transformation.Transform).MultPoint(TVector3.Zero);
+      Result := Sign(
+        TVector3.DotProduct(PointB, Camera.Direction) -
+        TVector3.DotProduct(PointA, Camera.Direction));
+      // Other approach:
+      // Result := Sign(
+      //   PointsDistanceSqr(PointB, Camera.Translation) -
+      //   PointsDistanceSqr(PointA, Camera.Translation));
+    end;
+    #)
+  }
+  TShapeSortEvent = function (
+    const Camera: TViewVectors;
+    const Shape1, Shape2: TShape;
+    const RenderOptions1, RenderOptions2: TCastleRenderOptions;
+    const SceneTransform1, SceneTransform2: TMatrix4)
+    : Integer of object;
 
   { Triangle in a 3D model.
     Helper methods. }
@@ -161,9 +222,14 @@ type
       This is cached, so it's usually instant, in contrast to ShapesCount. }
     function MaxShapesCount: Integer;
 
-    { Parent TCastleSceneCore instance. This cannot be declared here as
-      TCastleSceneCore (this would create circular unit dependency),
-      but it always is TCastleSceneCore. }
+    { Parent TCastleScene instance.
+
+      This cannot be declared here as TCastleScene or TCastleSceneCore
+      (this would create circular unit dependency),
+      but it always is TCastleScene.
+
+      May be @nil (used by shapes created for batching, that don't belong
+      to any scene). }
     property ParentScene: TX3DEventsEngine read FParentScene write FParentScene;
 
     { Traverse shapes inside. There are a few alternative ways to do this:
@@ -940,38 +1006,15 @@ type
   end deprecated{ 'use Tree.TraverseList(...)'};
 
   TShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TShape>)
-  strict private
-    SortPosition: TVector3;
-    function IsSmallerFrontToBack(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-    function IsSmallerBackToFront2D(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-    function IsSmallerBackToFront3DBox(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-    function IsSmallerBackToFront3DOrigin(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-    function IsSmallerBackToFront3DGround(
-      {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
   private
     { Like regular Add, but parameter is "const" to satisfy TShapeTraverseFunc signature. }
     procedure AddConst(const S: TShape);
   public
     constructor Create; overload;
-
     { Constructor that initializes list contents by traversing given tree. }
     constructor Create(const Tree: TShapeTree; const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); overload; deprecated 'use Tree.TraverseList(...)';
-
-    { Sort shapes by distance to given Position point, closest first. }
-    procedure SortFrontToBack(const Position: TVector3);
-
-    { Sort shapes by distance to given Position point, farthest first.
-
-      BlendingSort determines the sorting algorithm.
-      See @link(TBlendingSort) documentation. }
-    procedure SortBackToFront(const Position: TVector3;
-      const BlendingSort: TBlendingSort);
   end;
 
 var
@@ -1037,8 +1080,8 @@ var
 implementation
 
 uses Generics.Defaults, Math,
-  CastleSceneCore, CastleInternalNormals, CastleLog, CastleTimeUtils,
-  CastleStringUtils, CastleInternalArraysGenerator, CastleURIUtils;
+  CastleSceneCore, CastleInternalNormals, CastleLog,
+  CastleStringUtils, CastleInternalArraysGenerator, CastleUriUtils;
 
 const
   UnknownTexCoord: TTriangle4 = (Data: (
@@ -1219,6 +1262,29 @@ begin
         [ClassName, Node.NiceName]);
       Exit;
     end;
+
+    { TODO: Node.InternalSceneShape may be TGLShape here,
+      see testcase from "DirectionalLight crash in CGE" from Jan Adamec.
+
+      As a temporary workaround,
+      instead of failing assertion "Assert(Node.InternalSceneShape is TShapeTreeList);"
+      or crashing at reading "TShapeTreeList(Node.InternalSceneShape).Count",
+      detect it and behave gracefully for now.
+
+      This should be investigated and fixed properly.
+      But also, processing of CastleInternalShadowMaps, which is likely
+      the fault of this, is doomed to be removed in favor of different
+      shadow maps application for
+      https://github.com/castle-engine/castle-engine/issues/284 anyway.
+    }
+    if not (Node.InternalSceneShape is TShapeTreeList) then
+    begin
+      WritelnWarning('TODO: Calling %s.UnAssociateNode on X3D node that is associated with something unexpected: %s.',
+        [ClassName, Node.NiceName]);
+      Node.InternalSceneShape := nil;
+      Exit;
+    end;
+
     Assert(Node.InternalSceneShape is TShapeTreeList);
     if TShapeTreeList(Node.InternalSceneShape).Count = 1 then
     begin
@@ -1879,10 +1945,13 @@ procedure TShape.Changed(const InactiveOnly: boolean;
         and this an important optimization (makes mesh deformation cheaper). }
       FShadowVolumes.InvalidateManifoldAndBorderEdges;
 
-    if ChangedOnlyCoord then
-      TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self)
-    else
-      TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
+    if ParentScene <> nil then
+    begin
+      if ChangedOnlyCoord then
+        TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self)
+      else
+        TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
+    end;
   end;
 
 begin
@@ -1954,7 +2023,7 @@ begin
      ] <> [] then
     (FOriginalGeometry as TTextNode).FontChanged;
 
-  if not InactiveOnly then
+  if (ParentScene <> nil) and (not InactiveOnly) then
     TCastleSceneCore(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
@@ -2144,7 +2213,11 @@ function TShape.AlphaChannel: TAlphaChannel;
       Note that when "transparency" field is empty, then we assume
       a default transparency (0) should be used. So AllMaterialsTransparent
       is @false then (contrary to the strict definition of "all",
-      which should be true for empty sets). }
+      which should be true for empty sets).
+
+      This potentially isn't efficient (iterating over all materials
+      every time we need to return AlphaChannel) but it doesn't matter much,
+      this is only for deprecated VRML 1.0. }
     function AllMaterialsTransparent(const Node: TMaterialNode_1): boolean;
     var
       i: Integer;
@@ -3020,7 +3093,7 @@ end;
 
 function TShape.InternalMaterialProperty: TMaterialProperty;
 var
-  TextureUrl: string;
+  TextureUrl: String;
 begin
   if IsCachedMaterialProperty then
     Exit(CachedMaterialProperty);
@@ -3607,73 +3680,6 @@ end;
 procedure TShapeList.AddConst(const S: TShape);
 begin
   Add(S);
-end;
-
-type
-  TShapeComparer = {$ifdef FPC}specialize{$endif} TComparer<TShape>;
-
-function TShapeList.IsSmallerFrontToBack(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-begin
-  { To revert the order, we revert the order of A and B as passed to CompareBackToFront3D. }
-  Result := TBox3D.CompareBackToFront3D(B.BoundingBox, A.BoundingBox, SortPosition);
-end;
-
-function TShapeList.IsSmallerBackToFront2D(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-begin
-  Result := TBox3D.CompareBackToFront2D(A.BoundingBox, B.BoundingBox);
-end;
-
-function TShapeList.IsSmallerBackToFront3DBox(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-begin
-  Result := TBox3D.CompareBackToFront3D(A.BoundingBox, B.BoundingBox, SortPosition);
-end;
-
-function TShapeList.IsSmallerBackToFront3DOrigin(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-var
-  PointA, PointB: TVector3;
-begin
-  PointA := A.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
-  PointB := B.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
-  Result := Sign(
-    PointsDistanceSqr(PointB, SortPosition) -
-    PointsDistanceSqr(PointA, SortPosition));
-end;
-
-function TShapeList.IsSmallerBackToFront3DGround(
-  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} A, B: TShape): Integer;
-var
-  PointA, PointB: TVector3;
-begin
-  PointA := A.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
-  PointB := B.OriginalState.Transformation.Transform.MultPoint(TVector3.Zero);
-  PointA.Y := 0;
-  PointB.Y := 0;
-  Result := Sign(
-    PointsDistanceSqr(PointB, SortPosition) -
-    PointsDistanceSqr(PointA, SortPosition));
-end;
-
-procedure TShapeList.SortFrontToBack(const Position: TVector3);
-begin
-  SortPosition := Position;
-  Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerFrontToBack));
-end;
-
-procedure TShapeList.SortBackToFront(const Position: TVector3;
-  const BlendingSort: TBlendingSort);
-begin
-  SortPosition := Position;
-  case BlendingSort of
-    bs2D      : Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront2D));
-    bs3D      : Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DBox));
-    bs3DOrigin: Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DOrigin));
-    bs3DGround: Sort(TShapeComparer.Construct({$ifdef FPC}@{$endif}IsSmallerBackToFront3DGround));
-    else ;
-  end;
 end;
 
 { TPlaceholderNames ------------------------------------------------------- }

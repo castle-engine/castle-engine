@@ -2,7 +2,7 @@
   "$$ClassName" : "TCastleUserInterface",
   "Border" : {
     "$$ClassName" : "TBorder",
-    "AllSides" : 2.0000000000000000E+000
+    "AllSides" : 1.2000000000000000E+001
   },
   "BorderColorPersistent" : {
     "$$ClassName" : "TCastleColorPersistent",
@@ -14,25 +14,30 @@
   "$Children" : [
     {
       "$$ClassName" : "TCastleRectangleControl",
-      "AutoSizeToChildren" : true,
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 1.0000000000000000E+001
+      },
       "ColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
-        "Alpha" : 7.5000000000000000E-001,
+        "Alpha" : 6.1176472902297974E-001,
         "Blue" : 0.0000000000000000E+000,
         "Green" : 5.0196081399917603E-001,
         "Red" : 0.0000000000000000E+000
       },
+      "Height" : 9.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Name" : "RectangleControl1",
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
+      "Width" : 3.9000000000000000E+002,
       "$Children" : [
         {
           "$$ClassName" : "TCastleLabel",
           "Border" : {
             "$$ClassName" : "TBorder",
-            "AllSides" : 5.0000000000000000E+000
+            "AllSides" : 1.5000000000000000E+001
           },
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
@@ -40,17 +45,44 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "FontSize" : 1.5000000000000000E+001,
+          "FontSize" : 2.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "LabelRunning",
           "Text" : [
-            "Physics Simulation"
+            "PHYSICS SIMULATION"
+          ],
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Border" : {
+                "$$ClassName" : "TBorder",
+                "AllSides" : 5.0000000000000000E+000
+              },
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "FontSize" : 1.6000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "LabelRunning1",
+              "Text" : [
+                "Changes will not be saved"
+              ],
+              "VerticalAnchorSelf" : "vpTop"
+            }
           ]
         },
         {
           "$$ClassName" : "TCastleLabel",
           "Border" : {
             "$$ClassName" : "TBorder",
-            "AllSides" : 5.0000000000000000E+000
+            "AllSides" : 1.5000000000000000E+001
           },
           "ColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
@@ -59,10 +91,37 @@
             "Red" : 1.0000000000000000E+000
           },
           "Exists" : false,
-          "FontSize" : 1.5000000000000000E+001,
+          "FontSize" : 2.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "LabelPaused",
           "Text" : [
-            "Physics Simulation (Paused)"
+            "PHYSICS SIMULATION (PAUSED)"
+          ],
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Border" : {
+                "$$ClassName" : "TBorder",
+                "AllSides" : 5.0000000000000000E+000
+              },
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "FontSize" : 1.6000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "LabelRunning2",
+              "Text" : [
+                "Changes will not be saved"
+              ],
+              "VerticalAnchorSelf" : "vpTop"
+            }
           ]
         }
       ]

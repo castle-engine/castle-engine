@@ -1,10 +1,10 @@
 object ProjectForm: TProjectForm
   Left = 646
-  Height = 650
+  Height = 708
   Top = 234
   Width = 1184
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 621
+  ClientHeight = 708
   ClientWidth = 1184
   DesignTimePPI = 115
   KeyPreview = True
@@ -19,11 +19,11 @@ object ProjectForm: TProjectForm
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.2.2.0'
+  LCLVersion = '3.0.0.3'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 215
-    Top = 406
+    Top = 493
     Width = 1184
     ActivePage = TabOutput
     Align = alBottom
@@ -54,13 +54,13 @@ object ProjectForm: TProjectForm
         Width = 1174
         Align = alClient
         ItemHeight = 20
-        OnDblClick = ListOutputDblClick
         ParentFont = False
         PopupMenu = OutputPopup
         ScrollWidth = 902
         Style = lbOwnerDrawFixed
         TabOrder = 0
         TopIndex = -1
+        OnDblClick = ListOutputDblClick
       end
     end
     object TabWarnings: TTabSheet
@@ -99,30 +99,30 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 400
+    Top = 487
     Width = 1184
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 400
+    Height = 487
     Top = 0
     Width = 1184
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 400
+    ClientHeight = 487
     ClientWidth = 1184
     ParentFont = False
     TabOrder = 0
     object PanelNoDesign: TPanel
       Left = 0
-      Height = 400
+      Height = 487
       Top = 0
       Width = 1184
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 400
+      ClientHeight = 487
       ClientWidth = 1184
       TabOrder = 0
       object PanelNoDesignTop: TPanel
@@ -173,12 +173,12 @@ object ProjectForm: TProjectForm
       end
       object PanelOpenExistingView: TPanel
         Left = 0
-        Height = 325
+        Height = 412
         Top = 75
         Width = 1184
         Align = alClient
         BevelOuter = bvNone
-        ClientHeight = 325
+        ClientHeight = 412
         ClientWidth = 1184
         TabOrder = 1
         object LabelOpenExistingView: TLabel
@@ -194,7 +194,7 @@ object ProjectForm: TProjectForm
         end
         object ListOpenExistingView: TListView
           Left = 10
-          Height = 274
+          Height = 361
           Top = 41
           Width = 1164
           Align = alClient
@@ -313,7 +313,7 @@ object ProjectForm: TProjectForm
       end
     end
     object MenuItemEdit: TMenuItem
-      Caption = 'Edit'
+      Caption = '&Edit'
       object MenuItemDesignAddUserInterface: TMenuItem
         Caption = 'Add User Interface'
       end
@@ -362,6 +362,15 @@ object ProjectForm: TProjectForm
       object MenuItem21: TMenuItem
         Action = ActionComponentSaveSelected
       end
+      object Separator14: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem43: TMenuItem
+        Action = ActionFindToggle
+      end
+      object MenuItem19: TMenuItem
+        Action = ActionFindNext
+      end
       object MenuSeparator6123: TMenuItem
         Caption = '-'
       end
@@ -398,7 +407,7 @@ object ProjectForm: TProjectForm
       end
     end
     object MenuItemViewport: TMenuItem
-      Caption = 'Viewport'
+      Caption = '&Viewport'
       object MenuItemViewportViewAll: TMenuItem
         Action = ActionViewportViewAll
       end
@@ -498,9 +507,6 @@ object ProjectForm: TProjectForm
       object MenuItem18: TMenuItem
         Action = ActionViewportSetup2D
       end
-      object MenuItem19: TMenuItem
-        Action = ActionViewportSort2D
-      end
     end
     object MenuItemPhysics: TMenuItem
       Caption = 'Physics'
@@ -530,7 +536,7 @@ object ProjectForm: TProjectForm
       end
     end
     object MenuItemCode: TMenuItem
-      Caption = 'Code'
+      Caption = '&Code'
       object MenuItemOpenProjectCode: TMenuItem
         Action = ActionOpenProjectCode
       end
@@ -714,6 +720,12 @@ object ProjectForm: TProjectForm
       Caption = 'Data'
       object MenuItemNewCastleSpriteSheet: TMenuItem
         Action = ActionNewSpriteSheet
+      end
+      object Separator13: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem42: TMenuItem
+        Action = ActionImportSketchfab
       end
     end
     object MenuItemWindow: TMenuItem
@@ -1131,12 +1143,6 @@ object ProjectForm: TProjectForm
       OnExecute = ActionViewportSetup2DExecute
       OnUpdate = ActionViewportUpdate
     end
-    object ActionViewportSort2D: TAction
-      Category = 'Viewport'
-      Caption = 'Sort Items For Correct 2D Blending'
-      OnExecute = ActionViewportSort2DExecute
-      OnUpdate = ActionViewportUpdate
-    end
     object ActionViewportToggleProjection: TAction
       Category = 'Viewport'
       Caption = 'Toggle Perspective / Orthogonal'
@@ -1357,6 +1363,23 @@ object ProjectForm: TProjectForm
       Caption = 'Show Statistics (FPS and more)'
       DisableIfNoHandler = False
       ShortCut = 119
+    end
+    object ActionImportSketchfab: TAction
+      Category = 'Data'
+      Caption = 'Import from Sketchfab...'
+      OnExecute = ActionImportSketchfabExecute
+    end
+    object ActionFindToggle: TAction
+      Category = 'Edit'
+      Caption = 'Find'
+      OnExecute = ActionFindToggleExecute
+      ShortCut = 16454
+    end
+    object ActionFindNext: TAction
+      Category = 'Edit'
+      Caption = 'Find Next'
+      OnExecute = ActionFindNextExecute
+      ShortCut = 114
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

@@ -56,9 +56,8 @@ procedure RunAndroid(const Project: TCastleProject);
 implementation
 
 uses SysUtils, DOM, XMLWrite,
-  // TODO: Should not be needed after https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
-  {$IFDEF UNIX}BaseUnix, {$ENDIF}
-  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleInternalTools,
   ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
   ToolServicesOperations;
 
@@ -167,6 +166,7 @@ begin
     Result := FinishExeSearch(ExeName, BundleName, EnvVarName1, Required);
 end;
 
+{ Filename (without any leading path) of the Android output (APK, AAB) file. }
 function AndroidPackageFile(const Project: TCastleProject;
   const Mode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault;
@@ -207,7 +207,7 @@ var
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileName));
     if not RegularFileExists(AndroidProjectPath + FileName) then
-      SaveImage(Image, FilenameToURISafe(AndroidProjectPath + FileName))
+      SaveImage(Image, FilenameToUriSafe(AndroidProjectPath + FileName))
     else
       WritelnWarning('Android', 'Android package file specified by multiple services: ' + FileName);
   end;
@@ -238,14 +238,10 @@ var
   var
     TemplatePath: string;
   begin
-    { add Android project core directory }
-    case Project.AndroidProjectType of
-      apBase      : TemplatePath := 'android/base/';
-      apIntegrated: TemplatePath := 'android/integrated/';
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('GenerateFromTemplates:Project.AndroidProjectType unhandled');
-      {$endif}
-    end;
+    { Add Android project core directory.
+      We used to have a choice here (base or integrated),
+      but now it's always integrated. }
+    TemplatePath := 'android/integrated/';
     Project.ExtractTemplate(TemplatePath, AndroidProjectPath);
   end;
 
@@ -527,31 +523,9 @@ var
         Args.Add('-Pandroid.injected.signing.key.alias=' + KeyAlias);
         Args.Add('-Pandroid.injected.signing.key.password=' + KeyAliasPassword);
       end;
+
       {$ifdef MSWINDOWS}
-      try
-        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
-      finally
-        { Gradle deamon is automatically initialized since Gradle version 3.0
-          (see https://docs.gradle.org/current/userguide/gradle_daemon.html)
-          but it prevents removing the castle-engine-output/android/project/ .
-          E.g. you cannot run "castle-engine package --os=android --cpu=arm"
-          again in the same directory, because it cannot remove the
-          "castle-engine-output/android/project/" at the beginning.
-
-          It seems the current directory of Java (Gradle) process is inside
-          castle-engine-output/android/project/, and Windows doesn't allow to remove such
-          directory. Doing "rm -Rf castle-engine-output/android/project/" (rm.exe from Cygwin)
-          also fails with
-
-            rm: cannot remove 'castle-engine-output/android/project/': Device or resource busy
-
-          This may be related to
-          https://discuss.gradle.org/t/the-gradle-daemon-prevents-a-clean/2473/13
-
-          The solution for now is to kill the daemon afterwards. }
-        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', ['--stop']);
-      end;
-
+      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
       {$else}
       if RegularFileExists(AndroidProjectPath + 'gradlew') then
       begin
@@ -582,12 +556,9 @@ begin
   CalculateSigningProperties(PackageMode);
 
   GenerateFromTemplates;
-  if Project.AndroidProjectType = apIntegrated then
-  begin
-    GenerateServicesFromTemplates;
-    PackageServices(Project, Project.AndroidServices,
-      'castle-data:/android/integrated-services/', AndroidProjectPath);
-  end;
+  GenerateServicesFromTemplates;
+  PackageServices(Project, Project.AndroidServices,
+    'castle-data:/android/integrated-services/', AndroidProjectPath);
   GenerateIcons;
   GenerateAssets;
   GenerateLocalization;
@@ -630,7 +601,8 @@ procedure InstallAndroid(const Project: TCastleProject;
 var
   PackageName: string;
 begin
-  PackageName := AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
+  PackageName := Project.OutputPath +
+    AndroidPackageFile(Project, PackageMode, PackageFormat, PackageNameIncludeVersion);
   if not RegularFileExists(PackageName) then
     raise Exception.CreateFmt('No Android package found: "%s"', [PackageName]);
 
@@ -648,10 +620,7 @@ procedure RunAndroid(const Project: TCastleProject);
 var
   ActivityName, LogTag: string;
 begin
-  if Project.AndroidProjectType = apBase then
-    ActivityName := 'android.app.NativeActivity'
-  else
-    ActivityName := 'net.sourceforge.castleengine.MainActivity';
+  ActivityName := 'net.sourceforge.castleengine.MainActivity';
   RunCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);

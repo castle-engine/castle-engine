@@ -107,7 +107,7 @@ procedure CameraViewpointForWholeScene(const Box: TBox3D;
   @link(TCastleOrthographic.Width),
   @link(TCastleOrthographic.Height),
   @link(TCastleCamera.ProjectionFar) and camera position
-  (set it like @code(Viewport.Camera.Position := NewPosition;)).
+  (set it like @code(Viewport.Camera.Translation := NewPosition;)).
 }
 procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
   const ViewportWidth, ViewportHeight: Single;

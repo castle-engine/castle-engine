@@ -20,8 +20,7 @@ unit TestCastleFilesUtils;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
   TTestCastleFilesUtils = class(TCastleTestCase)
@@ -82,11 +81,9 @@ end;
 procedure TTestCastleFilesUtils.TestExeName;
 begin
   try
-    {$ifdef FPC}{$push} // knowingly using deprecated below, for test
-    {$warnings off}{$endif}
-//    Writeln('ExeName: '+ ExeName);
+    {$warnings off} // knowingly using deprecated below, for test
     ExeName;
-    {$ifdef FPC}{$pop}{$endif}
+    {$warnings on}
   except
     on E: EExeNameNotAvailable do
     begin

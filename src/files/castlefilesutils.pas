@@ -249,6 +249,19 @@ function ApplicationConfig(const Path: string): string;
     @item(@orderedList(
       @item(@code(data) subdirectory inside our exe directory, if exists.)
 
+      @item(@code(../../data) relative to our exe location, if it exists
+        and exe seems to be inside a subdirectory @code(<platform>/<config>/).
+
+        Where <platform> matches current Delphi <platform> name
+        (like 'Win32' or 'Win64' -- this is combined OS and CPU)
+        and <config> matches 'Debug' or 'Release'.
+        This deliberately is adjusted to Delphi / C++ Builder default
+        project settings, so that we detect "data" automatically when exe
+        location follows Delphi conventions.
+        This deliberately checks whether subdirectory names match
+        @code(<platform>/<config>/), to avoid picking up a random "data"
+        subdirectory for unrelated project.)
+
       @item(Otherwise: just our exe directory.
         But this alternative is deprecated, please don't depend on it.
         Instead, place the data inside the "data" subdirectory.
@@ -486,7 +499,7 @@ function FnameAutoInc(const UrlPattern: string): string;
   DirName does not need to exist. }
 function ParentPath(DirName: string;
   DoExpandDirName: Boolean = true): string;
-  deprecated 'use URLs and operate on them using CastleURIUtils unit';
+  deprecated 'use URLs and operate on them using CastleUriUtils unit';
 
 { Combines BasePath with RelPath into complete path.
   BasePath MUST be an absolute path,
@@ -497,7 +510,7 @@ function ParentPath(DirName: string;
   with BasePath.
 
   Usually you should instead operate on URLs
-  and combine them using @link(CastleURIUtils.CombineURI). }
+  and combine them using @link(CastleUriUtils.CombineURI). }
 function CombinePaths(BasePath, RelPath: string): string;
 
 { Search a file on $PATH. Works with double quotes around components
@@ -541,11 +554,11 @@ function BundlePath: string;
 
 { Read file or URL contents to a string.
   MimeType is returned, calculated just like the @link(Download) function. }
-function FileToString(const URL: string;
+function FileToString(const Url: String;
   out MimeType: string): AnsiString; overload;
-function FileToString(const URL: string): AnsiString; overload;
+function FileToString(const Url: String): AnsiString; overload;
 
-procedure StringToFile(const URL: String; const Contents: AnsiString);
+procedure StringToFile(const Url: String; const Contents: AnsiString);
 
 { Recommended path where to put screenshots on the current platform.
   Always ends with PathDelim and returns a directory that exists.
@@ -566,7 +579,7 @@ uses {$ifdef MSWINDOWS} ShlObj, {$endif}
   {$ifdef FPC} Process, {$endif}
   CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
-  CastleURIUtils, CastleFindFiles, CastleClassUtils, CastleDownload,
+  CastleUriUtils, CastleFindFiles, CastleClassUtils, CastleDownload,
   CastleApplicationProperties;
 
 var
@@ -643,12 +656,71 @@ begin
     raise Exception.CreateFmt('Cannot create directory for config file: "%s"',
       [Dir]);
 
-  Result := FilenameToURISafe(ConfigDir + Path);
+  Result := FilenameToUriSafe(ConfigDir + Path);
 end;
 
 function ProgramDataPath: string;
 begin
   Result := ApplicationData('');
+end;
+
+{ If Path ends with <platform>/<config>/,
+  return @true and put in StrippedPath the Path with the last 2 path components
+  removed.
+  Otherwise return @false.
+
+  Path must end with path delimiter.
+
+  When returns @true, StrippedPath is also guaranteed to end with path delimiter.
+}
+function StripExePathFromPlatformConfig(const Path: String;
+  out StrippedPath: String): Boolean;
+
+  { Platform name, like 'Win32', as used by Delphi in $(Platform) subdirectory
+    name, corresponding to this process OS / CPU.
+    Always lowercase.
+
+    This is made to also compile and work with FPC, for testing,
+    so it doesn't use TOSVersion. }
+  function DelphiPlatformName: String;
+  begin
+    Result :=
+      {$if defined(MSWINDOWS)} 'win'
+      {$elseif defined(LINUX)} 'linux'
+      {$elseif defined(DARWIN)} 'macos' // TODO: not yet confirmed by testing, just guessing
+      {$elseif defined(ANDROID)} 'android' // TODO: not yet confirmed by testing, just guessing
+      {$elseif defined(IOS)} 'ios' // TODO: not yet confirmed by testing, just guessing
+      {$else} ''
+      {$endif};
+
+    Result := Result +
+      {$if defined(CPU32)} '32'
+      {$elseif defined(CPU64)} '64'
+      {$else} ''
+      {$endif};
+  end;
+
+var
+  Dir: String;
+  ParentName: String;
+begin
+  Result := false;
+
+  Dir := ExclPathDelim(Path);
+  // LowerCase, to detect <config> case-insensitively
+  ParentName := LowerCase(ExtractFileName(Dir));
+  if (ParentName = 'debug') or
+     (ParentName = 'release') then
+  begin
+    Dir := ExtractFileDir(Dir);
+    // LowerCase, to detect <platform> case-insensitively
+    ParentName := LowerCase(ExtractFileName(Dir));
+    if ParentName = DelphiPlatformName then
+    begin
+      StrippedPath := ExtractFilePath(Dir);
+      Result := true;
+    end;
+  end;
 end;
 
 var
@@ -661,7 +733,7 @@ function ApplicationData(const Path: string): string;
   function GetApplicationDataPath: string;
   {$ifdef MSWINDOWS}
   var
-    ExePath: string;
+    ExePath, StrippedExePath: string;
   begin
     {$warnings off}
     // knowingly using deprecated; ExeName should be undeprecated but internal one day
@@ -670,6 +742,12 @@ function ApplicationData(const Path: string): string;
 
     Result := ExePath + 'data' + PathDelim;
     if DirectoryExists(Result) then Exit;
+
+    if StripExePathFromPlatformConfig(ExePath, StrippedExePath) then
+    begin
+      Result := StrippedExePath + 'data' + PathDelim;
+      if DirectoryExists(Result) then Exit;
+    end;
 
     Result := ExePath;
   {$endif MSWINDOWS}
@@ -746,7 +824,7 @@ begin
       {$elseif defined(ANDROID)}
         'castle-android-assets:/'
       {$else}
-        FilenameToURISafe(GetApplicationDataPath)
+        FilenameToUriSafe(GetApplicationDataPath)
       {$endif}
     ;
     WritelnLog('Path', Format('Program data path detected as "%s"', [ApplicationDataCache]));
@@ -1023,7 +1101,7 @@ Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True
   could find directory "fpc" that is under a directory on $PATH. }
 
 Var
-  I : longint;
+  I : Integer;
   Temp : String;
 
 begin
@@ -1130,7 +1208,7 @@ end;
   unless it is not possible to get then returns ''.
   Checks that directory exists.
 }
-function GetUserPath(const DirectoryId: LongInt): String;
+function GetUserPath(const DirectoryId: Integer): String;
 var
   Dir: array [0 .. MAX_PATH] of AnsiChar;
 begin
@@ -1248,7 +1326,7 @@ function BundlePath: string;
   http://wiki.freepascal.org/OS_X_Programming_Tips#How_to_obtain_the_path_to_the_Bundle }
 var
   bundle: CFBundleRef;
-  pathRef: CFURLRef;
+  pathRef: CFUrlRef;
   pathCFStr: CFStringRef;
   pathStr: shortstring;
 begin
@@ -1261,8 +1339,8 @@ begin
       WritelnLog('We cannot detect our macOS AppBundle. Probably the application was run directly (like a Unix application, without being wrapped in a directory like "xxx.app"). Some GUI features (like application menu) will not work without running through AppBundle.');
     end else
     begin
-      pathRef := CFBundleCopyBundleURL(bundle);
-      pathCFStr := CFURLCopyFileSystemPath(pathRef, kCFURLPOSIXPathStyle);
+      pathRef := CFBundleCopyBundleUrl(bundle);
+      pathCFStr := CFUrlCopyFileSystemPath(pathRef, kCFUrlPOSIXPathStyle);
       CFStringGetPascalString(pathCFStr, @pathStr, 255, CFStringGetSystemEncoding());
       CFRelease(pathRef);
       CFRelease(pathCFStr);
@@ -1275,12 +1353,12 @@ begin
 end;
 {$endif DARWIN}
 
-function FileToString(const URL: string;
+function FileToString(const Url: String;
   out MimeType: string): AnsiString;
 var
   F: TStream;
 begin
-  F := Download(URL, [], MimeType);
+  F := Download(Url, [], MimeType);
   try
     { Some streams can be optimized, just load file straight to string memory }
     if (F is TFileStream) or
@@ -1294,18 +1372,18 @@ begin
   finally FreeAndNil(F) end;
 end;
 
-function FileToString(const URL: string): AnsiString;
+function FileToString(const Url: String): AnsiString;
 var
   MimeType: string;
 begin
-  Result := FileToString(URL, MimeType { ignored });
+  Result := FileToString(Url, MimeType { ignored });
 end;
 
-procedure StringToFile(const URL: String; const Contents: AnsiString);
+procedure StringToFile(const Url: String; const Contents: AnsiString);
 var
   F: TStream;
 begin
-  F := URLSaveStream(URL);
+  F := UrlSaveStream(Url);
   try
     if Length(Contents) <> 0 then
       F.WriteBuffer(Contents[1], Length(Contents));
@@ -1324,7 +1402,7 @@ begin
   {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
   { These platforms require special treatment. Although we could use
 
-      Result := URIToFilenameSafe(ApplicationConfig(''));
+      Result := UriToFilenameSafe(ApplicationConfig(''));
 
     but then we risk storing more data than expected (users/OS don't expect us
     to fill this space uncontrollably, and users also don't have direct

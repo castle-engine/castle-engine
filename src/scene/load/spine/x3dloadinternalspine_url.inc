@@ -31,10 +31,10 @@ procedure URIExtractInfo(const BaseUrl: String; out SkinName, CustomAtlasName: S
     if Semicolon = 0 then
     begin
       WritelnWarning('Spine URL anchor is not empty, and it does not contain a semicolon: "%s". To specify Spine skin, use the new syntax "xxx.json#skin:my_skin_name" instead of "xxx.json#my_skin_name", IOW add the "skin:" specifier.', [
-        URIDisplay(BaseUrl)
+        UriDisplay(BaseUrl)
       ]);
       if SkinName <> '' then
-        WritelnWarning('Multiple skin names given in Spine URL "%s"', [URIDisplay(BaseUrl)]);
+        WritelnWarning('Multiple skin names given in Spine URL "%s"', [UriDisplay(BaseUrl)]);
       SkinName := Part;
     end else
     begin
@@ -44,18 +44,18 @@ procedure URIExtractInfo(const BaseUrl: String; out SkinName, CustomAtlasName: S
       if PartName = 'skin' then
       begin
         if SkinName <> '' then
-          WritelnWarning('Multiple skin names given in Spine URL "%s"', [URIDisplay(BaseUrl)]);
+          WritelnWarning('Multiple skin names given in Spine URL "%s"', [UriDisplay(BaseUrl)]);
         SkinName := PartValue;
       end else
 
       if PartName = 'atlas' then
       begin
         if CustomAtlasName <> '' then
-          WritelnWarning('Multiple atlas names given in Spine URL "%s"', [URIDisplay(BaseUrl)]);
+          WritelnWarning('Multiple atlas names given in Spine URL "%s"', [UriDisplay(BaseUrl)]);
         CustomAtlasName := PartValue;
       end else
 
-        WritelnWarning('Not recognized part name "%s" in Spine URL "%s"', [PartName, URIDisplay(BaseUrl)]);
+        WritelnWarning('Not recognized part name "%s" in Spine URL "%s"', [PartName, UriDisplay(BaseUrl)]);
     end;
   end;
 

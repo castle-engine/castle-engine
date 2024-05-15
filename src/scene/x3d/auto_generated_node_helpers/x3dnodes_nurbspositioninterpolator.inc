@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,21 +29,22 @@
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FEventSet_fraction: TSFFloatEvent;
     {  }
     public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     strict private FFdControlPoint: TSFNode;
-    { Internal wrapper for property @link(ControlPoint). This wrapper API may change, we advise to access simpler @link(ControlPoint) instead. }
+    { Internal wrapper for property @code(ControlPoint). This wrapper API may change, we advise to access simpler @code(ControlPoint) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdControlPoint: TSFNode read FFdControlPoint;
     {  }
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
 
     strict private FFdKnot: TMFDouble;
-    { Internal wrapper for property @link(Knot). This wrapper API may change, we advise to access simpler @link(Knot) instead. }
+    { Internal wrapper for property @code(Knot). This wrapper API may change, we advise to access simpler @code(Knot) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdKnot: TMFDouble read FFdKnot;
     {  }
     procedure SetKnot(const Value: array of Double); overload;
@@ -51,13 +52,13 @@
     procedure SetKnot(const Value: TDoubleList); overload;
 
     strict private FFdOrder: TSFInt32;
-    { Internal wrapper for property @link(Order). This wrapper API may change, we advise to access simpler @link(Order) instead. }
+    { Internal wrapper for property @code(Order). This wrapper API may change, we advise to access simpler @code(Order) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdOrder: TSFInt32 read FFdOrder;
     {  }
     property Order: Integer read GetOrder write SetOrder;
 
     strict private FFdWeight: TMFDouble;
-    { Internal wrapper for property @link(Weight). This wrapper API may change, we advise to access simpler @link(Weight) instead. }
+    { Internal wrapper for property @code(Weight). This wrapper API may change, we advise to access simpler @code(Weight) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdWeight: TMFDouble read FFdWeight;
     {  }
     procedure SetWeight(const Value: array of Double); overload;

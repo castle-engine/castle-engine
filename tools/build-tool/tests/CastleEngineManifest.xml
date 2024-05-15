@@ -6,7 +6,9 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
 <project name="test_cge_build_tool"
-  standalone_source="test_cge_build_tool.lpr">
+  standalone_source="test_cge_build_tool.lpr"
+  qualified_name="io.castleengine.build.tool.tests"
+>
   <compiler_options>
     <search_paths>
       <path value="../code/" />

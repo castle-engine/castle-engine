@@ -176,7 +176,26 @@ begin
   begin
     I := IndexOfName(BindToName);
     if I <> -1 then
-      P := PX3DNodeNameRec(Ptr(I)) else
+    begin
+      P := PX3DNodeNameRec(Ptr(I));
+      { Warn about duplicate node names.
+        Avoid warning for TX3DPrototypeNode, as right now we knowingly
+        override names when instantiating node.
+        Testcase: demo-models/x3d/anchor_test.x3dv }
+      if (P^.Node <> Node) and
+         (not (P^.Node is TX3DPrototypeNode)) and
+         (not (Node is TX3DPrototypeNode)) then
+      begin
+        WritelnWarning('Node name "%s" used multiple times for different nodes (%s and %s). This is not allowed in X3D.' + NL +
+        '  Common reasons:' + NL +
+        '  1. You imported glTF model with non-unique names. While this is valid in glTF, we recommend to prepare glTF models with unique names for everything.' + NL +
+        '  2. You have a VRML model with non-unique names. While this is valid in VRML, we recommend to upgrade all VRML models to X3D and make names unique.', [
+          BindToName,
+          P^.Node.X3DType,
+          Node.X3DType
+        ]);
+      end;
+    end else
       P := PX3DNodeNameRec(Add);
     P^.Node := Node;
     P^.Name := BindToName;

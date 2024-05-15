@@ -153,6 +153,16 @@ function FloatToStrFDot(const Value: Extended;
   const Precision: Integer;
   const Digits: Integer): String;
 
+{ Display float as nice concise number to read (but not necessarily with
+  absolute precision):
+  always decimal,
+  no digits after dot if not necessary,
+  show some digits (but not too many - right now 2) after dot if they are meaningful.
+
+  Like other ...Dot routines, always uses dot (.) as a decimal separator,
+  regardless of the user's locale settings. }
+function FloatToStrDisplay(const AValue: Extended): String;
+
 { Like standard TryStrToFloat, but always uses dot (.) as a decimal separator
   for the floating point numbers, regardless of the user's locale settings.
 
@@ -361,10 +371,36 @@ begin
 end;
 
 {$ifndef FPC}
-function DefaultFormatSettings: TFormatSettings;
-begin
-  Result := TFormatSettings.Create;
-end;
+{ Delphi on Linux has weird bugs when one tries to use TFormatSettings.Create
+  too often, which would happen if we define
+
+    function DefaultFormatSettings: TFormatSettings;
+    begin
+      Result := TFormatSettings.Create;
+    end;
+
+  and then use e.g. FloatToStrDisplay from TVector3.ToString,
+  by printing in each update:
+
+    Writeln('Got SetRotation ', FRotation.ToString);
+
+  Doing this from TCastleTransform.SetRotation every frame
+  causes the screen to go black when rendering on Delphi/Linux.
+
+  Also FPC display is then never updated, and it seems
+  FRealFps or FOnlyRenderFps never changes.
+
+  Also sprite sheets animation then hangs from time to time.
+
+  Compiler bug? The relations are completely weird.
+  And the weird stuff is only on Delphi/Linux,
+  works fine with Delphi/Windows (and FPC naturally too, but FPC
+  has simpler DefaultFormatSettings).
+  Doing it in a simpler way, just initialize DefaultFormatSettings once,
+  works better and makes all above weird problems disappear. }
+
+var
+  DefaultFormatSettings: TFormatSettings;
 {$endif}
 
 function FormatDot(const Fmt: String; const Args: array of const): String;
@@ -398,6 +434,29 @@ begin
   FormatSettings.DecimalSeparator := '.';
   FormatSettings.ThousandSeparator := #0;
   Result := FloatToStrF(Value, FloatFormat, Precision, Digits, FormatSettings);
+end;
+
+function FloatToStrDisplay(const AValue: Extended): String;
+begin
+  Result := FloatToStrFDot(AValue, ffFixed,
+    { With FPC, Precision = 0 is also OK, but with Delphi it's not,
+      it will use scientific notation then early, e.g. for 123.0.
+      See TTestCastleUtils.TestFloatToStrDisplay testcase. }
+    20,
+    2);
+
+  { We remove trailing zeroes after decimal separator, we don't need them.
+    A less hacky way (that doesn't involve string fixing) would be nicer,
+    but it doesn't seem possible based on FloatToStrF possibilities,
+    at least with FPC. }
+  if Pos('.', Result) <> 0 then
+  begin
+    while Result[Length(Result)] = '0' do
+      SetLength(Result, Length(Result) - 1);
+    // previous removals of zero possibly removed all zeroes after ., so remove .
+    if Result[Length(Result)] = '.' then
+      SetLength(Result, Length(Result) - 1);
+  end;
 end;
 
 (*

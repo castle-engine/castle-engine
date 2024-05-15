@@ -23,11 +23,11 @@ unit TestGenericsCollections;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  {$else}CastleTester,{$endif} Generics.Collections;
+  Classes, SysUtils, Generics.Collections,
+  CastleTester;
 
 type
-  TTestGenericsCollections = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestGenericsCollections = class(TCastleTestCase)
     procedure Test1;
     procedure TestFreeingManually;
     procedure TestAddingLists;
@@ -505,10 +505,36 @@ procedure TSomeClass.Foo(A: Integer);
 begin
 end;
 
-procedure TTestGenericsCollections.TestMethodsList;
+{ Delphi 10.2.3 on Win32 (but not Win64) crashes on List.IndexOf by default, workaround }
+{$if (not defined(FPC)) and (CompilerVersion < 35) and (defined(WIN32))}
+  {$define LIST_INDEXOF_WORKAROUND}
+{$endif}
+
 type
   TMyMethod = procedure (A: Integer) of object;
-  TMyMethodList = {$ifdef FPC}specialize{$endif} TList<TMyMethod>;
+  TMyMethodList = class({$ifdef FPC}specialize{$endif} TList<TMyMethod>)
+    {$ifdef LIST_INDEXOF_WORKAROUND}
+    function IndexOf(const M: TMyMethod): Integer;
+    {$endif}
+  end;
+
+{$ifdef LIST_INDEXOF_WORKAROUND}
+function TMyMethodList.IndexOf(const M: TMyMethod): Integer;
+var
+  M2: TMyMethod;
+begin
+  for Result := 0 to Count - 1 do
+  begin
+    M2 := Items[Result];
+    if (TMethod(M).Code = TMethod(M2).Code) and
+       (TMethod(M).Data = TMethod(M2).Data) then
+      Exit;
+  end;
+  Result := -1;
+end;
+{$endif}
+
+procedure TTestGenericsCollections.TestMethodsList;
 
   procedure AssertMethodsEqual(const M1, M2: TMyMethod);
   begin

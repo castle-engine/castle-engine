@@ -52,7 +52,7 @@ type
       An example would be an explosion sound -- the sound stays
       at the position it happened, regardless if the object moved.
 
-      This matters only for spatial sounds (TCastleSound.Spatial). }
+      This matters only for spatial sounds (@link(TCastleSoundSource.Spatial)). }
     property Follow: Boolean read FFollow write FFollow default true;
 
     { The exact sound position reflects the transformation of the TCastleSoundSource,
@@ -115,12 +115,12 @@ type
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Play given sound once (not looping).
-      If the sound is spatial (TCastleSound.Spatial),
+      If the sound source is spatial (@link(TCastleSoundSource.Spatial)),
       it's 3D position will reflect the @link(Parent) (TCastleTransform) position. }
     procedure Play(const ASound: TCastleSound); overload;
 
     { Play given sound.
-      If the sound is spatial (TCastleSound.Spatial),
+      If the sound source is spatial (@link(TCastleSoundSource.Spatial)),
       it's 3D position will reflect the @link(Parent) (TCastleTransform) position.
 
       Set @link(TCastlePlayingSound.Sound) before passing it to this method.

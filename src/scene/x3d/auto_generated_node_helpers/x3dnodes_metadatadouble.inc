@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,11 +24,12 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdValue: TMFDouble;
-    { Internal wrapper for property @link(Value). This wrapper API may change, we advise to access simpler @link(Value) instead. }
+    { Internal wrapper for property @code(Value). This wrapper API may change, we advise to access simpler @code(Value) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdValue: TMFDouble read FFdValue;
     {  }
     procedure SetValue(const Value: array of Double); overload;

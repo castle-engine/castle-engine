@@ -1,4 +1,10 @@
 X3DViewpointNode : X3DBindableNode {
+  SFBool     [in,out] autoCenterOfRotation FALSE
+    doc: """
+      When @true, the center of rotation is automatically calculated looking at the middle of scene bounding box. The @link(CenterOfRotation) value is ignored then.
+
+      This field is a Castle Game Engine extension of the X3D standard. The default value (@false) makes behavior compatible with X3D standard. Note that, in contrast, @link(TCastleExamineNavigation.AutoCenterOfRotation) default is @true -- because TCastleExamineNavigation doesn't have to match X3D standard, and the default @true makes it work out-of-the-box on more scenes.
+    """
   SFVec3f    [in,out] centerOfRotation  0 0 0
     range: (-Inf,Inf)
   SFString   [in,out] description       ""
@@ -76,10 +82,29 @@ NavigationInfo : X3DBindableNode {
     range: [0,Inf)
   SFBool   [out]    transitionComplete
   SFString [in,out] blendingSort    "DEFAULT"
-    range: ["DEFAULT", "NONE", "2D", "3D", "3D_ORIGIN", "3D_GROUND"]
-    enumerated-type: TOptionalBlendingSort BlendingSortNames obsDefault
+    range: ["AUTO", "NONE", "2D", "3D", "3D_ORIGIN", "3D_GROUND"]
+    enumerated-type: TShapeSort ShapeSortNames sortAuto
     change: chRedisplay
-    doc: Blending sort to use for this scene. It is usually simpler to adjust @link(Scene.RenderOptions.BlendingSort TCastleRenderOptions.BlendingSort).
+    doc: """
+      Best blending sort for this scene. It may be honored by some model viewers, e.g. view3dscene honors this to display currently loaded scene.
+
+      Note: In CGE applications, the blending sort is determined by @link(TCastleViewport.BlendingSort). It is up to each particular application if, and how, to honor this value on @className. In general, CGE applications may display multiple models (multiple TCastleScene) and there's not necessarily any scene that is "central" or "main", so most CGE applications will just ignore this, at least on most loaded models.
+
+      If an application wants to honor this property of @className, then set @link(TCastleViewport.BlendingSort) based on the bound navigation info node. For example like this:
+
+      @longCode(#
+      if (Scene.NavigationInfoStack.Top <> nil) and
+         (Scene.NavigationInfoStack.Top.BlendingSort <> sortAuto) then
+        MainViewport.BlendingSort :=
+          Scene.NavigationInfoStack.Top.BlendingSort;
+      #)
+
+      The value sortAuto (specified as string "AUTO" in X3D file)
+      says to not change @link(TCastleViewport.BlendingSort).
+      The @link(TCastleViewport.BlendingSort) may be, in turn, also sortAuto,
+      which means that we will detect whether to use sort2D or sort3D depending
+      on camera.
+    """
   SFBool [] timeOriginAtLoad FALSE
     doc: @deprecated When this is @true, world time @link(TCastleSceneCore.Time) equals 0 when the scene is loaded. Otherwise (when this is @false, by default) world time 0 means "January 1, 1970" and when the scene is loaded the world time is a big number (and should only be processed as Double, not Single floating-point value). See https://castle-engine.io/x3d_time_origin_considered_uncomfortable.php for discussion.
   SFFloat [in,out] headBobbing TCastleWalkNavigation.DefaultHeadBobbing

@@ -20,8 +20,7 @@ unit TestCastleDesignComponents;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, CastleClassUtils;
+  Classes, SysUtils, CastleTester, CastleClassUtils;
 
 type
   TTestCastleDesignComponents = class(TCastleTestCase)

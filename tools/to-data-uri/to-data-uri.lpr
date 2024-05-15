@@ -13,27 +13,14 @@
   ----------------------------------------------------------------------------
 }
 
-{ Grab the data from command-line parameter,
-  and output data URI encoding it. Useful to encode images, sounds,
-  3D models, whatever as data URI.
-  See http://en.wikipedia.org/wiki/Data_URI_scheme for description of data URIs.
-
-  Command-line parameter is used with our Download routine, so:
-  - it may be a filename
-  - it may be an URL: a file URL, http URL (will be automatically downloaded)
-    or even another data URI.
-
-  Mime type (necessary to output nice data URI) is also detected by our
-  Download routine. For http, it may be returned by http server.
-  For file, it's guessed based on file extension.
-  See documentation of CastleDownload.Download function for details. }
+{ Convert any file to data URI scheme.
+  See README.md for details. }
 
 uses SysUtils, Classes, Base64, CastleParameters, CastleDownload,
-  CastleURIUtils, CastleInternalDataUri, CastleClassUtils;
+  CastleUriUtils, CastleInternalDataUri, CastleClassUtils;
 var
   MimeType: string;
   Stream: TStream;
-  Base64Encode: TBase64EncodingStream;
 begin
   EnableBlockingDownloads := true;
   Parameters.CheckHigh(1);
@@ -41,14 +28,8 @@ begin
   try
     { Note that MimeType may be empty if not recognized.
       That's Ok, data: URI spec allows it. }
-    WriteStr(StdOutStream, 'data:' + MimeType + ';base64,');
-
-    Base64Encode := TBase64EncodingStream.Create(StdOutStream);
-    Base64Encode.CopyFrom(Stream, 0);
+    Writeln(StreamToDataUri(Stream, MimeType));
   finally
-    FreeAndNil(Base64Encode);
     FreeAndNil(Stream);
   end;
-
-  WritelnStr(StdOutStream, '');
 end.

@@ -1,3 +1,4 @@
+{%MainUnit castleuicontrols.pas}
 {
   Copyright 2015-2023 Michalis Kamburelis.
 
@@ -95,7 +96,7 @@
       FDesignLoaded: TCastleUserInterface;
       FDesignLoadedOwner: TDesignOwner;
       FDesignPreload: Boolean;
-      FDesignPreloadedSerialized: TSerializedComponent;
+      FDesignPreloadedSerialized: TCastleComponentFactory;
       FDesignPreloaded: TCastleUserInterface;
       FDesignPreloadedOwner: TComponent;
 
@@ -137,7 +138,7 @@
     function PredictedContainer: TCastleContainer;
   protected
     { The container size is always known: we assume that view will be part
-      of GetMainContainer, if the view not yet started.
+      of PredictedContainer, if the view not yet started.
 
       So the view knows container size, regardless if we are between Start / Stop,
       regardless if the TCastleView is already added to some TCastleContainer.Children.
@@ -148,7 +149,7 @@
     function ContainerRect: TRectangle; override;
     function ContainerSizeKnown: boolean; override;
 
-    function StateContainer: TCastleContainer; deprecated 'use Container to get the container in which we are already started, use GetMainContainer to get global central container';
+    function StateContainer: TCastleContainer; deprecated 'use Container to get the container in which we are already started, use PredictedContainer if the state is not yet started';
 
     { The container in which the view works.
 
@@ -515,20 +516,20 @@ begin
     raise Exception.Create('Assign Application.MainWindow (if you use CastleWindow) or TCastleControl.MainControl (if you use CastleControl) before starting TCastleView');
 end;
 
-{ TSerializedComponentHelper ------------------------------------------------- }
+{ TCastleComponentFactoryHelper ------------------------------------------------- }
 
 type
-  { Helper methods extending TSerializedComponent.
-    Do not use TSerializedComponentHelper from CastleViewport,
+  { Helper methods extending TCastleComponentFactory.
+    Do not use TCastleComponentFactoryHelper from CastleViewport,
     to not complicate unit dependencies. }
-  TSerializedComponentHelper = class helper for TSerializedComponent
+  TCastleComponentFactoryHelper = class helper for TCastleComponentFactory
     { Instantiate component.
       Using this is equivalent to using global @link(UserInterfaceLoad),
       but it is much faster if you want to instantiate the same file many times. }
     function UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
   end;
 
-function TSerializedComponentHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+function TCastleComponentFactoryHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
 begin
   Result := ComponentLoad(Owner) as TCastleUserInterface;
 end;
@@ -840,7 +841,8 @@ begin
   if DesignUrl <> '' then
   begin
     // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
-    FDesignPreloadedSerialized := TSerializedComponent.Create(DesignUrl);
+    FDesignPreloadedSerialized := TCastleComponentFactory.Create(nil);
+    FDesignPreloadedSerialized.Url :=DesignUrl;
     // load FDesignPreloaded to cache all that's possible,
     // like images used inside TCastleImageControl or TCastleScene.
     FDesignPreloadedOwner := TComponent.Create(nil);
@@ -920,17 +922,17 @@ end;
 
 function TCastleView.ContainerWidth: Cardinal;
 begin
-  Result := PredictedContainer.Width;
+  Result := PredictedContainer.PixelsWidth;
 end;
 
 function TCastleView.ContainerHeight: Cardinal;
 begin
-  Result := PredictedContainer.Height;
+  Result := PredictedContainer.PixelsHeight;
 end;
 
 function TCastleView.ContainerRect: TRectangle;
 begin
-  Result := PredictedContainer.Rect;
+  Result := PredictedContainer.PixelsRect;
 end;
 
 function TCastleView.ContainerSizeKnown: boolean;

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,7 +16,7 @@
 { Project form (@link(TProjectForm)). }
 unit FormProject;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 { Hack to use OpenDocument instead of RunCommandNoWait to execute Delphi.
   This assumes that Delphi is associated on your system with Pascal files.
@@ -32,7 +32,7 @@ uses
   AnchorDocking, XMLPropStorage, ImgList,
   ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
-  DataModuleIcons,
+  DataModuleIcons, CastleClassUtils,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
   ToolPackageFormat;
 
@@ -43,6 +43,9 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionFindNext: TAction;
+    ActionFindToggle: TAction;
+    ActionImportSketchfab: TAction;
     ActionShowStatistics: TAction;
     ActionRunParameterCapabilitiesForceFixedFunction: TAction;
     ActionRunParameterCapabilitiesForceModern: TAction;
@@ -80,7 +83,6 @@ type
     ActionComponentCopy: TAction;
     ActionViewportToggleProjection: TAction;
     ActionViewportSetup2D: TAction;
-    ActionViewportSort2D: TAction;
     ActionViewportAlignCameraToView: TAction;
     ActionViewportTop: TAction;
     ActionNavigationToggle2D: TAction;
@@ -109,6 +111,9 @@ type
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
     MenuItem15: TMenuItem;
+    MenuItem19: TMenuItem;
+    MenuItem43: TMenuItem;
+    Separator14: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
     MenuItem24: TMenuItem;
@@ -119,6 +124,8 @@ type
     MenuItem39: TMenuItem;
     MenuItem40: TMenuItem;
     MenuItem41: TMenuItem;
+    MenuItem42: TMenuItem;
+    Separator13: TMenuItem;
     Separator12: TMenuItem;
     MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem;
     Separator11: TMenuItem;
@@ -165,7 +172,6 @@ type
     MenuItem20: TMenuItem;
     Separator4: TMenuItem;
     MenuItem18: TMenuItem;
-    MenuItem19: TMenuItem;
     MenuItem2: TMenuItem;
     Separator2: TMenuItem;
     MenuItem13: TMenuItem;
@@ -327,6 +333,9 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionFindNextExecute(Sender: TObject);
+    procedure ActionFindToggleExecute(Sender: TObject);
+    procedure ActionImportSketchfabExecute(Sender: TObject);
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
     procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
     procedure ActionFocusDesignExecute(Sender: TObject);
@@ -391,7 +400,6 @@ type
     procedure ActionViewportLeftExecute(Sender: TObject);
     procedure ActionViewportRightExecute(Sender: TObject);
     procedure ActionViewportSetup2DExecute(Sender: TObject);
-    procedure ActionViewportSort2DExecute(Sender: TObject);
     procedure ActionViewportTopExecute(Sender: TObject);
     procedure ActionViewportViewAllExecute(Sender: TObject);
     procedure ActionViewportViewSelectedExecute(Sender: TObject);
@@ -490,6 +498,7 @@ type
       OutputList: TOutputList;
       RunningProcess: TAsynchronousProcessQueue;
       Design: TDesignFrame;
+      DesignObserver: TFreeNotificationObserver;
       ShellListView1: TCastleShellListView;
       ShellTreeView1: TCastleShellTreeView;
       ViewFileFrame: TViewFileFrame;
@@ -528,6 +537,7 @@ type
       Line: Integer = -1;
       Column: Integer = -1);
     procedure RefreshFiles(const RefreshNecessary: TRefreshFiles);
+    procedure RefreshAllFiles(Sender: TObject);
     (*Runs custom code editor.
       Use this only when CodeEditor = ceCustom.
       CustomCodeEditorCommand is the command to use (like CodeEditorCommand
@@ -580,9 +590,16 @@ type
     { Question about saving during physics simulation. }
     function SaveDuringPhysicsSimulation: Boolean;
     function IsCreatingNewDesignAvailable: Boolean;
+    procedure DesignObserverFreeNotification(const Sender: TFreeNotificationObserver);
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
+
+    { Can we right now add imported thing from this URL? }
+    function CanAddImported(const AddUrl: String): Boolean;
+
+    { Import URL (to instantiate it in design) now. }
+    procedure AddImported(const AddUrl: String);
   end;
 
 var
@@ -592,18 +609,34 @@ implementation
 
 {$R *.lfm}
 
+{$warnings off} // using deprecated Castle2DSceneManager to keep it registered
+
 uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
-  CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
+  CastleXmlUtils, CastleLCLUtils, CastleOpenDocument, CastleUriUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors, CastleConfig,
   CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  CastleClassUtils, CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
+  CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
+  CastleInternalFileMonitor,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
-  FormSystemInformation, FormRestartCustomEditor,
+  FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
   ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
   ToolFpcVersion;
+
+{$warnings on}
+
+{$ifdef LCLGTK2}
+  { TODO:
+    LCL on GTK2 has random crashes at TProjectForm freeing
+    (from Application.ReleaseComponents).
+    The current workaround is rather brutal but effective,
+    we let old TProjectForm instances leak (but we free Design with
+    really heavy resources),
+    and we close with Halt. }
+  {$define CASTLE_CLOSE_HACK}
+{$endif}
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -614,12 +647,18 @@ begin
   end;
 
   if ProposeSaveDesign then
+  begin
+    {$ifdef CASTLE_CLOSE_HACK}
+    Halt;
+    {$else}
     Application.Terminate;
+    {$endif}
+  end;
 end;
 
 procedure TProjectForm.MenuItemReferenceClick(Sender: TObject);
 begin
-  OpenURL(ApiReferenceUrl + 'index.html');
+  OpenUrl(ApiReferenceUrl + 'index.html');
 end;
 
 procedure TProjectForm.MenuItemModeReleaseClick(Sender: TObject);
@@ -635,7 +674,7 @@ begin
   Url := ApiReferenceUrl + 'index.html';
   if Design <> nil then
     Design.CurrentComponentApiUrl(Url);
-  OpenURL(Url);
+  OpenUrl(Url);
 end;
 
 procedure TProjectForm.MenuItemRefreshDirClick(Sender: TObject);
@@ -718,12 +757,12 @@ end;
 
 procedure TProjectForm.MenuItemSupportClick(Sender: TObject);
 begin
-  OpenURL('https://patreon.com/castleengine/');
+  OpenUrl('https://patreon.com/castleengine/');
 end;
 
 procedure TProjectForm.MenuItemCgeWwwClick(Sender: TObject);
 begin
-  OpenURL('https://castle-engine.io/');
+  OpenUrl('https://castle-engine.io/');
 end;
 
 procedure TProjectForm.MenuItemAboutClick(Sender: TObject);
@@ -748,6 +787,20 @@ begin
 end;
 
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+
+  function HandleNonModalAssociatedForm(Form: TForm): Boolean;
+  begin
+    Result := true;
+    if (Form <> nil) and Form.Visible then
+    begin
+      if not Form.CloseQuery then
+      begin
+        CanClose := false;
+        Exit(false);
+      end;
+    end;
+  end;
+
 begin
   if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
@@ -758,17 +811,19 @@ begin
 
   if ProposeSaveDesign then
   begin
-    { Close sprite sheet editor window if visible }
-    if (SpriteSheetEditorForm <> nil) and (SpriteSheetEditorForm.Visible) then
+    { Close associated windows if visible }
+    if not HandleNonModalAssociatedForm(SpriteSheetEditorForm) then
     begin
-      if not SpriteSheetEditorForm.CloseQuery then
-      begin
-        CanClose := false;
-        Exit;
-      end;
+      CanClose := false;
+      Exit;
+    end;
+    if not HandleNonModalAssociatedForm(ImportSketchfabForm) then
+    begin
+      CanClose := false;
+      Exit;
     end;
 
-    Application.Terminate
+    Application.Terminate;
   end else
     CanClose := false;
 end;
@@ -776,6 +831,11 @@ end;
 procedure TProjectForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   SaveDockLayout;
+  {$ifdef CASTLE_CLOSE_HACK}
+  // TODO: Hack to avoid LCL crashes. Memory will leak
+  // (trying to manually free ProjectForm from ChooseProjectForm would also crash).
+  CloseAction := caHide;
+  {$endif}
 end;
 
 procedure TProjectForm.ActionNewSpriteSheetExecute(Sender: TObject);
@@ -921,6 +981,34 @@ procedure TProjectForm.ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.ShowAllJointsTools;
+end;
+
+procedure TProjectForm.ActionImportSketchfabExecute(Sender: TObject);
+begin
+  if ImportSketchfabForm = nil then
+    ImportSketchfabForm := TImportSketchfabForm.Create(Application);
+
+  ImportSketchfabForm.ProjectPath := ProjectPath;
+  ImportSketchfabForm.OnRefreshFiles := @RefreshAllFiles;
+  ImportSketchfabForm.OnCanAddImported := @CanAddImported;
+  ImportSketchfabForm.OnAddImported := @AddImported;
+  ImportSketchfabForm.Show;
+end;
+
+procedure TProjectForm.ActionFindNextExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.FindNext;
+end;
+
+procedure TProjectForm.ActionFindToggleExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+
+  // TODO: Make it a checked action, toggle checked state,
+  // synchronize with design (also when it's closed).
+
+  Design.FindToggle;
 end;
 
 procedure TProjectForm.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
@@ -1085,6 +1173,7 @@ begin
   { Refresh contents of selected dir, and tree of subdirectories,
     in case user created some files/directories in other applications. }
   RefreshFiles(rfEverything);
+  FileMonitor.CheckChanges;
 end;
 
 procedure TProjectForm.ApplicationProperties1Deactivate(Sender: TObject);
@@ -1252,12 +1341,6 @@ begin
     Design.ViewportSetup2D;
 end;
 
-procedure TProjectForm.ActionViewportSort2DExecute(Sender: TObject);
-begin
-  if Design <> nil then
-    Design.ViewportSort(bs2D);
-end;
-
 procedure TProjectForm.ActionViewportTopExecute(Sender: TObject);
 begin
   if Design <> nil then
@@ -1317,7 +1400,7 @@ procedure TProjectForm.ActionEditAssociatedUnitExecute(Sender: TObject);
 var
   AUnitName, UnitFileNameAbsolute: String;
 begin
-  AUnitName := DeleteURIExt(ExtractURIName(Design.DesignUrl));
+  AUnitName := DeleteUriExt(ExtractUriName(Design.DesignUrl));
   UnitFileNameAbsolute := Manifest.SearchPascalUnit(AUnitName);
   if UnitFileNameAbsolute <> '' then
     OpenPascal(UnitFileNameAbsolute)
@@ -1439,7 +1522,7 @@ begin
     ListOpenExistingViewRefresh;
     CheckNewUnitOnSearchPath;
     ProposeToOpenNewFile;
-    RefreshFiles(rfFilesInCurrentDir);
+    RefreshFiles(rfEverything); // NewUnitForm maybe created dirs
   end;
 end;
 
@@ -1482,10 +1565,10 @@ begin
   if not Docking then Exit;
   URLFileName := ApplicationConfig(DockLayoutFileName);
   { Try to load default layout if user layout is not exist }
-  if not URIFileExists(URLFileName) then
+  if not UriFileExists(URLFileName) then
     URLFileName := InternalCastleDesignData + 'layouts/' + DockLayoutFileNameDefault;
   try
-    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(URLFileName), True);
+    XMLConfig := TXMLConfigStorage.Create(UriToFilenameSafe(URLFileName), True);
     try
       DockMaster.LoadLayoutFromConfig(XMLConfig, True);
     finally
@@ -1510,7 +1593,7 @@ var
 begin
   if not Docking then Exit;
   try
-    XMLConfig := TXMLConfigStorage.Create(URIToFilenameSafe(ApplicationConfig(DockLayoutFileName)), false);
+    XMLConfig := TXMLConfigStorage.Create(UriToFilenameSafe(ApplicationConfig(DockLayoutFileName)), false);
     try
       DockMaster.SaveLayoutToConfig(XMLConfig);
       XMLConfig.WriteToDisk;
@@ -1565,7 +1648,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.OnSelectItem := @ShellListViewSelectItem;
     ShellListView1.Hint := 'Double-click to open.' + NL +
       NL +
-      '- Scenes and images open in engine viewers (view3dscene, castle-view-image).' + NL +
+      '- Scenes and images open in engine viewers (castle-model-viewer, castle-image-viewer).' + NL +
       '- Designs open in this editor.' + NL +
       '- Pascal files open in the code editor.' + NL +
       '- Other files open in OS default applications.';
@@ -1676,7 +1759,9 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 var
   EnableDocking: Boolean;
 begin
-  EnableDocking := URIFileExists(ApplicationConfig('enable-docking.txt'));
+  DesignObserver := TFreeNotificationObserver.Create(Self);
+  DesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif} DesignObserverFreeNotification;
+  EnableDocking := UriFileExists(ApplicationConfig('enable-docking.txt'));
   MenuItemWindow.SetEnabledVisible(EnableDocking);
   Docking := EnableDocking and UserConfig.GetValue('ProjectForm_Docking', false);
   OutputList := TOutputList.Create(ListOutput);
@@ -1774,7 +1859,6 @@ begin
   UserConfig.SetValue('ProjectForm_Docking', WantedDocking);
   FormHide(Self); //to save config properly
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
-  ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
   FreeAndNil(Manifest);
@@ -1787,6 +1871,32 @@ begin
   FreeAndNil(DesignWarningsForm);
   FreeAndNil(PlatformsInfo);
   FreeAndNil(ListOpenExistingViewStr);
+  FreeAndNil(Design);
+
+  { It is important to reset ApplicationDataOverride
+    *after* FreeAndNil(Design), which in turn freed components like
+    TCastleScene that possibly interacted with FileMonitor.
+
+    That's because TCastleScene doing FileMonitor.Watch of
+    e.g. "castle-data:/soldier.gltf" with one ApplicationDataOverride value,
+    and then doing Unwatch on the same "castle-data:/soldier.gltf"
+    but *after* ApplicationDataOverride changed,
+    is effectively talking about 2 different files.
+
+    And FileMonitor detects it, as it remembers "final" URLs,
+    with castle-data resolved (and that's good).
+
+    Testcase: Open 3D FPS game template (it has 4 soldiers),
+    open play view,
+    close the editor with Alt + F4.
+    There should be no warnings that we "cannot unwatch .../soldier.gltf" }
+  ApplicationDataOverride := '';
+end;
+
+procedure TProjectForm.DesignObserverFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  // set property to nil when the referenced component is freed
+  Design := nil;
 end;
 
 procedure TProjectForm.FormHide(Sender: TObject);
@@ -1882,6 +1992,7 @@ begin
             PageControlBottom.Height := NewControlHeight;
           end;
         end;
+      else ; // do not restore other state, like wsMinimized
     end;
   end;
 end;
@@ -1893,7 +2004,7 @@ begin
   if ListOpenExistingView.ItemIndex <> -1 then
   begin
     DesignFileName := ListOpenExistingViewStr[ListOpenExistingView.ItemIndex];
-    DesignUrl := FilenameToURISafe(DesignFileName);
+    DesignUrl := FilenameToUriSafe(DesignFileName);
     ProposeOpenDesign(DesignUrl);
   end;
 end;
@@ -1943,21 +2054,22 @@ begin
 
   R := TRegExpr.Create;
   try
-    R.Expression := '^([^() ]+)\(([\d]+),([\d]+)\) (Error|Fatal|Warning|Note):';
+    R.Expression := '^([^()]+)\(([\d]+),([\d]+)\) (Error|Fatal|Warning|Note):';
+
     if R.Exec(Line) then
     begin
       OpenPascal(FilenameFromOutput(R.Match[1]), StrToInt(R.Match[2]), StrToInt(R.Match[3]));
       Exit;
     end;
 
-    R.Expression := '^([^() ]+)\(([\d]+)\) (Error|Fatal|Warning|Note):';
+    R.Expression := '^([^()]+)\(([\d]+)\) (Error|Fatal|Warning|Note):';
     if R.Exec(Line) then
     begin
       OpenPascal(FilenameFromOutput(R.Match[1]), StrToInt(R.Match[2]));
       Exit;
     end;
 
-    R.Expression := '^Compiling ([^() ]+)';
+    R.Expression := '^Compiling ([^()]+)';
     if R.Exec(Line) then
     begin
       OpenPascal(FilenameFromOutput(R.Match[1]));
@@ -2061,8 +2173,8 @@ var
 begin
   { Simply remove the dock ui config file in order to restore default settings }
   DockLayoutUrl := ApplicationConfig(DockLayoutFileName);
-  if URIFileExists(DockLayoutUrl) then
-    CheckDeleteFile(URIToFilenameSafe(DockLayoutUrl));
+  if UriFileExists(DockLayoutUrl) then
+    CheckDeleteFile(UriToFilenameSafe(DockLayoutUrl));
   LoadDockLayout;
 end;
 
@@ -2073,7 +2185,7 @@ end;
 
 procedure TProjectForm.UpdateRenameItem(Sender: TObject);
 begin
-  if (Design <> nil) and Design.RenamePossible then
+  if (Design <> nil) and Design.RenameSelectedPossible then
     MenuItemRename.Enabled := true
   else
     MenuItemRename.Enabled := false;
@@ -2219,7 +2331,7 @@ end;
 
 procedure TProjectForm.MenuItemManualClick(Sender: TObject);
 begin
-  OpenURL('https://castle-engine.io/manual_intro.php');
+  OpenUrl('https://castle-engine.io/manual_intro.php');
 end;
 
 procedure TProjectForm.MenuItemModeDebugClick(Sender: TObject);
@@ -2254,8 +2366,8 @@ begin
     This also avoids finding stuff in castle-engine-output, which is possible,
     e.g. after "castle-engine package --target=android" the castle-engine-output contains
     some temporary data with copies of design files -- and we *do not* want to show them here. }
-  ProjectDataUrl := CombineURI(ProjectPathUrl, 'data/');
-  if URIExists(ProjectDataUrl) <> ueNotExists then
+  ProjectDataUrl := CombineUri(ProjectPathUrl, 'data/');
+  if UriExists(ProjectDataUrl) <> ueNotExists then
   begin
     FindFiles(ProjectDataUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
     // support deprecated names
@@ -2306,6 +2418,8 @@ begin
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
   ActionShowStatistics.Enabled := Design <> nil;
+  ActionFindToggle.Enabled := Design <> nil;
+  ActionFindNext.Enabled := Design <> nil;
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
@@ -2338,6 +2452,19 @@ begin
 
   if Design = nil then
     ListOpenExistingViewRefresh;
+
+  { Synchronize action state with new design.
+    Testcase:
+    - open project
+    - open design
+    - toggle "Show Colliders" to true by clicking in menu
+    - close design
+    - open design again
+    - -> desired effect: "Show Colliders" is synchronized with Design.ShowColliders,
+      which means it is reset to false now.
+  }
+  if Design <> nil then
+    ActionShowColliders.Checked := Design.ShowColliders;
 end;
 
 procedure TProjectForm.ProposeOpenDesign(const DesignUrl: String);
@@ -2357,6 +2484,7 @@ begin
   if Design = nil then
   begin
     Design := TDesignFrame.Create(Self);
+    DesignObserver.Observed := Design;
     Design.Parent := PanelAboveTabs;
     Design.Align := alClient;
     Design.OnUpdateFormCaption := @UpdateFormCaption;
@@ -2537,6 +2665,22 @@ begin
 end;
 
 procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
+
+  function HandleNonModalAssociatedForm(var Form: TForm): Boolean;
+  begin
+    Result := true;
+    if (Form <> nil) and Form.Visible then
+    begin
+      if not Form.CloseQuery then
+        Exit(false);
+      Form.Close; // not needed on GTK2, maybe add ifdef?
+      // Calling Release seems safer than FreeAndNil(Form) below,
+      // though tests didn't actually show any difference now.
+      Form.Release;
+    end;
+    //FreeAndNil(Form);
+  end;
+
 begin
   if CastleApplicationMode in [appSimulation, appSimulationPaused] then
   begin
@@ -2546,15 +2690,31 @@ begin
 
   if ProposeSaveDesign then
   begin
-    { Close sprite sheet editor window if visible }
-    if (SpriteSheetEditorForm <> nil) and (SpriteSheetEditorForm.Visible) then
+    { Close and free associated windows.
+      Reason for free: E.g. ImportSketchfabForm has some "links" to current project,
+      like TImportSketchfabForm.OnAddImported, so it's simpler to just
+      free it and recreate in new projects. }
+    if not HandleNonModalAssociatedForm(TForm(SpriteSheetEditorForm)) then
+      Exit;
+    if not HandleNonModalAssociatedForm(TForm(ImportSketchfabForm)) then
+      Exit;
+
+    {$ifdef CASTLE_CLOSE_HACK}
+    if Design <> nil then
     begin
-      if not SpriteSheetEditorForm.CloseQuery then
-        Exit;
-      SpriteSheetEditorForm.Close; // not needed on GTK2, maybe add ifdef?
+      FreeAndNil(Design);
+      DesignExistenceChanged;
     end;
 
+    { Call Close, not Release.
+     Avoids crashes on closing sometimes.
+     Testcase: open escape-universe, open loading design, "Close and SWitch Project". }
+    OnCloseQuery := nil;
+    Close;
+    {$else}
     Release; // do not call MenuItemDesignClose, to avoid OnCloseQuery
+    {$endif}
+
     ChooseProjectForm.Show;
   end;
 end;
@@ -2618,7 +2778,7 @@ begin
   if ShellListView1.Selected <> nil then
   begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
-    SelectedURL := FilenameToURISafe(SelectedFileName);
+    SelectedURL := FilenameToUriSafe(SelectedFileName);
 
     { Check for images first because TCastleScene can now load images. }
     if LoadImage_FileFilters.Matches(SelectedURL) then
@@ -2985,18 +3145,18 @@ begin
       Exit;
     end;
 
-    SelectedURL := FilenameToURISafe(SelectedFileName);
+    SelectedURL := FilenameToUriSafe(SelectedFileName);
     Ext := ExtractFileExt(SelectedFileName);
 
     { Check for images first because TCastleScene can now load images. }
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin
-      OpenWithCastleTool('castle-view-image', SelectedURL, [SelectedURL]);
+      OpenWithCastleTool('castle-image-viewer', SelectedURL, [SelectedURL]);
       Exit;
     end;
 
     { Check for Castle Sprite Sheets, to open them in sprite editor }
-    if (URIMimeType(SelectedURL) = 'application/x-castle-sprite-sheet') then
+    if (UriMimeType(SelectedURL) = 'application/x-castle-sprite-sheet') then
     begin
       if SpriteSheetEditorForm = nil then
         SpriteSheetEditorForm := TSpriteSheetEditorForm.Create(Application);
@@ -3007,7 +3167,7 @@ begin
 
     if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
-      OpenWithCastleTool('view3dscene', SelectedURL,
+      OpenWithCastleTool('castle-model-viewer', SelectedURL,
         ['--project', ProjectPathUrl, SelectedURL]);
       Exit;
     end;
@@ -3069,7 +3229,9 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
     case BuildMode of
       bmDebug  : ModeString := '--mode=debug';
       bmRelease: ModeString := '--mode=release';
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('BuildMode?');
+      {$endif}
     end;
     Params.Add(ModeString);
   end;
@@ -3339,11 +3501,11 @@ begin
 
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }
-  ApplicationDataOverride := CombineURI(ProjectPathUrl, 'data/');
+  ApplicationDataOverride := CombineUri(ProjectPathUrl, 'data/');
 
   { adjust some InitialDir values to make open dialogs natural }
-  OpenDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
-  SaveDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+  OpenDesignDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
+  SaveDesignDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
   OpenPascalUnitDialog.InitialDir := ProjectPath;
 
   ShellTreeView1.Root := ProjectPath;
@@ -3368,6 +3530,11 @@ begin
     end;
     //WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
   end;
+end;
+
+procedure TProjectForm.RefreshAllFiles(Sender: TObject);
+begin
+  RefreshFiles(rfEverything);
 end;
 
 procedure TProjectForm.RefreshFiles(const RefreshNecessary: TRefreshFiles);
@@ -3417,6 +3584,7 @@ begin
           ShellTreeView1.Refresh(nil);
           ShellTreeView1.Path := TreeViewPath;
         end;
+      else ; // no need to do for others
     end;
 
     ShellListView1.SelectedFileNameInRoot := SavedSelectedFileNameInRoot;
@@ -3447,6 +3615,26 @@ begin
   Mi := Sender as TMenuItem;
   CurrentPackageFormat := TPackageFormat(Mi.Tag);
   Mi.Checked := true;
+end;
+
+function TProjectForm.CanAddImported(const AddUrl: String): Boolean;
+begin
+  { TODO: Maybe in the future it will query more,
+    e.g. to add glTF we need Design.AddImportedUrl be able to determine
+    parent that is TCastleTransform descendant.
+    For now we let Design.AddImportedUrl to raise exception in such case. }
+  Result := Design <> nil;
+end;
+
+procedure TProjectForm.AddImported(const AddUrl: String);
+begin
+  if Design <> nil then
+  begin
+    if Design.AddImported(AddUrl) = nil then
+      ErrorBox(Format('Coult not import "%s". Make sure the current design has a viewport selected', [
+        UriDisplay(AddUrl)
+      ]));
+  end;
 end;
 
 initialization

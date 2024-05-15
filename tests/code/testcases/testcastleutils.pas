@@ -17,13 +17,15 @@
 { Test CastleUtils unit. }
 unit TestCastleUtils;
 
+{ Needed for UNIX symbol in Delphi. }
+{$I ../../../src/common_includes/castleconf.inc}
+
 { $define CASTLEUTILS_SPEED_TESTS}
 
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
   TTestCastleUtils = class(TCastleTestCase)
@@ -51,13 +53,15 @@ type
     procedure TestRestOf3DCoords;
     procedure TestRestOf3DCoordsCycle;
     procedure TestDecimalSeparator;
+    procedure TestFloatToStrDisplay;
+    procedure TestDeg;
   end;
 
 implementation
 
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef UNIX} Unix, BaseUnix, {$endif}
+  {$if defined(UNIX) and defined(FPC)} Unix, BaseUnix, {$endif}
   Math, CastleUtils, CastleTimeUtils, CastleVectors, CastleLog,
   CastleTestUtils;
 
@@ -266,15 +270,18 @@ end;
 
 procedure TTestCastleUtils.TestOSError;
 begin
- try
-  OSCheck(
-    {$ifdef MSWINDOWS} Windows.MoveFile('some_not_existing_file_name', 'foo') {$endif}
-    {$ifdef UNIX} FpRename('some_not_existing_file_name', 'foo') <> -1 {$endif}
+  // TODO: add some test for Delphi + Linux
+  {$if defined(MSWINDOWS) or defined(FPC)}
+  try
+    OSCheck(
+      {$ifdef MSWINDOWS} Windows.MoveFile('some_not_existing_file_name', 'foo') {$endif}
+      {$if defined(UNIX) and defined(FPC)} FpRename('some_not_existing_file_name', 'foo') <> -1 {$endif}
     );
-  raise Exception.Create('uups ! OSCheck failed !');
- except
-  on EOSError do ;
- end;
+    raise Exception.Create('uups ! OSCheck failed !');
+  except
+    on EOSError do ;
+  end;
+  {$endif}
 end;
 
 procedure TTestCastleUtils.TestStrings;
@@ -691,6 +698,29 @@ begin
   AssertEquals('123' + {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator + '45', FloatToStr(123.45));
   AssertSameValue(123.45, StrToFloat('123' + {$ifdef FPC}DefaultFormatSettings{$else}FormatSettings{$endif}.DecimalSeparator + '45'));
   {$endif}
+end;
+
+procedure TTestCastleUtils.TestFloatToStrDisplay;
+begin
+  AssertEquals('123', FloatToStrDisplay(123.000));
+  AssertEquals('123.4', FloatToStrDisplay(123.400));
+  AssertEquals('123.45', FloatToStrDisplay(123.450));
+  AssertEquals('123.46', FloatToStrDisplay(123.456));
+
+  AssertEquals('0', FloatToStrDisplay(0.000));
+  AssertEquals('0.4', FloatToStrDisplay(0.400));
+  AssertEquals('0.45', FloatToStrDisplay(0.450));
+  AssertEquals('0.46', FloatToStrDisplay(0.456));
+
+  AssertEquals('99.99', FloatToStrDisplay(99.99));
+  AssertEquals('100', FloatToStrDisplay(99.999));
+end;
+
+procedure TTestCastleUtils.TestDeg;
+begin
+  AssertSameValue(0, Deg(0));
+  AssertSameValue(pi/2, Deg(90));
+  AssertSameValue(-pi/2, Deg(-90));
 end;
 
 initialization

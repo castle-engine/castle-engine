@@ -293,7 +293,6 @@ begin
   Window.Controls.InsertFront(Viewport2D);
 
   Example2DScene := TCastleScene.Create(Application);
-  Example2DScene.Setup2D;
   Example2DScene.Load('castle-data:/example_2d_scene/dragon/dragon.json');
   Example2DScene.PreciseCollisions := true;
   Example2DScene.ProcessEvents := true;

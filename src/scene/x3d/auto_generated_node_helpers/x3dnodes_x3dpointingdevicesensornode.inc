@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,18 +23,10 @@
 
 {$ifdef read_interface}
 
-  strict private
-    function GetDescription: String;
-    procedure SetDescription(const Value: String);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdDescription: TSFString;
-    { Internal wrapper for property @link(Description). This wrapper API may change, we advise to access simpler @link(Description) instead. }
-    public property FdDescription: TSFString read FFdDescription;
-    {  }
-    property Description: String read GetDescription write SetDescription;
+    class function ClassX3DType: String; override;
 
     strict private FEventIsOver: TSFBoolEvent;
     {  }
@@ -46,16 +38,6 @@
 
 { TAbstractPointingDeviceSensorNode ----------------------------------------------- }
 
-function TAbstractPointingDeviceSensorNode.GetDescription: String;
-begin
-  Result := FdDescription.Value;
-end;
-
-procedure TAbstractPointingDeviceSensorNode.SetDescription(const Value: String);
-begin
-  FdDescription.Send(Value);
-end;
-
 class function TAbstractPointingDeviceSensorNode.ClassX3DType: String;
 begin
   Result := 'X3DPointingDeviceSensorNode';
@@ -64,10 +46,6 @@ end;
 procedure TAbstractPointingDeviceSensorNode.CreateNode;
 begin
   inherited;
-
-  FFdDescription := TSFString.Create(Self, True, 'description', '');
-   FdDescription.ChangeAlways := chNone;
-  AddField(FFdDescription);
 
   FEventIsOver := TSFBoolEvent.Create(Self, 'isOver', false);
   AddEvent(FEventIsOver);

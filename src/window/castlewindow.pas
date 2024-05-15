@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -58,8 +58,6 @@
       This will enter message loop that will call
       appropriate windows' callbacks at appropriate times
       (OnRender, OnPress, OnRelease, OnResize, OnUpdate and many more).
-      There are also some Application callbacks, like
-      @link(TCastleApplication.OnUpdate Application.OnUpdate).
 
       For more advanced needs you can use something like
 
@@ -72,7 +70,7 @@
       You can also call @link(TCastleWindow.OpenAndRun Window.OpenAndRun),
       this is just a shortcut for Window.Open + Application.Run.)
 
-    @item(Application.Run ends when you call @link(TCastleApplication.Quit Application.Quit)
+    @item(Application.Run ends when you call @link(TCastleApplication.Terminate Application.Terminate)
       or when you close last visible window using @link(TCastleWindow.Close Close(true)).
 
       User is also allowed to close a window using WindowManager facilities
@@ -173,10 +171,6 @@ unit CastleWindow;
 
 {$I castleconf.inc}
 
-{$ifdef CASTLE_DELPHI_PACKAGE}
-  {$message fatal 'This unit should not be included in CGE Delphi package, as this unit may talk to WinAPI to initialize window application, and it would conflict with Delphi IDE.'}
-{$endif}
-
 { Choose CastleWindow backend ------------------------------------------ }
 
 { You can define one of the CASTLE_WINDOW_xxx symbols to use
@@ -190,7 +184,7 @@ unit CastleWindow;
  {$ifndef CASTLE_WINDOW_XLIB}
   {$ifndef CASTLE_WINDOW_GTK_2}
    {$ifndef CASTLE_WINDOW_TEMPLATE}
-    {$ifndef CASTLE_WINDOW_LCL}
+    {$ifndef CASTLE_WINDOW_FORM}
      {$ifndef CASTLE_WINDOW_ANDROID}
       {$ifndef CASTLE_WINDOW_LIBRARY}
 
@@ -203,11 +197,14 @@ unit CastleWindow;
            // various possible backends on Windows:
            {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
            { $define CASTLE_WINDOW_GTK_2}
-           { $define CASTLE_WINDOW_LCL}
+           { $define CASTLE_WINDOW_FORM}
            { $define CASTLE_WINDOW_LIBRARY}
            { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
          {$elseif defined(UNIX)}
-           {$if defined(ANDROID)}
+           {$if not defined(FPC)}
+             // Delphi on non-Windows supports now only this backend
+             {$define CASTLE_WINDOW_FORM}
+           {$elseif defined(ANDROID)}
              {$define CASTLE_WINDOW_ANDROID}
            {$elseif defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
              {$define CASTLE_WINDOW_LIBRARY}
@@ -215,7 +212,7 @@ unit CastleWindow;
              // various possible backends on macOS (desktop):
              {$define CASTLE_WINDOW_COCOA} // best (looks native) on macOS
              { $define CASTLE_WINDOW_XLIB} // requires Xlib to compile and to work
-             { $define CASTLE_WINDOW_LCL} // looks native (can use Cocoa through LCL), but requires LCL to compile
+             { $define CASTLE_WINDOW_FORM} // looks native, requires LCL (from Lazarus) or FMX (from Delphi) to compile
              { $define CASTLE_WINDOW_GTK_2}
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
@@ -223,7 +220,7 @@ unit CastleWindow;
              // various possible backends on traditional Unix (Linux, FreeBSD) desktop:
              {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional), supports both OpenGL and OpenGLES
              { $define CASTLE_WINDOW_XLIB} // supports both OpenGL and OpenGLES
-             { $define CASTLE_WINDOW_LCL}
+             { $define CASTLE_WINDOW_FORM}
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
            {$endif}
@@ -268,6 +265,35 @@ unit CastleWindow;
   {$endif}
 {$endif}
 
+{ Define EGL to use EGL, cross-platform library to initialize OpenGL or OpenGLES
+  context.
+  It can work with WinAPI, Xlib, GTK backends of CastleWindow.
+
+  By default, we define USE_EGL only when OpenGLES is defined.
+
+  With regular OpenGL (not ES), it's better to use glX (Unix) / wgl (Windows)
+  instead of EGL, that are practically guaranteed to be installed on Linux
+  (if it has OpenGL at all) or Windows.
+
+  - Unix: Though EGL is also practically almost guaranteed,
+    with both OpenGL and OpenGLES support.
+  - Windows, EGL can be found, but note: some implementations will
+    not support OpenGL, will only support OpenGLES.
+    Trying to use OpenGL will result in
+    EGLContextNotPossible exception with message like "EGL: Cannot bind OpenGL API...".
+
+  If you want, define below USE_EGL to always use EGL,
+  with OpenGL or OpenGLES. }
+{.$define USE_EGL}
+{$ifdef OpenGLES}
+  {$define USE_EGL}
+{$endif}
+// By default CASTLE_WINDOW_GTK_2 uses glX to initialize OpenGL context,
+// but it's not available on Windows.
+{$if defined(MSWINDOWS) and defined(CASTLE_WINDOW_GTK_2)}
+  {$define USE_EGL}
+{$endif}
+
 { Does backend implement TryVideoChange and VideoReset methods?
   (if this will not be defined, we will use TryVideoChange that always
   returns false and VideoReset that is NOOP). }
@@ -310,11 +336,11 @@ uses {$define read_interface_uses}
   { FPC units }
   SysUtils, Classes, Generics.Collections, CustApp, CTypes,
   { Castle Game Engine units }
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleRectangles, CastleColors, CastleRenderOptions,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
-  CastleFileFilters, CastleUIControls,
+  CastleFileFilters, CastleUIControls, CastleInternalContextBase,
   CastleInternalPk3DConnexion, CastleParameters, CastleSoundEngine,
   CastleApplicationProperties;
 
@@ -403,9 +429,9 @@ type
 
     procedure Invalidate; override;
     function GLInitialized: boolean; override;
-    function Width: Integer; override;
-    function Height: Integer; override;
-    function Rect: TRectangle; override;
+    function PixelsWidth: Integer; override;
+    function PixelsHeight: Integer; override;
+    function PixelsRect: TRectangle; override;
     function ScaledStatusBarHeight: Cardinal; override;
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
@@ -423,25 +449,26 @@ type
 
   { Window to render everything (3D or 2D) with Castle Game Engine.
 
-    You should use this with TCastleView, following https://castle-engine.io/manual_state_events.php
+    You should use this with TCastleView, following https://castle-engine.io/views
     and the rest of CGE manual.
     All user interface creation and event handling should be inside some state.
-
-    Deprecated: You can also add any user-interface controls to the @link(Controls) property.
-    User-interface controls are any @link(TCastleUserInterface) descendants,
-    like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
-    Use events like @link(OnPress) to react to events.
-    Use event @link(OnUpdate) to do something continuously.
 
     By default, the window is filled with simple color from
     @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
 
-    If you're looking for an analogous Lazarus component
-    (that can be placed on a Lazarus form)
+    If you're looking for an analogous Lazarus / Delphi component
+    (that can be placed on a Lazarus / Delphi form)
     see @link(TCastleControl) component.
     Note that you cannot use both TCastleControl and TCastleWindow
     within the same application.
-    See https://castle-engine.io/control_on_form . }
+    See https://castle-engine.io/control_on_form .
+
+    Deprecated functionality:
+    You can also add any user-interface controls to the @link(Controls) property.
+    User-interface controls are any @link(TCastleUserInterface) descendants,
+    like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
+    Use events like @link(OnPress) to react to events.
+    Use event @link(OnUpdate) to do something continuously. }
   TCastleWindow = class(TComponent)
 
   { Include CastleWindow-backend-specific parts of TCastleWindow class.
@@ -466,9 +493,6 @@ type
       of MaxWidth etc. }
     FRealWidth, FRealHeight: Integer;
     FOnCloseQuery: TContainerEvent;
-    {$ifdef FPC}
-    FOnTimer: TContainerEvent;
-    {$endif}
     FOnDropFiles: TDropFilesFunc;
     { FFullScreenWanted is the value set by FullScreen property by the user.
       FFullScreenBackend is the last value of FullScreen known to the backend
@@ -507,7 +531,7 @@ type
     FAlphaBits: Cardinal;
     FMultiSampling: Cardinal;
     FAntiAliasing: TAntiAliasing;
-    FGtkIconName: string;
+    FGtkIconName: String;
     FVisible: boolean;
     FMinWidth: Integer;
     FMinHeight: Integer;
@@ -520,14 +544,19 @@ type
     FCursor: TMouseCursor;
     FTouches: TTouchList;
     FNamedParameters: TCastleStringList;
+    { When Open, this says if the window actually has double-buffer. }
+    HasDoubleBuffer: Boolean;
+    { Ready TGLContextRequirements instance.
+      Call UpdateRequirements to initialize its fields correctly. }
+    FRequirements: TGLContextRequirements;
     function GetColorBits: Cardinal;
     procedure SetColorBits(const Value: Cardinal);
     procedure SetAntiAliasing(const Value: TAntiAliasing);
     procedure SetAutoRedisplay(const Value: boolean);
-    function GetPublicCaption: string;
-    procedure SetPublicCaption(const Value: string);
-    procedure SetCaption(const Part: TCaptionPart; const Value: string);
-    function GetWholeCaption: string;
+    function GetPublicCaption: String;
+    procedure SetPublicCaption(const Value: String);
+    procedure SetCaption(const Part: TCaptionPart; const Value: String);
+    function GetWholeCaption: String;
     procedure SetCursor(const Value: TMouseCursor);
     function GetOnOpen: TContainerEvent;
     procedure SetOnOpen(const Value: TContainerEvent);
@@ -714,6 +743,12 @@ type
     function MenuUpdateCheckedFast: boolean;
     { @groupEnd }
 
+    { Called from DoUpdate. Backends may fill this with code to be done
+      on each update, regardless of how update is performed,
+      e.g. this will be called also if something calls FOpenWindows.DoUpdate in
+      TCastleApplication. }
+    procedure BackendInsideUpdate;
+
     procedure CreateBackend;
 
     { Simulate that all the keys and mouse buttons were released.
@@ -845,7 +880,7 @@ type
          MakeCurrent,
          EventKeyDown/Up.
     }
-    procedure DoKeyDown(const Key: TKey; const KeyString: string);
+    procedure DoKeyDown(const Key: TKey; const KeyString: String);
     procedure DoKeyUp(const key: TKey);
     { Do MakeCurrent,
          EventMotion,
@@ -863,7 +898,6 @@ type
       Button: TCastleMouseButton; const FingerIndex: TFingerIndex = 0;
       const TrackReleased: boolean = true);
     procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
-    procedure DoTimer;
     { Just call it when user presses some MenuItem.
       This takes care of MainMenu.Enabled,
         MakeCurrent,
@@ -880,7 +914,7 @@ type
       contains only a path (not the final file name), since this is
       good behavior for users (even if some API allow to set proposed
       file name). }
-    function BackendFileDialog(const Title: string; var FileName: string;
+    function BackendFileDialog(const Title: String; var FileName: String;
       OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
 
     procedure OpenCore;
@@ -893,7 +927,8 @@ type
       (It doesn't even need an OpenGL context open.)
 
       Useful for constructing messages e.g. for EGLContextNotPossible exceptions. }
-    function RequestedBufferAttributes: string;
+    function RequestedBufferAttributes: String;
+
     { Check do given OpenGL buffers configuration satisfies the
       requested configuration.
 
@@ -914,10 +949,12 @@ type
       MultiSampling = 1, which happens commonly (since our MultiSampling = 1 means
       "no multisampling" and is default, but most backends returns num_samples
       (or something equivalent) as = 0 when multisampling not supported). }
-    procedure CheckRequestedBufferAttributes(const ProviderName: string;
+    procedure CheckRequestedBufferAttributes(const ProviderName: String;
       ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
-      ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
-      ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
+      ProvidedMultiSampling: Cardinal);
+
+    { Update FRequirements to reflect current window properties. }
+    procedure UpdateRequirements;
   protected
     procedure DoUpdate; virtual;
   public
@@ -932,7 +969,7 @@ type
       things continuously, regardless of user input.
 
       The default implementation plays it safe, and does not allow suspending
-      if we have OnUpdate, OnTimer or such callback defined. }
+      if we have OnUpdate callback defined. }
     function AllowSuspendForInput: boolean; virtual;
 
     { Size of the window OpenGL area. Together with frame and border
@@ -1383,7 +1420,7 @@ type
       for short information how and where to install your icons.
 
       It's ignored on non-GTK 2 backends. }
-    property GtkIconName: string read FGtkIconName write FGtkIconName;
+    property GtkIconName: String read FGtkIconName write FGtkIconName;
 
     (*Should this window be actually displayed on the desktop.
       In all normal programs you want to leave this as @true, as the
@@ -1437,7 +1474,7 @@ type
       By default it's initialized from ApplicationProperties.Caption or (if empty)
       ApplicationName.
       May be changed even when the window is already open. }
-    property Caption: string read GetPublicCaption write SetPublicCaption;
+    property Caption: String read GetPublicCaption write SetPublicCaption;
 
     { Render window contents here.
 
@@ -1602,52 +1639,21 @@ type
       so it is continuously called even when your game
       is overwhelmed by messages (like mouse moves) and redraws.
 
-      Called at the same time when
-      @link(TCastleApplication.OnUpdate Application.OnUpdate) is called.
-
-      You should add code to this window's OnUpdate event
-      (not to TCastleApplication.OnUpdate) when you do something related
-      to this window. For example when you check this window's
-      @link(Pressed) keys state, or animate something displayed on this window.
-      This allows various "modal boxes" and such (see CastleMessages)
-      to nicely "pause" such processing by temporarily replacing
-      OnUpdate and other events of a window that displays a modal box.
+      This is called at the same time (right after or right before) when
+      all callbacks on the list
+      @link(TCastleApplicationProperties.OnUpdate ApplicationProperties.OnUpdate)
+      are called.
 
       @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
       method Update and OnUpdate event. }
     property OnUpdate: TContainerEvent read GetOnUpdate write SetOnUpdate;
       {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Update or OnUpdate event';{$endif}
 
-    {$ifdef FPC}
-    { @deprecated Deprecated name for OnUpdate. }
-    property OnIdle: TContainerEvent read GetOnUpdate write SetOnUpdate; deprecated;
-
-    { Timer event is called approximately after each
-      @link(TCastleApplication.TimerMilisec Application.TimerMilisec)
-      miliseconds passed. See also
-      @link(TCastleApplication.OnTimer Application.OnTimer).
-
-      This is a very simple timer mechanism, as all timers (timers for all windows
-      and the global @link(Application) timer) use the same delay:
-      @link(TCastleApplication.TimerMilisec Application.TimerMilisec).
-      We consciously decided to not implement anything more involved here.
-      If you need really flexible timer mechanism, do not use this.
-      Instead use @link(OnUpdate)
-      (or @link(TCastleUserInterface.Update) in your @link(TCastleUserInterface) descendant,
-      or @link(TCastleTransform.Update)) and look at it's @code(SecondsPassed)
-      value to perform actions (one time or repeated) with a specified delay.
-      The engine source is full of examples of this.
-
-      Under Lazarus, you can of course also use LCL timers. }
-    property OnTimer: TContainerEvent read FOnTimer write FOnTimer;
-      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
-    {$endif FPC}
-
     { Called when user drag and drops file(s) on the window.
       In case of macOS bundle, this is also called when user opens a document
       associated with our application by double-clicking.
 
-      Note: this is currently supported only by LCL and Cocoa backends
+      Note: this is currently supported only by Form and Cocoa backends
       of TCastleWindow, see https://castle-engine.io/castlewindow_backends . }
     property OnDropFiles: TDropFilesFunc read FOnDropFiles write FOnDropFiles;
 
@@ -1750,11 +1756,6 @@ type
 
     property Closed: boolean read FClosed default true;
 
-    {$ifdef FPC}
-    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
-      deprecated 'do not set this, engine will override this. Set TCastleUserInterface.Cursor of your UI controls to control the Cursor.';
-    {$endif}
-
     { Mouse cursor appearance over this window.
       See TMouseCursor for a list of possible values and their meanings.
 
@@ -1855,7 +1856,7 @@ type
         @item(
           if this was the only open TCastleWindow window
           and QuitWhenLastWindowClosed = true then
-          this calls Application.Quit.)
+          this calls Application.Terminate.)
       )
 
       Note that often there's no need to call Close explicitly in your program,
@@ -1897,7 +1898,7 @@ type
       Note that only capturing the double-buffered windows (the default)
       is reliable.
       @groupBegin }
-    procedure SaveScreen(const URL: string); overload;
+    procedure SaveScreen(const Url: String); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
     function SaveScreenToGL(const SmoothScaling: boolean = false): TDrawableImage; overload;
@@ -1913,10 +1914,10 @@ type
 
     { Asks and saves current screenshot.
       Asks user where to save the file (using @link(FileDialog),
-      as default URL taking ProposedURL).
+      as default URL taking ProposedUrl).
       If user accepts calls Window.SaveScreen.
       In case of problems with saving, shows a dialog (doesn't raise exception). }
-    procedure SaveScreenDialog(ProposedURL: string);
+    procedure SaveScreenDialog(ProposedUrl: String);
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2027,7 +2028,7 @@ type
             try to do it.
 
             To directly write to a file (as a stream) to the obtained URL
-            you should usually use our URLSaveStream.)
+            you should usually use our UrlSaveStream.)
         )
       )
 
@@ -2066,10 +2067,10 @@ type
       )
 
       @groupBegin }
-    function FileDialog(const Title: string; var URL: string;
+    function FileDialog(const Title: String; var Url: String;
       OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
-    function FileDialog(const Title: string; var URL: string;
-      OpenDialog: boolean; const FileFilters: string): boolean; overload;
+    function FileDialog(const Title: String; var Url: String;
+      OpenDialog: boolean; const FileFilters: String): boolean; overload;
     { @groupEnd }
 
     { Choose a color, using native (looks familiar on a given system) dialog box.
@@ -2091,10 +2092,10 @@ type
 
     { Show some information and just ask to press "OK",
       using native (looks familiar on a given system) dialog box. }
-    procedure MessageOK(const S: string; const MessageType: TWindowMessageType);
+    procedure MessageOK(const S: String; const MessageType: TWindowMessageType);
 
     { Ask a yes/no question, using native (looks familiar on a given system) dialog box. }
-    function MessageYesNo(const S: string;
+    function MessageYesNo(const S: String;
       const MessageType: TWindowMessageType = mtQuestion): boolean;
 
     { Named parameters used to initialize this window.
@@ -2154,13 +2155,8 @@ type
 
   TWindowList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleWindow>)
   private
-    { Call wszystkie OnUpdate / OnTimer for all windows on this list.
-      Using Application.OpenWindows.DoUpdate / DoTimer  is a simplest
-      way for CastleWindow backend to handle these events.
-      @groupBegin }
+    { Call OnUpdate for all windows on this list. }
     procedure DoUpdate;
-    procedure DoTimer;
-    { @groupEnd }
   public
     { Simply calls Invalidate on all items. }
     procedure Invalidate;
@@ -2192,9 +2188,6 @@ type
     FOnInitialize{, FOnInitializeJavaActivity}: TProcedure;
     FOnInitializeEvent: TNotifyEvent;
     Initialized, InitializedJavaActivity: boolean;
-    FOnUpdate: TUpdateFunc;
-    FOnTimer: TProcedure;
-    FTimerMilisec: Cardinal;
     FVideoColorBits: integer;
     FVideoFrequency: Cardinal;
     { Current window with OpenGL context active.
@@ -2202,8 +2195,7 @@ type
     Current: TCastleWindow;
     LastLimitFPSTime: TTimerResult;
     FMainWindow: TCastleWindow;
-    FUserAgent: string;
-    LastMaybeDoTimerTime: TTimerResult;
+    //FUserAgent: String;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindow;
@@ -2242,37 +2234,21 @@ type
     procedure CreateBackend;
     procedure DestroyBackend;
 
-    { The CastleWindow-backend specific part of Quit method implementation.
-      In non-backend-specific part of Quit we already closed all windows,
-      so this will be called only when OpenWindowsCount = 0.
-      So the only things you have to do here is:
-      - make ProcessMessage to return false
-      - terminate Run method, if it works (if Run is implemented using
-        "while ProcessMessage do ;" then the first condition is all that is
-        really needed)
+    { Make sure that event loop exits as soon as possible.
 
-        Note: it is NOT guaranteed that we are inside Run method
-        when calling this function, i.e. it may be the case that noone ever
-        called Application.Run (e.g. in @code(kambi_lines) game, where everything is done
-        using while ProcessMessages do ...), but still it must be valid to call
-        Quit and QuitWhenNoOpenWindows in such situation.
-        Also it must be valid to call Quit and QuitWhenNoOpenWindows more
-        then once. }
-    procedure QuitWhenNoOpenWindows;
+      At this point, we already set "Terminated" (from ancestor
+      TCustomApplication) to @true. And your methods like "ProcessMessage"
+      should check it, so no need to do anything special in BackendTerminate
+      to make them exit.
 
-    { Call Application.OnUpdate. }
-    procedure DoApplicationUpdate;
+      However, some backends execute some native code to run a loop,
+      like CASTLE_WINDOW_FORM may run FormApplication.Run
+      or CASTLE_WINDOW_GTK may run (though doesn't now) gtk_main.
+      You need to break these loops in this method. }
+    procedure BackendTerminate;
 
-    { Call Application.OnTimer. }
-    procedure DoApplicationTimer;
-
-    { Call Application.OnTimer, and all window's OnTimer, when the time is right.
-      This allows some backends to easily implement the timer.
-      Simply call this method very often (usually at the same time you're calling
-      DoApplicationUpdate). }
-    procedure MaybeDoTimer;
-
-    { Call OnUpdate, OnTimer on Application and all open windows,
+    { Call OnUpdate on all open windows,
+      call ApplicationProperties.OnUpdate,
       and call OnRender on all necessary windows.
       This allows some backends to easily do everything that typically needs
       to be done continuosly (without the need for any message from the outside). }
@@ -2284,8 +2260,8 @@ type
     { Can we wait (hang) for next message.
       See TCastleWindow.AllowSuspendForInput, this is similar but for
       the whole Application. Returns @true only if all open
-      windows allow it, and application state allows it too
-      (e.g. we do not have OnUpdate and OnTimer). }
+      windows allow it and we don't have any
+      @link(TCastleApplicationProperties.OnUpdate ApplicationProperties.OnUpdate). }
     function AllowSuspendForInput: boolean;
 
     procedure DoLimitFPS;
@@ -2297,8 +2273,8 @@ type
     procedure CloseAllOpenWindows;
 
     {$ifdef FPC}
-    function GetVersion: string;
-    procedure SetVersion(const Value: string);
+    function GetVersion: String;
+    procedure SetVersion(const Value: String);
     function GetTouchDevice: boolean;
     procedure SetTouchDevice(const Value: boolean);
     function GetLimitFPS: Single;
@@ -2338,7 +2314,7 @@ type
       used by VideoChange and TryVideoChange.
       This is a multiline string, each line is indented by 2 spaces,
       always ends with CastleUtils.NL. }
-    function VideoSettingsDescribe: string;
+    function VideoSettingsDescribe: String;
 
     { Change the screen size, color bits and such, following the directions
       you set in VideoColorBits, VideoResize,
@@ -2401,31 +2377,6 @@ type
     property OnInitialize: TProcedure read FOnInitialize write FOnInitialize;
     property OnInitializeEvent: TNotifyEvent read FOnInitializeEvent write FOnInitializeEvent;
 
-    {property OnInitializeJavaActivity: TProcedure
-      read FOnInitializeJavaActivity write FOnInitializeJavaActivity;}
-
-    { Continuously occuring event.
-      @seealso TCastleWindow.OnUpdate }
-    property OnUpdate: TUpdateFunc read FOnUpdate write FOnUpdate;
-
-    {$ifdef FPC}
-    { @deprecated Deprecated name for OnUpdate. }
-    property OnIdle: TUpdateFunc read FOnUpdate write FOnUpdate; deprecated;
-
-    { Event called approximately after each TimerMilisec miliseconds.
-      The actual delay may be larger than TimerMilisec miliseconds,
-      depending on how the program (and OS) is busy.
-
-      You can of course change TimerMilisec (and OnTimer) even
-      when some windows are already open.
-      @groupBegin }
-    property OnTimer: TProcedure read FOnTimer write FOnTimer;
-      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
-    property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec default 1000;
-      deprecated 'use TCastleTimer to perform periodic operations, or track time delay in OnUpdate';
-    { @groupEnd }
-    {$endif FPC}
-
     { Used on platforms that can only show a single window (TCastleWindow) at a time,
       like mobile or web applications.
 
@@ -2435,8 +2386,8 @@ type
     property MainWindow: TCastleWindow read FMainWindow write SetMainWindow;
 
     { User agent string, when running inside a browser.
-      Right now never set (was used by NPAPI plugin, may be useful to new web target). }
-    property UserAgent: string read FUserAgent;
+      TODO: Right now never set (was used by NPAPI plugin, may be useful to new web target). }
+    //property UserAgent: String read FUserAgent;
 
     { Process messages from the window system.
       You have to call this repeatedly to process key presses,
@@ -2530,8 +2481,6 @@ type
       thus we are up-to-date with window system requests. }
     function ProcessAllMessages: boolean;
 
-    procedure Quit; deprecated 'Use Terminate';
-
     procedure Terminate; override;
 
     { Run the program using TCastleWindow, by doing the event loop.
@@ -2540,13 +2489,13 @@ type
       Note that this does nothing if OpenWindowsCount = 0, that is there
       are no open windows. Besides the obvious reason (you didn't call
       TCastleWindow.Open on any window...) this may also happen if you called
-      Close (or Application.Quit) from your window OnOpen / OnResize callback.
+      Close (or Application.Terminate) from your window OnOpen / OnResize callback.
       In such case no event would probably reach
       our program, and user would have no chance to quit, so Run just refuses
       to work and exits immediately without any error. }
     procedure Run;
 
-    function BackendName: string;
+    function BackendName: String;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2607,7 +2556,7 @@ type
     {$ifdef FPC}
     property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
       deprecated 'use ApplicationProperties.LimitFps';
-    property Version: string read GetVersion write SetVersion;
+    property Version: String read GetVersion write SetVersion;
       deprecated 'use ApplicationProperties.Version';
     property TouchDevice: boolean read GetTouchDevice write SetTouchDevice;
       deprecated 'use ApplicationProperties.TouchDevice';
@@ -2621,17 +2570,6 @@ type
   Automatically created / destroyed by CastleWindow unit. }
 function Application: TCastleApplication;
 
-{ A simple TCastleWindow.OnResize callback implementation, that sets 2D projection.
-  You can use it like @code(Window.OnResize := Resize2D;) or just by calling
-  it directly from your OnResize callback.
-
-  It does
-  @longCode(#
-    RenderContext.Viewport := Window.Rect;
-    OrthoProjection(0, Window.Width, 0, Window.Height);
-  #) }
-procedure Resize2D(Container: TCastleContainer);
-
 { Describe given key. Key is given as combination of character (UTF-8 character as String, may be '')
   and Key code (may be keyNone), and additional required @code(Modifiers)
   (although some modifiers may be already implied by KeyString, e.g. when it is CtrlA).
@@ -2641,9 +2579,9 @@ procedure Resize2D(Container: TCastleContainer);
   then this combination doesn't describe any key, and we return @false.
   Otherwise we return @true and set S. }
 function KeyToString(const KeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
-  out S: string): boolean;
+  out S: String): boolean;
 function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
-  out S: string): boolean; deprecated 'use KeyToString';
+  out S: String): boolean; deprecated 'use KeyToString';
 
 {$undef read_interface}
 
@@ -2658,7 +2596,7 @@ function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: T
 implementation
 
 uses
-  CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging,
+  CastleLog, CastleGLVersion, CastleUriUtils, CastleControls, CastleMessaging,
   CastleRenderContext, CastleInternalGLUtils,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
@@ -2691,17 +2629,17 @@ begin
   Result := Parent.GLInitialized;
 end;
 
-function TWindowContainer.Width: Integer;
+function TWindowContainer.PixelsWidth: Integer;
 begin
   Result := Parent.Width;
 end;
 
-function TWindowContainer.Height: Integer;
+function TWindowContainer.PixelsHeight: Integer;
 begin
   Result := Parent.Height;
 end;
 
-function TWindowContainer.Rect: TRectangle;
+function TWindowContainer.PixelsRect: TRectangle;
 begin
   Result := Parent.Rect;
 end;
@@ -2792,6 +2730,7 @@ begin
   FTouches := TTouchList.Create;
   FFocused := true;
   FNamedParameters := TCastleStringList.Create;
+  FRequirements := TGLContextRequirements.Create(nil);
 
   CreateBackend;
 
@@ -2817,6 +2756,7 @@ begin
   FreeAndNil(FContainer);
   FreeAndNil(FTouches);
   FreeAndNil(FNamedParameters);
+  FreeAndNil(FRequirements);
   inherited;
 end;
 
@@ -2857,7 +2797,7 @@ procedure TCastleWindow.OpenCore;
     Theme.Draw(TextRect, tiLoading, UIScale, Theme.LoadingColor);
 
     // just like TCastleWindow.DoRender
-    if DoubleBuffer then SwapBuffers else glFlush;
+    if HasDoubleBuffer then SwapBuffers else glFlush;
 
     {$IFDEF android}
     { Workaround an ARM64 Android-specific bug which manifests on some devices
@@ -2909,6 +2849,12 @@ procedure TCastleWindow.OpenCore;
       Close the window. }
     FClosed := false;
     Invalidated := false;
+
+    UpdateRequirements; // OpenBackend may use it
+
+    // initialize HasDoubleBuffer
+    HasDoubleBuffer := DoubleBuffer;
+    Assert(HasDoubleBuffer = FRequirements.DoubleBuffer);
 
     { Call OpenBackend. Note that OpenBackend can call DoResize,
       it will still be correctly understood. }
@@ -2966,7 +2912,7 @@ procedure TCastleWindow.OpenCore;
       Container.EventOpen(Application.OpenWindowsCount);
 
       { Check Closed here, in case OnOpen closed the window
-        (by calling Application.Quit (that calls Close on all windows) or direct Close
+        (by calling Application.Terminate (that calls Close on all windows) or direct Close
         on this window). Note that Close calls
         CloseBackend and generally has *immediate* effect --- that's why
         doing anything more with window now (like MakeCurrent) would be wrong. }
@@ -3261,7 +3207,7 @@ begin
       RenderContext.Viewport := Rect;
 
     FrameProfiler.Start(fmRenderSwapFlush);
-    if DoubleBuffer then SwapBuffers else glFlush;
+    if HasDoubleBuffer then SwapBuffers else glFlush;
 
     { Keep this check inside fmRenderSwapFlush measurement.
 
@@ -3301,7 +3247,7 @@ begin
   end;
 end;
 
-procedure TCastleWindow.DoKeyDown(const Key: TKey; const KeyString: string);
+procedure TCastleWindow.DoKeyDown(const Key: TKey; const KeyString: String);
 var
   Event: TInputPressRelease;
 
@@ -3480,9 +3426,7 @@ begin
   FrameProfiler.StartFrame;
   FrameProfiler.Start(fmUpdate);
 
-  {$ifdef CASTLE_WINDOW_LCL}
-  FKeyPressHandler.Flush; // finish any pending key presses
-  {$endif}
+  BackendInsideUpdate;
 
   MakeCurrent;
   Container.EventUpdate;
@@ -3498,17 +3442,6 @@ begin
   UpdateFullScreenBackend;
 
   FrameProfiler.Stop(fmUpdate);
-end;
-
-procedure TCastleWindow.DoTimer;
-begin
-  MakeCurrent;
-  {$ifdef FPC}
-  {$warnings off} // keep deprecated working
-  if Assigned(OnTimer) then
-    OnTimer(Container);
-  {$warnings on}
-  {$endif}
 end;
 
 procedure TCastleWindow.DoMenuClick(Item: TMenuItem);
@@ -3535,7 +3468,7 @@ end;
 function TCastleWindow.MessageReceived(const Received: TCastleStringList;
   const ReceivedStream: TMemoryStream): boolean;
 var
-  Url: string;
+  Url: String;
 begin
   Result := false;
   if (Received.Count = 2) and
@@ -3549,9 +3482,9 @@ end;
 
 function TCastleWindow.AllowSuspendForInput: boolean;
 begin
-  {$warnings off} // keep deprecated working - OnTimer
+  {$warnings off} // keep deprecated working - OnUpdate
   Result := Container.AllowSuspendForInput and
-    not (Invalidated or Assigned(OnUpdate) {$ifdef FPC}or Assigned(OnTimer){$endif} or FpsShowOnCaption);
+    not (Invalidated or Assigned(OnUpdate) or FpsShowOnCaption);
   {$warnings on}
 end;
 
@@ -3585,14 +3518,15 @@ end;
 
 function TCastleWindow.SaveScreenBuffer: TColorBuffer;
 begin
-  if DoubleBuffer then
-    Result := cbBack else
+  if HasDoubleBuffer then
+    Result := cbBack
+  else
     Result := cbFront;
 end;
 
-procedure TCastleWindow.SaveScreen(const URL: string);
+procedure TCastleWindow.SaveScreen(const Url: String);
 begin
-  Container.SaveScreen(URL);
+  Container.SaveScreen(Url);
 end;
 
 function TCastleWindow.SaveScreen: TRGBImage;
@@ -3625,39 +3559,39 @@ begin
   Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, SmoothScaling);
 end;
 
-procedure TCastleWindow.SaveScreenDialog(ProposedURL: string);
+procedure TCastleWindow.SaveScreenDialog(ProposedUrl: String);
 begin
-  if FileDialog('Save screen to file', ProposedURL, false, SaveImage_FileFilters) then
+  if FileDialog('Save screen to file', ProposedUrl, false, SaveImage_FileFilters) then
   try
-    SaveScreen(ProposedURL);
+    SaveScreen(ProposedUrl);
   except
     on E: Exception do MessageOK('Unable to save screen: ' + E.Message, mtError);
   end;
 end;
 
-function TCastleWindow.FileDialog(const Title: string; var URL: string;
+function TCastleWindow.FileDialog(const Title: String; var Url: String;
   OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean;
 var
-  FileName: string;
+  FileName: String;
 begin
   { calculate FileName from URL }
-  FileName := URIToFilenameSafe(URL);
+  FileName := UriToFilenameSafe(Url);
   if OpenDialog then
     FileName := ExtractFilePath(FileName);
   Result := BackendFileDialog(Title, FileName, OpenDialog, FileFilters);
   if Result then
-    URL := FilenameToURISafe(FileName);
+    Url := FilenameToUriSafe(FileName);
 end;
 
-function TCastleWindow.FileDialog(const Title: string; var URL: string;
-  OpenDialog: boolean; const FileFilters: string): boolean;
+function TCastleWindow.FileDialog(const Title: String; var Url: String;
+  OpenDialog: boolean; const FileFilters: String): boolean;
 var
   FFList: TFileFilterList;
 begin
   FFList := TFileFilterList.Create(true);
   try
     FFList.AddFiltersFromString(FileFilters);
-    Result := FileDialog(Title, URL, OpenDialog, FFList);
+    Result := FileDialog(Title, Url, OpenDialog, FFList);
   finally FreeAndNil(FFList) end;
 end;
 
@@ -3695,11 +3629,11 @@ end;
 { TCastleWindow ParseParameters -------------------------------------------------- }
 
 procedure WindowOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
   Window: TCastleWindow absolute Data;
 
-  procedure ApplyGeometryParam(const geom: string);
+  procedure ApplyGeometryParam(const geom: String);
   var
     p: integer;
     parWidth, parHeight, parXoff, parYoff: integer;
@@ -3800,7 +3734,7 @@ var
    end;
   end;
 
-  procedure ApplyFullScreenCustomParam(const option: string);
+  procedure ApplyFullScreenCustomParam(const option: String);
   var p: integer;
   begin
    Window.FullScreen := true;
@@ -3852,54 +3786,34 @@ end;
 
 { TCastleWindow miscellaneous -------------------------------------------- }
 
-function TCastleWindow.RequestedBufferAttributes: string;
+procedure TCastleWindow.UpdateRequirements;
 begin
- if DoubleBuffer then
-   Result := 'double buffered' else
-   Result := 'single buffered';
- if ColorBits > 0 then
-   Result := Result + Format(', with RGB colors bits (%d, %d, %d) (total %d color bits)', [RedBits, GreenBits, BlueBits, ColorBits]);
- if DepthBits > 0 then
-   Result := Result + Format(', with %d-bits sized depth buffer', [DepthBits]);
- if StencilBits > 0 then
-   Result := Result + Format(', with %d-bits sized stencil buffer', [StencilBits]);
- if AlphaBits > 0 then
-   Result := Result + Format(', with %d-bits sized alpha channel', [AlphaBits]);
- if MultiSampling > 1 then
-   Result := Result + Format(', with multisampling (%d samples)', [MultiSampling]);
+  FRequirements.DoubleBuffer := DoubleBuffer;
+  FRequirements.ColorBits := ColorBits;
+  FRequirements.RedBits := RedBits;
+  FRequirements.GreenBits := GreenBits;
+  FRequirements.BlueBits := BlueBits;
+  FRequirements.DepthBits := DepthBits;
+  FRequirements.AlphaBits := AlphaBits;
+  FRequirements.StencilBits := StencilBits;
+  FRequirements.MultiSampling := MultiSampling;
+end;
+
+function TCastleWindow.RequestedBufferAttributes: String;
+begin
+  UpdateRequirements;
+  Result := FRequirements.RequestedBufferAttributes;
 end;
 
 procedure TCastleWindow.CheckRequestedBufferAttributes(
-  const ProviderName: string;
+  const ProviderName: String;
   ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
-  ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
-  ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
-
-  procedure CheckRequestedBits(const Name: string; RequestedBits, ProvidedBits: Cardinal);
-  begin
-    if ProvidedBits < RequestedBits then
-      raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %s'
-        +' %d-bits sized but at least %d-bits sized is required',
-        [ ProviderName, Name, ProvidedBits, RequestedBits ]);
-  end;
-
- begin
-  CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
-  CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
-  CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
-
-  { If MultiSampling <= 1, this means that multisampling not required,
-    so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
-    (as most backends report no multisampling as num samples = 0), it's all Ok. }
-
-  if MultiSampling > 1 then
-  begin
-    if ProvidedMultiSampling < MultiSampling then
-     raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %d ' +
-       'samples for multisampling (<= 1 means that no multisampling was provided) ' +
-       'but at last %d samples for multisampling is required',
-       [ ProviderName, ProvidedMultiSampling, MultiSampling ]);
-  end;
+  ProvidedMultiSampling: Cardinal);
+begin
+  UpdateRequirements;
+  FRequirements.CheckRequestedBufferAttributes(ProviderName,
+    ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
+    ProvidedMultiSampling);
 end;
 
 procedure TCastleWindow.MenuUpdateBegin;
@@ -4060,17 +3974,17 @@ begin
   FullScreen := not FullScreen;
 end;
 
-function TCastleWindow.GetPublicCaption: string;
+function TCastleWindow.GetPublicCaption: String;
 begin
   Result := FCaption[cpPublic];
 end;
 
-procedure TCastleWindow.SetPublicCaption(const Value: string);
+procedure TCastleWindow.SetPublicCaption(const Value: String);
 begin
   SetCaption(cpPublic, Value);
 end;
 
-function TCastleWindow.GetWholeCaption: string;
+function TCastleWindow.GetWholeCaption: String;
 begin
   Result := FCaption[cpPublic] + FCaption[cpFps];
 end;
@@ -4093,7 +4007,7 @@ begin
 end;
 
 {$ifndef CASTLE_WINDOW_LIBRARY}
-{$ifndef CASTLE_WINDOW_LCL}
+{$ifndef CASTLE_WINDOW_FORM}
 procedure TCastleWindow.Invalidate;
 begin
   if not Closed then
@@ -4288,13 +4202,6 @@ begin
   for i := 0 to Count - 1 do Items[i].DoUpdate;
 end;
 
-procedure TWindowList.DoTimer;
-var
-  i: integer;
-begin
-  for i := 0 to Count - 1 do Items[i].DoTimer;
-end;
-
 { --------------------------------------------------------------------------
   Generic part of implementation of TCastleApplication,
   that does not depend what CASTLE_WINDOW_xxx backend you want. }
@@ -4306,7 +4213,6 @@ constructor TCastleApplication.Create(AOwner: TComponent);
 begin
   inherited;
   FOpenWindows := TWindowList.Create(false);
-  FTimerMilisec := 1000;
   CreateBackend;
   OnMainContainer := {$ifdef FPC}@{$endif}GetMainContainer;
 end;
@@ -4438,11 +4344,6 @@ begin
   result := -1;
 end;
 
-procedure TCastleApplication.Quit;
-begin
-  Terminate;
-end;
-
 {$ifdef CASTLE_NINTENDO_SWITCH}
 procedure CgeNxApplicationTerminate; cdecl; external;
 {$endif}
@@ -4450,9 +4351,12 @@ procedure CgeNxApplicationTerminate; cdecl; external;
 procedure TCastleApplication.Terminate;
 begin
   inherited;
+
   {$ifdef CASTLE_NINTENDO_SWITCH}
   CgeNxApplicationTerminate;
   {$endif}
+
+  BackendTerminate;
 end;
 
 procedure TCastleApplication.CloseAllOpenWindows;
@@ -4477,31 +4381,7 @@ begin
     Assert(OpenWindowsCount = OldOpenWindowsCount - 1);
   end;
 
-  QuitWhenNoOpenWindows;
-end;
-
-procedure TCastleApplication.DoApplicationUpdate;
-begin
-  if Assigned(FOnUpdate) then FOnUpdate;
-  ApplicationProperties._Update;
-end;
-
-procedure TCastleApplication.DoApplicationTimer;
-begin
-  if Assigned(FOnTimer) then FOnTimer;
-end;
-
-procedure TCastleApplication.MaybeDoTimer;
-var
-  Now: TTimerResult;
-begin
-  Now := Timer;
-  if TimerSeconds(Now, LastMaybeDoTimerTime) >= FTimerMilisec / 1000 then
-  begin
-    LastMaybeDoTimerTime := Now;
-    DoApplicationTimer;
-    FOpenWindows.DoTimer;
-  end;
+  Terminate;
 end;
 
 procedure TCastleApplication.UpdateAndRenderEverything(out WasAnyRendering: boolean);
@@ -4511,9 +4391,9 @@ var
 begin
   WasAnyRendering := false;
 
-  { We call Application.OnUpdate *right before rendering*, because:
+  { We call ApplicationProperties._Update *right before rendering*, because:
 
-     - This makes calls to Application.OnUpdate have similar frequency
+     - This makes ApplicationProperties.OnUpdate callbacks have similar frequency
        as calls to window's OnRender callbacks, when the application
        is under a lot of stress (many messages).
 
@@ -4532,10 +4412,7 @@ begin
 
      In effect, we like to have OnUpdate called roughly as often as OnRender,
      even if we don't really guarantee it. }
-  DoApplicationUpdate;
-  if Terminated then Exit;
-
-  MaybeDoTimer;
+  ApplicationProperties._Update;
   if Terminated then Exit;
 
   { Redraw some windows, and call window's OnUpdate.
@@ -4589,12 +4466,7 @@ function TCastleApplication.AllowSuspendForInput: boolean;
 var
   I: Integer;
 begin
-  {$warnings off} // keep deprecated working - OnTimer
-  Result := not (
-    Assigned(OnUpdate) or
-    {$ifdef FPC}Assigned(OnTimer) or{$endif}
-    (ApplicationProperties.OnUpdate.Count <> 0));
-  {$warnings on}
+  Result := ApplicationProperties.OnUpdate.Count = 0;
   if not Result then Exit;
 
   for I := 0 to OpenWindowsCount - 1 do
@@ -4617,7 +4489,7 @@ begin
 end;
 {$endif not CASTLE_WINDOW_HAS_VIDEO_CHANGE}
 
-function TCastleApplication.VideoSettingsDescribe: string;
+function TCastleApplication.VideoSettingsDescribe: String;
 begin
   Result := '';
   if VideoResize then
@@ -4632,15 +4504,15 @@ begin
 end;
 
 procedure TCastleApplication.VideoChange(OnErrorWarnUserAndContinue: boolean);
-var s: string;
+var s: String;
 begin
  if not TryVideoChange then
  begin
   s := 'Can''t change display settings to : ' + nl + VideoSettingsDescribe;
 
   {$ifndef CASTLE_WINDOW_HAS_VIDEO_CHANGE}
-    s += ' (changing Video properties not implemented when CastleWindow is '+
-      'made on top of ' +BackendName +')';
+    S := S + ' (changing Video properties not implemented when CastleWindow is '+
+      'made on top of ' + BackendName + ')';
   {$endif}
 
   if OnErrorWarnUserAndContinue then
@@ -4727,7 +4599,7 @@ procedure TCastleApplication.HandleException(Sender: TObject);
     OriginalFrameCount: Longint;
     OriginalFrame: Pointer;
     {$endif}
-    ErrMessage: string;
+    ErrMessage: String;
     ContinueApp: Boolean;
   begin
     ErrMessage := ExceptMessage(ExceptObject) + NL + NL +
@@ -4837,9 +4709,9 @@ end;
 
 // TODO: why this doesn't work as static TCastleApplication.OptionProc ?
 procedure ApplicationOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
-  HelpString: string;
+  HelpString: String;
 begin
   case OptionNum of
     0: begin
@@ -4986,12 +4858,12 @@ begin
   ApplicationProperties.LimitFPS := Value;
 end;
 
-function TCastleApplication.GetVersion: string;
+function TCastleApplication.GetVersion: String;
 begin
   Result := ApplicationProperties.Version;
 end;
 
-procedure TCastleApplication.SetVersion(const Value: string);
+procedure TCastleApplication.SetVersion(const Value: String);
 begin
   ApplicationProperties.Version := Value;
 end;
@@ -5010,32 +4882,26 @@ end;
 
 { global --------------------------------------------------------------------- }
 
-procedure Resize2D(Container: TCastleContainer);
-begin
-  RenderContext.Viewport := Container.Rect;
-  OrthoProjection(FloatRectangle(Container.Rect));
-end;
-
 function KeyToString(const KeyString: String; const Key: TKey;
-  const Modifiers: TModifierKeys; out S: string): boolean;
+  const Modifiers: TModifierKeys; out S: String): boolean;
 begin
   if KeyString <> '' then
   begin
     S := KeyStringToNiceStr(KeyString, Modifiers, false
-      {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif} );
+      {$ifdef CASTLE_WINDOW_FORM} {$ifdef LCLCarbon}, true {$endif} {$endif} );
     Result := true;
   end else
   if Key <> keyNone then
   begin
     S := KeyToStr(Key, Modifiers
-      {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif});
+      {$ifdef CASTLE_WINDOW_FORM} {$ifdef LCLCarbon}, true {$endif} {$endif});
     Result := true;
   end else
   Result := false;
 end;
 
 function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
-  out S: string): boolean;
+  out S: String): boolean;
 begin
   Result := KeyToString(AKeyString, Key, Modifiers, S);
 end;

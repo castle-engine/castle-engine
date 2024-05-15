@@ -51,8 +51,8 @@ type
   csshort                = cint16;             pcsshort               = ^csshort;
   cushort                = cuint16;            pcushort               = ^cushort;
 
-  cint32                 = longint;            pcint32                = ^cint32;
-  cuint32                = longword;           pcuint32               = ^cuint32;
+  cint32                 = Integer;            pcint32                = ^cint32;
+  cuint32                = Cardinal;           pcuint32               = ^cuint32;
 
   cint64                 = int64;              pcint64                = ^cint64;
   cuint64                = qword;              pcuint64               = ^cuint64;
@@ -74,15 +74,15 @@ type
   cint                   = cint16;             pcint                  = ^cint;
   csint                  = cint16;             pcsint                 = ^csint;
   cuint                  = cuint16;            pcuint                 = ^cuint;
-  clong                  = longint;            pclong                 = ^clong;
-  cslong                 = longint;            pcslong                = ^cslong;
+  clong                  = Integer;            pclong                 = ^clong;
+  cslong                 = Integer;            pcslong                = ^cslong;
   culong                 = cardinal;           pculong                = ^culong;
 {$else}
   cint                   = cint32;             pcint                  = ^cint;              { minimum range is : 32-bit    }
   csint                  = cint32;             pcsint                 = ^csint;             { minimum range is : 32-bit    }
   cuint                  = cuint32;            pcuint                 = ^cuint;             { minimum range is : 32-bit    }
-  clong                  = longint;            pclong                 = ^clong;
-  cslong                 = longint;            pcslong                = ^cslong;
+  clong                  = Integer;            pclong                 = ^clong;
+  cslong                 = Integer;            pcslong                = ^cslong;
   culong                 = cardinal;           pculong                = ^culong;
 {$ifend}
 

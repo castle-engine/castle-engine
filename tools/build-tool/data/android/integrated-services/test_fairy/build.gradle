@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <repositories>
+    <repository>maven { url 'https://maven.testfairy.com' }</repository>
+  </repositories>
+</build_gradle_merge>

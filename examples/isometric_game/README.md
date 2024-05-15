@@ -8,15 +8,21 @@ Simple example of arranging images in a viewport to show an isometric map layout
 
 - It includes a pre-designed `TCastleScene` with a sprite sheet and `TCastleImageTransform` with a penguin, just to show that we can also place stuff using the editor in `gameviewmain.castle-user-interface`.
 
+    Animations, sprite sheets, physics... everything can be placed on map this way. See https://castle-engine.io/viewport_and_scenes for documentation what components can be used in a viewport.
+
 - The design contains `TCastle2DNavigation` component so user can easily move (drag with left mouse button) and zoom the map (mouse wheel).
 
-TODO:
+![Screenshot](screenshot.png)
 
-- Utilize cross-scene batching when drawing. This *can* be drawn ultra-fast.
+## Notes
 
-    Currently this example is *not* an efficient way to render a big map, but we absolutely want to work on it and make it fast. This is just a set of static images, they could even be "baked" to one big image, and drawing this should be zero effort for GPU.
+- Cross-scene batching when drawing is very important in case of this demo. You need `DynamicBatching` = `true` to have reasonable performance for non-trivial maps.
 
-    The deprecated example `deprecated_to_upgrade/isometric_game/` shows much faster (for now) drawing using `TDrawableImage` albeit with much less flexibility. Animations, sprite sheets, physics, out-of-the-box 2D navigation: this works in the approach presented here.
+    Without `DynamicBatching`, this would make 1 "draw call" per image, very inefficient for large maps with 1 or more image per tile. With `DynamicBatching`, images are batched, and the "draw calls" number drops significantly, making them trivial to render.
+
+    Use key `b` to toggle `DynamicBatching` to test this.
+
+## TODO
 
 - Turn this into a real isometric game :)
 
@@ -40,8 +46,10 @@ Using [Castle Game Engine](https://castle-engine.io/).
 
 Compile by:
 
-- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+- [CGE editor](https://castle-engine.io/editor). Just use menu items _"Compile"_ or _"Compile And Run"_.
 
 - Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
 
-- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `isometric_game_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `isometric_game_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
+
+- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi `isometric_game_standalone.dproj` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details.

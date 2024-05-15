@@ -23,7 +23,7 @@ interface
 uses Classes, CastleXMLConfig;
 
 type
-  TOnOpenRecent = procedure (const URL: string) of object;
+  TOnOpenRecent = procedure (const Url: String) of object;
 
   { Manage a list of recently open files.
 
@@ -33,11 +33,11 @@ type
     For TCastleWindow menu version, see TCastleRecentFiles. }
   TRecentFiles = class(TComponent)
   private
-    FURLs: TStringList;
+    FUrls: TStringList;
     FMaxCount: Cardinal;
     FOnOpenRecent: TOnOpenRecent;
   protected
-    { Create and destroy menu (or anything else that mirrors URLs contents).
+    { Create and destroy menu (or anything else that mirrors Urls contents).
       @groupBegin }
     procedure MenuCreate; virtual;
     procedure MenuDestroy; virtual;
@@ -49,21 +49,21 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Adds as the most recent file URL.
+    { Adds as the most recent file Url.
 
       Note that we want to store only absolute URLs.
       So this method will always call AbsoluteURI (which will eventually
       call ExpandFileName on filename inside, and make sure it has appropriate
       protocol) on the given URL. }
-    procedure Add(const URL: String); overload; virtual;
+    procedure Add(const Url: String); overload; virtual;
 
-    procedure Add(const URL: String; const Ignored: Boolean); overload; deprecated 'use Add(URL)';
+    procedure Add(const Url: String; const Ignored: Boolean); overload; deprecated 'use Add(Url)';
 
     { Remove URL. }
-    procedure Remove(const URL: String);
+    procedure Remove(const Url: String);
 
     { List of currently stored URLs. @italic(This is readonly.) }
-    property URLs: TStringList read FURLs;
+    property Urls: TStringList read FUrls;
 
     { Load and save recently opened files list to/from the Config file.
       @groupBegin }
@@ -79,12 +79,12 @@ type
 
 implementation
 
-uses SysUtils, CastleClassUtils, CastleURIUtils;
+uses SysUtils, CastleClassUtils, CastleUriUtils;
 
 constructor TRecentFiles.Create(AOwner: TComponent);
 begin
   inherited;
-  FURLs := TStringList.Create;
+  FUrls := TStringList.Create;
   FMaxCount := DefaultMaxCount;
 
   // automatic loading/saving is more troublesome than it's worth
@@ -101,7 +101,7 @@ begin
   //   Config.RemoveSaveListener(@SaveToConfig);
   // end;
 
-  FreeAndNil(FURLs);
+  FreeAndNil(FUrls);
   inherited;
 end;
 
@@ -113,16 +113,16 @@ procedure TRecentFiles.MenuDestroy;
 begin
 end;
 
-procedure TRecentFiles.Add(const URL: String);
+procedure TRecentFiles.Add(const Url: String);
 var
   F: string;
   Index: Integer;
 begin
-  F := AbsoluteURI(URL);
+  F := AbsoluteURI(Url);
 
   { We calculate Index, because if user opens a file already on the "recent files"
     list then we want to just move this URL to the top. }
-  Index := URLs.IndexOf(F);
+  Index := Urls.IndexOf(F);
 
   if Index = 0 then
     Exit { user reopens last opened file, nothing to do };
@@ -130,37 +130,37 @@ begin
   if Index <> -1 then
   begin
     { Just move Index to the beginning }
-    URLs.Delete(Index);
-    URLs.Insert(0, F);
+    Urls.Delete(Index);
+    Urls.Insert(0, F);
   end else
   begin
-    URLs.Insert(0, F);
-    Strings_Trim(URLs, MaxCount);
+    Urls.Insert(0, F);
+    Strings_Trim(Urls, MaxCount);
   end;
 
   MenuDestroy;
   MenuCreate;
 end;
 
-procedure TRecentFiles.Add(const URL: String; const Ignored: Boolean);
+procedure TRecentFiles.Add(const Url: String; const Ignored: Boolean);
 begin
-  Add(URL);
+  Add(Url);
 end;
 
-procedure TRecentFiles.Remove(const URL: String);
+procedure TRecentFiles.Remove(const Url: String);
 var
   F: string;
   Index: Integer;
 begin
-  F := AbsoluteURI(URL);
+  F := AbsoluteURI(Url);
 
   { We calculate Index, because if user opens a file already on the "recent files"
     list then we want to just move this URL to the top. }
-  Index := URLs.IndexOf(F);
+  Index := Urls.IndexOf(F);
 
   if Index <> -1 then
   begin
-    URLs.Delete(Index);
+    Urls.Delete(Index);
     MenuDestroy;
     MenuCreate;
   end;
@@ -175,13 +175,13 @@ var
   I, C: Integer;
   S: string;
 begin
-  URLs.Clear;
+  Urls.Clear;
   C := Config.GetValue(Path + '/count', 0);
   for I := 0 to C - 1 do
   begin
     S := Config.GetValue(Path + '/item' + IntToStr(I) + '/url', '');
     if S <> '' then
-      URLs.Append(S);
+      Urls.Append(S);
   end;
 
   MenuDestroy;
@@ -192,9 +192,9 @@ procedure TRecentFiles.SaveToConfig(const Config: TCastleConfig);
 var
   I: Integer;
 begin
-  Config.SetDeleteValue(Path + '/count', URLs.Count, 0);
-  for I := 0 to URLs.Count - 1 do
-    Config.SetDeleteValue(Path + '/item' + IntToStr(I) + '/url', URLs[I], '');
+  Config.SetDeleteValue(Path + '/count', Urls.Count, 0);
+  for I := 0 to Urls.Count - 1 do
+    Config.SetDeleteValue(Path + '/item' + IntToStr(I) + '/url', Urls[I], '');
 end;
 
 end.

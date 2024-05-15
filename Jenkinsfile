@@ -22,7 +22,10 @@ pipeline {
   agent none
 
   parameters {
-    booleanParam(name: 'jenkins_fast', defaultValue: false, description: 'Use at emergencies, to make pipeline build faster')
+    /* Since our Jenkins servers are really overloaded now,
+       we build by default with jenkins_fast=true,
+       and rely on Jenkinsfile.non-critical to perform all non-critical tests. */
+    booleanParam(name: 'jenkins_fast', defaultValue: true, description: 'Make pipeline build faster')
   }
 
   stages {
@@ -32,7 +35,7 @@ pipeline {
        for parallel syntax. */
     stage('Run parallel builds') {
       parallel {
-        stage('Docker (Linux)') {
+        stage('Docker (Linux) (Default FPC)') {
           agent {
             docker {
               image 'kambi/castle-engine-cloud-builds-tools:cge-none'
@@ -76,13 +79,13 @@ pipeline {
               when { not { expression { return params.jenkins_fast } } }
               steps {
                 /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-                sh 'make clean examples'
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
               }
             }
             stage('(Docker) Build Examples Using Lazarus (Default FPC/Lazarus)') {
               when { not { expression { return params.jenkins_fast } } }
               steps {
-                sh 'make clean examples-laz'
+                sh 'make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true'
               }
             }
             stage('(Docker) Build And Run Auto-Tests (Default FPC)') {
@@ -95,76 +98,6 @@ pipeline {
                 sh 'make clean test-fpmake'
               }
             }
-
-            /* Same with FPC 3.2.0.
-               We could use a script to reuse the code,
-               but then the detailed time breakdown/statistics would not be available in Jenkins. */
-
-            stage('(Docker) Build Tools (FPC 3.2.0)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tools'
-              }
-            }
-            stage('(Docker) Build Examples (FPC 3.2.0)') {
-              when { not { expression { return params.jenkins_fast } } }
-              steps {
-                /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples'
-              }
-            }
-            stage('(Docker) Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
-              when { not { expression { return params.jenkins_fast } } }
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean examples-laz'
-              }
-            }
-            stage('(Docker) Build And Run Auto-Tests (FPC 3.2.0)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean tests'
-              }
-            }
-            stage('(Docker) Build Using FpMake (FPC 3.2.0)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh 3.2.0 && make clean test-fpmake'
-              }
-            }
-
-            /* Same with FPC trunk.
-               We could use a script to reuse the code,
-               but then the detailed time breakdown/statistics would not be available in Jenkins. */
-
-            stage('(Docker) Build Tools (FPC trunk)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools'
-              }
-            }
-            stage('(Docker) Build Examples (FPC trunk)') {
-              when { not { expression { return params.jenkins_fast } } }
-              steps {
-                /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
-              }
-            }
-            stage('(Docker) Build Examples Using Lazarus (FPC trunk/Lazarus)') {
-              when { not { expression { return params.jenkins_fast } } }
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
-              }
-            }
-            stage('(Docker) Build And Run Auto-Tests (FPC trunk)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tests'
-              }
-            }
-            /* fpmake compilation with FPC 3.3.1 from 2022-12-27 is broken,
-               TODO investigate and report.
-
-            stage('(Docker) Build Using FpMake (FPC trunk)') {
-              steps {
-                sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake'
-              }
-            }
-            */
 
             stage('(Docker) Pack Release (for Windows and Linux)') {
               steps {
@@ -184,14 +117,122 @@ pipeline {
             }
           }
         }
-        /* Raspberry Pi is very slow and overloaded, rebuild for it only on master */
-        stage('Raspberry Pi') {
-          when {
-            allOf {
-              not { expression { return params.jenkins_fast } };
-              branch "master"
+
+        /* Same with FPC 3.2.0.
+            We could use a script to reuse the code,
+            but then the detailed time breakdown/statistics would not be available in Jenkins. */
+        stage('Docker (Linux) (FPC 3.2.0)') {
+          agent {
+            docker {
+              image 'kambi/castle-engine-cloud-builds-tools:cge-none-fpc320'
             }
           }
+          environment {
+            /* Used by CGE build tool ("castle-engine").
+               Define env based on another env variable.
+               According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+               this should be supported. */
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+          }
+          stages {
+            stage('(Docker) Cleanup (FPC 3.2.0)') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+
+            stage('(Docker) Build Tools (FPC 3.2.0)') {
+              steps {
+                sh 'make clean tools'
+              }
+            }
+            stage('(Docker) Build Examples (FPC 3.2.0)') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(Docker) Build Examples Using Lazarus (FPC 3.2.0/Lazarus)') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(Docker) Build And Run Auto-Tests (FPC 3.2.0)') {
+              steps {
+                sh 'make clean tests'
+              }
+            }
+            stage('(Docker) Build Using FpMake (FPC 3.2.0)') {
+              steps {
+                sh 'make clean test-fpmake'
+              }
+            }
+          }
+        }
+
+        /* Same with FPC 3.3.1.
+            We could use a script to reuse the code,
+            but then the detailed time breakdown/statistics would not be available in Jenkins. */
+        stage('Docker (Linux) (FPC 3.3.1)') {
+          agent {
+            docker {
+              image 'kambi/castle-engine-cloud-builds-tools:cge-none-fpc331'
+            }
+          }
+          environment {
+            /* Used by CGE build tool ("castle-engine").
+               Define env based on another env variable.
+               According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+               this should be supported. */
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+          }
+          stages {
+            stage('(Docker) Cleanup (FPC 3.3.1)') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+
+            stage('(Docker) Build Tools (FPC 3.3.1)') {
+              steps {
+                sh 'make clean tools'
+              }
+            }
+            stage('(Docker) Build Examples (FPC 3.3.1)') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(Docker) Build Examples Using Lazarus (FPC 3.3.1/Lazarus)') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(Docker) Build And Run Auto-Tests (FPC 3.3.1)') {
+              steps {
+                sh 'make clean tests'
+              }
+            }
+            /* fpmake compilation with FPC 3.3.1 from 2022-12-27 is broken,
+               TODO investigate and report.
+
+            stage('(Docker) Build Using FpMake (FPC 3.3.1)') {
+              steps {
+                sh 'make clean test-fpmake'
+              }
+            }
+            */
+          }
+        }
+
+        stage('Raspberry Pi') {
+          /* Raspberry Pi is very slow and overloaded, rebuild for it only on master */
+          when { branch "master" }
           agent {
             label 'raspberry-pi-cge-builder'
           }
@@ -225,21 +266,23 @@ pipeline {
               }
             }
             stage('(RPi) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
               }
             }
             stage('(RPi) Build And Run Auto-Tests') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make tests'
               }
             }
             stage('(RPi) Build Using FpMake') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
                 sh 'make clean test-fpmake'
               }
             }
-
             stage('(RPi) Pack Release') {
               steps {
                 sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
@@ -249,8 +292,72 @@ pipeline {
             }
           }
         }
+        stage('Raspberry Pi (64-bit)') {
+          /* To not overload the slower RPi, use it only with master. */
+          when { branch "master" }
+          agent {
+            label 'raspberry-pi-64-cge-builder'
+          }
+          environment {
+            /* Used by CGE build tool ("castle-engine").
+               Define env based on another env variable.
+               According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+               this should be supported. */
+            CASTLE_ENGINE_PATH = "${WORKSPACE}"
+            PATH = "${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/"
+            // We need to use FPC 3.2.3 for packing
+            CASTLE_PACK_DISABLE_FPC_VERSION_CHECK = "true"
+          }
+          stages {
+            stage('(RPi64) Info') {
+              steps {
+                // check versions (and availability) of our requirements early
+                sh 'fpc -iV'
+                sh 'lazbuild --version'
+                sh 'make --version'
+              }
+            }
+            stage('(RPi64) Cleanup') {
+              steps {
+                sh "repository_cleanup . --remove-unversioned"
+              }
+            }
+            stage('(RPi64) Build Tools') {
+              steps {
+                sh 'rm -Rf installed/'
+                sh 'mkdir -p installed/'
+                sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
+              }
+            }
+            stage('(RPi64) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
+              }
+            }
+            stage('(RPi64) Build And Run Auto-Tests') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make tests'
+              }
+            }
+            stage('(RPi64) Build Using FpMake') {
+              when { not { expression { return params.jenkins_fast } } }
+              steps {
+                sh 'make clean test-fpmake'
+              }
+            }
+
+            stage('(RPi64) Pack Release') {
+              steps {
+                sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
+                sh './tools/internal/pack_release/pack_release.sh linux aarch64'
+                archiveArtifacts artifacts: 'castle-engine*.zip'
+              }
+            }
+          }
+        }
         stage('macOS') {
-          when { not { expression { return params.jenkins_fast } } }
           agent {
             label 'mac-cge-builder'
           }
@@ -288,8 +395,9 @@ pipeline {
               }
             }
             stage('(macOS) Build Examples') {
+              when { not { expression { return params.jenkins_fast } } }
               steps {
-                sh 'make clean examples'
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
               }
             }
             stage('(macOS) Build And Run Auto-Tests') {
@@ -360,6 +468,10 @@ pipeline {
                 sh 'fpc -iV'
                 sh 'lazbuild --version'
                 sh 'make --version'
+                /* Make sure we got GNU Make, not Embarcadero make.
+                   This is important, as Delphi installer inserts Embarcadero make into PATH,
+                   earlier than Cygwin's. It has to be corrected after installation. */
+                sh 'if make -version 2>&1 | grep -i "GNU Make" -; then echo "Make from GNU"; else echo "Make not from GNU!"; exit 1; fi'
               }
             }
             stage('(Windows) Cleanup') {
@@ -386,7 +498,7 @@ pipeline {
             stage('(Windows) Build Examples') {
               when { not { expression { return params.jenkins_fast } } }
               steps {
-                sh 'make clean examples'
+                sh 'make clean examples CASTLE_CONSERVE_DISK_SPACE=true'
               }
             }
             stage('(Windows) Build And Run Auto-Tests') {
@@ -466,7 +578,7 @@ pipeline {
                 sh 'cp tools/build-tool/castle-engine.exe ${CASTLE_ENGINE_PATH}/installed/bin/'
               }
             }
-            stage('(Delphi) Check AutoTests (Win64)') {
+            stage('(Delphi) Check Delphi AutoTests (Win64)') {
               steps {
                 dir ('tests/delphi_tests/') {
                   sh 'castle-engine clean'
@@ -475,7 +587,7 @@ pipeline {
                 }
               }
             }
-            stage('(Delphi) Check AutoTests (Win32)') {
+            stage('(Delphi) Check Delphi AutoTests (Win32)') {
               steps {
                 dir ('tests/delphi_tests/') {
                   sh 'castle-engine clean'
@@ -484,21 +596,21 @@ pipeline {
                 }
               }
             }
-            stage('(Delphi) Check AutoTests with NO_WINDOW_SYSTEM (Win64)') {
+            stage('(Delphi) Check AutoTests (Win64)') {
               steps {
                 dir ('tests/') {
                   sh 'castle-engine clean'
-                  sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64 --compiler-option=-dNO_WINDOW_SYSTEM'
-                  sh 'castle-engine run -- --console'
+                  sh 'castle-engine compile --compiler=delphi --os=win64 --cpu=x86_64'
+                  sh 'castle-engine run -- --console --no-window-create'
                 }
               }
             }
-            stage('(Delphi) Check AutoTests with NO_WINDOW_SYSTEM (Win32)') {
+            stage('(Delphi) Check AutoTests (Win32)') {
               steps {
                 dir ('tests/') {
                   sh 'castle-engine clean'
-                  sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386 --compiler-option=-dNO_WINDOW_SYSTEM'
-                  sh 'castle-engine run -- --console'
+                  sh 'castle-engine compile --compiler=delphi --os=win32 --cpu=i386'
+                  sh 'castle-engine run -- --console --no-window-create'
                 }
               }
             }

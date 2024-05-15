@@ -33,6 +33,8 @@
   that contain the size and contents of your images.
   Remember that you can provide many image URLs on the command-line,
   then all of them will be included in the unit.
+  The images are compressed with simple RLE compression per-channel,
+  to not make the EXE size (and compilation speed) too large.
 
   For an example output of this program see e.g. view3dscene sources,
   unit v3dsceneimages, generated from images inside view3dscene/images.
@@ -43,17 +45,18 @@
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils,
-  CastleParameters, CastleURIUtils, CastleStringUtils,
-  CastleClassUtils, CastleDownload;
+  CastleParameters, CastleUriUtils, CastleStringUtils,
+  CastleClassUtils, CastleDownload, CastleLog;
 
 var
   OutputDirectory: string = '';
 
 const
-  Options: array [0..2] of TOption = (
+  Options: array [0..3] of TOption = (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
-    (Short: 'o'; Long: 'output'; Argument: oaRequired)
+    (Short: 'o'; Long: 'output'; Argument: oaRequired),
+    (Short: 'V'; Long: 'verbose'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -73,6 +76,7 @@ begin
            OptionDescription('-v / --version', 'Print the version number and exit.') + NL +
            OptionDescription('--no-show-progress', 'Do not show progress on stderr.') + NL +
            OptionDescription('-o / --output DIRECTORY', 'Place output unit files inside this dir.') + NL +
+           OptionDescription('-V / --verbose', 'Print full log.') + NL +
            OptionDescription('@alpha=keep', 'Keep the alpha channel on the following images (the default). As a result, alpha channel will be stored in source files.') + NL +
            OptionDescription('@alpha=strip', 'Strip the alpha channel from the following images.') + NL +
            OptionDescription('@alpha=keep-and-bleed', 'Like "keep", moreover perform "alpha bleeding" (see https://castle-engine.io/manual_alpha_bleeding.php ) to fix RGB values under transparent pixels.') + NL
@@ -85,16 +89,17 @@ begin
          Halt;
        end;
     2: OutputDirectory := Argument + '/';
+    3: InitializeLog;
     else raise EInternalError.Create('OptionProc -- unknown arg');
   end;
 end;
 
-function PascalNameFromURL(const URL: String): String;
+function PascalNameFromUrl(const Url: String): String;
 const
   ValidChars = ['0'..'9', 'a'..'z', 'A'..'Z', '_'];
   ValidFirstChars = ['a'..'z', 'A'..'Z', '_'];
 begin
-  Result := DeleteURIExt(ExtractURIName(URL));
+  Result := DeleteURIExt(ExtractURIName(Url));
   // replace chars not valid in the middle of Pascal identifier
   Result := SReplaceChars(Result, AllChars - ValidChars, '_');
   // replace chars not valid as 1st char of Pascal identifier
@@ -108,7 +113,7 @@ type
 
 var
   Image, TempImage: TCastleImage;
-  ImageURL: string;
+  ImageUrl: String;
   UnitName, ImageName: string;
   CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string;
   ImageIndex: Integer;
@@ -128,34 +133,34 @@ begin
   CodeFinalization := '';
   for ImageIndex := 1 to Parameters.High do
   begin
-    ImageURL := Parameters[ImageIndex];
+    ImageUrl := Parameters[ImageIndex];
 
-    if ImageURL = '@alpha=strip' then
+    if ImageUrl = '@alpha=strip' then
     begin
       Alpha := alphaStrip;
       Continue;
     end else
-    if ImageURL = '@alpha=keep' then
+    if ImageUrl = '@alpha=keep' then
     begin
       Alpha := alphaKeep;
       Continue;
     end else
-    if ImageURL = '@alpha=keep-and-bleed' then
+    if ImageUrl = '@alpha=keep-and-bleed' then
     begin
       Alpha := alphaKeepAndBleed;
       Continue;
     end;
 
     { init other Image* variables }
-    ImageName := PascalNameFromURL(ImageURL);
-    Image := LoadImage(ImageURL);
+    ImageName := PascalNameFromUrl(ImageUrl);
+    Image := LoadImage(ImageUrl);
     try
       if Image.HasAlpha then
       begin
         case Alpha of
           alphaStrip:
             begin
-              Writeln(ErrOutput, 'Stripping alpha from ', ImageURL);
+              Writeln(ErrOutput, 'Stripping alpha from ', ImageUrl);
               TempImage := TRGBImage.Create;
               TempImage.Assign(Image);
               FreeAndNil(Image);
@@ -164,7 +169,7 @@ begin
             end;
           alphaKeepAndBleed:
             begin
-              Writeln(ErrOutput, 'Making alpha bleeding on ', ImageURL);
+              Writeln(ErrOutput, 'Making alpha bleeding on ', ImageUrl);
               // convert to TRGBAlphaImage as alpha bleeding is implemented only there
               TempImage := TRGBAlphaImage.Create;
               TempImage.Assign(Image);
@@ -187,9 +192,7 @@ begin
     finally FreeAndNil(Image) end;
   end;
 
-  { output full unit contents.
-    Beware to not concatenate huge Images* strings in the memory,
-    could be a performance / memory problem? Although code above does it anyway? }
+  { output full unit contents }
   OutputUnit := TTextWriter.Create(OutputDirectory + LowerCase(UnitName) + '.pas');
   OutputUnit.Write(
     '{ -*- buffer-read-only: t -*- }' +NL+
@@ -207,7 +210,7 @@ begin
   OutputUnit.Write(
     'implementation' + nl +
     nl+
-    'uses SysUtils;' + nl +
+    'uses SysUtils, CastleInternalDataCompression;' + nl +
     nl +
     '{ Actual image data is included from another file, with a deliberately' +NL+
     '  non-Pascal file extension ".image_data". This way online code analysis' +NL+
