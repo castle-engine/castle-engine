@@ -1,6 +1,6 @@
 unit FollowingTargetForCamera;
 
-{$mode ObjFPC}{$H+}
+{$I castleconf.inc}
 
 interface
 
