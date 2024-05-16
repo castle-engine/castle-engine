@@ -1,3 +1,19 @@
+{
+  Copyright 2023-2024 Andrzej Kilijański, Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Behavior that makes parent follow the target (@link(TFollowingTargetForCamera)). }
 unit FollowingTargetForCamera;
 
 {$I castleconf.inc}
@@ -9,8 +25,7 @@ uses
   CastleVectors, CastleClassUtils, CastleScene, CastleInputAxis;
 
 type
-
-  { Makes parent follows the target  }
+  { Behavior that makes parent follow the target. }
   TFollowingTargetForCamera = class(TCastleBehavior)
   strict private
     FMaxDistanceToTarget: Single;

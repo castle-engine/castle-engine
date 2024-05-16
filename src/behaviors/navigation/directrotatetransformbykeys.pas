@@ -1,4 +1,22 @@
+{
+  Copyright 2023-2024 Andrzej Kilijański, Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Rotate transform directly by keys (@link(TDirectRotateTransformByKeys)). }
 unit DirectRotateTransformByKeys;
+
+{$I castleconf.inc}
 
 interface
 
@@ -7,7 +25,7 @@ uses
   CastleVectors, CastleInputs, CastleClassUtils;
 
 type
-  { Rotates transform direct by keys. Do not use with physics
+  { Rotates transform directly by keys. Do not use with physics
     objects/navigation. MAy be usefull in other scenarios so I leave it here. }
   TDirectRotateTransformByKeys = class(TCastleBehavior)
   strict private
