@@ -135,9 +135,6 @@
       // Always equal to FindBehaviors(TCastleRigidBody)
       FCachedRigidBody: TCastleRigidBody;
 
-      // Always equal to FindBehaviors(TCastleRigidBody)
-      FCachedRigidBody: TCastleRigidBody;
-
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
     procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
