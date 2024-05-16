@@ -4531,7 +4531,7 @@ See https://castle-engine.io/license.php for details.
       <Item1110>
         <Filename Value="../src/behaviors/navigation/modular/modules/headbobbing.pas"/>
         <UnitName Value="HeadBobbing"/>
-      </Item1110
+      </Item1110>
       <Item1111>
         <Filename Value="../src/behaviors/navigation/modular/modules/stairssupport.pas"/>
         <UnitName Value="StairsSupport"/>
