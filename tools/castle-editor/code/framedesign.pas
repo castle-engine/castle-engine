@@ -5393,6 +5393,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     end;
   end;
 
+  // TODO: use this to implement changing behavior order
   procedure MoveBehaviorBeforeAfterAnotherBehavior(const Src, Dst: TCastleBehavior);
   var
     BehIndex: Integer;
