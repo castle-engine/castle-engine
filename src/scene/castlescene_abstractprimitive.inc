@@ -337,9 +337,12 @@ begin
 end;
 
 procedure TCastleAbstractPrimitive.UpdateCollider;
+var
+  C: TCastleCollider;
 begin
-  if Collider <> nil then
-    Collider.InternalTransformChanged(Self);
+  C := FindBehavior(TCastleCollider) as TCastleCollider;
+  if C <> nil then
+    C.InternalTransformChanged(Self);
 end;
 
 {$define read_implementation_methods}
