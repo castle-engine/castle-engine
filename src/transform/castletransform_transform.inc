@@ -134,6 +134,8 @@
 
       // Always equal to FindBehaviors(TCastleRigidBody)
       FCachedRigidBody: TCastleRigidBody;
+      // Always equal to FindBehaviors(TCastleCollider)
+      FCachedCollider: TCastleCollider;
 
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
@@ -1732,6 +1734,33 @@
       @link(EMultipleReferencesInWorld) exception at an undefined time. }
     property RigidBody: TCastleRigidBody read FCachedRigidBody;
 
+    { Current TCastleCollider behavior that determines what is
+      the shape of this object when it participates in the physics simulation.
+
+      This property is always exactly equivalent to using
+      @code(FindBehavior(TCastleCollider) as TCastleCollider).
+      It is just a more convenient (and marginally faster) way to access this
+      common behavior.
+
+      See @url(https://castle-engine.io/physics physics manual)
+      for an overview of using physics. You need to add both
+      TCastleRigidBody and TCastleCollider to make physics work.
+      Then this object is collidable with other rigid bodies,
+      it can move and rotate because of gravity
+      or because of collisions with other objects
+      (if @link(TCastleRigidBody.Dynamic) is @true).
+
+      It is not possible to set this property.
+      Instead use @link(AddBehavior)
+      to add an instance of TCastleCollider to the behaviors list.
+      If there was a previous TCastleCollider instance, you can decide what
+      to do with it, e.g. you can remove it using @link(RemoveBehavior).
+
+      Note that an object can only be present once in the @link(World)
+      to be a rigid body. Breaking this rule will cause the
+      @link(EMultipleReferencesInWorld) exception at an undefined time. }
+    property Collider: TCastleCollider read FCachedCollider;
+
     { @deprecated Deprecated name for Translation. }
     property Position: TVector3 read FTranslation write SetTranslation;
       {$ifdef FPC}deprecated 'use Translation';{$endif}
@@ -1939,7 +1968,7 @@
 
       @seealso FindBehavior
       @seealso BehaviorsEnumerate }
-    procedure InsertBehavior(const Index: Integer; const Behavior: TCastleBehavior);
+    //procedure InsertBehavior(const Index: Integer; const Behavior: TCastleBehavior);
 
     { Returns behavior index on internal list, -1 means not found. }
     function BehaviorIndex(const Behavior: TCastleBehavior): Integer;
@@ -3074,11 +3103,6 @@ begin
 
     Behavior.FParent := nil;
 
-    if Behavior is  TCastleRigidBody then
-      FRigidBodyCache := nil;
-    if Behavior is TCastleCollider then
-      FColliderCache := nil;
-
     { Could be called but a lot of exsiting code doesn't check Parent = nil.
       For backward compatibility of this deprecated method, don't call it. }
     // Behavior.ParentChanged;
@@ -4171,6 +4195,7 @@ end;
 procedure TCastleTransform.UpdateCachedBehaviors;
 begin
   FCachedRigidBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  FCachedCollider := FindBehavior(TCastleCollider) as TCastleCollider;
 end;
 
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
@@ -4199,10 +4224,6 @@ begin
 
     FBehaviors.Add(Behavior);
     Behavior.FParent := Self;
-    if Behavior is  TCastleRigidBody then
-      FRigidBodyCache := TCastleRigidBody(Behavior);
-    if Behavior is TCastleCollider then
-      FColliderCache := TCastleCollider(Behavior);
     Behavior.ParentAfterAttach;
     {$warnings off}
     Behavior.ParentChanged; // call at end, when state is consistent
@@ -4221,6 +4242,13 @@ begin
     UpdateCachedBehaviors;
   end;
 end;
+
+(*
+This is only for unused MoveBehaviorBeforeAfterAnotherBehavior now.
+TODO: Cannot be implemented like this, as copy-paste of AddBehavior -- to easy
+to introduce mistakes when maintaining (it already happened at merge).
+Should be implemented by adjusting AddBehavior, and then
+AddBehavior should jus call InsertBehavior.
 
 procedure TCastleTransform.InsertBehavior(const Index: Integer;
   const Behavior: TCastleBehavior);
@@ -4251,10 +4279,6 @@ begin
     { Inseert to new parent }
     FBehaviors.Insert(Index, Behavior);
     Behavior.FParent := Self;
-    if Behavior is  TCastleRigidBody then
-      FRigidBodyCache := TCastleRigidBody(Behavior);
-    if Behavior is TCastleCollider then
-      FColliderCache := TCastleCollider(Behavior);
     Behavior.ParentAfterAttach;
     {$warnings off}
     Behavior.ParentChanged; // call at end, when state is consistent
@@ -4268,8 +4292,12 @@ begin
         Behavior.WorldAfterAttach;
     end;
     NotifyBehaviorAdded(Behavior);
+
+    UpdateBehaviorsNeedBeforeRender;
+    UpdateCachedBehaviors;
   end;
 end;
+*)
 
 function TCastleTransform.BehaviorIndex(const Behavior: TCastleBehavior
   ): Integer;
@@ -4290,11 +4318,6 @@ begin
     Beh.WorldBeforeDetach;
 
   Beh.ParentBeforeDetach;
-
-  if Beh is  TCastleRigidBody then
-    FRigidBodyCache := nil;
-  if Beh is TCastleCollider then
-    FColliderCache := nil;
 
   Beh.FParent := nil;
   FBehaviors.Delete(BehaviorIndex);
@@ -4455,6 +4478,8 @@ begin
 end;
 
 procedure TCastleTransform.SetExists(const Value: Boolean);
+var
+  RBody: TCastleRigidBody;
 begin
   if FExists <> Value then
   begin
@@ -4501,6 +4526,8 @@ begin
 end;
 
 procedure TCastleTransform.ExistsInRootChanged;
+var
+  RBody: TCastleRigidBody;
 begin
   { Update rigid body existence when ExistsInRoot changes }
   if (FWorld <> nil) and (FWorld.FKraftEngine <> nil) then
