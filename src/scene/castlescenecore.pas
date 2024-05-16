@@ -1846,14 +1846,14 @@ type
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const Params: TPrepareParams); override;
 
-    {$ifdef FPC}
     { Static scene will not be automatically notified about the changes
       to the field values. This means that TX3DField.Send and
-      TX3DField.Changed will not notify this scene. This makes a
-      small optimization when you know you will not modify scene's VRML/X3D graph
-      besides loading (or you're prepared to do it by manually calling
-      Scene.InternalChangedField, but this should not be used anymore, it's really
-      dirty).
+      TX3DField.Changed will not notify this scene.
+
+      This makes a small optimization when you know you will not modify scene's
+      nodes graph after loading (or you're prepared to notify about it by
+      manually calling Scene.InternalChangedField, though as the name suggests
+      -- you're entering "internal" API which is not guaranteed to work in the future).
 
       The behavior of events is undefined when scene is static.
       This means that you should always have ProcessEvents = @false
@@ -1861,10 +1861,17 @@ type
       to freely change ProcessEvents to @true.
 
       Changing this is expensive when the scene content is already loaded,
-      so it's best to adjust this before @link(Load). }
+      so it's best to adjust this before @link(Load).
+
+      It is deprecated now, as the
+      optimization done by this is really negligible.
+      However is may still be internally useful to not associate the scene
+      with nodes -- useful for quick "throwaway" scenes,
+      e.g. created only to do Triangulate. }
     property Static: boolean read FStatic write SetStatic default false;
+      {$ifdef FPC}
       deprecated 'do not use this; optimization done by this is really negligible; leave ProcessEvents=false for static scenes';
-    {$endif}
+      {$endif}
 
     { Nice scene caption. Uses the "title" of WorldInfo
       node inside the VRML/X3D scene. If there is no WorldInfo node
