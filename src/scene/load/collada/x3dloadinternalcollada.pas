@@ -36,8 +36,8 @@ implementation
 
 uses DOM, XMLRead, Generics.Collections, Math, URIParser,
   CastleUtils, CastleStringUtils, CastleVectors, CastleColors,
-  CastleXMLUtils, CastleLog, CastleClassUtils, X3DLoadInternalUtils,
-  CastleDownload, CastleURIUtils;
+  CastleXmlUtils, CastleLog, CastleClassUtils, X3DLoadInternalUtils,
+  CastleDownload, CastleUriUtils;
 
 var
   { If @true we may use some of our engine specific

@@ -39,7 +39,7 @@ type
   private
     FDefaultFilter: Integer;
   public
-    constructor Create(AFreeObjects: boolean);
+    constructor Create(AFreeObjects: Boolean);
 
     { Add one file filter, selectable by user.
       @param(Name Is a name displayed for for user.)
@@ -73,20 +73,34 @@ type
     { One of the filtes (excluding "catch all" filters) matches given URL.
       This excludes masks like "*" and "*.*" (the latter should not really
       be used, because it will not match all files on Unix). }
-    function Matches(const URL: String): Boolean; overload;
+    function Matches(const Url: String): Boolean; overload;
 
     { Whether the filters described in FiltersStr (like for
       @link(AddFiltersFromString)) match the given URL. }
-    class function Matches(const FiltersStr, URL: String): Boolean; overload;
+    class function Matches(const FiltersStr, Url: String): Boolean; overload;
 
     { Writes all recognized extensions (without * and *.*) separated
       by semicolon. }
     function AllExtensions: String;
+
+    { Convert file filters into LCL or FMX Dialog.Filter, Dialog.FilterIndex.
+      When AllFields is false, then filters starting with "All " in the name,
+      like "All files", "All images", are not included in the output. }
+    procedure LclFmxFilters(
+      out OutFilter: string; out OutFilterIndex: Integer; const AllFields: Boolean = true);
+
+    { Convert file filters into LCL or FMX Dialog.Filter, Dialog.FilterIndex.
+      The filters are provided here just like for AddFiltersFromString.
+      Effectively we convert one String encoding of filters
+      (as for CGE AddFiltersFromString)
+      into very similar encoding of filters suitable for LCL or FMX. }
+    class procedure LclFmxFiltersFromString(const FileFilters: string;
+      out OutFilter: string; out OutFilterIndex: Integer; const AllFields: Boolean = true);
   end;
 
 implementation
 
-uses StrUtils, CastleStringUtils, CastleURIUtils, CastleUtils;
+uses StrUtils, CastleStringUtils, CastleUriUtils, CastleUtils;
 
 { TFileFilter ---------------------------------------------------------------- }
 
@@ -104,7 +118,7 @@ end;
 
 { TFileFilterList ----------------------------------------------------------- }
 
-constructor TFileFilterList.Create(AFreeObjects: boolean);
+constructor TFileFilterList.Create(AFreeObjects: Boolean);
 begin
   inherited;
   FDefaultFilter := 0;
@@ -163,7 +177,7 @@ procedure TFileFilterList.AddFiltersFromString(const FiltersStr: string);
 
 var
   LastSeparator, NextSeparator: Integer;
-  NamePart: boolean;
+  NamePart: Boolean;
   Part, Name, Patterns: string;
 begin
   NamePart := true;
@@ -188,29 +202,29 @@ begin
   until LastSeparator = 0;
 end;
 
-function TFileFilterList.Matches(const URL: String): Boolean;
+function TFileFilterList.Matches(const Url: String): Boolean;
 var
-  URLName, Pattern: String;
+  UrlName, Pattern: String;
   Filter: TFileFilter;
 begin
-  URLName := ExtractURIName(URL);
+  UrlName := ExtractURIName(Url);
   for Filter in Self do
     for Pattern in Filter.Patterns do
       if (Pattern <> '*') and
          (Pattern <> '*.*') and
-         IsWild(URLName, Pattern, FileNameCaseSensitive) then
+         IsWild(UrlName, Pattern, FileNameCaseSensitive) then
         Exit(true);
   Result := false;
 end;
 
-class function TFileFilterList.Matches(const FiltersStr, URL: String): Boolean;
+class function TFileFilterList.Matches(const FiltersStr, Url: String): Boolean;
 var
   Filters: TFileFilterList;
 begin
   Filters := TFileFilterList.Create(true);
   try
     Filters.AddFiltersFromString(FiltersStr);
-    Result := Filters.Matches(URL);
+    Result := Filters.Matches(Url);
   finally FreeAndNil(Filters) end;
 end;
 
@@ -229,5 +243,75 @@ begin
     end;
 end;
 
-end.
+procedure TFileFilterList.LclFmxFilters(
+  out OutFilter: string; out OutFilterIndex: Integer; const AllFields: Boolean);
+var
+  Filter: TFileFilter;
+  I, J: Integer;
+begin
+  OutFilter := '';
 
+  { initialize OutFilterIndex.
+    Will be corrected for AllFields=false case, and will be incremented
+    (because LCL/FMX FilterIndex counts from 1) later. }
+
+  OutFilterIndex := DefaultFilter;
+
+  for I := 0 to Count - 1 do
+  begin
+    Filter := Items[I];
+    if (not AllFields) and IsPrefix('All ', Filter.Name) then
+    begin
+      { then we don't want to add this to OutFilter.
+        We also need to fix OutFilterIndex, to shift it. }
+      if I = DefaultFilter then
+        OutFilterIndex := 0 else
+      if I < DefaultFilter then
+        Dec(OutFilterIndex);
+      Continue;
+    end;
+
+    OutFilter := OutFilter + Filter.Name + '|';
+
+    for J := 0 to Filter.Patterns.Count - 1 do
+    begin
+      if J <> 0 then OutFilter := OutFilter + ';';
+      { TODO: We're considering this, to improve display of rows with very long
+        filters list, like "All Scenes" or "Images" when opening scenes,
+        e.g. in CastleFmxPlayAnimation.
+
+      if J > 5 then
+      begin
+        OutFilter := OutFilter + '...';
+        Break;
+      end;
+      }
+      OutFilter := OutFilter + Filter.Patterns[J];
+    end;
+
+    OutFilter := OutFilter + '|';
+  end;
+
+  { LCL/FMX FilterIndex counts from 1.
+
+    Except Delphi/Linux (FMXLinux) that seems (maybe a bug?) to count from 0.
+    Testcase; CastleFmxPlayAnimation, press "Load scene" button,
+    default filter should be "All Scenes". }
+  {$if not (defined(DELPHI) and defined(LINUX))}
+  Inc(OutFilterIndex);
+  {$endif}
+end;
+
+class procedure TFileFilterList.LclFmxFiltersFromString(const FileFilters: string;
+  out OutFilter: string; out OutFilterIndex: Integer; const AllFields: Boolean);
+var
+  FFList: TFileFilterList;
+begin
+  FFList := TFileFilterList.Create(true);
+  try
+    FFList.AddFiltersFromString(FileFilters);
+    FFList.LclFmxFilters(OutFilter, OutFilterIndex, AllFields);
+  finally FreeAndNil(FFList) end;
+end;
+
+end.

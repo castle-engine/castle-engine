@@ -21,7 +21,7 @@ unit CastleViewport;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, X3DNodes, CastleInternalBaseTriangleOctree, CastleScene,
   CastleSceneCore, CastleCameras, CastleRenderOptions,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
@@ -167,6 +167,7 @@ type
       FOcclusionSort: TShapeSort;
       FBlendingSort: TShapeSort;
       FOnCustomShapeSort: TShapeSortEvent;
+      FUpdateSoundListener: Boolean;
 
       ShapesCollector: TShapesCollector;
       ShapesRenderer: TShapesRenderer;
@@ -198,10 +199,26 @@ type
     procedure MainSceneAndCamera_BoundViewpointVectorsChanged(Sender: TObject);
     procedure MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
 
-    { Change FMouseRayHit. Should be called only by GetMouseRayHit (when it's updated
-      on-demand) or by finalization code (only with nil parameter in this case). }
+    { Change FMouseRayHit. Should be called only by
+
+      - GetMouseRayHit (when it's updated on-demand), with nil or non-nli,
+        that also sets FMouseRayHitValid = true
+
+      - or by ClearMouseRayHit (only with nil parameter in this case)
+        that also sets FMouseRayHitValid = false
+    }
     procedure SetMouseRayHit(const Value: TRayCollision);
+
+    { Sets FMouseRayHit to nil and FMouseRayHitValid to false.
+      Removes all free notifications for items in FMouseRayHit. }
+    procedure ClearMouseRayHit;
+
+    { Whether FMouseRayHit contains given Item.
+      This doesn't update FMouseRayHit if it is invalid right now,
+      so it is safer to use even during destruction.
+      And so it should be used only on some free notification. }
     function MouseRayHitContains(const Item: TCastleTransform): boolean;
+
     procedure SetAvoidNavigationCollisions(const Value: TCastleTransform);
 
     function GetNavigation: TCastleNavigation;
@@ -258,6 +275,7 @@ type
     var
       FProjection: TProjection;
       FSceneManager: TCastleSceneManager;
+      ItemsNodesFreeOccurred: Boolean;
 
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
@@ -265,7 +283,7 @@ type
     class procedure CreateComponentWithChildren2D(Sender: TObject);
     class procedure CreateComponentWithChildren3D(Sender: TObject);
 
-    procedure RecalculateCursor(Sender: TObject);
+    procedure ItemsNodesFree(Sender: TObject);
 
     { Bounding box of everything non-design.
       Similar to just using Items.BoundingBox, but
@@ -532,7 +550,7 @@ type
     { Constructor that disables special design-mode viewport camera/navigation.
       Useful in editor.
       @exclude }
-    constructor InternalCreateNonDesign(AOwner: TComponent);
+    constructor InternalCreateNonDesign(AOwner: TComponent; const Ignored: Integer);
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
@@ -670,7 +688,7 @@ type
 
           By default our visible Z range is [-1500, 500],
           because this sets ProjectionNear to -1000, ProjectionFar to 1000,
-          and camera default depth (@code(Camera.Position.Z)) is 500.
+          and camera default depth (@code(Camera.Translation.Z)) is 500.
           This was chosen to be comfortable for all cases -- you can
           keep camera Z unchanged and comfortably position things around [-500, 500],
           or set camera Z to zero and then comfortably position things around [-1000, 1000].
@@ -872,7 +890,8 @@ type
       Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload; virtual;
 
     { Current components (TCastleTransform hierarchy) pointed by the mouse cursor
-      position.
+      position. This is the @italic(first) object being hit by the ray from camera
+      through the mouse cursor position.
 
       Automatically updated to always reflect the current mouse position.
       May be @nil if nothing is hit.
@@ -885,7 +904,8 @@ type
     property MouseRayHit: TRayCollision read GetMouseRayHit;
 
     { Current TCastleTransform pointed by the mouse cursor
-      position.
+      position. This is the @italic(first) object being hit by the ray from camera
+      through the mouse cursor position.
 
       Automatically updated to always reflect the current mouse position.
       May be @nil if nothing is hit.
@@ -895,8 +915,7 @@ type
       we automatically use viewport center as the "mouse cursor position".
 
       @seealso MouseRayHit
-      @seealso TRayCollision.Transform
-    }
+      @seealso TRayCollision.Transform }
     function TransformUnderMouse: TCastleTransform;
 
     { Do not collide with this object when moving by @link(Navigation).
@@ -1272,6 +1291,20 @@ type
     property OnCustomShapeSort: TShapeSortEvent
       read FOnCustomShapeSort write FOnCustomShapeSort;
 
+    { Should the sound listener (that determines how the sounds are heard)
+      be updated to reflect this viewport's active camera.
+      This is @true by default, so that 3D sound "just works" out-of-the-box
+      when you have 3D sounds in the TCastleViewport.
+      However, if you use @url(https://castle-engine.io/multiple_viewports_to_display_one_world multiple viewports)
+      to display the same world from multiple cameras,
+      you should set this to @false for all but one viewport.
+
+      Active camera comes from @code(Items.MainCamera) and should match
+      @link(Camera) in all normal circumstances, if you haven't customized
+      @code(Items.MainCamera) manually. }
+    property UpdateSoundListener: Boolean
+      read FUpdateSoundListener write FUpdateSoundListener default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -1309,7 +1342,7 @@ implementation
 uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleTextureImages,
-  CastleInternalSettings, CastleXMLUtils, CastleURIUtils, CastleInternalRenderer,
+  CastleInternalSettings, CastleXmlUtils, CastleUriUtils, CastleInternalRenderer,
   CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
 
 {$define read_implementation}
@@ -1409,11 +1442,12 @@ begin
   InternalDistortViewAspect := 1;
   ShapesCollector := TShapesCollector.Create;
   ShapesRenderer := TShapesRenderer.Create;
+  FUpdateSoundListener := true;
 
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
-  FItems.OnCursorChange := {$ifdef FPC}@{$endif} RecalculateCursor;
+  FItems.InternalOnNodesFree := {$ifdef FPC}@{$endif} ItemsNodesFree;
 
   FCapturePointingDeviceObserver := TFreeNotificationObserver.Create(Self);
   FCapturePointingDeviceObserver.OnFreeNotification := {$ifdef FPC}@{$endif} CapturePointingDeviceFreeNotification;
@@ -1461,7 +1495,7 @@ begin
   begin
     { We need to use TCastleCamera.InternalCreateNonDesign,
       otherwise InternalDesignCamera would be visible in preview of other camera. }
-    InternalDesignCamera := TCastleCamera.InternalCreateNonDesign(Self);
+    InternalDesignCamera := TCastleCamera.InternalCreateNonDesign(Self, 0);
     InternalDesignCamera.SetTransient;
     // this somewhat replicates what happens at SetCamera
     InternalDesignCamera.InternalOnCameraChanged := {$ifdef FPC}@{$endif} InternalCameraChanged;
@@ -1513,7 +1547,7 @@ begin
   CommonCreate(AOwner, CastleDesignMode);
 end;
 
-constructor TCastleViewport.InternalCreateNonDesign(AOwner: TComponent);
+constructor TCastleViewport.InternalCreateNonDesign(AOwner: TComponent; const Ignored: Integer);
 begin
   CommonCreate(AOwner, false);
 end;
@@ -1564,7 +1598,7 @@ begin
     - or replace existing camera. }
   Assert(Camera = nil);
 
-  NewCamera := TCastleCamera.InternalCreateNonDesign(Self);
+  NewCamera := TCastleCamera.InternalCreateNonDesign(Self, 0);
   Camera := NewCamera;
   Items.Add(NewCamera);
 end;
@@ -1613,7 +1647,7 @@ begin
   {$endif}
 
   { unregister free notification from these objects }
-  SetMouseRayHit(nil);
+  ClearMouseRayHit;
   AvoidNavigationCollisions := nil;
 
   FreeAndNil(FRenderParams);
@@ -1855,7 +1889,7 @@ begin
   if Container = nil then
     Result := FullSize
   else
-    Result := RenderRect.Round.Equals(Container.Rect);
+    Result := RenderRect.Round.Equals(Container.PixelsRect);
 end;
 
 function TCastleViewport.GetNavigation: TCastleNavigation;
@@ -1887,10 +1921,7 @@ begin
   begin
     if (AComponent is TCastleTransform) and
        MouseRayHitContains(TCastleTransform(AComponent)) then
-    begin
-      { MouseRayHit cannot be used in subsequent RecalculateCursor. }
-      SetMouseRayHit(nil);
-    end;
+      ClearMouseRayHit;
 
     if AComponent = FAvoidNavigationCollisions then
       AvoidNavigationCollisions := nil;
@@ -1909,7 +1940,7 @@ begin
     Also this makes MouseRayHit valid during TCastleTransform.PointingDevicePress calls.
     Although implementors should rather use information passed
     as TCastleTransform.PointingDevicePress argument, not look at Viewport.MouseRayHit. }
-  FMouseRayHitValid := false;
+  ClearMouseRayHit;
 
   LastPressEvent := Event;
 
@@ -1936,7 +1967,7 @@ begin
 
   { Call UpdateMouseRayHit at nearest moment.
     As our PointingDeviceRelease (called below) uses it. }
-  FMouseRayHitValid := false;
+  ClearMouseRayHit;
 
   if Items.InternalPressReleaseListeners <> nil then
     // use downto, to work in case some Release will remove transform from list
@@ -2023,20 +2054,6 @@ begin
       use-case when it would be useful to do this. }
     PointingDeviceMove;
   end;
-
-  { update the cursor, since TCastleTransform object under the cursor possibly changed.
-
-    Accidentally, this also workarounds the problem of TCastleViewport:
-
-    When the TCastleTransform object has its Cursor value changed,
-    Items.OnCursorChange notify only 1st TCastleViewport that owned the Items.
-    The other viewports are not notified, as SetItems doesn't set
-    FItems.OnCursorChange (as we only have 1 OnCursorChange for now).
-
-    But thanks to doing RecalculateCursor below, this isn't
-    a problem, as we'll update cursor to follow TCastleTransform anyway,
-    as long as it changes only during mouse move. }
-  RecalculateCursor(Self);
 end;
 
 function TCastleViewport.GetMouseRayHit: TRayCollision;
@@ -2045,8 +2062,15 @@ function TCastleViewport.GetMouseRayHit: TRayCollision;
   var
     MousePosition: TVector2;
   begin
-    if { Check conditions required by PositionToPrerequisites and PositionToRay to work.
-        This must be robust, as it is called also from RecalculateCursor,
+    if { This may be called from destruction, testcase
+        TTestCastleWindow.TestViewportWithoutCamera with Delphi 12.
+        It shouldn't access then EffectiveWidth which runs some
+        TCastleUserInteface code that assumes that things are ready
+        (e.g. TBorder instance in TCastleUserInteface.Border is not nil). }
+      (not (csDestroying in ComponentState)) and
+      { Check conditions required by PositionToPrerequisites and PositionToRay to work.
+        This must be robust, as
+        (outdated reason:) it WAS called also from RecalculateCursor,
         which is from TCastleTransformList.Notify. (when some transform gets removed). }
       (EffectiveWidth <> 0) and
       (EffectiveHeight <> 0) and
@@ -2088,42 +2112,28 @@ begin
     Result := nil;
 end;
 
-procedure TCastleViewport.RecalculateCursor(Sender: TObject);
-var
-  T: TCastleTransform;
+procedure TCastleViewport.ItemsNodesFree(Sender: TObject);
 begin
-  if { Be prepared for Items=nil case, as it may happen e.g. at destruction. }
-     (Items = nil) or
-     { This may be called from
-       TCastleTransformList.Notify when removing stuff owned by other
-       stuff, in particular during our own destructor when FItems is freed
-       and we're in half-destructed state. }
-     (csDestroying in Items.ComponentState) or
-     { When Paused, then Press and Motion events are not passed to Navigation,
-       or to Items inside. So it's sensible that they also don't control the cursor
-       anymore.
-       In particular, it means cursor is no longer hidden by Navigation.MouseLook
-       when the Paused is switched to true. }
-     Items.Paused then
-  begin
-    Cursor := mcDefault;
-    Exit;
-  end;
+  { Reloading nodes by TCastleSceneCore.Load invalidates information
+    on FMouseRayHit, the TShape references are no longer valid.
 
-  { We show mouse cursor from top-most TCastleTransform.
-    This is sensible, if multiple TCastleTransform scenes obscure each other at the same
-    pixel --- the one "on the top" (visible by the player at that pixel)
-    determines the mouse cursor.
+    Testcase:
+    - (only reproducible on Windows for some reason, but in theory problem is cross-platform)
+    - open in view3dscene anchor_test.x3dv
+    - click on something, like "Key Sensor"
+    - without this fix, the next EventMotion causes crash as
+      TCastleSceneCore.PointingDeviceMove is run with TRayCollisionNode
+      containing invalid references.
 
-    We ignore Cursor value of other TCastleTransform along
-    the MouseRayHit list. Maybe we should browse Cursor values along the way,
-    and choose the first non-none? }
+    TODO: This is not a complete solution.
+    - What if Items are shared across few TCastleViewport?
+      Our Items.OnXxx do not link to viewport then, and should not be relied upon.
+  }
+  ClearMouseRayHit;
 
-  T := TransformUnderMouse;
-  if T <> nil then
-    Cursor := T.Cursor
-  else
-    Cursor := mcDefault;
+  { Signal to PointingDevicePressCore to not process further collision list.
+    TODO: why is this necessary? But anchor_test on view3dscene otherwise crashes. }
+  ItemsNodesFreeOccurred := true;
 end;
 
 function TCastleViewport.TriangleHit: PTriangle;
@@ -2208,7 +2218,7 @@ begin
       Motion event, because navigation class marked Motion as handled.
       Fixes https://forum.castle-engine.io/t/mouserayhit-not-updating-while-dragging/844/4
   }
-  FMouseRayHitValid := false;
+  ClearMouseRayHit;
 
   if Items.Paused then
     Exit;
@@ -2249,9 +2259,6 @@ var
   M: TMatrix4;
 begin
   EnsureCameraDetected;
-
-  { We need to know container size now. }
-  Check(ContainerSizeKnown, ClassName + ' did not receive "Resize" event yet, cannnot apply projection. This usually means you try to call "Render" method with a container that does not yet have an open context.');
 
   Viewport := RenderRect.Round;
   RenderContext.Viewport := Viewport;
@@ -3391,7 +3398,6 @@ begin
     if (Value = nil) and not (csDestroying in ComponentState) then
     begin
       Value := TCastleRootTransform.Create(Self);
-      Value.OnCursorChange := {$ifdef FPC}@{$endif} RecalculateCursor;
     end;
 
     if InternalDesignManipulation then
@@ -3412,9 +3418,7 @@ begin
 
     LastVisibleStateIdForVisibleChange := 0;
 
-    { TODO: do the same thing we did when creating internal FItems:
-    FItems.OnCursorChange := @RecalculateCursor;
-
+    {
     // No need to change this, it's documented that MainCamera has to be manually managed if you reuse items
     // FItems.MainCamera := Camera;
     }
@@ -3445,8 +3449,24 @@ end;
 
 function TCastleViewport.MouseRayHitContains(const Item: TCastleTransform): boolean;
 begin
-  Result := (MouseRayHit <> nil) and
-            (MouseRayHit.IndexOfItem(Item) <> -1);
+  { Do not validate FMouseRayHit using UpdateMouseRayHit.
+    Fixes TTestCastleWindow.TestViewportWithoutCamera with Delphi 12.
+    Also this is more sensible and safer: this method is used
+    to check whether FMouseRayHit contains something,
+    it isn't expected it will actually query using raycast. }
+
+  { When FMouseRayHitValid=false then always FMouseRayHit=nil. }
+  Assert(FMouseRayHitValid or (FMouseRayHit = nil));
+
+  Result :=
+    (FMouseRayHit <> nil) and
+    (FMouseRayHit.IndexOfItem(Item) <> -1);
+end;
+
+procedure TCastleViewport.ClearMouseRayHit;
+begin
+  SetMouseRayHit(nil);
+  FMouseRayHitValid := false;
 end;
 
 procedure TCastleViewport.SetMouseRayHit(const Value: TRayCollision);
@@ -3456,8 +3476,7 @@ begin
   if FMouseRayHit <> Value then
   begin
     { Always keep FreeNotification on every 3D item inside MouseRayHit.
-      When it's destroyed, our MouseRayHit must be freed too,
-      it cannot be used in subsequent RecalculateCursor. }
+      When it's destroyed, our MouseRayHit must be freed too. }
 
     if FMouseRayHit <> nil then
     begin
@@ -3535,16 +3554,6 @@ begin
 
   { call TCastleScreenEffects.PrepareResources. }
   inherited PrepareResources;
-
-  if ContainerSizeKnown then
-  begin
-    { TODO: This is possibly not necessary now.
-
-      It used to be necessary, to update MainScene.BackgroundSkySphereRadius,
-      and in effect make preparation of "prBackground" useful.
-      But we removed the need for MainScene.BackgroundSkySphereRadius. }
-    ApplyProjection;
-  end;
 
   {$warnings off} // using deprecated, this should be internal
   Item.PrepareResources(Options, PrepareParams);
@@ -3653,7 +3662,10 @@ function TCastleViewport.PointingDevicePress: Boolean;
     if RayHit <> nil then
       for I := 0 to RayHit.Count - 1 do
       begin
+        ItemsNodesFreeOccurred := false;
         Result := CallPress(RayHit[I], Distance);
+        if ItemsNodesFreeOccurred then
+          Break;
         if Result then
         begin
           { This check avoids assigning to CapturePointingDevice something
@@ -3855,7 +3867,8 @@ begin
       Inc(Items.InternalVisibleNonGeometryStateId);
 
     SenderCamera.GetView(Pos, Dir, Up);
-    SoundEngine.InternalUpdateListener(Pos, Dir, Up);
+    if UpdateSoundListener then
+      SoundEngine.InternalUpdateListener(Pos, Dir, Up);
   end;
 
   if Assigned(OnCameraChanged) then

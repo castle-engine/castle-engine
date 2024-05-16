@@ -88,8 +88,6 @@ unit kraft;
  {$define KraftAdvancedRecords}
  {$packset fixed}
 {$else} //Delphi
- {$hints off} // added by CGE
- {$warn SYMBOL_PLATFORM off} // added by CGE
  {$define LITTLE_ENDIAN}
  {$ifdef cpux64}
   {$define cpuamd64}
@@ -149,29 +147,15 @@ unit kraft;
  {$define NonSIMD}
 {$endif}
 
-{ CGE: Define NonSIMD. Without this symbol, Kraft uses some i386-only assembler,
-  that causes crashes (access violation at TRigidBody.SynchronizeFromKraft
-  when doing "FLinearVelocity := VectorFromKraft(FKraftBody.LinearVelocity)"). 
-  Testcase:
+{ Apply some Castle Game Engine compilation defines.
 
-    castle-engine --os=win32 --cpu=i386 compile --mode=debug
-    wine ./*.exe
-
-  on all physics examples it seems,
-
-    examples/physics/physics_2d_game_sopwith
-    examples/physics/physics_3d_game
-    examples/platformer
-
-  With at least FPC 3.2.0 (but did not check other FPC versions).
-  As this is an i386-specific optimization only (and our focus is on 64-bit platforms
-  as these are, and will be, majority) so disabling it is not a problem in practice
-  anyway. }
-{$define NonSIMD}
-
-{$if (not defined(fpc)) and defined(cpuamd64)}
- {$define NonSIMD} // Due to inline assembler bugs at the Delphi compiler
-{$ifend}
+  This may change state of symbols:
+  - caninline
+  - NonSIMD
+  so include it *after* Kraft code above (potentially) defined them,
+  and *before* these symbols are acted upon.
+  This way castlekraft.inc can "override" what Kraft is doing. }
+{$I castlekraft.inc}
 
 {$ifdef NonSIMD}
  {$undef SIMD}
@@ -179,6 +163,8 @@ unit kraft;
 {$else}
  {$ifdef cpu386}
   {$if not (defined(Darwin) or defined(CompileForWithPIC))}
+   {$define CPU386ASMForSinglePrecision}
+  {$ifend}
    {$define SIMDASM}
   {$ifend}
  {$endif}
@@ -197,12 +183,6 @@ unit kraft;
  {$undef USE_CONSTREF} // For to avoid "then other" FPC codegen issues in this case with constref in connection with "function result is also a function argument" and so on => physics simulation explodes in some cases
 {$ifend}
 
-{ CGE: Avoid FPC note: "nested procedures" not yet supported inside inline procedure/function
-  TODO: submit to Kraft. }
-{$ifdef FPC}
-  {$notes off}
-{$endif}
-
 interface
 
 uses {$ifdef windows}
@@ -217,7 +197,10 @@ uses {$ifdef windows}
         linux,
        {$ifend}
       {$else}
-       SDL,
+       // Use CGE cross-platform routines for time, instead of relying on SDL.
+       // SDL,
+       CastleTimeUtils,
+       {$define USE_CASTLE_TIME_UTILS}
       {$endif}
      {$endif}
      {$ifdef DebugDraw}
@@ -237,6 +220,28 @@ uses {$ifdef windows}
      PasMP,
 {$endif}
      Math;
+
+{ CGE: Delphi on Linux doesn't define
+  - TFPUPrecisionMode, SetPrecisionMode
+  - TFPUExceptionMask, SetFPUExceptionMask }
+{$if defined(FPC) or defined(MSWINDOWS)}
+  {$define HAS_FPU_TYPES}
+{$ifend}
+
+{ Delphi on non-Windows redefines LongInt/LongWord in a way inconsistent
+  with Delphi/Windows or FPC.
+  Make Kraft use expected type sizes.
+  We don't just search + replace this in Kraft sources, to ease upgrading
+  Kraft in the future.
+  See https://castle-engine.io/coding_conventions#no_longint_longword .
+  This seems already handled better in recent Kraft,
+  https://github.com/BeRo1985/kraft/blob/master/src/kraft.pas ,
+  that avoids LongInt/LongWord just like CGE. }
+{$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+type
+  LongInt = Integer;
+  LongWord = Cardinal;
+{$ifend}
 
 const EPSILON={$ifdef KraftUseDouble}1e-14{$else}1e-5{$endif}; // actually {$ifdef KraftUseDouble}1e-16{$else}1e-7{$endif}; but we are conservative here
 
@@ -270,9 +275,11 @@ const EPSILON={$ifdef KraftUseDouble}1e-14{$else}1e-5{$endif}; // actually {$ifd
 
       TimeOfImpactSphericalExpansionRadius=1e-5;
 
+      {$ifdef HAS_FPU_TYPES}
       PhysicsFPUPrecisionMode:TFPUPrecisionMode={$ifdef cpu386}pmExtended{$else}{$ifdef cpux64}pmExtended{$else}pmDouble{$endif}{$endif};
 
       PhysicsFPUExceptionMask:TFPUExceptionMask=[exInvalidOp,exDenormalized,exZeroDivide,exOverflow,exUnderflow,exPrecision];
+      {$endif}
 
       KRAFT_QUICKHULL_FACE_MARK_VISIBLE=1;
       KRAFT_QUICKHULL_FACE_MARK_NON_CONVEX=2;
@@ -1716,10 +1723,10 @@ type TKraftForceMode=(kfmForce,        // The unit of the force parameter is app
 
        procedure SaveToOBJ(const aStream:TStream); overload;
        procedure SaveToOBJ(const aFileName:String); overload;
-       
+
        procedure SaveBVHToOBJ(const aStream:TStream;const aMode:TKraftInt32=0); overload;
        procedure SaveBVHToOBJ(const aFileName:String;const aMode:TKraftInt32=0); overload;
-       
+
        function GetLocalSignedDistance(const Position:TKraftVector3):TKraftScalar;
 
        function GetLocalSignedDistanceAndDirection(const Position:TKraftVector3;out Direction:TKraftVector3):TKraftScalar;
@@ -4411,56 +4418,107 @@ procedure Vector2MatrixMul(var v:TKraftVector2;{$ifdef USE_CONSTREF_EX}constref{
 function Vector2TermMatrixMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector2;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix2x2):TKraftVector2; {$ifdef caninline}inline;{$endif}
 function Vector2Lerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector2;const w:TKraftScalar):TKraftVector2; {$ifdef caninline}inline;{$endif}
 
-function Vector3Flip({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
-function Vector3Abs({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Compare({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):boolean; {$ifdef caninline}inline;{$endif}
-function Vector3CompareEx({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3;const Threshold:TKraftScalar=EPSILON):boolean; {$ifdef caninline}inline;{$endif}
-procedure Vector3DirectAdd(var v1:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v2:TKraftVector3); {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-procedure Vector3DirectSub(var v1:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v2:TKraftVector3); {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Add({$ifdef USE_CONSTREF}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Sub({$ifdef USE_CONSTREF}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Avg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Avg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2,v3:TKraftVector3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
-function Vector3Avg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} va:PKraftVector3s;Count:TKraftInt32):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
-function Vector3ScalarMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;const s:TKraftScalar):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Dot({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Cos({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
-function Vector3Project({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} Vector,OnNormal:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
-function Vector3GetOneUnitOrthogonalVector({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
-function Vector3Cross({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Neg({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3;  {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-procedure Vector3Scale(var v:TKraftVector3;const sx,sy,sz:TKraftScalar); overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-procedure Vector3Scale(var v:TKraftVector3;const s:TKraftScalar); overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Mul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Div({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Length({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Dist({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3LengthSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3DistSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3Angle({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2,v3:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
-function Vector3LengthNormalize(var v:TKraftVector3):TKraftScalar; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-procedure Vector3Normalize(var v:TKraftVector3); {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-procedure Vector3NormalizeEx(var v:TKraftVector3); {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend}
-function Vector3SafeNorm({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
-function Vector3Norm({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3NormEx({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-procedure Vector3RotateX(var v:TKraftVector3;const a:TKraftScalar); {$ifdef caninline}inline;{$endif}
-procedure Vector3RotateY(var v:TKraftVector3;const a:TKraftScalar); {$ifdef caninline}inline;{$endif}
-procedure Vector3RotateZ(var v:TKraftVector3;const a:TKraftScalar); {$ifdef caninline}inline;{$endif}
-procedure Vector3MatrixMul(var v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3); overload; {$ifdef caninline}inline;{$endif} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-procedure Vector3MatrixMul(var v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4); overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-procedure Vector3MatrixMulBasis(var v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4); overload; {$ifdef caninline}inline;{$endif}
-procedure Vector3MatrixMulInverted(var v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4); overload; {$ifdef caninline}inline;{$endif}
-function Vector3TermMatrixMul(const v:TKraftVector3;const m:TKraftMatrix3x3):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3TermMatrixMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3TermMatrixMulInverse({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
-function Vector3TermMatrixMulInverted({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
-function Vector3TermMatrixMulTransposed({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix3x3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
-function Vector3TermMatrixMulTransposed({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
-function Vector3TermMatrixMulTransposedBasis({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
-function Vector3TermMatrixMulBasis({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; overload; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
-function Vector3TermMatrixMulHomogen({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; {$ifdef caninline}inline;{$endif}
-function Vector3Lerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3;const w:TKraftScalar):TKraftVector3; {$ifdef caninline}inline;{$endif}
+{$ifdef SIMD}
+function Vector3Flip(const v:TKraftVector3):TKraftVector3;
+function Vector3Abs(const v:TKraftVector3):TKraftVector3;
+function Vector3Compare(const v1,v2:TKraftVector3):boolean;
+function Vector3CompareEx(const v1,v2:TKraftVector3;const Threshold:TKraftScalar=EPSILON):boolean;
+procedure Vector3DirectAdd(var v1:TKraftVector3;const v2:TKraftVector3);
+procedure Vector3DirectSub(var v1:TKraftVector3;const v2:TKraftVector3);
+function Vector3Add(const v1,v2:TKraftVector3):TKraftVector3;
+function Vector3Sub(const v1,v2:TKraftVector3):TKraftVector3;
+function Vector3Avg(const v1,v2:TKraftVector3):TKraftVector3; overload;
+function Vector3Avg(const v1,v2,v3:TKraftVector3):TKraftVector3; overload;
+function Vector3Avg(const va:PKraftVector3s;Count:longint):TKraftVector3; overload;
+function Vector3ScalarMul(const v:TKraftVector3;const s:TKraftScalar):TKraftVector3; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+function Vector3Dot(const v1,v2:TKraftVector3):TKraftScalar; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+function Vector3Cos(const v1,v2:TKraftVector3):TKraftScalar;
+function Vector3GetOneUnitOrthogonalVector(const v:TKraftVector3):TKraftVector3;
+function Vector3Cross(const v1,v2:TKraftVector3):TKraftVector3;
+function Vector3Neg(const v:TKraftVector3):TKraftVector3; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+procedure Vector3Scale(var v:TKraftVector3;const sx,sy,sz:TKraftScalar); overload; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+procedure Vector3Scale(var v:TKraftVector3;const s:TKraftScalar); overload; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+function Vector3Mul(const v1,v2:TKraftVector3):TKraftVector3; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+function Vector3Length(const v:TKraftVector3):TKraftScalar; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+function Vector3Dist(const v1,v2:TKraftVector3):TKraftScalar; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+function Vector3LengthSquared(const v:TKraftVector3):TKraftScalar; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+function Vector3DistSquared(const v1,v2:TKraftVector3):TKraftScalar; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+function Vector3Angle(const v1,v2,v3:TKraftVector3):TKraftScalar;
+function Vector3LengthNormalize(var v:TKraftVector3):TKraftScalar;
+procedure Vector3Normalize(var v:TKraftVector3);
+procedure Vector3NormalizeEx(var v:TKraftVector3);
+function Vector3SafeNorm(const v:TKraftVector3):TKraftVector3;
+function Vector3Norm(const v:TKraftVector3):TKraftVector3;
+function Vector3NormEx(const v:TKraftVector3):TKraftVector3;
+procedure Vector3RotateX(var v:TKraftVector3;a:TKraftScalar);
+procedure Vector3RotateY(var v:TKraftVector3;a:TKraftScalar);
+procedure Vector3RotateZ(var v:TKraftVector3;a:TKraftScalar);
+procedure Vector3MatrixMul(var v:TKraftVector3;const m:TKraftMatrix3x3); overload;
+procedure Vector3MatrixMul(var v:TKraftVector3;const m:TKraftMatrix4x4); overload; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+procedure Vector3MatrixMulBasis(var v:TKraftVector3;const m:TKraftMatrix4x4); overload;
+procedure Vector3MatrixMulInverted(var v:TKraftVector3;const m:TKraftMatrix4x4); overload;
+function Vector3TermMatrixMul(const v:TKraftVector3;const m:TKraftMatrix3x3):TKraftVector3; overload;
+function Vector3TermMatrixMul(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+function Vector3TermMatrixMulInverse(const v:TKraftVector3;const m:TKraftMatrix3x3):TKraftVector3; overload;
+function Vector3TermMatrixMulInverted(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; overload;
+function Vector3TermMatrixMulTransposed(const v:TKraftVector3;const m:TKraftMatrix3x3):TKraftVector3; overload;
+function Vector3TermMatrixMulTransposed(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; overload;
+function Vector3TermMatrixMulTransposedBasis(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; overload;
+function Vector3TermMatrixMulBasis(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; overload;
+function Vector3TermMatrixMulHomogen(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3;
+function Vector3Lerp(const v1,v2:TKraftVector3;w:TKraftScalar):TKraftVector3;
+function Vector3Perpendicular(v:TKraftVector3):TKraftVector3;
+function Vector3TermQuaternionRotate(const v:TKraftVector3;const q:TKraftQuaternion):TKraftVector3;
+function Vector3ProjectToBounds(const v:TKraftVector3;const MinVector,MaxVector:TKraftVector3):TKraftScalar;
+{$else}
+function Vector3Flip(const v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Abs(const v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Compare(const v1,v2:TKraftVector3):boolean; {$ifdef caninline}inline;{$endif}
+function Vector3CompareEx(const v1,v2:TKraftVector3;const Threshold:TKraftScalar=EPSILON):boolean; {$ifdef caninline}inline;{$endif}
+function Vector3DirectAdd(var v1:TKraftVector3;const v2:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3DirectSub(var v1:TKraftVector3;const v2:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Add(const v1,v2:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Sub(const v1,v2:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Avg(const v1,v2:TKraftVector3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
+function Vector3Avg(const v1,v2,v3:TKraftVector3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
+function Vector3Avg(const va:PKraftVector3s;Count:longint):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
+function Vector3ScalarMul(const v:TKraftVector3;const s:TKraftScalar):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Dot(const v1,v2:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
+function Vector3Cos(const v1,v2:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
+function Vector3GetOneUnitOrthogonalVector(const v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Cross(const v1,v2:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Neg(const v:TKraftVector3):TKraftVector3;  {$ifdef caninline}inline;{$endif}
+procedure Vector3Scale(var v:TKraftVector3;const sx,sy,sz:TKraftScalar); overload; {$ifdef caninline}inline;{$endif}
+procedure Vector3Scale(var v:TKraftVector3;const s:TKraftScalar); overload; {$ifdef caninline}inline;{$endif}
+function Vector3Mul(const v1,v2:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Length(const v:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
+function Vector3Dist(const v1,v2:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
+function Vector3LengthSquared(const v:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
+function Vector3DistSquared(const v1,v2:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
+function Vector3Angle(const v1,v2,v3:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
+function Vector3LengthNormalize(var v:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
+procedure Vector3Normalize(var v:TKraftVector3); {$ifdef caninline}inline;{$endif}
+procedure Vector3NormalizeEx(var v:TKraftVector3); {$ifdef caninline}inline;{$endif}
+function Vector3SafeNorm(const v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Norm(const v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3NormEx(const v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+procedure Vector3RotateX(var v:TKraftVector3;a:TKraftScalar); {$ifdef caninline}inline;{$endif}
+procedure Vector3RotateY(var v:TKraftVector3;a:TKraftScalar); {$ifdef caninline}inline;{$endif}
+procedure Vector3RotateZ(var v:TKraftVector3;a:TKraftScalar); {$ifdef caninline}inline;{$endif}
+procedure Vector3MatrixMul(var v:TKraftVector3;const m:TKraftMatrix3x3); overload; {$ifdef caninline}inline;{$endif}
+procedure Vector3MatrixMul(var v:TKraftVector3;const m:TKraftMatrix4x4); overload; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+procedure Vector3MatrixMulBasis(var v:TKraftVector3;const m:TKraftMatrix4x4); overload; {$ifdef caninline}inline;{$endif}
+procedure Vector3MatrixMulInverted(var v:TKraftVector3;const m:TKraftMatrix4x4); overload; {$ifdef caninline}inline;{$endif}
+function Vector3TermMatrixMul(const v:TKraftVector3;const m:TKraftMatrix3x3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
+function Vector3TermMatrixMul(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef CPU386ASMForSinglePrecision}assembler;{$endif}
+function Vector3TermMatrixMulInverse(const v:TKraftVector3;const m:TKraftMatrix3x3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
+function Vector3TermMatrixMulInverted(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
+function Vector3TermMatrixMulTransposed(const v:TKraftVector3;const m:TKraftMatrix3x3):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
+function Vector3TermMatrixMulTransposed(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
+function Vector3TermMatrixMulTransposedBasis(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
+function Vector3TermMatrixMulBasis(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; overload; {$ifdef caninline}inline;{$endif}
+function Vector3TermMatrixMulHomogen(const v:TKraftVector3;const m:TKraftMatrix4x4):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Lerp(const v1,v2:TKraftVector3;w:TKraftScalar):TKraftVector3; {$ifdef caninline}inline;{$endif}
 function Vector3Perpendicular(v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
 function Vector3TermQuaternionRotate({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Vector3ProjectToBounds({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} MinVector,MaxVector:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
@@ -5291,6 +5349,7 @@ begin
  end;
 end;
 
+{$ifdef SIMD}
 function Vector3Flip({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3;
 begin
  result.x:=v.x;
@@ -7163,6 +7222,8 @@ begin
  m1:=t;
 end;
 
+function Matrix3x3TermAdd(const m1,m2:TKraftMatrix3x3):TKraftMatrix3x3; {$ifdef caninline}inline;{$endif}
+
 function Matrix3x3TermAdd({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m1,m2:TKraftMatrix3x3):TKraftMatrix3x3;
 begin
  result[0,0]:=m1[0,0]+m2[0,0];
@@ -8520,6 +8581,8 @@ begin
  end;
 end;
 
+function Matrix4x4LengthSquared(const m:TKraftMatrix4x4):TKraftScalar;
+
 function Matrix4x4LengthSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftScalar;
 begin
  result:=Vector4LengthSquared(PKraftVector4(pointer(@m[0,0]))^)+
@@ -9758,6 +9821,9 @@ end;
 begin
  result:=sqrt(sqr(AQuaternion.x)+sqr(AQuaternion.y)+sqr(AQuaternion.z)+sqr(AQuaternion.w));
 end;
+{$endif}
+
+function QuaternionLengthSquared(const AQuaternion:TKraftQuaternion):TKraftScalar; {$ifdef CPU386ASMForSinglePrecision}assembler;
 {$ifend}
 
 function QuaternionLengthSquared({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} AQuaternion:TKraftQuaternion):TKraftScalar; {$if defined(SIMD) and defined(SIMDASM) and (defined(cpu386) or defined(cpuamd64))}assembler; {$if defined(fpc) and defined(cpuamd64)}nostackframe;{$ifend}
@@ -9981,6 +10047,8 @@ begin
 end;
 {$ifend}
 
+function QuaternionScalarMul(const q:TKraftQuaternion;const s:TKraftScalar):TKraftQuaternion; {$ifdef CPU386ASMForSinglePrecision}assembler;
+asm
 function QuaternionScalarMul({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion;const s:TKraftScalar):TKraftQuaternion; {$if defined(SIMD) and defined(SIMDASM) and (defined(cpu386) or defined(cpuamd64))}assembler; {$if defined(fpc) and defined(cpuamd64)}nostackframe;{$ifend}
 asm
 {$if defined(cpuamd64) and not defined(fpc)}
@@ -10661,73 +10729,11 @@ end;
 
 function Modulo(x,y:TKraftScalar):TKraftScalar; {$ifdef caninline}inline;{$endif}
 begin
- result:=x-(floor(x/y)*y);
+// result:=(AABB.Max.x-AABB.Min.x)+(AABB.Max.y-AABB.Min.y)+(AABB.Max.z-AABB.Min.z); // Manhattan distance
+ result:=(AABB.Max.x-AABB.Min.x)*(AABB.Max.y-AABB.Min.y)*(AABB.Max.z-AABB.Min.z); // Volume
 end;
 
-function ModuloPos(x,y:TKraftScalar):TKraftScalar; {$ifdef caninline}inline;{$endif}
-begin
- if y>0.0 then begin
-  result:=Modulo(x,y);
-  while result<0.0 do begin
-   result:=result+y;
-  end;
-  while result>=y do begin
-   result:=result-y;
-  end;
- end else begin
-  result:=x;
- end;
-end;
-
-function AngleClamp(a:TKraftScalar):TKraftScalar; {$ifdef caninline}inline;{$endif}
-begin
- a:=ModuloPos(ModuloPos(a+pi,pi2)+pi2,pi2)-pi;
- while a<(-pi) do begin
-  a:=a+pi2;
- end;
- while a>pi do begin
-  a:=a-pi2;
- end;
- result:=a;
-end;
-
-function AngleDiff(a,b:TKraftScalar):TKraftScalar; {$ifdef caninline}inline;{$endif}
-begin
- result:=AngleClamp(AngleClamp(b)-AngleClamp(a));
-end;
-
-function AngleLerp(a,b,x:TKraftScalar):TKraftScalar; {$ifdef caninline}inline;{$endif}
-begin
-{if (b-a)>PI then begin
-  b:=b-TwoPI;
- end;
- if (b-a)<(-PI) then begin
-  b:=b+TwoPI;
- end;
- result:=a+((b-a)*x);}
- result:=a+(AngleDiff(a,b)*x);
-end;
-
-function AABBCost(const AABB:TKraftAABB):TKraftScalar;
-begin
-//result:=(AABB.Max.x-AABB.Min.x)+(AABB.Max.y-AABB.Min.y)+(AABB.Max.z-AABB.Min.z); // Manhattan distance
-//result:=(AABB.Max.x-AABB.Min.x)*(AABB.Max.y-AABB.Min.y)*(AABB.Max.z-AABB.Min.z); // Volume
- // Area
- result:=2.0*((abs(AABB.Max.x-AABB.Min.x)*abs(AABB.Max.y-AABB.Min.y))+
-              (abs(AABB.Max.y-AABB.Min.y)*abs(AABB.Max.z-AABB.Min.z))+
-              (abs(AABB.Max.x-AABB.Min.x)*abs(AABB.Max.z-AABB.Min.z)))
-end;
-
-function AABBArea(const AABB:TKraftAABB):TKraftScalar;
-var ex,ey,ez:TKraftScalar;
-begin
- ex:=abs(AABB.Max.x-AABB.Min.x);
- ey:=abs(AABB.Max.y-AABB.Min.y);
- ez:=abs(AABB.Max.z-AABB.Min.z);
- result:=2.0*((ex*ey)+(ey*ez)+(ez*ex));
-end;
-
-function AABBCombine(const AABB,WithAABB:TKraftAABB):TKraftAABB;
+function AABBCombine(const AABB,WithAABB:TKraftAABB):TKraftAABB; {$ifdef caninline}inline;{$endif}
 begin
  result.Min.x:=Min(AABB.Min.x,WithAABB.Min.x);
  result.Min.y:=Min(AABB.Min.y,WithAABB.Min.y);
@@ -13179,7 +13185,10 @@ constructor TKraftHighResolutionTimer.Create(FrameRate:TKraftInt32=60);
 begin
  inherited Create;
  fFrequencyShift:=0;
-{$if defined(windows)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+ // Copied from TimerFrequency constant in CastleTimeUtils
+ fFrequency:= 1000000;
+{$elseif defined(windows)}
  if QueryPerformanceFrequency(fFrequency) then begin
   while (fFrequency and $ffffffffe0000000)<>0 do begin
    fFrequency:=fFrequency shr 1;
@@ -13214,7 +13223,9 @@ begin
 end;
 
 function TKraftHighResolutionTimer.GetTime:TKraftInt64;
-{$if defined(linux) or defined(android)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+// nothing needed to be declared
+{$elseif defined(linux) or defined(android)}
 var NowTimeSpec:TimeSpec;
     ia,ib:TKraftInt64;
 {$elseif defined(unix)}
@@ -13223,7 +13234,9 @@ var tv:timeval;
     ia,ib:TKraftInt64;
 {$ifend}
 begin
-{$if defined(windows)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+ result:=Timer.InternalValue;
+{$elseif defined(windows)}
  if not QueryPerformanceCounter(result) then begin
   result:=timeGetTime;
  end;
@@ -13257,7 +13270,11 @@ var EndTime,NowTime{$ifdef unix},SleepTime{$endif}:TKraftInt64;
 {$endif}
 begin
  if Delay>0 then begin
-{$if defined(windows)}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+  { We don't have in CGE own Sleep, we found that SysUtils.Sleep
+    works OK everywhere. }
+  SysUtils.Sleep(Delay);
+{$elseif defined(windows)}
   NowTime:=GetTime;
   EndTime:=NowTime+Delay;
   while (NowTime+fTwoMillisecondsInterval)<EndTime do begin
@@ -13563,19 +13580,41 @@ end;
 {$else}
 function InterlockedDecrement(var Target:TKraftInt32):TKraftInt32; {$ifdef caninline}inline;{$endif}
 begin
- result:=Windows.InterlockedDecrement(Target);
+ result:=
+   {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+   AtomicDecrement
+   {$else}
+   Windows.InterlockedDecrement
+   {$ifend}
+   (Target);
 end;
 
 function InterlockedIncrement(var Target:TKraftInt32):TKraftInt32; {$ifdef caninline}inline;{$endif}
 begin
- result:=Windows.InterlockedIncrement(Target);
+ result:=
+   {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+   AtomicIncrement
+   {$else}
+   Windows.InterlockedIncrement
+   {$ifend}
+   (Target);
 end;
 
 function InterlockedExchange(var Target:TKraftInt32;Source:TKraftInt32):TKraftInt32; {$ifdef caninline}inline;{$endif}
 begin
- result:=Windows.InterlockedExchange(Target,Source);
+ result:=
+   {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+   AtomicExchange
+   {$else}
+   Windows.InterlockedExchange
+   {$ifend}
+   (Target,Source);
 end;
 
+{$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+// No implementation of InterlockedExchangeAdd or InterlockedCompareExchange,
+// ... but actually nothing in Kraft uses this.
+{$else}
 function InterlockedExchangeAdd(var Target:TKraftInt32;Source:TKraftInt32):TKraftInt32; {$ifdef caninline}inline;{$endif}
 begin
  result:=Windows.InterlockedExchangeAdd(Target,Source);
@@ -13585,6 +13624,8 @@ function InterlockedCompareExchange(var Target:TKraftInt32;NewValue,Comperand:TK
 begin
  result:=Windows.InterlockedCompareExchange(Target,NewValue,Comperand);
 end;
+{$ifend}
+
 {$endif}
 {$else}
 function InterlockedDecrement(var Target:TKraftInt32):TKraftInt32; {$ifdef caninline}inline;{$endif}
@@ -23787,7 +23828,7 @@ procedure TKraftMeshSimplification.SaveToOBJ(const aStream:TStream);
  begin
   // The original stock FloatToStr uses internationalization, which is not what we want here. We do want have always "." as fraction separator.
   // And the str yet from Turbo Pascal times uses always "." as fraction separator, what we do want here.
-  Str(aValue:0:12,result); 
+  Str(aValue:0:12,result);
  end;
 var Index:TKraftInt32;
     Vertex:PKraftMeshSimplificationVector3;
@@ -25354,7 +25395,7 @@ procedure TKraftMesh.SaveToOBJ(const aStream:TStream);
  begin
   // The original stock FloatToStr uses internationalization, which is not what we want here. We do want have always "." as fraction separator.
   // And the str yet from Turbo Pascal times uses always "." as fraction separator, what we do want here.
-  Str(aValue:0:12,result); 
+  Str(aValue:0:12,result);
  end;
 var Index:TKraftInt32;
     Vertex:PKraftVector3;
@@ -25419,13 +25460,13 @@ procedure TKraftMesh.SaveBVHToOBJ(const aStream:TStream;const aMode:TKraftInt32)
  begin
   // The original stock FloatToStr uses internationalization, which is not what we want here. We do want have always "." as fraction separator.
   // And the str yet from Turbo Pascal times uses always "." as fraction separator, what we do want here.
-  Str(aValue:0:12,result); 
+  Str(aValue:0:12,result);
  end;
 var SkipListNodeIndex,Counter:TKraftInt32;
     SkipListNode:PKraftMeshSkipListNode;
 begin
  WriteLine('# Generated by KRAFT physics engine for debugging purposes only');
- WriteLine('o Nodes'); 
+ WriteLine('o Nodes');
  for SkipListNodeIndex:=0 to fCountSkipListNodes-1 do begin
   SkipListNode:=@fSkipListNodes[SkipListNodeIndex];
   case aMode of
@@ -25498,7 +25539,7 @@ type TTriangleQueue=TKraftQueue<TKraftInt32>;
 var TriangleIndex:TKraftInt32;
     Area:TKraftScalar;
     Triangle:PKraftMeshTriangle;
-    TriangleQueue:TTriangleQueue;   
+    TriangleQueue:TTriangleQueue;
     Vertices,Normals,NewVertices,NewNormals:array[0..2] of TKraftInt32;
 begin
  if fTriangleAreaSplitThreshold>EPSILON then begin
@@ -25506,7 +25547,7 @@ begin
   TriangleQueue:=TTriangleQueue.Create;
   try
 
-   // Find seed too large triangles and enqueue them 
+   // Find seed too large triangles and enqueue them
    for TriangleIndex:=0 to fCountTriangles-1 do begin
     Triangle:=@fTriangles[TriangleIndex];
     Area:=Vector3Length(Vector3Cross(Vector3Sub(fVertices[Triangle^.Vertices[1]],fVertices[Triangle^.Vertices[0]]),Vector3Sub(fVertices[Triangle^.Vertices[2]],fVertices[Triangle^.Vertices[0]])))*0.5;
@@ -25515,7 +25556,7 @@ begin
     end;
    end;
 
-   // Split too large triangles into each four sub triangles until there are no more too large triangles 
+   // Split too large triangles into each four sub triangles until there are no more too large triangles
 
    //          p0
    //          /\
@@ -25525,15 +25566,15 @@ begin
    //      / \    / \
    //     / t2\t0/ t1\
    //  p2/_____\/_____\p1
-   //          m1         
+   //          m1
 
    // t0: m0,m1,m2
    // t1: m0,p1,m1
    // t2: m2,m1,p2
-   // t3: p0,m0,m2 
+   // t3: p0,m0,m2
 
    while TriangleQueue.Dequeue(TriangleIndex) do begin
-    
+
     Triangle:=@fTriangles[TriangleIndex];
 
     Vertices[0]:=Triangle^.Vertices[0]; // p0
@@ -25554,7 +25595,7 @@ begin
 
     // Create new four triangles, where the current triangle will overwritten by the first one
 
-    // The first triangle: m0,m1,m2     
+    // The first triangle: m0,m1,m2
     Triangle^.Vertices[0]:=NewVertices[0]; // m0
     Triangle^.Vertices[1]:=NewVertices[1]; // m1
     Triangle^.Vertices[2]:=NewVertices[2]; // m2
@@ -25572,13 +25613,13 @@ begin
 {$endif}
     Triangle^.AABB.Max.x:=Max(Max(fVertices[Triangle^.Vertices[0]].x,fVertices[Triangle^.Vertices[1]].x),fVertices[Triangle^.Vertices[2]].x)+EPSILON;
     Triangle^.AABB.Max.y:=Max(Max(fVertices[Triangle^.Vertices[0]].y,fVertices[Triangle^.Vertices[1]].y),fVertices[Triangle^.Vertices[2]].y)+EPSILON;
-    Triangle^.AABB.Max.z:=Max(Max(fVertices[Triangle^.Vertices[0]].z,fVertices[Triangle^.Vertices[1]].z),fVertices[Triangle^.Vertices[2]].z)+EPSILON; 
+    Triangle^.AABB.Max.z:=Max(Max(fVertices[Triangle^.Vertices[0]].z,fVertices[Triangle^.Vertices[1]].z),fVertices[Triangle^.Vertices[2]].z)+EPSILON;
 {$ifdef SIMD}
     Triangle^.AABB.Max.w:=0.0;
-{$endif} 
+{$endif}
     Area:=Vector3Length(Vector3Cross(Vector3Sub(fVertices[Triangle^.Vertices[1]],fVertices[Triangle^.Vertices[0]]),Vector3Sub(fVertices[Triangle^.Vertices[2]],fVertices[Triangle^.Vertices[0]])))*0.5;
     if Area>fTriangleAreaSplitThreshold then begin
-     TriangleQueue.Enqueue(TriangleIndex); // Enqueue the first triangle again, when it is still too large 
+     TriangleQueue.Enqueue(TriangleIndex); // Enqueue the first triangle again, when it is still too large
     end;
 
     // The second triangle: m0,p1,m1
@@ -25591,7 +25632,7 @@ begin
     Triangle:=@fTriangles[TriangleIndex];
     Area:=Vector3Length(Vector3Cross(Vector3Sub(fVertices[Triangle^.Vertices[1]],fVertices[Triangle^.Vertices[0]]),Vector3Sub(fVertices[Triangle^.Vertices[2]],fVertices[Triangle^.Vertices[0]])))*0.5;
     if Area>fTriangleAreaSplitThreshold then begin
-     TriangleQueue.Enqueue(TriangleIndex); // Enqueue the second triangle, when it is still too large 
+     TriangleQueue.Enqueue(TriangleIndex); // Enqueue the second triangle, when it is still too large
     end;
 
     // The third triangle: m2,m1,p2
@@ -25604,7 +25645,7 @@ begin
     Triangle:=@fTriangles[TriangleIndex];
     Area:=Vector3Length(Vector3Cross(Vector3Sub(fVertices[Triangle^.Vertices[1]],fVertices[Triangle^.Vertices[0]]),Vector3Sub(fVertices[Triangle^.Vertices[2]],fVertices[Triangle^.Vertices[0]])))*0.5;
     if Area>fTriangleAreaSplitThreshold then begin
-     TriangleQueue.Enqueue(TriangleIndex); // Enqueue the third triangle, when it is still too large 
+     TriangleQueue.Enqueue(TriangleIndex); // Enqueue the third triangle, when it is still too large
     end;
 
     // The fourth triangle: p0,m0,m2
@@ -25619,12 +25660,12 @@ begin
     if Area>fTriangleAreaSplitThreshold then begin
      TriangleQueue.Enqueue(TriangleIndex); // Enqueue the fourth triangle, when it is still too large
     end;
-    
+
    end;
 
   finally
    FreeAndNil(TriangleQueue);
-  end; 
+  end;
 
  end;
 
@@ -26084,156 +26125,86 @@ begin
       finally
        FreeAndNil(fNodeQueueLock);
       end;
-{$endif}
-     finally
-      FreeAndNil(fNodeQueue);
-     end;
-    end;
-   end else begin
-    TreeNode^.FirstTriangleIndex:=-1;
-    TreeNode^.CountTriangles:=0;
-   end;
-  end;
-
-  SetLength(fTreeNodes,fCountTreeNodes);
-
-  Stack:=nil;
-  try
-   SkipListNodeMap:=nil;
-   try
-    try
-     SetLength(SkipListNodeMap,fCountTreeNodes+((fCountTreeNodes+1) shr 1));
-     if length(fSkipListNodes)<=fCountTreeNodes then begin
-      SetLength(fSkipListNodes,fCountTreeNodes+((fCountTreeNodes+1) shr 1));
-     end;
-     fCountSkipListNodes:=0;
-     SetLength(Stack,8);
-     Stack[0]:=(TKraftUInt64(fTreeNodeRoot) shl 1) or 0;
-     StackPointer:=1;
-     while StackPointer>0 do begin
-      dec(StackPointer);
-      StackItem:=Stack[StackPointer];
-      TreeNodeIndex:=StackItem shr 1;
-      TreeNode:=@fTreeNodes[TreeNodeIndex];
-      case StackItem and 1 of
-       0:begin
-        SkipListNodeIndex:=fCountSkipListNodes;
-        inc(fCountSkipListNodes);
-        SkipListNode:=@fSkipListNodes[SkipListNodeIndex];
-        SkipListNodeMap[TreeNodeIndex]:=SkipListNodeIndex;
-        SkipListNode^.AABB:=TreeNode^.AABB;
-        if TreeNode^.FirstLeftChild>=0 then begin
-         // No leaf
-         SkipListNode^.FirstTriangleIndex:=-1;
-         SkipListNode^.CountTriangles:=0;
-        end else begin
-         // Leaf
-         SkipListNode^.FirstTriangleIndex:=TreeNode^.FirstTriangleIndex;
-         SkipListNode^.CountTriangles:=TreeNode^.CountTriangles;
-        end;
-        SkipListNode^.SkipToNodeIndex:=-1;
-        begin
-         if length(Stack)<=StackPointer then begin
-          SetLength(Stack,(StackPointer+1)+((StackPointer+1) shr 1));
+      begin
+       // Pass 3 - Fill arrays
+       for Index:=0 to CountNodes-1 do begin
+        Node:=@Nodes[Index];
+        fNodes[Index].Children[0]:=Node^.Children[0];
+        fNodes[Index].Children[1]:=Node^.Children[1];
+        fNodes[Index].TriangleIndex:=Node^.TriangleIndex;
+        fNodes[Index].AABB:=Node^.AABB;
+       end;
+       fCountSkipListNodes:=0;
+       Stack[0]:=Root;
+       Stack[1]:=0;
+       Stack[2]:=0;
+       StackPointer:=3;
+       while StackPointer>0 do begin
+        dec(StackPointer,3);
+        NodeID:=Stack[StackPointer];
+        Pass:=Stack[StackPointer+1];
+        Index:=Stack[StackPointer+2];
+        if (NodeID>=0) and (NodeID<CountNodes) then begin
+         Node:=@Nodes[NodeID];
+         case Pass of
+          0:begin
+           Index:=fCountSkipListNodes;
+           inc(fCountSkipListNodes);
+           SkipListNode:=@fSkipListNodes[Index];
+           SkipListNode^.AABB.Min:=Node^.AABB.Min;
+           SkipListNode^.AABB.Max:=Node^.AABB.Max;
+           SkipListNode^.SkipToNodeIndex:=-1;
+           if Node^.TriangleIndex>=0 then begin
+            SkipListNode^.TriangleIndex:=Node^.TriangleIndex;
+           end else begin
+            SkipListNode^.TriangleIndex:=-1;
+           end;
+           if Node^.Children[0]>=0 then begin
+            NewStackCapacity:=RoundUpToPowerOfTwo(StackPointer+9);
+            if NewStackCapacity>length(Stack) then begin
+             SetLength(Stack,NewStackCapacity);
+            end;
+            Stack[StackPointer+0]:=NodeID;
+            Stack[StackPointer+1]:=1;
+            Stack[StackPointer+2]:=Index;
+            Stack[StackPointer+3]:=Node^.Children[1];
+            Stack[StackPointer+4]:=0;
+            Stack[StackPointer+5]:=0;
+            Stack[StackPointer+6]:=Node^.Children[0];
+            Stack[StackPointer+7]:=0;
+            Stack[StackPointer+8]:=0;
+            inc(StackPointer,9);
+           end else begin
+            NewStackCapacity:=RoundUpToPowerOfTwo(StackPointer+3);
+            if NewStackCapacity>length(Stack) then begin
+             SetLength(Stack,NewStackCapacity);
+            end;
+            Stack[StackPointer+0]:=NodeID;
+            Stack[StackPointer+1]:=1;
+            Stack[StackPointer+2]:=Index;
+            inc(StackPointer,3);
+           end;
+          end;
+          1:begin
+           SkipListNode:=@fSkipListNodes[Index];
+           SkipListNode^.SkipToNodeIndex:=fCountSkipListNodes;
+          end;
          end;
-         Stack[StackPointer]:=(TKraftUInt64(TreeNodeIndex) shl 1) or 1;
-         inc(StackPointer);
         end;
-        if TreeNode^.FirstLeftChild>=0 then begin
-         if length(Stack)<=(StackPointer+1) then begin
-          SetLength(Stack,(StackPointer+2)+((StackPointer+2) shr 1));
-         end;
-         Stack[StackPointer]:=(TKraftUInt64(TreeNode^.FirstLeftChild+1) shl 1) or 0;
-         Stack[StackPointer+1]:=(TKraftUInt64(TreeNode^.FirstLeftChild+0) shl 1) or 0;
-         inc(StackPointer,2);
-        end;
-       end;
-       else {1:}begin
-        SkipListNodeIndex:=SkipListNodeMap[TreeNodeIndex];
-        fSkipListNodes[SkipListNodeIndex].SkipToNodeIndex:=fCountSkipListNodes;
        end;
       end;
      end;
-    finally
-     SetLength(fSkipListNodes,fCountSkipListNodes);
     end;
-   finally
-    SkipListNodeMap:=nil;
-   end;
-  finally
-   Stack:=nil;
-  end;
-
-  // Reorder vertices and normals by triangle access order for better cache locality
-  if fCountTriangles>0 then begin
-
-   NewVertices:=nil;
-   NewNormals:=nil;
-   VertexReindexMap:=nil;
-   NormalReindexMap:=nil;
-   try
-    
-    // Allocate the temporary array for the new vertices and reindex map with respect to the old vertices  
-    SetLength(NewVertices,fCountVertices);
-    SetLength(VertexReindexMap,fCountVertices);
-    for Index:=0 to fCountVertices-1 do begin
-     VertexReindexMap[Index]:=-1;     
-    end;
-    
-    // Allocate the temporary array for the new normals and reindex map with respect to the old normals
-    SetLength(NewNormals,fCountNormals);
-    SetLength(NormalReindexMap,fCountNormals);
-    for Index:=0 to fCountNormals-1 do begin
-     NormalReindexMap[Index]:=-1;     
-    end;
-
-    // Do the actual reorder work
-
-    CountNewVertices:=0;
-    CountNewNormals:=0;
-
-    for Index:=0 to fCountTriangles-1 do begin
-
-     Triangle:=@fTriangles[Index];
-
-     for VertexIndex:=0 to 2 do begin
-
-      if Triangle^.Vertices[VertexIndex]>=0 then begin
-       if VertexReindexMap[Triangle^.Vertices[VertexIndex]]<0 then begin
-        VertexReindexMap[Triangle^.Vertices[VertexIndex]]:=CountNewVertices;
-        NewVertices[CountNewVertices]:=fVertices[Triangle^.Vertices[VertexIndex]];
-        inc(CountNewVertices);
-       end;
-       Triangle^.Vertices[VertexIndex]:=VertexReindexMap[Triangle^.Vertices[VertexIndex]];
-      end;
-
-      if Triangle^.Normals[VertexIndex]>=0 then begin
-       if NormalReindexMap[Triangle^.Normals[VertexIndex]]<0 then begin
-        NormalReindexMap[Triangle^.Normals[VertexIndex]]:=CountNewNormals;
-        NewNormals[CountNewNormals]:=fNormals[Triangle^.Normals[VertexIndex]];
-        inc(CountNewNormals);
-       end;
-       Triangle^.Normals[VertexIndex]:=NormalReindexMap[Triangle^.Normals[VertexIndex]];
-      end;
-
-     end;
-
-    end;
-
-    // Replace the old vertices and normals with the new ones
-    fVertices:=NewVertices;
-    fNormals:=NewNormals;
-
    finally
     NewVertices:=nil;
     NewNormals:=nil;
     VertexReindexMap:=nil;
     NormalReindexMap:=nil;
-   end; 
-  
-  end;  
+   end;
 
-  // Calculate the global AABB for all vertices 
+  end;
+
+  // Calculate the global AABB for all vertices
   for Index:=0 to fCountVertices-1 do begin
    if Index=0 then begin
     fAABB.Min:=fVertices[Index];
@@ -41147,8 +41118,10 @@ end;
 procedure TKraftJobThread.Execute;
 var JobIndex:TKraftInt32;
 begin
+ {$ifdef HAS_FPU_TYPES}
  SetPrecisionMode(PhysicsFPUPrecisionMode);
  SetExceptionMask(PhysicsFPUExceptionMask);
+ {$endif}
  SIMDSetOurFlags;
  InterlockedIncrement(fJobManager.fCountAliveThreads);
  while not (Terminated or fJobManager.fThreadsTerminated) do begin
@@ -41186,7 +41159,9 @@ begin
  fOnProcessJob:=nil;
  for Index:=0 to fCountThreads-1 do begin
   fThreads[Index]:=TKraftJobThread.Create(fPhysics,self,Index);
+  {$if defined(FPC) or defined(MSWINDOWS)}
   fThreads[Index].Priority:=tpHigher;
+  {$ifend}
  end;
 end;
 
@@ -42944,8 +42919,10 @@ end;
 procedure TKraft.Step(const ADeltaTime:TKraftScalar=0);
 var RigidBody:TKraftRigidBody;
     Constraint,NextConstraint:TKraftConstraint;
+    {$ifdef HAS_FPU_TYPES}
     OldFPUPrecisionMode:TFPUPrecisionMode;
     OldFPUExceptionMask:TFPUExceptionMask;
+    {$endif}
     OldSIMDFlags:TKraftUInt32;
     StartTime:TKraftInt64;
     TimeStep:TKraftTimeStep;
@@ -42975,6 +42952,7 @@ begin
  fContactManager.fCountDebugClipVertexLists:=0;
 {$endif}
 
+ {$ifdef HAS_FPU_TYPES}
  OldFPUPrecisionMode:=GetPrecisionMode;
  if OldFPUPrecisionMode<>PhysicsFPUPrecisionMode then begin
   SetPrecisionMode(PhysicsFPUPrecisionMode);
@@ -42984,6 +42962,7 @@ begin
  if OldFPUExceptionMask<>PhysicsFPUExceptionMask then begin
   SetExceptionMask(PhysicsFPUExceptionMask);
  end;
+ {$endif}
 
  OldSIMDFlags:=SIMDGetFlags;
 
@@ -43059,6 +43038,7 @@ begin
 
  SIMDSetFlags(OldSIMDFlags);
 
+ {$ifdef HAS_FPU_TYPES}
  if OldFPUExceptionMask<>PhysicsFPUExceptionMask then begin
   SetExceptionMask(OldFPUExceptionMask);
  end;
@@ -43066,6 +43046,7 @@ begin
  if OldFPUPrecisionMode<>PhysicsFPUPrecisionMode then begin
   SetPrecisionMode(OldFPUPrecisionMode);
  end;
+ {$endif}
 
  fTotalTime:=fHighResolutionTimer.GetTime-fTotalTime;
 

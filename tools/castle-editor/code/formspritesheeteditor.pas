@@ -173,7 +173,7 @@ type
     procedure ListViewAnimationsDragOver(Sender, Source: TObject; X,
       Y: Integer; State: TDragState; var Accept: Boolean);
     procedure ListViewAnimationsEdited(Sender: TObject; Item: TListItem;
-      var AValue: string);
+      var AValue: String);
     procedure ListViewAnimationsSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure ListViewFramesSelectItem(Sender: TObject; Item: TListItem;
@@ -253,7 +253,7 @@ type
     function GetFirstSelectedFrame: TCastleSpriteSheetFrame;
     function GetLastSelectedFrame: TCastleSpriteSheetFrame;
     function FrameTitle(const FrameNo: Integer;
-      const Frame: TCastleSpriteSheetFrame): string;
+      const Frame: TCastleSpriteSheetFrame): String;
     procedure UpdateFrameTitles;
 
     { Returns current preview mode }
@@ -321,7 +321,7 @@ implementation
 {$R *.lfm}
 
 uses GraphType, IntfGraphics, Math, LCLIntf, LCLType, FPImage,
-  CastleImages, CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils,
+  CastleImages, CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils,
   X3DNodes,
   EditorUtils,
   FormProject, FormImportAtlas, FormImportStarling
@@ -725,12 +725,12 @@ begin
     URLToOpen := OpenDialog.URL;
 
     { Check: if file is Starling }
-    MimeType := URIMimeType(URLToOpen);
+    MimeType := UriMimeType(URLToOpen);
     if (MimeType = 'application/x-starling-sprite-sheet') or
        (MimeType = 'application/xml') then
     begin
       { If file has anchors don't show import dialog }
-      URIGetAnchor(URLToOpen, URLAnchor, true);
+      UriGetAnchor(URLToOpen, URLAnchor, true);
       if URLAnchor = '' then
       begin
         ImportStarlingForm.Initialize(URLToOpen);
@@ -826,7 +826,7 @@ end;
 procedure TSpriteSheetEditorForm.ActionSaveSpriteSheetExecute(Sender: TObject);
 begin
   if (FSpriteSheet.URL = '') or
-     (URIMimeType(FSpriteSheet.URL) <> 'application/x-castle-sprite-sheet') then
+     (UriMimeType(FSpriteSheet.URL) <> 'application/x-castle-sprite-sheet') then
     ActionSaveSpriteSheetAsExecute(Sender)
   else
     FSpriteSheet.Save(FSpriteSheet.URL, false);
@@ -915,10 +915,10 @@ begin
   { Adjust InitialDir values to make open/save dialogs natural, and clear URL.
     Do this in FormShow, as one instance of TSpriteSheetEditorForm may exist across
     many CGE projects being open. }
-  OpenDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  SaveDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  CastleOpenImageDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  CastleImportAtlasDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  OpenDialog.InitialDir := UriToFilenameSafe('castle-data:/');
+  SaveDialog.InitialDir := UriToFilenameSafe('castle-data:/');
+  CastleOpenImageDialog.InitialDir := UriToFilenameSafe('castle-data:/');
+  CastleImportAtlasDialog.InitialDir := UriToFilenameSafe('castle-data:/');
   OpenDialog.URL := '';
   SaveDialog.URL := '';
   CastleOpenImageDialog.URL := '';
@@ -985,7 +985,7 @@ begin
 end;
 
 procedure TSpriteSheetEditorForm.ListViewAnimationsEdited(Sender: TObject;
-  Item: TListItem; var AValue: string);
+  Item: TListItem; var AValue: String);
 var
   Animation: TCastleSpriteSheetAnimation;
 begin
@@ -1300,7 +1300,7 @@ begin
 end;
 
 function TSpriteSheetEditorForm.FrameTitle(const FrameNo: Integer;
-  const Frame: TCastleSpriteSheetFrame): string;
+  const Frame: TCastleSpriteSheetFrame): String;
 begin
   Result := IntToStr(FrameNo + 1) + ' - ' + IntToStr(Frame.FrameWidth) +
      'x' + IntToStr(Frame.FrameHeight);
@@ -1342,7 +1342,7 @@ begin
   begin
     FNavigation := TCastle2DNavigation.Create(Self);
 
-    FViewport := TCastleViewport.InternalCreateNonDesign(Self);
+    FViewport := TCastleViewport.InternalCreateNonDesign(Self, 0);
     Assert(FViewport.Camera <> nil);
     FViewport.FullSize := true;
     FViewport.InsertFront(FNavigation);
@@ -1563,7 +1563,7 @@ begin
   if FSpriteSheet.URL = '' then
     FileName := 'New Sprite Sheet'
   else
-    FileName := ExtractURIName(FSpriteSheet.URL);
+    FileName := ExtractUriName(FSpriteSheet.URL);
 
   Caption := ModifiedMark + FileName + ' | ' + FWindowTitle;
 end;

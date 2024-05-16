@@ -201,13 +201,14 @@
       FSizeScale (set explicitly by user to tweak size). }
     procedure UpdateWorldScale;
 
-    function StoredWithAutoSize: Boolean;
-
     function WorldScaleScalar: Single;
 
     { Configure Sender (TCastleCollider) to have Mode2D. }
     class procedure CreateComponent2D(Sender: TObject);
   protected
+    { Use this for "stored" for properties that are auto-calculated when AutoSize. }
+    function StoredWithAutoSize: Boolean;
+
     { Total scale, accumulated from all parents TCastleTransform.Scale (converted to scalar
       following Mode2D) and collider SizeScale. }
     function TotalScale: Single;
@@ -903,7 +904,7 @@
     { Transformations that we collide with currently. }
     function GetCollidingTransforms: TCastleTransformList;
 
-    { Cast a ray using physics engine, see what is hit.
+    { First object hit by the ray, calculated using the physics engine.
 
       Returns the TPhysicsRayCastResult record.
       Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
@@ -3992,7 +3993,7 @@ end;
 {$I auto_generated_persistent_vectors/tcastlerigidbody_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
-{ TCastleAbstractRootTransform ----------------------------------------------- }
+{ TCastleAbstractRootTransform ------------------------------------------------------------------- }
 
 procedure TCastleAbstractRootTransform.InitializePhysicsEngine;
 begin

@@ -31,12 +31,12 @@ uses SysUtils, Classes, Generics.Collections,
   CastleInternalNodeInterpolator, CastleQuaternions;
 
 { Load MD3 model, with skin and animations. }
-function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
+function LoadMD3(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
 implementation
 
 uses CastleFilesUtils, CastleStringUtils, CastleBoxes, X3DLoadInternalUtils,
-  X3DCameraUtils, CastleDownload, CastleURIUtils, CastleLog;
+  X3DCameraUtils, CastleDownload, CastleUriUtils, CastleLog;
 
 type
   EInvalidMD3 = class(Exception);
@@ -49,7 +49,7 @@ const
 {$I x3dloadinternalmd3_animation.inc}
 {$I x3dloadinternalmd3_converter.inc}
 
-function LoadMD3(const Stream: TStream; const BaseUrl: string): TX3DRootNode;
+function LoadMD3(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   Md3: TMD3Converter;
 begin

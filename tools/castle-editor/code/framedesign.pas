@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,7 +17,7 @@
   a xxx.castle-user-interface, xxx.castle-transform, xxx.castle-component file. }
 unit FrameDesign;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 interface
 
@@ -64,6 +64,7 @@ type
     ButtonClearTranslation: TButton;
     ButtonPlayStop: TSpeedButton;
     ButtonApiReferenceForCurrent: TSpeedButton;
+    EditFindInHierarchy: TEdit;
     LabelPhysics: TLabel;
     LabelPlayStop: TLabel;
     LabelViewport: TLabel;
@@ -155,6 +156,7 @@ type
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
+    procedure EditFindInHierarchyChange(Sender: TObject);
     procedure FrameResize(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemCutClick(Sender: TObject);
@@ -273,6 +275,7 @@ type
       // Last selected components (with AutoSelectParents=true)
       LastSelected: TComponentList;
       FShowColliders: Boolean;
+      FindActive: Boolean;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -310,7 +313,14 @@ type
     procedure CollectionPropertyEditorFormUnassign;
     function ComponentCaption(const C: TComponent): String;
     function TreeNodeCaption(const C: TComponent): String;
+
+    { Is is allowed to drag-and-drop from ControlsTree to ControlsTree.
+      Src, Dst, SrcComponent can be @nil.
+      (But SrcComponents cannot!) }
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
+    function ControlsTreeAllowDrag(const SrcComponent: TComponent; const Dst: TTreeNode): Boolean;
+    function ControlsTreeAllowDrag(const SrcComponents: TComponentList; const Dst: TTreeNode): Boolean;
+
     procedure FrameAnchorsChange(Sender: TObject);
     procedure AdjustUserInterfaceAnchorsToKeepRect(const UI: TCastleUserInterface;
       const RenderRectBeforeChange: TFloatRectangle);
@@ -343,6 +353,11 @@ type
     }
     procedure GetSelected(out Selected: TComponentList;
       out SelectedCount: Integer; const AutoSelectParents: Boolean = true);
+
+    { Select given components in the hierarchy.
+      Consistently with GetSelected, that may return @nil,
+      this accepts @nil as input. }
+    procedure SetSelected(const Selected: TComponentList);
 
     function GetSelectedUserInterface: TCastleUserInterface;
     procedure SetSelectedUserInterface(const Value: TCastleUserInterface);
@@ -462,10 +477,18 @@ type
     procedure ViewportViewBox(const V: TCastleViewport; Box: TBox3D);
     procedure CurrentViewportFreeNotification(const Sender: TFreeNotificationObserver);
 
-    { Single selected item, e.g. for rename operation.
+    { Single selected item.
+      Only non-nil when we have selected exactly one component.
+      IOW, this is always @nil if we selected zero or more than one component.
 
-      Use this instead of ControlsTree.Selected which is not reliable to use
-      on a TTreeView with multi-selection.
+      Use this when you need to know only the single selected item,
+      because the given operation cannot handle multiple selected items.
+      E.g. for rename operation.
+
+      Note:
+      Never use built-in LCL ControlsTree.Selected, which is not reliable to use
+      on a TTreeView with multi-selection possible.
+      The LCL ControlsTree.Selected problems details:
 
       - it is not synchronized with ControlsTree.SelectionCount,
         ControlsTree.Selections after doing "ControlsTree.Selected := nil".
@@ -484,7 +507,7 @@ type
           Effect: ControlsTree.Selected = nil,
           but ControlsTree.SelectionCount > 0.
 
-      - adding / removing nodes also don't seem to always synchronized them...
+      - adding / removing nodes also don't seem to always synchronize them...
 
       Note: Also never set ControlsTree.Selected.
       Do ControlsTree.ClearSelection that makes multi-selection properly cleared.
@@ -501,10 +524,15 @@ type
     procedure UpdateColliders(T: TCastleTransform = nil);
 
     { Get parent of non-visual component.
+
+      Can be used on any TComponent. Parent can be TCastleComponent,
+      but it can contain any TComponent, this is important ability to store
+      in TCastleComponent.NonVisualComponents also non-CGE components.
+
       Since there's no TCastleComponent.NonVisualParent or such, so we find parent using
       ControlsTree knowledge.
       Returns nil if no parent. }
-    function NonVisualComponentParent(const C: TCastleComponent): TCastleComponent;
+    function NonVisualComponentParent(const C: TComponent): TCastleComponent;
 
     { Currently selected transformation, chosen more aggressively than just
       SelectedTransform. Even selecting a behavior makes the parent current.
@@ -523,7 +551,9 @@ type
     OnIsRunning: TBooleanEvent;
     OnShowStatistics: TBooleanEvent;
 
-    function RenamePossible: Boolean;
+    function RenameSelectedPossible: Boolean;
+    function RenamePossible(const C: TComponent): Boolean;
+
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -657,6 +687,11 @@ type
     { Saves some editor data in subcomponent of Application for property
       editors }
     procedure UpdateEditorDataForPropertyEditors;
+
+    { Toggle whether the edit box to find component by name exists. }
+    procedure FindToggle;
+    { Find next, if find is active. }
+    procedure FindNext;
   end;
 
 implementation
@@ -671,7 +706,7 @@ uses
   { CGE units }
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
-  CastleURIUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
+  CastleUriUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
   CastleInternalUrlUtils,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
@@ -702,7 +737,7 @@ const
 function ParentRenderRect(const UI: TCastleUserInterface): TFloatRectangle;
 begin
   if UI.Parent = nil then
-    Result := FloatRectangle(UI.Container.Rect)
+    Result := FloatRectangle(UI.Container.PixelsRect)
   else
     Result := UI.Parent.RenderRect;
 end;
@@ -1449,9 +1484,9 @@ procedure TDesignFrame.TDesignerLayer.Render;
       Rect.Anchor(hpLeft, Max(0, UIRect.Left));
       Rect.Anchor(vpBottom, UIRect.Top);
 
-      if Rect.RenderRect.Top > Rect.Container.Height then
+      if Rect.RenderRect.Top > Rect.Container.PixelsHeight then
         // put Rect inside UI, otherwise it would be offscreen
-        Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.Height, UIRect.Top));
+        Rect.Anchor(vpTop, vpBottom, Min(Rect.Container.PixelsHeight, UIRect.Top));
     end else
       Rect.Exists := false;
   end;
@@ -1623,7 +1658,7 @@ begin
   VisualizeTransformSelected.OnParentModified := @GizmoHasModifiedParent;
   VisualizeTransformSelected.OnGizmoStopDrag := @GizmoStopDrag;
 
-  SaveDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+  SaveDesignDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
 
   TabInfo.TabVisible := false;
 
@@ -1654,6 +1689,9 @@ begin
   FTransformDesigningObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TransformDesigningFreeNotification;
   *)
   UpdateEditorDataForPropertyEditors;
+
+  FindActive := false;
+  SetEnabledVisible(EditFindInHierarchy, FindActive);
 end;
 
 destructor TDesignFrame.Destroy;
@@ -2004,7 +2042,7 @@ begin
   NewDesignOwner := TComponent.Create(Self);
 
   try
-    Mime := URIMimeType(NewDesignUrl);
+    Mime := UriMimeType(NewDesignUrl);
     if Mime = 'text/x-castle-user-interface' then
       NewDesignRoot := UserInterfaceLoad(NewDesignUrl, NewDesignOwner)
     else
@@ -2021,7 +2059,7 @@ begin
       that has TCastleTransform inside. UserInterfaceLoad makes EInvalidCast. }
     on E: Exception do
     begin
-      E.Message := 'Error when loading ' + URIDisplay(NewDesignUrl) + ': ' + E.Message;
+      E.Message := 'Error when loading ' + UriDisplay(NewDesignUrl) + ': ' + E.Message;
       raise;
     end;
   end;
@@ -2039,7 +2077,7 @@ var
 begin
   // calculate DesignName
   if DesignUrl <> '' then
-    DesignName := ExtractURIName(DesignUrl)
+    DesignName := ExtractUriName(DesignUrl)
   else
   if DesignRoot is TCastleTransform then
     DesignName := 'New Transform'
@@ -2501,13 +2539,13 @@ begin
   end;
 end;
 
-function TDesignFrame.NonVisualComponentParent(const C: TCastleComponent): TCastleComponent;
+function TDesignFrame.NonVisualComponentParent(const C: TComponent): TCastleComponent;
 var
   CNode: TTreeNode;
   ParentComp: TComponent;
 begin
   if not TreeNodeMap.TryGetValue(C, CNode) then
-    raise EInternalError.Create('Cannot duplicate non-visual component: we cannot find the node in ControlsTree');
+    raise EInternalError.Create('Cannot get parent of non-visual component: we cannot find the node in ControlsTree');
 
   // This can happen if C is root component in design
   if CNode.Parent = nil then
@@ -2517,10 +2555,10 @@ begin
     in case parent is special "Non-visual component" text node. }
   ParentComp := SelectedFromNode(CNode.Parent);
   if ParentComp = nil then
-    raise EInternalError.Create('Cannot duplicate non-visual component: parent node not a regular component');
+    raise EInternalError.Create('Cannot get parent of non-visual component: parent node not a regular component');
 
   if not (ParentComp is TCastleComponent) then
-    raise EInternalError.Create('Cannot duplicate non-visual component: parent is TComponent but not TCastleComponent');
+    raise EInternalError.Create('Cannot get parent of non-visual component: parent is TComponent but not TCastleComponent');
 
   Result := ParentComp as TCastleComponent;
 end;
@@ -3045,7 +3083,7 @@ procedure TDesignFrame.CastleControlOpen(Sender: TObject);
     SettingsUrl: String;
   begin
     SettingsUrl := 'castle-data:/CastleSettings.xml';
-    if URIFileExists(SettingsUrl) then
+    if UriFileExists(SettingsUrl) then
     try
       CastleControl.Container.LoadSettings(SettingsUrl);
     except
@@ -3415,7 +3453,7 @@ begin
   if SourceShellList.Selected <> nil then
   begin
     SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
-    SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+    SelectedUrl := MaybeUseDataProtocol(FilenameToUriSafe(SelectedFileName));
 
     if LoadImage_FileFilters.Matches(SelectedUrl) then
     begin
@@ -3447,7 +3485,7 @@ begin
   if SourceShellList.Selected <> nil then
   begin
     SelectedFileName := SourceShellList.GetPathFromItem(SourceShellList.Selected);
-    SelectedUrl := MaybeUseDataProtocol(FilenameToURISafe(SelectedFileName));
+    SelectedUrl := MaybeUseDataProtocol(FilenameToUriSafe(SelectedFileName));
     Result := AddComponentFromUrl(SelectedUrl, ParentComponent);
   end;
 end;
@@ -3536,7 +3574,7 @@ begin
     e.g. project top-level instead of "data".
     This is likely a mistake, and want to communicate to user why. }
   if (Result <> nil) and
-     (URIProtocol(AddUrl) = 'file') then
+     (UriProtocol(AddUrl) = 'file') then
     WarningBox(Format('Added component has URL pointing to a local filename: "%s".' + NL +
       NL +
       'This will likely not work when you open the project on another computer.' + NL +
@@ -3570,7 +3608,7 @@ begin
 
   if ParentComponent = nil then
     raise Exception.CreateFmt('Cannot add imported component "%s".' + NL + NL + 'First select a valid parent in the design, usually a TCastleViewport or TCastleTransform.', [
-      URIDisplay(AddUrl)
+      UriDisplay(AddUrl)
     ]);
 
   Result := AddComponentFromUrl(AddUrl, ParentComponent);
@@ -3670,19 +3708,24 @@ begin
           anyway, and the name must be unique within the owner -- better
           to leave it unedited) }
       if (PropertyName = 'Name') and
-         (TComponent(Instance).Owner <> DesignOwner) then
+         (not RenamePossible(TComponent(Instance))) then
         Exit;
 
       { Hide editing transformation of TCastleAbstractRootTransform,
         as it makes very unintuitive behavior because desing-time camera is also
         a child of it, so e.g. moving Viewport.Items seems to do nothing
-        (TODO: but it breaks you mouse look works -- it should not). }
+        (TODO: but it breaks how mouse look works -- it should not;
+        but still we'd hide these properties anyway, even once we fix mouse look
+        in this case). }
       if (Instance is TCastleAbstractRootTransform) and
          ( (PropertyName = 'CenterPersistent') or
            (PropertyName = 'ScaleOrientationPersistent') or
            (PropertyName = 'RotationPersistent') or
            (PropertyName = 'ScalePersistent') or
-           (PropertyName = 'TranslationPersistent') ) then
+           (PropertyName = 'TranslationPersistent') or
+           (PropertyName = 'DirectionPersistent') or
+           (PropertyName = 'UpPersistent')
+         ) then
         Exit;
 
       if FilterBySection and (Instance is TCastleComponent) then
@@ -4487,6 +4530,22 @@ begin
   Result := TComponent(Node.Data);
 end;
 
+procedure TDesignFrame.SetSelected(const Selected: TComponentList);
+var
+  NewSelectedNodes: TList;
+  NewNode: TTreeNode;
+  C: TComponent;
+begin
+  NewSelectedNodes := TList.Create;
+  try
+    if Selected <> nil then
+      for C in Selected do
+        if TreeNodeMap.TryGetValue(C, NewNode) then
+          NewSelectedNodes.Add(NewNode);
+    ControlsTree.Select(NewSelectedNodes);
+  finally FreeAndNil(NewSelectedNodes) end;
+end;
+
 procedure TDesignFrame.GetSelected(out Selected: TComponentList;
   out SelectedCount: Integer; const AutoSelectParents: Boolean);
 
@@ -4800,7 +4859,7 @@ var
   V: TCastleViewport;
   T: TCastleTransform;
 begin
-  OnSelectionChanged(Self); // Calling it in ControlsTreeSelectionChanged doesn't seem to be enough as RenamePossible is true there even in case SelectedCount = 0 (does it use some obsolete value?)
+  OnSelectionChanged(Self); // Calling it in ControlsTreeSelectionChanged doesn't seem to be enough as RenameSelectedPossible is true there even in case SelectedCount = 0 (does it use some obsolete value?)
 
   GetSelected(Selected, SelectedCount);
   try
@@ -4906,6 +4965,11 @@ end;
 procedure TDesignFrame.ControlsTreeDragOver(Sender, Source: TObject; X,
   Y: Integer; State: TDragState; var Accept: Boolean);
 
+{ Drag and drop handling when destination is ControlsTree.
+  Useful info about TTreeView drag and drop handling:
+  on https://stackoverflow.com/questions/18856374/delphi-treeview-drag-and-drop-between-nodes
+}
+
   function NodeSide(const Node: TTreeNode; const X, Y: Integer): TTreeNodeSide;
   var
     R: TRect;
@@ -4921,17 +4985,24 @@ procedure TDesignFrame.ControlsTreeDragOver(Sender, Source: TObject; X,
   end;
 
 var
-  Src, Dst: TTreeNode;
+  SrcComponents: TComponentList;
+  IgnoredSrcComponentsCount: Integer;
+  Dst: TTreeNode;
 begin
   Accept := false;
   if Source = ControlsTree then
   begin
-    // Thanks to answer on https://stackoverflow.com/questions/18856374/delphi-treeview-drag-and-drop-between-nodes
-    Src := ControlsTreeOneSelected;
+    // get destination of drag-and-drop
     Dst := ControlsTree.GetNodeAt(X, Y);
     ControlsTreeNodeUnderMouse := Dst;
 
-    Accept := ControlsTreeAllowDrag(Src, Dst);
+    // get and check source of drag-and-drop
+    GetSelected(SrcComponents, IgnoredSrcComponentsCount, false);
+    if SrcComponents <> nil then
+    try
+      Accept := ControlsTreeAllowDrag(SrcComponents, Dst);
+    finally FreeAndNil(SrcComponents) end;
+
     if not Accept then
       ControlsTreeNodeUnderMouse := nil;
 
@@ -4983,16 +5054,42 @@ begin
       Exit;
     end;
 
-    UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
-    { Without this check, one could change Sel.Name to empty ('').
-      Although TComponent.SetName checks that it's a valid Pascal identifier already,
-      but it also explicitly allows to set Name = ''.
-      Object inspector has special code to secure from empty Name
-      (in TComponentNamePropertyEditor.SetValue), so we need a similar check here. }
-    if not IsValidIdent(Node.Text) then
-      raise Exception.Create(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
-    Sel.Name := Node.Text;
-    ModifiedOutsideObjectInspector(UndoComment, ucHigh); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+    { Check whether the edit actually changed anything.
+      Otherwise the code below would execute too often (and make e.g. warnings
+      about name uneditable for subcomponents) even when clicking around on "Items"
+      without changing anything. }
+    if Sel.Name <> Node.Text then
+    begin
+      if not RenamePossible(Sel) then
+      begin
+        if Sel.Owner <> nil then
+        begin
+          WritelnWarning('Renaming subcomponent (%s.%s) is not allowed. Subcomponents cannot be accessed by their names using TCastleView.DesignedComponent.', [
+            Sel.Owner.ClassName,
+            Sel.Name
+          ]);
+        end else
+        begin
+          { This never happens now, as RenamePossible for now only blocks editing
+            name of subcomponents. }
+          WritelnWarning('Renaming %s is not allowed.', [
+            Sel.Name
+          ]);
+        end;
+        Exit;
+      end;
+
+      UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+      { Without this check, one could change Sel.Name to empty ('').
+        Although TComponent.SetName checks that it's a valid Pascal identifier already,
+        but it also explicitly allows to set Name = ''.
+        Object inspector has special code to secure from empty Name
+        (in TComponentNamePropertyEditor.SetValue), so we need a similar check here. }
+      if not IsValidIdent(Node.Text) then
+        raise Exception.Create(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
+      Sel.Name := Node.Text;
+      ModifiedOutsideObjectInspector(UndoComment, ucHigh); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+    end;
   finally
     { This method must set Node.Text, to cleanup after ControlsTreeEditing + user editing.
       - If the name was correct, then "Sel.Name := " goes without exception,
@@ -5003,6 +5100,24 @@ begin
   end;
 end;
 
+function TDesignFrame.ControlsTreeAllowDrag(const SrcComponent: TComponent; const Dst: TTreeNode): Boolean;
+begin
+  Result := not (
+    { Do not allow to drag-and-drop from ControlsTree to ControlsTree when:
+
+      - special tree items "Behaviors" or "Non-Visual Components"
+        ( https://github.com/castle-engine/castle-engine/issues/520 )
+      - root component
+      - subcomponents (like TCastleScrollView.ScrollArea),
+      - temporary transforms
+    }
+    (SrcComponent = nil) or
+    (SrcComponent = DesignRoot) or
+    (csSubComponent in SrcComponent.ComponentStyle) or
+    (SrcComponent is TCastleToolTransform)
+  );
+end;
+
 function TDesignFrame.ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
 var
   SrcComponent: TComponent;
@@ -5011,20 +5126,18 @@ begin
   if Result then
   begin
     SrcComponent := TObject(Src.Data) as TComponent;
-
-    { Do not allow to drag
-      - special tree items "Behaviors" or "Non-Visual Components"
-        ( https://github.com/castle-engine/castle-engine/issues/520 )
-      - root component
-      - subcomponents (like TCastleScrollView.ScrollArea),
-      - temporary transforms
-    }
-    if (SrcComponent = nil) or
-       (SrcComponent = DesignRoot) or
-       (csSubComponent in SrcComponent.ComponentStyle) or
-       (SrcComponent is TCastleToolTransform) then
-      Result := false;
+    Result := ControlsTreeAllowDrag(SrcComponent, Dst);
   end;
+end;
+
+function TDesignFrame.ControlsTreeAllowDrag(const SrcComponents: TComponentList; const Dst: TTreeNode): Boolean;
+var
+  C: TComponent;
+begin
+  for C in SrcComponents do
+    if not ControlsTreeAllowDrag(C, Dst) then
+      Exit(false);
+  Result := true;
 end;
 
 procedure TDesignFrame.FrameAnchorsChange(Sender: TObject);
@@ -5096,7 +5209,16 @@ begin
   ControlsTree.Invalidate; // force custom-drawn look redraw
 end;
 
-function TDesignFrame.RenamePossible: Boolean;
+function TDesignFrame.RenamePossible(const C: TComponent): Boolean;
+begin
+  { Do not allow renaming subcomponents.
+    It is confusing, since their names live in different namespace
+    (e.g. Items owned by TCastleViewport), and should not really be used
+    to access them. }
+  Result := C.Owner = DesignOwner;
+end;
+
+function TDesignFrame.RenameSelectedPossible: Boolean;
 begin
   { Notes:
 
@@ -5112,12 +5234,13 @@ begin
   }
   Result :=
     (ControlsTreeOneSelected <> nil) and
-    (ControlsTreeOneSelected.Data <> nil);
+    (ControlsTreeOneSelected.Data <> nil) and
+    RenamePossible(TComponent(ControlsTreeOneSelected.Data));
 end;
 
 procedure TDesignFrame.RenameSelectedItem;
 begin
-  if RenamePossible then
+  if RenameSelectedPossible then
     ControlsTreeOneSelected.EditText;
 end;
 
@@ -5130,34 +5253,33 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     Result := not (ssCtrl in GetKeyShiftState);
   end;
 
-  procedure MoveOnlyTreeNodes; forward;
+  procedure MoveOnlyTreeNodes(
+    const SrcComponent, DstComponent: TComponent); forward;
 
   { Does Parent contains PotentialChild, searching recursively.
     It checks is Parent equal PotentialChild,
     and searches Parent's children,
-    and Parent's children's children etc. }
-  function ContainsRecursive(const Parent, PotentialChild: TCastleUserInterface): Boolean;
-  var
-    I: Integer;
-  begin
-    if Parent = PotentialChild then
-      Exit(true);
-    for I := 0 to Parent.ControlsCount - 1 do
-      if ContainsRecursive(Parent.Controls[I], PotentialChild) then
-        Exit(true);
-    Result := false;
-  end;
+    and Parent's children's children etc.
 
-  { As above, but overloaded for TCastleTransform. }
-  function ContainsRecursive(const Parent, PotentialChild: TCastleTransform): Boolean;
+    Uses ControlsTree hierarchy knowledge, so it accounts
+    for all visible in the hierarchy relationships,
+    e.g. non-visual components may be parents and children of each other,
+    TCastleUserInterface may be parent of TCastleTransform through
+    TCastleViewport.Items etc. }
+  function ContainsRecursive(const Parent, PotentialChild: TComponent): Boolean;
   var
-    I: Integer;
+    ParentNode, PotentialChildNode: TTreeNode;
   begin
-    if Parent = PotentialChild then
-      Exit(true);
-    for I := 0 to Parent.Count - 1 do
-      if ContainsRecursive(Parent.Items[I], PotentialChild) then
+    ParentNode := TreeNodeMap[Parent];
+    PotentialChildNode := TreeNodeMap[PotentialChild];
+
+    while PotentialChildNode <> nil do
+    begin
+      if PotentialChildNode = ParentNode then
         Exit(true);
+      PotentialChildNode := PotentialChildNode.Parent;
+    end;
+
     Result := false;
   end;
 
@@ -5178,7 +5300,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             Dst.InsertFront(Src);
             if PreserveTransformation then
               AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
-            MoveOnlyTreeNodes;
+            MoveOnlyTreeNodes(Src, Dst);
           end;
         end;
       tnsBottom, tnsTop:
@@ -5195,11 +5317,14 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             Dst.Parent.InsertControl(Index, Src);
             if PreserveTransformation then
               AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
-            MoveOnlyTreeNodes;
+            MoveOnlyTreeNodes(Src, Dst);
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+      {$endif}
     end;
+    ValidateHierarchy;
   end;
 
   procedure MoveTransform(const Src, Dst: TCastleTransform);
@@ -5228,7 +5353,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             Dst.Add(Src);
             if FinalPreserveTransformation then
               Src.SetWorldView(WorldPos, WorldDir, WorldUp);
-            MoveOnlyTreeNodes;
+            MoveOnlyTreeNodes(Src, Dst);
           end;
         end;
       tnsBottom, tnsTop:
@@ -5245,11 +5370,14 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             Dst.Parent.Insert(Index, Src);
             if FinalPreserveTransformation then
               Src.SetWorldView(WorldPos, WorldDir, WorldUp);
-            MoveOnlyTreeNodes;
+            MoveOnlyTreeNodes(Src, Dst);
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+      {$endif}
     end;
+    ValidateHierarchy;
   end;
 
   procedure MoveBehavior(const Src: TCastleBehavior; const Dst: TCastleTransform);
@@ -5261,8 +5389,6 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
           Dst.AddBehavior(Src);
           // TODO: update tree in a simple way for now
           UpdateDesign;
-          ModifiedOutsideObjectInspector('Drag''n''drop ' + Src.Name + ' into ' +
-            Dst.Name, ucHigh);
         end;
     end;
   end;
@@ -5290,10 +5416,13 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     end;
   end;
 
-  procedure MoveNonVisual(const SrcParentComponent: TCastleComponent;
+  procedure MoveNonVisual(
     const Src: TComponent;
     const Dst: TCastleComponent);
+  var
+    SrcParentComponent: TCastleComponent;
   begin
+    SrcParentComponent := NonVisualComponentParent(Src);
     case ControlsTreeNodeUnderMouseSide of
       tnsInside:
         begin
@@ -5301,8 +5430,6 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
           Dst.AddNonVisualComponent(Src);
           // TODO: update tree in a simple way for now
           UpdateDesign;
-          ModifiedOutsideObjectInspector('Drag''n''drop ' + Src.Name + ' into ' +
-            Dst.Name, ucHigh);
         end;
     end;
   end;
@@ -5325,17 +5452,15 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     ]);
   end;
 
-var
-  Src, Dst: TTreeNode;
-  SrcComponent, DstComponent: TComponent;
-
   { Move only the nodes in TTreeView, and update their captions.
-    Assumes the move is possible.
-    Also calls ModifiedOutsideObjectInspector to make Undo work. }
-  procedure MoveOnlyTreeNodes;
+    Assumes the move is possible. }
+  procedure MoveOnlyTreeNodes(
+    const SrcComponent, DstComponent: TComponent);
   var
-    DestinationName: String;
+    Src, Dst: TTreeNode;
   begin
+    Src := TreeNodeMap[SrcComponent];
+    Dst := TreeNodeMap[DstComponent];
     case ControlsTreeNodeUnderMouseSide of
       tnsInside:
         begin
@@ -5347,118 +5472,132 @@ var
             Src.MoveTo(ViewportItemsNode(TCastleViewport(DstComponent), Dst), naInsert)
           else
             Src.MoveTo(Dst, naAddChild);
-          DestinationName := DstComponent.Name;
         end;
       tnsBottom:
         begin
           Src.MoveTo(Dst, naInsertBehind);
-          if DstComponent is TCastleBehavior then
-            DestinationName := TComponent(Dst.Parent.Parent.Data).Name
-          else
-            DestinationName := TComponent(Dst.Parent.Data).Name;
         end;
       tnsTop:
         begin
           Src.MoveTo(Dst, naInsert);
-          if DstComponent is TCastleBehavior then
-            DestinationName := TComponent(Dst.Parent.Parent.Data).Name
-          else
-            DestinationName := TComponent(Dst.Parent.Data).Name;
         end;
     end;
-    ModifiedOutsideObjectInspector('Drag''n''drop ' + SrcComponent.Name + ' into ' +
-      DestinationName, ucHigh);
   end;
 
-begin
-  if Source = ControlsTree then
+  { Returns @true if List contains some parent of C (but not exactly C). }
+  function ListIncludesParent(const C: TComponent; const List: TComponentList): Boolean;
+  var
+    ListItem: TComponent;
   begin
-    Src := ControlsTreeOneSelected;
+    for ListItem in List do
+      if C <> ListItem then
+        if ContainsRecursive(ListItem, C) then
+          Exit(true);
+    Result := false;
+  end;
+
+  { Handle drag-and-drop from and to ControlsTree, i.e. dragging within
+    the hierarchy tree. }
+  procedure DragAndDropFromControlsTree;
+  var
+    Dst: TTreeNode;
+    SrcComponent, DstComponent: TComponent;
+    SrcComponents: TComponentList;
+    IgnoredSrcComponentsCount: Integer;
+  begin
+    // get destination of drag-and-drop
     Dst := ControlsTreeNodeUnderMouse;
-    { Paranoidally check ControlsTreeAllowDrag again.
-      It happens that Src is nil, in my tests. }
-    if ControlsTreeAllowDrag(Src, Dst) then
-    begin
-      SrcComponent := TComponent(Src.Data);
-      DstComponent := TComponent(Dst.Data);
-      if (SrcComponent is TCastleUserInterface) and
-         (DstComponent is TCastleUserInterface) then
-      begin
-        MoveUserInterface(
-          TCastleUserInterface(SrcComponent),
-          TCastleUserInterface(DstComponent));
-        { Fixes selection after drag'n'drop.
-          I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
-          is changed to nil but in TTreeNode.Selected stays true. That's why we see
-          selection but TTreeView.Selected state is incorect.
+    DstComponent := TComponent(Dst.Data);
 
-          Later: we no longer use TTreeView.Selected, we update multi-selection.
-          TODO: Update above comment, understand if this operation is still necessary. }
-        ControlsTree.Select([Src]);
-      end else
-      if (SrcComponent is TCastleTransform) and
-         (DstComponent is TCastleTransform) then
+    // get and check source of drag-and-drop
+    GetSelected(SrcComponents, IgnoredSrcComponentsCount, false);
+    if SrcComponents <> nil then
+    try
+      for SrcComponent in SrcComponents do
       begin
-        MoveTransform(
-          TCastleTransform(SrcComponent),
-          TCastleTransform(DstComponent));
-        { Fixes selection after drag'n'drop.
-          I think when we use TTreeNode.MoveTo(), TTreeView.Selected property value
-          is changed to nil but in TTreeNode.Selected stays true. That's why we see
-          selection but TTreeView.Selected state is incorect.
-
-          Later: we no longer use TTreeView.Selected, we update multi-selection.
-          TODO: Update above comment, understand if this operation is still necessary. }
-        ControlsTree.Select([Src]);
-      end else
-      if (SrcComponent is TCastleBehavior) and
-         (DstComponent is TCastleTransform) then
-      begin
-        MoveBehavior(
-          TCastleBehavior(SrcComponent),
-          TCastleTransform(DstComponent));
-        // as for now we just refresh tree view, so set SelectedComponent and don't do ValidateHierarchy
-        SelectedComponent := SrcComponent;
-        Exit;
-      end else
-      if (SrcComponent is TCastleBehavior) and
-         (DstComponent is TCastleBehavior) then
-      begin
-        MoveBehaviorBeforeAfterAnotherBehavior(
-          TCastleBehavior(SrcComponent),
-          TCastleBehavior(DstComponent));
-        // as for now we just refresh tree view, so set SelectedComponent and don't do ValidateHierarchy
-        SelectedComponent := SrcComponent;
-        Exit;
-      end else
-      if (not ( (SrcComponent is TCastleBehavior) or
-                (SrcComponent is TCastleTransform) or
-                (SrcComponent is TCastleUserInterface) ) ) and
-         (DstComponent is TCastleComponent) and
-         (Src.Parent <> nil) and
-         (SelectedFromNode(Src.Parent) is TCastleComponent) then
-      begin
-        MoveNonVisual(
-          TCastleComponent(SelectedFromNode(Src.Parent)),
-          SrcComponent,
-          TCastleComponent(DstComponent));
-        // as for now we just refresh tree view, so set SelectedComponent and don't do ValidateHierarchy
-        SelectedComponent := SrcComponent;
-        Exit;
+        { Do not process components when their parent is also already on the list. }
+        if not ListIncludesParent(SrcComponent, SrcComponents) then
+          { Checking again ControlsTreeAllowDrag is somewhat paranoid:
+            ControlsTreeDragOver should have checked it already. }
+          if ControlsTreeAllowDrag(SrcComponent, Dst) then
+          begin
+            if (SrcComponent is TCastleUserInterface) and
+               (DstComponent is TCastleUserInterface) then
+            begin
+              MoveUserInterface(
+                TCastleUserInterface(SrcComponent),
+                TCastleUserInterface(DstComponent));
+            end else
+            if (SrcComponent is TCastleTransform) and
+               (DstComponent is TCastleTransform) then
+            begin
+              MoveTransform(
+                TCastleTransform(SrcComponent),
+                TCastleTransform(DstComponent));
+            end else
+            if (SrcComponent is TCastleBehavior) and
+               (DstComponent is TCastleTransform) then
+            begin
+              MoveBehavior(
+                TCastleBehavior(SrcComponent),
+                TCastleTransform(DstComponent));
+            end else
+            if (not ( (SrcComponent is TCastleBehavior) or
+                      (SrcComponent is TCastleTransform) or
+                      (SrcComponent is TCastleUserInterface) ) ) and
+               (DstComponent is TCastleComponent) then
+            begin
+              MoveNonVisual(
+                SrcComponent,
+                TCastleComponent(DstComponent));
+            end;
+          end;
       end;
-      ValidateHierarchy;
-    end;
-  end else
-  if Source is TCastleShellListView then
+
+      { Select the SrcComponents.
+
+        This is necessary:
+
+        - If our movement used TTreeNode.MoveTo and not UpdateDesign.
+          I.e. it updated ControlsTree smartly, no need to build.
+
+          In that case TTreeView.Selected property value
+          is changed to nil but in TTreeNode.Selected stays true.
+          This results in inconsistent state.
+
+          Possibly this reason is outdated:
+          our code doesn't use use TTreeView.Selected ever now.
+          See ControlsTreeOneSelected.
+
+        - If our movement used UpdateDesign.
+
+          Then selection was lost, we recover it.
+      }
+      SetSelected(SrcComponents);
+
+      ModifiedOutsideObjectInspector(Format('Drag and drop %d components', [
+        SrcComponents.Count
+      ]), ucHigh);
+    finally FreeAndNil(SrcComponents) end;
+  end;
+
+  procedure DragAndDropFromShellListView(const Source: TCastleShellListView);
   begin
     if SelectedComponent <> nil then
-      ShellListAddComponent(TCastleShellListView(Source), SelectedComponent)
+      ShellListAddComponent(Source, SelectedComponent)
     else
       { TODO: This is never displayed, since Accept=false in this case.
         But it's a pity -- we should communicate to user better why drag-and-drop
         is not allowed now. }
       WritelnWarning('Select a component in hierarchy, to allow to drag-and-drop children into it');
   end;
+
+begin
+  if Source = ControlsTree then
+    DragAndDropFromControlsTree
+  else
+  if Source is TCastleShellListView then
+    DragAndDropFromShellListView(TCastleShellListView(Source));
 end;
 
 procedure TDesignFrame.ControlsTreeAdvancedCustomDrawItem(
@@ -5546,6 +5685,7 @@ begin
            (Node.Data <> nil) then
           DrawTreeNodeClassName(TObject(Node.Data).ClassName);
       end;
+    else ; // nothing to do otherwise
   end;
 end;
 
@@ -5900,7 +6040,7 @@ begin
   if Sel <> nil then
     AddComponentEditorVerbs(Sel);
 
-  MenuTreeViewItemRename.Enabled := RenamePossible;
+  MenuTreeViewItemRename.Enabled := RenameSelectedPossible;
   MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
   MenuTreeViewItemCut.Enabled := Sel <> nil;
   MenuTreeViewItemCopy.Enabled := Sel <> nil;
@@ -6213,6 +6353,114 @@ end;
 procedure TDesignFrame.FocusDesign;
 begin
   CastleControl.SetFocus;
+end;
+
+procedure TDesignFrame.FindToggle;
+begin
+  FindActive := not FindActive;
+  SetEnabledVisible(EditFindInHierarchy, FindActive);
+  if FindActive then
+  begin
+    EditFindInHierarchy.Text := ''; // clear edit when showing it
+    // Note: SetFocus must be done after making it enabled, otherwise exception is raised
+    EditFindInHierarchy.SetFocus;
+  end;
+end;
+
+procedure TDesignFrame.EditFindInHierarchyChange(Sender: TObject);
+var
+  LowerFindText: String;
+  TreeNode: TTreeNode;
+  C: TComponent;
+begin
+  if FindActive and (EditFindInHierarchy.Text <> '') then
+  begin
+    LowerFindText := LowerCase(EditFindInHierarchy.Text);
+
+    TreeNode := ControlsTree.Items.GetFirstNode;
+    while TreeNode <> nil do
+    begin
+      C := SelectedFromNode(TreeNode, false);
+      if (C <> nil) and (Pos(LowerFindText, LowerCase(C.Name)) <> 0) then
+      begin
+        SelectedComponent := C;
+        Exit;
+      end;
+      TreeNode := TreeNode.GetNext;
+    end;
+
+    Beep; // nothing found
+  end;
+end;
+
+procedure TDesignFrame.FindNext;
+var
+  LowerFindText: String;
+  TreeNode: TTreeNode;
+  Sel, C: TComponent;
+  SeenSelection: Boolean;
+begin
+  if FindActive and (EditFindInHierarchy.Text <> '') then
+  begin
+    if SelectedComponent = nil then
+    begin
+      { try to find first match }
+      EditFindInHierarchyChange(nil)
+    end else
+    begin
+      Sel := GetSelectedComponent(false);
+      LowerFindText := LowerCase(EditFindInHierarchy.Text);
+
+      // first pass: go to selected component, find first match after it
+      SeenSelection := false;
+
+      TreeNode := ControlsTree.Items.GetFirstNode;
+      while TreeNode <> nil do
+      begin
+        C := SelectedFromNode(TreeNode, false);
+
+        if SeenSelection and
+           (C <> nil) and
+           (Pos(LowerFindText, LowerCase(C.Name)) <> 0) then
+        begin
+          SelectedComponent := C;
+          Exit;
+        end;
+        if C = Sel then
+          SeenSelection := true;
+
+        TreeNode := TreeNode.GetNext;
+      end;
+
+      // no match found after selected component, search from the beginning
+
+      if not SeenSelection then
+      begin
+        WritelnWarning('Not found SelectedComponent %s among tree nodes, something is wrong', [Sel.Name]);
+        Exit;
+      end;
+
+      TreeNode := ControlsTree.Items.GetFirstNode;
+      while TreeNode <> nil do
+      begin
+        C := SelectedFromNode(TreeNode, false);
+
+        if C = Sel then
+        begin
+          // we reached selection again, so no next match found
+          Exit;
+        end;
+
+        if (C <> nil) and (Pos(LowerFindText, LowerCase(C.Name)) <> 0) then
+        begin
+          SelectedComponent := C;
+          Exit;
+        end;
+
+        TreeNode := TreeNode.GetNext;
+      end;
+    end;
+  end;
 end;
 
 initialization

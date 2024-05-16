@@ -31,7 +31,7 @@ uses
   CastleUtils, CastleVectors, CastleColors, CastleStringUtils,
   CastleLog, CastleClassUtils, CastleProjection, CastleTimeUtils,
   CastleRectangles, CastleFindFiles, CastleFilesUtils,
-  CastleURIUtils, CastleXMLUtils, CastleImages, CastleInternalDataUri,
+  CastleUriUtils, CastleXmlUtils, CastleImages, CastleInternalDataUri,
   CastleDownload, CastleInternalSoundFile, CastleSoundBase,
   { units specific to this project }
   CastleAssertions,
@@ -40,32 +40,6 @@ uses
 procedure TestLog;
 begin
   WritelnLog('MyLog', 'Something to log: %d', [123]);
-end;
-
-procedure TestVectors;
-var
-  M: TMatrix4;
-  V: TVector3;
-begin
-  // vectors
-  M := TranslationMatrix(10, 20, 30);
-  V := Vector3(1, 2, 3);
-  V := M.MultPoint(V);
-  Writeln('Translated vector: ', V.ToString);
-  AssertVectorEquals(Vector3(11, 22, 33), V);
-end;
-
-procedure TestColors;
-var
-  Col: TCastleColorRGB;
-  ColHsv: TVector3;
-begin
-  Col := RedRGB;
-  ColHsv := RgbToHsv(Col);
-  ColHsv.Z := 0.5; // half brightness
-  Col := HsvToRgb(ColHsv);
-  Writeln('Red color with half brightness ', Col.ToString);
-  AssertVectorEquals(Vector3(0.5, 0, 0), Col);
 end;
 
 procedure TestRects;
@@ -105,7 +79,7 @@ begin
   ExePath := InclPathDelim(GetCurrentDir);
   {$endif}
   Writeln('Detected ExePath: ', ExePath);
-  ApplicationDataOverride := FilenameToURISafe(ExePath + 'data/');
+  ApplicationDataOverride := FilenameToUriSafe(ExePath + 'data/');
   Writeln('ApplicationData('''') after ApplicationDataOverride: ', ApplicationData(''));
   *)
 
@@ -118,7 +92,7 @@ begin
   Writeln('Searching recursively for *.dpr*:');
   FindFiles('', '*.dpr*', false, FoundFile, nil, [ffRecursive]);
   Writeln('Searching recursively for *.dpr* in GetCurrentDir:');
-  FindFiles(FilenameToURISafe(GetCurrentDir), '*.dpr*', false, FoundFile, nil, [ffRecursive]);
+  FindFiles(FilenameToUriSafe(GetCurrentDir), '*.dpr*', false, FoundFile, nil, [ffRecursive]);
 end;
 
 procedure TestURI;
@@ -144,37 +118,37 @@ var
 {$endif}
 begin
   {$ifdef MSWINDOWS}
-  AssertEquals('file:///c:/foo%254d.txt', FilenameToURISafe('c:\foo%4d.txt'));
-  AssertEquals('C:\fooM.txt', URIToFilenameSafe('file:///C:/foo%4d.txt'));
-  AssertEquals('C:\foo%.txt', URIToFilenameSafe('file:///C:/foo%25.txt'));
+  AssertEquals('file:///c:/foo%254d.txt', FilenameToUriSafe('c:\foo%4d.txt'));
+  AssertEquals('C:\fooM.txt', UriToFilenameSafe('file:///C:/foo%4d.txt'));
+  AssertEquals('C:\foo%.txt', UriToFilenameSafe('file:///C:/foo%25.txt'));
   {$endif}
   {$ifdef UNIX}
-  AssertEquals('file:///foo%254d.txt', FilenameToURISafe('/foo%4d.txt'));
-  AssertEquals('/fooM.txt', URIToFilenameSafe('file:///foo%4d.txt'));
-  AssertEquals('/foo%.txt', URIToFilenameSafe('file:///foo%25.txt'));
+  AssertEquals('file:///foo%254d.txt', FilenameToUriSafe('/foo%4d.txt'));
+  AssertEquals('/fooM.txt', UriToFilenameSafe('file:///foo%4d.txt'));
+  AssertEquals('/foo%.txt', UriToFilenameSafe('file:///foo%25.txt'));
   {$endif}
 
-  { Always URIToFilenameSafe and FilenameToURISafe should reverse each other. }
+  { Always UriToFilenameSafe and FilenameToUriSafe should reverse each other. }
   {$ifdef MSWINDOWS}
-  AssertEquals('c:\foo%4d.txt', URIToFilenameSafe(FilenameToURISafe('c:\foo%4d.txt')));
+  AssertEquals('c:\foo%4d.txt', UriToFilenameSafe(FilenameToUriSafe('c:\foo%4d.txt')));
   { Actually this would be valid too:
-    AssertEquals('file:///C:/foo%4d.txt', FilenameToURISafe(URIToFilenameSafe('file:///C:/foo%4d.txt')));
+    AssertEquals('file:///C:/foo%4d.txt', FilenameToUriSafe(UriToFilenameSafe('file:///C:/foo%4d.txt')));
     But it's Ok that %4d gets converted to M, as char "M" is safe inside URI. }
-  AssertEquals('file:///C:/fooM.txt', FilenameToURISafe(URIToFilenameSafe('file:///C:/foo%4d.txt')));
+  AssertEquals('file:///C:/fooM.txt', FilenameToUriSafe(UriToFilenameSafe('file:///C:/foo%4d.txt')));
   {$endif}
   {$ifdef UNIX}
-  AssertEquals('/foo%4d.txt', URIToFilenameSafe(FilenameToURISafe('/foo%4d.txt')));
+  AssertEquals('/foo%4d.txt', UriToFilenameSafe(FilenameToUriSafe('/foo%4d.txt')));
   { Actually this would be valid too:
-    AssertEquals('file:///foo%25.txt', FilenameToURISafe(URIToFilenameSafe('file:///foo%25.txt')));
+    AssertEquals('file:///foo%25.txt', FilenameToUriSafe(UriToFilenameSafe('file:///foo%25.txt')));
     But it's Ok that %4d gets converted to M, as char "M" is safe inside URI. }
-  AssertEquals('file:///fooM.txt', FilenameToURISafe(URIToFilenameSafe('file:///foo%4d.txt')));
+  AssertEquals('file:///fooM.txt', FilenameToUriSafe(UriToFilenameSafe('file:///foo%4d.txt')));
   {$endif}
 
   {$ifdef MSWINDOWS}
   Filename := 'C:\Users\cge\AppData\Local\test_local_filename_chars\config with Polish chars ćma źrebak żmija wąż królik.txt';
-  FilenameAsUri := FilenameToURISafe(Filename);
+  FilenameAsUri := FilenameToUriSafe(Filename);
   Assert('file:///C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt' = FilenameAsUri);
-  FilenameFromUri := URIToFilenameSafe(FilenameAsUri);
+  FilenameFromUri := UriToFilenameSafe(FilenameAsUri);
   Assert(Filename = FilenameFromUri);
 
   FilenamePart := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars ćma źrebak żmija wąż królik.txt';
@@ -215,119 +189,19 @@ begin
   end;
 end;
 
-procedure TestImage;
-var
-  Img: TCastleImage;
-begin
-  Img := LoadImage('castle-data:/test_texture.png');
-  try
-    AssertEquals(256, Img.Width);
-    AssertEquals(256, Img.Height);
-  finally FreeAndNil(Img) end;
-end;
-
-procedure TestTypeSizes;
-begin
-  AssertEquals(1, SizeOf(Byte));
-  AssertEquals(1, SizeOf(ShortInt));
-
-  AssertEquals(2, SizeOf(Word));
-  AssertEquals(2, SizeOf(SmallInt));
-
-  AssertEquals(4, SizeOf(Int32));
-  AssertEquals(4, SizeOf(UInt32));
-
-  AssertEquals(8, SizeOf(Int64));
-  AssertEquals(8, SizeOf(UInt64));
-  AssertEquals(8, SizeOf(QWord));
-
-  { Both in FPC and Delphi, Integer/Cardinal remained 4-byte (even though
-    in old days the Integer/Cardinal were documented as potentially
-    platform-dependent size).
-    See (Delphi): https://docwiki.embarcadero.com/RADStudio/Sydney/en/Simple_Types_(Delphi) }
-  AssertEquals(4, SizeOf(Integer));
-  AssertEquals(4, SizeOf(Cardinal));
-
-  AssertEquals(4, SizeOf(Single));
-  AssertEquals(8, SizeOf(Double));
-
-  AssertEquals(
-    {$if defined(EXTENDED_EQUALS_DOUBLE)} 8
-    {$elseif defined(EXTENDED_EQUALS_LONG_DOUBLE)} 16
-    {$else} 10
-    {$endif}, SizeOf(Extended));
-end;
-
-{ Test reading data URI encoded with base64. }
-procedure TestDataUri;
-const
-  ImageDataUri = {$I bricks_base64.inc};
-  WavDataUri = {$I werewolf_howling_wav_base64.inc};
-var
-  S: TStream;
-  Img: TCastleImage;
-  SoundFile: TSoundFile;
-begin
-  S := Download(ImageDataUri);
-  try
-  finally FreeAndNil(S) end;
-
-  Img := LoadImage(ImageDataUri);
-  try
-    AssertEquals(1024, Img.Width);
-    AssertEquals(1024, Img.Height);
-  finally FreeAndNil(Img) end;
-
-  SoundFile := TSoundFile.Create(WavDataUri);
-  try
-    Writeln('Loaded: ', URICaption(SoundFile.URL));
-    Writeln('  Format: ', DataFormatToStr(SoundFile.DataFormat));
-    Writeln('  Frequency: ', SoundFile.Frequency);
-    Writeln('  Duration: ', SoundFile.Duration:1:2);
-
-    Assert(SoundFile.DataFormat = sfMono16);
-    AssertSameValue(3.75, SoundFile.Duration, 0.01);
-    AssertEquals(22050, SoundFile.Frequency);
-    AssertEquals('data:audio/x-wav;base64,...', URICaption(SoundFile.URL));
-  finally FreeAndNil(SoundFile) end;
-end;
-
-procedure TestFormatNameCounter;
-var
-  AllowOldPercentSyntax: Boolean;
-  ReplacementsDone: Cardinal;
-begin
-  { assertions below should work for both AllowOldPercentSyntax values }
-  for AllowOldPercentSyntax := false to true do
-  begin
-    AssertEquals('', FormatNameCounter('', 0, AllowOldPercentSyntax, ReplacementsDone));
-    AssertEquals('a', FormatNameCounter('a', 0, AllowOldPercentSyntax, ReplacementsDone));
-    AssertEquals('%again66', FormatNameCounter('%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone));
-    AssertEquals('%%again66', FormatNameCounter('%%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone));
-    AssertEquals('%%again0066', FormatNameCounter('%%again@counter(4)', 66, AllowOldPercentSyntax, ReplacementsDone));
-  end;
-end;
-
 var
   TimeStart: TTimerResult;
 begin
   TimeStart := Timer;
   InitializeLog;
 
-
   TestLog;
-  TestVectors;
-  TestColors;
   TestRects;
   TestPaths;
   TestURI;
   TestPercentEncoding;
   TestTextRead;
   TestXmlRead;
-  TestImage;
-  TestTypeSizes;
-  TestDataUri;
-  TestFormatNameCounter;
 
   TestFpJson1;
   // simpledemo form fcl-json examples

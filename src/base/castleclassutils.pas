@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2022 Michalis Kamburelis.
+  Copyright 2000-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,13 +20,13 @@
   Some notes about TStream descendants :
   @unorderedList(
     @item(
-      I call a stream "purely sequential" (or just "sequential")
+      We call a stream "purely sequential" (or just "sequential")
       if it allows only reading and/or writing of data
       and does not allow free "Seek" calls,
       in particular --- it does not allow Seek to move back in a stream.)
 
     @item(
-      I call a stream "growing" if it's read-only and it's purely sequential
+      We call a stream "growing" if it's read-only and it's purely sequential
       and it's Size property may be useless. In other words, when you read
       a "growing" stream, you don't know when it ends, until you reach the end.
       You just have to read data until Read returns 0.)
@@ -37,7 +37,6 @@
       e.g. seen for THandleStream when handle is StdIn.)
   )
 }
-
 unit CastleClassUtils;
 
 {$I castleconf.inc}
@@ -83,12 +82,9 @@ procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
 { ---------------------------------------------------------------------------- }
 { @section(TStream utilities) }
 
-{ }
-procedure StreamWriteLongWord(Stream: TStream; const Value: LongWord);
-function StreamReadLongWord(Stream: TStream): LongWord;
-
-procedure StreamWriteByte(Stream: TStream; const Value: Byte);
-function StreamReadByte(Stream: TStream): Byte;
+// Unused
+//procedure StreamWriteByte(Stream: TStream; const Value: Byte);
+//function StreamReadByte(Stream: TStream): Byte;
 
 { Write string contents, encoded as 8-bit (UTF-8), to stream.
   Versions with "Ln" suffix append a newline.
@@ -376,14 +372,14 @@ type
     { A position of the next unread char in Buffer,
       i.e. PeekChar simply returns Buffer[BufferPos]
       (unless BufferPos = BufferEnd, in which case buffer must be refilled). }
-    BufferPos: LongWord;
+    BufferPos: Cardinal;
 
     { Always BufferPos <= BufferEnd.
       Always Buffer[BufferPos..BufferEnd - 1] is the data that still must be
       returned by TBufferedReadStream.Read method. }
-    BufferEnd: LongWord;
+    BufferEnd: Cardinal;
 
-    FBufferSize: LongWord;
+    FBufferSize: Cardinal;
 
     { Sets Buffer contents, BufferEnd reading data from SourceStream.
       BufferPos is always resetted to 0 by this. }
@@ -392,7 +388,7 @@ type
     function GetPosition: Int64; override;
   public
     constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean;
-      ABufferSize: LongWord = DefaultReadBufferSize);
+      ABufferSize: Cardinal = DefaultReadBufferSize);
     destructor Destroy; override;
 
     function Read(var LocalBuffer; Count: Longint): Longint; override;
@@ -400,7 +396,7 @@ type
     function ReadChar: Integer; override;
     function ReadUpto(const EndingChars: TSetOfChars): AnsiString; override;
 
-    property BufferSize: LongWord read FBufferSize;
+    property BufferSize: Cardinal read FBufferSize;
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -1130,16 +1126,7 @@ end;
 
 { TStream helpers -------------------------------------------------------- }
 
-procedure StreamWriteLongWord(Stream: TStream; const Value: LongWord);
-begin
-  Stream.WriteBuffer(Value, SizeOf(Value));
-end;
-
-function StreamReadLongWord(Stream: TStream): LongWord;
-begin
-  Stream.ReadBuffer(Result, SizeOf(Result));
-end;
-
+{ // Unused
 procedure StreamWriteByte(Stream: TStream; const Value: Byte);
 begin
   Stream.WriteBuffer(Value, SizeOf(Value));
@@ -1149,6 +1136,7 @@ function StreamReadByte(Stream: TStream): Byte;
 begin
   Stream.ReadBuffer(Result, SizeOf(Result));
 end;
+}
 
 procedure WriteStr(const Stream: TStream; const S: AnsiString);
 begin
@@ -1605,7 +1593,7 @@ end;
 { TBufferedReadStream ----------------------------------------------------- }
 
 constructor TBufferedReadStream.Create(ASourceStream: TStream;
-  AOwnsSourceStream: boolean; ABufferSize: LongWord);
+  AOwnsSourceStream: boolean; ABufferSize: Cardinal);
 begin
   inherited Create(ASourceStream, AOwnsSourceStream);
 
@@ -1634,15 +1622,15 @@ end;
 
 function TBufferedReadStream.Read(var LocalBuffer; Count: Longint): Longint;
 var
-  CopyCount: LongWord;
+  CopyCount: Cardinal;
 begin
   if Count < 0 then
     Result := 0 else
-  if LongWord(Count) <= BufferEnd - BufferPos then
+  if Cardinal(Count) <= BufferEnd - BufferPos then
   begin
     { In this case we can fill LocalBuffer using only data from Buffer }
     Move(Buffer^[BufferPos], LocalBuffer, Count);
-    BufferPos := BufferPos + LongWord(Count);
+    BufferPos := BufferPos + Cardinal(Count);
     Result := Count;
   end else
   begin
@@ -1656,10 +1644,10 @@ begin
       of TBufferedReadStream, to guarantee buffered reading).
       On the other hand, if Count >= BufferSize I can read it directly
       from SourceStream, no need to use Buffer in this case. }
-    if LongWord(Count) < BufferSize then
+    if Cardinal(Count) < BufferSize then
     begin
       FillBuffer;
-      CopyCount := Min(LongWord(Count), BufferEnd - BufferPos);
+      CopyCount := Min(Cardinal(Count), BufferEnd - BufferPos);
       Move(Buffer^[0], PChar(@LocalBuffer)[Result], CopyCount);
       BufferPos := BufferPos + CopyCount;
       Result := Result + LongInt(CopyCount);
@@ -1711,7 +1699,7 @@ end;
 function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): AnsiString;
 var
   Peeked: Integer;
-  BufferBeginPos, OldResultLength, ReadCount: LongWord;
+  BufferBeginPos, OldResultLength, ReadCount: Cardinal;
   ConsumingChar: AnsiChar;
 begin
   Result := '';

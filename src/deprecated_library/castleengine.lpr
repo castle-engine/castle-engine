@@ -1,6 +1,6 @@
 { -*- compile-command: "./castleengine_compile.sh" -*- }
 {
-  Copyright 2013-2021 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2023 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,7 +36,7 @@ library castleengine;
 uses CTypes, Math, SysUtils, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
-  CastleBoxes, CastleControls, CastleApplicationProperties,
+  CastleBoxes, CastleControls, CastleInputs, CastleApplicationProperties,
   CastleWindow, CastleViewport, CastleScene, CastleTransform;
 
 type
@@ -54,21 +54,37 @@ type
 
 var
   Window: TCastleWindow;
+  { Using TCastleAutoNavigationViewport in this case is justified,
+    it is the most straightforward solution to make viewport navigation
+    follow X3D navigation. }
+  {$warnings off}
   Viewport: TCastleAutoNavigationViewport;
+  {$warnings on}
+  MainScene: TCastleScene; //< Always equal to Viewport.Items.MainScene
   PreviousNavigationType: TNavigationType;
   TouchNavigation: TCastleTouchNavigation;
   Crosshair: TCrosshairManager;
 
+{ Check that CGE_Open was called, and at least Window and Viewport are created. }
 function CGE_VerifyWindow(const FromFunc: string): boolean;
 begin
-  Result := (Window <> nil) and (Viewport <> nil);
+  Result :=
+    (Window <> nil) and
+    (Viewport <> nil);
   if not Result then
     WarningWrite(FromFunc + ' : CGE window not initialized (CGE_Open not called)');
 end;
 
+{ Check that CGE_LoadSceneFromFile was called,
+  and at least Window and Viewport and MainScene are created. }
 function CGE_VerifyScene(const FromFunc: string): boolean;
 begin
-  Result := (Window <> nil) and (Viewport <> nil) and (Viewport.Items.MainScene <> nil);
+  Result :=
+    (Window <> nil) and
+    (Viewport <> nil) and
+    (MainScene <> nil);
+  {$warnings off} // using Viewport.Items.MainScene is this case is justified
+  Assert((not Result) or (Viewport.Items.MainScene = MainScene));
   if not Result then
     WarningWrite(FromFunc + ': CGE scene not initialized (CGE_LoadSceneFromFile not called)');
 end;
@@ -122,7 +138,7 @@ begin
 
     Crosshair := TCrosshairManager.Create;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Open: ' + ExceptMessage(E));
   end;
 end;
 
@@ -131,14 +147,15 @@ begin
   try
     if not CGE_VerifyWindow('CGE_Close') then Exit;
 
-    if Viewport.Items.MainScene <> nil then
-      Viewport.Items.MainScene.OnPointingDeviceSensorsChange := nil;
+    if MainScene <> nil then
+      MainScene.OnPointingDeviceSensorsChange := nil;
     FreeAndNil(Crosshair);
 
     CGEApp_Close(QuitWhenNoOpenWindows);
     FreeAndNil(Window);
+    MainScene := nil;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Close: ' + ExceptMessage(E));
   end;
 end;
 
@@ -150,7 +167,7 @@ begin
     sText := GLInformationString;
     StrPLCopy(szBuffer, sText, nBufSize-1);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_GetOpenGLInformation: ' + ExceptMessage(E));
   end;
 end;
 
@@ -160,7 +177,7 @@ begin
     if not CGE_VerifyWindow('CGE_Resize') then exit;
     CGEApp_Resize(uiViewWidth, uiViewHeight, 0);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Resize: ' + ExceptMessage(E));
   end;
 end;
 
@@ -170,7 +187,7 @@ begin
     if not CGE_VerifyWindow('CGE_Render') then exit;
     CGEApp_Render;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Render: ' + ExceptMessage(E));
   end;
 end;
 
@@ -193,7 +210,7 @@ begin
     // restore hidden controls
     TouchNavigation.Exists := true;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SaveScreenshotToFile: ' + ExceptMessage(E));
   end;
 end;
 
@@ -227,9 +244,24 @@ begin
       end;
     end;
 
+    { Set Cursor = mcHand when we're over or keeping active
+      some pointing-device sensors. The engine doesn't do it automatically
+      (after https://github.com/castle-engine/castle-engine/commit/5b2810d9ef2fd0f851bc50b0a6aa7b414381dd2c )
+      but it makes total sense for X3D viewers with single viewport and single
+      TCastleScene. }
+    if (MainScene <> nil) and
+      ( ( (MainScene.PointingDeviceSensors <> nil) and
+          (MainScene.PointingDeviceSensors.EnabledCount <> 0)
+        ) or
+        (MainScene.PointingDeviceActiveSensors.Count <> 0)
+      ) then
+      Viewport.Cursor := mcHand
+    else
+      Viewport.Cursor := mcDefault;
+
     CGEApp_Update;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Update: ' + ExceptMessage(E));
   end;
 end;
 
@@ -239,7 +271,7 @@ begin
     if not CGE_VerifyWindow('CGE_MouseDown') then exit;
     CGEApp_MouseDown(X, Y, bLeftBtn, FingerIndex);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_MouseDown: ' + ExceptMessage(E));
   end;
 end;
 
@@ -249,7 +281,7 @@ begin
     if not CGE_VerifyWindow('CGE_Motion') then exit;
     CGEApp_Motion(X, Y, FingerIndex);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_Motion: ' + ExceptMessage(E));
   end;
 end;
 
@@ -260,7 +292,7 @@ begin
     if not CGE_VerifyWindow('CGE_MouseUp') then exit;
     CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex, TrackReleased);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_MouseUp: ' + ExceptMessage(E));
   end;
 end;
 
@@ -273,7 +305,7 @@ begin
     // undefined, and also --- pinch is not really a mouse wheel)
     Window.LibraryMouseWheel(zDelta/120, bVertical);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_MouseWheel: ' + ExceptMessage(E));
   end;
 end;
 
@@ -283,7 +315,7 @@ begin
     if not CGE_VerifyWindow('CGE_KeyDown') then exit;
     CGEApp_KeyDown(eKey);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_KeyDown: ' + ExceptMessage(E));
   end;
 end;
 
@@ -293,30 +325,33 @@ begin
     if not CGE_VerifyWindow('CGE_KeyUp') then exit;
     CGEApp_KeyUp(eKey);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_KeyUp: ' + ExceptMessage(E));
   end;
 end;
 
 procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl;
-var
-  Scene: TCastleScene;
 begin
   if Window = nil then exit;
   try
-    Viewport.Items.MainScene.Free; // if any previous scene exists, remove it
+    FreeAndNil(MainScene); // if any previous scene exists, remove it
 
-    Scene := TCastleScene.Create(Window);
-    Scene.Load(StrPas(PChar(szFile)));
-    Scene.PreciseCollisions := true;
-    Scene.ProcessEvents := true;
-    Scene.ListenPressRelease := true; // necessary to pass keys to X3D sensors
-    Viewport.Items.Add(Scene);
-    Viewport.Items.MainScene := Scene;
+    MainScene := TCastleScene.Create(Window);
+    MainScene.Load(StrPas(PChar(szFile)));
+    MainScene.PreciseCollisions := true;
+    MainScene.ProcessEvents := true;
+    MainScene.ListenPressRelease := true; // necessary to pass keys to X3D sensors
+    Viewport.Items.Add(MainScene);
+    { While CGE deprecated Items.MainScene, it is justified and recommended
+      solution in this case, to make MainScene affect various things
+      (skybox, fog, camera, navigation etc.). }
+    {$warnings off}
+    Viewport.Items.MainScene := MainScene;
+    {$warnings on}
 
     Viewport.AssignDefaultCamera;
     Viewport.AssignDefaultNavigation;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_LoadSceneFromFile: ' + ExceptMessage(E));
   end;
 end;
 
@@ -329,11 +364,11 @@ begin
       exit;
     end;
 
-    Result := Viewport.Items.MainScene.ViewpointsCount;
+    Result := MainScene.ViewpointsCount;
   except
     on E: TObject do
     begin
-      WritelnLog('Window', ExceptMessage(E));
+      WritelnLog('Window', 'CGE_GetViewpointsCount: ' + ExceptMessage(E));
       Result := 0;
     end;
   end;
@@ -346,10 +381,10 @@ begin
   try
     if not CGE_VerifyScene('CGE_GetViewpointName') then exit;
 
-    sName := Viewport.Items.MainScene.GetViewpointName(iViewpointIdx);
+    sName := MainScene.GetViewpointName(iViewpointIdx);
     StrPLCopy(szName, sName, nBufSize-1);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_GetViewpointName: ' + ExceptMessage(E));
   end;
 end;
 
@@ -358,9 +393,9 @@ begin
   try
     if not CGE_VerifyScene('CGE_MoveToViewpoint') then exit;
 
-    Viewport.Items.MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
+    MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_MoveToViewpoint: ' + ExceptMessage(E));
   end;
 end;
 
@@ -370,10 +405,10 @@ begin
     if not CGE_VerifyScene('CGE_AddViewpointFromCurrentView') then exit;
 
     if Viewport.Navigation <> nil then
-      Viewport.Items.MainScene.AddViewpointFromNavigation(
+      MainScene.AddViewpointFromNavigation(
         Viewport.Navigation, StrPas(PChar(szName)));
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_AddViewpointFromCurrentView: ' + ExceptMessage(E));
   end;
 end;
 
@@ -384,12 +419,12 @@ begin
   try
     if not CGE_VerifyScene('CGE_GetBoundingBox') then exit;
 
-    BBox := Viewport.Items.MainScene.BoundingBox;
+    BBox := MainScene.BoundingBox;
     pfXMin^ := BBox.Data[0].X; pfXMax^ := BBox.Data[1].X;
     pfYMin^ := BBox.Data[0].Y; pfYMax^ := BBox.Data[1].Y;
     pfZMin^ := BBox.Data[0].Z; pfZMax^ := BBox.Data[1].Z;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_GetBoundingBox: ' + ExceptMessage(E));
   end;
 end;
 
@@ -408,7 +443,7 @@ begin
     pfUpX^ := Up.X; pfUpY^ := Up.Y; pfUpZ^ := Up.Z;
     pfGravX^ := GravityUp.X; pfGravY^ := GravityUp.Y; pfGravZ^ := GravityUp.Z;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_GetViewCoords: ' + ExceptMessage(E));
   end;
 end;
 
@@ -431,7 +466,91 @@ begin
       Viewport.Camera.SetWorldView(Pos, Dir, Up);
     Viewport.Camera.GravityUp := GravityUp;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_MoveViewToCoords: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetNavigationInputShortcut(eInput, eKey1, eKey2,
+                               eMouseButton, eMouseWheel: cInt32); cdecl;
+var
+  Nav: TCastleNavigation;
+  WalkNavigation: TCastleWalkNavigation;
+  ExamineNavigation: TCastleExamineNavigation;
+  InputShortcut: TInputShortcut;
+  InKey1: TKey;
+  InKey2: TKey = keyNone;
+  InKeyString: String = '';
+  InMouseButtonUse: boolean;
+  InMouseButton: TCastleMouseButton;
+  InMouseWheel: TMouseWheelDirection;
+begin
+  try
+    if not CGE_VerifyWindow('CGE_SetCameraInputShortcut') then exit;
+
+    InKey1 := TKey(eKey1);
+    InKey2 := TKey(eKey2);
+    InMouseButtonUse := (eMouseButton <> 0);
+    case eMouseButton of
+      0: InMouseButton := buttonLeft;
+      1: InMouseButton := buttonLeft;
+      2: InMouseButton := buttonMiddle;
+      3: InMouseButton := buttonRight;
+      4: InMouseButton := buttonExtra1;
+      5: InMouseButton := buttonExtra2;
+    end;
+    case eMouseWheel of
+      0: InMouseWheel := mwNone;
+      1: InMouseWheel := mwUp;
+      2: InMouseWheel := mwDown;
+      3: InMouseWheel := mwLeft;
+      4: InMouseWheel := mwRight;
+    end;
+
+    InputShortcut := nil;
+    Nav := Viewport.Navigation;
+    if Nav is TCastleWalkNavigation then
+    begin
+      WalkNavigation := TCastleWalkNavigation(Nav);
+      case eInput of
+        1: InputShortcut := WalkNavigation.Input_ZoomIn;
+        2: InputShortcut := WalkNavigation.Input_ZoomOut;
+        11: InputShortcut := WalkNavigation.Input_Forward;
+        12: InputShortcut := WalkNavigation.Input_Backward;
+        13: InputShortcut := WalkNavigation.Input_LeftRotate;
+        14: InputShortcut := WalkNavigation.Input_RightRotate;
+        15: InputShortcut := WalkNavigation.Input_LeftStrafe;
+        16: InputShortcut := WalkNavigation.Input_RightStrafe;
+        17: InputShortcut := WalkNavigation.Input_UpRotate;
+        18: InputShortcut := WalkNavigation.Input_DownRotate;
+        19: InputShortcut := WalkNavigation.Input_IncreasePreferredHeight;
+        20: InputShortcut := WalkNavigation.Input_DecreasePreferredHeight;
+        21: InputShortcut := WalkNavigation.Input_GravityUp;
+        22: InputShortcut := WalkNavigation.Input_Run;
+        23: InputShortcut := WalkNavigation.Input_MoveSpeedInc;
+        24: InputShortcut := WalkNavigation.Input_MoveSpeedDec;
+        25: InputShortcut := WalkNavigation.Input_Jump;
+        26: InputShortcut := WalkNavigation.Input_Crouch;
+        else raise EInternalError.CreateFmt('CGE_SetCameraInputShortcut: Invalid input type %d for walk navigation', [eInput]);
+      end;
+      if InputShortcut <> nil then
+        InputShortcut.Assign(InKey1, InKey2, InKeyString, InMouseButtonUse, InMouseButton, InMouseWheel);
+    end
+    else if Nav is TCastleExamineNavigation then
+    begin
+      ExamineNavigation := TCastleExamineNavigation(Nav);
+      case eInput of
+        1: InputShortcut := ExamineNavigation.Input_ZoomIn;
+        2: InputShortcut := ExamineNavigation.Input_ZoomOut;
+        31: InputShortcut := ExamineNavigation.Input_Rotate;
+        32: InputShortcut := ExamineNavigation.Input_Move;
+        33: InputShortcut := ExamineNavigation.Input_Zoom;
+        else raise EInternalError.CreateFmt('CGE_SetCameraInputShortcut: Invalid input type %d for examine navigation', [eInput]);
+      end;
+      if InputShortcut <> nil then
+        InputShortcut.Assign(InKey1, InKey2, InKeyString, InMouseButtonUse, InMouseButton, InMouseWheel);
+    end;
+  except
+    on E: TObject do WritelnLog('Window', 'CGE_SetCameraInputShortcut: ' + ExceptMessage(E));
   end;
 end;
 
@@ -452,7 +571,7 @@ begin
   except
     on E: TObject do
     begin
-      WritelnLog('Window', ExceptMessage(E));
+      WritelnLog('Window', 'CGE_GetNavigationType: ' + ExceptMessage(E));
       Result := -1;
     end;
   end;
@@ -476,7 +595,7 @@ begin
     end;
     Viewport.NavigationType := aNavType;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNavigationType: ' + ExceptMessage(E));
   end;
 end;
 
@@ -508,7 +627,7 @@ begin
   try
     TouchNavigation.TouchInterface := cgehelper_TouchInterfaceFromConst(eMode);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetTouchInterface: ' + ExceptMessage(E));
   end;
 end;
 
@@ -517,7 +636,7 @@ begin
   try
     TouchNavigation.AutoTouchInterface := bAutomaticTouchInterface;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetUserInterface: ' + ExceptMessage(E));
   end;
 end;
 
@@ -526,11 +645,11 @@ var
   DummyRemoveType: TRemoveType;
 begin
   try
-    Viewport.Items.MainScene.IncreaseTime(fTimeS);
+    MainScene.IncreaseTime(fTimeS);
     DummyRemoveType := rtNone;
     Viewport.Camera.Update(fTimeS, DummyRemoveType);
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_IncreaseSceneTime: ' + ExceptMessage(E));
   end;
 end;
 
@@ -583,7 +702,7 @@ begin
              else
                Crosshair.CrosshairCtl.Shape := csCross;
              Crosshair.UpdateCrosshairImage;
-             Viewport.Items.MainScene.OnPointingDeviceSensorsChange := @Crosshair.OnPointingDeviceSensorsChange;
+             MainScene.OnPointingDeviceSensorsChange := @Crosshair.OnPointingDeviceSensorsChange;
            end;
          end;
 
@@ -600,8 +719,8 @@ begin
          end;
 
       8: begin    // ecgevarHeadlight
-           if Viewport.Items.MainScene <> nil then
-              Viewport.Items.MainScene.HeadlightOn := (nValue > 0);
+           if MainScene <> nil then
+              MainScene.HeadlightOn := (nValue > 0);
          end;
 
       9: begin    // ecgevarOcclusionCulling
@@ -610,12 +729,12 @@ begin
          end;
 
       10: begin    // ecgevarPhongShading
-            if Viewport.Items.MainScene <> nil then
-               Viewport.Items.MainScene.RenderOptions.PhongShading := (nValue > 0);
+            if MainScene <> nil then
+               MainScene.RenderOptions.PhongShading := (nValue > 0);
           end;
     end;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetVariableInt: ' + ExceptMessage(E));
   end;
 end;
 
@@ -690,7 +809,7 @@ begin
          end;
 
       8: begin    // ecgevarHeadlight
-           if (Viewport.Items.MainScene <> nil) and Viewport.Items.MainScene.HeadlightOn then
+           if (MainScene <> nil) and MainScene.HeadlightOn then
              Result := 1
            else
              Result := 0;
@@ -704,7 +823,7 @@ begin
          end;
 
       10: begin    // ecgevarPhongShading
-        if (Viewport.Items.MainScene <> nil) and Viewport.Items.MainScene.RenderOptions.PhongShading then
+        if (MainScene <> nil) and MainScene.RenderOptions.PhongShading then
           Result := 1 else
           Result := 0;
       end;
@@ -712,7 +831,7 @@ begin
       else Result := -1; // unsupported variable
     end;
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_GetVariableInt: ' + ExceptMessage(E));
   end;
 end;
 
@@ -725,7 +844,7 @@ begin
     if not CGE_VerifyScene('CGE_SetNodeFieldValue') then exit;
 
     // find node and field
-    aField := Viewport.Items.MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
     if aField = nil then Exit;
 
     if aField is TSFVec2f then
@@ -762,7 +881,7 @@ begin
       TSFBool(aField).Send(fVal1 <> 0.0);
 
   except
-    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue: ' + ExceptMessage(E));
   end;
 end;
 
@@ -799,7 +918,7 @@ var
 begin
   { check if the crosshair (mouse) is over any sensor }
   OverSensor := false;
-  SensorList := Viewport.Items.MainScene.PointingDeviceSensors;
+  SensorList := MainScene.PointingDeviceSensors;
   if (SensorList <> nil) then
     OverSensor := (SensorList.EnabledCount>0);
 
@@ -827,6 +946,7 @@ exports
   CGE_KeyDown,
   CGE_KeyUp,
   CGE_LoadSceneFromFile,
+  CGE_SetNavigationInputShortcut,
   CGE_GetNavigationType,
   CGE_SetNavigationType,
   CGE_GetViewpointsCount,

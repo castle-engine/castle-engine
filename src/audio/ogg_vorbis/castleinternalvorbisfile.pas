@@ -33,7 +33,7 @@ const
   INITSET   = 4;
 
 type
-  TSizeT = LongWord;
+  TSizeT = CUInt32;
 
   TVorbisFileReadFunc = function (ptr: Pointer; Size: TSizeT; nmemb: TSizeT; DataSource: Pointer): TSizeT; cdecl;
   TVorbisFileSeekFunc = function (DataSource: Pointer; offset: Int64; whence: CInt): CInt; cdecl;

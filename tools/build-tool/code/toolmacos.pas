@@ -36,7 +36,14 @@ procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPat
 procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPath: String;
   const SymlinkToFiles: Boolean);
 
-{ Zip the bundle created by CreateMacAppBundle. }
+{ Zip the bundle created by CreateMacAppBundle.
+
+  BundleParenPath should contain aaa.app directory (app bundle),
+  just like made by CreateMacAppBundle.
+
+  BundleParenPath will also contain the resulting zip file,
+  with name PackageFileName (PackageFileName should not contain any path,
+  be like 'foo.zip'). }
 procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, PackageFileName: String);
 
 implementation
@@ -204,7 +211,12 @@ end;
 
 procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, PackageFileName: String);
 begin
-  RunCommandSimple(BundleParenPath, 'zip', ['-q', '-r', PackageFileName, Project.Caption + '.app']);
+  //RunCommandSimple(BundleParenPath, 'zip', ['-q', '-r', PackageFileName, Project.Caption + '.app']);
+  // Better use internal zip, that doesn't require any tool installed:
+  ZipDirectory(
+    CombinePaths(BundleParenPath, PackageFileName),
+    CombinePaths(BundleParenPath, Project.Caption + '.app'));
+
   Writeln(Format('Packed to "%s"', [PackageFileName]));
 end;
 

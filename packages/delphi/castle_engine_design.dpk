@@ -33,9 +33,11 @@ package castle_engine_design;
 requires
   rtl,
   designide,
-  castle_engine;
+  castle_engine,
+  castle_engine_vcl,
+  castle_engine_fmx;
 
 contains
-  castleinternaldelphidesignutils in '..\..\src\delphi\castleinternaldelphidesignutils.pas';
+  castleinternaldelphidesign in '..\..\src\delphi\castleinternaldelphidesign.pas';
 
 end.

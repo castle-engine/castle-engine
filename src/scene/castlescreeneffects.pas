@@ -21,7 +21,7 @@ unit CastleScreenEffects;
 interface
 
 uses SysUtils, Classes,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleGLShaders, CastleUIControls, X3DNodes, CastleGLImages,
   CastleRectangles, CastleScene, CastleTransform, CastleCameras, CastleGLUtils,
   CastleRenderOptions, CastleInternalRenderer;
@@ -542,6 +542,11 @@ var
 
 begin
   inherited;
+
+  { Whether we have to render screen effects or not (regular TCastleViewport items),
+    break TDrawableImage batching as we no longer draw only images. }
+  TDrawableImage.BatchingFlush;
+
   CheckScreenEffects;
   if RenderScreenEffects then
     BeginRenderingToTexture;

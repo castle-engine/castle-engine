@@ -21,7 +21,7 @@ unit CastleInternalGLShadowVolumes;
 interface
 
 uses
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum,
   CastleRenderPrimitives;
 
@@ -229,7 +229,7 @@ procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
     Assert(LastPlane = fpFar);
 
     { if infinite far plane, then ignore it }
-    if Frustum.ZFarInfinity then
+    if Frustum.FarInfinity then
       LastPlane := Pred(LastPlane);
 
     LightPos := LightPosition;

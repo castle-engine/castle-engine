@@ -47,8 +47,8 @@ type
       public
         constructor Create(AParent: TCastleControl); reintroduce;
         procedure Invalidate; override;
-        function Width: Integer; override;
-        function Height: Integer; override;
+        function PixelsWidth: Integer; override;
+        function PixelsHeight: Integer; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
       end;
 
@@ -87,6 +87,7 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: Char); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
+    procedure Resize; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -182,7 +183,7 @@ begin
   DoUpdateEverything;
 end;
 
-function TCastleControl.TContainer.Width: Integer;
+function TCastleControl.TContainer.PixelsWidth: Integer;
 begin
   Result := Parent.Width;
 end;
@@ -192,7 +193,7 @@ begin
   Message.Result := 1;
 end;
 
-function TCastleControl.TContainer.Height: Integer;
+function TCastleControl.TContainer.PixelsHeight: Integer;
 begin
   Result := Parent.Height;
 end;
@@ -216,12 +217,20 @@ begin
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
 
-  // commented out, as this doesn't help us get focus
-  // TabStop := true;
+  // needed to receive keys, like AWSD, in TCastleControl
+  TabStop := true;
 end;
 
 destructor TCastleControl.Destroy;
 begin
+  { Looks like VCL doesn't (always?) call DestroyHandle.
+    While FContainer would be destroyed anyway,
+    but we need TCastleContainerEasy.DestroyContext call,
+    to e.g. make ApplicationProperties.OnGLContextClose call,
+    that frees various CGE things when last GL context is released. }
+
+  if FContainer.GLInitialized then
+    FContainer.FinalizeContext;
   inherited;
 end;
 
@@ -230,12 +239,12 @@ begin
   inherited;
   { Handle is only available now, in CreateHandle.
     So only now call FContainer.CreateContext that does FContainer.AdjustContext. }
-  FContainer.CreateContext;
+  FContainer.InitializeContext;
 end;
 
 procedure TCastleControl.DestroyHandle;
 begin
-  FContainer.DestroyContext;
+  FContainer.FinalizeContext;
   inherited;
 end;
 
@@ -254,8 +263,11 @@ procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
 var
   MyButton: TCastleMouseButton;
 begin
-  //if not Focused then // TODO: doesn't seem to help with focus
-  //  SetFocus;
+  { Focus on click, to receive e.g. AWSD keys in TCastleControl.
+    Testcase: examples/delphi/vcl with TCastleWalkNavigation in 3D view,
+    should handle AWSD without the need to do anything else. }
+  if not Focused then
+    SetFocus;
 
   inherited; { VCL OnMouseDown before our callbacks }
 
@@ -340,6 +352,16 @@ begin
   end;
 end;
 
+procedure TCastleControl.Resize;
+begin
+  inherited;
+  if Container.GLInitialized then
+  begin
+    Container.MakeContextCurrent;
+    Container.EventResize;
+  end;
+end;
+
 procedure TCastleControl.UpdateShiftState(const Shift: TShiftState);
 begin
   Container.Pressed.Keys[keyShift] := ssShift in Shift;
@@ -356,8 +378,11 @@ begin
   inherited;
   UpdateShiftState(Shift);
 
-  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  CastleKey := KeyToCastle(Key, Shift);
+  if CastleKey <> keyNone then
   begin
+    CastleKeyString := SimpleKeyToString(CastleKey, Shift);
+
     CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
 
@@ -383,8 +408,11 @@ begin
   inherited;
   UpdateShiftState(Shift);
 
-  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  CastleKey := KeyToCastle(Key, Shift);
+  if CastleKey <> keyNone then
   begin
+    CastleKeyString := SimpleKeyToString(CastleKey, Shift);
+
     CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
 

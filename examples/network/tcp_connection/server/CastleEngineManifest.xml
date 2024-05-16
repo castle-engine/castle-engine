@@ -6,11 +6,11 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
 <project name="server"
-  caption="Castle TCP server"
+  caption="TCP Server"
   qualified_name="io.castleengine.tcp.server"
-  standalone_source="server.dpr"
+  standalone_source="server_standalone.dpr"
   game_units="GameInitialize"
-  author="Benedikt Magnus"
+  author="Castle Game Engine Developers"
   screen_orientation="portrait"
 >
   <version value="0.1" code="1" />
@@ -24,6 +24,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   <android>
     <services>
       <service name="client_server" />
+      <service name="keyboard" />
     </services>
   </android>
 </project>

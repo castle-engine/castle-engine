@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,6 +32,23 @@ type
     If you just want to download asynchronously from standard URLs,
     like file or http, then use TCastleDownload class. }
   TUrlAsynchronousReader = class
+  protected
+    { Call this from @link(Start) overrides in descendants that access the network.
+      Call this after they called "inherited Start" which may change ForceSynchronous.
+
+      This returns @false if
+
+      - It seems that we do synchronous download
+        (maybe because we are called from Download(),
+        or maybe we don't have thread support).
+
+      - And EnableBlockingDownloads is @false.
+
+      IOW, this makes sure we honor EnableBlockingDownloads.
+
+      When it sets @false, it also sets Status and ErrorMessage.
+      The caller @link(Start) should just Exit if this returns @false. }
+    function CheckNetworkAccess: Boolean;
   public
     { Fields set before Start is called. Should not be modified by this instance after Start.
       @groupBegin }
@@ -39,6 +56,7 @@ type
     ForceSynchronous: Boolean;
     HttpMethod: THttpMethod;
     HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
+    HttpRequestBody: TMemoryStream;
     { @groupEnd }
 
     { Fields that should be updated during downloading.
@@ -80,16 +98,23 @@ type
   { Event called when @link(Download) function wants to download URL with this protocol.
     Use with @link(RegisterUrlProtocol). }
   TUrlReadEvent = function (
-    const Url: string; out MimeType: string): TStream of object;
+    const Url: String; out MimeType: string): TStream of object;
 
   { Event called when @link(URLSaveStream) function wants to save URL with this protocol.
     Use with @link(RegisterUrlProtocol). }
-  TUrlWriteEvent = function(const Url: string): TStream of object;
+  TUrlWriteEvent = function(const Url: String): TStream of object;
 
   EProtocolAlreadyRegistered = class(Exception);
 
 { Register how we can load and/or save the URLs with given protocol.
   One (or even both) of given events (ReadEvent, WriteEvent) can be @nil.
+
+  @param ReadEvent Used when using synchronous reading by @link(Download).
+
+  @param WriteEvent Used when using synchronus writing by @link(URLSaveStream).
+
+  @param AsynchronousReader Used when using asynchronous reading by @link(TCastleDownload).
+
   @raises(EProtocolAlreadyRegistered If the protocol handlers are already registered.) }
 procedure RegisterUrlProtocol(const Protocol: String;
   const ReadEvent: TUrlReadEvent;
@@ -124,6 +149,21 @@ begin
   {$endif}
 end;
 
+function TUrlAsynchronousReader.CheckNetworkAccess: Boolean;
+begin
+  Result := true;
+
+  { The main purpose of this is to disable Download from blocking.
+    Additionally, it also disables TCastleDownload from "downgrading" to blocking,
+    when OS doesn't support threads. }
+  if ForceSynchronous and (not EnableBlockingDownloads) then
+  begin
+    Status := dsError;
+    ErrorMessage := 'Downloading network resources (from "http" or "https"  protocols) is not enabled. Set global EnableBlockingDownloads:=true to enable.';
+    Exit(false);
+  end;
+end;
+
 procedure TUrlAsynchronousReader.Update;
 begin
 end;
@@ -131,9 +171,9 @@ end;
 { registering URL protocols -------------------------------------------------- }
 
 type
-  { Event called when @link(URIMimeType) function wants to get MIME type from given URL.
+  { Event called when @link(UriMimeType) function wants to get MIME type from given URL.
     Use with @link(RegisterUrlProtocol). }
-  TUrlMimeTypeEvent = function(const Url: string; out Gzipped: Boolean): String of object;
+  TUrlMimeTypeEvent = function(const Url: String; out Gzipped: Boolean): String of object;
 
   TRegisteredProtocol = class
     Protocol: String;
@@ -144,8 +184,9 @@ type
   end;
 
   TRegisteredProtocols = class({$ifdef FPC}specialize{$endif} TObjectList<TRegisteredProtocol>)
-    { @nil if not found. }
-    function Find(const Protocol: String): TRegisteredProtocol;
+    { Find TRegisteredProtocol with given Protocol, case-insensitive.
+      Returns TRegisteredProtocol, or @nil if not found. }
+    function Find(Protocol: String): TRegisteredProtocol;
 
     procedure Add(const Protocol: String;
       const ReadEvent: TUrlReadEvent;
@@ -154,8 +195,11 @@ type
       const MimeTypeEvent: TUrlMimeTypeEvent); reintroduce;
   end;
 
-function TRegisteredProtocols.Find(const Protocol: String): TRegisteredProtocol;
+function TRegisteredProtocols.Find(Protocol: String): TRegisteredProtocol;
 begin
+  // to compare ignoring case, entries on TRegisteredProtocol.Protocol are already lower-cased
+  Protocol := LowerCase(Protocol);
+
   for Result in Self do
     if Result.Protocol = Protocol then
       Exit;
@@ -177,7 +221,8 @@ begin
      (not URIValidProtocol(Protocol)) then
     raise Exception.CreateFmt('URL protocol name "%s" is invalid (see URIValidProtocol for the requirements on protocol name)', [Protocol]);
   P := TRegisteredProtocol.Create;
-  P.Protocol := Protocol;
+  // lowercase Protocol, to later compare in TRegisteredProtocols.Find ignoring case
+  P.Protocol := LowerCase(Protocol);
   P.ReadEvent := ReadEvent;
   P.WriteEvent := WriteEvent;
   P.AsynchronousReader := AsynchronousReader;
@@ -196,17 +241,29 @@ begin
     FRegisteredProtocols := TRegisteredProtocols.Create(true);
 
     // register default protocols handled in this unit
+
     {$if defined(ANDROID)}
+    // http(s) using Android service
     FRegisteredProtocols.Add('http', nil, nil, THttpAndroidReader,
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('https', nil, nil, THttpAndroidReader,
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
+
     {$elseif defined(HAS_FP_HTTP_CLIENT)}
+    // http(s) using FPC FpHttpClient
     FRegisteredProtocols.Add('http', nil, nil, TFpHttpClientReader,
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
     FRegisteredProtocols.Add('https', nil, nil, TFpHttpClientReader,
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
+
+    {$elseif defined(DELPHI)}
+    // http(s) using Delphi System.Net.HttpClient or Indy
+    FRegisteredProtocols.Add('http', nil, nil, TDelphiHttpReader,
+      TUrlFile.MimeType);
+    FRegisteredProtocols.Add('https', nil, nil, TDelphiHttpReader,
+      TUrlFile.MimeType);
     {$endif}
+
     FRegisteredProtocols.Add('',
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Read,
       {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Write, nil,

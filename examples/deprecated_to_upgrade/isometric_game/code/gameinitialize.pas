@@ -191,7 +191,7 @@ var
       if Tile = nil then
         Result := '<none>' else
         Result := Format('"%s" (URL "%s")',
-          [Tile.CharCode, Tile.RelativeURL]);
+          [Tile.CharCode, Tile.RelativeUrl]);
     end;
 
   begin
@@ -205,7 +205,7 @@ var
   end;
 
 var
-  URL: string;
+  Url: String;
 begin
   if Event.EventType = itKey then
   begin
@@ -225,10 +225,10 @@ begin
       'e': EditBaseTile;
       'E': EditBonusTile;
       's': begin
-             URL := 'new';
+             Url := 'new';
              if MessageInputQuery(Window, 'Save map as name' +
-               ' (don''t specify here initial path and .map extension)', URL) then
-               Map.SaveToFile('castle-data:/maps/' + URL + '.map');
+               ' (don''t specify here initial path and .map extension)', Url) then
+               Map.SaveToFile('castle-data:/maps/' + Url + '.map');
            end;
       'i': ShowFieldInfo;
       CharEscape: Window.Close;

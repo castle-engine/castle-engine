@@ -463,6 +463,9 @@ constructor TGLVersion.Create(const AVersionString, AVendor, ARenderer: String);
 begin
   inherited Create(AVersionString);
 
+  if AVersionString = '' then
+    raise Exception.Create('Cannot initialize TGLVersion before OpenGL context is open');
+
   ParseVendorVersion;
 
   FVendor := AVendor;

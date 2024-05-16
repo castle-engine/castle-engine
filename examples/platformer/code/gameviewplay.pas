@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -254,12 +254,12 @@ begin
     for I := 0 to Container.TouchesCount - 1 do
     begin
       { Check only the lower part of the screen }
-      if Container.Touches[I].Position.Y < Container.Height * 0.5 then
+      if Container.Touches[I].Position.Y < Container.PixelsHeight * 0.5 then
       begin
-        if Container.Touches[I].Position.X < Container.Width * 0.5 then
+        if Container.Touches[I].Position.X < Container.PixelsWidth * 0.5 then
           LValue := -1.0
         else
-        if Container.Touches[I].Position.X >= Container.Width * 0.5 then
+        if Container.Touches[I].Position.X >= Container.PixelsWidth * 0.5 then
           RValue := 1.0;
       end;
     end;
@@ -277,7 +277,7 @@ begin
   { Mouse, or any finger, pressing in upper part of the screen. }
   if buttonLeft in Container.MousePressed then
     for I := 0 to Container.TouchesCount - 1 do
-      if (Container.Touches[I].Position.Y >= Container.Height * 0.5) then
+      if (Container.Touches[I].Position.Y >= Container.PixelsHeight * 0.5) then
       begin
         IsPressed := true;
         Exit;

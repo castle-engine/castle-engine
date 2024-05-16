@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
 
 # ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
@@ -52,7 +52,7 @@ if which cygpath.exe > /dev/null; then
   OUTPUT_DIRECTORY="`cygpath --mixed \"${OUTPUT_DIRECTORY}\"`"
 fi
 
-VERBOSE=false
+VERBOSE=true
 
 ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 
@@ -86,8 +86,27 @@ detect_platform ()
   SED='sed'
 
   if which cygpath.exe > /dev/null; then
-    MAKE='/bin/make' # On Cygwin, make sure to use Cygwin's make, not the one from Embarcadero
-    FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
+
+    # If we're inside Cygwin/MinGW (despite the name, cygpath also is in MinGW,
+    # and this is the case on GH hosted runner), then we want to use Cygwin/MinGW
+    # tools. They will call bash properly, and our "make" must be able to call
+    # e.g. "tools/build-tool/castle-engine_compile.sh".
+    #
+    # We don't want to use Embarcadero's make (we need GNU make).
+    #
+    # we don't want to use FPC make (FPC on Windows is distributed with
+    # GNU make 3.8, from MinGW).
+
+    if [ -f /bin/make ]; then
+      MAKE='/bin/make'
+    else
+      if which mingw32-make > /dev/null; then
+        MAKE='mingw32-make'
+      fi
+    fi
+
+    # On Cygwin/MinGW, make sure to use Cygwin/MinGW's find, not the one from Windows
+    FIND='/bin/find'
   fi
 
   if [ "`uname -s`" '=' 'FreeBSD' ]; then
@@ -98,6 +117,11 @@ detect_platform ()
   if [ "`uname -s`" '=' 'Darwin' ]; then
     SED='gsed'
   fi
+
+  # for debugging, output versions of tools
+  echo "Using make: ${MAKE}" `${MAKE} --version | head -n 1`
+  echo "Using find: ${FIND}" `${FIND} --version | head -n 1`
+  echo "Using sed: ${SED}" `${SED} --version | head -n 1`
 }
 
 # Compile build tool, put it on $PATH
@@ -178,8 +202,8 @@ add_external_tool ()
   shift 2
 
   TOOL_BRANCH_NAME='master'
-  # Temporary, may be useful again in future: use view3dscene from another branch, to compile with this CGE branch
-  # if [ "${GITHUB_NAME}" = 'view3dscene' ]; then
+  # Temporary, may be useful again in future: use castle-model-viewer from another branch, to compile with this CGE branch
+  # if [ "${GITHUB_NAME}" = 'castle-model-viewer' ]; then
   #   TOOL_BRANCH_NAME='shapes-rendering-2'
   # fi
 
@@ -206,6 +230,11 @@ add_external_tool ()
   else
     castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
     mv "${EXE_NAME}" "${OUTPUT_BIN}"
+
+    if [ "${GITHUB_NAME}" = 'castle-model-viewer' ]; then
+      castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile --manifest-name=CastleEngineManifest.converter.xml
+      mv castle-model-converter"${EXE_EXTENSION}" "${OUTPUT_BIN}"
+    fi
   fi
 }
 
@@ -331,6 +360,37 @@ pack_platform_dir ()
        "${TEMP_PATH_CGE}"bin-to-keep
   fi
 
+  # On Linux compile also Qt5 editor version.
+  #
+  # But do not do this on Raspberry Pi (Arm), as it fails at linking
+  # (too old libqt5-pas-dev on Raspbian, it seems)
+  # with
+  # /usr/bin/ld: /home/jenkins/.lazarus/lib/LazOpenGLContext/lib/arm-linux/qt5/qlclopenglwidget.o: in function `TQTOPENGLWIDGET__EVENTFILTER':
+  # /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:106: undefined reference to `QLCLOpenGLWidget_Create'
+  # /usr/bin/ld: /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:104: undefined reference to `QLCLOpenGLWidget_InheritedPaintGL'
+  # /usr/bin/ld: /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:105: undefined reference to `QLCLOpenGLWidget_override_paintGL'
+  # /usr/bin/ld: /usr/local/fpc_lazarus/fpc3.2.2-lazarus2.2.2/src/lazarus/2.2.2/components/opengl/qlclopenglwidget.pas:106: undefined reference to `QLCLOpenGLWidget_override_paintGL'
+  #
+  # Same with Lazarus 3.0.0 on Raspberry Pi 64-bit,
+  # /usr/bin/ld: /home/michalis/installed/fpc_lazarus/fpc3.2.3-lazarus3.0.0/src/lazarus/3.0.0/lcl/units/aarch64-linux/qt5/qtint.o: in function `CREATE':
+  # /home/michalis/installed/fpc_lazarus/fpc3.2.3-lazarus3.0.0/src/lazarus/3.0.0/lcl/interfaces//qt5/qtobject.inc:44: undefined reference to `QGuiApplication_setFallbackSessionManagementEnabled'
+  # /usr/bin/ld: /home/michalis/installed/fpc_lazarus/fpc3.2.3-lazarus3.0.0/src/lazarus/3.0.0/lcl/units/aarch64-linux/qt5/qtobjects.o: in function `ENDX11SELECTIONLOCK':
+  # /home/michalis/installed/fpc_lazarus/fpc3.2.3-lazarus3.0.0/src/lazarus/3.0.0/lcl/interfaces//qt5/qtobjects.pas:3873: undefined reference to `QTimer_singleShot3'
+  #
+  # 2024-03-27: Disable building castle-editor-qt5, because Lazarus 3.2 is not compatible
+  # with libqt5pas in Debian.
+  # We could update libqt5pas using https://github.com/davidbannon/libqt5pas/releases ,
+  # but this is pointless if it will fail for users anyway.
+  # See also
+  # https://github.com/gcarreno/setup-lazarus?tab=readme-ov-file
+  # https://forum.lazarus.freepascal.org/index.php/topic,65619.msg500216.html#msg500216
+  #
+  # if [ "$OS" '=' 'linux' -a "${CPU}" '!=' 'arm' -a "${CPU}" '!=' 'aarch64' ]; then
+  #   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS tools/castle-editor/castle_editor.lpi --widgetset=qt5
+  #   cp tools/castle-editor/castle-editor"${EXE_EXTENSION}" \
+  #      "${TEMP_PATH_CGE}"bin-to-keep/castle-editor-qt5
+  # fi
+
   # Add DLLs on Windows
   case "$OS" in
     win32|win64)
@@ -354,8 +414,8 @@ pack_platform_dir ()
   rm -Rf doc/pasdoc/cache/ pasdoc/ pasdoc-*.zip pasdoc-*.tar.gz
 
   # Add tools
-  add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
-  add_external_tool castle-view-image castle-view-image"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool castle-model-viewer castle-model-viewer"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool castle-image-viewer castle-image-viewer"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
   add_external_tool pascal-language-server server/pasls"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
   # Add bundled tools (FPC)
@@ -390,7 +450,10 @@ pack_platform_zip ()
   rm -f "${ARCHIVE_NAME}"
   zip -r "${ARCHIVE_NAME}" castle_game_engine/
   mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
+  # seems to sometimes fail with "rm: fts_read failed: No such file or directory" on GH hosted windows runner
+  set +e
   rm -Rf "${TEMP_PATH}"
+  set -e
 }
 
 # Prepare Windows installer with precompiled CGE.
@@ -429,7 +492,9 @@ pack_windows_installer ()
 # Main body
 
 detect_platform
-check_fpc_version
+if [ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]; then
+  check_fpc_version
+fi
 prepare_build_tool
 calculate_cge_version
 if [ -n "${1:-}" ]; then

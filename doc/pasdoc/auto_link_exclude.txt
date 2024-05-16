@@ -21,6 +21,8 @@ assign
 attenuation
 attribute
 attributes
+avatar
+avatars
 background
 behavior
 behaviors
@@ -170,6 +172,7 @@ headlight
 height
 high
 history
+html
 humanoid
 hurt
 idft
@@ -399,6 +402,7 @@ unprepare
 up
 update
 uri
+url
 used
 valid
 value
@@ -421,6 +425,7 @@ water
 waypoints
 weights
 white
+whitespace
 whitespaces
 width
 window

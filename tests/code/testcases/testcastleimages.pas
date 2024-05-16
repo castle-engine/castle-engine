@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestImages" -*-
 {
-  Copyright 2004-2022 Michalis Kamburelis.
+  Copyright 2004-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,14 +17,18 @@
 { Test CastleImages. }
 unit TestCastleImages;
 
+{$ifndef FPC}
+  {$pointermath on}
+{$endif}
+
 interface
 
-uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+uses CastleTester;
 
 type
   TTestImages = class(TCastleTestCase)
   published
+    procedure TestBasicImageLoad;
     procedure TestLoadImage;
     procedure TestImageClassBestForSavingToFormat;
     procedure TestClear;
@@ -35,13 +39,25 @@ type
     procedure TestLoadSavePreserveAlpha;
     procedure TestInternalDetectClassPNG;
     procedure TestLoadAnchors;
+    procedure TestPreserveTreatAsAlpha;
   end;
 
 implementation
 
 uses SysUtils, Classes,
-  CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleURIUtils,
+  CastleVectors, CastleImages, CastleFilesUtils, CastleDownload, CastleUriUtils,
   CastleInternalPng, CastleLog;
+
+procedure TTestImages.TestBasicImageLoad;
+var
+  Img: TCastleImage;
+begin
+  Img := LoadImage('castle-data:/test_texture.png');
+  try
+    AssertEquals(256, Img.Width);
+    AssertEquals(256, Img.Height);
+  finally FreeAndNil(Img) end;
+end;
 
 procedure TTestImages.TestLoadImage;
 
@@ -273,7 +289,7 @@ end;
 
 procedure TTestImages.TestLoadSavePreserveAlpha;
 
-  procedure TestImage(const URL: string);
+  procedure TestImage(const Url: String);
   var
     Img, Img2: TRGBAlphaImage;
     TempImageFileName: string;
@@ -281,7 +297,7 @@ procedure TTestImages.TestLoadSavePreserveAlpha;
     try
       TempImageFileName := GetTempFileNamePrefix + 'load_save_test.png';
       try
-        Img := LoadImage(URL, [TRGBAlphaImage]) as TRGBAlphaImage;
+        Img := LoadImage(Url, [TRGBAlphaImage]) as TRGBAlphaImage;
         try
           SaveImage(Img, TempImageFileName);
 
@@ -296,7 +312,7 @@ procedure TTestImages.TestLoadSavePreserveAlpha;
       { enhance EAssertionFailedError message with image URL }
       on E: EAssertionFailedError do
       begin
-        E.Message := 'In image ' + URL + ': ' + E.Message;
+        E.Message := 'In image ' + Url + ': ' + E.Message;
         raise;
       end;
     end;
@@ -327,7 +343,7 @@ procedure TTestImages.TestLoadAnchors;
 var
   Img: TEncodedImage;
 begin
-  AssertEquals('image/png', URIMimeType('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png'));
+  AssertEquals('image/png', UriMimeType('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png'));
 
   Img := LoadImage('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png');
   try
@@ -341,9 +357,9 @@ begin
     AssertEquals(256, Img.Height);
   finally FreeAndNil(Img) end;
 
-  { since URIMimeType ignores anchors, so LoadImage should too }
+  { since UriMimeType ignores anchors, so LoadImage should too }
 
-  AssertEquals('image/png', URIMimeType('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png#some-anchor'));
+  AssertEquals('image/png', UriMimeType('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png#some-anchor'));
 
   Img := LoadImage('castle-data:/sprite-sheets/cocos2d_wolf/wolf.png#some-anchor');
   try
@@ -356,6 +372,115 @@ begin
     AssertEquals(256, Img.Width);
     AssertEquals(256, Img.Height);
   finally FreeAndNil(Img) end;
+end;
+
+procedure TTestImages.TestPreserveTreatAsAlpha;
+
+  procedure AssertGrayscaleConstant(const Img: TGrayscaleImage; const Pixel: Byte);
+  var
+    X, Y, I: Integer;
+  begin
+    for X := 0 to Img.Width - 1 do
+      for Y := 0 to Img.Height - 1 do
+        AssertVectorEquals(Vector4(Pixel/255, Pixel/255, Pixel/255, 1.0), Img.Colors[X, Y, 0]);
+    // alternative, faster check:
+    for I := 0 to (Img.Width * Img.Height) - 1 do
+      AssertEquals(Pixel, Img.Pixels[I]);
+  end;
+
+var
+  Img1, Img2: TGrayscaleImage;
+begin
+  Img1 := TGrayscaleImage.Create(2, 2);
+  try
+    Img1.Clear(128);
+    AssertFalse(Img1.TreatAsAlpha);
+
+    AssertEquals(2, Img1.Width);
+    AssertEquals(2, Img1.Height);
+    AssertEquals(1, Img1.Depth);
+    AssertGrayscaleConstant(Img1, 128);
+
+    Img2 := TGrayscaleImage.Create;
+    try
+      Img2.Assign(Img1);
+      AssertFalse(Img2.TreatAsAlpha);
+
+      AssertEquals(2, Img2.Width);
+      AssertEquals(2, Img2.Height);
+      AssertEquals(1, Img2.Depth);
+      AssertGrayscaleConstant(Img2, 128);
+    finally FreeAndNil(Img2) end;
+  finally FreeAndNil(Img1) end;
+
+  Img1 := TGrayscaleImage.Create(2, 2);
+  try
+    Img1.Clear(128);
+    AssertFalse(Img1.TreatAsAlpha);
+    AssertEquals(2, Img1.Width);
+    AssertEquals(2, Img1.Height);
+    AssertEquals(1, Img1.Depth);
+    Img1.TreatAsAlpha := true;
+    Img1.ColorWhenTreatedAsAlpha := Vector3Byte(1, 2, 3);
+
+    Img2 := TGrayscaleImage.Create;
+    try
+      Img2.Assign(Img1);
+      AssertTrue(Img2.TreatAsAlpha);
+      AssertEquals(1, Img2.ColorWhenTreatedAsAlpha.X);
+      AssertEquals(2, Img2.ColorWhenTreatedAsAlpha.Y);
+      AssertEquals(3, Img2.ColorWhenTreatedAsAlpha.Z);
+      AssertEquals(1, Img2.GrayscaleColorWhenTreatedAsAlpha);
+
+      AssertEquals(2, Img2.Width);
+      AssertEquals(2, Img2.Height);
+      AssertEquals(1, Img2.Depth);
+      AssertGrayscaleConstant(Img2, 128);
+    finally FreeAndNil(Img2) end;
+
+    Img2 := Img1.MakeCopy as TGrayscaleImage;
+    try
+      AssertTrue(Img2.TreatAsAlpha);
+      AssertEquals(1, Img2.ColorWhenTreatedAsAlpha.X);
+      AssertEquals(2, Img2.ColorWhenTreatedAsAlpha.Y);
+      AssertEquals(3, Img2.ColorWhenTreatedAsAlpha.Z);
+      AssertEquals(1, Img2.GrayscaleColorWhenTreatedAsAlpha);
+
+      AssertEquals(2, Img2.Width);
+      AssertEquals(2, Img2.Height);
+      AssertEquals(1, Img2.Depth);
+      AssertGrayscaleConstant(Img2, 128);
+    finally FreeAndNil(Img2) end;
+
+    Img2 := Img1.MakeResized(3, 3) as TGrayscaleImage;
+    try
+      AssertTrue(Img2.TreatAsAlpha);
+      AssertEquals(1, Img2.ColorWhenTreatedAsAlpha.X);
+      AssertEquals(2, Img2.ColorWhenTreatedAsAlpha.Y);
+      AssertEquals(3, Img2.ColorWhenTreatedAsAlpha.Z);
+      AssertEquals(1, Img2.GrayscaleColorWhenTreatedAsAlpha);
+
+      AssertEquals(3, Img2.Width);
+      AssertEquals(3, Img2.Height);
+      AssertEquals(1, Img2.Depth);
+      AssertGrayscaleConstant(Img2, 128);
+    finally FreeAndNil(Img2) end;
+
+    Img2 := Img1.MakeExtracted(0, 0, 1, 1) as TGrayscaleImage;
+    try
+      AssertTrue(Img2.TreatAsAlpha);
+      AssertEquals(1, Img2.ColorWhenTreatedAsAlpha.X);
+      AssertEquals(2, Img2.ColorWhenTreatedAsAlpha.Y);
+      AssertEquals(3, Img2.ColorWhenTreatedAsAlpha.Z);
+      AssertEquals(1, Img2.GrayscaleColorWhenTreatedAsAlpha);
+
+      AssertEquals(1, Img2.Width);
+      AssertEquals(1, Img2.Height);
+      AssertEquals(1, Img2.Depth);
+      AssertGrayscaleConstant(Img2, 128);
+    finally FreeAndNil(Img2) end;
+
+  finally FreeAndNil(Img1) end;
 end;
 
 initialization

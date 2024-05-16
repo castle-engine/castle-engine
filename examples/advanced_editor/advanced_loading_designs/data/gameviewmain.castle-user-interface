@@ -34,7 +34,7 @@
         "X" : 2.0000000000000000E+001,
         "Y" : 6.3938507080078125E+002
       },
-      "URL" : "castle-data:/my_button.castle-user-interface",
+      "Url" : "castle-data:/my_button.castle-user-interface",
       "Width" : 3.5000000000000000E+002
     },
     {
@@ -46,7 +46,7 @@
         "X" : 3.8000000000000000E+002,
         "Y" : 6.3938507080078125E+002
       },
-      "URL" : "castle-data:/my_button.castle-user-interface",
+      "Url" : "castle-data:/my_button.castle-user-interface",
       "Width" : 3.8000000000000000E+002
     },
     {
@@ -104,7 +104,7 @@
               "X" : -2.3763995170593262E+000,
               "Z" : -9.1486116871237755E-003
             },
-            "URL" : "castle-data:/soldier_with_cape.castle-transform"
+            "Url" : "castle-data:/soldier_with_cape.castle-transform"
           },
           {
             "$$ClassName" : "TCastleCamera",

@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2023 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,18 +13,51 @@
   ----------------------------------------------------------------------------
 }
 
-{ Control with OpenGL context on a Delphi FMX form. }
+{ Control rendering "Castle Game Engine" on Delphi FMX (FireMonkey) form. }
 unit Fmx.CastleControl;
 
 {$I castleconf.inc}
 
+{ How to implement calling Update continuously?
+  Similar choice as castlewindow_form.inc discusses.
+
+  - USE_TIMER is preferred.
+    It "just works" from user point of view.
+    We use this on all platforms (Windows)...
+
+  - ...except Linux, when with FMXLinux we failed to make it work.
+    It means user code must execute loop in a special way.
+    In the main program code, instead of
+
+      Application.Run;
+
+    do
+
+      TCastleControl.ApplicationRun;
+
+    And if anywhere you do
+
+      Application.ProcessMessages;
+
+    enhance it with
+
+      Application.ProcessMessages;
+      TCastleControl.ProcessTasks; // additional CGE processing
+}
+{$if not defined(LINUX)}
+  {$define USE_TIMER}
+{$endif}
+
 interface
 
-uses SysUtils, Classes, Windows,
-  FMX.Controls, FMX.Controls.Presentation, FMX.Presentation.Win, FMX.Memo,
-  FMX.Types, UITypes,
+uses // standard units
+  SysUtils, Classes,
+  // fmx
+  {$ifdef MSWINDOWS} FMX.Presentation.Win, {$endif}
+  FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
+  // cge
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
-  CastleInternalContextBase, CastleInternalContextWgl, CastleInternalContainer;
+  CastleInternalContextBase, CastleInternalContainer, CastleInternalFmxUtils;
 
 type
   { Control rendering "Castle Game Engine" on FMX form. }
@@ -36,8 +69,10 @@ type
       TContainer = class(TCastleContainerEasy)
       private
         Parent: TCastleControl;
+        {$ifdef USE_TIMER}
         class var
           UpdatingTimer: TTimer;
+        {$endif}
         class procedure UpdatingTimerEvent(Sender: TObject);
       protected
         function GetMousePosition: TVector2; override;
@@ -48,14 +83,15 @@ type
       public
         constructor Create(AParent: TCastleControl); reintroduce;
         procedure Invalidate; override;
-        function Width: Integer; override;
-        function Height: Integer; override;
+        function PixelsWidth: Integer; override;
+        function PixelsHeight: Integer; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
       end;
 
     var
       FContainer: TContainer;
       FMousePosition: TVector2;
+      FGLUtility: TFmxOpenGLUtility;
 
     function GetCurrentShift: TShiftState;
     procedure SetCurrentShift(const Value: TShiftState);
@@ -74,6 +110,8 @@ type
       to update Container.Pressed when needed. }
     property CurrentShift: TShiftState
       read GetCurrentShift write SetCurrentShift;
+
+    function MousePosToCastle(const X, Y: Single): TVector2;
   private
     procedure CreateHandle;
     procedure DestroyHandle;
@@ -86,16 +124,52 @@ type
     procedure MouseWheel(Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean); override;
     procedure KeyDown(var Key: Word; var KeyChar: WideChar; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; var KeyChar: WideChar; Shift: TShiftState); override;
+    function DefinePresentationName: String; override;
+    procedure Resize; override;
+    // Not needed in the end // procedure DoRootChanged; override;
+    procedure DoRootChanging(const NewRoot: IRoot); override;
+    procedure SetVisible(const AValue: Boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Paint; override;
+
+    { If Handle not allocated yet, allocate it now.
+      This makes sure we have OpenGL context created.
+      Our OpenBackend must guarantee it, we want to initialize GLVersion
+      afterwards etc. }
+    procedure InternalHandleNeeded;
 
     { This control must always have "native style", which means
       it has ControlType = Platform. See FMX docs about native controls:
       https://docwiki.embarcadero.com/RADStudio/Sydney/en/FireMonkey_Native_Windows_Controls
       Native controls are always on top of non-native controls. }
     property ControlType default TControlType.Platform;
+
+    { On some platforms (Linux now) if you call Application.ProcessMessages,
+      make sure to also call this method. E.g.
+
+      @longCode(#
+      while SomeCondition do
+      begin
+        Application.ProcessMessages;
+        TCastleControl.ProcessTasks;
+      end;
+      #)
+
+      This does nothing on some other platforms (Windows)
+      when it is not necessary and Application.ProcessMessages does all CGE job. }
+    class procedure ProcessTasks;
+
+    { On some platforms (Linux now) you cannot just call Application.Run,
+      as we need to call CGE processing regularly. So instead call
+      this method.
+      This ensures that engine updates / renders regularly.
+
+      On some other platforms (Windows)
+      this just calls Application.Run, which already makes
+      engine processing correct. }
+    class procedure ApplicationRun;
   published
     { Access Castle Game Engine container properties and events,
       not specific for FMX. }
@@ -119,7 +193,7 @@ procedure Register;
 
 implementation
 
-uses FMX.Presentation.Factory, Types, FMX.Graphics,
+uses FMX.Presentation.Factory, Types, FMX.Graphics, FMX.Forms,
   CastleRenderOptions, CastleApplicationProperties, CastleRenderContext,
   CastleRectangles, CastleUtils, CastleUIControls, CastleInternalDelphiUtils,
   CastleLog;
@@ -130,6 +204,8 @@ begin
     TCastleControl
   ]);
 end;
+
+{$ifdef MSWINDOWS}
 
 { TWinNativeGLControl -------------------------------------------------------- }
 
@@ -164,6 +240,8 @@ begin
   inherited;
 end;
 
+{$endif}
+
 { TCastleControl.TContainer ---------------------------------------------------}
 
 constructor TCastleControl.TContainer.Create(AParent: TCastleControl);
@@ -173,20 +251,8 @@ begin
 end;
 
 procedure TCastleControl.TContainer.AdjustContext(const PlatformContext: TGLContext);
-{$ifdef MSWINDOWS}
-var
-  WinContext: TGLContextWGL;
 begin
-  inherited;
-  WinContext := PlatformContext as TGLContextWGL;
-  WinContext.WndPtr :=
-    (Parent.Presentation as TWinNativeGLControl).Handle;
-  if WinContext.WndPtr = 0 then
-    raise Exception.Create('Native handle not ready when calling TCastleControl.TContainer.AdjustContext');
-  WinContext.h_Dc := GetWindowDC(WinContext.WndPtr);
-{$else}
-begin
-{$endif}
+  Parent.FGLUtility.ContextAdjustEarly(PlatformContext);
 end;
 
 function TCastleControl.TContainer.GetMousePosition: TVector2;
@@ -196,37 +262,33 @@ end;
 
 procedure TCastleControl.TContainer.SetMousePosition(const Value: TVector2);
 begin
-  // TODO
+  { TODO
+
+    There's no facility to do this using FMX, it seems.
+    We need platform-specific code.
+    - So far in CastleFmxUtils we have FmxSetMousePos for Linux, use it.
+    - And implement equivalent for Windows.
+  }
 end;
 
-function TCastleControl.TContainer.Width: Integer;
-{ // Using LocalToScreen doesn't help to counteract the FMX scale
-var
-  P: TPointF;
-begin
-  P := Parent.LocalToScreen(TPointF.Create(Parent.Width, 0));
-  Result := Round(P.X);
-end;
-}
+function TCastleControl.TContainer.PixelsWidth: Integer;
 var
   Scale: Single;
 begin
-  // this may be called at units finalization, when Handle is no longer available
-  if Parent.Presentation <> nil then
-    Scale := (Parent.Presentation as TWinNativeGLControl).Scale
+  if Parent.FGLUtility <> nil then
+    Scale := Parent.FGLUtility.Scale
   else
     Scale := 1;
 
   Result := Round(Parent.Width * Scale);
 end;
 
-function TCastleControl.TContainer.Height: Integer;
+function TCastleControl.TContainer.PixelsHeight: Integer;
 var
   Scale: Single;
 begin
-  // this may be called at units finalization, when Handle is no longer available
-  if Parent.Presentation <> nil then
-    Scale := (Parent.Presentation as TWinNativeGLControl).Scale
+  if Parent.FGLUtility <> nil then
+    Scale := Parent.FGLUtility.Scale
   else
     Scale := 1;
 
@@ -240,7 +302,10 @@ end;
 
 procedure TCastleControl.TContainer.SetInternalCursor(const Value: TMouseCursor);
 begin
-  // TODO
+  { TODO (use similar code from CASTLE_WINDOW_FORM implementation).
+
+    Note: This is commonly used by MouseLook, but it will not work OK
+    until both this and SetMousePosition are implemented. }
 end;
 
 { TCastleControl ---------------------------------------------------- }
@@ -252,6 +317,11 @@ begin
   FContainer := TContainer.Create(Self);
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
+
+  FGLUtility := TFmxOpenGLUtility.Create;
+  FGLUtility.Control := Self;
+  FGLUtility.OnHandleAfterCreateEvent := CreateHandle;
+  FGLUtility.OnHandleBeforeDestroyEvent := DestroyHandle;
 
   { In FMX, this causes adding WS_TABSTOP to Params.Style
     in TWinPresentation.CreateParams. So it is more efficient to call
@@ -306,6 +376,7 @@ end;
 
 destructor TCastleControl.Destroy;
 begin
+  FreeAndNil(FGLUtility);
   inherited;
 end;
 
@@ -328,12 +399,12 @@ begin
       WindowHandleToPlatform(Handle).Wnd
     but this is not useful for us (we don't want to always render to full window).
   }
-  FContainer.CreateContext;
+  FContainer.InitializeContext;
 end;
 
 procedure TCastleControl.DestroyHandle;
 begin
-  FContainer.DestroyContext;
+  FContainer.FinalizeContext;
 end;
 
 procedure TCastleControl.Paint;
@@ -358,6 +429,24 @@ begin
       true, 1.0, [], TTextAlign.Center);
   end else
   begin
+    { We must have OpenGL context at this point,
+      and on Delphi/Linux there is no way to register "on native handle creation",
+      we must manually perform native handle creation (with GL context)
+      using our FGLUtility.
+
+      Maybe in the future it will make sense to do this also from some other events,
+      like update or mouse/key press?
+      Doesn't seem necessary in practice for now. }
+    InternalHandleNeeded;
+
+    { TODO: Not the best place to call this.
+      This assumes we render often (like every frame)
+      and we can update our GTK control size (thus OpenGL size)
+      right before render.
+      Hm, but we don't have in this class comfortable Update (for this TCastleWindow)
+      now, though our Container could expose it. }
+    FGLUtility.Update;
+
     // inherited not needed, and possibly causes something unnecessary
     FContainer.DoRender;
   end;
@@ -366,20 +455,103 @@ end;
 class procedure TCastleControl.TContainer.UpdatingEnable;
 begin
   inherited;
+
+  {$ifdef USE_TIMER}
   UpdatingTimer := TTimer.Create(nil);
   UpdatingTimer.Interval := 1;
   UpdatingTimer.OnTimer := {$ifdef FPC}@{$endif} UpdatingTimerEvent;
+  {$endif}
 end;
 
 class procedure TCastleControl.TContainer.UpdatingDisable;
 begin
+  {$ifdef USE_TIMER}
   FreeAndNil(UpdatingTimer);
+  {$endif}
   inherited;
 end;
 
 class procedure TCastleControl.TContainer.UpdatingTimerEvent(Sender: TObject);
 begin
   DoUpdateEverything;
+end;
+
+class procedure TCastleControl.ProcessTasks;
+begin
+  // Does nothing when USE_TIMER, which is OK, timer does everything
+  {$ifndef USE_TIMER}
+  TContainer.UpdatingTimerEvent(nil);
+  {$endif}
+end;
+
+procedure TCastleControl.Resize;
+begin
+  inherited;
+  if Container.GLInitialized then
+  begin
+    Container.MakeContextCurrent;
+    Container.EventResize;
+  end;
+end;
+
+class procedure TCastleControl.ApplicationRun;
+begin
+  {$ifdef USE_TIMER}
+  Application.Run;
+  {$else}
+  Application.RealCreateForms;
+
+  { On Linux, it's especially important to check Terminating (not just Terminated)
+    below.
+
+    That's because FMXLinux seems to rely on GTK mechanism to exit
+    main loop when user calls Application.Terminate, which means it assumes
+    that you have executed Application.Run. (But we cannot use Application.Run
+    because timer is unreliable on FMXLinux and would sometimes hang application
+    rendering, see USE_TIMER comments.) Calling "Application.Run" sets
+    only Terminating:=true and makes GTK error:
+
+       gtk_main_quit: assertion 'main_loops != NULL' failed
+
+    We can't really prevent GTK error,
+    but at least we can react to Terminating and exit. }
+
+  while not (ApplicationState in [
+    TApplicationState.Terminating,
+    TApplicationState.Terminated]) do
+  begin
+    Application.ProcessMessages;
+    ProcessTasks;
+  end;
+
+  { TODO (but it seems FMXLinux issue -- we should report):
+    On FMXLinux, not using "Application.Run"
+    means that FMXLinux never frees the Application singleton.
+
+    Consequently, things owned by Application are never freed,
+    TForm.OnDestroy callbacks are not run,
+    and component destructors like TCastleControl.Destroy are not run.
+    Things just leak at program exit.
+
+    It seems FMXLinux "TPlatformLinux.Destroy"
+    should just call "FreeAndNil(Application)". This is what Delphi built-in
+    "TPlatformWin.Destroy" and "TPlatformCocoa.Destroy" are doing.
+    It also makes sense since "TPlatformLinux.Create" creates the Application
+    singleton.
+
+    In fact, I haven't found *how is Application freed when
+    we call Application.Run*. FMXLinux never seems to free Application.
+    Unlike Windows and macOS FMX platforms.
+    But logging shows that forms *are* freed at application exit
+    if we run Application.Run, but not otherwise.
+
+    This is reproducible in FMX almost-blank application, without any CGE,
+    just remove Application.Run but call Application.RealCreateForms .
+    You will notice that form OnCreate callback executes,
+    but form OnDestroy callback never happens. }
+
+  FreeAndNil(Application);
+  {$endif}
 end;
 
 function TCastleControl.GetCurrentShift: TShiftState;
@@ -400,6 +572,11 @@ begin
   Container.Pressed.Keys[keyCtrl ] := ssCtrl  in Value;
 end;
 
+function TCastleControl.MousePosToCastle(const X, Y: Single): TVector2;
+begin
+  Result := Vector2(X, Height - 1 - Y) * FGLUtility.Scale;
+end;
+
 procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
   Y: Single);
 var
@@ -410,7 +587,7 @@ begin
 
   inherited; { FMX OnMouseDown before our callbacks }
 
-  FMousePosition := Vector2(X, Height - 1 - Y);
+  FMousePosition := MousePosToCastle(X, Y);
 
   if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed + [MyButton];
@@ -423,14 +600,18 @@ begin
 end;
 
 procedure TCastleControl.MouseMove(Shift: TShiftState; NewX, NewY: Single);
+var
+  NewMousePos: TVector2;
 begin
   inherited;
 
+  NewMousePos := MousePosToCastle(NewX, NewY);
+
   Container.EventMotion(InputMotion(FMousePosition,
-    Vector2(NewX, Height - 1 - NewY), Container.MousePressed, 0));
+    NewMousePos, Container.MousePressed, 0));
 
   // change FMousePosition *after* EventMotion, callbacks may depend on it
-  FMousePosition := Vector2(NewX, Height - 1 - NewY);
+  FMousePosition := NewMousePos;
 
   CurrentShift := Shift;
 end;
@@ -442,7 +623,7 @@ var
 begin
   inherited; { FMX OnMouseUp before our callbacks }
 
-  FMousePosition := Vector2(X, Height - 1 - Y);
+  FMousePosition := MousePosToCastle(X, Y);
 
   if MouseButtonToCastle(Button, MyButton) then
     Container.MousePressed := Container.MousePressed - [MyButton];
@@ -473,13 +654,12 @@ begin
   inherited;
   CurrentShift := Shift;
 
-  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  FmxKeysToCastle(Key, KeyChar, Shift, CastleKey, CastleKeyString);
+
+  if (CastleKey <> keyNone) or (CastleKeyString <> '') then
   begin
     CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
-
-    if KeyChar <> #0 then
-      CastleEvent.KeyString := KeyChar;
 
     // check this before updating Container.Pressed
     CastleEvent.KeyRepeated :=
@@ -507,13 +687,22 @@ begin
   inherited;
   CurrentShift := Shift;
 
-  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  FmxKeysToCastle(Key, KeyChar, Shift, CastleKey, CastleKeyString);
+
+  { Note that KeyUp seems to have additional issue with FMXLinux,
+    not fixed in this code:
+
+    When the key is held (so we expect to receive multiple KeyDown
+    for one KeyUp), FMXLinux sends additional KeyUp before each KeyDown.
+    So for code, it seems as if user is pressing and releasing the key.
+    We cannot easily workaround it on CGE side.
+    To track keys being held, we advise to check Pressed[keyXxx] in Update
+    methods, instead of relying on KeyDown/KeyUp. }
+
+  if (CastleKey <> keyNone) or (CastleKeyString <> '') then
   begin
     CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
-
-    if KeyChar <> #0 then
-      CastleEvent.KeyString := KeyChar;
 
     Container.Pressed.KeyUp(CastleEvent.Key, CastleEvent.KeyString);
     if Container.EventRelease(CastleEvent) then
@@ -524,10 +713,74 @@ begin
   end;
 end;
 
+procedure TCastleControl.InternalHandleNeeded;
+begin
+  FGLUtility.HandleNeeded;
+end;
+
+function TCastleControl.DefinePresentationName: String;
+begin
+  { This method may seem not necessary in some tests: if your application
+    just instantiates exactly TCastleControl (not a descendant of it),
+    then this method is not necessary.
+    E.g. CastleFmx example doesn't need it to work properly.
+
+    But this method becomes necessary if you instantiate *descendants of
+    TCastleControl*. Like TGoodOpenGLControl created by CASTLE_WINDOW_FORM.
+    Without this method, these descendants would not
+    use TWinNativeGLControl (they would use default FMX
+    TWinStyledPresentation) and in effect critical code from CGE
+    TWinNativeGLControl would not run.
+
+    See also:
+    - FMX TMemo does it, likely for above reasons.
+    - https://stackoverflow.com/questions/37281970/a-descendant-of-tstyledpresentationproxy-has-not-been-registered-for-class
+    - See also
+      http://yaroslavbrovin.ru/new-approach-of-development-of-firemonkey-control-control-model-presentation-part-1-en/
+      https://github.com/tothpaul/Firemonkey/tree/master/GLPanel
+      for hints how to use platform-specific controls with FMX.
+  }
+
+  Result := 'CastleControl-' + GetPresentationSuffix;
+end;
+
+procedure TCastleControl.SetVisible(const AValue: Boolean);
+begin
+  inherited;
+  { This happens e.g. when developer does "CastleControl.Visible := false".
+    We will recreate this handle later by FGLUtility.HandleNeeded,
+    at first paint. }
+  if not AValue then
+    FGLUtility.HandleRelease;
+end;
+
+procedure TCastleControl.DoRootChanging(const NewRoot: IRoot);
+begin
+  inherited;
+  { This happens e.g. when developer does "CastleControl.Parent := nil"
+    or when TCastleControl is destroyed (e.g. because parent form is destroyed).
+    We will recreate this handle later by FGLUtility.HandleNeeded,
+    at first paint. }
+  FGLUtility.HandleRelease;
+end;
+
+(*
+procedure TCastleControl.DoRootChanged;
+begin
+  inherited;
+  { Not really needed, we'll create context from Paint anyway.
+    And this was too early in some cases. }
+//  if FGLUtility.HandlePossible then
+//    FGLUtility.HandleNeeded;
+end;
+*)
+
+{$ifdef MSWINDOWS}
 initialization
   { Make TWinNativeGLControl used
     for TCastleControl with ControlType = TControlType.Platform. }
   TPresentationProxyFactory.Current.Register(TCastleControl, TControlType.Platform, TWinPresentationProxy<TWinNativeGLControl>);
 finalization
   TPresentationProxyFactory.Current.Unregister(TCastleControl, TControlType.Platform, TWinPresentationProxy<TWinNativeGLControl>);
+{$endif}
 end.

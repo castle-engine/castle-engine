@@ -156,7 +156,7 @@ procedure CastleTranslateResourceStrings(const GetTextMoUrl: String);
 implementation
 
 uses CastleUtils, CastleStringUtils, CastleFindFiles, CastleComponentSerialize,
-  CastleURIUtils, CastleLog, CastleDownload;
+  CastleUriUtils, CastleLog, CastleDownload;
 
 const
   PoContextDelimiter = #4;

@@ -20,8 +20,8 @@ unit TestCastleSceneCore;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, CastleSceneCore, X3DNodes;
+  Classes, SysUtils,
+  CastleTester, CastleSceneCore, X3DNodes;
 
 type
   TTestSceneCore = class(TCastleTestCase)
@@ -68,6 +68,7 @@ type
     {$endif}
     procedure TestNonGenericNodeAndFindNodeOptions;
     procedure TestGeometryNodesInShape;
+    procedure TestExposedTransforms;
   end;
 
 implementation
@@ -75,7 +76,7 @@ implementation
 uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
-  CastleURIUtils, CastleColors;
+  CastleUriUtils, CastleColors;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -514,7 +515,7 @@ begin
     Scene.Load(Url);
     if not WarningFlag then
       Fail(Format('Expected to get some warning during loading of "%s"',
-        [URIDisplay(Url)]));
+        [UriDisplay(Url)]));
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningFlag);
   end;
@@ -1167,6 +1168,45 @@ begin
   try
     Scene.Url := 'castle-data:/geometry_not_in_shape.x3dv';
   finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestExposedTransforms;
+
+{ See also what testcase from https://github.com/castle-engine/castle-engine/issues/600
+  is doing. }
+
+var
+  Scene: TCastleSceneCore;
+  T1, T2: TCastleTransform;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/exposed_transforms_names.x3dv');
+
+    T1 := TCastleTransform.Create(nil);
+    T1.Name := 'MyBoneName_123';
+    Scene.Add(T1);
+
+    T2 := TCastleTransform.Create(nil);
+    // Pascal component names must match bone names, but with invalid chars -> underscores
+    T2.Name := 'MyBoneName_with_spaces';
+    Scene.Add(T2);
+
+    AssertEquals(2, Scene.Count);
+
+    Scene.ExposeTransforms.AddStrings([
+      'MyBoneName_123',
+      // here we provide the bone name, not the Pascal component name, so spaces are OK
+      'MyBoneName with spaces'
+    ]);
+
+    // Make sure TCastleSceneCore.ExposeTransformsChange didn't create any new components
+    AssertEquals(2, Scene.Count);
+  finally
+    FreeAndNil(Scene);
+    FreeAndNil(T1);
+    FreeAndNil(T2);
+  end;
 end;
 
 initialization

@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -290,6 +290,26 @@ end;
 
 procedure TX3DRoute.EventReceive(
   const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+
+  { Like F.X3DName, but tolerates given F being nil,
+    which is always possible for ROUTE endpoints.
+    Testcase: https://github.com/castle-engine/view3dscene/issues/89 }
+  function X3DNameSafe(const F: TX3DFieldOrEvent): String; overload;
+  begin
+    if F <> nil then
+      Result := F.X3DName
+    else
+      Result := '<none>';
+  end;
+
+  function X3DNameSafe(const F: TX3DNode): String; overload;
+  begin
+    if F <> nil then
+      Result := F.X3DName
+    else
+      Result := '<none>';
+  end;
+
 begin
   Assert(Event = SourceEvent);
 
@@ -303,8 +323,10 @@ begin
   end else
     WritelnLog('X3D', Format(
       'Route %s.%s -> %s.%s ignored another event at <= timestamp (%f.%d, while last event was on %f.%d). Potential routes loop avoided',
-      [ SourceNode.X3DName, SourceEvent.X3DName,
-        DestinationNode.X3DName, DestinationEvent.X3DName,
+      [ X3DNameSafe(SourceNode),
+        X3DNameSafe(SourceEvent),
+        X3DNameSafe(DestinationNode),
+        X3DNameSafe(DestinationEvent),
         Time.Seconds, Time.PlusTicks,
         LastEventTime.Seconds, LastEventTime.PlusTicks ]));
 end;

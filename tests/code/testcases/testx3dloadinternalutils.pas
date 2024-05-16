@@ -20,11 +20,11 @@ unit TestX3DLoadInternalUtils;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry
-  {$else}CastleTester{$endif};
+  Classes, SysUtils,
+  CastleTester;
 
 type
-  TTestX3DLoadInternalUtils = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestX3DLoadInternalUtils = class(TCastleTestCase)
   published
     procedure TestX3DNameEncode;
   end;

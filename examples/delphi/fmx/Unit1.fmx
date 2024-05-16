@@ -20,11 +20,11 @@ object TestCgeControl: TTestCgeControl
     Align = Right
     Margins.Top = 10.000000000000000000
     Margins.Right = 10.000000000000000000
-    Margins.Bottom = 80.000000000000000000
+    Margins.Bottom = 120.000000000000000000
     Position.X = 482.000000000000000000
     Position.Y = 10.000000000000000000
     Size.Width = 340.000000000000000000
-    Size.Height = 414.000000000000000000
+    Size.Height = 374.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
     object Memo1: TMemo
@@ -32,15 +32,15 @@ object TestCgeControl: TTestCgeControl
       DataDetectorTypes = []
       Align = Client
       Size.Width = 340.000000000000000000
-      Size.Height = 414.000000000000000000
+      Size.Height = 374.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
       Viewport.Width = 336.000000000000000000
-      Viewport.Height = 410.000000000000000000
+      Viewport.Height = 370.000000000000000000
     end
     object Button2D: TButton
       Anchors = [akRight, akBottom]
-      Position.X = 152.000000000000000000
+      Position.X = 160.000000000000000000
       Position.Y = 464.000000000000000000
       TabOrder = 3
       Text = '2D'
@@ -48,7 +48,7 @@ object TestCgeControl: TTestCgeControl
     end
     object ButtonUI: TButton
       Anchors = [akRight, akBottom]
-      Position.X = 248.000000000000000000
+      Position.X = 256.000000000000000000
       Position.Y = 464.000000000000000000
       TabOrder = 4
       Text = 'UI'
@@ -56,7 +56,7 @@ object TestCgeControl: TTestCgeControl
     end
     object Button3D: TButton
       Anchors = [akRight, akBottom]
-      Position.X = 56.000000000000000000
+      Position.X = 64.000000000000000000
       Position.Y = 464.000000000000000000
       TabOrder = 2
       Text = '3D'
@@ -66,12 +66,34 @@ object TestCgeControl: TTestCgeControl
       Anchors = [akRight, akBottom]
       AutoSize = True
       Position.X = 4.000000000000000000
-      Position.Y = 422.000000000000000000
+      Position.Y = 382.000000000000000000
       Size.Width = 312.000000000000000000
       Size.Height = 16.000000000000000000
       Size.PlatformDefault = False
       Text = 'LabelFps'
       TabOrder = 1
+    end
+    object ButtonShowCge: TButton
+      Anchors = [akRight, akBottom]
+      Position.X = 208.000000000000000000
+      Position.Y = 404.000000000000000000
+      Size.Width = 129.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      Text = 'Show CGE Control'
+      OnClick = ButtonShowCgeClick
+    end
+    object ButtonHideCge: TButton
+      Anchors = [akRight, akBottom]
+      Position.X = 208.000000000000000000
+      Position.Y = 434.000000000000000000
+      Size.Width = 129.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 6
+      Text = 'Hide CGE Control'
+      OnClick = ButtonHideCgeClick
     end
   end
   object CastleControl: TCastleControl

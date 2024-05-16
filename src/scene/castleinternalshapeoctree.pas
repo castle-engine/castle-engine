@@ -222,9 +222,10 @@ type
   protected
     function StatisticsBonus: string; override;
   public
+    { Constructor.
+      Given TShapeList contents are copied. }
     constructor Create(const ALimits: TOctreeLimits;
-      const ARootBox: TBox3D; AShapesList: TShapeList;
-      AOwnsShapesList: boolean);
+      const ARootBox: TBox3D; AShapesList: TShapeList);
     destructor Destroy; override;
     procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
       override;
@@ -786,17 +787,19 @@ end;
 { TShapeOctree ------------------------------------------ }
 
 constructor TShapeOctree.Create(const ALimits: TOctreeLimits;
-  const ARootBox: TBox3D; AShapesList: TShapeList;
-  AOwnsShapesList: boolean);
+  const ARootBox: TBox3D; AShapesList: TShapeList);
 begin
   inherited Create(ALimits, ARootBox, TShapeOctreeNode, true);
-  FShapesList := AShapesList;
-  FOwnsShapesList := AOwnsShapesList;
+
+  FShapesList := TShapeList.Create(false);
+  FShapesList.AddRange(AShapesList);
+  FOwnsShapesList := true; // for now always true
 end;
 
 destructor TShapeOctree.Destroy;
 begin
-  if OwnsShapesList then FreeAndNil(FShapesList);
+  if OwnsShapesList then
+    FreeAndNil(FShapesList);
   inherited;
 end;
 

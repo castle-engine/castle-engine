@@ -22,10 +22,8 @@ unit CastleInternalGLUtils;
 interface
 
 uses
-  // needed by castleinternalglutils_delphi_wgl.inc, castleinternalglutils_wgl.inc
-  {$ifdef MSWINDOWS} Windows, {$endif}
   SysUtils, Math, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions, CastleGLShaders,
   CastleGLUtils;
@@ -35,8 +33,6 @@ uses
 {$I castleinternalglutils_errors.inc}
 {$I castleinternalglutils_helpers.inc}
 {$I castleinternalglutils_mipmaps.inc}
-{$I castleinternalglutils_delphi_wgl.inc}
-{$I castleinternalglutils_wgl.inc}
 
 {$undef read_interface}
 
@@ -51,7 +47,5 @@ uses
 {$I castleinternalglutils_errors.inc}
 {$I castleinternalglutils_helpers.inc}
 {$I castleinternalglutils_mipmaps.inc}
-{$I castleinternalglutils_delphi_wgl.inc}
-{$I castleinternalglutils_wgl.inc}
 
 end.

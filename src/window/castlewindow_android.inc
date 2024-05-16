@@ -42,7 +42,8 @@ CastleAndroidInternalLog, CastleAndroidInternalAssetStream,
 CastleAndroidInternalConfiguration,
 {$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif} CastleDynLib,
 {$ifdef CASTLE_PNG_DYNAMIC} CastleInternalPng, {$endif}
-CastleInternalOpenAL, CastleInternalVorbisFile, CastleInternalFreeTypeH, CastleInternalZLib,
+CastleInternalOpenAL, CastleInternalVorbisFile, CastleInternalFreeTypeH,
+CastleInternalZLib,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -155,7 +156,22 @@ begin
   Window := Application.MainWindow;
   if Window <> nil then
   begin
-    Window.Close;
+    { Passing QuitWhenLastWindowClosed = false here is critical:
+
+      Window may be closed and reopened during Android application lifetime,
+      this is normal e.g. on low-end Android devices that need to close
+      OpenGLES context (stopping activity) when switching to another application.
+      CGE handles it gracefully by allowing to open the TCastleWindow again
+      (creating OpenGL context).
+      Pascal code (like current TCastleView and its state) retains full
+      knowledge about the current state, so it generally restarts where it
+      left off.
+
+      Testcase: platformer, on Android, go to "Credits" and click on some
+      link to open the browser.
+      Do it on low-end Android device (e.g. Samsung Galaxy Tab A). }
+    Window.Close(false);
+
     Window.NativeWindow := nil; // make sure to not access the NativeWindow anymore
   end;
 end;
@@ -379,7 +395,7 @@ end;
 
 procedure AndroidMainImplementation(App: PAndroid_App);
 
-  function GetInternalDataPath: string;
+  function GetInternalDataPath: String;
   var
     Env: PJNIEnv;
 
@@ -437,7 +453,7 @@ var
   ConfigState: TStringStream;
 {$endif CASTLE_PERSISTENT_ANDROID_STATE}
 begin
-  ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(GetInternalDataPath));
+  ApplicationConfigOverride := FilenameToUriSafe(InclPathDelim(GetInternalDataPath));
 
   {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
   { Use SavedState as XML contents that should be loaded to global Config.
@@ -645,15 +661,13 @@ end;
 
 procedure TCastleWindow.OpenBackend;
 begin
-  ContextCreateBegin;
-  ContextCreateEnd(NativeWindow);
+  ContextCreate(NativeWindow);
   Application.OpenWindowsAdd(Self);
 end;
 
 procedure TCastleWindow.CloseBackend;
 begin
-  ContextDestroyBegin;
-  ContextDestroyEnd;
+  ContextDestroy;
   { Note that we do not clear NativeWindow now, because we may need it
     if window is opened again. Although when Android system opens the window,
     NativeWindow is set by OpenContext,
@@ -662,7 +676,7 @@ begin
     previous NativeWindow value. }
 end;
 
-procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   // GetWholeCaption is ignored on Android
@@ -700,6 +714,10 @@ begin
   FFullScreenBackend := FFullScreenWanted; // does nothing on Android
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TCastleApplication ---------------------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;
@@ -718,12 +736,11 @@ end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 
-  { Call Update and Timer on Application and all open Windows. }
-  procedure WindowsUpdateAndTimer;
+  { Call Update on ApplicationProperties and all open Windows. }
+  procedure UpdateEverything;
   begin
-    DoApplicationUpdate;
+    ApplicationProperties._Update;
     FOpenWindows.DoUpdate;
-    MaybeDoTimer;
   end;
 
   procedure Resize(Width, Height: Integer);
@@ -825,7 +842,7 @@ begin
     { we do not check Invalidated here, just redraw every frame when window is open }
     MainWindow.DoRender;
 
-    WindowsUpdateAndTimer;
+    UpdateEverything;
   end;
 
   { Note that we ignore WaitToLimitFPS here, right now.
@@ -862,6 +879,8 @@ begin
     may be called many times, because ANativeActivity_onCreate may be called
     multple times. So things below must be implemented in a secure way,
     to work Ok when executed multiple times. }
+  if not EglAvailable then
+    LoadEgl;
   GLESInitialization;
   OpenALInitialization;
   VorbisFileInitialization;
@@ -884,9 +903,8 @@ begin
   FreeAndNil(QEvents);
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  { TODO }
 end;
 
 function TCastleApplication.ScreenWidth: integer;
@@ -908,7 +926,7 @@ begin
   Result := FScreenStatusBarHeight;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'Android';
 end;

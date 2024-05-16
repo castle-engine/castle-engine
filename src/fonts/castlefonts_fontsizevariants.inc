@@ -73,7 +73,7 @@ type
       This sets @link(SourceFont) and @link(AddAlternativeSourceFont).
 
       This allows to achieve better look than TTexturedFont with one size. }
-    procedure Load(const URL: string;
+    procedure Load(const Url: String;
       const ASizes: array of Integer; const AnAntiAliased: boolean;
       const ACharacters: TUnicodeCharList = nil);
 
@@ -341,7 +341,7 @@ begin
   UpdateSubFont;
 end;
 
-procedure TCustomizedFont.Load(const URL: string;
+procedure TCustomizedFont.Load(const Url: String;
   const ASizes: array of Integer; const AnAntiAliased: boolean;
   const ACharacters: TUnicodeCharList);
 var
@@ -362,7 +362,7 @@ begin
     { Using deprecated, as we have to better alternative to pass ACharacters: TUnicodeCharList.
       In the future TCustomizedFont may be deprecated, we need to have alternative sizes
       at TCastleFont probably. }
-    F.Load(URL, ASizes[I], AnAntiAliased, ACharacters);
+    F.Load(Url, ASizes[I], AnAntiAliased, ACharacters);
     {$warnings on}
     if SourceFont = nil then
       SourceFont := F

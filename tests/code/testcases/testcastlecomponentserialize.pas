@@ -20,8 +20,7 @@ unit TestCastleComponentSerialize;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
   TTestCastleComponentSerialize = class(TCastleTestCase)
@@ -344,7 +343,7 @@ begin
 
     TempFileName := GetTempFileNameCheck;
     ComponentSave(RootLabel, TempFileName);
-    {$ifdef CASTLE_TESTER}TestLog{$else}Writeln{$endif}(
+    TestLog(
       'TTestCastleComponentSerialize.TestDepth: Saved to ' + TempFileName);
 
   finally FreeAndNil(UiOwner) end;

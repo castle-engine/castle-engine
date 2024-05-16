@@ -33,9 +33,9 @@ const
 type
   { NIF file header.}
   TNIFHeader = packed record
-    Width: LongWord;
-    Height: LongWord;
-    PixelFmt: LongWord;
+    Width: UInt32;
+    Height: UInt32;
+    PixelFmt: UInt32;
   end;
 
 { TNIFFileFormat class implementation }
@@ -87,7 +87,7 @@ end;
 
 function TNIFFileFormat.TestFormat(Handle: TImagingHandle): Boolean;
 var
-  Hdr: longword;
+  Hdr: UInt32;
   ReadCount: LongInt;
 begin
   Result := False;

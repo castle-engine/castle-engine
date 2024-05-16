@@ -227,9 +227,10 @@ var
 begin
   //WritelnLog('Notification', Trim(S.Text)); // too verbose by default
 
-  { before Notifications are part of some Controls list,
-    we don't know about Parent or Container size. }
-  if Wrap and ContainerSizeKnown then
+  { We need to know ParentRect to wrap,
+    and for this we need to know final size: both Parent and Container
+    are necessary for this. }
+  if Wrap and (Parent <> nil) and (Container <> nil) then
   begin
     Broken := TStringList.Create;
     try

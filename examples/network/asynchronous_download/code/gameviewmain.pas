@@ -54,9 +54,9 @@ var
 implementation
 
 uses SysUtils, Math,
-  {$ifdef FPC} {$ifndef VER3_0} OpenSSLSockets, {$endif} {$endif} // https support
+  {$ifdef FPC} OpenSSLSockets, {$endif} // https support
   CastleComponentSerialize, CastleUtils, CastleStringUtils, CastleLog,
-  CastleURIUtils;
+  CastleUriUtils;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -150,21 +150,21 @@ begin
       'HTTP response code: %d' + NL +
       'HTTP response headers: %s' + NL +
       'Final URL: %s', [
-      URIDisplay(Sender.Url),
+      UriDisplay(Sender.Url),
       Sender.ErrorMessage,
       Sender.HttpResponseCode,
       HttpResponseHeaders,
-      URIDisplay(Sender.FinalUrl)
+      UriDisplay(Sender.FinalUrl)
     ])
   else
     WritelnLog('Downloading "%s" successful.' + NL +
       'HTTP response code: %d' + NL +
       'HTTP response headers: %s' + NL +
       'Final URL: %s', [
-      URIDisplay(Sender.Url),
+      UriDisplay(Sender.Url),
       Sender.HttpResponseCode,
       HttpResponseHeaders,
-      URIDisplay(Sender.FinalUrl)
+      UriDisplay(Sender.FinalUrl)
     ]);
 end;
 

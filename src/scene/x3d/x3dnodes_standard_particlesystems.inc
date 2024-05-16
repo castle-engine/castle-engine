@@ -22,51 +22,51 @@
 
   { }
   TAbstractParticleEmitterNode = class(TAbstractNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc}
   end;
 
   TAbstractParticlePhysicsModelNode = class(TAbstractNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc}
   end;
 
   TBoundedPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
-    {$I auto_generated_node_helpers/x3dnodes_boundedphysicsmodel.inc}
+  {$I auto_generated_node_helpers/x3dnodes_boundedphysicsmodel.inc}
   end;
 
   TConeEmitterNode = class(TAbstractParticleEmitterNode)
-    {$I auto_generated_node_helpers/x3dnodes_coneemitter.inc}
+  {$I auto_generated_node_helpers/x3dnodes_coneemitter.inc}
   end;
 
   TExplosionEmitterNode = class(TAbstractParticleEmitterNode)
-    {$I auto_generated_node_helpers/x3dnodes_explosionemitter.inc}
+  {$I auto_generated_node_helpers/x3dnodes_explosionemitter.inc}
   end;
 
   TForcePhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
-    {$I auto_generated_node_helpers/x3dnodes_forcephysicsmodel.inc}
+  {$I auto_generated_node_helpers/x3dnodes_forcephysicsmodel.inc}
   end;
 
   TParticleSystemNode = class(TAbstractShapeNode)
-    {$I auto_generated_node_helpers/x3dnodes_particlesystem.inc}
+  {$I auto_generated_node_helpers/x3dnodes_particlesystem.inc}
   end;
 
   TPointEmitterNode = class(TAbstractParticleEmitterNode)
-    {$I auto_generated_node_helpers/x3dnodes_pointemitter.inc}
+  {$I auto_generated_node_helpers/x3dnodes_pointemitter.inc}
   end;
 
   TPolylineEmitterNode = class(TAbstractParticleEmitterNode)
-    {$I auto_generated_node_helpers/x3dnodes_polylineemitter.inc}
+  {$I auto_generated_node_helpers/x3dnodes_polylineemitter.inc}
   end;
 
   TSurfaceEmitterNode = class(TAbstractParticleEmitterNode)
-    {$I auto_generated_node_helpers/x3dnodes_surfaceemitter.inc}
+  {$I auto_generated_node_helpers/x3dnodes_surfaceemitter.inc}
   end;
 
   TVolumeEmitterNode = class(TAbstractParticleEmitterNode)
-    {$I auto_generated_node_helpers/x3dnodes_volumeemitter.inc}
+  {$I auto_generated_node_helpers/x3dnodes_volumeemitter.inc}
   end;
 
   TWindPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
-    {$I auto_generated_node_helpers/x3dnodes_windphysicsmodel.inc}
+  {$I auto_generated_node_helpers/x3dnodes_windphysicsmodel.inc}
   end;
 
 {$endif read_interface}
@@ -76,6 +76,19 @@
 const
   ParticlesGeometryNames: array [TParticlesGeometry] of String =
   ('LINE', 'POINT', 'QUAD', 'SPRITE', 'TRIANGLE', 'GEOMETRY');
+
+{$I auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_boundedphysicsmodel.inc}
+{$I auto_generated_node_helpers/x3dnodes_coneemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_explosionemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_forcephysicsmodel.inc}
+{$I auto_generated_node_helpers/x3dnodes_particlesystem.inc}
+{$I auto_generated_node_helpers/x3dnodes_pointemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_polylineemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_surfaceemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_volumeemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_windphysicsmodel.inc}
 
 procedure RegisterParticleSystemsNodes;
 begin

@@ -22,6 +22,21 @@
 // type - don't add type Delphi can't parse that correctly
   TGLRenderToTexture = class;
 
+  { Statistics to measure TDrawableImage rendering impact.
+    Cleared at every TCastleContainer.EventRender start. }
+  TDrawableImageRenderStatistics = record
+    { How many times TDrawableImage.Draw was called (regardless of the Count argument). }
+    ImageDraws: Cardinal;
+
+    { Draw calls done, in case of OpenGL this literally counts the number of calls
+      to glDrawElements and glDrawArrays. }
+    DrawCalls: Cardinal;
+
+    { Present the statistics information as a string (without any newlines).
+      Display it e.g. by assigning to TCastleLabel.Caption. }
+    function ToString: String;
+  end;
+
   { Image that can be drawn.
     This image can be drawn in various rendering methods and events,
     e.g. inside overridden @link(TCastleUserInterface.Render) or from events
@@ -144,7 +159,7 @@
       FTexture: TGLTextureId;
       FImage: TEncodedImage;
       FOwnsImage: boolean;
-      FURL: String;
+      FUrl: String;
       FRepeatS, FRepeatT: Boolean;
 
       FRenderToImage: TGLRenderToTexture;
@@ -165,7 +180,7 @@
     procedure SetCenterY(const Value: Single);
     procedure SetRepeatS(const Value: Boolean);
     procedure SetRepeatT(const Value: Boolean);
-    procedure SetURL(const Value: String);
+    procedure SetUrl(const Value: String);
     procedure SetColor(const Value: TCastleColor);
     procedure SetRotation(const Value: Single);
     procedure SetRotationCenter(const Value: TVector2);
@@ -202,6 +217,9 @@
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
   public
+    class var
+      Statistics: TDrawableImageRenderStatistics;
+
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
@@ -232,8 +250,17 @@
     class procedure BatchingEnd;
 
     { If we are during batching, then flush the pending drawing now.
-      You should never need to call this, unless you do direct rendering outside of TDrawableImage
-      or DrawPrimitive2D (and friends in CastleGLUtils). }
+
+      You should never need to call this, unless you do direct rendering
+      that is not
+
+      @unorderedList(
+        @itemSpacing compact
+        @item using TDrawableImage
+        @item using DrawPrimitive2D (and friends in CastleGLUtils),
+        @item using TCastleScreenEffect, TCasleViewport rendering.
+      )
+    }
     class procedure BatchingFlush;
 
     { Prepare image for drawing.
@@ -252,7 +279,7 @@
 
     { Load image from disk, and prepare for drawing.
 
-      @param(AURL URL (or filename) from which to load the image.
+      @param(AUrl URL (or filename) from which to load the image.
         Often you want to use here castle-data:/ protocol to load application data,
         like:
 
@@ -268,12 +295,12 @@
         property. But each change has a small cost, so it's more efficient
         to just set the initial value correctly.)
     }
-    constructor Create(const AURL: string;
+    constructor Create(const AUrl: String;
       const ASmoothScaling: boolean = true); overload;
 
     { Load image from disk, and prepare for drawing.
 
-      @param(AURL URL (or filename) from which to load the image.
+      @param(AUrl URL (or filename) from which to load the image.
         Usually you want to use here URL starting with the "castle-data:" protocol,
         to load an image from application data, like this:
 
@@ -307,7 +334,7 @@
       @raises(EImageClassNotSupportedForOpenGL When image class is not supported
         by OpenGL.)
     }
-    constructor Create(const AURL: string;
+    constructor Create(const AUrl: String;
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
@@ -315,7 +342,7 @@
 
     { Load image from disk, and prepare for drawing.
 
-      @param(AURL URL (or filename) from which to load the image.
+      @param(AUrl URL (or filename) from which to load the image.
         Often you want to pass here the result ot ApplicationData
         function, like:
 
@@ -342,7 +369,7 @@
         property. But each change has a small cost, so it's more efficient
         to just set the initial value correctly.)
     }
-    constructor Create(const AURL: string;
+    constructor Create(const AUrl: String;
       const LoadAsClass: array of TEncodedImageClass;
       const ASmoothScaling: boolean); overload;
 
@@ -712,7 +739,7 @@
 
     { URL of currently loaded image.
       Non-empty only if the image was loaded from URL. }
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
 
     { Repeat or clamp texture in S (width) or T (height) dimensions.
       @groupBegin }
@@ -779,13 +806,13 @@ begin
     {$ifdef FPC}@{$endif} GLContextCloseEvent);
 end;
 
-constructor TDrawableImage.Create(const AURL: string;
+constructor TDrawableImage.Create(const AUrl: String;
   const ASmoothScaling: boolean);
 begin
-  Create(AURL, [], ASmoothScaling);
+  Create(AUrl, [], ASmoothScaling);
 end;
 
-constructor TDrawableImage.Create(const AURL: string;
+constructor TDrawableImage.Create(const AUrl: String;
   const LoadAsClass: array of TEncodedImageClass;
   const ResizeToX, ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation);
@@ -793,24 +820,24 @@ var
   NewImage: TCastleImage;
 begin
   if High(LoadAsClass) = -1 then
-    NewImage := LoadImage(AURL, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation)
+    NewImage := LoadImage(AUrl, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation)
   else
-    NewImage := LoadImage(AURL, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
-  FURL := AURL;
+    NewImage := LoadImage(AUrl, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
+  FUrl := AUrl;
   Create(NewImage, { ASmoothScaling } true, { AOwnsImage } true);
 end;
 
-constructor TDrawableImage.Create(const AURL: string;
+constructor TDrawableImage.Create(const AUrl: String;
   const LoadAsClass: array of TEncodedImageClass;
   const ASmoothScaling: boolean);
 var
   NewImage: TEncodedImage;
 begin
   if High(LoadAsClass) = -1 then
-    NewImage := LoadEncodedImage(AURL, PixelsImageClasses)
+    NewImage := LoadEncodedImage(AUrl, PixelsImageClasses)
   else
-    NewImage := LoadEncodedImage(AURL, LoadAsClass);
-  FURL := AURL;
+    NewImage := LoadEncodedImage(AUrl, LoadAsClass);
+  FUrl := AUrl;
   Create(NewImage, ASmoothScaling, { AOwnsImage } true);
 end;
 
@@ -1047,7 +1074,13 @@ end;
 
 procedure TDrawableImage.Draw(
   ScreenRects, ImageRects: PFloatRectangleArray; Count: Integer);
+var
+  { Must be PFloatRectangle, not PFloatRectangleArray,
+    because we will increment them to advance to next. }
+  SrPtr, IrPtr: PFloatRectangle;
 begin
+  Inc(Statistics.ImageDraws);
+
   if BatchingLevel <> 0 then
   begin
     if (BatchingLastImage <> nil) and (BatchingLastImage <> Self) then
@@ -1061,12 +1094,14 @@ begin
     // add to last batch
     if BatchingLastImage = Self then
     begin
+      SrPtr := PFloatRectangle(ScreenRects);
+      IrPtr := PFloatRectangle(ImageRects);
       while Count > 0 do
       begin
-        BatchingLastScreenRects.Add(ScreenRects^[0]);
-        BatchingLastImageRects.Add(ImageRects^[0]);
-        Inc(ScreenRects);
-        Inc(ImageRects);
+        BatchingLastScreenRects.Add(SrPtr^);
+        BatchingLastImageRects.Add(IrPtr^);
+        Inc(SrPtr);
+        Inc(IrPtr);
         Dec(Count);
       end;
     end;
@@ -1304,12 +1339,14 @@ begin
       { TODO: Clip not implemented in this case yet.
         Need to transform ClipLine into screen coordinates, then do
       glEnable(GL_CLIP_PLANE0);
-      glClipPlane(GL_CLIP_PLANE0, Vector4Double(
+      CastleGlClipPlane(GL_CLIP_PLANE0, Vector4Double(
         FScreenClipLine[0], FScreenClipLine[1], 0, FScreenClipLine[2]));
       }
     end;
     {$endif not OpenGLES}
   end;
+
+  Inc(Statistics.DrawCalls);
 
   if Count <> 1 then
   begin
@@ -1757,22 +1794,22 @@ begin
   end;
 end;
 
-procedure TDrawableImage.SetURL(const Value: String);
+procedure TDrawableImage.SetUrl(const Value: String);
 var
   NewImage: TEncodedImage;
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
     if Value = '' then
     begin
-      // following CGE conventions, we allow to set URL to '' to clear loaded contentds
+      // following CGE conventions, we allow to set Url to '' to clear loaded contentds
       Load(nil);
-      FURL := Value;
+      FUrl := Value;
       FOwnsImage := true;
     end else
     begin
       NewImage := LoadEncodedImage(Value); // make exception from loading before changing URL
-      FURL := Value;
+      FUrl := Value;
       Load(NewImage);
       FOwnsImage := true; // change it after Load(), so that Load frees previous image if needed
     end;
@@ -1918,6 +1955,14 @@ begin
     BatchingLastImageRects.Clear;
     BatchingLastImage := nil;
   end;
+end;
+
+function TDrawableImageRenderStatistics.ToString: String;
+begin
+  Result := Format('Draw calls: %d, Image draws: %d', [
+    DrawCalls,
+    ImageDraws
+  ]);
 end;
 
 {$endif read_implementation}

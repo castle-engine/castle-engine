@@ -110,16 +110,6 @@ type
     csLinear
   );
 
-  { @deprecated Deprecated name for @link(TColorSpace). }
-  TGammaCorrection = (
-    { Never do gamma correction. }
-    gcNone,
-    { Gamma correction only for PhysicalMaterial. }
-    gcPhysicalMaterial,
-    { Always do gamma correction. }
-    gcAlways
-  ) deprecated 'use TColorSpace';
-
   TShadersRendering = (srDisable, srWhenRequired, srAlways) deprecated 'this was only useful with TCastleRenderOptions.Shaders, which is now deprecated in favor of TCastleRenderOptions.PhongShading';
 
   { Possible bump mapping options.
@@ -633,43 +623,8 @@ var
   { Force given rendering for all scenes, if not weNormal. }
   InternalForceWireframe: TWireframeEffect;
 
-{$ifdef FPC}
-function GetGammaCorrection: TGammaCorrection;
-  deprecated 'use ColorSpace';
-procedure SetGammaCorrection(const Value: TGammaCorrection);
-  deprecated 'use ColorSpace';
-property GammaCorrection: TGammaCorrection read GetGammaCorrection write SetGammaCorrection;
-  {deprecated 'use ColorSpace';} { cannot deprecate global properties in FPC }
-{$endif}
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
-{$ifdef FPC}
-function GetGammaCorrection: TGammaCorrection;
-begin
-  case ColorSpace of
-    csSRGB                      : Result := gcNone;
-    csLinearWhenPhysicalMaterial: Result := gcPhysicalMaterial;
-    csLinear                    : Result := gcAlways;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('GetGammaCorrection:ColorSpace?');
-    {$endif}
-  end;
-end;
-
-procedure SetGammaCorrection(const Value: TGammaCorrection);
-begin
-  case Value of
-    gcNone            : ColorSpace := csSRGB;
-    gcPhysicalMaterial: ColorSpace := csLinearWhenPhysicalMaterial;
-    gcAlways          : ColorSpace := csLinear;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('SetGammaCorrection:Value?');
-    {$endif}
-  end;
-end;
-{$endif}
 
 {$endif read_implementation}

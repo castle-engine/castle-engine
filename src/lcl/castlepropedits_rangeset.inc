@@ -21,7 +21,7 @@ type
   TRangeSetPropertyEditor = class (TSetPropertyEditor)
   public
     procedure GetProperties(Proc: TGetPropEditProc); override;
-    function OrdValueToVisualValue(OrdValue: Longint): string; override;
+    function OrdValueToVisualValue(OrdValue: Integer): string; override;
   end;
 
   { Row editor for TRangeSetPropertyEditor }
@@ -44,7 +44,7 @@ begin
       Proc(TRangeSetElementPropertyEditor.Create(Self, I));
 end;
 
-function TRangeSetPropertyEditor.OrdValueToVisualValue(OrdValue: Longint): String;
+function TRangeSetPropertyEditor.OrdValueToVisualValue(OrdValue: Integer): String;
 
 { Note: This is unused for now.
   All actual usage of TRangeSetPropertyEditor is through T3DCoordsRangeSetPropertyEditor,

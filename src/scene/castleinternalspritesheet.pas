@@ -388,7 +388,7 @@ implementation
 
 uses StrUtils, DOM, Math, XMLRead,
   CastleDownload, CastleFilesUtils, CastleLog, CastleStringUtils,
-  CastleTextureImages, CastleURIUtils, CastleUtils, CastleXMLUtils;
+  CastleTextureImages, CastleUriUtils, CastleUtils, CastleXmlUtils;
 
 type
   { Frame names in starling file can be named freely, but in the case of our loader,
@@ -540,7 +540,7 @@ var
   FdUrl: String;
 begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
-  FRoot.Meta['source'] := ExtractURIName(FSpriteSheet.URL);
+  FRoot.Meta['source'] := ExtractUriName(FSpriteSheet.URL);
 
   Material := TUnlitMaterialNode.Create;
 
@@ -574,7 +574,7 @@ begin
     Tex := TImageTextureNode.Create;
     { Check is this file loaded from Starling in that case use LoadedAtlasPath }
     if FSpriteSheet.URL <> '' then
-      FdUrl := ExtractURIPath(FSpriteSheet.URL) + FSpriteSheet.RelativeAtlasPath
+      FdUrl := ExtractUriPath(FSpriteSheet.URL) + FSpriteSheet.RelativeAtlasPath
     else
       FdUrl := FSpriteSheet.LoadedAtlasPath;
 
@@ -1781,7 +1781,7 @@ var
   URLWithoutAnchor: String;
   Stream: TStream;
 begin
-  URLWithoutAnchor := URIDeleteAnchor(URL, true);
+  URLWithoutAnchor := UriDeleteAnchor(URL, true);
 
   Stream := Download(URLWithoutAnchor);
   try
@@ -1829,13 +1829,13 @@ begin
       we need generate new name. }
     if (FRelativeAtlasPath = '') or (AURL <> URL) then
     begin
-      FRelativeAtlasPath := DeleteURIExt(ExtractURIName(AURL)) + '.png';
+      FRelativeAtlasPath := DeleteUriExt(ExtractUriName(AURL)) + '.png';
     end;
-    AtlasURL := URIIncludeSlash(ExtractURIPath(AURL)) + FRelativeAtlasPath;
+    AtlasURL := UriIncludeSlash(ExtractUriPath(AURL)) + FRelativeAtlasPath;
 
     { Save image file }
     if FGeneratedAtlas = nil then
-      CheckCopyFile(URIToFilenameSafe(LoadedAtlasPath), URIToFilenameSafe(AtlasURL))
+      CheckCopyFile(UriToFilenameSafe(LoadedAtlasPath), UriToFilenameSafe(AtlasURL))
     else
       SaveImage(FGeneratedAtlas, AtlasURL);
 
@@ -2146,7 +2146,7 @@ begin
   begin
     SettingsMap := TStringStringMap.Create;
     try
-      URIGetSettingsFromAnchor(FBaseUrl, SettingsMap);
+      UriGetSettingsFromAnchor(FBaseUrl, SettingsMap);
       for Setting in SettingsMap do
       begin
         if LowerCase(Setting.Key) = 'fps' then
@@ -2179,7 +2179,7 @@ var
   Image: TCastleImage;
 begin
   FRelativeImagePath := AtlasNode.AttributeString('imagePath');
-  FAbsoluteImagePath := ExtractURIPath(URIDeleteAnchor(URL, true)) + FRelativeImagePath;
+  FAbsoluteImagePath := ExtractUriPath(UriDeleteAnchor(URL, true)) + FRelativeImagePath;
   { Some exporters like Free Texture Packer add width and height attributes.
     In this case we don't need load image to check them. }
   if AtlasNode.HasAttribute('width') and AtlasNode.HasAttribute('height') then
@@ -2280,9 +2280,9 @@ begin
   inherited Create;
   FStream := Stream;
   FBaseUrl := BaseUrl;
-  FDisplayURL := URIDisplay(FBaseUrl);
+  FDisplayURL := UriDisplay(FBaseUrl);
 
-  MimeType := URIMimeType(FBaseUrl);
+  MimeType := UriMimeType(FBaseUrl);
   FStarlingLoading :=
     (MimeType = 'application/x-starling-sprite-sheet') or
     (MimeType = 'application/xml');

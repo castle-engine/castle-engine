@@ -20,8 +20,7 @@ unit TestCastleUnicode;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
   TTestUnicode = class(TCastleTestCase)
@@ -29,6 +28,7 @@ type
     {$ifdef FPC} // UTF8ToHtmlEntities is now only for FPC
     procedure TestUTF8ToHtmlEntities;
     {$endif}
+    procedure TestStringOperations;
   end;
 
 implementation
@@ -43,6 +43,15 @@ begin
   AssertEquals('name with Chinese chars &#x6837;&#x4F8B;&#x4E2D;&#x6587;&#x6587;&#x672C;.txt', UTF8ToHtmlEntities('name with Chinese chars 样例中文文本.txt'));
 end;
 {$endif}
+
+procedure TTestUnicode.TestStringOperations;
+begin
+  AssertEquals(18, StringLength('Custom large fonta'));
+  // Polish chars below, in UTF-8 some of these chars are multibyte
+  AssertEquals(27, StringLength('Ćma źrebak żmija wąż królik'));
+  AssertEquals('Custom large font', StringCopy('Custom large fonta', 1, 17));
+  AssertEquals('Custom large fonta', StringCopy('Custom large fonta', 1, 100));
+end;
 
 initialization
   RegisterTest(TTestUnicode);

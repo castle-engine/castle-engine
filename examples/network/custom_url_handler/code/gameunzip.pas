@@ -27,7 +27,7 @@ function UnzipFile(const ZipFileName, FileInZip: String): TStream;
 
 implementation
 
-uses CastleURIUtils, CastleDownload, CastleFilesUtils;
+uses CastleUriUtils, CastleDownload, CastleFilesUtils;
 
 {$ifdef FPC}
 type

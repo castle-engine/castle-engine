@@ -25,7 +25,7 @@ X3DGroupingNode : X3DChildNode, X3DBoundedObject {
     range: [0,Inf) or -1 -1 -1
   SFBool  [in,out] visible        TRUE
     not-slim
-    doc: Is this group visible (@italic(not implemented yet)). While this is not implemented for an entire group, note that you can use @link(TAbstractShapeNode.Render) to toggle visibility of each shape.
+    doc: Is this group visible (@italic(not implemented yet)). While this is not implemented for an entire group, note that you can use @link(TAbstractShapeNode.Visible) to toggle visibility of each shape.
   SFBool  [in,out] bboxDisplay    FALSE
     not-slim
     doc: Is the bounding box of this group visible (@italic(not implemented yet)). While this is not implemented for an X3D group, note that you can use @link(TDebugTransformBox) to easily display bounding box of a whole @link(TCastleTransform).

@@ -20,7 +20,8 @@ unit CastleTriangulate;
 
 interface
 
-uses SysUtils, CastleVectors, CastleUtils, CastleTriangles;
+uses SysUtils,
+  CastleVectors, CastleUtils, CastleTriangles;
 
 type
   TTriangulatorProc = procedure (const Tri: TVector3Integer) of object;
@@ -70,15 +71,15 @@ type
 
   @groupBegin }
 procedure TriangulateFace(
-  FaceIndices: PLongintArray; Count: Integer;
+  FaceIndices: PInt32Array; Count: Integer;
   Vertices: PVector3Array; VerticesCount: Integer;
   TriangulatorProc: TTriangulatorProc;
-  AddToIndices: Longint); overload;
+  AddToIndices: Integer); overload;
 
 procedure TriangulateFace(
-  FaceIndices: PLongintArray; Count: Integer;
+  FaceIndices: PInt32Array; Count: Integer;
   Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
-  AddToIndices: Longint); overload;
+  AddToIndices: Integer); overload;
 { @groupEnd }
 
 { Triangulate convex polygon.
@@ -96,11 +97,11 @@ procedure TriangulateFace(
   @seeAlso TriangulateFace }
 procedure TriangulateConvexFace(Count: Integer;
   TriangulatorProc: TTriangulatorProc;
-  AddToIndices: Longint);
+  AddToIndices: Integer);
 
 { Calculate normal vector of possibly concave polygon. }
 function IndexedPolygonNormal(
-  Indices: PLongintArray; IndicesCount: Integer;
+  Indices: PInt32Array; IndicesCount: Integer;
   Vertices: PVector3Array; const VerticesCount: Integer;
   const ResultForIncorrectPoly: TVector3; const Convex: boolean): TVector3;
 
@@ -137,9 +138,9 @@ uses Math,
   - and then we repeat the work for the new polygon, smaller by 1 vertex. }
 
 procedure TriangulateFace(
-  FaceIndices: PLongintArray; Count: Integer;
+  FaceIndices: PInt32Array; Count: Integer;
   Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
-  AddToIndices: Longint);
+  AddToIndices: Integer);
 
   { Previous and Next in modulo Count (0.. Count - 1) range. }
   function Previous(const I: Integer): Integer;
@@ -154,7 +155,7 @@ procedure TriangulateFace(
     Result := (I + 1) mod Count;
   end;
 
-  procedure NewTriangle(const p0, p1, p2: Longint);
+  procedure NewTriangle(const p0, p1, p2: Integer);
   begin
     TriangulatorProc(Vector3Integer(
       P0 + AddToIndices,
@@ -162,7 +163,7 @@ procedure TriangulateFace(
       P2 + AddToIndices));
   end;
 
-  function Verts(I: Longint): TVector3;
+  function Verts(I: Integer): TVector3;
   begin
     if FaceIndices <> nil then
       Result := Vertices(FaceIndices^[I]) else
@@ -581,10 +582,10 @@ begin
 end;
 
 procedure TriangulateFace(
-  FaceIndices: PLongintArray; Count: Integer;
+  FaceIndices: PInt32Array; Count: Integer;
   Vertices: PVector3Array; VerticesCount: Integer;
   TriangulatorProc: TTriangulatorProc;
-  AddToIndices: Longint);
+  AddToIndices: Integer);
 var
   G: TVerticesGenerator;
 begin
@@ -599,9 +600,9 @@ end;
 
 procedure TriangulateConvexFace(Count: Integer;
   TriangulatorProc: TTriangulatorProc;
-  AddToIndices: Longint);
+  AddToIndices: Integer);
 
-  procedure NewTriangle(const p0, p1, p2: Longint);
+  procedure NewTriangle(const p0, p1, p2: Integer);
   begin
     TriangulatorProc(Vector3Integer(
       P0 + AddToIndices,
@@ -617,7 +618,7 @@ begin
 end;
 
 function IndexedConcavePolygonNormal(
-  Indices: PLongintArray; Count: Integer;
+  Indices: PInt32Array; Count: Integer;
   Vertices: PVector3Array; const VerticesCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3;
 
@@ -642,9 +643,9 @@ function IndexedConcavePolygonNormal(
     Result := (I + 1) mod Count;
   end;
 
-  function Verts(const I: Longint): TVector3;
+  function Verts(const I: Integer): TVector3;
   var
-    Index: LongInt;
+    Index: Integer;
   begin
     Index := Indices^[I];
     if Index < VerticesCount then
@@ -720,7 +721,7 @@ begin
 end;
 
 function IndexedPolygonNormal(
-  Indices: PLongintArray; IndicesCount: Integer;
+  Indices: PInt32Array; IndicesCount: Integer;
   Vertices: PVector3Array; const VerticesCount: Integer;
   const ResultForIncorrectPoly: TVector3; const Convex: boolean): TVector3;
 begin

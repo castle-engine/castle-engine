@@ -73,7 +73,7 @@ type
     procedure SetApplicationName(const Value: String);
   public
     const
-      DefaultLimitFPS = 100.0;
+      DefaultLimitFPS = 120.0;
 
       { Some platforms do not support Application.ProcessMessages, which means you
         cannot just write a function like MessageYesNo that waits until user clicks
@@ -225,9 +225,8 @@ type
     property IsGLContextOpen: boolean read FIsGLContextOpen;
 
     { Callbacks called continuously when (at least one) window is open.
-
       You can use this just like @link(TCastleControl.OnUpdate)
-      or @link(TCastleWindow.OnUpdate) or @link(TCastleApplication.OnUpdate). }
+      or @link(TCastleWindow.OnUpdate). }
     property OnUpdate: TNotifyEventList read FOnUpdate;
 
     { Callbacks called when Android Java activity started.

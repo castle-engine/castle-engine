@@ -56,7 +56,7 @@
     function IgnoreTransparentItem(
       const Sender: TObject; const Triangle: PTriangle): Boolean; virtual; abstract;
   public
-    OnCursorChange: TNotifyEvent;
+    InternalOnNodesFree: TNotifyEvent;
 
     { Event to render whole world.
       Used by generated textures to update their contents.
@@ -177,7 +177,7 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
 
-    { What is hit by this ray.
+    { First object hit by the ray.
 
       This checks collisions with world
       (everything inside this @link(TCastleAbstractRootTransform)).
@@ -186,7 +186,8 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
 
-    { What is hit by this ray.
+    { First object hit by the ray.
+
       Returns the TCastleTransform that is hit (this is the "leaf" TCastleTransform
       in the TCastleTransform tree that is hit)
       and a distance from RayOrigin to the hit point.
@@ -247,7 +248,7 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
 
-    { Cast a ray using physics engine, see what is hit.
+    { First object hit by the ray, calculated using the physics engine.
 
       Returns the TPhysicsRayCastResult record.
       Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform

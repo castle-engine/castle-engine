@@ -1021,16 +1021,33 @@ begin
   Result := RotatePointAroundAxisRad(DegToRad(Angle), Point, Axis);
 end;
 
-procedure WarningZeroVectorNonZeroAngle;
+procedure WarningZeroVectorNonZeroAngle(const Axis: TVector3; const Angle: Single);
 begin
-  WritelnWarning('RotatePointAroundAxisRad called with rotation Axis = zero but non-zero rotation Angle, this is invalid');
+  WritelnWarning('RotatePointAroundAxisRad called with rotation Axis = zero (%s) but non-zero rotation Angle (%g), this is invalid', [
+    Axis.ToRawString,
+    Angle
+  ]);
+end;
+
+procedure WarningZeroVectorNonZeroAngle90(const Axis: TVector3);
+begin
+  WritelnWarning('RotatePointAroundAxis90 called with rotation Axis = zero (%s) but non-zero rotation Angle (90, implied by name), this is invalid', [
+    Axis.ToRawString
+  ]);
+end;
+
+procedure WarningZeroVectorNonZeroAngleMinus90(const Axis: TVector3);
+begin
+  WritelnWarning('RotatePointAroundAxisMinus90 called with rotation Axis = zero (%s) but non-zero rotation Angle (-90, implied by name), this is invalid', [
+    Axis.ToRawString
+  ]);
 end;
 
 function RotatePointAroundAxisRad(const Angle: Single; const Point: TVector3;
   const Axis: TVector3): TVector3;
 var
   X, Y, Z, L: Single;
-  SinAngle, CosAngle: Float;
+  SinAngle, CosAngle: Single;
 begin
   SinCos(Angle, SinAngle, CosAngle);
 
@@ -1047,7 +1064,7 @@ begin
     { In case vector has zero length (so it's just zero),
       the Angle must be zero, and we can exit early. }
     if Angle <> 0 then
-      WarningZeroVectorNonZeroAngle;
+      WarningZeroVectorNonZeroAngle(Axis, Angle);
     Exit(Point);
   end;
 
@@ -1081,7 +1098,7 @@ begin
     Z := Axis.Z * L;
   end else
   begin
-    WarningZeroVectorNonZeroAngle;
+    WarningZeroVectorNonZeroAngle90(Axis);
     Exit(Point);
   end;
 
@@ -1115,7 +1132,7 @@ begin
     Z := Axis.Z * L;
   end else
   begin
-    WarningZeroVectorNonZeroAngle;
+    WarningZeroVectorNonZeroAngleMinus90(Axis);
     Exit(Point);
   end;
 
@@ -2651,7 +2668,6 @@ function RotationMatrixRad(const AngleRad: Single;
   const Axis: TVector3): TMatrix4;
 var
   NormAxis: TVector3;
-  AngleSin, AngleCos: Float;
   AxisLen, S, C: Single;
 begin
   // NormAxis := Axis.Normalize;
@@ -2670,10 +2686,11 @@ begin
   NormAxis.Y := Axis.Y * AxisLen;
   NormAxis.Z := Axis.Z * AxisLen;
 
-  SinCos(AngleRad, AngleSin, AngleCos);
-  { convert Float to Single once }
-  S := AngleSin;
-  C := AngleCos;
+  { Using SinCos that returns 2x Single (not 2x Float),
+    available in both FPC and Delphi now
+    ( https://gitlab.com/freepascal.org/fpc/source/-/issues/22663 ,
+    https://gitlab.com/freepascal.org/fpc/source/-/commit/1da4c0c3ce617e14fd6cdaaa660c2d8e43b56e20 ) }
+  SinCos(AngleRad, S, C);
 
   Result := VectorMultTransposedSameVector(NormAxis);
 
@@ -2722,7 +2739,6 @@ procedure RotationMatricesRad(const AngleRad: Single;
 var
   NormAxis: TVector3;
   V: Single;
-  AngleSin, AngleCos: Float;
   AxisLen, S, C: Single;
 begin
   // NormAxis := Axis.Normalize;
@@ -2745,10 +2761,11 @@ begin
   NormAxis.Y := Axis.Y * AxisLen;
   NormAxis.Z := Axis.Z * AxisLen;
 
-  SinCos(AngleRad, AngleSin, AngleCos);
-  { convert Float to Single once }
-  S := AngleSin;
-  C := AngleCos;
+  { Using SinCos that returns 2x Single (not 2x Float),
+    available in both FPC and Delphi now
+    ( https://gitlab.com/freepascal.org/fpc/source/-/issues/22663 ,
+    https://gitlab.com/freepascal.org/fpc/source/-/commit/1da4c0c3ce617e14fd6cdaaa660c2d8e43b56e20 ) }
+  SinCos(AngleRad, S, C);
 
   Matrix := VectorMultTransposedSameVector(NormAxis);
 
@@ -2807,13 +2824,14 @@ end;
 
 function RotatePoint2D(const Point: TVector2; const AngleRad: Single): TVector2;
 var
-  AngleSin, AngleCos: Float;
   S, C: Single;
 begin
-  SinCos(AngleRad, AngleSin, AngleCos);
-  { convert Float to Single once }
-  S := AngleSin;
-  C := AngleCos;
+  { Using SinCos that returns 2x Single (not 2x Float),
+    available in both FPC and Delphi now
+    ( https://gitlab.com/freepascal.org/fpc/source/-/issues/22663 ,
+    https://gitlab.com/freepascal.org/fpc/source/-/commit/1da4c0c3ce617e14fd6cdaaa660c2d8e43b56e20 ) }
+  SinCos(AngleRad, S, C);
+
   Result.X := Point.X * C - Point.Y * S;
   Result.Y := Point.X * S + Point.Y * C;
 end;

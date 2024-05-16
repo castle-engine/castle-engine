@@ -1,6 +1,6 @@
 {%MainUnit castleimages.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -71,9 +71,7 @@ type
       However, you can also load/convert such image format
       to normal 8-bits image formats (like TRGBImage),
       if you're Ok with losing some of the precision. }
-    ifRGBE,
-
-    ifIPL
+    ifRGBE
 
     {$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
     ,
@@ -142,9 +140,6 @@ function LoadPCX(const Stream: TStream;
 
 { Load PNM image (PNM, PGM, PBM, PPM). }
 function LoadPNM(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
-
-function LoadIPL(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Load RGBE image. }
@@ -397,7 +392,7 @@ type
       Must be lowercase.
 
       This is used e.g. to construct file filters in open/save dialogs.
-      Together with MimeTypes it is also used by URIMimeType to map
+      Together with MimeTypes it is also used by UriMimeType to map
       file extension into a MIME type. An extension matching one of Exts
       values implicates the default MIME type for this format (MimeTypes[1]).
 
@@ -550,15 +545,6 @@ const
       Load: {$ifdef FPC}@{$endif}LoadRGBE;
       Save: {$ifdef FPC}@{$endif}SaveRGBE; SavedClasses: scRGB_RGBFloat;
       DetectClass: nil;
-    ),
-    ( FormatName: 'IPLab image';
-      MimeTypesCount: 1;
-      { IPL MIME type invented by Michalis, to make it unique to communicate image format for LoadImage } { }
-      MimeTypes: ('image/x-ipl', '', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('ipl', '', '', '');
-      Load: {$ifdef FPC}@{$endif}LoadIPL;
-      Save: nil; SavedClasses: scRGB;
-      DetectClass: nil;
     )
 
     {$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
@@ -681,11 +667,11 @@ begin
     Result := TRGBImage;
 end;
 
-function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const Url: String): TCastleImageClass;
 var
   Format: TImageFormat;
 begin
-  if not MimeTypeToImageFormat(URIMimeType(URL), false, true, Format) then
+  if not MimeTypeToImageFormat(UriMimeType(Url), false, true, Format) then
     Exit(TRGBImage);
   Result := ImageClassBestForSavingToFormatCore(Format);
 end;

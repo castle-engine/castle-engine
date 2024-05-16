@@ -64,7 +64,7 @@ begin
      (LazarusIDE.ActiveProject <> nil) then
   begin
     { Override ApplicationData interpretation, and castle-data:/xxx URL meaning. }
-    ApplicationDataOverride := FilenameToURISafeUTF8(
+    ApplicationDataOverride := FilenameToUriSafeUTF8(
       InclPathDelim(LazarusIDE.ActiveProject.Directory) + 'data' + PathDelim);
   end;
 end;

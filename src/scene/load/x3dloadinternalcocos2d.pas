@@ -42,7 +42,7 @@ implementation
 
 uses Generics.Collections, StrUtils, DOM, XMLRead,
   CastleImages, CastleLog, CastleStringUtils, CastleTextureImages,
-  CastleURIUtils, CastleUtils, CastleVectors, CastleXMLUtils;
+  CastleUriUtils, CastleUtils, CastleVectors, CastleXmlUtils;
 
 type
 
@@ -877,7 +877,7 @@ begin
   inherited Create;
   FStream := Stream;
   FBaseUrl := BaseUrl;
-  FDisplayUrl := URIDisplay(FBaseUrl);
+  FDisplayUrl := UriDisplay(FBaseUrl);
 
   FCocosFrame := TCocosFrame.Create(FDisplayUrl);
   SetLength(FCoordArray, 6);

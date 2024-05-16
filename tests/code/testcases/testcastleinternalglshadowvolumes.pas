@@ -19,8 +19,8 @@ unit TestCastleInternalGLShadowVolumes;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils,
+  CastleTester;
 
 type
   TTestCastleInternalGLShadowVolumes = class(TCastleTestCase)
@@ -57,7 +57,7 @@ begin
   Projection.ProjectionFar := ZFarInfinity;
 
   Frustum.Init(Projection.Matrix(1), Camera.Matrix);
-  AssertTrue(Frustum.ZFarInfinity);
+  AssertTrue(Frustum.FarInfinity);
 
   SvRenderer := TGLShadowVolumeRenderer.Create;
   try

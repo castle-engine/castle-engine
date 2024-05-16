@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,17 +22,15 @@
   TSoundType = TCastleSound deprecated 'use TCastleSound';
 
   { Sound engine that keeps a repository of sounds, defined in a nice XML file.
-    This allows to have simple @link(Sound) and @link(Sound3D) methods,
-    that take a sound identifier (managing sound buffers will just happen
-    automatically under the hood).
+    Loading this XML file by setting @link(RepositoryUrl) property
+    creates a number of TCastleSound instances, that you can find using
+    @link(SoundFromName) method. You can use these TCastleSound instances
+    e.g. with @link(TSoundEngine.Play) method.
 
-    It extends TSoundEngine, so you can always still load new buffers
-    and play them by TSoundEngine.LoadBuffer, TSoundEngine.PlaySound
-    and all other methods. This only adds easy preloaded sounds,
-    but you're not limited to them.
-
-    To initialize your sounds repository, you have to set the RepositoryURL
-    property. }
+    This class extends TSoundEngine. So using the sounds defined in the XML file
+    is completely optional. You can also create instances of TCastleSound
+    and use them through any other means -- by code, by setting them up in editor,
+    see https://castle-engine.io/manual_sound.php . }
   TRepoSoundEngine = class(TSoundEngine)
   private
     {$ifndef PASDOC} // PasDoc cannot parse the private section of this correctly yet
@@ -115,7 +113,7 @@
         { Group URL.
           Absolute (including parent group URL parts).
           Always ends with slash. }
-        URL: string;
+        Url: String;
         { A parent group (one among FSoundGroups, or @nil if not in any group). }
         ParentGroup: TSoundGroup;
       end;
@@ -139,96 +137,20 @@
         It means "no sound" in many cases. }
       FSounds: TSoundInfoList;
       FSoundGroups: TSoundGroupList;
-      FRepositoryURL: string;
+      FRepositoryUrl: String;
       FLoopingChannels: TLoopingChannelList;
     {$endif PASDOC}
 
-    procedure SetRepositoryURL(const Value: string);
+    procedure SetRepositoryUrl(const Value: String);
     { Reinitialize looping channels sounds.
       Should be called as soon as Sounds changes and we may have OpenAL context. }
     procedure RestartLoopingChannels;
-    function GetMusicPlayer: TLoopingChannel;
     function GetLoopingChannel(const Index: Cardinal): TLoopingChannel;
     procedure ContextOpenCore; override;
-  public
-    constructor Create;
-    destructor Destroy; override;
 
-    { The XML file that contains description of your sounds.
-      This should be an URL (in simple cases, just a filename)
-      pointing to an XML file describing your sounds.
-      See https://castle-engine.io/creating_data_sound.php#section_sample .
-
-      When you set RepositoryURL property, we read sound information from
-      given XML file. You usually set RepositoryURL at the very beginning
-      of the application.
-      Right after setting RepositoryURL you usually call SoundFromName
-      a couple of times to convert some names into TCastleSound values,
-      to later use these TCastleSound values with @link(Sound) and @link(Sound3D)
-      methods.
-
-      When the sound context is initialized (or when you set this property,
-      if the sound context is initialized already)
-      then sound buffers will actually be loaded.
-
-      If this is empty (the default), then no sounds are loaded,
-      and TRepoSoundEngine doesn't really give you much above standard
-      TSoundEngine.
-
-      If you want to actually use TRepoSoundEngine features
-      (like the @link(Sound) and @link(Sound3D) methods) you have to set this
-      property. For example like this:
-
-      @longCode(#
-        SoundEngine.RepositoryURL := 'castle-data:/sounds.xml';
-        MySound1 := SoundEngine.SoundFromName('my_sound_1');
-        MySound2 := SoundEngine.SoundFromName('my_sound_2');
-        // ... and later in your game you can do stuff like this:
-        SoundEngine.Play(MySound1);
-      #)
-
-      See https://castle-engine.io/manual_data_directory.php
-      for information about the castle-data:/ protocol. In short, on desktop,
-      this just indicates the "data" subdirectory of your project.
-    }
-    property RepositoryURL: string read FRepositoryURL write SetRepositoryURL;
-      {$ifdef FPC}deprecated 'instead of XML file, create design with .castle-component that contains a number of TCastleSound components';{$endif}
-
-    {$ifdef FPC}
-    { Deprecated name for RepositoryURL. @deprecated }
-    property SoundsFileName: string read FRepositoryURL write SetRepositoryURL; deprecated 'use RepositoryURL';
-    {$endif}
-
-    { Reload the RepositoryURL and all referenced buffers.
-      Useful as a tool for game designers, to reload the sounds XML file
-      without restarting the game and sound engine. }
-    procedure ReloadSounds; deprecated 'deprecated just like RepositoryURL';
-
-    { Return sound with given name.
-      Available names are given in SoundNames, defined in XML file pointed
-      by RepositoryURL.
-      Always for SoundName = '' it will return nil.
-
-      @param(Required
-
-        If Required = @true, it will make a warning when the sound name
-        is not found. This may mean that sound is missing in your sounds.xml
-        file (so you should correct your sounds.xml),
-        or that you didn't load the sounds.xml file yet
-        (so you should correct your code to set @link(TRepoSoundEngine.RepositoryURL)
-        early enough), or that you specified invalid sound name.
-        When Required = @false, missing sound is silently ignored,
-        which is sensible if it was optional.
-
-        Regardless of the Required value, we return nil for missing sound.
-        So the Required parameter only determines whether we make a warning,
-        or not.)
-    }
-    function SoundFromName(const SoundName: string; const Required: boolean = true): TCastleSound;
-      deprecated 'deprecated just like RepositoryURL';
-
-    {$ifdef FPC}
     { Sound importance names and values.
+      *Maintained only to provide backward compatibility when reading sound XML files*.
+
       Each item is a name (as a string) and a value (that is stored in Objects
       property of the item as a pointer; add new importances by
       AddSoundImportanceName for comfort).
@@ -248,17 +170,77 @@
         @item 'default' - DefaultSoundImportance
       ) }
     property SoundImportanceNames: TStringList read FSoundImportanceNames;
-      deprecated 'use Priority, with numeric values';
-
     procedure AddSoundImportanceName(const Name: string; Importance: Integer);
-      deprecated 'use Priority, with numeric values';
+  public
+    constructor Create;
+    destructor Destroy; override;
 
-    { Comfortable way to play and control the music.
-      Simply assign @link(TLoopingChannel.Sound MusicPlayer.Sound)
-      to play music. Set it to @nil to stop playing music.
-      This is just a shortcut for @link(LoopingChannel LoopingChannel[0]). }
-    property MusicPlayer: TLoopingChannel read GetMusicPlayer; deprecated 'use LoopingChannel[0]';
-    {$endif FPC}
+    { The XML file that contains description of your sounds.
+      This should be an URL (in simple cases, just a filename)
+      pointing to an XML file describing your sounds.
+      See https://castle-engine.io/creating_data_sound.php#section_sample .
+
+      When you set RepositoryUrl property, we read sound information from
+      given XML file. You usually set RepositoryUrl at the very beginning
+      of the application.
+      Right after setting RepositoryUrl you usually call SoundFromName
+      a couple of times to convert some names into TCastleSound values,
+      to later use these TCastleSound values with @link(Play) or
+      @link(TCastleSoundSource.Sound).
+
+      When the sound context is initialized (or when you set this property,
+      if the sound context is initialized already)
+      then sound buffers will actually be loaded.
+
+      If this is empty (the default), then no sounds are loaded,
+      and TRepoSoundEngine doesn't really give you much above standard
+      TSoundEngine.
+
+      If you want to actually use TRepoSoundEngine features you have to set this
+      property. For example like this:
+
+      @longCode(#
+        SoundEngine.RepositoryUrl := 'castle-data:/sounds.xml';
+        MySound1 := SoundEngine.SoundFromName('my_sound_1');
+        MySound2 := SoundEngine.SoundFromName('my_sound_2');
+        // ... and later in your game you can do stuff like this:
+        SoundEngine.Play(MySound1);
+      #)
+
+      See https://castle-engine.io/manual_data_directory.php
+      for information about the castle-data:/ protocol. In short, on desktop,
+      this just indicates the "data" subdirectory of your project.
+    }
+    property RepositoryUrl: String read FRepositoryUrl write SetRepositoryUrl;
+      {$ifdef FPC}deprecated 'instead of XML file, create design with .castle-component that contains a number of TCastleSound components';{$endif}
+
+    { Reload the RepositoryUrl and all referenced buffers.
+      Useful as a tool for game designers, to reload the sounds XML file
+      without restarting the game and sound engine. }
+    procedure ReloadSounds; deprecated 'deprecated just like RepositoryUrl';
+
+    { Return sound with given name.
+      Available names are given in SoundNames, defined in XML file pointed
+      by RepositoryUrl.
+      Always for SoundName = '' it will return nil.
+
+      @param(Required
+
+        If Required = @true, it will make a warning when the sound name
+        is not found. This may mean that sound is missing in your sounds.xml
+        file (so you should correct your sounds.xml),
+        or that you didn't load the sounds.xml file yet
+        (so you should correct your code to set @link(TRepoSoundEngine.RepositoryUrl)
+        early enough), or that you specified invalid sound name.
+        When Required = @false, missing sound is silently ignored,
+        which is sensible if it was optional.
+
+        Regardless of the Required value, we return nil for missing sound.
+        So the Required parameter only determines whether we make a warning,
+        or not.)
+    }
+    function SoundFromName(const SoundName: string; const Required: boolean = true): TCastleSound;
+      deprecated 'deprecated just like RepositoryUrl';
 
     { Comfortable way to play and control looping non-spatial sounds, like music tracks, ambience.
 
@@ -286,20 +268,20 @@
       read GetLoopingChannel;
 
     { Opens sound context and loads sound files,
-      but only if RepositoryURL was set and contains some sounds.
+      but only if RepositoryUrl was set and contains some sounds.
 
       The idea is that you can call this during "loading" stage for any game that
       *possibly but not necessarily* uses sound. If a game doesn't use sound,
       this does nothing (doesn't waste time to even initialize sound context,
       which on some systems may cause some warnings).
-      If a game uses sound (through RepositoryURL), this will initialize
+      If a game uses sound (through RepositoryUrl), this will initialize
       sound backend and load these sound files, to play them without any delay
       in game.
 
-      Note that, if this does nothing, but you later set @link(RepositoryURL)
-      or do @link(LoadBuffer) or @link(Play), then sound context will
+      Note that, if this does nothing, but you later set @link(RepositoryUrl)
+      or use @link(Play), then sound context will
       be created on-demand anyway. So calling this is always optional. }
-    procedure PrepareResources; deprecated 'deprecated just like RepositoryURL';
+    procedure PrepareResources; deprecated 'deprecated just like RepositoryUrl';
   end;
 
 {$endif read_interface}
@@ -428,7 +410,7 @@ procedure TRepoSoundEngine.TSoundInfoBuffer.ReadElement(const Element: TDOMEleme
   const AParentGroup: TSoundGroup;
   const BaseUrl: String; const ASoundEngine: TRepoSoundEngine);
 var
-  URL, ImportanceStr, URLPrefix: String;
+  Url, ImportanceStr, UrlPrefix: String;
   SoundImportanceIndex: Integer;
 begin
   inherited;
@@ -443,20 +425,20 @@ begin
     and when it's present and set to empty string
     (in this case URL must also be set to empty string).
     Standard Element.GetAttribute wouldn't allow me this. }
-  URL := '';
-  if (Element.AttributeString('url', URL) or
-      Element.AttributeString('file_name', URL)) and
-     (URL <> '') then
+  Url := '';
+  if (Element.AttributeString('url', Url) or
+      Element.AttributeString('file_name', Url)) and
+     (Url <> '') then
   begin
-    URL := CombineURI(BaseUrl, URL);
+    Url := CombineURI(BaseUrl, Url);
   end else
   begin
-    URLPrefix := CombineURI(BaseUrl, ShortName);
-    if URIFileExists(URLPrefix + '.ogg') then
-      URL := URLPrefix + '.ogg'
+    UrlPrefix := CombineURI(BaseUrl, ShortName);
+    if URIFileExists(UrlPrefix + '.ogg') then
+      Url := UrlPrefix + '.ogg'
     else
-    if URIFileExists(URLPrefix + '.wav') then
-      URL := URLPrefix + '.wav'
+    if URIFileExists(UrlPrefix + '.wav') then
+      Url := UrlPrefix + '.wav'
     else
       WritelnWarning('No matching sound file found for sound "%s"', [Name]);
   end;
@@ -468,7 +450,6 @@ begin
   end else
     Sound.Volume := Element.AttributeSingleDef('volume', 1);
 
-  {$ifdef FPC}
   {$warnings off} // using unportable symbols knowingly
   Sound.MinGain := Element.AttributeSingleDef('min_gain', 0);
   Sound.MaxGain := Element.AttributeSingleDef('max_gain', 1);
@@ -483,7 +464,6 @@ begin
     Sound.MaxGain := 1;
   end;
   {$warnings on}
-  {$endif}
 
   if Element.AttributeString('default_importance', ImportanceStr) then
   begin
@@ -491,24 +471,19 @@ begin
       Name
     ]);
 
-    {$ifdef FPC}
-    {$warnings off} // using deprecated, to keep it working
     SoundImportanceIndex := ASoundEngine.SoundImportanceNames.IndexOf(ImportanceStr);
     if SoundImportanceIndex = -1 then
       Sound.Priority := ImportanceToPriority(StrToInt(ImportanceStr))
     else
       Sound.Priority := ImportanceToPriority(
         PtrUInt(ASoundEngine.SoundImportanceNames.Objects[SoundImportanceIndex]));
-    {$warnings on}
-    {$endif}
-
   end else
     Sound.Priority := Element.AttributeSingleDef('priority', 0.5);
 
   Sound.Stream := Element.AttributeBooleanDef('stream', false);
 
   { set URL at the end, to avoid reloading when Sound.Stream changes }
-  Sound.URL := URL;
+  Sound.Url := Url;
 end;
 
 function TRepoSoundEngine.TSoundInfoBuffer.FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer;
@@ -538,16 +513,12 @@ begin
   FSoundImportanceNames := TStringList.Create;
   FSoundImportanceNames.CaseSensitive := true;
 
-  {$ifdef FPC}
-  {$warnings off} // using deprecated to keep it working
   AddSoundImportanceName('max', MaxSoundImportance);
   AddSoundImportanceName('level_event', LevelEventSoundImportance);
   AddSoundImportanceName('player', PlayerSoundImportance);
   AddSoundImportanceName('default_creature', DefaultCreatureSoundImportance);
   AddSoundImportanceName('minor_non_spatial', MinorNonSpatialSoundImportance);
   AddSoundImportanceName('default', DefaultSoundImportance);
-  {$warnings on}
-  {$endif}
 
   FSoundGroups := TSoundGroupList.Create;
 
@@ -584,7 +555,7 @@ begin
         L.AllocateSource;
 end;
 
-procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
+procedure TRepoSoundEngine.SetRepositoryUrl(const Value: String);
 
   { Check that SoundInfo.Name is unique. }
   procedure CheckUniqueSoundInfo(var SoundInfo: TSoundInfo);
@@ -674,15 +645,15 @@ procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
     if ParentGroup <> nil then
       Group.Name := ParentGroup.Name + '/' + Group.Name;
 
-    Group.URL := BaseUrl;
+    Group.Url := BaseUrl;
     Subdirectory := Element.AttributeStringDef('subdirectory', '');
     if Subdirectory <> '' then
-      Group.URL := Group.URL + Subdirectory + '/';
+      Group.Url := Group.Url + Subdirectory + '/';
 
     I := Element.ChildrenIterator;
     try
       while I.GetNext do
-        ReadGroupChild(I.Current, Group, Group.URL);
+        ReadGroupChild(I.Current, Group, Group.Url);
     finally FreeAndNil(I) end;
   end;
 
@@ -698,11 +669,11 @@ var
   SoundConfig: TXMLDocument;
   Stream: TStream;
   I: TXMLElementIterator;
-  BaseUrl: string;
+  BaseUrl: String;
   TimeStart: TCastleProfilerTime;
 begin
-  if FRepositoryURL = Value then Exit;
-  FRepositoryURL := Value;
+  if FRepositoryUrl = Value then Exit;
+  FRepositoryUrl := Value;
 
   FSoundGroups.Clear;
   FSounds.Clear;
@@ -710,13 +681,13 @@ begin
   FSounds.Add(TSoundInfoBuffer.Create);
 
   { if no sounds XML file, then that's it --- no more sounds }
-  if FRepositoryURL = '' then Exit;
+  if FRepositoryUrl = '' then Exit;
 
-  TimeStart := Profiler.Start('Loading All Sounds From ' + FRepositoryURL + ' (TRepoSoundEngine)');
+  TimeStart := Profiler.Start('Loading All Sounds From ' + FRepositoryUrl + ' (TRepoSoundEngine)');
   try
-    { This must be an absolute path, since FSounds[].URL should be
+    { This must be an absolute path, since FSounds[].Url should be
       absolute (to not depend on the current dir when loading sound files. }
-    BaseUrl := AbsoluteURI(FRepositoryURL);
+    BaseUrl := AbsoluteURI(FRepositoryUrl);
 
     Stream := Download(BaseUrl);
     try
@@ -762,7 +733,7 @@ begin
     stMenuClick              := SoundFromName('menu_click'               , false);
     {$warnings on}
 
-    { in case you set RepositoryURL when sound context is already
+    { in case you set RepositoryUrl when sound context is already
       initialized, start playing music immediately if necessary }
     RestartLoopingChannels;
 
@@ -771,14 +742,14 @@ end;
 
 procedure TRepoSoundEngine.ReloadSounds;
 var
-  OldRepositoryURL: string;
+  OldRepositoryUrl: String;
 begin
   {$warnings off} // using deprecated in deprecated
-  if RepositoryURL <> '' then
+  if RepositoryUrl <> '' then
   begin
-    OldRepositoryURL := RepositoryURL;
-    RepositoryURL := '';
-    RepositoryURL := OldRepositoryURL;
+    OldRepositoryUrl := RepositoryUrl;
+    RepositoryUrl := '';
+    RepositoryUrl := OldRepositoryUrl;
   end;
   {$warnings on}
 end;
@@ -800,13 +771,11 @@ begin
   end;
 end;
 
-{$ifdef FPC}
 procedure TRepoSoundEngine.AddSoundImportanceName(const Name: string;
   Importance: Integer);
 begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
 end;
-{$endif}
 
 procedure TRepoSoundEngine.PrepareResources;
 begin
@@ -826,11 +795,6 @@ begin
     FLoopingChannels[Index] := TLoopingChannel.Create(Self);
 
   Result := FLoopingChannels[Index];
-end;
-
-function TRepoSoundEngine.GetMusicPlayer: TLoopingChannel;
-begin
-  Result := LoopingChannel[0];
 end;
 
 {$endif read_implementation}

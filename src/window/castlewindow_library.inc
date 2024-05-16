@@ -42,7 +42,7 @@ public
 private
   FScreenWidth, FScreenHeight: Integer;
   FScreenStatusBarHeight: Cardinal;
-  procedure WarningToCallback(const Category, S: string);
+  procedure WarningToCallback(const Category, S: String);
 {$endif read_application_interface}
 
 {$ifdef read_global_interface}
@@ -168,7 +168,7 @@ begin
   end;
 end;
 
-procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then
@@ -192,6 +192,10 @@ procedure TCastleWindow.UpdateFullScreenBackend;
 begin
   { TODO: call LibraryCallbackProc to switch fullscreen mode }
   FFullScreenBackend := FFullScreenWanted;
+end;
+
+procedure TCastleWindow.BackendInsideUpdate;
+begin
 end;
 
 { LibraryXxx methods --------------------------------------------------------- }
@@ -248,7 +252,7 @@ end;
 
 { Methods below should make native-looking dialog boxes. }
 
-function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindow.BackendFileDialog(const Title: String; var FileName: String;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
   { TODO } Result := false;
@@ -259,12 +263,12 @@ begin
   { TODO } Result := false;
 end;
 
-procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindow.MessageOK(const S: String; const MessageType: TWindowMessageType);
 begin
   { TODO }
 end;
 
-function TCastleWindow.MessageYesNo(const S: string;
+function TCastleWindow.MessageYesNo(const S: String;
   const MessageType: TWindowMessageType): boolean;
 begin
   { TODO } Result := true;
@@ -296,9 +300,8 @@ begin
     must perform event loop }
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  Terminate; // set Terminated := true
 end;
 
 function TCastleApplication.ScreenWidth: integer;
@@ -320,14 +323,14 @@ begin
   Result := FScreenStatusBarHeight;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'Library (Using Existing OpenGL Context)';
 end;
 
-procedure TCastleApplication.WarningToCallback(const Category, S: string);
+procedure TCastleApplication.WarningToCallback(const Category, S: String);
 var
-  sMsg: string;
+  sMsg: String;
   szBuffer: PChar;
   nBufSize: cardinal;
 begin
@@ -354,7 +357,7 @@ procedure CGEApp_Initialize(ApplicationConfigDirectory: PChar); cdecl;
 begin
   try
     // use given ApplicationConfigDirectory
-    ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(ApplicationConfigDirectory));
+    ApplicationConfigOverride := FilenameToUriSafe(InclPathDelim(ApplicationConfigDirectory));
     WritelnLog('Library initialized, set application config directory to URL: %s', [ApplicationConfigOverride]);
 
     ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
@@ -471,9 +474,8 @@ end;
 procedure CGEApp_Update; cdecl;
 begin
   try
-    Application.DoApplicationUpdate;
+    ApplicationProperties._Update;
     Application.FOpenWindows.DoUpdate;
-    Application.MaybeDoTimer;
   except
     on E: TObject do WritelnWarning('CGEApp_Update', ExceptMessage(E));
   end;

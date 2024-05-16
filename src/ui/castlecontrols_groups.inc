@@ -430,7 +430,7 @@ end;
 function TCastleHorizontalGroup.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Alignment') then
+  if ArrayContainsString(PropertyName, ['Alignment', 'Padding']) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
@@ -503,7 +503,7 @@ end;
 function TCastleVerticalGroup.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Alignment') then
+  if ArrayContainsString(PropertyName, ['Alignment', 'Padding']) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);

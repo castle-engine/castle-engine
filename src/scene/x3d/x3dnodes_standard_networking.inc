@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -181,6 +181,8 @@
 
   { Monitors the progress and success of downloading URL elements over a network. }
   TLoadSensorNode = class(TAbstractNetworkSensorNode)
+  public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_loadsensor.inc}
   end;
 
@@ -228,14 +230,16 @@ begin
     UrlWithoutViewpoint := Url;
     URIExtractAnchor(UrlWithoutViewpoint, NewViewpointName);
 
+    NewRootNode := nil;
+    NewViewpoint := nil;
+
     if UrlWithoutViewpoint = '' then
     begin
       { in this case, we have either a viewpoint in current 3D world, or nothing }
-      NewRootNode := nil;
 
       if NewViewpointName = '' then
       begin
-        NewViewpoint := nil;
+        Assert(NewViewpoint = nil); // already assigned NewViewpoint := nil above
         Exit(true);
       end else
       begin
@@ -244,7 +248,8 @@ begin
           NewViewpoint := CurrentRootNode.FindNode(TAbstractViewpointNode,
             NewViewpointName, [fnOnlyActive, fnNilOnMissing]) as TAbstractViewpointNode;
           if NewViewpoint <> nil then
-            Exit(true) else
+            Exit(true)
+          else
             ViewpointNameInvalid(NewViewpointName);
         end else
           ViewpointNameInvalid(NewViewpointName);
@@ -257,17 +262,20 @@ begin
 
     end else
     begin
-      { in this case, we have either a new 3D world, or a document }
+      { in this case (UrlWithoutViewpoint <> ''),
+        we have either a new X3D root node, or a document that isn't a model }
+
       UrlWithoutViewpoint := PathFromBaseUrl(UrlWithoutViewpoint);
       try
-        NewRootNode := LoadNode(UrlWithoutViewpoint, true);
-
-        if NewRootNode = nil then
+        if TFileFilterList.Matches(LoadScene_FileFilters, UrlWithoutViewpoint) then
         begin
-          { we have a document URL }
+          NewRootNode := LoadNode(UrlWithoutViewpoint);
+        end else
+        begin
+          { we have a document URL, Exit or Continue }
           if OpenURL(PathFromBaseUrl(Url)) then
           begin
-            NewViewpoint := nil;
+            Assert(NewViewpoint = nil); // already assigned NewViewpoint := nil earlier
             Exit(true);
           end else
           begin
@@ -286,6 +294,8 @@ begin
           Continue;
         end;
       end;
+
+      Assert(NewRootNode <> nil);
 
       if NewViewpointName = '' then
       begin
@@ -384,7 +394,7 @@ procedure TInlineNode.LoadInlined(CanReload: boolean;
 
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   if Exported <> nil then Exported.Clear;
 
@@ -423,7 +433,7 @@ begin
         on E: Exception do
           { Careful here, as WritelnWarning may also raise exception. }
           WritelnWarning('X3D', Format(SLoadError,
-            [E.ClassName, 'inline file', URIDisplay(FullUrl), E.Message]));
+            [E.ClassName, 'inline file', UriDisplay(FullUrl), E.Message]));
       end;
     end;
 
@@ -578,6 +588,14 @@ begin
       EventChildren.Send(ChildrenToSend, Scene.NextEventTime);
     finally FreeAndNil(ChildrenToSend) end;
   end;
+end;
+
+{ TLoadSensorNode ------------------------------------------------------------  }
+
+constructor TLoadSensorNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FdWatchList.AddAlternativeName('children', 4);
 end;
 
 procedure RegisterNetworkingNodes;

@@ -116,10 +116,10 @@
   public
     { This constructor will raise exception for TX3DPrototypeNode.
       Always use CreatePrototypeNode for this node class. }
-    constructor Create(const AName, ABaseUrl: string); override;
-    constructor CreatePrototypeNode(const AName, ABaseUrl: string;
+    constructor Create(const AName, ABaseUrl: String); override;
+    constructor CreatePrototypeNode(const AName, ABaseUrl: String;
       APrototype: TX3DPrototypeBase);
-    function X3DType: string; override;
+    function X3DType: String; override;
 
     property Prototype: TX3DPrototypeBase read FPrototype;
 
@@ -179,10 +179,10 @@
     or non-external prototypes (describing how to expand the prototype into other nodes). }
   TX3DPrototypeBase = class(TX3DFileItem)
   private
-    FX3DName: string;
+    FX3DName: String;
     FInterfaceDeclarations: TX3DInterfaceDeclarationList;
 
-    FBaseUrl: string;
+    FBaseUrl: String;
 
     { Parses InterfaceDeclarations. Also inits BaseUrl from
       Names.BaseUrl, by the way. }
@@ -206,9 +206,9 @@
   public
     constructor Create;
     destructor Destroy; override;
-    property X3DName: string read FX3DName write FX3DName;
+    property X3DName: String read FX3DName write FX3DName;
     {$ifdef FPC}
-    property Name: string read FX3DName write FX3DName; deprecated 'use X3DName';
+    property Name: String read FX3DName write FX3DName; deprecated 'use X3DName';
     {$endif}
     property InterfaceDeclarations: TX3DInterfaceDeclarationList
       read FInterfaceDeclarations;
@@ -223,7 +223,7 @@
     { The base URL path used to resolve urls inside.
       For now, used by EXTERNPROTO urls.
       See TX3DNode.BaseUrl for more comments. }
-    property BaseUrl: string read FBaseUrl write FBaseUrl;
+    property BaseUrl: String read FBaseUrl write FBaseUrl;
   end;
 
   TX3DPrototypeBaseList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DPrototypeBase>);
@@ -246,7 +246,7 @@
   { X3D external prototype (referencing another file). }
   TX3DExternalPrototype = class(TX3DPrototypeBase)
   strict private
-    FURLList: TMFString;
+    FUrlList: TMFString;
 
     { FReferencedPrototype has links to other parts of the VRML graph.
       Not only FReferencedPrototype.Node, but also
@@ -263,7 +263,7 @@
   public
     constructor Create;
     destructor Destroy; override;
-    property URLList: TMFString read FURLList;
+    property UrlList: TMFString read FUrlList;
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
     procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames); override;
@@ -285,14 +285,14 @@
 
 { TX3DPrototypeNode --------------------------------------------------------- }
 
-constructor TX3DPrototypeNode.Create(const AName, ABaseUrl: string);
+constructor TX3DPrototypeNode.Create(const AName, ABaseUrl: String);
 begin
   raise EInternalError.Create('TX3DPrototypeNode node must be created' +
     ' using CreatePrototypeNode, never default constructor');
 end;
 
 constructor TX3DPrototypeNode.CreatePrototypeNode(
-  const AName, ABaseUrl: string;
+  const AName, ABaseUrl: String;
   APrototype: TX3DPrototypeBase);
 var
   I: TX3DInterfaceDeclaration;
@@ -332,7 +332,7 @@ begin
     Prototype);
 end;
 
-function TX3DPrototypeNode.X3DType: string;
+function TX3DPrototypeNode.X3DType: String;
 begin
   Result := Prototype.X3DName;
 end;
@@ -454,7 +454,7 @@ function TX3DPrototypeNode.InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
     OurEvent: TX3DEvent;
     OurFieldIndex: Integer;
     I: Integer;
-    IsClauseName: string;
+    IsClauseName: String;
     NewIsClauseNames: TCastleStringList;
   begin
     if InstanceField.IsClauseNamesCount <> 0 then
@@ -553,7 +553,7 @@ function TX3DPrototypeNode.InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
     OurEvent: TX3DEvent;
     OurEventIndex: Integer;
     I: Integer;
-    IsClauseName: string;
+    IsClauseName: String;
     NewIsClauseNames: TCastleStringList;
   begin
     if InstanceEvent.IsClauseNamesCount <> 0 then
@@ -906,7 +906,7 @@ end;
 procedure TX3DPrototype.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 var
   OldReader: TX3DReaderNames;
-  NewName: string;
+  NewName: String;
   E: TDOMElement;
 begin
   BaseUrl := Reader.BaseUrl;
@@ -1018,13 +1018,13 @@ end;
 constructor TX3DExternalPrototype.Create;
 begin
   inherited;
-  FURLList := TMFString.Create(nil, false, '', []);
+  FUrlList := TMFString.Create(nil, false, '', []);
 end;
 
 destructor TX3DExternalPrototype.Destroy;
 begin
   UnloadReferenced;
-  FreeAndNil(FURLList);
+  FreeAndNil(FUrlList);
   inherited;
 end;
 
@@ -1040,7 +1040,7 @@ begin
   Lexer.NextToken;
   ParseInterfaceDeclarations(true, Lexer, Reader);
 
-  URLList.Parse(Lexer, Reader, false);
+  UrlList.Parse(Lexer, Reader, false);
 
   Reader.Prototypes.Bind(Self);
 
@@ -1049,7 +1049,7 @@ end;
 
 procedure TX3DExternalPrototype.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 var
-  NewName, URLListValue: string;
+  NewName, UrlListValue: String;
 begin
   BaseUrl := Reader.BaseUrl;
 
@@ -1060,8 +1060,8 @@ begin
 
   ParseInterfaceDeclarationsXML(true, Element, Reader);
 
-  if Element.AttributeString('url', URLListValue) then
-    URLList.ParseXMLAttribute(URLListValue, Reader) else
+  if Element.AttributeString('url', UrlListValue) then
+    UrlList.ParseXMLAttribute(UrlListValue, Reader) else
     raise EX3DXmlError.Create('Missing "url" for <ExternProtoDeclare> element');
 
   Reader.Prototypes.Bind(Self);
@@ -1078,14 +1078,14 @@ begin
 
         SaveInterfaceDeclarationsToStream(Writer, true);
 
-        { Writer.NodeNames will be ignored by URLList
+        { Writer.NodeNames will be ignored by UrlList
           (TMFString.SaveToStream), don't worry about it. }
-        URLList.SaveToStream(Writer);
+        UrlList.SaveToStream(Writer);
       end;
     xeXML:
       begin
         Writer.WriteIndent('<ExternProtoDeclare name=' + StringToX3DXml(X3DName) + ' url=');
-        URLList.FieldSaveToStream(Writer, true, true);
+        UrlList.FieldSaveToStream(Writer, true, true);
         Writer.Writeln('>');
 
         Writer.IncIndent;
@@ -1138,21 +1138,21 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
     end;
   end;
 
-  function LoadFromExternalVRML(const RelativeURL: string): boolean;
+  function LoadFromExternalVRML(const RelativeUrl: String): boolean;
   var
-    URL: string;
+    Url: String;
     PrototypeNames: TX3DPrototypeNames;
 
-    procedure ProtoWarning(const S: string);
+    procedure ProtoWarning(const S: String);
     begin
       WritelnWarning('VRML/X3D', Format('Cannot load external prototype from URL "%s": ',
-        [URL]) + S);
+        [Url]) + S);
     end;
 
     { Find PROTO (but not EXTERNPROTO) with matching Name.
       Name is ignored if ''.
       @nil if not found. }
-    function TryFindProtoNonExternal(const Name: string): TX3DPrototype;
+    function TryFindProtoNonExternal(const Name: String): TX3DPrototype;
     var
       I: Integer;
     begin
@@ -1168,14 +1168,14 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
     end;
 
   var
-    Anchor: string;
+    Anchor: String;
   begin
     Result := false;
 
-    URL := CombineURI(BaseUrl, RelativeURL);
-    URIExtractAnchor(URL, Anchor);
+    Url := CombineURI(BaseUrl, RelativeUrl);
+    URIExtractAnchor(Url, Anchor);
     try
-      ReferencedPrototypeNode := X3DCache.LoadNode(URL);
+      ReferencedPrototypeNode := X3DCache.LoadNode(Url);
       PrototypeNames := ReferencedPrototypeNode.PrototypeNames;
     except
       on E: Exception do
@@ -1200,7 +1200,7 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
     LoadInterfaceDeclarationsValues;
   end;
 
-  function LoadFromURN(const URN: string): boolean;
+  function LoadFromURN(const URN: String): boolean;
   begin
     FReferencedClass := NodesManager.URNToClass(URN, Version);
     Result := ReferencedClass <> nil;
@@ -1210,14 +1210,14 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
 
 var
   I: Integer;
-  S: string;
+  S: String;
   ProtoLoaded: boolean;
 begin
   UnloadReferenced;
 
-  for I := 0 to URLList.Count - 1 do
+  for I := 0 to UrlList.Count - 1 do
   begin
-    S := URLList.Items[I];
+    S := UrlList.Items[I];
     if IsPrefix('urn:', S) then
       ProtoLoaded := LoadFromURN(S)
     else

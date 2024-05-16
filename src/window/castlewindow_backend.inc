@@ -30,8 +30,8 @@
   {$I castlewindow_private_modifiers_down.inc}
 {$endif}
 
-{$ifdef CASTLE_WINDOW_LCL}
-  {$I castlewindow_lcl.inc}
+{$ifdef CASTLE_WINDOW_FORM}
+  {$I castlewindow_form.inc}
 {$endif}
 
 {$ifdef CASTLE_WINDOW_ANDROID}

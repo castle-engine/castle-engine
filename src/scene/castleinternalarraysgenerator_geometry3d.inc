@@ -185,7 +185,7 @@ begin
 
   if not FaceConvex then
   begin
-    TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
+    TriangulateFace(PInt32Array(CoordIndex.Items.Ptr(BeginIndex)),
       EndIndex - BeginIndex, PVector3Array(Coord.Items.L), Coord.Count,
       {$ifdef FPC}@{$endif}GenerateTriangle, BeginIndex);
   end else
@@ -213,7 +213,7 @@ procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesCoordsRange1(
 begin
   if not FaceConvex then
   begin
-    TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
+    TriangulateFace(PInt32Array(CoordIndex.Items.Ptr(BeginIndex)),
       EndIndex - BeginIndex, PVector3Array(Coord.Items.L), Coord.Count,
       {$ifdef FPC}@{$endif}PrepareIndexesTriangle1, BeginIndex);
   end else
@@ -248,7 +248,7 @@ begin
 
   if not FaceConvex then
   begin
-    TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
+    TriangulateFace(PInt32Array(CoordIndex.Items.Ptr(BeginIndex)),
       EndIndex - BeginIndex, PVector3Array(Coord.Items.L), Coord.Count,
       {$ifdef FPC}@{$endif}PrepareIndexesTriangle2, BeginIndex);
   end else

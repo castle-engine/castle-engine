@@ -70,9 +70,6 @@ begin
       else raise EInternalError.Create('TCastleTransformList.Notify action?');
       {$endif}
     end;
-
-    if (Owner.World <> nil) and Assigned(Owner.World.OnCursorChange) then
-      Owner.World.OnCursorChange(Owner);
   end;
 end;
 

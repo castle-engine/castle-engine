@@ -42,7 +42,7 @@
     procedure Parse(const Json: TJSONArray;
       const NormalizeCurvesKeyValues: Boolean);
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
     procedure ParseControlPoints(const Json: TJSONArray;
       const NormalizeCurvesKeyValues: Boolean); virtual; abstract;
@@ -53,7 +53,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     procedure ParseControlPoints(const Json: TJSONArray;
       const NormalizeCurvesKeyValues: Boolean); override;
@@ -64,7 +64,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     procedure ParseControlPoints(const Json: TJSONArray;
       const NormalizeCurvesKeyValues: Boolean); override;
@@ -123,7 +123,7 @@ begin
     ParseControlPoints(Json, NormalizeCurvesKeyValues);
 end;
 
-procedure TSlotTimeline.BuildNodes(const BaseUrl: string;
+procedure TSlotTimeline.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 
   procedure FillKeys(var Node: TKeyedNode);
@@ -167,7 +167,7 @@ begin
   Attachments.Add(AttachmentName);
 end;
 
-procedure TSlotTimelineAttachment.BuildNodes(const BaseUrl: string;
+procedure TSlotTimelineAttachment.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
@@ -264,7 +264,7 @@ begin
   CurveControlPoints.Add(Vector4(0, 0, 1, 1)); // TODO: add last dummy value, because our TCubicBezier* may expect it
 end;
 
-procedure TSlotTimelineColor.BuildNodes(const BaseUrl: string;
+procedure TSlotTimelineColor.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;

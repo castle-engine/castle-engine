@@ -21,8 +21,8 @@ unit TestCastleUIControls;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase,{$else}CastleTester,{$endif} CastleUIControls;
+  Classes, SysUtils,
+  CastleTester, CastleUIControls;
 
 type
   TTestCastleUIControls = class(TCastleTestCase)
@@ -31,11 +31,14 @@ type
     procedure TestRecursiveSize;
     procedure TestForIn;
     procedure TestDetachParent;
+    procedure TestContainerSettingsNoWindow;
+    procedure TestContainerSettingsClosedWindow;
+    procedure TestContainerSettingsOpenWindow;
   end;
 
 implementation
 
-uses CastleRectangles, CastleVectors, CastleUtils;
+uses CastleRectangles, CastleVectors, CastleUtils, CastleWindow;
 
 procedure TTestCastleUIControls.TestRectEffective;
 var
@@ -153,16 +156,16 @@ end;
 type
   TTestContainer = class(TCastleContainer)
   public
-    function Width: Integer; override;
-    function Height: Integer; override;
+    function PixelsWidth: Integer; override;
+    function PixelsHeight: Integer; override;
   end;
 
-function TTestContainer.Width: Integer;
+function TTestContainer.PixelsWidth: Integer;
 begin
   Result := 100;
 end;
 
-function TTestContainer.Height: Integer;
+function TTestContainer.PixelsHeight: Integer;
 begin
   Result := 100;
 end;
@@ -225,6 +228,72 @@ begin
     FreeAndNil(U2);
     FreeAndNil(U3);
   end;
+end;
+
+type
+  { Dummy container class with minimal overrides (to not be abstract),
+    just for testing. }
+  TMyContainer = class(TCastleContainer)
+  public
+    function PixelsWidth: Integer; override;
+    function PixelsHeight: Integer; override;
+  end;
+
+function TMyContainer.PixelsWidth: Integer;
+begin
+  Result := 100;
+end;
+
+function TMyContainer.PixelsHeight: Integer;
+begin
+  Result := 100;
+end;
+
+procedure TTestCastleUIControls.TestContainerSettingsNoWindow;
+var
+  Container: TCastleContainer;
+begin
+  Container := TMyContainer.Create(nil);
+  try
+    Container.LoadSettings('castle-data:/settings_test/test1.xml');
+    Container.LoadSettings('castle-data:/settings_test/test2.xml');
+    Container.LoadSettings('castle-data:/settings_test/test3.xml');
+  finally FreeAndNil(Container); end;
+end;
+
+procedure TTestCastleUIControls.TestContainerSettingsClosedWindow;
+var
+  Window: TCastleWindow;
+  Container: TCastleContainer;
+begin
+  if not CanCreateWindowForTest then
+    Exit;
+
+  Window := CreateWindowForTest;
+  try
+    Container := Window.Container;
+    Container.LoadSettings('castle-data:/settings_test/test1.xml');
+    Container.LoadSettings('castle-data:/settings_test/test2.xml');
+    Container.LoadSettings('castle-data:/settings_test/test3.xml');
+  finally DestroyWindowForTest(Window); end;
+end;
+
+procedure TTestCastleUIControls.TestContainerSettingsOpenWindow;
+var
+  Window: TCastleWindow;
+  Container: TCastleContainer;
+begin
+  if not CanCreateWindowForTest then
+    Exit;
+
+  Window := CreateWindowForTest;
+  try
+    Window.Open;
+    Container := Window.Container;
+    Container.LoadSettings('castle-data:/settings_test/test1.xml');
+    Container.LoadSettings('castle-data:/settings_test/test2.xml');
+    Container.LoadSettings('castle-data:/settings_test/test3.xml');
+  finally DestroyWindowForTest(Window); end;
 end;
 
 initialization

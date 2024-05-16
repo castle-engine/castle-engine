@@ -21,7 +21,7 @@ unit CastleRenderPrimitives;
 interface
 
 uses SysUtils,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleGLShaders, CastleGLUtils, CastleInternalGLUtils,
   CastleColors, CastleUtils;
 

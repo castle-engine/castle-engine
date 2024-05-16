@@ -1,0 +1,64 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to release CGE build on GitHub.
+#
+# We call other workflows, this seems easiest way to wait for *all* other
+# workflows and be able to get their artifacts.
+# ----------------------------------------------------------------------------
+
+name: Everything (Test, Pack, Release)
+on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  quick_test:
+    uses: ./.github/workflows/quick-test.yml
+  test_and_pack_docker:
+    uses: ./.github/workflows/test-and-pack-docker.yml
+  delphi:
+    uses: ./.github/workflows/delphi.yml
+  test_and_pack_runner_native:
+    uses: ./.github/workflows/test-and-pack-runner-native.yml
+  test_shell:
+    uses: ./.github/workflows/test-shell.yml
+  check_dependencies:
+    uses: ./.github/workflows/check-dependencies.yml
+
+  release:
+    name: Release
+    needs: [quick_test, test_and_pack_docker, delphi, test_and_pack_runner_native, test_shell, check_dependencies]
+    runs-on: ubuntu-latest
+    steps:
+
+    # We can get artifacts from other workflows here, because we called them.
+    #
+    # History:
+    # Note that by default you cannot share artifacts between workflows.
+    # See
+    # https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts#sharing-data-between-workflow-runs
+    # Solutions:
+    # - best, official https://github.com/actions/download-artifact?tab=readme-ov-file#download-artifacts-from-other-workflow-runs-or-repositories
+    # - alt: https://github.com/dawidd6/action-download-artifact
+    # - other, including download using cli: https://stackoverflow.com/questions/60355925/share-artifacts-between-workflows-github-actions
+
+    - name: Download packaged releases
+      uses: actions/download-artifact@v4
+    - name: List downloaded files
+      run: ls -R
+
+    # We use automatic GITHUB_TOKEN secret provided by GitHub with GH CLI, see
+    # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
+    # https://docs.github.com/en/github-cli/github-cli/about-github-cli
+
+    - name: GH CLI status
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh auth status
+    - name: GH CLI test
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release list --repo castle-engine/castle-engine
+
+# TODO: Finish uploading release

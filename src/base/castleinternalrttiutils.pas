@@ -210,7 +210,7 @@ function PropertyHasDefaultValue(const PropObject: TObject;
 
 var
   PropType: PTypeInfo;
-  Value, DefValue: LongInt;
+  Value, DefValue: Int32;
 {$ifndef FPUNONE}
   FloatValue, DefFloatValue: Extended;
 {$endif}
@@ -225,7 +225,7 @@ begin
   DefValue := PropInfo^.Default;
   { $80000000 means that there's no default value (in case of Single or String,
     you need to specify it by "nodefault") }
-  DefValueUse := DefValue <> LongInt($80000000);
+  DefValueUse := DefValue <> Int32($80000000);
   case PropType^.Kind of
     tkInteger, tkChar, tkEnumeration, tkSet, tkWChar:
       begin

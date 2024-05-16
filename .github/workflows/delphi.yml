@@ -1,0 +1,137 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to test CGE with Delphi on self-hosted runners.
+# Using self-hosted runners with Delphis installed.
+# ----------------------------------------------------------------------------
+
+name: Delphi Test
+
+# Called by everything.yml
+on: [workflow_call]
+#on: [push, pull_request]
+
+# Using Cygwin's bash, to avoid issues with PowerShell not having enough
+# permissions to execute scripts (.ps1) created temporarily by GH Acions:
+# https://github.com/actions/runner/issues/686 .
+# There are other solutions, but just using bash is the simplest,
+# as we already do this for most of our CI jobs, even on Windows,
+# since bash works great and allows for cross-platform scripts.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  delphi_test:
+    name: Delphi Test (Job)
+    strategy:
+      matrix:
+        host-label: [
+        # runner with Delphi 10.2 temporarily offline.
+        #  delphi_10_2,
+          delphi_11_3
+        ]
+
+    # Note: This is a self-hosted runner in organization,
+    # and supposed to be used by public CGE repo.
+    # It has to be enabled following https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/managing-access-to-self-hosted-runners-using-groups .
+    runs-on: ${{ matrix.host-label }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # We want to provide multi-line scripts to "run" steps below,
+      # which isn't easy with GH Actions + Windows it seems.
+      #
+      # With PowerShell, it fails because script are unsigned:
+      # https://github.com/actions/runner/issues/686
+      #
+      # With Cygwin bash, it fails because of line endings:
+      # GH Actions create temp scripts with CRLF.
+      #
+      # Using ">" and && as workaround -- this is effectively a single line for shell.
+      # Hm, but also seems to fail, weird error about lazbuild.
+      #
+      # The igncr solution works best:
+      # https://github.com/actions/runner/issues/912
+      # https://stackoverflow.com/questions/35869168/cygwin-why-we-required-export-shellopts-set-o-igncr
+      # https://github.com/microsoft/WSL/issues/5032
+      - name: Fix bash multi-line scripts in this job
+        run: echo "SHELLOPTS=igncr" >> $GITHUB_ENV
+
+      # Check versions (and availability) of our requirements early.
+      # Note that we need FPC for Delphi test too, since our internal tools are compiled with FPC.
+      # Note: We want GNU make from Cygwin/Mingw on PATH, not Embarcadero make, not outdated make in FPC (3.8 that fails to handle $$ in make test-editor-templates).
+      - name: Info
+        run: |
+          fpc -iV
+          lazbuild --version
+          make --version
+          sed --version
+          cygpath --version
+
+      - name: Set environment - CASTLE_ENGINE_PATH
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
+      # We need CGE build tool to run Delphi from command-line.
+      # Slower version:
+      #make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
+      - name: Build Build Tool
+        run: |
+          rm -Rf installed/
+          mkdir -p installed/bin/
+          tools/build-tool/castle-engine_compile.sh
+          cp tools/build-tool/castle-engine.exe installed/bin/
+
+      - name: Set environment - BUILD_TOOL
+        run: echo "BUILD_TOOL=`cygpath --mixed \"${CASTLE_ENGINE_PATH}\"/installed/bin/castle-engine.exe`" >> $GITHUB_ENV
+      - name: Check Old Delphi-Specific AutoTests (Win64)
+        run: |
+          cd 'tests/delphi_tests/'
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
+          ${BUILD_TOOL} run
+      - name: Check Old Delphi-Specific AutoTests (Win32)
+        run: |
+          cd 'tests/delphi_tests/'
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
+          ${BUILD_TOOL} run
+      - name: Check AutoTests (Win64)
+        run: |
+          cd tests/
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
+          ${BUILD_TOOL} run -- --console --no-window-create
+      - name: Check AutoTests (Win32)
+        run: |
+          cd tests/
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
+          ${BUILD_TOOL} run -- --console --no-window-create
+      - name: Build Templates (Win64)
+        run: make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win64 --cpu=x86_64" BUILD_TOOL="${BUILD_TOOL}"
+      - name: Build Templates (Win32)
+        run: make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win32 --cpu=i386" BUILD_TOOL="${BUILD_TOOL}"
+      - name: Build Examples (Win64)
+        run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win64 --cpu=x86_64" BUILD_TOOL="${BUILD_TOOL}"
+      - name: Build Examples (Win32)
+        run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386" BUILD_TOOL="${BUILD_TOOL}"
+      - name: Build Delphi-specific Examples (Win64)
+        run: |
+          cd examples/delphi/vcl
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
+          cd ../../..
+          cd examples/delphi/fmx
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win64 --cpu=x86_64
+          cd ../../..
+      - name: Build Delphi-specific Examples (Win32)
+        run: |
+          cd examples/delphi/vcl
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
+          cd ../../..
+          cd examples/delphi/fmx
+          ${BUILD_TOOL} clean
+          ${BUILD_TOOL} compile --compiler=delphi --os=win32 --cpu=i386
+          cd ../../..

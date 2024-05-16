@@ -19,7 +19,7 @@
   EMaximumDesignDepth = class(Exception);
 
   { Contents of this user-interface control are loaded from an indicated file
-    (by the @link(URL) property).
+    (by the @link(Url) property).
 
     The file should be in the format created by Castle Game Engine Editor
     (serialized by CastleComponentSerialize routines) with .castle-user-interface extension. }
@@ -33,10 +33,10 @@
         loaded by UserInterfaceLoad by simple FreeAndNil(FDesignOwner). }
       FDesignOwner: TComponent;
       FDesignObserver: TFreeNotificationObserver;
-      FURL: String;
-      FRevertURL: String;
+      FUrl: String;
+      FRevertUrl: String;
       FStretchWhenNotLoaded: Boolean;
-    procedure SetURL(const Value: String);
+    procedure SetUrl(const Value: String);
     function GetStretch: Boolean;
     procedure SetStretch(const Value: Boolean);
     procedure DesignFreeNotification(const Sender: TFreeNotificationObserver);
@@ -73,15 +73,15 @@
         MyButton: TCastleButton;
       begin
         MyDesign := TCastleDesign.Create(...);
-        MyDesign.URL := 'castle-data:/my_user_interface.castle-user-interface';
+        MyDesign.Url := 'castle-data:/my_user_interface.castle-user-interface';
         MyButton := MyDesign.DesignedComponent('MyButton') as TCastleButton;
         MyButton.OnClick := ...;
       end;
       #)
     }
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
 
-    { Whether the loaded component (from @link(URL)) fills the rectangle
+    { Whether the loaded component (from @link(Url)) fills the rectangle
       of this TCastleDesign instance.
 
       By default this is @true, which makes sense if the loaded component
@@ -103,7 +103,7 @@
     property Stretch: Boolean read GetStretch write SetStretch default true;
 
     { URL used to perform editor "Revert" operation. }
-    property RevertURL: String read FRevertURL write FRevertURL;
+    property RevertUrl: String read FRevertUrl write FRevertUrl;
   end;
 
 {$endif read_interface}
@@ -130,11 +130,11 @@ begin
   FDesign := nil;
 end;
 
-procedure TCastleDesign.SetURL(const Value: String);
+procedure TCastleDesign.SetUrl(const Value: String);
 const
   MaxLoadDepth = 32; // 64 is too much for macOS/x86_64; although for Linux/x86_64 even 1024 was OK
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
     if FDesign <> nil then
     begin
@@ -143,7 +143,7 @@ begin
       Assert(FDesign = nil); // DesignFreeNotification should set FDesign to nil
     end;
 
-    FURL := Value;
+    FUrl := Value;
 
     if Value <> '' then
     begin
@@ -166,7 +166,7 @@ begin
         begin
           if CastleDesignMode then
           begin
-            WritelnWarning('TCastleDesign', 'Failed to load design "%s": %s', [URIDisplay(URL), ExceptMessage(E)]);
+            WritelnWarning('TCastleDesign', 'Failed to load design "%s": %s', [UriDisplay(Url), ExceptMessage(E)]);
             Exit;
           end else
             raise;
@@ -208,7 +208,7 @@ end;
 function TCastleDesign.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'URL') or
+  if (PropertyName = 'Url') or
      (PropertyName = 'Stretch') then
     Result := [psBasic]
   else
