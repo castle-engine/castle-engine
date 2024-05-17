@@ -1806,6 +1806,31 @@ end;
 
 procedure TCastleSpriteSheet.Save(const AURL: String;
   const SaveCopy: Boolean = false);
+
+  { Copy URL contents from source to destination.
+    Converts URLs to filenames automatically.
+    Also automatically aborts copy when source and destination are equal,
+    which happens easily if you just want to open + resave sprite sheet
+    and would cause "Bad file number" exception on Linux. }
+  procedure CopyUrlContents(const SourceUrl, DestUrl: String);
+  var
+    SourceFileName, DestFileName: String;
+  begin
+    SourceFileName := UriToFilenameSafe(SourceUrl);
+    DestFileName := UriToFilenameSafe(DestUrl);
+    if SameFileName(
+      ExpandFileName(SourceFileName),
+      ExpandFileName(DestFileName)) then
+    begin
+      WritelnLog('Trying to copying contents between the same URLs: %s -> %s, ignoring', [
+        UriDisplay(SourceUrl),
+        UriDisplay(DestUrl)
+      ]);
+      Exit;
+    end;
+    CheckCopyFile(SourceFileName, DestFileName);
+  end;
+
 var
   ExporterXML: TCastleSpriteSheetXMLExporter;
   XMLDoc: TXMLDocument;
@@ -1835,7 +1860,7 @@ begin
 
     { Save image file }
     if FGeneratedAtlas = nil then
-      CheckCopyFile(UriToFilenameSafe(LoadedAtlasPath), UriToFilenameSafe(AtlasURL))
+      CopyUrlContents(LoadedAtlasPath, AtlasURL)
     else
       SaveImage(FGeneratedAtlas, AtlasURL);
 
