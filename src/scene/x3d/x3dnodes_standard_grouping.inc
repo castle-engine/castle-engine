@@ -698,9 +698,11 @@ end;
 
   It can be spammy, e.g. in case of glTF models in
   examples/viewport_and_scenes/occlusion_culling/ .
-  But it is critical, if someone wants to access renamed nodes using FindNode.
+  It is critical, if someone wants to access renamed nodes using FindNode...
+  but otherwise, it can be confusing (lots of logs,
+  and ignorable when you don't want to search for renamed nodes).
 }
-{$define CASTLE_LOG_NODE_RENAMES}
+{.$define CASTLE_LOG_NODE_RENAMES}
 
 type
   TFixNamesHandler = class
