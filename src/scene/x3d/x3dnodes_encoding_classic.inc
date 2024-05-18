@@ -307,7 +307,7 @@ end;
 { Parse any "statement" from X3D grammar.
   See https://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ,
   but it has been changed in X3D 4.0 to allow more things in "nodeStatement"
-  according to https://github.com/castle-engine/view3dscene/issues/79 .
+  according to https://github.com/castle-engine/castle-model-viewer/issues/79 .
 
   Adds new parsed stuff to ContainerNode...
   Unless that stuff is a node, in which case it is

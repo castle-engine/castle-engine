@@ -114,7 +114,7 @@ begin
   end else
   begin
     Result^.ShadowMap := TGeneratedShadowMapNode.Create;
-    { Allows view3dscene lights editor to easily configure this node. }
+    { Allows castle-model-viewer lights editor to easily configure this node. }
     Light.FdDefaultShadowMap.Value := Result^.ShadowMap;
     Result^.ShadowMap.Update := upAlways;
     Result^.ShadowMap.Size := DefaultShadowMapSize;

@@ -365,9 +365,9 @@ var
         see GlyphPadding in castletexturefontdata.pas. }
       { TODO; Not used now. While there's a visible improvement in some cases
         (when optimal font size mismatches final font size),
-        there's also regression in view3dscene
+        there's also regression in castle-model-viewer
         (when optimal font size matches final font size closely):
-        the "A" in "Animations" button in view3dscene gets weird artifact. }
+        the "A" in "Animations" button in castle-model-viewer gets weird artifact. }
       {.$define EXTRA_GLYPH_SPACE}
 
       ScreenRect := PFloatRectangle(GlyphsScreenRects.Ptr(GlyphsToRender));
@@ -429,7 +429,7 @@ begin
   begin
     GlyphsToRender := 0;
     { While Round() below is not needed, it improves the quality of rendered
-      text. Compare e.g. view3dscene button captions. }
+      text. Compare e.g. castle-model-viewer button captions. }
     ScreenX := Round(X);
     ScreenY := Round(Y);
     if TargetImage <> nil then

@@ -627,7 +627,7 @@ end;
 function TViewDialogInput.Press(const Event: TInputPressRelease): boolean;
 { TODO: copy-paste of TCastleEdit.Press here.
   We should instead reuse TCastleEdit? Although TDialog provides multiline display,
-  which may be cool e.g. to edit long URLs in view3dscene. }
+  which may be cool e.g. to edit long URLs in castle-model-viewer. }
 begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput

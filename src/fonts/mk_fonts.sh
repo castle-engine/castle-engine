@@ -26,7 +26,7 @@ TEXT_NODE_FONT_SIZE=25
 $TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans.ttf --unit-name CastleTextureFont_Default3D_Sans    --function-name Font_Default3D_Sans
 
 # For other 11 font variants used by X3D,
-# see view3dscene view3dscene/embedded_data/fonts/ .
+# see castle-model-viewer castle-model-viewer/embedded_data/fonts/ .
 # We no longer generate / embed them in CGE core.
 
 # Used by FallbackFont and (default) UIFont.

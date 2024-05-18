@@ -110,7 +110,7 @@ begin
     http://en.wikipedia.org/wiki/MIME
     http://tools.ietf.org/html/rfc4288 }
 
-  // 3D models (see also view3dscene MIME specification in view3dscene/desktop/view3dscene.xml)
+  // 3D models (see also castle-model-viewer MIME specification in castle-model-viewer/desktop/castle-model-viewer.xml)
   if Ext    = '.wrl'    then Result := 'model/vrml' else
   if Ext    = '.wrz'    then begin Result := 'model/vrml'; Gzipped := true; end else
   if ExtExt = '.wrl.gz' then begin Result := 'model/vrml'; Gzipped := true; end else

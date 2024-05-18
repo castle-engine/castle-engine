@@ -26,7 +26,8 @@
   copy castleengine.dll to this project folder, or anywhere on $PATH.
 
   You will also need other dynamic libraries (zlib1.dll, libpng.dll, ogg.dll,
-  OpenAL32.dll, ...) that are shipped with view3dscene.
+  OpenAL32.dll, ...) that are shipped with Castle Game Engine.
+  See https://castle-engine.io/compiling_from_source.php#section_Windows .
 */
 
 #if !defined(WIN32_LEAN_AND_MEAN)

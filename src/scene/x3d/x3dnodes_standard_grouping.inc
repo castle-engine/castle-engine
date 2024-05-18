@@ -319,8 +319,13 @@
     { @groupEnd }
 
     { @exclude
-      Fix X3D names inside to make sure all nodes that are part of ROUTE have non-empty names.
-      See doc/miscellaneous_notes/avoid_renaming_node_names_at_import.md for documentation why we do this. }
+      Fix X3D names inside to make sure
+
+      - all nodes have empty, or unique names.
+      - all nodes that are part of ROUTE have non-empty names.
+
+      See https://castle-engine.io/gltf#unique_names
+      for documentation why we do this. }
     procedure InternalFixNodeNames;
   end;
 
@@ -689,12 +694,13 @@ end;
 { TFixNamesHandler ----------------------------------------------------------- }
 
 { Log renames done by TX3DRootNode.InternalFixNodeNames (to make node names
-  that are relevant for ROUTEs unique).
+  unique).
 
-  Disabled by default now, as it seemed too spammy, e.g. in case of glTF models in
+  It can be spammy, e.g. in case of glTF models in
   examples/viewport_and_scenes/occlusion_culling/ .
-  And it's also not that critical for usual case,
-  it only matters if someone wants to access renamed nodes using FindNode.
+  It is critical, if someone wants to access renamed nodes using FindNode...
+  but otherwise, it can be confusing (lots of logs,
+  and ignorable when you don't want to search for renamed nodes).
 }
 {.$define CASTLE_LOG_NODE_RENAMES}
 
@@ -760,7 +766,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
 
         This optimization avoids spending longer and longer times
         to find unique names for names with the same prefix.
-        Testcase: https://github.com/castle-engine/view3dscene/issues/43
+        Testcase: https://github.com/castle-engine/castle-model-viewer/issues/43
         (received privately by Michalis, due to model being copyrighted).
       }
       PrefixIndex := Prefixes.IndexOf(Prefix);
@@ -812,7 +818,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
     {$ifdef CASTLE_LOG_NODE_RENAMES}
     if LogsDone < MaxLogsDone then
     begin
-      WritelnLog('Renaming node "%s" -> "%s" to have unique name; these renames are done to allow saving ROUTEs later', [
+      WritelnLog('Renaming node "%s" -> "%s" to have unique name. If you want to query for this node name, we recommend to not rely on the order of renames, and instead make the name unique in the input file.', [
         OriginalName,
         Node.X3DName
       ]);
@@ -867,17 +873,9 @@ begin
     Exit;
   Visited.Add(Node);
 
-  { make sure node name is unique.
-
-    Not done anymore: see discussion in doc/miscellaneous_notes/avoid_renaming_node_names_at_import.md .
-    These renames do not prevent 100% name clashes anyway,
-    and they are not expected and not reliable (from user's POV,
-    it is hard to predict which node gets _2, _3 suffix).
-  }
-  (*
+  { make sure node name is unique }
   if Node.X3DName <> '' then
     MakeUniquelyNamed(Node);
-  *)
 
   { make sure nodes used in ROUTEs are uniquely named }
   for I := 0 to Node.RoutesCount - 1 do

@@ -1,8 +1,7 @@
 # Build 3D Object By Code
 
-Simple example how to build a new 3D object (nodes graph) by ObjectPascal code.
-Saves the result using `SaveNode` to `test.x3d` file (open it with
-any _Castle Game Engine_ tool, like view3dscene).
+Simple example how to build a new 3D object (nodes graph) by ObjectPascal code. Saves the result using `SaveNode` to `test.x3d` file (open it with
+any _Castle Game Engine_ tool, like [Castle Model Viewer](https://castle-engine.io/castle-model-viewer)).
 
 Check out https://castle-engine.io/vrml_x3d.php
 for a complete list of supported X3D nodes.

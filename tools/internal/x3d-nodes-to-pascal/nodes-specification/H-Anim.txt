@@ -109,7 +109,7 @@ HAnimJoint : X3DGroupingNode {
 # when reading / writing X3D. We use instead
 # THAnimMotionNode.DefaultContainerFieldInContext
 # to account for the fact that containerField depends on parent,
-# see https://github.com/castle-engine/view3dscene/issues/69 .
+# see https://github.com/castle-engine/castle-model-viewer/issues/69 .
 
 HAnimMotion : X3DChildNode {
   SFBool   [in]     next

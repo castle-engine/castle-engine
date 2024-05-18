@@ -10,7 +10,7 @@ This example uses [X3D nodes](https://castle-engine.io/vrml_x3d.php). Nodes used
 
 - Light `TSpotLightNode` defines projector location/direction and size (light's `cutOffAngle` determines cast texture size).
 
-The file `data/projective_texturing_simple.x3dv` in this project shows how to use these nodes -- you can double-click it to open in view3dscene, you can edit it in any text editor.
+The file `data/projective_texturing_simple.x3dv` in this project shows how to use these nodes -- you can double-click it to open in [Castle Model Viewer](https://castle-engine.io/castle-model-viewer), you can edit it in any text editor.
 
 The example Pascal code adds these nodes to a glTF file exported from Blender.
 

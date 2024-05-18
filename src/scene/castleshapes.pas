@@ -1488,7 +1488,7 @@ begin
        (AGeometry.TexCoordField.Value <> nil) and
        { TODO: This workarounds assertion failure in UnAssociateNode
          when using shadow maps on a primitive, like Sphere.
-         Reproducible by view3dscene (open and close
+         Reproducible by castle-model-viewer (open and close
          demo-models/shadow_maps/primitives.x3dv )
          and automatic tests (when TTestOpeningAndRendering3D.TestScene
          opens and closes tests/data/warning_when_new_node_as_shadow_map_light.x3dv ).

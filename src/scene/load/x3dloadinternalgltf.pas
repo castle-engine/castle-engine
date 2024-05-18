@@ -485,7 +485,7 @@ const
 
         In particular glossiness may be left as 1 (default),
         causing roughness 0, which results in black material,
-        for Bee from https://github.com/castle-engine/view3dscene/issues/27 .
+        for Bee from https://github.com/castle-engine/castle-model-viewer/issues/27 .
 
         For now just avoid having RoughnessFactor ridiculously low. }
       RoughnessFactor := Max(RoughnessFactor, 0.05);
