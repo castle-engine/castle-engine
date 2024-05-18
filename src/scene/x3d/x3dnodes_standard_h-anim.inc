@@ -473,7 +473,7 @@ begin
           ChildJoint.FdCenter.Send(AnimateSkinPoint(ChildJoint.RestCenter))
 
         This would already do compare, send event if needed etc. (useful
-        for view3dscene H-Anim joints visualization).
+        for castle-model-viewer H-Anim joints visualization).
         But it would also notify the scene (events processor), and this causes
         slowdown and bugs (on lucy) right now. }
 
@@ -494,10 +494,10 @@ begin
           which with increase time by a "tick".
           This is good --- if you'll next want to traverse a parent joint,
           this center will again be changed, and should be send (otherwise
-          routes e.g. in Humanoid Visualization in view3dscene will not work).
+          routes e.g. in Humanoid Visualization in castle-model-viewer will not work).
 
           Note that Scene may be nil now --- reproduce by:
-          view3dscene ~/NextCloud/3dmodels/vrmlx3d/hanim/kambi_hanim_200_spec/hanim_loa_3.wrl }
+          castle-model-viewer ~/NextCloud/3dmodels/vrmlx3d/hanim/kambi_hanim_200_spec/hanim_loa_3.wrl }
       end;
     end;
 end;

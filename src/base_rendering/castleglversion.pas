@@ -144,7 +144,7 @@ type
     { Buggy generation of cube maps on FBO (Intel(Windows) bug).
 
       Symptoms: Parts of the cube map texture are uninitialized (left magenta).
-      Reproducible with view3dscene on
+      Reproducible with castle-model-viewer on
       demo_models/cube_environment_mapping/cubemap_generated_in_dynamic_world.x3dv .
       Using separate FBO for each cube map face doesn't help (actually,
       makes it worse, there's more magenta),
@@ -162,7 +162,7 @@ type
     { Buggy generation of cube maps at all (Intel(Windows) bug).
 
       Symptoms: Parts of the cube map texture are uninitialized (left magenta).
-      Reproducible with view3dscene on
+      Reproducible with castle-model-viewer on
       demo_models/cube_environment_mapping/cubemap_generated_in_dynamic_world.x3dv .
       This is worse than BuggyFBOCubeMap, magenta is always seen at positiveX part
       of the cube map.

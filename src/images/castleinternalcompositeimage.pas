@@ -213,7 +213,7 @@ type
       (as then the image data is just a continuous memory area,
       loadable by glTexImage3d). But it's not comfortable if you want
       to display it using some 2D GUI. For example, it's not comfortable
-      for image viewer like castle-view-image.
+      for image viewer like castle-image-viewer.
 
       So this method will convert such TCastleImage instances (with Depth > 1)
       into a sequence of TCastleImage instances all with Depth = 1.

@@ -1430,8 +1430,8 @@ type
       Setting this to @false allows you to get an OpenGL context without
       showing anything on the desktop. This can be used for rendering
       and capturing OpenGL stuff without showing it on the desktop.
-      One example is the @--screenshot option of view3dscene, see
-      [https://castle-engine.io/view3dscene.php#section_screenshot].
+      One example is the @--screenshot option of castle-model-viewer, see
+      [https://castle-engine.io/castle-model-viewer].
 
       If you implement such thing, remember that you should not render
       and capture the normal front or back buffer contents.

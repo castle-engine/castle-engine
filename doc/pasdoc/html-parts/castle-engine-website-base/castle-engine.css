@@ -494,13 +494,6 @@ td.fail    { background-color:rgb(100%,50%,50%); }
 td.invalid { background-color:rgb(75%,75%,75%); }
 td.testnr  { white-space: nowrap; }
 
-/* view3dscene page stuff */
-hr.ruler_between_sections { width: 100%; }
-dl.params_list dt  {
-  font-weight: normal; font-family: monospace;
-  margin-top: 1em;
-}
-
 /* index page stuff */
 div.main_list_item {
   font-family: serif;

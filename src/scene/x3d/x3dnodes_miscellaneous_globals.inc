@@ -341,7 +341,7 @@ begin
         - X3D specification
           http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/utils.html#SequencingEvents
           It says that f(t) = vn, if tn <= t < tn-1
-        - Testcase on https://github.com/castle-engine/view3dscene/issues/2
+        - Testcase on https://github.com/castle-engine/castle-model-viewer/issues/2
       }
       if Fraction < Key[Result] then
         B := Result else

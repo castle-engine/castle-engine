@@ -36,8 +36,8 @@
   The images are compressed with simple RLE compression per-channel,
   to not make the EXE size (and compilation speed) too large.
 
-  For an example output of this program see e.g. view3dscene sources,
-  unit v3dsceneimages, generated from images inside view3dscene/images.
+  For an example output of this program see e.g. castle-model-viewer sources,
+  unit v3dsceneimages, generated from images inside castle-model-viewer/images.
 
   Run with --help for a description of other command-line parameters.
 }

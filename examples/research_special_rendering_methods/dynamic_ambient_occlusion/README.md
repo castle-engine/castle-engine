@@ -4,7 +4,7 @@ Sample implementation of "Dynamic ambient occlusion". See below for algorithm de
 
 By default we open the "peach" model from `data/` subdirectory. You can pass on command-line URL of a different model to open, like `castle-data:/chinchilla_awakens.x3dv`.
 
-Navigate by mouse/keys like in view3dscene (see https://castle-engine.io/view3dscene.php).
+Navigate by mouse/keys like in [Castle Model Viewer](https://castle-engine.io/castle-model-viewer).
 
 Use keys s / S scale shadow more / less (for more/less dramatic effect; the default scale is anyway 2 times larger than what math suggests, to be more dramatic).
 

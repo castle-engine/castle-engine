@@ -4530,7 +4530,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       begin
         ImageDecompressVar(Result);
         if ClassAllowed(TEncodedImageClass(Result.ClassType)) then
-          Exit; // ClassAllowed was fixed by just decompressing GPU image, testcase: castle-view-image
+          Exit; // ClassAllowed was fixed by just decompressing GPU image, testcase: castle-image-viewer
       end;
 
       { For each possible Result class,

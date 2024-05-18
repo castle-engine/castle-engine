@@ -2474,7 +2474,7 @@ end;
 
 procedure TTestX3DNodes.TestWarningUnquotedIdentifier;
 
-{ See https://github.com/castle-engine/view3dscene/issues/76 }
+{ See https://github.com/castle-engine/castle-model-viewer/issues/76 }
 
 var
   S: TStringStream;

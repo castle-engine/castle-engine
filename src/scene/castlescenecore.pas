@@ -3157,7 +3157,7 @@ procedure TDetectAffectedFields.FindAnimationAffectedFields;
   { Add to the "affected" list the field indicated by given route destination
     (as Node and Event of this node).
     Node = nil is allowed here (Route.DestinationNode may be nil if node was freed,
-    e.g. delete shape in view3dscene). }
+    e.g. delete shape in castle-model-viewer). }
   procedure RouteDestinationAffectsField(const Node: TX3DNode; const Event: TX3DEvent);
   var
     Field: TX3DField;
@@ -3384,7 +3384,7 @@ begin
 
   { We can't call UpdateHeadlightOnFromNavigationInfo here,
     as NavigationInfoStack may contain now already freed nodes
-    (testcase: view3dscene anchor_test and click on key_sensor anchor).
+    (testcase: castle-model-viewer anchor_test and click on key_sensor anchor).
     So only schedule it. }
   ScheduleHeadlightOnFromNavigationInfoInChangedAll := true;
 
@@ -3399,7 +3399,7 @@ begin
     (if loading a scene when ProcessEvents already enabled),
     and it may require that ChangedAll already run (e.g. it may
     initialize Script nodes, that require Node.Scene to be set,
-    see https://github.com/castle-engine/view3dscene/issues/16 ). }
+    see https://github.com/castle-engine/castle-model-viewer/issues/16 ). }
   ChangedAll;
 
   if not (slDisableResetTime in AOptions) then
@@ -4232,7 +4232,7 @@ begin
     (note: this is old comment, progress is not possible now)
     which may call Render which may prepare GLSL shadow map shader
     that will be freed by the following ProcessShadowMapsReceivers call.
-    Testcase: view3dscene open simple_shadow_map_teapots.x3dv, turn off
+    Testcase: castle-model-viewer open simple_shadow_map_teapots.x3dv, turn off
     shadow maps "receiveShadows" handling, then turn it back on
     --- will crash without "InternalDirty" variable safety. }
   Inc(InternalDirty);
@@ -5966,7 +5966,7 @@ begin
     then the octree in InternalOctreeCollisions remains assigned
     as long as there's no need to rebuild it.
     This is nice, in case you change Spatial again
-    (e.g. by switching "Collisions" in view3dscene),
+    (e.g. by switching "Collisions" in castle-model-viewer),
     the octree is immediately available.
 
     But we don't want to use this octree.
@@ -6853,7 +6853,7 @@ begin
       To test it all in a simple case,
       open the Spine JSON file
       from https://github.com/castle-engine/demo-models/tree/master/animation/spine_animation_blending_test/exported
-      with view3dscene and run animations with TransitionDuration > 0.
+      with castle-model-viewer and run animations with TransitionDuration > 0.
 
       Note that above assumes that the field X supports lerp (TX3DField.CanAssignLerp).
       Otherwise the AD 3 case is broken (new animation would not correctly "reset"

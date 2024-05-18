@@ -760,7 +760,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
 
         This optimization avoids spending longer and longer times
         to find unique names for names with the same prefix.
-        Testcase: https://github.com/castle-engine/view3dscene/issues/43
+        Testcase: https://github.com/castle-engine/castle-model-viewer/issues/43
         (received privately by Michalis, due to model being copyrighted).
       }
       PrefixIndex := Prefixes.IndexOf(Prefix);

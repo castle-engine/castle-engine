@@ -18,7 +18,7 @@
   - Face indexes stored at triangles.
 
     Not having this information, we cannot implement the feature
-    "Edit -> Remove face" in view3dscene.
+    "Edit -> Remove face" in castle-model-viewer.
 
   - Defining this also disables the "mailbox" speed optimization for triangles.
 

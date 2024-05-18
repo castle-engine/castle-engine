@@ -362,7 +362,7 @@ begin
     relative to root directory on Unix). This was reproducible doing
     "castle-model-viewer my_file.gtlf" on the command-line.
 
-    Also tovrmlx3d assumes that passing "stdin.x3dv" means that "stdin.x3dv"
+    Also castle-model-converter assumes that passing "stdin.x3dv" means that "stdin.x3dv"
     file is in current working dir. Using AbsoluteUri(BaseUrl) correctly
     adds the current working dir to URL. }
   BaseUrl := AbsoluteUri(BaseUrl);

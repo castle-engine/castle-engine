@@ -538,7 +538,7 @@ begin
   end else
   if (Header.GlType = 0) and
      { Header.GlTypeSize is commonly 1,
-       but Header.GlTypeSize = 0 is used by Apple, see https://github.com/castle-engine/castle-view-image/issues/1.
+       but Header.GlTypeSize = 0 is used by Apple, see https://github.com/castle-engine/castle-image-viewer/issues/1 .
        Spec doesn't clarify it for compressed textures ( http://github.khronos.org/KTX-Specification/ )
        so just ignore checking GlTypeSize below. }
      // (Header.GlTypeSize = 1) and

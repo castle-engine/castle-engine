@@ -565,7 +565,7 @@ function TAbstractMetadataNode.DefaultContainerFieldInContext(
   const Version: TX3DVersion; const ParentNode: TX3DNode): String;
 begin
   { X3D 4.0 changed the containerField for MetadataXxx nodes,
-    see https://github.com/castle-engine/view3dscene/issues/78 . }
+    see https://github.com/castle-engine/castle-model-viewer/issues/78 . }
   if Version.Major >= 4 then
     Result := 'value'
   else
