@@ -436,20 +436,20 @@ begin
   if IsImageMimeType(MimeType, true, false) then
     Result := LoadImageAsNode(Stream, BaseUrl, MimeType)
   else
+
   begin
     raise Exception.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"',
       [MimeType, UriDisplay(BaseUrl)]);
   end;
 
-  if Result <> nil then
-  begin
-    { Fix names after loading (from any format -- X3D, glTF can have collisions in names),
-      to have non-unique names for accessing everything,
-      e.g. EXPORT statements should use correct (non-unique) names
-      to be IMPORTed.
-      Testcase: x3d-tests/gltf_inlined/avocado_and_exports/avocado_imported.x3dv . }
-    Result.InternalFixNodeNames;
-  end;
+  Assert(Result <> nil);
+
+  { Fix names after loading (from any format -- X3D, glTF can have collisions in names),
+    to have non-unique names for accessing everything,
+    e.g. EXPORT statements should use correct (non-unique) names
+    to be IMPORTed.
+    Testcase: x3d-tests/gltf_inlined/avocado_and_exports/avocado_imported.x3dv . }
+  Result.InternalFixNodeNames;
 end;
 
 function LoadScene_FileFilters: String;
