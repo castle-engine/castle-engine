@@ -646,6 +646,7 @@ begin
   FRegisteredModelFormats.Add(ModelFormat);
 end;
 
+initialization
 finalization
   FreeAndNil(FRegisteredModelFormats);
 end.
