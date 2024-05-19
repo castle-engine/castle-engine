@@ -632,6 +632,20 @@ begin
 end;
 
 procedure RegisterModelFormat(const ModelFormat: TModelFormat);
+
+  procedure CheckMimeTypesNotYetRegistered(const NewMimeTypes: TStrings);
+  var
+    NewMimeType: String;
+    ExistingModelFormat: TModelFormat;
+  begin
+    for NewMimeType in NewMimeTypes do
+    begin
+      ExistingModelFormat := FRegisteredModelFormats.FindMimeType(NewMimeType);
+      if ExistingModelFormat <> nil then
+        raise Exception.CreateFmt('RegisterModelFormat: MIME type "%s" is already registered', [NewMimeType]);
+    end;
+  end;
+
 var
   Ext: string;
 begin
@@ -648,6 +662,7 @@ begin
 
   if FRegisteredModelFormats = nil then
     FRegisteredModelFormats := TModelFormatList.Create(true);
+  CheckMimeTypesNotYetRegistered(ModelFormat.MimeTypes);
   FRegisteredModelFormats.Add(ModelFormat);
 end;
 
