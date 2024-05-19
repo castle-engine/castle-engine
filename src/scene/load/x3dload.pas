@@ -270,7 +270,7 @@ type
     ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadUSD;
     ModelFormat.MimeTypes.Add('model/vnd.usda');
     ModelFormat.MimeTypes.Add('model/vnd.usdz+zip');
-    ModelFormat.FileFilterName := 'Universal Scene Description (*.usd)';
+    ModelFormat.FileFilterName := 'Universal Scene Description';
     ModelFormat.Extensions.Add('.usd');
     ModelFormat.Extensions.Add('.usda');
     ModelFormat.Extensions.Add('.usdc');
