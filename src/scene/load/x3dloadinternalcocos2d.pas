@@ -29,22 +29,16 @@
 
 interface
 
+implementation
+
 uses Classes, SysUtils,
-  X3DNodes;
+  Generics.Collections, StrUtils, DOM, XMLRead,
+  X3DNodes, X3DLoad, CastleImages, CastleLog, CastleStringUtils,
+  CastleTextureImages, CastleUriUtils, CastleUtils, CastleVectors, CastleXmlUtils;
 
 type
   { Cocos2d XML file is not correct }
   EInvalidCocos2dPlist = class(Exception);
-
-function LoadCocos2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
-implementation
-
-uses Generics.Collections, StrUtils, DOM, XMLRead,
-  CastleImages, CastleLog, CastleStringUtils, CastleTextureImages,
-  CastleUriUtils, CastleUtils, CastleVectors, CastleXmlUtils;
-
-type
 
   TCocos2dLoader = class
   strict private
@@ -1015,4 +1009,15 @@ begin
   end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadCocos2d;
+  ModelFormat.MimeTypes.Add('application/x-plist');
+  ModelFormat.MimeTypes.Add('application/x-cocos2d-sprite-sheet');
+  ModelFormat.FileFilterName := 'Cocos2d Sprite Sheet (*.cocos2d-plist, *.plist)';
+  ModelFormat.Extensions.Add('.cocos2d-plist');
+  ModelFormat.Extensions.Add('.plist');
+  RegisterModelFormat(ModelFormat);
 end.

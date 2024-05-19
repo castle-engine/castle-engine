@@ -31,21 +31,6 @@ type
   { Raised by classic X3D loading routines when the stream is compressed with gzip. }
   EGzipCompressed = CastleInternalX3DLexer.EGzipCompressed;
 
-{ Load VRML/X3D file in classic encoding from stream. Return it's root node.
-
-  This function can't handle compressed data (X3D files are
-  sometimes compressed with gzip). You should pass here a stream
-  with an already uncompressed text data.
-
-  The BaseUrl must be absolute URL. Use AbsoluteURI to make sure to convert
-  eventual relative URLs to absolute.
-
-  @raises(EGzipCompressed If the Stream starts with gzip file header.)
-
-  @exclude }
-function LoadX3DClassicInternal(const Stream: TStream;
-  const BaseUrl: String): TX3DRootNode; overload;
-
 { Load VRML/X3D file in classic encoding from a string. Return it's root node.
   @raises(EGzipCompressed If the Stream is compressed with gzip.) }
 function LoadX3DClassicFromString(const VRMLContents: String;
