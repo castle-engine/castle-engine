@@ -244,7 +244,7 @@ type
     destructor Destroy; override;
   end;
 
-{ Register given model format, to enable loading and/or saving it
+(*Register given model format, to enable loading and/or saving it
   using @link(LoadNode), @link(SaveNode) and all routines on top of them,
   like @link(TCastleSceneCore.Load).
 
@@ -277,7 +277,7 @@ type
     ModelFormat.Extensions.Add('.usdz');
     RegisterModelFormat(ModelFormat);
   end.
-  #) }
+  #) *)
 procedure RegisterModelFormat(const ModelFormat: TModelFormat);
 
 implementation
