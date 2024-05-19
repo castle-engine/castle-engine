@@ -249,7 +249,35 @@ type
   like @link(TCastleSceneCore.Load).
 
   The ModelFormat instance given here becomes owned by the internal list
-  in this unit. Do not free it, do not modify it after registering it. }
+  in this unit. Do not free it, do not modify it after registering it.
+
+  Here's an example how to register a new model format, USD.
+  This example assumes you want to register the new model format
+  in the @code(initialization) section of a unit, which is the most common place,
+  as it ensures that the format is registered for any future use in the application.
+
+  @longCode(#
+  function LoadUSD(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+  begin
+    Result := TX3DRootNode.Create;
+    // TODO: Load USD here
+  end;
+
+  var
+    ModelFormat: TModelFormat;
+  initialization
+    ModelFormat := TModelFormat.Create;
+    ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadUSD;
+    ModelFormat.MimeTypes.Add('model/vnd.usda');
+    ModelFormat.MimeTypes.Add('model/vnd.usdz+zip');
+    ModelFormat.FileFilterName := 'Universal Scene Description (*.usd)';
+    ModelFormat.Extensions.Add('.usd');
+    ModelFormat.Extensions.Add('.usda');
+    ModelFormat.Extensions.Add('.usdc');
+    ModelFormat.Extensions.Add('.usdz');
+    RegisterModelFormat(ModelFormat);
+  end.
+  #) }
 procedure RegisterModelFormat(const ModelFormat: TModelFormat);
 
 implementation
