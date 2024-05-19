@@ -276,6 +276,11 @@ type
     ModelFormat.Extensions.Add('.usdc');
     ModelFormat.Extensions.Add('.usdz');
     RegisterModelFormat(ModelFormat);
+
+    UriMimeExtensions['.usd'] := 'model/vnd.usda';
+    UriMimeExtensions['.usda'] := 'model/vnd.usda';
+    UriMimeExtensions['.usdc'] := 'model/vnd.usda';
+    UriMimeExtensions['.usdz'] := 'model/vnd.usdz+zip';
   end.
   #) *)
 procedure RegisterModelFormat(const ModelFormat: TModelFormat);
