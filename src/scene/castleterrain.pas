@@ -741,6 +741,8 @@ type
     { Returns terrain height in Coord }
     function TerrainHeight(const Coord: TVector3): Byte;
 
+    procedure SaveEditModeHeightMap(const AUrl: String);
+
     property Mode: TCastleTerrainMode read FMode write FMode;
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
@@ -2788,6 +2790,33 @@ begin
     Result := Byte(Image.PixelPtr(PX, PY)^);
 
     //WritelnLog('Terrain height for coords: ' + IntToStr(PX) + ', ' + IntToStr(PY) + ' is ' + IntToStr(Result));
+  finally
+    FreeAndNil(Image);
+  end;
+end;
+
+procedure TCastleTerrain.SaveEditModeHeightMap(const AUrl: String);
+var
+  Image: TGrayscaleImage;
+  TextureWidth, TextureHeight : Integer;
+  SourceTexture: TImageTextureNode;
+
+  function GetCurrentlyUsedTexture: TImageTextureNode;
+  begin
+    Result := TImageTextureNode(FEffectTextureHeightField.Value);
+  end;
+
+begin
+  SourceTexture := GetCurrentlyUsedTexture;
+
+  TextureWidth := SourceTexture.TextureImage.Width;
+  TextureHeight := SourceTexture.TextureImage.Height;
+
+  Image := TGrayscaleImage.Create(TextureWidth, TextureHeight);
+  try
+    SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
+
+    SaveImage(Image, AUrl);
   finally
     FreeAndNil(Image);
   end;
