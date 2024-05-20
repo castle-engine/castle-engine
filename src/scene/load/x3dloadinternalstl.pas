@@ -22,22 +22,11 @@ unit X3DLoadInternalSTL;
 
 interface
 
-uses SysUtils, Classes,
-  X3DNodes;
-
-{ Load model in the STL format, converting it to an X3D nodes graph.
-  This is used by @link(LoadNode) when the file format is STL. }
-function LoadSTL(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
-{ Save model to STL format.
-  This is used by @link(SaveNode) when the file format is STL. }
-procedure SaveSTL(const Node: TX3DRootNode; const Stream: TStream;
-  const Generator: String; const Source: String);
-
 implementation
 
-uses CastleClassUtils, CastleVectors, CastleUtils, CastleDownload, CastleTriangles,
-  CastleLog, CastleStreamUtils,
+uses SysUtils, Classes,
+  X3DNodes, X3DLoad, CastleClassUtils, CastleVectors, CastleUtils, CastleDownload,
+  CastleTriangles, CastleLog, CastleStreamUtils,
   CastleShapes, CastleSceneCore;
 
 { Load STL text (ASCII) variation. }
@@ -225,6 +214,8 @@ begin
   Stream.Position := 0;
 end;
 
+{ Load model in the STL format, converting it to an X3D nodes graph.
+  This is used by @link(LoadNode) when the file format is STL. }
 function LoadSTL(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   Material: TMaterialNode;
@@ -313,6 +304,8 @@ begin
   Stream.WriteLE(0);
 end;
 
+{ Save model to STL format.
+  This is used by @link(SaveNode) when the file format is STL. }
 procedure SaveSTL(const Node: TX3DRootNode; const Stream: TStream;
   const Generator: String; const Source: String);
 var
@@ -354,4 +347,19 @@ begin
   Stream.WriteLE(TriangleCount); // write TriangleCount correctly now
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadSTL;
+  ModelFormat.OnLoadForceMemoryStream := true;
+  ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveSTL;
+  ModelFormat.MimeTypes.Add('application/x-stl');
+  // other STL mime types
+  ModelFormat.MimeTypes.Add('application/wavefront-stl');
+  ModelFormat.MimeTypes.Add('application/vnd.ms-pki.stl');
+  ModelFormat.MimeTypes.Add('application/x-navistyle');
+  ModelFormat.FileFilterName := 'STereo Lithography (*.stl)';
+  ModelFormat.Extensions.Add('.stl');
+  RegisterModelFormat(ModelFormat);
 end.

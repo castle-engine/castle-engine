@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2023 Matthias J. Molski, Michalis Kamburelis, Freedomax.
+  Copyright 2020-2024 Matthias J. Molski, Michalis Kamburelis, Freedomax.
 
   This file is part of "Castle Game Engine".
 
@@ -32,8 +32,8 @@ unit X3DLoadInternalTiledMap;
 interface
 
 uses
-  Classes,
-  X3DNodes, CastleLog, CastleTiledMap, CastleVectors, Generics.Collections;
+  Classes, Generics.Collections,
+  X3DNodes, X3DLoad, CastleLog, CastleTiledMap, CastleVectors;
 
 { Load Tiled map into X3D node.
   This is used by LoadNode, which in turn is used by TCastleSceneCore.Load.
@@ -878,4 +878,13 @@ begin
   finally FreeAndNil(TiledMapFromStream) end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadTiledMap2d;
+  ModelFormat.MimeTypes.Add('application/x-tiled-map');
+  ModelFormat.FileFilterName := 'Tiled Map (*.tmx)';
+  ModelFormat.Extensions.Add('.tmx');
+  RegisterModelFormat(ModelFormat);
 end.
