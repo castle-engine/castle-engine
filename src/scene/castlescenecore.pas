@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -520,7 +520,6 @@ type
     FUrl: String;
     { Is FUrl watched by FileMonitor. }
     FUrlWatched: Boolean;
-    FStatic: boolean;
     FShadowMaps: boolean;
     FShadowMapsDefaultSize: Cardinal;
     ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
@@ -621,7 +620,6 @@ type
       const CameraLocalPosition: TVector3);
 
     procedure SetUrl(const AValue: String);
-    procedure SetStatic(const Value: boolean);
     procedure SetShadowMaps(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
@@ -1027,7 +1025,8 @@ type
         @exclude }
       InternalDirty: Cardinal;
 
-      { @exclude }
+      { @exclude
+        Do not warn when changed node seems to belong to a different TCastleSceneCore. }
       InternalNodeSharing: Boolean;
 
     const
@@ -1845,33 +1844,6 @@ type
 
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const Params: TPrepareParams); override;
-
-    { Static scene will not be automatically notified about the changes
-      to the field values. This means that TX3DField.Send and
-      TX3DField.Changed will not notify this scene.
-
-      This makes a small optimization when you know you will not modify scene's
-      nodes graph after loading (or you're prepared to notify about it by
-      manually calling Scene.InternalChangedField, though as the name suggests
-      -- you're entering "internal" API which is not guaranteed to work in the future).
-
-      The behavior of events is undefined when scene is static.
-      This means that you should always have ProcessEvents = @false
-      when Static = @true. Only when Static = false you're allowed
-      to freely change ProcessEvents to @true.
-
-      Changing this is expensive when the scene content is already loaded,
-      so it's best to adjust this before @link(Load).
-
-      It is deprecated now, as the
-      optimization done by this is really negligible.
-      However is may still be internally useful to not associate the scene
-      with nodes -- useful for quick "throwaway" scenes,
-      e.g. created only to do Triangulate. }
-    property Static: boolean read FStatic write SetStatic default false;
-      {$ifdef FPC}
-      deprecated 'do not use this; optimization done by this is really negligible; leave ProcessEvents=false for static scenes';
-      {$endif}
 
     { Nice scene caption. Uses the "title" of WorldInfo
       node inside the VRML/X3D scene. If there is no WorldInfo node
@@ -4129,15 +4101,12 @@ end;
 
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
-  if not FStatic then
-  begin
-    if (Node.Scene <> nil) and
-       (Node.Scene <> Self) and
-       (not InternalNodeSharing) then
-      WritelnWarning('X3D node %s is already part of another TCastleScene instance.' + ' You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
-        [Node.NiceName]);
-    Node.Scene := Self;
-  end;
+  if (Node.Scene <> nil) and
+     (Node.Scene <> Self) and
+     (not InternalNodeSharing) then
+    WritelnWarning('X3D node %s is already part of another TCastleScene instance.' + ' You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
+      [Node.NiceName]);
+  Node.Scene := Self;
 
   { We're using AddIfNotExists, not simple Add, below:
 
@@ -6243,23 +6212,6 @@ begin
 
       FProcessEvents := Value;
     end;
-  end;
-end;
-
-procedure TCastleSceneCore.SetStatic(const Value: boolean);
-begin
-  if FStatic <> Value then
-  begin
-    FStatic := Value;
-    if FStatic then
-    begin
-      { Clear TX3DNode.Scene for all nodes }
-      if RootNode <> nil then
-        RootNode.UnregisterScene;
-    end else
-      { Set TX3DNode.Scene for all nodes.
-        This is done as part of ChangedAll when Static = true. }
-      ScheduleChangedAll;
   end;
 end;
 
