@@ -693,6 +693,7 @@ type
     procedure SetPreciseCollisions(const Value: Boolean);
 
     function GetEditMode: TCastleTerrainEditMode;
+    procedure SetMode(const NewMode: TCastleTerrainMode);
   private
     Effect: TEffectNode;
     Scene: TCastleScene;
@@ -764,8 +765,7 @@ type
       noise. }
     property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
 
-    property Mode: TCastleTerrainMode read FMode write FMode;
-
+    property Mode: TCastleTerrainMode read FMode write SetMode;
     property EditMode: TCastleTerrainEditMode read GetEditMode;
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
@@ -2692,6 +2692,7 @@ begin
           Root := TX3DRootNode.Create;
           Root.AddChildren(TerrainNode);
           Scene.Load(Root, true);
+          Scene.RenderOptions.WireframeEffect := weNormal;
         end else
         begin
           if Triangulate then
@@ -2850,6 +2851,37 @@ begin
   if FEditMode = nil then
     FEditMode := TCastleTerrainEditMode.Create(Self);
   Result := FEditMode;
+end;
+
+procedure TCastleTerrain.SetMode(const NewMode: TCastleTerrainMode);
+var
+  FragmentPart, VertexPart: TEffectPartNode;
+begin
+  if FMode = NewMode then
+    Exit;
+
+  FMode:= NewMode;
+
+  { initialize 2 EffectPart nodes (one for vertex shader, one for fragment shader) }
+  FragmentPart := TEffectPartNode.Create;
+  FragmentPart.ShaderType := stFragment;
+  FragmentPart.Contents := {$I terrain.fs.inc};
+
+  VertexPart := TEffectPartNode.Create;
+  VertexPart.ShaderType := stVertex;
+  case FMode of
+    ctmShader:
+    begin
+      VertexPart.Contents := {$I terrain2.vs.inc};
+    end;
+    ctmMesh:
+      VertexPart.Contents := {$I terrain.vs.inc};
+  end;
+
+  Effect.SetParts([FragmentPart, VertexPart]);
+
+  TerrainNode := nil;
+  UpdateGeometry;
 end;
 
 function TCastleTerrain.PropertySections(const PropertyName: String): TPropertySections;
