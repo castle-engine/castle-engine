@@ -2248,14 +2248,18 @@ begin
   begin
     //FShaderHeightTexture1.SetUrl([DataTerrainImage.Url]);
     //WritelnLog('Image size ' + IntToStr(DataTerrainImage.Image.Width) + ' x ' + IntToStr(DataTerrainImage.Image.Height));
+    FShaderHeightTexture1.InternalRendererResourceFree;
     FShaderHeightTexture1.LoadFromImage(DataTerrainImage.Image.MakeCopy, false, '');
     //FShaderHeightTexture2.SetUrl([DataTerrainImage.Url]);
+    FShaderHeightTexture2.InternalRendererResourceFree;
     FShaderHeightTexture2.LoadFromImage(DataTerrainImage.Image.MakeCopy, false, '');
   end else
   begin
     Image := TGrayscaleImage.Create(FEditModeHeightMapSize.X, FEditModeHeightMapSize.Y);
     Image.Clear(Vector4Byte(0,0,0,255));
+    FShaderHeightTexture1.InternalRendererResourceFree;
     FShaderHeightTexture1.LoadFromImage(Image.MakeCopy, true, '');
+    FShaderHeightTexture2.InternalRendererResourceFree;
     FShaderHeightTexture2.LoadFromImage(Image, true, '');
   end;
 end;
