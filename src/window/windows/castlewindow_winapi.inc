@@ -227,8 +227,8 @@ begin
     begin
       // get the filename length of the dropped file
       FileNameLength := DragQueryFile(DropH, I, nil, 0);
-      // set the length of the buffer
-      SetLength(FileName, FileNameLength);
+      // set the length of the filename buffer
+      SetLength(FileName, FileNameLength+1);
       // get the filename
       DragQueryFile(DropH, I, PChar(FileName), FileNameLength + 1);
       // set the index in the filename array to the file name
