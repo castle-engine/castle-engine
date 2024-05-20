@@ -22,20 +22,15 @@ unit X3DLoadInternalOBJ;
 
 interface
 
-uses Math, SysUtils, Classes,
-  X3DNodes;
-
 var
   WavefrontPhongMaterials: Boolean = true;
 
-function LoadWavefrontOBJ(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
 implementation
 
-uses Generics.Collections,
+uses Math, SysUtils, Classes, Generics.Collections,
   CastleStringUtils, CastleFilesUtils, CastleLog, CastleVectors, CastleUtils,
   CastleClassUtils, X3DLoadInternalUtils, CastleUriUtils, CastleColors,
-  CastleDownload;
+  CastleDownload, X3DNodes, X3DLoad;
 
 { TWavefrontTexture ---------------------------------------------------------- }
 
@@ -914,4 +909,13 @@ begin
   except FreeAndNil(result); raise end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadWavefrontOBJ;
+  ModelFormat.MimeTypes.Add('application/x-wavefront-obj');
+  ModelFormat.FileFilterName := 'Wavefront (*.obj)';
+  ModelFormat.Extensions.Add('.obj');
+  RegisterModelFormat(ModelFormat);
 end.

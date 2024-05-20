@@ -22,8 +22,7 @@ interface
 
 uses
   Classes, SysUtils, Generics.Collections,
-  X3DNodes,
-  CastleImages, CastleVectors;
+  X3DNodes, X3DLoad, CastleImages, CastleVectors;
 
 type
   TCastleSpriteSheetAnimation = class;
@@ -2485,5 +2484,23 @@ begin
   FAnimationNaming := anStrictUnderscore;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadCastleSpriteSheet;
+  ModelFormat.MimeTypes.Add('application/x-castle-sprite-sheet');
+  ModelFormat.FileFilterName := 'Castle Sprite Sheet (*.castle-sprite-sheet)';
+  ModelFormat.Extensions.Add('.castle-sprite-sheet');
+  RegisterModelFormat(ModelFormat);
 
+  { Starling sprite sheets are actually loaded exactly the same way as CGE
+    sprite sheets, but this is implementation detail.
+    We register it as separate format, with separate FileFilterName. }
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadCastleSpriteSheet;
+  ModelFormat.MimeTypes.Add('application/x-starling-sprite-sheet');
+  ModelFormat.FileFilterName := 'Starling Sprite Sheet (*.starling-xml)';
+  ModelFormat.Extensions.Add('.starling-xml');
+  RegisterModelFormat(ModelFormat);
 end.
