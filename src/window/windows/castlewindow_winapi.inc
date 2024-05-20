@@ -94,6 +94,15 @@ private
   function VirtualKeyToKey(VirtualKey: Byte): TKey;
 {$endif read_window_interface}
 
+  { procedures for dropping files }
+{$ifdef read_window_interface}
+  protected
+    procedure WMDropFiles(var DropH: HDROP); message WM_DROPFILES;
+  public
+    procedure UnregisterDropTarget;
+    procedure RegisterDropTarget;
+{$endif read_window_interface}
+
 {$ifdef read_application_interface}
 private
   { Should we do ChangeDisplaySettings(nil, 0) when Destroy? }
@@ -199,8 +208,7 @@ const
   VK_OEM_8 = $DF;
   VK_OEM_102 = $E2;
 
-function TCastleWindow.WMDropFiles(var DropH: HDROP) : LRESULT;
-  
+procedure TCastleWindow.WMDropFiles(var DropH: HDROP);
 var
   DroppedFileCount: Integer;  // number of files dropped
   FileNameLength: Integer;    // length of a dropped file name
@@ -209,7 +217,6 @@ var
   // DropPoint: TPoint;       // point where files dropped
   FileNames: array of AnsiString;
 begin
-  inherited;
   try
     // Get count of files dropped
     DroppedFileCount := DragQueryFile(DropH, $FFFFFFFF, nil, 0);
@@ -229,13 +236,12 @@ begin
     end;
     // DropPoint is where files were dropped
     //DragQueryPoint(DropH, DropPoint);
-    Self.DoDropFiles(FileNames);
+    DoDropFiles(FileNames);
   finally
     DragFinish(DropH);
   end;
   // we handled the message
   DropH := 0;
-  Result := 0;
 end;
 
 procedure TCastleWindow.UnregisterDropTarget();
@@ -380,8 +386,6 @@ begin
     SetPixelFormat_WGLChoose also get here (as they use our
     Application.wndClassName). They don't set Get/SetWindowLongPtr, so Window here
     will be @nil in this case. }
-  if uMsg = WM_DROPFILES then
-    result := Window.WMDropFiles(HDROP(wParm));
   if Application.FindWindow(Window) >= 0 then
     result := Window.WindowProc(uMsg, wParm, lParm)
   else
@@ -1052,6 +1056,11 @@ begin
           //DBT_DEVNODES_CHANGED: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVNODES_CHANGED');
         end;
         Exit(1);
+      end;
+    WM_DROPFILES:
+      begin
+        WMDropFiles(HDROP(wParm));
+        Exit;
       end;
   end;
 
