@@ -957,6 +957,14 @@ type
     procedure UpdateRequirements;
   protected
     procedure DoUpdate; virtual;
+    { procedures for dropping files }
+{$ifdef CASTLE_WINDOW_WINAPI}
+  protected
+    function WMDropFiles(var DropH: HDROP) : LRESULT; message WM_DROPFILES;
+  public
+    procedure UnregisterDropTarget;
+    procedure RegisterDropTarget;
+{$endif}
   public
     property Container: TWindowContainer read FContainer;
 

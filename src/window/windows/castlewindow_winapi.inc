@@ -55,7 +55,7 @@ Winapi.Messages, Character,
 {$endif}
 Imm,
 { /note }
-Windows, CommDlg,
+Windows, CommDlg, ShellApi,
 {$endif}
 
 {$ifdef read_implementation_uses}
@@ -199,6 +199,60 @@ const
   VK_OEM_8 = $DF;
   VK_OEM_102 = $E2;
 
+function TCastleWindow.WMDropFiles(var DropH: HDROP) : LRESULT;
+  
+var
+  DroppedFileCount: Integer;  // number of files dropped
+  FileNameLength: Integer;    // length of a dropped file name
+  FileName: string;           // a dropped file name
+  I: Integer;                 // loops thru all dropped files
+  // DropPoint: TPoint;       // point where files dropped
+  FileNames: array of AnsiString;
+begin
+  inherited;
+  try
+    // Get count of files dropped
+    DroppedFileCount := DragQueryFile(DropH, $FFFFFFFF, nil, 0);
+    // Get name of each file dropped and process it
+    SetLength(FileNames, DroppedFileCount);
+    // go through all the files
+    for I := 0 to Pred(DroppedFileCount) do
+    begin
+      // get the filename length of the dropped file
+      FileNameLength := DragQueryFile(DropH, I, nil, 0);
+      // set the length of the buffer
+      SetLength(FileName, FileNameLength);
+      // get the filename
+      DragQueryFile(DropH, I, PChar(FileName), FileNameLength + 1);
+      // set the index in the filename array to the file name
+      FileNames[I] := AnsiString(FileName);
+    end;
+    // DropPoint is where files were dropped
+    //DragQueryPoint(DropH, DropPoint);
+    Self.DoDropFiles(FileNames);
+  finally
+    DragFinish(DropH);
+  end;
+  // we handled the message
+  DropH := 0;
+  Result := 0;
+end;
+
+procedure TCastleWindow.UnregisterDropTarget();
+begin
+  MakeCurrent;
+  //writeln(h_Wnd);
+  DragAcceptFiles(h_Wnd, False);
+end;
+
+procedure TCastleWindow.RegisterDropTarget();
+begin
+  MakeCurrent;
+  //writeln(h_Wnd);
+  DragAcceptFiles(h_Wnd, True);
+end;  
+
+
 { convert virtual key code (VK_xxx) to TKey. Returns keyNone if no conversion
   available. }
 function TCastleWindow.VirtualKeyToKey(VirtualKey: Byte): TKey;
@@ -326,6 +380,8 @@ begin
     SetPixelFormat_WGLChoose also get here (as they use our
     Application.wndClassName). They don't set Get/SetWindowLongPtr, so Window here
     will be @nil in this case. }
+  if uMsg = WM_DROPFILES then
+    result := Window.WMDropFiles(HDROP(wParm));
   if Application.FindWindow(Window) >= 0 then
     result := Window.WindowProc(uMsg, wParm, lParm)
   else
