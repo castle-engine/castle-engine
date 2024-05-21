@@ -583,7 +583,8 @@ type
 
       Changing the maximum height from 255 to 0 loweres terrain,
       intermediate values levels terrain. }
-    procedure AlterTerrain(const Coord: TVector3;
+    procedure AlterTerrain(
+      const Container: TCastleContainer; const Coord: TVector3;
       const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
       const Strength: Byte; const BrushRotation: Single = 0; const BrushMaxHeight: Byte = 255;
       const RingBrushThickness: Single = 1.0);
@@ -2030,7 +2031,8 @@ begin
   inherited Destroy;
 end;
 
-procedure TCastleTerrainEditMode.AlterTerrain(const Coord: TVector3;
+procedure TCastleTerrainEditMode.AlterTerrain(
+  const Container: TCastleContainer; const Coord: TVector3;
   const BrushShape: TCastleTerrainBrush; const BrushSize: Integer;
   const Strength: Byte; const BrushRotation: Single;
   const BrushMaxHeight: Byte; const RingBrushThickness: Single);
@@ -2139,13 +2141,13 @@ begin
     try
       WritelnLog('FEditModeHeightMapSize.X' + IntToStr(FEditModeHeightMapSize.X));
       ViewportRect := Rectangle(0, 0, FEditModeHeightMapSize.X, FEditModeHeightMapSize.Y);
-      if GetMainContainer.Controls.IndexOf(FEditModeSourceViewport) = -1 then
-        GetMainContainer.Controls.InsertFront(FEditModeSourceViewport);
-      GetMainContainer.RenderControl(FEditModeSourceViewport, ViewportRect);
+      if Container.Controls.IndexOf(FEditModeSourceViewport) = -1 then
+        Container.Controls.InsertFront(FEditModeSourceViewport);
+      Container.RenderControl(FEditModeSourceViewport, ViewportRect);
 
       DebugSaveImage;
 
-      //GetMainContainer.Controls.Remove(FEditModeSourceViewport);
+      //Container.Controls.Remove(FEditModeSourceViewport);
     finally
       ResetOpenGLTextureInEditModeViewport(PreviousTextureId);
     end;
