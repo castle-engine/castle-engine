@@ -64,7 +64,7 @@ type
     ActionSimulationPauseUnpause: TAction;
     ActionSimulationPlayStop: TAction;
     ActionListDesign: TActionList;
-    Button1: TButton;
+    ButtonStartFinishEditMode: TButton;
     ButtonResetTransformation: TButton;
     ButtonClearTranslation: TButton;
     ButtonPlayStop: TSpeedButton;

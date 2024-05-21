@@ -395,7 +395,7 @@ object DesignFrame: TDesignFrame
       ClientHeight = 34
       ClientWidth = 316
       TabOrder = 1
-      object Button1: TButton
+      object ButtonStartFinishEditMode: TButton
         Left = 0
         Height = 34
         Top = 0
