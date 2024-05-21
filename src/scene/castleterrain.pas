@@ -2112,7 +2112,9 @@ begin
     // not working because we have changes only on gpu side
     //Source := TDrawableImage.Create(SourceTexture.TextureImage, true, false);
 
-    {Image := TRGBAlphaImage.Create(TextureWidth, TextureHeight);
+    { This is slower aproach but works in TCastleControl. See below for a faster
+      solution (commented) but not working with TCastleControl. }
+    Image := TGrayscaleImage.Create(TextureWidth, TextureHeight);
     try
       SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
 
@@ -2125,7 +2127,7 @@ begin
       end;
     finally
       FreeAndNil(Image);
-    end;}
+    end;
 
     { After resize texture may be not ready (not Prepared in OpenGL). }
     if SourceTexture.InternalRendererResource = nil then
@@ -2136,7 +2138,9 @@ begin
       Exit;
     end;
 
-    PrepareEditModeViewport(SourceTexture);
+    { This is faster aproach without copying from/to gpu on every frame
+      but not working in TCastleControl. }
+    {PrepareEditModeViewport(SourceTexture);
     PreviousTextureId := ShareOpenGLTextureToEditModeViewport(SourceTexture);
     try
       WritelnLog('FEditModeHeightMapSize.X' + IntToStr(FEditModeHeightMapSize.X));
@@ -2151,7 +2155,7 @@ begin
     finally
       ResetOpenGLTextureInEditModeViewport(PreviousTextureId);
     end;
-    UpdateDebugImage;
+    UpdateDebugImage;}
 
     // TODO: don't do that every time
     Image := TRGBAlphaImage.Create(BrushSize, BrushSize);
