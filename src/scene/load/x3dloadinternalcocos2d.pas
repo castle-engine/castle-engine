@@ -21,18 +21,195 @@
   https://www.codeandweb.com/blog/2016/01/29/cocos2d-plist-format-explained
 
 }
- unit X3DLoadInternalCocos2d;
+unit X3DLoadInternalCocos2d;
 
 {$I castleconf.inc}
 
 interface
 
+uses DOM, CastleVectors;
+
+{ Routines made public only for test purposes. }
+
+function Cocos2dReadDual(const ASrc: String; out V1, V2: Integer): Boolean; overload;
+function Cocos2dReadDual(const ASrc: String; out V1, V2: Single): Boolean; overload;
+function Cocos2dReadDual(const ASrc: String; out V: TVector2): Boolean; overload;
+
+function Cocos2dReadQuad(ASrc: String; out V1, V2, V3, V4: Integer): Boolean;
+
+function Cocos2dReadBool(const ASrc: TDOMElement): Boolean;
+
 implementation
 
 uses Classes, SysUtils,
-  Generics.Collections, StrUtils, DOM, XMLRead,
+  Generics.Collections, StrUtils, XMLRead,
   X3DNodes, X3DLoad, CastleImages, CastleLog, CastleStringUtils,
-  CastleTextureImages, CastleUriUtils, CastleUtils, CastleVectors, CastleXmlUtils;
+  CastleTextureImages, CastleUriUtils, CastleUtils, CastleXmlUtils;
+
+{ simple reading routines --------------------------------------------------- }
+
+function Cocos2dReadDual(const ASrc: String; out V1, V2: Integer): Boolean;
+var
+  OpenBracePos: Integer;
+  CloseBracePos: Integer;
+  CommaPos: Integer;
+begin
+  OpenBracePos := Pos('{', ASrc);
+  if OpenBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CloseBracePos := PosEx('}', ASrc, OpenBracePos);
+  if CloseBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CommaPos := PosEx(',', ASrc, OpenBracePos);
+  if CommaPos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  V1 := StrToInt(Copy(ASrc, OpenBracePos + 1, CommaPos - (OpenBracePos + 1)));
+  V2 := StrToInt(Copy(ASrc, CommaPos + 1, CloseBracePos - (CommaPos + 1)));
+  Result := true;
+end;
+
+function Cocos2dReadDual(const ASrc: String; out V: TVector2): Boolean;
+begin
+  Result := Cocos2dReadDual(ASrc, V.X, V.Y);
+end;
+
+function Cocos2dReadDual(const ASrc: String; out V1, V2: Single): Boolean;
+var
+  OpenBracePos: Integer;
+  CloseBracePos: Integer;
+  CommaPos: Integer;
+begin
+  OpenBracePos := Pos('{', ASrc);
+  if OpenBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CloseBracePos := PosEx('}', ASrc, OpenBracePos);
+  if CloseBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CommaPos := PosEx(',', ASrc, OpenBracePos);
+  if CommaPos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  V1 := StrToFloatDot(Copy(ASrc, OpenBracePos + 1, CommaPos - (OpenBracePos + 1)));
+  V2 := StrToFloatDot(Copy(ASrc, CommaPos + 1, CloseBracePos - (CommaPos + 1)));
+  Result := true;
+end;
+
+function Cocos2dReadQuad(ASrc: String; out V1, V2, V3, V4: Integer): Boolean;
+var
+  OpenBracePos: Integer;
+  CloseBracePos: Integer;
+  OpenBraceCount, CloseBraceCount: Integer;
+begin
+  OpenBraceCount := SCharsCount(ASrc, ['{']);
+  CloseBraceCount := SCharsCount(ASrc, ['}']);
+
+  if (OpenBraceCount = 3) and (CloseBraceCount = 3) then
+  begin
+    // read format '{{1,2},{60,88}}'
+    if not IsPrefix('{', ASrc, false) then
+    begin
+      WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+      Exit(false);
+    end;
+    ASrc := PrefixRemove('{', ASrc, false);
+
+    if not IsSuffix('}', ASrc, false) then
+    begin
+      WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+      Exit(false);
+    end;
+    ASrc := SuffixRemove('}', ASrc, false);
+  end else
+  if (OpenBraceCount = 2) and (CloseBraceCount = 2) then
+  begin
+    // read format '{1,2},{60,88}'
+  end else
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  OpenBracePos := Pos('{', ASrc);
+  if OpenBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CloseBracePos := Pos('}', ASrc);
+  if CloseBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  if not Cocos2dReadDual(Copy(ASrc, OpenBracePos, CloseBracePos - OpenBracePos + 1), V1, V2) then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  OpenBracePos := PosEx('{', ASrc, CloseBracePos + 1);
+  if OpenBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CloseBracePos := PosEx('}', ASrc, CloseBracePos + 1);
+  if CloseBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  if not Cocos2dReadDual(Copy(ASrc, OpenBracePos, CloseBracePos - OpenBracePos + 1), V3, V4) then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  Result := true;
+end;
+
+function Cocos2dReadBool(const ASrc: TDOMElement): Boolean;
+begin
+  if SameText(ASrc.TagName8, 'true') then
+    Result := true
+  else
+  if SameText(ASrc.TagName8, 'false') then
+    Result := false
+  else
+  begin
+    WritelnWarning('Cocos2d', 'Invalid boolean value "%s".', [ASrc.TagName8]);
+    Result := false;
+  end;
+end;
+
+{ classes to load Cocos2d files --------------------------------------------- }
 
 type
   { Cocos2d XML file is not correct }
@@ -78,11 +255,6 @@ type
 
         procedure ReadFormDict(const KeyNode, DictNode: TDOMElement;
           const ImageWidth, ImageHeight: Integer);
-        class function ReadDual(const ASrc: String; out V1, V2: Integer): Boolean; overload;
-        class function ReadDual(const ASrc: String; out V1, V2: Single): Boolean; overload;
-        class function ReadDual(const ASrc: String; out V: TVector2): Boolean; overload;
-        class function ReadQuad(const ASrc: String; out V1, V2, V3, V4: Integer): Boolean;
-        class function ReadBool(const ASrc: TDOMElement): Boolean;
       end;
     var
       FStream: TStream;
@@ -240,7 +412,7 @@ begin
       if KeyNode.TextData = 'frame' then
       begin
         { Sprite position and size in the texture - the same as textureRect in format 3 }
-        if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
+        if Cocos2dReadQuad(ValueNode.TextData, X, Y, Width, Height) then
         begin
           X1 := X;
           Y1 := Y;
@@ -250,30 +422,30 @@ begin
       if KeyNode.TextData = 'sourceColorRect' then
       begin
         { rect of the trimmed sprite }
-        ReadQuad(ValueNode.TextData, FrameXTrimed, FrameYTrimed, FrameWidthTrimed, FrameHeightTrimed);
+        Cocos2dReadQuad(ValueNode.TextData, FrameXTrimed, FrameYTrimed, FrameWidthTrimed, FrameHeightTrimed);
         Trimmed := true;
       end else
       if KeyNode.TextData = 'anchor' then
       begin
         { Anchor point for the sprite in coordinates relative to the original sprite size }
-        if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
+        if Cocos2dReadDual(ValueNode.TextData, AnchorX, AnchorY) then
           HasAnchor := true;
       end else
       if KeyNode.TextData = 'sourceSize' then
       begin
         { full size of the sprite, the same as spriteSourceSize in format 3 }
-        if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
+        if Cocos2dReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
           WasFrameSize := true;
       end else
       if KeyNode.TextData = 'rotated' then
       begin
-        Rotated := ReadBool(ValueNode);
+        Rotated := Cocos2dReadBool(ValueNode);
         if Rotated then
           WritelnWarning('Cocos2d', 'rotated=true is not supported in "%s".', [FDisplayUrl]);
       end else
       if KeyNode.TextData = 'offset' then
       begin
-        ReadDual(ValueNode.TextData, Offset);
+        Cocos2dReadDual(ValueNode.TextData, Offset);
         if not Offset.IsZero then
           WritelnWarning('Cocos2d', 'Offset (non-zero) is not supported in "%s".', [FDisplayUrl]);
       end else
@@ -356,7 +528,7 @@ begin
       if KeyNode.TextData = 'textureRect' then
       begin
         { Sprite position and size in the texture - the same as frame in format 2 }
-        if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
+        if Cocos2dReadQuad(ValueNode.TextData, X, Y, Width, Height) then
         begin
           X1 := X;
           Y1 := Y;
@@ -366,19 +538,19 @@ begin
       if KeyNode.TextData = 'spriteOffset' then
       begin
         { offset in sprite }
-        ReadDual(ValueNode.TextData, FrameXTrimOffset, FrameYTrimOffset);
+        Cocos2dReadDual(ValueNode.TextData, FrameXTrimOffset, FrameYTrimOffset);
         Trimmed := true;
       end else
       if KeyNode.TextData = 'anchor' then
       begin
         { Anchor point for the sprite in coordinates relative to the original sprite size }
-        if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
+        if Cocos2dReadDual(ValueNode.TextData, AnchorX, AnchorY) then
           HasAnchor := true;
       end else
       if KeyNode.TextData = 'spriteSourceSize' then
       begin
         { full size of the sprite, the same as sourceSize in format 2 }
-        if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
+        if Cocos2dReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
           WasFrameFullSize := true;
       end;
     end;
@@ -452,105 +624,6 @@ begin
   PrepareTexCordsForX3D(ImageWidth, ImageHeight);
 end;
 
-class function TCocos2dLoader.TCocosFrame.ReadDual(const ASrc: String; out V1,
-  V2: Integer): Boolean;
-var
-  OpenBracePos: Integer;
-  CloseBracePos: Integer;
-  CommaPos: Integer;
-begin
-  OpenBracePos := Pos('{', ASrc);
-  if OpenBracePos = 0 then
-    Exit(false);
-
-  CloseBracePos := PosEx('}', ASrc, OpenBracePos);
-  if CloseBracePos = 0 then
-    Exit(false);
-
-  CommaPos := PosEx(',', ASrc, OpenBracePos);
-  if CommaPos = 0 then
-    Exit(false);
-
-  V1 := StrToInt(Copy(ASrc, OpenBracePos + 1, CommaPos - (OpenBracePos + 1)));
-  V2 := StrToInt(Copy(ASrc, CommaPos + 1, CloseBracePos - (CommaPos + 1)));
-  Result := true;
-end;
-
-class function TCocos2dLoader.TCocosFrame.ReadDual(const ASrc: String; out V: TVector2): Boolean;
-begin
-  Result := ReadDual(ASrc, V.X, V.Y);
-end;
-
-class function TCocos2dLoader.TCocosFrame.ReadDual(const ASrc: String; out V1,
-  V2: Single): Boolean;
-var
-  OpenBracePos: Integer;
-  CloseBracePos: Integer;
-  CommaPos: Integer;
-begin
-  OpenBracePos := Pos('{', ASrc);
-  if OpenBracePos = 0 then
-    Exit(false);
-
-  CloseBracePos := PosEx('}', ASrc, OpenBracePos);
-  if CloseBracePos = 0 then
-    Exit(false);
-
-  CommaPos := PosEx(',', ASrc, OpenBracePos);
-  if CommaPos = 0 then
-    Exit(false);
-
-  V1 := StrToFloatDot(Copy(ASrc, OpenBracePos + 1, CommaPos - (OpenBracePos + 1)));
-  V2 := StrToFloatDot(Copy(ASrc, CommaPos + 1, CloseBracePos - (CommaPos + 1)));
-  Result := true;
-end;
-
-
-class function TCocos2dLoader.TCocosFrame.ReadQuad(const ASrc: String; out V1,
-  V2, V3, V4: Integer): Boolean;
-var
-  OpenBracePos: Integer;
-  CloseBracePos: Integer;
-begin
-  OpenBracePos := Pos('{', ASrc);
-  if OpenBracePos = 0 then
-    Exit(false);
-
-  CloseBracePos := Pos('}', ASrc);
-  if CloseBracePos = 0 then
-    Exit(false);
-
-  if not ReadDual(Copy(ASrc, OpenBracePos + 1, CloseBracePos - OpenBracePos), V1, V2) then
-    Exit(false);
-
-  OpenBracePos := PosEx('{', ASrc, CloseBracePos);
-  if OpenBracePos = 0 then
-    Exit(false);
-
-  CloseBracePos := PosEx('}', ASrc, CloseBracePos + 1);
-  if CloseBracePos = 0 then
-    Exit(false);
-
-  if not ReadDual(Copy(ASrc, OpenBracePos, CloseBracePos - OpenBracePos + 1), V3, V4) then
-    Exit(false);
-
-  Result := true;
-end;
-
-class function TCocos2dLoader.TCocosFrame.ReadBool(const ASrc: TDOMElement): Boolean;
-begin
-  if SameText(ASrc.TagName8, 'true') then
-    Result := true
-  else
-  if SameText(ASrc.TagName8, 'false') then
-    Result := false
-  else
-  begin
-    WritelnWarning('Cocos2d', 'Invalid boolean value "%s".', [ASrc.TagName8]);
-    Result := false;
-  end;
-end;
-
 { TCocos2dLoader ------------------------------------------------------------ }
 
 procedure TCocos2dLoader.ReadImportSettings;
@@ -615,7 +688,7 @@ begin
       else
       if KeyNode.TextData = 'size' then
       begin
-        if not TCocosFrame.ReadDual(ValueNode.TextData, FImageWidth, FImageHeight) then
+        if not Cocos2dReadDual(ValueNode.TextData, FImageWidth, FImageHeight) then
           raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - invalid size.', [FDisplayUrl]);
       end else
       if KeyNode.TextData = 'format' then
