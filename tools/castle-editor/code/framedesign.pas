@@ -5840,6 +5840,7 @@ begin
     PanelLeft.Visible := false;
     FIsEditingTerrain := true;
     FDesignerLayer.Exists := false;
+    VisualizeTransformSelected.Parent := nil;
   end else
   begin
     // Finish edit mode
@@ -5848,6 +5849,7 @@ begin
     PanelLeft.Visible := true;
     FIsEditingTerrain := false;
     FDesignerLayer.Exists := true;
+    VisualizeTransformSelected.Parent := Terrain;
   end;
 
   if Terrain.Mode = ctmMesh then
