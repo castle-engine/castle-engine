@@ -54,9 +54,6 @@ type
   );
 
   { Frame to visually design component hierarchy. }
-
-  { TDesignFrame }
-
   TDesignFrame = class(TFrame)
     ActionEditTerrain: TAction;
     ActionApiReferenceOfCurrent: TAction;
