@@ -2259,6 +2259,8 @@ begin
     //FShaderHeightTexture2.SetUrl([DataTerrainImage.Url]);
     FShaderHeightTexture2.InternalRendererResourceFree;
     FShaderHeightTexture2.LoadFromImage(DataTerrainImage.Image.MakeCopy, true, '');
+    FEditModeHeightMapSize.X := FShaderHeightTexture2.TextureImage.Width;
+    FEditModeHeightMapSize.Y := FShaderHeightTexture2.TextureImage.Height;
   end else
   begin
     Image := TGrayscaleImage.Create(FEditModeHeightMapSize.X, FEditModeHeightMapSize.Y);
