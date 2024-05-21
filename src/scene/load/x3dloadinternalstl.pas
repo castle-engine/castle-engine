@@ -329,10 +329,24 @@ begin
 
   Scene := TCastleSceneCore.Create(nil);
   try
-    {$warnings off} // we know that Scene.Static is deprecated, but useful here
-    Scene.Static := true; // do not set nodes Scene field
-    {$warnings on}
-    Scene.Load(Node, false);
+    if Node.Scene <> nil then
+    begin
+      { Do DeepCopy, to not change nodes (Scene, associated nodes in shapes...).
+
+        Testcase: in castle-model-viewer,
+        - open water_final_using_noise_from_shaders.x3dv
+        - note that water animates (time sensor is associated with Scene),
+        - save to STL,
+        - should be no crash, and water should animate.
+
+        If we would not do DeepCopy, then above would crash, as FreeAndNil(Scene)
+        would clear time sensor scene. }
+      Scene.Load(Node.DeepCopy as TX3DRootNode, true);
+    end else
+    begin
+      // more efficient: use Node directly, we will unassociate from it later
+      Scene.Load(Node, false);
+    end;
 
     Helper := TSaveStlHelper.Create;
     try
