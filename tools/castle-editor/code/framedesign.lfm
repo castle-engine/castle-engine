@@ -404,6 +404,795 @@ object DesignFrame: TDesignFrame
         AutoSize = True
         TabOrder = 0
       end
+      object PanelEditTerrain: TPanel
+        AnchorSideTop.Control = ButtonStartFinishEditMode
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = PanelExtraTools
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 330
+        Top = 39
+        Width = 316
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        BorderSpacing.Top = 5
+        BevelOuter = bvNone
+        ClientHeight = 330
+        ClientWidth = 316
+        TabOrder = 1
+        Visible = False
+        object SpeedButtonRaiseTerrain: TSpeedButton
+          Left = 0
+          Height = 34
+          Top = 0
+          Width = 34
+          Constraints.MinHeight = 34
+          Constraints.MinWidth = 34
+          Caption = 'R'
+          Down = True
+          GroupIndex = 40
+        end
+        object SpeedButton2: TSpeedButton
+          Left = 40
+          Height = 34
+          Top = 0
+          Width = 34
+          Constraints.MinHeight = 34
+          Constraints.MinWidth = 34
+          Caption = 'D'
+          GroupIndex = 40
+        end
+        object SpeedButton3: TSpeedButton
+          Left = 80
+          Height = 34
+          Top = 0
+          Width = 34
+          Constraints.MinHeight = 34
+          Constraints.MinWidth = 34
+          Caption = 'L'
+          GroupIndex = 40
+        end
+        object GroupBoxRaiseTerrainSettings: TGroupBox
+          AnchorSideTop.Control = SpeedButtonRaiseTerrain
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = PanelEditTerrain
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 250
+          Top = 38
+          Width = 316
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          BorderSpacing.Top = 4
+          Caption = 'Raise Terrain Settings'
+          ChildSizing.TopBottomSpacing = 5
+          ChildSizing.VerticalSpacing = 5
+          ClientHeight = 229
+          ClientWidth = 314
+          TabOrder = 0
+          object SpeedButtonRaiseFixedSquare: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonRaiseSquare
+            Left = 41
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'FS'
+            GroupIndex = 41
+          end
+          object SpeedButtonRaiseSquare: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonRaisePyramid
+            Left = 80
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'S'
+            GroupIndex = 41
+          end
+          object SpeedButtonRaisePyramid: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonRaiseCircle
+            Left = 119
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'P'
+            GroupIndex = 41
+          end
+          object SpeedButtonRaiseCircle: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonRaiseCone
+            Left = 158
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'Ci'
+            GroupIndex = 41
+          end
+          object SpeedButtonRaiseCone: TSpeedButton
+            AnchorSideLeft.Control = SpeedButtonRaiseRing
+            AnchorSideLeft.Side = asrCenter
+            AnchorSideRight.Control = SpeedButtonRaiseRing
+            Left = 197
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'Co'
+            Down = True
+            GroupIndex = 41
+          end
+          object SpeedButtonRaiseRing: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonRaiseCylinder
+            Left = 236
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'R'
+            GroupIndex = 41
+          end
+          object SpeedButtonRaiseCylinder: TSpeedButton
+            AnchorSideTop.Control = GroupBoxRaiseTerrainSettings
+            AnchorSideRight.Control = GroupBoxRaiseTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 275
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'Cy'
+            GroupIndex = 41
+          end
+          object SpinEditRaiseBrushSize: TSpinEdit
+            AnchorSideTop.Control = SpeedButtonRaiseFixedSquare
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxRaiseTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 151
+            Height = 32
+            Top = 44
+            Width = 158
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MaxValue = 255
+            MinValue = 1
+            TabOrder = 0
+            Value = 5
+          end
+          object Label1: TLabel
+            AnchorSideTop.Control = SpinEditRaiseBrushSize
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditRaiseBrushSize
+            Left = 69
+            Height = 20
+            Top = 50
+            Width = 78
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Brush Size'
+          end
+          object LabelStrength: TLabel
+            AnchorSideTop.Control = SpinEditRaiseStrength
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditRaiseStrength
+            Left = 79
+            Height = 20
+            Top = 87
+            Width = 68
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Strenght'
+          end
+          object SpinEditRaiseStrength: TSpinEdit
+            AnchorSideTop.Control = SpinEditRaiseBrushSize
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxRaiseTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 151
+            Height = 32
+            Top = 81
+            Width = 158
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MaxValue = 255
+            MinValue = 1
+            TabOrder = 1
+            Value = 10
+          end
+          object SpinEditRaiseBrushRotation: TSpinEdit
+            AnchorSideTop.Control = SpinEditRaiseStrength
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxRaiseTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 151
+            Height = 32
+            Top = 118
+            Width = 158
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MaxValue = 360
+            TabOrder = 2
+          end
+          object LabelStrength1: TLabel
+            AnchorSideTop.Control = SpinEditRaiseBrushRotation
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditRaiseBrushRotation
+            Left = 32
+            Height = 20
+            Top = 124
+            Width = 115
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Brush Rotation'
+          end
+          object SpinEditRaiseMaxHeight: TSpinEdit
+            AnchorSideTop.Control = SpinEditRaiseBrushRotation
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxRaiseTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 151
+            Height = 32
+            Top = 155
+            Width = 158
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MaxValue = 255
+            TabOrder = 3
+            Value = 255
+          end
+          object LabelMaxHeight: TLabel
+            AnchorSideTop.Control = SpinEditRaiseMaxHeight
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditRaiseMaxHeight
+            Left = 58
+            Height = 20
+            Top = 161
+            Width = 89
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Max Height'
+          end
+          object LabelRaiseRingThickness: TLabel
+            AnchorSideTop.Control = FloatSpinRaiseRingThickness
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = FloatSpinRaiseRingThickness
+            Left = 33
+            Height = 20
+            Top = 198
+            Width = 111
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Ring Thickness'
+          end
+          object FloatSpinRaiseRingThickness: TFloatSpinEdit
+            AnchorSideTop.Control = SpinEditRaiseMaxHeight
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxRaiseTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 148
+            Height = 32
+            Top = 192
+            Width = 161
+            Anchors = [akTop, akLeft, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MinValue = 0.01
+            TabOrder = 4
+            Value = 1
+          end
+        end
+        object GroupBoxLowerTerrainSettings: TGroupBox
+          AnchorSideTop.Control = SpeedButtonRaiseTerrain
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = PanelEditTerrain
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 213
+          Top = 38
+          Width = 316
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          BorderSpacing.Top = 4
+          Caption = 'Lower Terrain Settings'
+          ChildSizing.TopBottomSpacing = 5
+          ChildSizing.VerticalSpacing = 5
+          ClientHeight = 192
+          ClientWidth = 314
+          TabOrder = 1
+          Visible = False
+          object SpeedButtonLowerFixedSquare: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonLowerSquare
+            Left = 41
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'FS'
+            GroupIndex = 41
+          end
+          object SpeedButtonLowerSquare: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonLowerPyramid
+            Left = 80
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'S'
+            GroupIndex = 41
+          end
+          object SpeedButtonLowerPyramid: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonLowerCircle
+            Left = 119
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'P'
+            GroupIndex = 41
+          end
+          object SpeedButtonLowerCircle: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonLowerCone
+            Left = 158
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'Ci'
+            GroupIndex = 41
+          end
+          object SpeedButtonLowerCone: TSpeedButton
+            AnchorSideLeft.Control = SpeedButtonLowerRing
+            AnchorSideLeft.Side = asrCenter
+            AnchorSideRight.Control = SpeedButtonLowerRing
+            Left = 197
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'Co'
+            Down = True
+            GroupIndex = 41
+          end
+          object SpeedButtonLowerRing: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonLowerCylinder
+            Left = 236
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'R'
+            GroupIndex = 41
+          end
+          object SpeedButtonLowerCylinder: TSpeedButton
+            AnchorSideTop.Control = GroupBoxLowerTerrainSettings
+            AnchorSideRight.Control = GroupBoxLowerTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 275
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'Cy'
+            GroupIndex = 41
+          end
+          object SpinEditLowerBrushSize: TSpinEdit
+            AnchorSideTop.Control = SpeedButtonLowerFixedSquare
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxLowerTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 151
+            Height = 32
+            Top = 44
+            Width = 158
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MaxValue = 255
+            MinValue = 1
+            TabOrder = 0
+            Value = 5
+          end
+          object Label2: TLabel
+            AnchorSideTop.Control = SpinEditLowerBrushSize
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditLowerBrushSize
+            Left = 69
+            Height = 20
+            Top = 50
+            Width = 78
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Brush Size'
+          end
+          object LabelStrength2: TLabel
+            AnchorSideTop.Control = SpinEditLowerStrength
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditLowerStrength
+            Left = 79
+            Height = 20
+            Top = 87
+            Width = 68
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Strenght'
+          end
+          object SpinEditLowerStrength: TSpinEdit
+            AnchorSideTop.Control = SpinEditLowerBrushSize
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxLowerTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 151
+            Height = 32
+            Top = 81
+            Width = 158
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MaxValue = 255
+            MinValue = 1
+            TabOrder = 1
+            Value = 10
+          end
+          object SpinEditLowerBrushRotation: TSpinEdit
+            AnchorSideTop.Control = SpinEditLowerStrength
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxLowerTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 151
+            Height = 32
+            Top = 118
+            Width = 158
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MaxValue = 360
+            TabOrder = 2
+          end
+          object LabelStrength3: TLabel
+            AnchorSideTop.Control = SpinEditLowerBrushRotation
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditLowerBrushRotation
+            Left = 32
+            Height = 20
+            Top = 124
+            Width = 115
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Brush Rotation'
+          end
+          object LabelLowerRingThickness: TLabel
+            AnchorSideTop.Control = FloatSpinLowerRingThickness
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = FloatSpinLowerRingThickness
+            Left = 33
+            Height = 20
+            Top = 161
+            Width = 111
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Ring Thickness'
+          end
+          object FloatSpinLowerRingThickness: TFloatSpinEdit
+            AnchorSideTop.Control = SpinEditLowerBrushRotation
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxLowerTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 148
+            Height = 32
+            Top = 155
+            Width = 161
+            Anchors = [akTop, akLeft, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MinValue = 0.01
+            TabOrder = 3
+            Value = 1
+          end
+        end
+        object GroupBoxLevelTerrainSettings: TGroupBox
+          AnchorSideTop.Control = SpeedButtonRaiseTerrain
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = PanelEditTerrain
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 250
+          Top = 38
+          Width = 316
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          BorderSpacing.Top = 4
+          Caption = 'Level Terrain Settings'
+          ChildSizing.TopBottomSpacing = 5
+          ChildSizing.VerticalSpacing = 5
+          ClientHeight = 229
+          ClientWidth = 314
+          TabOrder = 2
+          Visible = False
+          object SpeedButtonLevelSquare: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonLevelPyramid
+            Left = 80
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'S'
+            GroupIndex = 41
+          end
+          object SpeedButtonLevelPyramid: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonLevelCircle
+            Left = 119
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'P'
+            GroupIndex = 41
+          end
+          object SpeedButtonLevelCircle: TSpeedButton
+            AnchorSideRight.Control = SpeedButtonLevelCone
+            Left = 158
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'Ci'
+            GroupIndex = 41
+          end
+          object SpeedButtonLevelCone: TSpeedButton
+            AnchorSideLeft.Side = asrCenter
+            Left = 197
+            Height = 34
+            Top = 5
+            Width = 34
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Constraints.MinHeight = 34
+            Constraints.MinWidth = 34
+            Caption = 'Co'
+            Down = True
+            GroupIndex = 41
+          end
+          object SpinEditLevelBrushSize: TSpinEdit
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxLevelTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 151
+            Height = 32
+            Top = 44
+            Width = 158
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MaxValue = 255
+            MinValue = 1
+            TabOrder = 0
+            Value = 5
+          end
+          object Label3: TLabel
+            AnchorSideTop.Control = SpinEditLevelBrushSize
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditLevelBrushSize
+            Left = 69
+            Height = 20
+            Top = 50
+            Width = 78
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Brush Size'
+          end
+          object LabelStrength4: TLabel
+            AnchorSideTop.Control = SpinEditLevelStrength
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditLevelStrength
+            Left = 79
+            Height = 20
+            Top = 87
+            Width = 68
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Strenght'
+          end
+          object SpinEditLevelStrength: TSpinEdit
+            AnchorSideTop.Control = SpinEditLevelBrushSize
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxLevelTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 151
+            Height = 32
+            Top = 81
+            Width = 158
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MaxValue = 255
+            MinValue = 1
+            TabOrder = 1
+            Value = 90
+          end
+          object SpinEditLevelBrushRotation: TSpinEdit
+            AnchorSideTop.Control = SpinEditLevelStrength
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxLevelTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 151
+            Height = 32
+            Top = 118
+            Width = 158
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MaxValue = 360
+            TabOrder = 2
+          end
+          object LabelStrength5: TLabel
+            AnchorSideTop.Control = SpinEditLevelBrushRotation
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditLevelBrushRotation
+            Left = 32
+            Height = 20
+            Top = 124
+            Width = 115
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Brush Rotation'
+          end
+          object SpinEditLevelHeight: TSpinEdit
+            AnchorSideTop.Control = SpinEditLevelBrushRotation
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxLevelTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 151
+            Height = 32
+            Top = 155
+            Width = 158
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            Enabled = False
+            MaxValue = 255
+            TabOrder = 3
+            Value = 255
+          end
+          object LabelMaxHeight1: TLabel
+            AnchorSideTop.Control = SpinEditLevelHeight
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditLevelHeight
+            Left = 108
+            Height = 20
+            Top = 161
+            Width = 39
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Level'
+          end
+          object LabelRaiseRingThickness1: TLabel
+            AnchorSideTop.Control = FloatSpinLevelRingThickness
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = FloatSpinLevelRingThickness
+            Left = 33
+            Height = 20
+            Top = 198
+            Width = 111
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 4
+            Caption = 'Ring Thickness'
+          end
+          object FloatSpinLevelRingThickness: TFloatSpinEdit
+            AnchorSideTop.Control = SpinEditLevelHeight
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxLevelTerrainSettings
+            AnchorSideRight.Side = asrBottom
+            Left = 148
+            Height = 32
+            Top = 192
+            Width = 161
+            Anchors = [akTop, akLeft, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MinValue = 0.01
+            TabOrder = 4
+            Value = 1
+          end
+        end
+        object PanelEditTerrainSave: TPanel
+          AnchorSideLeft.Control = PanelEditTerrain
+          AnchorSideRight.Control = PanelEditTerrain
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 34
+          Top = 296
+          Width = 316
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          BevelOuter = bvNone
+          ClientHeight = 34
+          ClientWidth = 316
+          TabOrder = 3
+          object ButtonSaveTerrain: TButton
+            AnchorSideLeft.Control = PanelEditTerrainSave
+            AnchorSideTop.Control = PanelEditTerrainSave
+            Left = 5
+            Height = 34
+            Top = 0
+            Width = 104
+            AutoSize = True
+            BorderSpacing.Left = 5
+            Caption = 'Save Terrain'
+            TabOrder = 0
+          end
+          object ButtonSaveTerrainAs: TButton
+            AnchorSideLeft.Control = ButtonSaveTerrain
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = PanelEditTerrainSave
+            Left = 114
+            Height = 34
+            Top = 0
+            Width = 126
+            AutoSize = True
+            BorderSpacing.Left = 5
+            Caption = 'Save Terrain As'
+            TabOrder = 1
+          end
+        end
+      end
+    end
   end
   object PanelLeft: TPanel
     Left = 0

@@ -54,6 +54,9 @@ type
   );
 
   { Frame to visually design component hierarchy. }
+
+  { TDesignFrame }
+
   TDesignFrame = class(TFrame)
     ActionEditTerrain: TAction;
     ActionApiReferenceOfCurrent: TAction;
@@ -61,19 +64,43 @@ type
     ActionSimulationPauseUnpause: TAction;
     ActionSimulationPlayStop: TAction;
     ActionListDesign: TActionList;
+    ButtonSaveTerrain: TButton;
+    ButtonSaveTerrainAs: TButton;
     ButtonStartFinishEditMode: TButton;
     ButtonResetTransformation: TButton;
     ButtonClearTranslation: TButton;
     ButtonPlayStop: TSpeedButton;
     ButtonApiReferenceForCurrent: TSpeedButton;
+    FloatSpinRaiseRingThickness: TFloatSpinEdit;
+    FloatSpinLowerRingThickness: TFloatSpinEdit;
+    FloatSpinLevelRingThickness: TFloatSpinEdit;
+    GroupBoxRaiseTerrainSettings: TGroupBox;
+    GroupBoxLowerTerrainSettings: TGroupBox;
+    GroupBoxLevelTerrainSettings: TGroupBox;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    LabelMaxHeight1: TLabel;
+    LabelRaiseRingThickness: TLabel;
+    LabelLowerRingThickness: TLabel;
+    LabelRaiseRingThickness1: TLabel;
+    LabelStrength: TLabel;
     LabelPhysics: TLabel;
     LabelPlayStop: TLabel;
+    LabelStrength1: TLabel;
+    LabelMaxHeight: TLabel;
+    LabelStrength2: TLabel;
+    LabelStrength3: TLabel;
+    LabelStrength4: TLabel;
+    LabelStrength5: TLabel;
     LabelViewport: TLabel;
     LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
     LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
     MemoInfo: TMemo;
+    PanelEditTerrainSave: TPanel;
+    PanelEditTerrain: TPanel;
     PanelExtraTools: TPanel;
     PanelSpinEditAllowVerticalCentering: TPanel;
     SeparatorBeforeChangeClass: TMenuItem;
@@ -120,6 +147,38 @@ type
     ButtonTranslateMode: TSpeedButton;
     ButtonRotateMode: TSpeedButton;
     ButtonScaleMode: TSpeedButton;
+    SpeedButtonLowerCircle: TSpeedButton;
+    SpeedButtonLowerCone: TSpeedButton;
+    SpeedButtonLowerCylinder: TSpeedButton;
+    SpeedButtonLowerFixedSquare: TSpeedButton;
+    SpeedButtonLowerPyramid: TSpeedButton;
+    SpeedButtonLowerRing: TSpeedButton;
+    SpeedButtonLowerSquare: TSpeedButton;
+    SpeedButtonLevelCircle: TSpeedButton;
+    SpeedButtonLevelCone: TSpeedButton;
+    SpeedButtonLevelPyramid: TSpeedButton;
+    SpeedButtonLevelSquare: TSpeedButton;
+    SpeedButtonRaiseTerrain: TSpeedButton;
+    SpeedButton2: TSpeedButton;
+    SpeedButton3: TSpeedButton;
+    SpeedButtonRaiseFixedSquare: TSpeedButton;
+    SpeedButtonRaiseSquare: TSpeedButton;
+    SpeedButtonRaisePyramid: TSpeedButton;
+    SpeedButtonRaiseCircle: TSpeedButton;
+    SpeedButtonRaiseCone: TSpeedButton;
+    SpeedButtonRaiseRing: TSpeedButton;
+    SpeedButtonRaiseCylinder: TSpeedButton;
+    SpinEditLowerBrushRotation: TSpinEdit;
+    SpinEditLowerBrushSize: TSpinEdit;
+    SpinEditLevelBrushRotation: TSpinEdit;
+    SpinEditLevelBrushSize: TSpinEdit;
+    SpinEditRaiseMaxHeight: TSpinEdit;
+    SpinEditRaiseBrushSize: TSpinEdit;
+    SpinEditLevelHeight: TSpinEdit;
+    SpinEditRaiseStrength: TSpinEdit;
+    SpinEditRaiseBrushRotation: TSpinEdit;
+    SpinEditLowerStrength: TSpinEdit;
+    SpinEditLevelStrength: TSpinEdit;
     SpinEditSnap: TSpinEdit;
     Splitter1: TSplitter;
     TabLayoutScrollBox: TScrollBox;
@@ -5841,6 +5900,7 @@ begin
     FIsEditingTerrain := true;
     FDesignerLayer.Exists := false;
     VisualizeTransformSelected.Parent := nil;
+    PanelEditTerrain.Visible := true;
   end else
   begin
     // Finish edit mode
@@ -5850,6 +5910,7 @@ begin
     FIsEditingTerrain := false;
     FDesignerLayer.Exists := true;
     VisualizeTransformSelected.Parent := Terrain;
+    PanelEditTerrain.Visible := false;
   end;
 
   if Terrain.Mode = ctmMesh then
