@@ -1,6 +1,5 @@
 ﻿{
-  Copyright 2017-2018 Trung Le (kagamma),
-  Copyright 2020-2020 Andrzej Kilijański (and3md)
+  Copyright 2017-2024 Trung Le (kagamma), Andrzej Kilijański (and3md), Michalis Kamburelis.
 
   Based on sprite-sheet-to-x3d source code by Trung Le (kagamma).
 
@@ -19,7 +18,6 @@
 
   Spec:
   https://docs.cocos2d-x.org/cocos2d-x/v3/en/sprites/spritesheets.html
-  https://titanwolf.org/Network/Articles/Article?AID=557a2a17-0790-4c1a-bc16-96221a21aec1#gsc.tab=0
   https://www.codeandweb.com/blog/2016/01/29/cocos2d-plist-format-explained
 
 }
@@ -70,6 +68,9 @@ type
         AnchorX: Single;
         AnchorY: Single;
 
+        Rotated: Boolean;
+        Offset: TVector2;
+
         constructor Create(const DisplayUrl: String);
         { We support format version 2 and 3. This procedure sets suitable
           ParseFrameDictionaryFormatX procedure. }
@@ -79,7 +80,9 @@ type
           const ImageWidth, ImageHeight: Integer);
         class function ReadDual(const ASrc: String; out V1, V2: Integer): Boolean; overload;
         class function ReadDual(const ASrc: String; out V1, V2: Single): Boolean; overload;
+        class function ReadDual(const ASrc: String; out V: TVector2): Boolean; overload;
         class function ReadQuad(const ASrc: String; out V1, V2, V3, V4: Integer): Boolean;
+        class function ReadBool(const ASrc: TDOMElement): Boolean;
       end;
     var
       FStream: TStream;
@@ -261,6 +264,21 @@ begin
         { full size of the sprite, the same as spriteSourceSize in format 3 }
         if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
           WasFrameSize := true;
+      end else
+      if KeyNode.TextData = 'rotated' then
+      begin
+        Rotated := ReadBool(ValueNode);
+        if Rotated then
+          WritelnWarning('Cocos2d', 'rotated=true is not supported in "%s".', [FDisplayUrl]);
+      end else
+      if KeyNode.TextData = 'offset' then
+      begin
+        ReadDual(ValueNode.TextData, Offset);
+        if not Offset.IsZero then
+          WritelnWarning('Cocos2d', 'Offset (non-zero) is not supported in "%s".', [FDisplayUrl]);
+      end else
+      begin
+        WritelnWarning('Cocos2d', 'Unknown key "%s" in frame of "%s"', [KeyNode.TextData, FDisplayUrl]);
       end;
     end;
   finally
@@ -458,6 +476,11 @@ begin
   Result := true;
 end;
 
+class function TCocos2dLoader.TCocosFrame.ReadDual(const ASrc: String; out V: TVector2): Boolean;
+begin
+  Result := ReadDual(ASrc, V.X, V.Y);
+end;
+
 class function TCocos2dLoader.TCocosFrame.ReadDual(const ASrc: String; out V1,
   V2: Single): Boolean;
 var
@@ -512,6 +535,20 @@ begin
     Exit(false);
 
   Result := true;
+end;
+
+class function TCocos2dLoader.TCocosFrame.ReadBool(const ASrc: TDOMElement): Boolean;
+begin
+  if SameText(ASrc.TagName8, 'true') then
+    Result := true
+  else
+  if SameText(ASrc.TagName8, 'false') then
+    Result := false
+  else
+  begin
+    WritelnWarning('Cocos2d', 'Invalid boolean value "%s".', [ASrc.TagName8]);
+    Result := false;
+  end;
 end;
 
 { TCocos2dLoader ------------------------------------------------------------ }
@@ -584,7 +621,9 @@ begin
       if KeyNode.TextData = 'format' then
         FCocosFormat := StrToInt(ValueNode.TextData)
       else
-        continue;
+      begin
+        WritelnWarning('Cocos2d', 'Unknown key "%s" in metadata of "%s"', [KeyNode.TextData, FDisplayUrl]);
+      end;
     end;
   finally
     FreeAndNil(I);
