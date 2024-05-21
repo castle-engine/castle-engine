@@ -383,6 +383,27 @@ object DesignFrame: TDesignFrame
       ShowHint = True
       ParentShowHint = False
     end
+    object PanelExtraTools: TPanel
+      Left = 5
+      Height = 34
+      Top = 50
+      Width = 316
+      Align = alTop
+      AutoSize = True
+      BorderSpacing.Around = 5
+      BevelOuter = bvNone
+      ClientHeight = 34
+      ClientWidth = 316
+      TabOrder = 1
+      object Button1: TButton
+        Left = 0
+        Height = 34
+        Top = 0
+        Width = 100
+        Action = ActionEditTerrain
+        AutoSize = True
+        TabOrder = 0
+      end
   end
   object PanelLeft: TPanel
     Left = 0
@@ -1440,6 +1461,12 @@ object DesignFrame: TDesignFrame
       Hint = 'Help for Current Component / Property'#10'(F1)'
       ImageIndex = 12
       OnExecute = ActionApiReferenceOfCurrentExecute
+    end
+    object ActionEditTerrain: TAction
+      Category = 'Terrain'
+      Caption = 'Edit Terrain'
+      OnExecute = ActionEditTerrainExecute
+      OnUpdate = ActionEditTerrainUpdate
     end
   end
 end

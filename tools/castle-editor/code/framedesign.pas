@@ -54,12 +54,17 @@ type
   );
 
   { Frame to visually design component hierarchy. }
+
+  { TDesignFrame }
+
   TDesignFrame = class(TFrame)
+    ActionEditTerrain: TAction;
     ActionApiReferenceOfCurrent: TAction;
     ActionPlayStop: TAction;
     ActionSimulationPauseUnpause: TAction;
     ActionSimulationPlayStop: TAction;
     ActionListDesign: TActionList;
+    Button1: TButton;
     ButtonResetTransformation: TButton;
     ButtonClearTranslation: TButton;
     ButtonPlayStop: TSpeedButton;
@@ -72,6 +77,7 @@ type
     LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
     MemoInfo: TMemo;
+    PanelExtraTools: TPanel;
     PanelSpinEditAllowVerticalCentering: TPanel;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
@@ -129,6 +135,8 @@ type
     TabInfo: TTabSheet;
     UpdateObjectInspector: TTimer;
     procedure ActionApiReferenceOfCurrentExecute(Sender: TObject);
+    procedure ActionEditTerrainExecute(Sender: TObject);
+    procedure ActionEditTerrainUpdate(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
@@ -273,6 +281,7 @@ type
       // Last selected components (with AutoSelectParents=true)
       LastSelected: TComponentList;
       FShowColliders: Boolean;
+      FIsEditingTerrain: Boolean;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -699,7 +708,7 @@ uses
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleUriUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
-  CastleInternalUrlUtils,
+  CastleInternalUrlUtils, CastleTerrain,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
@@ -4895,9 +4904,19 @@ begin
       { Special case to disallow editing TCastleAbstractRootTransform transformation.
         See InspectorFilter for explanation, in short: editing TCastleAbstractRootTransform
         transformation is very unintuitive. }
-      VisualizeTransformSelected.Parent := nil
+      VisualizeTransformSelected.Parent := nil;
+
+      { Hide extra tools panel (currently used only for TCastleTerrain) }
+      PanelExtraTools.Visible := false;
     end else
     begin
+      { Hide or show extra tools panel (currently used only for TCastleTerrain)}
+      if T is TCastleTerrain then
+      begin
+        PanelExtraTools.Visible := true;
+      end else
+        PanelExtraTools.Visible := false;
+
       VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
     end;
   finally FreeAndNil(Selected) end;
@@ -5808,6 +5827,54 @@ begin
   OnApiReferenceOfCurrent(Self);
 end;
 
+procedure TDesignFrame.ActionEditTerrainExecute(Sender: TObject);
+var
+  Terrain: TCastleTerrain;
+begin
+  if (CurrentTransform = nil) or (not (CurrentTransform is TCastleTerrain)) then
+    Exit;
+
+  Terrain := CurrentTransform as TCastleTerrain;
+  if Terrain.Mode = ctmMesh then
+  begin
+    // Start edit mode
+    Terrain.Mode := ctmShader;
+    ControlProperties.Visible := false;
+    PanelLeft.Visible := false;
+    FIsEditingTerrain := true;
+    FDesignerLayer.Exists := false;
+  end else
+  begin
+    // Finish edit mode
+    Terrain.Mode := ctmMesh;
+    ControlProperties.Visible := true;
+    PanelLeft.Visible := true;
+    FIsEditingTerrain := false;
+    FDesignerLayer.Exists := true;
+  end;
+
+  if Terrain.Mode = ctmMesh then
+    ActionEditTerrain.Caption := 'Edit Terrain'
+  else
+    ActionEditTerrain.Caption := 'Finish Terrain Editing';
+end;
+
+procedure TDesignFrame.ActionEditTerrainUpdate(Sender: TObject);
+var
+  Terrain: TCastleTerrain;
+begin
+  ActionEditTerrain.Enabled := (CurrentTransform <> nil) and (CurrentTransform is TCastleTerrain);
+
+  if ActionEditTerrain.Enabled then
+  begin
+    Terrain := CurrentTransform as TCastleTerrain;
+    if Terrain.Mode = ctmMesh then
+      ActionEditTerrain.Caption := 'Edit Terrain'
+    else
+      ActionEditTerrain.Caption := 'Finish Terrain Editing';
+  end;
+end;
+
 procedure TDesignFrame.ActionPlayStopUpdate(Sender: TObject);
 var
   IsRunning: Boolean;
@@ -5874,7 +5941,7 @@ end;
 
 procedure TDesignFrame.FrameResize(Sender: TObject);
 
-  { Buttons on top panel are resized by LCL to have height equal panel height,
+  { Buttons on top PanelExtraTools are resized by LCL to have height equal PanelExtraTools height,
     but this makes them non-square. Fix them to be square.
     Fixes problem observed on Windows. }
   procedure FixButtonSquare(const B: TSpeedButton);
