@@ -2547,7 +2547,7 @@ var
 begin
   inherited;
 
-  FMode := ctmShader;
+  FMode := ctmMesh;
 
   FTriangulate := true;
   FSubdivisions := Vector2(DefaultSubdivisions, DefaultSubdivisions);
