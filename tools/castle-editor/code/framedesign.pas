@@ -601,6 +601,8 @@ type
       This way e.g. VisualizeTransformSelected also shows
       the transformation of selected behavior. }
     function CurrentTransform: TCastleTransform;
+
+    procedure UpdateTerrainEditMode;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -3295,6 +3297,8 @@ begin
   FDesignerLayer.LayerPhysicsSimulation.Exists := CastleApplicationMode in [appSimulation, appSimulationPaused];
   FDesignerLayer.LabelPhysicsSimulationRunning.Exists := CastleApplicationMode = appSimulation;
   FDesignerLayer.LabelPhysicsSimulationPaused.Exists := CastleApplicationMode = appSimulationPaused;
+
+  UpdateTerrainEditMode;
 end;
 
 procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
@@ -4786,6 +4790,37 @@ begin
     Result := TCastleBehavior(SelectedComponent).Parent
   else
     Result := SelectedTransform;
+end;
+
+procedure TDesignFrame.UpdateTerrainEditMode;
+var
+  RayCollision: TRayCollision;
+  HitInfo: TRayCollisionNode;
+  Terrain: TCastleTerrain;
+  Container: TCastleContainer;
+begin
+  if not FIsEditingTerrain then
+    Exit;
+
+  if CurrentViewport = nil then
+    Exit;
+
+  Terrain := CurrentTransform as TCastleTerrain;
+
+  Container := CastleControl.Container;
+
+  if Container.MousePressed = [buttonLeft] then
+  begin
+    RayCollision := CurrentViewport.MouseRayHit;
+    if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
+    begin
+      Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, ctbCone, 6,
+        52, DegToRad(0), 255, 1);
+    end;
+  end;
+
+
+  //CastleControl.Controls.Ins;
 end;
 
 procedure TDesignFrame.UpdateSelectedInfo;
