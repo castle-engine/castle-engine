@@ -337,10 +337,19 @@ procedure TCocos2dLoader.TCocosFrame.PrepareTexCords(
 var
   I: Integer;
 begin
-  TexCoords[0] := Vector2(TexCoordOrigin.X        , TexCoordOrigin.Y);
-  TexCoords[1] := Vector2(TexCoordOrigin.X + Width, TexCoordOrigin.Y);
-  TexCoords[2] := Vector2(TexCoordOrigin.X + Width, TexCoordOrigin.Y + Height);
-  TexCoords[3] := Vector2(TexCoordOrigin.X        , TexCoordOrigin.Y + Height);
+  if Rotated then
+  begin
+    TexCoords[0] := Vector2(TexCoordOrigin.X + Height, TexCoordOrigin.Y);
+    TexCoords[1] := Vector2(TexCoordOrigin.X + Height, TexCoordOrigin.Y + Width);
+    TexCoords[2] := Vector2(TexCoordOrigin.X         , TexCoordOrigin.Y + Width);
+    TexCoords[3] := Vector2(TexCoordOrigin.X         , TexCoordOrigin.Y);
+  end else
+  begin
+    TexCoords[0] := Vector2(TexCoordOrigin.X        , TexCoordOrigin.Y);
+    TexCoords[1] := Vector2(TexCoordOrigin.X + Width, TexCoordOrigin.Y);
+    TexCoords[2] := Vector2(TexCoordOrigin.X + Width, TexCoordOrigin.Y + Height);
+    TexCoords[3] := Vector2(TexCoordOrigin.X        , TexCoordOrigin.Y + Height);
+  end;
 
   // convert all 4 corners to 0..1 range, and flip Y
   for I := 0 to 3 do
@@ -445,8 +454,6 @@ begin
       if KeyNode.TextData = 'rotated' then
       begin
         Rotated := Cocos2dReadBool(ValueNode);
-        if Rotated then
-          WritelnWarning('Cocos2d', 'rotated=true is not supported in "%s".', [FDisplayUrl]);
       end else
       if KeyNode.TextData = 'offset' then
       begin
