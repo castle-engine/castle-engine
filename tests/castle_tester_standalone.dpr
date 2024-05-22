@@ -100,7 +100,8 @@ uses
   TestCastleOpeningAndRendering3D,
   TestCastleWindowOpen,
   TestCastleInternalEgl,
-  TestCastleInternalTools;
+  TestCastleInternalTools,
+  TestX3DLoadInternalCocos2d;
 
 var
   ConsoleTester: TCastleConsoleTester;
