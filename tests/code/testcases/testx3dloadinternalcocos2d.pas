@@ -40,6 +40,8 @@ begin
   D := TXMLDocument.Create;
   try
     RootE := D.CreateElement('root');
+    { D.AppendChild not needed with FPC 3.2.2 or Delphi 10.2, but needed with Delphi 11.3 }
+    D.AppendChild(RootE);
 
     E := RootE.CreateChild('true');
     AssertEquals(true, Cocos2dReadBool(E));
