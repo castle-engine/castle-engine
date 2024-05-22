@@ -213,6 +213,7 @@ var
   DroppedFileCount: Integer;  // number of files dropped
   FileNameLength: Integer;    // length of a dropped file name
   FileName: string;           // a dropped file name
+  PFileName: PChar;
   I: Integer;                 // loops thru all dropped files
   // DropPoint: TPoint;       // point where files dropped
   FileNames: array of AnsiString;
@@ -229,10 +230,11 @@ begin
       FileNameLength := DragQueryFile(DropH, I, nil, 0);
       // set the length of the filename buffer
       SetLength(FileName, FileNameLength+1);
+      PFileName := PChar(FileName);
       // get the filename
-      DragQueryFile(DropH, I, PChar(FileName), FileNameLength+1);
+      DragQueryFile(DropH, I, PFileName, FileNameLength+1);
       // set the index in the filename array to the file name
-      FileNames[I] := AnsiString(FileName);
+      FileNames[I] := AnsiString(PFileName);
       SetLength(FileNames[I], FileNameLength);
     end;
     // DropPoint is where files were dropped
