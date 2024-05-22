@@ -420,7 +420,7 @@ type
   public
     const
       DefaultRotationAccelerationSpeed = 5.0;
-      DefaultRotationSpeed = 2.0;
+      DefaultRotationSpeed = 1.0;
       DefaultZoomSpeed = 1.0;
 
     constructor Create(AOwner: TComponent); override;
