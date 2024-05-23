@@ -240,11 +240,6 @@ begin
     // DropPoint is where files were dropped
     //DragQueryPoint(DropH, DropPoint);
     DoDropFiles(FileNames);
-    for I := 0 to Pred(DroppedFileCount) do
-    begin
-      SetLength(FileNames[I], 0);
-    end;
-    SetLength(FileNames, 0);
   finally
     DragFinish(DropH);
   end;
