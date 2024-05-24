@@ -458,8 +458,10 @@
         if HandleInput then
         begin
           if Container.Pressed[keyArrowRight] then
+          begin
             Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
-          HandleInput := false;
+            HandleInput := false;
+          end;
         end;
       #)
 
