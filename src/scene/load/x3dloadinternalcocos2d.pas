@@ -290,7 +290,7 @@ type
 
     procedure ReadMetadata(const MetadataNode: TDOMElement);
 
-    procedure ReadFrames(const MetadataNode: TDOMElement);
+    procedure ReadFrames(const FramesNode: TDOMElement);
 
     procedure CalculateFrameCoords(const CocosFrame: TCocosFrame);
 
@@ -730,7 +730,7 @@ begin
   end;
 end;
 
-procedure TCocos2dLoader.ReadFrames(const MetadataNode: TDOMElement);
+procedure TCocos2dLoader.ReadFrames(const FramesNode: TDOMElement);
 var
   I: TXMLElementIterator;
   KeyNode: TDOMElement;
@@ -750,7 +750,7 @@ begin
   CoordInterp := nil;
   TimeSensor := nil;
 
-  I := MetadataNode.ChildrenIterator;
+  I := FramesNode.ChildrenIterator;
   try
     while I.GetNext do
     begin
