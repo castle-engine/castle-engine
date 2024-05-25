@@ -701,6 +701,19 @@ begin
       if KeyNode.TextData = 'format' then
         FCocosFormat := StrToInt(ValueNode.TextData)
       else
+      if KeyNode.TextData = 'smartupdate' then
+      begin
+        { We don't need this information }
+      end else
+      if KeyNode.TextData = 'pixelFormat' then
+      begin
+        { We don't need this information -- we support any image format there is in the atlas file. }
+      end else
+      if KeyNode.TextData = 'premultiplyAlpha' then
+      begin
+        if Cocos2dReadBool(ValueNode) then
+          WritelnWarning('Cocos2d', 'premultiplyAlpha is specified as "true", but is not supported in "%s". You must use premultiplyAlpha=false.', [FDisplayUrl]);
+      end else
       begin
         WritelnWarning('Cocos2d', 'Unknown key "%s" in metadata of "%s"', [KeyNode.TextData, FDisplayUrl]);
       end;
