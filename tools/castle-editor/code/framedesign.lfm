@@ -426,30 +426,29 @@ object DesignFrame: TDesignFrame
           Height = 34
           Top = 0
           Width = 34
+          Action = ActionChooseRaiseTerrainTool
           Constraints.MinHeight = 34
           Constraints.MinWidth = 34
-          Caption = 'R'
           Down = True
-          GroupIndex = 40
         end
-        object SpeedButton2: TSpeedButton
+        object SpeedButtonLowerTerrain: TSpeedButton
           Left = 40
           Height = 34
           Top = 0
           Width = 34
+          Action = ActionChooseLowerTerrainTool
           Constraints.MinHeight = 34
           Constraints.MinWidth = 34
-          Caption = 'D'
           GroupIndex = 40
         end
-        object SpeedButton3: TSpeedButton
+        object SpeedButtonLevelTerrain: TSpeedButton
           Left = 80
           Height = 34
           Top = 0
           Width = 34
+          Action = ActionChooseLevelTerrainTool
           Constraints.MinHeight = 34
           Constraints.MinWidth = 34
-          Caption = 'L'
           GroupIndex = 40
         end
         object GroupBoxRaiseTerrainSettings: TGroupBox
@@ -2256,6 +2255,29 @@ object DesignFrame: TDesignFrame
       Caption = 'Edit Terrain'
       OnExecute = ActionEditTerrainExecute
       OnUpdate = ActionEditTerrainUpdate
+    end
+    object ActionChooseRaiseTerrainTool: TAction
+      Category = 'Terrain'
+      AutoCheck = True
+      Caption = 'R'
+      Checked = True
+      GroupIndex = 40
+      OnExecute = ActionChooseRaiseTerrainToolExecute
+    end
+    object ActionChooseLowerTerrainTool: TAction
+      Category = 'Terrain'
+      AutoCheck = True
+      Caption = 'D'
+      GroupIndex = 40
+      Hint = 'Lower terrain'
+      OnExecute = ActionChooseLowerTerrainToolExecute
+    end
+    object ActionChooseLevelTerrainTool: TAction
+      Category = 'Terrain'
+      AutoCheck = True
+      Caption = 'L'
+      GroupIndex = 40
+      OnExecute = ActionChooseLevelTerrainToolExecute
     end
   end
 end

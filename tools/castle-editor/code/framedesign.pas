@@ -55,6 +55,9 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ActionChooseLevelTerrainTool: TAction;
+    ActionChooseLowerTerrainTool: TAction;
+    ActionChooseRaiseTerrainTool: TAction;
     ActionEditTerrain: TAction;
     ActionApiReferenceOfCurrent: TAction;
     ActionPlayStop: TAction;
@@ -156,8 +159,8 @@ type
     SpeedButtonLevelPyramid: TSpeedButton;
     SpeedButtonLevelSquare: TSpeedButton;
     SpeedButtonRaiseTerrain: TSpeedButton;
-    SpeedButton2: TSpeedButton;
-    SpeedButton3: TSpeedButton;
+    SpeedButtonLowerTerrain: TSpeedButton;
+    SpeedButtonLevelTerrain: TSpeedButton;
     SpeedButtonRaiseFixedSquare: TSpeedButton;
     SpeedButtonRaiseSquare: TSpeedButton;
     SpeedButtonRaisePyramid: TSpeedButton;
@@ -188,6 +191,9 @@ type
     TabInfo: TTabSheet;
     UpdateObjectInspector: TTimer;
     procedure ActionApiReferenceOfCurrentExecute(Sender: TObject);
+    procedure ActionChooseLevelTerrainToolExecute(Sender: TObject);
+    procedure ActionChooseLowerTerrainToolExecute(Sender: TObject);
+    procedure ActionChooseRaiseTerrainToolExecute(Sender: TObject);
     procedure ActionEditTerrainExecute(Sender: TObject);
     procedure ActionEditTerrainUpdate(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
@@ -600,6 +606,7 @@ type
     function CurrentTransform: TCastleTransform;
 
     procedure UpdateTerrainEditMode;
+    procedure UpdateChoosenTerrainTool;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -4820,6 +4827,13 @@ begin
   //CastleControl.Controls.Ins;
 end;
 
+procedure TDesignFrame.UpdateChoosenTerrainTool;
+begin
+  GroupBoxRaiseTerrainSettings.Visible := ActionChooseRaiseTerrainTool.Checked;
+  GroupBoxLowerTerrainSettings.Visible := ActionChooseLowerTerrainTool.Checked;
+  GroupBoxLevelTerrainSettings.Visible := ActionChooseLevelTerrainTool.Checked;
+end;
+
 procedure TDesignFrame.UpdateSelectedInfo;
 var
   C: TComponent;
@@ -5913,6 +5927,21 @@ end;
 procedure TDesignFrame.ActionApiReferenceOfCurrentExecute(Sender: TObject);
 begin
   OnApiReferenceOfCurrent(Self);
+end;
+
+procedure TDesignFrame.ActionChooseLevelTerrainToolExecute(Sender: TObject);
+begin
+  UpdateChoosenTerrainTool;
+end;
+
+procedure TDesignFrame.ActionChooseLowerTerrainToolExecute(Sender: TObject);
+begin
+  UpdateChoosenTerrainTool;
+end;
+
+procedure TDesignFrame.ActionChooseRaiseTerrainToolExecute(Sender: TObject);
+begin
+  UpdateChoosenTerrainTool;
 end;
 
 procedure TDesignFrame.ActionEditTerrainExecute(Sender: TObject);
