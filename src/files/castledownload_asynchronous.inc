@@ -255,13 +255,17 @@ type
       HttpPostData is completely ignored in this case.
       Reason: Internally, HttpPostData is just an alternative way to set
       HttpRequestBody.
+
       TODO: We may change this behavior in the future, to make it such that
-      using HttpRequestBody will automatically override HttpPostData.
+      using HttpPostData will automatically set also HttpRequestBody contents
+      to represent the given POST data, immediately.
+      This way the "overriding" will be "whatever is set last, wins".
       For now, @italic(never use both HttpPostData and HttpRequestBody
       at the same time.)
 
-      TODO: For now this is supported only when using FPC (not Delphi)
-      and only on desktop platforms (not mobile). It should be trivial to
+      TODO: For now this is supported only when using FPC (not Delphi),
+      on desktop or Android platforms (not iOS yet).
+      It should be trivial to
       make it work in other cases too, just let us know
       ( https://castle-engine.io/talk.php ).
     }
