@@ -341,6 +341,7 @@ type
       LastSelected: TComponentList;
       FShowColliders: Boolean;
       FIsEditingTerrain: Boolean;
+      FTerrainLevelHeight: Byte;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -4802,6 +4803,131 @@ var
   HitInfo: TRayCollisionNode;
   Terrain: TCastleTerrain;
   Container: TCastleContainer;
+
+  function GetTerrainBrush: TCastleTerrainBrush;
+  begin
+    if ActionChooseRaiseTerrainTool.Checked then
+    begin
+      if SpeedButtonRaiseFixedSquare.Down then
+        Exit(ctbFixedSquare);
+
+      if SpeedButtonRaiseSquare.Down then
+        Exit(ctbSquare);
+
+      if SpeedButtonRaisePyramid.Down then
+        Exit(ctbPyramid);
+
+      if SpeedButtonRaiseCircle.Down then
+        Exit(ctbCircle);
+
+      if SpeedButtonRaiseCone.Down then
+        Exit(ctbCone);
+
+      if SpeedButtonRaiseRing.Down then
+        Exit(ctbRing);
+
+      if SpeedButtonRaiseCylinder.Down then
+        Exit(ctbLyingCylinder);
+    end else
+    if ActionChooseLowerTerrainTool.Checked then
+    begin
+      if SpeedButtonLowerFixedSquare.Down then
+        Exit(ctbFixedSquare);
+
+      if SpeedButtonLowerSquare.Down then
+        Exit(ctbSquare);
+
+      if SpeedButtonLowerPyramid.Down then
+        Exit(ctbPyramid);
+
+      if SpeedButtonLowerCircle.Down then
+        Exit(ctbCircle);
+
+      if SpeedButtonLowerCone.Down then
+        Exit(ctbCone);
+
+      if SpeedButtonLowerRing.Down then
+        Exit(ctbRing);
+
+      if SpeedButtonLowerCylinder.Down then
+        Exit(ctbLyingCylinder);
+    end else
+    if ActionChooseLevelTerrainTool.Checked then
+    begin
+      if SpeedButtonLevelSquare.Down then
+        Exit(ctbSquare);
+
+      if SpeedButtonLevelPyramid.Down then
+        Exit(ctbPyramid);
+
+      if SpeedButtonLevelCircle.Down then
+        Exit(ctbCircle);
+
+      if SpeedButtonLevelCone.Down then
+        Exit(ctbCone);
+    end;
+  end;
+
+  function GetTerrainBrushSize: Integer;
+  begin
+    if ActionChooseRaiseTerrainTool.Checked then
+      Exit(SpinEditRaiseBrushSize.Value);
+
+    if ActionChooseLowerTerrainTool.Checked then
+      Exit(SpinEditLowerBrushSize.Value);
+
+    if ActionChooseLevelTerrainTool.Checked then
+      Exit(SpinEditLevelBrushSize.Value);
+  end;
+
+  function GetTerrainToolStrength: Byte;
+  begin
+    if ActionChooseRaiseTerrainTool.Checked then
+      Exit(SpinEditRaiseStrength.Value);
+
+    if ActionChooseLowerTerrainTool.Checked then
+      Exit(SpinEditLowerStrength.Value);
+
+    if ActionChooseLevelTerrainTool.Checked then
+      Exit(SpinEditLevelStrength.Value);
+  end;
+
+  function GetTerrainBrushRotation: Single;
+  begin
+    if ActionChooseRaiseTerrainTool.Checked then
+      Exit(SpinEditRaiseBrushRotation.Value);
+
+    if ActionChooseLowerTerrainTool.Checked then
+      Exit(SpinEditLowerBrushRotation.Value);
+
+    if ActionChooseLevelTerrainTool.Checked then
+      Exit(SpinEditLevelBrushRotation.Value);
+  end;
+
+  function GetTerrainMaxHeight: Byte;
+  begin
+    if ActionChooseRaiseTerrainTool.Checked then
+      Exit(SpinEditRaiseMaxHeight.Value);
+
+    if ActionChooseLowerTerrainTool.Checked then
+      Exit(0);
+
+    if ActionChooseLevelTerrainTool.Checked then
+      Exit(FTerrainLevelHeight);
+  end;
+
+  function GetTerrainRingThickness: Single;
+  begin
+    if ActionChooseRaiseTerrainTool.Checked then
+      Exit(FloatSpinRaiseRingThickness.Value);
+
+    if ActionChooseLowerTerrainTool.Checked then
+      Exit(FloatSpinLowerRingThickness.Value);
+
+    if ActionChooseLevelTerrainTool.Checked then
+      Exit(FloatSpinLevelRingThickness.Value);
+  end;
+
 begin
   if not FIsEditingTerrain then
     Exit;
@@ -4818,13 +4944,11 @@ begin
     RayCollision := CurrentViewport.MouseRayHit;
     if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
     begin
-      Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, ctbCone, 6,
-        52, DegToRad(0), 255, 1);
+      Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, GetTerrainBrush,
+      GetTerrainBrushSize, GetTerrainToolStrength, DegToRad(GetTerrainBrushRotation),
+      GetTerrainMaxHeight, GetTerrainRingThickness);
     end;
   end;
-
-
-  //CastleControl.Controls.Ins;
 end;
 
 procedure TDesignFrame.UpdateChoosenTerrainTool;
