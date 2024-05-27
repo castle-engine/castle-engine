@@ -1063,7 +1063,7 @@ object DesignFrame: TDesignFrame
             MaxValue = 255
             MinValue = 1
             TabOrder = 1
-            Value = 90
+            Value = 190
           end
           object SpinEditLevelBrushRotation: TSpinEdit
             AnchorSideTop.Control = SpinEditLevelStrength
