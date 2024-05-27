@@ -64,7 +64,8 @@ procedure THttpAndroidReader.Start;
   begin
     if HttpRequestBody <> nil then
       Result := StreamToString(HttpRequestBody)
-    else if HttpPostData <> nil then
+    else
+    if HttpPostData <> nil then
       Result := HttpPostData.Text
     else
       Result := '';
@@ -82,9 +83,18 @@ procedure THttpAndroidReader.Start;
     SL := TStringList.Create;
     try
       for I := 0 to HttpHeadersKeys.Count - 1 do
+      begin
+        if Pos(':', HttpHeadersKeys[I]) <> 0 then
+          raise Exception.CreateFmt('HTTP header key "%s" contains colon (:), this is not allowed', [
+            HttpHeadersKeys[I]
+          ]);
+        if Pos(':', HttpHeadersValues[I]) <> 0 then
+          raise Exception.CreateFmt('HTTP header value "%s" contains colon (:), this is not allowed', [
+            HttpHeadersValues[I]
+          ]);
         SL.Append(HttpHeadersKeys[I] + ':' + HttpHeadersValues[I]);
+      end;
       Result := SL.Text;
-      WritelnLog('Network', 'request %s', [Result]);
     finally
       FreeAndNil(SL);
     end;
