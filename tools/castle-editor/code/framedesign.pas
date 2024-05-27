@@ -4959,7 +4959,20 @@ begin
       FIsFirstTerrainLevelFrame := false;
     end;
   end else
+  begin
     FIsFirstTerrainLevelFrame := true;
+
+    // terrain leveling: change level value based on mouse position
+    if ActionChooseLevelTerrainTool.Checked and (Container.MousePressed = []) then
+    begin
+      RayCollision := CurrentViewport.MouseRayHit;
+      if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
+      begin
+        FTerrainLevelHeight := Terrain.EditMode.TerrainHeight(HitInfo.Point);
+        SpinEditLevelHeight.Value := FTerrainLevelHeight;
+      end;
+    end;
+  end;
 end;
 
 procedure TDesignFrame.UpdateChoosenTerrainTool;
