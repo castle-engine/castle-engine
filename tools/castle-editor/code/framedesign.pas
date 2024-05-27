@@ -342,6 +342,7 @@ type
       FShowColliders: Boolean;
       FIsEditingTerrain: Boolean;
       FTerrainLevelHeight: Byte;
+      FIsFirstTerrainLevelFrame: Boolean;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -4944,11 +4945,21 @@ begin
     RayCollision := CurrentViewport.MouseRayHit;
     if (RayCollision <> nil) and RayCollision.Info(HitInfo) then
     begin
+
+      if FIsFirstTerrainLevelFrame and ActionChooseLevelTerrainTool.Checked then
+      begin
+        FTerrainLevelHeight := Terrain.EditMode.TerrainHeight(HitInfo.Point);
+        SpinEditLevelHeight.Value := FTerrainLevelHeight;
+      end;
+
       Terrain.EditMode.AlterTerrain(Container, HitInfo.Point, GetTerrainBrush,
       GetTerrainBrushSize, GetTerrainToolStrength, DegToRad(GetTerrainBrushRotation),
       GetTerrainMaxHeight, GetTerrainRingThickness);
+
+      FIsFirstTerrainLevelFrame := false;
     end;
-  end;
+  end else
+    FIsFirstTerrainLevelFrame := true;
 end;
 
 procedure TDesignFrame.UpdateChoosenTerrainTool;
