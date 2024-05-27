@@ -6120,6 +6120,7 @@ begin
     FDesignerLayer.Exists := true;
     VisualizeTransformSelected.Parent := Terrain;
     PanelEditTerrain.Visible := false;
+    FIsFirstTerrainLevelFrame := true;
   end;
 
   if Terrain.Mode = ctmMesh then
