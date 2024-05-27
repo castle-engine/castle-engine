@@ -60,12 +60,44 @@ procedure THttpAndroidReader.Start;
     end;
   end;
 
-  function HttpPostDataStr: String;
+  function HttpRequestBodyStr: String;
   begin
+    if HttpRequestBody <> nil then
+      Result := StreamToString(HttpRequestBody)
+    else
     if HttpPostData <> nil then
       Result := HttpPostData.Text
     else
       Result := '';
+  end;
+
+  function HttpHeadersStr: String;
+  var
+    SL: TStringList;
+    I: Integer;
+  begin
+    if HttpHeadersKeys = nil then
+      Exit('');
+    Assert((HttpHeadersKeys <> nil) = (HttpHeadersValues <> nil));
+    Assert(HttpHeadersKeys.Count = HttpHeadersValues.Count);
+    SL := TStringList.Create;
+    try
+      for I := 0 to HttpHeadersKeys.Count - 1 do
+      begin
+        if Pos(':', HttpHeadersKeys[I]) <> 0 then
+          raise Exception.CreateFmt('HTTP header key "%s" contains colon (:), this is not allowed', [
+            HttpHeadersKeys[I]
+          ]);
+        if Pos(':', HttpHeadersValues[I]) <> 0 then
+          raise Exception.CreateFmt('HTTP header value "%s" contains colon (:), this is not allowed', [
+            HttpHeadersValues[I]
+          ]);
+        SL.Append(HttpHeadersKeys[I] + ':' + HttpHeadersValues[I]);
+      end;
+      Result := SL.Text;
+    finally
+      FreeAndNil(SL);
+    end;
   end;
 
 begin
@@ -85,7 +117,7 @@ begin
   MimeType := UriMimeType(Url);
 
   Messaging.OnReceive.Add({$ifdef FPC}@{$endif} HandleDownloadMessages);
-  Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName, HttpPostDataStr]);
+  Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName, HttpRequestBodyStr, HttpHeadersStr]);
   Contents := TMemoryStream.Create;
 
   HttpResponseHeaders := TStringList.Create;
@@ -170,11 +202,6 @@ begin
     // ]);
     Result := true;
   end;
-
-  { TODO:
-    - HttpHeadersKeys, HttpHeadersValues not handled
-      use URLConnection API (setRequestProperty), https://docs.oracle.com/javase/7/docs/api/java/net/URLConnection.html
-  }
 end;
 
 destructor THttpAndroidReader.Destroy;
