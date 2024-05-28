@@ -6166,6 +6166,7 @@ begin
     SpinEditHeightMapHeight.Value := Terrain.EditMode.GetEditModeHeightMapSize.Y;
     SpinEditHeightMapWidth.Value := Terrain.EditMode.GetEditModeHeightMapSize.X;
     ActionChangeHeightMapSizeUpdate(ActionChangeHeightMapSize);
+    ProjectForm.PageControlBottom.Hide;
   end else
   begin
     // Finish edit mode
@@ -6200,6 +6201,7 @@ begin
     VisualizeTransformSelected.Parent := Terrain;
     PanelEditTerrain.Visible := false;
     FIsFirstTerrainLevelFrame := true;
+    ProjectForm.PageControlBottom.Show;
   end;
 
   if Terrain.Mode = ctmMesh then
