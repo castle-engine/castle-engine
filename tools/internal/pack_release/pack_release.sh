@@ -56,20 +56,25 @@ VERBOSE=true
 
 ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 
+# Deal with temporary dir -------------------------------------------------
+
 # Calculate temporary directory, where we will put all the temporary files
 # during packing.
 #
-# Note: The temporary directory is a subdirectory of CI (GitHub Actions)
-# working directory, if running inside CI. This means it will be naturally
-# cleaned along with the workspace, e.g. when GH Actions cleans
-# the working directory at job start.
-if [ -n "${GITHUB_WORKSPACE:-}" ]; then
-  TEMP_PARENT="${GITHUB_WORKSPACE}/"
-else
-  TEMP_PARENT="/tmp/"
-fi
-# make temp unique, using process ID, just in case multiple jobs run in parallel
-TEMP_PARENT="${TEMP_PARENT}castle-engine-release-$$/"
+# Notes:
+# - We make it unique, using process ID, just in case multiple jobs run in parallel.
+# - This cannot be subdirectory of CI workspace (like ${GITHUB_WORKSPACE})
+#   as then we'll have "cp -R ..." fail "we cannot copy directory into itself".
+#   To clean it up, we use bash trap.
+TEMP_PARENT="/tmp/castle-engine-release-$$/"
+
+cleanup ()
+{
+  echo "Cleaning up temporary dir ${TEMP_PARENT}"
+  rm -Rf "${TEMP_PARENT}"
+}
+
+trap cleanup EXIT
 
 # ----------------------------------------------------------------------------
 # Define functions
