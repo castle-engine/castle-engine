@@ -4472,7 +4472,7 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/services/castleopendocument_unimplemented.inc"/>
         <Type Value="Include"/>
       </Item1096>
-      <Item234>
+      <Item1097>
         <Filename Value="../src/files/castleinternaltools.pas"/>
         <UnitName Value="CastleInternalTools"/>
       </Item1097>
