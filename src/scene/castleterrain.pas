@@ -2099,9 +2099,8 @@ begin
   FTerrainModified := true;
 
   SourceTexture := GetCurrentlyUsedTexture;
-  WritelnLog('Source size ' + IntToStr( SourceTexture.TextureImage.Width));
   TargetTexture := GetTargetTexture;
-  WritelnLog('Target Texture size ' + IntToStr( TargetTexture.TextureImage.Width));
+
   TextureWidth := SourceTexture.TextureImage.Width;
   TextureHeight := SourceTexture.TextureImage.Height;
   RenderToTexture := TGLRenderToTexture.Create(TextureWidth, TextureHeight);
@@ -2116,7 +2115,6 @@ begin
       Exit;
     end;
     RenderToTexture.SetTexture(TImageTextureResource(TargetTexture.InternalRendererResource).GLName, GL_TEXTURE_2D);
-    WritelnLog(IntTOStr(TImageTextureResource(TargetTexture.InternalRendererResource).GLName));
     RenderToTexture.GLContextOpen;
     RenderToTexture.RenderBegin;
 
@@ -2179,11 +2177,11 @@ begin
     Brush.Rotation := BrushRotation;
     // map to 0 - 1 range of texture.
     LocalCoord := FTerrain.OutsideToLocal(Coord);
-    WritelnLog('LocalCoord: ' + LocalCoord.ToString);
+    //WritelnLog('LocalCoord: ' + LocalCoord.ToString);
     TexX := MapRangeTo01(LocalCoord.X + FTerrain.Size.X/2, 0, FTerrain.Size.X);
     TexY := MapRangeTo01(LocalCoord.Z + FTerrain.Size.Y/2, 0, FTerrain.Size.Y);
     TexY := 1 - TexY;
-    WritelnLog('Texture Map coords: ' + FloatToStr(TexX) + ', ' + FloatToStr(TexY));
+    //WritelnLog('Texture Map coords: ' + FloatToStr(TexX) + ', ' + FloatToStr(TexY));
 
     // map to pixels
     PX := Floor(TexX * TextureWidth );
@@ -2191,7 +2189,7 @@ begin
     ClampVar(PX, 0, TextureWidth  - 1);
     ClampVar(PY, 0, TextureHeight - 1);
 
-    WritelnLog('Height Map coords: ' + IntToStr(PX) + ', ' + IntToStr(PY));
+    //WritelnLog('Height Map coords: ' + IntToStr(PX) + ', ' + IntToStr(PY));
     Brush.Draw(PX - Brush.Width / 2, PY - Brush.Height / 2);
 
     finally
