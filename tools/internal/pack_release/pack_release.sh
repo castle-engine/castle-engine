@@ -263,17 +263,24 @@ add_external_tool ()
 # Deletes files in current working directory (and doesn't change current working directory).
 cge_clean_all ()
 {
-  # Delete backup files from Emacs (*~), Lazarus (backup), Delphi (*.~???), Blender,
-  # QtCreator (*.pro.user).
+  # Delete
+  # - backup files from
+  #     Emacs (*~),
+  #     Lazarus (backup),
+  #     Delphi (*.~???),
+  #     Blender (*.blend?),
+  #     QtCreator (*.pro.user).
+  # - macOS app bundles (made by "make examples-laz", not cleaned up by "make clean").
 	"${FIND}" . -type f '(' \
       -iname '*~' -or \
       -iname '*.bak' -or \
       -iname '*.~???' -or \
       -iname '*.pro.user' -or \
-      -iname '*.blend1' \
+      -iname '*.blend?' \
     ')' -exec rm -f '{}' ';'
 	"${FIND}" . -type d '(' \
     -iname 'backup' \
+    -iname '*.app' \
 		')' -exec rm -Rf '{}' ';' -prune
 
   # Delete pasdoc generated documentation in doc/pasdoc/ and doc/reference/
@@ -305,6 +312,9 @@ cge_clean_all ()
 
   # Remove Vampyre Demos - take up 60 MB space, and are not necessary for users of CGE.
   rm -Rf src/vampyre_imaginglib/src/Demos/
+
+  # Made by "make examples-laz", not cleaned up by "make clean".
+  rm -f examples/audio/test_sound_source_allocator/mainf.lrs
 }
 
 # Prepare directory with precompiled CGE.
