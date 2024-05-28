@@ -2908,6 +2908,7 @@ begin
 
   TerrainNode := nil;
   UpdateGeometry;
+  FEditMode.SetTerrainModified(false);
 end;
 
 function TCastleTerrain.PropertySections(const PropertyName: String): TPropertySections;
