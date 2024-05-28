@@ -1,0 +1,146 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to
+#
+# - test CGE compilation and automatic tests (using various FPC versions available in Docker)
+# - pack CGE into zip (using only stable FPC, since our pack_release checks it)
+#
+# Uses CGE Docker image https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/
+# inside GH hosted runner.
+#
+# See https://docs.github.com/en/actions for docs.
+# ----------------------------------------------------------------------------
+
+name: Test And Pack (Docker)
+
+# Called by everything.yml
+on: [workflow_call]
+#on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test-docker-base:
+    strategy:
+      matrix:
+        fpc-name: [stable, fpc320, fpc331]
+        include:
+          - fpc-name: stable
+            docker-tag: cge-none
+          - fpc-name: fpc320
+            docker-tag: cge-none-fpc320
+          - fpc-name: fpc331
+            docker-tag: cge-none-fpc331
+    name: Base Tests
+    runs-on: ubuntu-latest
+    # Use Docker image with CGE prerequisites (FPC, Lazarus, Android tools etc.)
+    # See https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/ .
+    container: kambi/castle-engine-cloud-builds-tools:${{ matrix.docker-tag }}
+    steps:
+      - uses: actions/checkout@v4
+      # Set env CASTLE_ENGINE_PATH following
+      # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
+      # https://brandur.org/fragments/github-actions-env-vars-in-env-vars
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Tools
+        run: make clean default
+      - name: Build And Run Auto-Tests
+        run: make clean tests
+      # fpmake compilation with FPC 3.3.1 from 2022-12-27 is broken,
+      # TODO investigate and report.
+      - name: Build Using FpMake
+        if: ${{ matrix.fpc-name != 'fpc331' }}
+        run: make clean test-fpmake
+      - name: Test CastleWindow backends
+        run: ./tools/internal/check_castle_window_backends_compilation
+
+  test-docker-examples:
+    strategy:
+      matrix:
+        fpc-name: [stable, fpc320, fpc331]
+        include:
+          - fpc-name: stable
+            docker-tag: cge-none
+          - fpc-name: fpc320
+            docker-tag: cge-none-fpc320
+          - fpc-name: fpc331
+            docker-tag: cge-none-fpc331
+    name: Examples
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build Examples
+        run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
+
+  test-docker-examples-laz:
+    strategy:
+      matrix:
+        fpc-name: [stable, fpc320, fpc331]
+        include:
+          - fpc-name: stable
+            docker-tag: cge-none
+          - fpc-name: fpc320
+            docker-tag: cge-none-fpc320
+          - fpc-name: fpc331
+            docker-tag: cge-none-fpc331
+    name: Examples Using Lazarus
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
+      # Avoids GIT errors
+      #   fatal: detected dubious ownership in repository at '/__w/castle-engine/castle-engine'
+      #   To add an exception for this directory, call:
+      #   git config --global --add safe.directory /__w/castle-engine/castle-engine
+      #
+      # See https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
+      # https://github.com/git/git/commit/8959555cee7ec045958f9b6dd62e541affb7e7d9
+      # These errors occur during "examples-laz" because it executes "git clean" to do
+      # CASTLE_CONSERVE_DISK_SPACE job.
+      #
+      - name: Avoid GIT dubious ownership errors
+        run: git config --global --add safe.directory /__w/castle-engine/castle-engine
+
+      - name: Build Examples Using Lazarus (FPC / Lazarus Stable)
+        run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
+
+
+  pack:
+    name: Pack to zip
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Remove previous artifacts
+        run: rm -f castle-engine*.zip
+      - name: Pack
+        run: ./tools/internal/pack_release/pack_release.sh
+
+      - name: Download bundled FPC
+        uses: robinraju/release-downloader@v1.10
+        with:
+          repository: "castle-engine/cge-fpc"
+          latest: true
+          # Docs suggest we need a wildcard to get all files: https://github.com/marketplace/actions/release-downloader
+          fileName: "*"
+      - name: Pack With Bundled FPC for Win64/x86_64
+        run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh win64 x86_64
+      - name: Pack With Bundled FPC for Linux/x86_64
+        run: CGE_PACK_BUNDLE=yes ./tools/internal/pack_release/pack_release.sh linux x86_64
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-and-linux-release-from-docker
+          path: "castle-engine*.zip"
+          if-no-files-found: error

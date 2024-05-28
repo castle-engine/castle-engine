@@ -59,6 +59,7 @@ uses
   TestX3DNodes,
   TestX3DNodesOptimizedProxy,
   TestX3DNodesNurbs,
+  TestCastleRendererInternalShader,
   TestCastleScene,
   TestCastleSceneCore,
   TestCastleSceneManager,
@@ -98,7 +99,9 @@ uses
   TestCastleWindow,
   TestCastleOpeningAndRendering3D,
   TestCastleWindowOpen,
-  TestCastleInternalEgl;
+  TestCastleInternalEgl,
+  TestCastleInternalTools,
+  TestX3DLoadInternalCocos2d;
 
 var
   ConsoleTester: TCastleConsoleTester;

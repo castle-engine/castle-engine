@@ -115,6 +115,8 @@ type
   public
     constructor Create;
     constructor Create(const APath: string);
+    constructor CreateNewProject(const ParentDir,
+      ProjectName, TemplateName, ProjectCaption, MainView: String);
     destructor Destroy; override;
 
     { Commands on a project, used by the main program code. }
@@ -424,6 +426,27 @@ begin
     Writeln('Project "' + Name + '" dependencies: ' + DependenciesToStr(Dependencies));
 end;
 
+constructor TCastleProject.CreateNewProject(const ParentDir,
+  ProjectName, TemplateName, ProjectCaption, MainView: String);
+var
+  Options: TProjectCreationOptions;
+  ProjectDirUrl, ProjectDir: String;
+begin
+  Options.ParentDir := ParentDir;
+  Options.TemplateName := TemplateName;
+  Options.ProjectName := ProjectName;
+  Options.ProjectCaption := ProjectCaption;
+  Options.MainView := MainView;
+  ProjectCreateFromTemplate(CastleEnginePath, Options, ProjectDirUrl);
+
+  ProjectDir := UriToFilenameSafe(ProjectDirUrl);
+  Writeln('Created new project in ' + ProjectDir + ' based on template ' + TemplateName);
+
+  Create(ProjectDir);
+
+  DoGenerateProgram(false);
+end;
+
 destructor TCastleProject.Destroy;
 begin
   FreeAndNil(Manifest);
@@ -542,7 +565,7 @@ begin
 
                 SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
                 DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
-                AddExternalLibraries(ExtractFilePath(DestExe));
+                AddExternalLibraries(OutputPath);
                 if not SameFileName(SourceExe, DestExe) then
                 begin
                   { move exe to top-level (in case MainSource is in subdirectory

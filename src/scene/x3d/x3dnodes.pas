@@ -256,7 +256,7 @@ uses Math, StrUtils, URIParser,
   CastleFilesUtils, CastleUriUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleInternalDataUri, CastleDownload,
   CastleInternalNurbs, CastleQuaternions, CastleXmlUtils, CastleOpenDocument,
-  CastleSoundBase, CastleTriangles, X3DLoadInternalUtils,
+  CastleSoundBase, CastleTriangles, X3DLoadInternalUtils, CastleFileFilters,
   CastleApplicationProperties, CastleInternalNodesUnsupported;
 
 {$define read_implementation}
@@ -638,6 +638,52 @@ begin
   FontsFinalization;
 end;
 
+procedure RegisterVrmlX3dModelFormat;
+var
+  ModelFormat: TModelFormat;
+begin
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadX3DClassicInternal;
+  { We don't advertise to users we can save Inventor, although we're close
+    to being able to do it, since we save VRML 1.0.
+    But it's not something we want to maintain, Inventor is really ancient. }
+  //ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveX3DClassic;
+  ModelFormat.MimeTypes.Add('application/x-inventor');
+  ModelFormat.FileFilterName := 'Inventor (*.iv)';
+  ModelFormat.Extensions.Add('.iv');
+  RegisterModelFormat(ModelFormat);
+
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadX3DClassicInternal;
+  ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveX3DClassic;
+  ModelFormat.MimeTypes.Add('model/vrml');
+  ModelFormat.FileFilterName := 'VRML (*.wrl, *.wrl.gz, *.wrz)';
+  ModelFormat.Extensions.Add('.wrl');
+  ModelFormat.Extensions.Add('.wrl.gz');
+  ModelFormat.Extensions.Add('.wrz');
+  RegisterModelFormat(ModelFormat);
+
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadX3DClassicInternal;
+  ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveX3DClassicForceX3D;
+  ModelFormat.MimeTypes.Add('model/x3d+vrml');
+  ModelFormat.FileFilterName := 'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)';
+  ModelFormat.Extensions.Add('.x3dv');
+  ModelFormat.Extensions.Add('.x3dvz');
+  ModelFormat.Extensions.Add('.x3dv.gz');
+  RegisterModelFormat(ModelFormat);
+
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadX3DXmlInternal;
+  ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveX3DXml;
+  ModelFormat.MimeTypes.Add('model/x3d+xml');
+  ModelFormat.FileFilterName := 'X3D XML (*.x3d, *.x3dz, *.x3d.gz)';
+  ModelFormat.Extensions.Add('.x3d');
+  ModelFormat.Extensions.Add('.x3dz');
+  ModelFormat.Extensions.Add('.x3d.gz');
+  RegisterModelFormat(ModelFormat);
+end;
+
 initialization
   AnyNodeDestructionNotifications := TNodeDestructionNotificationList.Create;
 
@@ -692,6 +738,8 @@ initialization
   CurrentlyLoading := TCastleStringList.Create;
 
   FontsInitialization;
+
+  RegisterVrmlX3dModelFormat;
 finalization
   { Because of various finalization order (some stuff may be owned
     e.g. by CastleWindow.Application, and freed at CastleWindow finalization,

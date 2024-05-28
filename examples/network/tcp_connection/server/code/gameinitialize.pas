@@ -1,5 +1,5 @@
 {
-  Copyright 2018 Benedikt Magnus.
+  Copyright 2018-2024 Benedikt Magnus, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,163 +13,83 @@
   ----------------------------------------------------------------------------
 }
 
-{ Game initialization and logic. }
+{ Game initialization.
+  This unit is cross-platform.
+  It will be used by the platform-specific program or library file. }
 unit GameInitialize;
 
 interface
 
-uses
-  Classes, SysUtils,
-  CastleWindow, CastleApplicationProperties,
-  CastleControls, CastleUIControls,
-  CastleClientServer;
+implementation
 
-type
-  TServer = class
-  protected
-    FServer: TCastleTCPServer;
-    procedure OnConnected(AClient: TClientConnection);
-    procedure OnDisconnected(AClient: TClientConnection);
-    procedure OnMessageReceived(const AMessage: String; AClient: TClientConnection);
-  public
-    constructor Create(const APort: Word);
-    destructor Destroy; override;
-    procedure Send(const AMessage: String);
-  end;
-
-type
-  { TODO: migrate to use TCastleView }
-  TEventsHandler = class(TComponent)
-    procedure CreateClick(Sender: TObject);
-    procedure SendClick(Sender: TObject);
-  end;
+uses SysUtils,
+  CastleWindow, CastleLog, CastleUIControls
+  {$region 'Castle Initialization Uses'}
+  // The content here may be automatically updated by CGE editor.
+  , GameViewMain
+  {$endregion 'Castle Initialization Uses'};
 
 var
   Window: TCastleWindow;
-  PortEdit, SendEdit: TCastleEdit;
-  ResponseLabel: TCastleLabel;
-  Server: TServer;
-  Connection: TClientConnection;
-  EventsHandler: TEventsHandler;
 
-implementation
-
-uses CastleColors;
-
-{ One-time initialization. }
+{ One-time initialization of resources. }
 procedure ApplicationInitialize;
-var
-  MyButton: TCastleButton;
-  MyLabel: TCastleLabel;
 begin
-  EventsHandler := TEventsHandler.Create(Application);
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  MyLabel := TCastleLabel.Create(Application);
-  MyLabel.Caption := 'Port:';
-  MyLabel.Anchor(hpMiddle);
-  MyLabel.Anchor(vpTop, -10);
-  MyLabel.Color := White;
-  Window.Controls.InsertFront(MyLabel);
+  { Create views (see https://castle-engine.io/views ). }
+  {$region 'Castle View Creation'}
+  // The content here may be automatically updated by CGE editor.
+  ViewMain := TViewMain.Create(Application);
+  {$endregion 'Castle View Creation'}
 
-  PortEdit := TCastleEdit.Create(Application);
-  PortEdit.Text := '10244';
-  PortEdit.Anchor(hpMiddle);
-  PortEdit.Anchor(vpTop, -60);
-  Window.Controls.InsertFront(PortEdit);
-
-  MyButton := TCastleButton.Create(Application);
-  MyButton.Caption := 'Create server';
-  MyButton.Anchor(hpMiddle);
-  MyButton.Anchor(vpTop, -110);
-  MyButton.OnClick := {$ifdef FPC}@{$endif} EventsHandler.CreateClick;
-  Window.Controls.InsertFront(MyButton);
-
-  SendEdit := TCastleEdit.Create(Application);
-  SendEdit.Anchor(hpMiddle);
-  SendEdit.Anchor(vpTop, -210);
-  Window.Controls.InsertFront(SendEdit);
-
-  MyButton := TCastleButton.Create(Application);
-  MyButton.Caption := 'Send';
-  MyButton.Anchor(hpMiddle);
-  MyButton.Anchor(vpTop, -260);
-  MyButton.OnClick := {$ifdef FPC}@{$endif} EventsHandler.SendClick;
-  Window.Controls.InsertFront(MyButton);
-
-  MyLabel := TCastleLabel.Create(Application);
-  MyLabel.Caption := 'Response:';
-  MyLabel.Anchor(hpMiddle);
-  MyLabel.Anchor(vpTop, -310);
-  MyLabel.Color := White;
-  Window.Controls.InsertFront(MyLabel);
-
-  ResponseLabel := TCastleLabel.Create(Application);
-  ResponseLabel.Anchor(hpMiddle);
-  ResponseLabel.Anchor(vpTop, -360);
-  ResponseLabel.Color := White;
-  Window.Controls.InsertFront(ResponseLabel);
-end;
-
-constructor TServer.Create(const APort: Word);
-begin
-  FServer := TCastleTCPServer.Create;
-  FServer.Port := APort;
-
-  FServer.OnConnected := {$ifdef FPC}@{$endif} OnConnected;
-  FServer.OnDisconnected := {$ifdef FPC}@{$endif} OnDisconnected;
-  FServer.OnMessageReceived := {$ifdef FPC}@{$endif} OnMessageReceived;
-
-  FServer.Start;
-end;
-
-destructor TServer.Destroy;
-begin
-  FServer.Free;
-
-  inherited;
-end;
-
-procedure TServer.OnConnected(AClient: TClientConnection);
-begin
-  ResponseLabel.Caption := 'Connected!';
-end;
-
-procedure TServer.OnDisconnected(AClient: TClientConnection);
-begin
-  ResponseLabel.Caption := 'Disconnected!';
-end;
-
-procedure TServer.OnMessageReceived(const AMessage: String; AClient: TClientConnection);
-begin
-  ResponseLabel.Caption := AMessage;
-end;
-
-procedure TServer.Send(const AMessage: String);
-begin
-  FServer.SendToAll(SendEdit.Text);
-end;
-
-procedure TEventsHandler.CreateClick(Sender: TObject);
-begin
-  Server := TServer.Create(StrToInt(PortEdit.Text));
-end;
-
-procedure TEventsHandler.SendClick(Sender: TObject);
-begin
-  if Assigned(Server) then
-    Server.Send(SendEdit.Text);
+  Window.Container.View := ViewMain;
 end;
 
 initialization
-  ApplicationProperties.ApplicationName := 'server';
+  { This initialization section configures:
+    - Application.OnInitialize
+    - Application.MainWindow
+    - determines initial window size
 
-  { initialize Application callbacks }
+    You should not need to do anything more in this initialization section.
+    Most of your actual application initialization (in particular, any file reading)
+    should happen inside ApplicationInitialize. }
+
   Application.OnInitialize := @ApplicationInitialize;
 
-  { create Window and initialize Window callbacks }
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
-finalization
-  Window.Free;
+  { Optionally, adjust window fullscreen state and size at this point.
+    Examples:
+
+    Run fullscreen:
+
+      Window.FullScreen := true;
+
+    Run in a 600x400 window:
+
+      Window.FullScreen := false; // default
+      Window.Width := 600;
+      Window.Height := 400;
+
+    Run in a window taking 2/3 of screen (width and height):
+
+      Window.FullScreen := false; // default
+      Window.Width := Application.ScreenWidth * 2 div 3;
+      Window.Height := Application.ScreenHeight * 2 div 3;
+
+    Note that some platforms (like mobile) ignore these window sizes.
+  }
+
+  { Special code in client / server examples:
+    Portrait-like aspect ratio, similar to mobile portrait mode. }
+  Window.Width := Application.ScreenWidth div 3;
+  Window.Height := Application.ScreenHeight * 3 div 4;
+
+  { Handle command-line parameters like --fullscreen and --window.
+    By doing this last, you let user to override your fullscreen / mode setup. }
+  Window.ParseParameters;
 end.

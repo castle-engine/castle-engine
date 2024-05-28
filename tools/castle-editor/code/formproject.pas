@@ -43,6 +43,8 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionFindNext: TAction;
+    ActionFindToggle: TAction;
     ActionImportSketchfab: TAction;
     ActionShowStatistics: TAction;
     ActionRunParameterCapabilitiesForceFixedFunction: TAction;
@@ -109,6 +111,9 @@ type
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
     MenuItem15: TMenuItem;
+    MenuItem19: TMenuItem;
+    MenuItem43: TMenuItem;
+    Separator14: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
     MenuItem24: TMenuItem;
@@ -328,6 +333,8 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionFindNextExecute(Sender: TObject);
+    procedure ActionFindToggleExecute(Sender: TObject);
     procedure ActionComponentUpdate(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
@@ -989,6 +996,22 @@ begin
   ImportSketchfabForm.Show;
 end;
 
+procedure TProjectForm.ActionFindNextExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.FindNext;
+end;
+
+procedure TProjectForm.ActionFindToggleExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+
+  // TODO: Make it a checked action, toggle checked state,
+  // synchronize with design (also when it's closed).
+
+  Design.FindToggle;
+end;
+
 procedure TProjectForm.ActionComponentUpdate(Sender: TObject);
 begin
   TAction(Sender).Enabled := (Design <> nil) and (Design.IsEditingTerrain = false);
@@ -1631,7 +1654,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.OnSelectItem := @ShellListViewSelectItem;
     ShellListView1.Hint := 'Double-click to open.' + NL +
       NL +
-      '- Scenes and images open in engine viewers (view3dscene, castle-view-image).' + NL +
+      '- Scenes and images open in engine viewers (castle-model-viewer, castle-image-viewer).' + NL +
       '- Designs open in this editor.' + NL +
       '- Pascal files open in the code editor.' + NL +
       '- Other files open in OS default applications.';
@@ -2401,6 +2424,8 @@ begin
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
   ActionShowStatistics.Enabled := Design <> nil;
+  ActionFindToggle.Enabled := Design <> nil;
+  ActionFindNext.Enabled := Design <> nil;
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
@@ -3132,7 +3157,7 @@ begin
     { Check for images first because TCastleScene can now load images. }
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin
-      OpenWithCastleTool('castle-view-image', SelectedURL, [SelectedURL]);
+      OpenWithCastleTool('castle-image-viewer', SelectedURL, [SelectedURL]);
       Exit;
     end;
 
@@ -3148,7 +3173,7 @@ begin
 
     if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
-      OpenWithCastleTool('view3dscene', SelectedURL,
+      OpenWithCastleTool('castle-model-viewer', SelectedURL,
         ['--project', ProjectPathUrl, SelectedURL]);
       Exit;
     end;

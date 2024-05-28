@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
 
 # ----------------------------------------------------------------------------
 # Pack Castle Game Engine release (source + binaries).
@@ -52,9 +52,24 @@ if which cygpath.exe > /dev/null; then
   OUTPUT_DIRECTORY="`cygpath --mixed \"${OUTPUT_DIRECTORY}\"`"
 fi
 
-VERBOSE=false
+VERBOSE=true
 
 ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
+
+# Calculate temporary directory, where we will put all the temporary files
+# during packing.
+#
+# Note: The temporary directory is a subdirectory of CI (GitHub Actions)
+# working directory, if running inside CI. This means it will be naturally
+# cleaned along with the workspace, e.g. when GH Actions cleans
+# the working directory at job start.
+if [ -n "${GITHUB_WORKSPACE:-}" ]; then
+  TEMP_PARENT="${GITHUB_WORKSPACE}/"
+else
+  TEMP_PARENT="/tmp/"
+fi
+# make temp unique, using process ID, just in case multiple jobs run in parallel
+TEMP_PARENT="${TEMP_PARENT}castle-engine-release-$$/"
 
 # ----------------------------------------------------------------------------
 # Define functions
@@ -86,8 +101,27 @@ detect_platform ()
   SED='sed'
 
   if which cygpath.exe > /dev/null; then
-    MAKE='/bin/make' # On Cygwin, make sure to use Cygwin's make, not the one from Embarcadero
-    FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
+
+    # If we're inside Cygwin/MinGW (despite the name, cygpath also is in MinGW,
+    # and this is the case on GH hosted runner), then we want to use Cygwin/MinGW
+    # tools. They will call bash properly, and our "make" must be able to call
+    # e.g. "tools/build-tool/castle-engine_compile.sh".
+    #
+    # We don't want to use Embarcadero's make (we need GNU make).
+    #
+    # we don't want to use FPC make (FPC on Windows is distributed with
+    # GNU make 3.8, from MinGW).
+
+    if [ -f /bin/make ]; then
+      MAKE='/bin/make'
+    else
+      if which mingw32-make > /dev/null; then
+        MAKE='mingw32-make'
+      fi
+    fi
+
+    # On Cygwin/MinGW, make sure to use Cygwin/MinGW's find, not the one from Windows
+    FIND='/bin/find'
   fi
 
   if [ "`uname -s`" '=' 'FreeBSD' ]; then
@@ -98,6 +132,11 @@ detect_platform ()
   if [ "`uname -s`" '=' 'Darwin' ]; then
     SED='gsed'
   fi
+
+  # for debugging, output versions of tools
+  echo "Using make: ${MAKE}" `${MAKE} --version | head -n 1`
+  echo "Using find: ${FIND}" `${FIND} --version | head -n 1`
+  echo "Using sed: ${SED}" `${SED} --version | head -n 1`
 }
 
 # Compile build tool, put it on $PATH
@@ -110,7 +149,7 @@ prepare_build_tool ()
 
   cd "${CASTLE_ENGINE_PATH}"
   tools/build-tool/castle-engine_compile.sh
-  local BIN_TEMP_PATH="/tmp/castle-engine-release-bin-$$/"
+  local BIN_TEMP_PATH="${TEMP_PARENT}bin/"
   mkdir -p "${BIN_TEMP_PATH}"
   cp "tools/build-tool/castle-engine${HOST_EXE_EXTENSION}" "${BIN_TEMP_PATH}"
   export PATH="${BIN_TEMP_PATH}:${PATH}"
@@ -178,12 +217,12 @@ add_external_tool ()
   shift 2
 
   TOOL_BRANCH_NAME='master'
-  # Temporary, may be useful again in future: use view3dscene from another branch, to compile with this CGE branch
-  # if [ "${GITHUB_NAME}" = 'view3dscene' ]; then
+  # Temporary, may be useful again in future: use castle-model-viewer from another branch, to compile with this CGE branch
+  # if [ "${GITHUB_NAME}" = 'castle-model-viewer' ]; then
   #   TOOL_BRANCH_NAME='shapes-rendering-2'
   # fi
 
-  local TEMP_PATH_TOOL="/tmp/castle-engine-release-$$/${GITHUB_NAME}/"
+  local TEMP_PATH_TOOL="${TEMP_PARENT}tool-${GITHUB_NAME}/"
   mkdir -p "${TEMP_PATH_TOOL}"
   cd "${TEMP_PATH_TOOL}"
   download "https://codeload.github.com/castle-engine/${GITHUB_NAME}/zip/${TOOL_BRANCH_NAME}" "${GITHUB_NAME}".zip
@@ -206,6 +245,11 @@ add_external_tool ()
   else
     castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
     mv "${EXE_NAME}" "${OUTPUT_BIN}"
+
+    if [ "${GITHUB_NAME}" = 'castle-model-viewer' ]; then
+      castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile --manifest-name=CastleEngineManifest.converter.xml
+      mv castle-model-converter"${EXE_EXTENSION}" "${OUTPUT_BIN}"
+    fi
   fi
 }
 
@@ -256,7 +300,7 @@ pack_platform_dir ()
   fi
 
   # Create temporary CGE copy, for packing
-  TEMP_PATH="/tmp/castle-engine-release-$$/"
+  TEMP_PATH="${TEMP_PARENT}release/"
   if which cygpath.exe > /dev/null; then
     # must be native (i.e. cannot be Unix path on Cygwin) as this path
     # (or paths derived from it) is used by CGE native tools
@@ -385,8 +429,8 @@ pack_platform_dir ()
   rm -Rf doc/pasdoc/cache/ pasdoc/ pasdoc-*.zip pasdoc-*.tar.gz
 
   # Add tools
-  add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
-  add_external_tool castle-view-image castle-view-image"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool castle-model-viewer castle-model-viewer"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool castle-image-viewer castle-image-viewer"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
   add_external_tool pascal-language-server server/pasls"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
   # Add bundled tools (FPC)
@@ -421,7 +465,10 @@ pack_platform_zip ()
   rm -f "${ARCHIVE_NAME}"
   zip -r "${ARCHIVE_NAME}" castle_game_engine/
   mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
+  # seems to sometimes fail with "rm: fts_read failed: No such file or directory" on GH hosted windows runner
+  set +e
   rm -Rf "${TEMP_PATH}"
+  set -e
 }
 
 # Prepare Windows installer with precompiled CGE.

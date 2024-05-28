@@ -67,7 +67,7 @@ end;
 
   Menu recreate calls could happen when some KeyUp
   message will cause e.g. TWindowState.SetStandardState. For example,
-  this happens in view3dscene when KeyUp may produce message to KeySensor about
+  this happens in castle-model-viewer when KeyUp may produce message to KeySensor about
   key release, and this may produce ChangedAll on TCastleScene, which produces
   CastleWindowProgress run...
 
@@ -102,7 +102,7 @@ end;
     after doing gtk_signal_handler_block_by_func,
     next unblocking of this signal and any subsequent blocking and unblocking
     were writing
-      (view3dscene:4151): Gtk-WARNING **: unable to find signal handler for
+      (castle-model-viewer:4151): Gtk-WARNING **: unable to find signal handler for
       object(GtkCheckMenuItem:0x8358538) with func(0x80ec484) and data(0x6)
     (but indeed 0x8358538 and 0x80ec484 and 0x6 were exactly parameters
     of blocked signal ! In other words, it seems that blocking signal by
@@ -390,9 +390,7 @@ end;
 { GTK >= 2.16 already includes "gtk_menu_item_set_label":
   http://library.gnome.org/devel/gtk/2.21/GtkMenuItem.html#gtk-menu-item-set-label
   But we cannot use GTK 2.16 (e.g. Debian stable still only has
-  GTK 2.12 on 2010-05;
-  on https://castle-engine.io/view3dscene.php#section_depends
-  we promise GTK 2.6 should work).
+  GTK 2.12 on 2010-05).
 
   So we implement it ourselves, following ideas from
   http://mail.gnome.org/archives/gtk-app-devel-list/2003-October/msg00171.html

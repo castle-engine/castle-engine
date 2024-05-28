@@ -834,10 +834,10 @@ begin
     For unknown reason, changing title on Cocoa resets the cursor to arrow.
     So change it back, if FCursor requires non-standard look.
 
-    Testcase: view3dscene open
+    Testcase: castle-model-viewer open
     demo-models/sensors_pointing_device/touch_sensor_tests.x3dv ,
     hover with mouse over pointing device sensor -- the cursor should remain
-    "hand", not be reset to "arrow". Note that view3dscene uses
+    "hand", not be reset to "arrow". Note that castle-model-viewer uses
     "Window.FpsShowOnCaption := true;" so indeed it changes caption every second.
 
     Some other report:

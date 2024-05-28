@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestX3DNodes" -*-
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -108,6 +108,8 @@ type
     procedure TestWarningUnquotedIdentifier;
     procedure TestConversionPrecision;
     procedure TestInlineShaderCode;
+    procedure TestOpenInvalidIndexes;
+    procedure TestGltfConversion;
   end;
 
 implementation
@@ -302,7 +304,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
   procedure TestReadWrite(const FileName: string);
   var
     First, Second: TX3DTokenInfoList;
-    Node: TX3DNode;
+    Node: TX3DRootNode;
     NewFile: string;
   begin
     First := nil;
@@ -314,7 +316,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
 
       Node := LoadX3DClassic(FileName, false);
       NewFile := InclPathDelim(GetTempDirectory) + 'test_castle_game_engine.x3dv';
-      Save3D(Node, NewFile, ApplicationName, '', xeClassic, false);
+      SaveNode(Node, NewFile, ApplicationName, '');
 
       Second := TX3DTokenInfoList.Create;
       Second.ReadFromFile(NewFile);
@@ -1308,7 +1310,7 @@ begin
     AssertTrue(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { save and load again }
-    Save3D(Node, TempStream, '', '', xeClassic, false);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
@@ -1341,7 +1343,7 @@ begin
 
     { save and load again. During Save3D tweak meta generator and source }
     TempStream.Position := 0;
-    Save3D(Node, TempStream, 'newgenerator', 'newsource', xeClassic, false);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', 'newgenerator', 'newsource');
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
@@ -1364,7 +1366,7 @@ begin
 
     { save and load again, this time going through XML }
     TempStream.Position := 0;
-    Save3D(Node, TempStream, '', '', xeXML, false);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DXmlStream(TempStream);
@@ -1412,7 +1414,7 @@ begin
     { save to XML }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeXML, true);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
 
     { check that loading it back results in 3.1 }
@@ -1425,7 +1427,7 @@ begin
     { save to clasic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, true);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
 
     { check that loading it back results in 3.1 }
@@ -1445,16 +1447,16 @@ begin
     { save to XML }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeXML, false);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
 
-    { check that loading it back results in 3.0
+    { check that loading it back results in X3D (4.0 now)
       (conversion was done, since this is XML) }
     TempStream.Position := 0;
     Node := LoadX3DXmlStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
-    AssertTrue(Node.ForceVersion.Major = 3);
-    AssertTrue(Node.ForceVersion.Minor = 0);
+    AssertEquals(4, Node.ForceVersion.Major);
+    AssertEquals(0, Node.ForceVersion.Minor);
     FreeAndNil(Node);
 
     { load VRML 2.0 }
@@ -1466,11 +1468,12 @@ begin
     { save to classic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, false);
+    SaveNode(Node, TempStream, 'model/vrml', '', '');
     FreeAndNil(Node);
 
     { check that loading it back results in 2.0
-      (conversion not done, since this is classic and conversion not forced) }
+      (conversion not done, since this is classic and conversion not forced
+      by MIME model/vrml) }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
@@ -1487,15 +1490,15 @@ begin
     { save to classic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, true);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
 
-    { check that loading it back results in 3.0
-      (conversion done, since forced = true) }
+    { check that loading it back results in X3D (4.0 now)
+      (conversion done, since MIME indicated X3D) }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
-    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Major = 4);
     AssertTrue(Node.ForceVersion.Minor = 0);
     FreeAndNil(Node);
   finally
@@ -1567,7 +1570,7 @@ begin
 
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, true);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
 
     //Writeln(StreamToString(TempStream)); // useful to debug
@@ -1578,7 +1581,7 @@ begin
 
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeXML, true);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
 
     //Writeln(StreamToString(TempStream)); // useful to debug
@@ -2187,8 +2190,6 @@ var
 begin
   R := LoadNode('castle-data:/test_fix_names.x3dv');
   try
-    { We no longer do renames, so this test outcome just checks that nothing changed }
-    {
     AssertEquals('AA', R.FdChildren[0].X3DName);
     AssertEquals('AA_2', R.FdChildren[1].X3DName);
     AssertEquals('AA_3', R.FdChildren[2].X3DName);
@@ -2218,36 +2219,6 @@ begin
     AssertEquals('EE_5', R.FdChildren[22].X3DName);
     AssertEquals('EE_6', R.FdChildren[23].X3DName);
     AssertEquals('EE_7', R.FdChildren[24].X3DName);
-    }
-    AssertEquals('AA', R.FdChildren[0].X3DName);
-    AssertEquals('AA', R.FdChildren[1].X3DName);
-    AssertEquals('AA', R.FdChildren[2].X3DName);
-    AssertEquals('AA', R.FdChildren[3].X3DName);
-    AssertEquals('AA', R.FdChildren[4].X3DName);
-
-    AssertEquals('BB_1', R.FdChildren[5].X3DName);
-    AssertEquals('BB_1', R.FdChildren[6].X3DName);
-    AssertEquals('BB_1', R.FdChildren[7].X3DName);
-    AssertEquals('BB_1', R.FdChildren[8].X3DName);
-    AssertEquals('BB_1', R.FdChildren[9].X3DName);
-
-    AssertEquals('CC_1a1', R.FdChildren[10].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[11].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[12].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[13].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[14].X3DName);
-
-    AssertEquals('DD_3', R.FdChildren[15].X3DName);
-    AssertEquals('DD_3', R.FdChildren[16].X3DName);
-    AssertEquals('DD_3', R.FdChildren[17].X3DName);
-    AssertEquals('DD_3', R.FdChildren[18].X3DName);
-    AssertEquals('DD_3', R.FdChildren[19].X3DName);
-
-    AssertEquals('EE_3', R.FdChildren[20].X3DName);
-    AssertEquals('EE_3', R.FdChildren[21].X3DName);
-    AssertEquals('EE_4', R.FdChildren[22].X3DName);
-    AssertEquals('EE_4', R.FdChildren[23].X3DName);
-    AssertEquals('EE_5', R.FdChildren[24].X3DName);
   finally FreeAndNil(R) end;
 end;
 
@@ -2471,7 +2442,7 @@ end;
 
 procedure TTestX3DNodes.TestWarningUnquotedIdentifier;
 
-{ See https://github.com/castle-engine/view3dscene/issues/76 }
+{ See https://github.com/castle-engine/castle-model-viewer/issues/76 }
 
 var
   S: TStringStream;
@@ -2605,6 +2576,38 @@ begin
       SDeleteChars(EffectPart.Contents, [#13])
     );
   finally FreeAndNil(Root) end;
+end;
+
+procedure TTestX3DNodes.TestOpenInvalidIndexes;
+var
+  Node: TX3DRootNode;
+begin
+  try
+    Node := LoadNode('castle-data:/invalid_indexes/castle.gltf');
+    FreeAndNil(Node);
+    Fail('Should raise exception EInvalidGeometryIndex');
+  except
+    on E: EInvalidGeometryIndex do ;
+  end;
+end;
+
+procedure TTestX3DNodes.TestGltfConversion;
+var
+  Node: TX3DRootNode;
+  OutputStream: TMemoryStream;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    Node := LoadNode('castle-data:/quaternius/Bunny.gltf');
+    try
+      OutputStream := TMemoryStream.Create;
+      try
+        SaveNode(Node, OutputStream, 'model/x3d+vrml');
+      finally FreeAndNil(OutputStream) end;
+    finally FreeAndNil(Node) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
 end;
 
 initialization

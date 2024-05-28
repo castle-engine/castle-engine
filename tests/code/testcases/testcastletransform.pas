@@ -71,6 +71,7 @@ type
     procedure TestReparentBehavior;
     procedure TestRemoveParent;
     procedure TestLayersSetSize;
+    procedure TestMiddleAndScale;
   end;
 
 implementation
@@ -2394,6 +2395,48 @@ procedure TTestCastleTransform.TestLayersSetSize;
 begin
   { TCastleLayerCollisions.CustomSerialization assumes this }
   AssertTrue(SizeOf(Int32) = SizeOf(TPhysicsLayers));
+end;
+
+procedure TTestCastleTransform.TestMiddleAndScale;
+var
+  T1, T2, T3: TCastleTransform;
+  B: TCastleBox;
+  V: TCastleViewport;
+begin
+  V := TCastleViewport.Create(nil);
+  try
+    B := TCastleBox.Create(V);
+    B.Size := Vector3(1, 1, 1);
+    B.Translation := Vector3(0.5, 0.5, 0.5);
+    AssertBoxesEqual(Box3D(
+      Vector3(0, 0, 0),
+      Vector3(1, 1, 1)), B.BoundingBox);
+
+    T1 := TCastleTransform.Create(V);
+    T1.Translation := Vector3(100, 200, 300); // should not affect tested Middle
+    T1.Scale := Vector3(10, 10, 10);
+    V.Items.Add(T1);
+
+    T2 := TCastleTransform.Create(V);
+    T2.Translation := Vector3(11, 22, 33); // affects tested Middle
+    T2.Scale := Vector3(2, 2, 2); // affects tested Middle
+    T2.MiddleHeight := 0.9;
+    T1.Add(T2);
+
+    T2.Add(B);
+
+    T3 := TCastleTransform.Create(V);
+    T3.Translation := Vector3(111111, 222222, 333333);
+    T3.Scale := Vector3(1000, 1000, 1000); // should not affect tested Middle
+    T2.Add(T3);
+
+    AssertSameValue(0.9, T2.MiddleHeight, 0.001);
+    AssertSameValue(11, T2.Middle[0]);
+    // Writeln(T2.Middle.ToString);
+    // Writeln(T2.Middle.ToRawString);
+    AssertSameValue(22 + 0.9 * 2, T2.Middle[1], 0.001);
+    AssertSameValue(33, T2.Middle[2]);
+  finally FreeAndNil(V) end;
 end;
 
 initialization

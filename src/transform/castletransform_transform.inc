@@ -181,6 +181,10 @@
     function GetWorldViewRec: TViewVectors;
     procedure SetWorldViewRec(const Value: TViewVectors);
     procedure UpdateCachedBehaviors;
+    { Convert distance from the local coordinate system
+      to parent coordinate system
+      (in short: Result := Distance * AverageScale). }
+    function DistanceToParent(const Distance: Single): Single;
   private
     { "Meaningful" parent is a parent that competes to be a value of Parent.
       This allows to avoid TCastleTransformReference from being considered
@@ -1119,6 +1123,8 @@
       collisions instead of BoundingBox.
       See @link(CollidesWithMoving) and @link(MoveAllowed) for when it may happen.
 
+      Just like @link(Middle) and @link(CollisionSphereRadius), this is expressed in the parent coordinate system.
+
       Must return @false when not Exists (because we can't express
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
       TBox3D.Empty).
@@ -2046,7 +2052,10 @@
 
     { When non-zero, we can approximate collisions with this object using a sphere
       in certain situations (@link(MoveAllowed), @link(Gravity)).
-      This usually makes dynamic objects, like player and creatures, collide better. }
+      This usually makes dynamic objects, like player and creatures, collide better.
+
+      Just like @link(Middle), this is expressed
+      in the parent coordinate system. }
     property CollisionSphereRadius: Single read FCollisionSphereRadius write FCollisionSphereRadius;
 
     { Does the object cast shadows.
@@ -3438,12 +3447,19 @@ begin
   end;
 end;
 
+{ Bottom value (0 or box bottom).
+  In the same coordinate system as given ModelBox. }
 function Bottom(const Gravity: boolean; const GravityCoordinate: Integer;
-  const BoundingBox: TBox3D): Single;
+  const ModelBox: TBox3D): Single;
 begin
   if Gravity then
     Result := 0 else
-    Result := BoundingBox.Data[0][GravityCoordinate];
+    Result := ModelBox.Data[0][GravityCoordinate];
+end;
+
+function TCastleTransform.DistanceToParent(const Distance: Single): Single;
+begin
+  Result := Distance * Abs(AverageScale);
 end;
 
 function TCastleTransform.Middle: TVector3;
@@ -3471,7 +3487,9 @@ begin
       Result.Data[GC] := Lerp(MiddleHeight, B.Data[0][GC], B.Data[1][GC]);
   }
   {$warnings off}
-  Result.Data[GC] := Result.Data[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
+  Result.Data[GC] := Result.Data[GC] +
+    DistanceToParent(Bottom(Gravity, GC, B)) +
+    PreferredHeight;
   {$warnings on}
 end;
 
@@ -3491,7 +3509,10 @@ begin
     Result := 0
   else
     {$warnings off} // using deprecated in deprecated
-    Result := MiddleHeight * (B.Data[1][GC] - Bottom(Gravity, GC, B));
+    Result := MiddleHeight *
+      DistanceToParent(
+        B.Data[1][GC] - Bottom(Gravity, GC, B)
+      );
     {$warnings on}
 
   {$ifdef CHECK_HEIGHT_VS_RADIUS}

@@ -41,9 +41,9 @@
   or an image with data compressed for GPU (@link(TGPUCompressedImage)).
 
   When reading and writing image files, we understand various image
-  formats. See castle-view-image documentation
-  ( https://castle-engine.io/castle-view-image.php )
-  for a current list of supported image formats.
+  formats. See
+  @url(https://castle-engine.io/castle-image-viewer Castle Image Viewer)
+  documentation for a current list of supported image formats.
 
   The basic loading and saving procedures are LoadImage and SaveImage.
   Example usage:
@@ -1660,6 +1660,14 @@ function VectorRGBETo3Single(const v: TVector4Byte): TVector3; deprecated 'RGBE 
 function IsImageMimeType(const MimeType: string;
   const OnlyLoadable, OnlySaveable: boolean): boolean;
 
+{ Add all image MIME types to the list (unless they are already there). }
+procedure AddImageMimeTypes(const MimeTypes: TStrings;
+  const OnlyLoadable, OnlySaveable: boolean);
+
+{ Add all image extensions (with leading dots) (unless they are already there). }
+procedure AddImageExtensions(const Extensions: TStrings;
+  const OnlyLoadable, OnlySaveable: boolean);
+
 { List available image file formats.
 
   This is basically for debug/info purposes, you can show this to user
@@ -2085,7 +2093,6 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
 {$I castleimages_loading_saving_func.inc}
 {$I castleimages_vcl_imaging.inc}
 {$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
-{$I castleimages_ipl.inc}
 {$I castleimages_composite.inc}
 {$I castleimages_assign.inc}
 
@@ -4531,7 +4538,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       begin
         ImageDecompressVar(Result);
         if ClassAllowed(TEncodedImageClass(Result.ClassType)) then
-          Exit; // ClassAllowed was fixed by just decompressing GPU image, testcase: castle-view-image
+          Exit; // ClassAllowed was fixed by just decompressing GPU image, testcase: castle-image-viewer
       end;
 
       { For each possible Result class,

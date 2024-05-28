@@ -110,7 +110,7 @@ begin
     http://en.wikipedia.org/wiki/MIME
     http://tools.ietf.org/html/rfc4288 }
 
-  // 3D models (see also view3dscene MIME specification in view3dscene/desktop/view3dscene.xml)
+  // 3D models (see also castle-model-viewer MIME specification in castle-model-viewer/desktop/castle-model-viewer.xml)
   if Ext    = '.wrl'    then Result := 'model/vrml' else
   if Ext    = '.wrz'    then begin Result := 'model/vrml'; Gzipped := true; end else
   if ExtExt = '.wrl.gz' then begin Result := 'model/vrml'; Gzipped := true; end else
@@ -191,7 +191,7 @@ begin
   if Ext = '.mp3' then Result := 'audio/mpeg' else
   if Ext = '.ogg' then Result := 'audio/ogg' else
   if Ext = '.oga' then Result := 'audio/ogg' else
-  if Ext = '.wav' then Result := 'audio/x-wav' else
+  if Ext = '.wav' then Result := 'audio/wav' else
   if Ext = '.mid' then Result := 'audio/midi' else
   if Ext = '.midi' then Result := 'audio/midi' else
   if Ext = '.au' then Result := 'audio/basic' else

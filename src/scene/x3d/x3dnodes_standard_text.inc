@@ -881,7 +881,7 @@ end;
 procedure FontsInitialization;
 begin
   { We do not embed in CGE now all 12 font variants,
-    see view3dscene/embedded_data/fonts/README.md for explanation.
+    see castle-model-viewer/embedded_data/fonts/README.md for explanation.
     So just set all fonts to use default Font_Default3d_Sans. }
   DefaultFontData[ffTypeWriter, true , true ] := Font_Default3d_Sans;
   DefaultFontData[ffTypeWriter, true , false] := Font_Default3d_Sans;

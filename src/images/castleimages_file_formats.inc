@@ -1,6 +1,6 @@
 {%MainUnit castleimages.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -71,9 +71,7 @@ type
       However, you can also load/convert such image format
       to normal 8-bits image formats (like TRGBImage),
       if you're Ok with losing some of the precision. }
-    ifRGBE,
-
-    ifIPL
+    ifRGBE
 
     {$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
     ,
@@ -142,9 +140,6 @@ function LoadPCX(const Stream: TStream;
 
 { Load PNM image (PNM, PGM, PBM, PPM). }
 function LoadPNM(const Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
-
-function LoadIPL(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Load RGBE image. }
@@ -550,15 +545,6 @@ const
       Load: {$ifdef FPC}@{$endif}LoadRGBE;
       Save: {$ifdef FPC}@{$endif}SaveRGBE; SavedClasses: scRGB_RGBFloat;
       DetectClass: nil;
-    ),
-    ( FormatName: 'IPLab image';
-      MimeTypesCount: 1;
-      { IPL MIME type invented by Michalis, to make it unique to communicate image format for LoadImage } { }
-      MimeTypes: ('image/x-ipl', '', '', '', '', '', '');
-      ExtsCount: 1; Exts: ('ipl', '', '', '');
-      Load: {$ifdef FPC}@{$endif}LoadIPL;
-      Save: nil; SavedClasses: scRGB;
-      DetectClass: nil;
     )
 
     {$ifdef CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
@@ -696,6 +682,60 @@ var
   ImgFormat: TImageFormat;
 begin
   Result := MimeTypeToImageFormat(MimeType, OnlyLoadable, OnlySaveable, ImgFormat);
+end;
+
+procedure AddImageMimeTypes(const MimeTypes: TStrings;
+  const OnlyLoadable, OnlySaveable: boolean);
+var
+  I: TImageFormat;
+  M: TImageFormatInfoMimeTypesCount;
+  MimeType: String;
+begin
+  for I := Low(I) to High(I) do
+  begin
+    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[I].Load)) and
+       ((not OnlySaveable) or Assigned(ImageFormatInfos[I].Save)) then
+    for M := 1 to ImageFormatInfos[I].MimeTypesCount do
+    begin
+      MimeType := ImageFormatInfos[I].MimeTypes[M];
+      // all MIME types within ImageFormatInfos[I].MimeTypesCount should be OK
+      Assert(MimeType <> '');
+      {$warnings off} // this assertion is guaranteed by types now, ignore warning
+      // at least one MIME type must be defined
+      Assert(ImageFormatInfos[I].MimeTypesCount >= 1);
+      {$warnings on}
+      if MimeTypes.IndexOf(MimeType) = -1 then
+        MimeTypes.Add(MimeType);
+    end;
+  end;
+end;
+
+procedure AddImageExtensions(const Extensions: TStrings;
+  const OnlyLoadable, OnlySaveable: boolean);
+var
+  I: TImageFormat;
+  ExtIndex: TImageFormatInfoExtsCount;
+  Ext: String;
+begin
+  for I := Low(I) to High(I) do
+  begin
+    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[I].Load)) and
+       ((not OnlySaveable) or Assigned(ImageFormatInfos[I].Save)) then
+    for ExtIndex := 1 to ImageFormatInfos[I].ExtsCount do
+    begin
+      // extensions in ImageFormatInfos[I].Exts don't include dot
+      Assert(not IsPrefix('.', ImageFormatInfos[I].Exts[ExtIndex], false));
+      Ext := '.' + ImageFormatInfos[I].Exts[ExtIndex];
+      // all extensions within ImageFormatInfos[I].ExtsCount should be OK
+      Assert(Ext <> '');
+      {$warnings off} // this assertion is guaranteed by types now, ignore warning
+      // at least one extension must be defined
+      Assert(ImageFormatInfos[I].ExtsCount >= 1);
+      {$warnings on}
+      if Extensions.IndexOf(Ext) = -1 then
+        Extensions.Add(Ext);
+    end;
+  end;
 end;
 
 function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean;

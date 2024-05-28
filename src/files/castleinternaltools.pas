@@ -20,6 +20,8 @@
   @unorderedList(
     @item(CGE build tool, in tools/build-tool/)
 
+    @item(CGE editor, in tools/castle-editor/)
+
     @item(Delphi design-time functionality, in castle_engine_design.dpk,
       in unit CastleInternalDelphiDesign.)
   )
@@ -164,10 +166,39 @@ function StringToDependency(const S: String): TDependency;
   or '' if not known. }
 function ApiReferenceUrlCore(const EnginePath: String): String;
 
+{ Make correct CGE project qualified name from any ProjectName. }
+function MakeQualifiedName(ProjectName: String): String;
+
+{ Make correct CGE project Pascal name from any ProjectName. }
+function MakeProjectPascalName(ProjectName: String): String;
+
+type
+  { Options for project creation. }
+  TProjectCreationOptions = record
+    { Where to place the new project.
+      A subdirectory ProjectName will be created there. }
+    ParentDir: String;
+
+    { Template name to use, must be one of the allowed templates
+      in project_templates. }
+    TemplateName: String;
+
+    { New project parameters. }
+    ProjectName: String;
+    ProjectCaption: String;
+    MainView: String;
+  end;
+
+{ Create directory with new CGE project, instantiating given template. }
+procedure ProjectCreateFromTemplate(const EnginePath: String;
+  const Options: TProjectCreationOptions;
+  out ProjectDirUrl: String);
+
 implementation
 
 uses SysUtils, StrUtils,
-  CastleUriUtils, CastleXmlUtils, CastleStringUtils, CastleLog;
+  CastleUriUtils, CastleXmlUtils, CastleStringUtils, CastleLog, CastleUtils,
+  CastleFilesUtils;
 
 function ApiReferenceUrlCore(const EnginePath: String): String;
 var
@@ -364,6 +395,160 @@ begin
         end;
       end;
   end;
+end;
+
+{ TTemplateCopyProcess ------------------------------------------------------------ }
+
+type
+  TTemplateCopyProcess = class
+    TemplateUrl: String;
+    ProjectDirUrl: String;
+    MainView: String;
+    Macros: TStringStringMap;
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  end;
+
+procedure TTemplateCopyProcess.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+var
+  Contents, RelativeUrl, TargetUrl, TargetFileName, Mime: String;
+begin
+  { Ignore case at IsPrefix / PrefixRemove calls,
+    in case it's not case-sensitive file-system, then the case in theory
+    can differ. }
+  if not IsPrefix(TemplateUrl, FileInfo.URL, true) then
+    raise Exception.CreateFmt('Unexpected: %s is not a prefix of %s, report a bug',
+      [TemplateUrl, FileInfo.URL]);
+  RelativeUrl := PrefixRemove(TemplateUrl, FileInfo.URL, true);
+  TargetUrl := CombineUri(ProjectDirUrl, RelativeUrl);
+  { Rename target files that depend on MainView. }
+  if ExtractUriName(TargetUrl) = 'gameviewmain.pas' then
+    TargetUrl := ExtractUriPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.pas';
+  if ExtractUriName(TargetUrl) = 'gameviewmain.castle-user-interface' then
+    TargetUrl := ExtractUriPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.castle-user-interface';
+  TargetFileName := UriToFilenameSafe(TargetUrl);
+
+  if FileInfo.Directory then
+  begin
+    // create directory
+    if not ForceDirectories(TargetFileName) then
+      raise Exception.CreateFmt('Cannot create directory "%s"', [TargetFileName]);
+  end else
+  begin
+    Mime := UriMimeType(FileInfo.URL);
+    if (Mime = 'application/xml') or
+       (Mime = 'text/plain') then
+    begin
+      // copy text file, replacing macros
+      Contents := FileToString(FileInfo.URL);
+      Contents := SReplacePatterns(Contents, Macros, false);
+      StringToFile(TargetFileName, Contents);
+    end else
+    begin
+      // simply copy other file types (e.g. sample png images in project templates)
+      CheckCopyFile(UriToFilenameSafe(FileInfo.URL), TargetFileName);
+    end;
+  end;
+end;
+
+procedure ProjectCreateFromTemplate(const EnginePath: String;
+  const Options: TProjectCreationOptions;
+  out ProjectDirUrl: String);
+
+  procedure AddMacroXmlQuote(const Macros: TStringStringMap; const MacroName: String);
+
+    function XmlQuote(const S: String): String;
+    begin
+      Result := SReplacePatterns(S,
+        ['&', '<', '>', '"'],
+        ['&amp;', '&lt;', '&gt;', '&quot;'],
+        false { IgnoreCase; can be false, it doesn't matter, as our patterns are not letters }
+      );
+    end;
+
+  begin
+    Macros.Add('${XmlQuote(' + MacroName + ')}', XmlQuote(Macros['${' + MacroName + '}']));
+  end;
+
+var
+  ProjectDir, TemplateUrl, ProjectQualifiedName, ProjectPascalName: String;
+  CopyProcess: TTemplateCopyProcess;
+  Macros: TStringStringMap;
+begin
+  Assert(Options.ProjectName <> '');
+
+  // Calculate and check TemplateUrl
+  // (do it early, to fail early if template does not exist, without creating project dir)
+  TemplateUrl := FilenameToUriSafe(InclPathDelim(EnginePath) +
+    'tools/castle-editor/data/project_templates/' + Options.TemplateName + '/files/');
+  if UriExists(TemplateUrl) <> ueDirectory then
+    raise Exception.CreateFmt('Cannot find template directory %s. Make sure template name is valid and engine path is valid.',
+      [TemplateUrl]);
+
+  // Create project dir
+  ProjectDir := InclPathDelim(Options.ParentDir) + Options.ProjectName;
+  ProjectDirUrl := FilenameToUriSafe(InclPathDelim(ProjectDir));
+  if DirectoryExists(ProjectDir) then
+    raise Exception.CreateFmt('Directory "%s" already exists. Choose a different project name.', [ProjectDir]);
+  if not ForceDirectories(ProjectDir) then
+    raise Exception.CreateFmt('Cannot create directory "%s".', [ProjectDir]);
+
+  ProjectQualifiedName := MakeQualifiedName(Options.ProjectName);
+  ProjectPascalName := MakeProjectPascalName(Options.ProjectName);
+
+  Macros := TStringStringMap.Create;
+  try
+    Macros.Add('${PROJECT_NAME}', Options.ProjectName);
+    Macros.Add('${PROJECT_QUALIFIED_NAME}', ProjectQualifiedName);
+    Macros.Add('${PROJECT_PASCAL_NAME}', ProjectPascalName);
+    Macros.Add('${PROJECT_CAPTION}', Options.ProjectCaption);
+    Macros.Add('${MAIN_VIEW}', Options.MainView);
+    Macros.Add('${MAIN_VIEW_LOWERCASE}', LowerCase(Options.MainView));
+
+    { Generate versions of some macros with xml_quote function. }
+    AddMacroXmlQuote(Macros, 'PROJECT_NAME');
+    AddMacroXmlQuote(Macros, 'PROJECT_QUALIFIED_NAME');
+    AddMacroXmlQuote(Macros, 'PROJECT_PASCAL_NAME');
+    AddMacroXmlQuote(Macros, 'PROJECT_CAPTION');
+
+    CopyProcess := TTemplateCopyProcess.Create;
+    try
+      CopyProcess.TemplateUrl := TemplateUrl;
+      CopyProcess.ProjectDirUrl := ProjectDirUrl;
+      CopyProcess.Macros := Macros;
+      CopyProcess.MainView := Options.MainView;
+      FindFiles(TemplateUrl, '*', true, {$ifdef FPC}@{$endif} CopyProcess.FoundFile, [ffRecursive]);
+    finally FreeAndNil(CopyProcess) end;
+  finally FreeAndNil(Macros) end;
+end;
+
+const
+  AlphaNum = ['a'..'z', 'A'..'Z', '0'..'9'];
+
+function MakeQualifiedName(ProjectName: String): String;
+const
+  { See ToolProject constant in CGE build tool. }
+  QualifiedNameAllowedChars = AlphaNum + ['.'];
+  QualifiedNameAllowedCharsFirst = QualifiedNameAllowedChars - ['.', '0'..'9'];
+begin
+  ProjectName := SDeleteChars(ProjectName, AllChars - QualifiedNameAllowedChars);
+  if (ProjectName <> '') and not (ProjectName[1] in QualifiedNameAllowedCharsFirst) then
+    ProjectName := 'project' + ProjectName;
+  if ProjectName = '' then
+    ProjectName := 'project'; // if ProjectName is left empty after above deletions, set it to anything
+  Result := 'com.mycompany.' + ProjectName;
+end;
+
+function MakeProjectPascalName(ProjectName: String): String;
+const
+  ValidProjectPascalNameChars = AlphaNum + ['_'];
+  ValidProjectPascalNameCharsFirst = ValidProjectPascalNameChars - ['0'..'9'];
+begin
+  ProjectName := SReplaceChars(ProjectName, AllChars - ValidProjectPascalNameChars, '_');
+  if (ProjectName <> '') and not (ProjectName[1] in ValidProjectPascalNameCharsFirst) then
+    ProjectName := 'project' + ProjectName;
+  if ProjectName = '' then
+    ProjectName := 'project'; // if ProjectName is left empty after above deletions, set it to anything
+  Result := ProjectName;
 end;
 
 end.

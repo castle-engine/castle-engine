@@ -356,7 +356,7 @@ begin
     C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
     TextIndex := NextTextIndex;
     {$endif}
-    CharIndex := C - Ord(' ');  // TODO: check that
+    CharIndex := C - Ord(' ');
     ImageX := CharIndex mod FImageColumns;
     ImageY := CharIndex div FImageColumns;
     if ImageY < ImageRows then

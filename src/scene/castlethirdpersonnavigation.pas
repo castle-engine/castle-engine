@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -110,15 +110,28 @@ type
     {$endif}
   );
 
-  { 3rd-person camera navigation.
-    Create an instance of this and assign it to @link(TCastleViewport.Navigation) to use.
-    Be sure to also assign @link(Avatar) if you want to
-    automatically run proper animations on the avatar (alternatively,
-    you can leave @link(Avatar) as @nil and override the @link(SetAnimation) method).
+  TCastleThirdPersonNavigation = class;
+
+  TCastleThirdPersonNavigationAnimationEvent = procedure (
+    const Sender: TCastleThirdPersonNavigation;
+    const AnimationNames: array of String) of object;
+
+  (* 3rd-person (with visible avatar) navigation.
+
+    Create an instance of this and put as TCastleViewport child to use.
+
+    Assign @link(Avatar) to automatically run proper animations on the avatar
+    defined as a single TCastleScene.
+    Alternatively, assign @link(AvatarHierarchy), and leave @link(Avatar) as @nil,
+    and assign the @link(OnAnimation) event to do whatever is necessary
+    to visualize proper animation of the avatar -- this makes sense esp.
+    if your avatar is composed from multiple TCastleScene instances.
     You have to assign at least one of @link(Avatar) or @link(AvatarHierarchy),
     otherwise this navigation doesn't affect anything.
-    (you only need to assign one of them for the navigation component to do the work).
-    Call @link(Init) once the parameters that determine initial camera location are all set.
+    and you only need to assign one of them for the navigation component to do the work.
+
+    Call @link(Init) once the parameters that determine initial camera location
+    are all set.
 
     Turn on @link(TCastleMouseLookNavigation.MouseLook MouseLook) to allow user to move
     the mouse to orbit with the camera around the avatar.
@@ -132,9 +145,71 @@ type
 
     Using the mouse wheel you can get closer / further to the avatar.
 
+    The implementation relies on the @link(TCastleTransform.Direction)
+    and @link(TCastleTransform.Up) vectors being useful, i.e. they should
+    point in the direction of the avatar and up.
+    This works out-of-the-box if your model orientation follows glTF standard,
+    up in +Y and direction in +Z (see DefaultOrientation, otUpYDirectionZ).
+    Customize @link(TCastleTransform.Orientation) to make these vectors
+    work if your avatar has non-standard orientation.
+
+    The navigation will honor @url(https://castle-engine.io/physics physics)
+    if you have configured rigid body and collider components on the avatar.
+    Otherwise, we use "old simple physics" documented on
+    https://castle-engine.io/physics#_old_system_for_collisions_and_gravity .
+    Right now, the "old simple physics" may be actually simpler to control.
+    To make them work:
+
+    @unorderedList(
+      @item(Do not attach TCastleRigidBody and TCastleCollider to the avatar.)
+      @item(Set @link(TCastleScene.PreciseCollisions) to @true on level scenes.)
+      @item(Set @link(MiddleHeight) and @link(CollisionSphereRadius) to indicate
+        sphere around the avatar to resolve collisions.
+        Use @link(TDebugTransform) to visualize this.)
+      @item(SeT @link(GrowSpeed) and @link(FallSpeed) to allow avatar
+        to fall down and climb stairs / hills.)
+    )
+
+    This is an example @code(Start) view method implementation
+    to setup the navigation:
+
+    @longCode(#
+    procedure TViewMain.Start;
+    var
+      DebugAvatar: TDebugTransform;
+    begin
+      inherited;
+
+      { Uncomment and adjust if your avatar has different direction / up
+        than standard in glTF.
+        This is critical to make camera orbiting around and movement of avatar
+        to follow proper direction and up. }
+      // AvatarTransform.Orientation := ot...;
+
+      ThirdPersonNavigation.MouseLook := true;
+
+      { Configure parameters to move nicely using old simple physics,
+        see examples/third_person_navigation for comments.
+        Use these if you decide to move using "direct" method
+        (when AvatarTransform.ChangeTransform = ctDirect,
+        or when AvatarTransform.ChangeTransform = ctAuto and
+        AvatarTransform has no rigid body and collider). }
+      AvatarTransform.MiddleHeight := 0.9;
+      AvatarTransform.CollisionSphereRadius := 0.5;
+      AvatarTransform.GrowSpeed := 10.0;
+      AvatarTransform.FallSpeed := 10.0;
+
+      ThirdPersonNavigation.Init;
+
+      DebugAvatar := TDebugTransform.Create(FreeAtStop);
+      DebugAvatar.Parent := AvatarTransform;
+      DebugAvatar.Exists := true;
+    end;
+    #)
+
     See also the news post with demo movie about this component:
     https://castle-engine.io/wp/2020/06/29/third-person-navigation-with-avatar-component-in-castle-game-engine/
-  }
+  *)
   TCastleThirdPersonNavigation = class(TCastleMouseLookNavigation)
   strict private
     FAvatar: TCastleScene;
@@ -184,6 +259,7 @@ type
     WarningDonePhysicsNotNecessary,
       WarningDoneRigidBodyNecessary,
       WarningDoneColliderNecessary: Boolean;
+    FOnAnimation: TCastleThirdPersonNavigationAnimationEvent;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
@@ -250,8 +326,9 @@ type
       in case some animations are not available in the scene.
       This is checked using @link(TCastleSceneCore.HasAnimation Avatar.HasAnimation).
 
-      This method is virtual so you can override it in descendants to apply
-      the animation in any way, e.g. to a hierarchy of scenes composed from MD3
+      To apply animations in custom way, either override this method,
+      or assign event to @link(OnAnimation).
+      E.g. you can animate a hierarchy of scenes composed from MD3
       pieces. When overriding this, you don't need to call @code(inherited).
       If you override this to apply the animation to something else than @link(Avatar),
       then it may even be reasonable to leave @link(Avatar) as @nil,
@@ -544,6 +621,36 @@ type
     property ChangeTransformation: TChangeTransformation read FChangeTransformation write FChangeTransformation
       default ctAuto;
 
+    { Update the animation displayed by the current avatar.
+
+      See @link(SetAnimation) for details.
+
+      Assigning event to this makes sense if your avatar is composed from
+      multiple TCastleScene instances.
+      This may be called very often, to update animation every frame,
+      so do call @code(SubScene.PlayAnimation) from here.
+      Rather, set @code(SubScene.AutoAnimation) to not restart the animation
+      if it's already running. For example:
+
+      @longCode(#
+      procedure TViewMain.NavigationSetAnimation(const Sender: TCastleThirdPersonNavigation;
+        const AnimationNames: array of String);
+      begin
+        if AnimationNames[0] = 'idle' then
+        begin
+          SceneLegs.AutoAnimation := 'legs_idle';
+          SceneTorso.AutoAnimation := 'torso_idle';
+        end else
+        begin
+          SceneLegs.AutoAnimation := 'legs_walk';
+          SceneTorso.AutoAnimation := 'torso_walk';
+        end'
+      end;
+      #)
+    }
+    property OnAnimation: TCastleThirdPersonNavigationAnimationEvent
+      read FOnAnimation write FOnAnimation;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -803,7 +910,7 @@ begin
       end;
       CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
       FixCameraForCollisions(CameraPos, CameraDir);
-      Camera.SetView(CameraPos, CameraDir, CameraUp);
+      Camera.SetWorldView(CameraPos, CameraDir, CameraUp);
     end;
 
     SetAnimation([AnimationIdle]);
@@ -940,6 +1047,9 @@ begin
         WritelnWarning('Further warnings about avatar animations will not be done, to not flood the log, until you assign new Avatar value');
     end;
   end;
+
+  if Assigned(OnAnimation) then
+    OnAnimation(Self, AnimationNames)
 end;
 
 procedure TCastleThirdPersonNavigation.Update(const SecondsPassed: Single;
@@ -1371,7 +1481,8 @@ var
   end;
   {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
 
-  { Make camera follow the A.Translation.
+  { Make camera follow the A translation (in world-space,
+    so also account for parents' translations).
     Following the character also makes sure that camera stays updated
     (keeps DistanceToAvatarTarget)
     when the avatar is being moved by other routines (e.g. because A.Gravity is working).
@@ -1381,7 +1492,7 @@ var
 
     Does not follow the perfect location instantly,
     which makes a nice effect when character is moving fast.
-    It's inportant to avoid sudden camera moves on sudden avatar moves,
+    It's important to avoid sudden camera moves on sudden avatar moves,
     e.g. changing Y when going up/down stairs. }
   procedure UpdateCamera;
   var
@@ -1393,7 +1504,7 @@ var
 
     TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
 
-    Camera.GetView(CameraPos, CameraDir, CameraUp);
+    Camera.GetWorldView(CameraPos, CameraDir, CameraUp);
 
     { We use CameraDirToTarget, not CameraDir, because (since we update with delay)
       camera may look at a slightly shifted point.
@@ -1418,7 +1529,7 @@ var
         CameraPos := TargetWorldPos - CameraDir * MaxDistance;
     end;
 
-    Camera.SetView(CameraPos, CameraDir, CameraUp);
+    Camera.SetWorldView(CameraPos, CameraDir, CameraUp);
   end;
 
   { Rotate avatar if needed by AimAvatar.

@@ -378,7 +378,7 @@ begin
       See
       ../../../../demo-models/prototypes/proto_sfnode_default.x3dv
       ../../../../demo-models/x3d/tricky_def_use.x3dv
-      for  examples (open and save them back e.g. in view3dscene).
+      for  examples (open and save them back e.g. in castle-model-viewer).
 
       So to make it work right, we have to set DefaultValue for our
       fields, in particular for TSFNode and TMFNode fields.

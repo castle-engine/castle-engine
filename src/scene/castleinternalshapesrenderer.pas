@@ -709,7 +709,7 @@ begin
   { TODO: also Invalidate occlusion culling if camera moved a lot.
 
     Should take care of all viewpoints switching, like
-    - switching to other viewpoint through view3dscene "viewpoints" menu,
+    - switching to other viewpoint through castle-model-viewer "viewpoints" menu,
     - just getting an event set_bind = true through vrml route.
     - calling Camera.SetView / SetWorldView to teleport.
   }

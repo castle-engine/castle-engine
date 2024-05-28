@@ -48,9 +48,13 @@ var
   GuiErrors: Boolean = false;
   OverrideCompiler: TCompiler = DefaultCompiler;
   GuidFromName: Boolean = false;
+  ProjectTemplate: String = 'empty';
+  ProjectParentDir: String = '';
+  ProjectCaption: String = '';
+  ProjectMainView: String = 'Main';
 
 const
-  Options: array [0..24] of TOption =
+  Options: array [0..28] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -76,7 +80,11 @@ const
     (Short: #0 ; Long: 'gui-errors'; Argument: oaNone),
     (Short: #0 ; Long: 'compiler'; Argument: oaRequired),
     (Short: #0 ; Long: 'guid-from-name'; Argument: oaNone),
-    (Short: #0 ; Long: 'windows-robust-pipes'; Argument: oaNone)
+    (Short: #0 ; Long: 'windows-robust-pipes'; Argument: oaNone),
+    (Short: #0 ; Long: 'project-template'; Argument: oaRequired),
+    (Short: #0 ; Long: 'project-parent-dir'; Argument: oaRequired),
+    (Short: #0 ; Long: 'project-caption'; Argument: oaRequired),
+    (Short: #0 ; Long: 'project-main-view'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -106,8 +114,10 @@ begin
             NL+
             'Possible commands:' +NL+
             NL+
-            'create-manifest' +NL+
-            '    Creates simple CastleEngineManifest.xml with guessed values.' +NL+
+            'create PROJECT-NAME' +NL+
+            '    Create a new project, based on one of the existing templates.' + NL +
+            '    Subdirectory PROJECT-NAME will be created in directory provided' + NL +
+            '    as --project-parent-dir), by default in the current directory.' +NL+
             NL+
             'compile' +NL+
             '    Compile project.' +NL+
@@ -197,6 +207,9 @@ begin
             NL+
             'cache-clean' +NL+
             '    Remove the cache directory.' + NL +
+            NL+
+            'create-manifest' +NL+
+            '    (Deprecated) Creates simple CastleEngineManifest.xml with guessed values.' +NL+
             NL+
             'Available options are:' +NL+
             OptionDescription('-h / --help', 'Print this help message and exit.') + NL +
@@ -298,6 +311,10 @@ begin
     22: OverrideCompiler := StringToCompiler(Argument);
     23: GuidFromName := true;
     24: {$ifdef MSWINDOWS} ForcePipesPassthrough := true {$endif};
+    25: ProjectTemplate := Argument;
+    26: ProjectParentDir := Argument;
+    27: ProjectCaption := Argument;
+    28: ProjectMainView := Argument;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -405,8 +422,21 @@ begin
     Parameters.CheckHigh(2);
     DoOutputEnvironment(Parameters[2]);
   end else
+  if Command = 'create' then
   begin
-    if (Command <> 'run') and (Command <> 'output') then
+    Parameters.CheckHigh(2);
+    if ProjectParentDir = '' then
+      ProjectParentDir := GetCurrentDir;
+    if ProjectCaption = '' then
+      ProjectCaption := Parameters[2];
+    Project := TCastleProject.CreateNewProject(ProjectParentDir, Parameters[2],
+      ProjectTemplate, ProjectCaption, ProjectMainView);
+    FreeAndNil(Project);
+  end else
+  begin
+    if (Command <> 'run') and // allows any number of params
+       (Command <> 'compile-run') and // allows any number of params
+       (Command <> 'output') then // check params count by Parameters.CheckHigh on its own
       Parameters.CheckHigh(1);
     Project := TCastleProject.Create;
     try

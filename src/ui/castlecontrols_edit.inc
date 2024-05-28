@@ -479,16 +479,11 @@ end;
 
 function TCastleEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Text') or
-     (PropertyName = 'Alignment') or
-     (PropertyName = 'Enabled') or
-     (PropertyName = 'Placeholder') or
-     (PropertyName = 'PasswordChar') or
-     (PropertyName = 'MaxLength') or
-     (PropertyName = 'FocusedColorPersistent') or
-     (PropertyName = 'UnfocusedColorPersistent') or
-     (PropertyName = 'PlaceholderColorPersistent') or
-     (PropertyName = 'BackgroundColorPersistent') then
+  if ArrayContainsString(PropertyName, [
+      'Text', 'Alignment', 'Enabled', 'Placeholder',
+      'PasswordChar', 'MaxLength', 'FocusedColorPersistent', 'UnfocusedColorPersistent',
+      'PlaceholderColorPersistent', 'BackgroundColorPersistent', 'AutoOnScreenKeyboard'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

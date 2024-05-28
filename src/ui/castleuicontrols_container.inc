@@ -2035,8 +2035,6 @@ begin
     This can significantly speed things up when Culling makes sense
     (lots of off-screen controls). }
 
-  { This way control's get Resize before our OnResize,
-    useful to process them all reliably in OnResize. }
   if Assigned(OnResize) then OnResize(Self);
 end;
 
