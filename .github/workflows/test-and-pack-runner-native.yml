@@ -219,6 +219,11 @@ jobs:
         lazbuild packages/castle_editor_components.lpk
         lazbuild packages/alternative_castle_window_based_on_lcl.lpk
 
+    # Although pack_release.sh will clean already using "make cleanmore",
+    # but it doesn't remve "installed" subdir -- remove it manually.
+    - name: Cleanup before packaging
+      run: rm -Rf ${CASTLE_ENGINE_PATH}/installed/
+
     # TODO: also run examples-laz here
 
     - name: Build and Install PasDoc
@@ -234,6 +239,13 @@ jobs:
         rm -f castle-engine*.zip # remove previous artifacts
         ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
     - name: Archive Artifacts (zip)
+      # We don't archive build on macos-12, because build on macos_x64 is already good for us.
+      # Testing, both these runners produce the functionally equivalent zip
+      # (there are small differences in binaries, though both use the same FPC version
+      # but e.g. FPC puts absolute paths in some binaries, so they differ).
+      # We choose to use macos_x64 as the primary runner for the release,
+      # since this is our own machine (self hosted), we have more control over it.
+      if: ${{ matrix.runner != 'macos-12' }}
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.runner }}-release
