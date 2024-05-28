@@ -749,6 +749,8 @@ type
       @nil if none. }
     property CurrentViewport: TCastleViewport read FCurrentViewport;
 
+    property IsEditingTerrain: Boolean read FIsEditingTerrain;
+
     procedure ViewportViewAxis(const Dir, Up: TVector3);
     procedure ViewportViewAll;
     procedure ViewportViewSelected;

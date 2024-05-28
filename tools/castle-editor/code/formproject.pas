@@ -328,6 +328,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionComponentUpdate(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
     procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
@@ -988,6 +989,11 @@ begin
   ImportSketchfabForm.Show;
 end;
 
+procedure TProjectForm.ActionComponentUpdate(Sender: TObject);
+begin
+  TAction(Sender).Enabled := (Design <> nil) and (Design.IsEditingTerrain = false);
+end;
+
 procedure TProjectForm.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -1341,7 +1347,7 @@ procedure TProjectForm.ActionViewportUpdate(Sender: TObject);
 var
   ViewportActionsAllowed: Boolean;
 begin
-  ViewportActionsAllowed := (Design <> nil) and (Design.CurrentViewport <> nil);
+  ViewportActionsAllowed := (Design <> nil) and (Design.CurrentViewport <> nil) and (Design.IsEditingTerrain = false);
   (Sender as TAction).Enabled := ViewportActionsAllowed;
   // MenuItemViewport.Enabled := ViewportActionsAllowed; // TODO would disable everything without ability to restore
 end;
