@@ -551,6 +551,7 @@ type
     FEditModeBrush: TDrawableImage;
     FEditModeBrushShader: TGLSLProgram;
     FEditModeHeightMapSize: TVector2Integer;
+    FTerrainModified: Boolean;
     DebugImage: TGrayscaleImage;
 
     { Create edit mode viewport with texture based on copy of TextureNode
@@ -574,6 +575,8 @@ type
   private
     function UpdateGeometry(const InputRange, OutputRange: TFloatRectangle;
       const Appearance: TAppearanceNode): TAbstractChildNode;
+
+    procedure SetTerrainModified(const Modified: Boolean);
   public
     constructor Create(ATerrain: TCastleTerrain);
     destructor Destroy; override;
@@ -598,6 +601,8 @@ type
     function TerrainHeight(const Coord: TVector3): Byte;
 
     procedure SaveEditModeHeightMap(const AUrl: String);
+
+    property TerrainModified: Boolean read FTerrainModified;
   end;
 
   { Terrain.
@@ -2013,6 +2018,11 @@ begin
   FTerrain.Scene.RenderOptions.WireframeEffect := weSolidWireframe;
 end;
 
+procedure TCastleTerrainEditMode.SetTerrainModified(const Modified: Boolean);
+begin
+  FTerrainModified := Modified;
+end;
+
 constructor TCastleTerrainEditMode.Create(ATerrain: TCastleTerrain);
 begin
   Assert(ATerrain <> nil, 'Terrain can''t be nil');
@@ -2085,6 +2095,8 @@ var
 begin
   if BrushSize = 0 then
     Exit;
+
+  FTerrainModified := true;
 
   SourceTexture := GetCurrentlyUsedTexture;
   WritelnLog('Source size ' + IntToStr( SourceTexture.TextureImage.Width));
@@ -2205,6 +2217,7 @@ begin
     Exit;
 
   FEditModeHeightMapSize := NewSize;
+  FTerrainModified := true;
 
   if (FShaderHeightTexture1 = nil) or (FShaderHeightTexture2 = nil) then
     Exit;
@@ -2337,6 +2350,7 @@ begin
     SaveTextureContents(Image, TImageTextureResource(SourceTexture.InternalRendererResource).GLName);
 
     SaveImage(Image, AUrl);
+    FTerrainModified := false;
   finally
     FreeAndNil(Image);
   end;
