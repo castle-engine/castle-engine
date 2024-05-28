@@ -1895,7 +1895,10 @@ procedure TCastleCollider.WorldBeforeDetach;
 var
   CastleRBody: TCastleRigidBody;
 begin
-  CastleRBody := Parent.RigidBody;
+  { TODO: this fixes test in console mode, it looks like the rigid body
+    cache may fail in this case }
+  //CastleRBody := Parent.RigidBody;
+  CastleRBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
   if CastleRBody <> nil then
   begin
     // deinitialize collider
