@@ -18,23 +18,6 @@
 
 {$ifdef read_interface}
 
-{ Write model to a VRML or X3D file.
-  Generates a complete file, with header lines (XML headers,
-  or #VRML / #X3D in classic encoding) and everything.
-
-  Generator and Source, if not empty, will be used to set appropriate
-  META values of X3D root file node. This way you can indicate inside X3D file
-  the generator (your program) name and source (original 3D model file name).
-  If this is not an X3D root file node, we will record it inside a comment.
-
-  To force convering to X3D, use @link(TX3DRootNode.ForceSaveAsX3D)
-  before calling this.
-
-  This is internal, normal users should use @link(SaveNode). }
-procedure InternalSaveVrmlX3D(Node: TX3DNode;
-  const Stream: TStream; const Generator, Source: string;
-  const Encoding: TX3DEncoding);
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -70,6 +53,17 @@ const
 
 { global routines ------------------------------------------------------------ }
 
+{ Write model to a VRML or X3D file.
+  Generates a complete file, with header lines (XML headers,
+  or #VRML / #X3D in classic encoding) and everything.
+
+  Generator and Source, if not empty, will be used to set appropriate
+  META values of X3D root file node. This way you can indicate inside X3D file
+  the generator (your program) name and source (original 3D model file name).
+  If this is not an X3D root file node, we will record it inside a comment.
+
+  To force convering to X3D, use @link(TX3DRootNode.ForceSaveAsX3D)
+  before calling this. }
 procedure InternalSaveVrmlX3D(Node: TX3DNode;
   const Stream: TStream; const Generator, Source: string;
   const Encoding: TX3DEncoding);
@@ -265,6 +259,37 @@ begin
       {$endif}
     end;
   finally FreeAndNil(Writer) end;
+end;
+
+procedure SaveX3DXml(const Node: TX3DRootNode;
+  const Stream: TStream; const Generator, Source: string);
+begin
+  // optionally call ForceSaveToX3D, when converting VRML (<= 2) -> X3D (>= 3)
+  if Node.HasForceVersion and
+     (Node.ForceVersion.Major <= 2) then
+    Node.ForceSaveAsX3D;
+
+  InternalSaveVrmlX3D(Node, Stream, Generator, Source, xeXML);
+end;
+
+{ Saves classic encoding, suitable to save all VRML and X3D versions. }
+procedure SaveX3DClassic(const Node: TX3DRootNode;
+  const Stream: TStream; const Generator, Source: string);
+begin
+  InternalSaveVrmlX3D(Node, Stream, Generator, Source, xeClassic);
+end;
+
+{ Like SaveX3DClassic,
+  but optionally calls ForceSaveToX3D if we convert from VRML <= 2,
+  thus it will upgrade VRML <= 2 to X3D >= 3. }
+procedure SaveX3DClassicForceX3D(const Node: TX3DRootNode;
+  const Stream: TStream; const Generator, Source: string);
+begin
+  // optionally call ForceSaveToX3D, when converting VRML (<= 2) -> X3D (>= 3)
+  if Node.HasForceVersion and
+     (Node.ForceVersion.Major <= 2) then
+    Node.ForceSaveAsX3D;
+  SaveX3DClassic(Node, Stream, Generator, Source);
 end;
 
 {$endif read_implementation}

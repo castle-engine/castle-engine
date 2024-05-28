@@ -2587,7 +2587,7 @@ begin
   D := M3.Determinant;
   { Comparing "IsZero(D)" would not be OK,
     see TTestCastleVectors.TestEpsilonInModelViewToNormalMatrix ,
-    https://github.com/castle-engine/view3dscene/issues/35 }
+    https://github.com/castle-engine/castle-model-viewer/issues/35 }
   //if IsZero(D) then
   if D = 0 then
     { modelview not invertible, nothing good to do but we have to continue

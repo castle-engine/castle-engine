@@ -56,6 +56,21 @@ VERBOSE=true
 
 ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 
+# Calculate temporary directory, where we will put all the temporary files
+# during packing.
+#
+# Note: The temporary directory is a subdirectory of CI (GitHub Actions)
+# working directory, if running inside CI. This means it will be naturally
+# cleaned along with the workspace, e.g. when GH Actions cleans
+# the working directory at job start.
+if [ -n "${GITHUB_WORKSPACE:-}" ]; then
+  TEMP_PARENT="${GITHUB_WORKSPACE}/"
+else
+  TEMP_PARENT="/tmp/"
+fi
+# make temp unique, using process ID, just in case multiple jobs run in parallel
+TEMP_PARENT="${TEMP_PARENT}castle-engine-release-$$/"
+
 # ----------------------------------------------------------------------------
 # Define functions
 
@@ -134,7 +149,7 @@ prepare_build_tool ()
 
   cd "${CASTLE_ENGINE_PATH}"
   tools/build-tool/castle-engine_compile.sh
-  local BIN_TEMP_PATH="/tmp/castle-engine-release-bin-$$/"
+  local BIN_TEMP_PATH="${TEMP_PARENT}bin/"
   mkdir -p "${BIN_TEMP_PATH}"
   cp "tools/build-tool/castle-engine${HOST_EXE_EXTENSION}" "${BIN_TEMP_PATH}"
   export PATH="${BIN_TEMP_PATH}:${PATH}"
@@ -207,7 +222,7 @@ add_external_tool ()
   #   TOOL_BRANCH_NAME='shapes-rendering-2'
   # fi
 
-  local TEMP_PATH_TOOL="/tmp/castle-engine-release-$$/${GITHUB_NAME}/"
+  local TEMP_PATH_TOOL="${TEMP_PARENT}tool-${GITHUB_NAME}/"
   mkdir -p "${TEMP_PATH_TOOL}"
   cd "${TEMP_PATH_TOOL}"
   download "https://codeload.github.com/castle-engine/${GITHUB_NAME}/zip/${TOOL_BRANCH_NAME}" "${GITHUB_NAME}".zip
@@ -285,7 +300,7 @@ pack_platform_dir ()
   fi
 
   # Create temporary CGE copy, for packing
-  TEMP_PATH="/tmp/castle-engine-release-$$/"
+  TEMP_PATH="${TEMP_PARENT}release/"
   if which cygpath.exe > /dev/null; then
     # must be native (i.e. cannot be Unix path on Cygwin) as this path
     # (or paths derived from it) is used by CGE native tools

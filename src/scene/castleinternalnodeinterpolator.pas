@@ -765,6 +765,8 @@ begin
 end;
 
 class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream; const BaseUrl: String): TAnimationList;
+const
+  GltfJsonMimeType = 'model/gltf+json';
 
   function LoadGLTFFromString(const Contents: String; const BaseUrl: String): TX3DRootNode;
   var
@@ -772,7 +774,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream;
   begin
     SStream := TStringStream.Create(Contents);
     try
-      Result := LoadGLTF(SStream, BaseUrl);
+      Result := LoadNode(SStream, BaseUrl, GltfJsonMimeType);
     finally FreeAndNil(SStream) end;
   end;
 
@@ -864,7 +866,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream;
             if (MimeType = '') or (MimeType = 'model/x3d+xml') then
               NewNode := LoadX3DXmlInternal(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl)
             else
-            if (MimeType = 'model/gltf+json') then
+            if (MimeType = GltfJsonMimeType) then
               NewNode := LoadGLTFFromString(FrameElement.TextData, AbsoluteBaseUrl)
             else
               raise Exception.CreateFmt('Cannot use mime_type "%s" for a frame in castle-anim-frames', [
@@ -1149,4 +1151,24 @@ begin
   finally FreeAndNil(BakedAnimations) end;
 end;
 
+function LoadAnimFrames(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+var
+  Animations: TNodeInterpolator.TAnimationList;
+begin
+  Animations := TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, BaseUrl);
+  try
+    Result := TNodeInterpolator.LoadToX3D(Animations);
+  finally FreeAndNil(Animations) end;
+end;
+
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadAnimFrames;
+  ModelFormat.MimeTypes.Add('application/x-castle-anim-frames');
+  ModelFormat.FileFilterName := 'Castle Animation Frames (*.castle-anim-frames, *.kanim)';
+  ModelFormat.Extensions.Add('.castle-anim-frames');
+  ModelFormat.Extensions.Add('.kanim');
+  RegisterModelFormat(ModelFormat);
 end.

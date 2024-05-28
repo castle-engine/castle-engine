@@ -494,13 +494,6 @@ td.fail    { background-color:rgb(100%,50%,50%); }
 td.invalid { background-color:rgb(75%,75%,75%); }
 td.testnr  { white-space: nowrap; }
 
-/* view3dscene page stuff */
-hr.ruler_between_sections { width: 100%; }
-dl.params_list dt  {
-  font-weight: normal; font-family: monospace;
-  margin-top: 1em;
-}
-
 /* index page stuff */
 div.main_list_item {
   font-family: serif;
@@ -928,16 +921,16 @@ div.download span.download_details { font-size: smaller; }
   font-weight: inherit !important; /* override Bootstrap */
 }
 
-.convert-form .encoding-title {
+.convert-form .output-format-title {
   margin-bottom: 0.5em;
 }
 
-.convert-form .encoding-radio p {
+.convert-form .output-format-radio p {
   margin-top: 0;
   margin-bottom: 0;
 }
 
-.convert-form .encoding-group {
+.convert-form .output-format-group {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   padding: 0.5em;

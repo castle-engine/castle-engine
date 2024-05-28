@@ -117,7 +117,7 @@ type
 
         @item(We recognize video URLs by extension, and then try
           to load them through ffmpeg. So ffmpeg must be available
-          on $PATH for this. See view3dscene docs for some links.
+          on $PATH for this. See castle-model-viewer docs for some links.
 
           Internally, for now we just use ffmpeg to decompose the video to
           single images, and then proceed to load this image sequence.

@@ -13,23 +13,23 @@
   ----------------------------------------------------------------------------
 }
 
-{ Load 3D models in the glTF 2.0 format (@link(LoadGltf)). }
+{ Load models in the glTF 2.0 format, converting them to an X3D nodes graph.
+  This routine is internally used by the @link(LoadNode) to load an Gltf file. }
 unit X3DLoadInternalGltf;
 
 {$I castleconf.inc}
 
 interface
 
-uses Classes,
-  CastleUtils, CastleVectors, X3DNodes, X3DFields;
-
-{ Load 3D model in the Gltf format, converting it to an X3D nodes graph.
-  This routine is internally used by the @link(LoadNode) to load an Gltf file. }
-function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
 implementation
 
-uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
+uses
+  // standard units
+  Classes,SysUtils, TypInfo, Math, Generics.Collections,
+  // PasGLTF units
+  PasGLTF, PasJSON,
+  // CGE units
+  CastleUtils, CastleVectors, X3DNodes, X3DLoad, X3DFields,
   CastleClassUtils, CastleDownload, CastleUriUtils, CastleLog,
   CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages, CastleVideos, CastleTimeUtils, CastleTransform,
@@ -485,7 +485,7 @@ const
 
         In particular glossiness may be left as 1 (default),
         causing roughness 0, which results in black material,
-        for Bee from https://github.com/castle-engine/view3dscene/issues/27 .
+        for Bee from https://github.com/castle-engine/castle-model-viewer/issues/27 .
 
         For now just avoid having RoughnessFactor ridiculously low. }
       RoughnessFactor := Max(RoughnessFactor, 0.05);
@@ -2921,4 +2921,16 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadGLTF;
+  ModelFormat.OnLoadForceMemoryStream := true;
+  ModelFormat.MimeTypes.Add('model/gltf+json');
+  ModelFormat.MimeTypes.Add('model/gltf-binary');
+  ModelFormat.FileFilterName := 'glTF (*.glb, *.gltf)';
+  ModelFormat.Extensions.Add('.glb');
+  ModelFormat.Extensions.Add('.gltf');
+  RegisterModelFormat(ModelFormat);
 end.

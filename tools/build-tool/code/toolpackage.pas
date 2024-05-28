@@ -168,7 +168,7 @@ begin
       begin
         if DirectoryExists(FullPackageFileName) then
           RemoveNonEmptyDir(FullPackageFileName);
-        CopyDirectory(Path, PackageFileName);
+        CopyDirectory(Path, FullPackageFileName);
       end;
     pfDeb: PackageDebian(Path, PackageOutputPath, PackageFileName, Cpu, Manifest);
     else raise EInternalError.Create('TPackageDirectory.Make PackageFormat?');

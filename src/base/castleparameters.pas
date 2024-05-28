@@ -163,17 +163,17 @@ type
         @unorderedList(
           @item(Command-line
 
-            @preformatted(  view3dscene --navigation Walk)
+            @preformatted(  castle-model-viewer --navigation Walk)
 
             passes two parameters (@code(@--navigation) and @code(Walk))
-            for view3dscene, and these two parameters form one option:
+            for castle-model-viewer, and these two parameters form one option:
             @code(@--navigation=Walk).)
 
          @item(Command-line
 
-            @preformatted(  view3dscene -hv)
+            @preformatted(  castle-model-viewer -hv)
 
-            passes one parameter (@code(-hv)) for view3dscene,
+            passes one parameter (@code(-hv)) for castle-model-viewer,
             and inside this parameter two options are encoded:
             @code(-h) and @code(-v).)
         )
@@ -294,10 +294,10 @@ type
 
       Note that ParseOnlyKnownOptions = @true isn't an absolutely
       fool-proof solution, for example the command-line
-      @code(view3dscene --navigation --geometry 800x600 Walk) is actually invalid.
+      @code(castle-model-viewer --navigation --geometry 800x600 Walk) is actually invalid.
       But we will handle it, by first detecting and removing @code(--geometry 800x600)
       from TCastleWindow.ParseParameters, and then detecting and removing
-      @code(--navigation Walk) from view3dscene code.
+      @code(--navigation Walk) from castle-model-viewer code.
       Basically, processing by Parse many times is not fool-proof
       in some weird situations.
 

@@ -255,13 +255,17 @@ type
       HttpPostData is completely ignored in this case.
       Reason: Internally, HttpPostData is just an alternative way to set
       HttpRequestBody.
+
       TODO: We may change this behavior in the future, to make it such that
-      using HttpPostData will automatically override HttpPostData.
+      using HttpPostData will automatically set also HttpRequestBody contents
+      to represent the given POST data, immediately.
+      This way the "overriding" will be "whatever is set last, wins".
       For now, @italic(never use both HttpPostData and HttpRequestBody
       at the same time.)
 
-      TODO: For now this is supported only when using FPC (not Delphi)
-      and only on desktop platforms (not mobile). It should be trivial to
+      TODO: For now this is supported only when using FPC (not Delphi),
+      on desktop or Android platforms (not iOS yet).
+      It should be trivial to
       make it work in other cases too, just let us know
       ( https://castle-engine.io/talk.php ).
     }
@@ -420,7 +424,7 @@ procedure TCastleDownload.Start;
         begin
           { Gracefully handle exceptions from Size.
             E.g. TGZFileStream raises EZlibError: Compression stream seek error,
-            testcase: view3dscene escape_universe/trunk/data/entities/meteorite_4/animations.x3dv }
+            testcase: castle-model-viewer escape_universe/trunk/data/entities/meteorite_4/animations.x3dv }
           FTotalBytes := -1;
           FDownloadedBytes := 0;
           // WritelnLog('Cannot determine Size of %s (the DownloadedBytes/TotalBytes will be 0/-1): %s', [
@@ -565,7 +569,7 @@ begin
     (at least in FPC) which should not be required, and actually fails with
     some stream implementations.
 
-    Testcase: open with view3dscene demo-models/x3d/data_uri.x3dv .
+    Testcase: open with castle-model-viewer demo-models/x3d/data_uri.x3dv .
     The TUrlData.Read returns TBase64DecodingStream which doesn't allow assigning Position.
   }
   if Source.Position <> 0 then

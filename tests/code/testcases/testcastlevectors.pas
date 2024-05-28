@@ -1027,7 +1027,7 @@ drastically different results for them, due to one matrix resulting
 in determinant close enough to Single epsilon, and other not.
 
 ------------------------------------------------------------------------------
-Exact test input, generated from testcase on https://github.com/castle-engine/view3dscene/issues/35,
+Exact test input, generated from testcase on https://github.com/castle-engine/castle-model-viewer/issues/35,
 with mesh renderer code:
 
     if Arrays.Count = 629 then

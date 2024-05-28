@@ -2190,8 +2190,6 @@ var
 begin
   R := LoadNode('castle-data:/test_fix_names.x3dv');
   try
-    { We no longer do renames, so this test outcome just checks that nothing changed }
-    {
     AssertEquals('AA', R.FdChildren[0].X3DName);
     AssertEquals('AA_2', R.FdChildren[1].X3DName);
     AssertEquals('AA_3', R.FdChildren[2].X3DName);
@@ -2221,36 +2219,6 @@ begin
     AssertEquals('EE_5', R.FdChildren[22].X3DName);
     AssertEquals('EE_6', R.FdChildren[23].X3DName);
     AssertEquals('EE_7', R.FdChildren[24].X3DName);
-    }
-    AssertEquals('AA', R.FdChildren[0].X3DName);
-    AssertEquals('AA', R.FdChildren[1].X3DName);
-    AssertEquals('AA', R.FdChildren[2].X3DName);
-    AssertEquals('AA', R.FdChildren[3].X3DName);
-    AssertEquals('AA', R.FdChildren[4].X3DName);
-
-    AssertEquals('BB_1', R.FdChildren[5].X3DName);
-    AssertEquals('BB_1', R.FdChildren[6].X3DName);
-    AssertEquals('BB_1', R.FdChildren[7].X3DName);
-    AssertEquals('BB_1', R.FdChildren[8].X3DName);
-    AssertEquals('BB_1', R.FdChildren[9].X3DName);
-
-    AssertEquals('CC_1a1', R.FdChildren[10].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[11].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[12].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[13].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[14].X3DName);
-
-    AssertEquals('DD_3', R.FdChildren[15].X3DName);
-    AssertEquals('DD_3', R.FdChildren[16].X3DName);
-    AssertEquals('DD_3', R.FdChildren[17].X3DName);
-    AssertEquals('DD_3', R.FdChildren[18].X3DName);
-    AssertEquals('DD_3', R.FdChildren[19].X3DName);
-
-    AssertEquals('EE_3', R.FdChildren[20].X3DName);
-    AssertEquals('EE_3', R.FdChildren[21].X3DName);
-    AssertEquals('EE_4', R.FdChildren[22].X3DName);
-    AssertEquals('EE_4', R.FdChildren[23].X3DName);
-    AssertEquals('EE_5', R.FdChildren[24].X3DName);
   finally FreeAndNil(R) end;
 end;
 
@@ -2474,7 +2442,7 @@ end;
 
 procedure TTestX3DNodes.TestWarningUnquotedIdentifier;
 
-{ See https://github.com/castle-engine/view3dscene/issues/76 }
+{ See https://github.com/castle-engine/castle-model-viewer/issues/76 }
 
 var
   S: TStringStream;

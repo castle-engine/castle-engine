@@ -771,8 +771,8 @@ end;
   in case there's some problem with FindPlugName.
 
   Testcase: opening
-  view3dscene-mobile/data/demo/teapot (fresnel and toon shader).x3dv
-  in view3dscene-mobile.
+  castle-model-viewer-mobile/data/demo/teapot (fresnel and toon shader).x3dv
+  in castle-model-viewer-mobile.
 }
 
 function MoveToOpeningParen(const S: String; var P: Integer): boolean;
@@ -3772,7 +3772,7 @@ begin
 
     Note that EGLSLError will be captured and turned into warning
     by TScreenEffectResource.PrepareCore .
-    This is desirable for view3dscene, as it should display only a warning
+    This is desirable for castle-model-viewer, as it should display only a warning
     for invalid X3D models. }
 
   if Source[stFragment].Count = 0 then

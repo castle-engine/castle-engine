@@ -3206,7 +3206,7 @@ begin
     "TX3DEvent(Result)" as last param: don't know why,
     but with FPC 2.2.0 this cast may fail (even though it shouldn't
     be checked at all?), testcase:
-      view3dscene www.web3d.org/x3d/content/examples/Basic/CAD/CADGeometryPrototypes.x3d
+      castle-model-viewer www.web3d.org/x3d/content/examples/Basic/CAD/CADGeometryPrototypes.x3d
   }
 
   I := FFields.IndexOfExposedEvent(AName, ResultEvent);

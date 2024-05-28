@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -520,7 +520,6 @@ type
     FUrl: String;
     { Is FUrl watched by FileMonitor. }
     FUrlWatched: Boolean;
-    FStatic: boolean;
     FShadowMaps: boolean;
     FShadowMapsDefaultSize: Cardinal;
     ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
@@ -621,7 +620,6 @@ type
       const CameraLocalPosition: TVector3);
 
     procedure SetUrl(const AValue: String);
-    procedure SetStatic(const Value: boolean);
     procedure SetShadowMaps(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
@@ -1027,7 +1025,8 @@ type
         @exclude }
       InternalDirty: Cardinal;
 
-      { @exclude }
+      { @exclude
+        Do not warn when changed node seems to belong to a different TCastleSceneCore. }
       InternalNodeSharing: Boolean;
 
     const
@@ -1845,33 +1844,6 @@ type
 
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const Params: TPrepareParams); override;
-
-    { Static scene will not be automatically notified about the changes
-      to the field values. This means that TX3DField.Send and
-      TX3DField.Changed will not notify this scene.
-
-      This makes a small optimization when you know you will not modify scene's
-      nodes graph after loading (or you're prepared to notify about it by
-      manually calling Scene.InternalChangedField, though as the name suggests
-      -- you're entering "internal" API which is not guaranteed to work in the future).
-
-      The behavior of events is undefined when scene is static.
-      This means that you should always have ProcessEvents = @false
-      when Static = @true. Only when Static = false you're allowed
-      to freely change ProcessEvents to @true.
-
-      Changing this is expensive when the scene content is already loaded,
-      so it's best to adjust this before @link(Load).
-
-      It is deprecated now, as the
-      optimization done by this is really negligible.
-      However is may still be internally useful to not associate the scene
-      with nodes -- useful for quick "throwaway" scenes,
-      e.g. created only to do Triangulate. }
-    property Static: boolean read FStatic write SetStatic default false;
-      {$ifdef FPC}
-      deprecated 'do not use this; optimization done by this is really negligible; leave ProcessEvents=false for static scenes';
-      {$endif}
 
     { Nice scene caption. Uses the "title" of WorldInfo
       node inside the VRML/X3D scene. If there is no WorldInfo node
@@ -3157,7 +3129,7 @@ procedure TDetectAffectedFields.FindAnimationAffectedFields;
   { Add to the "affected" list the field indicated by given route destination
     (as Node and Event of this node).
     Node = nil is allowed here (Route.DestinationNode may be nil if node was freed,
-    e.g. delete shape in view3dscene). }
+    e.g. delete shape in castle-model-viewer). }
   procedure RouteDestinationAffectsField(const Node: TX3DNode; const Event: TX3DEvent);
   var
     Field: TX3DField;
@@ -3384,7 +3356,7 @@ begin
 
   { We can't call UpdateHeadlightOnFromNavigationInfo here,
     as NavigationInfoStack may contain now already freed nodes
-    (testcase: view3dscene anchor_test and click on key_sensor anchor).
+    (testcase: castle-model-viewer anchor_test and click on key_sensor anchor).
     So only schedule it. }
   ScheduleHeadlightOnFromNavigationInfoInChangedAll := true;
 
@@ -3399,7 +3371,7 @@ begin
     (if loading a scene when ProcessEvents already enabled),
     and it may require that ChangedAll already run (e.g. it may
     initialize Script nodes, that require Node.Scene to be set,
-    see https://github.com/castle-engine/view3dscene/issues/16 ). }
+    see https://github.com/castle-engine/castle-model-viewer/issues/16 ). }
   ChangedAll;
 
   if not (slDisableResetTime in AOptions) then
@@ -4127,15 +4099,12 @@ end;
 
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
-  if not FStatic then
-  begin
-    if (Node.Scene <> nil) and
-       (Node.Scene <> Self) and
-       (not InternalNodeSharing) then
-      WritelnWarning('X3D node %s is already part of another TCastleScene instance.' + ' You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
-        [Node.NiceName]);
-    Node.Scene := Self;
-  end;
+  if (Node.Scene <> nil) and
+     (Node.Scene <> Self) and
+     (not InternalNodeSharing) then
+    WritelnWarning('X3D node %s is already part of another TCastleScene instance.' + ' You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
+      [Node.NiceName]);
+  Node.Scene := Self;
 
   { We're using AddIfNotExists, not simple Add, below:
 
@@ -4230,7 +4199,7 @@ begin
     (note: this is old comment, progress is not possible now)
     which may call Render which may prepare GLSL shadow map shader
     that will be freed by the following ProcessShadowMapsReceivers call.
-    Testcase: view3dscene open simple_shadow_map_teapots.x3dv, turn off
+    Testcase: castle-model-viewer open simple_shadow_map_teapots.x3dv, turn off
     shadow maps "receiveShadows" handling, then turn it back on
     --- will crash without "InternalDirty" variable safety. }
   Inc(InternalDirty);
@@ -5964,7 +5933,7 @@ begin
     then the octree in InternalOctreeCollisions remains assigned
     as long as there's no need to rebuild it.
     This is nice, in case you change Spatial again
-    (e.g. by switching "Collisions" in view3dscene),
+    (e.g. by switching "Collisions" in castle-model-viewer),
     the octree is immediately available.
 
     But we don't want to use this octree.
@@ -6241,23 +6210,6 @@ begin
 
       FProcessEvents := Value;
     end;
-  end;
-end;
-
-procedure TCastleSceneCore.SetStatic(const Value: boolean);
-begin
-  if FStatic <> Value then
-  begin
-    FStatic := Value;
-    if FStatic then
-    begin
-      { Clear TX3DNode.Scene for all nodes }
-      if RootNode <> nil then
-        RootNode.UnregisterScene;
-    end else
-      { Set TX3DNode.Scene for all nodes.
-        This is done as part of ChangedAll when Static = true. }
-      ScheduleChangedAll;
   end;
 end;
 
@@ -6851,7 +6803,7 @@ begin
       To test it all in a simple case,
       open the Spine JSON file
       from https://github.com/castle-engine/demo-models/tree/master/animation/spine_animation_blending_test/exported
-      with view3dscene and run animations with TransitionDuration > 0.
+      with castle-model-viewer and run animations with TransitionDuration > 0.
 
       Note that above assumes that the field X supports lerp (TX3DField.CanAssignLerp).
       Otherwise the AD 3 case is broken (new animation would not correctly "reset"

@@ -442,8 +442,8 @@ begin
     { The Inlined contents are usually TX3DRootNode,
       but they should not be saved as such. Although usually this doesn't
       get saved (since we do not save inline contents), but it may happen
-      if you copy nodes around, e.g. "expanding" inlines (see view3dscene
-      planned feature, in view3dscene/TODO-expand-inlines.txt).
+      if you copy nodes around, e.g. "expanding" inlines (see castle-model-viewer
+      planned feature, in castle-model-viewer/TODO-expand-inlines.txt).
 
       TODO: Such expanding must inherently break mismatching UNIT clauses
       for LengthConversionFactor. To overcome this, our TX3DRootNode
