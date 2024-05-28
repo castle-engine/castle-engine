@@ -2262,7 +2262,9 @@ var
   Image: TGrayscaleImage;
 begin
   // TODO: terrain data layer flattening support
-  DataTerrainImage := FTerrain.Data as TCastleTerrainImage;
+  DataTerrainImage := nil;
+  if (FTerrain.Data <> nil) and (FTerrain.Data is TCastleTerrainImage) then
+    DataTerrainImage := FTerrain.Data as TCastleTerrainImage;
   if DataTerrainImage <> nil then
   begin
     //FShaderHeightTexture1.SetUrl([DataTerrainImage.Url]);
