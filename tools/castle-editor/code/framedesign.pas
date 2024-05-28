@@ -6163,6 +6163,9 @@ begin
     VisualizeTransformSelected.Parent := nil;
     PanelEditTerrain.Visible := true;
     FWasTerrainUrlUpdate := false;
+    SpinEditHeightMapHeight.Value := Terrain.EditMode.GetEditModeHeightMapSize.Y;
+    SpinEditHeightMapWidth.Value := Terrain.EditMode.GetEditModeHeightMapSize.X;
+    ActionChangeHeightMapSizeUpdate(ActionChangeHeightMapSize);
   end else
   begin
     // Finish edit mode
