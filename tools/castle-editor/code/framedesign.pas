@@ -250,6 +250,7 @@ type
     procedure PerformUndoRedo(const UHE: TUndoHistoryElement);
     procedure PerformRedo;
     procedure PerformUndo;
+    procedure SpinEditHeightMapWidthChange(Sender: TObject);
     procedure UpdateObjectInspectorTimer(Sender: TObject);
   protected
     procedure SetParent(AParent: TWinControl); override;
@@ -1979,6 +1980,11 @@ begin
     UndoSystem.Undo;
   end;}
   PerformUndoRedo(UndoSystem.Undo);
+end;
+
+procedure TDesignFrame.SpinEditHeightMapWidthChange(Sender: TObject);
+begin
+  ActionChangeHeightMapSizeUpdate(ActionChangeHeightMapSize);
 end;
 
 procedure TDesignFrame.UpdateObjectInspectorTimer(Sender: TObject);

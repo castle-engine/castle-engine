@@ -1219,6 +1219,7 @@ object DesignFrame: TDesignFrame
             BorderSpacing.Top = 1
             BorderSpacing.Right = 5
             MinValue = 1
+            OnChange = SpinEditHeightMapWidthChange
             TabOrder = 0
             Value = 64
           end
@@ -1235,6 +1236,7 @@ object DesignFrame: TDesignFrame
             BorderSpacing.Top = 5
             BorderSpacing.Right = 5
             MinValue = 1
+            OnChange = SpinEditHeightMapWidthChange
             TabOrder = 1
             Value = 64
           end
