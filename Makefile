@@ -50,22 +50,6 @@
 #     Delete FPC temporary files, Delphi temporary files,
 #     Lazarus temporary files (*.compiled),
 #     binaries of example programs and tools.
-#
-# Not-so-commonly-useful targets:
-#
-#   cleanmore --
-#     Same as clean, but also delete:
-#     - Backup files from Emacs (*~), Lazarus (backup), Delphi (*.~???), Blender,
-#       QtCreator (*.pro.user)...
-#     - pasdoc generated documentation in doc/pasdoc/ and doc/reference/
-#     - closed-source libs you may have left in tools/build-tool/data
-#     - FPC from cge-fpc
-#     This is a useful step when packing the release of CGE.
-#
-#   cleanall --
-#     Same as cleanmore for now.
-#     Intention is to remove *everything* that can be manually recreated,
-#     even if it's somewhat hard to recreate.
 
 # detect platform-specific things --------------------------------------------
 
@@ -377,7 +361,7 @@ cleanexamples:
 
 # cleaning ------------------------------------------------------------
 
-.PHONY: clean cleanmore cleanall
+.PHONY: clean
 
 clean: cleanexamples
 	"$(FIND)" . -type f '(' -iname '*.ow'  -or \
@@ -448,25 +432,6 @@ clean: cleanexamples
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -or \
 	  '(' -iname CastleEngineManifest.xml \
 	      -execdir $(BUILD_TOOL) clean ';' ')'
-
-cleanmore: clean
-	"$(FIND)" . -type f '(' -iname '*~' -or \
-	                   -iname '*.bak' -or \
-	                   -iname '*.~???' -or \
-	                   -iname '*.pro.user' -or \
-			   -iname '*.blend1' \
-			')' -exec rm -f '{}' ';'
-	"$(FIND)" . -type d '(' -iname 'backup' \
-			')' -exec rm -Rf '{}' ';' -prune
-	$(MAKE) -C doc/pasdoc/ clean
-	rm -Rf tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar \
-	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h \
-	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
-	rm -f castle-engine*.zip tools/internal/pack_release/castle-engine*.zip
-	rm -Rf fpc-*.zip tools/contrib/fpc/
-
-cleanall: cleanmore
 
 # tests ----------------------------------------
 

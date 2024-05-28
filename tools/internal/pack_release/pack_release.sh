@@ -258,6 +258,55 @@ add_external_tool ()
   fi
 }
 
+# Followup to "make clean" that cleans even more stuff,
+# good to really have 100% clean state for packing.
+# Deletes files in current working directory (and doesn't change current working directory).
+cge_clean_all ()
+{
+  # Delete backup files from Emacs (*~), Lazarus (backup), Delphi (*.~???), Blender,
+  # QtCreator (*.pro.user).
+	"${FIND}" . -type f '(' \
+      -iname '*~' -or \
+      -iname '*.bak' -or \
+      -iname '*.~???' -or \
+      -iname '*.pro.user' -or \
+      -iname '*.blend1' \
+    ')' -exec rm -f '{}' ';'
+	"${FIND}" . -type d '(' \
+    -iname 'backup' \
+		')' -exec rm -Rf '{}' ';' -prune
+
+  # Delete pasdoc generated documentation in doc/pasdoc/ and doc/reference/
+	"${MAKE}" -C doc/pasdoc/ clean
+
+  # Delete closed-source libs you may have left in tools/build-tool/data
+  # (as some past instructions recommended to copy them into CGE tree).
+	rm -Rf tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar \
+	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h \
+	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
+
+  # Delete previous pack_release.sh leftovers
+	rm -f castle-engine*.zip tools/internal/pack_release/castle-engine*.zip
+
+  # Delete bundled FPC leftovers
+	rm -Rf fpc-*.zip tools/contrib/fpc/
+
+  # Cleanup .exe more brutally.
+  # TODO: This should not be needed "castle-engine clean" done by "make clean"
+  # should clean all relevant exes, cross-platform.
+  # This is just a temporary workaround of the fact that our Delphi projects right now
+  # sometimes leave artifacts -- xxx_standalone.exe, base_tests/Win32/Debug/xxx.exe .
+  "${FIND}" examples/ -iname '*.exe' -execdir rm -f '{}' ';'
+
+  # Delete installed subdir (in case you did
+  # "make install PREFIX=${CASTLE_ENGINE_PATH}/installed/", as some CI jobs do)
+  rm -Rf installed/
+
+  # Remove Vampyre Demos - take up 60 MB space, and are not necessary for users of CGE.
+  rm -Rf src/vampyre_imaginglib/src/Demos/
+}
+
 # Prepare directory with precompiled CGE.
 #
 # Parameters:
@@ -337,18 +386,10 @@ pack_platform_dir ()
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_editor_components.lpk
 
-  # Make sure no leftovers from previous compilations remain, to not affect tools, to not pack them in release
-  "${MAKE}" cleanmore ${MAKE_OPTIONS}
-
-  # Cleanup .exe more brutally.
-  # TODO: This should not be needed "castle-engine clean" done by "make clean"
-  # should clean all relevant exes, cross-platform.
-  # This is just a temporary workaround of the fact that our Delphi projects right now
-  # sometimes leave artifacts -- xxx_standalone.exe, base_tests/Win32/Debug/xxx.exe .
-  "${FIND}" examples/ -iname '*.exe' -execdir rm -f '{}' ';'
-
-  # Remove Vampyre Demos - take up 60 MB space, and are not necessary for users of CGE.
-  rm -Rf src/vampyre_imaginglib/src/Demos/
+  # Make sure no leftovers from previous compilations remain,
+  # to not pack them in release.
+  "${MAKE}" clean ${MAKE_OPTIONS}
+  cge_clean_all
 
   # Compile tools (except editor) with just FPC
   "${MAKE}" tools ${MAKE_OPTIONS} BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
