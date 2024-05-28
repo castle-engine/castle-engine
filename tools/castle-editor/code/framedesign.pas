@@ -55,6 +55,8 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ActionSaveTerrainAs: TAction;
+    ActionSaveTerrain: TAction;
     ActionChooseLevelTerrainTool: TAction;
     ActionChooseLowerTerrainTool: TAction;
     ActionChooseRaiseTerrainTool: TAction;
@@ -198,6 +200,8 @@ type
     procedure ActionEditTerrainUpdate(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
+    procedure ActionSaveTerrainAsExecute(Sender: TObject);
+    procedure ActionSaveTerrainExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
     procedure ActionSimulationPlayStopExecute(Sender: TObject);
@@ -340,9 +344,11 @@ type
       // Last selected components (with AutoSelectParents=true)
       LastSelected: TComponentList;
       FShowColliders: Boolean;
+
       FIsEditingTerrain: Boolean;
       FTerrainLevelHeight: Byte;
       FIsFirstTerrainLevelFrame: Boolean;
+      FWasTerrainUrlUpdate: Boolean;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -6095,6 +6101,8 @@ end;
 procedure TDesignFrame.ActionEditTerrainExecute(Sender: TObject);
 var
   Terrain: TCastleTerrain;
+  Mr: TModalResult;
+  UrlBuf: String;
 begin
   if (CurrentTransform = nil) or (not (CurrentTransform is TCastleTerrain)) then
     Exit;
@@ -6110,10 +6118,34 @@ begin
     FDesignerLayer.Exists := false;
     VisualizeTransformSelected.Parent := nil;
     PanelEditTerrain.Visible := true;
+    FWasTerrainUrlUpdate := false;
   end else
   begin
     // Finish edit mode
+    if Terrain.EditMode.TerrainModified then
+    begin
+      Mr := MessageDlg('Terrain editor',
+        'Terrain was modified but not saved yet. Save changes?',
+        mtConfirmation, mbYesNoCancel, 0);
+      case Mr of
+        mrYes:
+        begin
+          ActionSaveTerrainExecute(Self);
+        end;
+        mrCancel: Exit;
+      end;
+    end;
     Terrain.Mode := ctmMesh;
+    // TODO: better way to update TCastleTerrainImage
+    if FWasTerrainUrlUpdate then
+    begin
+      if (Terrain.Data <> nil) and (Terrain.Data is TCastleTerrainImage) then
+      begin
+        UrlBuf := TCastleTerrainImage(Terrain.Data).Url;
+        TCastleTerrainImage(Terrain.Data).Url := '';
+        TCastleTerrainImage(Terrain.Data).Url := UrlBuf;
+      end;
+    end;
     ControlProperties.Visible := true;
     PanelLeft.Visible := true;
     FIsEditingTerrain := false;
@@ -6155,6 +6187,71 @@ begin
   else
     ActionPlayStop.ImageIndex := TImageIndex(iiPlay);
   ActionPlayStop.Checked := IsRunning;
+end;
+
+procedure TDesignFrame.ActionSaveTerrainAsExecute(Sender: TObject);
+var
+  SaveHeightImageDialog: TCastleSaveImageDialog;
+  Terrain: TCastleTerrain;
+begin
+  if not (CurrentTransform is TCastleTerrain) then
+  begin
+    ErrorBox('Wrong selected transform type. Should never happen, please report bug.');
+    Exit;
+  end;
+
+  Terrain := CurrentTransform as TCastleTerrain;
+
+  SaveHeightImageDialog := TCastleSaveImageDialog.Create(nil);
+  try
+    SaveHeightImageDialog.AdviceDataDirectory := true;
+    SaveHeightImageDialog.InitialDir := URIToFilenameSafe(ApplicationData('/'));
+    if SaveHeightImageDialog.Execute then
+    begin
+      try
+        Terrain.EditMode.SaveEditModeHeightMap(SaveHeightImageDialog.Url);
+        // update current image also in case the user selected
+        // the same file that is loaded
+        FWasTerrainUrlUpdate := true;
+      except
+        on E: Exception do
+          ErrorBox(E.Message);
+      end;
+    end;
+  finally
+    FreeAndNil(SaveHeightImageDialog);
+  end;
+end;
+
+procedure TDesignFrame.ActionSaveTerrainExecute(Sender: TObject);
+var
+  Terrain: TCastleTerrain;
+  TerrainUrl: String;
+
+  function GetTerrainUrl: String;
+  begin
+    if (Terrain.Data <> nil) and (Terrain.Data is TCastleTerrainImage) then
+      Exit(TCastleTerrainImage(Terrain.Data).Url);
+
+    Result := '';
+  end;
+
+begin
+  if not (CurrentTransform is TCastleTerrain) then
+  begin
+    ErrorBox('Wrong selected transform type. Should never happen, please report bug.');
+    Exit;
+  end;
+
+  Terrain := CurrentTransform as TCastleTerrain;
+  TerrainUrl := GetTerrainUrl;
+  if TerrainUrl <> '' then
+  begin
+    Terrain.EditMode.SaveEditModeHeightMap(TerrainUrl);
+    FWasTerrainUrlUpdate := true;
+  end
+  else
+    ActionSaveTerrainAsExecute(Sender);
 end;
 
 procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);

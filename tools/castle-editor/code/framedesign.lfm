@@ -430,6 +430,7 @@ object DesignFrame: TDesignFrame
           Constraints.MinHeight = 34
           Constraints.MinWidth = 34
           Down = True
+          GroupIndex = 40
         end
         object SpeedButtonLowerTerrain: TSpeedButton
           Left = 40
@@ -1171,9 +1172,9 @@ object DesignFrame: TDesignFrame
             Height = 34
             Top = 0
             Width = 104
+            Action = ActionSaveTerrain
             AutoSize = True
             BorderSpacing.Left = 5
-            Caption = 'Save Terrain'
             TabOrder = 0
           end
           object ButtonSaveTerrainAs: TButton
@@ -1183,10 +1184,10 @@ object DesignFrame: TDesignFrame
             Left = 114
             Height = 34
             Top = 0
-            Width = 126
+            Width = 138
+            Action = ActionSaveTerrainAs
             AutoSize = True
             BorderSpacing.Left = 5
-            Caption = 'Save Terrain As'
             TabOrder = 1
           end
         end
@@ -2278,6 +2279,16 @@ object DesignFrame: TDesignFrame
       Caption = 'L'
       GroupIndex = 40
       OnExecute = ActionChooseLevelTerrainToolExecute
+    end
+    object ActionSaveTerrain: TAction
+      Category = 'Terrain'
+      Caption = 'Save Terrain'
+      OnExecute = ActionSaveTerrainExecute
+    end
+    object ActionSaveTerrainAs: TAction
+      Category = 'Terrain'
+      Caption = 'Save Terrain As...'
+      OnExecute = ActionSaveTerrainAsExecute
     end
   end
 end
